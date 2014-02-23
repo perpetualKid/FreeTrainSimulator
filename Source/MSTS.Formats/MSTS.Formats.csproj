@@ -32,21 +32,6 @@
     <DocumentationFile>..\..\Program\MSTS.Formats.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Xna.Framework, Version=3.1.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=x86" />
-    <Reference Include="System" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Xml.Linq">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\MSTS\_math.cs">
       <Link>_math.cs</Link>
     </Compile>
@@ -77,6 +62,13 @@
     <Compile Include="YFile.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Xna.Framework, Version=3.1.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=x86" />
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\MSTS.Parsers\MSTS.Parsers.csproj">
       <Project>{8A84696C-3559-49B8-B27F-BB6932D8A1C6}</Project>
       <Name>MSTS.Parsers</Name>
@@ -99,6 +91,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>call "$(SolutionDir)3rdPartyLibs\GNU.Gettext.PostBuild.bat" "$(ProjectName)" "$(ProjectDir)"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
