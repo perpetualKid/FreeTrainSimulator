@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011 by the Open Rails project.
+﻿// COPYRIGHT 2009, 2011 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -19,39 +19,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ORTS.Interlocking.MovementAuthority;
-using MSTS;
 
-namespace ORTS.Interlocking
+namespace ORTS.Common
 {
-   public partial class InterlockingSystem
-   {
+    public enum Direction { Forward, Reverse, N }
 
-
-
-      private TrackNode[] TrackNodes
-      {
-         get
-         {
-            return simulator.TDB.TrackDB.TrackNodes;
-         }
-      }
-
-      private List<Route> DiscoverRoutesFromSignal(InterlockingSignal s)
-      {
-         List<Route> returnValue = new List<Route>();
-
-
-         SignalObject startSignal = s.SignalObject;
-
-
-          //startSignal.trackNode
-
-
-
-         return returnValue;
-      }
-
-      
-   }
+    public class DirectionControl
+    {
+        public static Direction Flip(Direction direction)
+        {
+            //return direction == Direction.Forward ? Direction.Reverse : Direction.Forward;
+            if (direction == Direction.N)
+                return Direction.N;
+            if (direction == Direction.Forward)
+                return Direction.Reverse;
+            else
+                return Direction.Forward;
+        }
+    }
 }

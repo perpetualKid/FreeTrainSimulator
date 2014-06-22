@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010 by the Open Rails project.
+﻿// COPYRIGHT 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -15,29 +15,26 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+// This file is the responsibility of the 3D & Environment Team. 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ORTS.Interlocking
+namespace ORTS.Common
 {
-
-   /// <summary>
-   /// Defines the base class for interlocking objects.
-   /// </summary>
-   public class InterlockingItem
-   {
-      /// <summary>
-      /// Reference to the simulator object.
-      /// </summary>
-      protected Simulator simulator;
-
-
-      public InterlockingItem(Simulator simulator)
-      {
-         this.simulator = simulator;
-      }
-
-   }
+    public enum TrackMonitorSignalAspect
+    {
+        None,
+        Clear_2,
+        Clear_1,
+        Approach_3,
+        Approach_2,
+        Approach_1,
+        Restricted,
+        StopAndProceed,
+        Stop,
+        Permission,
+    }
 }

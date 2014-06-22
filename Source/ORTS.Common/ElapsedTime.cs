@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2011 by the Open Rails project.
+﻿// COPYRIGHT 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -15,28 +15,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace ORTS.Interlocking.MovementAuthority
+namespace ORTS.Common
 {
-   /// <summary>
-   /// Defines a single path between either  a signal
-   /// and a termination object (another signal or a buffer). 
-   /// </summary>
-   public class Route
-   {
+    public class ElapsedTime
+    {
+        public readonly float ClockSeconds;
+        public readonly float RealSeconds;
 
-      /// <summary>
-      /// The signal defining the beginning of the route.
-      /// </summary>
-      public InterlockingSignal StartSignal { get; private set; }
+        public static ElapsedTime Zero = new ElapsedTime();
 
+        public static ElapsedTime operator +(ElapsedTime a, ElapsedTime b)
+        {
+            return new ElapsedTime(a.ClockSeconds + b.ClockSeconds, a.RealSeconds + b.RealSeconds);
+        }
 
-      public InterlockingTerminator Terminator { get; private set; }
-      
+        public ElapsedTime()
+            : this(0, 0)
+        {
+        }
 
-   }
+        public ElapsedTime(float clockSeconds, float realSeconds)
+        {
+            ClockSeconds = clockSeconds;
+            RealSeconds = realSeconds;
+        }
+    }
 }
