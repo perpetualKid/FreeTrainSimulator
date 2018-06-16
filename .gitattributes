@@ -19,10 +19,10 @@
 *.adoc text
 *.textile text
 *.mustache text
-*.csv text
+#*.csv text
 *.tab text
 *.tsv text
-*.sql text
+#*.sql text
 
 # Graphics
 *.png binary
