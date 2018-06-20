@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Orts.Formats.Msts;
 using Orts.Simulation.Physics;
@@ -490,18 +489,18 @@ namespace Orts.Simulation
             const float MaxDistanceOfWarningPost = 2000;
 
             for (int idxZone = 0; idxZone < zones.ActivityRestrictedSpeedZoneList.Count; idxZone++)
-			{
-               var worldPosition1 = new WorldPosition();
-                newSpeedPostItems[0]   = new TempSpeedPostItem(routeFile,
+            {
+                var worldPosition1 = new WorldPosition();
+                newSpeedPostItems[0] = new TempSpeedPostItem(routeFile,
                     zones.ActivityRestrictedSpeedZoneList[idxZone].StartPosition, true, worldPosition1, false);
                 var worldPosition2 = new WorldPosition();
                 newSpeedPostItems[1] = new TempSpeedPostItem(routeFile,
                     zones.ActivityRestrictedSpeedZoneList[idxZone].EndPosition, false, worldPosition2, false);
-			
-                // Add the speedposts to the track database. This will set the TrItemId's of all speedposts
-            trackDB.AddTrItems(newSpeedPostItems);
 
-            // And now update the various (vector) tracknodes (this needs the TrItemIds.
+                // Add the speedposts to the track database. This will set the TrItemId's of all speedposts
+                trackDB.AddTrItems(newSpeedPostItems);
+
+                // And now update the various (vector) tracknodes (this needs the TrItemIds.
                 var endOffset = AddItemIdToTrackNode(ref zones.ActivityRestrictedSpeedZoneList[idxZone].EndPosition,
                     tsectionDat, trackDB, newSpeedPostItems[1], out traveller);
                 var startOffset = AddItemIdToTrackNode(ref zones.ActivityRestrictedSpeedZoneList[idxZone].StartPosition,
@@ -525,11 +524,11 @@ namespace Orts.Simulation
                 {
                     FlipRestrSpeedPost((TempSpeedPostItem)speedWarningPostItem);
                 }
-                ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[0]); 
+                ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[0]);
                 TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[0]);
-                ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[1]); 
+                ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[1]);
                 TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[1]);
-                ComputeTablePosition((TempSpeedPostItem)speedWarningPostItem); 
+                ComputeTablePosition((TempSpeedPostItem)speedWarningPostItem);
                 TempSpeedPostItems.Add((TempSpeedPostItem)speedWarningPostItem);
             }
         }

@@ -30,6 +30,7 @@ using Orts.Formats.OR;
 using Orts.Parsers.Msts;
 using ORTS;
 using ORTS.Common;
+using Color = System.Drawing.Color;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

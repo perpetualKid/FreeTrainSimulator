@@ -200,7 +200,7 @@ namespace ORTS.Common
 
         static void WriteGraphicsAdapter(TextWriter output)
         {
-            foreach (var adapter in GraphicsAdapter.Adapters)
+/*            foreach (var adapter in GraphicsAdapter.Adapters)
             {
                 try
                 {
@@ -221,6 +221,7 @@ namespace ORTS.Common
                 }
                 catch (Exception error) { }
             }
+            */
         }
 
         static T SafeReadKey<T>(RegistryKey key, string name, T defaultValue)
