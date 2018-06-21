@@ -760,8 +760,8 @@ namespace Orts.Viewer3D.RollingStock
                     if (frameIndex < frameCount)
                     {
                         texture.GetData(0, new Rectangle(x * frameSize.X, y * frameSize.Y, copySize.X, copySize.Y), buffer, 0, buffer.Length);
-                        var frame = frames[frameIndex++] = new Texture2D(graphicsDevice, controlSize.X, controlSize.Y, 1, TextureUsage.None, texture.Format);
-                        frame.SetData(0, new Rectangle(0, 0, copySize.X, copySize.Y), buffer, 0, buffer.Length, SetDataOptions.None);
+                        var frame = frames[frameIndex++] = new Texture2D(graphicsDevice, controlSize.X, controlSize.Y, false, texture.Format);
+                        frame.SetData(0, new Rectangle(0, 0, copySize.X, copySize.Y), buffer, 0, buffer.Length);
                     }
                 }
             }
@@ -1276,10 +1276,9 @@ namespace Orts.Viewer3D.RollingStock
                     _Shader.SetData(_Viewer.MaterialManager.sunDirection, _isNightTexture, false, _Viewer.Simulator.Weather.OvercastFactor);
                 else
                     _Shader.SetData(_Viewer.MaterialManager.sunDirection, _isNightTexture, false, _Viewer.World.MSTSSky.mstsskyovercastFactor);
-
+                _Sprite2DCabView.SpriteBatch.End();
+                _Sprite2DCabView.SpriteBatch.Begin(0, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, _Shader);
                 _Shader.SetTextureData(stretchedCab.Left, stretchedCab.Top, stretchedCab.Width, stretchedCab.Height);
-                _Shader.Begin();
-                _Shader.CurrentTechnique.Passes[0].Begin();
             }
 
             if (_CabTexture != null)
@@ -1295,13 +1294,6 @@ namespace Orts.Viewer3D.RollingStock
                 {
                     _Sprite2DCabView.SpriteBatch.Draw(_CabTexture, stretchedCab, Color.White);
                 }
-            }
-            //Materials.SpriteBatchMaterial.SpriteBatch.Draw(_CabTexture, _CabRect, Color.White);
-
-            if (_Shader != null)
-            {
-                _Shader.CurrentTechnique.Passes[0].End();
-                _Shader.End();
             }
         }
 
@@ -1444,15 +1436,8 @@ namespace Orts.Viewer3D.RollingStock
             if (Shader != null)
             {
                 Shader.SetTextureData(Position.X, Position.Y, Texture.Width * ScaleToScreen, Texture.Height * ScaleToScreen);
-                Shader.Begin();
-                Shader.CurrentTechnique.Passes[0].Begin();
             }
             ControlView.SpriteBatch.Draw(Texture, Position, null, Color.White, Rotation, Origin, ScaleToScreen, SpriteEffects.None, 0);
-            if (Shader != null)
-            {
-                Shader.CurrentTechnique.Passes[0].End();
-                Shader.End();
-            }
         }
     }
 
@@ -1630,15 +1615,8 @@ namespace Orts.Viewer3D.RollingStock
             if (Shader != null)
             {
                 Shader.SetTextureData(DestinationRectangle.Left, DestinationRectangle.Top, DestinationRectangle.Width, DestinationRectangle.Height);
-                Shader.Begin();
-                Shader.CurrentTechnique.Passes[0].Begin();
             }
             ControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, DrawColor);
-            if (Shader != null)
-            {
-                Shader.CurrentTechnique.Passes[0].End();
-                Shader.End();
-            }
         }
     }
 
@@ -1726,15 +1704,8 @@ namespace Orts.Viewer3D.RollingStock
             if (Shader != null)
             {
                 Shader.SetTextureData(DestinationRectangle.Left, DestinationRectangle.Top, DestinationRectangle.Width, DestinationRectangle.Height);
-                Shader.Begin();
-                Shader.CurrentTechnique.Passes[0].Begin();
             }
             ControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, Color.White);
-            if (Shader != null)
-            {
-                Shader.CurrentTechnique.Passes[0].End();
-                Shader.End();
-            }
         }
 
         /// <summary>

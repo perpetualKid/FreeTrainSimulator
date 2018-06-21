@@ -15,13 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
-using Orts.Parsers.Msts;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
+using Microsoft.Xna.Framework;
+using Orts.Parsers.Msts;
 
 namespace Orts.Formats.Msts
 {
@@ -52,6 +49,14 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("transition", ()=>{ Transition = 1 <= stf.ReadFloatBlock(STFReader.UNITS.None, 0); }),
                 new STFReader.TokenProcessor("angle", ()=>{ Angle = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),
             });
+            // Color byte order changed in XNA 4 from BGRA to RGBA
+            Color = new Color()
+            {
+                B = (byte)(Color),
+                G = (byte)(Color >> 8),
+                R = (byte)(Color >> 16),
+                A = (byte)(Color >> 24)
+            }.PackedValue;
         }
 
         public LightState(LightState state, bool reverse)
