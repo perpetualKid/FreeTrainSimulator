@@ -15,9 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-// removes catch and allows program to crash on error statement
-// #define DEBUG_ALLOWCRASH
-
 // prints details of the file as read from input
 // #define DEBUG_PRINT_IN
 
@@ -37,15 +34,13 @@ namespace Orts.Formats.Msts
     #region SCRReadinfo
     public class SCRReadInfo
     {
-        public string Readline { get; internal set; }
+        public string ReadLine { get; internal set; }
         public int LineNumber { get; internal set; }
-        public string ScriptName { get; internal set; }
 
-        public SCRReadInfo(string line, int lineNumber, string scriptName)
+        public SCRReadInfo(string line, int lineNumber)
         {
-            Readline = line;
+            ReadLine = line;
             LineNumber = lineNumber;
-            ScriptName = scriptName;
         }
     }
     #endregion
@@ -823,7 +818,7 @@ namespace Orts.Formats.Msts
             bool inScript = false;
             SignalScriptParser parser = new SignalScriptParser(reader);
 
-            foreach(string line in parser)
+            foreach (string line in parser)
             {
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
@@ -876,7 +871,7 @@ namespace Orts.Formats.Msts
                     if (inScript)
                     {
                         //add line to current script
-                        scriptLines.Add(new SCRReadInfo(line, parser.LineNumber, scriptName));
+                        scriptLines.Add(new SCRReadInfo(line, parser.LineNumber));
                     }
                 }
                 if (parser.LineNumber % 100 == 0)
@@ -894,79 +889,71 @@ namespace Orts.Formats.Msts
                 bool validScript = AllocateScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
                     , signalTypes, scriptName, parser.LineNumber, fileName);
             }
+
+#if DEBUG_PRINT_OUT
+            // print processed details 
+            foreach (KeyValuePair<SignalType, SCRScripts> item in Scripts)
+            {
+                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Script : " + item.Value.ScriptName + "\n\n");
+                printscript(item.Value.Statements);
+                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n=====================\n");
+            }
+#endif
         }
 
         public class SCRScripts
         {
 
-            private IDictionary<string, uint> LocalFloats;
-            public uint totalLocalFloats;
-            public ArrayList Statements;
-            public string scriptname;
+            private IDictionary<string, uint> localFloats;
+            public uint totalLocalFloats { get; private set; }
+            public ArrayList Statements { get; private set; }
+            public string ScriptName { get; private set; }
 
             //================================================================================================//
             //
             // Constructor
             // Input is list with all lines for one signal script
             //
-
-            public SCRScripts(List<SCRReadInfo> ScriptLines, string scriptnameIn, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+            public SCRScripts(List<SCRReadInfo> scriptLines, string scriptName, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
             {
-                LocalFloats = new Dictionary<string, uint>();
+                localFloats = new Dictionary<string, uint>();
                 totalLocalFloats = 0;
                 Statements = new ArrayList();
+                ScriptName = scriptName;
 
-                int lcount = 0;
-                int maxcount = ScriptLines.Count;
-
-                scriptname = scriptnameIn;
+                int line = 0;
+                int maxcount = scriptLines.Count;
 
 #if DEBUG_PRINT_IN
                 // print inputlines
 
-                foreach (SCRReadInfo InfoLine in ScriptLines)
+                foreach (SCRReadInfo InfoLine in scriptLines)
                 {
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", InfoLine.Readline + "\n");
+                    File.AppendAllText(din_fileLoc + @"sigscr.txt", InfoLine.ReadLine + "\n");
                 }
                 File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n+++++++++++++++++++++++++++++++++++\n\n");
 
 #endif
 
                 // Skip external floats (exist automatically)
+                while (scriptLines[line].ReadLine.StartsWith("EXTERN FLOAT ") && line++ < maxcount) ;
 
-                bool exfloat = ScriptLines[lcount].Readline.StartsWith("EXTERN FLOAT ");
-                while (exfloat && lcount < maxcount)
+                //// Process floats : build list with internal floats
+                string floatString;
+                while ((floatString = scriptLines[line].ReadLine).StartsWith("FLOAT ") && line++ < maxcount)
                 {
-                    lcount++;
-                    exfloat = ScriptLines[lcount].Readline.StartsWith("EXTERN FLOAT ");
-                }
-
-                // Process floats : build list with internal floats
-
-                bool infloat = ScriptLines[lcount].Readline.StartsWith("FLOAT ");
-                while (infloat && lcount < maxcount)
-                {
-                    string floatstring = ScriptLines[lcount].Readline.Substring(6);
-                    floatstring = floatstring.Trim();
-                    int endstring = floatstring.IndexOf(";");
-                    floatstring = floatstring.Substring(0, endstring);
-                    floatstring = floatstring.Trim();
-
-                    if (!LocalFloats.ContainsKey(floatstring))
+                    floatString = floatString.Substring(6, floatString.Length - 7);
+                    if (!localFloats.ContainsKey(floatString))
                     {
-                        LocalFloats.Add(floatstring, totalLocalFloats);
-                        totalLocalFloats++;
+                        localFloats.Add(floatString, totalLocalFloats++);
                     }
-
-                    lcount++;
-                    infloat = ScriptLines[lcount].Readline.StartsWith("FLOAT ");
                 }
 
 #if DEBUG_PRINT_OUT
                 // print details of internal floats
 
                 File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n\nFloats : \n");
-                foreach (KeyValuePair<string, uint> deffloat in LocalFloats)
+                foreach (KeyValuePair<string, uint> deffloat in localFloats)
                 {
                     string defstring = deffloat.Key;
                     uint defindex = deffloat.Value;
@@ -975,87 +962,49 @@ namespace Orts.Formats.Msts
                 }
                 File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Total : " + totalLocalFloats.ToString() + "\n\n\n");
 #endif
-
-                // Check rest of file - statements
-
-                Statements = processScriptLines(ScriptLines, lcount, LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                ScriptLines.Clear();
-
+                scriptLines.RemoveRange(0, line);
+                Statements = ParseStatements(scriptLines, localFloats, orSignalTypes, orNormalSubtypes);
+                scriptLines.Clear();
             }// constructor
 
+            private static ArrayList ParseStatements(List<SCRReadInfo> scriptLines, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            {
+                ArrayList result = new ArrayList();
+                List<int> ifblockcount;
+                int index = 0;
 
+                while (index<scriptLines.Count)
+                {
+                    SCRReadInfo lineItem = scriptLines[index];
+                    if (lineItem.ReadLine.Length == 1 && (lineItem.ReadLine == "{" || lineItem.ReadLine == "}"))
+                    {
+                        index++;
+                        continue;
+                    }
+                    else if (lineItem.ReadLine.StartsWith("IF") && ((lineItem.ReadLine[2] == ' ') || (lineItem.ReadLine[2]) == '('))    //matches "IF " as well "IF("
+                    {
+                        ifblockcount = findEndIfBlock(scriptLines, index);
+                        SCRConditionBlock thisCondition = new SCRConditionBlock(scriptLines, index, ifblockcount, localFloats, orSignalTypes, orNormalSubtypes);
+                        index = ifblockcount[ifblockcount.Count - 1];
+                        result.Add(thisCondition);
+                    }
+                    // process statement
+                    else
+                    {
+                        Debug.Assert(!string.IsNullOrWhiteSpace(lineItem.ReadLine));
+                        SCRStatement thisStatement = new SCRStatement(lineItem, localFloats, orSignalTypes, orNormalSubtypes);
+                        if (thisStatement.IsValid)
+                            result.Add(thisStatement);
+                        index++;
+                    }
+                }
+                return result;
+            }
             //================================================================================================//
             //
             // parsing routines
             //
             //================================================================================================//
-            //
-            // process all process lines
-            // this function is also called recursively to process separate lower level IF and ELSE blocks
-            //
-            //================================================================================================//
-
-            public static ArrayList processScriptLines(List<SCRReadInfo> PSLScriptLines, int index, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
-            {
-
-                int lcount = index;
-                int nextcount;
-                List<int> ifblockcount;
-                ArrayList localStatements = new ArrayList();
-
-                // loop through all lines
-
-                while (lcount < PSLScriptLines.Count)
-                {
-
-                    // clear enclosing { and } if still in string
-
-                    int sepparent = PSLScriptLines[lcount].Readline.IndexOf("{");
-                    while (sepparent >= 0)
-                    {
-                        PSLScriptLines[lcount].Readline = PSLScriptLines[lcount].Readline.Replace("{", String.Empty).Trim();
-                        sepparent = PSLScriptLines[lcount].Readline.IndexOf("{");
-                    }
-
-                    sepparent = PSLScriptLines[lcount].Readline.IndexOf("}");
-                    while (sepparent >= 0)
-                    {
-                        PSLScriptLines[lcount].Readline = PSLScriptLines[lcount].Readline.Replace("}", String.Empty).Trim();
-                        sepparent = PSLScriptLines[lcount].Readline.IndexOf("}");
-                    }
-
-                    // process IF statement
-                    // all lines in IF (-ELSEIF) (-ELSE)  block will be handled by this function call
-
-                    if (PSLScriptLines[lcount].Readline.StartsWith("IF "))
-                    {
-                        ifblockcount = findEndIfBlock(PSLScriptLines, lcount);
-                        SCRConditionBlock thisCondition = new SCRConditionBlock(PSLScriptLines, lcount, ifblockcount, LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                        nextcount = ifblockcount[ifblockcount.Count - 1];
-                        localStatements.Add(thisCondition);
-                    }
-
-                    // process statement
-
-                    else if (PSLScriptLines[lcount] != null && !String.IsNullOrEmpty(PSLScriptLines[lcount].Readline))
-                    {
-                        nextcount = FindEndStatement(PSLScriptLines, lcount);
-                        SCRStatement thisStatement = new SCRStatement(PSLScriptLines[lcount], LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                        if (thisStatement.IsValid) localStatements.Add(thisStatement);
-                    }
-
-                    // empty line (may be result of removing { and })
-
-                    else
-                    {
-                        nextcount = lcount + 1;
-                    }
-
-                    lcount = nextcount;
-                }
-
-                return localStatements;
-            } // processScriptlines
 
             //================================================================================================//
             //
@@ -1073,7 +1022,7 @@ namespace Orts.Formats.Msts
                 //================================================================================================//
 
                 SCRReadInfo presentInfo = FESScriptLines[index];
-                presentstring = presentInfo.Readline.Trim();
+                presentstring = presentInfo.ReadLine.Trim();
                 FESScriptLines.RemoveAt(index);
                 endpos = presentstring.IndexOf(";");
                 actindex = index;
@@ -1089,7 +1038,7 @@ namespace Orts.Formats.Msts
 
                 while (endpos <= 0 && actindex < FESScriptLines.Count)
                 {
-                    addline = FESScriptLines[actindex].Readline;
+                    addline = FESScriptLines[actindex].ReadLine;
                     FESScriptLines.RemoveAt(actindex);
                     presentstring = String.Concat(presentstring, addline);
                     endpos = presentstring.IndexOf(";");
@@ -1111,12 +1060,12 @@ namespace Orts.Formats.Msts
 
                 if (presentstring.Length > (endpos + 1) && endpos > 0)
                 {
-                    SCRReadInfo splitInfo = new SCRReadInfo(presentstring.Substring(endpos + 1).Trim(), presentInfo.LineNumber, presentInfo.ScriptName);
+                    SCRReadInfo splitInfo = new SCRReadInfo(presentstring.Substring(endpos + 1).Trim(), presentInfo.LineNumber);
                     FESScriptLines.Insert(index, splitInfo);
                     presentstring = presentstring.Substring(0, endpos + 1).Trim();
                 }
 
-                SCRReadInfo newInfo = new SCRReadInfo(presentstring.Trim(), presentInfo.LineNumber, presentInfo.ScriptName);
+                SCRReadInfo newInfo = new SCRReadInfo(presentstring.Trim(), presentInfo.LineNumber);
                 FESScriptLines.Insert(index, newInfo);
                 actindex = index + 1;
                 return actindex;
@@ -1146,7 +1095,7 @@ namespace Orts.Formats.Msts
                 int linecount = FindEndCondition(FEIScriptLines, index);
 
                 nextinfo = FEIScriptLines[linecount];
-                nextline = nextinfo.Readline;
+                nextline = nextinfo.ReadLine;
 
                 // full block : search for matching parenthesis in next lines
                 // set end after related closing }
@@ -1164,16 +1113,16 @@ namespace Orts.Formats.Msts
                 {
                     List<int> fullcount = findEndIfBlock(FEIScriptLines, linecount);
                     int lastline = fullcount[fullcount.Count - 1];
-                    string templine = FEIScriptLines[linecount].Readline;
+                    string templine = FEIScriptLines[linecount].ReadLine;
                     FEIScriptLines.RemoveAt(linecount);
                     templine = String.Concat("{ ", templine);
-                    tempinfo = new SCRReadInfo(templine, nextinfo.LineNumber, nextinfo.ScriptName);
+                    tempinfo = new SCRReadInfo(templine, nextinfo.LineNumber);
                     FEIScriptLines.Insert(linecount, tempinfo);
-                    templine = FEIScriptLines[lastline - 1].Readline;
+                    templine = FEIScriptLines[lastline - 1].ReadLine;
                     tempnumber = FEIScriptLines[lastline - 1].LineNumber;
                     FEIScriptLines.RemoveAt(lastline - 1);
                     templine = String.Concat(templine, " }");
-                    tempinfo = new SCRReadInfo(templine, tempnumber, nextinfo.ScriptName);
+                    tempinfo = new SCRReadInfo(templine, tempnumber);
                     FEIScriptLines.Insert(lastline - 1, tempinfo);
                     endIfcount = lastline;
                 }
@@ -1190,7 +1139,7 @@ namespace Orts.Formats.Msts
 
                 // check if next line starts with ELSE or any form of ELSEIF
 
-                nextline = endElsecount < FEIScriptLines.Count ? FEIScriptLines[endElsecount].Readline.Trim() : String.Empty;
+                nextline = endElsecount < FEIScriptLines.Count ? FEIScriptLines[endElsecount].ReadLine.Trim() : String.Empty;
                 bool endelse = false;
 
                 while (!endelse && endElsecount < FEIScriptLines.Count)
@@ -1205,7 +1154,7 @@ namespace Orts.Formats.Msts
                         {
                             elsepart = true;
                             nextinfo = FEIScriptLines[endElsecount + 1];
-                            nextline = nextinfo.Readline;
+                            nextline = nextinfo.ReadLine;
 
                             // check if next line start with IF - then this is an ELSEIF
 
@@ -1214,11 +1163,11 @@ namespace Orts.Formats.Msts
                                 nextline = String.Concat("ELSEIF ", nextline.Substring(3).Trim());
                                 FEIScriptLines.RemoveAt(endElsecount + 1);
                                 FEIScriptLines.RemoveAt(endElsecount);
-                                tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber, nextinfo.ScriptName);
+                                tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber);
                                 FEIScriptLines.Insert(endElsecount, tempinfo);
                                 endElsecount = FindEndCondition(FEIScriptLines, endElsecount);
                                 nextinfo = FEIScriptLines[endElsecount];
-                                nextline = nextinfo.Readline;
+                                nextline = nextinfo.ReadLine;
                             }
                             else
                             {
@@ -1241,20 +1190,20 @@ namespace Orts.Formats.Msts
                         {
                             nextline = String.Concat("ELSEIF ", nextline.Substring(3).Trim());
                             FEIScriptLines.RemoveAt(endElsecount);
-                            tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber, nextinfo.ScriptName);
+                            tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber);
                             FEIScriptLines.Insert(endElsecount, tempinfo);
                             endElsecount = FindEndCondition(FEIScriptLines, endElsecount);
                             nextinfo = FEIScriptLines[endElsecount];
-                            nextline = nextinfo.Readline;
+                            nextline = nextinfo.ReadLine;
                         }
                         else
                         {
                             endelse = true;
 
                             FEIScriptLines.RemoveAt(endElsecount);
-                            tempinfo = new SCRReadInfo(nextline.Trim(), nextinfo.LineNumber, nextinfo.ScriptName);
+                            tempinfo = new SCRReadInfo(nextline.Trim(), nextinfo.LineNumber);
                             FEIScriptLines.Insert(endElsecount, tempinfo);
-                            tempinfo = new SCRReadInfo("ELSE", nextinfo.LineNumber, nextinfo.ScriptName);
+                            tempinfo = new SCRReadInfo("ELSE", nextinfo.LineNumber);
                             FEIScriptLines.Insert(endElsecount, tempinfo);
                             endElsecount++;
                         }
@@ -1267,7 +1216,7 @@ namespace Orts.Formats.Msts
                         elsepart = true;
                         endElsecount = FindEndCondition(FEIScriptLines, endElsecount);
                         nextinfo = FEIScriptLines[endElsecount];
-                        nextline = nextinfo.Readline;
+                        nextline = nextinfo.ReadLine;
                     }
 
                     // line starts with ELSE{
@@ -1279,12 +1228,12 @@ namespace Orts.Formats.Msts
                         endelse = true;
                         nextline = nextline.Substring(5).Trim();
                         FEIScriptLines.RemoveAt(endElsecount);
-                        tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber, nextinfo.ScriptName);
+                        tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber);
                         FEIScriptLines.Insert(endElsecount, tempinfo);
                         nextline = "{";
-                        tempinfo = new SCRReadInfo("{", nextinfo.LineNumber, nextinfo.ScriptName);
+                        tempinfo = new SCRReadInfo("{", nextinfo.LineNumber);
                         FEIScriptLines.Insert(endElsecount, tempinfo);
-                        tempinfo = new SCRReadInfo("ELSE", nextinfo.LineNumber, nextinfo.ScriptName);
+                        tempinfo = new SCRReadInfo("ELSE", nextinfo.LineNumber);
                         FEIScriptLines.Insert(endElsecount, tempinfo);
                     }
 
@@ -1300,16 +1249,16 @@ namespace Orts.Formats.Msts
                         {
                             List<int> fullcount = findEndIfBlock(FEIScriptLines, endElsecount);
                             int lastline = fullcount[fullcount.Count - 1];
-                            string templine = FEIScriptLines[endElsecount].Readline;
+                            string templine = FEIScriptLines[endElsecount].ReadLine;
                             FEIScriptLines.RemoveAt(endElsecount);
                             templine = String.Concat("{ ", templine);
-                            tempinfo = new SCRReadInfo(templine, nextinfo.LineNumber, nextinfo.ScriptName);
+                            tempinfo = new SCRReadInfo(templine, nextinfo.LineNumber);
                             FEIScriptLines.Insert(endElsecount, tempinfo);
-                            templine = FEIScriptLines[lastline - 1].Readline;
+                            templine = FEIScriptLines[lastline - 1].ReadLine;
                             tempnumber = FEIScriptLines[lastline - 1].LineNumber;
                             FEIScriptLines.RemoveAt(lastline - 1);
                             templine = String.Concat(templine, " }");
-                            tempinfo = new SCRReadInfo(templine, tempnumber, nextinfo.ScriptName);
+                            tempinfo = new SCRReadInfo(templine, tempnumber);
                             FEIScriptLines.Insert(lastline - 1, tempinfo);
                             endElsecount = lastline;
                         }
@@ -1317,7 +1266,7 @@ namespace Orts.Formats.Msts
                         {
                             endElsecount = FindEndStatement(FEIScriptLines, endElsecount);
                         }
-                        nextline = endElsecount < FEIScriptLines.Count ? FEIScriptLines[endElsecount].Readline.Trim() : String.Empty;
+                        nextline = endElsecount < FEIScriptLines.Count ? FEIScriptLines[endElsecount].ReadLine.Trim() : String.Empty;
                         nextcount.Add(endElsecount);
                     }
                     else
@@ -1353,7 +1302,7 @@ namespace Orts.Formats.Msts
                 Regex closeparstr = new Regex("}");
 
                 firstinfo = FEBScriptLines[index];
-                string presentline = firstinfo.Readline;
+                string presentline = firstinfo.ReadLine;
 
                 bool blockEnd = false;
                 int splitpoint = -1;
@@ -1428,7 +1377,7 @@ namespace Orts.Formats.Msts
                         }
 
                         thisinfo = FEBScriptLines[checkcount];
-                        presentline = thisinfo.Readline;
+                        presentline = thisinfo.ReadLine;
 
                         // get positions
 
@@ -1459,17 +1408,17 @@ namespace Orts.Formats.Msts
 
                 int nextcount = checkcount + 1;
                 thisinfo = FEBScriptLines[checkcount];
-                presentline = thisinfo.Readline.Trim();
+                presentline = thisinfo.ReadLine.Trim();
 
                 if (splitpoint >= 0 && splitpoint < presentline.Length - 1)
                 {
                     thisinfo = FEBScriptLines[checkcount];
-                    presentline = thisinfo.Readline;
+                    presentline = thisinfo.ReadLine;
                     FEBScriptLines.RemoveAt(checkcount);
 
-                    tempinfo = new SCRReadInfo(presentline.Substring(splitpoint + 1).Trim(), firstinfo.LineNumber, firstinfo.ScriptName);
+                    tempinfo = new SCRReadInfo(presentline.Substring(splitpoint + 1).Trim(), firstinfo.LineNumber);
                     FEBScriptLines.Insert(checkcount, tempinfo);
-                    tempinfo = new SCRReadInfo(presentline.Substring(0, splitpoint + 1).Trim(), firstinfo.LineNumber, firstinfo.ScriptName);
+                    tempinfo = new SCRReadInfo(presentline.Substring(0, splitpoint + 1).Trim(), firstinfo.LineNumber);
                     FEBScriptLines.Insert(checkcount, tempinfo);
                 }
 
@@ -1495,7 +1444,7 @@ namespace Orts.Formats.Msts
                 actindex = index;
 
                 thisinfo = FECScriptLines[index];
-                presentstring = thisinfo.Readline;
+                presentstring = thisinfo.ReadLine;
                 FECScriptLines.RemoveAt(index);
 
                 // use regular expression to search for open and close bracket
@@ -1513,7 +1462,7 @@ namespace Orts.Formats.Msts
                 while (totalopen <= 0 && actindex < FECScriptLines.Count)
                 {
                     addinfo = FECScriptLines[actindex];
-                    addline = addinfo.Readline;
+                    addline = addinfo.ReadLine;
                     FECScriptLines.RemoveAt(actindex);
                     presentstring = String.Concat(presentstring, addline);
                     opencount = openbrack.Matches(presentstring);
@@ -1539,7 +1488,7 @@ namespace Orts.Formats.Msts
                 while (totalclose < totalopen && actindex < FECScriptLines.Count)
                 {
                     addinfo = FECScriptLines[actindex];
-                    addline = addinfo.Readline;
+                    addline = addinfo.ReadLine;
                     FECScriptLines.RemoveAt(actindex);
                     presentstring = String.Concat(presentstring, addline);
 
@@ -1569,7 +1518,7 @@ namespace Orts.Formats.Msts
                         Trace.TraceWarning("IF statement set to : {0}", reportString + ")");
 
                         tempinfo = new SCRReadInfo(presentstring.Substring(possibleEnd).Trim(),
-                            thisinfo.LineNumber, thisinfo.ScriptName);
+                            thisinfo.LineNumber);
                         FECScriptLines.Insert(index, tempinfo);
                         presentstring = String.Concat(presentstring.Substring(0, possibleEnd), ")");
                         actindex = index + 1;
@@ -1623,14 +1572,14 @@ namespace Orts.Formats.Msts
 
                     if (closepos < (presentstring.Length - 1))
                     {
-                        tempinfo = new SCRReadInfo(presentstring.Substring(closepos + 1).Trim(), thisinfo.LineNumber, thisinfo.ScriptName);
+                        tempinfo = new SCRReadInfo(presentstring.Substring(closepos + 1).Trim(), thisinfo.LineNumber);
                         FECScriptLines.Insert(index, tempinfo);
                         presentstring = presentstring.Substring(0, closepos + 1);
                     }
                     actindex = index + 1;
                 }
 
-                tempinfo = new SCRReadInfo(presentstring.Trim(), thisinfo.LineNumber, thisinfo.ScriptName);
+                tempinfo = new SCRReadInfo(presentstring.Trim(), thisinfo.LineNumber);
                 FECScriptLines.Insert(index, tempinfo);
                 return actindex;
             }//findEndCondition
@@ -1838,7 +1787,7 @@ namespace Orts.Formats.Msts
                 SCRAndOr condAndOr;
                 List<string> sublist = new List<string>();
 
-                string GICString = GICInfo.Readline;
+                string GICString = GICInfo.ReadLine;
 
                 // extract condition between first ( and last )
 
@@ -1991,7 +1940,7 @@ namespace Orts.Formats.Msts
                     {
                         int entnum = procstring.IndexOf("]");
                         int subindex = Convert.ToInt32(procstring.Substring(1, entnum - 1));
-                        SCRReadInfo subinfo = new SCRReadInfo(sublist[subindex - 1], GICInfo.LineNumber, GICInfo.ScriptName);
+                        SCRReadInfo subinfo = new SCRReadInfo(sublist[subindex - 1], GICInfo.LineNumber);
                         ArrayList SubCondition = getIfConditions(subinfo, LocalFloats, ORSignalTypes, ORNormalSubtypes);
                         SCRConditionList.Add(SubCondition);
                     }
@@ -2050,7 +1999,7 @@ namespace Orts.Formats.Msts
                 {
                     int entnum = procstring.IndexOf("]");
                     int subindex = Convert.ToInt32(procstring.Substring(1, entnum - 1));
-                    SCRReadInfo subinfo = new SCRReadInfo(sublist[subindex - 1], GICInfo.LineNumber, GICInfo.ScriptName);
+                    SCRReadInfo subinfo = new SCRReadInfo(sublist[subindex - 1], GICInfo.LineNumber);
                     ArrayList SubCondition = getIfConditions(subinfo, LocalFloats, ORSignalTypes, ORNormalSubtypes);
                     SCRConditionList.Add(SubCondition);
                 }
@@ -2140,8 +2089,8 @@ namespace Orts.Formats.Msts
                 {
                     AssignType = SCRTermType.Invalid;
                     string[] statementParts;
-                    StatementInfo = statement; // new SCRReadInfo(statement.Readline, statement.LineNumber, statement.ScriptName); //TODO: not sure why this requires a copy of the existing SCRReadInfo statement
-                    string currentLine = statement.Readline;
+                    StatementInfo = statement; // new SCRReadInfo(statement.ReadLine, statement.LineNumber, statement.ScriptName); //TODO: not sure why this requires a copy of the existing SCRReadInfo statement
+                    string currentLine = statement.ReadLine;
 
                     // check for improper use of =#, ==# or ==
                     currentLine = currentLine.Replace("=#", "=").Replace("==", "=");
@@ -2180,7 +2129,7 @@ namespace Orts.Formats.Msts
                             Trace.TraceWarning("sigscr-file line {1} : Unexpected number of = in string : {0}", currentLine, StatementInfo.LineNumber.ToString());
 #if DEBUG_PRINT_IN
                         File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                        "Unexpected number of = in string " + StatementInfo.Readline + " (" + StatementInfo.LineNumber.ToString() + ")\n");
+                                        "Unexpected number of = in string " + StatementInfo.ReadLine + " (" + StatementInfo.LineNumber.ToString() + ")\n");
 #endif
                             break;
                     }
@@ -2610,10 +2559,10 @@ namespace Orts.Formats.Msts
                         // process ELSEIF block
                         // delete ELSE to process as IF block
 
-                        if (CBLScriptLines[elseindex].Readline.StartsWith("ELSEIF"))
+                        if (CBLScriptLines[elseindex].ReadLine.StartsWith("ELSEIF"))
                         {
                             thisinfo = CBLScriptLines[elseindex];
-                            tempinfo = new SCRReadInfo(thisinfo.Readline.Substring(4), thisinfo.LineNumber, thisinfo.ScriptName); // set start of line to IF
+                            tempinfo = new SCRReadInfo(thisinfo.ReadLine.Substring(4), thisinfo.LineNumber); // set start of line to IF
                             ElseSubBlock.Add(tempinfo);
 
                             for (int iline = 1; iline < elselines; iline++)
@@ -2797,10 +2746,9 @@ namespace Orts.Formats.Msts
                 //  Constructor
                 //
 
-                public SCRBlock(List<SCRReadInfo> BlockStrings, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+                public SCRBlock(List<SCRReadInfo> blockStrings, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
-                    Statements = new ArrayList();
-                    Statements = processScriptLines(BlockStrings, 0, LocalFloats, ORSignalTypes, ORNormalSubtypes);
+                    Statements = ParseStatements(blockStrings, localFloats, orSignalTypes, orNormalSubtypes);
                 } // constructor
             } // class SCRBlock
         } // class Scripts
