@@ -14,12 +14,13 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
+#if DEBUG
 // prints details of the file as read from input
-// #define DEBUG_PRINT_IN
+#define DEBUG_PRINT_IN
 
 // prints details of the file as processed
 // #define DEBUG_PRINT_OUT
+#endif
 
 using System;
 using System.Collections;
@@ -66,14 +67,15 @@ namespace Orts.Formats.Msts
     #region Script Tokenizer and Parser
     internal enum SignalScriptTokenType
     {
-        Slash,          //  /    
-        Star,           //  *
-        Whitespace,     // blank, \t
-        StatementEnd,   // ;
-        LineEnd,        // \r \n
-        BlockOpen,      // {
-        BlockClose,      // }
-        Value,
+        Value = 0x00,
+        Tab = 0x09,             // \t
+        LineEnd = 0x0a,         // \n
+        Separator = 0x20,       // blank
+        BracketOpen = 0x28,     // (
+        BracketClose = 0x29,    // )
+        StatementEnd = 0x3b,    // ;
+        BlockOpen = 0x7b,       // {
+        BlockClose = 0x7d,      // }
     }
 
     internal struct SignalScriptToken
@@ -91,15 +93,20 @@ namespace Orts.Formats.Msts
 
         public string Value { get; private set; }
         public SignalScriptTokenType Type { get; private set; }
+    }
 
+    internal enum CommentParserState
+    {
+        None,
+        StartComment,
+        OpenComment,
+        EndComment,
     }
 
     internal class SignalScriptTokenizer : IEnumerable<SignalScriptToken>
     {
         private TextReader reader;
         private int lineNumber;
-
-        internal bool SkipLine { get; set; }
 
         internal int LineNumber { get { return lineNumber; } }
 
@@ -116,75 +123,98 @@ namespace Orts.Formats.Msts
         public IEnumerator<SignalScriptToken> GetEnumerator()
         {
             string line;
+            CommentParserState state = CommentParserState.None;
             StringBuilder value = new StringBuilder();
+            bool lineContent = false;
+
             while ((line = reader.ReadLine()) != null)
             {
                 lineNumber++;
-                SkipLine = false;
+                lineContent = false;
+
                 foreach (char c in line)
                 {
-                    if (SkipLine)
-                    {
-                        break;
-                    }
                     switch (c)
                     {
                         case '/':
-                            if (value.Length > 0)
+                            switch (state)
                             {
-                                yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
-                                value.Length = 0;
+                                case CommentParserState.None:
+                                    value.Append(c);
+                                    state = CommentParserState.StartComment;
+                                    continue;
+                                case CommentParserState.StartComment:
+                                    state = CommentParserState.None;
+                                    value.Length = value.Length - 1;
+                                    goto SkipLineComment;
+                                case CommentParserState.EndComment:
+                                    state = CommentParserState.None;
+                                    continue;
+                                case CommentParserState.OpenComment:
+                                    continue;
+                                default:
+                                    value.Append(c);
+                                    continue;
                             }
-                            yield return new SignalScriptToken(SignalScriptTokenType.Slash, c);
-                            break;
                         case '*':
-                            if (value.Length > 0)
+                            switch (state)
                             {
-                                yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
-                                value.Length = 0;
+                                case CommentParserState.StartComment:
+                                    value.Length = value.Length - 1;
+                                    state = CommentParserState.OpenComment;
+                                    continue;
+                                case CommentParserState.OpenComment:
+                                    state = CommentParserState.EndComment;
+                                    continue;
+                                default:
+                                    value.Append(c);
+                                    continue;
                             }
-                            yield return new SignalScriptToken(SignalScriptTokenType.Star, c);
-                            break;
                         case ';':
-                            if (value.Length > 0)
-                            {
-                                yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
-                                value.Length = 0;
-                            }
-                            yield return new SignalScriptToken(SignalScriptTokenType.StatementEnd, c);
-                            break;
                         case '{':
-                            if (value.Length > 0)
-                            {
-                                yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
-                                value.Length = 0;
-                            }
-                            yield return new SignalScriptToken(SignalScriptTokenType.BlockOpen, c);
-                            break;
                         case '}':
-                            if (value.Length > 0)
-                            {
-                                yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
-                                value.Length = 0;
-                            }
-                            yield return new SignalScriptToken(SignalScriptTokenType.BlockClose, c);
-                            break;
+                        case '(':
+                        case ')':
                         case '\t':
                         case ' ':
-                            if (value.Length > 0)
-                                value.Append(' ');
-                            break;
+                            switch (state)
+                            {
+                                case CommentParserState.OpenComment:
+                                    continue;
+                                default:
+                                    if (value.Length > 0)
+                                    {
+                                        yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
+                                        value.Length = 0;
+                                    }
+                                    lineContent = true; ;
+                                    yield return new SignalScriptToken((SignalScriptTokenType)c, c);
+                                    continue;
+                            }
                         default:
-                            value.Append(char.ToUpper(c));
-                            break;
+                            switch (state)
+                            {
+                                case CommentParserState.OpenComment:
+                                    continue;
+                                default:
+                                    value.Append(char.ToUpper(c));
+                                    continue;
+                            }
                     }
                 }
-                if (value.Length > 0)
+                SkipLineComment:
+                if (state != CommentParserState.OpenComment)
                 {
-                    yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
-                    value.Length = 0;
+                    if (value.Length > 0)
+                {
+                        lineContent = true; ;
+                        yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
+                        value.Length = 0;
+                    }
+                    if (lineContent)
+                        yield return new SignalScriptToken(SignalScriptTokenType.LineEnd, '\n');
+                    state = CommentParserState.None;
                 }
-                yield return new SignalScriptToken(SignalScriptTokenType.LineEnd, string.Empty);
             }
             if (value.Length > 0)
             {
@@ -199,7 +229,36 @@ namespace Orts.Formats.Msts
         }
     }
 
-    internal class SignalScriptParser : IEnumerable<string>
+    internal enum ParserTokenType
+    {
+        Value = 0x00,
+        LineEnd = 0x0a,         // \n
+        Separator = 0x20,       // blank
+        BracketOpen = 0x28,     // (
+        BracketClose = 0x29,    // )
+        StatementEnd = 0x3b,    // ;
+        BlockOpen = 0x7b,       // {
+        BlockClose = 0x7d,      // }
+    }
+
+    internal struct ParserToken
+    {
+        public ParserToken(ParserTokenType type, string value)
+        {
+            Value = value;
+            Type = type;
+        }
+        public ParserToken(ParserTokenType type, char value)
+        {
+            Value = value.ToString();
+            Type = type;
+        }
+
+        public string Value { get; private set; }
+        public ParserTokenType Type { get; private set; }
+    }
+
+        internal class SignalScriptParser : IEnumerable<string>
     {
         private SignalScriptTokenizer tokenizer;
 
@@ -210,125 +269,65 @@ namespace Orts.Formats.Msts
             this.tokenizer = new SignalScriptTokenizer(reader);
         }
 
-        internal enum ParserState
-        {
-            None,
-            StartComment,
-            OpenComment,
-            LineComment,
-            EndComment,
-        }
         public IEnumerator<string> GetEnumerator()
         {
             StringBuilder result = new StringBuilder();
             Stack<SignalScriptToken> scriptTokens = new Stack<SignalScriptToken>();
-            ParserState state = ParserState.None;
 
             foreach (SignalScriptToken token in tokenizer)
             {
                 switch (token.Type)
                 {
-                    case SignalScriptTokenType.Slash:
-                        switch (state)
-                        {
-                            case ParserState.None:
-                                state = ParserState.StartComment;
-                                break;
-                            case ParserState.StartComment:
-                                state = ParserState.LineComment;
-                                tokenizer.SkipLine = true;
-                                break;
-                            case ParserState.EndComment:
-                                state = ParserState.None;
-                                break;
-                            case ParserState.OpenComment:
-                                break;
-                            default:
-                                result.Append(token.Value);
-                                break;
-                        }
-                        break;
-                    case SignalScriptTokenType.Star:
-                        switch (state)
-                        {
-                            case ParserState.StartComment:
-                                state = ParserState.OpenComment;
-                                break;
-                            case ParserState.OpenComment:
-                                state = ParserState.EndComment;
-                                break;
-                            default:
-                                result.Append(token.Value);
-                                result.Append(' ');
-                                break;
-                        }
-                        break;
                     case SignalScriptTokenType.StatementEnd:
-                        switch (state)
-                        {
-                            case ParserState.LineComment:
-                            case ParserState.OpenComment:
-                                break;
-                            default:
                                 if (result.Trim().Length > 0)
                                 {
-                                    result.Append(token.Value);
-                                    yield return result.ToString();
+                            result.Append(token.Value);
+                            yield return result.ToString();// new ParserToken(ParserTokenType.Value, result.ToString());
                                     result.Length = 0;
                                 }
+//                                yield return new ParserToken(ParserTokenType.StatementEnd, token.Value);
                                 break;
-                        }
-                        break;
                     case SignalScriptTokenType.LineEnd:
-                        switch (state)
-                        {
-                            case ParserState.OpenComment:
-                                break;
-                            default:
                                 if (result.Trim().Length > 0)
                                 {
-                                    yield return result.ToString();
+                            yield return result.ToString();// new ParserToken(ParserTokenType.Value, result.ToString());
                                     result.Length = 0;
                                 }
-                                state = ParserState.None;
-                                break;
-                        }
+//                                yield return new ParserToken(ParserTokenType.LineEnd, result.ToString());
                         break;
                     case SignalScriptTokenType.BlockOpen:
-                    case SignalScriptTokenType.BlockClose:
-                        switch (state)
-                        {
-                            case ParserState.LineComment:
-                            case ParserState.OpenComment:
-                                break;
-                            default:
                                 if (result.Trim().Length > 0)
                                 {
-                                    yield return result.ToString();
+                            yield return result.ToString(); // new ParserToken(ParserTokenType.Value, result.ToString());
                                     result.Length = 0;
                                 }
-                                yield return token.Value;
+                        yield return token.Value; // new ParserToken(ParserTokenType.BlockOpen, token.Value);
                                 break;
-                        }
+                    case SignalScriptTokenType.BlockClose:
+                                if (result.Trim().Length > 0)
+                                {
+                            yield return result.ToString();//new ParserToken(ParserTokenType.Value, result.ToString());
+                                    result.Length = 0;
+                                }
+                        yield return token.Value; // new ParserToken(ParserTokenType.BlockClose, token.Value);
+                                break;
+                    case SignalScriptTokenType.Tab:
+                    case SignalScriptTokenType.Separator:
+                        if (result.Length > 0)
+                            result.Append(' ');
                         break;
+                    case SignalScriptTokenType.BracketOpen:
+                    case SignalScriptTokenType.BracketClose:
                     case SignalScriptTokenType.Value:
-                        switch (state)
-                        {
-                            case ParserState.OpenComment:
-                            case ParserState.LineComment:
-                                break;
-                            default:
                                 result.Append(token.Value);
                                 break;
-                        }
-                        break;
                     default:
                         throw new InvalidOperationException("Unknown token type: " + token.Type);
                 }
             }
             if (result.Trim().Length > 0)
             {
-                yield return result.ToString();
+                yield return result.ToString();// new ParserToken(ParserTokenType.Value, result.ToString());
             }
         }
 
@@ -763,52 +762,62 @@ namespace Orts.Formats.Msts
         //
         //================================================================================================//
 
-        private bool AllocateScriptToSignalType(SCRScripts newScript, IDictionary<string, SignalType> SignalTypes, string scriptname, int readnumber, string scrFileName)
+        private void AssignScriptToSignalType(SCRScripts script, IDictionary<string, SignalType> signalTypes, string scriptName, int currentLine, string fileName)
         {
-            bool validType = false;
-            SignalType thisType;
+            bool isValid = false;
 
             // try and find signal type with same name as script
-            if (SignalTypes.TryGetValue(scriptname.ToLower().Trim(), out thisType))
+            if (signalTypes.TryGetValue(scriptName.ToLower(), out SignalType signalType))
             {
-                if (Scripts.ContainsKey(thisType))
+                if (Scripts.ContainsKey(signalType))
                 {
-                    Trace.TraceWarning("Ignored duplicate SignalType script {2} in {0}:line {1}", scrFileName, readnumber, scriptname);
+                    Trace.TraceWarning($"Ignored duplicate SignalType script {scriptName} in {0} {fileName} before {currentLine}");
                 }
                 else
                 {
 #if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + thisType.Name + "\n");
+                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + signalType.Name + "\n");
 #endif
-                    Scripts.Add(thisType, newScript);
-                    validType = true;
+                    Scripts.Add(signalType, script);
+                    isValid = true;
                 }
             }
 
             // try and find any other signal types which reference this script
-            foreach (KeyValuePair<string, SignalType> SelectedSignal in SignalTypes)
+            foreach (KeyValuePair<string, SignalType> currentSignal in signalTypes)
             {
-                SignalType SelectedSignalType = SelectedSignal.Value;
-                if (!String.IsNullOrEmpty(SelectedSignalType.Script))
+
+                if (scriptName.Equals(currentSignal.Value.Script, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (String.Equals(scriptname, SelectedSignalType.Script, StringComparison.InvariantCultureIgnoreCase))
+                    if (Scripts.ContainsKey(currentSignal.Value))
                     {
-                        if (Scripts.ContainsKey(SelectedSignalType))
-                        {
-                            Trace.TraceWarning("Ignored duplicate SignalType script {2} in {0}:line {1}", scrFileName, readnumber, scriptname);
-                        }
-                        else
-                        {
+                        Trace.TraceWarning($"Ignored duplicate SignalType script {scriptName} in {fileName} before {currentLine}");
+                    }
+                    else
+                    {
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + SelectedSignalType.Script + " to " + SelectedSignalType.Name + "\n");
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + currentSignal.Value.Script + " to " + currentSignal.Value.Name + "\n");
 #endif
-                            Scripts.Add(SelectedSignalType, newScript);
-                            validType = true;
-                        }
+                        Scripts.Add(currentSignal.Value, script);
+                        isValid = true;
                     }
                 }
             }
-            return (validType);
+            #region DEBUG
+#if DEBUG_PRINT_OUT
+                        if (!isValid)
+                        {
+                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", $"\nUnknown signal type : {scriptName}\n\n");
+                        }
+#endif
+#if DEBUG_PRINT_IN
+                        if (!isValid)
+                        {
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", $"\nUnknown signal type : {scriptName}\n\n");
+                        }
+#endif
+            #endregion
+
         }
 
         private void ParseSignalScript(StreamReader reader, string fileName, IDictionary<string, SignalType> signalTypes, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
@@ -817,6 +826,7 @@ namespace Orts.Formats.Msts
             string scriptName = string.Empty;
             bool inScript = false;
             SignalScriptParser parser = new SignalScriptParser(reader);
+            StringBuilder builder = new StringBuilder();
 
             foreach (string line in parser)
             {
@@ -836,23 +846,8 @@ namespace Orts.Formats.Msts
                         File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nNew Script : " + scriptName + "\n");
 #endif
                         #endregion
-                        bool validScript = AllocateScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
+                        AssignScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
                         , signalTypes, scriptName, parser.LineNumber, fileName);
-                        #region DEBUG
-#if DEBUG_PRINT_OUT
-                        if (!validScript)
-                        {
-                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt",
-                                            "\nUnknown signal type : " + scriptName + "\n\n");
-                        }
-#endif
-#if DEBUG_PRINT_IN
-                        if (!validScript)
-                        {
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nUnknown signal type : " + scriptName + "\n\n");
-                        }
-#endif
-                        #endregion
                     }
                     //finish existing script, drop following lines until new script
                     scriptName = line.Substring(7);
@@ -861,7 +856,7 @@ namespace Orts.Formats.Msts
                 else if (line.StartsWith("REM SCRIPT "))
                 {
                     //finish existing script, drop following lines until new script
-                    bool validScript = AllocateScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
+                    AssignScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
                         , signalTypes, scriptName, parser.LineNumber, fileName);
                     inScript = false;
                     scriptName = string.Empty;
@@ -886,7 +881,7 @@ namespace Orts.Formats.Msts
                 File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n===============================\n");
                 File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nNew Script : " + scriptName + "\n");
 #endif
-                bool validScript = AllocateScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
+                AssignScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
                     , signalTypes, scriptName, parser.LineNumber, fileName);
             }
 
@@ -992,9 +987,9 @@ namespace Orts.Formats.Msts
                     else
                     {
                         Debug.Assert(!string.IsNullOrWhiteSpace(lineItem.ReadLine));
-                        SCRStatement thisStatement = new SCRStatement(lineItem, localFloats, orSignalTypes, orNormalSubtypes);
-                        if (thisStatement.IsValid)
-                            result.Add(thisStatement);
+                        SCRStatement statement = new SCRStatement(lineItem, localFloats, orSignalTypes, orNormalSubtypes);
+                        if (statement.IsValid)
+                            result.Add(statement);
                         index++;
                     }
                 }
@@ -2078,18 +2073,19 @@ namespace Orts.Formats.Msts
                 public List<SCRStatTerm> StatementTerms { get; private set; } = new List<SCRStatTerm>();
                 public SCRTermType AssignType { get; private set; }
                 public int AssignParameter { get; private set; }
-                private SCRReadInfo StatementInfo;
+
+                private SCRReadInfo statementInfo;
 
                 //================================================================================================//
                 //
                 //  Constructor
                 //
 
-                public SCRStatement(SCRReadInfo statement, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+                public SCRStatement(SCRReadInfo statement, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
+                    statementInfo = statement;
                     AssignType = SCRTermType.Invalid;
                     string[] statementParts;
-                    StatementInfo = statement; // new SCRReadInfo(statement.ReadLine, statement.LineNumber, statement.ScriptName); //TODO: not sure why this requires a copy of the existing SCRReadInfo statement
                     string currentLine = statement.ReadLine;
 
                     // check for improper use of =#, ==# or ==
@@ -2099,6 +2095,7 @@ namespace Orts.Formats.Msts
                     currentLine = currentLine.Replace(";", String.Empty);
                     //split on =, should be only 2 parts
                     statementParts = currentLine.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
+
                     // Assignment part - search external and local floats
                     // if only 1 part, it is a single function call without assignment
                     switch (statementParts.Length)
@@ -2115,7 +2112,7 @@ namespace Orts.Formats.Msts
                                 AssignParameter = (int)result;
                                 AssignType = SCRTermType.ExternalFloat;
                             }
-                            else if (LocalFloats.TryGetValue(assignPart, out uint value))
+                            else if (localFloats.TryGetValue(assignPart, out uint value))
                             {
                                 AssignParameter = (int)value;
                                 AssignType = SCRTermType.LocalFloat;
@@ -2126,10 +2123,10 @@ namespace Orts.Formats.Msts
                             break;
                         default:
                             IsValid = false;
-                            Trace.TraceWarning("sigscr-file line {1} : Unexpected number of = in string : {0}", currentLine, StatementInfo.LineNumber.ToString());
+                            Trace.TraceWarning("sigscr-file line {1} : Unexpected number of = in string : {0}", currentLine, statementInfo.LineNumber.ToString());
 #if DEBUG_PRINT_IN
                         File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                        "Unexpected number of = in string " + StatementInfo.ReadLine + " (" + StatementInfo.LineNumber.ToString() + ")\n");
+                                        "Unexpected number of = in string " + statementInfo.ReadLine + " (" + statementInfo.LineNumber.ToString() + ")\n");
 #endif
                             break;
                     }
@@ -2137,7 +2134,7 @@ namespace Orts.Formats.Msts
                     // process term string
                     int sublevel = 0;
                     if (IsValid)
-                        SCRProcess_TermPartLine(term, ref sublevel, 0, LocalFloats, ORSignalTypes, ORNormalSubtypes, StatementInfo.LineNumber);
+                        SCRProcess_TermPartLine(term, ref sublevel, 0, localFloats, orSignalTypes, orNormalSubtypes, statementInfo.LineNumber);
                 }
 
                 //================================================================================================//
@@ -2188,11 +2185,11 @@ namespace Orts.Formats.Msts
 
                     if (totalClosebrack != totalOpenbrack)
                     {
-                        Trace.TraceWarning("sigscr-file line {1} : Unmatching brackets in : {0}", keepString, StatementInfo.LineNumber.ToString());
+                        Trace.TraceWarning("sigscr-file line {1} : Unmatching brackets in : {0}", keepString, statementInfo.LineNumber.ToString());
                         keepString = String.Empty;
 #if DEBUG_PRINT_IN
                         File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                        "Unmatching brackets in : " + keepString + " (" + StatementInfo.LineNumber.ToString() + "\n");
+                                        "Unmatching brackets in : " + keepString + " (" + statementInfo.LineNumber.ToString() + "\n");
 #endif
                     }
 
@@ -2281,7 +2278,7 @@ namespace Orts.Formats.Msts
                             else
                             {
                                 SCRStatTerm thisTerm =
-                                        new SCRStatTerm(procString, operString, sublevel, issublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, StatementInfo.LineNumber);
+                                        new SCRStatTerm(procString, operString, sublevel, issublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, statementInfo.LineNumber);
                                 StatementTerms.Add(thisTerm);
                             }
                         }
@@ -2337,7 +2334,7 @@ namespace Orts.Formats.Msts
 
                             sublevel++;
                             SCRStatTerm thisTerm =
-                                    new SCRStatTerm("*S*", operString, sublevel, issublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, StatementInfo.LineNumber);
+                                    new SCRStatTerm("*S*", operString, sublevel, issublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, statementInfo.LineNumber);
                             StatementTerms.Add(thisTerm);
 
                             // process string as sublevel
@@ -2361,13 +2358,13 @@ namespace Orts.Formats.Msts
 
             public class SCRStatTerm
             {
-                public SCRExternalFunctions Function;
-                public SCRParameterType[] PartParameter;
-                public SCRTermOperator TermOperator;
-                public bool negate;
-                public int sublevel;
-                public int issublevel;
-                public int linenumber;
+                public SCRExternalFunctions Function { get; private set; }
+                public SCRParameterType[] PartParameter { get; private set; }
+                public SCRTermOperator TermOperator { get; private set; }
+                public bool negate { get; private set; }
+                public int sublevel { get; private set; }
+                public int issublevel { get; private set; }
+                public int linenumber { get; private set; }
 
                 //================================================================================================//
                 //
@@ -2429,8 +2426,7 @@ namespace Orts.Formats.Msts
 
                             PartParameter = new SCRParameterType[1];
                             PartParameter[0] = Process_TermPart(StatementString.Trim(), LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
-
-                            TranslateOperator.TryGetValue(StatementOperator, out TermOperator);
+                            TermOperator = TranslateOperator.TryGetValue(StatementOperator, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
                         }
                     }
 
@@ -2467,10 +2463,7 @@ namespace Orts.Formats.Msts
 
                     // process operator
 
-                    if (!TranslateOperator.TryGetValue(StatementOperator, out TermOperator))
-                    {
-                        TermOperator = SCRTermOperator.NONE;
-                    }
+                    TermOperator = TranslateOperator.TryGetValue(StatementOperator, out SCRTermOperator termOperator) ? termOperator : SCRTermOperator.NONE;
 
                     // issublevel
 
@@ -2487,18 +2480,18 @@ namespace Orts.Formats.Msts
 
             public class SCRParameterType
             {
-                public SCRTermType PartType;
-                public int PartParameter;
+                public SCRTermType PartType { get; private set; }
+                public int PartParameter { get; private set; }
 
                 //================================================================================================//
                 //
                 // Constructor
                 //
 
-                public SCRParameterType(SCRTermType TypeIn, int IntIn)
+                public SCRParameterType(SCRTermType type, int value)
                 {
-                    PartType = TypeIn;
-                    PartParameter = IntIn;
+                    PartType = type;
+                    PartParameter = value;
                 } // constructor
             } // class SCRParameterType
 
@@ -2739,7 +2732,7 @@ namespace Orts.Formats.Msts
 
             public class SCRBlock
             {
-                public ArrayList Statements;
+                public ArrayList Statements { get; private set; }
 
                 //================================================================================================//
                 //
