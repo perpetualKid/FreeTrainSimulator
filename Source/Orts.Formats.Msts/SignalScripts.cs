@@ -14,52 +14,333 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-// removes catch and allows program to crash on error statement
-// #define DEBUG_ALLOWCRASH
-
+#if DEBUG
 // prints details of the file as read from input
-// #define DEBUG_PRINT_IN
+#define DEBUG_PRINT_IN
 
 // prints details of the file as processed
 // #define DEBUG_PRINT_OUT
+#endif
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Orts.Formats.Msts
 {
-    //================================================================================================//
-    //
-    // class scrReadinfo
-    //
-    //================================================================================================//
-
-    public class scrReadInfo
+    #region SCRReadinfo
+    public class SCRReadInfo
     {
-        public string Readline;
-        public int Linenumber;
-        public string Scriptname;
+        public string ReadLine { get; internal set; }
+        public int LineNumber { get; internal set; }
 
-        //================================================================================================//
-        ///
-        /// Constructor
-        ///
-
-        public scrReadInfo(string thisString, int thisInt, string thisScript)
+        public SCRReadInfo(string line, int lineNumber)
         {
-            Readline = String.Copy(thisString);
-            Linenumber = thisInt;
-            Scriptname = String.Copy(thisScript);
+            ReadLine = line;
+            LineNumber = lineNumber;
         }
-    }// class scrReadInfo
+    }
+    #endregion
+
+    static class StringExtensions
+    {
+        public static StringBuilder Trim(this StringBuilder sb)
+        {
+            if (sb == null || sb.Length == 0) return sb;
+
+            int i = sb.Length - 1;
+            for (; i >= 0; i--)
+                if (!char.IsWhiteSpace(sb[i]))
+                    break;
+
+            if (i < sb.Length - 1)
+                sb.Length = i + 1;
+
+            return sb;
+        }
+    }
+
+    #region Script Tokenizer and Parser
+    internal enum SignalScriptTokenType
+    {
+        Value = 0x00,
+        Tab = 0x09,             // \t
+        LineEnd = 0x0a,         // \n
+        Separator = 0x20,       // blank
+        BracketOpen = 0x28,     // (
+        BracketClose = 0x29,    // )
+        StatementEnd = 0x3b,    // ;
+        BlockOpen = 0x7b,       // {
+        BlockClose = 0x7d,      // }
+    }
+
+    internal struct SignalScriptToken
+    {
+        public SignalScriptToken(SignalScriptTokenType type, string value)
+        {
+            Value = value;
+            Type = type;
+        }
+        public SignalScriptToken(SignalScriptTokenType type, char value)
+        {
+            Value = value.ToString();
+            Type = type;
+        }
+
+        public string Value { get; private set; }
+        public SignalScriptTokenType Type { get; private set; }
+    }
+
+    internal enum CommentParserState
+    {
+        None,
+        StartComment,
+        OpenComment,
+        EndComment,
+    }
+
+    internal class SignalScriptTokenizer : IEnumerable<SignalScriptToken>
+    {
+        private TextReader reader;
+        private int lineNumber;
+
+        internal int LineNumber { get { return lineNumber; } }
+
+        public SignalScriptTokenizer(TextReader reader) : this(reader, 0)
+        {
+        }
+
+        public SignalScriptTokenizer(TextReader reader, int lineNumberOffset)
+        {
+            this.reader = reader;
+            this.lineNumber = lineNumberOffset;
+        }
+
+        public IEnumerator<SignalScriptToken> GetEnumerator()
+        {
+            string line;
+            CommentParserState state = CommentParserState.None;
+            StringBuilder value = new StringBuilder();
+            bool lineContent = false;
+
+            while ((line = reader.ReadLine()) != null)
+            {
+                lineNumber++;
+                lineContent = false;
+
+                foreach (char c in line)
+                {
+                    switch (c)
+                    {
+                        case '/':
+                            switch (state)
+                            {
+                                case CommentParserState.None:
+                                    value.Append(c);
+                                    state = CommentParserState.StartComment;
+                                    continue;
+                                case CommentParserState.StartComment:
+                                    state = CommentParserState.None;
+                                    value.Length = value.Length - 1;
+                                    goto SkipLineComment;
+                                case CommentParserState.EndComment:
+                                    state = CommentParserState.None;
+                                    continue;
+                                case CommentParserState.OpenComment:
+                                    continue;
+                                default:
+                                    value.Append(c);
+                                    continue;
+                            }
+                        case '*':
+                            switch (state)
+                            {
+                                case CommentParserState.StartComment:
+                                    value.Length = value.Length - 1;
+                                    state = CommentParserState.OpenComment;
+                                    continue;
+                                case CommentParserState.OpenComment:
+                                    state = CommentParserState.EndComment;
+                                    continue;
+                                default:
+                                    value.Append(c);
+                                    continue;
+                            }
+                        case ';':
+                        case '{':
+                        case '}':
+                        case '(':
+                        case ')':
+                        case '\t':
+                        case ' ':
+                            switch (state)
+                            {
+                                case CommentParserState.OpenComment:
+                                    continue;
+                                default:
+                                    if (value.Length > 0)
+                                    {
+                                        yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
+                                        value.Length = 0;
+                                    }
+                                    lineContent = true; ;
+                                    yield return new SignalScriptToken((SignalScriptTokenType)c, c);
+                                    continue;
+                            }
+                        default:
+                            switch (state)
+                            {
+                                case CommentParserState.OpenComment:
+                                    continue;
+                                default:
+                                    value.Append(char.ToUpper(c));
+                                    continue;
+                            }
+                    }
+                }
+                SkipLineComment:
+                if (state != CommentParserState.OpenComment)
+                {
+                    if (value.Length > 0)
+                {
+                        lineContent = true; ;
+                        yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
+                        value.Length = 0;
+                    }
+                    if (lineContent)
+                        yield return new SignalScriptToken(SignalScriptTokenType.LineEnd, '\n');
+                    state = CommentParserState.None;
+                }
+            }
+            if (value.Length > 0)
+            {
+                yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
+                value.Length = 0;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
+
+    internal enum ParserTokenType
+    {
+        Value = 0x00,
+        LineEnd = 0x0a,         // \n
+        Separator = 0x20,       // blank
+        BracketOpen = 0x28,     // (
+        BracketClose = 0x29,    // )
+        StatementEnd = 0x3b,    // ;
+        BlockOpen = 0x7b,       // {
+        BlockClose = 0x7d,      // }
+    }
+
+    internal struct ParserToken
+    {
+        public ParserToken(ParserTokenType type, string value)
+        {
+            Value = value;
+            Type = type;
+        }
+        public ParserToken(ParserTokenType type, char value)
+        {
+            Value = value.ToString();
+            Type = type;
+        }
+
+        public string Value { get; private set; }
+        public ParserTokenType Type { get; private set; }
+    }
+
+        internal class SignalScriptParser : IEnumerable<string>
+    {
+        private SignalScriptTokenizer tokenizer;
+
+        public int LineNumber { get { return this.tokenizer.LineNumber; } }
+
+        public SignalScriptParser(TextReader reader)
+        {
+            this.tokenizer = new SignalScriptTokenizer(reader);
+        }
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            StringBuilder result = new StringBuilder();
+            Stack<SignalScriptToken> scriptTokens = new Stack<SignalScriptToken>();
+
+            foreach (SignalScriptToken token in tokenizer)
+            {
+                switch (token.Type)
+                {
+                    case SignalScriptTokenType.StatementEnd:
+                                if (result.Trim().Length > 0)
+                                {
+                            result.Append(token.Value);
+                            yield return result.ToString();// new ParserToken(ParserTokenType.Value, result.ToString());
+                                    result.Length = 0;
+                                }
+//                                yield return new ParserToken(ParserTokenType.StatementEnd, token.Value);
+                                break;
+                    case SignalScriptTokenType.LineEnd:
+                                if (result.Trim().Length > 0)
+                                {
+                            yield return result.ToString();// new ParserToken(ParserTokenType.Value, result.ToString());
+                                    result.Length = 0;
+                                }
+//                                yield return new ParserToken(ParserTokenType.LineEnd, result.ToString());
+                        break;
+                    case SignalScriptTokenType.BlockOpen:
+                                if (result.Trim().Length > 0)
+                                {
+                            yield return result.ToString(); // new ParserToken(ParserTokenType.Value, result.ToString());
+                                    result.Length = 0;
+                                }
+                        yield return token.Value; // new ParserToken(ParserTokenType.BlockOpen, token.Value);
+                                break;
+                    case SignalScriptTokenType.BlockClose:
+                                if (result.Trim().Length > 0)
+                                {
+                            yield return result.ToString();//new ParserToken(ParserTokenType.Value, result.ToString());
+                                    result.Length = 0;
+                                }
+                        yield return token.Value; // new ParserToken(ParserTokenType.BlockClose, token.Value);
+                                break;
+                    case SignalScriptTokenType.Tab:
+                    case SignalScriptTokenType.Separator:
+                        if (result.Length > 0)
+                            result.Append(' ');
+                        break;
+                    case SignalScriptTokenType.BracketOpen:
+                    case SignalScriptTokenType.BracketClose:
+                    case SignalScriptTokenType.Value:
+                                result.Append(token.Value);
+                                break;
+                    default:
+                        throw new InvalidOperationException("Unknown token type: " + token.Type);
+                }
+            }
+            if (result.Trim().Length > 0)
+            {
+                yield return result.ToString();// new ParserToken(ParserTokenType.Value, result.ToString());
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
+    #endregion
 
     public class SignalScripts
     {
+        #region SCRExternalFunctions
         public enum SCRExternalFunctions
         {
             NONE,
@@ -111,7 +392,9 @@ namespace Orts.Formats.Msts
             DEBUG_OUT,
             RETURN,
         }
+        #endregion
 
+        #region SCRExternalFloats
         public enum SCRExternalFloats
         {
             STATE,
@@ -121,7 +404,9 @@ namespace Orts.Formats.Msts
             APPROACH_CONTROL_REQ_POSITION,   // read only
             APPROACH_CONTROL_REQ_SPEED,      // read only
         }
+        #endregion
 
+        #region SCRTermCondition
         public enum SCRTermCondition
         {
             GT,
@@ -132,19 +417,25 @@ namespace Orts.Formats.Msts
             NE,
             NONE,
         }
+        #endregion
 
+        #region SCRAndOr
         public enum SCRAndOr
         {
             AND,
             OR,
             NONE,
         }
+        #endregion
 
+        #region SCRNegate
         public enum SCRNegate
         {
             NEGATE,
         }
+        #endregion
 
+        #region SCRTermOperator
         public enum SCRTermOperator
         {
             NONE,        // used for first term
@@ -154,7 +445,9 @@ namespace Orts.Formats.Msts
             DIVIDE,
             MODULO,
         }
+        #endregion
 
+        #region SCRTermType
         public enum SCRTermType
         {
             ExternalFloat,
@@ -167,10 +460,37 @@ namespace Orts.Formats.Msts
             Constant,
             Invalid,
         }
+        #endregion
 
-        private static IDictionary<string, SCRTermCondition> TranslateConditions;
-        private static IDictionary<string, SCRTermOperator> TranslateOperator;
-        private static IDictionary<string, SCRAndOr> TranslateAndOr;
+        private static IDictionary<string, SCRTermCondition> TranslateConditions = new Dictionary<string, SCRTermCondition>
+            {
+                { ">", SCRTermCondition.GT },
+                { ">=", SCRTermCondition.GE },
+                { "<", SCRTermCondition.LT },
+                { "<=", SCRTermCondition.LE },
+                { "==", SCRTermCondition.EQ },
+                { "!=", SCRTermCondition.NE },
+                { "::", SCRTermCondition.NE }  // dummy (for no separator)
+            };
+
+        private static IDictionary<string, SCRTermOperator> TranslateOperator = new Dictionary<string, SCRTermOperator>
+            {
+                { "?", SCRTermOperator.NONE },
+                { "-", SCRTermOperator.MINUS },  // needs to come first to avoid it being interpreted as range separator
+                { "*", SCRTermOperator.MULTIPLY },
+                { "+", SCRTermOperator.PLUS },
+                { "/", SCRTermOperator.DIVIDE },
+                { "%", SCRTermOperator.MODULO }
+            };
+
+        private static IDictionary<string, SCRAndOr> TranslateAndOr = new Dictionary<string, SCRAndOr>
+            {
+                { "&&", SCRAndOr.AND },
+                { "||", SCRAndOr.OR },
+                { "AND", SCRAndOr.AND },
+                { "OR", SCRAndOr.OR },
+                { "??", SCRAndOr.NONE }
+            };
 
 #if DEBUG_PRINT_IN
         public static string din_fileLoc = @"C:\temp\";     /* file path for debug files */
@@ -180,58 +500,26 @@ namespace Orts.Formats.Msts
         public static string dout_fileLoc = @"C:\temp\";    /* file path for debug files */
 #endif
 
-        public IDictionary<SignalType, SCRScripts> Scripts;
-        private static string keepLine = String.Empty;
+        public IDictionary<SignalType, SCRScripts> Scripts { get; private set; }
 
         //================================================================================================//
         //
         // Constructor
         //
         //================================================================================================//
-
-        public SignalScripts(string RoutePath, IList<string> ScriptFiles, IDictionary<string, Orts.Formats.Msts.SignalType> SignalTypes, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+        public SignalScripts(string routePath, IList<string> scriptFiles, IDictionary<string, SignalType> signalTypes, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
         {
-
-            // Create required translators
-
             Scripts = new Dictionary<SignalType, SCRScripts>();
-            TranslateConditions = new Dictionary<string, SCRTermCondition>();
-            TranslateConditions.Add(">", SCRTermCondition.GT);
-            TranslateConditions.Add(">=", SCRTermCondition.GE);
-            TranslateConditions.Add("<", SCRTermCondition.LT);
-            TranslateConditions.Add("<=", SCRTermCondition.LE);
-            TranslateConditions.Add("==", SCRTermCondition.EQ);
-            TranslateConditions.Add("!=", SCRTermCondition.NE);
-            TranslateConditions.Add("::", SCRTermCondition.NE);  // dummy (for no separator)
-
-            TranslateAndOr = new Dictionary<string, SCRAndOr>();
-            TranslateAndOr.Add("&&", SCRAndOr.AND);
-            TranslateAndOr.Add("||", SCRAndOr.OR);
-            TranslateAndOr.Add("AND", SCRAndOr.AND);
-            TranslateAndOr.Add("OR", SCRAndOr.OR);
-            TranslateAndOr.Add("??", SCRAndOr.NONE);
-
-            TranslateOperator = new Dictionary<string, SCRTermOperator>();
-            TranslateOperator.Add("?", SCRTermOperator.NONE);
-            TranslateOperator.Add("-", SCRTermOperator.MINUS);  // needs to come first to avoid it being interpreted as range separator
-            TranslateOperator.Add("*", SCRTermOperator.MULTIPLY);
-            TranslateOperator.Add("+", SCRTermOperator.PLUS);
-            TranslateOperator.Add("/", SCRTermOperator.DIVIDE);
-            TranslateOperator.Add("%", SCRTermOperator.MODULO);
-
 
 #if DEBUG_PRINT_PROCESS
             TDB_debug_ref = new int[5] { 7305, 7307, 7308, 7309, 7310 };   /* signal tdb ref.no selected for print-out */
 #endif
-
 #if DEBUG_PRINT_IN
             File.Delete(din_fileLoc + @"sigscr.txt");
-#endif
-
-#if DEBUG_PRINT_OUT
+#endif        
+#if DEBUG_PRINT_OUT            
             File.Delete(dout_fileLoc + @"scriptproc.txt");
 #endif
-
 #if DEBUG_PRINT_ENABLED
             File.Delete(dpe_fileLoc + @"printproc.txt");
 #endif
@@ -240,33 +528,23 @@ namespace Orts.Formats.Msts
 #endif
 
             // Process all files listed in SIGCFG
-
-            foreach (string FileName in ScriptFiles)
+            foreach (string fileName in scriptFiles)
             {
-                string fullName = String.Concat(RoutePath, @"\", FileName);
-                int readLineNumber = 0;
-
-#if !DEBUG_ALLOWCRASH
+                string fullName = Path.Combine(routePath, fileName);
                 try
                 {
-                    using (StreamReader scrStream = new StreamReader(fullName, true))
+                    using (StreamReader stream = new StreamReader(fullName, true))
                     {
 #if DEBUG_PRINT_IN
                         File.AppendAllText(din_fileLoc + @"sigscr.txt", "Reading file : " + fullName + "\n\n");
 #endif
-                        sigscrRead(fullName, scrStream, SignalTypes, ref readLineNumber, ORSignalTypes, ORNormalSubtypes);
+                        ParseSignalScript(stream, fullName, signalTypes, orSignalTypes, orNormalSubtypes);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Trace.TraceWarning("Error while reading signal script - {0} at line {1} : {2}", fullName, readLineNumber, ex.ToString());
+                    Trace.TraceWarning($"Error reading signal script - {fullName} : {ex.ToString()}");
                 }
-#else
-                // for test purposes : without exception catch
-                StreamReader scrStream = new StreamReader(fullName, true);
-                sigscrRead(fullName, scrStream, SignalTypes, ref readLineNumber, ORSignalTypes, ORNormalSubtypes);
-                scrStream.Close();
-#endif
             }
         }// Constructor
 
@@ -275,152 +553,6 @@ namespace Orts.Formats.Msts
         // overall script file routines
         //
         //================================================================================================//
-        //
-        //  Read script from file
-        //
-        //================================================================================================//
-
-        public void sigscrRead(string scrFileName, StreamReader scrStream, IDictionary<string, SignalType> SignalTypes, ref int readLineNumber, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
-        {
-            scrReadInfo readInfo;
-            string readLine;
-            bool ScriptFound = false;
-            string scriptname = String.Empty;
-            int scriptline = -1;
-            int readnumber = 0;
-            List<scrReadInfo> ScriptLines = new List<scrReadInfo>();
-
-            readInfo = scrReadLine(scrStream, readnumber);
-            readLine = readInfo == null ? null : readInfo.Readline;
-            readnumber = readInfo == null ? readnumber : readInfo.Linenumber;
-            readLineNumber = readnumber;
-
-            // search for first SCRIPT - skip lines until first script found
-
-            while (readLine != null && !ScriptFound)
-            {
-                if (readLine.StartsWith("SCRIPT "))
-                {
-                    ScriptFound = true;
-                    scriptname = readLine.Substring(7);
-                    scriptline = readInfo.Linenumber;
-                }
-                else
-                {
-                    readInfo = scrReadLine(scrStream, readnumber);
-                    readLine = readInfo == null ? null : readInfo.Readline;
-                    readnumber = readInfo == null ? readnumber : readInfo.Linenumber;
-                    readLineNumber = readnumber;
-                }
-            }
-
-            // process SCRIPT
-
-            while (readLine != null)
-            {
-                readInfo = scrReadLine(scrStream, readnumber);
-                readLine = readInfo == null ? null : readInfo.Readline;
-                readnumber = readInfo == null ? readnumber : readInfo.Linenumber;
-                readLineNumber = readnumber;
-
-                if (readLine != null)
-                {
-
-                    // new SCRIPT line - process stored lines
-
-                    if (readLine.StartsWith("SCRIPT "))
-                    {
-#if DEBUG_PRINT_IN
-                        File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n===============================\n");
-                        File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nNew Script : " + scriptname + "\n");
-#endif
-#if DEBUG_PRINT_OUT
-                        File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n===============================\n");
-                        File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nNew Script : " + scriptname + "\n");
-#endif
-                        SCRScripts newScript = new SCRScripts(ScriptLines, scriptname, ORSignalTypes, ORNormalSubtypes);
-                        bool validScript = AllocateScriptToSignalType(newScript, SignalTypes, scriptname, readnumber, scrFileName, ref Scripts);
-
-#if DEBUG_PRINT_OUT
-                        if (!validScript)
-                        {
-                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt",
-                                            "\nUnknown signal type : " + scriptname + "\n\n");
-                        }
-#endif
-#if DEBUG_PRINT_IN
-                        if (!validScript)
-                        {
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nUnknown signal type : " + scriptname + "\n\n");
-                        }
-#endif
-
-                        scriptname = readLine.Substring(7);
-                        scriptline = readInfo.Linenumber;
-                    }
-
-                    // new REM SCRIPT line - process stored lines, skip until new SCRIPT found
-
-                    else if (readLine.StartsWith("REM SCRIPT "))
-                    {
-                        SCRScripts newScript = new SCRScripts(ScriptLines, scriptname, ORSignalTypes, ORNormalSubtypes);
-                        bool validScript = AllocateScriptToSignalType(newScript, SignalTypes, scriptname, readnumber, scrFileName, ref Scripts);
-
-                        while (!readLine.StartsWith("SCRIPT ") && readLine != null)
-                        {
-                            readInfo = scrReadLine(scrStream, readnumber);
-                            readLine = readInfo == null ? null : readInfo.Readline;
-                            readnumber = readInfo == null ? readnumber : readInfo.Linenumber;
-                            readLineNumber = readnumber;
-                        }
-                        scriptname = readLine.Substring(7);
-                        scriptline = readInfo.Linenumber;
-                    }
-
-                    // store line
-
-                    else
-                    {
-                        readInfo.Scriptname = String.Copy(scriptname);
-                        ScriptLines.Add(readInfo);
-
-                        if (readInfo.Linenumber % 1000 == 1)
-                        {
-                            Trace.Write("s");
-                        }
-                    }
-                }
-            }
-
-            // process last SCRIPT if any
-
-            if (ScriptLines.Count > 0)
-            {
-#if DEBUG_PRINT_IN
-                File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n===============================\n");
-                File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nNew Script : " + scriptname + "\n");
-#endif
-                SCRScripts newScript = new SCRScripts(ScriptLines, scriptname, ORSignalTypes, ORNormalSubtypes);
-                bool validScript = AllocateScriptToSignalType(newScript, SignalTypes, scriptname, readnumber, scrFileName, ref Scripts);
-            }
-
-#if DEBUG_PRINT_OUT
-
-            // print processed details
-
-            foreach (KeyValuePair<SignalType, SCRScripts> thispair in Scripts)
-            {
-
-                SCRScripts thisscript = thispair.Value;
-
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Script : " + thisscript.scriptname + "\n\n");
-                printscript(thisscript.Statements);
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n=====================\n");
-            }
-#endif
-
-        }// SigscrRead
-
 
 #if DEBUG_PRINT_OUT
         //================================================================================================//
@@ -630,279 +762,193 @@ namespace Orts.Formats.Msts
         //
         //================================================================================================//
 
-        public bool AllocateScriptToSignalType(SCRScripts newScript, IDictionary<string, SignalType> SignalTypes, string scriptname, int readnumber, string scrFileName,
-            ref IDictionary<SignalType, SCRScripts> Scripts)
+        private void AssignScriptToSignalType(SCRScripts script, IDictionary<string, SignalType> signalTypes, string scriptName, int currentLine, string fileName)
         {
-            bool validType = false;
-            SignalType thisType;
+            bool isValid = false;
 
             // try and find signal type with same name as script
-            if (SignalTypes.TryGetValue(scriptname.ToLower().Trim(), out thisType))
+            if (signalTypes.TryGetValue(scriptName.ToLower(), out SignalType signalType))
             {
-                if (Scripts.ContainsKey(thisType))
+                if (Scripts.ContainsKey(signalType))
                 {
-                    Trace.TraceWarning("Ignored duplicate SignalType script {2} in {0}:line {1}", scrFileName, readnumber, scriptname);
+                    Trace.TraceWarning($"Ignored duplicate SignalType script {scriptName} in {0} {fileName} before {currentLine}");
                 }
                 else
                 {
 #if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + thisType.Name + "\n");
+                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + signalType.Name + "\n");
 #endif
-                    Scripts.Add(thisType, newScript);
-                    validType = true;
+                    Scripts.Add(signalType, script);
+                    isValid = true;
                 }
             }
 
             // try and find any other signal types which reference this script
-            foreach (KeyValuePair<string, SignalType> SelectedSignal in SignalTypes)
+            foreach (KeyValuePair<string, SignalType> currentSignal in signalTypes)
             {
-                SignalType SelectedSignalType = SelectedSignal.Value;
-                if (!String.IsNullOrEmpty(SelectedSignalType.Script))
+
+                if (scriptName.Equals(currentSignal.Value.Script, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (String.Equals(scriptname, SelectedSignalType.Script, StringComparison.InvariantCultureIgnoreCase))
+                    if (Scripts.ContainsKey(currentSignal.Value))
                     {
-                        if (Scripts.ContainsKey(SelectedSignalType))
-                        {
-                            Trace.TraceWarning("Ignored duplicate SignalType script {2} in {0}:line {1}", scrFileName, readnumber, scriptname);
-                        }
-                        else
-                        {
+                        Trace.TraceWarning($"Ignored duplicate SignalType script {scriptName} in {fileName} before {currentLine}");
+                    }
+                    else
+                    {
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + SelectedSignalType.Script + " to " + SelectedSignalType.Name + "\n");
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + currentSignal.Value.Script + " to " + currentSignal.Value.Name + "\n");
 #endif
-                            Scripts.Add(SelectedSignalType, newScript);
-                            validType = true;
-                        }
+                        Scripts.Add(currentSignal.Value, script);
+                        isValid = true;
                     }
                 }
             }
-            return (validType);
+            #region DEBUG
+#if DEBUG_PRINT_OUT
+                        if (!isValid)
+                        {
+                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", $"\nUnknown signal type : {scriptName}\n\n");
+                        }
+#endif
+#if DEBUG_PRINT_IN
+                        if (!isValid)
+                        {
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", $"\nUnknown signal type : {scriptName}\n\n");
+                        }
+#endif
+            #endregion
+
         }
 
-        //================================================================================================//
-        //
-        // read single line from file
-        // skip comment and empty lines
-        //
-        //================================================================================================//
-
-        public static scrReadInfo scrReadLine(StreamReader scrStream, int lastline)
+        private void ParseSignalScript(StreamReader reader, string fileName, IDictionary<string, SignalType> signalTypes, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
         {
-            string readLine;
-            string procLine = String.Empty;
-            bool validLine = false;
-            bool compart = false;
-            int linenumber = lastline;
+            List<SCRReadInfo> scriptLines = new List<SCRReadInfo>();
+            string scriptName = string.Empty;
+            bool inScript = false;
+            SignalScriptParser parser = new SignalScriptParser(reader);
+            StringBuilder builder = new StringBuilder();
 
-            // check if anything still in store
-
-            if (String.IsNullOrEmpty(keepLine))
+            foreach (string line in parser)
             {
-                readLine = scrStream.ReadLine();
-                linenumber++;
-#if DEBUG_PRINT_IN
-                File.AppendAllText(din_fileLoc + @"sigfile.txt", "From file : (" + linenumber.ToString() + ") : " + readLine + "\n");
-#endif
-
-            }
-            else
-            {
-                readLine = String.Copy(keepLine);
-                keepLine = String.Empty;
-#if DEBUG_PRINT_IN
-                File.AppendAllText(din_fileLoc + @"sigfile.txt", "From store : " + readLine + "\n");
-#endif
-            }
-
-            // loop until valid line found
-
-            while (readLine != null && !validLine)
-            {
-
-                // remove comment
-
-                if (compart)
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+                if (line.StartsWith("SCRIPT "))
                 {
-                    procLine = String.Concat(@"/*", readLine.ToUpper());  // force as comment
+                    if (scriptLines.Count > 0)
+                    {
+                        #region DEBUG
+#if DEBUG_PRINT_IN
+                        File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n===============================\n");
+                        File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nNew Script : " + scriptName + "\n");
+#endif
+#if DEBUG_PRINT_OUT
+                        File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n===============================\n");
+                        File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nNew Script : " + scriptName + "\n");
+#endif
+                        #endregion
+                        AssignScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
+                        , signalTypes, scriptName, parser.LineNumber, fileName);
+                    }
+                    //finish existing script, drop following lines until new script
+                    scriptName = line.Substring(7);
+                    inScript = true;
+                }
+                else if (line.StartsWith("REM SCRIPT "))
+                {
+                    //finish existing script, drop following lines until new script
+                    AssignScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
+                        , signalTypes, scriptName, parser.LineNumber, fileName);
+                    inScript = false;
+                    scriptName = string.Empty;
                 }
                 else
                 {
-                    procLine = readLine.ToUpper();
+                    if (inScript)
+                    {
+                        //add line to current script
+                        scriptLines.Add(new SCRReadInfo(line, parser.LineNumber));
+                    }
                 }
-
-                procLine = procLine.Replace("\t", " ");
-                procLine = procLine.Trim();
-
-                int comsep = procLine.IndexOf(@"//");
-                int addsep = procLine.IndexOf(@"/*");
-                int endsep = procLine.IndexOf(@"*/");
-
-                if (comsep == 0)
+                if (parser.LineNumber % 100 == 0)
                 {
-                    procLine = String.Empty;
-                }
-                else if (comsep > 0)
-                {
-                    procLine = procLine.Substring(0, comsep).Trim();
-                }
-
-                if (addsep == 0)
-                {
-                    compart = (endsep <= 0); // No end comment
-                    procLine = String.Empty;
-                }
-
-                // check if empty, else read next line
-
-                if (procLine.Length > 0)
-                {
-                    validLine = true;
-                }
-                else
-                {
-                    readLine = scrStream.ReadLine();
-                    linenumber++;
-#if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigfile.txt",
-                                    "Invalid line, next from file :(" + linenumber.ToString() + ") : " + readLine + "\n");
-#endif
+                    Trace.Write("s");
                 }
             }
 
-            // if ';' in string, split there and keep rest
-
-            char[] sepCheck = ";{}".ToCharArray();
-            int seppos = procLine.IndexOfAny(sepCheck);
-#if DEBUG_PRINT_IN
-            File.AppendAllText(din_fileLoc + @"sigfile.txt", "Extracted : " + procLine + "\n");
-#endif
-            if (seppos >= 0)
-            {
-                if (String.Compare(procLine.Substring(seppos, 1), ";") == 0)
-                {
-                    keepLine = procLine.Substring(seppos + 1);
-                    procLine = procLine.Substring(0, seppos + 1);
-                }
-                else if (seppos == 0)
-                {
-                    keepLine = procLine.Substring(seppos + 1);
-                    procLine = procLine.Substring(0, 1);
-                }
-                else
-                {
-                    keepLine = procLine.Substring(seppos);
-                    procLine = procLine.Substring(0, seppos);
-                }
-#if DEBUG_PRINT_IN
-                File.AppendAllText(din_fileLoc + @"sigfile.txt", "To store : " + keepLine + "\n");
-#endif
-            }
-
-            // if "IF(" in string, replace with "IF ("
-
-            int ifbrack = procLine.IndexOf("IF(");
-            if (ifbrack >= 0)
-            {
-                procLine = procLine.Substring(0, ifbrack) + "IF (" + procLine.Substring(ifbrack + 3);
-            }
-
-            // return line or null
-
-            if (readLine == null)
-            {
-                return null;
-            }
-            else
+            if (scriptLines.Count > 0)
             {
 #if DEBUG_PRINT_IN
-                File.AppendAllText(din_fileLoc + @"sigfile.txt", "To process : " + procLine + "\n");
+                File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n===============================\n");
+                File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nNew Script : " + scriptName + "\n");
 #endif
-                scrReadInfo procInfo = new scrReadInfo(procLine, linenumber, String.Empty);
-                return procInfo;
+                AssignScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
+                    , signalTypes, scriptName, parser.LineNumber, fileName);
             }
-        }// scrReadLine
 
-        //================================================================================================//
-        //
-        // script parsing class - handles a single script from the script file
-        //
-        //================================================================================================//
-        //
-        // class SCRScripts
-        //
-        //================================================================================================//
+#if DEBUG_PRINT_OUT
+            // print processed details 
+            foreach (KeyValuePair<SignalType, SCRScripts> item in Scripts)
+            {
+                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Script : " + item.Value.ScriptName + "\n\n");
+                printscript(item.Value.Statements);
+                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n=====================\n");
+            }
+#endif
+        }
 
         public class SCRScripts
         {
 
-            private IDictionary<string, uint> LocalFloats;
-            public uint totalLocalFloats;
-            public ArrayList Statements;
-            public string scriptname;
+            private IDictionary<string, uint> localFloats;
+            public uint totalLocalFloats { get; private set; }
+            public ArrayList Statements { get; private set; }
+            public string ScriptName { get; private set; }
 
             //================================================================================================//
             //
             // Constructor
             // Input is list with all lines for one signal script
             //
-
-            public SCRScripts(List<scrReadInfo> ScriptLines, string scriptnameIn, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+            public SCRScripts(List<SCRReadInfo> scriptLines, string scriptName, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
             {
-                LocalFloats = new Dictionary<string, uint>();
+                localFloats = new Dictionary<string, uint>();
                 totalLocalFloats = 0;
                 Statements = new ArrayList();
+                ScriptName = scriptName;
 
-                int lcount = 0;
-                int maxcount = ScriptLines.Count;
-
-                scriptname = scriptnameIn;
+                int line = 0;
+                int maxcount = scriptLines.Count;
 
 #if DEBUG_PRINT_IN
                 // print inputlines
 
-                foreach (scrReadInfo InfoLine in ScriptLines)
+                foreach (SCRReadInfo InfoLine in scriptLines)
                 {
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", InfoLine.Readline + "\n");
+                    File.AppendAllText(din_fileLoc + @"sigscr.txt", InfoLine.ReadLine + "\n");
                 }
                 File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n+++++++++++++++++++++++++++++++++++\n\n");
 
 #endif
 
                 // Skip external floats (exist automatically)
+                while (scriptLines[line].ReadLine.StartsWith("EXTERN FLOAT ") && line++ < maxcount) ;
 
-                bool exfloat = ScriptLines[lcount].Readline.StartsWith("EXTERN FLOAT ");
-                while (exfloat && lcount < maxcount)
+                //// Process floats : build list with internal floats
+                string floatString;
+                while ((floatString = scriptLines[line].ReadLine).StartsWith("FLOAT ") && line++ < maxcount)
                 {
-                    lcount++;
-                    exfloat = ScriptLines[lcount].Readline.StartsWith("EXTERN FLOAT ");
-                }
-
-                // Process floats : build list with internal floats
-
-                bool infloat = ScriptLines[lcount].Readline.StartsWith("FLOAT ");
-                while (infloat && lcount < maxcount)
-                {
-                    string floatstring = ScriptLines[lcount].Readline.Substring(6);
-                    floatstring = floatstring.Trim();
-                    int endstring = floatstring.IndexOf(";");
-                    floatstring = floatstring.Substring(0, endstring);
-                    floatstring = floatstring.Trim();
-
-                    if (!LocalFloats.ContainsKey(floatstring))
+                    floatString = floatString.Substring(6, floatString.Length - 7);
+                    if (!localFloats.ContainsKey(floatString))
                     {
-                        LocalFloats.Add(floatstring, totalLocalFloats);
-                        totalLocalFloats++;
+                        localFloats.Add(floatString, totalLocalFloats++);
                     }
-
-                    lcount++;
-                    infloat = ScriptLines[lcount].Readline.StartsWith("FLOAT ");
                 }
 
 #if DEBUG_PRINT_OUT
                 // print details of internal floats
 
                 File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n\nFloats : \n");
-                foreach (KeyValuePair<string, uint> deffloat in LocalFloats)
+                foreach (KeyValuePair<string, uint> deffloat in localFloats)
                 {
                     string defstring = deffloat.Key;
                     uint defindex = deffloat.Value;
@@ -911,87 +957,49 @@ namespace Orts.Formats.Msts
                 }
                 File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Total : " + totalLocalFloats.ToString() + "\n\n\n");
 #endif
-
-                // Check rest of file - statements
-
-                Statements = processScriptLines(ScriptLines, lcount, LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                ScriptLines.Clear();
-
+                scriptLines.RemoveRange(0, line);
+                Statements = ParseStatements(scriptLines, localFloats, orSignalTypes, orNormalSubtypes);
+                scriptLines.Clear();
             }// constructor
 
+            private static ArrayList ParseStatements(List<SCRReadInfo> scriptLines, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            {
+                ArrayList result = new ArrayList();
+                List<int> ifblockcount;
+                int index = 0;
 
+                while (index<scriptLines.Count)
+                {
+                    SCRReadInfo lineItem = scriptLines[index];
+                    if (lineItem.ReadLine.Length == 1 && (lineItem.ReadLine == "{" || lineItem.ReadLine == "}"))
+                    {
+                        index++;
+                        continue;
+                    }
+                    else if (lineItem.ReadLine.StartsWith("IF") && ((lineItem.ReadLine[2] == ' ') || (lineItem.ReadLine[2]) == '('))    //matches "IF " as well "IF("
+                    {
+                        ifblockcount = findEndIfBlock(scriptLines, index);
+                        SCRConditionBlock thisCondition = new SCRConditionBlock(scriptLines, index, ifblockcount, localFloats, orSignalTypes, orNormalSubtypes);
+                        index = ifblockcount[ifblockcount.Count - 1];
+                        result.Add(thisCondition);
+                    }
+                    // process statement
+                    else
+                    {
+                        Debug.Assert(!string.IsNullOrWhiteSpace(lineItem.ReadLine));
+                        SCRStatement statement = new SCRStatement(lineItem, localFloats, orSignalTypes, orNormalSubtypes);
+                        if (statement.IsValid)
+                            result.Add(statement);
+                        index++;
+                    }
+                }
+                return result;
+            }
             //================================================================================================//
             //
             // parsing routines
             //
             //================================================================================================//
-            //
-            // process all process lines
-            // this function is also called recursively to process separate lower level IF and ELSE blocks
-            //
-            //================================================================================================//
-
-            public static ArrayList processScriptLines(List<scrReadInfo> PSLScriptLines, int index, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
-            {
-
-                int lcount = index;
-                int nextcount;
-                List<int> ifblockcount;
-                ArrayList localStatements = new ArrayList();
-
-                // loop through all lines
-
-                while (lcount < PSLScriptLines.Count)
-                {
-
-                    // clear enclosing { and } if still in string
-
-                    int sepparent = PSLScriptLines[lcount].Readline.IndexOf("{");
-                    while (sepparent >= 0)
-                    {
-                        PSLScriptLines[lcount].Readline = PSLScriptLines[lcount].Readline.Replace("{", String.Empty).Trim();
-                        sepparent = PSLScriptLines[lcount].Readline.IndexOf("{");
-                    }
-
-                    sepparent = PSLScriptLines[lcount].Readline.IndexOf("}");
-                    while (sepparent >= 0)
-                    {
-                        PSLScriptLines[lcount].Readline = PSLScriptLines[lcount].Readline.Replace("}", String.Empty).Trim();
-                        sepparent = PSLScriptLines[lcount].Readline.IndexOf("}");
-                    }
-
-                    // process IF statement
-                    // all lines in IF (-ELSEIF) (-ELSE)  block will be handled by this function call
-
-                    if (PSLScriptLines[lcount].Readline.StartsWith("IF "))
-                    {
-                        ifblockcount = findEndIfBlock(PSLScriptLines, lcount);
-                        SCRConditionBlock thisCondition = new SCRConditionBlock(PSLScriptLines, lcount, ifblockcount, LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                        nextcount = ifblockcount[ifblockcount.Count - 1];
-                        localStatements.Add(thisCondition);
-                    }
-
-                    // process statement
-
-                    else if (PSLScriptLines[lcount] != null && !String.IsNullOrEmpty(PSLScriptLines[lcount].Readline))
-                    {
-                        nextcount = FindEndStatement(PSLScriptLines, lcount);
-                        SCRStatement thisStatement = new SCRStatement(PSLScriptLines[lcount], LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                        if (thisStatement.valid) localStatements.Add(thisStatement);
-                    }
-
-                    // empty line (may be result of removing { and })
-
-                    else
-                    {
-                        nextcount = lcount + 1;
-                    }
-
-                    lcount = nextcount;
-                }
-
-                return localStatements;
-            } // processScriptlines
 
             //================================================================================================//
             //
@@ -1000,7 +1008,7 @@ namespace Orts.Formats.Msts
             //
             //================================================================================================//
 
-            public static int FindEndStatement(List<scrReadInfo> FESScriptLines, int index)
+            public static int FindEndStatement(List<SCRReadInfo> FESScriptLines, int index)
             {
                 string presentstring, addline;
                 int endpos;
@@ -1008,8 +1016,8 @@ namespace Orts.Formats.Msts
 
                 //================================================================================================//
 
-                scrReadInfo presentInfo = FESScriptLines[index];
-                presentstring = presentInfo.Readline.Trim();
+                SCRReadInfo presentInfo = FESScriptLines[index];
+                presentstring = presentInfo.ReadLine.Trim();
                 FESScriptLines.RemoveAt(index);
                 endpos = presentstring.IndexOf(";");
                 actindex = index;
@@ -1025,7 +1033,7 @@ namespace Orts.Formats.Msts
 
                 while (endpos <= 0 && actindex < FESScriptLines.Count)
                 {
-                    addline = FESScriptLines[actindex].Readline;
+                    addline = FESScriptLines[actindex].ReadLine;
                     FESScriptLines.RemoveAt(actindex);
                     presentstring = String.Concat(presentstring, addline);
                     endpos = presentstring.IndexOf(";");
@@ -1035,10 +1043,10 @@ namespace Orts.Formats.Msts
 
                 if (endpos <= 0)
                 {
-                    Trace.TraceWarning("sigscr-file line {1} : Missing ; in statement starting with {0}", presentstring, presentInfo.Linenumber.ToString());
+                    Trace.TraceWarning("sigscr-file line {1} : Missing ; in statement starting with {0}", presentstring, presentInfo.LineNumber.ToString());
 #if DEBUG_PRINT_IN
                     File.AppendAllText(din_fileLoc + @"sigscr.txt", "Missing ; in statement starting with " + presentstring + " (" +
-                                    presentInfo.Linenumber.ToString() + ")\n");
+                                    presentInfo.LineNumber.ToString() + ")\n");
 #endif
 
                 }
@@ -1047,12 +1055,12 @@ namespace Orts.Formats.Msts
 
                 if (presentstring.Length > (endpos + 1) && endpos > 0)
                 {
-                    scrReadInfo splitInfo = new scrReadInfo(presentstring.Substring(endpos + 1).Trim(), presentInfo.Linenumber, presentInfo.Scriptname);
+                    SCRReadInfo splitInfo = new SCRReadInfo(presentstring.Substring(endpos + 1).Trim(), presentInfo.LineNumber);
                     FESScriptLines.Insert(index, splitInfo);
                     presentstring = presentstring.Substring(0, endpos + 1).Trim();
                 }
 
-                scrReadInfo newInfo = new scrReadInfo(presentstring.Trim(), presentInfo.Linenumber, presentInfo.Scriptname);
+                SCRReadInfo newInfo = new SCRReadInfo(presentstring.Trim(), presentInfo.LineNumber);
                 FESScriptLines.Insert(index, newInfo);
                 actindex = index + 1;
                 return actindex;
@@ -1069,12 +1077,12 @@ namespace Orts.Formats.Msts
             //
             //================================================================================================//
 
-            public static List<int> findEndIfBlock(List<scrReadInfo> FEIScriptLines, int index)
+            public static List<int> findEndIfBlock(List<SCRReadInfo> FEIScriptLines, int index)
             {
 
                 List<int> nextcount = new List<int>();
-                scrReadInfo nextinfo;
-                scrReadInfo tempinfo;
+                SCRReadInfo nextinfo;
+                SCRReadInfo tempinfo;
                 string nextline;
                 int tempnumber;
                 int endIfcount, endElsecount;
@@ -1082,7 +1090,7 @@ namespace Orts.Formats.Msts
                 int linecount = FindEndCondition(FEIScriptLines, index);
 
                 nextinfo = FEIScriptLines[linecount];
-                nextline = nextinfo.Readline;
+                nextline = nextinfo.ReadLine;
 
                 // full block : search for matching parenthesis in next lines
                 // set end after related closing }
@@ -1100,16 +1108,16 @@ namespace Orts.Formats.Msts
                 {
                     List<int> fullcount = findEndIfBlock(FEIScriptLines, linecount);
                     int lastline = fullcount[fullcount.Count - 1];
-                    string templine = FEIScriptLines[linecount].Readline;
+                    string templine = FEIScriptLines[linecount].ReadLine;
                     FEIScriptLines.RemoveAt(linecount);
                     templine = String.Concat("{ ", templine);
-                    tempinfo = new scrReadInfo(templine, nextinfo.Linenumber, nextinfo.Scriptname);
+                    tempinfo = new SCRReadInfo(templine, nextinfo.LineNumber);
                     FEIScriptLines.Insert(linecount, tempinfo);
-                    templine = FEIScriptLines[lastline - 1].Readline;
-                    tempnumber = FEIScriptLines[lastline - 1].Linenumber;
+                    templine = FEIScriptLines[lastline - 1].ReadLine;
+                    tempnumber = FEIScriptLines[lastline - 1].LineNumber;
                     FEIScriptLines.RemoveAt(lastline - 1);
                     templine = String.Concat(templine, " }");
-                    tempinfo = new scrReadInfo(templine, tempnumber, nextinfo.Scriptname);
+                    tempinfo = new SCRReadInfo(templine, tempnumber);
                     FEIScriptLines.Insert(lastline - 1, tempinfo);
                     endIfcount = lastline;
                 }
@@ -1126,7 +1134,7 @@ namespace Orts.Formats.Msts
 
                 // check if next line starts with ELSE or any form of ELSEIF
 
-                nextline = endElsecount < FEIScriptLines.Count ? FEIScriptLines[endElsecount].Readline.Trim() : String.Empty;
+                nextline = endElsecount < FEIScriptLines.Count ? FEIScriptLines[endElsecount].ReadLine.Trim() : String.Empty;
                 bool endelse = false;
 
                 while (!endelse && endElsecount < FEIScriptLines.Count)
@@ -1141,7 +1149,7 @@ namespace Orts.Formats.Msts
                         {
                             elsepart = true;
                             nextinfo = FEIScriptLines[endElsecount + 1];
-                            nextline = nextinfo.Readline;
+                            nextline = nextinfo.ReadLine;
 
                             // check if next line start with IF - then this is an ELSEIF
 
@@ -1150,11 +1158,11 @@ namespace Orts.Formats.Msts
                                 nextline = String.Concat("ELSEIF ", nextline.Substring(3).Trim());
                                 FEIScriptLines.RemoveAt(endElsecount + 1);
                                 FEIScriptLines.RemoveAt(endElsecount);
-                                tempinfo = new scrReadInfo(nextline, nextinfo.Linenumber, nextinfo.Scriptname);
+                                tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber);
                                 FEIScriptLines.Insert(endElsecount, tempinfo);
                                 endElsecount = FindEndCondition(FEIScriptLines, endElsecount);
                                 nextinfo = FEIScriptLines[endElsecount];
-                                nextline = nextinfo.Readline;
+                                nextline = nextinfo.ReadLine;
                             }
                             else
                             {
@@ -1177,20 +1185,20 @@ namespace Orts.Formats.Msts
                         {
                             nextline = String.Concat("ELSEIF ", nextline.Substring(3).Trim());
                             FEIScriptLines.RemoveAt(endElsecount);
-                            tempinfo = new scrReadInfo(nextline, nextinfo.Linenumber, nextinfo.Scriptname);
+                            tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber);
                             FEIScriptLines.Insert(endElsecount, tempinfo);
                             endElsecount = FindEndCondition(FEIScriptLines, endElsecount);
                             nextinfo = FEIScriptLines[endElsecount];
-                            nextline = nextinfo.Readline;
+                            nextline = nextinfo.ReadLine;
                         }
                         else
                         {
                             endelse = true;
 
                             FEIScriptLines.RemoveAt(endElsecount);
-                            tempinfo = new scrReadInfo(nextline.Trim(), nextinfo.Linenumber, nextinfo.Scriptname);
+                            tempinfo = new SCRReadInfo(nextline.Trim(), nextinfo.LineNumber);
                             FEIScriptLines.Insert(endElsecount, tempinfo);
-                            tempinfo = new scrReadInfo("ELSE", nextinfo.Linenumber, nextinfo.Scriptname);
+                            tempinfo = new SCRReadInfo("ELSE", nextinfo.LineNumber);
                             FEIScriptLines.Insert(endElsecount, tempinfo);
                             endElsecount++;
                         }
@@ -1203,7 +1211,7 @@ namespace Orts.Formats.Msts
                         elsepart = true;
                         endElsecount = FindEndCondition(FEIScriptLines, endElsecount);
                         nextinfo = FEIScriptLines[endElsecount];
-                        nextline = nextinfo.Readline;
+                        nextline = nextinfo.ReadLine;
                     }
 
                     // line starts with ELSE{
@@ -1215,12 +1223,12 @@ namespace Orts.Formats.Msts
                         endelse = true;
                         nextline = nextline.Substring(5).Trim();
                         FEIScriptLines.RemoveAt(endElsecount);
-                        tempinfo = new scrReadInfo(nextline, nextinfo.Linenumber, nextinfo.Scriptname);
+                        tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber);
                         FEIScriptLines.Insert(endElsecount, tempinfo);
                         nextline = "{";
-                        tempinfo = new scrReadInfo("{", nextinfo.Linenumber, nextinfo.Scriptname);
+                        tempinfo = new SCRReadInfo("{", nextinfo.LineNumber);
                         FEIScriptLines.Insert(endElsecount, tempinfo);
-                        tempinfo = new scrReadInfo("ELSE", nextinfo.Linenumber, nextinfo.Scriptname);
+                        tempinfo = new SCRReadInfo("ELSE", nextinfo.LineNumber);
                         FEIScriptLines.Insert(endElsecount, tempinfo);
                     }
 
@@ -1236,16 +1244,16 @@ namespace Orts.Formats.Msts
                         {
                             List<int> fullcount = findEndIfBlock(FEIScriptLines, endElsecount);
                             int lastline = fullcount[fullcount.Count - 1];
-                            string templine = FEIScriptLines[endElsecount].Readline;
+                            string templine = FEIScriptLines[endElsecount].ReadLine;
                             FEIScriptLines.RemoveAt(endElsecount);
                             templine = String.Concat("{ ", templine);
-                            tempinfo = new scrReadInfo(templine, nextinfo.Linenumber, nextinfo.Scriptname);
+                            tempinfo = new SCRReadInfo(templine, nextinfo.LineNumber);
                             FEIScriptLines.Insert(endElsecount, tempinfo);
-                            templine = FEIScriptLines[lastline - 1].Readline;
-                            tempnumber = FEIScriptLines[lastline - 1].Linenumber;
+                            templine = FEIScriptLines[lastline - 1].ReadLine;
+                            tempnumber = FEIScriptLines[lastline - 1].LineNumber;
                             FEIScriptLines.RemoveAt(lastline - 1);
                             templine = String.Concat(templine, " }");
-                            tempinfo = new scrReadInfo(templine, tempnumber, nextinfo.Scriptname);
+                            tempinfo = new SCRReadInfo(templine, tempnumber);
                             FEIScriptLines.Insert(lastline - 1, tempinfo);
                             endElsecount = lastline;
                         }
@@ -1253,7 +1261,7 @@ namespace Orts.Formats.Msts
                         {
                             endElsecount = FindEndStatement(FEIScriptLines, endElsecount);
                         }
-                        nextline = endElsecount < FEIScriptLines.Count ? FEIScriptLines[endElsecount].Readline.Trim() : String.Empty;
+                        nextline = endElsecount < FEIScriptLines.Count ? FEIScriptLines[endElsecount].ReadLine.Trim() : String.Empty;
                         nextcount.Add(endElsecount);
                     }
                     else
@@ -1271,10 +1279,10 @@ namespace Orts.Formats.Msts
             //
             //================================================================================================//
 
-            public static int findEndBlock(List<scrReadInfo> FEBScriptLines, int index)
+            public static int findEndBlock(List<SCRReadInfo> FEBScriptLines, int index)
             {
 
-                scrReadInfo firstinfo, thisinfo, tempinfo;
+                SCRReadInfo firstinfo, thisinfo, tempinfo;
 
                 // Use regular expression to find all occurences of { and }
                 // Keep searching through next lines until match is found
@@ -1289,7 +1297,7 @@ namespace Orts.Formats.Msts
                 Regex closeparstr = new Regex("}");
 
                 firstinfo = FEBScriptLines[index];
-                string presentline = firstinfo.Readline;
+                string presentline = firstinfo.ReadLine;
 
                 bool blockEnd = false;
                 int splitpoint = -1;
@@ -1364,7 +1372,7 @@ namespace Orts.Formats.Msts
                         }
 
                         thisinfo = FEBScriptLines[checkcount];
-                        presentline = thisinfo.Readline;
+                        presentline = thisinfo.ReadLine;
 
                         // get positions
 
@@ -1395,17 +1403,17 @@ namespace Orts.Formats.Msts
 
                 int nextcount = checkcount + 1;
                 thisinfo = FEBScriptLines[checkcount];
-                presentline = thisinfo.Readline.Trim();
+                presentline = thisinfo.ReadLine.Trim();
 
                 if (splitpoint >= 0 && splitpoint < presentline.Length - 1)
                 {
                     thisinfo = FEBScriptLines[checkcount];
-                    presentline = thisinfo.Readline;
+                    presentline = thisinfo.ReadLine;
                     FEBScriptLines.RemoveAt(checkcount);
 
-                    tempinfo = new scrReadInfo(presentline.Substring(splitpoint + 1).Trim(), firstinfo.Linenumber, firstinfo.Scriptname);
+                    tempinfo = new SCRReadInfo(presentline.Substring(splitpoint + 1).Trim(), firstinfo.LineNumber);
                     FEBScriptLines.Insert(checkcount, tempinfo);
-                    tempinfo = new scrReadInfo(presentline.Substring(0, splitpoint + 1).Trim(), firstinfo.Linenumber, firstinfo.Scriptname);
+                    tempinfo = new SCRReadInfo(presentline.Substring(0, splitpoint + 1).Trim(), firstinfo.LineNumber);
                     FEBScriptLines.Insert(checkcount, tempinfo);
                 }
 
@@ -1418,20 +1426,20 @@ namespace Orts.Formats.Msts
             //
             //================================================================================================//
 
-            public static int FindEndCondition(List<scrReadInfo> FECScriptLines, int index)
+            public static int FindEndCondition(List<SCRReadInfo> FECScriptLines, int index)
             {
                 string presentstring, addline;
                 int totalopen, totalclose;
                 int actindex;
 
-                scrReadInfo thisinfo, addinfo, tempinfo;
+                SCRReadInfo thisinfo, addinfo, tempinfo;
 
                 //================================================================================================//
 
                 actindex = index;
 
                 thisinfo = FECScriptLines[index];
-                presentstring = thisinfo.Readline;
+                presentstring = thisinfo.ReadLine;
                 FECScriptLines.RemoveAt(index);
 
                 // use regular expression to search for open and close bracket
@@ -1449,7 +1457,7 @@ namespace Orts.Formats.Msts
                 while (totalopen <= 0 && actindex < FECScriptLines.Count)
                 {
                     addinfo = FECScriptLines[actindex];
-                    addline = addinfo.Readline;
+                    addline = addinfo.ReadLine;
                     FECScriptLines.RemoveAt(actindex);
                     presentstring = String.Concat(presentstring, addline);
                     opencount = openbrack.Matches(presentstring);
@@ -1458,10 +1466,10 @@ namespace Orts.Formats.Msts
 
                 if (totalopen <= 0)
                 {
-                    Trace.TraceWarning("sigscr-file line {1} : If statement without ( ; starting with {0}", presentstring, thisinfo.Linenumber.ToString());
+                    Trace.TraceWarning("sigscr-file line {1} : If statement without ( ; starting with {0}", presentstring, thisinfo.LineNumber.ToString());
 #if DEBUG_PRINT_IN
                     File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                    "If statement without ( ; starting with {0}" + presentstring + " (" + thisinfo.Linenumber.ToString() + ")\n");
+                                    "If statement without ( ; starting with {0}" + presentstring + " (" + thisinfo.LineNumber.ToString() + ")\n");
 #endif
                 }
 
@@ -1475,7 +1483,7 @@ namespace Orts.Formats.Msts
                 while (totalclose < totalopen && actindex < FECScriptLines.Count)
                 {
                     addinfo = FECScriptLines[actindex];
-                    addline = addinfo.Readline;
+                    addline = addinfo.ReadLine;
                     FECScriptLines.RemoveAt(actindex);
                     presentstring = String.Concat(presentstring, addline);
 
@@ -1495,7 +1503,7 @@ namespace Orts.Formats.Msts
                     int possibleEnd = presentstring.IndexOf("{");
 
                     Trace.TraceWarning("sigscr-file line {1} : Missing ) in IF statement ; starting with {0}",
-                    presentstring, thisinfo.Linenumber.ToString());
+                    presentstring, thisinfo.LineNumber.ToString());
 
                     string reportString = String.Copy(presentstring);
                     if (possibleEnd > 0)
@@ -1504,8 +1512,8 @@ namespace Orts.Formats.Msts
 
                         Trace.TraceWarning("IF statement set to : {0}", reportString + ")");
 
-                        tempinfo = new scrReadInfo(presentstring.Substring(possibleEnd).Trim(),
-                            thisinfo.Linenumber, thisinfo.Scriptname);
+                        tempinfo = new SCRReadInfo(presentstring.Substring(possibleEnd).Trim(),
+                            thisinfo.LineNumber);
                         FECScriptLines.Insert(index, tempinfo);
                         presentstring = String.Concat(presentstring.Substring(0, possibleEnd), ")");
                         actindex = index + 1;
@@ -1513,7 +1521,7 @@ namespace Orts.Formats.Msts
 
 #if DEBUG_PRINT_IN
                     File.AppendAllText(din_fileLoc + @"sigscr.txt", "If statement without ) ; starting with " + reportString +
-                                   " (" + thisinfo.Linenumber.ToString() + ")\n");
+                                   " (" + thisinfo.LineNumber.ToString() + ")\n");
 #endif
                 }
                 else
@@ -1559,14 +1567,14 @@ namespace Orts.Formats.Msts
 
                     if (closepos < (presentstring.Length - 1))
                     {
-                        tempinfo = new scrReadInfo(presentstring.Substring(closepos + 1).Trim(), thisinfo.Linenumber, thisinfo.Scriptname);
+                        tempinfo = new SCRReadInfo(presentstring.Substring(closepos + 1).Trim(), thisinfo.LineNumber);
                         FECScriptLines.Insert(index, tempinfo);
                         presentstring = presentstring.Substring(0, closepos + 1);
                     }
                     actindex = index + 1;
                 }
 
-                tempinfo = new scrReadInfo(presentstring.Trim(), thisinfo.Linenumber, thisinfo.Scriptname);
+                tempinfo = new SCRReadInfo(presentstring.Trim(), thisinfo.LineNumber);
                 FECScriptLines.Insert(index, tempinfo);
                 return actindex;
             }//findEndCondition
@@ -1576,46 +1584,40 @@ namespace Orts.Formats.Msts
             // process function call (in statement or in IF condition)
             //
             //================================================================================================//
-
-            static public ArrayList process_FunctionCall(string FunctionStatement, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes, int linenumber)
+            static public ArrayList Process_FunctionCall(string functionStatement, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes, int lineNumber)
             {
                 ArrayList FunctionParts = new ArrayList();
                 bool valid_func = true;
 
                 // split in function and parameter parts
 
-                string[] StatementParts = FunctionStatement.Split('(');
-                if (StatementParts.Length > 2)
+                string[] statementParts = functionStatement.Split('(');
+                if (statementParts.Length > 2)
                 {
                     valid_func = false;
-                    Trace.TraceWarning("sigscr-file line {1} : Unexpected number of ( in function call : {0}", FunctionStatement, linenumber.ToString());
+                    Trace.TraceWarning($"sigscr-file line {lineNumber} : Unexpected number of ( in function call : {functionStatement}");
 #if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unexpected number of ( in function call : " + FunctionStatement + "\n");
+                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unexpected number of ( in function call : " + functionStatement + "\n");
 #endif
                 }
 
                 // process function part
-
-                try
+                if (Enum.TryParse<SCRExternalFunctions>(statementParts[0], true, out SCRExternalFunctions scrExternalFunctionsResult))
                 {
-                    SCRExternalFunctions exFunction =
-                            (SCRExternalFunctions)Enum.Parse(typeof(SCRExternalFunctions), StatementParts[0], true);
-                    FunctionParts.Add(exFunction);
-
+                    FunctionParts.Add(scrExternalFunctionsResult);
                 }
-                catch (Exception ex)
+                else
                 {
                     valid_func = false;
-                    Trace.TraceWarning("sigscr-file line {1} : Unknown function call : {0}\nDetails : {2}",
-                        FunctionStatement, linenumber.ToString(), ex.ToString());
+                    Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown function call : {functionStatement}\nDetails : {statementParts[0]}");
 #if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown function call : " + FunctionStatement + "\n");
+                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown function call : " + functionStatement + "\n");
 #endif
                 }
 
                 // remove closing bracket
 
-                string ParameterPart = StatementParts[1].Replace(")", String.Empty).Trim();
+                string ParameterPart = statementParts[1].Replace(")", String.Empty).Trim();
 
                 // process first parameters in case of multiple parameters
 
@@ -1623,7 +1625,7 @@ namespace Orts.Formats.Msts
                 while (sepindex > 0 && valid_func)
                 {
                     string parmPart = ParameterPart.Substring(0, sepindex).Trim();
-                    SCRParameterType TempParm = process_TermPart(parmPart, LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
+                    SCRParameterType TempParm = Process_TermPart(parmPart, localFloats, orSignalTypes, orNormalSubtypes, lineNumber);
                     FunctionParts.Add(TempParm);
 
                     ParameterPart = ParameterPart.Substring(sepindex + 1).Trim();
@@ -1634,7 +1636,7 @@ namespace Orts.Formats.Msts
 
                 if (!String.IsNullOrEmpty(ParameterPart) && valid_func)
                 {
-                    SCRParameterType TempParm = process_TermPart(ParameterPart, LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
+                    SCRParameterType TempParm = Process_TermPart(ParameterPart, localFloats, orSignalTypes, orNormalSubtypes, lineNumber);
                     FunctionParts.Add(TempParm);
                 }
 
@@ -1644,7 +1646,6 @@ namespace Orts.Formats.Msts
                 {
                     FunctionParts = null;
                 }
-
                 return FunctionParts;
             }//process_FunctionCall
 
@@ -1653,203 +1654,118 @@ namespace Orts.Formats.Msts
             // process term part of statement (right-hand side)
             //
             //================================================================================================//
-
-            static public SCRParameterType process_TermPart(string TermString, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes, int linenumber)
+            static public SCRParameterType Process_TermPart(string termString, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes, int lineNumber)
             {
 
-                bool termset = false;
-                SCRParameterType TermParts = new SCRParameterType(SCRTermType.Constant, 0);
-
+                SCRParameterType result = new SCRParameterType(SCRTermType.Constant, 0);
                 // check for use of #
-                if (String.Compare(TermString.Substring(0, 1), "#") == 0)
+                if (termString[0] == '#')
                 {
-                    TermString = TermString.Substring(1).Trim();
+                    termString = termString.Substring(1).Trim();
                 }
-
 
                 // try constant
-
-                try
+                if (int.TryParse(termString, out int tmpInt))
                 {
-                    int tmpint = int.Parse(TermString);
-                    TermParts = new SCRParameterType(SCRTermType.Constant, tmpint);
-                    termset = true;
+                    result = new SCRParameterType(SCRTermType.Constant, tmpInt);
                 }
-                catch (Exception Ex)
-                {
-                    if (TermString.Length < 1)
-                        Trace.Write(Ex.ToString());   // dummy statement to avoid compiler warning
-                }
-
                 // try external float
-
-                if (!termset)
+                else if (Enum.TryParse<SCRExternalFloats>(termString, true, out SCRExternalFloats exFloat))
                 {
-                    try
-                    {
-                        SCRExternalFloats exFloat =
-                                (SCRExternalFloats)Enum.Parse(typeof(SCRExternalFloats), TermString, true);
-                        TermParts = new SCRParameterType(SCRTermType.ExternalFloat, (int)exFloat);
-                        termset = true;
-                    }
-                    catch (Exception Ex)
-                    {
-                        if (TermString.Length < 1)
-                            Trace.Write(Ex.ToString());   // dummy statement to avoid compiler warning
-                    }
+                    result = new SCRParameterType(SCRTermType.ExternalFloat, (int)exFloat);
                 }
-
                 // try local float
-
-                if (!termset)
+                else if (localFloats.TryGetValue(termString, out uint localFloat))
                 {
-                    foreach (KeyValuePair<string, uint> intFloat in LocalFloats)
-                    {
-                        string intFloatName = intFloat.Key;
-                        uint intFloatDef = intFloat.Value;
-
-                        if (String.Compare(TermString, intFloatName) == 0)
-                        {
-                            TermParts = new SCRParameterType(SCRTermType.LocalFloat, (int)intFloatDef);
-                            termset = true;
-                        }
-                    }
+                    result = new SCRParameterType(SCRTermType.LocalFloat, (int)localFloat);
                 }
-
                 // try blockstate
-
-                if (!termset)
+                else if (termString.StartsWith("BLOCK_"))
                 {
-                    if (TermString.StartsWith("BLOCK_"))
+                    if (Enum.TryParse<MstsBlockState>(termString.Substring(6), true, out MstsBlockState blockstate))
                     {
-                        string partString = TermString.Substring(6);
-                        try
-                        {
-                            MstsBlockState Blockstate =
-                                    (MstsBlockState)Enum.Parse(typeof(MstsBlockState), partString, true);
-                            TermParts = new SCRParameterType(SCRTermType.Block, (int)Blockstate);
-                        }
-                        catch (Exception Ex)
-                        {
-                            Trace.TraceWarning("sigscr-file line {1} : Unknown Blockstate : {0}\nDetails {2}: ",
-                                partString, linenumber.ToString(), Ex.ToString());
+                        result = new SCRParameterType(SCRTermType.Block, (int)blockstate);
+                    }
+                    else
+                    {
+                        Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Blockstate : {termString.Substring(6)} \n");
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Blockstate : " + partString + "\n");
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Blockstate : " + termString + "\n");
 #endif
-                        }
-                        termset = true;
                     }
                 }
-
-
                 // try SIGASP definition
-
-                if (!termset)
+                else if (termString.StartsWith("SIGASP_"))
                 {
-                    if (TermString.StartsWith("SIGASP_"))
+                    if (Enum.TryParse<MstsSignalAspect>(termString.Substring(7), true, out MstsSignalAspect aspect))
                     {
-                        string partString = TermString.Substring(7);
-                        try
-                        {
-                            MstsSignalAspect Aspect =
-                                    (MstsSignalAspect)Enum.Parse(typeof(MstsSignalAspect), partString, true);
-                            TermParts = new SCRParameterType(SCRTermType.Sigasp, (int)Aspect);
-                        }
-                        catch (Exception Ex)
-                        {
-                            Trace.TraceWarning("sigscr-file line {1} : Unknown Aspect : {0}\nDetails : {2}",
-                                partString, linenumber.ToString(), Ex.ToString());
+                        result = new SCRParameterType(SCRTermType.Sigasp, (int)aspect);
+                    }
+                    else
+                    {
+                        Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Aspect : {termString.Substring(7)} \n");
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Aspect : " + partString + "\n");
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Aspect : " + termString + "\n");
 #endif
-                        }
-                        termset = true;
                     }
                 }
-
                 // try SIGFN definition
-
-                if (!termset)
+                else if (termString.StartsWith("SIGFN_"))
                 {
-                    if (TermString.StartsWith("SIGFN_"))
+                    int index = orSignalTypes.IndexOf(termString.Substring(6).ToUpper());
+                    if (index != -1)
                     {
-                        string partString = TermString.Substring(6);
-
-                        if (ORSignalTypes.Contains(partString.ToUpper()))
-                        {
-                            TermParts = new SCRParameterType(SCRTermType.Sigfn, ORSignalTypes.IndexOf(partString.ToUpper()));
-                        }
-                        else
-                        {
-                            Trace.TraceWarning("sigscr-file line {1} : Unknown SIGFN Type : {0} \n",
-                                partString, linenumber.ToString());
+                        result = new SCRParameterType(SCRTermType.Sigfn, index);
+                    }
+                    else
+                    {
+                        Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown SIGFN Type : {termString.Substring(6)} \n");
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Type : " + partString + "\n");
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Type : " + termString + "\n");
 #endif
-                        }
-                        termset = true;
                     }
                 }
-
                 // try ORSubtype definition
-
-                if (!termset)
+                else if (termString.StartsWith("ORSUBTYPE_"))
                 {
-                    if (TermString.StartsWith("ORSUBTYPE_"))
+                    int index = orNormalSubtypes.IndexOf(termString.Substring(10).ToUpper());
+                    if (index != -1)
                     {
-                        string partString = TermString.Substring(10);
-
-                        if (ORNormalSubtypes.Contains(partString.ToUpper()))
-                        {
-                            TermParts = new SCRParameterType(SCRTermType.ORNormalSubtype, ORNormalSubtypes.IndexOf(partString.ToUpper()));
-                        }
-                        else
-                        {
-                            Trace.TraceWarning("sigscr-file line {1} : Unknown ORSUBTYPE : {0} \n",
-                                partString, linenumber.ToString());
+                        result = new SCRParameterType(SCRTermType.ORNormalSubtype, index);
+                    }
+                    else
+                    {
+                        Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown ORSUBTYPE : {termString.Substring(10)} \n");
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Type : " + partString + "\n");
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Type : " + termString + "\n");
 #endif
-                        }
-                        termset = true;
                     }
                 }
-
                 // try SIGFEAT definition
-
-                if (!termset)
+                else if (termString.StartsWith("SIGFEAT_"))
                 {
-                    if (TermString.StartsWith("SIGFEAT_"))
+                    int index = SignalShape.SignalSubObj.SignalSubTypes.IndexOf(termString.Substring(8).ToUpper());
+                    if (index != -1)
                     {
-                        string partString = TermString.Substring(8);
-                        try
-                        {
-                            int sfIndex = Orts.Formats.Msts.SignalShape.SignalSubObj.SignalSubTypes.IndexOf(partString);
-                            TermParts = new SCRParameterType(SCRTermType.Sigfeat, sfIndex);
-                        }
-                        catch (Exception Ex)
-                        {
-                            Trace.TraceWarning("sigscr-file line {1} : Unknown SubType : {0}\nDetails {2}",
-                                partString, linenumber.ToString(), Ex.ToString());
+                        result = new SCRParameterType(SCRTermType.Sigfeat, index);
+                    }
+                    else
+                    {
+                        Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown SubType : {termString.Substring(8)} \n");
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown SubType : " + partString + "\n");
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown SubType : " + termString + "\n");
 #endif
-                        }
-                        termset = true;
                     }
                 }
-
                 // nothing found - set error
-
-                if (!termset)
+                else
                 {
-                    Trace.TraceWarning("sigscr-file line {1} : Unknown parameter in statement : {0}", TermString, linenumber.ToString());
+                    Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown parameter in statement : {termString}");
 #if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown parameter : " + TermString + "\n");
+                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown parameter : " + termString + "\n");
 #endif
                 }
-
-                return TermParts;
+                return result;
             }//process_TermPart
 
             //================================================================================================//
@@ -1858,7 +1774,7 @@ namespace Orts.Formats.Msts
             //
             //================================================================================================//
 
-            public static ArrayList getIfConditions(scrReadInfo GICInfo, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+            public static ArrayList getIfConditions(SCRReadInfo GICInfo, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
             {
                 SCRConditions ThisCondition;
                 ArrayList SCRConditionList = new ArrayList();
@@ -1866,7 +1782,7 @@ namespace Orts.Formats.Msts
                 SCRAndOr condAndOr;
                 List<string> sublist = new List<string>();
 
-                string GICString = GICInfo.Readline;
+                string GICString = GICInfo.ReadLine;
 
                 // extract condition between first ( and last )
 
@@ -2019,7 +1935,7 @@ namespace Orts.Formats.Msts
                     {
                         int entnum = procstring.IndexOf("]");
                         int subindex = Convert.ToInt32(procstring.Substring(1, entnum - 1));
-                        scrReadInfo subinfo = new scrReadInfo(sublist[subindex - 1], GICInfo.Linenumber, GICInfo.Scriptname);
+                        SCRReadInfo subinfo = new SCRReadInfo(sublist[subindex - 1], GICInfo.LineNumber);
                         ArrayList SubCondition = getIfConditions(subinfo, LocalFloats, ORSignalTypes, ORNormalSubtypes);
                         SCRConditionList.Add(SubCondition);
                     }
@@ -2034,7 +1950,7 @@ namespace Orts.Formats.Msts
                             procstring = procstring.Substring(1, procstring.Length - 2);
                         }
 
-                        ThisCondition = new SCRConditions(procstring, LocalFloats, ORSignalTypes, ORNormalSubtypes, GICInfo.Linenumber);
+                        ThisCondition = new SCRConditions(procstring, LocalFloats, ORSignalTypes, ORNormalSubtypes, GICInfo.LineNumber);
                         SCRConditionList.Add(ThisCondition);
                     }
 
@@ -2046,7 +1962,7 @@ namespace Orts.Formats.Msts
                     }
                     else
                     {
-                        Trace.TraceWarning("sigscr-file line {1} : Invalid condition operator in : {0}", GICString, GICInfo.Linenumber.ToString());
+                        Trace.TraceWarning("sigscr-file line {1} : Invalid condition operator in : {0}", GICString, GICInfo.LineNumber.ToString());
                     }
 
                     seppos = CheckCondition(reststring);
@@ -2078,7 +1994,7 @@ namespace Orts.Formats.Msts
                 {
                     int entnum = procstring.IndexOf("]");
                     int subindex = Convert.ToInt32(procstring.Substring(1, entnum - 1));
-                    scrReadInfo subinfo = new scrReadInfo(sublist[subindex - 1], GICInfo.Linenumber, GICInfo.Scriptname);
+                    SCRReadInfo subinfo = new SCRReadInfo(sublist[subindex - 1], GICInfo.LineNumber);
                     ArrayList SubCondition = getIfConditions(subinfo, LocalFloats, ORSignalTypes, ORNormalSubtypes);
                     SCRConditionList.Add(SubCondition);
                 }
@@ -2094,7 +2010,7 @@ namespace Orts.Formats.Msts
                     {
                         procstring = procstring.Substring(1, procstring.Length - 2).Trim();
                     }
-                    ThisCondition = new SCRConditions(procstring, LocalFloats, ORSignalTypes, ORNormalSubtypes, GICInfo.Linenumber);
+                    ThisCondition = new SCRConditions(procstring, LocalFloats, ORSignalTypes, ORNormalSubtypes, GICInfo.LineNumber);
                     SCRConditionList.Add(ThisCondition);
                 }
 
@@ -2108,7 +2024,7 @@ namespace Orts.Formats.Msts
                     }
                     else
                     {
-                        Trace.TraceWarning("sigscr-file line {1} : Invalid condition operator in : {0}", GICString, GICInfo.Linenumber.ToString());
+                        Trace.TraceWarning("sigscr-file line {1} : Invalid condition operator in : {0}", GICString, GICInfo.LineNumber.ToString());
                     }
                 }
 
@@ -2153,118 +2069,72 @@ namespace Orts.Formats.Msts
 
             public class SCRStatement
             {
-                public bool valid;
-                public SCRTermType AssignType;
-                public int AssignParameter;
-                public List<SCRStatTerm> StatementTerms;
+                public bool IsValid { get; private set; } = true;
+                public List<SCRStatTerm> StatementTerms { get; private set; } = new List<SCRStatTerm>();
+                public SCRTermType AssignType { get; private set; }
+                public int AssignParameter { get; private set; }
 
-                public string[] StatementParts;
-                public scrReadInfo StatementInfo;
+                private SCRReadInfo statementInfo;
 
                 //================================================================================================//
                 //
                 //  Constructor
                 //
 
-                public SCRStatement(scrReadInfo Statement, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+                public SCRStatement(SCRReadInfo statement, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
+                    statementInfo = statement;
+                    AssignType = SCRTermType.Invalid;
+                    string[] statementParts;
+                    string currentLine = statement.ReadLine;
 
-                    valid = true;
-                    StatementInfo = new scrReadInfo(Statement.Readline, Statement.Linenumber, Statement.Scriptname);
-                    string StatementLine = Statement.Readline;
+                    // check for improper use of =#, ==# or ==
+                    currentLine = currentLine.Replace("=#", "=").Replace("==", "=");
 
-                    // check for improper use of =# or ==#
-
-                    int eqindex = StatementLine.IndexOf("=");
-                    if (String.Compare(StatementLine.Substring(eqindex + 1, 2), "=#") == 0)
-                    {
-                        StatementLine = String.Concat(StatementLine.Substring(0, eqindex + 1),
-                                        StatementLine.Substring(eqindex + 3));
-                    }
-                    else if (String.Compare(StatementLine.Substring(eqindex + 1, 1), "#") == 0)
-                    {
-                        StatementLine = String.Concat(StatementLine.Substring(0, eqindex + 1),
-                                        StatementLine.Substring(eqindex + 2));
-                    }
-                    else if (String.Compare(StatementLine.Substring(eqindex + 1, 1), "=") == 0)
-                    {
-                        StatementLine = String.Concat(StatementLine.Substring(0, eqindex + 1),
-                                        StatementLine.Substring(eqindex + 2));
-                    }
-
+                    string term = null;
+                    currentLine = currentLine.Replace(";", String.Empty);
                     //split on =, should be only 2 parts
-
-                    StatementTerms = new List<SCRStatTerm>();
-                    String TermPart;
-
-                    StatementLine = StatementLine.Replace(";", String.Empty);
-
-                    char[] splitChar = { '=' };
-                    StatementParts = StatementLine.Split(splitChar, StringSplitOptions.RemoveEmptyEntries);
-                    if (StatementParts.Length > 2)
-                    {
-                        valid = false;
-                        Trace.TraceWarning("sigscr-file line {1} : Unexpected number of = in string : {0}", StatementLine, StatementInfo.Linenumber.ToString());
-#if DEBUG_PRINT_IN
-                        File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                        "Unexpected number of = in string " + StatementLine + " (" + StatementInfo.Linenumber.ToString() + ")\n");
-#endif
-                    }
+                    statementParts = currentLine.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
 
                     // Assignment part - search external and local floats
                     // if only 1 part, it is a single function call without assignment
-
-                    AssignType = SCRTermType.Invalid;
-
-                    if (StatementParts.Length == 2)
+                    switch (statementParts.Length)
                     {
-                        string assignPart = StatementParts[0].Trim();
-                        try
-                        {
-
-                            SCRExternalFloats exFloat =
-                                    (SCRExternalFloats)Enum.Parse(typeof(SCRExternalFloats), assignPart, true);
-                            AssignParameter = (int)exFloat;
-                            AssignType = SCRTermType.ExternalFloat;
-                        }
-                        catch (Exception Ex)
-                        {
-                            if (StatementLine.Length < 1)
-                                Trace.Write(Ex.ToString());   // dummy statement to avoid compiler warning
-                        }
-
-                        foreach (KeyValuePair<string, uint> intFloat in LocalFloats)
-                        {
-                            string intKey = intFloat.Key;
-                            if (String.Compare(intKey, assignPart) == 0)
+                        case 1:
+                            // Term part
+                            // get positions of allowed operators
+                            term = statementParts[0].Trim();
+                            break;
+                        case 2:
+                            string assignPart = statementParts[0].Trim();
+                            if (Enum.TryParse<SCRExternalFloats>(assignPart, true, out SCRExternalFloats result))
                             {
-                                AssignType = SCRTermType.LocalFloat;
-                                AssignParameter = (int)intFloat.Value;
+                                AssignParameter = (int)result;
+                                AssignType = SCRTermType.ExternalFloat;
                             }
-                        }
-
-                        // Term part
-                        // get positions of allowed operators
-
-                        TermPart = StatementParts[1].Trim();
-
-                    }
-                    else
-                    {
-
-
-                        // Term part
-                        // get positions of allowed operators
-
-                        TermPart = StatementParts[0].Trim();
+                            else if (localFloats.TryGetValue(assignPart, out uint value))
+                            {
+                                AssignParameter = (int)value;
+                                AssignType = SCRTermType.LocalFloat;
+                            }
+                            // Term part
+                            // get positions of allowed operators
+                            term = statementParts[1].Trim();
+                            break;
+                        default:
+                            IsValid = false;
+                            Trace.TraceWarning("sigscr-file line {1} : Unexpected number of = in string : {0}", currentLine, statementInfo.LineNumber.ToString());
+#if DEBUG_PRINT_IN
+                        File.AppendAllText(din_fileLoc + @"sigscr.txt",
+                                        "Unexpected number of = in string " + statementInfo.ReadLine + " (" + statementInfo.LineNumber.ToString() + ")\n");
+#endif
+                            break;
                     }
 
                     // process term string
-
                     int sublevel = 0;
-                    SCRProcess_TermPartLine(TermPart, ref sublevel, 0, LocalFloats, ORSignalTypes, ORNormalSubtypes, StatementInfo.Linenumber);
-
-                    if (StatementTerms.Count <= 0) valid = false;
+                    if (IsValid)
+                        SCRProcess_TermPartLine(term, ref sublevel, 0, localFloats, orSignalTypes, orNormalSubtypes, statementInfo.LineNumber);
                 }
 
                 //================================================================================================//
@@ -2315,11 +2185,11 @@ namespace Orts.Formats.Msts
 
                     if (totalClosebrack != totalOpenbrack)
                     {
-                        Trace.TraceWarning("sigscr-file line {1} : Unmatching brackets in : {0}", keepString, StatementInfo.Linenumber.ToString());
+                        Trace.TraceWarning("sigscr-file line {1} : Unmatching brackets in : {0}", keepString, statementInfo.LineNumber.ToString());
                         keepString = String.Empty;
 #if DEBUG_PRINT_IN
                         File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                        "Unmatching brackets in : " + keepString + " (" + StatementInfo.Linenumber.ToString() + "\n");
+                                        "Unmatching brackets in : " + keepString + " (" + statementInfo.LineNumber.ToString() + "\n");
 #endif
                     }
 
@@ -2408,7 +2278,7 @@ namespace Orts.Formats.Msts
                             else
                             {
                                 SCRStatTerm thisTerm =
-                                        new SCRStatTerm(procString, operString, sublevel, issublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, StatementInfo.Linenumber);
+                                        new SCRStatTerm(procString, operString, sublevel, issublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, statementInfo.LineNumber);
                                 StatementTerms.Add(thisTerm);
                             }
                         }
@@ -2464,7 +2334,7 @@ namespace Orts.Formats.Msts
 
                             sublevel++;
                             SCRStatTerm thisTerm =
-                                    new SCRStatTerm("*S*", operString, sublevel, issublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, StatementInfo.Linenumber);
+                                    new SCRStatTerm("*S*", operString, sublevel, issublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, statementInfo.LineNumber);
                             StatementTerms.Add(thisTerm);
 
                             // process string as sublevel
@@ -2488,13 +2358,13 @@ namespace Orts.Formats.Msts
 
             public class SCRStatTerm
             {
-                public SCRExternalFunctions Function;
-                public SCRParameterType[] PartParameter;
-                public SCRTermOperator TermOperator;
-                public bool negate;
-                public int sublevel;
-                public int issublevel;
-                public int linenumber;
+                public SCRExternalFunctions Function { get; private set; }
+                public SCRParameterType[] PartParameter { get; private set; }
+                public SCRTermOperator TermOperator { get; private set; }
+                public bool negate { get; private set; }
+                public int sublevel { get; private set; }
+                public int issublevel { get; private set; }
+                public int linenumber { get; private set; }
 
                 //================================================================================================//
                 //
@@ -2555,9 +2425,8 @@ namespace Orts.Formats.Msts
                             Function = SCRExternalFunctions.NONE;
 
                             PartParameter = new SCRParameterType[1];
-                            PartParameter[0] = process_TermPart(StatementString.Trim(), LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
-
-                            TranslateOperator.TryGetValue(StatementOperator, out TermOperator);
+                            PartParameter[0] = Process_TermPart(StatementString.Trim(), LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
+                            TermOperator = TranslateOperator.TryGetValue(StatementOperator, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
                         }
                     }
 
@@ -2566,7 +2435,8 @@ namespace Orts.Formats.Msts
 
                     else
                     {
-                        ArrayList FunctionParts = process_FunctionCall(StatementString, LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
+
+                        ArrayList FunctionParts = Process_FunctionCall(StatementString, LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
 
                         if (FunctionParts == null)
                         {
@@ -2593,10 +2463,7 @@ namespace Orts.Formats.Msts
 
                     // process operator
 
-                    if (!TranslateOperator.TryGetValue(StatementOperator, out TermOperator))
-                    {
-                        TermOperator = SCRTermOperator.NONE;
-                    }
+                    TermOperator = TranslateOperator.TryGetValue(StatementOperator, out SCRTermOperator termOperator) ? termOperator : SCRTermOperator.NONE;
 
                     // issublevel
 
@@ -2613,18 +2480,18 @@ namespace Orts.Formats.Msts
 
             public class SCRParameterType
             {
-                public SCRTermType PartType;
-                public int PartParameter;
+                public SCRTermType PartType { get; private set; }
+                public int PartParameter { get; private set; }
 
                 //================================================================================================//
                 //
                 // Constructor
                 //
 
-                public SCRParameterType(SCRTermType TypeIn, int IntIn)
+                public SCRParameterType(SCRTermType type, int value)
                 {
-                    PartType = TypeIn;
-                    PartParameter = IntIn;
+                    PartType = type;
+                    PartParameter = value;
                 } // constructor
             } // class SCRParameterType
 
@@ -2647,10 +2514,10 @@ namespace Orts.Formats.Msts
                 // Input is the array of indices pointing to the lines following the IF - ELSEIF - IF blocks
                 //
 
-                public SCRConditionBlock(List<scrReadInfo> CBLScriptLines, int index, List<int> endindex, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+                public SCRConditionBlock(List<SCRReadInfo> CBLScriptLines, int index, List<int> endindex, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
                 {
 
-                    scrReadInfo thisinfo, tempinfo;
+                    SCRReadInfo thisinfo, tempinfo;
 
                     // process conditions
 
@@ -2659,7 +2526,7 @@ namespace Orts.Formats.Msts
                     // process IF block
 
                     int iflines = endindex[0] - index - 1;
-                    List<scrReadInfo> IfSubBlock = new List<scrReadInfo>();
+                    List<SCRReadInfo> IfSubBlock = new List<SCRReadInfo>();
 
                     for (int iline = 0; iline < iflines; iline++)
                     {
@@ -2680,15 +2547,15 @@ namespace Orts.Formats.Msts
                     {
                         int elselines = endindex[blockindex] - elseindex;
 
-                        List<scrReadInfo> ElseSubBlock = new List<scrReadInfo>();
+                        List<SCRReadInfo> ElseSubBlock = new List<SCRReadInfo>();
 
                         // process ELSEIF block
                         // delete ELSE to process as IF block
 
-                        if (CBLScriptLines[elseindex].Readline.StartsWith("ELSEIF"))
+                        if (CBLScriptLines[elseindex].ReadLine.StartsWith("ELSEIF"))
                         {
                             thisinfo = CBLScriptLines[elseindex];
-                            tempinfo = new scrReadInfo(thisinfo.Readline.Substring(4), thisinfo.Linenumber, thisinfo.Scriptname); // set start of line to IF
+                            tempinfo = new SCRReadInfo(thisinfo.ReadLine.Substring(4), thisinfo.LineNumber); // set start of line to IF
                             ElseSubBlock.Add(tempinfo);
 
                             for (int iline = 1; iline < elselines; iline++)
@@ -2865,17 +2732,16 @@ namespace Orts.Formats.Msts
 
             public class SCRBlock
             {
-                public ArrayList Statements;
+                public ArrayList Statements { get; private set; }
 
                 //================================================================================================//
                 //
                 //  Constructor
                 //
 
-                public SCRBlock(List<scrReadInfo> BlockStrings, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+                public SCRBlock(List<SCRReadInfo> blockStrings, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
-                    Statements = new ArrayList();
-                    Statements = processScriptLines(BlockStrings, 0, LocalFloats, ORSignalTypes, ORNormalSubtypes);
+                    Statements = ParseStatements(blockStrings, localFloats, orSignalTypes, orNormalSubtypes);
                 } // constructor
             } // class SCRBlock
         } // class Scripts

@@ -359,7 +359,7 @@ namespace Orts.Viewer3D
             CabXOffsetPixels = inf.ReadInt32();
             NightTexturesNotLoaded = inf.ReadBoolean();
             DayTexturesNotLoaded = inf.ReadBoolean();
-            LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512 * 1024 * 1024;
+            LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512;// * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
             tryLoadingNightTextures = true;
             tryLoadingDayTextures = true;
 
@@ -440,7 +440,7 @@ namespace Orts.Viewer3D
             if (Simulator.Settings.ConditionalLoadOfDayOrNightTextures) // We need to compute sun height only in this case
             {
             MaterialManager.LoadPrep();
-            LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512 * 1024 * 1024;
+                LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
             }
             Load();
 
