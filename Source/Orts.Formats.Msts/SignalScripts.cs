@@ -16,7 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 #if DEBUG
 // prints details of the file as read from input
-#define DEBUG_PRINT_IN
+// #define DEBUG_PRINT_IN
 
 // prints details of the file as processed
 // #define DEBUG_PRINT_OUT
@@ -28,51 +28,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Orts.Formats.Msts
 {
-    #region SCRReadinfo
-    public class SCRReadInfo
-    {
-        public string ReadLine { get; internal set; }
-        public int LineNumber { get; internal set; }
-
-        public SCRReadInfo(string line, int lineNumber)
-        {
-            ReadLine = line;
-            LineNumber = lineNumber;
-        }
-    }
-    #endregion
-
-    static class StringExtensions
-    {
-        public static StringBuilder Trim(this StringBuilder sb)
-        {
-            if (sb == null || sb.Length == 0) return sb;
-
-            int i = sb.Length - 1;
-            for (; i >= 0; i--)
-                if (!char.IsWhiteSpace(sb[i]))
-                    break;
-
-            if (i < sb.Length - 1)
-                sb.Length = i + 1;
-
-            return sb;
-        }
-    }
-
     #region Script Tokenizer and Parser
     internal enum SignalScriptTokenType
     {
         Value = 0x00,
+        Operator,               // ! & | ^ + - * / % #
         Tab = 0x09,             // \t
         LineEnd = 0x0a,         // \n
         Separator = 0x20,       // blank
         BracketOpen = 0x28,     // (
         BracketClose = 0x29,    // )
+        Comma = 0x2c,           // ,
         StatementEnd = 0x3b,    // ;
         BlockOpen = 0x7b,       // {
         BlockClose = 0x7d,      // }
@@ -98,17 +67,45 @@ namespace Orts.Formats.Msts
     internal enum CommentParserState
     {
         None,
-        StartComment,
         OpenComment,
         EndComment,
+        Operator,
+    }
+
+    internal static class OperatorTokenExtension
+    {
+        public static bool ValidateOperator(string value, char c)
+        {
+            if (value.Length > 3)
+                return false;
+            switch (value)
+            {
+                case "|":
+                    return (c == '|');
+                case "&":
+                    return (c == '&');
+                case "^":
+                    return false;
+                case "!": case "*": case "%": case "=": case "/#":
+                    return (c == '=');
+                case "+": case "-":
+                    return (c == '=' || c == value[0]);
+                case "/": case "<": case ">":
+                    return (c == '=' || c == '#');
+                case "#":
+                    return false;
+                case "==": case "!=": case "<=": case ">=":
+                    return (c == '#');
+            }
+            return false;
+        }
     }
 
     internal class SignalScriptTokenizer : IEnumerable<SignalScriptToken>
     {
         private TextReader reader;
-        private int lineNumber;
 
-        internal int LineNumber { get { return lineNumber; } }
+        internal int LineNumber { get; private set; }
 
         public SignalScriptTokenizer(TextReader reader) : this(reader, 0)
         {
@@ -117,7 +114,7 @@ namespace Orts.Formats.Msts
         public SignalScriptTokenizer(TextReader reader, int lineNumberOffset)
         {
             this.reader = reader;
-            this.lineNumber = lineNumberOffset;
+            this.LineNumber = lineNumberOffset;
         }
 
         public IEnumerator<SignalScriptToken> GetEnumerator()
@@ -129,7 +126,7 @@ namespace Orts.Formats.Msts
 
             while ((line = reader.ReadLine()) != null)
             {
-                lineNumber++;
+                LineNumber++;
                 lineContent = false;
 
                 foreach (char c in line)
@@ -140,13 +137,31 @@ namespace Orts.Formats.Msts
                             switch (state)
                             {
                                 case CommentParserState.None:
+                                    if (value.Length > 0)
+                                    {
+                                        yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
+                                        value.Length = 0;
+                                    }
                                     value.Append(c);
-                                    state = CommentParserState.StartComment;
+                                    state = CommentParserState.Operator;
                                     continue;
-                                case CommentParserState.StartComment:
-                                    state = CommentParserState.None;
-                                    value.Length = value.Length - 1;
-                                    goto SkipLineComment;
+                                case CommentParserState.Operator:
+                                    if (value.Length == 1 && value.ToString() == "/")
+                                    {
+                                        state = CommentParserState.None;
+                                        value.Length = value.Length - 1;
+                                        goto SkipLineComment;
+                                    }
+                                    else
+                                    {
+                                        if (!OperatorTokenExtension.ValidateOperator(value.ToString(), c))
+                                        {
+                                            yield return new SignalScriptToken(SignalScriptTokenType.Operator, value.ToString());
+                                            value.Length = 0;
+                                        }
+                                        value.Append(c);
+                                        continue;
+                                    }
                                 case CommentParserState.EndComment:
                                     state = CommentParserState.None;
                                     continue;
@@ -159,27 +174,22 @@ namespace Orts.Formats.Msts
                         case '*':
                             switch (state)
                             {
-                                case CommentParserState.StartComment:
-                                    value.Length = value.Length - 1;
-                                    state = CommentParserState.OpenComment;
-                                    continue;
                                 case CommentParserState.OpenComment:
                                     state = CommentParserState.EndComment;
                                     continue;
-                                default:
+                                case CommentParserState.Operator:
+                                    if (value.Length == 1 && value.ToString() == "/")
+                                    {
+                                        value.Length = value.Length - 1;
+                                        state = CommentParserState.OpenComment;
+                                        continue;
+                                    }
+                                    if (!OperatorTokenExtension.ValidateOperator(value.ToString(), c))
+                                    {
+                                        yield return new SignalScriptToken(SignalScriptTokenType.Operator, value.ToString());
+                                        value.Length = 0;
+                                    }
                                     value.Append(c);
-                                    continue;
-                            }
-                        case ';':
-                        case '{':
-                        case '}':
-                        case '(':
-                        case ')':
-                        case '\t':
-                        case ' ':
-                            switch (state)
-                            {
-                                case CommentParserState.OpenComment:
                                     continue;
                                 default:
                                     if (value.Length > 0)
@@ -187,8 +197,47 @@ namespace Orts.Formats.Msts
                                         yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
                                         value.Length = 0;
                                     }
-                                    lineContent = true; ;
+                                    value.Append(c);
+                                    state = CommentParserState.Operator;
+                                    continue;
+                            }
+                        case ';': case '{': case '}': case '(': case ')': case '\t': case ' ': case ',':
+                            switch (state)
+                            {
+                                case CommentParserState.OpenComment:
+                                    continue;
+                                default:
+                                    if (value.Length > 0)
+                                    {
+                                        yield return new SignalScriptToken((state == CommentParserState.Operator ? SignalScriptTokenType.Operator : SignalScriptTokenType.Value), value.ToString());
+                                        value.Length = 0;
+                                    }
+                                    lineContent = true;
+                                    state = CommentParserState.None;
                                     yield return new SignalScriptToken((SignalScriptTokenType)c, c);
+                                    continue;
+                            }
+                        case '|': case '&': case '^': case '!': case '+': case '-': case '%': case '#': case '<': case '>': case '=':
+                            switch (state)
+                            {
+                                case CommentParserState.OpenComment:
+                                    continue;
+                                case CommentParserState.Operator:
+                                    if (!OperatorTokenExtension.ValidateOperator(value.ToString(), c))
+                                    {
+                                        yield return new SignalScriptToken(SignalScriptTokenType.Operator, value.ToString());
+                                        value.Length = 0;
+                                    }
+                                    value.Append(c);
+                                    continue;
+                                default:
+                                    if (value.Length > 0)
+                                    {
+                                        yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
+                                        value.Length = 0;
+                                    }
+                                    value.Append(c);
+                                    state = CommentParserState.Operator;
                                     continue;
                             }
                         default:
@@ -196,7 +245,17 @@ namespace Orts.Formats.Msts
                             {
                                 case CommentParserState.OpenComment:
                                     continue;
+                                case CommentParserState.Operator:
+                                    if (value.Length > 0)
+                                    {
+                                        yield return new SignalScriptToken(SignalScriptTokenType.Operator, value.ToString());
+                                        value.Length = 0;
+                                    }
+                                    state = CommentParserState.None;
+                                    value.Append(char.ToUpper(c));
+                                    continue;
                                 default:
+                                    state = CommentParserState.None;
                                     value.Append(char.ToUpper(c));
                                     continue;
                             }
@@ -206,9 +265,9 @@ namespace Orts.Formats.Msts
                 if (state != CommentParserState.OpenComment)
                 {
                     if (value.Length > 0)
-                {
-                        lineContent = true; ;
-                        yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
+                    {
+                        lineContent = true;
+                        yield return new SignalScriptToken((state == CommentParserState.Operator ? SignalScriptTokenType.Operator : SignalScriptTokenType.Value), value.ToString());
                         value.Length = 0;
                     }
                     if (lineContent)
@@ -228,107 +287,365 @@ namespace Orts.Formats.Msts
             return GetEnumerator();
         }
     }
-
-    internal enum ParserTokenType
+    #region Script Tokens
+    internal class ScriptToken
     {
-        Value = 0x00,
-        LineEnd = 0x0a,         // \n
-        Separator = 0x20,       // blank
-        BracketOpen = 0x28,     // (
-        BracketClose = 0x29,    // )
-        StatementEnd = 0x3b,    // ;
-        BlockOpen = 0x7b,       // {
-        BlockClose = 0x7d,      // }
+        public virtual string Token { get; set; }
+
+        public override string ToString()
+        {
+            return Token;
+        }
     }
 
-    internal struct ParserToken
+    internal enum OperatorType
     {
-        public ParserToken(ParserTokenType type, string value)
-        {
-            Value = value;
-            Type = type;
-        }
-        public ParserToken(ParserTokenType type, char value)
-        {
-            Value = value.ToString();
-            Type = type;
-        }
-
-        public string Value { get; private set; }
-        public ParserTokenType Type { get; private set; }
+        Negator,
+        Logical,
+        Equality,
+        Assignment,
+        Operation,
+        Other,
     }
 
-        internal class SignalScriptParser : IEnumerable<string>
+    internal class OperatorToken : ScriptToken
     {
-        private SignalScriptTokenizer tokenizer;
+        public OperatorToken(string token)
+        {
+            Token = token;
 
-        public int LineNumber { get { return this.tokenizer.LineNumber; } }
+            switch(token)
+            {
+                case "NOT":
+                case "!":
+                    OperatorType = OperatorType.Negator;
+                    break;
+                case "AND": case "OR": case "||": case "&&": case "EOR": case "^":
+                    OperatorType = OperatorType.Logical;
+                    break;
+                case "=": case "#=": case "+=": case "-=": case "*=": case "/=": case "/#=": case "%=":
+                    OperatorType = OperatorType.Assignment;
+                    break;
+                case "-": case "*": case "+": case "/": case "/#": case "%": case "DIV": case "MOD":
+                    OperatorType = OperatorType.Operation;
+                    break;
+                default:
+                    OperatorType = OperatorType.Other;
+                    break;
+            }
+        }
 
-        public SignalScriptParser(TextReader reader)
+        public OperatorType OperatorType { get; private set; }
+    }
+
+    internal class ConditionalToken : ScriptToken
+    {
+        private static readonly ConditionalToken ifToken = new ConditionalToken("IF");
+        private static readonly ConditionalToken elseifToken = new ConditionalToken("ELSEIF");
+        private static readonly ConditionalToken elseToken = new ConditionalToken("ELSE");
+
+        private ConditionalToken(string token)
+        {
+            Token = token;
+        }
+
+        public static ConditionalToken IF { get; } = ifToken;
+        public static ConditionalToken ELSEIF { get; } = elseifToken;
+        public static ConditionalToken ELSE { get; } = elseToken;
+    }
+
+    internal class ScriptStatement : ScriptToken
+    {
+        public int LineNumber { get; set; }
+
+        public List<ScriptToken> Tokens { get; private set; } = new List<ScriptToken>();
+
+        public void Add(ScriptToken token)
+        {
+            Tokens.Add(token);
+        }
+
+        public override string Token
+        {
+            get { return ToString(); }
+        }
+
+        public override string ToString()
+        {
+            if (Tokens.Count == 0)
+                return string.Empty;
+            StringBuilder builder = new StringBuilder();
+            foreach (ScriptToken item in Tokens)
+            {
+                if (item is BlockToken)
+                {
+                    builder.Append("\r\n");
+                    builder.Append(item.ToString());
+                    builder.Append("\r\n");
+                }
+                else
+                {
+
+                    builder.Append(item.ToString());
+                    builder.Append(' ');
+                }
+            }
+            builder.Length -= builder[builder.Length - 1] == '\n' ? 2 : 1;
+            return builder.ToString();
+        }
+    }
+
+    internal abstract class ScriptBlockBase : ScriptToken
+    {
+        public List<ScriptStatement> Statements { get; } = new List<ScriptStatement>();
+
+        public ScriptStatement CurrentStatement { get; private set; } = new ScriptStatement();
+
+        public void CompleteCurrentStatement(int lineNumber)
+        {
+            if (CurrentStatement.Tokens.Count > 0)
+            {
+                CurrentStatement.LineNumber = lineNumber;
+                Statements.Add(CurrentStatement);
+                CurrentStatement = new ScriptStatement();
+            }
+        }
+
+        public override string Token
+        {
+            get { return ToString(); }
+        }
+
+        public override string ToString()
+        {
+            if (Statements.Count == 0)
+                return string.Empty;
+            StringBuilder builder = new StringBuilder();
+            foreach (ScriptToken statement in Statements)
+            {
+                builder.Append(statement.ToString());
+                builder.Append("\r\n");
+            }
+            if (builder.Length > 0)
+                builder.Length -= 2;
+            return builder.ToString();
+        }
+    }
+
+    internal class ScriptBlock : ScriptBlockBase
+    {
+        public string ScriptName { get; set; } = string.Empty;
+
+        public override string ToString()
+        {
+            return base.ToString(); ;
+        }
+    }
+
+    internal class BlockToken : ScriptBlockBase
+    {
+        public override string ToString()
+        {
+            return $"{{\r\n{base.ToString()}\r\n}}";
+        }
+    }
+
+    internal class BracketToken : ScriptBlockBase
+    {
+        public override string ToString()
+        {
+            return $"({base.ToString()})";
+        }
+    }
+    #endregion
+
+    internal class ScriptStatementParser : IEnumerable<ScriptBlock>
+    {
+        private readonly SignalScriptTokenizer tokenizer;
+
+        public int LineNumber { get { return tokenizer.LineNumber; } }
+
+        public ScriptStatementParser(TextReader reader)
         {
             this.tokenizer = new SignalScriptTokenizer(reader);
         }
 
-        public IEnumerator<string> GetEnumerator()
+        internal enum ScriptParserState
         {
-            StringBuilder result = new StringBuilder();
-            Stack<SignalScriptToken> scriptTokens = new Stack<SignalScriptToken>();
+            None,
+            ScriptName,
+            Remark,
+            If,
+            Else,
+            EndIf,
+        }
+
+        public IEnumerator<ScriptBlock> GetEnumerator()
+        {
+            bool inScript = false;
+            ScriptParserState parserState = ScriptParserState.None;
+            Stack<ScriptBlockBase> blockStack = new Stack<ScriptBlockBase>();
+            ScriptBlockBase currentBlock = null;
 
             foreach (SignalScriptToken token in tokenizer)
             {
+                if (!inScript && token.Type != SignalScriptTokenType.Value)
+                    continue;
                 switch (token.Type)
                 {
                     case SignalScriptTokenType.StatementEnd:
-                                if (result.Trim().Length > 0)
-                                {
-                            result.Append(token.Value);
-                            yield return result.ToString();// new ParserToken(ParserTokenType.Value, result.ToString());
-                                    result.Length = 0;
-                                }
-//                                yield return new ParserToken(ParserTokenType.StatementEnd, token.Value);
-                                break;
+                        currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
+                        parserState = ScriptParserState.None;
+                        continue;
                     case SignalScriptTokenType.LineEnd:
-                                if (result.Trim().Length > 0)
-                                {
-                            yield return result.ToString();// new ParserToken(ParserTokenType.Value, result.ToString());
-                                    result.Length = 0;
-                                }
-//                                yield return new ParserToken(ParserTokenType.LineEnd, result.ToString());
-                        break;
+                        if (parserState == ScriptParserState.ScriptName)
+                        {
+                            parserState = ScriptParserState.None;
+                        }
+                        continue;
                     case SignalScriptTokenType.BlockOpen:
-                                if (result.Trim().Length > 0)
-                                {
-                            yield return result.ToString(); // new ParserToken(ParserTokenType.Value, result.ToString());
-                                    result.Length = 0;
-                                }
-                        yield return token.Value; // new ParserToken(ParserTokenType.BlockOpen, token.Value);
-                                break;
-                    case SignalScriptTokenType.BlockClose:
-                                if (result.Trim().Length > 0)
-                                {
-                            yield return result.ToString();//new ParserToken(ParserTokenType.Value, result.ToString());
-                                    result.Length = 0;
-                                }
-                        yield return token.Value; // new ParserToken(ParserTokenType.BlockClose, token.Value);
-                                break;
-                    case SignalScriptTokenType.Tab:
-                    case SignalScriptTokenType.Separator:
-                        if (result.Length > 0)
-                            result.Append(' ');
-                        break;
+                        parserState = ScriptParserState.None;
+                        blockStack.Push(currentBlock);
+                        currentBlock = new BlockToken();
+                        continue;
                     case SignalScriptTokenType.BracketOpen:
+                        parserState = ScriptParserState.None;
+                        blockStack.Push(currentBlock);
+                        currentBlock = new BracketToken();
+                        continue;
+                    case SignalScriptTokenType.BlockClose:
                     case SignalScriptTokenType.BracketClose:
+                        if ((token.Type == SignalScriptTokenType.BracketClose && currentBlock is BracketToken) ||
+                        (token.Type == SignalScriptTokenType.BlockClose && currentBlock is BlockToken))
+                        {
+                            parserState = ScriptParserState.None;
+                            currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
+                            ScriptBlockBase outer = blockStack.Pop();
+                            outer.CurrentStatement.Add(currentBlock);
+                            if (currentBlock is BlockToken && outer.CurrentStatement.Tokens[0] == ConditionalToken.IF)
+                                parserState = ScriptParserState.EndIf;      //supposed to be at the end, but there may be another ElseIf follow
+                            currentBlock = outer;
+                            continue;
+                        }
+                        else
+                            //something wrong here
+                            throw new InvalidDataException($"Error in signal script data, matching element not found in line {tokenizer.LineNumber}.");
                     case SignalScriptTokenType.Value:
-                                result.Append(token.Value);
-                                break;
+                        if (inScript && parserState == ScriptParserState.ScriptName)        //script names may include any value token or operator, only ended by line end
+                        {
+                            (currentBlock as ScriptBlock).ScriptName += token.Value;
+                            continue;
+                        }
+
+                        switch (token.Value)
+                        {
+                            case "REM":
+                                if (inScript)
+                                {
+                                    if (blockStack.Count > 0)
+                                        //something wrong here
+                                        throw new InvalidDataException($"Error in signal script, matching element not found before new script in line {tokenizer.LineNumber}.");
+                                    //end current script
+                                    currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
+                                    yield return currentBlock as ScriptBlock;
+                                }
+                                inScript = false;
+                                parserState = ScriptParserState.Remark;
+                                continue;
+                            case "SCRIPT":
+                                if (inScript)
+                                {
+                                    if (blockStack.Count > 0)
+                                        //something wrong here
+                                        throw new InvalidDataException($"Error in signal script, matching element not found before new script in line {tokenizer.LineNumber}.");
+                                    currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
+                                    yield return currentBlock as ScriptBlock;
+                                }
+                                currentBlock = new ScriptBlock();
+                                if (parserState == ScriptParserState.Remark)
+                                    parserState = ScriptParserState.None;
+                                else
+                                {
+                                    parserState = ScriptParserState.ScriptName;
+                                    inScript = true;
+                                }
+                                //start new script
+                                continue;
+                            case "IF":
+                                if (inScript)
+                                {
+                                    switch (parserState)
+                                    {
+                                        case ScriptParserState.Else:
+                                            int index = currentBlock.CurrentStatement.Tokens.Count;
+                                            if (index == 0 || !(currentBlock.CurrentStatement.Tokens[--index] == ConditionalToken.ELSE))
+                                                throw new InvalidDataException($"ELSE IF expected when there was no matching element in line {tokenizer.LineNumber}");
+                                            currentBlock.CurrentStatement.Tokens.RemoveAt(index);
+                                            currentBlock.CurrentStatement.Add(ConditionalToken.ELSEIF);
+                                            break;
+                                        case ScriptParserState.EndIf:
+                                            currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
+                                            currentBlock.CurrentStatement.Add(ConditionalToken.IF);
+                                            break;
+                                        default:
+                                            currentBlock.CurrentStatement.Add(ConditionalToken.IF);
+                                            break;
+                                    }
+                                    parserState = ScriptParserState.None;
+                                }
+                                continue;
+                            case "ELSE":
+                                if (inScript)
+                                {
+                                    parserState = ScriptParserState.Else;
+                                    currentBlock.CurrentStatement.Add(ConditionalToken.ELSE);
+                                }
+                                continue;
+                            case "AND":
+                            case "OR":
+                            case "NOT":
+                            case "MOD":
+                            case "DIV":
+                                if (inScript)
+                                {
+                                    currentBlock.CurrentStatement.Add(new OperatorToken(token.Value));
+                                }
+                                continue;
+                            default:
+                                if (inScript)
+                                    switch (parserState)
+                                    {
+                                        case ScriptParserState.EndIf:
+                                            currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
+                                            currentBlock.CurrentStatement.Add(new ScriptToken() { Token = token.Value });
+                                            break;
+                                        default:
+                                            currentBlock.CurrentStatement.Add(new ScriptToken() { Token = token.Value });
+                                            break;
+                                    }
+                                parserState = ScriptParserState.None;
+                                continue;
+                        }
+                    case SignalScriptTokenType.Separator:
+                    case SignalScriptTokenType.Tab:
+                    case SignalScriptTokenType.Comma:
+                        continue;
+                    case SignalScriptTokenType.Operator:
+                        if (parserState == ScriptParserState.ScriptName)
+                        {
+                            (currentBlock as ScriptBlock).ScriptName += token.Value;
+                        }
+                        else
+                        {
+                            currentBlock.CurrentStatement.Add(new OperatorToken(token.Value));
+                        }
+                        continue;
                     default:
-                        throw new InvalidOperationException("Unknown token type: " + token.Type);
+                        throw new InvalidOperationException($"Unknown token type {token.Type} containing '{token.Value}' in line {tokenizer.LineNumber}");
                 }
             }
-            if (result.Trim().Length > 0)
-            {
-                yield return result.ToString();// new ParserToken(ParserTokenType.Value, result.ToString());
-            }
+            currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
+            yield return currentBlock as ScriptBlock;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -462,7 +779,7 @@ namespace Orts.Formats.Msts
         }
         #endregion
 
-        private static IDictionary<string, SCRTermCondition> TranslateConditions = new Dictionary<string, SCRTermCondition>
+        private static readonly IDictionary<string, SCRTermCondition> TranslateConditions = new Dictionary<string, SCRTermCondition>
             {
                 { ">", SCRTermCondition.GT },
                 { ">=", SCRTermCondition.GE },
@@ -473,7 +790,7 @@ namespace Orts.Formats.Msts
                 { "::", SCRTermCondition.NE }  // dummy (for no separator)
             };
 
-        private static IDictionary<string, SCRTermOperator> TranslateOperator = new Dictionary<string, SCRTermOperator>
+        private static readonly IDictionary<string, SCRTermOperator> TranslateOperator = new Dictionary<string, SCRTermOperator>
             {
                 { "?", SCRTermOperator.NONE },
                 { "-", SCRTermOperator.MINUS },  // needs to come first to avoid it being interpreted as range separator
@@ -483,7 +800,7 @@ namespace Orts.Formats.Msts
                 { "%", SCRTermOperator.MODULO }
             };
 
-        private static IDictionary<string, SCRAndOr> TranslateAndOr = new Dictionary<string, SCRAndOr>
+        private static readonly IDictionary<string, SCRAndOr> TranslateAndOr = new Dictionary<string, SCRAndOr>
             {
                 { "&&", SCRAndOr.AND },
                 { "||", SCRAndOr.OR },
@@ -538,7 +855,35 @@ namespace Orts.Formats.Msts
 #if DEBUG_PRINT_IN
                         File.AppendAllText(din_fileLoc + @"sigscr.txt", "Reading file : " + fullName + "\n\n");
 #endif
-                        ParseSignalScript(stream, fullName, signalTypes, orSignalTypes, orNormalSubtypes);
+
+                        ScriptStatementParser scriptParser = new ScriptStatementParser(stream);
+                        foreach (ScriptBlock script in scriptParser)
+                        {
+                            #region DEBUG
+#if DEBUG_PRINT_IN
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n===============================\n");
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nNew Script : " + script.ScriptName + "\n");
+#endif
+#if DEBUG_PRINT_OUT
+                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n===============================\n");
+                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nNew Script : " + script.ScriptName + "\n");
+#endif
+                            #endregion
+                            AssignScriptToSignalType(new SCRScripts(script, orSignalTypes, orNormalSubtypes),
+                                signalTypes, scriptParser.LineNumber, fileName);
+                            Trace.Write("s");
+                        }
+                        #region DEBUG
+#if DEBUG_PRINT_OUT
+                        // print processed details 
+                        foreach (KeyValuePair<SignalType, SCRScripts> item in Scripts)
+                        {
+                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Script : " + item.Value.ScriptName + "\n\n");
+                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", PrintScript(item.Value.Statements));
+                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n=====================\n");
+                        }
+#endif
+                        #endregion
                     }
                 }
                 catch (Exception ex)
@@ -553,7 +898,7 @@ namespace Orts.Formats.Msts
         // overall script file routines
         //
         //================================================================================================//
-
+        #region DEBUG_PRINT_OUT
 #if DEBUG_PRINT_OUT
         //================================================================================================//
         //
@@ -561,95 +906,87 @@ namespace Orts.Formats.Msts
         //
         //================================================================================================//
 
-        public void printscript(ArrayList Statements)
+        private string PrintScript(ArrayList statements)
         {
             bool function = false;
             List<int> Sublevels = new List<int>();
+            StringBuilder builder = new StringBuilder();
 
-            foreach (object scriptstat in Statements)
+            foreach (object statement in statements)
             {
 
                 // process statement lines
 
-                if (scriptstat is SCRScripts.SCRStatement)
+                if (statement is SCRScripts.SCRStatement scrStatement)
                 {
-                    SCRScripts.SCRStatement ThisStat = (SCRScripts.SCRStatement)scriptstat;
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Statement : \n");
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt",
-                                    ThisStat.AssignType.ToString() + "[" + ThisStat.AssignParameter.ToString() + "] = ");
+                    builder.Append("Statement : \n");
+                    builder.Append(scrStatement.AssignType.ToString() + "[" + scrStatement.AssignParameter.ToString() + "] = ");
 
-                    foreach (SCRScripts.SCRStatTerm ThisTerm in ThisStat.StatementTerms)
+                    foreach (SCRScripts.SCRStatTerm scrTerm in scrStatement.StatementTerms)
                     {
-                        if (ThisTerm.issublevel > 0)
+                        if (scrTerm.TermLevel > 0)
                         {
-                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt",
-                                            " <SUB" + ThisTerm.issublevel.ToString() + "> ");
+                            builder.Append(" <SUB" + scrTerm.TermLevel.ToString() + "> ");
                         }
                         function = false;
-                        if (ThisTerm.Function != SCRExternalFunctions.NONE)
+                        if (scrTerm.Function != SCRExternalFunctions.NONE)
                         {
-                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt",
-                                    ThisTerm.Function.ToString() + "(");
+                            builder.Append(scrTerm.Function.ToString() + "(");
                             function = true;
                         }
 
-                        if (ThisTerm.PartParameter != null)
+                        if (scrTerm.PartParameter != null)
                         {
-                            foreach (SCRScripts.SCRParameterType ThisParam in ThisTerm.PartParameter)
+                            foreach (SCRScripts.SCRParameterType scrParam in scrTerm.PartParameter)
                             {
-                                File.AppendAllText(dout_fileLoc + @"scriptproc.txt",
-                                        ThisParam.PartType + "[" + ThisParam.PartParameter + "] ,");
+                                builder.Append(scrParam.PartType + "[" + scrParam.PartParameter + "] ,");
                             }
                         }
 
-                        if (ThisTerm.sublevel != 0)
+                        if (scrTerm.TermNumber != 0)
                         {
-                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", " SUBTERM_" + ThisTerm.sublevel.ToString());
+                            builder.Append(" SUBTERM_" + scrTerm.TermNumber.ToString());
                         }
 
                         if (function)
                         {
-                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", ")");
+                            builder.Append(")");
                         }
-                        File.AppendAllText(dout_fileLoc + @"scriptproc.txt", " -" + ThisTerm.TermOperator.ToString() + "- \n");
+                        builder.Append(" -" + scrTerm.TermOperator.ToString() + "- \n");
                     }
 
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n\n");
+                    builder.Append("\n\n");
                 }
 
                 // process conditions line
 
-                if (scriptstat is SCRScripts.SCRConditionBlock)
+                if (statement is SCRScripts.SCRConditionBlock scrCondBlock)
                 {
-                    SCRScripts.SCRConditionBlock CondBlock = (SCRScripts.SCRConditionBlock)scriptstat;
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nCondition : \n");
+                    builder.Append("\nCondition : \n");
 
-                    printConditionArray(CondBlock.Conditions);
+                    builder.Append(PrintConditionArray(scrCondBlock.Conditions));
 
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nIF Block : \n");
-                    printscript(CondBlock.IfBlock.Statements);
+                    builder.Append("\nIF Block : \n");
+                    builder.Append(PrintScript(scrCondBlock.IfBlock.Statements));
 
-                    if (CondBlock.ElseIfBlock != null)
+                    if (scrCondBlock.ElseIfBlock != null)
                     {
-                        foreach (SCRScripts.SCRBlock TempBlock in CondBlock.ElseIfBlock)
+                        foreach (SCRScripts.SCRBlock tempBlock in scrCondBlock.ElseIfBlock)
                         {
-                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nStatements in ELSEIF : " +
-                                    TempBlock.Statements.Count + "\n");
-                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Elseif Block : \n");
-                            printscript(TempBlock.Statements);
+                            builder.Append("\nStatements in ELSEIF : " + tempBlock.Statements.Count + "\n");
+                            builder.Append("Elseif Block : \n");
+                            builder.Append(PrintScript(tempBlock.Statements));
                         }
                     }
-
-                    if (CondBlock.ElseBlock != null)
+                    if (scrCondBlock.ElseBlock != null)
                     {
-                        File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nElse Block : \n");
-                        printscript(CondBlock.ElseBlock.Statements);
+                        builder.Append("\nElse Block : \n");
+                        builder.Append(PrintScript(scrCondBlock.ElseBlock.Statements));
                     }
-
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nEnd IF Block : \n");
-
+                    builder.Append("\nEnd IF Block : \n");
                 }
             }
+            return builder.ToString();
         }// printscript
 
         //================================================================================================//
@@ -658,28 +995,30 @@ namespace Orts.Formats.Msts
         //
         //================================================================================================//
 
-        public void printConditionArray(ArrayList Conditions)
+        private string PrintConditionArray(ArrayList Conditions)
         {
-            foreach (object ThisCond in Conditions)
+            StringBuilder builder = new StringBuilder();
+
+            foreach (object condition in Conditions)
             {
-                if (ThisCond is SCRScripts.SCRConditions)
+                if (condition is SCRScripts.SCRConditions)
                 {
-                    printcondition((SCRScripts.SCRConditions)ThisCond);
+                    builder.Append(PrintCondition((SCRScripts.SCRConditions)condition));
                 }
-                else if (ThisCond is SCRAndOr)
+                else if (condition is SCRAndOr andor)
                 {
-                    SCRAndOr condstring = (SCRAndOr)ThisCond;
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", condstring.ToString() + "\n");
+                    builder.Append(andor.ToString() + "\n");
                 }
-                else if (ThisCond is SCRNegate)
+                else if (condition is SCRNegate)
                 {
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "NEGATED : \n");
+                    builder.Append("NEGATED : \n");
                 }
                 else
                 {
-                    printConditionArray((ArrayList)ThisCond);
+                    builder.Append(PrintConditionArray((ArrayList)condition));
                 }
             }
+            return builder.ToString();
         }// printConditionArray
 
         //================================================================================================//
@@ -688,86 +1027,85 @@ namespace Orts.Formats.Msts
         //
         //================================================================================================//
 
-        public void printcondition(SCRScripts.SCRConditions ThisCond)
+        private string PrintCondition(SCRScripts.SCRConditions condition)
         {
+            StringBuilder builder = new StringBuilder();
 
             bool function = false;
-            if (ThisCond.negate1)
+            if (condition.Term1.Negated)
             {
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "NOT : ");
+                builder.Append("NOT : ");
             }
-            if (ThisCond.Term1.Function != SCRExternalFunctions.NONE)
+            if (condition.Term1.Function != SCRExternalFunctions.NONE)
             {
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", ThisCond.Term1.Function.ToString() + "(");
+                builder.Append(condition.Term1.Function.ToString() + "(");
                 function = true;
             }
 
-            if (ThisCond.Term1.PartParameter != null)
+            if (condition.Term1.PartParameter != null)
             {
-                foreach (SCRScripts.SCRParameterType ThisParam in ThisCond.Term1.PartParameter)
+                foreach (SCRScripts.SCRParameterType scrParam in condition.Term1.PartParameter)
                 {
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", ThisParam.PartType + "[" + ThisParam.PartParameter + "] ,");
+                    builder.Append(scrParam.PartType + "[" + scrParam.PartParameter + "] ,");
                 }
             }
             else
             {
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", " 0 , ");
+                builder.Append(" 0 , ");
             }
 
             if (function)
             {
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", ")");
+                builder.Append(")");
             }
 
-            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", " -- " + ThisCond.Condition.ToString() + " --\n");
+            builder.Append(" -- " + condition.Condition.ToString() + " --\n");
 
-            if (ThisCond.Term2 != null)
+            if (condition.Term2 != null)
             {
                 function = false;
-                if (ThisCond.negate2)
+                if (condition.Term2.Negated)
                 {
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "NOT : ");
+                    builder.Append("NOT : ");
                 }
-                if (ThisCond.Term2.Function != SCRExternalFunctions.NONE)
+                if (condition.Term2.Function != SCRExternalFunctions.NONE)
                 {
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", ThisCond.Term2.Function.ToString() + "(");
+                    builder.Append(condition.Term2.Function.ToString() + "(");
                     function = true;
                 }
 
-                if (ThisCond.Term2.PartParameter != null)
+                if (condition.Term2.PartParameter != null)
                 {
-                    foreach (SCRScripts.SCRParameterType ThisParam in ThisCond.Term2.PartParameter)
+                    foreach (SCRScripts.SCRParameterType scrParam in condition.Term2.PartParameter)
                     {
-                        File.AppendAllText(dout_fileLoc + @"scriptproc.txt",
-                                        ThisParam.PartType + "[" + ThisParam.PartParameter + "] ,");
+                        builder.Append(scrParam.PartType + "[" + scrParam.PartParameter + "] ,");
                     }
                 }
                 else
                 {
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", " 0 , ");
+                    builder.Append(" 0 , ");
                 }
 
                 if (function)
                 {
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", ")");
+                    builder.Append(")");
                 }
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n");
+                builder.Append("\n");
             }
+            return builder.ToString();
         }// printcondition
 #endif
+        #endregion
 
-        //================================================================================================//
-        //
-        // allocate script to required signal type
-        //
-        //================================================================================================//
-
-        private void AssignScriptToSignalType(SCRScripts script, IDictionary<string, SignalType> signalTypes, string scriptName, int currentLine, string fileName)
+        /// <summary>
+        /// Links the script to the required signal type
+        /// </summary>
+        private void AssignScriptToSignalType(SCRScripts script, IDictionary<string, SignalType> signalTypes, int currentLine, string fileName)
         {
             bool isValid = false;
-
+            string scriptName = script.ScriptName;
             // try and find signal type with same name as script
-            if (signalTypes.TryGetValue(scriptName.ToLower(), out SignalType signalType))
+            if (signalTypes.TryGetValue(script.ScriptName.ToLower(), out SignalType signalType))
             {
                 if (Scripts.ContainsKey(signalType))
                 {
@@ -775,9 +1113,11 @@ namespace Orts.Formats.Msts
                 }
                 else
                 {
+                    #region DEBUG
 #if DEBUG_PRINT_IN
                     File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + signalType.Name + "\n");
 #endif
+                    #endregion
                     Scripts.Add(signalType, script);
                     isValid = true;
                 }
@@ -795,9 +1135,11 @@ namespace Orts.Formats.Msts
                     }
                     else
                     {
+                        #region DEBUG
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + currentSignal.Value.Script + " to " + currentSignal.Value.Name + "\n");
+                        File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + currentSignal.Value.Script + " to " + currentSignal.Value.Name + "\n");
 #endif
+                        #endregion
                         Scripts.Add(currentSignal.Value, script);
                         isValid = true;
                     }
@@ -805,103 +1147,33 @@ namespace Orts.Formats.Msts
             }
             #region DEBUG
 #if DEBUG_PRINT_OUT
-                        if (!isValid)
-                        {
-                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", $"\nUnknown signal type : {scriptName}\n\n");
-                        }
+            if (!isValid)
+            {
+                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", $"\nUnknown signal type : {scriptName}\n\n");
+            }
 #endif
 #if DEBUG_PRINT_IN
-                        if (!isValid)
-                        {
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", $"\nUnknown signal type : {scriptName}\n\n");
-                        }
+            if (!isValid)
+            {
+                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"\nUnknown signal type : {scriptName}\n\n");
+            }
 #endif
             #endregion
-
-        }
-
-        private void ParseSignalScript(StreamReader reader, string fileName, IDictionary<string, SignalType> signalTypes, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-        {
-            List<SCRReadInfo> scriptLines = new List<SCRReadInfo>();
-            string scriptName = string.Empty;
-            bool inScript = false;
-            SignalScriptParser parser = new SignalScriptParser(reader);
-            StringBuilder builder = new StringBuilder();
-
-            foreach (string line in parser)
-            {
-                if (string.IsNullOrWhiteSpace(line))
-                    continue;
-                if (line.StartsWith("SCRIPT "))
-                {
-                    if (scriptLines.Count > 0)
-                    {
-                        #region DEBUG
-#if DEBUG_PRINT_IN
-                        File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n===============================\n");
-                        File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nNew Script : " + scriptName + "\n");
-#endif
-#if DEBUG_PRINT_OUT
-                        File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n===============================\n");
-                        File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nNew Script : " + scriptName + "\n");
-#endif
-                        #endregion
-                        AssignScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
-                        , signalTypes, scriptName, parser.LineNumber, fileName);
-                    }
-                    //finish existing script, drop following lines until new script
-                    scriptName = line.Substring(7);
-                    inScript = true;
-                }
-                else if (line.StartsWith("REM SCRIPT "))
-                {
-                    //finish existing script, drop following lines until new script
-                    AssignScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
-                        , signalTypes, scriptName, parser.LineNumber, fileName);
-                    inScript = false;
-                    scriptName = string.Empty;
-                }
-                else
-                {
-                    if (inScript)
-                    {
-                        //add line to current script
-                        scriptLines.Add(new SCRReadInfo(line, parser.LineNumber));
-                    }
-                }
-                if (parser.LineNumber % 100 == 0)
-                {
-                    Trace.Write("s");
-                }
-            }
-
-            if (scriptLines.Count > 0)
-            {
-#if DEBUG_PRINT_IN
-                File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n===============================\n");
-                File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nNew Script : " + scriptName + "\n");
-#endif
-                AssignScriptToSignalType(new SCRScripts(scriptLines, scriptName, orSignalTypes, orNormalSubtypes)
-                    , signalTypes, scriptName, parser.LineNumber, fileName);
-            }
-
-#if DEBUG_PRINT_OUT
-            // print processed details 
-            foreach (KeyValuePair<SignalType, SCRScripts> item in Scripts)
-            {
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Script : " + item.Value.ScriptName + "\n\n");
-                printscript(item.Value.Statements);
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n=====================\n");
-            }
-#endif
         }
 
         public class SCRScripts
         {
 
-            private IDictionary<string, uint> localFloats;
-            public uint totalLocalFloats { get; private set; }
+            private IDictionary<string, int> localFloats;
+
+            public int TotalLocalFloats
+            {
+                get { return localFloats.Count; }
+            }
+
             public ArrayList Statements { get; private set; }
+            //public List<Statements> { get; private set; }
+
             public string ScriptName { get; private set; }
 
             //================================================================================================//
@@ -909,863 +1181,170 @@ namespace Orts.Formats.Msts
             // Constructor
             // Input is list with all lines for one signal script
             //
-            public SCRScripts(List<SCRReadInfo> scriptLines, string scriptName, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            internal SCRScripts(ScriptBlock script, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
             {
-                localFloats = new Dictionary<string, uint>();
-                totalLocalFloats = 0;
+                localFloats = new Dictionary<string, int>();
                 Statements = new ArrayList();
-                ScriptName = scriptName;
-
-                int line = 0;
-                int maxcount = scriptLines.Count;
-
+                ScriptName = script.ScriptName;
+                int statementLine = 0;
+                int maxCount = script.Statements.Count;
+                #region DEBUG_PRINT_IN
 #if DEBUG_PRINT_IN
                 // print inputlines
-
-                foreach (SCRReadInfo InfoLine in scriptLines)
-                {
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", InfoLine.ReadLine + "\n");
-                }
+                File.AppendAllText(din_fileLoc + @"sigscr.txt", script.ToString() + '\n');
                 File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n+++++++++++++++++++++++++++++++++++\n\n");
 
 #endif
-
+                #endregion
                 // Skip external floats (exist automatically)
-                while (scriptLines[line].ReadLine.StartsWith("EXTERN FLOAT ") && line++ < maxcount) ;
+                while (script.Statements[statementLine].Tokens[0].Token == "EXTERN" && script.Statements[statementLine].Tokens[1].Token == "FLOAT" && statementLine++ < maxCount) ;
 
                 //// Process floats : build list with internal floats
-                string floatString;
-                while ((floatString = scriptLines[line].ReadLine).StartsWith("FLOAT ") && line++ < maxcount)
+                while ((script.Statements[statementLine].Tokens[0].Token == "FLOAT") && statementLine < maxCount)
                 {
-                    floatString = floatString.Substring(6, floatString.Length - 7);
+                    string floatString = script.Statements[statementLine].Tokens[1].Token;
                     if (!localFloats.ContainsKey(floatString))
                     {
-                        localFloats.Add(floatString, totalLocalFloats++);
+                        localFloats.Add(floatString, localFloats.Count);
                     }
+                    statementLine++;
                 }
 
+                #region DEBUG_PRINT_OUT
 #if DEBUG_PRINT_OUT
                 // print details of internal floats
 
                 File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n\nFloats : \n");
-                foreach (KeyValuePair<string, uint> deffloat in localFloats)
+                foreach (KeyValuePair<string, int> item in localFloats)
                 {
-                    string defstring = deffloat.Key;
-                    uint defindex = deffloat.Value;
-
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Float : " + defstring + " = " + defindex.ToString() + "\n");
+                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", $"Float : {item.Key} = {item.Value}\n");
                 }
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Total : " + totalLocalFloats.ToString() + "\n\n\n");
+                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Total : " + localFloats.Count.ToString() + "\n\n\n");
 #endif
-                scriptLines.RemoveRange(0, line);
-                Statements = ParseStatements(scriptLines, localFloats, orSignalTypes, orNormalSubtypes);
-                scriptLines.Clear();
-            }// constructor
+                #endregion
+                script.Statements.RemoveRange(0, statementLine);
 
-            private static ArrayList ParseStatements(List<SCRReadInfo> scriptLines, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-            {
-                ArrayList result = new ArrayList();
-                List<int> ifblockcount;
-                int index = 0;
-
-                while (index<scriptLines.Count)
+                foreach (ScriptStatement statement in script.Statements)
                 {
-                    SCRReadInfo lineItem = scriptLines[index];
-                    if (lineItem.ReadLine.Length == 1 && (lineItem.ReadLine == "{" || lineItem.ReadLine == "}"))
+                    if (statement.Tokens[0] is ConditionalToken)
                     {
-                        index++;
-                        continue;
+                        SCRConditionBlock condition = SCRConditionBlock.ProcessConditionBlocks(statement, localFloats, orSignalTypes, orNormalSubtypes);
+                        Statements.Add(condition);
                     }
-                    else if (lineItem.ReadLine.StartsWith("IF") && ((lineItem.ReadLine[2] == ' ') || (lineItem.ReadLine[2]) == '('))    //matches "IF " as well "IF("
-                    {
-                        ifblockcount = findEndIfBlock(scriptLines, index);
-                        SCRConditionBlock thisCondition = new SCRConditionBlock(scriptLines, index, ifblockcount, localFloats, orSignalTypes, orNormalSubtypes);
-                        index = ifblockcount[ifblockcount.Count - 1];
-                        result.Add(thisCondition);
-                    }
-                    // process statement
                     else
                     {
-                        Debug.Assert(!string.IsNullOrWhiteSpace(lineItem.ReadLine));
-                        SCRStatement statement = new SCRStatement(lineItem, localFloats, orSignalTypes, orNormalSubtypes);
-                        if (statement.IsValid)
-                            result.Add(statement);
-                        index++;
+                        SCRStatement scrStatement = new SCRStatement(statement, localFloats, orSignalTypes, orNormalSubtypes);
+                        Statements.Add(scrStatement);
                     }
                 }
-                return result;
-            }
-            //================================================================================================//
-            //
-            // parsing routines
-            //
-            //================================================================================================//
+            }// constructor
 
-            //================================================================================================//
-            //
-            // Find end of IF condition statement
-            // returns index to next line
-            //
-            //================================================================================================//
-
-            public static int FindEndStatement(List<SCRReadInfo> FESScriptLines, int index)
-            {
-                string presentstring, addline;
-                int endpos;
-                int actindex;
-
-                //================================================================================================//
-
-                SCRReadInfo presentInfo = FESScriptLines[index];
-                presentstring = presentInfo.ReadLine.Trim();
-                FESScriptLines.RemoveAt(index);
-                endpos = presentstring.IndexOf(";");
-                actindex = index;
-
-                // empty string - exit and set index
-
-                if (presentstring.Length < 1)
-                {
-                    return actindex;
-                }
-
-                // search for ; - keep reading until found
-
-                while (endpos <= 0 && actindex < FESScriptLines.Count)
-                {
-                    addline = FESScriptLines[actindex].ReadLine;
-                    FESScriptLines.RemoveAt(actindex);
-                    presentstring = String.Concat(presentstring, addline);
-                    endpos = presentstring.IndexOf(";");
-                }
-
-                // Illegal statement - no ;
-
-                if (endpos <= 0)
-                {
-                    Trace.TraceWarning("sigscr-file line {1} : Missing ; in statement starting with {0}", presentstring, presentInfo.LineNumber.ToString());
-#if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Missing ; in statement starting with " + presentstring + " (" +
-                                    presentInfo.LineNumber.ToString() + ")\n");
-#endif
-
-                }
-
-                // split string at ; if anything follows after
-
-                if (presentstring.Length > (endpos + 1) && endpos > 0)
-                {
-                    SCRReadInfo splitInfo = new SCRReadInfo(presentstring.Substring(endpos + 1).Trim(), presentInfo.LineNumber);
-                    FESScriptLines.Insert(index, splitInfo);
-                    presentstring = presentstring.Substring(0, endpos + 1).Trim();
-                }
-
-                SCRReadInfo newInfo = new SCRReadInfo(presentstring.Trim(), presentInfo.LineNumber);
-                FESScriptLines.Insert(index, newInfo);
-                actindex = index + 1;
-                return actindex;
-            }// FindEndStatement
-
-            //================================================================================================//
-            //
-            // find end of full IF blocks
-            // returns indices to lines following IF part, all (if any) ELSEIF part and (if available) last ELSE part
-            // final index is next line after full IF - ELSEIF - ELSE sequence
-            // any nested IF blocks are included but not indexed
-            //
-            // this function is call recursively for nester IF blocks
-            //
-            //================================================================================================//
-
-            public static List<int> findEndIfBlock(List<SCRReadInfo> FEIScriptLines, int index)
+            internal static SCRParameterType ParameterFromToken(ScriptToken token, int lineNumber, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
             {
 
-                List<int> nextcount = new List<int>();
-                SCRReadInfo nextinfo;
-                SCRReadInfo tempinfo;
-                string nextline;
-                int tempnumber;
-                int endIfcount, endElsecount;
+                int index;
 
-                int linecount = FindEndCondition(FEIScriptLines, index);
-
-                nextinfo = FEIScriptLines[linecount];
-                nextline = nextinfo.ReadLine;
-
-                // full block : search for matching parenthesis in next lines
-                // set end after related closing }
-
-                endIfcount = linecount;
-
-                if (nextline.Length > 0 && String.Compare(nextline.Substring(0, 1), "{") == 0)
+                // try constant
+                if (int.TryParse(token.Token, out int constantInt))
                 {
-                    endIfcount = findEndBlock(FEIScriptLines, linecount);
+                    return new SCRParameterType(SCRTermType.Constant, constantInt);
                 }
-
-                // next statement is another if : insert { and } to ease processing
-
-                else if (String.Compare(nextline.Substring(0, Math.Min(3, nextline.Length)), "IF ") == 0)
+                // try external float
+                else if (Enum.TryParse(token.Token, true, out SCRExternalFloats externalFloat))
                 {
-                    List<int> fullcount = findEndIfBlock(FEIScriptLines, linecount);
-                    int lastline = fullcount[fullcount.Count - 1];
-                    string templine = FEIScriptLines[linecount].ReadLine;
-                    FEIScriptLines.RemoveAt(linecount);
-                    templine = String.Concat("{ ", templine);
-                    tempinfo = new SCRReadInfo(templine, nextinfo.LineNumber);
-                    FEIScriptLines.Insert(linecount, tempinfo);
-                    templine = FEIScriptLines[lastline - 1].ReadLine;
-                    tempnumber = FEIScriptLines[lastline - 1].LineNumber;
-                    FEIScriptLines.RemoveAt(lastline - 1);
-                    templine = String.Concat(templine, " }");
-                    tempinfo = new SCRReadInfo(templine, tempnumber);
-                    FEIScriptLines.Insert(lastline - 1, tempinfo);
-                    endIfcount = lastline;
+                    return new SCRParameterType(SCRTermType.ExternalFloat, (int)externalFloat);
                 }
-
-                // single statement - set end after statement
-
-                else
+                // try local float
+                else if (localFloats.TryGetValue(token.Token, out int localFloat))
                 {
-                    endIfcount = FindEndStatement(FEIScriptLines, linecount);
+                    return new SCRParameterType(SCRTermType.LocalFloat, localFloat);
                 }
-                nextcount.Add(endIfcount);
-
-                endElsecount = endIfcount;
-
-                // check if next line starts with ELSE or any form of ELSEIF
-
-                nextline = endElsecount < FEIScriptLines.Count ? FEIScriptLines[endElsecount].ReadLine.Trim() : String.Empty;
-                bool endelse = false;
-
-                while (!endelse && endElsecount < FEIScriptLines.Count)
-                {
-                    bool elsepart = false;
-
-                    // line contains ELSE only
-
-                    if (nextline.Length <= 4)
+                string[] definitions = token.Token.Split(new char[] { '_' }, 2);
+                if (definitions.Length == 2)
+                    switch (definitions[0])
                     {
-                        if (String.Compare(nextline, "ELSE") == 0)
-                        {
-                            elsepart = true;
-                            nextinfo = FEIScriptLines[endElsecount + 1];
-                            nextline = nextinfo.ReadLine;
-
-                            // check if next line start with IF - then this is an ELSEIF
-
-                            if (nextline.StartsWith("IF "))
+                        // try blockstate
+                        case "BLOCK":
+                            if (Enum.TryParse(definitions[1], true, out MstsBlockState blockstate))
                             {
-                                nextline = String.Concat("ELSEIF ", nextline.Substring(3).Trim());
-                                FEIScriptLines.RemoveAt(endElsecount + 1);
-                                FEIScriptLines.RemoveAt(endElsecount);
-                                tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber);
-                                FEIScriptLines.Insert(endElsecount, tempinfo);
-                                endElsecount = FindEndCondition(FEIScriptLines, endElsecount);
-                                nextinfo = FEIScriptLines[endElsecount];
-                                nextline = nextinfo.ReadLine;
+                                return new SCRParameterType(SCRTermType.Block, (int)blockstate);
                             }
                             else
                             {
-                                endelse = true;
-                                endElsecount++;
+                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Blockstate : {definitions[1]} \n");
+#if DEBUG_PRINT_IN
+                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Blockstate : {token.Token} \n");
+#endif
                             }
-
-                        }
-                    }
-
-                    // line starts with ELSE - check if followed by IF
-                    // if ELSEIF, store with rest of line
-                    // if ELSE, store on separate new line
-
-                    else if (String.Compare(nextline.Substring(0, Math.Min(5, nextline.Length)), "ELSE ") == 0)
-                    {
-                        elsepart = true;
-                        nextline = nextline.Substring(5).Trim();
-                        if (nextline.StartsWith("IF "))
-                        {
-                            nextline = String.Concat("ELSEIF ", nextline.Substring(3).Trim());
-                            FEIScriptLines.RemoveAt(endElsecount);
-                            tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber);
-                            FEIScriptLines.Insert(endElsecount, tempinfo);
-                            endElsecount = FindEndCondition(FEIScriptLines, endElsecount);
-                            nextinfo = FEIScriptLines[endElsecount];
-                            nextline = nextinfo.ReadLine;
-                        }
-                        else
-                        {
-                            endelse = true;
-
-                            FEIScriptLines.RemoveAt(endElsecount);
-                            tempinfo = new SCRReadInfo(nextline.Trim(), nextinfo.LineNumber);
-                            FEIScriptLines.Insert(endElsecount, tempinfo);
-                            tempinfo = new SCRReadInfo("ELSE", nextinfo.LineNumber);
-                            FEIScriptLines.Insert(endElsecount, tempinfo);
-                            endElsecount++;
-                        }
-                    }
-
-                    // line starts with ELSEIF 
-
-                    else if (String.Compare(nextline.Substring(0, Math.Min(7, nextline.Length)), "ELSEIF ") == 0)
-                    {
-                        elsepart = true;
-                        endElsecount = FindEndCondition(FEIScriptLines, endElsecount);
-                        nextinfo = FEIScriptLines[endElsecount];
-                        nextline = nextinfo.ReadLine;
-                    }
-
-                    // line starts with ELSE{
-                    // store ELSE on separate new line
-
-                    else if (String.Compare(nextline.Substring(0, Math.Min(5, nextline.Length)), "ELSE{") == 0)
-                    {
-                        elsepart = true;
-                        endelse = true;
-                        nextline = nextline.Substring(5).Trim();
-                        FEIScriptLines.RemoveAt(endElsecount);
-                        tempinfo = new SCRReadInfo(nextline, nextinfo.LineNumber);
-                        FEIScriptLines.Insert(endElsecount, tempinfo);
-                        nextline = "{";
-                        tempinfo = new SCRReadInfo("{", nextinfo.LineNumber);
-                        FEIScriptLines.Insert(endElsecount, tempinfo);
-                        tempinfo = new SCRReadInfo("ELSE", nextinfo.LineNumber);
-                        FEIScriptLines.Insert(endElsecount, tempinfo);
-                    }
-
-                    // if an ELSE or ELSEIF part is found - find end 
-
-                    if (elsepart)
-                    {
-                        if (String.Compare(nextline.Substring(0, 1), "{") == 0)
-                        {
-                            endElsecount = findEndBlock(FEIScriptLines, endElsecount);
-                        }
-                        else if (String.Compare(nextline.Substring(0, Math.Min(3, nextline.Length)), "IF ") == 0)
-                        {
-                            List<int> fullcount = findEndIfBlock(FEIScriptLines, endElsecount);
-                            int lastline = fullcount[fullcount.Count - 1];
-                            string templine = FEIScriptLines[endElsecount].ReadLine;
-                            FEIScriptLines.RemoveAt(endElsecount);
-                            templine = String.Concat("{ ", templine);
-                            tempinfo = new SCRReadInfo(templine, nextinfo.LineNumber);
-                            FEIScriptLines.Insert(endElsecount, tempinfo);
-                            templine = FEIScriptLines[lastline - 1].ReadLine;
-                            tempnumber = FEIScriptLines[lastline - 1].LineNumber;
-                            FEIScriptLines.RemoveAt(lastline - 1);
-                            templine = String.Concat(templine, " }");
-                            tempinfo = new SCRReadInfo(templine, tempnumber);
-                            FEIScriptLines.Insert(lastline - 1, tempinfo);
-                            endElsecount = lastline;
-                        }
-                        else
-                        {
-                            endElsecount = FindEndStatement(FEIScriptLines, endElsecount);
-                        }
-                        nextline = endElsecount < FEIScriptLines.Count ? FEIScriptLines[endElsecount].ReadLine.Trim() : String.Empty;
-                        nextcount.Add(endElsecount);
-                    }
-                    else
-                    {
-                        endelse = true;
-                    }
-                }
-
-                return nextcount;
-            }// findEndIfBlock
-
-            //================================================================================================//
-            //
-            // find end of IF block enclosed by { and }
-            //
-            //================================================================================================//
-
-            public static int findEndBlock(List<SCRReadInfo> FEBScriptLines, int index)
-            {
-
-                SCRReadInfo firstinfo, thisinfo, tempinfo;
-
-                // Use regular expression to find all occurences of { and }
-                // Keep searching through next lines until match is found
-
-                int openparent = 0;
-                int closeparent = 0;
-
-                int openindex = 0;
-                int closeindex = 0;
-
-                Regex openparstr = new Regex("{");
-                Regex closeparstr = new Regex("}");
-
-                firstinfo = FEBScriptLines[index];
-                string presentline = firstinfo.ReadLine;
-
-                bool blockEnd = false;
-                int splitpoint = -1;
-                int checkcount = index;
-
-                // get positions in present line
-
-                MatchCollection opencount = openparstr.Matches(presentline);
-                MatchCollection closecount = closeparstr.Matches(presentline);
-
-                // convert to ARRAY
-
-                int totalopen = opencount.Count;
-                int totalclose = closecount.Count;
-
-                Match[] closearray = new Match[totalclose];
-                closecount.CopyTo(closearray, 0);
-                Match[] openarray = new Match[totalopen];
-                opencount.CopyTo(openarray, 0);
-
-                // search until match found
-                while (!blockEnd)
-                {
-
-                    // get next position (continue from previous index)
-
-                    int openpos = openindex < openarray.Length ? openarray[openindex].Index : presentline.Length;
-                    int closepos = closeindex < closearray.Length ? closearray[closeindex].Index : presentline.Length;
-
-                    // next is open {
-
-                    if (openpos < closepos)
-                    {
-                        openparent++;
-                        openindex++;
-                        openpos = openindex < openarray.Length ? openarray[openindex].Index : presentline.Length;
-                    }
-
-                    // next is close }
-
-                    else if (closepos < openpos)
-                    {
-                        closeparent++;
-
-                        // check for match - if found, end of block is found
-
-                        if (closeparent == openparent)
-                        {
-                            blockEnd = true;
-                            splitpoint = closepos;
-                        }
-                        else
-                        {
-                            closeindex++;
-                            closepos = closeindex < closearray.Length ? closearray[closeindex].Index : presentline.Length;
-                        }
-                    }
-
-                    // openpos and closepos equal - both have reached end of line - get next line
-
-                    else
-                    {
-                        checkcount++;
-                        if (checkcount >= FEBScriptLines.Count)
-                        {
-                            Trace.TraceWarning("sigscr-file line {0} : unbalanced curly brackets : ", index.ToString());
-#if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                            "unbalanced curly brackets at " + index.ToString() + "\n");
-#endif
-                            return (FEBScriptLines.Count - 1);
-                        }
-
-                        thisinfo = FEBScriptLines[checkcount];
-                        presentline = thisinfo.ReadLine;
-
-                        // get positions
-
-                        opencount = openparstr.Matches(presentline);
-                        closecount = closeparstr.Matches(presentline);
-
-                        totalopen = opencount.Count;
-                        totalclose = closecount.Count;
-
-                        // convert to array
-
-                        closearray = new Match[totalclose];
-                        closecount.CopyTo(closearray, 0);
-                        openarray = new Match[totalopen];
-                        opencount.CopyTo(openarray, 0);
-
-                        openindex = 0;
-                        closeindex = 0;
-
-                        // get next positions
-
-                        openpos = openindex < openarray.Length ? openarray[openindex].Index : presentline.Length;
-                        closepos = closeindex < closearray.Length ? closearray[closeindex].Index : presentline.Length;
-                    }
-                }
-
-                // end found - check if anything follows final }
-
-                int nextcount = checkcount + 1;
-                thisinfo = FEBScriptLines[checkcount];
-                presentline = thisinfo.ReadLine.Trim();
-
-                if (splitpoint >= 0 && splitpoint < presentline.Length - 1)
-                {
-                    thisinfo = FEBScriptLines[checkcount];
-                    presentline = thisinfo.ReadLine;
-                    FEBScriptLines.RemoveAt(checkcount);
-
-                    tempinfo = new SCRReadInfo(presentline.Substring(splitpoint + 1).Trim(), firstinfo.LineNumber);
-                    FEBScriptLines.Insert(checkcount, tempinfo);
-                    tempinfo = new SCRReadInfo(presentline.Substring(0, splitpoint + 1).Trim(), firstinfo.LineNumber);
-                    FEBScriptLines.Insert(checkcount, tempinfo);
-                }
-
-                return nextcount;
-            }//findEndBlock
-
-            //================================================================================================//
-            //
-            // find end of IF condition statement
-            //
-            //================================================================================================//
-
-            public static int FindEndCondition(List<SCRReadInfo> FECScriptLines, int index)
-            {
-                string presentstring, addline;
-                int totalopen, totalclose;
-                int actindex;
-
-                SCRReadInfo thisinfo, addinfo, tempinfo;
-
-                //================================================================================================//
-
-                actindex = index;
-
-                thisinfo = FECScriptLines[index];
-                presentstring = thisinfo.ReadLine;
-                FECScriptLines.RemoveAt(index);
-
-                // use regular expression to search for open and close bracket
-
-                Regex openbrack = new Regex(@"\(");
-                Regex closebrack = new Regex(@"\)");
-
-                // search for open bracket
-
-                MatchCollection opencount = openbrack.Matches(presentstring);
-                totalopen = opencount.Count;
-
-                // add lines until open bracket found
-
-                while (totalopen <= 0 && actindex < FECScriptLines.Count)
-                {
-                    addinfo = FECScriptLines[actindex];
-                    addline = addinfo.ReadLine;
-                    FECScriptLines.RemoveAt(actindex);
-                    presentstring = String.Concat(presentstring, addline);
-                    opencount = openbrack.Matches(presentstring);
-                    totalopen = opencount.Count;
-                }
-
-                if (totalopen <= 0)
-                {
-                    Trace.TraceWarning("sigscr-file line {1} : If statement without ( ; starting with {0}", presentstring, thisinfo.LineNumber.ToString());
-#if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                    "If statement without ( ; starting with {0}" + presentstring + " (" + thisinfo.LineNumber.ToString() + ")\n");
-#endif
-                }
-
-                // in total string, search for close brackets
-
-                MatchCollection closecount = closebrack.Matches(presentstring);
-                totalclose = closecount.Count;
-
-                // keep adding lines until open and close brackets match
-
-                while (totalclose < totalopen && actindex < FECScriptLines.Count)
-                {
-                    addinfo = FECScriptLines[actindex];
-                    addline = addinfo.ReadLine;
-                    FECScriptLines.RemoveAt(actindex);
-                    presentstring = String.Concat(presentstring, addline);
-
-                    opencount = openbrack.Matches(presentstring);
-                    totalopen = opencount.Count;
-                    closecount = closebrack.Matches(presentstring);
-                    totalclose = closecount.Count;
-                }
-
-                actindex = index;
-
-                if (totalclose < totalopen)
-                {
-
-                    // locate first "{" - assume this to be the end of the IF statement
-
-                    int possibleEnd = presentstring.IndexOf("{");
-
-                    Trace.TraceWarning("sigscr-file line {1} : Missing ) in IF statement ; starting with {0}",
-                    presentstring, thisinfo.LineNumber.ToString());
-
-                    string reportString = String.Copy(presentstring);
-                    if (possibleEnd > 0)
-                    {
-                        reportString = presentstring.Substring(0, possibleEnd);
-
-                        Trace.TraceWarning("IF statement set to : {0}", reportString + ")");
-
-                        tempinfo = new SCRReadInfo(presentstring.Substring(possibleEnd).Trim(),
-                            thisinfo.LineNumber);
-                        FECScriptLines.Insert(index, tempinfo);
-                        presentstring = String.Concat(presentstring.Substring(0, possibleEnd), ")");
-                        actindex = index + 1;
-                    }
-
-#if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "If statement without ) ; starting with " + reportString +
-                                   " (" + thisinfo.LineNumber.ToString() + ")\n");
-#endif
-                }
-                else
-                {
-
-                    // get position of final close bracket - end of condition statement
-
-                    Match[] closearray = new Match[totalclose];
-                    closecount.CopyTo(closearray, 0);
-                    Match[] openarray = new Match[totalopen];
-                    opencount.CopyTo(openarray, 0);
-
-                    // match open and close brackets - when matched, that is end of condition
-
-                    int actbracks = 1;
-
-                    int actopen = 1;
-                    int openpos = actopen < openarray.Length ? openarray[actopen].Index : presentstring.Length + 1;
-
-                    int actclose = 0;
-                    int closepos = closearray[actclose].Index;
-
-                    while (actbracks > 0)
-                    {
-                        if (openpos < closepos)
-                        {
-                            actbracks++;
-                            actopen++;
-                            openpos = actopen < openarray.Length ? openarray[actopen].Index : presentstring.Length + 1;
-                        }
-                        else
-                        {
-                            actbracks--;
-                            if (actbracks > 0)
+                            break;
+                        // try SIGASP definition
+                        case "SIGASP":
+                            if (Enum.TryParse(definitions[1], true, out MstsSignalAspect aspect))
                             {
-                                actclose++;
-                                closepos = actclose < closearray.Length ? closearray[actclose].Index : presentstring.Length + 1;
+                                return new SCRParameterType(SCRTermType.Sigasp, (int)aspect);
                             }
-                        }
-                    }
-
-                    // split on end of condition
-
-                    if (closepos < (presentstring.Length - 1))
-                    {
-                        tempinfo = new SCRReadInfo(presentstring.Substring(closepos + 1).Trim(), thisinfo.LineNumber);
-                        FECScriptLines.Insert(index, tempinfo);
-                        presentstring = presentstring.Substring(0, closepos + 1);
-                    }
-                    actindex = index + 1;
-                }
-
-                tempinfo = new SCRReadInfo(presentstring.Trim(), thisinfo.LineNumber);
-                FECScriptLines.Insert(index, tempinfo);
-                return actindex;
-            }//findEndCondition
-
-            //================================================================================================//
-            //
-            // process function call (in statement or in IF condition)
-            //
-            //================================================================================================//
-            static public ArrayList Process_FunctionCall(string functionStatement, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes, int lineNumber)
-            {
-                ArrayList FunctionParts = new ArrayList();
-                bool valid_func = true;
-
-                // split in function and parameter parts
-
-                string[] statementParts = functionStatement.Split('(');
-                if (statementParts.Length > 2)
-                {
-                    valid_func = false;
-                    Trace.TraceWarning($"sigscr-file line {lineNumber} : Unexpected number of ( in function call : {functionStatement}");
+                            else
+                            {
+                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Aspect : {definitions[1]} \n");
 #if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unexpected number of ( in function call : " + functionStatement + "\n");
+                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Aspect : {token.Token} \n");
 #endif
-                }
-
-                // process function part
-                if (Enum.TryParse<SCRExternalFunctions>(statementParts[0], true, out SCRExternalFunctions scrExternalFunctionsResult))
-                {
-                    FunctionParts.Add(scrExternalFunctionsResult);
-                }
-                else
-                {
-                    valid_func = false;
-                    Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown function call : {functionStatement}\nDetails : {statementParts[0]}");
+                            }
+                            break;
+                        // try SIGFN definition
+                        case "SIGFN":
+                            index = orSignalTypes.IndexOf(definitions[1]);
+                            if (index != -1)
+                            {
+                                return new SCRParameterType(SCRTermType.Sigfn, index);
+                            }
+                            else
+                            {
+                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown SIGFN Type : {definitions[1]} \n");
 #if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown function call : " + functionStatement + "\n");
+                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Type : {token.Token} \n");
 #endif
-                }
-
-                // remove closing bracket
-
-                string ParameterPart = statementParts[1].Replace(")", String.Empty).Trim();
-
-                // process first parameters in case of multiple parameters
-
-                int sepindex = ParameterPart.IndexOf(",");
-                while (sepindex > 0 && valid_func)
-                {
-                    string parmPart = ParameterPart.Substring(0, sepindex).Trim();
-                    SCRParameterType TempParm = Process_TermPart(parmPart, localFloats, orSignalTypes, orNormalSubtypes, lineNumber);
-                    FunctionParts.Add(TempParm);
-
-                    ParameterPart = ParameterPart.Substring(sepindex + 1).Trim();
-                    sepindex = ParameterPart.IndexOf(",");
-                }
-
-                // process last or only parameter if set
-
-                if (!String.IsNullOrEmpty(ParameterPart) && valid_func)
-                {
-                    SCRParameterType TempParm = Process_TermPart(ParameterPart, localFloats, orSignalTypes, orNormalSubtypes, lineNumber);
-                    FunctionParts.Add(TempParm);
-                }
-
-                // return null in case of error
-
-                if (!valid_func)
-                {
-                    FunctionParts = null;
-                }
-                return FunctionParts;
-            }//process_FunctionCall
-
-            //================================================================================================//
-            //
-            // process term part of statement (right-hand side)
-            //
-            //================================================================================================//
-            static public SCRParameterType Process_TermPart(string termString, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes, int lineNumber)
-            {
-
-                SCRParameterType result = new SCRParameterType(SCRTermType.Constant, 0);
-                // check for use of #
-                if (termString[0] == '#')
-                {
-                    termString = termString.Substring(1).Trim();
-                }
-
-                // try constant
-                if (int.TryParse(termString, out int tmpInt))
-                {
-                    result = new SCRParameterType(SCRTermType.Constant, tmpInt);
-                }
-                // try external float
-                else if (Enum.TryParse<SCRExternalFloats>(termString, true, out SCRExternalFloats exFloat))
-                {
-                    result = new SCRParameterType(SCRTermType.ExternalFloat, (int)exFloat);
-                }
-                // try local float
-                else if (localFloats.TryGetValue(termString, out uint localFloat))
-                {
-                    result = new SCRParameterType(SCRTermType.LocalFloat, (int)localFloat);
-                }
-                // try blockstate
-                else if (termString.StartsWith("BLOCK_"))
-                {
-                    if (Enum.TryParse<MstsBlockState>(termString.Substring(6), true, out MstsBlockState blockstate))
-                    {
-                        result = new SCRParameterType(SCRTermType.Block, (int)blockstate);
-                    }
-                    else
-                    {
-                        Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Blockstate : {termString.Substring(6)} \n");
+                            }
+                            break;
+                        // try ORSubtype definition
+                        case "ORSUBTYPE":
+                            index = orNormalSubtypes.IndexOf(definitions[1]);
+                            if (index != -1)
+                            {
+                                return new SCRParameterType(SCRTermType.ORNormalSubtype, index);
+                            }
+                            else
+                            {
+                                Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown ORSUBTYPE : {definitions[1]} \n");
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Blockstate : " + termString + "\n");
+                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Type : {token.Token} \n");
 #endif
-                    }
-                }
-                // try SIGASP definition
-                else if (termString.StartsWith("SIGASP_"))
-                {
-                    if (Enum.TryParse<MstsSignalAspect>(termString.Substring(7), true, out MstsSignalAspect aspect))
-                    {
-                        result = new SCRParameterType(SCRTermType.Sigasp, (int)aspect);
-                    }
-                    else
-                    {
-                        Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Aspect : {termString.Substring(7)} \n");
+                            }
+                            break;
+                        // try SIGFEAT definition
+                        case "SIGFEAT":
+                            index = SignalShape.SignalSubObj.SignalSubTypes.IndexOf(definitions[1]);
+                            if (index != -1)
+                            {
+                                return new SCRParameterType(SCRTermType.Sigfeat, index);
+                            }
+                            else
+                            {
+                                Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown SubType : {definitions[1]} \n");
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Aspect : " + termString + "\n");
+                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown SubType : {token.Token} \n");
 #endif
-                    }
-                }
-                // try SIGFN definition
-                else if (termString.StartsWith("SIGFN_"))
-                {
-                    int index = orSignalTypes.IndexOf(termString.Substring(6).ToUpper());
-                    if (index != -1)
-                    {
-                        result = new SCRParameterType(SCRTermType.Sigfn, index);
-                    }
-                    else
-                    {
-                        Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown SIGFN Type : {termString.Substring(6)} \n");
+                            }
+                            break;
+                        default:
+                            // nothing found - set error
+                            Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown parameter in statement : {token.Token}");
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Type : " + termString + "\n");
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown parameter : {token.Token} \n");
 #endif
+                            break;
                     }
-                }
-                // try ORSubtype definition
-                else if (termString.StartsWith("ORSUBTYPE_"))
-                {
-                    int index = orNormalSubtypes.IndexOf(termString.Substring(10).ToUpper());
-                    if (index != -1)
-                    {
-                        result = new SCRParameterType(SCRTermType.ORNormalSubtype, index);
-                    }
-                    else
-                    {
-                        Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown ORSUBTYPE : {termString.Substring(10)} \n");
-#if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown Type : " + termString + "\n");
-#endif
-                    }
-                }
-                // try SIGFEAT definition
-                else if (termString.StartsWith("SIGFEAT_"))
-                {
-                    int index = SignalShape.SignalSubObj.SignalSubTypes.IndexOf(termString.Substring(8).ToUpper());
-                    if (index != -1)
-                    {
-                        result = new SCRParameterType(SCRTermType.Sigfeat, index);
-                    }
-                    else
-                    {
-                        Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown SubType : {termString.Substring(8)} \n");
-#if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown SubType : " + termString + "\n");
-#endif
-                    }
-                }
-                // nothing found - set error
-                else
-                {
-                    Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown parameter in statement : {termString}");
-#if DEBUG_PRINT_IN
-                    File.AppendAllText(din_fileLoc + @"sigscr.txt", "Unknown parameter : " + termString + "\n");
-#endif
-                }
-                return result;
+                return new SCRParameterType(SCRTermType.Constant, 0);
             }//process_TermPart
 
             //================================================================================================//
@@ -1773,289 +1352,47 @@ namespace Orts.Formats.Msts
             // process IF condition line - split into logic parts
             //
             //================================================================================================//
-
-            public static ArrayList getIfConditions(SCRReadInfo GICInfo, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+            internal static ArrayList ParseConditions(ScriptStatement statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
             {
-                SCRConditions ThisCondition;
-                ArrayList SCRConditionList = new ArrayList();
-
-                SCRAndOr condAndOr;
-                List<string> sublist = new List<string>();
-
-                string GICString = GICInfo.ReadLine;
-
-                // extract condition between first ( and last )
-
-                int startpos = GICString.IndexOf("(");
-                int endpos = GICString.LastIndexOf(")");
-                string presentline = GICString.Substring(startpos + 1, endpos - startpos - 1).Trim();
-
-                // search for substrings
-                // search for matching brackets
-
-                Regex openparstr = new Regex("[(]");
-                Regex closeparstr = new Regex("[)]");
-
-                // get all brackets in string
-
-                MatchCollection opencount = openparstr.Matches(presentline);
-                MatchCollection closecount = closeparstr.Matches(presentline);
-
-                int totalopen = opencount.Count;
-                int totalclose = closecount.Count;
-
-                if (totalopen > 0)
+                ArrayList result = new ArrayList();
+                SCRAndOr logicalOperator = SCRAndOr.NONE;
+                while (statement.Tokens.Count > 0)
                 {
-
-                    // convert matches to array
-
-                    Match[] closearray = new Match[totalclose];
-                    closecount.CopyTo(closearray, 0);
-                    Match[] openarray = new Match[totalopen];
-                    opencount.CopyTo(openarray, 0);
-
-                    // get positions, find ) which matches first (
-
-                    bool blockEnd = false;
-                    int bracklevel = 0;
-
-                    int openindex = 0;
-                    int closeindex = 0;
-
-                    int openpos = openindex < openarray.Length ? openarray[openindex].Index : presentline.Length;
-                    int closepos = closeindex < closearray.Length ? closearray[closeindex].Index : presentline.Length;
-
-                    int firstopen = 0;
-
-                    while (!blockEnd)
+                    if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Logical)
                     {
-                        if (bracklevel == 0)
+                        if (TranslateAndOr.TryGetValue(statement.Tokens[0].Token, out logicalOperator))
                         {
-                            firstopen = openpos;
-                        }
-
-                        if (openpos < closepos)
-                        {
-                            bracklevel++;
-                            openindex++;
-                            openpos = openindex < openarray.Length ? openarray[openindex].Index : presentline.Length;
+                            result.Add(logicalOperator);
                         }
                         else
                         {
-                            bracklevel--;
-
-                            // match found, check if any | or & in between
-                            // if so, condition is enclosed and must be processed separately
-                            // store string in special array
-                            // replace string with substitute pointer reference stored string position
-
-                            if (bracklevel == 0)
-                            {
-                                string substring = presentline.Substring(firstopen, closepos - firstopen + 1);
-                                if (CheckCondition(substring) > 0)
-                                {
-                                    sublist.Add(substring);
-                                    string replacestring = "[" + sublist.Count.ToString() + "]";
-                                    replacestring = replacestring.PadRight(substring.Length, '*');
-
-                                    presentline = presentline.Remove(firstopen, closepos - firstopen + 1);
-                                    presentline = presentline.Insert(firstopen, replacestring);
-                                }
-                            }
-
-                            closeindex++;
-                            if (closeindex < closearray.Length)
-                            {
-                                closepos = closearray[closeindex].Index;
-                            }
-                            else
-                            {
-                                blockEnd = true;
-                            }
-
+                            Trace.TraceWarning($"sigscr-file line {statement.LineNumber} : Invalid condition operator in : {statement.Token[0]}");
                         }
+                        statement.Tokens.RemoveAt(0);
+                    }
+                    else if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Negator && statement.Tokens[1] is ScriptBlockBase)
+                    {
+                        result.Add(SCRNegate.NEGATE);
+                        statement.Tokens.RemoveAt(0);
+                    }
+                    //Conditions are dedicated blocks, but always separated by logical operators
+                    else if (statement.Tokens[0] is ScriptBlockBase) //process sub block
+                    {
+                        result.AddRange(ParseConditions((statement.Tokens[0] as ScriptBlockBase).Statements[0], localFloats, orSignalTypes, orNormalSubtypes));
+                        //recurse in the block
+                        statement.Tokens.RemoveAt(0);
+                    }
+                    else //single term
+                    {
+                        SCRConditions condition = new SCRConditions(statement, localFloats, orSignalTypes, orNormalSubtypes);
+                        result.Add(condition);
                     }
                 }
-
-                // process main string
-                // check for separators (OR or AND)
-
-                string reststring = presentline;
-                string condstring = String.Empty;
-                string procstring = String.Empty;
-                string tempstring = String.Empty;
-
-                int seppos = CheckCondition(reststring);
-
-                // process each part
-
-                while (seppos > 0)
-                {
-                    procstring = reststring.Substring(0, seppos).Trim();
-                    condstring = reststring.Substring(seppos, 2);
-                    tempstring = reststring.Substring(seppos + 2);
-
-                    bool validCondition = false;
-                    while (!validCondition && tempstring.Length > 0 && tempstring[0] != ' ')
-                    {
-                        if (TranslateAndOr.ContainsKey(condstring))
-                        {
-                            validCondition = true;
-                        }
-                        else
-                        {
-                            condstring = String.Concat(condstring, tempstring.Substring(0, 1));
-                            tempstring = tempstring.Substring(1);
-                        }
-                    }
-
-                    reststring = tempstring.Trim();
-
-                    // process separate !
-
-                    if (procstring.Length > 0 && String.Compare(procstring.Substring(0, 1), "!") == 0)
-                    {
-                        SCRNegate negated = SCRNegate.NEGATE;
-                        SCRConditionList.Add(negated);
-                        procstring = procstring.Substring(1).Trim();
-                    }
-
-                    // process separate NOT
-
-                    if (procstring.Length > 4 && String.Compare(procstring.Substring(0, 4), "NOT ") == 0)
-                    {
-                        SCRNegate negated = SCRNegate.NEGATE;
-                        SCRConditionList.Add(negated);
-                        procstring = procstring.Substring(4).Trim();
-                    }
-
-                    // previous separated substring - process as new full IF condition
-
-                    if (procstring.StartsWith("["))
-                    {
-                        int entnum = procstring.IndexOf("]");
-                        int subindex = Convert.ToInt32(procstring.Substring(1, entnum - 1));
-                        SCRReadInfo subinfo = new SCRReadInfo(sublist[subindex - 1], GICInfo.LineNumber);
-                        ArrayList SubCondition = getIfConditions(subinfo, LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                        SCRConditionList.Add(SubCondition);
-                    }
-
-                    // single condition
-
-                    else
-                    {
-                        // remove any superflouos brackets ()
-                        while (procstring.StartsWith("(") && procstring.EndsWith(")"))
-                        {
-                            procstring = procstring.Substring(1, procstring.Length - 2);
-                        }
-
-                        ThisCondition = new SCRConditions(procstring, LocalFloats, ORSignalTypes, ORNormalSubtypes, GICInfo.LineNumber);
-                        SCRConditionList.Add(ThisCondition);
-                    }
-
-                    // translate logical operator
-
-                    if (TranslateAndOr.TryGetValue(condstring, out condAndOr))
-                    {
-                        SCRConditionList.Add(condAndOr);
-                    }
-                    else
-                    {
-                        Trace.TraceWarning("sigscr-file line {1} : Invalid condition operator in : {0}", GICString, GICInfo.LineNumber.ToString());
-                    }
-
-                    seppos = CheckCondition(reststring);
-                }
-
-                // process last part or full part if no separators
-
-                procstring = reststring;
-
-                // process separate !
-
-                if (procstring.Length > 0 && String.Compare(procstring.Substring(0, 1), "!") == 0)
-                {
-                    SCRNegate negated = SCRNegate.NEGATE;
-                    SCRConditionList.Add(negated);
-                    procstring = procstring.Substring(1).Trim();
-                }
-
-                if (procstring.Length > 4 && String.Compare(procstring.Substring(0, 4), "NOT ") == 0)
-                {
-                    SCRNegate negated = SCRNegate.NEGATE;
-                    SCRConditionList.Add(negated);
-                    procstring = procstring.Substring(4).Trim();
-                }
-
-                // previous separated substring - process as new full IF condition
-
-                if (procstring.StartsWith("["))
-                {
-                    int entnum = procstring.IndexOf("]");
-                    int subindex = Convert.ToInt32(procstring.Substring(1, entnum - 1));
-                    SCRReadInfo subinfo = new SCRReadInfo(sublist[subindex - 1], GICInfo.LineNumber);
-                    ArrayList SubCondition = getIfConditions(subinfo, LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                    SCRConditionList.Add(SubCondition);
-                }
-
-                // single condition
-
-                else
-                {
-
-                    // remove any enclosing ()
-
-                    if (procstring.StartsWith("("))
-                    {
-                        procstring = procstring.Substring(1, procstring.Length - 2).Trim();
-                    }
-                    ThisCondition = new SCRConditions(procstring, LocalFloats, ORSignalTypes, ORNormalSubtypes, GICInfo.LineNumber);
-                    SCRConditionList.Add(ThisCondition);
-                }
-
-                // process logical operator if set
-
-                if (!String.IsNullOrEmpty(condstring))
-                {
-                    if (TranslateAndOr.TryGetValue(condstring, out condAndOr))
-                    {
-                        SCRConditionList.Add(condAndOr);
-                    }
-                    else
-                    {
-                        Trace.TraceWarning("sigscr-file line {1} : Invalid condition operator in : {0}", GICString, GICInfo.LineNumber.ToString());
-                    }
-                }
-
-                return SCRConditionList;
-            }//getIfConditions
-
-            //================================================================================================//
-            //
-            // check for condition in statement
-            //
-            //================================================================================================//
-
-            public static int CheckCondition(String teststring)
-            {
-                char[] AndOrCheck = "|&".ToCharArray();
-                int returnvalue = 0;
-
-                returnvalue = teststring.IndexOfAny(AndOrCheck);
-                if (returnvalue > 0)
-                    return returnvalue;
-
-                returnvalue = teststring.IndexOf(" AND ");
-                if (returnvalue > 0)
-                    return returnvalue + 1;
-
-                returnvalue = teststring.IndexOf(" OR ");
-                if (returnvalue > 0)
-                    return returnvalue + 1;
-
-                return returnvalue;
-            }// CheckCondition
+                // TODO: This can be removed, only for debug output compatibility
+                if (logicalOperator != SCRAndOr.NONE)
+                    result.Add(logicalOperator);
+                return result;
+            }
 
             //================================================================================================//
             //
@@ -2069,285 +1406,93 @@ namespace Orts.Formats.Msts
 
             public class SCRStatement
             {
-                public bool IsValid { get; private set; } = true;
                 public List<SCRStatTerm> StatementTerms { get; private set; } = new List<SCRStatTerm>();
+
                 public SCRTermType AssignType { get; private set; }
+
                 public int AssignParameter { get; private set; }
 
-                private SCRReadInfo statementInfo;
-
-                //================================================================================================//
-                //
-                //  Constructor
-                //
-
-                public SCRStatement(SCRReadInfo statement, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                internal SCRStatement(ScriptStatement statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
-                    statementInfo = statement;
                     AssignType = SCRTermType.Invalid;
-                    string[] statementParts;
-                    string currentLine = statement.ReadLine;
 
-                    // check for improper use of =#, ==# or ==
-                    currentLine = currentLine.Replace("=#", "=").Replace("==", "=");
-
-                    string term = null;
-                    currentLine = currentLine.Replace(";", String.Empty);
-                    //split on =, should be only 2 parts
-                    statementParts = currentLine.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    // Assignment part - search external and local floats
-                    // if only 1 part, it is a single function call without assignment
-                    switch (statementParts.Length)
+                    //TODO: need to process Assignment Operations (+=, -= etc)
+                    if (statement.Tokens.Count > 1 && (statement.Tokens[1] as OperatorToken).OperatorType == OperatorType.Assignment)
                     {
-                        case 1:
-                            // Term part
-                            // get positions of allowed operators
-                            term = statementParts[0].Trim();
-                            break;
-                        case 2:
-                            string assignPart = statementParts[0].Trim();
-                            if (Enum.TryParse<SCRExternalFloats>(assignPart, true, out SCRExternalFloats result))
-                            {
-                                AssignParameter = (int)result;
-                                AssignType = SCRTermType.ExternalFloat;
-                            }
-                            else if (localFloats.TryGetValue(assignPart, out uint value))
-                            {
-                                AssignParameter = (int)value;
-                                AssignType = SCRTermType.LocalFloat;
-                            }
-                            // Term part
-                            // get positions of allowed operators
-                            term = statementParts[1].Trim();
-                            break;
-                        default:
-                            IsValid = false;
-                            Trace.TraceWarning("sigscr-file line {1} : Unexpected number of = in string : {0}", currentLine, statementInfo.LineNumber.ToString());
-#if DEBUG_PRINT_IN
-                        File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                        "Unexpected number of = in string " + statementInfo.ReadLine + " (" + statementInfo.LineNumber.ToString() + ")\n");
-#endif
-                            break;
+                        if (Enum.TryParse(statement.Tokens[0].Token, true, out SCRExternalFloats result))
+                        {
+                            AssignParameter = (int)result;
+                            AssignType = SCRTermType.ExternalFloat;
+                        }
+                        else if (localFloats.TryGetValue(statement.Tokens[0].Token, out int value))
+                        {
+                            AssignParameter = value;
+                            AssignType = SCRTermType.LocalFloat;
+                        }
+                        // Assignment term
+                        statement.Tokens.RemoveRange(0, 2);
                     }
-
-                    // process term string
-                    int sublevel = 0;
-                    if (IsValid)
-                        SCRProcess_TermPartLine(term, ref sublevel, 0, localFloats, orSignalTypes, orNormalSubtypes, statementInfo.LineNumber);
+                    ProcessScriptStatement(statement, 0, localFloats, orSignalTypes, orNormalSubtypes);
                 }
 
-                //================================================================================================//
-                //
-                //  Process Term part line
-                //  May be called recursive to process substrings
-                //
-
-                public void SCRProcess_TermPartLine(string TermLinePart, ref int sublevel, int issublevel,
-                            IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes, int linenumber)
+                private void ProcessScriptStatement(ScriptStatement statement, int level, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
-
-                    string keepString = String.Copy(TermLinePart);
-                    string procString;
-                    string operString;
-                    bool syntaxerror = false;
-
-                    string AllowedOperators = "[";
-
-                    foreach (KeyValuePair<string, SCRTermOperator> PosOperator in TranslateOperator)
+                    string operatorString = string.Empty;
+                    int termNumber = level;
+                    bool negated = false;
+                    while (statement.Tokens.Count > 0)
                     {
-                        string ActOperator = PosOperator.Key;
-                        if (String.Compare(ActOperator, "?") != 0)
+                        negated = false;
+                        if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Operation)
                         {
-                            AllowedOperators = String.Concat(AllowedOperators, ActOperator);
-                        }
-                    }
-
-                    AllowedOperators = String.Concat(AllowedOperators, "]");
-                    Regex operators = new Regex(AllowedOperators);
-                    MatchCollection opertotal = operators.Matches(keepString);
-
-                    int totalOper = opertotal.Count;
-                    Match[] operPos = new Match[totalOper];
-                    opertotal.CopyTo(operPos, 0);
-
-                    // get position of closing and opening brackets
-
-                    Regex openbrack = new Regex("[(]");
-                    MatchCollection openbrackmatch = openbrack.Matches(keepString);
-                    int totalOpenbrack = openbrackmatch.Count;
-                    Match[] openbrackpos;
-
-                    Regex closebrack = new Regex("[)]");
-                    MatchCollection closebrackmatch = closebrack.Matches(keepString);
-                    int totalClosebrack = closebrackmatch.Count;
-                    Match[] closebrackpos;
-
-                    if (totalClosebrack != totalOpenbrack)
-                    {
-                        Trace.TraceWarning("sigscr-file line {1} : Unmatching brackets in : {0}", keepString, statementInfo.LineNumber.ToString());
-                        keepString = String.Empty;
-#if DEBUG_PRINT_IN
-                        File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                        "Unmatching brackets in : " + keepString + " (" + statementInfo.LineNumber.ToString() + "\n");
-#endif
-                    }
-
-
-                    // process each part - part is either separated by operator or enclosed within brackets
-
-                    int nextoper = 0;
-                    int nextopenbrack = 0;
-                    int nextoperpos;
-                    int nextbrackpos;
-
-                    while (!String.IsNullOrEmpty(keepString) && !syntaxerror)
-                    {
-
-                        // if first chars is operator, copy it to operator string
-                        // redetermine position of next operator
-
-                        opertotal = operators.Matches(keepString);
-                        totalOper = opertotal.Count;
-                        operPos = new Match[totalOper];
-                        opertotal.CopyTo(operPos, 0);
-                        nextoper = 0;
-                        nextoperpos = nextoper < operPos.Length ? operPos[nextoper].Index : keepString.Length + 1;
-
-                        if (nextoperpos == 0)
-                        {
-                            operString = keepString.Substring(0, 1);
-                            keepString = keepString.Substring(1).Trim();
-
-                            opertotal = operators.Matches(keepString);
-                            totalOper = opertotal.Count;
-                            operPos = new Match[totalOper];
-                            opertotal.CopyTo(operPos, 0);
-                            nextoper = 0;
-                            nextoperpos = nextoper < operPos.Length ? operPos[nextoper].Index : keepString.Length + 1;
-                        }
-                        else
-                        {
-                            operString = String.Empty;
-                        }
-
-                        // redetermine positions of operators and brackets
-
-                        openbrackmatch = openbrack.Matches(keepString);
-                        totalOpenbrack = openbrackmatch.Count;
-                        openbrackpos = new Match[totalOpenbrack];
-                        openbrackmatch.CopyTo(openbrackpos, 0);
-                        nextopenbrack = 0;
-                        nextbrackpos = nextopenbrack < openbrackpos.Length ?
-                                openbrackpos[nextopenbrack].Index : keepString.Length + 1;
-
-                        closebrackmatch = closebrack.Matches(keepString);
-                        totalClosebrack = closebrackmatch.Count;
-                        closebrackpos = new Match[totalClosebrack];
-                        closebrackmatch.CopyTo(closebrackpos, 0);
-
-                        // first is bracket, but not at start so is part of function call - ignore
-                        // first is operator
-                        // operator and bracket are equal - so neither are found
-                        // normal term, so process
-
-                        if ((nextbrackpos < nextoperpos && nextbrackpos > 0) || nextbrackpos >= nextoperpos)
-                        {
-                            if (nextoperpos < keepString.Length)
+                            operatorString = statement.Tokens[0].Token;
+                            statement.Tokens.RemoveAt(0);
+                            if (statement.Tokens.Count == 0)
                             {
-                                procString = keepString.Substring(0, nextoperpos).Trim();
-                                keepString = keepString.Substring(nextoperpos).Trim();
-                            }
-                            else
-                            {
-                                procString = String.Copy(keepString);
-                                keepString = String.Empty;
-                            }
-
-                            if (procString.IndexOf(")") > 0)
-                            {
-                                procString = procString.Replace(")", String.Empty).Trim();
-                            }
-
-                            if (String.IsNullOrEmpty(procString))
-                            {
-                                Trace.TraceWarning("sigscr-file line {1} : Invalid statement syntax : {0}", TermLinePart, linenumber.ToString());
-                                syntaxerror = true;
+                                Trace.TraceWarning($"sigscr-file line {statement.LineNumber} : Invalid statement syntax : {statement.ToString()}");
                                 StatementTerms.Clear();
+                                return;
+                            }
+                        }
+                        else
+                            operatorString = string.Empty;
+
+                        if (statement.Tokens[0] is ScriptBlockBase)
+                        {
+                            termNumber++;
+                            //recurse through inner statemement
+                            SCRStatTerm term = new SCRStatTerm(termNumber, level, operatorString);
+                            StatementTerms.Add(term);
+
+                            foreach (ScriptStatement subStatement in (statement.Tokens[0] as ScriptBlockBase).Statements)
+                            {
+                                // recursive call to process at sublevel
+                                ProcessScriptStatement(subStatement, termNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                            }
+                        }
+                        else
+                        {
+                            if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Negator)
+                            {
+                                statement.Tokens.RemoveAt(0);
+                                negated = true;
+                            }
+                            if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is ScriptBlockBase)   //check if it is a Sub Function ()
+                            {
+                                StatementTerms.Add(
+                                    new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as ScriptBlockBase, termNumber, operatorString, negated, localFloats, orSignalTypes, orNormalSubtypes));
+                                statement.Tokens.RemoveAt(0);
                             }
                             else
                             {
-                                SCRStatTerm thisTerm =
-                                        new SCRStatTerm(procString, operString, sublevel, issublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, statementInfo.LineNumber);
-                                StatementTerms.Add(thisTerm);
+                                StatementTerms.Add(
+                                    new SCRStatTerm(statement.Tokens[0], termNumber, operatorString, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes));
                             }
                         }
-
-                        // enclosed term - process as substring
-
-                        else
-                        {
-
-                            // find matching end bracket
-
-                            nextopenbrack++;
-                            int brackcount = 1;
-                            int nextclosebrack = 0;
-
-                            int nextclosepos = closebrackpos[nextclosebrack].Index;
-                            while (nextclosepos < nextbrackpos)
-                            {
-                                nextclosebrack++;
-                                nextclosepos = closebrackpos[nextclosebrack].Index;
-                            }
-                            int lastclosepos = nextclosepos;
-
-                            nextbrackpos =
-                                  nextopenbrack < openbrackpos.Length ?
-                                  openbrackpos[nextopenbrack].Index : keepString.Length + 1;
-
-                            while (brackcount > 0)
-                            {
-                                if (nextbrackpos < nextclosepos)
-                                {
-                                    brackcount++;
-                                    nextopenbrack++;
-                                    nextbrackpos =
-                                        nextopenbrack < openbrackpos.Length ?
-                                        openbrackpos[nextopenbrack].Index : keepString.Length + 1;
-                                }
-                                else
-                                {
-                                    lastclosepos = nextclosepos;
-                                    brackcount--;
-                                    nextclosebrack++;
-                                    nextclosepos =
-                                        nextclosebrack < closebrackpos.Length ?
-                                        closebrackpos[nextclosebrack].Index : keepString.Length + 1;
-                                }
-                            }
-
-                            procString = keepString.Substring(1, lastclosepos - 1).Trim();
-                            keepString = keepString.Substring(lastclosepos + 1).Trim();
-
-                            // increase sublevel, set sublevel entry in statements
-
-                            sublevel++;
-                            SCRStatTerm thisTerm =
-                                    new SCRStatTerm("*S*", operString, sublevel, issublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, statementInfo.LineNumber);
-                            StatementTerms.Add(thisTerm);
-
-                            // process string as sublevel
-
-                            int nextsublevel = sublevel;
-                            SCRProcess_TermPartLine(procString, ref sublevel, nextsublevel, LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
-                        }
+                        statement.Tokens.RemoveAt(0);
                     }
-                }//SCRProcess_TermPartLine
-
-                //================================================================================================//
-
-            }// class SCRStatement
+                }
+            }
 
 
             //================================================================================================//
@@ -2359,116 +1504,83 @@ namespace Orts.Formats.Msts
             public class SCRStatTerm
             {
                 public SCRExternalFunctions Function { get; private set; }
+
                 public SCRParameterType[] PartParameter { get; private set; }
+
                 public SCRTermOperator TermOperator { get; private set; }
-                public bool negate { get; private set; }
-                public int sublevel { get; private set; }
-                public int issublevel { get; private set; }
-                public int linenumber { get; private set; }
 
-                //================================================================================================//
-                //
-                // Constructor
-                //
+                public bool Negated { get; private set; } 
 
-                public SCRStatTerm(string StatementString, string StatementOperator, int sublevelIn, int issublevelIn,
-                            IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes, int thisLine)
+                public int TermNumber { get; private set; }
+
+                public int TermLevel { get; private set; }
+
+                // SubLevel term
+                internal SCRStatTerm(int termNumber, int level, string operatorTerm)
                 {
-
-                    linenumber = thisLine;
-
-                    // check if statement starts with ! - if so , set negate
-
-                    if (String.Compare(StatementString.Substring(0, 1), "!") == 0)
-                    {
-                        negate = true;
-                        StatementString = StatementString.Substring(1).Trim();
-                    }
-                    else if (StatementString.Length >= 5 && String.Compare(StatementString.Substring(0, 4), "NOT ") == 0)
-                    {
-                        negate = true;
-                        StatementString = StatementString.Substring(4).Trim();
-                    }
-                    else
-                    {
-                        negate = false;
-                    }
-
-                    sublevel = 0;
-
-                    List<SCRParameterType> TempParameter = new List<SCRParameterType>();
-
-                    // empty string - no parameter (can occur incase of allocation to negative number)
-
-                    if (String.IsNullOrEmpty(StatementString))
-                    {
-                        TempParameter.Add(null);
-                    }
-
                     // sublevel definition
+                    this.TermNumber = termNumber;
+                    this.TermLevel = level;
 
-                    else if (String.Compare(StatementString, "*S*") == 0)
+                    TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator termOperator) ? termOperator : SCRTermOperator.NONE;
+                } // constructor
+
+                // Function term
+                internal SCRStatTerm(SCRExternalFunctions externalFunction, ScriptBlockBase block, int subLevel, string operatorTerm, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    Negated = negated;
+                    this.TermLevel = subLevel;
+                    Function = externalFunction;
+                    TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
+
+                    List<SCRParameterType> result = new List<SCRParameterType>();
+                    ScriptStatement statement = block.Statements.Count > 0 ? block.Statements[0] : null;
+
+                    while (statement?.Tokens.Count > 0)
                     {
-                        sublevel = sublevelIn;
-                    }
-
-                    // if contains no brackets it is a fixed parameter
-
-                    else if (StatementString.IndexOf("(") < 0)
-                    {
-                        if (String.Compare(StatementString, "RETURN") == 0)
+                        if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is ScriptBlockBase)   //check if it is a Function ()
                         {
-                            Function = SCRExternalFunctions.RETURN;
+                            // TODO Nested Function Call in Parameter not supported
+                            throw new NotImplementedException($"Nested function call in parameter {statement.Token} not supported at line {statement.LineNumber}");
+                            //SCRParameterType parameter = ParameterFromToken(statement.Tokens[0], lineNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                            //StatementTerms.Add(
+                            //    new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as ScriptBlockBase, termNumber, operatorString, statement.LineNumber, localFloats, orSignalTypes, orNormalSubtypes));
+                            //statement.Tokens.RemoveAt(0);
                         }
                         else
                         {
-                            Function = SCRExternalFunctions.NONE;
-
-                            PartParameter = new SCRParameterType[1];
-                            PartParameter[0] = Process_TermPart(StatementString.Trim(), LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
-                            TermOperator = TranslateOperator.TryGetValue(StatementOperator, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
+                            SCRParameterType parameter = ParameterFromToken(statement.Tokens[0], statement.LineNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                            result.Add(parameter);
                         }
+                        statement.Tokens.RemoveAt(0);
                     }
 
+                    PartParameter = result.Count > 0 ? result.ToArray() : null;
+                }
 
-                    // function
+                internal SCRStatTerm(ScriptToken token, int subLevel, string operatorTerm, int lineNumber, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    this.TermLevel = subLevel;
+                    Negated = negated;
+                    //TODO operators should be preparsed
+                    // check if statement starts with ! - if so , set negate                
+                    if (token.Token[0] == '!')
+                    {
+                        Negated = !Negated;
+                        token.Token = token.Token.Remove(0, 1);
+                    }
 
+                    if (token.Token == "RETURN")
+                    {
+                        Function = SCRExternalFunctions.RETURN;
+                    }
                     else
                     {
-
-                        ArrayList FunctionParts = Process_FunctionCall(StatementString, LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
-
-                        if (FunctionParts == null)
-                        {
-                            Function = SCRExternalFunctions.NONE;
-                        }
-                        else
-                        {
-                            Function = (SCRExternalFunctions)FunctionParts[0];
-
-                            if (FunctionParts.Count > 1)
-                            {
-                                PartParameter = new SCRParameterType[FunctionParts.Count - 1];
-                                for (int iparm = 1; iparm < FunctionParts.Count; iparm++)
-                                {
-                                    PartParameter[iparm - 1] = (SCRParameterType)FunctionParts[iparm];
-                                }
-                            }
-                            else
-                            {
-                                PartParameter = null;
-                            }
-                        }
+                        Function = SCRExternalFunctions.NONE;
+                        PartParameter = new SCRParameterType[1];
+                        PartParameter[0] = ParameterFromToken(token, lineNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                        TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
                     }
-
-                    // process operator
-
-                    TermOperator = TranslateOperator.TryGetValue(StatementOperator, out SCRTermOperator termOperator) ? termOperator : SCRTermOperator.NONE;
-
-                    // issublevel
-
-                    issublevel = issublevelIn;
-
                 } // constructor
             } // class SCRStatTerm
 
@@ -2476,37 +1588,34 @@ namespace Orts.Formats.Msts
             //
             // class SCRParameterType
             //
-            //================================================================================================//
-
+            //================================================================================================//        
             public class SCRParameterType
             {
                 public SCRTermType PartType { get; private set; }
-                public int PartParameter { get; private set; }
 
-                //================================================================================================//
-                //
-                // Constructor
-                //
+                public int PartParameter { get; private set; }
 
                 public SCRParameterType(SCRTermType type, int value)
                 {
                     PartType = type;
                     PartParameter = value;
-                } // constructor
-            } // class SCRParameterType
+                }
+            }
 
             //================================================================================================//
             //
             // class SCRConditionBlock
             //
             //================================================================================================//
-
             public class SCRConditionBlock
             {
-                public ArrayList Conditions;
-                public SCRBlock IfBlock;
-                public List<SCRBlock> ElseIfBlock;
-                public SCRBlock ElseBlock;
+                public ArrayList Conditions { get; private set; }
+
+                public SCRBlock IfBlock { get; private set; }
+
+                public List<SCRBlock> ElseIfBlock { get; private set; }
+
+                public SCRBlock ElseBlock { get; private set; }
 
                 //================================================================================================//
                 //
@@ -2514,80 +1623,41 @@ namespace Orts.Formats.Msts
                 // Input is the array of indices pointing to the lines following the IF - ELSEIF - IF blocks
                 //
 
-                public SCRConditionBlock(List<SCRReadInfo> CBLScriptLines, int index, List<int> endindex, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes)
+                internal static SCRConditionBlock ProcessConditionBlocks(ScriptStatement statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
+                    // 0 IF
+                    // 1 If-Conditions
+                    // 2 If-Block
+                    SCRConditionBlock result = new SCRConditionBlock((statement.Tokens[1] as BracketToken), (statement.Tokens[2] as BlockToken), localFloats, orSignalTypes, orNormalSubtypes);
+                    statement.Tokens.RemoveRange(0, 3);
 
-                    SCRReadInfo thisinfo, tempinfo;
-
-                    // process conditions
-
-                    Conditions = getIfConditions(CBLScriptLines[index], LocalFloats, ORSignalTypes, ORNormalSubtypes);
-
-                    // process IF block
-
-                    int iflines = endindex[0] - index - 1;
-                    List<SCRReadInfo> IfSubBlock = new List<SCRReadInfo>();
-
-                    for (int iline = 0; iline < iflines; iline++)
+                    // 3 ELSE IF
+                    // 4 ElseIf-Conditions
+                    // 5 ElseIf Block
+                    while (statement.Tokens.Count >= 3 && statement.Tokens[0] == ConditionalToken.ELSEIF)
                     {
-                        IfSubBlock.Add(CBLScriptLines[iline + index + 1]);
+                        if (result.ElseIfBlock == null)
+                            result.ElseIfBlock = new List<SCRBlock>();
+                        result.ElseIfBlock.Add(new SCRBlock((statement.Tokens[1] as BracketToken), (statement.Tokens[2] as BlockToken), localFloats, orSignalTypes, orNormalSubtypes));
+                        statement.Tokens.RemoveRange(0, 3);
                     }
 
-                    IfBlock = new SCRBlock(IfSubBlock, LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                    ElseIfBlock = null;
-                    ElseBlock = null;
-
-                    // process all ELSE blocks if available
-
-                    int blockindex = 0;
-                    int elseindex = endindex[blockindex];
-                    blockindex++;
-
-                    while (blockindex < endindex.Count)
+                    // Count - 2 ELSE
+                    // Count - 1 Else-Block
+                    if (statement.Tokens.Count >= 2 && statement.Tokens[0] == ConditionalToken.ELSE)
                     {
-                        int elselines = endindex[blockindex] - elseindex;
-
-                        List<SCRReadInfo> ElseSubBlock = new List<SCRReadInfo>();
-
-                        // process ELSEIF block
-                        // delete ELSE to process as IF block
-
-                        if (CBLScriptLines[elseindex].ReadLine.StartsWith("ELSEIF"))
-                        {
-                            thisinfo = CBLScriptLines[elseindex];
-                            tempinfo = new SCRReadInfo(thisinfo.ReadLine.Substring(4), thisinfo.LineNumber); // set start of line to IF
-                            ElseSubBlock.Add(tempinfo);
-
-                            for (int iline = 1; iline < elselines; iline++)
-                            {
-                                ElseSubBlock.Add(CBLScriptLines[iline + elseindex]);
-                            }
-                            SCRBlock TempBlock = new SCRBlock(ElseSubBlock, LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                            if (ElseIfBlock == null)
-                            {
-                                ElseIfBlock = new List<SCRBlock>();
-                            }
-                            ElseIfBlock.Add(TempBlock);
-                            elseindex = endindex[blockindex];
-                            blockindex++;
-                        }
-
-                        // process ELSE block
-
-                        else
-                        {
-                            for (int iline = 1; iline < elselines; iline++)
-                            {
-                                ElseSubBlock.Add(CBLScriptLines[iline + elseindex]);
-                            }
-                            ElseBlock = new SCRBlock(ElseSubBlock, LocalFloats, ORSignalTypes, ORNormalSubtypes);
-                            blockindex++;
-                        }
-
-                        ElseSubBlock.Clear();
-
+                        result.ElseBlock = new SCRBlock((statement.Tokens[1] as BlockToken), localFloats, orSignalTypes, orNormalSubtypes);
+                        statement.Tokens.RemoveRange(0, 2);
                     }
-                } // constructor
+                    return result;
+                }
+
+                internal SCRConditionBlock(BracketToken condition, BlockToken statements, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    Conditions = ParseConditions(condition.Statements[0], localFloats, orSignalTypes, orNormalSubtypes);
+                    IfBlock = new SCRBlock(statements, localFloats, orSignalTypes, orNormalSubtypes);
+                }
+
             } // class SCRConditionBlock
 
             //================================================================================================//
@@ -2595,133 +1665,75 @@ namespace Orts.Formats.Msts
             // class SCRConditions
             //
             //================================================================================================//
-
             public class SCRConditions
             {
-                public SCRStatTerm Term1;
-                public bool negate1;
-                public SCRStatTerm Term2;
-                public bool negate2;
-                public SCRTermCondition Condition;
-                int linenumber;
+                public SCRStatTerm Term1 { get; private set; }
 
-                //================================================================================================//
-                //
-                //  Constructor
-                //
+                public SCRStatTerm Term2 { get; private set; }
 
-                public SCRConditions(string TermString, IDictionary<string, uint> LocalFloats, IList<string> ORSignalTypes, IList<string> ORNormalSubtypes, int thisLine)
+                public SCRTermCondition Condition { get; private set; }
+
+                internal SCRConditions(ScriptStatement statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
+                    bool negated = false;
+                    Debug.Assert(!(statement.Tokens[0] is ScriptBlockBase));
 
-                    string firststring, secondstring;
-                    string separator;
-                    string TempString = TermString;
-
-                    linenumber = thisLine;
-
-                    // check on !, if not followed by = then it is a NOT, replace by ^ to ease processing
-
-                    Regex NotSeps = new Regex("!");
-
-                    MatchCollection NotSepCount = NotSeps.Matches(TempString);
-                    int totalNot = NotSepCount.Count;
-                    Match[] NotSeparray = new Match[totalNot];
-                    NotSepCount.CopyTo(NotSeparray, 0);
-
-                    for (int inot = 0; inot < totalNot; inot++)
+                    if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Negator)
                     {
-                        int notpos = NotSeparray[inot].Index;
-                        if (String.Compare(TempString.Substring(notpos, 2), "!=") != 0)
-                        {
-                            TempString = String.Concat(TempString.Substring(0, notpos), "^", TempString.Substring(notpos + 1));
-                        }
+                        statement.Tokens.RemoveAt(0);
+                        negated = true;
                     }
 
-                    // search for separators
-
-                    Regex CondSeps = new Regex("[<>!=]");
-
-                    MatchCollection CondSepCount = CondSeps.Matches(TempString);
-                    int totalSeps = CondSepCount.Count;
-                    Match[] CondSeparray = new Match[totalSeps];
-                    CondSepCount.CopyTo(CondSeparray, 0);
-
-                    // split on separator
-
-                    if (totalSeps == 0)
+                    if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is ScriptBlockBase)   //check if it is a Sub Function ()
                     {
-                        firststring = TempString.Trim();
-                        secondstring = String.Empty;
-                        separator = String.Empty;
+                        Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as ScriptBlockBase, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                        statement.Tokens.RemoveAt(0);
                     }
                     else
                     {
-                        firststring = TempString.Substring(0, CondSeparray[0].Index).Trim();
-                        secondstring = TempString.Substring(CondSeparray[0].Index + 1).Trim();
-                        separator = TempString.Substring(CondSeparray[0].Index, 1);
+                        Term1 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes);
                     }
+                    statement.Tokens.RemoveAt(0);
 
-                    // first string
-                    // check for ^ (as replacement for !) as starting character
-
-                    negate1 = false;
-                    if (firststring.StartsWith("^"))
+                    if (statement.Tokens.Count > 0)
                     {
-                        negate1 = true;
-                        firststring = firststring.Substring(1).Trim();
-                    }
+                        string comparisonToken = statement.Tokens[0].Token;
+                        if (comparisonToken[comparisonToken.Length - 1] == '#')
+                            comparisonToken = comparisonToken.Remove(comparisonToken.Length - 1);  //TODO should be preparsed, or rounding implemented
 
-                    Term1 = new SCRStatTerm(firststring, String.Empty, 0, 0, LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
-
-                    // second string (if it exists)
-                    // check of first char, if =, add this to separator
-                    // check on next char, if #, remove
-                    // check for ^ (as replacement for !) as next character
-
-                    negate2 = false;
-                    if (String.IsNullOrEmpty(secondstring))
-                    {
-                        Term2 = null;
-                    }
-                    else
-                    {
-                        if (secondstring.StartsWith("="))
+                        //Comparison Operator
+                        if (TranslateConditions.TryGetValue(comparisonToken, out SCRTermCondition comparison))
                         {
-                            separator = String.Concat(separator, "=");
-                            secondstring = secondstring.Substring(1).Trim();
-                        }
-
-                        if (secondstring.StartsWith("#"))
-                        {
-                            secondstring = secondstring.Substring(1).Trim();
-                        }
-
-                        if (secondstring.StartsWith("^"))
-                        {
-                            negate2 = true;
-                            secondstring = secondstring.Substring(1).Trim();
-                        }
-
-                        Term2 = new SCRStatTerm(secondstring, String.Empty, 0, 0, LocalFloats, ORSignalTypes, ORNormalSubtypes, linenumber);
-                    }
-
-                    if (!String.IsNullOrEmpty(separator))
-                    {
-                        SCRTermCondition setcond;
-                        if (TranslateConditions.TryGetValue(separator, out setcond))
-                        {
-                            Condition = setcond;
+                            Condition = comparison;
                         }
                         else
                         {
-                            Trace.TraceWarning("sigscr-file line {1} : Invalid condition operator in : {0}", TermString, linenumber.ToString());
+                            Trace.TraceWarning($"sigscr-file line {statement.LineNumber} : Invalid condition operator in : {statement}");
 #if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt",
-                                            "Invalid condition operator in : " + TermString + "\n"); ;
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Invalid condition operator in : {statement}\n"); ;
 #endif
                         }
+                        statement.Tokens.RemoveAt(0);
+
+                        //Term 2
+                        if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Negator)
+                        {
+                            statement.Tokens.RemoveAt(0);
+                            negated = true;
+                        }
+
+                        if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is ScriptBlockBase)   //check if it is a Sub Function ()
+                        {
+                            Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as ScriptBlockBase, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                            statement.Tokens.RemoveAt(0);
+                        }
+                        else
+                        {
+                            Term2 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                        }
+                        statement.Tokens.RemoveAt(0);
                     }
-                } // constructor
+                }
             } // class SCRConditions
 
             //================================================================================================//
@@ -2729,20 +1741,39 @@ namespace Orts.Formats.Msts
             // class SCRBlock
             //
             //================================================================================================//
-
             public class SCRBlock
             {
                 public ArrayList Statements { get; private set; }
 
-                //================================================================================================//
-                //
-                //  Constructor
-                //
-
-                public SCRBlock(List<SCRReadInfo> blockStrings, IDictionary<string, uint> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                internal SCRBlock(BlockToken block, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
-                    Statements = ParseStatements(blockStrings, localFloats, orSignalTypes, orNormalSubtypes);
-                } // constructor
+                    List<ScriptStatement> statements;
+                    while ((statements = block.Statements)?.Count == 1 && statements[0].Tokens[0] is BlockToken)    //remove nested empty blocks, primarily for legacy compatiblity
+                        block = statements[0].Tokens[0] as BlockToken;
+
+                    Statements = new ArrayList();
+                    foreach (ScriptStatement statement in statements)
+                    {
+                        if (statement.Tokens[0] is ConditionalToken)
+                        {
+                            SCRConditionBlock conditionBlock = SCRConditionBlock.ProcessConditionBlocks(statement, localFloats, orSignalTypes, orNormalSubtypes);
+                            Statements.Add(conditionBlock);
+                        }
+                        else
+                        {
+                            SCRStatement statementBlock = new SCRStatement(statement, localFloats, orSignalTypes, orNormalSubtypes);
+                            Statements.Add(statementBlock);
+                        }
+                    }
+                }
+
+                internal SCRBlock(BracketToken condition, BlockToken statements, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    Statements = new ArrayList
+                    {
+                        new SCRConditionBlock(condition, statements, localFloats, orSignalTypes, orNormalSubtypes)
+                    };
+                }
             } // class SCRBlock
         } // class Scripts
     }
