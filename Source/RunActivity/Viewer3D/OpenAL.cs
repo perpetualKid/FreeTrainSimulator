@@ -1165,7 +1165,7 @@ namespace Orts.Viewer3D
             Buffer.BlockCopy(buffer, offset, retval, 0, len);
             return retval;
         }
-        
+
         /// <summary>
         /// Reads a given structure from a FileStream
         /// </summary>
@@ -1178,6 +1178,7 @@ namespace Orts.Viewer3D
         {
             byte[] buffer;
             retval = default(T);
+            bool result = false;
             if (len == -1)
             {
                 buffer = new byte[Marshal.SizeOf(retval.GetType())];
@@ -1187,20 +1188,21 @@ namespace Orts.Viewer3D
                 buffer = new byte[len];
             }
 
-            try
+            GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            if (fs.Read(buffer, 0, buffer.Length) == buffer.Length)
             {
-                if (fs.Read(buffer, 0, buffer.Length) != buffer.Length)
-                    return false;
-
-                GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                retval = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), retval.GetType());
-                handle.Free();
-                return true;
+                try
+                {
+                    retval = (T)Marshal.PtrToStructure<T>(handle.AddrOfPinnedObject());
+                    result = true;
+                }
+                finally
+                {
+                    if (handle.IsAllocated)
+                        handle.Free();
+                }
             }
-            catch 
-            {
-                return false;
-            }
+            return result;
         } 
     }
 }

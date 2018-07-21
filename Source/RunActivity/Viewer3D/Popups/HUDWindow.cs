@@ -84,8 +84,6 @@ namespace Orts.Viewer3D.Popups
             Viewer = owner.Viewer;
             LastTextPage = LocomotivePage;
 
-            ProcessHandle = OpenProcess(0x410 /* PROCESS_QUERY_INFORMATION | PROCESS_VM_READ */, false, Process.GetCurrentProcess().Id);
-            ProcessMemoryCounters = new PROCESS_MEMORY_COUNTERS() { Size = 40 };
             ProcessVirtualAddressLimit = GetVirtualAddressLimit();
 
             try
@@ -135,7 +133,7 @@ namespace Orts.Viewer3D.Popups
             ForceGraphNumOfSubsteps = ForceGraphs.Add(Viewer.Catalog.GetString("Num of substeps"), "0", "300", Color.Blue, 25);
 
             DebugGraphs = new HUDGraphSet(Viewer, HUDGraphMaterial);
-            DebugGraphMemory = DebugGraphs.Add(Viewer.Catalog.GetString("Memory"), "0GB", String.Format("{0:F0}GB", (float)ProcessVirtualAddressLimit / 1024 / 1024 / 1024), Color.Orange, 50);
+            DebugGraphMemory = DebugGraphs.Add(Viewer.Catalog.GetString("Memory"), "0GB", String.Format("{0:F0}GB", (float)ProcessVirtualAddressLimit / (1 << 30)), Color.Orange, 50);
             DebugGraphGCs = DebugGraphs.Add(Viewer.Catalog.GetString("GCs"), "0", "2", Color.Magenta, 20); // Multiple of 4
             DebugGraphFrameTime = DebugGraphs.Add(Viewer.Catalog.GetString("Frame time"), "0.0s", "0.1s", Color.LightGreen, 50);
             DebugGraphProcessRender = DebugGraphs.Add(Viewer.Catalog.GetString("Render process"), "0%", "100%", Color.Red, 20);
@@ -944,10 +942,10 @@ namespace Orts.Viewer3D.Popups
 
             TableAddLabelValue(table, Viewer.Catalog.GetString("Logging enabled"), Viewer.Settings.DataLogger ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No"));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Build"), VersionInfo.Build);
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Memory"), Viewer.Catalog.GetStringFmt("{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, {2:F0}/{3:F0}/{4:F0} GCs)", GetWorkingSetSize() / 1024 / 1024, GC.GetTotalMemory(false) / 1024 / 1024, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), Viewer.TextureManager.GetStatus(), Viewer.MaterialManager.GetStatus(), Viewer.ShapeManager.GetStatus(), Viewer.World.Terrain.GetStatus(), AllocatedBytesPerSecLastValue / Viewer.RenderProcess.FrameRate.SmoothedValue / 1024));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Memory"), Viewer.Catalog.GetStringFmt("{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, {2:F0}/{3:F0}/{4:F0} GCs)", GetWorkingSetSize() >> 20, GC.GetTotalMemory(false) >> 20, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), Viewer.TextureManager.GetStatus(), Viewer.MaterialManager.GetStatus(), Viewer.ShapeManager.GetStatus(), Viewer.World.Terrain.GetStatus(), AllocatedBytesPerSecLastValue / Viewer.RenderProcess.FrameRate.SmoothedValue / 1024));
             TableAddLabelValue(table, Viewer.Catalog.GetString("CPU"), Viewer.Catalog.GetStringFmt("{0:F0}% ({1})", (Viewer.RenderProcess.Profiler.CPU.SmoothedValue + Viewer.UpdaterProcess.Profiler.CPU.SmoothedValue + Viewer.LoaderProcess.Profiler.CPU.SmoothedValue + Viewer.SoundProcess.Profiler.CPU.SmoothedValue) / ProcessorCount, Viewer.Catalog.GetPluralStringFmt("{0} logical processor", "{0} logical processors", ProcessorCount)));
             TableAddLabelValue(table, Viewer.Catalog.GetString("GPU"), Viewer.Catalog.GetStringFmt("{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms, shader model {4})", Viewer.RenderProcess.FrameRate.SmoothedValue, Viewer.RenderProcess.FrameTime.SmoothedP50 * 1000, Viewer.RenderProcess.FrameTime.SmoothedP95 * 1000, Viewer.RenderProcess.FrameTime.SmoothedP99 * 1000, Viewer.Settings.ShaderModel));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Adapter"), Viewer.Catalog.GetStringFmt("{0} ({1:F0} MB) ({2:F0} pixels x {3:F0} pixels)", Viewer.AdapterDescription, Viewer.AdapterMemory / 1024 / 1024, Viewer.DisplaySize.X, Viewer.DisplaySize.Y));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Adapter"), Viewer.Catalog.GetStringFmt("{0} ({1:F0} MB) ({2:F0} pixels x {3:F0} pixels)", Viewer.AdapterDescription, Viewer.AdapterMemory >> 20, Viewer.DisplaySize.X, Viewer.DisplaySize.Y));
             if (Viewer.Settings.DynamicShadows)
             {
                 TableSetCells(table, 3, Enumerable.Range(0, RenderProcess.ShadowMapCount).Select(i => String.Format(Viewer.Catalog.GetStringFmt("{0}/{1}", RenderProcess.ShadowMapDistance[i], RenderProcess.ShadowMapDiameter[i]))).ToArray());
@@ -988,40 +986,15 @@ namespace Orts.Viewer3D.Popups
             public ulong AvailableExtendedVirtual;
         }
 
-        [StructLayout(LayoutKind.Sequential, Size = 40)]
-        struct PROCESS_MEMORY_COUNTERS
-        {
-            public int Size;
-            public int PageFaultCount;
-            public int PeakWorkingSetSize;
-            public int WorkingSetSize;
-            public int QuotaPeakPagedPoolUsage;
-            public int QuotaPagedPoolUsage;
-            public int QuotaPeakNonPagedPoolUsage;
-            public int QuotaNonPagedPoolUsage;
-            public int PagefileUsage;
-            public int PeakPagefileUsage;
-        }
-
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX buffer);
 
-        [DllImport("psapi.dll", SetLastError = true)]
-        static extern bool GetProcessMemoryInfo(IntPtr hProcess, out PROCESS_MEMORY_COUNTERS counters, int size);
-
-        [DllImport("kernel32.dll")]
-        static extern IntPtr OpenProcess(int dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
-
-        readonly IntPtr ProcessHandle;
-        PROCESS_MEMORY_COUNTERS ProcessMemoryCounters;
         readonly ulong ProcessVirtualAddressLimit;
         #endregion
 
         public uint GetWorkingSetSize()
         {
-            // Get memory usage (working set).
-            GetProcessMemoryInfo(ProcessHandle, out ProcessMemoryCounters, ProcessMemoryCounters.Size);
-            return (uint)ProcessMemoryCounters.WorkingSetSize;
+            return (uint)Process.GetCurrentProcess().WorkingSet64;
         }
 
         public ulong GetVirtualAddressLimit()

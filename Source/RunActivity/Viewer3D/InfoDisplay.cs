@@ -73,22 +73,10 @@ namespace Orts.Viewer3D
             public int PeakPagefileUsage;
         }
 
-        [DllImport("psapi.dll", SetLastError = true)]
-        static extern bool GetProcessMemoryInfo(IntPtr hProcess, out PROCESS_MEMORY_COUNTERS counters, int size);
-
-        [DllImport("kernel32.dll")]
-        static extern IntPtr OpenProcess(int dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
-
-        readonly IntPtr ProcessHandle;
-        PROCESS_MEMORY_COUNTERS ProcessMemoryCounters;
-
         public InfoDisplay(Viewer viewer)
         {
             Viewer = viewer;
             Logger = new DataLogger(Path.Combine(Viewer.Settings.LoggingPath, "OpenRailsDump.csv"));
-
-            ProcessHandle = OpenProcess(0x410 /* PROCESS_QUERY_INFORMATION | PROCESS_VM_READ */, false, Process.GetCurrentProcess().Id);
-            ProcessMemoryCounters = new PROCESS_MEMORY_COUNTERS() { cb = 40 };
 
             if (Viewer.Settings.DataLogger)
                 DataLoggerStart(Viewer.Settings);
@@ -241,7 +229,7 @@ namespace Orts.Viewer3D
                     {
                         Logger.Data(VersionInfo.Version);
                         Logger.Data(FrameNumber.ToString("F0"));
-                        Logger.Data(GetWorkingSetSize().ToString("F0"));
+                        Logger.Data(Process.GetCurrentProcess().WorkingSet64.ToString("F0"));
                         Logger.Data(GC.GetTotalMemory(false).ToString("F0"));
                         Logger.Data(GC.CollectionCount(0).ToString("F0"));
                         Logger.Data(GC.CollectionCount(1).ToString("F0"));
@@ -378,14 +366,6 @@ namespace Orts.Viewer3D
                 }
 #endif
             }
-        }
-
-        int GetWorkingSetSize()
-        {
-            // Get memory usage (working set).
-            GetProcessMemoryInfo(ProcessHandle, out ProcessMemoryCounters, ProcessMemoryCounters.cb);
-            var memory = ProcessMemoryCounters.WorkingSetSize;
-            return memory;
         }
 
         static void DataLoggerStart(UserSettings settings)
