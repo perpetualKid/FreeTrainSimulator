@@ -359,10 +359,9 @@ namespace Orts.Viewer3D
 
         IndexBuffer GetIndexBuffer(out int primitiveCount)
         {
-            // 16 x 16 squares * 2 triangles per square * 3 indices per triangle
-            var indexData = new List<short>(16 * 16 * 2 * 3);
-
-            // For each 8 meter rectangle
+            const int bufferSize = 1536;    //16 * 16 * 2 * 3;
+            int i = 0;
+            short[] indexBuffer = new short[bufferSize];
             for (var z = 0; z < 16; ++z)
             {
                 for (var x = 0; x < 16; ++x)
@@ -376,50 +375,51 @@ namespace Orts.Viewer3D
                     {
                         if (!IsVertexHidden(x, z) && !IsVertexHidden(x + 1, z + 1) && !IsVertexHidden(x, z + 1))
                         {
-                            indexData.Add(nw);
-                            indexData.Add(se);
-                            indexData.Add(sw);
+                            indexBuffer[i++] = nw;
+                            indexBuffer[i++] = se;
+                            indexBuffer[i++] = sw;
                         }
                         if (!IsVertexHidden(x, z) && !IsVertexHidden(x + 1, z) && !IsVertexHidden(x + 1, z + 1))
                         {
-                            indexData.Add(nw);
-                            indexData.Add(ne);
-                            indexData.Add(se);
+                            indexBuffer[i++] = nw;
+                            indexBuffer[i++] = ne;
+                            indexBuffer[i++] = se;
                         }
                     }
                     else
                     {
                         if (!IsVertexHidden(x + 1, z) && !IsVertexHidden(x + 1, z + 1) && !IsVertexHidden(x, z + 1))
                         {
-                            indexData.Add(ne);
-                            indexData.Add(se);
-                            indexData.Add(sw);
+                            indexBuffer[i++] = ne;
+                            indexBuffer[i++] = se;
+                            indexBuffer[i++] = sw;
                         }
                         if (!IsVertexHidden(x, z) && !IsVertexHidden(x + 1, z) && !IsVertexHidden(x, z + 1))
                         {
-                            indexData.Add(nw);
-                            indexData.Add(ne);
-                            indexData.Add(sw);
+                            indexBuffer[i++] = nw;
+                            indexBuffer[i++] = ne;
+                            indexBuffer[i++] = sw;
                         }
                     }
                 }
             }
-
-            primitiveCount = indexData.Count / 3;
+            primitiveCount = i / 3;
 
             // If this patch has no holes, use the shared IndexBuffer for better performance.
-            if (indexData.Count == 16 * 16 * 6)
+            if (i == bufferSize) //16 * 16 * 6
                 return null;
 
-            var indexBuffer = new IndexBuffer(Viewer.GraphicsDevice, typeof(short), indexData.Count, BufferUsage.WriteOnly);
-            indexBuffer.SetData(indexData.ToArray());
-            return indexBuffer;
+            IndexBuffer result = new IndexBuffer(Viewer.GraphicsDevice, typeof(short), i, BufferUsage.WriteOnly);
+            result.SetData(indexBuffer, 0, i);
+            return result;
         }
 
         VertexBuffer GetVertexBuffer(out float averageElevation)
         {
+            const int bufferSize = 289; //17*17
+            int i = 0;
             var totalElevation = 0f;
-            var vertexData = new List<VertexPositionNormalTexture>(17 * 17);
+            var vertexbuffer = new VertexPositionNormalTexture[bufferSize];
             var step = Tile.SampleSize;
             for (var z = 0; z < 17; ++z)
             {
@@ -440,14 +440,14 @@ namespace Orts.Viewer3D
 
                     var y = Elevation(x, z) - Tile.Floor;
                     totalElevation += y;
-                    vertexData.Add(new VertexPositionNormalTexture(new Vector3(e, y, n), TerrainNormal(x, z), new Vector2(U, V)));
+                    vertexbuffer[i++] = new VertexPositionNormalTexture(new Vector3(e, y, n), TerrainNormal(x, z), new Vector2(U, V));
                 }
             }
 
-            averageElevation = totalElevation / vertexData.Count;
-            var patchVertexBuffer = new VertexBuffer(Viewer.GraphicsDevice, typeof(VertexPositionNormalTexture), vertexData.Count, BufferUsage.WriteOnly);
-            patchVertexBuffer.SetData(vertexData.ToArray());
-            return patchVertexBuffer;
+            averageElevation = totalElevation / bufferSize;
+            VertexBuffer result = new VertexBuffer(Viewer.GraphicsDevice, typeof(VertexPositionNormalTexture), bufferSize, BufferUsage.WriteOnly);
+            result.SetData(vertexbuffer);
+            return result;
         }
 
         [CallOnThread("Loader")]
