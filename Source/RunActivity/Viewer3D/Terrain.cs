@@ -459,7 +459,9 @@ namespace Orts.Viewer3D
         static void SetupSharedData(GraphicsDevice graphicsDevice)
         {
             // 16 x 16 squares * 2 triangles per square * 3 indices per triangle
-            var indexData = new List<short>(16 * 16 * 2 * 3);
+            const int bufferSize = 1536;    //16 * 16 * 2 * 3;
+            int i = 0;
+            short[] indexBuffer = new short[bufferSize];
 
             // For each 8 meter rectangle
             for (var z = 0; z < 16; ++z)
@@ -473,27 +475,28 @@ namespace Orts.Viewer3D
 
                     if ((z & 1) == (x & 1))  // Triangles alternate
                     {
-                        indexData.Add(nw);
-                        indexData.Add(se);
-                        indexData.Add(sw);
-                        indexData.Add(nw);
-                        indexData.Add(ne);
-                        indexData.Add(se);
+                        indexBuffer[i++] = nw;
+                        indexBuffer[i++] = se;
+                        indexBuffer[i++] = sw;
+                        indexBuffer[i++] = nw;
+                        indexBuffer[i++] = ne;
+                        indexBuffer[i++] = se;
                     }
                     else
                     {
-                        indexData.Add(ne);
-                        indexData.Add(se);
-                        indexData.Add(sw);
-                        indexData.Add(nw);
-                        indexData.Add(ne);
-                        indexData.Add(sw);
+                        indexBuffer[i++] = ne;
+                        indexBuffer[i++] = se;
+                        indexBuffer[i++] = sw;
+                        indexBuffer[i++] = nw;
+                        indexBuffer[i++] = ne;
+                        indexBuffer[i++] = sw;
                     }
                 }
             }
 
-            SharedPatchIndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), indexData.Count, BufferUsage.WriteOnly);
-            SharedPatchIndexBuffer.SetData(indexData.ToArray());
+            SharedPatchIndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), i, BufferUsage.WriteOnly);
+            SharedPatchIndexBuffer.SetData(indexBuffer, 0, i);
+
         }
     }
 

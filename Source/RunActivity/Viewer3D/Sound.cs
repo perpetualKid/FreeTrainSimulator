@@ -141,8 +141,8 @@ namespace Orts.Viewer3D
             if (filename == null)
                 return;
 
-            string[] pathArray = {Viewer.Simulator.RoutePath, Viewer.Simulator.BasePath};            
-            var fullPath = ORTSPaths.GetFileFromFolders(pathArray, @"SOUND\" + filename);
+            string[] pathArray = { Path.Combine(Viewer.Simulator.RoutePath, "SOUND"), Path.Combine(Viewer.Simulator.BasePath, "SOUND") };
+            var fullPath = ORTSPaths.GetFileFromFolders(pathArray, filename);
             if (fullPath == null)
             {
                 Trace.TraceWarning("Skipped missing track sound {0}", filename);
@@ -2209,13 +2209,10 @@ namespace Orts.Viewer3D
                 iFile = Viewer.Random.Next(Files.Length);
             }
 
-            //<CJComment>SMSFolder is often same as BasePath, which means this searches the more general folder 
-            // before the more specific folder. This is surely not intended.</CJComment>
-            string[] pathArray = {ORTSStream.SoundSource.SMSFolder, 
-                                     Program.Simulator.RoutePath + @"\SOUND", 
-                                     Program.Simulator.BasePath + @"\SOUND"};
-            var fullPath = ORTSPaths.GetFileFromFolders(pathArray, Files[iFile]);
-            return (fullPath != null) ? fullPath : "";
+            string[] pathArray = {  Path.Combine(Program.Simulator.RoutePath, "SOUND"),
+                                    ORTSStream.SoundSource.SMSFolder,
+                                    Path.Combine(Program.Simulator.BasePath, "SOUND") };
+            return ORTSPaths.GetFileFromFolders(pathArray, Files[iFile]) ?? string.Empty;
         }
     }
 
@@ -2423,13 +2420,13 @@ namespace Orts.Viewer3D
             WorldSoundFile wf = new WorldSoundFile(name, Viewer.Simulator.TDB.TrackDB.TrItemTable);
             if (wf.TR_WorldSoundFile != null)
             {
-                string[] pathArray = {Viewer.Simulator.RoutePath, Viewer.Simulator.BasePath};
-                
+                string[] pathArray = { Path.Combine(Viewer.Simulator.RoutePath, "SOUND"), Path.Combine(Viewer.Simulator.BasePath, "SOUND") };
+
                 var ls = new List<SoundSourceBase>();
                 foreach (var fss in wf.TR_WorldSoundFile.SoundSources)
                 {
                     WorldLocation wl = new WorldLocation(TileX, TileZ, fss.X, fss.Y, fss.Z);
-                    var fullPath = ORTSPaths.GetFileFromFolders(pathArray, @"Sound\" + fss.SoundSourceFileName);
+                    var fullPath = ORTSPaths.GetFileFromFolders(pathArray, fss.SoundSourceFileName);
                     if (fullPath != null)
                     {
                         ss = new SoundSource(Viewer, wl, Events.Source.None, fullPath, true);

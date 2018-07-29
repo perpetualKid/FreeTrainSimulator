@@ -64,8 +64,8 @@ namespace Orts.Viewer3D
             Weather = Viewer.Simulator.Weather;
 
             var pathArray = new[] {
-                Program.Simulator.RoutePath + @"\SOUND",
-                Program.Simulator.BasePath + @"\SOUND",
+                Path.Combine(Program.Simulator.RoutePath, "SOUND"),
+                Path.Combine(Program.Simulator.BasePath, "SOUND")
             };
 
             ClearSound = new List<SoundSourceBase>() {
