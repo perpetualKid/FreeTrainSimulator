@@ -76,7 +76,11 @@ namespace ORTS.Common
         const int HistoryStepCount = 40; // 40 units (i.e. 10 seconds)
         const float HistoryStepSize = 0.25f; // each unit = 1/4 second
 
-        List<float>[] history = new List<float>[HistoryStepCount];
+        Queue<float> longHistory = new Queue<float>();
+        Queue<int> historyCount = new Queue<int>(HistoryStepCount);
+
+        int count = 0;
+
         float position;
         float smoothedP50 = float.NaN;
         float smoothedP95 = float.NaN;
@@ -97,21 +101,19 @@ namespace ORTS.Common
             : base()
         {
             for (var i = 0; i < HistoryStepCount; i++)
-                history[i] = new List<float>();
+                historyCount.Enqueue(0);
         }
 
         public new void Update(float periodS, float newValue)
         {
             base.Update(periodS, newValue);
-
-            history[0].Add(newValue);
+            longHistory.Enqueue(newValue);
             position += periodS;
+            count++;
 
             if (position >= HistoryStepSize)
             {
-                var samples = new List<float>();
-                foreach (var h in history)
-                    samples.AddRange(h);
+                var samples = new List<float>(longHistory);
                 samples.Sort();
 
                 P50 = samples[(int)(samples.Count * 0.50f)];
@@ -125,11 +127,11 @@ namespace ORTS.Common
                 SmoothedP95PCFromP50 = 100f * (smoothedP95 - smoothedP50) / smoothedP50;
                 SmoothedP99PCFromP50 = 100f * (smoothedP99 - smoothedP50) / smoothedP50;
 
-                var historyWrap = history[HistoryStepCount - 1];
-                for (var i = HistoryStepCount - 1; i > 0; i--)
-                    history[i] = history[i - 1];
-                history[0] = historyWrap;
-                history[0].Clear();
+                historyCount.Enqueue(count);
+                count = historyCount.Dequeue();
+                while (count-- > 0)
+                    longHistory.Dequeue();
+                count = 0;
                 position = 0;
             }
         }
