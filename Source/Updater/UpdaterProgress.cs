@@ -41,7 +41,7 @@ namespace Updater
 
         private string basePath;
         private string launcherPath;
-        bool ShouldRelaunchApplication;
+        bool shouldRelaunchApplication;
 
         public UpdaterProgress()
         {
@@ -75,7 +75,7 @@ namespace Updater
         private async void UpdaterProgress_Load(object sender, EventArgs e)
         {
             // If /RELAUNCH=1 is set, we're expected to re-launch the main application when we're done.
-            ShouldRelaunchApplication = Environment.GetCommandLineArgs().Any(a => a == UpdateManager.RelaunchCommandLine + "1");
+            shouldRelaunchApplication = Environment.GetCommandLineArgs().Any(a => a == UpdateManager.RelaunchCommandLine + "1");
 
             // If /ELEVATE=1 is set, we're an elevation wrapper used to preserve the integrity level of the caller.
             var needsElevation = Environment.GetCommandLineArgs().Any(a => a == UpdateManager.ElevationCommandLine + "1");
@@ -89,10 +89,9 @@ namespace Updater
 
         private async Task AsyncElevation()
         {
-            // Remove both the /RELAUNCH= and /ELEVATE= command-line flags from the child process - it should not do either.
+            // Remove /ELEVATE= command-line flags from the child process
             var processInfo = new ProcessStartInfo(Application.ExecutablePath, 
-                String.Join(" ", Environment.GetCommandLineArgs().Skip(1).Where(a => !a.StartsWith(UpdateManager.RelaunchCommandLine) 
-                && !a.StartsWith(UpdateManager.ElevationCommandLine)).ToArray()))
+                String.Join(" ", Environment.GetCommandLineArgs().Skip(1).Where(a => !a.StartsWith(UpdateManager.ElevationCommandLine)).ToArray()))
             {
                 Verb = "runas"
             };
@@ -176,22 +175,12 @@ namespace Updater
             await RelaunchApplicationAsync();
         }
 
-        private async void RelaunchApplication()
-        {
-            if (ShouldRelaunchApplication)
-            {
-                launcherPath = await UpdateManager.GetMainExecutableAsync(basePath, Application.ProductName);
-
-                var process = Process.Start(launcherPath);
-            }
-        }
-
         private async Task RelaunchApplicationAsync()
         {
-            if (ShouldRelaunchApplication)
+            if (shouldRelaunchApplication)
             {
-                launcherPath = await UpdateManager.GetMainExecutableAsync(basePath, Application.ProductName).ConfigureAwait(false);
-                await RunProcessAsync(launcherPath).ConfigureAwait(false);
+                launcherPath = await UpdateManager.GetMainExecutableAsync(basePath, Application.ProductName);
+                var task = RunProcessAsync(launcherPath).ConfigureAwait(false);
             }
         }
 
