@@ -32,7 +32,9 @@ using System.Linq;
 using System.Resources;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Threading;
 using Path = ORTS.Menu.Path;
 
 namespace ORTS
@@ -51,23 +53,23 @@ namespace ORTS
             SinglePlayerResumeTimetableGame,
         }
 
-        bool Initialized;
-        UserSettings Settings;
-        List<Folder> Folders = new List<Folder>();
+        private bool Initialized;
+        private UserSettings Settings;
+        private List<Folder> Folders = new List<Folder>();
         public List<Route> Routes = new List<Route>();
-        List<Activity> Activities = new List<Activity>();
+        private List<Activity> Activities = new List<Activity>();
         public List<Consist> Consists = new List<Consist>();
-        List<Path> Paths = new List<Path>();
-        List<TimetableInfo> TimetableSets = new List<TimetableInfo>();
-        Task<List<Folder>> FolderLoader;
-        Task<List<Route>> RouteLoader;
-        Task<List<Activity>> ActivityLoader;
-        Task<List<Consist>> ConsistLoader;
-        Task<List<Path>> PathLoader;
-        Task<List<TimetableInfo>> TimetableSetLoader;
-        readonly ResourceManager Resources = new ResourceManager("ORTS.Properties.Resources", typeof(MainForm).Assembly);
-        readonly UpdateManager UpdateManager;
-        readonly Image ElevationIcon;
+        private List<Path> Paths = new List<Path>();
+        private List<TimetableInfo> TimetableSets = new List<TimetableInfo>();
+        private Task<List<Folder>> FolderLoader;
+        private Task<List<Route>> RouteLoader;
+        private Task<List<Activity>> ActivityLoader;
+        private Task<List<Consist>> ConsistLoader;
+        private Task<List<Path>> PathLoader;
+        private Task<List<TimetableInfo>> TimetableSetLoader;
+        private readonly ResourceManager Resources = new ResourceManager("ORTS.Properties.Resources", typeof(MainForm).Assembly);
+        private readonly UpdateManager UpdateManager;
+        private readonly Image ElevationIcon;
 
         internal string RunActivityProgram
         {
@@ -106,7 +108,7 @@ namespace ORTS
         public string SelectedSaveFile { get; set; }
         public UserAction SelectedAction { get; set; }
 
-        GettextResourceManager catalog = new GettextResourceManager("Menu");
+        private GettextResourceManager catalog = new GettextResourceManager("Menu");
 
         #region Main Form
         public MainForm()
@@ -130,7 +132,7 @@ namespace ORTS
             ElevationIcon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize).ToBitmap();
         }
 
-        void MainForm_Shown(object sender, EventArgs e)
+        private void MainForm_Shown(object sender, EventArgs e)
         {
             var options = Environment.GetCommandLineArgs().Where(a => (a.StartsWith("-") || a.StartsWith("/"))).Select(a => a.Substring(1));
             Settings = new UserSettings(options);
@@ -259,7 +261,7 @@ namespace ORTS
             }
         }
 
-        void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             SaveOptions();
             if (RouteLoader != null)
@@ -283,38 +285,33 @@ namespace ORTS
                 File.Delete(file);
         }
 
-        void CheckForUpdate()
+        private async void CheckForUpdate()
         {
             // This is known directly from the chosen channel so doesn't need to wait for the update check itself.
             linkLabelChangeLog.Visible = !string.IsNullOrEmpty(UpdateManager.ChangeLogLink);
 
-            new Task<UpdateManager>(this, () =>
-            {
-                UpdateManager.Check();
-                return null;
-            }, _ =>
-            {
-                if (UpdateManager.LastCheckError != null)
-                    linkLabelUpdate.Text = catalog.GetString("Update check failed");
-                else if (UpdateManager.LastUpdate != null && UpdateManager.LastUpdate.Version != VersionInfo.Version)
-                    linkLabelUpdate.Text = catalog.GetStringFmt("Update to {0}", UpdateManager.LastUpdate.Version);
-                else
-                    linkLabelUpdate.Text = "";
-                linkLabelUpdate.Enabled = true;
-                linkLabelUpdate.Visible = linkLabelUpdate.Text.Length > 0;
-                // Update link's elevation icon and size/position.
-                if (UpdateManager.LastCheckError == null && UpdateManager.LastUpdate != null && UpdateManager.LastUpdate.Version != VersionInfo.Version && UpdateManager.UpdaterNeedsElevation)
-                    linkLabelUpdate.Image = ElevationIcon;
-                else
-                    linkLabelUpdate.Image = null;
-                linkLabelUpdate.AutoSize = true;
-                linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - ElevationIcon.Width;
-                linkLabelUpdate.AutoSize = false;
-                linkLabelUpdate.Width = panelDetails.Right - linkLabelUpdate.Left;
-            });
+            await UpdateManager.CheckForUpdateAsync();
+
+            if (UpdateManager.LastCheckError != null)
+                linkLabelUpdate.Text = catalog.GetString("Update check failed");
+            else if (UpdateManager.LastUpdate != null && UpdateManager.LastUpdate.Version != VersionInfo.Version)
+                linkLabelUpdate.Text = catalog.GetStringFmt("Update to {0}", UpdateManager.LastUpdate.Version);
+            else
+                linkLabelUpdate.Text = "";
+            linkLabelUpdate.Enabled = true;
+            linkLabelUpdate.Visible = linkLabelUpdate.Text.Length > 0;
+            // Update link's elevation icon and size/position.
+            if (UpdateManager.LastCheckError == null && UpdateManager.LastUpdate?.Version != VersionInfo.Version && UpdateManager.UpdaterNeedsElevation)
+                linkLabelUpdate.Image = ElevationIcon;
+            else
+                linkLabelUpdate.Image = null;
+            linkLabelUpdate.AutoSize = true;
+            linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - ElevationIcon.Width;
+            linkLabelUpdate.AutoSize = false;
+            linkLabelUpdate.Width = panelDetails.Right - linkLabelUpdate.Left;
         }
 
-        void LoadLanguage()
+        private void LoadLanguage()
         {
             if (Settings.Language.Length > 0)
             {
@@ -328,7 +325,7 @@ namespace ORTS
             Localizer.Localize(this, catalog);
         }
 
-        void RestartMenu()
+        private void RestartMenu()
         {
             Process.Start(Application.ExecutablePath);
             Close();
@@ -336,7 +333,7 @@ namespace ORTS
         #endregion
 
         #region Folders
-        void comboBoxFolder_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxFolder_SelectedIndexChanged(object sender, EventArgs e)
         {
             LoadRouteList();
             LoadLocomotiveList();
@@ -345,7 +342,7 @@ namespace ORTS
         #endregion
 
         #region Routes
-        void comboBoxRoute_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxRoute_SelectedIndexChanged(object sender, EventArgs e)
         {
             LoadActivityList();
             LoadStartAtList();
@@ -355,7 +352,7 @@ namespace ORTS
         #endregion
 
         #region Mode
-        void radioButtonMode_CheckedChanged(object sender, EventArgs e)
+        private void radioButtonMode_CheckedChanged(object sender, EventArgs e)
         {
             panelModeActivity.Visible = radioButtonModeActivity.Checked;
             panelModeTimetable.Visible = radioButtonModeTimetable.Checked;
@@ -365,7 +362,7 @@ namespace ORTS
         #endregion
 
         #region Activities
-        void comboBoxActivity_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxActivity_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowLocomotiveList();
             ShowConsistList();
@@ -381,7 +378,7 @@ namespace ORTS
         #endregion
 
         #region Locomotives
-        void comboBoxLocomotive_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxLocomotive_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowConsistList();
             ShowDetails();
@@ -389,7 +386,7 @@ namespace ORTS
         #endregion
 
         #region Consists
-        void comboBoxConsist_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxConsist_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
             ShowDetails();
@@ -397,14 +394,14 @@ namespace ORTS
         #endregion
 
         #region Starting from
-        void comboBoxStartAt_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxStartAt_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowHeadToList();
         }
         #endregion
 
         #region Heading to
-        void comboBoxHeadTo_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxHeadTo_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
             ShowDetails();
@@ -412,24 +409,24 @@ namespace ORTS
         #endregion
 
         #region Environment
-        void comboBoxStartTime_TextChanged(object sender, EventArgs e)
+        private void comboBoxStartTime_TextChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
         }
 
-        void comboBoxStartSeason_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxStartSeason_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
         }
 
-        void comboBoxStartWeather_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxStartWeather_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
         }
         #endregion
 
         #region Timetable Sets
-        void comboBoxTimetableSet_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxTimetableSet_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableSet();
             ShowTimetableList();
@@ -438,7 +435,7 @@ namespace ORTS
         #endregion
 
         #region Timetables
-        void comboBoxTimetable_selectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxTimetable_selectedIndexChanged(object sender, EventArgs e)
         {
             ShowTimetableTrainList();
             ShowDetails();
@@ -446,7 +443,7 @@ namespace ORTS
         #endregion
 
         #region Timetable Trains
-        void comboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
         {
             var selectedTrain = comboBoxTimetableTrain.SelectedItem as TimetableFileLite.TrainInformation;
             SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
@@ -456,29 +453,29 @@ namespace ORTS
         #endregion
 
         #region Timetable environment
-        void comboBoxTimetableDay_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxTimetableDay_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableSet();
         }
 
-        void comboBoxTimetableSeason_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxTimetableSeason_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableSet();
         }
 
-        void comboBoxTimetableWeather_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxTimetableWeather_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableSet();
         }
         #endregion
 
         #region Multiplayer
-        void textBoxMPUser_TextChanged(object sender, EventArgs e)
+        private void textBoxMPUser_TextChanged(object sender, EventArgs e)
         {
             UpdateEnabled();
         }
 
-        bool CheckUserName(string text)
+        private bool CheckUserName(string text)
         {
             string tmp = text;
             if (tmp.Length < 4 || tmp.Length > 10 || tmp.Contains("\"") || tmp.Contains("\'") || tmp.Contains(" ") || tmp.Contains("-") || Char.IsDigit(tmp, 0))
@@ -492,7 +489,7 @@ namespace ORTS
         #endregion
 
         #region Misc. buttons and options
-        void linkLabelUpdate_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void LinkLabelUpdate_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (UpdateManager.LastCheckError != null)
             {
@@ -505,26 +502,25 @@ namespace ORTS
             if (UpdateManager.LastUpdateError != null)
             {
                 MessageBox.Show(catalog.GetStringFmt("The update failed due to an error:\n\n{0}", UpdateManager.LastUpdateError), Application.ProductName);
-                return;
             }
         }
 
-        void linkLabelChangeLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void LinkLabelChangeLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start(UpdateManager.ChangeLogLink);
         }
 
-        void buttonTools_Click(object sender, EventArgs e)
+        private void ButtonTools_Click(object sender, EventArgs e)
         {
             contextMenuStripTools.Show(buttonTools, new Point(0, buttonTools.ClientSize.Height), ToolStripDropDownDirection.Default);
         }
 
-        void buttonDocuments_Click(object sender, EventArgs e)
+        private void buttonDocuments_Click(object sender, EventArgs e)
         {
             contextMenuStripDocuments.Show(buttonDocuments, new Point(0, buttonDocuments.ClientSize.Height), ToolStripDropDownDirection.Default);
         }
 
-        void testingToolStripMenuItem_Click(object sender, EventArgs e)
+        private void TestingToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (var form = new TestingForm(this, Settings))
             {
@@ -532,7 +528,7 @@ namespace ORTS
             }
         }
 
-        void buttonOptions_Click(object sender, EventArgs e)
+        private void ButtonOptions_Click(object sender, EventArgs e)
         {
             SaveOptions();
 
@@ -551,7 +547,7 @@ namespace ORTS
             }
         }
 
-        void buttonStart_Click(object sender, EventArgs e)
+        private void buttonStart_Click(object sender, EventArgs e)
         {
             SaveOptions();
 
@@ -569,7 +565,7 @@ namespace ORTS
             }
         }
 
-        void buttonResume_Click(object sender, EventArgs e)
+        private void buttonResume_Click(object sender, EventArgs e)
         {
             if (radioButtonModeActivity.Checked)
             {
@@ -598,7 +594,7 @@ namespace ORTS
             }
         }
 
-        void buttonMPClient_Click(object sender, EventArgs e)
+        private void buttonMPClient_Click(object sender, EventArgs e)
         {
             if (CheckUserName(textBoxMPUser.Text) == false) return;
             SaveOptions();
@@ -606,7 +602,7 @@ namespace ORTS
             DialogResult = DialogResult.OK;
         }
 
-        void buttonMPServer_Click(object sender, EventArgs e)
+        private void buttonMPServer_Click(object sender, EventArgs e)
         {
             if (CheckUserName(textBoxMPUser.Text) == false) return;
             SaveOptions();
@@ -616,7 +612,7 @@ namespace ORTS
         #endregion
 
         #region Options
-        void LoadOptions()
+        private void LoadOptions()
         {
             checkBoxWarnings.Checked = Settings.Logging;
             checkBoxWindowed.Checked = !Settings.FullScreen;
@@ -629,7 +625,7 @@ namespace ORTS
             textBoxMPHost.Text = Settings.Multiplayer_Host + ":" + Settings.Multiplayer_Port;
         }
 
-        void SaveOptions()
+        private void SaveOptions()
         {
             Settings.Logging = checkBoxWarnings.Checked;
             Settings.FullScreen = !checkBoxWindowed.Checked;
@@ -684,7 +680,7 @@ namespace ORTS
         #endregion
 
         #region Enabled state
-        void UpdateEnabled()
+        private void UpdateEnabled()
         {
             comboBoxFolder.Enabled = comboBoxFolder.Items.Count > 0;
             comboBoxRoute.Enabled = comboBoxRoute.Items.Count > 0;
@@ -706,7 +702,7 @@ namespace ORTS
         #endregion
 
         #region Folder list
-        void LoadFolderList()
+        private void LoadFolderList()
         {
             var initialized = Initialized;
             Folders.Clear();
@@ -737,7 +733,7 @@ namespace ORTS
             });
         }
 
-        void ShowFolderList()
+        private void ShowFolderList()
         {
             comboBoxFolder.Items.Clear();
             foreach (var folder in Folders)
@@ -748,7 +744,7 @@ namespace ORTS
         #endregion
 
         #region Route list
-        void LoadRouteList()
+        private void LoadRouteList()
         {
             if (RouteLoader != null)
                 RouteLoader.Cancel();
@@ -769,7 +765,7 @@ namespace ORTS
             });
         }
 
-        void ShowRouteList()
+        private void ShowRouteList()
         {
             comboBoxRoute.Items.Clear();
             foreach (var route in Routes)
@@ -789,7 +785,7 @@ namespace ORTS
         #endregion
 
         #region Activity list
-        void LoadActivityList()
+        private void LoadActivityList()
         {
             if (ActivityLoader != null)
                 ActivityLoader.Cancel();
@@ -806,7 +802,7 @@ namespace ORTS
             });
         }
 
-        void ShowActivityList()
+        private void ShowActivityList()
         {
             comboBoxActivity.Items.Clear();
             foreach (var activity in Activities)
@@ -815,7 +811,7 @@ namespace ORTS
             UpdateEnabled();
         }
 
-        void UpdateExploreActivity()
+        private void UpdateExploreActivity()
         {
             if (SelectedActivity == null || !(SelectedActivity is ExploreActivity))
                 return;
@@ -830,7 +826,7 @@ namespace ORTS
         #endregion
 
         #region Consist lists
-        void LoadLocomotiveList()
+        private void LoadLocomotiveList()
         {
             if (ConsistLoader != null)
                 ConsistLoader.Cancel();
@@ -848,7 +844,7 @@ namespace ORTS
             });
         }
 
-        void ShowLocomotiveList()
+        private void ShowLocomotiveList()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
@@ -873,7 +869,7 @@ namespace ORTS
             UpdateEnabled();
         }
 
-        void ShowConsistList()
+        private void ShowConsistList()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
@@ -887,7 +883,7 @@ namespace ORTS
         #endregion
 
         #region Path lists
-        void LoadStartAtList()
+        private void LoadStartAtList()
         {
             if (PathLoader != null)
                 PathLoader.Cancel();
@@ -905,7 +901,7 @@ namespace ORTS
             });
         }
 
-        void ShowStartAtList()
+        private void ShowStartAtList()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
@@ -936,7 +932,7 @@ namespace ORTS
             UpdateEnabled();
         }
 
-        void ShowHeadToList()
+        private void ShowHeadToList()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
@@ -950,7 +946,7 @@ namespace ORTS
         #endregion
 
         #region Environment
-        void ShowEnvironment()
+        private void ShowEnvironment()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
@@ -982,7 +978,7 @@ namespace ORTS
         #endregion
 
         #region Timetable Set list
-        void LoadTimetableSetList()
+        private void LoadTimetableSetList()
         {
             if (TimetableSetLoader != null)
                 TimetableSetLoader.Cancel();
@@ -998,7 +994,7 @@ namespace ORTS
             });
         }
 
-        void ShowTimetableSetList()
+        private void ShowTimetableSetList()
         {
             comboBoxTimetableSet.Items.Clear();
             foreach (var timetableSet in TimetableSets)
@@ -1007,7 +1003,7 @@ namespace ORTS
             UpdateEnabled();
         }
 
-        void UpdateTimetableSet()
+        private void UpdateTimetableSet()
         {
             if (SelectedTimetableSet != null)
             {
@@ -1019,7 +1015,7 @@ namespace ORTS
         #endregion
 
         #region Timetable list
-        void ShowTimetableList()
+        private void ShowTimetableList()
         {
             comboBoxTimetable.Items.Clear();
             if (SelectedTimetableSet != null)
@@ -1033,7 +1029,7 @@ namespace ORTS
         #endregion
 
         #region Timetable Train list
-        void ShowTimetableTrainList()
+        private void ShowTimetableTrainList()
         {
             comboBoxTimetableTrain.Items.Clear();
             if (SelectedTimetable != null)
@@ -1049,7 +1045,7 @@ namespace ORTS
         #endregion
 
         #region Timetable environment
-        void ShowTimetableEnvironment()
+        private void ShowTimetableEnvironment()
         {
             UpdateFromMenuSelection<KeyedComboBoxItem>(comboBoxTimetableDay, UserSettings.Menu_SelectionIndex.Day, d => d.Key.ToString(), new KeyedComboBoxItem(0, ""));
             UpdateFromMenuSelection<KeyedComboBoxItem>(comboBoxTimetableSeason, UserSettings.Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, ""));
@@ -1058,7 +1054,7 @@ namespace ORTS
         #endregion
 
         #region Details
-        void ShowDetails()
+        private void ShowDetails()
         {
             Win32.LockWindowUpdate(Handle);
             ClearDetails();
@@ -1116,8 +1112,9 @@ namespace ORTS
             Win32.LockWindowUpdate(IntPtr.Zero);
         }
 
-        List<Detail> Details = new List<Detail>();
-        class Detail
+        private List<Detail> Details = new List<Detail>();
+
+        private class Detail
         {
             public readonly Control Title;
             public readonly Control Expander;
@@ -1134,14 +1131,14 @@ namespace ORTS
             }
         }
 
-        void ClearDetails()
+        private void ClearDetails()
         {
             Details.Clear();
             while (panelDetails.Controls.Count > 0)
                 panelDetails.Controls.RemoveAt(0);
         }
 
-        void ShowDetail(string title, string[] lines)
+        private void ShowDetail(string title, string[] lines)
         {
             var titleControl = new Label { Margin = new Padding(2), Text = title, UseMnemonic = false, Font = new Font(panelDetails.Font, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft };
             panelDetails.Controls.Add(titleControl);
@@ -1207,12 +1204,12 @@ namespace ORTS
             Details.Add(new Detail(titleControl, expanderControl, summaryControl, descriptionControl));
         }
 
-        static int MeasureText(string text, Label summaryControl)
+        private static int MeasureText(string text, Label summaryControl)
         {
             return TextRenderer.MeasureText(text, summaryControl.Font, summaryControl.ClientSize, TextFormatFlags.TextBoxControl | TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix).Height;
         }
 
-        void expanderControl_Click(object sender, EventArgs e)
+        private void expanderControl_Click(object sender, EventArgs e)
         {
             Win32.LockWindowUpdate(Handle);
             var index = (int)(sender as Control).Tag;
@@ -1222,7 +1219,7 @@ namespace ORTS
             Win32.LockWindowUpdate(IntPtr.Zero);
         }
 
-        void FlowDetails()
+        private void FlowDetails()
         {
             var scrollPosition = panelDetails.AutoScrollPosition.Y;
             panelDetails.AutoScrollPosition = Point.Empty;
@@ -1250,17 +1247,17 @@ namespace ORTS
         #endregion
 
         #region Utility functions
-        void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, T defaultValue)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, T defaultValue)
         {
             UpdateFromMenuSelection<T>(comboBox, index, _ => _.ToString(), defaultValue);
         }
 
-        void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map)
         {
             UpdateFromMenuSelection<T>(comboBox, index, map, default(T));
         }
 
-        void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map, T defaultValue)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map, T defaultValue)
         {
             if (Settings.Menu_Selection.Length > (int)index && Settings.Menu_Selection[(int)index] != "")
             {
@@ -1280,7 +1277,7 @@ namespace ORTS
             }
         }
 
-        void SelectComboBoxItem<T>(ComboBox comboBox, Func<T, bool> predicate)
+        private void SelectComboBoxItem<T>(ComboBox comboBox, Func<T, bool> predicate)
         {
             if (comboBox.Items.Count == 0)
                 return;
@@ -1315,7 +1312,7 @@ namespace ORTS
 
         private sealed class Win32
         {
-            Win32() { }
+            private Win32() { }
 
             /// <summary>
             /// Lock ore relase the wndow for updating.
@@ -1326,14 +1323,14 @@ namespace ORTS
         #endregion
 
         #region Documentation
-        void CheckForDocumentation()
+        private void CheckForDocumentation()
         {
 
         }
         #endregion
 
         #region Executable utils
-        enum ImageSubsystem
+        private enum ImageSubsystem
         {
             Unknown = 0,
             Native = 1,
@@ -1341,7 +1338,7 @@ namespace ORTS
             WindowsConsole = 3,
         }
 
-        ImageSubsystem GetImageSubsystem(BinaryReader stream)
+        private ImageSubsystem GetImageSubsystem(BinaryReader stream)
         {
             try
             {
@@ -1385,7 +1382,7 @@ namespace ORTS
         }
         #endregion
 
-        void comboBoxTimetable_EnabledChanged(object sender, EventArgs e)
+        private void comboBoxTimetable_EnabledChanged(object sender, EventArgs e)
         {
             //Debrief Eval TTActivity.
             if (!comboBoxTimetable.Enabled)

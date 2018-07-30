@@ -17,10 +17,11 @@
 
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
-using ORTS.Common;
+//using ORTS.Common;
 using ORTS.Settings;
 using ORTS.Updater;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -28,17 +29,18 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Updater
 {
     public partial class UpdaterProgress : Form
     {
-        readonly UserSettings Settings;
-        readonly GettextResourceManager catalog = new GettextResourceManager("Updater");
+        private readonly UserSettings Settings;
+        private readonly GettextResourceManager catalog = new GettextResourceManager("Updater");
 
-        string BasePath;
-        string LauncherPath;
+        private string basePath;
+        private string launcherPath;
         bool ShouldRelaunchApplication;
 
         public UpdaterProgress()
@@ -53,8 +55,7 @@ namespace Updater
             Settings = new UserSettings(new string[0]);
             LoadLanguage();
 
-            BasePath = Path.GetDirectoryName(Application.ExecutablePath);
-            LauncherPath = UpdateManager.GetMainExecutable(BasePath, Application.ProductName);
+            basePath = Path.GetDirectoryName(Application.ExecutablePath);
         }
 
         void LoadLanguage()
@@ -71,7 +72,7 @@ namespace Updater
             Localizer.Localize(this, catalog);
         }
 
-        void UpdaterProgress_Load(object sender, EventArgs e)
+        private async void UpdaterProgress_Load(object sender, EventArgs e)
         {
             // If /RELAUNCH=1 is set, we're expected to re-launch the main application when we're done.
             ShouldRelaunchApplication = Environment.GetCommandLineArgs().Any(a => a == UpdateManager.RelaunchCommandLine + "1");
@@ -80,49 +81,51 @@ namespace Updater
             var needsElevation = Environment.GetCommandLineArgs().Any(a => a == UpdateManager.ElevationCommandLine + "1");
 
             // Run everything in a new thread so the UI is responsive and visible.
-            new Thread(needsElevation ? (ThreadStart)ElevationThread : (ThreadStart)UpdaterThread).Start();
+            if (needsElevation)
+                await AsyncElevation();
+            else
+                await AsyncUpdater();
         }
 
-        void ElevationThread()
+        private async Task AsyncElevation()
         {
             // Remove both the /RELAUNCH= and /ELEVATE= command-line flags from the child process - it should not do either.
-            var processInfo = new ProcessStartInfo(Application.ExecutablePath, String.Join(" ", Environment.GetCommandLineArgs().Skip(1).Where(a => !a.StartsWith(UpdateManager.RelaunchCommandLine) && !a.StartsWith(UpdateManager.ElevationCommandLine)).ToArray()));
-            processInfo.Verb = "runas";
+            var processInfo = new ProcessStartInfo(Application.ExecutablePath, 
+                String.Join(" ", Environment.GetCommandLineArgs().Skip(1).Where(a => !a.StartsWith(UpdateManager.RelaunchCommandLine) 
+                && !a.StartsWith(UpdateManager.ElevationCommandLine)).ToArray()))
+            {
+                Verb = "runas"
+            };
 
-            var process = Process.Start(processInfo);
-            // We would like to use WaitForInputIdle() here but it is unreliable across elevation.
-            if (!IsDisposed)
-                Invoke((Action)Hide);
-            process.WaitForExit();
-
-            RelaunchApplication();
-
+            Task processTask = RunProcessAsync(processInfo); // exit this current instance
+            await Task.CompletedTask;
             Environment.Exit(0);
         }
 
-        void UpdaterThread()
+        private async Task AsyncUpdater()
         {
             // We wait for any processes identified by /WAITPID=<pid> to exit before starting up so that the updater
             // will not try and apply an update whilst the previous instance is still lingering.
+            List<Task> waitList = new List<Task>();
+            
             var waitPids = Environment.GetCommandLineArgs().Where(a => a.StartsWith(UpdateManager.WaitProcessIdCommandLine));
-            foreach (var waitPid in waitPids)
+            foreach (string waitPid in waitPids)
             {
                 try
                 {
-                    var process = Process.GetProcessById(int.Parse(waitPid.Substring(9)));
-                    while (!process.HasExited)
-                        process.WaitForExit(100);
-                    process.Close();
+                    Process process = Process.GetProcessById(int.Parse(waitPid.Substring(9)));
+                    waitList.Add(WaitForProcessExitAsync(process));
                 }
                 catch (ArgumentException)
                 {
                     // ArgumentException occurs if we try and GetProcessById with an ID that has already exited.
                 }
             }
+            await Task.WhenAll(waitList).ConfigureAwait(false);
 
             // Update manager is needed early to apply any updates before we show UI.
-            var updateManager = new UpdateManager(BasePath, Application.ProductName, VersionInfo.VersionOrBuild);
-            updateManager.ApplyProgressChanged += (object sender, ProgressChangedEventArgs e) =>
+            UpdateManager updateManager = new UpdateManager(basePath, Application.ProductName, ORTS.Common.VersionInfo.VersionOrBuild);
+            updateManager.ProgressChanged += (object sender, ProgressChangedEventArgs e) =>
             {
                 Invoke((Action)(() =>
                 {
@@ -130,55 +133,162 @@ namespace Updater
                 }));
             };
 
-            var channelName = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.ChannelCommandLine));
+            string channelName = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.ChannelCommandLine));
             if (channelName != null && channelName.Length > UpdateManager.ChannelCommandLine.Length)
                 updateManager.SetChannel(channelName.Substring(UpdateManager.ChannelCommandLine.Length));
 
-            updateManager.Check();
+            await updateManager.CheckForUpdateAsync().ConfigureAwait(false);
             if (updateManager.LastCheckError != null)
             {
                 if (!IsDisposed)
                 {
                     Invoke((Action)(() =>
                     {
-                        MessageBox.Show("Error: " + updateManager.LastCheckError, Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Error: " + updateManager.LastCheckError, Application.ProductName + " " + ORTS.Common.VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }));
                 }
                 Application.Exit();
                 return;
             }
 
-            updateManager.Apply();
+            await updateManager.ApplyUpdateAsync().ConfigureAwait(false);
             if (updateManager.LastUpdateError != null)
             {
                 if (!IsDisposed)
                 {
                     Invoke((Action)(() =>
                     {
-                        MessageBox.Show("Error: " + updateManager.LastUpdateError, Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Error: " + updateManager.LastUpdateError, Application.ProductName + " " + ORTS.Common.VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }));
                 }
                 Application.Exit();
                 return;
             }
 
-            RelaunchApplication();
+            await RelaunchApplicationAsync().ConfigureAwait(false);
 
             Environment.Exit(0);
+
         }
 
-        void UpdaterProgress_FormClosed(object sender, FormClosedEventArgs e)
+        private async void UpdaterProgress_FormClosed(object sender, FormClosedEventArgs e)
         {
-            RelaunchApplication();
+            await RelaunchApplicationAsync();
         }
 
-        void RelaunchApplication()
+        private async void RelaunchApplication()
         {
             if (ShouldRelaunchApplication)
             {
-                var process = Process.Start(LauncherPath);
-                process.WaitForExit();
+                launcherPath = await UpdateManager.GetMainExecutableAsync(basePath, Application.ProductName);
+
+                var process = Process.Start(launcherPath);
             }
+        }
+
+        private async Task RelaunchApplicationAsync()
+        {
+            if (ShouldRelaunchApplication)
+            {
+                launcherPath = await UpdateManager.GetMainExecutableAsync(basePath, Application.ProductName).ConfigureAwait(false);
+                await RunProcessAsync(launcherPath).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Waits asynchronously for the process to exit.
+        /// </summary>
+        /// <param name="process">The process to wait for cancellation.</param>
+        /// <param name="cancellationToken">A cancellation token. If invoked, the task will return 
+        /// immediately as canceled.</param>
+        /// <returns>A Task representing waiting for the process to end.</returns>
+        public static async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            void Process_Exited(object sender, EventArgs e)
+            {
+                tcs.TrySetResult(true);
+            }
+
+            process.EnableRaisingEvents = true;
+            process.Exited += Process_Exited;
+
+            try
+            {
+                if (process.HasExited)
+                {
+                    process.Close();
+                    return;
+                }
+                using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+                {
+                    await tcs.Task;
+                }
+            }
+            finally
+            {
+                process.Exited -= Process_Exited;
+            }
+        }
+
+        public static Task RunProcessAsync(ProcessStartInfo processStartInfo)
+        {
+            var tcs = new TaskCompletionSource<object>();
+            processStartInfo.RedirectStandardError = true;
+            processStartInfo.UseShellExecute = false;
+
+            Process process = new Process
+            {
+                EnableRaisingEvents = true,
+                StartInfo = processStartInfo
+            };
+
+            process.Exited += (sender, args) =>
+            {
+                if (process.ExitCode != 0)
+                {
+                    var errorMessage = process.StandardError.ReadToEnd();
+                    tcs.SetException(new InvalidOperationException("The process did not exit correctly. " +
+                        "The corresponding error message was: " + errorMessage));
+                }
+                else
+                {
+                    tcs.SetResult(null);
+                }
+                process.Dispose();
+            };
+            process.Start();
+            return tcs.Task;
+        }
+
+        public static Task RunProcessAsync(string processPath)
+        {
+            var tcs = new TaskCompletionSource<object>();
+            Process process = new Process
+            {
+                EnableRaisingEvents = true,
+                StartInfo = new ProcessStartInfo(processPath)
+                {
+                    RedirectStandardError = true,
+                    UseShellExecute = false
+                }
+            };
+            process.Exited += (sender, args) =>
+            {
+                if (process.ExitCode != 0)
+                {
+                    var errorMessage = process.StandardError.ReadToEnd();
+                    tcs.SetException(new InvalidOperationException("The process did not exit correctly. " +
+                        "The corresponding error message was: " + errorMessage));
+                }
+                else
+                {
+                    tcs.SetResult(null);
+                }
+                process.Dispose();
+            };
+            process.Start();
+            return tcs.Task;
         }
     }
 }

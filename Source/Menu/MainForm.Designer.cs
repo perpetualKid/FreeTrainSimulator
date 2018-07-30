@@ -167,7 +167,7 @@ namespace ORTS
             this.buttonOptions.Size = new System.Drawing.Size(75, 23);
             this.buttonOptions.TabIndex = 0;
             this.buttonOptions.Text = "Options";
-            this.buttonOptions.Click += new System.EventHandler(this.buttonOptions_Click);
+            this.buttonOptions.Click += new System.EventHandler(this.ButtonOptions_Click);
             // 
             // buttonResume
             // 
@@ -186,7 +186,7 @@ namespace ORTS
             this.buttonTools.Size = new System.Drawing.Size(100, 23);
             this.buttonTools.TabIndex = 19;
             this.buttonTools.Text = "Tools ▼";
-            this.buttonTools.Click += new System.EventHandler(this.buttonTools_Click);
+            this.buttonTools.Click += new System.EventHandler(this.ButtonTools_Click);
             // 
             // comboBoxFolder
             // 
@@ -846,14 +846,14 @@ namespace ORTS
             this.linkLabelUpdate.TextAlign = System.Drawing.ContentAlignment.TopRight;
             this.linkLabelUpdate.UseMnemonic = false;
             this.linkLabelUpdate.Visible = false;
-            this.linkLabelUpdate.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelUpdate_LinkClicked);
+            this.linkLabelUpdate.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabelUpdate_LinkClicked);
             // 
             // testingToolStripMenuItem
             // 
             this.testingToolStripMenuItem.Name = "testingToolStripMenuItem";
             this.testingToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             this.testingToolStripMenuItem.Text = "Testing";
-            this.testingToolStripMenuItem.Click += new System.EventHandler(this.testingToolStripMenuItem_Click);
+            this.testingToolStripMenuItem.Click += new System.EventHandler(this.TestingToolStripMenuItem_Click);
             // 
             // contextMenuStripTools
             // 
@@ -873,7 +873,7 @@ namespace ORTS
             this.linkLabelChangeLog.Text = "What\'s new?";
             this.linkLabelChangeLog.UseMnemonic = false;
             this.linkLabelChangeLog.Visible = false;
-            this.linkLabelChangeLog.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelChangeLog_LinkClicked);
+            this.linkLabelChangeLog.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabelChangeLog_LinkClicked);
             // 
             // contextMenuStripDocuments
             // 
