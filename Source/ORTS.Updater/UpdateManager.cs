@@ -126,7 +126,7 @@ namespace ORTS.Updater
 
             // Check for elevation to update; elevation is needed if the update writes failed and the user is NOT an
             // Administrator. Weird cases (like no permissions on the directory for anyone) are not handled.
-            if (!CheckUpdateWrites())
+            if (!CheckUpdateWrites().Result)
             {
                 var identity = WindowsIdentity.GetCurrent();
                 var principal = new WindowsPrincipal(identity);
@@ -253,27 +253,27 @@ namespace ORTS.Updater
             TriggerApplyProgressChanged(0);
             try
             {
-                CheckUpdateWrites();
+                await CheckUpdateWrites().ConfigureAwait(false);
                 TriggerApplyProgressChanged(1);
 
-                await CleanDirectoriesAsync();
+                await CleanDirectoriesAsync().ConfigureAwait(false);
                 TriggerApplyProgressChanged(2);
 
-                await DownloadUpdateAsync(2, 65);
+                await DownloadUpdateAsync(2, 65).ConfigureAwait(false);
                 TriggerApplyProgressChanged(67);
 
-                ExtractUpdate(67, 30);
+                await ExtractUpdate(67, 30).ConfigureAwait(false);
                 TriggerApplyProgressChanged(97);
 
-                if (await UpdateIsReadyAync())
+                if (await UpdateIsReadyAync().ConfigureAwait(false))
                 {
-                    await VerifyUpdateAsync();
+                    await VerifyUpdateAsync().ConfigureAwait(false);
                     TriggerApplyProgressChanged(98);
 
-                    await CopyUpdateFileAsync();
+                    await CopyUpdateFileAsync().ConfigureAwait(false);
                     TriggerApplyProgressChanged(99);
 
-                    await CleanDirectoriesAsync();
+                    await CleanDirectoriesAsync().ConfigureAwait(false);
                     TriggerApplyProgressChanged(100);
                 }
 
@@ -317,17 +317,22 @@ namespace ORTS.Updater
             updateState.Save();
         }
 
-        private bool CheckUpdateWrites()
+        private Task<bool> CheckUpdateWrites()
         {
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+
             try
             {
                 Directory.CreateDirectory(PathUpdateTest)?.Delete(true);
-                return true;
+                tcs.TrySetResult(true);
+
             }
             catch
             {
-                return false;
+                tcs.TrySetResult(true);
+
             }
+            return tcs.Task;
         }
 
         private async Task CleanDirectoriesAsync()
@@ -343,27 +348,29 @@ namespace ORTS.Updater
             await Task.WhenAll(cleanupTasks).ConfigureAwait(false);
         }
 
-        private async Task CleanDirectory(string path)
+        private Task CleanDirectory(string path)
         {
-            // Clean up as much as we can here, but any in-use files will fail. Don't worry about them. This is
-            // called before the update begins so we'll always start from a clean slate.
-            // Scan the files in any order.
-            await Task.WhenAll(from item in Directory.GetFiles(path, "*", SearchOption.AllDirectories)
-                               select Task.Run(() => 
-                               {
-                                   try { File.Delete(item); }
-                                   catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
-                               })).ConfigureAwait(false);
+            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
+            //// Clean up as much as we can here, but any in-use files will fail. Don't worry about them. This is
+            //// called before the update begins so we'll always start from a clean slate.
+            //// Scan the files in any order.
+            Parallel.ForEach(Directory.GetFiles(path, "*", SearchOption.AllDirectories),
+                             (file) =>
+                             {
+                                 try { File.Delete(file); }
+                                 catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+                             });
 
-            await Task.WhenAll(from item in Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly)
-                               select Task.Run(() =>
-                               {
-                                   try { Directory.Delete(item, true); }
-                                   catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
-                               })).ConfigureAwait(false);
-
+            Parallel.ForEach(Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly),
+                             (directory) =>
+                             {
+                                 try { Directory.Delete(directory, true); }
+                                 catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+                             });
             try { Directory.Delete(path); }
             catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+            tcs.TrySetResult(null);
+            return tcs.Task;
         }
 
         private async Task DownloadUpdateAsync(int progressMin, int progressLength)
@@ -387,8 +394,10 @@ namespace ORTS.Updater
             TriggerApplyProgressChanged(progressMin + progressLength);
         }
 
-        private void ExtractUpdate(int progressMin, int progressLength)
+        private Task ExtractUpdate(int progressMin, int progressLength)
         {
+            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
+
             using (FileStream fileStream = new FileStream(FileUpdateStage, FileMode.Open, FileAccess.Read))
             {
                 using (ZipArchive zipFile = new ZipArchive(fileStream))
@@ -430,6 +439,8 @@ namespace ORTS.Updater
             }
             File.Delete(FileUpdateStage);
             TriggerApplyProgressChanged(progressMin + progressLength);
+            tcs.TrySetResult(null);
+            return tcs.Task;
         }
 
         private async Task<bool> UpdateIsReadyAync()
@@ -440,14 +451,16 @@ namespace ORTS.Updater
                 && !File.Exists(FileUpdateStage);
         }
 
-        private async Task VerifyUpdateAsync()
+        private Task VerifyUpdateAsync()
         {
-            IEnumerable<string> files = Directory.GetFiles(PathUpdateStage, "*", SearchOption.AllDirectories).Where(s => 
+            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
+
+            IEnumerable<string> files = Directory.GetFiles(PathUpdateStage, "*", SearchOption.AllDirectories).Where(s =>
                     s.ToUpper().EndsWith(".EXE") ||
                     s.ToUpper().EndsWith(".CPL") ||
                     s.ToUpper().EndsWith(".DLL") ||
                     s.ToUpper().EndsWith(".OCX") ||
-                    s.ToUpper().EndsWith(".SYS") );
+                    s.ToUpper().EndsWith(".SYS"));
 
             HashSet<string> expectedSubjects = new HashSet<string>();
             try
@@ -457,35 +470,48 @@ namespace ORTS.Updater
             }
             catch (Exception ex) when (ex is CryptographicException || ex is Win32Exception)
             {
+                tcs.TrySetResult(null);
                 // No signature on the updater, so we can't verify the update. :(
-                return;
+                return tcs.Task;
+            }
+            catch (Exception ex)
+            {
+                tcs.TrySetException(ex);
+                // No signature on the updater, so we can't verify the update. :(
+                return tcs.Task;
             }
 
-            await Task.WhenAll(from file in files
-                               select Task.Run(() =>
-                               {
-                                   List<X509Certificate2> certificates = GetCertificatesFromFile(file);
-                                   if (!certificates.Any(c => expectedSubjects.Contains(c.Subject)))
-                                       throw new InvalidDataException("Cryptographic signatures don't match. Expected a common subject in old subjects:\n\n"
-                                           + FormatCertificateSubjectList(expectedSubjects) + "\n\nAnd new subjects:\n\n"
-                                           + FormatCertificateSubjectList(certificates) + "\n");
+            Parallel.ForEach(files, (file) => 
+            {
+                List<X509Certificate2> certificates = GetCertificatesFromFile(file);
+                if (!certificates.Any(c => expectedSubjects.Contains(c.Subject)))
+                    throw new InvalidDataException("Cryptographic signatures don't match. Expected a common subject in old subjects:\n\n"
+                        + FormatCertificateSubjectList(expectedSubjects) + "\n\nAnd new subjects:\n\n"
+                        + FormatCertificateSubjectList(certificates) + "\n");
+            });
 
-                               }));
+            tcs.TrySetResult(null);
+            return tcs.Task;
         }
 
         private async Task CopyUpdateFileAsync()
         {
             string[] excludeDirs = Directory.Exists(PathUpdateDocumentation) ? new string [] { PathUpdateDirty, PathUpdateStage } : new string[] { PathUpdateDirty, PathUpdateStage, PathDocumentation};
-            await MoveDirectoryFiles(basePath, PathUpdateDirty, true, excludeDirs, new string[] { FileSettings });
+            await MoveDirectoryFiles(basePath, PathUpdateDirty, true, excludeDirs, new string[] { FileSettings }).ConfigureAwait(false);
 
-            await MoveDirectoryFiles(PathUpdateStage, basePath, true);
+            await MoveDirectoryFiles(PathUpdateStage, basePath, true).ConfigureAwait(false);
         }
 
-        private static async Task MoveDirectoryFiles(string sourceDirName, string destDirName, bool recursive, 
+        private static Task MoveDirectoryFiles(string sourceDirName, string destDirName, bool recursive, 
             string[] excludedFolders = null, string[] excludedFiles = null)
         {
+            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
+
             if (null != excludedFolders && excludedFolders.Contains(sourceDirName))
-                return;
+            {
+                tcs.TrySetResult(null);
+                return tcs.Task;
+            }
 
             // Get the subdirectories for the specified directory.
             DirectoryInfo source = new DirectoryInfo(sourceDirName);
@@ -493,33 +519,33 @@ namespace ORTS.Updater
             {
                 throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDirName);
             }
-
-            DirectoryInfo[] subFolders = source.GetDirectories();
             // If the destination directory doesn't exist, create it.
             if (!Directory.Exists(destDirName))
             {
                 Directory.CreateDirectory(destDirName);
             }
 
-            await Task.WhenAll(from file in source.GetFiles()
-                               select Task.Run(() =>
-                               {
-                                   if (null == excludedFiles || !excludedFiles.Contains(file.FullName))
-                                       file.MoveTo(Path.Combine(destDirName, file.Name));
-                               })).ConfigureAwait(false);
+            Parallel.ForEach(source.GetFiles(),
+                 (file) =>
+                 {
+                     if (null == excludedFiles || !excludedFiles.Contains(file.FullName))
+                         file.MoveTo(Path.Combine(destDirName, file.Name));
+                 });
 
             // If copying subdirectories, copy them and their contents to new location.
             if (recursive)
             {
-                await Task.WhenAll(from folder in subFolders
-                                   select Task.Run(async () =>
-                                   {
-                                       await MoveDirectoryFiles(folder.FullName, Path.Combine(destDirName, folder.Name), recursive, excludedFolders, excludedFiles);
-                                   })).ConfigureAwait(false);
+                Parallel.ForEach(source.GetDirectories(),
+                     (directory) =>
+                     {
+                         MoveDirectoryFiles(directory.FullName, Path.Combine(destDirName, directory.Name), recursive, excludedFolders, excludedFiles);
+                     });
             }
 
             try { source.Delete(); }
             catch (Exception ex) { Trace.TraceWarning($"{sourceDirName} :: {ex.Message}"); };
+            tcs.TrySetResult(null);
+            return tcs.Task;
         }
 
         static string FormatCertificateSubjectList(IEnumerable<string> subjects)

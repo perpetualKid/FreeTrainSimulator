@@ -82,12 +82,12 @@ namespace Updater
 
             // Run everything in a new thread so the UI is responsive and visible.
             if (needsElevation)
-                await AsyncElevation();
+                RunWithElevation();
             else
                 await AsyncUpdater();
         }
 
-        private async Task AsyncElevation()
+        private void RunWithElevation()
         {
             // Remove /ELEVATE= command-line flags from the child process
             var processInfo = new ProcessStartInfo(Application.ExecutablePath, 
@@ -96,8 +96,7 @@ namespace Updater
                 Verb = "runas"
             };
 
-            Task processTask = RunProcessAsync(processInfo); // exit this current instance
-            await Task.CompletedTask;
+            Task processTask = RunProcess(processInfo); // exit this current instance
             Environment.Exit(0);
         }
 
@@ -172,7 +171,7 @@ namespace Updater
 
         private async void UpdaterProgress_FormClosed(object sender, FormClosedEventArgs e)
         {
-            await RelaunchApplicationAsync();
+            await RelaunchApplicationAsync().ConfigureAwait(false);
         }
 
         private async Task RelaunchApplicationAsync()
@@ -180,7 +179,7 @@ namespace Updater
             if (shouldRelaunchApplication)
             {
                 launcherPath = await UpdateManager.GetMainExecutableAsync(basePath, Application.ProductName);
-                var task = RunProcessAsync(launcherPath).ConfigureAwait(false);
+                await RunProcess(launcherPath).ConfigureAwait(false);
             }
         }
 
@@ -220,7 +219,7 @@ namespace Updater
             }
         }
 
-        public static Task RunProcessAsync(ProcessStartInfo processStartInfo)
+        public static Task RunProcess(ProcessStartInfo processStartInfo)
         {
             var tcs = new TaskCompletionSource<object>();
             processStartInfo.RedirectStandardError = true;
@@ -250,34 +249,9 @@ namespace Updater
             return tcs.Task;
         }
 
-        public static Task RunProcessAsync(string processPath)
+        public static Task RunProcess(string processPath)
         {
-            var tcs = new TaskCompletionSource<object>();
-            Process process = new Process
-            {
-                EnableRaisingEvents = true,
-                StartInfo = new ProcessStartInfo(processPath)
-                {
-                    RedirectStandardError = true,
-                    UseShellExecute = false
-                }
-            };
-            process.Exited += (sender, args) =>
-            {
-                if (process.ExitCode != 0)
-                {
-                    var errorMessage = process.StandardError.ReadToEnd();
-                    tcs.SetException(new InvalidOperationException("The process did not exit correctly. " +
-                        "The corresponding error message was: " + errorMessage));
-                }
-                else
-                {
-                    tcs.SetResult(null);
-                }
-                process.Dispose();
-            };
-            process.Start();
-            return tcs.Task;
+            return RunProcess(new ProcessStartInfo(processPath));
         }
     }
 }
