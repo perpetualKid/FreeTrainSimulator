@@ -246,6 +246,26 @@ namespace ORTS.Updater
             }
         }
 
+        public Task RunUpdateProcess()
+        {
+            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
+            if (LastUpdate == null)
+                throw new InvalidOperationException("Cannot get update when no LatestUpdate exists.");
+            try
+            {
+                Task updateTask = RunProcess(new ProcessStartInfo(FileUpdater, $"{ChannelCommandLine}{ChannelName} " +
+                    $"{WaitProcessIdCommandLine}{Process.GetCurrentProcess().Id} {RelaunchCommandLine}1 {ElevationCommandLine}{(UpdaterNeedsElevation ? "1" : "0")}"));
+                tcs.TrySetResult(null);
+                Environment.Exit(0);
+            }
+            catch (Exception error)
+            {
+                LastUpdateError = error;
+                tcs.TrySetException(error);
+            }
+            return tcs.Task;
+        }
+
         public async Task ApplyUpdateAsync()
         {
             if (LastUpdate == null) throw new InvalidOperationException("There is no update to apply.");
@@ -547,6 +567,37 @@ namespace ORTS.Updater
             tcs.TrySetResult(null);
             return tcs.Task;
         }
+
+        public static Task RunProcess(ProcessStartInfo processStartInfo)
+        {
+            var tcs = new TaskCompletionSource<object>();
+            processStartInfo.RedirectStandardError = true;
+            processStartInfo.UseShellExecute = false;
+
+            Process process = new Process
+            {
+                EnableRaisingEvents = true,
+                StartInfo = processStartInfo
+            };
+
+            process.Exited += (sender, args) =>
+            {
+                if (process.ExitCode != 0)
+                {
+                    var errorMessage = process.StandardError.ReadToEnd();
+                    tcs.SetException(new InvalidOperationException("The process did not exit correctly. " +
+                        "The corresponding error message was: " + errorMessage));
+                }
+                else
+                {
+                    tcs.SetResult(null);
+                }
+                process.Dispose();
+            };
+            process.Start();
+            return tcs.Task;
+        }
+
 
         static string FormatCertificateSubjectList(IEnumerable<string> subjects)
         {

@@ -15,20 +15,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using GNU.Gettext;
-using Orts.Formats.Msts;
-using Orts.Formats.OR;
-using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using GNU.Gettext;
+using Orts.Formats.OR;
 
 namespace ORTS.Menu
 {
     public class TimetableInfo
     {
-        public readonly List<TimetableFileLite> ORTTList = new List<TimetableFileLite>();
-        public readonly String Description;
-        public readonly String fileName;
+        public List<TimetableFileLite> ORTTList { get; private set; } = new List<TimetableFileLite>();
+        public string Description { get; private set; }
+        public string FileName { get; private set; }
 
         // items set for use as parameters, taken from main menu
         public int Day;
@@ -40,15 +40,15 @@ namespace ORTS.Menu
 
         GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
-        protected TimetableInfo(string filePath)
+        internal TimetableInfo(string filePath)
         {
             if (File.Exists(filePath))
             {
                 try
                 {
                     ORTTList.Add(new TimetableFileLite(filePath));
-                    Description = String.Copy(ORTTList[0].Description);
-                    fileName = String.Copy(filePath);
+                    FileName = filePath;
+                    Description = ORTTList[ORTTList.Count - 1].Description;
                 }
                 catch
                 {
@@ -61,7 +61,7 @@ namespace ORTS.Menu
             }
         }
 
-        protected TimetableInfo(String filePath, String directory)
+        protected TimetableInfo(string filePath, string directory)
         {
             if (File.Exists(filePath))
             {
@@ -69,8 +69,8 @@ namespace ORTS.Menu
                 {
                     TimetableGroupFileLite multiInfo = new TimetableGroupFileLite(filePath, directory);
                     ORTTList = multiInfo.ORTTInfo;
-                    Description = String.Copy(multiInfo.Description);
-                    fileName = String.Copy(filePath);
+                    FileName = filePath;
+                    Description = multiInfo.Description;
                 }
                 catch
                 {
@@ -88,54 +88,49 @@ namespace ORTS.Menu
             return Description;
         }
 
-        public static List<TimetableInfo> GetTimetableInfo(Folder folder, Route route)
+        public static Task<List<TimetableInfo>> GetTimetableInfo(Folder folder, Route route, CancellationToken token)
         {
-            var ORTTInfo = new List<TimetableInfo>();
+            TaskCompletionSource<List<TimetableInfo>> tcs = new TaskCompletionSource<List<TimetableInfo>>();
+            string[] extensions = { "*.timetable_or", "*.timetable-or", "*.timetablelist_or", "*.timetablelist-or" };
+
+            List<TimetableInfo> result = new List<TimetableInfo>();
             if (route != null)
             {
-                var actdirectory = System.IO.Path.Combine(route.Path, "ACTIVITIES");
-                var directory = System.IO.Path.Combine(actdirectory, "OPENRAILS");
+                string path = System.IO.Path.Combine(route.Path, "ACTIVITIES", "OPENRAILS");
 
-                if (Directory.Exists(directory))
+                void AddFiles(string[] files)
                 {
-                    foreach (var ORTimetableFile in Directory.GetFiles(directory, "*.timetable_or"))
+                    foreach (var timetableFile in files)
                     {
-                        try
+                        if (token.IsCancellationRequested)
                         {
-                            ORTTInfo.Add(new TimetableInfo(ORTimetableFile));
+                            tcs.SetCanceled();
+                            return;
                         }
-                        catch { }
-                    }
-
-                    foreach (var ORTimetableFile in Directory.GetFiles(directory, "*.timetable-or"))
-                    {
                         try
                         {
-                            ORTTInfo.Add(new TimetableInfo(ORTimetableFile));
-                        }
-                        catch { }
-                    }
-
-                    foreach (var ORMultitimetableFile in Directory.GetFiles(directory, "*.timetablelist_or"))
-                    {
-                        try
-                        {
-                            ORTTInfo.Add(new TimetableInfo(ORMultitimetableFile, directory));
-                        }
-                        catch { }
-                    }
-
-                    foreach (var ORMultitimetableFile in Directory.GetFiles(directory, "*.timetablelist-or"))
-                    {
-                        try
-                        {
-                            ORTTInfo.Add(new TimetableInfo(ORMultitimetableFile, directory));
+                            result.Add(new TimetableInfo(timetableFile));
                         }
                         catch { }
                     }
                 }
+
+                if (Directory.Exists(path))
+                {
+                    foreach (string extension in extensions)
+                    {
+                        if (token.IsCancellationRequested)
+                        {
+                            tcs.TrySetCanceled();
+                            break;
+                        }
+                        AddFiles(Directory.GetFiles(path, extension));
+                    }
+                }
             }
-            return ORTTInfo;
+
+            tcs.TrySetResult(result);
+            return tcs.Task;
         }
     }
 }

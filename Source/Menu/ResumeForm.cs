@@ -50,7 +50,6 @@ Some problems remain (see <CJ comment> in the source code):
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -166,7 +165,7 @@ namespace ORTS
 
             if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
             {
-                Text =String.Format("{0} - {1} - {2}", Text, route.Name, Path.GetFileNameWithoutExtension(Timetable.fileName));
+                Text =String.Format("{0} - {1} - {2}", Text, route.Name, Path.GetFileNameWithoutExtension(Timetable.FileName));
                 pathNameDataGridViewTextBoxColumn.Visible = true;
             }
             else
@@ -200,7 +199,7 @@ namespace ORTS
 
                 if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
                 {
-                    prefix = Path.GetFileName(Route.Path) + " " + Path.GetFileNameWithoutExtension(Timetable.fileName);
+                    prefix = Path.GetFileName(Route.Path) + " " + Path.GetFileNameWithoutExtension(Timetable.FileName);
                 }
                 else if (Activity.FilePath != null)
                 {

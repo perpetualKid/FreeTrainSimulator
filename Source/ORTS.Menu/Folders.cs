@@ -15,16 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using ORTS.Settings;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
+using ORTS.Settings;
 
 namespace ORTS.Menu
 {
     public class Folder
     {
-        public readonly string Name;
-        public readonly string Path;
+        public string Name { get; private set; }
+        public string Path { get; private set; }
 
         public Folder(string name, string path)
         {
@@ -37,19 +38,20 @@ namespace ORTS.Menu
             return Name;
         }
 
-        public static List<Folder> GetFolders(UserSettings settings)
+        public static Task<List<Folder>> GetFolders(UserSettings settings)
         {
-            var folderDataFile = UserSettings.UserDataFolder + @"\folder.dat";
-            var folders = new List<Folder>();
+            string folderDataFile = System.IO.Path.Combine(UserSettings.UserDataFolder, "folder.dat");
+            List<Folder> folders = new List<Folder>();
+            TaskCompletionSource<List<Folder>> tcs = new TaskCompletionSource<List<Folder>>();
 
             if (settings.Folders.Folders.Count == 0 && File.Exists(folderDataFile))
             {
                 try
                 {
-                    using (var inf = new BinaryReader(File.Open(folderDataFile, FileMode.Open)))
+                    using (BinaryReader inf = new BinaryReader(File.Open(folderDataFile, FileMode.Open)))
                     {
                         var count = inf.ReadInt32();
-                        for (var i = 0; i < count; ++i)
+                        for (int i = 0; i < count; ++i)
                         {
                             var path = inf.ReadString();
                             var name = inf.ReadString();
@@ -70,7 +72,8 @@ namespace ORTS.Menu
                     folders.Add(new Folder(folder.Key, folder.Value));
             }
 
-            return folders;
+            tcs.TrySetResult(folders);
+            return tcs.Task;
         }
 
         public static void SetFolders(UserSettings settings, List<Folder> folders)
