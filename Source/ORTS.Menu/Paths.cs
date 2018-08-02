@@ -42,7 +42,7 @@ namespace ORTS.Menu
         /// <summary>Is the path a player path or not</summary>
         public bool IsPlayerPath { get; private set; }
 
-        GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
+        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         /// <summary>
         /// Constructor. This will try to have the requested .pat file parsed for its metadata
@@ -64,15 +64,18 @@ namespace ORTS.Menu
                 {
                     Name = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
                 }
-                if (string.IsNullOrEmpty(Name)) Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-                if (string.IsNullOrEmpty(Start)) Start = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-                if (string.IsNullOrEmpty(End)) End = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                if (string.IsNullOrEmpty(Name))
+                    Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                if (string.IsNullOrEmpty(Start))
+                    Start = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                if (string.IsNullOrEmpty(End))
+                    End = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
             }
             else
             {
                 Name = Start = End = "<" + catalog.GetString("missing:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
             }
-            this.FilePath = filePath;
+            FilePath = filePath;
         }
 
         /// <summary>
@@ -95,12 +98,12 @@ namespace ORTS.Menu
             string directory = System.IO.Path.Combine(route.Path, "PATHS");
             if (Directory.Exists(directory))
             {
-                foreach (var file in Directory.GetFiles(directory, "*.pat"))
+                Parallel.ForEach(Directory.GetFiles(directory, "*.pat"), (file, state) =>
                 {
                     if (token.IsCancellationRequested)
                     {
                         tcs.SetCanceled();
-                        break;
+                        state.Stop();
                     }
                     try
                     {
@@ -125,12 +128,15 @@ namespace ORTS.Menu
                                 && !file.EndsWith(@"ROUTES\USA2\PATHS\long-haul west (blizzard).pat", StringComparison.OrdinalIgnoreCase)
                                 )
                             {
-                                paths.Add(path);
+                                lock (paths)
+                                {
+                                    paths.Add(path);
+                                }
                             }
                         }
                     }
                     catch { }
-                }
+                });
             }
             tcs.TrySetResult(paths);
             return tcs.Task;

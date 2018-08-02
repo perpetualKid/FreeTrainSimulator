@@ -31,7 +31,7 @@ namespace ORTS.Menu
         public string Description { get; private set; }
         public string Path { get; private set; }
 
-        GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
+        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         internal Route(string path)
         {
@@ -48,8 +48,10 @@ namespace ORTS.Menu
                 {
                     Name = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileName(path) + ">";
                 }
-                if (string.IsNullOrEmpty(Name)) Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(path) + ">";
-                if (string.IsNullOrEmpty(Description)) Description = null;
+                if (string.IsNullOrEmpty(Name))
+                    Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(path) + ">";
+                if (string.IsNullOrEmpty(Description))
+                    Description = null;
             }
             else
             {
@@ -71,19 +73,23 @@ namespace ORTS.Menu
             string directory = System.IO.Path.Combine(folder.Path, "ROUTES");
             if (Directory.Exists(directory))
             {
-                foreach (var routeDirectory in Directory.GetDirectories(directory))
+                Parallel.ForEach(Directory.GetDirectories(directory), (routeDirectory, state) =>
                 {
                     if (token.IsCancellationRequested)
                     {
                         tcs.SetCanceled();
-                        break;
+                        state.Stop();
                     }
                     try
                     {
-                        routes.Add(new Route(routeDirectory));
+                        Route route = new Route(routeDirectory);
+                        lock (routes)
+                        {
+                            routes.Add(route);
+                        }
                     }
                     catch { }
-                }
+                });
             }
             tcs.TrySetResult(routes);
             return tcs.Task;

@@ -92,7 +92,7 @@ namespace ORTS
                                 parameters.Add(String.Format("-explorer \"{0}\" \"{1}\" {2} {3} {4}",
                                     exploreActivity.Path.FilePath,
                                     exploreActivity.Consist.FilePath,
-                                    exploreActivity.StartTime,
+                                    exploreActivity.StartTime.FormattedStartTime(),
                                     (int)exploreActivity.Season,
                                     (int)exploreActivity.Weather));
                             }
@@ -102,7 +102,7 @@ namespace ORTS
                                 parameters.Add(String.Format("-exploreactivity \"{0}\" \"{1}\" {2} {3} {4}",
                                     exploreActivity.Path.FilePath,
                                     exploreActivity.Consist.FilePath,
-                                    exploreActivity.StartTime,
+                                    exploreActivity.StartTime.FormattedStartTime(),
                                     (int)exploreActivity.Season,
                                     (int)exploreActivity.Weather));
                             }

@@ -166,7 +166,7 @@
     <None Include="Properties\DataSources\OptionsForm.ContentFolder.datasource" />
     <None Include="Properties\DataSources\ResumeForm.Save.datasource" />
     <None Include="Updater.ini">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

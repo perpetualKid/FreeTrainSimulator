@@ -38,7 +38,7 @@ namespace ORTS.Menu
         // note : file is read preliminary only, extracting description and train information
         // all other information is read only when activity is started
 
-        GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
+        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         internal TimetableInfo(string filePath)
         {
@@ -46,9 +46,10 @@ namespace ORTS.Menu
             {
                 try
                 {
-                    ORTTList.Add(new TimetableFileLite(filePath));
+                    TimetableFileLite timeTableLite = new TimetableFileLite(filePath);
+                    ORTTList.Add(timeTableLite);
                     FileName = filePath;
-                    Description = ORTTList[ORTTList.Count - 1].Description;
+                    Description = timeTableLite.Description;
                 }
                 catch
                 {
@@ -100,32 +101,36 @@ namespace ORTS.Menu
 
                 void AddFiles(string[] files)
                 {
-                    foreach (var timetableFile in files)
+                    Parallel.ForEach(files, (timetableFile, state) =>
                     {
                         if (token.IsCancellationRequested)
                         {
                             tcs.SetCanceled();
-                            return;
+                            state.Stop();
                         }
                         try
                         {
-                            result.Add(new TimetableInfo(timetableFile));
+                            TimetableInfo timetableInfo = new TimetableInfo(timetableFile);
+                            lock (result)
+                            {
+                                result.Add(timetableInfo);
+                            }
                         }
                         catch { }
-                    }
+                    });
                 }
 
                 if (Directory.Exists(path))
                 {
-                    foreach (string extension in extensions)
+                    Parallel.ForEach(extensions, (extension, state) =>
                     {
                         if (token.IsCancellationRequested)
                         {
                             tcs.TrySetCanceled();
-                            break;
+                            state.Stop();
                         }
                         AddFiles(Directory.GetFiles(path, extension));
-                    }
+                    });
                 }
             }
 

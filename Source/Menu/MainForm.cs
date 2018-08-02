@@ -77,11 +77,10 @@ namespace ORTS
         {
             get
             {
-                var programNormal = System.IO.Path.Combine(Application.StartupPath, "RunActivity.exe");
                 var programLAA = System.IO.Path.Combine(Application.StartupPath, "RunActivityLAA.exe");
                 if (settings.UseLargeAddressAware && File.Exists(programLAA))
                     return programLAA;
-                return programNormal;
+                return System.IO.Path.Combine(Application.StartupPath, "RunActivity.exe"); ;
             }
         }
         
@@ -128,22 +127,23 @@ namespace ORTS
             Text += " (debug)";
 #endif
             panelModeTimetable.Location = panelModeActivity.Location;
-//            ShowDetails();
             UpdateEnabled();
             ElevationIcon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize).ToBitmap();
         }
 
         private async void MainForm_Shown(object sender, EventArgs e)
         {
-            UpdateManager = new UpdateManager(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
-
+            this.Suspend();
             var options = Environment.GetCommandLineArgs().Where(a => (a.StartsWith("-") || a.StartsWith("/"))).Select(a => a.Substring(1));
             settings = new UserSettings(options);
 
             List<Task> initTasks = new List<Task>();
 
-            initTasks.Add(LoadOptions());
-            initTasks.Add(LoadLanguage());
+            initTasks.Add(InitializeUpdateManager());
+            initTasks.Add(LoadToolsAndDocuments());
+
+            LoadOptions();
+            LoadLanguage();
 
             if (!initialized)
             {
@@ -182,23 +182,26 @@ namespace ORTS
                 comboBoxTimetableWeather.Items.AddRange(weathers);
                 comboBoxTimetableDay.Items.AddRange(days);
 
-                initTasks.Add(LoadToolsAndDocuments());
-                initTasks.Add(CheckForUpdateAsync());
                 initTasks.Add(LoadFolderListAsync());
-
-                //                initTasks.Add(Task.Run(() => LoadToolsAndDocuments()));
-                //                initTasks.Add(Task.Run(() => CheckForUpdateAsync()));
-                //initTasks.Add(LoadFolderListAsync());
-
-                ShowEnvironment();
-                ShowTimetableEnvironment();
-
-                ShowDetails();
-                UpdateEnabled();
 
                 await Task.WhenAll(initTasks);
                 initialized = true;
             }
+
+            ShowEnvironment();
+            ShowTimetableEnvironment();
+
+            this.Resume();
+        }
+
+        private async System.Threading.Tasks.Task InitializeUpdateManager()
+        {
+            await Task.Run(() =>
+            {
+                UpdateManager = new UpdateManager(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
+            });
+            await CheckForUpdateAsync();
+
         }
 
         private System.Threading.Tasks.Task<List<ToolStripItem>> LoadTools()
@@ -282,8 +285,6 @@ namespace ORTS
 
         private async Task LoadToolsAndDocuments()
         {
-            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
-
             await Task.WhenAll(
                 Task.Run(() => LoadTools()).ContinueWith((tools) =>
                 {
@@ -336,7 +337,7 @@ namespace ORTS
             // This is known directly from the chosen channel so doesn't need to wait for the update check itself.
             linkLabelChangeLog.Visible = !string.IsNullOrEmpty(UpdateManager.ChangeLogLink);
 
-            await UpdateManager.CheckForUpdateAsync().ConfigureAwait(false);
+            await Task.Run(() => UpdateManager.CheckForUpdateAsync());
 
             if (UpdateManager.LastCheckError != null)
                 linkLabelUpdate.Text = catalog.GetString("Update check failed");
@@ -357,24 +358,20 @@ namespace ORTS
             linkLabelUpdate.Width = panelDetails.Right - linkLabelUpdate.Left;
         }
 
-        private Task LoadLanguage()
+        private void LoadLanguage()
         {
-            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
             if (!string.IsNullOrEmpty(settings.Language))
             {
                 try
                 {
                     Thread.CurrentThread.CurrentUICulture = new CultureInfo(settings.Language);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    tcs.TrySetException(ex);
                 }
             }
 
             Localizer.Localize(this, catalog);
-            tcs.TrySetResult(null);
-            return tcs.Task;
         }
 
         private void RestartMenu()
@@ -387,7 +384,7 @@ namespace ORTS
         #region Folders
         private async void ComboBoxFolder_SelectedIndexChanged(object sender, EventArgs e)
         {
-            await Task.WhenAll(LoadRouteListAsync(), LoadLocomotiveListAsync()).ConfigureAwait(false);
+            await Task.WhenAll(LoadRouteListAsync(), LoadLocomotiveListAsync());
             ShowDetails();
         }
         #endregion
@@ -398,7 +395,7 @@ namespace ORTS
             await Task.WhenAll(
                 LoadActivityListAsync(), 
                 LoadStartAtListAsync(), 
-                LoadTimetableSetListAsync()).ConfigureAwait(false);
+                LoadTimetableSetListAsync());
             ShowDetails();
         }
         #endregion
@@ -430,7 +427,7 @@ namespace ORTS
         #endregion
 
         #region Locomotives
-        private void comboBoxLocomotive_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxLocomotive_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowConsistList();
             ShowDetails();
@@ -438,7 +435,7 @@ namespace ORTS
         #endregion
 
         #region Consists
-        private void comboBoxConsist_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxConsist_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
             ShowDetails();
@@ -453,7 +450,7 @@ namespace ORTS
         #endregion
 
         #region Heading to
-        private void comboBoxHeadTo_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxHeadTo_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
             ShowDetails();
@@ -478,7 +475,7 @@ namespace ORTS
         #endregion
 
         #region Timetable Sets
-        private void comboBoxTimetableSet_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetableSet_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableSet();
             ShowTimetableList();
@@ -487,7 +484,7 @@ namespace ORTS
         #endregion
 
         #region Timetables
-        private void comboBoxTimetable_selectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetable_selectedIndexChanged(object sender, EventArgs e)
         {
             ShowTimetableTrainList();
             ShowDetails();
@@ -592,7 +589,7 @@ namespace ORTS
                 switch (form.ShowDialog(this))
                 {
                     case DialogResult.OK:
-                        await Task.WhenAll(LoadFolderListAsync(), CheckForUpdateAsync()).ConfigureAwait(false);
+                        await Task.WhenAll(LoadFolderListAsync(), CheckForUpdateAsync());
                         break;
                     case DialogResult.Retry:
                         RestartMenu();
@@ -666,10 +663,8 @@ namespace ORTS
         #endregion
 
         #region Options
-        private Task LoadOptions()
+        private void LoadOptions()
         {
-            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
-
             checkBoxWarnings.Checked = settings.Logging;
             checkBoxWindowed.Checked = !settings.FullScreen;
             //Debrief activity evaluation
@@ -679,8 +674,6 @@ namespace ORTS
 
             textBoxMPUser.Text = settings.Multiplayer_User;
             textBoxMPHost.Text = settings.Multiplayer_Host + ":" + settings.Multiplayer_Port;
-            tcs.TrySetResult(null);
-            return tcs.Task;
         }
 
         private void SaveOptions()
@@ -759,7 +752,7 @@ namespace ORTS
             folders.Clear();
             ShowFolderList();
 
-            folders = (await Folder.GetFolders(settings).ConfigureAwait(false)).OrderBy(f => f.Name).ToList();
+            folders = (await Task.Run (() => Folder.GetFolders(settings))).OrderBy(f => f.Name).ToList();
 
             ShowFolderList();
             if (folders.Count > 0)
@@ -772,7 +765,7 @@ namespace ORTS
                     switch (form.ShowDialog(this))
                     {
                         case DialogResult.OK:
-                            await LoadFolderListAsync().ConfigureAwait(false);
+                            await LoadFolderListAsync();
                             break;
                         case DialogResult.Retry:
                             RestartMenu();
@@ -818,7 +811,8 @@ namespace ORTS
             ShowStartAtList();
             ShowHeadToList();
 
-            routes = (await Route.GetRoutes(SelectedFolder, ctsRouteLoading.Token).ConfigureAwait(false)).OrderBy(r => r.Name).ToList();
+            Folder selectedFolder = SelectedFolder;
+            routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token))).OrderBy(r => r.Name).ToList();
             ShowRouteList();
         }
 
@@ -862,7 +856,7 @@ namespace ORTS
 
             Folder selectedFolder = SelectedFolder;
             Route selectedRoute = SelectedRoute;
-            activities = (await Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token).ConfigureAwait(false)).OrderBy(a => a.Name).ToList();
+            activities = (await Task.Run(() => Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token))).OrderBy(a => a.Name).ToList();
             ShowActivityList();
         }
 
@@ -884,15 +878,7 @@ namespace ORTS
 
         private void UpdateExploreActivity()
         {
-            if (SelectedActivity == null || !(SelectedActivity is ExploreActivity))
-                return;
-
-            var exploreActivity = SelectedActivity as ExploreActivity;
-            exploreActivity.Consist = SelectedConsist;
-            exploreActivity.Path = SelectedPath;
-            exploreActivity.StartTime = SelectedStartTime;
-            exploreActivity.Season = (Orts.Formats.Msts.SeasonType)SelectedStartSeason;
-            exploreActivity.Weather = (Orts.Formats.Msts.WeatherType)SelectedStartWeather;
+            (SelectedActivity as ExploreActivity)?.UpdateActivity(SelectedStartTime, (Orts.Formats.Msts.SeasonType)SelectedStartSeason, (Orts.Formats.Msts.WeatherType)SelectedStartWeather, SelectedConsist, SelectedPath);
         }
         #endregion
 
@@ -910,7 +896,8 @@ namespace ORTS
             ShowLocomotiveList();
             ShowConsistList();
 
-            consists = (await Consist.GetConsists(SelectedFolder, ctsConsistLoading.Token).ConfigureAwait(false)).OrderBy(c => c.Name).ToList();
+            Folder selectedFolder = SelectedFolder;
+            consists = (await Task.Run(() => Consist.GetConsists(selectedFolder, ctsConsistLoading.Token))).OrderBy(c => c.Name).ToList();
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowLocomotiveList();
         }
@@ -923,7 +910,7 @@ namespace ORTS
                 {
                     comboBoxLocomotive.BeginUpdate();
                     comboBoxLocomotive.Items.Clear();
-                    comboBoxLocomotive.Items.Add(new Locomotive());
+                    comboBoxLocomotive.Items.Add(Locomotive.GetLocomotive(null));
                     comboBoxLocomotive.Items.AddRange(consists.Where(c => c.Locomotive != null).Select(c => c.Locomotive).Distinct().OrderBy(l => l.Name).ToArray());
                     if (comboBoxLocomotive.Items.Count == 1)
                         comboBoxLocomotive.Items.Clear();
@@ -992,7 +979,7 @@ namespace ORTS
             ShowHeadToList();
 
             var selectedRoute = SelectedRoute;
-            paths = (await Path.GetPaths(selectedRoute, false, ctsPathLoading.Token).ConfigureAwait(false)).OrderBy(a => a.ToString()).ToList();
+            paths = (await Task.Run(() => Path.GetPaths(selectedRoute, false, ctsPathLoading.Token))).OrderBy(a => a.ToString()).ToList();
 
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowStartAtList();
@@ -1134,7 +1121,7 @@ namespace ORTS
 
             var selectedFolder = SelectedFolder;
             var selectedRoute = SelectedRoute;
-            timetableSets = (await TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token).ConfigureAwait(false)).OrderBy(tt => tt.Description).ToList();
+            timetableSets = (await Task.Run(() => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token))).OrderBy(tt => tt.Description).ToList();
             ShowTimetableSetList();
         }
 
@@ -1188,7 +1175,7 @@ namespace ORTS
         }
         #endregion
 
-                #region Timetable Train list
+        #region Timetable Train list
                 private void ShowTimetableTrainList()
                 {
                     if (null != SelectedTimetableSet)
@@ -1320,7 +1307,7 @@ namespace ORTS
             try
             {
 
-                panelDetails.Suspend();
+                this.Suspend();
                 var titleControl = new Label { Margin = new Padding(2), Text = title, UseMnemonic = false, Font = new Font(panelDetails.Font, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft };
                 panelDetails.Controls.Add(titleControl);
                 titleControl.Left = titleControl.Margin.Left;
@@ -1385,7 +1372,7 @@ namespace ORTS
             }
             finally
             {
-                panelDetails.Resume();
+                this.Resume();
             }
         }
 

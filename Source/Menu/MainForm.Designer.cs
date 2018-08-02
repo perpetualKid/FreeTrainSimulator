@@ -488,7 +488,7 @@ namespace ORTS
             this.comboBoxLocomotive.Name = "comboBoxLocomotive";
             this.comboBoxLocomotive.Size = new System.Drawing.Size(281, 21);
             this.comboBoxLocomotive.TabIndex = 3;
-            this.comboBoxLocomotive.SelectedIndexChanged += new System.EventHandler(this.comboBoxLocomotive_SelectedIndexChanged);
+            this.comboBoxLocomotive.SelectedIndexChanged += new System.EventHandler(this.ComboBoxLocomotive_SelectedIndexChanged);
             // 
             // comboBoxConsist
             // 
@@ -501,7 +501,7 @@ namespace ORTS
             this.comboBoxConsist.Name = "comboBoxConsist";
             this.comboBoxConsist.Size = new System.Drawing.Size(281, 21);
             this.comboBoxConsist.TabIndex = 5;
-            this.comboBoxConsist.SelectedIndexChanged += new System.EventHandler(this.comboBoxConsist_SelectedIndexChanged);
+            this.comboBoxConsist.SelectedIndexChanged += new System.EventHandler(this.ComboBoxConsist_SelectedIndexChanged);
             // 
             // label5
             // 
@@ -560,7 +560,7 @@ namespace ORTS
             this.comboBoxHeadTo.Name = "comboBoxHeadTo";
             this.comboBoxHeadTo.Size = new System.Drawing.Size(281, 21);
             this.comboBoxHeadTo.TabIndex = 9;
-            this.comboBoxHeadTo.SelectedIndexChanged += new System.EventHandler(this.comboBoxHeadTo_SelectedIndexChanged);
+            this.comboBoxHeadTo.SelectedIndexChanged += new System.EventHandler(this.ComboBoxHeadTo_SelectedIndexChanged);
             // 
             // label11
             // 
@@ -811,7 +811,7 @@ namespace ORTS
             this.comboBoxTimetable.Name = "comboBoxTimetable";
             this.comboBoxTimetable.Size = new System.Drawing.Size(193, 21);
             this.comboBoxTimetable.TabIndex = 3;
-            this.comboBoxTimetable.SelectedIndexChanged += new System.EventHandler(this.comboBoxTimetable_selectedIndexChanged);
+            this.comboBoxTimetable.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetable_selectedIndexChanged);
             this.comboBoxTimetable.EnabledChanged += new System.EventHandler(this.ComboBoxTimetable_EnabledChanged);
             // 
             // comboBoxTimetableSet
@@ -822,7 +822,7 @@ namespace ORTS
             this.comboBoxTimetableSet.Name = "comboBoxTimetableSet";
             this.comboBoxTimetableSet.Size = new System.Drawing.Size(281, 21);
             this.comboBoxTimetableSet.TabIndex = 1;
-            this.comboBoxTimetableSet.SelectedIndexChanged += new System.EventHandler(this.comboBoxTimetableSet_SelectedIndexChanged);
+            this.comboBoxTimetableSet.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableSet_SelectedIndexChanged);
             // 
             // label15
             // 
