@@ -61,6 +61,7 @@
             this.numericSoundDetailLevel = new System.Windows.Forms.NumericUpDown();
             this.checkMSTSBINSound = new System.Windows.Forms.CheckBox();
             this.tabPageVideo = new System.Windows.Forms.TabPage();
+            this.checkShadowAllShapes = new System.Windows.Forms.CheckBox();
             this.checkDoubleWire = new System.Windows.Forms.CheckBox();
             this.checkEnableMultisampling = new System.Windows.Forms.CheckBox();
             this.checkShadowAllShapes = new System.Windows.Forms.CheckBox();
@@ -187,7 +188,6 @@
             this.ElevationText = new System.Windows.Forms.Label();
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.checkShadowAllShapes = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -637,6 +637,16 @@
             this.checkEnableMultisampling.TabIndex = 25;
             this.checkEnableMultisampling.Text = "Enable multisampling";
             this.checkEnableMultisampling.UseVisualStyleBackColor = true;
+            // 
+            // checkShadowAllShapes
+            // 
+            this.checkShadowAllShapes.AutoSize = true;
+            this.checkShadowAllShapes.Location = new System.Drawing.Point(6, 29);
+            this.checkShadowAllShapes.Name = "checkShadowAllShapes";
+            this.checkShadowAllShapes.Size = new System.Drawing.Size(130, 17);
+            this.checkShadowAllShapes.TabIndex = 24;
+            this.checkShadowAllShapes.Text = "Shadow for all shapes";
+            this.checkShadowAllShapes.UseVisualStyleBackColor = true;
             // 
             // checkShadowAllShapes
             // 
@@ -1466,7 +1476,7 @@
             this.buttonContentBrowse.Name = "buttonContentBrowse";
             this.buttonContentBrowse.Size = new System.Drawing.Size(75, 23);
             this.buttonContentBrowse.TabIndex = 2;
-            this.buttonContentBrowse.Text = "Browse...";
+            this.buttonContentBrowse.Text = "Change...";
             this.buttonContentBrowse.UseVisualStyleBackColor = true;
             this.buttonContentBrowse.Click += new System.EventHandler(this.buttonContentBrowse_Click);
             // 
@@ -1515,7 +1525,7 @@
             this.buttonContentAdd.Name = "buttonContentAdd";
             this.buttonContentAdd.Size = new System.Drawing.Size(75, 23);
             this.buttonContentAdd.TabIndex = 0;
-            this.buttonContentAdd.Text = "Add";
+            this.buttonContentAdd.Text = "Add...";
             this.buttonContentAdd.UseVisualStyleBackColor = true;
             this.buttonContentAdd.Click += new System.EventHandler(this.buttonContentAdd_Click);
             // 
