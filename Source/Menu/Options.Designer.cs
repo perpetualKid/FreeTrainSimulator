@@ -61,10 +61,9 @@
             this.numericSoundDetailLevel = new System.Windows.Forms.NumericUpDown();
             this.checkMSTSBINSound = new System.Windows.Forms.CheckBox();
             this.tabPageVideo = new System.Windows.Forms.TabPage();
-            this.checkShadowAllShapes = new System.Windows.Forms.CheckBox();
-            this.checkDoubleWire = new System.Windows.Forms.CheckBox();
             this.checkEnableMultisampling = new System.Windows.Forms.CheckBox();
             this.checkShadowAllShapes = new System.Windows.Forms.CheckBox();
+            this.checkDoubleWire = new System.Windows.Forms.CheckBox();
             this.label15 = new System.Windows.Forms.Label();
             this.labelDayAmbientLight = new System.Windows.Forms.Label();
             this.checkModelInstancing = new System.Windows.Forms.CheckBox();
@@ -239,7 +238,7 @@
             this.buttonOK.TabIndex = 1;
             this.buttonOK.Text = "OK";
             this.buttonOK.UseVisualStyleBackColor = true;
-            this.buttonOK.Click += new System.EventHandler(this.buttonOK_Click);
+            this.buttonOK.Click += new System.EventHandler(this.ButtonOK_Click);
             // 
             // numericBrakePipeChargingRate
             // 
@@ -303,7 +302,7 @@
             this.checkAlerter.TabIndex = 0;
             this.checkAlerter.Text = "Alerter in cab";
             this.checkAlerter.UseVisualStyleBackColor = true;
-            this.checkAlerter.CheckedChanged += new System.EventHandler(this.checkAlerter_CheckedChanged);
+            this.checkAlerter.CheckedChanged += new System.EventHandler(this.CheckAlerter_CheckedChanged);
             // 
             // checkConfirmations
             // 
@@ -626,6 +625,7 @@
             this.tabPageVideo.TabIndex = 4;
             this.tabPageVideo.Text = "Video";
             this.tabPageVideo.UseVisualStyleBackColor = true;
+            // 
             // checkEnableMultisampling
             // 
             this.checkEnableMultisampling.AutoSize = true;
@@ -637,16 +637,6 @@
             this.checkEnableMultisampling.TabIndex = 25;
             this.checkEnableMultisampling.Text = "Enable multisampling";
             this.checkEnableMultisampling.UseVisualStyleBackColor = true;
-            // 
-            // checkShadowAllShapes
-            // 
-            this.checkShadowAllShapes.AutoSize = true;
-            this.checkShadowAllShapes.Location = new System.Drawing.Point(6, 29);
-            this.checkShadowAllShapes.Name = "checkShadowAllShapes";
-            this.checkShadowAllShapes.Size = new System.Drawing.Size(130, 17);
-            this.checkShadowAllShapes.TabIndex = 24;
-            this.checkShadowAllShapes.Text = "Shadow for all shapes";
-            this.checkShadowAllShapes.UseVisualStyleBackColor = true;
             // 
             // checkShadowAllShapes
             // 
@@ -712,7 +702,7 @@
             this.trackDayAmbientLight.TabIndex = 21;
             this.toolTip1.SetToolTip(this.trackDayAmbientLight, "Default is 100%");
             this.trackDayAmbientLight.Value = 20;
-            this.trackDayAmbientLight.ValueChanged += new System.EventHandler(this.trackDayAmbientLight_ValueChanged);
+            this.trackDayAmbientLight.ValueChanged += new System.EventHandler(this.TrackDayAmbientLight_ValueChanged);
             // 
             // checkVerticalSync
             // 
@@ -782,7 +772,7 @@
             this.checkDistantMountains.TabIndex = 10;
             this.checkDistantMountains.Text = "Distant mountains";
             this.checkDistantMountains.UseVisualStyleBackColor = true;
-            this.checkDistantMountains.Click += new System.EventHandler(this.checkDistantMountains_Click);
+            this.checkDistantMountains.Click += new System.EventHandler(this.CheckDistantMountains_Click);
             // 
             // label14
             // 
@@ -852,7 +842,7 @@
             0,
             0,
             0});
-            this.numericViewingFOV.ValueChanged += new System.EventHandler(this.numericUpDownFOV_ValueChanged);
+            this.numericViewingFOV.ValueChanged += new System.EventHandler(this.NumericUpDownFOV_ValueChanged);
             // 
             // label10
             // 
@@ -1148,7 +1138,7 @@
             this.checkUseAdvancedAdhesion.TabIndex = 0;
             this.checkUseAdvancedAdhesion.Text = "Advanced adhesion model";
             this.checkUseAdvancedAdhesion.UseVisualStyleBackColor = true;
-            this.checkUseAdvancedAdhesion.Click += new System.EventHandler(this.checkUseAdvancedAdhesion_Click);
+            this.checkUseAdvancedAdhesion.Click += new System.EventHandler(this.CheckUseAdvancedAdhesion_Click);
             // 
             // tabPageKeyboard
             // 
@@ -1176,7 +1166,7 @@
             this.toolTip1.SetToolTip(this.buttonExport, "Generate a listing of your keyboard assignments.  \r\nThe output is placed on your " +
         "desktop.");
             this.buttonExport.UseVisualStyleBackColor = true;
-            this.buttonExport.Click += new System.EventHandler(this.buttonExport_Click);
+            this.buttonExport.Click += new System.EventHandler(this.ButtonExport_Click);
             // 
             // buttonDefaultKeys
             // 
@@ -1188,7 +1178,7 @@
             this.buttonDefaultKeys.Text = "Defaults";
             this.toolTip1.SetToolTip(this.buttonDefaultKeys, "Load the factory default key assignments.");
             this.buttonDefaultKeys.UseVisualStyleBackColor = true;
-            this.buttonDefaultKeys.Click += new System.EventHandler(this.buttonDefaultKeys_Click);
+            this.buttonDefaultKeys.Click += new System.EventHandler(this.ButtonDefaultKeys_Click);
             // 
             // buttonCheckKeys
             // 
@@ -1200,7 +1190,7 @@
             this.buttonCheckKeys.Text = "Check";
             this.toolTip1.SetToolTip(this.buttonCheckKeys, "Check for incorrect key assignments.");
             this.buttonCheckKeys.UseVisualStyleBackColor = true;
-            this.buttonCheckKeys.Click += new System.EventHandler(this.buttonCheckKeys_Click);
+            this.buttonCheckKeys.Click += new System.EventHandler(this.ButtonCheckKeys_Click);
             // 
             // panelKeys
             // 
@@ -1412,7 +1402,7 @@
             this.checkDataLogTrainSpeed.TabIndex = 0;
             this.checkDataLogTrainSpeed.Text = "Log train speed";
             this.checkDataLogTrainSpeed.UseVisualStyleBackColor = true;
-            this.checkDataLogTrainSpeed.Click += new System.EventHandler(this.checkDataLogTrainSpeed_Click);
+            this.checkDataLogTrainSpeed.Click += new System.EventHandler(this.CheckDataLogTrainSpeed_Click);
             // 
             // tabPageContent
             // 
@@ -1451,7 +1441,7 @@
             this.buttonContentDelete.TabIndex = 1;
             this.buttonContentDelete.Text = "Delete";
             this.buttonContentDelete.UseVisualStyleBackColor = true;
-            this.buttonContentDelete.Click += new System.EventHandler(this.buttonContentDelete_Click);
+            this.buttonContentDelete.Click += new System.EventHandler(this.ButtonContentDelete_Click);
             // 
             // groupBoxContent
             // 
@@ -1478,7 +1468,7 @@
             this.buttonContentBrowse.TabIndex = 2;
             this.buttonContentBrowse.Text = "Change...";
             this.buttonContentBrowse.UseVisualStyleBackColor = true;
-            this.buttonContentBrowse.Click += new System.EventHandler(this.buttonContentBrowse_Click);
+            this.buttonContentBrowse.Click += new System.EventHandler(this.ButtonContentBrowse_Click);
             // 
             // textBoxContentPath
             // 
@@ -1516,7 +1506,7 @@
             this.textBoxContentName.Name = "textBoxContentName";
             this.textBoxContentName.Size = new System.Drawing.Size(453, 20);
             this.textBoxContentName.TabIndex = 4;
-            this.textBoxContentName.TextChanged += new System.EventHandler(this.textBoxContentName_TextChanged);
+            this.textBoxContentName.TextChanged += new System.EventHandler(this.TextBoxContentName_TextChanged);
             // 
             // buttonContentAdd
             // 
@@ -1527,7 +1517,7 @@
             this.buttonContentAdd.TabIndex = 0;
             this.buttonContentAdd.Text = "Add...";
             this.buttonContentAdd.UseVisualStyleBackColor = true;
-            this.buttonContentAdd.Click += new System.EventHandler(this.buttonContentAdd_Click);
+            this.buttonContentAdd.Click += new System.EventHandler(this.ButtonContentAdd_Click);
             // 
             // panelContent
             // 
@@ -1583,7 +1573,7 @@
             this.dataGridViewContent.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridViewContent.Size = new System.Drawing.Size(588, 271);
             this.dataGridViewContent.TabIndex = 0;
-            this.dataGridViewContent.SelectionChanged += new System.EventHandler(this.dataGridViewContent_SelectionChanged);
+            this.dataGridViewContent.SelectionChanged += new System.EventHandler(this.DataGridViewContent_SelectionChanged);
             // 
             // nameDataGridViewTextBoxColumn
             // 
@@ -1949,7 +1939,7 @@
             this.trackLODBias.TabIndex = 16;
             this.trackLODBias.TickFrequency = 10;
             this.toolTip1.SetToolTip(this.trackLODBias, "Default is 0%");
-            this.trackLODBias.ValueChanged += new System.EventHandler(this.trackLODBias_ValueChanged);
+            this.trackLODBias.ValueChanged += new System.EventHandler(this.TrackLODBias_ValueChanged);
             // 
             // checkConditionalLoadOfNightTextures
             // 
@@ -1991,7 +1981,7 @@
             this.trackAdhesionFactorChange.TickFrequency = 10;
             this.toolTip1.SetToolTip(this.trackAdhesionFactorChange, "Default is 10%");
             this.trackAdhesionFactorChange.Value = 10;
-            this.trackAdhesionFactorChange.ValueChanged += new System.EventHandler(this.trackAdhesionFactor_ValueChanged);
+            this.trackAdhesionFactorChange.ValueChanged += new System.EventHandler(this.TrackAdhesionFactor_ValueChanged);
             // 
             // trackAdhesionFactor
             // 
@@ -2007,7 +1997,7 @@
             this.trackAdhesionFactor.TickFrequency = 10;
             this.toolTip1.SetToolTip(this.trackAdhesionFactor, "Default is 130%");
             this.trackAdhesionFactor.Value = 130;
-            this.trackAdhesionFactor.ValueChanged += new System.EventHandler(this.trackAdhesionFactor_ValueChanged);
+            this.trackAdhesionFactor.ValueChanged += new System.EventHandler(this.TrackAdhesionFactor_ValueChanged);
             // 
             // checkAdhesionPropToWeather
             // 
@@ -2108,7 +2098,7 @@
             this.checkPerformanceTuner.TabIndex = 8;
             this.checkPerformanceTuner.Text = "Automatically tune settings to keep performance level";
             this.checkPerformanceTuner.UseVisualStyleBackColor = true;
-            this.checkPerformanceTuner.Click += new System.EventHandler(this.checkPerformanceTuner_Click);
+            this.checkPerformanceTuner.Click += new System.EventHandler(this.CheckPerformanceTuner_Click);
             // 
             // checkLODViewingExtention
             // 
