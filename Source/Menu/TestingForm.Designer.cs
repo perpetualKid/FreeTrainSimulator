@@ -64,7 +64,7 @@
             this.buttonTestAll.TabIndex = 1;
             this.buttonTestAll.Text = "Test all";
             this.buttonTestAll.UseVisualStyleBackColor = true;
-            this.buttonTestAll.Click += new System.EventHandler(this.buttonTestAll_Click);
+            this.buttonTestAll.Click += new System.EventHandler(this.ButtonTestAll_Click);
             // 
             // buttonTest
             // 
@@ -75,7 +75,7 @@
             this.buttonTest.TabIndex = 2;
             this.buttonTest.Text = "Test";
             this.buttonTest.UseVisualStyleBackColor = true;
-            this.buttonTest.Click += new System.EventHandler(this.buttonTest_Click);
+            this.buttonTest.Click += new System.EventHandler(this.ButtonTest_Click);
             // 
             // buttonCancel
             // 
@@ -86,7 +86,7 @@
             this.buttonCancel.TabIndex = 3;
             this.buttonCancel.Text = "Cancel";
             this.buttonCancel.UseVisualStyleBackColor = true;
-            this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
+            this.buttonCancel.Click += new System.EventHandler(this.ButtonCancel_Click);
             // 
             // buttonSummary
             // 
@@ -97,7 +97,7 @@
             this.buttonSummary.TabIndex = 6;
             this.buttonSummary.Text = "Summary";
             this.buttonSummary.UseVisualStyleBackColor = true;
-            this.buttonSummary.Click += new System.EventHandler(this.buttonSummary_Click);
+            this.buttonSummary.Click += new System.EventHandler(this.ButtonSummary_Click);
             // 
             // gridTestActivities
             // 
@@ -184,7 +184,7 @@
             this.routeDataGridViewTextBoxColumn.HeaderText = "Route";
             this.routeDataGridViewTextBoxColumn.Name = "routeDataGridViewTextBoxColumn";
             this.routeDataGridViewTextBoxColumn.ReadOnly = true;
-            this.routeDataGridViewTextBoxColumn.Width = 59;
+            this.routeDataGridViewTextBoxColumn.Width = 61;
             // 
             // activityDataGridViewTextBoxColumn
             // 
@@ -192,7 +192,7 @@
             this.activityDataGridViewTextBoxColumn.HeaderText = "Activity";
             this.activityDataGridViewTextBoxColumn.Name = "activityDataGridViewTextBoxColumn";
             this.activityDataGridViewTextBoxColumn.ReadOnly = true;
-            this.activityDataGridViewTextBoxColumn.Width = 64;
+            this.activityDataGridViewTextBoxColumn.Width = 66;
             // 
             // testedDataGridViewCheckBoxColumn
             // 
@@ -201,7 +201,7 @@
             this.testedDataGridViewCheckBoxColumn.Name = "testedDataGridViewCheckBoxColumn";
             this.testedDataGridViewCheckBoxColumn.ReadOnly = true;
             this.testedDataGridViewCheckBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.testedDataGridViewCheckBoxColumn.Width = 63;
+            this.testedDataGridViewCheckBoxColumn.Width = 65;
             // 
             // passedDataGridViewCheckBoxColumn
             // 
@@ -210,7 +210,7 @@
             this.passedDataGridViewCheckBoxColumn.Name = "passedDataGridViewCheckBoxColumn";
             this.passedDataGridViewCheckBoxColumn.ReadOnly = true;
             this.passedDataGridViewCheckBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.passedDataGridViewCheckBoxColumn.Width = 65;
+            this.passedDataGridViewCheckBoxColumn.Width = 67;
             // 
             // errorsDataGridViewTextBoxColumn
             // 
@@ -218,7 +218,7 @@
             this.errorsDataGridViewTextBoxColumn.HeaderText = "Errors";
             this.errorsDataGridViewTextBoxColumn.Name = "errorsDataGridViewTextBoxColumn";
             this.errorsDataGridViewTextBoxColumn.ReadOnly = true;
-            this.errorsDataGridViewTextBoxColumn.Width = 57;
+            this.errorsDataGridViewTextBoxColumn.Width = 59;
             // 
             // loadDataGridViewTextBoxColumn
             // 
@@ -228,7 +228,7 @@
             this.loadDataGridViewTextBoxColumn.HeaderText = "Load";
             this.loadDataGridViewTextBoxColumn.Name = "loadDataGridViewTextBoxColumn";
             this.loadDataGridViewTextBoxColumn.ReadOnly = true;
-            this.loadDataGridViewTextBoxColumn.Width = 54;
+            this.loadDataGridViewTextBoxColumn.Width = 56;
             // 
             // fpsDataGridViewTextBoxColumn
             // 
@@ -238,7 +238,7 @@
             this.fpsDataGridViewTextBoxColumn.HeaderText = "FPS";
             this.fpsDataGridViewTextBoxColumn.Name = "fpsDataGridViewTextBoxColumn";
             this.fpsDataGridViewTextBoxColumn.ReadOnly = true;
-            this.fpsDataGridViewTextBoxColumn.Width = 50;
+            this.fpsDataGridViewTextBoxColumn.Width = 52;
             // 
             // blankDataGridViewTextBoxColumn
             // 
@@ -261,7 +261,7 @@
             this.buttonDetails.TabIndex = 7;
             this.buttonDetails.Text = "Details";
             this.buttonDetails.UseVisualStyleBackColor = true;
-            this.buttonDetails.Click += new System.EventHandler(this.buttonDetails_Click);
+            this.buttonDetails.Click += new System.EventHandler(this.ButtonDetails_Click);
             // 
             // checkBoxOverride
             // 
@@ -283,7 +283,7 @@
             this.buttonNoSort.TabIndex = 5;
             this.buttonNoSort.Text = "Clear sort";
             this.buttonNoSort.UseVisualStyleBackColor = true;
-            this.buttonNoSort.Click += new System.EventHandler(this.buttonNoSort_Click);
+            this.buttonNoSort.Click += new System.EventHandler(this.ButtonNoSort_Click);
             // 
             // panelTests
             // 
@@ -313,6 +313,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Testing";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.TestingForm_FormClosing);
+            this.Shown += new System.EventHandler(this.TestingForm_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.gridTestActivities)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.testBindingSource)).EndInit();
             this.panelTests.ResumeLayout(false);

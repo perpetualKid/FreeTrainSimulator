@@ -18,12 +18,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
@@ -57,17 +57,15 @@ namespace ORTS
             }
         }
 
-        Task<SortableBindingList<TestActivity>> TestActivityLoader;
+        private CancellationTokenSource ctsTestActivityLoader;
+        private CancellationTokenSource ctsTestActivityRunner;
+        private bool clearedLogs;
+        private readonly string runActivity;
+        private readonly UserSettings settings;
+        private readonly string summaryFilePath = Path.Combine(UserSettings.UserDataFolder, "TestingSummary.csv");
+        private readonly string logFilePath = Path.Combine(UserSettings.UserDataFolder, "TestingLog.txt");
 
-        Task<int> TestActivitiesRunner;
-        bool ClearedLogs;
-
-        readonly MainForm MainForm;
-        readonly UserSettings Settings;
-		readonly string SummaryFilePath = Path.Combine(UserSettings.UserDataFolder, "TestingSummary.csv");
-		readonly string LogFilePath = Path.Combine(UserSettings.UserDataFolder, "TestingLog.txt");
-
-        public TestingForm(MainForm mainForm, UserSettings settings)
+        public TestingForm(UserSettings settings, string runActivity)
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
@@ -79,170 +77,218 @@ namespace ORTS
             // Message Box font to allow for user-customizations, though.
             Font = SystemFonts.MessageBoxFont;
 
-            MainForm = mainForm;
-            Settings = settings;
+            this.runActivity = runActivity;
+            this.settings = settings;
 
             UpdateButtons();
-
-            LoadActivities();
         }
 
-        void TestingForm_FormClosing(object sender, FormClosingEventArgs e)
+        private async void TestingForm_Shown(object sender, EventArgs e)
         {
-            if (TestActivityLoader != null)
-                TestActivityLoader.Cancel();
-            if (TestActivitiesRunner != null)
-                TestActivitiesRunner.Cancel();
+            await LoadActivitiesAsync();
         }
 
-        void UpdateButtons()
+        private void TestingForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            buttonTestAll.Enabled = TestActivitiesRunner == null && gridTestActivities.RowCount > 0;
-            buttonTest.Enabled = TestActivitiesRunner == null && gridTestActivities.SelectedRows.Count > 0;
-            buttonCancel.Enabled = TestActivitiesRunner != null && !TestActivitiesRunner.Cancelled;
-            buttonSummary.Enabled = TestActivitiesRunner == null && File.Exists(SummaryFilePath);
-            buttonDetails.Enabled = TestActivitiesRunner == null && File.Exists(LogFilePath);
-        }
-
-        void LoadActivities()
-        {
-            if (TestActivityLoader != null)
-                TestActivityLoader.Cancel();
-
-            TestActivityLoader = new Task<SortableBindingList<TestActivity>>(this, () =>
+            if (ctsTestActivityLoader != null && !ctsTestActivityLoader.IsCancellationRequested)
             {
-                return new SortableBindingList<TestActivity>((from f in Folder.GetFolders(Settings).Result
+                ctsTestActivityLoader.Cancel();
+                ctsTestActivityLoader.Dispose();
+            }
+            if (ctsTestActivityRunner != null && !ctsTestActivityRunner.IsCancellationRequested)
+            {
+                ctsTestActivityRunner.Cancel();
+                ctsTestActivityRunner.Dispose();
+            }
+        }
+
+        private void UpdateButtons()
+        {
+            buttonTestAll.Enabled = ctsTestActivityRunner == null && gridTestActivities.RowCount > 0;
+            buttonTest.Enabled = ctsTestActivityRunner == null && gridTestActivities.SelectedRows.Count > 0;
+            buttonCancel.Enabled = ctsTestActivityRunner != null && !ctsTestActivityRunner.IsCancellationRequested;
+            buttonSummary.Enabled = ctsTestActivityRunner == null && File.Exists(summaryFilePath);
+            buttonDetails.Enabled = ctsTestActivityRunner == null && File.Exists(logFilePath);
+        }
+
+        private async Task LoadActivitiesAsync()
+        {
+            lock (testBindingSource)
+            {
+                if (ctsTestActivityLoader != null && !ctsTestActivityLoader.IsCancellationRequested)
+                {
+                    ctsTestActivityLoader.Cancel();
+                    ctsTestActivityLoader.Dispose();
+                }
+                ctsTestActivityLoader = new CancellationTokenSource();
+            }
+
+            testBindingSource.DataSource = await Task.Run(() =>
+            {
+                return new SortableBindingList<TestActivity>((from f in Folder.GetFolders(settings).Result
                                                               from r in Route.GetRoutes(f, System.Threading.CancellationToken.None).Result
                                                               from a in Activity.GetActivities(f, r, System.Threading.CancellationToken.None).Result
                                                               where !(a is ORTS.Menu.ExploreActivity)
                                                               orderby a.Name
                                                               select new TestActivity(f, r, a)).ToList());
-            }, (testActivities) =>
-            {
-                testBindingSource.DataSource = testActivities;
-                testBindingSource.Sort = "DefaultSort";
-                UpdateButtons();
             });
+
+            testBindingSource.Sort = "DefaultSort";
+            UpdateButtons();
         }
 
-        void buttonTestAll_Click(object sender, EventArgs e)
+        private async void ButtonTestAll_Click(object sender, EventArgs e)
         {
-            TestMarkedActivities(from DataGridViewRow r in gridTestActivities.Rows
+            await TestMarkedActivitiesAsync(from DataGridViewRow r in gridTestActivities.Rows
                                  select r);
         }
 
-        void buttonTest_Click(object sender, EventArgs e)
+        private async void ButtonTest_Click(object sender, EventArgs e)
         {
-            TestMarkedActivities(from DataGridViewRow r in gridTestActivities.Rows
+            await TestMarkedActivitiesAsync(from DataGridViewRow r in gridTestActivities.Rows
                                  where r.Selected
                                  select r);
         }
 
-        void buttonCancel_Click(object sender, EventArgs e)
+        private void ButtonCancel_Click(object sender, EventArgs e)
         {
-            TestActivitiesRunner.Cancel();
+            ctsTestActivityRunner?.Cancel();
             UpdateButtons();
         }
 
-        void buttonNoSort_Click(object sender, EventArgs e)
+        private void ButtonNoSort_Click(object sender, EventArgs e)
         {
             gridTestActivities.Sort(defaultSortDataGridViewTextBoxColumn, ListSortDirection.Ascending);
         }
 
-        void buttonSummary_Click(object sender, EventArgs e)
+        private void ButtonSummary_Click(object sender, EventArgs e)
         {
-            Process.Start(SummaryFilePath);
+            Process.Start(summaryFilePath);
         }
 
-        void buttonDetails_Click(object sender, EventArgs e)
+        private void ButtonDetails_Click(object sender, EventArgs e)
         {
-            Process.Start(LogFilePath);
+            Process.Start(logFilePath);
         }
 
-        void TestMarkedActivities(IEnumerable<DataGridViewRow> rows)
+        private async Task TestMarkedActivitiesAsync(IEnumerable<DataGridViewRow> rows)
         {
-            if (TestActivitiesRunner != null)
-                TestActivitiesRunner.Cancel();
-
-            // Force the enumeration to be evaluated so that when we run the code in the background it doesn't matter if the grid changes.
-            var items = from r in rows
-                        select new { Index = r.Index, Activity = (TestActivity)r.DataBoundItem };
-            var overrideSettings = checkBoxOverride.Checked;
-
-            Task<int> runner = null;
-            runner = TestActivitiesRunner = new Task<int>(this, () =>
+            lock (testBindingSource)
             {
-                var parameters = String.Join(" ", new[] {
-                    "/Test",
-                    "/Logging",
-                    "/LoggingFilename=\"" + Path.GetFileName(LogFilePath) + "\"",
-                    "/LoggingPath=\"" + Path.GetDirectoryName(LogFilePath) + "\"",
-                    "/Profiling",
-                    "/ProfilingTime=10",
-                    "/ShowErrorDialogs=False",
-                });
-                if (overrideSettings)
-                    parameters += " /Skip-User-Settings";
-
-                var processStartInfo = new ProcessStartInfo();
-                processStartInfo.FileName = MainForm.RunActivityProgram;
-                processStartInfo.WindowStyle = ProcessWindowStyle.Normal;
-                processStartInfo.WorkingDirectory = Application.StartupPath;
-
-                if (!ClearedLogs)
+                if (ctsTestActivityRunner != null && !ctsTestActivityRunner.IsCancellationRequested)
                 {
-                    using (var writer = File.CreateText(SummaryFilePath))
-                        writer.WriteLine("Route,Activity,Passed,Errors,Warnings,Infos,Loading,FPS");
-                    using (var writer = File.CreateText(LogFilePath))
-                        writer.Flush();
-                    ClearedLogs = true;
+                    ctsTestActivityRunner.Cancel();
+                    ctsTestActivityRunner.Dispose();
                 }
+                ctsTestActivityRunner = new CancellationTokenSource();
+            }
+            UpdateButtons();
 
-                var summaryFilePosition = 0L;
-                using (var reader = File.OpenText(SummaryFilePath))
-                    summaryFilePosition = reader.BaseStream.Length;
+            bool overrideSettings = checkBoxOverride.Checked;
 
+            IEnumerable<Tuple<int, TestActivity>> items = from r in rows
+                                                          select new Tuple<int, TestActivity>(r.Index, (TestActivity)r.DataBoundItem);
+
+            try
+            {
                 foreach (var item in items)
                 {
-                    processStartInfo.Arguments = String.Format("{0} \"{1}\"", parameters, item.Activity.ActivityFilePath);
-                    var process = Process.Start(processStartInfo);
-                    process.WaitForExit();
-
-                    item.Activity.Tested = true;
-                    item.Activity.Passed = process.ExitCode == 0;
-                    using (var reader = File.OpenText(SummaryFilePath))
-                    {
-                        reader.BaseStream.Seek(summaryFilePosition, SeekOrigin.Begin);
-                        var line = reader.ReadLine();
-                        if (!String.IsNullOrEmpty(line) && reader.EndOfStream)
-                        {
-                            var csv = line.Split(',');
-                            item.Activity.Errors = String.Format("{0}/{1}/{2}", int.Parse(csv[3]), int.Parse(csv[4]), int.Parse(csv[5]));
-                            item.Activity.Load = String.Format("{0,6:F1}s", float.Parse(csv[6]));
-                            item.Activity.FPS = String.Format("{0,6:F1}", float.Parse(csv[7]));
-                        }
-                        else
-                        {
-                            reader.ReadToEnd();
-                            item.Activity.Passed = false;
-                        }
-                        summaryFilePosition = reader.BaseStream.Position;
-                    }
-                    if (runner.Cancelled)
+                    await Task.Run(() => RunTestTask(item.Item2, overrideSettings, ctsTestActivityRunner.Token), ctsTestActivityRunner.Token);
+                    ShowGridRow(gridTestActivities, item.Item1);
+                    if (ctsTestActivityRunner.IsCancellationRequested)
                         break;
-
-                    Invoke((Action)(() => ShowGridRow(gridTestActivities, item.Index)));
                 }
-                return 0;
-            }, () =>
-            {
-                TestActivitiesRunner = null;
-                UpdateButtons();
-            });
+            }
+            catch(TaskCanceledException)
+            { }
+
+            ctsTestActivityRunner.Dispose();
+            ctsTestActivityRunner = null;
             UpdateButtons();
         }
 
-        static void ShowGridRow(DataGridView grid, int rowIndex)
+        private async Task RunTestTask(TestActivity activity, bool overrideSettings, CancellationToken token)
+        {
+            string parameters = $"/Test /Logging /LoggingFilename=\"{Path.GetFileName(logFilePath)}\" /LoggingPath=\"{Path.GetDirectoryName(logFilePath)}\" " +
+                $"/Profiling /ProfilingTime=10 /ShowErrorDialogs=False";
+            if (overrideSettings)
+                parameters += " /Skip-User-Settings";
+
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = runActivity,
+                WindowStyle = ProcessWindowStyle.Normal,
+                WorkingDirectory = Application.StartupPath
+            };
+
+            if (!clearedLogs)
+            {
+                using (var writer = File.CreateText(summaryFilePath))
+                    writer.WriteLine("Route, Activity, Passed, Errors, Warnings, Infos, Loading, FPS");
+                using (var writer = File.CreateText(logFilePath))
+                    writer.Flush();
+                clearedLogs = true;
+            }
+
+            long summaryFilePosition = 0L;
+            using (var reader = File.OpenText(summaryFilePath))
+                summaryFilePosition = reader.BaseStream.Length;
+
+            processStartInfo.Arguments = $"{parameters} \"{activity.ActivityFilePath}\"";
+            activity.Passed = await RunProcess(processStartInfo, token) == 0;
+            activity.Tested = true;
+
+            using (var reader = File.OpenText(summaryFilePath))
+            {
+                reader.BaseStream.Seek(summaryFilePosition, SeekOrigin.Begin);
+                var line = reader.ReadLine();
+                if (!String.IsNullOrEmpty(line) && reader.EndOfStream)
+                {
+                    var csv = line.Split(',');
+                    activity.Errors = String.Format("{0}/{1}/{2}", int.Parse(csv[3]), int.Parse(csv[4]), int.Parse(csv[5]));
+                    activity.Load = String.Format("{0,6:F1}s", float.Parse(csv[6]));
+                    activity.FPS = String.Format("{0,6:F1}", float.Parse(csv[7]));
+                }
+                else
+                {
+                    reader.ReadToEnd();
+                    activity.Passed = false;
+                }
+                summaryFilePosition = reader.BaseStream.Position;
+            }
+        }
+
+        public static Task<int> RunProcess(ProcessStartInfo processStartInfo, CancellationToken token)
+        {
+            var tcs = new TaskCompletionSource<int>();
+            processStartInfo.RedirectStandardError = true;
+            processStartInfo.UseShellExecute = false;
+
+            Process process = new Process
+            {
+                EnableRaisingEvents = true,
+                StartInfo = processStartInfo
+            };
+
+            process.Exited += (sender, args) =>
+            {
+                tcs.TrySetResult(process.ExitCode);
+                process.Dispose();
+            };
+
+            process.Start();
+            using (token.Register(() =>
+            {
+                tcs.TrySetCanceled();
+                process.CloseMainWindow();
+            }))
+            {
+
+                return tcs.Task;
+            }
+        }
+
+        private void ShowGridRow(DataGridView grid, int rowIndex)
         {
             var displayedRowCount = grid.DisplayedRowCount(false);
             if (grid.FirstDisplayedScrollingRowIndex > rowIndex)

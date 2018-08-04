@@ -196,6 +196,7 @@ namespace Updater
             void Process_Exited(object sender, EventArgs e)
             {
                 tcs.TrySetResult(true);
+                process.Dispose();
             }
 
             process.EnableRaisingEvents = true;

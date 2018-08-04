@@ -23,10 +23,10 @@ using System.Windows.Forms;
 
 namespace ORTS
 {
-    static class Program
+    internal static class Program
     {
         [STAThread]  // requred for use of the DirectoryBrowserDialog in the main form.
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Application.EnableVisualStyles();
 
@@ -47,7 +47,7 @@ namespace ORTS
             }
         }
 
-        static void MainForm()
+        private static void MainForm()
         {
             using (var MainForm = new MainForm())
             {

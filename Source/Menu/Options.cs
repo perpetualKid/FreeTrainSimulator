@@ -32,8 +32,8 @@ namespace ORTS
 {
     public partial class OptionsForm : Form
     {
-        readonly UserSettings Settings;
-        readonly UpdateManager UpdateManager;
+        private readonly UserSettings Settings;
+        private readonly UpdateManager UpdateManager;
 
         private GettextResourceManager catalog = new GettextResourceManager("Menu");
 
@@ -174,7 +174,7 @@ namespace ORTS
             numericWorldObjectDensity.Value = Settings.WorldObjectDensity;
             comboWindowSize.Text = Settings.WindowSize;
             trackDayAmbientLight.Value = Settings.DayAmbientLight;
-            trackDayAmbientLight_ValueChanged(null, null);
+            TrackDayAmbientLight_ValueChanged(null, null);
             checkDoubleWire.Checked = Settings.DoubleWire;
 
             // Simulation tab
@@ -197,20 +197,24 @@ namespace ORTS
             InitializeKeyboardSettings();
 
             // DataLogger tab
-            var dictionaryDataLoggerSeparator = new Dictionary<string, string>();
-            dictionaryDataLoggerSeparator.Add("comma", catalog.GetString("comma"));
-            dictionaryDataLoggerSeparator.Add("semicolon", catalog.GetString("semicolon"));
-            dictionaryDataLoggerSeparator.Add("tab", catalog.GetString("tab"));
-            dictionaryDataLoggerSeparator.Add("space", catalog.GetString("space"));
+            var dictionaryDataLoggerSeparator = new Dictionary<string, string>
+            {
+                { "comma", catalog.GetString("comma") },
+                { "semicolon", catalog.GetString("semicolon") },
+                { "tab", catalog.GetString("tab") },
+                { "space", catalog.GetString("space") }
+            };
             comboDataLoggerSeparator.DataSource = new BindingSource(dictionaryDataLoggerSeparator, null);
             comboDataLoggerSeparator.DisplayMember = "Value";
             comboDataLoggerSeparator.ValueMember = "Key";
             comboDataLoggerSeparator.Text = catalog.GetString(Settings.DataLoggerSeparator);
-            var dictionaryDataLogSpeedUnits = new Dictionary<string, string>();
-            dictionaryDataLogSpeedUnits.Add("route", catalog.GetString("route"));
-            dictionaryDataLogSpeedUnits.Add("mps", catalog.GetString("m/s"));
-            dictionaryDataLogSpeedUnits.Add("kmph", catalog.GetString("km/h"));
-            dictionaryDataLogSpeedUnits.Add("mph", catalog.GetString("mph"));
+            var dictionaryDataLogSpeedUnits = new Dictionary<string, string>
+            {
+                { "route", catalog.GetString("route") },
+                { "mps", catalog.GetString("m/s") },
+                { "kmph", catalog.GetString("km/h") },
+                { "mph", catalog.GetString("mph") }
+            };
             comboDataLogSpeedUnits.DataSource = new BindingSource(dictionaryDataLogSpeedUnits, null);
             comboDataLogSpeedUnits.DisplayMember = "Value";
             comboDataLogSpeedUnits.ValueMember = "Key";
@@ -311,7 +315,7 @@ namespace ORTS
             numericPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
             numericPerformanceTunerTarget.Value = Settings.PerformanceTunerTarget;
             trackLODBias.Value = Settings.LODBias;
-            trackLODBias_ValueChanged(null, null);
+            TrackLODBias_ValueChanged(null, null);
             checkConditionalLoadOfNightTextures.Checked = Settings.ConditionalLoadOfDayOrNightTextures;
             checkSignalLightGlow.Checked = Settings.SignalLightGlow;
             checkCircularSpeedGauge.Checked = Settings.CircularSpeedGauge;
@@ -322,7 +326,7 @@ namespace ORTS
             trackAdhesionFactor.Value = Settings.AdhesionFactor;
             checkAdhesionPropToWeather.Checked = Settings.AdhesionProportionalToWeather;
             trackAdhesionFactorChange.Value = Settings.AdhesionFactorChange;
-            trackAdhesionFactor_ValueChanged(null, null);
+            TrackAdhesionFactor_ValueChanged(null, null);
             checkShapeWarnings.Checked = !Settings.SuppressShapeWarnings;
             precipitationBoxHeight.Value = Settings.PrecipitationBoxHeight;
             precipitationBoxWidth.Value = Settings.PrecipitationBoxWidth;
@@ -332,7 +336,7 @@ namespace ORTS
             numericActWeatherRandomizationLevel.Value = Settings.ActWeatherRandomizationLevel;
         }
 
-        static string ParseCategoryFrom(string name)
+        private static string ParseCategoryFrom(string name)
         {
             var len = name.IndexOf(' ');
             if (len == -1)
@@ -341,8 +345,7 @@ namespace ORTS
                 return name.Substring(0, len);
         }
 
-
-        static string ParseDescriptorFrom(string name)
+        private static string ParseDescriptorFrom(string name)
         {
             var len = name.IndexOf(' ');
             if (len == -1)
@@ -351,7 +354,7 @@ namespace ORTS
                 return name.Substring(len + 1);
         }
 
-        void InitializeKeyboardSettings()
+        private void InitializeKeyboardSettings()
         {
             panelKeys.Controls.Clear();
             var columnWidth = (panelKeys.ClientSize.Width - 20) / 2;
@@ -372,11 +375,13 @@ namespace ORTS
 
                 if (category != lastCategory)
                 {
-                    var catlabel = new Label();
-                    catlabel.Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i);
-                    catlabel.Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight);
-                    catlabel.Text = category;
-                    catlabel.TextAlign = ContentAlignment.MiddleCenter;
+                    var catlabel = new Label
+                    {
+                        Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i),
+                        Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight),
+                        Text = category,
+                        TextAlign = ContentAlignment.MiddleCenter
+                    };
                     catlabel.Font = new Font(catlabel.Font, FontStyle.Bold);
                     panelKeys.Controls.Add(catlabel);
 
@@ -384,18 +389,22 @@ namespace ORTS
                     ++i;
                 }
 
-                var label = new Label();
-                label.Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i);
-                label.Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight);
-                label.Text = descriptor;
-                label.TextAlign = ContentAlignment.MiddleRight;
+                var label = new Label
+                {
+                    Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i),
+                    Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight),
+                    Text = descriptor,
+                    TextAlign = ContentAlignment.MiddleRight
+                };
                 panelKeys.Controls.Add(label);
 
-                var keyInputControl = new KeyInputControl(Settings.Input.Commands[(int)command], InputSettings.DefaultCommands[(int)command]);
-                keyInputControl.Location = new Point(columnWidth + tempKIC.Margin.Left, rowTop + rowSpacing * i);
-                keyInputControl.Size = new Size(columnWidth - tempKIC.Margin.Horizontal, rowHeight);
-                keyInputControl.ReadOnly = true;
-                keyInputControl.Tag = command;
+                var keyInputControl = new KeyInputControl(Settings.Input.Commands[(int)command], InputSettings.DefaultCommands[(int)command])
+                {
+                    Location = new Point(columnWidth + tempKIC.Margin.Left, rowTop + rowSpacing * i),
+                    Size = new Size(columnWidth - tempKIC.Margin.Horizontal, rowHeight),
+                    ReadOnly = true,
+                    Tag = command
+                };
                 panelKeys.Controls.Add(keyInputControl);
                 toolTip1.SetToolTip(keyInputControl, catalog.GetString("Click to change this key"));
 
@@ -403,14 +412,14 @@ namespace ORTS
             }
         }
 
-        void SaveKeyboardSettings()
+        private void SaveKeyboardSettings()
         {
             foreach (Control control in panelKeys.Controls)
                 if (control is KeyInputControl)
                     Settings.Input.Commands[(int)control.Tag].PersistentDescriptor = (control as KeyInputControl).UserInput.PersistentDescriptor;
         }
 
-        void buttonOK_Click(object sender, EventArgs e)
+        private void ButtonOK_Click(object sender, EventArgs e)
         {
             var result = Settings.Input.CheckForErrors();
             if (result != "" && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, Application.ProductName, MessageBoxButtons.YesNo))
@@ -531,7 +540,7 @@ namespace ORTS
             Settings.Save();
         }
 
-        void buttonDefaultKeys_Click(object sender, EventArgs e)
+        private void ButtonDefaultKeys_Click(object sender, EventArgs e)
         {
             if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom key assignments?"), Application.ProductName, MessageBoxButtons.YesNo))
             {
@@ -540,14 +549,14 @@ namespace ORTS
             }
         }
 
-        void buttonExport_Click(object sender, EventArgs e)
+        private void ButtonExport_Click(object sender, EventArgs e)
         {
             var outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Open Rails Keyboard.txt");
             Settings.Input.DumpToText(outputPath);
             MessageBox.Show(catalog.GetString("A listing of all keyboard commands and keys has been placed here:\n\n") + outputPath, Application.ProductName);
         }
 
-        void buttonCheckKeys_Click(object sender, EventArgs e)
+        private void ButtonCheckKeys_Click(object sender, EventArgs e)
         {
             var errors = Settings.Input.CheckForErrors();
             if (errors != "")
@@ -556,17 +565,17 @@ namespace ORTS
                 MessageBox.Show(catalog.GetString("No errors found."), Application.ProductName);
         }
 
-        private void numericUpDownFOV_ValueChanged(object sender, EventArgs e)
+        private void NumericUpDownFOV_ValueChanged(object sender, EventArgs e)
         {
             labelFOVHelp.Text = catalog.GetStringFmt("{0:F0}° vertical FOV is the same as:\n{1:F0}° horizontal FOV on 4:3\n{2:F0}° horizontal FOV on 16:9", numericViewingFOV.Value, numericViewingFOV.Value * 4 / 3, numericViewingFOV.Value * 16 / 9);
         }
 
-        private void trackBarDayAmbientLight_Scroll(object sender, EventArgs e)
+        private void TrackBarDayAmbientLight_Scroll(object sender, EventArgs e)
         {
             toolTip1.SetToolTip(trackDayAmbientLight, (trackDayAmbientLight.Value * 5).ToString() + " %");
         }
 
-        private void trackAdhesionFactor_ValueChanged(object sender, EventArgs e)
+        private void TrackAdhesionFactor_ValueChanged(object sender, EventArgs e)
         {
             SetAdhesionLevelValue();
             AdhesionFactorValueLabel.Text = trackAdhesionFactor.Value.ToString() + "%";
@@ -600,12 +609,12 @@ namespace ORTS
             SetAdhesionLevelValue();
         }
 
-        private void trackDayAmbientLight_ValueChanged(object sender, EventArgs e)
+        private void TrackDayAmbientLight_ValueChanged(object sender, EventArgs e)
         {
             labelDayAmbientLight.Text = catalog.GetStringFmt("{0}%", trackDayAmbientLight.Value * 5);
         }
 
-        private void trackLODBias_ValueChanged(object sender, EventArgs e)
+        private void TrackLODBias_ValueChanged(object sender, EventArgs e)
         {
             if (trackLODBias.Value == -100)
                 labelLODBias.Text = catalog.GetStringFmt("No detail (-{0}%)", -trackLODBias.Value);
@@ -619,7 +628,7 @@ namespace ORTS
                 labelLODBias.Text = catalog.GetStringFmt("All detail (+{0}%)", trackLODBias.Value);
         }
 
-        private void dataGridViewContent_SelectionChanged(object sender, EventArgs e)
+        private void DataGridViewContent_SelectionChanged(object sender, EventArgs e)
         {
             var current = bindingSourceContent.Current as ContentFolder;
             textBoxContentName.Enabled = buttonContentBrowse.Enabled = current != null;
@@ -634,20 +643,20 @@ namespace ORTS
             }
         }
 
-        private void buttonContentAdd_Click(object sender, EventArgs e)
+        private void ButtonContentAdd_Click(object sender, EventArgs e)
         {
             bindingSourceContent.AddNew();
-            buttonContentBrowse_Click(sender, e);
+            ButtonContentBrowse_Click(sender, e);
         }
 
-        private void buttonContentDelete_Click(object sender, EventArgs e)
+        private void ButtonContentDelete_Click(object sender, EventArgs e)
         {
             bindingSourceContent.RemoveCurrent();
             // ResetBindings() is to work around a bug in the binding and/or data grid where by deleting the bottom item doesn't show the selection moving to the new bottom item.
             bindingSourceContent.ResetBindings(false);
         }
 
-        private void buttonContentBrowse_Click(object sender, EventArgs e)
+        private void ButtonContentBrowse_Click(object sender, EventArgs e)
         {
             using (var folderBrowser = new FolderBrowserDialog())
             {
@@ -665,17 +674,16 @@ namespace ORTS
             }
         }
 
-        private void textBoxContentName_TextChanged(object sender, EventArgs e)
+        private void TextBoxContentName_TextChanged(object sender, EventArgs e)
         {
-            var current = bindingSourceContent.Current as ContentFolder;
-            if (current != null && current.Name != textBoxContentName.Text)
+            if (bindingSourceContent.Current is ContentFolder current && current.Name != textBoxContentName.Text)
             {
                 current.Name = textBoxContentName.Text;
                 bindingSourceContent.ResetCurrentItem();
             }
         }
 
-        private void checkAlerter_CheckedChanged(object sender, EventArgs e)
+        private void CheckAlerter_CheckedChanged(object sender, EventArgs e)
         {
             //Disable checkAlerterExternal when checkAlerter is not checked
             if (checkAlerter.Checked )
@@ -689,26 +697,26 @@ namespace ORTS
             }
         }
 
-        private void checkDistantMountains_Click(object sender, EventArgs e)
+        private void CheckDistantMountains_Click(object sender, EventArgs e)
         {
            labelDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
            numericDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
         }
 
-        private void checkUseAdvancedAdhesion_Click(object sender, EventArgs e)
+        private void CheckUseAdvancedAdhesion_Click(object sender, EventArgs e)
         {
             labelAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked;
             numericAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked;
         }
 
-        private void checkDataLogTrainSpeed_Click(object sender, EventArgs e)
+        private void CheckDataLogTrainSpeed_Click(object sender, EventArgs e)
         {
             checkListDataLogTSContents.Enabled = checkDataLogTrainSpeed.Checked;
             labelDataLogTSInterval.Enabled = checkDataLogTrainSpeed.Checked;
             numericDataLogTSInterval.Enabled = checkDataLogTrainSpeed.Checked;
         }
 
-        private void checkPerformanceTuner_Click(object sender, EventArgs e)
+        private void CheckPerformanceTuner_Click(object sender, EventArgs e)
         {
             numericPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;

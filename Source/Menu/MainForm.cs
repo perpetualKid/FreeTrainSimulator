@@ -190,11 +190,12 @@ namespace ORTS
 
             ShowEnvironment();
             ShowTimetableEnvironment();
+            ShowDetails();
 
             this.Resume();
         }
 
-        private async System.Threading.Tasks.Task InitializeUpdateManager()
+        private async Task InitializeUpdateManager()
         {
             await Task.Run(() =>
             {
@@ -204,7 +205,7 @@ namespace ORTS
 
         }
 
-        private System.Threading.Tasks.Task<List<ToolStripItem>> LoadTools()
+        private Task<List<ToolStripItem>> LoadTools()
         {
             TaskCompletionSource<List<ToolStripItem>> tcs = new TaskCompletionSource<List<ToolStripItem>>();
             List<ToolStripItem> result = new List<ToolStripItem>();
@@ -254,7 +255,7 @@ namespace ORTS
             return tcs.Task;
         }
 
-        private System.Threading.Tasks.Task<List<ToolStripItem>> LoadDocuments()
+        private Task<List<ToolStripItem>> LoadDocuments()
         {
             TaskCompletionSource<List<ToolStripItem>> tcs = new TaskCompletionSource<List<ToolStripItem>>();
             List<ToolStripItem> result = new List<ToolStripItem>();
@@ -574,7 +575,7 @@ namespace ORTS
 
         private void TestingToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (var form = new TestingForm(this, settings))
+            using (var form = new TestingForm(settings, this.RunActivityProgram))
             {
                 form.ShowDialog(this);
             }
@@ -633,7 +634,7 @@ namespace ORTS
                 return;
             }
 
-            using (var form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, this))
+            using (var form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, this.routes))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {

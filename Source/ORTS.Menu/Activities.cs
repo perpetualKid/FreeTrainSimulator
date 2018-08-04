@@ -165,7 +165,13 @@ namespace ORTS.Menu
         public void UpdateActivity(string startTime, SeasonType season, WeatherType weather, Consist consist, Path path)
         {
             var time = startTime.Split(':');
-            StartTime = new StartTime(int.Parse(time[0]), time.Length > 1 ? int.Parse(time[1]) : 0, time.Length > 2 ? int.Parse(time[2]) : 0);
+            if (!int.TryParse(time[0], out int hour))
+                hour = 12;
+            if (time.Length < 2 || !int.TryParse(time[1], out int minute))
+                minute = 0;
+            if (time.Length < 3 || !int.TryParse(time[2], out int second))
+                second = 0;
+            StartTime = new StartTime(hour, minute, second);
             Season = season;
             Weather = weather;
             Consist = consist;
