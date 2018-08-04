@@ -833,7 +833,7 @@ namespace ORTS.TrackViewer
         private bool FindRoutes(Folder newInstallFolder)
         {
             if (newInstallFolder == null) return false;
-            List<Route> newRoutes = Route.GetRoutes(newInstallFolder).OrderBy(r => r.ToString()).ToList();
+            List<Route> newRoutes = Route.GetRoutes(newInstallFolder, System.Threading.CancellationToken.None).Result.OrderBy(r => r.ToString()).ToList();
 
             if (newRoutes.Count > 0)
             {
@@ -955,7 +955,7 @@ namespace ORTS.TrackViewer
         /// </summary>
         private void FindPaths()
         {
-            List<Path> newPaths = Path.GetPaths(CurrentRoute, true).OrderBy(r => r.Name).ToList();
+            List<Path> newPaths = Path.GetPaths(CurrentRoute, true, System.Threading.CancellationToken.None).Result.OrderBy(r => r.Name).ToList();
             Paths = new Collection<Path>(newPaths);
             menuControl.PopulatePaths();
             SetPath(null);

@@ -23,10 +23,10 @@ using System.Windows.Forms;
 
 namespace ORTS
 {
-    static class Program
+    internal static class Program
     {
         [STAThread]  // requred for use of the DirectoryBrowserDialog in the main form.
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Application.EnableVisualStyles();
 
@@ -47,7 +47,7 @@ namespace ORTS
             }
         }
 
-        static void MainForm()
+        private static void MainForm()
         {
             using (var MainForm = new MainForm())
             {
@@ -92,7 +92,7 @@ namespace ORTS
                                 parameters.Add(String.Format("-explorer \"{0}\" \"{1}\" {2} {3} {4}",
                                     exploreActivity.Path.FilePath,
                                     exploreActivity.Consist.FilePath,
-                                    exploreActivity.StartTime,
+                                    exploreActivity.StartTime.FormattedStartTime(),
                                     (int)exploreActivity.Season,
                                     (int)exploreActivity.Weather));
                             }
@@ -102,7 +102,7 @@ namespace ORTS
                                 parameters.Add(String.Format("-exploreactivity \"{0}\" \"{1}\" {2} {3} {4}",
                                     exploreActivity.Path.FilePath,
                                     exploreActivity.Consist.FilePath,
-                                    exploreActivity.StartTime,
+                                    exploreActivity.StartTime.FormattedStartTime(),
                                     (int)exploreActivity.Season,
                                     (int)exploreActivity.Weather));
                             }
@@ -118,7 +118,7 @@ namespace ORTS
                             break;
                         case MainForm.UserAction.SinglePlayerTimetableGame:
                             parameters.Add(String.Format("-timetable \"{0}\" \"{1}:{2}\" {3} {4} {5}",
-                                MainForm.SelectedTimetableSet.fileName,
+                                MainForm.SelectedTimetableSet.FileName,
                                 MainForm.SelectedTimetable,
                                 MainForm.SelectedTimetableTrain,
                                 MainForm.SelectedTimetableSet.Day,

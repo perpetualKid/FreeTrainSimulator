@@ -17,29 +17,30 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using GNU.Gettext;
 using Orts.Formats.Msts;
-using ORTS.Settings;
 
 namespace ORTS.Menu
 {
     public class Activity
     {
-        public readonly string Name;
-        public readonly string Description;
-        public readonly string Briefing;
-        public readonly StartTime StartTime = new StartTime(10, 0, 0);
-        public readonly SeasonType Season = SeasonType.Summer;
-        public readonly WeatherType Weather = WeatherType.Clear;
-        public readonly Difficulty Difficulty = Difficulty.Easy;
-        public readonly Duration Duration = new Duration(1, 0);
-        public readonly Consist Consist = new Consist("unknown", null);
-        public readonly Path Path = new Path("unknown");
-        public readonly string FilePath;
+        public string Name { get; private set; }
+        public string Description { get; private set; }
+        public string Briefing { get; private set; }
+        public StartTime StartTime { get; protected set; } = new StartTime(10, 0, 0);
+        public SeasonType Season { get; protected set; } = SeasonType.Summer;
+        public WeatherType Weather { get; protected set; } = WeatherType.Clear;
+        public Difficulty Difficulty { get; protected set; } = Difficulty.Easy;
+        public Duration Duration { get; protected set; } = new Duration(1, 0);
+        public Consist Consist { get; protected set; } = Consist.GetConsist("unknown", null);
+        public Path Path { get; protected set; } = new Path("unknown");
+        public string FilePath { get; private set; }
 
-        GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
+        private static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
-        protected Activity(string filePath, Folder folder, Route route)
+        protected Activity(string name, string filePath, ActivityFile activityFile, Consist consist, Path path)
         {
             if (filePath == null && this is DefaultExploreActivity)
             {
@@ -49,45 +50,66 @@ namespace ORTS.Menu
             {
                 Name = catalog.GetString("+ Explore in Activity Mode +");
             }
-            else if (File.Exists(filePath))
+            else if (null != activityFile)
             {
-                var showInList = true;
-                try
-                {
-                    var actFile = new ActivityFile(filePath);
-                    var srvFile = new ServiceFile(System.IO.Path.Combine(System.IO.Path.Combine(route.Path, "SERVICES"), actFile.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name + ".srv"));
-                    // ITR activities are excluded.
-                    Name = actFile.Tr_Activity.Tr_Activity_Header.Name.Trim();
-                    if (actFile.Tr_Activity.Tr_Activity_Header.Mode == ActivityMode.IntroductoryTrainRide) Name = "Introductory Train Ride";
-                    Description = actFile.Tr_Activity.Tr_Activity_Header.Description;
-                    Briefing = actFile.Tr_Activity.Tr_Activity_Header.Briefing;
-                    StartTime = actFile.Tr_Activity.Tr_Activity_Header.StartTime;
-                    Season = actFile.Tr_Activity.Tr_Activity_Header.Season;
-                    Weather = actFile.Tr_Activity.Tr_Activity_Header.Weather;
-                    Difficulty = actFile.Tr_Activity.Tr_Activity_Header.Difficulty;
-                    Duration = actFile.Tr_Activity.Tr_Activity_Header.Duration;
-                    Consist = new Consist(System.IO.Path.Combine(System.IO.Path.Combine(System.IO.Path.Combine(folder.Path, "TRAINS"), "CONSISTS"), srvFile.Train_Config + ".con"), folder);
-                    Path = new Path(System.IO.Path.Combine(System.IO.Path.Combine(route.Path, "PATHS"), srvFile.PathID + ".pat"));
-                    if (!Path.IsPlayerPath)
-                    {
-                        // Not nice to throw an error now. Error was originally thrown by new Path(...);
-                        throw new InvalidDataException("Not a player path");
-                    }
-                }
-                catch
-                {
-                    Name = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-                }
-                if (!showInList) throw new InvalidDataException(catalog.GetStringFmt("Activity '{0}' is excluded.", filePath));
-                if (string.IsNullOrEmpty(Name)) Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-                if (string.IsNullOrEmpty(Description)) Description = null;
-                if (string.IsNullOrEmpty(Briefing)) Briefing = null;
+                // ITR activities are excluded.
+                Name = activityFile.Tr_Activity.Tr_Activity_Header.Name.Trim();
+                if (activityFile.Tr_Activity.Tr_Activity_Header.Mode == ActivityMode.IntroductoryTrainRide)
+                    Name = "Introductory Train Ride";
+                Description = activityFile.Tr_Activity.Tr_Activity_Header.Description;
+                Briefing = activityFile.Tr_Activity.Tr_Activity_Header.Briefing;
+                StartTime = activityFile.Tr_Activity.Tr_Activity_Header.StartTime;
+                Season = activityFile.Tr_Activity.Tr_Activity_Header.Season;
+                Weather = activityFile.Tr_Activity.Tr_Activity_Header.Weather;
+                Difficulty = activityFile.Tr_Activity.Tr_Activity_Header.Difficulty;
+                Duration = activityFile.Tr_Activity.Tr_Activity_Header.Duration;
+                Consist = consist;
+                Path = path;
             }
             else
             {
-                Name = "<" + catalog.GetString("missing:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                Name = name;
             }
+            if (string.IsNullOrEmpty(Name))
+                Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+            if (string.IsNullOrEmpty(Description))
+                Description = null;
+            if (string.IsNullOrEmpty(Briefing))
+                Briefing = null;
             FilePath = filePath;
+        }
+
+        internal static Activity GetActivity(string filePath, Folder folder, Route route)
+        {
+            Activity result;
+
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    ActivityFile activityFile = new ActivityFile(filePath);
+                    ServiceFile srvFile = new ServiceFile(System.IO.Path.Combine(route.Path, "SERVICES", activityFile.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name + ".srv"));
+                    Consist consist = Consist.GetConsist(folder, srvFile.Train_Config);
+                    Path path = new Path(System.IO.Path.Combine(route.Path, "PATHS", srvFile.PathID + ".pat"));
+                    if (!path.IsPlayerPath)
+                    {
+                        return null;
+                        // Not nice to throw an error now. Error was originally thrown by new Path(...);
+                        throw new InvalidDataException("Not a player path");
+                    }
+                    result = new Activity(string.Empty, filePath, activityFile, consist, path);
+                }
+                catch
+                {
+                    result = new Activity($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
+                }
+            }
+            else
+            {
+                result = new Activity($"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
+            }
+
+            return result;
         }
 
         public override string ToString()
@@ -95,8 +117,9 @@ namespace ORTS.Menu
             return Name;
         }
 
-        public static List<Activity> GetActivities(Folder folder, Route route)
+        public static Task<List<Activity>> GetActivities(Folder folder, Route route, CancellationToken token)
         {
+            TaskCompletionSource<List<Activity>> tcs = new TaskCompletionSource<List<Activity>>();
             var activities = new List<Activity>();
             if (route != null)
             {
@@ -105,31 +128,54 @@ namespace ORTS.Menu
                 var directory = System.IO.Path.Combine(route.Path, "ACTIVITIES");
                 if (Directory.Exists(directory))
                 {
-                    foreach (var activityFile in Directory.GetFiles(directory, "*.act"))
+                    Parallel.ForEach(Directory.GetFiles(directory, "*.act"), (activityFile, state) =>
                     {
+                        if (token.IsCancellationRequested)
+                        {
+                            tcs.SetCanceled();
+                            state.Stop();
+                        }
                         try
                         {
-                            activities.Add(new Activity(activityFile, folder, route));
+                            Activity activity = GetActivity(activityFile, folder, route);
+                            if (null != activityFile)
+                            {
+                                lock (activities)
+                                {
+                                    activities.Add(activity);
+                                }
+                            }
                         }
                         catch { }
-                    }
+                    });
                 }
             }
-            return activities;
+            tcs.TrySetResult(activities);
+            return tcs.Task;
         }
     }
 
     public class ExploreActivity : Activity
     {
-        public new string StartTime;
-        public new SeasonType Season = SeasonType.Summer;
-        public new WeatherType Weather = WeatherType.Clear;
-        public new Consist Consist = new Consist("unknown", null);
-        public new Path Path = new Path("unknown");
-
         internal ExploreActivity()
-            : base(null, null, null)
+            : base(null, null, null, null, null)
         {
+        }
+
+        public void UpdateActivity(string startTime, SeasonType season, WeatherType weather, Consist consist, Path path)
+        {
+            var time = startTime.Split(':');
+            if (!int.TryParse(time[0], out int hour))
+                hour = 12;
+            if (time.Length < 2 || !int.TryParse(time[1], out int minute))
+                minute = 0;
+            if (time.Length < 3 || !int.TryParse(time[2], out int second))
+                second = 0;
+            StartTime = new StartTime(hour, minute, second);
+            Season = season;
+            Weather = weather;
+            Consist = consist;
+            Path = path;
         }
     }
 

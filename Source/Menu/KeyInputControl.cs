@@ -43,7 +43,7 @@ namespace ORTS
             UpdateText();
         }
 
-        void UpdateText()
+        private void UpdateText()
         {
             Text = UserInput.ToString();
             if (Text == DefaultInput.ToString())
@@ -58,7 +58,7 @@ namespace ORTS
             }
         }
 
-        void KeyInputControl_Click(object sender, EventArgs e)
+        private void KeyInputControl_Click(object sender, EventArgs e)
         {
             using (var editKey = new KeyInputEditControl(this))
             {

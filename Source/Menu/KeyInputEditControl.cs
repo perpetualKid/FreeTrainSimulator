@@ -35,14 +35,13 @@ namespace ORTS
     /// </remarks>
     public partial class KeyInputEditControl : Form
     {
-        readonly UserCommandInput LiveInput;
-        readonly bool IsModifier;
-
-        int ScanCode;
-        Xna.Keys VirtualKey;
-        bool Shift;
-        bool Control;
-        bool Alt;
+        private readonly UserCommandInput LiveInput;
+        private readonly bool IsModifier;
+        private int ScanCode;
+        private Xna.Keys VirtualKey;
+        private bool Shift;
+        private bool Control;
+        private bool Alt;
 
         public string PersistentDescriptor
         {
@@ -90,16 +89,16 @@ namespace ORTS
             UpdateText();
         }
 
-        void UpdateText()
+        private void UpdateText()
         {
             LiveInput.PersistentDescriptor = PersistentDescriptor;
             textBox.Text = LiveInput.ToString();
         }
 
-        KeyboardProcedure CurrentKeyboardProcedure;
-        bool CurrentShift, CurrentControl, CurrentAlt;
+        private KeyboardProcedure CurrentKeyboardProcedure;
+        private bool CurrentShift, CurrentControl, CurrentAlt;
 
-        IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
             if (textBox.Focused)
             {
@@ -201,7 +200,7 @@ namespace ORTS
             }
         }
 
-        void UnhookKeyboard()
+        private void UnhookKeyboard()
         {
             if (keyboardHookId != IntPtr.Zero)
             {

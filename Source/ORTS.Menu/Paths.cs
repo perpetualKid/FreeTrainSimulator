@@ -15,11 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using GNU.Gettext;
 using Orts.Formats.Msts;
-using System;
 
 namespace ORTS.Menu
 {
@@ -30,17 +32,17 @@ namespace ORTS.Menu
     public class Path
     {
         /// <summary>Name of the path</summary>
-        public readonly string Name;
+        public string Name { get; private set; }
         /// <summary>Start location of the path</summary>
-        public readonly string Start;
+        public string Start { get; private set; }
         /// <summary>Destination location of the path</summary>
-        public readonly string End;
+        public string End { get; private set; }
         /// <summary>Full filename of the underlying .pat file</summary>
-        public readonly string FilePath;
+        public string FilePath { get; private set; }
         /// <summary>Is the path a player path or not</summary>
-        public readonly bool IsPlayerPath;
+        public bool IsPlayerPath { get; private set; }
 
-        GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
+        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         /// <summary>
         /// Constructor. This will try to have the requested .pat file parsed for its metadata
@@ -62,15 +64,18 @@ namespace ORTS.Menu
                 {
                     Name = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
                 }
-                if (string.IsNullOrEmpty(Name)) Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-                if (string.IsNullOrEmpty(Start)) Start = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-                if (string.IsNullOrEmpty(End)) End = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                if (string.IsNullOrEmpty(Name))
+                    Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                if (string.IsNullOrEmpty(Start))
+                    Start = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                if (string.IsNullOrEmpty(End))
+                    End = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
             }
             else
             {
                 Name = Start = End = "<" + catalog.GetString("missing:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
             }
-            this.FilePath = filePath;
+            FilePath = filePath;
         }
 
         /// <summary>
@@ -86,47 +91,55 @@ namespace ORTS.Menu
         /// </summary>
         /// <param name="route">The Route for which the paths need to be found</param>
         /// <param name="includeNonPlayerPaths">Selects whether non-player paths are included or not</param>
-        public static List<Path> GetPaths(Route route, bool includeNonPlayerPaths)
+        public static Task<List<Path>> GetPaths(Route route, bool includeNonPlayerPaths, CancellationToken token)
         {
-            var paths = new List<Path>();
-            var directory = System.IO.Path.Combine(route.Path, "PATHS");
+            TaskCompletionSource<List<Path>> tcs = new TaskCompletionSource<List<Path>>();
+            List<Path> paths = new List<Path>();
+            string directory = System.IO.Path.Combine(route.Path, "PATHS");
             if (Directory.Exists(directory))
             {
-                foreach (var file in Directory.GetFiles(directory, "*.pat"))
+                Parallel.ForEach(Directory.GetFiles(directory, "*.pat"), (file, state) =>
                 {
-                    Path path = null;
+                    if (token.IsCancellationRequested)
+                    {
+                        tcs.SetCanceled();
+                        state.Stop();
+                    }
                     try
                     {
-                        path = new Path(file);
-                    }
-                    catch { }
+                        Path path = new Path(file);
 
-                    bool pathShouldBeIncluded = includeNonPlayerPaths || path.IsPlayerPath;
-                    if (pathShouldBeIncluded)
-                    {
-                        // Suppress the 7 broken paths shipped with MSTS
-                        //
-                        // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
-                        // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.
-                        // ORTS checks for "broken path" when the simulator runs and does offer them in the list.
-                        // The first activity in Marias Pass is "Explore Longhale" which leads to a "Broken Path" message.
-                        // The message then confuses users new to ORTS who have just installed it along with MSTS,
-                        // see https://bugs.launchpad.net/or/+bug/1345172 and https://bugs.launchpad.net/or/+bug/128547
-                        if (!file.EndsWith(@"ROUTES\USA1\PATHS\aftstrm(traffic03).pat", StringComparison.OrdinalIgnoreCase)
-                            && !file.EndsWith(@"ROUTES\USA1\PATHS\aftstrmtraffic01.pat", StringComparison.OrdinalIgnoreCase)
-                            && !file.EndsWith(@"ROUTES\USA1\PATHS\aiphwne2.pat", StringComparison.OrdinalIgnoreCase)
-                            && !file.EndsWith(@"ROUTES\USA1\PATHS\aiwnphex.pat", StringComparison.OrdinalIgnoreCase)
-                            && !file.EndsWith(@"ROUTES\USA1\PATHS\blizzard(traffic).pat", StringComparison.OrdinalIgnoreCase)
-                            && !file.EndsWith(@"ROUTES\USA2\PATHS\longhale.pat", StringComparison.OrdinalIgnoreCase)
-                            && !file.EndsWith(@"ROUTES\USA2\PATHS\long-haul west (blizzard).pat", StringComparison.OrdinalIgnoreCase)
-                            )
+                        if (includeNonPlayerPaths || path.IsPlayerPath)
                         {
-                            paths.Add(path);
+                            // Suppress the 7 broken paths shipped with MSTS
+                            //
+                            // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
+                            // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.
+                            // ORTS checks for "broken path" when the simulator runs and does offer them in the list.
+                            // The first activity in Marias Pass is "Explore Longhale" which leads to a "Broken Path" message.
+                            // The message then confuses users new to ORTS who have just installed it along with MSTS,
+                            // see https://bugs.launchpad.net/or/+bug/1345172 and https://bugs.launchpad.net/or/+bug/128547
+                            if (!file.EndsWith(@"ROUTES\USA1\PATHS\aftstrm(traffic03).pat", StringComparison.OrdinalIgnoreCase)
+                                && !file.EndsWith(@"ROUTES\USA1\PATHS\aftstrmtraffic01.pat", StringComparison.OrdinalIgnoreCase)
+                                && !file.EndsWith(@"ROUTES\USA1\PATHS\aiphwne2.pat", StringComparison.OrdinalIgnoreCase)
+                                && !file.EndsWith(@"ROUTES\USA1\PATHS\aiwnphex.pat", StringComparison.OrdinalIgnoreCase)
+                                && !file.EndsWith(@"ROUTES\USA1\PATHS\blizzard(traffic).pat", StringComparison.OrdinalIgnoreCase)
+                                && !file.EndsWith(@"ROUTES\USA2\PATHS\longhale.pat", StringComparison.OrdinalIgnoreCase)
+                                && !file.EndsWith(@"ROUTES\USA2\PATHS\long-haul west (blizzard).pat", StringComparison.OrdinalIgnoreCase)
+                                )
+                            {
+                                lock (paths)
+                                {
+                                    paths.Add(path);
+                                }
+                            }
                         }
                     }
-                }
+                    catch { }
+                });
             }
-            return paths;
+            tcs.TrySetResult(paths);
+            return tcs.Task;
         }
 
         /// <summary>

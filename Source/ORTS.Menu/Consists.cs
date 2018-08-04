@@ -18,194 +18,185 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using GNU.Gettext;
 using Orts.Formats.Msts;
-using ORTS.Settings;
 
 namespace ORTS.Menu
 {
     public class Consist
     {
-        public readonly string Name;
-        public readonly Locomotive Locomotive = new Locomotive("unknown");
-        public readonly string FilePath;
+        public string Name { get; private set; }
+        public Locomotive Locomotive { get; private set; } = Locomotive.GetLocomotive("unknown");
+        public string FilePath { get; private set; }
 
-        GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
-
-        internal Consist(string filePath, Folder folder)
-        {
-            if (File.Exists(filePath))
-            {
-                try
-                {
-                    var conFile = new ConsistFile(filePath);
-                    Name = conFile.Name.Trim();
-                    Locomotive = GetLocomotive(conFile, folder);
-                }
-                catch
-                {
-                    Name = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-                }
-                if (Locomotive == null) throw new InvalidDataException("Consist '" + filePath + "' is excluded.");
-                if (string.IsNullOrEmpty(Name)) Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-            }
-            else
-            {
-                Name = "<" + catalog.GetString("missing:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-            }
-            FilePath = filePath;
-        }
-
-        internal Consist(string filePath, Folder folder, bool reverseConsist)
-        {
-            if (File.Exists(filePath))
-            {
-                try
-                {
-                    var conFile = new ConsistFile(filePath);
-                    Name = conFile.Name.Trim();
-                    Locomotive = reverseConsist ? GetLocomotiveReverse(conFile, folder) : GetLocomotive(conFile, folder);
-                }
-                catch
-                {
-                    Name = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-                }
-                if (Locomotive == null) throw new InvalidDataException("Consist '" + filePath + "' is excluded.");
-                if (string.IsNullOrEmpty(Name)) Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-            }
-            else
-            {
-                Name = "<" + catalog.GetString("missing:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-            }
-            FilePath = filePath;
-        }
+        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         public override string ToString()
         {
             return Name;
         }
 
-        public static List<Consist> GetConsists(Folder folder)
+        private Consist(ConsistFile consist, Locomotive locomotive, string fileName)
         {
-            var consists = new List<Consist>();
-            var directory = System.IO.Path.Combine(System.IO.Path.Combine(folder.Path, "TRAINS"), "CONSISTS");
-            if (Directory.Exists(directory))
+            Locomotive = locomotive;
+            if (string.IsNullOrEmpty(consist.Name))
+                Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(fileName) + ">";
+            else
+                Name = consist.Name?.Trim();
+            FilePath = fileName;
+        }
+
+        private Consist(string name, string filePath)
+        {
+            Name = name;
+            FilePath = filePath;
+        }
+
+        public static Consist GetConsist(Folder folder, string name, bool reverseConsist = false)
+        {
+            string directory = System.IO.Path.Combine(folder.Path, "TRAINS", "CONSISTS");
+            string file = System.IO.Path.Combine(directory, System.IO.Path.ChangeExtension(name, "con"));
+
+            return GetConsist(file, folder, reverseConsist);
+        }
+
+        public static Consist GetConsist(string fileName, Folder folder, bool reverseConsist = false)
+        {
+            Consist result = null;
+
+            if (File.Exists(fileName))
             {
-                foreach (var consist in Directory.GetFiles(directory, "*.con"))
+                try
                 {
-                    try
+                    ConsistFile conFile = new ConsistFile(fileName);
+                    Locomotive locomotive = reverseConsist ? GetLocomotiveReverse(conFile, folder) : GetLocomotive(conFile, folder);
+                    if (locomotive != null)
                     {
-                        consists.Add(new Consist(consist, folder));
+                        result = new Consist(conFile, locomotive, fileName);
                     }
-                    catch { }
+                }
+                catch
+                {
+                    result = new Consist($"<{catalog.GetString("load error:")}  {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
                 }
             }
-            return consists;
-        }
-
-        public static Consist GetConsist(Folder folder, string name)
-        {
-            Consist consist = null;
-            var directory = System.IO.Path.Combine(System.IO.Path.Combine(folder.Path, "TRAINS"), "CONSISTS");
-            var file = System.IO.Path.Combine(directory, System.IO.Path.ChangeExtension(name, "con"));
-
-            try
+            else
             {
-                consist = new Consist(file, folder);
+                result = new Consist($"<{catalog.GetString("missing:")}  {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
             }
-            catch { }
-
-            return consist;
+            return result;
         }
 
-        public static Consist GetConsist(Folder folder, string name, bool reverseConsist)
+        public static Task<List<Consist>> GetConsists(Folder folder, CancellationToken token)
         {
-            Consist consist = null;
-            var directory = System.IO.Path.Combine(System.IO.Path.Combine(folder.Path, "TRAINS"), "CONSISTS");
-            var file = System.IO.Path.Combine(directory, System.IO.Path.ChangeExtension(name, "con"));
-
-            try
+            TaskCompletionSource<List<Consist>> tcs = new TaskCompletionSource<List<Consist>>();
+            List<Consist> consists = new List<Consist>();
+            string directory = System.IO.Path.Combine(folder.Path, "TRAINS", "CONSISTS");
+            if (Directory.Exists(directory))
             {
-                consist = new Consist(file, folder, reverseConsist);
+                Parallel.ForEach(Directory.GetFiles(directory, "*.con"), (consistFile, state) =>
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        tcs.SetCanceled();
+                        state.Stop();
+                    }
+                    try
+                    {
+                        Consist consist = GetConsist(consistFile, folder, false);
+                        if (null != consist)
+                        {
+                            lock (consists)
+                            {
+                                consists.Add(consist);
+                            }
+                        }
+                    }
+                    catch { }
+                });
             }
-            catch { }
-
-            return consist;
+            tcs.TrySetResult(consists);
+            return tcs.Task;
         }
 
-        static Locomotive GetLocomotive(ConsistFile conFile, Folder folder)
+        private static Locomotive GetLocomotive(ConsistFile conFile, Folder folder)
         {
             foreach (var wagon in conFile.Train.TrainCfg.WagonList.Where(w => w.IsEngine))
             {
-                var filePath = System.IO.Path.Combine(System.IO.Path.Combine(System.IO.Path.Combine(System.IO.Path.Combine(folder.Path, "TRAINS"), "TRAINSET"), wagon.Folder), wagon.Name + ".eng");
                 try
                 {
-                    return new Locomotive(filePath);
+                    return Locomotive.GetLocomotive(System.IO.Path.Combine(folder.Path, "TRAINS", "TRAINSET", wagon.Folder, wagon.Name + ".eng"));
                 }
                 catch { }
             }
             return null;
         }
 
-        static Locomotive GetLocomotiveReverse(ConsistFile conFile, Folder folder)
+        private static Locomotive GetLocomotiveReverse(ConsistFile conFile, Folder folder)
         {
-            Locomotive newLocomotive = null;
-
             foreach (var wagon in conFile.Train.TrainCfg.WagonList.Where(w => w.IsEngine))
             {
-                var filePath = System.IO.Path.Combine(System.IO.Path.Combine(System.IO.Path.Combine(System.IO.Path.Combine(folder.Path, "TRAINS"), "TRAINSET"), wagon.Folder), wagon.Name + ".eng");
                 try
                 {
-                    newLocomotive = new Locomotive(filePath);
+                    return Locomotive.GetLocomotive(System.IO.Path.Combine(folder.Path, "TRAINS", "TRAINSET", wagon.Folder, wagon.Name + ".eng"));
                 }
                 catch { }
             }
-            return (newLocomotive);
+            return null;
         }
 
     }
 
     public class Locomotive
     {
-        public readonly string Name;
-        public readonly string Description;
-        public readonly string FilePath;
+        public string Name { get; private set; }
+        public string Description { get; private set; }
+        public string FilePath { get; private set; }
 
-        GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
+        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
-        public Locomotive()
-            : this(null)
+        public static Locomotive GetLocomotive(string fileName)
         {
-        }
-
-        internal Locomotive(string filePath)
-        {
-            if (filePath == null)
+            Locomotive result = null;
+            if (string.IsNullOrEmpty(fileName))
             {
-                Name = catalog.GetString("- Any Locomotive -");
+                result = new Locomotive(catalog.GetString("- Any Locomotive -"), fileName);
             }
-            else if (File.Exists(filePath))
+            else if (File.Exists(fileName))
             {
-                var showInList = true;
                 try
                 {
-                    var engFile = new EngineFile(filePath);
-                    showInList = !string.IsNullOrEmpty(engFile.CabViewFile);
-                    Name = engFile.Name.Trim();
-                    Description = engFile.Description.Trim();
+                    EngineFile engFile = new EngineFile(fileName);
+                    if (!string.IsNullOrEmpty(engFile.CabViewFile))
+                        result = new Locomotive(engFile, fileName);
                 }
                 catch
                 {
-                    Name = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                    result = new Locomotive($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
                 }
-                if (!showInList) throw new InvalidDataException(catalog.GetStringFmt("Locomotive '{0}' is excluded.", filePath));
-                if (string.IsNullOrEmpty(Name)) Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-                if (string.IsNullOrEmpty(Description)) Description = null;
             }
             else
             {
-                Name = "<" + catalog.GetString("missing:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                result = new Locomotive($"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
             }
+            return result;
+        }
+
+        private Locomotive(EngineFile engine, string fileName)
+        {
+            Name = engine.Name?.Trim();
+            Description = engine.Description?.Trim();
+            if (string.IsNullOrEmpty(Name))
+                Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(fileName) + ">";
+            if (string.IsNullOrEmpty(Description))
+                Description = null;
+        }
+
+        private Locomotive(string name, string filePath)
+        {
+            Name = name;
             FilePath = filePath;
         }
 

@@ -111,12 +111,7 @@ namespace ORTS.Common
         public static bool? GetValidity(string version, string build, int youngestFailedToResume)
         {
             int revision = GetRevisionFromVersion(version);
-            int programRevision = 0;
-            try  // as Convert.ToInt32() can fail and version may be ""
-            {
-                programRevision = Convert.ToInt32(VersionInfo.Revision);
-            }
-            catch { } // ignore errors
+            int.TryParse(VersionInfo.Revision, out int programRevision);
             //MessageBox.Show(String.Format("VersionInfo.Build = {0}, build = {1}, version = {2}, youngestFailedToResume = {3}", VersionInfo.Build, build, Version, youngestFailedToResume));
             if (revision != 0)  // compiled remotely by Open Rails
             {
@@ -161,8 +156,7 @@ namespace ORTS.Common
                 var version = versionParts[versionParts.Length - 1];
                 if (version.StartsWith("X"))
                     version = version.Substring(1);
-                // Might throw an error if it isn't a number like we expect.
-                revision = Convert.ToInt32(version);
+                int.TryParse(version, out revision);
             }
             catch { }
             return revision;

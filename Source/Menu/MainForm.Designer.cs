@@ -128,7 +128,7 @@ namespace ORTS
             this.buttonStart.Size = new System.Drawing.Size(75, 34);
             this.buttonStart.TabIndex = 0;
             this.buttonStart.Text = "Start";
-            this.buttonStart.Click += new System.EventHandler(this.buttonStart_Click);
+            this.buttonStart.Click += new System.EventHandler(this.ButtonStart_Click);
             // 
             // labelLogo
             // 
@@ -167,7 +167,7 @@ namespace ORTS
             this.buttonOptions.Size = new System.Drawing.Size(75, 23);
             this.buttonOptions.TabIndex = 0;
             this.buttonOptions.Text = "Options";
-            this.buttonOptions.Click += new System.EventHandler(this.buttonOptions_Click);
+            this.buttonOptions.Click += new System.EventHandler(this.ButtonOptions_Click);
             // 
             // buttonResume
             // 
@@ -177,7 +177,7 @@ namespace ORTS
             this.buttonResume.Size = new System.Drawing.Size(75, 35);
             this.buttonResume.TabIndex = 1;
             this.buttonResume.Text = "Resume/ Replay...";
-            this.buttonResume.Click += new System.EventHandler(this.buttonResume_Click);
+            this.buttonResume.Click += new System.EventHandler(this.ButtonResume_Click);
             // 
             // buttonTools
             // 
@@ -186,7 +186,7 @@ namespace ORTS
             this.buttonTools.Size = new System.Drawing.Size(100, 23);
             this.buttonTools.TabIndex = 19;
             this.buttonTools.Text = "Tools ▼";
-            this.buttonTools.Click += new System.EventHandler(this.buttonTools_Click);
+            this.buttonTools.Click += new System.EventHandler(this.ButtonTools_Click);
             // 
             // comboBoxFolder
             // 
@@ -198,7 +198,7 @@ namespace ORTS
             this.comboBoxFolder.Name = "comboBoxFolder";
             this.comboBoxFolder.Size = new System.Drawing.Size(281, 21);
             this.comboBoxFolder.TabIndex = 1;
-            this.comboBoxFolder.SelectedIndexChanged += new System.EventHandler(this.comboBoxFolder_SelectedIndexChanged);
+            this.comboBoxFolder.SelectedIndexChanged += new System.EventHandler(this.ComboBoxFolder_SelectedIndexChanged);
             // 
             // comboBoxRoute
             // 
@@ -210,7 +210,7 @@ namespace ORTS
             this.comboBoxRoute.Name = "comboBoxRoute";
             this.comboBoxRoute.Size = new System.Drawing.Size(281, 21);
             this.comboBoxRoute.TabIndex = 3;
-            this.comboBoxRoute.SelectedIndexChanged += new System.EventHandler(this.comboBoxRoute_SelectedIndexChanged);
+            this.comboBoxRoute.SelectedIndexChanged += new System.EventHandler(this.ComboBoxRoute_SelectedIndexChanged);
             // 
             // label2
             // 
@@ -229,7 +229,7 @@ namespace ORTS
             this.textBoxMPHost.Name = "textBoxMPHost";
             this.textBoxMPHost.Size = new System.Drawing.Size(156, 20);
             this.textBoxMPHost.TabIndex = 3;
-            this.textBoxMPHost.TextChanged += new System.EventHandler(this.textBoxMPUser_TextChanged);
+            this.textBoxMPHost.TextChanged += new System.EventHandler(this.TextBoxMPUser_TextChanged);
             // 
             // label14
             // 
@@ -261,7 +261,7 @@ namespace ORTS
             this.buttonMPClient.Size = new System.Drawing.Size(75, 23);
             this.buttonMPClient.TabIndex = 5;
             this.buttonMPClient.Text = "Client";
-            this.buttonMPClient.Click += new System.EventHandler(this.buttonMPClient_Click);
+            this.buttonMPClient.Click += new System.EventHandler(this.ButtonMPClient_Click);
             // 
             // buttonMPServer
             // 
@@ -271,7 +271,7 @@ namespace ORTS
             this.buttonMPServer.Size = new System.Drawing.Size(75, 23);
             this.buttonMPServer.TabIndex = 4;
             this.buttonMPServer.Text = "Server";
-            this.buttonMPServer.Click += new System.EventHandler(this.buttonMPServer_Click);
+            this.buttonMPServer.Click += new System.EventHandler(this.ButtonMPServer_Click);
             // 
             // textBoxMPUser
             // 
@@ -279,7 +279,7 @@ namespace ORTS
             this.textBoxMPUser.Name = "textBoxMPUser";
             this.textBoxMPUser.Size = new System.Drawing.Size(156, 20);
             this.textBoxMPUser.TabIndex = 1;
-            this.textBoxMPUser.TextChanged += new System.EventHandler(this.textBoxMPUser_TextChanged);
+            this.textBoxMPUser.TextChanged += new System.EventHandler(this.TextBoxMPUser_TextChanged);
             // 
             // groupBox1
             // 
@@ -366,7 +366,7 @@ namespace ORTS
             this.buttonDocuments.TabIndex = 22;
             this.buttonDocuments.Text = "Documents ▼";
             this.buttonDocuments.UseVisualStyleBackColor = true;
-            this.buttonDocuments.Click += new System.EventHandler(this.buttonDocuments_Click);
+            this.buttonDocuments.Click += new System.EventHandler(this.ButtonDocuments_Click);
             // 
             // label25
             // 
@@ -389,7 +389,7 @@ namespace ORTS
             this.radioButtonModeActivity.TabStop = true;
             this.radioButtonModeActivity.Text = "Activity";
             this.radioButtonModeActivity.UseVisualStyleBackColor = true;
-            this.radioButtonModeActivity.CheckedChanged += new System.EventHandler(this.radioButtonMode_CheckedChanged);
+            this.radioButtonModeActivity.CheckedChanged += new System.EventHandler(this.RadioButtonMode_CheckedChanged);
             // 
             // radioButtonModeTimetable
             // 
@@ -399,7 +399,7 @@ namespace ORTS
             this.radioButtonModeTimetable.TabIndex = 7;
             this.radioButtonModeTimetable.Text = "Timetable";
             this.radioButtonModeTimetable.UseVisualStyleBackColor = true;
-            this.radioButtonModeTimetable.CheckedChanged += new System.EventHandler(this.radioButtonMode_CheckedChanged);
+            this.radioButtonModeTimetable.CheckedChanged += new System.EventHandler(this.RadioButtonMode_CheckedChanged);
             // 
             // panelModeActivity
             // 
@@ -464,7 +464,7 @@ namespace ORTS
             this.comboBoxActivity.Name = "comboBoxActivity";
             this.comboBoxActivity.Size = new System.Drawing.Size(281, 21);
             this.comboBoxActivity.TabIndex = 1;
-            this.comboBoxActivity.SelectedIndexChanged += new System.EventHandler(this.comboBoxActivity_SelectedIndexChanged);
+            this.comboBoxActivity.SelectedIndexChanged += new System.EventHandler(this.ComboBoxActivity_SelectedIndexChanged);
             // 
             // label4
             // 
@@ -488,7 +488,7 @@ namespace ORTS
             this.comboBoxLocomotive.Name = "comboBoxLocomotive";
             this.comboBoxLocomotive.Size = new System.Drawing.Size(281, 21);
             this.comboBoxLocomotive.TabIndex = 3;
-            this.comboBoxLocomotive.SelectedIndexChanged += new System.EventHandler(this.comboBoxLocomotive_SelectedIndexChanged);
+            this.comboBoxLocomotive.SelectedIndexChanged += new System.EventHandler(this.ComboBoxLocomotive_SelectedIndexChanged);
             // 
             // comboBoxConsist
             // 
@@ -501,7 +501,7 @@ namespace ORTS
             this.comboBoxConsist.Name = "comboBoxConsist";
             this.comboBoxConsist.Size = new System.Drawing.Size(281, 21);
             this.comboBoxConsist.TabIndex = 5;
-            this.comboBoxConsist.SelectedIndexChanged += new System.EventHandler(this.comboBoxConsist_SelectedIndexChanged);
+            this.comboBoxConsist.SelectedIndexChanged += new System.EventHandler(this.ComboBoxConsist_SelectedIndexChanged);
             // 
             // label5
             // 
@@ -560,7 +560,7 @@ namespace ORTS
             this.comboBoxHeadTo.Name = "comboBoxHeadTo";
             this.comboBoxHeadTo.Size = new System.Drawing.Size(281, 21);
             this.comboBoxHeadTo.TabIndex = 9;
-            this.comboBoxHeadTo.SelectedIndexChanged += new System.EventHandler(this.comboBoxHeadTo_SelectedIndexChanged);
+            this.comboBoxHeadTo.SelectedIndexChanged += new System.EventHandler(this.ComboBoxHeadTo_SelectedIndexChanged);
             // 
             // label11
             // 
@@ -595,7 +595,7 @@ namespace ORTS
             this.comboBoxStartTime.Name = "comboBoxStartTime";
             this.comboBoxStartTime.Size = new System.Drawing.Size(73, 21);
             this.comboBoxStartTime.TabIndex = 11;
-            this.comboBoxStartTime.TextChanged += new System.EventHandler(this.comboBoxStartTime_TextChanged);
+            this.comboBoxStartTime.TextChanged += new System.EventHandler(this.ComboBoxStartTime_TextChanged);
             // 
             // comboBoxDuration
             // 
@@ -620,7 +620,7 @@ namespace ORTS
             this.comboBoxStartWeather.Name = "comboBoxStartWeather";
             this.comboBoxStartWeather.Size = new System.Drawing.Size(73, 21);
             this.comboBoxStartWeather.TabIndex = 15;
-            this.comboBoxStartWeather.SelectedIndexChanged += new System.EventHandler(this.comboBoxStartWeather_SelectedIndexChanged);
+            this.comboBoxStartWeather.SelectedIndexChanged += new System.EventHandler(this.ComboBoxStartWeather_SelectedIndexChanged);
             // 
             // label12
             // 
@@ -644,7 +644,7 @@ namespace ORTS
             this.comboBoxStartSeason.Name = "comboBoxStartSeason";
             this.comboBoxStartSeason.Size = new System.Drawing.Size(73, 21);
             this.comboBoxStartSeason.TabIndex = 13;
-            this.comboBoxStartSeason.SelectedIndexChanged += new System.EventHandler(this.comboBoxStartSeason_SelectedIndexChanged);
+            this.comboBoxStartSeason.SelectedIndexChanged += new System.EventHandler(this.ComboBoxStartSeason_SelectedIndexChanged);
             // 
             // label10
             // 
@@ -720,7 +720,7 @@ namespace ORTS
             this.comboBoxTimetableTrain.Name = "comboBoxTimetableTrain";
             this.comboBoxTimetableTrain.Size = new System.Drawing.Size(193, 21);
             this.comboBoxTimetableTrain.TabIndex = 5;
-            this.comboBoxTimetableTrain.SelectedIndexChanged += new System.EventHandler(this.comboBoxTimetableTrain_SelectedIndexChanged);
+            this.comboBoxTimetableTrain.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableTrain_SelectedIndexChanged);
             // 
             // label23
             // 
@@ -743,7 +743,7 @@ namespace ORTS
             this.comboBoxTimetableDay.Size = new System.Drawing.Size(73, 21);
             this.comboBoxTimetableDay.TabIndex = 8;
             this.comboBoxTimetableDay.Visible = false;
-            this.comboBoxTimetableDay.SelectedIndexChanged += new System.EventHandler(this.comboBoxTimetableDay_SelectedIndexChanged);
+            this.comboBoxTimetableDay.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableDay_SelectedIndexChanged);
             // 
             // label22
             // 
@@ -767,7 +767,7 @@ namespace ORTS
             this.comboBoxTimetableWeather.Name = "comboBoxTimetableWeather";
             this.comboBoxTimetableWeather.Size = new System.Drawing.Size(73, 21);
             this.comboBoxTimetableWeather.TabIndex = 12;
-            this.comboBoxTimetableWeather.SelectedIndexChanged += new System.EventHandler(this.comboBoxTimetableWeather_SelectedIndexChanged);
+            this.comboBoxTimetableWeather.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableWeather_SelectedIndexChanged);
             // 
             // label20
             // 
@@ -790,7 +790,7 @@ namespace ORTS
             this.comboBoxTimetableSeason.Name = "comboBoxTimetableSeason";
             this.comboBoxTimetableSeason.Size = new System.Drawing.Size(73, 21);
             this.comboBoxTimetableSeason.TabIndex = 10;
-            this.comboBoxTimetableSeason.SelectedIndexChanged += new System.EventHandler(this.comboBoxTimetableSeason_SelectedIndexChanged);
+            this.comboBoxTimetableSeason.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableSeason_SelectedIndexChanged);
             // 
             // label21
             // 
@@ -811,8 +811,8 @@ namespace ORTS
             this.comboBoxTimetable.Name = "comboBoxTimetable";
             this.comboBoxTimetable.Size = new System.Drawing.Size(193, 21);
             this.comboBoxTimetable.TabIndex = 3;
-            this.comboBoxTimetable.SelectedIndexChanged += new System.EventHandler(this.comboBoxTimetable_selectedIndexChanged);
-            this.comboBoxTimetable.EnabledChanged += new System.EventHandler(this.comboBoxTimetable_EnabledChanged);
+            this.comboBoxTimetable.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetable_selectedIndexChanged);
+            this.comboBoxTimetable.EnabledChanged += new System.EventHandler(this.ComboBoxTimetable_EnabledChanged);
             // 
             // comboBoxTimetableSet
             // 
@@ -822,7 +822,7 @@ namespace ORTS
             this.comboBoxTimetableSet.Name = "comboBoxTimetableSet";
             this.comboBoxTimetableSet.Size = new System.Drawing.Size(281, 21);
             this.comboBoxTimetableSet.TabIndex = 1;
-            this.comboBoxTimetableSet.SelectedIndexChanged += new System.EventHandler(this.comboBoxTimetableSet_SelectedIndexChanged);
+            this.comboBoxTimetableSet.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableSet_SelectedIndexChanged);
             // 
             // label15
             // 
@@ -846,14 +846,14 @@ namespace ORTS
             this.linkLabelUpdate.TextAlign = System.Drawing.ContentAlignment.TopRight;
             this.linkLabelUpdate.UseMnemonic = false;
             this.linkLabelUpdate.Visible = false;
-            this.linkLabelUpdate.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelUpdate_LinkClicked);
+            this.linkLabelUpdate.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabelUpdate_LinkClicked);
             // 
             // testingToolStripMenuItem
             // 
             this.testingToolStripMenuItem.Name = "testingToolStripMenuItem";
             this.testingToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             this.testingToolStripMenuItem.Text = "Testing";
-            this.testingToolStripMenuItem.Click += new System.EventHandler(this.testingToolStripMenuItem_Click);
+            this.testingToolStripMenuItem.Click += new System.EventHandler(this.TestingToolStripMenuItem_Click);
             // 
             // contextMenuStripTools
             // 
@@ -873,7 +873,7 @@ namespace ORTS
             this.linkLabelChangeLog.Text = "What\'s new?";
             this.linkLabelChangeLog.UseMnemonic = false;
             this.linkLabelChangeLog.Visible = false;
-            this.linkLabelChangeLog.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelChangeLog_LinkClicked);
+            this.linkLabelChangeLog.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabelChangeLog_LinkClicked);
             // 
             // contextMenuStripDocuments
             // 

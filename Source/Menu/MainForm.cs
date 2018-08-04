@@ -15,13 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
-using Orts.Formats.OR;
-using ORTS.Common;
-using ORTS.Menu;
-using ORTS.Settings;
-using ORTS.Updater;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,7 +25,15 @@ using System.Linq;
 using System.Resources;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using GNU.Gettext;
+using GNU.Gettext.WinForms;
+using Orts.Formats.OR;
+using ORTS.Common;
+using ORTS.Menu;
+using ORTS.Settings;
+using ORTS.Updater;
 using Path = ORTS.Menu.Path;
 
 namespace ORTS
@@ -51,33 +52,35 @@ namespace ORTS
             SinglePlayerResumeTimetableGame,
         }
 
-        bool Initialized;
-        UserSettings Settings;
-        List<Folder> Folders = new List<Folder>();
-        public List<Route> Routes = new List<Route>();
-        List<Activity> Activities = new List<Activity>();
-        public List<Consist> Consists = new List<Consist>();
-        List<Path> Paths = new List<Path>();
-        List<TimetableInfo> TimetableSets = new List<TimetableInfo>();
-        Task<List<Folder>> FolderLoader;
-        Task<List<Route>> RouteLoader;
-        Task<List<Activity>> ActivityLoader;
-        Task<List<Consist>> ConsistLoader;
-        Task<List<Path>> PathLoader;
-        Task<List<TimetableInfo>> TimetableSetLoader;
-        readonly ResourceManager Resources = new ResourceManager("ORTS.Properties.Resources", typeof(MainForm).Assembly);
-        readonly UpdateManager UpdateManager;
-        readonly Image ElevationIcon;
+        private bool initialized;
+        private UserSettings settings;
+        private List<Folder> folders = new List<Folder>();
+        private List<Route> routes = new List<Route>();
+        private List<Activity> activities = new List<Activity>();
+        private List<Consist> consists = new List<Consist>();
+        private List<Path> paths = new List<Path>();
+        private List<TimetableInfo> timetableSets = new List<TimetableInfo>();
+
+        private System.Threading.CancellationTokenSource ctsRouteLoading;
+        private System.Threading.CancellationTokenSource ctsActivityLoading;
+        private System.Threading.CancellationTokenSource ctsConsistLoading;
+        private System.Threading.CancellationTokenSource ctsPathLoading;
+        private System.Threading.CancellationTokenSource ctsTimeTableLoading;
+
+        private readonly ResourceManager Resources = new ResourceManager("ORTS.Properties.Resources", typeof(MainForm).Assembly);
+        private UpdateManager UpdateManager;
+        private readonly Image ElevationIcon;
+
+        public List<Route> Routes { get { return this.routes; } }
 
         internal string RunActivityProgram
         {
             get
             {
-                var programNormal = System.IO.Path.Combine(Application.StartupPath, "RunActivity.exe");
                 var programLAA = System.IO.Path.Combine(Application.StartupPath, "RunActivityLAA.exe");
-                if (Settings.UseLargeAddressAware && File.Exists(programLAA))
+                if (settings.UseLargeAddressAware && File.Exists(programLAA))
                     return programLAA;
-                return programNormal;
+                return System.IO.Path.Combine(Application.StartupPath, "RunActivity.exe"); ;
             }
         }
         
@@ -95,18 +98,18 @@ namespace ORTS
         public TimetableInfo SelectedTimetableSet { get { return (TimetableInfo)comboBoxTimetableSet.SelectedItem; } }
         public TimetableFileLite SelectedTimetable { get { return (TimetableFileLite)comboBoxTimetable.SelectedItem; } }
         public TimetableFileLite.TrainInformation SelectedTimetableTrain { get { return (TimetableFileLite.TrainInformation)comboBoxTimetableTrain.SelectedItem; } }
-        public int SelectedTimetableDay { get { return (comboBoxTimetableDay.SelectedItem as KeyedComboBoxItem).Key; } }
+        public int SelectedTimetableDay { get { return initialized ? (comboBoxTimetableDay.SelectedItem as KeyedComboBoxItem).Key : 0; } }
         public Consist SelectedTimetableConsist;
         public Path SelectedTimetablePath;
 
         // Shared items
-        public int SelectedStartSeason { get { return radioButtonModeActivity.Checked ? (comboBoxStartSeason.SelectedItem as KeyedComboBoxItem).Key : (comboBoxTimetableSeason.SelectedItem as KeyedComboBoxItem).Key; } }
-        public int SelectedStartWeather { get { return radioButtonModeActivity.Checked ? (comboBoxStartWeather.SelectedItem as KeyedComboBoxItem).Key : (comboBoxTimetableWeather.SelectedItem as KeyedComboBoxItem).Key; } }
+        public int SelectedStartSeason { get { return initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartSeason.SelectedItem as KeyedComboBoxItem).Key : (comboBoxTimetableSeason.SelectedItem as KeyedComboBoxItem).Key) : 0; } }
+        public int SelectedStartWeather { get { return initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartWeather.SelectedItem as KeyedComboBoxItem).Key : (comboBoxTimetableWeather.SelectedItem as KeyedComboBoxItem).Key) : 0; } }
 
         public string SelectedSaveFile { get; set; }
         public UserAction SelectedAction { get; set; }
 
-        GettextResourceManager catalog = new GettextResourceManager("Menu");
+        private GettextResourceManager catalog = new GettextResourceManager("Menu");
 
         #region Main Form
         public MainForm()
@@ -121,43 +124,47 @@ namespace ORTS
             // Set title to show revision or build info.
             Text = String.Format(VersionInfo.Version.Length > 0 ? "{0} {1}" : "{0} build {2}", Application.ProductName, VersionInfo.Version, VersionInfo.Build);
 #if DEBUG
-            Text = Text + " (debug)";
+            Text += " (debug)";
 #endif
             panelModeTimetable.Location = panelModeActivity.Location;
-            ShowDetails();
             UpdateEnabled();
-            UpdateManager = new UpdateManager(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
             ElevationIcon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize).ToBitmap();
         }
 
-        void MainForm_Shown(object sender, EventArgs e)
+        private async void MainForm_Shown(object sender, EventArgs e)
         {
+            this.Suspend();
             var options = Environment.GetCommandLineArgs().Where(a => (a.StartsWith("-") || a.StartsWith("/"))).Select(a => a.Substring(1));
-            Settings = new UserSettings(options);
+            settings = new UserSettings(options);
+
+            List<Task> initTasks = new List<Task>();
+
+            initTasks.Add(InitializeUpdateManager());
+            initTasks.Add(LoadToolsAndDocuments());
 
             LoadOptions();
             LoadLanguage();
 
-            if (!Initialized)
+            if (!initialized)
             {
-                var Seasons = new[] {
+                var seasons = new[] {
                     new KeyedComboBoxItem(0, catalog.GetString("Spring")),
                     new KeyedComboBoxItem(1, catalog.GetString("Summer")),
                     new KeyedComboBoxItem(2, catalog.GetString("Autumn")),
                     new KeyedComboBoxItem(3, catalog.GetString("Winter")),
                 };
-                var Weathers = new[] {
+                var weathers = new[] {
                     new KeyedComboBoxItem(0, catalog.GetString("Clear")),
                     new KeyedComboBoxItem(1, catalog.GetString("Snow")),
                     new KeyedComboBoxItem(2, catalog.GetString("Rain")),
                 };
-                var Difficulties = new[] {
+                var difficulties = new[] {
                     catalog.GetString("Easy"),
                     catalog.GetString("Medium"),
                     catalog.GetString("Hard"),
                     "",
                 };
-                var Days = new[] {
+                var days = new[] {
                     new KeyedComboBoxItem(0, catalog.GetString("Monday")),
                     new KeyedComboBoxItem(1, catalog.GetString("Tuesday")),
                     new KeyedComboBoxItem(2, catalog.GetString("Wednesday")),
@@ -167,42 +174,71 @@ namespace ORTS
                     new KeyedComboBoxItem(6, catalog.GetString("Sunday")),
                 };
 
-                comboBoxStartSeason.Items.AddRange(Seasons);
-                comboBoxStartWeather.Items.AddRange(Weathers);
-                comboBoxDifficulty.Items.AddRange(Difficulties);
+                comboBoxStartSeason.Items.AddRange(seasons);
+                comboBoxStartWeather.Items.AddRange(weathers);
+                comboBoxDifficulty.Items.AddRange(difficulties);
 
-                comboBoxTimetableSeason.Items.AddRange(Seasons);
-                comboBoxTimetableWeather.Items.AddRange(Weathers);
-                comboBoxTimetableDay.Items.AddRange(Days);
+                comboBoxTimetableSeason.Items.AddRange(seasons);
+                comboBoxTimetableWeather.Items.AddRange(weathers);
+                comboBoxTimetableDay.Items.AddRange(days);
 
-                var coreExecutables = new[] {
+                initTasks.Add(LoadFolderListAsync());
+
+                await Task.WhenAll(initTasks);
+                initialized = true;
+            }
+
+            ShowEnvironment();
+            ShowTimetableEnvironment();
+            ShowDetails();
+
+            this.Resume();
+        }
+
+        private async Task InitializeUpdateManager()
+        {
+            await Task.Run(() =>
+            {
+                UpdateManager = new UpdateManager(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
+            });
+            await CheckForUpdateAsync();
+
+        }
+
+        private Task<List<ToolStripItem>> LoadTools()
+        {
+            TaskCompletionSource<List<ToolStripItem>> tcs = new TaskCompletionSource<List<ToolStripItem>>();
+            List<ToolStripItem> result = new List<ToolStripItem>();
+
+            var coreExecutables = new[] {
                     "OpenRails.exe",
                     "Menu.exe",
                     "RunActivity.exe",
                     "RunActivityLAA.exe",
                     "Updater.exe",
                 };
-                var tools = new List<ToolStripItem>();
-                foreach (var executable in Directory.GetFiles(System.IO.Path.GetDirectoryName(Application.ExecutablePath), "*.exe"))
+            Parallel.ForEach(Directory.GetFiles(System.IO.Path.GetDirectoryName(Application.ExecutablePath), "*.exe"), (fileName) =>
+            {
+                // Don't show any of the core parts of the application.
+                if (coreExecutables.Contains(System.IO.Path.GetFileName(fileName)))
+                    return;
+
+                FileVersionInfo toolInfo = FileVersionInfo.GetVersionInfo(fileName);
+
+                // Skip any executable that isn't part of this product (e.g. Visual Studio hosting files).
+                if (toolInfo.ProductName != Application.ProductName)
+                    return;
+
+                // Remove the product name from the tool's name and localise.
+                string toolName = catalog.GetString(toolInfo.FileDescription.Replace(Application.ProductName, "").Trim());
+
+                lock (result)
                 {
-                    // Don't show any of the core parts of the application.
-                    if (coreExecutables.Contains(System.IO.Path.GetFileName(executable)))
-                        continue;
-
-                    var toolInfo = FileVersionInfo.GetVersionInfo(executable);
-
-                    // Skip any executable that isn't part of this product (e.g. Visual Studio hosting files).
-                    if (toolInfo.ProductName != Application.ProductName)
-                        continue;
-
-                    // Remove the product name from the tool's name and localise.
-                    var toolName = catalog.GetString(toolInfo.FileDescription.Replace(Application.ProductName, "").Trim());
-
                     // Create menu item to execute tool.
-                    tools.Add(new ToolStripMenuItem(toolName, null, (Object sender2, EventArgs e2) =>
+                    result.Add(new ToolStripMenuItem(toolName, null, (Object sender2, EventArgs e2) =>
                     {
-                        var toolPath = (sender2 as ToolStripItem).Tag as string;
-                        var toolIsConsole = false;
+                        string toolPath = (sender2 as ToolStripItem).Tag as string;
+                        bool toolIsConsole = false;
                         using (var reader = new BinaryReader(File.OpenRead(toolPath)))
                         {
                             toolIsConsole = GetImageSubsystem(reader) == ImageSubsystem.WindowsConsole;
@@ -211,124 +247,135 @@ namespace ORTS
                             Process.Start("cmd", "/k \"" + toolPath + "\"");
                         else
                             Process.Start(toolPath);
-                    }) { Tag = executable });
+                    })
+                    { Tag = fileName });
                 }
-                // Add all the tools in alphabetical order.
-                contextMenuStripTools.Items.AddRange((from tool in tools
-                                                      orderby tool.Text
-                                                      select tool).ToArray());
+            });
+            tcs.TrySetResult(result);
+            return tcs.Task;
+        }
 
-                // Just like above, buttonDocuments is a button that is treated like a menu.  The result is a button that acts like a combobox.
-                // Populate buttonDocuments.
-                // Documents button will be disabled if Documentation folder is not present.
-                var docs = new List<ToolStripItem>();
-                var dir = Directory.GetCurrentDirectory();
-                var path = dir + @"\Documentation\";
-                if (Directory.Exists(path))
+        private Task<List<ToolStripItem>> LoadDocuments()
+        {
+            TaskCompletionSource<List<ToolStripItem>> tcs = new TaskCompletionSource<List<ToolStripItem>>();
+            List<ToolStripItem> result = new List<ToolStripItem>();
+
+            string path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Documentation");
+            if (Directory.Exists(path))
+            {
+                Parallel.ForEach(Directory.GetFiles(path), (fileName) =>
                 {
-                    foreach (string entry in Directory.GetFiles(path))
+                    // These are the following formats that can be selected.
+                    if (fileName.EndsWith(".pdf") || fileName.EndsWith(".doc") || fileName.EndsWith(".docx") || fileName.EndsWith(".pptx") || fileName.EndsWith(".txt"))
                     {
-                        // These are the following formats that can be selected.
-                        if (entry.Contains(".pdf") || entry.Contains(".doc") || entry.Contains(".docx") || entry.Contains(".pptx") || entry.Contains(".txt"))
+                        lock (result)
                         {
-                            var i = entry.LastIndexOf("\\");
-                            docs.Add(new ToolStripMenuItem(entry.Substring(i + 1), null, (Object sender2, EventArgs e2) =>
+                            result.Add(new ToolStripMenuItem(System.IO.Path.GetFileName(fileName), null, (Object sender2, EventArgs e2) =>
                             {
                                 var docPath = (sender2 as ToolStripItem).Tag as string;
                                 Process.Start(docPath);
-                             }) { Tag = entry });
+                            })
+                            { Tag = fileName });
                         }
-                        contextMenuStripDocuments.Items.AddRange((from tool in docs
-                                                                  orderby tool.Text
-                                                                  select tool).ToArray());
                     }
-                }
-                else
-                    buttonDocuments.Enabled = false;
+                });
             }
-
-            ShowEnvironment();
-            ShowTimetableEnvironment();
-
-            CheckForUpdate();
-
-            if (!Initialized)
-            {
-                LoadFolderList();
-                Initialized = true;
-            }
+            tcs.TrySetResult(result);
+            return tcs.Task;
         }
 
-        void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        private async Task LoadToolsAndDocuments()
+        {
+            await Task.WhenAll(
+                Task.Run(() => LoadTools()).ContinueWith((tools) =>
+                {
+                    // Add all the tools in alphabetical order.
+                    contextMenuStripTools.Items.AddRange((from tool in tools.Result
+                                                          orderby tool.Text
+                                                          select tool).ToArray());
+
+                }),
+                // Just like above, buttonDocuments is a button that is treated like a menu.  The result is a button that acts like a combobox.
+                // Populate buttonDocuments.
+                Task.Run(() => LoadDocuments()).ContinueWith((documents) =>
+                {
+                    // Add all the tools in alphabetical order.
+                    contextMenuStripDocuments.Items.AddRange((from doc in documents.Result
+                                                              orderby doc.Text
+                                                              select doc).ToArray());
+
+                }));
+            // Documents button will be disabled if Documentation folder is not present.
+            buttonDocuments.Enabled = contextMenuStripDocuments.Items.Count > 0;
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             SaveOptions();
-            if (RouteLoader != null)
-                RouteLoader.Cancel();
-            if (ActivityLoader != null)
-                ActivityLoader.Cancel();
-            if (ConsistLoader != null)
-                ConsistLoader.Cancel();
-            if (PathLoader != null)
-                PathLoader.Cancel();
-            if (TimetableSetLoader != null)
-                TimetableSetLoader.Cancel();
+            if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
+                ctsRouteLoading.Cancel();
+            if (null != ctsActivityLoading && !ctsActivityLoading.IsCancellationRequested)
+                ctsActivityLoading.Cancel();
+            if (null != ctsConsistLoading && !ctsConsistLoading.IsCancellationRequested)
+                ctsConsistLoading.Cancel();
+            if (null != ctsPathLoading && !ctsPathLoading.IsCancellationRequested)
+                ctsPathLoading.Cancel();
+            if (null != ctsTimeTableLoading && !ctsPathLoading.IsCancellationRequested)
+                ctsTimeTableLoading.Cancel();
 
             // Remove any deleted saves
             if (Directory.Exists(UserSettings.DeletedSaveFolder))
                 Directory.Delete(UserSettings.DeletedSaveFolder, true);   // true removes all contents as well as folder
 
             // Tidy up after versions which used SAVE.BIN
-            var file = UserSettings.UserDataFolder + @"\SAVE.BIN";
+            string file = UserSettings.UserDataFolder + @"\SAVE.BIN";
             if (File.Exists(file))
                 File.Delete(file);
         }
 
-        void CheckForUpdate()
+        private async Task CheckForUpdateAsync()
         {
             // This is known directly from the chosen channel so doesn't need to wait for the update check itself.
             linkLabelChangeLog.Visible = !string.IsNullOrEmpty(UpdateManager.ChangeLogLink);
 
-            new Task<UpdateManager>(this, () =>
-            {
-                UpdateManager.Check();
-                return null;
-            }, _ =>
-            {
-                if (UpdateManager.LastCheckError != null)
-                    linkLabelUpdate.Text = catalog.GetString("Update check failed");
-                else if (UpdateManager.LastUpdate != null && UpdateManager.LastUpdate.Version != VersionInfo.Version)
-                    linkLabelUpdate.Text = catalog.GetStringFmt("Update to {0}", UpdateManager.LastUpdate.Version);
-                else
-                    linkLabelUpdate.Text = "";
-                linkLabelUpdate.Enabled = true;
-                linkLabelUpdate.Visible = linkLabelUpdate.Text.Length > 0;
-                // Update link's elevation icon and size/position.
-                if (UpdateManager.LastCheckError == null && UpdateManager.LastUpdate != null && UpdateManager.LastUpdate.Version != VersionInfo.Version && UpdateManager.UpdaterNeedsElevation)
-                    linkLabelUpdate.Image = ElevationIcon;
-                else
-                    linkLabelUpdate.Image = null;
-                linkLabelUpdate.AutoSize = true;
-                linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - ElevationIcon.Width;
-                linkLabelUpdate.AutoSize = false;
-                linkLabelUpdate.Width = panelDetails.Right - linkLabelUpdate.Left;
-            });
+            await Task.Run(() => UpdateManager.CheckForUpdateAsync());
+
+            if (UpdateManager.LastCheckError != null)
+                linkLabelUpdate.Text = catalog.GetString("Update check failed");
+            else if (UpdateManager.LastUpdate != null && UpdateManager.LastUpdate.Version != VersionInfo.Version)
+                linkLabelUpdate.Text = catalog.GetStringFmt("Update to {0}", UpdateManager.LastUpdate.Version);
+            else
+                linkLabelUpdate.Text = "";
+            linkLabelUpdate.Enabled = true;
+            linkLabelUpdate.Visible = linkLabelUpdate.Text.Length > 0;
+            // Update link's elevation icon and size/position.
+            if (UpdateManager.LastCheckError == null && UpdateManager.LastUpdate?.Version != VersionInfo.Version && UpdateManager.UpdaterNeedsElevation)
+                linkLabelUpdate.Image = ElevationIcon;
+            else
+                linkLabelUpdate.Image = null;
+            linkLabelUpdate.AutoSize = true;
+            linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - ElevationIcon.Width;
+            linkLabelUpdate.AutoSize = false;
+            linkLabelUpdate.Width = panelDetails.Right - linkLabelUpdate.Left;
         }
 
-        void LoadLanguage()
+        private void LoadLanguage()
         {
-            if (Settings.Language.Length > 0)
+            if (!string.IsNullOrEmpty(settings.Language))
             {
                 try
                 {
-                    Thread.CurrentThread.CurrentUICulture = new CultureInfo(Settings.Language);
+                    Thread.CurrentThread.CurrentUICulture = new CultureInfo(settings.Language);
                 }
-                catch { }
+                catch
+                {
+                }
             }
 
             Localizer.Localize(this, catalog);
         }
 
-        void RestartMenu()
+        private void RestartMenu()
         {
             Process.Start(Application.ExecutablePath);
             Close();
@@ -336,26 +383,26 @@ namespace ORTS
         #endregion
 
         #region Folders
-        void comboBoxFolder_SelectedIndexChanged(object sender, EventArgs e)
+        private async void ComboBoxFolder_SelectedIndexChanged(object sender, EventArgs e)
         {
-            LoadRouteList();
-            LoadLocomotiveList();
+            await Task.WhenAll(LoadRouteListAsync(), LoadLocomotiveListAsync());
             ShowDetails();
         }
         #endregion
 
         #region Routes
-        void comboBoxRoute_SelectedIndexChanged(object sender, EventArgs e)
+        private async void ComboBoxRoute_SelectedIndexChanged(object sender, EventArgs e)
         {
-            LoadActivityList();
-            LoadStartAtList();
-            LoadTimetableSetList();
+            await Task.WhenAll(
+                LoadActivityListAsync(), 
+                LoadStartAtListAsync(), 
+                LoadTimetableSetListAsync());
             ShowDetails();
         }
         #endregion
 
         #region Mode
-        void radioButtonMode_CheckedChanged(object sender, EventArgs e)
+        private void RadioButtonMode_CheckedChanged(object sender, EventArgs e)
         {
             panelModeActivity.Visible = radioButtonModeActivity.Checked;
             panelModeTimetable.Visible = radioButtonModeTimetable.Checked;
@@ -365,7 +412,7 @@ namespace ORTS
         #endregion
 
         #region Activities
-        void comboBoxActivity_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxActivity_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowLocomotiveList();
             ShowConsistList();
@@ -381,7 +428,7 @@ namespace ORTS
         #endregion
 
         #region Locomotives
-        void comboBoxLocomotive_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxLocomotive_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowConsistList();
             ShowDetails();
@@ -389,7 +436,7 @@ namespace ORTS
         #endregion
 
         #region Consists
-        void comboBoxConsist_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxConsist_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
             ShowDetails();
@@ -397,14 +444,14 @@ namespace ORTS
         #endregion
 
         #region Starting from
-        void comboBoxStartAt_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxStartAt_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowHeadToList();
         }
         #endregion
 
         #region Heading to
-        void comboBoxHeadTo_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxHeadTo_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
             ShowDetails();
@@ -412,24 +459,24 @@ namespace ORTS
         #endregion
 
         #region Environment
-        void comboBoxStartTime_TextChanged(object sender, EventArgs e)
+        private void ComboBoxStartTime_TextChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
         }
 
-        void comboBoxStartSeason_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxStartSeason_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
         }
 
-        void comboBoxStartWeather_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxStartWeather_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity();
         }
         #endregion
 
         #region Timetable Sets
-        void comboBoxTimetableSet_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetableSet_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableSet();
             ShowTimetableList();
@@ -438,7 +485,7 @@ namespace ORTS
         #endregion
 
         #region Timetables
-        void comboBoxTimetable_selectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetable_selectedIndexChanged(object sender, EventArgs e)
         {
             ShowTimetableTrainList();
             ShowDetails();
@@ -446,39 +493,42 @@ namespace ORTS
         #endregion
 
         #region Timetable Trains
-        void comboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
         {
             var selectedTrain = comboBoxTimetableTrain.SelectedItem as TimetableFileLite.TrainInformation;
-            SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
-            SelectedTimetablePath = Path.GetPath(SelectedRoute, selectedTrain.Path, false);
-            ShowDetails();
+            if (null != selectedTrain)
+            {
+                SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
+                SelectedTimetablePath = Path.GetPath(SelectedRoute, selectedTrain.Path, false);
+                ShowDetails();
+            }
         }
         #endregion
 
         #region Timetable environment
-        void comboBoxTimetableDay_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetableDay_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableSet();
         }
 
-        void comboBoxTimetableSeason_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetableSeason_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableSet();
         }
 
-        void comboBoxTimetableWeather_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetableWeather_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableSet();
         }
         #endregion
 
         #region Multiplayer
-        void textBoxMPUser_TextChanged(object sender, EventArgs e)
+        private void TextBoxMPUser_TextChanged(object sender, EventArgs e)
         {
             UpdateEnabled();
         }
 
-        bool CheckUserName(string text)
+        private bool CheckUserName(string text)
         {
             string tmp = text;
             if (tmp.Length < 4 || tmp.Length > 10 || tmp.Contains("\"") || tmp.Contains("\'") || tmp.Contains(" ") || tmp.Contains("-") || Char.IsDigit(tmp, 0))
@@ -492,7 +542,7 @@ namespace ORTS
         #endregion
 
         #region Misc. buttons and options
-        void linkLabelUpdate_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private async void LinkLabelUpdate_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (UpdateManager.LastCheckError != null)
             {
@@ -500,49 +550,47 @@ namespace ORTS
                 return;
             }
 
-            UpdateManager.Update();
+            await UpdateManager.RunUpdateProcess();
 
             if (UpdateManager.LastUpdateError != null)
             {
                 MessageBox.Show(catalog.GetStringFmt("The update failed due to an error:\n\n{0}", UpdateManager.LastUpdateError), Application.ProductName);
-                return;
             }
         }
 
-        void linkLabelChangeLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void LinkLabelChangeLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start(UpdateManager.ChangeLogLink);
         }
 
-        void buttonTools_Click(object sender, EventArgs e)
+        private void ButtonTools_Click(object sender, EventArgs e)
         {
             contextMenuStripTools.Show(buttonTools, new Point(0, buttonTools.ClientSize.Height), ToolStripDropDownDirection.Default);
         }
 
-        void buttonDocuments_Click(object sender, EventArgs e)
+        private void ButtonDocuments_Click(object sender, EventArgs e)
         {
             contextMenuStripDocuments.Show(buttonDocuments, new Point(0, buttonDocuments.ClientSize.Height), ToolStripDropDownDirection.Default);
         }
 
-        void testingToolStripMenuItem_Click(object sender, EventArgs e)
+        private void TestingToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (var form = new TestingForm(this, Settings))
+            using (var form = new TestingForm(settings, this.RunActivityProgram))
             {
                 form.ShowDialog(this);
             }
         }
 
-        void buttonOptions_Click(object sender, EventArgs e)
+        private async void ButtonOptions_Click(object sender, EventArgs e)
         {
             SaveOptions();
 
-            using (var form = new OptionsForm(Settings, UpdateManager, false))
+            using (var form = new OptionsForm(settings, UpdateManager, false))
             {
                 switch (form.ShowDialog(this))
                 {
                     case DialogResult.OK:
-                        LoadFolderList();
-                        CheckForUpdate();
+                        await Task.WhenAll(LoadFolderListAsync(), CheckForUpdateAsync());
                         break;
                     case DialogResult.Retry:
                         RestartMenu();
@@ -551,7 +599,7 @@ namespace ORTS
             }
         }
 
-        void buttonStart_Click(object sender, EventArgs e)
+        private void ButtonStart_Click(object sender, EventArgs e)
         {
             SaveOptions();
 
@@ -569,7 +617,7 @@ namespace ORTS
             }
         }
 
-        void buttonResume_Click(object sender, EventArgs e)
+        private void ButtonResume_Click(object sender, EventArgs e)
         {
             if (radioButtonModeActivity.Checked)
             {
@@ -586,7 +634,7 @@ namespace ORTS
                 return;
             }
 
-            using (var form = new ResumeForm(Settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, this))
+            using (var form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, this.routes))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -598,7 +646,7 @@ namespace ORTS
             }
         }
 
-        void buttonMPClient_Click(object sender, EventArgs e)
+        private void ButtonMPClient_Click(object sender, EventArgs e)
         {
             if (CheckUserName(textBoxMPUser.Text) == false) return;
             SaveOptions();
@@ -606,7 +654,7 @@ namespace ORTS
             DialogResult = DialogResult.OK;
         }
 
-        void buttonMPServer_Click(object sender, EventArgs e)
+        private void ButtonMPServer_Click(object sender, EventArgs e)
         {
             if (CheckUserName(textBoxMPUser.Text) == false) return;
             SaveOptions();
@@ -616,75 +664,69 @@ namespace ORTS
         #endregion
 
         #region Options
-        void LoadOptions()
+        private void LoadOptions()
         {
-            checkBoxWarnings.Checked = Settings.Logging;
-            checkBoxWindowed.Checked = !Settings.FullScreen;
+            checkBoxWarnings.Checked = settings.Logging;
+            checkBoxWindowed.Checked = !settings.FullScreen;
             //Debrief activity evaluation
-            checkDebriefActivityEval.Checked = Settings.DebriefActivityEval;
+            checkDebriefActivityEval.Checked = settings.DebriefActivityEval;
             //TO DO: Debrief TTactivity evaluation
             //checkDebriefTTActivityEval.Checked = Settings.DebriefTTActivityEval;
 
-            textBoxMPUser.Text = Settings.Multiplayer_User;
-            textBoxMPHost.Text = Settings.Multiplayer_Host + ":" + Settings.Multiplayer_Port;
+            textBoxMPUser.Text = settings.Multiplayer_User;
+            textBoxMPHost.Text = settings.Multiplayer_Host + ":" + settings.Multiplayer_Port;
         }
 
-        void SaveOptions()
+        private void SaveOptions()
         {
-            Settings.Logging = checkBoxWarnings.Checked;
-            Settings.FullScreen = !checkBoxWindowed.Checked;
-            Settings.Multiplayer_User = textBoxMPUser.Text;
+            settings.Logging = checkBoxWarnings.Checked;
+            settings.FullScreen = !checkBoxWindowed.Checked;
+            settings.Multiplayer_User = textBoxMPUser.Text;
             //Debrief activity evaluation
-            Settings.DebriefActivityEval = checkDebriefActivityEval.Checked;
+            settings.DebriefActivityEval = checkDebriefActivityEval.Checked;
             //TO DO: Debrief TTactivity evaluation
             //Settings.DebriefTTActivityEval = checkDebriefTTActivityEval.Checked;
 
             var mpHost = textBoxMPHost.Text.Split(':');
-            Settings.Multiplayer_Host = mpHost[0];
+            settings.Multiplayer_Host = mpHost[0];
             if (mpHost.Length > 1)
             {
-                var port = Settings.Multiplayer_Port;
+                var port = settings.Multiplayer_Port;
                 if (int.TryParse(mpHost[1], out port))
-                    Settings.Multiplayer_Port = port;
+                    settings.Multiplayer_Port = port;
             }
             else
             {
-                Settings.Multiplayer_Port = (int)Settings.GetDefaultValue("Multiplayer_Port");
+                settings.Multiplayer_Port = (int)settings.GetDefaultValue("Multiplayer_Port");
             }
-            Settings.Menu_Selection = new[] {
+            settings.Menu_Selection = new[] {
                 // Base items
-                SelectedFolder != null ? SelectedFolder.Path : "",
-                SelectedRoute != null ? SelectedRoute.Path : "",
+                SelectedFolder?.Path ?? string.Empty,
+                SelectedRoute?.Path ?? string.Empty,
                 // Activity mode items / Explore mode items
+                radioButtonModeActivity.Checked ? SelectedActivity?.FilePath ?? string.Empty : SelectedTimetableSet?.FileName ?? string.Empty,
                 radioButtonModeActivity.Checked ?
-                    SelectedActivity != null && SelectedActivity.FilePath != null ? SelectedActivity.FilePath : "" :
-                    SelectedTimetableSet != null ? SelectedTimetableSet.fileName : "",
+                    SelectedActivity is ExploreActivity && (comboBoxLocomotive.SelectedItem as Locomotive)?.FilePath != null ? (comboBoxLocomotive.SelectedItem as Locomotive).FilePath : string.Empty :
+                    SelectedTimetable?.Description ?? string.Empty,
                 radioButtonModeActivity.Checked ?
-                    SelectedActivity is ExploreActivity && comboBoxLocomotive.SelectedItem != null && (comboBoxLocomotive.SelectedItem as Locomotive).FilePath != null ? (comboBoxLocomotive.SelectedItem as Locomotive).FilePath : "" :
-                    SelectedTimetable != null ? SelectedTimetable.Description : "",
+                    SelectedActivity is ExploreActivity && SelectedConsist != null ? SelectedConsist.FilePath : string.Empty :
+                    SelectedTimetableTrain?.Column.ToString() ?? string.Empty,
                 radioButtonModeActivity.Checked ?
-                    SelectedActivity is ExploreActivity && SelectedConsist != null ? SelectedConsist.FilePath : "" :
-                    SelectedTimetableTrain != null ? SelectedTimetableTrain.Column.ToString() : "",
+                    SelectedActivity is ExploreActivity && SelectedPath != null ? SelectedPath.FilePath : string.Empty : SelectedTimetableDay.ToString(),
                 radioButtonModeActivity.Checked ?
-                    SelectedActivity is ExploreActivity && SelectedPath != null ? SelectedPath.FilePath : "" :
-                    SelectedTimetableDay.ToString(),
-                radioButtonModeActivity.Checked ?
-                    SelectedActivity is ExploreActivity ? SelectedStartTime : "" :
-                    "",
+                    SelectedActivity is ExploreActivity ? SelectedStartTime : string.Empty : string.Empty,
                 // Shared items
                 radioButtonModeActivity.Checked ?
-                    SelectedActivity is ExploreActivity ? SelectedStartSeason.ToString() : "" :
-                    SelectedStartSeason.ToString(),
+                    SelectedActivity is ExploreActivity ? SelectedStartSeason.ToString() : string.Empty : SelectedStartSeason.ToString(),
                 radioButtonModeActivity.Checked ?
-                    SelectedActivity is ExploreActivity ? SelectedStartWeather.ToString() : "" :
-                    SelectedStartWeather.ToString(),
+                    SelectedActivity is ExploreActivity ? SelectedStartWeather.ToString() : string.Empty : SelectedStartWeather.ToString(),
             };
-            Settings.Save();
+            settings.Save();
         }
         #endregion
 
         #region Enabled state
-        void UpdateEnabled()
+        private void UpdateEnabled()
         {
             comboBoxFolder.Enabled = comboBoxFolder.Items.Count > 0;
             comboBoxRoute.Enabled = comboBoxRoute.Items.Count > 0;
@@ -706,79 +748,92 @@ namespace ORTS
         #endregion
 
         #region Folder list
-        void LoadFolderList()
+        private async Task LoadFolderListAsync()
         {
-            var initialized = Initialized;
-            Folders.Clear();
+            folders.Clear();
             ShowFolderList();
 
-            FolderLoader = new Task<List<Folder>>(this, () => Folder.GetFolders(Settings).OrderBy(f => f.Name).ToList(), (folders) =>
-            {
-                Folders = folders;
-                ShowFolderList();
-                if (Folders.Count > 0)
-                    comboBoxFolder.Focus();
+            folders = (await Task.Run (() => Folder.GetFolders(settings))).OrderBy(f => f.Name).ToList();
 
-                if (!initialized && Folders.Count == 0)
+            ShowFolderList();
+            if (folders.Count > 0)
+                comboBoxFolder.Focus();
+
+            if (!initialized && folders.Count == 0)
+            {
+                using (var form = new OptionsForm(settings, UpdateManager, true))
                 {
-                    using (var form = new OptionsForm(Settings, UpdateManager, true))
+                    switch (form.ShowDialog(this))
                     {
-                        switch (form.ShowDialog(this))
-                        {
-                            case DialogResult.OK:
-                                LoadFolderList();
-                                break;
-                            case DialogResult.Retry:
-                                RestartMenu();
-                                break;
-                        }
+                        case DialogResult.OK:
+                            await LoadFolderListAsync();
+                            break;
+                        case DialogResult.Retry:
+                            RestartMenu();
+                            break;
                     }
                 }
-            });
+            }
         }
 
-        void ShowFolderList()
+        private void ShowFolderList()
         {
-            comboBoxFolder.Items.Clear();
-            foreach (var folder in Folders)
-                comboBoxFolder.Items.Add(folder);
+            try
+            {
+                comboBoxFolder.BeginUpdate();
+                comboBoxFolder.Items.Clear();
+                comboBoxFolder.Items.AddRange(folders.ToArray());
+            }
+            finally
+            {
+                comboBoxFolder.EndUpdate();
+            }
             UpdateFromMenuSelection<Folder>(comboBoxFolder, UserSettings.Menu_SelectionIndex.Folder, f => f.Path);
             UpdateEnabled();
         }
         #endregion
 
         #region Route list
-        void LoadRouteList()
+        private async Task LoadRouteListAsync()
         {
-            if (RouteLoader != null)
-                RouteLoader.Cancel();
+            lock (routes)
+            {
+                if (ctsRouteLoading != null && !ctsRouteLoading.IsCancellationRequested)
+                    ctsRouteLoading.Cancel();
+                ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
+            }
+            routes.Clear();
+            activities.Clear();
+            paths.Clear();
 
-            Routes.Clear();
-            Activities.Clear();
-            Paths.Clear();
+            //cleanout existing data
             ShowRouteList();
             ShowActivityList();
             ShowStartAtList();
             ShowHeadToList();
 
-            var selectedFolder = SelectedFolder;
-            RouteLoader = new Task<List<Route>>(this, () => Route.GetRoutes(selectedFolder).OrderBy(r => r.ToString()).ToList(), (routes) =>
-            {
-                Routes = routes;
-                ShowRouteList();
-            });
+            Folder selectedFolder = SelectedFolder;
+            routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token))).OrderBy(r => r.Name).ToList();
+            ShowRouteList();
         }
 
-        void ShowRouteList()
+        private void ShowRouteList()
         {
-            comboBoxRoute.Items.Clear();
-            foreach (var route in Routes)
-                comboBoxRoute.Items.Add(route);
-            UpdateFromMenuSelection<Route>(comboBoxRoute, UserSettings.Menu_SelectionIndex.Route, r => r.Path);
-            if (Settings.Menu_Selection.Length > (int)UserSettings.Menu_SelectionIndex.Activity)
+            try
             {
-                var path = Settings.Menu_Selection[(int)UserSettings.Menu_SelectionIndex.Activity]; // Activity or Timetable
-                var extension = System.IO.Path.GetExtension(path).ToLower();
+                comboBoxRoute.BeginUpdate();
+                comboBoxRoute.Items.Clear();
+                comboBoxRoute.Items.AddRange(routes.ToArray());
+            }
+            finally
+            {
+                comboBoxRoute.EndUpdate();
+            }
+            UpdateFromMenuSelection<Route>(comboBoxRoute, UserSettings.Menu_SelectionIndex.Route, r => r.Path);
+            if (settings.Menu_Selection.Length > (int)UserSettings.Menu_SelectionIndex.Activity)
+            {
+                string path = settings.Menu_Selection[(int)UserSettings.Menu_SelectionIndex.Activity]; // Activity or Timetable
+                string extension = System.IO.Path.GetExtension(path).ToLower();
                 if (extension == ".act")
                     radioButtonModeActivity.Checked = true;
                 else if (extension == ".timetable_or")
@@ -789,97 +844,121 @@ namespace ORTS
         #endregion
 
         #region Activity list
-        void LoadActivityList()
+        private async Task LoadActivityListAsync()
         {
-            if (ActivityLoader != null)
-                ActivityLoader.Cancel();
-
-            Activities.Clear();
+            lock (activities)
+            {
+                if (ctsActivityLoading != null && !ctsActivityLoading.IsCancellationRequested)
+                    ctsActivityLoading.Cancel();
+                ctsActivityLoading = ResetCancellationTokenSource(ctsActivityLoading);
+            }
+            activities.Clear();
             ShowActivityList();
 
-            var selectedFolder = SelectedFolder;
-            var selectedRoute = SelectedRoute;
-            ActivityLoader = new Task<List<Activity>>(this, () => Activity.GetActivities(selectedFolder, selectedRoute).OrderBy(a => a.ToString()).ToList(), (activities) =>
-            {
-                Activities = activities;
-                ShowActivityList();
-            });
+            Folder selectedFolder = SelectedFolder;
+            Route selectedRoute = SelectedRoute;
+            activities = (await Task.Run(() => Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token))).OrderBy(a => a.Name).ToList();
+            ShowActivityList();
         }
 
-        void ShowActivityList()
+        private void ShowActivityList()
         {
-            comboBoxActivity.Items.Clear();
-            foreach (var activity in Activities)
-                comboBoxActivity.Items.Add(activity);
+            try
+            {
+                comboBoxActivity.BeginUpdate();
+                comboBoxActivity.Items.Clear();
+                comboBoxActivity.Items.AddRange(activities.ToArray());
+            }
+            finally
+            {
+                comboBoxActivity.EndUpdate();
+            }
             UpdateFromMenuSelection<Activity>(comboBoxActivity, UserSettings.Menu_SelectionIndex.Activity, a => a.FilePath);
             UpdateEnabled();
         }
 
-        void UpdateExploreActivity()
+        private void UpdateExploreActivity()
         {
-            if (SelectedActivity == null || !(SelectedActivity is ExploreActivity))
-                return;
-
-            var exploreActivity = SelectedActivity as ExploreActivity;
-            exploreActivity.Consist = SelectedConsist;
-            exploreActivity.Path = SelectedPath;
-            exploreActivity.StartTime = SelectedStartTime;
-            exploreActivity.Season = (Orts.Formats.Msts.SeasonType)SelectedStartSeason;
-            exploreActivity.Weather = (Orts.Formats.Msts.WeatherType)SelectedStartWeather;
+            (SelectedActivity as ExploreActivity)?.UpdateActivity(SelectedStartTime, (Orts.Formats.Msts.SeasonType)SelectedStartSeason, (Orts.Formats.Msts.WeatherType)SelectedStartWeather, SelectedConsist, SelectedPath);
         }
         #endregion
 
         #region Consist lists
-        void LoadLocomotiveList()
+        private async Task LoadLocomotiveListAsync()
         {
-            if (ConsistLoader != null)
-                ConsistLoader.Cancel();
+            lock (consists)
+            {
+                if (ctsConsistLoading != null && !ctsConsistLoading.IsCancellationRequested)
+                    ctsConsistLoading.Cancel();
+                ctsConsistLoading = ResetCancellationTokenSource(ctsConsistLoading);
+            }
 
-            Consists.Clear();
+            consists.Clear();
             ShowLocomotiveList();
             ShowConsistList();
 
-            var selectedFolder = SelectedFolder;
-            ConsistLoader = new Task<List<Consist>>(this, () => Consist.GetConsists(selectedFolder).OrderBy(a => a.ToString()).ToList(), (consists) =>
-            {
-                Consists = consists;
-                if (SelectedActivity == null || SelectedActivity is ExploreActivity)
-                    ShowLocomotiveList();
-            });
+            Folder selectedFolder = SelectedFolder;
+            consists = (await Task.Run(() => Consist.GetConsists(selectedFolder, ctsConsistLoading.Token))).OrderBy(c => c.Name).ToList();
+            if (SelectedActivity == null || SelectedActivity is ExploreActivity)
+                ShowLocomotiveList();
         }
 
-        void ShowLocomotiveList()
+        private void ShowLocomotiveList()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
-                comboBoxLocomotive.Items.Clear();
-                comboBoxLocomotive.Items.Add(new Locomotive());
-                foreach (var loco in Consists.Where(c => c.Locomotive != null).Select(c => c.Locomotive).Distinct().OrderBy(l => l.ToString()))
-                    comboBoxLocomotive.Items.Add(loco);
-                if (comboBoxLocomotive.Items.Count == 1)
+                try
+                {
+                    comboBoxLocomotive.BeginUpdate();
                     comboBoxLocomotive.Items.Clear();
+                    comboBoxLocomotive.Items.Add(Locomotive.GetLocomotive(null));
+                    comboBoxLocomotive.Items.AddRange(consists.Where(c => c.Locomotive != null).Select(c => c.Locomotive).Distinct().OrderBy(l => l.Name).ToArray());
+                    if (comboBoxLocomotive.Items.Count == 1)
+                        comboBoxLocomotive.Items.Clear();
+                }
+                finally
+                {
+                    comboBoxLocomotive.EndUpdate();
+                }
                 UpdateFromMenuSelection<Locomotive>(comboBoxLocomotive, UserSettings.Menu_SelectionIndex.Locomotive, l => l.FilePath);
             }
             else
             {
-                var consist = SelectedActivity.Consist;
-                comboBoxLocomotive.Items.Clear();
-                comboBoxLocomotive.Items.Add(consist.Locomotive);
-                comboBoxLocomotive.SelectedIndex = 0;
-                comboBoxConsist.Items.Clear();
-                comboBoxConsist.Items.Add(consist);
-                comboBoxConsist.SelectedIndex = 0;
+                try
+                {
+                    comboBoxLocomotive.BeginUpdate();
+                    comboBoxConsist.BeginUpdate();
+                    var consist = SelectedActivity.Consist;
+                    comboBoxLocomotive.Items.Clear();
+                    comboBoxLocomotive.Items.Add(consist.Locomotive);
+                    comboBoxLocomotive.SelectedIndex = 0;
+                    comboBoxConsist.Items.Clear();
+                    comboBoxConsist.Items.Add(consist);
+                    comboBoxConsist.SelectedIndex = 0;
+                }
+                finally
+                {
+                    comboBoxLocomotive.EndUpdate();
+                    comboBoxConsist.EndUpdate();
+                }
             }
             UpdateEnabled();
         }
 
-        void ShowConsistList()
+        private void ShowConsistList()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
-                comboBoxConsist.Items.Clear();
-                foreach (var consist in Consists.Where(c => comboBoxLocomotive.SelectedItem.Equals(c.Locomotive)).OrderBy(c => c.Name))
-                    comboBoxConsist.Items.Add(consist);
+                try
+                {
+                    comboBoxConsist.BeginUpdate();
+                    comboBoxConsist.Items.Clear();
+                    comboBoxConsist.Items.AddRange(consists.Where(c => comboBoxLocomotive.SelectedItem.Equals(c.Locomotive)).OrderBy(c => c.Name).ToArray());
+                }
+                finally
+                {
+                    comboBoxConsist.EndUpdate();
+                }
                 UpdateFromMenuSelection<Consist>(comboBoxConsist, UserSettings.Menu_SelectionIndex.Consist, c => c.FilePath);
             }
             UpdateEnabled();
@@ -887,36 +966,45 @@ namespace ORTS
         #endregion
 
         #region Path lists
-        void LoadStartAtList()
+        private async Task LoadStartAtListAsync()
         {
-            if (PathLoader != null)
-                PathLoader.Cancel();
+            lock (paths)
+            {
+                if (ctsPathLoading != null && !ctsPathLoading.IsCancellationRequested)
+                    ctsPathLoading.Cancel();
+                ctsPathLoading = ResetCancellationTokenSource(ctsPathLoading);
+            }
 
-            Paths.Clear();
+            paths.Clear();
             ShowStartAtList();
             ShowHeadToList();
 
             var selectedRoute = SelectedRoute;
-            PathLoader = new Task<List<Path>>(this, () => Path.GetPaths(selectedRoute, false).OrderBy(a => a.ToString()).ToList(), (paths) =>
-            {
-                Paths = paths;
-                if (SelectedActivity == null || SelectedActivity is ExploreActivity)
-                    ShowStartAtList();
-            });
+            paths = (await Task.Run(() => Path.GetPaths(selectedRoute, false, ctsPathLoading.Token))).OrderBy(a => a.ToString()).ToList();
+
+            if (SelectedActivity == null || SelectedActivity is ExploreActivity)
+                ShowStartAtList();
         }
 
-        void ShowStartAtList()
+        private void ShowStartAtList()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
-                comboBoxStartAt.Items.Clear();
-                foreach (var place in Paths.Select(p => p.Start).Distinct().OrderBy(s => s.ToString()))
-                    comboBoxStartAt.Items.Add(place);
-                // Because this list is unique names, we have to do some extra work to select it.
-                if (Settings.Menu_Selection.Length >= (int)UserSettings.Menu_SelectionIndex.Path)
+                try
                 {
-                    var pathFilePath = Settings.Menu_Selection[(int)UserSettings.Menu_SelectionIndex.Path];
-                    var path = Paths.FirstOrDefault(p => p.FilePath == pathFilePath);
+                    comboBoxStartAt.BeginUpdate();
+                    comboBoxStartAt.Items.Clear();
+                    comboBoxStartAt.Items.AddRange(paths.Select(p => p.Start).Distinct().OrderBy(s => s.ToString()).ToArray());
+                }
+                finally
+                {
+                    comboBoxStartAt.EndUpdate();
+                }
+                // Because this list is unique names, we have to do some extra work to select it.
+                if (settings.Menu_Selection.Length >= (int)UserSettings.Menu_SelectionIndex.Path)
+                {
+                    string pathFilePath = settings.Menu_Selection[(int)UserSettings.Menu_SelectionIndex.Path];
+                    Path path = paths.FirstOrDefault(p => p.FilePath == pathFilePath);
                     if (path != null)
                         SelectComboBoxItem<string>(comboBoxStartAt, s => s == path.Start);
                     else if (comboBoxStartAt.Items.Count > 0)
@@ -925,24 +1013,41 @@ namespace ORTS
             }
             else
             {
-                var path = SelectedActivity.Path;
-                comboBoxStartAt.Items.Clear();
-                comboBoxStartAt.Items.Add(path.Start);
+                try
+                {
+                    comboBoxStartAt.BeginUpdate();
+                    comboBoxHeadTo.BeginUpdate();
+                    Path path = SelectedActivity.Path;
+                    comboBoxStartAt.Items.Clear();
+                    comboBoxStartAt.Items.Add(path.Start);
+                    comboBoxHeadTo.Items.Clear();
+                    comboBoxHeadTo.Items.Add(path);
+                }
+                finally
+                {
+                    comboBoxStartAt.EndUpdate();
+                    comboBoxHeadTo.EndUpdate();
+                }
                 comboBoxStartAt.SelectedIndex = 0;
-                comboBoxHeadTo.Items.Clear();
-                comboBoxHeadTo.Items.Add(path);
                 comboBoxHeadTo.SelectedIndex = 0;
             }
             UpdateEnabled();
         }
 
-        void ShowHeadToList()
+        private void ShowHeadToList()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
-                comboBoxHeadTo.Items.Clear();
-                foreach (var path in Paths.Where(p => p.Start == (string)comboBoxStartAt.SelectedItem))
-                    comboBoxHeadTo.Items.Add(path);
+                try
+                {
+                    comboBoxHeadTo.BeginUpdate();
+                    comboBoxHeadTo.Items.Clear();
+                    comboBoxHeadTo.Items.AddRange(paths.Where(p => p.Start == (string)comboBoxStartAt.SelectedItem).ToArray());
+                }
+                finally
+                {
+                    comboBoxHeadTo.EndUpdate();
+                }
                 UpdateFromMenuSelection<Path>(comboBoxHeadTo, UserSettings.Menu_SelectionIndex.Path, c => c.FilePath);
             }
             UpdateEnabled();
@@ -950,64 +1055,94 @@ namespace ORTS
         #endregion
 
         #region Environment
-        void ShowEnvironment()
+        private void ShowEnvironment()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
             {
-                comboBoxStartTime.Items.Clear();
-                foreach (var hour in Enumerable.Range(0, 24))
-                    comboBoxStartTime.Items.Add(String.Format("{0}:00", hour));
+                try
+                {
+                    comboBoxStartTime.BeginUpdate();
+                    comboBoxDuration.BeginUpdate();
+                    comboBoxStartTime.Items.Clear();
+                    foreach (var hour in Enumerable.Range(0, 24))
+                        comboBoxStartTime.Items.Add(String.Format("{0}:00", hour));
+                    comboBoxDuration.Items.Clear();
+                    comboBoxDuration.Items.Add("");
+                }
+                finally
+                {
+                    comboBoxStartTime.EndUpdate();
+                    comboBoxDuration.EndUpdate();
+                }
 
-                UpdateFromMenuSelection<string>(comboBoxStartTime, UserSettings.Menu_SelectionIndex.Time, "12:00");
-                UpdateFromMenuSelection<KeyedComboBoxItem>(comboBoxStartSeason, UserSettings.Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, ""));
-                UpdateFromMenuSelection<KeyedComboBoxItem>(comboBoxStartWeather, UserSettings.Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, ""));
+                UpdateFromMenuSelection(comboBoxStartTime, UserSettings.Menu_SelectionIndex.Time, "12:00");
+                UpdateFromMenuSelection(comboBoxStartSeason, UserSettings.Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, ""));
+                UpdateFromMenuSelection(comboBoxStartWeather, UserSettings.Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, ""));
                 comboBoxDifficulty.SelectedIndex = 3;
-                comboBoxDuration.Items.Clear();
-                comboBoxDuration.Items.Add("");
                 comboBoxDuration.SelectedIndex = 0;
             }
             else
             {
-                comboBoxStartTime.Items.Clear();
-                comboBoxStartTime.Items.Add(SelectedActivity.StartTime.FormattedStartTime());
+                try
+                {
+                    comboBoxStartTime.BeginUpdate();
+                    comboBoxDuration.BeginUpdate();
+
+                    comboBoxStartTime.Items.Clear();
+                    comboBoxStartTime.Items.Add(SelectedActivity.StartTime.FormattedStartTime());
+                    comboBoxDuration.Items.Clear();
+                    comboBoxDuration.Items.Add(SelectedActivity.Duration.FormattedDurationTime());
+                }
+                finally
+                {
+                    comboBoxStartTime.EndUpdate();
+                    comboBoxDuration.EndUpdate();
+                }
                 comboBoxStartTime.SelectedIndex = 0;
                 comboBoxStartSeason.SelectedIndex = (int)SelectedActivity.Season;
                 comboBoxStartWeather.SelectedIndex = (int)SelectedActivity.Weather;
                 comboBoxDifficulty.SelectedIndex = (int)SelectedActivity.Difficulty;
-                comboBoxDuration.Items.Clear();
-                comboBoxDuration.Items.Add(SelectedActivity.Duration.FormattedDurationTime());
                 comboBoxDuration.SelectedIndex = 0;
             }
         }
         #endregion
 
         #region Timetable Set list
-        void LoadTimetableSetList()
+        private async Task LoadTimetableSetListAsync()
         {
-            if (TimetableSetLoader != null)
-                TimetableSetLoader.Cancel();
+            lock (timetableSets)
+            {
+                if (ctsTimeTableLoading != null && !ctsTimeTableLoading.IsCancellationRequested)
+                    ctsTimeTableLoading.Cancel();
+                ctsTimeTableLoading = ResetCancellationTokenSource(ctsTimeTableLoading);
+            }
 
-            TimetableSets.Clear();
+            timetableSets.Clear();
             ShowTimetableSetList();
+
             var selectedFolder = SelectedFolder;
             var selectedRoute = SelectedRoute;
-            TimetableSetLoader = new Task<List<TimetableInfo>>(this, () => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute).OrderBy(a => a.ToString()).ToList(), (timetableSets) =>
-            {
-                TimetableSets = timetableSets;
-                ShowTimetableSetList();
-            });
+            timetableSets = (await Task.Run(() => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token))).OrderBy(tt => tt.Description).ToList();
+            ShowTimetableSetList();
         }
 
-        void ShowTimetableSetList()
+        private void ShowTimetableSetList()
         {
-            comboBoxTimetableSet.Items.Clear();
-            foreach (var timetableSet in TimetableSets)
-                comboBoxTimetableSet.Items.Add(timetableSet);
-            UpdateFromMenuSelection<TimetableInfo>(comboBoxTimetableSet, UserSettings.Menu_SelectionIndex.TimetableSet, t => t.fileName);
+            try
+            {
+                comboBoxTimetableSet.BeginUpdate();
+                comboBoxTimetableSet.Items.Clear();
+                comboBoxTimetableSet.Items.AddRange(timetableSets.ToArray());
+            }
+            finally
+            {
+                comboBoxTimetableSet.EndUpdate();
+            }
+            UpdateFromMenuSelection<TimetableInfo>(comboBoxTimetableSet, UserSettings.Menu_SelectionIndex.TimetableSet, t => t.FileName);
             UpdateEnabled();
         }
 
-        void UpdateTimetableSet()
+        private void UpdateTimetableSet()
         {
             if (SelectedTimetableSet != null)
             {
@@ -1017,107 +1152,134 @@ namespace ORTS
             }
         }
         #endregion
-
         #region Timetable list
-        void ShowTimetableList()
+        private void ShowTimetableList()
         {
-            comboBoxTimetable.Items.Clear();
-            if (SelectedTimetableSet != null)
+            if (null != SelectedTimetableSet)
             {
-                foreach (var timetable in SelectedTimetableSet.ORTTList)
-                    comboBoxTimetable.Items.Add(timetable);
+                try
+                {
+                    comboBoxTimetable.BeginUpdate();
+                    comboBoxTimetable.Items.Clear();
+                    comboBoxTimetable.Items.AddRange(SelectedTimetableSet.ORTTList.ToArray());
+                }
+                finally
+                {
+                    comboBoxTimetable.EndUpdate();
+                }
                 UpdateFromMenuSelection<TimetableFileLite>(comboBoxTimetable, UserSettings.Menu_SelectionIndex.Timetable, t => t.Description);
             }
+            else
+                comboBoxTimetable.Items.Clear();
+
             UpdateEnabled();
         }
         #endregion
 
         #region Timetable Train list
-        void ShowTimetableTrainList()
-        {
-            comboBoxTimetableTrain.Items.Clear();
-            if (SelectedTimetable != null)
-            {
-                var trains = SelectedTimetableSet.ORTTList[comboBoxTimetable.SelectedIndex].Trains;
-                trains.Sort();
-                foreach (var train in trains)
-                    comboBoxTimetableTrain.Items.Add(train);
-                UpdateFromMenuSelection<TimetableFileLite.TrainInformation>(comboBoxTimetableTrain, UserSettings.Menu_SelectionIndex.Train, t => t.Column.ToString());
-            }
-            UpdateEnabled();
-        }
+                private void ShowTimetableTrainList()
+                {
+                    if (null != SelectedTimetableSet)
+                    {
+                        try
+                        {
+                            comboBoxTimetableTrain.BeginUpdate();
+                            comboBoxTimetableTrain.Items.Clear();
+
+                            var trains = SelectedTimetableSet.ORTTList[comboBoxTimetable.SelectedIndex].Trains;
+                            trains.Sort();
+                            comboBoxTimetableTrain.Items.AddRange(trains.ToArray());
+                        }
+                        finally
+                        {
+                            comboBoxTimetableTrain.EndUpdate();
+                        }
+                        UpdateFromMenuSelection<TimetableFileLite.TrainInformation>(comboBoxTimetableTrain, UserSettings.Menu_SelectionIndex.Train, t => t.Column.ToString());
+                    }
+                    else
+                        comboBoxTimetableTrain.Items.Clear();
+
+                    UpdateEnabled();
+                }
         #endregion
 
         #region Timetable environment
-        void ShowTimetableEnvironment()
+        private void ShowTimetableEnvironment()
         {
-            UpdateFromMenuSelection<KeyedComboBoxItem>(comboBoxTimetableDay, UserSettings.Menu_SelectionIndex.Day, d => d.Key.ToString(), new KeyedComboBoxItem(0, ""));
-            UpdateFromMenuSelection<KeyedComboBoxItem>(comboBoxTimetableSeason, UserSettings.Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, ""));
-            UpdateFromMenuSelection<KeyedComboBoxItem>(comboBoxTimetableWeather, UserSettings.Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, ""));
+            UpdateFromMenuSelection(comboBoxTimetableDay, UserSettings.Menu_SelectionIndex.Day, d => d.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
+            UpdateFromMenuSelection(comboBoxTimetableSeason, UserSettings.Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, string.Empty));
+            UpdateFromMenuSelection(comboBoxTimetableWeather, UserSettings.Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
         }
         #endregion
 
         #region Details
-        void ShowDetails()
+        private void ShowDetails()
         {
-            Win32.LockWindowUpdate(Handle);
-            ClearDetails();
-            if (SelectedRoute != null && SelectedRoute.Description != null)
-                ShowDetail(catalog.GetStringFmt("Route: {0}", SelectedRoute.Name), SelectedRoute.Description.Split('\n'));
-
-            if (radioButtonModeActivity.Checked)
+            try
             {
-                if (SelectedConsist != null && SelectedConsist.Locomotive != null && SelectedConsist.Locomotive.Description != null)
+                this.Suspend();
+                ClearDetails();
+                if (SelectedRoute != null && SelectedRoute.Description != null)
+                    ShowDetail(catalog.GetStringFmt("Route: {0}", SelectedRoute.Name), SelectedRoute.Description.Split('\n'));
+
+                if (radioButtonModeActivity.Checked)
                 {
-                    ShowDetail(catalog.GetStringFmt("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description.Split('\n'));
-                }
-                if (SelectedActivity != null && SelectedActivity.Description != null)
-                {
-                    ShowDetail(catalog.GetStringFmt("Activity: {0}", SelectedActivity.Name), SelectedActivity.Description.Split('\n'));
-                    ShowDetail(catalog.GetString("Activity Briefing"), SelectedActivity.Briefing.Split('\n'));
-                }
-                else if (SelectedPath != null)
-                {
-                    ShowDetail(catalog.GetStringFmt("Path: {0}", SelectedPath.Name), new[] {
+                    if (SelectedConsist != null && SelectedConsist.Locomotive != null && SelectedConsist.Locomotive.Description != null)
+                    {
+                        ShowDetail(catalog.GetStringFmt("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description.Split('\n'));
+                    }
+                    if (SelectedActivity != null && SelectedActivity.Description != null)
+                    {
+                        ShowDetail(catalog.GetStringFmt("Activity: {0}", SelectedActivity.Name), SelectedActivity.Description.Split('\n'));
+                        ShowDetail(catalog.GetString("Activity Briefing"), SelectedActivity.Briefing.Split('\n'));
+                    }
+                    else if (SelectedPath != null)
+                    {
+                        ShowDetail(catalog.GetStringFmt("Path: {0}", SelectedPath.Name), new[] {
                         catalog.GetStringFmt("Starting at: {0}", SelectedPath.Start),
                         catalog.GetStringFmt("Heading to: {0}", SelectedPath.End)
                     });
+                    }
                 }
-            }
-            if (radioButtonModeTimetable.Checked)
-            {
-                if (SelectedTimetableSet != null)
+                if (radioButtonModeTimetable.Checked)
                 {
-                    ShowDetail(catalog.GetStringFmt("Timetable set: {0}", SelectedTimetableSet), new string[0]);
-                }
-                if (SelectedTimetable != null)
-                {
-                    ShowDetail(catalog.GetStringFmt("Timetable: {0}", SelectedTimetable), new string[0]);
-                }
-                if (SelectedTimetableTrain != null)
-                {
-                    ShowDetail(catalog.GetStringFmt("Train: {0}", SelectedTimetableTrain), SelectedTimetableTrain.ToInfo());
-                    if (SelectedTimetableConsist != null)
+                    if (SelectedTimetableSet != null)
                     {
-                        ShowDetail(catalog.GetStringFmt("Consist: {0}", SelectedTimetableConsist.Name), new string[0]);
-                        if (SelectedTimetableConsist.Locomotive != null && SelectedTimetableConsist.Locomotive.Description != null)
+                        ShowDetail(catalog.GetStringFmt("Timetable set: {0}", SelectedTimetableSet), new string[0]);
+                    }
+                    if (SelectedTimetable != null)
+                    {
+                        ShowDetail(catalog.GetStringFmt("Timetable: {0}", SelectedTimetable), new string[0]);
+                    }
+                    if (SelectedTimetableTrain != null)
+                    {
+                        ShowDetail(catalog.GetStringFmt("Train: {0}", SelectedTimetableTrain), SelectedTimetableTrain.ToInfo());
+                        if (SelectedTimetableConsist != null)
                         {
-                            ShowDetail(catalog.GetStringFmt("Locomotive: {0}", SelectedTimetableConsist.Locomotive.Name), SelectedTimetableConsist.Locomotive.Description.Split('\n'));
+                            ShowDetail(catalog.GetStringFmt("Consist: {0}", SelectedTimetableConsist.Name), new string[0]);
+                            if (SelectedTimetableConsist.Locomotive != null && SelectedTimetableConsist.Locomotive.Description != null)
+                            {
+                                ShowDetail(catalog.GetStringFmt("Locomotive: {0}", SelectedTimetableConsist.Locomotive.Name), SelectedTimetableConsist.Locomotive.Description.Split('\n'));
+                            }
+                        }
+                        if (SelectedTimetablePath != null)
+                        {
+                            ShowDetail(catalog.GetStringFmt("Path: {0}", SelectedTimetablePath.Name), SelectedTimetablePath.ToInfo());
                         }
                     }
-                    if (SelectedTimetablePath != null)
-                    {
-                        ShowDetail(catalog.GetStringFmt("Path: {0}", SelectedTimetablePath.Name), SelectedTimetablePath.ToInfo());
-                    }
                 }
-            }
 
-            FlowDetails();
-            Win32.LockWindowUpdate(IntPtr.Zero);
+                FlowDetails();
+            }
+            finally
+            {
+                this.Resume();
+            }
         }
 
-        List<Detail> Details = new List<Detail>();
-        class Detail
+        private List<Detail> Details = new List<Detail>();
+
+        private class Detail
         {
             public readonly Control Title;
             public readonly Control Expander;
@@ -1134,140 +1296,154 @@ namespace ORTS
             }
         }
 
-        void ClearDetails()
+        private void ClearDetails()
         {
             Details.Clear();
             while (panelDetails.Controls.Count > 0)
                 panelDetails.Controls.RemoveAt(0);
         }
 
-        void ShowDetail(string title, string[] lines)
+        private void ShowDetail(string title, string[] lines)
         {
-            var titleControl = new Label { Margin = new Padding(2), Text = title, UseMnemonic = false, Font = new Font(panelDetails.Font, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft };
-            panelDetails.Controls.Add(titleControl);
-            titleControl.Left = titleControl.Margin.Left;
-            titleControl.Width = panelDetails.ClientSize.Width - titleControl.Margin.Horizontal - titleControl.PreferredHeight;
-            titleControl.Height = titleControl.PreferredHeight;
-            titleControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
-
-            var expanderControl = new Button { Margin = new Padding(0), Text = "", FlatStyle = FlatStyle.Flat };
-            panelDetails.Controls.Add(expanderControl);
-            expanderControl.Left = panelDetails.ClientSize.Width - titleControl.Height - titleControl.Margin.Right;
-            expanderControl.Width = expanderControl.Height = titleControl.Height;
-            expanderControl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            expanderControl.FlatAppearance.BorderSize = 0;
-            expanderControl.BackgroundImageLayout = ImageLayout.Center;
-
-            var summaryControl = new Label { Margin = new Padding(2), Text = String.Join("\n", lines), AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
-            panelDetails.Controls.Add(summaryControl);
-            summaryControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
-            summaryControl.Left = summaryControl.Margin.Left;
-            summaryControl.Width = panelDetails.ClientSize.Width - summaryControl.Margin.Horizontal;
-            summaryControl.Height = TextRenderer.MeasureText("1\n2\n3\n4\n5", summaryControl.Font).Height;
-
-            // Find out where we need to cut the text to make the summary 5 lines long. Uses a binaty search to find the cut point.
-            var size = MeasureText(summaryControl.Text, summaryControl);
-            if (size > summaryControl.Height)
+            try
             {
-                var index = (float)summaryControl.Text.Length;
-                var indexChunk = (float)summaryControl.Text.Length / 2;
-                while (indexChunk > 0.5f || size > summaryControl.Height)
+
+                this.Suspend();
+                var titleControl = new Label { Margin = new Padding(2), Text = title, UseMnemonic = false, Font = new Font(panelDetails.Font, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft };
+                panelDetails.Controls.Add(titleControl);
+                titleControl.Left = titleControl.Margin.Left;
+                titleControl.Width = panelDetails.ClientSize.Width - titleControl.Margin.Horizontal - titleControl.PreferredHeight;
+                titleControl.Height = titleControl.PreferredHeight;
+                titleControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+
+                var expanderControl = new Button { Margin = new Padding(0), Text = "", FlatStyle = FlatStyle.Flat };
+                panelDetails.Controls.Add(expanderControl);
+                expanderControl.Left = panelDetails.ClientSize.Width - titleControl.Height - titleControl.Margin.Right;
+                expanderControl.Width = expanderControl.Height = titleControl.Height;
+                expanderControl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                expanderControl.FlatAppearance.BorderSize = 0;
+                expanderControl.BackgroundImageLayout = ImageLayout.Center;
+
+                var summaryControl = new Label { Margin = new Padding(2), Text = String.Join("\n", lines), AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
+                panelDetails.Controls.Add(summaryControl);
+                summaryControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+                summaryControl.Left = summaryControl.Margin.Left;
+                summaryControl.Width = panelDetails.ClientSize.Width - summaryControl.Margin.Horizontal;
+                summaryControl.Height = TextRenderer.MeasureText("1\n2\n3\n4\n5", summaryControl.Font).Height;
+
+                // Find out where we need to cut the text to make the summary 5 lines long. Uses a binaty search to find the cut point.
+                var size = MeasureText(summaryControl.Text, summaryControl);
+                if (size > summaryControl.Height)
                 {
-                    if (size > summaryControl.Height)
-                        index -= indexChunk;
-                    else
-                        index += indexChunk;
-                    if (indexChunk > 0.5f)
-                        indexChunk /= 2;
-                    size = MeasureText(summaryControl.Text.Substring(0, (int)index) + "...", summaryControl);
+                    var index = (float)summaryControl.Text.Length;
+                    var indexChunk = (float)summaryControl.Text.Length / 2;
+                    while (indexChunk > 0.5f || size > summaryControl.Height)
+                    {
+                        if (size > summaryControl.Height)
+                            index -= indexChunk;
+                        else
+                            index += indexChunk;
+                        if (indexChunk > 0.5f)
+                            indexChunk /= 2;
+                        size = MeasureText(summaryControl.Text.Substring(0, (int)index) + "...", summaryControl);
+                    }
+                    summaryControl.Text = summaryControl.Text.Substring(0, (int)index) + "...";
                 }
-                summaryControl.Text = summaryControl.Text.Substring(0, (int)index) + "...";
+
+                var descriptionControl = new Label { Margin = new Padding(2), Text = String.Join("\n", lines), AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
+                panelDetails.Controls.Add(descriptionControl);
+                descriptionControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+                descriptionControl.Left = descriptionControl.Margin.Left;
+                descriptionControl.Width = panelDetails.ClientSize.Width - descriptionControl.Margin.Horizontal;
+                descriptionControl.Height = MeasureText(descriptionControl.Text, descriptionControl);
+
+                // Enable the expander only if the full description is longer than the summary. Otherwise, disable the expander.
+                expanderControl.Enabled = descriptionControl.Height > summaryControl.Height;
+                if (expanderControl.Enabled)
+                {
+                    expanderControl.BackgroundImage = (Image)Resources.GetObject("ExpanderClosed");
+                    expanderControl.Tag = Details.Count;
+                    expanderControl.Click += new EventHandler(ExpanderControl_Click);
+                }
+                else
+                {
+                    expanderControl.BackgroundImage = (Image)Resources.GetObject("ExpanderClosedDisabled");
+                }
+                Details.Add(new Detail(titleControl, expanderControl, summaryControl, descriptionControl));
             }
-
-            var descriptionControl = new Label { Margin = new Padding(2), Text = String.Join("\n", lines), AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
-            panelDetails.Controls.Add(descriptionControl);
-            descriptionControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
-            descriptionControl.Left = descriptionControl.Margin.Left;
-            descriptionControl.Width = panelDetails.ClientSize.Width - descriptionControl.Margin.Horizontal;
-            descriptionControl.Height = MeasureText(descriptionControl.Text, descriptionControl);
-
-            // Enable the expander only if the full description is longer than the summary. Otherwise, disable the expander.
-            expanderControl.Enabled = descriptionControl.Height > summaryControl.Height;
-            if (expanderControl.Enabled)
+            finally
             {
-                expanderControl.BackgroundImage = (Image)Resources.GetObject("ExpanderClosed");
-                expanderControl.Tag = Details.Count;
-                expanderControl.Click += new EventHandler(expanderControl_Click);
+                this.Resume();
             }
-            else
-            {
-                expanderControl.BackgroundImage = (Image)Resources.GetObject("ExpanderClosedDisabled");
-            }
-
-            Details.Add(new Detail(titleControl, expanderControl, summaryControl, descriptionControl));
         }
 
-        static int MeasureText(string text, Label summaryControl)
+        private static int MeasureText(string text, Label summaryControl)
         {
             return TextRenderer.MeasureText(text, summaryControl.Font, summaryControl.ClientSize, TextFormatFlags.TextBoxControl | TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix).Height;
         }
 
-        void expanderControl_Click(object sender, EventArgs e)
+        private void ExpanderControl_Click(object sender, EventArgs e)
         {
-            Win32.LockWindowUpdate(Handle);
-            var index = (int)(sender as Control).Tag;
-            Details[index].Expanded = !Details[index].Expanded;
-            Details[index].Expander.BackgroundImage = (Image)Resources.GetObject(Details[index].Expanded ? "ExpanderOpen" : "ExpanderClosed");
-            FlowDetails();
-            Win32.LockWindowUpdate(IntPtr.Zero);
+            try
+            {
+                this.Suspend();
+                var index = (int)(sender as Control).Tag;
+                Details[index].Expanded = !Details[index].Expanded;
+                Details[index].Expander.BackgroundImage = (Image)Resources.GetObject(Details[index].Expanded ? "ExpanderOpen" : "ExpanderClosed");
+                FlowDetails();
+            }
+            finally
+            {
+                this.Resume();
+            }
         }
 
-        void FlowDetails()
+        private void FlowDetails()
         {
-            var scrollPosition = panelDetails.AutoScrollPosition.Y;
-            panelDetails.AutoScrollPosition = Point.Empty;
-            panelDetails.AutoScrollMinSize = new Size(0, panelDetails.ClientSize.Height + 1);
+                var scrollPosition = panelDetails.AutoScrollPosition.Y;
+                panelDetails.AutoScrollPosition = Point.Empty;
+                panelDetails.AutoScrollMinSize = new Size(0, panelDetails.ClientSize.Height + 1);
 
-            var top = 0;
-            foreach (var detail in Details)
-            {
-                top += detail.Title.Margin.Top;
-                detail.Title.Top = detail.Expander.Top = top;
-                top += detail.Title.Height + detail.Title.Margin.Bottom + detail.Description.Margin.Top;
-                detail.Summary.Top = detail.Description.Top = top;
-                detail.Summary.Visible = !detail.Expanded && detail.Expander.Enabled;
-                detail.Description.Visible = !detail.Summary.Visible;
-                if (detail.Description.Visible)
-                    top += detail.Description.Height + detail.Description.Margin.Bottom;
-                else
-                    top += detail.Summary.Height + detail.Summary.Margin.Bottom;
-            }
+                var top = 0;
+                foreach (var detail in Details)
+                {
+                    top += detail.Title.Margin.Top;
+                    detail.Title.Top = detail.Expander.Top = top;
+                    top += detail.Title.Height + detail.Title.Margin.Bottom + detail.Description.Margin.Top;
+                    detail.Summary.Top = detail.Description.Top = top;
+                    detail.Summary.Visible = !detail.Expanded && detail.Expander.Enabled;
+                    detail.Description.Visible = !detail.Summary.Visible;
+                    if (detail.Description.Visible)
+                        top += detail.Description.Height + detail.Description.Margin.Bottom;
+                    else
+                        top += detail.Summary.Height + detail.Summary.Margin.Bottom;
+                }
 
-            if (panelDetails.AutoScrollMinSize.Height < top)
-                panelDetails.AutoScrollMinSize = new Size(0, top);
-            panelDetails.AutoScrollPosition = new Point(0, -scrollPosition);
+                if (panelDetails.AutoScrollMinSize.Height < top)
+                    panelDetails.AutoScrollMinSize = new Size(0, top);
+                panelDetails.AutoScrollPosition = new Point(0, -scrollPosition);
         }
         #endregion
 
         #region Utility functions
-        void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, T defaultValue)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, T defaultValue)
         {
             UpdateFromMenuSelection<T>(comboBox, index, _ => _.ToString(), defaultValue);
         }
 
-        void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map)
         {
             UpdateFromMenuSelection<T>(comboBox, index, map, default(T));
         }
 
-        void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map, T defaultValue)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map, T defaultValue)
         {
-            if (Settings.Menu_Selection.Length > (int)index && Settings.Menu_Selection[(int)index] != "")
+            if (settings.Menu_Selection.Length > (int)index && settings.Menu_Selection[(int)index] != "")
             {
                 if (comboBox.DropDownStyle == ComboBoxStyle.DropDown)
-                    comboBox.Text = Settings.Menu_Selection[(int)index];
+                    comboBox.Text = settings.Menu_Selection[(int)index];
                 else
-                    SelectComboBoxItem<T>(comboBox, item => map(item) == Settings.Menu_Selection[(int)index]);
+                    SelectComboBoxItem<T>(comboBox, item => map(item) == settings.Menu_Selection[(int)index]);
             }
             else
             {
@@ -1280,7 +1456,7 @@ namespace ORTS
             }
         }
 
-        void SelectComboBoxItem<T>(ComboBox comboBox, Func<T, bool> predicate)
+        private void SelectComboBoxItem<T>(ComboBox comboBox, Func<T, bool> predicate)
         {
             if (comboBox.Items.Count == 0)
                 return;
@@ -1312,28 +1488,10 @@ namespace ORTS
                 Value = value;
             }
         }
-
-        private sealed class Win32
-        {
-            Win32() { }
-
-            /// <summary>
-            /// Lock ore relase the wndow for updating.
-            /// </summary>
-            [DllImport("user32")]
-            public static extern int LockWindowUpdate(IntPtr hwnd);
-        }
-        #endregion
-
-        #region Documentation
-        void CheckForDocumentation()
-        {
-
-        }
         #endregion
 
         #region Executable utils
-        enum ImageSubsystem
+        private enum ImageSubsystem
         {
             Unknown = 0,
             Native = 1,
@@ -1341,7 +1499,7 @@ namespace ORTS
             WindowsConsole = 3,
         }
 
-        ImageSubsystem GetImageSubsystem(BinaryReader stream)
+        private static ImageSubsystem GetImageSubsystem(BinaryReader stream)
         {
             try
             {
@@ -1385,7 +1543,17 @@ namespace ORTS
         }
         #endregion
 
-        void comboBoxTimetable_EnabledChanged(object sender, EventArgs e)
+        private static System.Threading.CancellationTokenSource ResetCancellationTokenSource(System.Threading.CancellationTokenSource cts)
+        {
+            if (cts != null)
+            {
+                cts.Dispose();
+            }
+            // Create a new cancellation token source so that can cancel all the tokens again 
+            return new System.Threading.CancellationTokenSource();
+        }
+
+        private void ComboBoxTimetable_EnabledChanged(object sender, EventArgs e)
         {
             //Debrief Eval TTActivity.
             if (!comboBoxTimetable.Enabled)
@@ -1399,6 +1567,24 @@ namespace ORTS
                 }
             }
             //TO DO: Debrief Eval TTActivity
+        }
+    }
+    internal static class Win32
+    {
+        /// <summary>
+        /// Lock ore relase the wndow for updating.
+        /// </summary>
+        [DllImport("user32")]
+        public static extern int LockWindowUpdate(IntPtr hwnd);
+
+        public static void Suspend(this Control control)
+        {
+            LockWindowUpdate(control.Handle);
+        }
+
+        public static void Resume(this Control control)
+        {
+            LockWindowUpdate(IntPtr.Zero);
         }
     }
 }

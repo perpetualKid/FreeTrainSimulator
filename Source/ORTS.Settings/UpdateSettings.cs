@@ -45,13 +45,13 @@ namespace ORTS.Settings
         #endregion
 
         public UpdateSettings()
-            : base(SettingsStore.GetSettingStore(UpdateSettings.SettingsFilePath, null, "Settings"))
+            : base(SettingsStore.GetSettingStore(SettingsFilePath, null, "Settings"))
         {
             Load(new string[0]);
         }
 
         public UpdateSettings(string channel)
-            : base(SettingsStore.GetSettingStore(UpdateSettings.SettingsFilePath, null, channel + "Settings"))
+            : base(SettingsStore.GetSettingStore(SettingsFilePath, null, channel + "Settings"))
         {
             Load(new string[0]);
         }
