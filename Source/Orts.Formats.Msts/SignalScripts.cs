@@ -16,10 +16,10 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 #if DEBUG
 // prints details of the file as read from input
-// #define DEBUG_PRINT_IN
+ #define DEBUG_PRINT_IN
 
 // prints details of the file as processed
-// #define DEBUG_PRINT_OUT
+ #define DEBUG_PRINT_OUT
 #endif
 
 using System;
@@ -1559,7 +1559,7 @@ namespace Orts.Formats.Msts
                 internal SCRStatTerm(SCRExternalFunctions externalFunction, ScriptBlockBase block, int subLevel, string operatorTerm, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     Negated = negated;
-                    this.TermLevel = subLevel;
+                    TermLevel = subLevel;
                     Function = externalFunction;
                     TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
 
@@ -1707,8 +1707,13 @@ namespace Orts.Formats.Msts
 
                     if (statement.Tokens.Count > 0)
                     {
+                        if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Logical)
+                        {
+                            // if this is a unary (boolean)comparison
+                            return;
+                        }
                         //Comparison Operator
-                        if (TranslateConditions.TryGetValue(statement.Tokens[0].Token, out SCRTermCondition comparison))
+                        else if (TranslateConditions.TryGetValue(statement.Tokens[0].Token, out SCRTermCondition comparison))
                         {
                             Condition = comparison;
                         }
