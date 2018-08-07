@@ -48,6 +48,29 @@ namespace ORTS.Common
     /// </summary>
     public class IIRFilter
     {
+        public enum FilterTypes
+        {
+            Exponential = 0,
+            Chebychev = 1,
+            Butterworth = 2,
+            Bessel = 3
+        }
+
+        /// <summary>
+        /// 2018-08 Code refactoring, replacing ArrayLists and Convert.ToFloat with [] instead
+        /// also replacing float by double internally to improve precision, however external interfaces still offering float (truncating double)
+        /// Only Butterworth  filter 1st order is implemented. If other filters ever needed/implemented, the fixed length arrays may need replacements
+        /// </summary>
+        private readonly int numberCoefficients;
+        private double[] aCoef;
+        private double[] bCoef;
+
+        private double samplingPeriod_s;
+        private double cuttoffFreqRadpS;
+
+        private readonly double[] y;
+        private readonly double[] x;
+
         public IIRFilter()
         {
             /**************************************************************
@@ -73,25 +96,14 @@ namespace ORTS.Common
             z = 0.599839 + j -0.394883
             z = 0.599839 + j 0.394883
             ***************************************************************/
-            ACoef = new ArrayList();
-            ACoef.Add(0.00023973435363423468);
-            ACoef.Add(0.00047946870726846936);
-            ACoef.Add(0.00023973435363423468);
 
-            BCoef = new ArrayList();
-            BCoef.Add(1.00000000000000000000);
-            BCoef.Add(-1.94607498611971570000);
-            BCoef.Add(0.94703573071858904000);
+            aCoef = new double[] { 0.00023973435363423468, 0.00047946870726846936, 0.00023973435363423468 };
+            bCoef = new double[] { 1.00000000000000000000, -1.94607498611971570000, 0.94703573071858904000 };
 
-            NCoef = A.Count - 1;
+            numberCoefficients = aCoef.Length;
 
-            x = new ArrayList();
-            y = new ArrayList();
-            for (int i = 0; i <= NCoef; i++)
-            {
-                x.Add(0.0);
-                y.Add(0.0);
-            }
+            x = new double[numberCoefficients];
+            y = new double[numberCoefficients];
 
             FilterType = FilterTypes.Bessel;
         }
@@ -102,19 +114,16 @@ namespace ORTS.Common
         /// <param name="a">A coefficients of the filter</param>
         /// <param name="b">B coefficients of the filter</param>
         /// <param name="type">Filter type</param>
-        public IIRFilter(ArrayList a, ArrayList b, FilterTypes type)
+        public IIRFilter(double[] aCoefficients, double[] bCoefficients, FilterTypes type)
         {
             FilterType = type;
-            NCoef = a.Count - 1;
-            ACoef = a;
-            BCoef = b;
-            x = new ArrayList();
-            y = new ArrayList();
-            for (int i = 0; i <= NCoef; i++)
-            {
-                x.Add(0.0);
-                y.Add(0.0);
-            }
+            numberCoefficients = aCoefficients.Length;
+
+            aCoef = aCoefficients;
+            bCoef = bCoefficients;
+
+            x = new double[numberCoefficients];
+            y = new double[numberCoefficients];
         }
 
         /// <summary>
@@ -124,114 +133,40 @@ namespace ORTS.Common
         /// <param name="order">Filter order</param>
         /// <param name="cutoffFrequency">Filter cutoff frequency in radians per second</param>
         /// <param name="samplingPeriod">Filter sampling period</param>
-        public IIRFilter(FilterTypes type, int order, float cutoffFrequency, float samplingPeriod)
+        public IIRFilter(FilterTypes type, int order, double cutoffFrequency, double samplingPeriod)
         {
-            NCoef = order;
-            A = new ArrayList();
-            B = new ArrayList();
+            aCoef = new double[2];
+            bCoef = new double[2];
 
             FilterType = type;
 
             switch (type)
             {
                 case FilterTypes.Butterworth:
+
                     ComputeButterworth(
-                        Order                   = order,
-                        CutoffFrequencyRadpS    = cutoffFrequency,
-                        SamplingPeriod_s        = samplingPeriod);
+                        Order = order,
+                        CutoffFrequencyRadpS = cutoffFrequency,
+                        SamplingPeriod_s = samplingPeriod);
                     break;
                 default:
                     throw new NotImplementedException("Other filter types are not implemented yet.");
             }
 
-            NCoef = A.Count - 1;
-            ACoef = A;
-            BCoef = B;
-            x = new ArrayList();
-            y = new ArrayList();
-            for (int i = 0; i <= NCoef; i++)
-            {
-                x.Add(0.0);
-                y.Add(0.0);
-            }
+            numberCoefficients = aCoef.Length;
+
+            x = new double[numberCoefficients];
+            y = new double[numberCoefficients];
         }
 
-        int NCoef;
-        ArrayList ACoef;
-        ArrayList BCoef;
-
-        /// <summary>
-        /// A coefficients of the filter
-        /// </summary>
-        public ArrayList A
-        {
-            set
-            {
-                if(NCoef <= 0)
-                    NCoef = value.Count - 1;
-                x = new ArrayList();
-                y = new ArrayList();
-                for (int i = 0; i <= NCoef; i++)
-                {
-                    x.Add(0.0);
-                    y.Add(0.0);
-                }
-                if (ACoef == null)
-                    ACoef = new ArrayList();
-                ACoef.Clear();
-                foreach (object obj in value)
-                {
-                    ACoef.Add(obj);
-                }
-            }
-            get
-            {
-                return ACoef;
-            }
-        }
-
-        /// <summary>
-        /// B coefficients of the filter
-        /// </summary>
-        public ArrayList B
-        {
-            set
-            {
-                if(NCoef <= 0)
-                    NCoef = value.Count - 1;
-                x = new ArrayList();
-                y = new ArrayList();
-                for (int i = 0; i <= NCoef; i++)
-                {
-                    x.Add(0.0);
-                    y.Add(0.0);
-                }
-                if (BCoef == null)
-                    BCoef = new ArrayList();
-                BCoef.Clear();
-                foreach (object obj in value)
-                {
-                    BCoef.Add(obj);
-                }
-            }
-            get
-            {
-                return BCoef;
-            }
-        }
-
-        ArrayList y;
-        ArrayList x;
-
-        private float cuttoffFreqRadpS;
         /// <summary>
         /// Filter Cut off frequency in Radians
         /// </summary>
-        public float CutoffFrequencyRadpS
+        public double CutoffFrequencyRadpS
         {
             set
             {
-                if (value >= 0.0f)
+                if (value >= 0.0)
                     cuttoffFreqRadpS = value;
                 else
                     throw new NotSupportedException("Filter cutoff frequency must be positive number");
@@ -242,15 +177,14 @@ namespace ORTS.Common
             }
         }
 
-        private float samplingPeriod_s;
         /// <summary>
         /// Filter sampling period in seconds
         /// </summary>
-        public float SamplingPeriod_s
+        public double SamplingPeriod_s
         {
             set
             {
-                if (value >= 0.0f)
+                if (value >= 0.0)
                     samplingPeriod_s = value;
                 else
                     throw new NotSupportedException("Sampling period must be positive number");
@@ -263,15 +197,17 @@ namespace ORTS.Common
 
         public int Order { set; get; }
 
-        public enum FilterTypes
-        {
-            Exponential     = 0,
-            Chebychev       = 1,
-            Butterworth     = 2,
-            Bessel          = 3
-        }
-
         public FilterTypes FilterType { set; get; }
+
+        /// <summary>
+        /// Temporary as most code is using the float-based interface
+        /// </summary>
+        /// <param name="sample"></param>
+        /// <returns></returns>
+        public float Filter(float sample)
+        {
+            return (float)Filter((double)sample);
+        }
 
         /// <summary>
         /// IIR Digital filter function
@@ -279,23 +215,33 @@ namespace ORTS.Common
         /// </summary>
         /// <param name="NewSample">Sample to filter</param>
         /// <returns>Filtered value</returns>
-        public float Filter(float NewSample)
+        public double Filter(double sample)
         {
             //shift the old samples
-            for (int n = NCoef; n > 0; n--)
+            for (int n = numberCoefficients - 1; n > 0; n--)
             {
                 x[n] = x[n - 1];
                 y[n] = y[n - 1];
             }
             //Calculate the new output
-            x[0] = NewSample;
-            y[0] = (float)Convert.ToDouble(ACoef[0]) * (float)Convert.ToDouble(x[0]);
-            for (int n = 1; n <= NCoef; n++)
-                y[0] = (float)Convert.ToDouble(y[0]) + (float)Convert.ToDouble(ACoef[n]) * (float)Convert.ToDouble(x[n]) - (float)Convert.ToDouble(BCoef[n]) * (float)Convert.ToDouble(y[n]);
+            x[0] = sample;
+            y[0] = aCoef[0] * x[0];
+            for (int n = 1; n < numberCoefficients; n++)
+                y[0] = y[0] + aCoef[n] * x[n] - bCoef[n] * y[n];
 
-            return (float)y[0];
+            return y[0];
         }
 
+        /// <summary>
+        /// temporary as most code is using the float-based interface
+        /// </summary>
+        /// <param name="sample"></param>
+        /// <param name="samplingPeriod"></param>
+        /// <returns></returns>
+        public float Filter(float sample, float samplingPeriod)
+        {
+            return (float)Filter((double)sample, (double)samplingPeriod);
+        }
         /// <summary>
         /// IIR Digital filter function
         /// Call this function with constant sample period
@@ -303,39 +249,42 @@ namespace ORTS.Common
         /// <param name="NewSample">Sample to filter</param>
         /// <param name="samplingPeriod">Sampling period</param>
         /// <returns>Filtered value</returns>
-        public float Filter(float NewSample, float samplingPeriod)
+        public double Filter(double sample, double samplingPeriod)
         {
-            if (samplingPeriod <= 0.0f)
-                return 0.0f;
+            if (samplingPeriod <= 0.0)
+                return 0.0;
 
-            switch(FilterType)
+            switch (FilterType)
             {
                 case FilterTypes.Butterworth:
-                    if ((1 / (samplingPeriod) < RadToHz(cuttoffFreqRadpS)))
+                    if (samplingPeriod != samplingPeriod_s)
                     {
-                        //Reset();
-                        return NewSample;
+                        if ((1 / (samplingPeriod) < RadToHz(cuttoffFreqRadpS)))
+                        {
+                            //Reset();
+                            return sample;
+                        }
+                        ComputeButterworth(Order, cuttoffFreqRadpS, samplingPeriod_s = samplingPeriod);
                     }
-                    ComputeButterworth(Order, cuttoffFreqRadpS, samplingPeriod_s = samplingPeriod);
                     break;
                 default:
                     throw new NotImplementedException("Other filter types are not implemented yet. Try to use constant sampling period and Filter(float NewSample) version of this method.");
             }
             //shift the old samples
-            for (int n = NCoef; n > 0; n--)
+            for (int n = numberCoefficients - 1; n > 0; n--)
             {
                 x[n] = x[n - 1];
                 y[n] = y[n - 1];
             }
             //Calculate the new output
-            x[0] = NewSample;
-            y[0] = (float)ACoef[0] * (float)x[0];
-            for (int n = 1; n <= NCoef; n++)
+            x[0] = sample;
+            y[0] = aCoef[0] * x[0];
+            for (int n = 1; n < numberCoefficients; n++)
             {
-                y[0] = (float)Convert.ToDouble(y[0]) + (float)Convert.ToDouble(ACoef[n]) * (float)Convert.ToDouble(x[n]) - (float)Convert.ToDouble(BCoef[n]) * (float)Convert.ToDouble(y[n]);
+                y[0] = y[0] + aCoef[n] * x[n] - bCoef[n] * y[n];
             }
 
-            return (float)y[0];
+            return y[0];
         }
 
         /// <summary>
@@ -343,7 +292,7 @@ namespace ORTS.Common
         /// </summary>
         public void Reset()
         {
-            for (int i = 0; i < x.Count; i++)
+            for (int i = 0; i < x.Length; i++)
             {
                 x[i] = 0.0;
                 y[i] = 0.0;
@@ -353,9 +302,9 @@ namespace ORTS.Common
         /// Resets all buffers of the filter with given initial value
         /// </summary>
         /// <param name="initValue">Initial value</param>
-        public void Reset(float initValue)
+        public void Reset(double initValue)
         {
-            for (float t = 0; t < (10.0f*cuttoffFreqRadpS); t += 0.1f)
+            for (double t = 0; t < (10.0 * cuttoffFreqRadpS); t += 0.1)
             {
                 Filter(initValue, 0.1f);
             }
@@ -415,30 +364,20 @@ namespace ORTS.Common
         /// <param name="order">Filter order</param>
         /// <param name="cutoffFrequency">Cuttof frequency in rad/s</param>
         /// <param name="samplingPeriod">Sampling period</param>
-        public void ComputeButterworth(int order, float cutoffFrequency, float samplingPeriod)
+        private void ComputeButterworth(int order, double cutoffFrequency, double samplingPeriod)
         {
-            A.Clear();
-            B.Clear();
+            double Ts_p = 0.5;
+            double w_cd_p = 2 / Ts_p * Math.Tan(cutoffFrequency * samplingPeriod / 2.0);
 
-            float Ts_p = 0.5f;
-            float w_cd_p = 2 / Ts_p * (float)Math.Tan(cutoffFrequency * samplingPeriod / 2.0);
+            //a1
+            aCoef[0] = (w_cd_p * Ts_p) / (2.0 + w_cd_p * Ts_p);
+            //a2
+            aCoef[1] = (w_cd_p * Ts_p) / (2.0 + w_cd_p * Ts_p);
+            //b1 = always 1.0
+            bCoef[0] = 1.0;
+            //b2
+            bCoef[1] = (w_cd_p * Ts_p - 2.0) / (2.0 + w_cd_p * Ts_p);
 
-            switch (order)
-            {
-                case 1:
-                    //a1
-                    A.Add((w_cd_p * Ts_p) / (2.0f + w_cd_p * Ts_p));
-                    //a2
-                    A.Add((w_cd_p * Ts_p) / (2.0f + w_cd_p * Ts_p));
-                    //b1 = always 1.0
-                    B.Add(1.0f);
-                    //b2
-                    B.Add((w_cd_p * Ts_p - 2.0f) / (2.0f + w_cd_p * Ts_p));
-                    break;
-                default:
-                    throw new NotImplementedException("Filter order higher than 1 is not supported yet");
-                    
-            }
         }
 
         /// <summary>
@@ -446,9 +385,9 @@ namespace ORTS.Common
         /// </summary>
         /// <param name="rad">Frequency in radians per second</param>
         /// <returns>Frequency in Hertz</returns>
-        public static float RadToHz(float rad)
+        public static double RadToHz(double rad)
         {
-            return (rad / (2.0f * (float)Math.PI));
+            return (rad / (2 * Math.PI));
         }
 
         /// <summary>
@@ -456,13 +395,12 @@ namespace ORTS.Common
         /// </summary>
         /// <param name="hz">Frequenc in Hertz</param>
         /// <returns>Frequency in radians per second</returns>
-        public static float HzToRad(float hz)
+        public static double HzToRad(double hz)
         {
-            return (2.0f * (float)Math.PI * hz);
+            return (2 * Math.PI * hz);
         }
 
     }
-
 
     public class MovingAverage
     {
@@ -480,9 +418,11 @@ namespace ORTS.Common
         Queue<float> Buffer;
 
         int size;
-        public int Size { get { if (Buffer != null) return Buffer.Count; else return 0; } 
-                          set { if(value > 0) size = value; else size = 1; Initialize(); }
-                        }
+        public int Size
+        {
+            get { if (Buffer != null) return Buffer.Count; else return 0; }
+            set { if (value > 0) size = value; else size = 1; Initialize(); }
+        }
 
         public void Initialize(float value)
         {
