@@ -1305,76 +1305,67 @@ namespace ORTS
 
         private void ShowDetail(string title, string[] lines)
         {
-            try
+            var titleControl = new Label { Margin = new Padding(2), Text = title, UseMnemonic = false, Font = new Font(panelDetails.Font, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft };
+            panelDetails.Controls.Add(titleControl);
+            titleControl.Left = titleControl.Margin.Left;
+            titleControl.Width = panelDetails.ClientSize.Width - titleControl.Margin.Horizontal - titleControl.PreferredHeight;
+            titleControl.Height = titleControl.PreferredHeight;
+            titleControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+
+            var expanderControl = new Button { Margin = new Padding(0), Text = "", FlatStyle = FlatStyle.Flat };
+            panelDetails.Controls.Add(expanderControl);
+            expanderControl.Left = panelDetails.ClientSize.Width - titleControl.Height - titleControl.Margin.Right;
+            expanderControl.Width = expanderControl.Height = titleControl.Height;
+            expanderControl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            expanderControl.FlatAppearance.BorderSize = 0;
+            expanderControl.BackgroundImageLayout = ImageLayout.Center;
+
+            var summaryControl = new Label { Margin = new Padding(2), Text = String.Join("\n", lines), AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
+            panelDetails.Controls.Add(summaryControl);
+            summaryControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+            summaryControl.Left = summaryControl.Margin.Left;
+            summaryControl.Width = panelDetails.ClientSize.Width - summaryControl.Margin.Horizontal;
+            summaryControl.Height = TextRenderer.MeasureText("1\n2\n3\n4\n5", summaryControl.Font).Height;
+
+            // Find out where we need to cut the text to make the summary 5 lines long. Uses a binaty search to find the cut point.
+            var size = MeasureText(summaryControl.Text, summaryControl);
+            if (size > summaryControl.Height)
             {
-
-                this.Suspend();
-                var titleControl = new Label { Margin = new Padding(2), Text = title, UseMnemonic = false, Font = new Font(panelDetails.Font, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft };
-                panelDetails.Controls.Add(titleControl);
-                titleControl.Left = titleControl.Margin.Left;
-                titleControl.Width = panelDetails.ClientSize.Width - titleControl.Margin.Horizontal - titleControl.PreferredHeight;
-                titleControl.Height = titleControl.PreferredHeight;
-                titleControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
-
-                var expanderControl = new Button { Margin = new Padding(0), Text = "", FlatStyle = FlatStyle.Flat };
-                panelDetails.Controls.Add(expanderControl);
-                expanderControl.Left = panelDetails.ClientSize.Width - titleControl.Height - titleControl.Margin.Right;
-                expanderControl.Width = expanderControl.Height = titleControl.Height;
-                expanderControl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-                expanderControl.FlatAppearance.BorderSize = 0;
-                expanderControl.BackgroundImageLayout = ImageLayout.Center;
-
-                var summaryControl = new Label { Margin = new Padding(2), Text = String.Join("\n", lines), AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
-                panelDetails.Controls.Add(summaryControl);
-                summaryControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
-                summaryControl.Left = summaryControl.Margin.Left;
-                summaryControl.Width = panelDetails.ClientSize.Width - summaryControl.Margin.Horizontal;
-                summaryControl.Height = TextRenderer.MeasureText("1\n2\n3\n4\n5", summaryControl.Font).Height;
-
-                // Find out where we need to cut the text to make the summary 5 lines long. Uses a binaty search to find the cut point.
-                var size = MeasureText(summaryControl.Text, summaryControl);
-                if (size > summaryControl.Height)
+                var index = (float)summaryControl.Text.Length;
+                var indexChunk = (float)summaryControl.Text.Length / 2;
+                while (indexChunk > 0.5f || size > summaryControl.Height)
                 {
-                    var index = (float)summaryControl.Text.Length;
-                    var indexChunk = (float)summaryControl.Text.Length / 2;
-                    while (indexChunk > 0.5f || size > summaryControl.Height)
-                    {
-                        if (size > summaryControl.Height)
-                            index -= indexChunk;
-                        else
-                            index += indexChunk;
-                        if (indexChunk > 0.5f)
-                            indexChunk /= 2;
-                        size = MeasureText(summaryControl.Text.Substring(0, (int)index) + "...", summaryControl);
-                    }
-                    summaryControl.Text = summaryControl.Text.Substring(0, (int)index) + "...";
+                    if (size > summaryControl.Height)
+                        index -= indexChunk;
+                    else
+                        index += indexChunk;
+                    if (indexChunk > 0.5f)
+                        indexChunk /= 2;
+                    size = MeasureText(summaryControl.Text.Substring(0, (int)index) + "...", summaryControl);
                 }
-
-                var descriptionControl = new Label { Margin = new Padding(2), Text = String.Join("\n", lines), AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
-                panelDetails.Controls.Add(descriptionControl);
-                descriptionControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
-                descriptionControl.Left = descriptionControl.Margin.Left;
-                descriptionControl.Width = panelDetails.ClientSize.Width - descriptionControl.Margin.Horizontal;
-                descriptionControl.Height = MeasureText(descriptionControl.Text, descriptionControl);
-
-                // Enable the expander only if the full description is longer than the summary. Otherwise, disable the expander.
-                expanderControl.Enabled = descriptionControl.Height > summaryControl.Height;
-                if (expanderControl.Enabled)
-                {
-                    expanderControl.BackgroundImage = (Image)Resources.GetObject("ExpanderClosed");
-                    expanderControl.Tag = Details.Count;
-                    expanderControl.Click += new EventHandler(ExpanderControl_Click);
-                }
-                else
-                {
-                    expanderControl.BackgroundImage = (Image)Resources.GetObject("ExpanderClosedDisabled");
-                }
-                Details.Add(new Detail(titleControl, expanderControl, summaryControl, descriptionControl));
+                summaryControl.Text = summaryControl.Text.Substring(0, (int)index) + "...";
             }
-            finally
+
+            var descriptionControl = new Label { Margin = new Padding(2), Text = String.Join("\n", lines), AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
+            panelDetails.Controls.Add(descriptionControl);
+            descriptionControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+            descriptionControl.Left = descriptionControl.Margin.Left;
+            descriptionControl.Width = panelDetails.ClientSize.Width - descriptionControl.Margin.Horizontal;
+            descriptionControl.Height = MeasureText(descriptionControl.Text, descriptionControl);
+
+            // Enable the expander only if the full description is longer than the summary. Otherwise, disable the expander.
+            expanderControl.Enabled = descriptionControl.Height > summaryControl.Height;
+            if (expanderControl.Enabled)
             {
-                this.Resume();
+                expanderControl.BackgroundImage = (Image)Resources.GetObject("ExpanderClosed");
+                expanderControl.Tag = Details.Count;
+                expanderControl.Click += new EventHandler(ExpanderControl_Click);
             }
+            else
+            {
+                expanderControl.BackgroundImage = (Image)Resources.GetObject("ExpanderClosedDisabled");
+            }
+            Details.Add(new Detail(titleControl, expanderControl, summaryControl, descriptionControl));
         }
 
         private static int MeasureText(string text, Label summaryControl)
@@ -1572,7 +1563,7 @@ namespace ORTS
     internal static class Win32
     {
         /// <summary>
-        /// Lock ore relase the wndow for updating.
+        /// Lock or relase the window for updating.
         /// </summary>
         [DllImport("user32")]
         public static extern int LockWindowUpdate(IntPtr hwnd);
