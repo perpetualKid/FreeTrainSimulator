@@ -76,16 +76,14 @@ namespace Orts.Viewer3D.Popups
                     {
                         if ((State == DisplayState.Cars) || (State == DisplayState.Trains && (car.Train == null || car.Train.FirstCar == car)))
                         {
+                            // Change color with distance.
+                            var ratio = (MathHelper.Clamp(distance, MinimumDistance, MaximumDistance) - MinimumDistance) / (MaximumDistance - MinimumDistance);
+
                             if (labels.ContainsKey(car))
                                 newLabels[car] = labels[car];
                             else
-                                newLabels[car] = new LabelPrimitive(Owner.Label3DMaterial, Color.Blue, Color.White, car.CarHeightM) { Position = car.WorldPosition };
-
-                            newLabels[car].Text = State == DisplayState.Cars || car.Train == null ? car.CarID : car.Train.Name;
-
-                            // Change color with distance.
-                            var ratio = (MathHelper.Clamp(distance, MinimumDistance, MaximumDistance) - MinimumDistance) / (MaximumDistance - MinimumDistance);
-                            newLabels[car].Color.A = newLabels[car].Outline.A = (byte)MathHelper.Lerp(255, 0, ratio);
+                                newLabels[car] = new LabelPrimitive(Owner.Label3DMaterial, Color.Blue, Color.White, car.CarHeightM, 
+                                    car.WorldPosition, (State == DisplayState.Cars || car.Train == null ? car.CarID : car.Train.Name), ratio);
                         }
                     }
                 }

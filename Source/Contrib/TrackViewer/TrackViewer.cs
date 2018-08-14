@@ -638,8 +638,9 @@ namespace ORTS.TrackViewer
         {
             ScreenW = Window.ClientBounds.Width;
             ScreenH = Window.ClientBounds.Height;
-            if (ScreenW == 0 || ScreenH == 0)
-            {   // if something went wrong during fast window switching, let's not continue
+            // if something went wrong during fast window switching, let's not continue
+            if (menuControl == null || statusBarControl == null || ScreenW == 0 || ScreenH == 0)
+            { 
                 return;
             }
             SetSubwindowSizes();

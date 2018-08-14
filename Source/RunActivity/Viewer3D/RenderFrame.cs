@@ -20,19 +20,15 @@
 // Define this to check every material is resetting the RenderState correctly.
 //#define DEBUG_RENDER_STATE
 
-// Define this to enable sorting of blended render primitives. This is a
-// complex feature and performance is not guaranteed.
-#define RENDER_BLEND_SORTING
-
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
 using ORTS.Settings;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Game = Orts.Viewer3D.Processes.Game;
 
 namespace Orts.Viewer3D
@@ -132,12 +128,12 @@ namespace Orts.Viewer3D
     [DebuggerDisplay("{Material} {RenderPrimitive} {Flags}")]
     public struct RenderItem
     {
-        public Material Material;
-        public RenderPrimitive RenderPrimitive;
-        public Matrix XNAMatrix;
-        public ShapeFlags Flags;
+        public readonly Material Material;
+        public readonly RenderPrimitive RenderPrimitive;
+        public readonly Matrix XNAMatrix;
+        public readonly ShapeFlags Flags;
 
-        public RenderItem(Material material, RenderPrimitive renderPrimitive, ref Matrix xnaMatrix, ShapeFlags flags)
+        public RenderItem(Material material, RenderPrimitive renderPrimitive, Matrix xnaMatrix, ShapeFlags flags)
         {
             Material = material;
             RenderPrimitive = renderPrimitive;
@@ -147,210 +143,41 @@ namespace Orts.Viewer3D
 
         public class Comparer : IComparer<RenderItem>
         {
-            readonly Vector3 XNAViewerPos;
+            private Vector3 viewerPos;
 
             public Comparer(Vector3 viewerPos)
             {
-                XNAViewerPos = viewerPos;
-                XNAViewerPos.Z *= -1;
+                this.viewerPos = viewerPos;
+                this.viewerPos.Z *= -1;
+            }
+
+            public void Update(Vector3 viewerPos)
+            {
+                this.viewerPos = viewerPos;
+                this.viewerPos.Z *= -1;
             }
 
             #region IComparer<RenderItem> Members
 
             public int Compare(RenderItem x, RenderItem y)
             {
-                // For unknown reasons, this would crash with an ArgumentException (saying Compare(x, x) != 0)
-                // sometimes when calculated as two values and subtracted. Presumed cause is floating point.
-                var xd = (x.XNAMatrix.Translation - XNAViewerPos).Length();
-                var yd = (y.XNAMatrix.Translation - XNAViewerPos).Length();
-                // If the absolute difference is >= 1mm use that; otherwise, they're effectively in the same
-                // place so fall back to the SortIndex.
-                if (Math.Abs(yd - xd) >= 0.001)
-                    return Math.Sign(yd - xd);
+                float distance = (y.XNAMatrix.Translation - viewerPos).Length() - (x.XNAMatrix.Translation - viewerPos).Length();
+                if (Math.Abs(distance) >= 0.001)
+                    return Math.Sign(distance);
                 return Math.Sign(x.RenderPrimitive.SortIndex - y.RenderPrimitive.SortIndex);
+                //// For unknown reasons, this would crash with an ArgumentException (saying Compare(x, x) != 0)
+                //// sometimes when calculated as two values and subtracted. Presumed cause is floating point.
+                //var xd = (x.XNAMatrix.Translation - viewerPos).Length();
+                //var yd = (y.XNAMatrix.Translation - viewerPos).Length();
+                //// If the absolute difference is >= 1mm use that; otherwise, they're effectively in the same
+                //// place so fall back to the SortIndex.
+                //if (Math.Abs(yd - xd) >= 0.001)
+                //    return Math.Sign(yd - xd);
+                //return Math.Sign(x.RenderPrimitive.SortIndex - y.RenderPrimitive.SortIndex);
             }
 
             #endregion
         }
-    }
-
-	public class RenderItemCollection : IList<RenderItem>, IEnumerator<RenderItem>
-	{
-		RenderItem[] Items = new RenderItem[4];
-		int ItemCount;
-		int EnumeratorIndex;
-
-		public RenderItemCollection()
-		{
-		}
-
-        public int Capacity
-        {
-            get
-            {
-                return Items.Length;
-            }
-        }
-
-		public int Count
-		{
-            get
-            {
-                return ItemCount;
-            }
-		}
-
-		public void Sort(IComparer<RenderItem> comparer)
-		{
-			Array.Sort(Items, 0, ItemCount, comparer);
-		}
-
-		#region IList<RenderItem> Members
-
-		public int IndexOf(RenderItem item)
-		{
-            throw new NotSupportedException();
-		}
-
-		public void Insert(int index, RenderItem item)
-		{
-            throw new NotSupportedException();
-		}
-
-		public void RemoveAt(int index)
-		{
-            throw new NotSupportedException();
-		}
-
-		public RenderItem this[int index]
-		{
-			get
-			{
-				throw new NotSupportedException();
-			}
-			set
-			{
-                throw new NotSupportedException();
-			}
-		}
-
-		#endregion
-
-		#region ICollection<RenderItem> Members
-
-		public void Add(RenderItem item)
-		{
-			if (ItemCount == Items.Length)
-			{
-				var items = new RenderItem[Items.Length * 2];
-				Array.Copy(Items, 0, items, 0, Items.Length);
-                Items = items;
-			}
-			Items[ItemCount] = item;
-			ItemCount++;
-		}
-
-		public void Clear()
-		{
-			Array.Clear(Items, 0, ItemCount);
-			ItemCount = 0;
-		}
-
-		public bool Contains(RenderItem item)
-		{
-            throw new NotSupportedException();
-		}
-
-		public void CopyTo(RenderItem[] array, int arrayIndex)
-		{
-            throw new NotSupportedException();
-		}
-
-		int ICollection<RenderItem>.Count
-		{
-            get
-            {
-                throw new NotSupportedException();
-            }
-		}
-
-		public bool IsReadOnly
-		{
-            get
-            {
-                throw new NotSupportedException();
-            }
-		}
-
-		public bool Remove(RenderItem item)
-		{
-			throw new NotSupportedException();
-		}
-
-		#endregion
-
-		#region IEnumerable<RenderItem> Members
-
-		public IEnumerator<RenderItem> GetEnumerator()
-		{
-			Reset();
-			return this;
-		}
-
-		#endregion
-
-		#region IEnumerable Members
-
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
-
-		#endregion
-
-		#region IEnumerator<RenderItem> Members
-
-		public RenderItem Current
-		{
-            get
-            {
-                return Items[EnumeratorIndex];
-            }
-		}
-
-		#endregion
-
-		#region IEnumerator Members
-
-		object System.Collections.IEnumerator.Current
-		{
-            get
-            {
-                return Current;
-            }
-		}
-
-		public bool MoveNext()
-		{
-			EnumeratorIndex++;
-			return EnumeratorIndex < ItemCount;
-		}
-
-		public void Reset()
-		{
-			EnumeratorIndex = -1;
-		}
-
-		#endregion
-
-		#region IDisposable Members
-
-		public void Dispose()
-		{
-			// No op.
-		}
-
-		#endregion
     }
 
     public class RenderFrame
@@ -358,105 +185,110 @@ namespace Orts.Viewer3D
         readonly Game Game;
 
         // Shared shadow map data.
-        static RenderTarget2D[] ShadowMap;
-        static RenderTarget2D[] ShadowMapRenderTarget;
-        static Vector3 SteppedSolarDirection = Vector3.UnitX;
+        private static RenderTarget2D[] shadowMap;
+        private static RenderTarget2D[] shadowMapRenderTarget;
+        private static Vector3 steppedSolarDirection = Vector3.UnitX;
 
         // Local shadow map data.
-        Matrix[] ShadowMapLightView;
-        Matrix[] ShadowMapLightProj;
-        Matrix[] ShadowMapLightViewProjShadowProj;
-        Vector3 ShadowMapX;
-        Vector3 ShadowMapY;
-        Vector3[] ShadowMapCenter;
+        private readonly Matrix[] shadowMapLightView;
+        private readonly Matrix[] shadowMapLightProjection;
+        private readonly Matrix[] shadowMapLightViewProjectionShadowProjection;
+        private Vector3 shadowMapX;
+        private Vector3 shadowMapY;
+        private readonly Vector3[] shadowMapCenter;
 
         readonly Material DummyBlendedMaterial;
-		readonly Dictionary<Material, RenderItemCollection>[] RenderItems = new Dictionary<Material, RenderItemCollection>[(int)RenderPrimitiveSequence.Sentinel];
-        readonly RenderItemCollection[] RenderShadowSceneryItems;
-        readonly RenderItemCollection[] RenderShadowForestItems;
-        readonly RenderItemCollection[] RenderShadowTerrainItems;
-        readonly RenderItemCollection RenderItemsSequence = new RenderItemCollection();
+
+        private readonly Dictionary<Material, List<RenderItem>>[] renderItems = new Dictionary<Material, List<RenderItem>>[(int)RenderPrimitiveSequence.Sentinel];
+        private readonly List<RenderItem> renderItemsSequence = new List<RenderItem>();
+        private readonly List<RenderItem>[] renderShadowTerrainItems;
+        private readonly List<RenderItem>[] renderShadowForestItems;
+        private readonly List<RenderItem>[] renderShadowSceneryItems;
 
         public bool IsScreenChanged { get; internal set; }
-        ShadowMapMaterial ShadowMapMaterial;
-        SceneryShader SceneryShader;
-        Vector3 SolarDirection;
-        Camera Camera;
-        Vector3 CameraLocation;
-        Vector3 XNACameraLocation;
-        Matrix XNACameraView;
-        Matrix XNACameraProjection;
+
+        private ShadowMapMaterial shadowMapMaterial;
+        private SceneryShader sceneryShader;
+        private Vector3 solarDirection;
+        private Camera camera;
+        private Vector3 cameraLocation;
+        private Matrix cameraView;
+        private Matrix cameraProjection;
+        private RenderItem.Comparer renderItemComparer;
 
         public RenderFrame(Game game)
         {
+            int shadowMapCount = RenderProcess.ShadowMapCount;
             Game = game;
             DummyBlendedMaterial = new EmptyMaterial(null);
 
-            for (int i = 0; i < RenderItems.Length; i++)
-				RenderItems[i] = new Dictionary<Material, RenderItemCollection>();
+            for (int i = 0; i < renderItems.Length; i++)
+				renderItems[i] = new Dictionary<Material, List<RenderItem>>();
 
             if (Game.Settings.DynamicShadows)
             {
-                if (ShadowMap == null)
+                if (shadowMap == null)
                 {
-                    var shadowMapSize = Game.Settings.ShadowMapResolution;
-                    ShadowMap = new RenderTarget2D[RenderProcess.ShadowMapCount];
-                    ShadowMapRenderTarget = new RenderTarget2D[RenderProcess.ShadowMapCount];
-                    for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
+                    int shadowMapSize = Game.Settings.ShadowMapResolution;
+                    shadowMap = new RenderTarget2D[shadowMapCount];
+                    shadowMapRenderTarget = new RenderTarget2D[shadowMapCount];
+                    for (int shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                     {
-                        ShadowMapRenderTarget[shadowMapIndex] = new RenderTarget2D(Game.RenderProcess.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
-                        ShadowMap[shadowMapIndex] = new RenderTarget2D(Game.RenderProcess.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
+                        shadowMapRenderTarget[shadowMapIndex] = new RenderTarget2D(Game.RenderProcess.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
+                        shadowMap[shadowMapIndex] = new RenderTarget2D(Game.RenderProcess.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
                     }
                 }
 
-                ShadowMapLightView = new Matrix[RenderProcess.ShadowMapCount];
-                ShadowMapLightProj = new Matrix[RenderProcess.ShadowMapCount];
-                ShadowMapLightViewProjShadowProj = new Matrix[RenderProcess.ShadowMapCount];
-                ShadowMapCenter = new Vector3[RenderProcess.ShadowMapCount];
+                shadowMapLightView = new Matrix[shadowMapCount];
+                shadowMapLightProjection = new Matrix[shadowMapCount];
+                shadowMapLightViewProjectionShadowProjection = new Matrix[shadowMapCount];
+                shadowMapCenter = new Vector3[shadowMapCount];
 
-                RenderShadowSceneryItems = new RenderItemCollection[RenderProcess.ShadowMapCount];
-                RenderShadowForestItems = new RenderItemCollection[RenderProcess.ShadowMapCount];
-                RenderShadowTerrainItems = new RenderItemCollection[RenderProcess.ShadowMapCount];
-                for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
+                renderShadowSceneryItems = new List<RenderItem>[shadowMapCount];
+                renderShadowForestItems = new List<RenderItem>[shadowMapCount];
+                renderShadowTerrainItems = new List<RenderItem>[shadowMapCount];
+                for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                 {
-                    RenderShadowSceneryItems[shadowMapIndex] = new RenderItemCollection();
-                    RenderShadowForestItems[shadowMapIndex] = new RenderItemCollection();
-                    RenderShadowTerrainItems[shadowMapIndex] = new RenderItemCollection();
+                    renderShadowSceneryItems[shadowMapIndex] = new List<RenderItem>();
+                    renderShadowForestItems[shadowMapIndex] = new List<RenderItem>();
+                    renderShadowTerrainItems[shadowMapIndex] = new List<RenderItem>();
                 }
             }
 
-            XNACameraView = Matrix.Identity;
-            XNACameraProjection = Matrix.CreateOrthographic(game.RenderProcess.DisplaySize.X, game.RenderProcess.DisplaySize.Y, 1, 100);
+            cameraView = Matrix.Identity;
+            cameraProjection = Matrix.CreateOrthographic(game.RenderProcess.DisplaySize.X, game.RenderProcess.DisplaySize.Y, 1, 100);
+
+            renderItemComparer = new RenderItem.Comparer(Vector3.Zero);
         }
 
         public void Clear()
         {
             // Attempt to clean up unused materials over time (max 1 per RenderPrimitiveSequence).
-            for (var i = 0; i < RenderItems.Length; i++)
+            for (var i = 0; i < renderItems.Length; i++)
             {
-                foreach (var mat in RenderItems[i].Keys)
+                foreach (var mat in renderItems[i].Keys)
                 {
-                    if (RenderItems[i][mat].Count == 0)
+                    if (renderItems[i][mat].Count == 0)
                     {
-                        RenderItems[i].Remove(mat);
+                        renderItems[i].Remove(mat);
                         break;
                     }
                 }
             }
             
             // Clear out (reset) all of the RenderItem lists.
-            for (var i = 0; i < RenderItems.Length; i++)
-                foreach (var mat in RenderItems[i].Keys)
-                    RenderItems[i][mat].Clear();
+            for (var i = 0; i < renderItems.Length; i++)
+                foreach (Material material in renderItems[i].Keys)
+                    renderItems[i][material].Clear();
 
             // Clear out (reset) all of the shadow mapping RenderItem lists.
             if (Game.Settings.DynamicShadows)
             {
                 for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
                 {
-                    RenderShadowSceneryItems[shadowMapIndex].Clear();
-                    RenderShadowForestItems[shadowMapIndex].Clear();
-                    RenderShadowTerrainItems[shadowMapIndex].Clear();
+                    renderShadowSceneryItems[shadowMapIndex].Clear();
+                    renderShadowForestItems[shadowMapIndex].Clear();
+                    renderShadowTerrainItems[shadowMapIndex].Clear();
                 }
             }
         }
@@ -464,23 +296,25 @@ namespace Orts.Viewer3D
         public void PrepareFrame(Viewer viewer)
         {
             if (viewer.Settings.UseMSTSEnv == false)
-                SolarDirection = viewer.World.Sky.solarDirection;
+                solarDirection = viewer.World.Sky.solarDirection;
             else
-                SolarDirection = viewer.World.MSTSSky.mstsskysolarDirection;
+                solarDirection = viewer.World.MSTSSky.mstsskysolarDirection;
 
-            if (ShadowMapMaterial == null)
-                ShadowMapMaterial = (ShadowMapMaterial)viewer.MaterialManager.Load("ShadowMap");
-            if (SceneryShader == null)
-                SceneryShader = viewer.MaterialManager.SceneryShader;
+            if (shadowMapMaterial == null)
+                shadowMapMaterial = (ShadowMapMaterial)viewer.MaterialManager.Load("ShadowMap");
+            if (sceneryShader == null)
+                sceneryShader = viewer.MaterialManager.SceneryShader;
         }
 
         public void SetCamera(Camera camera)
         {
-            Camera = camera;
-            XNACameraLocation = CameraLocation = Camera.Location;
-            XNACameraLocation.Z *= -1;
-            XNACameraView = Camera.XnaView;
-            XNACameraProjection = Camera.XnaProjection;
+            this.camera = camera;
+            cameraLocation = camera.Location;
+            cameraLocation.Z *= -1;
+            cameraView = camera.XnaView;
+            cameraProjection = camera.XnaProjection;
+
+            renderItemComparer.Update(camera.Location);
         }
 
         static bool LockShadows;
@@ -492,26 +326,26 @@ namespace Orts.Viewer3D
 
             if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && !LockShadows)
             {
-                var solarDirection = SolarDirection;
-                solarDirection.Normalize();
-                if (Vector3.Dot(SteppedSolarDirection, solarDirection) < 0.99999)
-                    SteppedSolarDirection = solarDirection;
+                Vector3 normalizedSolarDirection = solarDirection;
+                normalizedSolarDirection.Normalize();
+                if (Vector3.Dot(steppedSolarDirection, normalizedSolarDirection) < 0.99999)
+                    steppedSolarDirection = normalizedSolarDirection;
 
-                var cameraDirection = new Vector3(-XNACameraView.M13, -XNACameraView.M23, -XNACameraView.M33);
+                var cameraDirection = new Vector3(-cameraView.M13, -cameraView.M23, -cameraView.M33);
                 cameraDirection.Normalize();
 
-                var shadowMapAlignAxisX = Vector3.Cross(SteppedSolarDirection, Vector3.UnitY);
-                var shadowMapAlignAxisY = Vector3.Cross(shadowMapAlignAxisX, SteppedSolarDirection);
+                var shadowMapAlignAxisX = Vector3.Cross(steppedSolarDirection, Vector3.UnitY);
+                var shadowMapAlignAxisY = Vector3.Cross(shadowMapAlignAxisX, steppedSolarDirection);
                 shadowMapAlignAxisX.Normalize();
                 shadowMapAlignAxisY.Normalize();
-                ShadowMapX = shadowMapAlignAxisX;
-                ShadowMapY = shadowMapAlignAxisY;
+                shadowMapX = shadowMapAlignAxisX;
+                shadowMapY = shadowMapAlignAxisY;
 
                 for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
                 {
                     var viewingDistance = Game.Settings.ViewingDistance;
                     var shadowMapDiameter = RenderProcess.ShadowMapDiameter[shadowMapIndex];
-                    var shadowMapLocation = XNACameraLocation + RenderProcess.ShadowMapDistance[shadowMapIndex] * cameraDirection;
+                    var shadowMapLocation = cameraLocation + RenderProcess.ShadowMapDistance[shadowMapIndex] * cameraDirection;
 
                     // Align shadow map location to grid so it doesn't "flutter" so much. This basically means aligning it along a
                     // grid based on the size of a shadow texel (shadowMapSize / shadowMapSize) along the axes of the sun direction
@@ -527,10 +361,10 @@ namespace Orts.Viewer3D
                     shadowMapLocation.Y -= shadowMapAlignAxisY.Y * adjustY;
                     shadowMapLocation.Z -= shadowMapAlignAxisY.Z * adjustY;
 
-                    ShadowMapLightView[shadowMapIndex] = Matrix.CreateLookAt(shadowMapLocation + viewingDistance * SteppedSolarDirection, shadowMapLocation, Vector3.Up);
-                    ShadowMapLightProj[shadowMapIndex] = Matrix.CreateOrthographic(shadowMapDiameter, shadowMapDiameter, 0, viewingDistance + shadowMapDiameter / 2);
-                    ShadowMapLightViewProjShadowProj[shadowMapIndex] = ShadowMapLightView[shadowMapIndex] * ShadowMapLightProj[shadowMapIndex] * new Matrix(0.5f, 0, 0, 0, 0, -0.5f, 0, 0, 0, 0, 1, 0, 0.5f + 0.5f / shadowMapSize, 0.5f + 0.5f / shadowMapSize, 0, 1);
-                    ShadowMapCenter[shadowMapIndex] = shadowMapLocation;
+                    shadowMapLightView[shadowMapIndex] = Matrix.CreateLookAt(shadowMapLocation + viewingDistance * steppedSolarDirection, shadowMapLocation, Vector3.Up);
+                    shadowMapLightProjection[shadowMapIndex] = Matrix.CreateOrthographic(shadowMapDiameter, shadowMapDiameter, 0, viewingDistance + shadowMapDiameter / 2);
+                    shadowMapLightViewProjectionShadowProjection[shadowMapIndex] = shadowMapLightView[shadowMapIndex] * shadowMapLightProjection[shadowMapIndex] * new Matrix(0.5f, 0, 0, 0, 0, -0.5f, 0, 0, 0, 0, 1, 0, 0.5f + 0.5f / shadowMapSize, 0.5f + 0.5f / shadowMapSize, 0, 1);
+                    shadowMapCenter[shadowMapIndex] = shadowMapLocation;
                 }
             }
         }
@@ -549,9 +383,9 @@ namespace Orts.Viewer3D
         [CallOnThread("Updater")]
         public void AddAutoPrimitive(Vector3 mstsLocation, float objectRadius, float objectViewingDistance, Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags)
         {
-            if (float.IsPositiveInfinity(objectViewingDistance) || (Camera != null && Camera.InRange(mstsLocation, objectRadius, objectViewingDistance)))
+            if (float.IsPositiveInfinity(objectViewingDistance) || (camera != null && camera.InRange(mstsLocation, objectRadius, objectViewingDistance)))
             {
-                if (Camera != null && Camera.InFov(mstsLocation, objectRadius))
+                if (camera != null && camera.InFov(mstsLocation, objectRadius))
                     AddPrimitive(material, primitive, group, ref xnaMatrix, flags);
             }
 
@@ -577,18 +411,18 @@ namespace Orts.Viewer3D
             var getBlending = material.GetBlending();
             var blending = getBlending && material is SceneryMaterial ? PrimitiveBlendedScenery : getBlending ? PrimitiveBlended : PrimitiveNotBlended;
 
-            RenderItemCollection items;
+            List<RenderItem> items;
             foreach (var blended in blending)
             {
                 var sortingMaterial = blended ? DummyBlendedMaterial : material;
-                var sequence = RenderItems[(int)GetRenderSequence(group, blended)];
+                var sequence = renderItems[(int)GetRenderSequence(group, blended)];
 
                 if (!sequence.TryGetValue(sortingMaterial, out items))
                 {
-                    items = new RenderItemCollection();
+                    items = new List<RenderItem>();
                     sequence.Add(sortingMaterial, items);
                 }
-                items.Add(new RenderItem(material, primitive, ref xnaMatrix, flags));
+                items.Add(new RenderItem(material, primitive, xnaMatrix, flags));
             }
             if (((flags & ShapeFlags.AutoZBias) != 0) && (primitive.ZBias == 0))
                 primitive.ZBias = 1;
@@ -598,11 +432,11 @@ namespace Orts.Viewer3D
         void AddShadowPrimitive(int shadowMapIndex, Material material, RenderPrimitive primitive, ref Matrix xnaMatrix, ShapeFlags flags)
         {
             if (material is SceneryMaterial)
-                RenderShadowSceneryItems[shadowMapIndex].Add(new RenderItem(material, primitive, ref xnaMatrix, flags));
+                renderShadowSceneryItems[shadowMapIndex].Add(new RenderItem(material, primitive, xnaMatrix, flags));
             else if (material is ForestMaterial)
-                RenderShadowForestItems[shadowMapIndex].Add(new RenderItem(material, primitive, ref xnaMatrix, flags));
+                renderShadowForestItems[shadowMapIndex].Add(new RenderItem(material, primitive, xnaMatrix, flags));
             else if (material is TerrainMaterial)
-                RenderShadowTerrainItems[shadowMapIndex].Add(new RenderItem(material, primitive, ref xnaMatrix, flags));
+                renderShadowTerrainItems[shadowMapIndex].Add(new RenderItem(material, primitive, xnaMatrix, flags));
             else
                 Debug.Fail("Only scenery, forest and terrain materials allowed in shadow map.");
         }
@@ -610,27 +444,35 @@ namespace Orts.Viewer3D
         [CallOnThread("Updater")]
         public void Sort()
         {
-            var renderItemComparer = new RenderItem.Comparer(CameraLocation);
-            foreach (var sequence in RenderItems)
+            System.Threading.Tasks.Parallel.For(0, renderItems.Length, (i) =>
             {
-                foreach (var sequenceMaterial in sequence.Where(kvp => kvp.Value.Count > 0))
+                foreach (var sequenceMaterial in renderItems[i].Where(kvp => kvp.Value.Count > 0))
                 {
-                    if (sequenceMaterial.Key != DummyBlendedMaterial)
-                        continue;
-                    sequenceMaterial.Value.Sort(renderItemComparer);
+                    if (sequenceMaterial.Key == DummyBlendedMaterial)
+                        sequenceMaterial.Value.Sort(renderItemComparer);
                 }
-            }
+            });
+
+            //foreach (var sequence in RenderItems)
+            //{
+            //    foreach (var sequenceMaterial in sequence.Where(kvp => kvp.Value.Count > 0))
+            //    {
+            //        if (sequenceMaterial.Key != DummyBlendedMaterial)
+            //            continue;
+            //        sequenceMaterial.Value.Sort(renderItemComparer);
+            //    }
+            //}
         }
 
         bool IsInShadowMap(int shadowMapIndex, Vector3 mstsLocation, float objectRadius, float objectViewingDistance)
         {
-            if (ShadowMapRenderTarget == null)
+            if (shadowMapRenderTarget == null)
                 return false;
 
             mstsLocation.Z *= -1;
-            mstsLocation.X -= ShadowMapCenter[shadowMapIndex].X;
-            mstsLocation.Y -= ShadowMapCenter[shadowMapIndex].Y;
-            mstsLocation.Z -= ShadowMapCenter[shadowMapIndex].Z;
+            mstsLocation.X -= shadowMapCenter[shadowMapIndex].X;
+            mstsLocation.Y -= shadowMapCenter[shadowMapIndex].Y;
+            mstsLocation.Z -= shadowMapCenter[shadowMapIndex].Z;
             objectRadius += RenderProcess.ShadowMapDiameter[shadowMapIndex] / 2;
 
             // Check if object is inside the sphere.
@@ -639,16 +481,16 @@ namespace Orts.Viewer3D
                 return true;
 
             // Check if object is inside cylinder.
-            var dotX = Math.Abs(Vector3.Dot(mstsLocation, ShadowMapX));
+            var dotX = Math.Abs(Vector3.Dot(mstsLocation, shadowMapX));
             if (dotX > objectRadius)
                 return false;
 
-            var dotY = Math.Abs(Vector3.Dot(mstsLocation, ShadowMapY));
+            var dotY = Math.Abs(Vector3.Dot(mstsLocation, shadowMapY));
             if (dotY > objectRadius)
                 return false;
 
             // Check if object is on correct side of center.
-            var dotZ = Vector3.Dot(mstsLocation, SteppedSolarDirection);
+            var dotZ = Vector3.Dot(mstsLocation, steppedSolarDirection);
             if (dotZ < 0)
                 return false;
 
@@ -668,7 +510,7 @@ namespace Orts.Viewer3D
 #if DEBUG_RENDER_STATE
 			DebugRenderState(graphicsDevice, "RenderFrame.Draw");
 #endif
-            var logging = UserInput.InputSettings != null && UserInput.IsPressed(UserCommands.DebugLogRenderFrame);
+            var logging = UserInput.IsPressed(UserCommands.DebugLogRenderFrame);
             if (logging)
             {
                 Console.WriteLine();
@@ -676,13 +518,13 @@ namespace Orts.Viewer3D
                 Console.WriteLine("Draw {");
             }
 
-            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && ShadowMapMaterial != null)
+            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && shadowMapMaterial != null)
                 DrawShadows(graphicsDevice, logging);
 
             DrawSimple(graphicsDevice, logging);
 
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
-                Game.RenderProcess.PrimitiveCount[i] = RenderItems[i].Values.Sum(l => l.Count);
+                Game.RenderProcess.PrimitiveCount[i] = renderItems[i].Values.Sum(l => l.Count);
 
             if (logging)
             {
@@ -697,7 +539,7 @@ namespace Orts.Viewer3D
             for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
                 DrawShadows(graphicsDevice, logging, shadowMapIndex);
             for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
-                Game.RenderProcess.ShadowPrimitiveCount[shadowMapIndex] = RenderShadowSceneryItems[shadowMapIndex].Count + RenderShadowForestItems[shadowMapIndex].Count + RenderShadowTerrainItems[shadowMapIndex].Count;
+                Game.RenderProcess.ShadowPrimitiveCount[shadowMapIndex] = renderShadowSceneryItems[shadowMapIndex].Count + renderShadowForestItems[shadowMapIndex].Count + renderShadowTerrainItems[shadowMapIndex].Count;
             if (logging) Console.WriteLine("  }");
         }
 
@@ -706,40 +548,40 @@ namespace Orts.Viewer3D
             if (logging) Console.WriteLine("    {0} {{", shadowMapIndex);
 
             // Prepare renderer for drawing the shadow map.
-            graphicsDevice.SetRenderTarget(ShadowMapRenderTarget[shadowMapIndex]);
+            graphicsDevice.SetRenderTarget(shadowMapRenderTarget[shadowMapIndex]);
             graphicsDevice.Clear(ClearOptions.DepthBuffer | ClearOptions.Target, Color.White, 1, 0);
 
             // Prepare for normal (non-blocking) rendering of scenery.
-            ShadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Normal);
+            shadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Normal);
 
             // Render non-terrain, non-forest shadow items first.
-            if (logging) Console.WriteLine("      {0,-5} * SceneryMaterial (normal)", RenderShadowSceneryItems[shadowMapIndex].Count);
-            ShadowMapMaterial.Render(graphicsDevice, RenderShadowSceneryItems[shadowMapIndex], ref ShadowMapLightView[shadowMapIndex], ref ShadowMapLightProj[shadowMapIndex]);
+            if (logging) Console.WriteLine("      {0,-5} * SceneryMaterial (normal)", renderShadowSceneryItems[shadowMapIndex].Count);
+            shadowMapMaterial.Render(graphicsDevice, renderShadowSceneryItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
 
             // Prepare for normal (non-blocking) rendering of forests.
-            ShadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Forest);
+            shadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Forest);
 
             // Render forest shadow items next.
-            if (logging) Console.WriteLine("      {0,-5} * ForestMaterial (forest)", RenderShadowForestItems[shadowMapIndex].Count);
-            ShadowMapMaterial.Render(graphicsDevice, RenderShadowForestItems[shadowMapIndex], ref ShadowMapLightView[shadowMapIndex], ref ShadowMapLightProj[shadowMapIndex]);
+            if (logging) Console.WriteLine("      {0,-5} * ForestMaterial (forest)", renderShadowForestItems[shadowMapIndex].Count);
+            shadowMapMaterial.Render(graphicsDevice, renderShadowForestItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
 
             // Prepare for normal (non-blocking) rendering of terrain.
-            ShadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Normal);
+            shadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Normal);
 
             // Render terrain shadow items now, with their magic.
-            if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (normal)", RenderShadowTerrainItems[shadowMapIndex].Count);
+            if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (normal)", renderShadowTerrainItems[shadowMapIndex].Count);
             graphicsDevice.Indices = TerrainPrimitive.SharedPatchIndexBuffer;
-            ShadowMapMaterial.Render(graphicsDevice, RenderShadowTerrainItems[shadowMapIndex], ref ShadowMapLightView[shadowMapIndex], ref ShadowMapLightProj[shadowMapIndex]);
+            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
 
             // Prepare for blocking rendering of terrain.
-            ShadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Blocker);
+            shadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Blocker);
 
             // Render terrain shadow items in blocking mode.
-            if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (blocker)", RenderShadowTerrainItems[shadowMapIndex].Count);
-            ShadowMapMaterial.Render(graphicsDevice, RenderShadowTerrainItems[shadowMapIndex], ref ShadowMapLightView[shadowMapIndex], ref ShadowMapLightProj[shadowMapIndex]);
+            if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (blocker)", renderShadowTerrainItems[shadowMapIndex].Count);
+            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
 
             // All done.
-            ShadowMapMaterial.ResetState(graphicsDevice);
+            shadowMapMaterial.ResetState(graphicsDevice);
 #if DEBUG_RENDER_STATE
             DebugRenderState(graphicsDevice, ShadowMapMaterial.ToString());
 #endif
@@ -748,13 +590,14 @@ namespace Orts.Viewer3D
             // Blur the shadow map.
             if (Game.Settings.ShadowMapBlur)
             {
-                ShadowMap[shadowMapIndex] = ShadowMapMaterial.ApplyBlur(graphicsDevice, ShadowMap[shadowMapIndex], ShadowMapRenderTarget[shadowMapIndex]);
+                //shadowMap[shadowMapIndex] = 
+                shadowMapMaterial.ApplyBlur(graphicsDevice, shadowMap[shadowMapIndex], shadowMapRenderTarget[shadowMapIndex]);
 #if DEBUG_RENDER_STATE
                 DebugRenderState(graphicsDevice, ShadowMapMaterial.ToString() + " ApplyBlur()");
 #endif
             }
             else
-                ShadowMap[shadowMapIndex] = ShadowMapRenderTarget[shadowMapIndex];
+                shadowMap[shadowMapIndex] = shadowMapRenderTarget[shadowMapIndex];
 
             if (logging) Console.WriteLine("    }");
         }
@@ -788,15 +631,14 @@ namespace Orts.Viewer3D
 
         void DrawSequences(GraphicsDevice graphicsDevice, bool logging)
         {
-            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && SceneryShader != null)
-                SceneryShader.SetShadowMap(ShadowMapLightViewProjShadowProj, ShadowMap, RenderProcess.ShadowMapLimit);
+            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && sceneryShader != null)
+                sceneryShader.SetShadowMap(shadowMapLightViewProjectionShadowProjection, shadowMap, RenderProcess.ShadowMapLimit);
 
-            var renderItems = RenderItemsSequence;
-            renderItems.Clear();
+            renderItemsSequence.Clear();
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
             {
                 if (logging) Console.WriteLine("    {0} {{", (RenderPrimitiveSequence)i);
-                var sequence = RenderItems[i];
+                var sequence = renderItems[i];
                 foreach (var sequenceMaterial in sequence)
                 {
                     if (sequenceMaterial.Value.Count == 0)
@@ -809,12 +651,13 @@ namespace Orts.Viewer3D
                         {
                             if (lastMaterial != renderItem.Material)
                             {
-                                if (renderItems.Count > 0)
+                                if (renderItemsSequence.Count > 0)
                                 {
-                                    if (logging) Console.WriteLine("      {0,-5} * {1}", renderItems.Count, lastMaterial);
-                                    lastMaterial.Render(graphicsDevice, renderItems, ref XNACameraView, ref XNACameraProjection);
-                                    renderItems.Clear();
+                                    if (logging) Console.WriteLine("      {0,-5} * {1}", renderItemsSequence.Count, lastMaterial);
+                                    lastMaterial.Render(graphicsDevice, renderItemsSequence, ref cameraView, ref cameraProjection);
+                                    renderItemsSequence.Clear();
                                 }
+
                                 if (lastMaterial != null)
                                     lastMaterial.ResetState(graphicsDevice);
 #if DEBUG_RENDER_STATE
@@ -824,14 +667,15 @@ namespace Orts.Viewer3D
                                 renderItem.Material.SetState(graphicsDevice, lastMaterial);
                                 lastMaterial = renderItem.Material;
                             }
-                            renderItems.Add(renderItem);
+                            renderItemsSequence.Add(renderItem);
                         }
-                        if (renderItems.Count > 0)
+                        if (renderItemsSequence.Count > 0)
                         {
-                            if (logging) Console.WriteLine("      {0,-5} * {1}", renderItems.Count, lastMaterial);
-                            lastMaterial.Render(graphicsDevice, renderItems, ref XNACameraView, ref XNACameraProjection);
-                            renderItems.Clear();
+                            if (logging) Console.WriteLine("      {0,-5} * {1}", renderItemsSequence.Count, lastMaterial);
+                            lastMaterial.Render(graphicsDevice, renderItemsSequence, ref cameraView, ref cameraProjection);
+                            renderItemsSequence.Clear();
                         }
+
                         if (lastMaterial != null)
                             lastMaterial.ResetState(graphicsDevice);
 #if DEBUG_RENDER_STATE
@@ -847,7 +691,7 @@ namespace Orts.Viewer3D
                         // Opaque: single material, render in one go.
                         sequenceMaterial.Key.SetState(graphicsDevice, null);
                         if (logging) Console.WriteLine("      {0,-5} * {1}", sequenceMaterial.Value.Count, sequenceMaterial.Key);
-                        sequenceMaterial.Key.Render(graphicsDevice, sequenceMaterial.Value, ref XNACameraView, ref XNACameraProjection);
+                        sequenceMaterial.Key.Render(graphicsDevice, sequenceMaterial.Value, ref cameraView, ref cameraProjection);
                         sequenceMaterial.Key.ResetState(graphicsDevice);
 #if DEBUG_RENDER_STATE
 						DebugRenderState(graphicsDevice, sequenceMaterial.Key.ToString());
@@ -857,8 +701,8 @@ namespace Orts.Viewer3D
                 if (logging) Console.WriteLine("    }");
             }
 
-            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && SceneryShader != null)
-                SceneryShader.ClearShadowMap();
+            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && sceneryShader != null)
+                sceneryShader.ClearShadowMap();
         }
 
         void DrawSequencesDistantMountains(GraphicsDevice graphicsDevice, bool logging)
@@ -866,7 +710,7 @@ namespace Orts.Viewer3D
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
             {
                 if (logging) Console.WriteLine("    {0} {{", (RenderPrimitiveSequence)i);
-                var sequence = RenderItems[i];
+                var sequence = renderItems[i];
                 foreach (var sequenceMaterial in sequence)
                 {
                     if (sequenceMaterial.Value.Count == 0)
@@ -876,7 +720,7 @@ namespace Orts.Viewer3D
                         // Opaque: single material, render in one go.
                         sequenceMaterial.Key.SetState(graphicsDevice, null);
                         if (logging) Console.WriteLine("      {0,-5} * {1}", sequenceMaterial.Value.Count, sequenceMaterial.Key);
-                        sequenceMaterial.Key.Render(graphicsDevice, sequenceMaterial.Value, ref XNACameraView, ref Camera.XnaDistantMountainProjection);
+                        sequenceMaterial.Key.Render(graphicsDevice, sequenceMaterial.Value.ToList(), ref cameraView, ref Camera.XnaDistantMountainProjection);
                         sequenceMaterial.Key.ResetState(graphicsDevice);
 #if DEBUG_RENDER_STATE
 						DebugRenderState(graphicsDevice.RenderState, sequenceMaterial.Key.ToString());

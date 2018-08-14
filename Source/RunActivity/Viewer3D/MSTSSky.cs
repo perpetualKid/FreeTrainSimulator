@@ -608,7 +608,7 @@ namespace Orts.Viewer3D
             MSTSSkyShader.MoonMaskTexture = MSTSSkyMoonMask;
             MSTSSkyShader.CloudMapTexture = MSTSSkyCloudTexture[0];
         }
-        public override void Render(GraphicsDevice graphicsDevice, IEnumerable<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
         {
             // Adjust Fog color for day-night conditions and overcast
             FogDay2Night(
@@ -642,8 +642,9 @@ namespace Orts.Viewer3D
             ShaderPassesSky.Reset();
             while (ShaderPassesSky.MoveNext())
             {
-                foreach (var item in renderItems)
+                for (int i = 0; i < renderItems.Count; i++)
                 {
+                    RenderItem item = renderItems[i];
                     Matrix wvp = item.XNAMatrix * viewXNASkyProj;
                     MSTSSkyShader.SetMatrix(ref wvp);
                     ShaderPassesSky.Current.Apply();
@@ -665,18 +666,19 @@ namespace Orts.Viewer3D
             ShaderPassesMoon.Reset();
             while (ShaderPassesMoon.MoveNext())
             {
-                foreach (var item in renderItems)
+                for (int i = 0; i < renderItems.Count; i++)
                 {
+                    RenderItem item = renderItems[i];
                     Matrix wvp = item.XNAMatrix * XNAMoonMatrixView * Camera.XNASkyProjection;
                     MSTSSkyShader.SetMatrix(ref wvp);
                     ShaderPassesMoon.Current.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
-
-            for (int i = 0; i < MSTSSkyCloudTexture.Count; i++)
-                if (i == 0)
-                {
+            //TODO Fixme what's that loop for
+            //for (int i = 0; i < MSTSSkyCloudTexture.Count; i++)
+            //    if (i == 0)
+            //    {
 
                     MSTSSkyShader.CurrentTechnique = MSTSSkyShader.Techniques["Clouds"];
                     Viewer.World.MSTSSky.MSTSSkyMesh.drawIndex = 3;
@@ -686,15 +688,16 @@ namespace Orts.Viewer3D
                     ShaderPassesClouds[0].Reset();
                     while (ShaderPassesClouds[0].MoveNext())
                     {
-                        foreach (var item in renderItems)
+                        for (int i = 0; i < renderItems.Count; i++)
                         {
+                            RenderItem item = renderItems[i];
                             Matrix wvp = item.XNAMatrix * viewXNASkyProj;
                             MSTSSkyShader.SetMatrix(ref wvp);
                             ShaderPassesClouds[0].Current.Apply();
                             item.RenderPrimitive.Draw(graphicsDevice);
                         }
                     }
-                }
+                //}
         }
 
         public override void ResetState(GraphicsDevice graphicsDevice)

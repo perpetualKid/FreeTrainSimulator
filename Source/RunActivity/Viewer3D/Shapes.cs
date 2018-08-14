@@ -590,7 +590,7 @@ namespace Orts.Viewer3D
             IndexBuffer IndexBuffer = new IndexBuffer(viewer.GraphicsDevice, typeof(short),
                                                             NumIndices, BufferUsage.WriteOnly);
             IndexBuffer.SetData(newTList);
-            shapePrimitive = new ShapePrimitive(material, new SharedShape.VertexBufferSet(newVList, viewer.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
+            shapePrimitive = new ShapePrimitive(viewer.GraphicsDevice, material, new SharedShape.VertexBufferSet(newVList, viewer.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
 
         }
 
@@ -1212,7 +1212,7 @@ namespace Orts.Viewer3D
         {
         }
 
-        public ShapePrimitive(Material material, SharedShape.VertexBufferSet vertexBufferSet, IndexBuffer indexBuffer, int minVertexIndex, int numVerticies, int primitiveCount, int[] hierarchy, int hierarchyIndex)
+        public ShapePrimitive(GraphicsDevice graphicsDevice, Material material, SharedShape.VertexBufferSet vertexBufferSet, IndexBuffer indexBuffer, int minVertexIndex, int numVerticies, int primitiveCount, int[] hierarchy, int hierarchyIndex)
         {
             Material = material;
             VertexBuffer = vertexBufferSet.Buffer;
@@ -1223,14 +1223,14 @@ namespace Orts.Viewer3D
             Hierarchy = hierarchy;
             HierarchyIndex = hierarchyIndex;
 
-            DummyVertexBuffer = new VertexBuffer(material.Viewer.GraphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
+            DummyVertexBuffer = new VertexBuffer(graphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
             DummyVertexBuffer.SetData(DummyVertexData);
             VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(DummyVertexBuffer) };
 
         }
 
         public ShapePrimitive(Material material, SharedShape.VertexBufferSet vertexBufferSet, List<ushort> indexData, GraphicsDevice graphicsDevice, int[] hierarchy, int hierarchyIndex)
-            : this(material, vertexBufferSet, null, indexData.Min(), indexData.Max() - indexData.Min() + 1, indexData.Count / 3, hierarchy, hierarchyIndex)
+            : this(graphicsDevice, material, vertexBufferSet, null, indexData.Min(), indexData.Max() - indexData.Min() + 1, indexData.Count / 3, hierarchy, hierarchyIndex)
         {
             IndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), indexData.Count, BufferUsage.WriteOnly);
             IndexBuffer.SetData(indexData.ToArray());
@@ -1243,7 +1243,8 @@ namespace Orts.Viewer3D
                 // TODO consider sorting by Vertex set so we can reduce the number of SetSources required.
                 graphicsDevice.SetVertexBuffers(VertexBufferBindings);
                 graphicsDevice.Indices = IndexBuffer;
-                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, MinVertexIndex, NumVerticies, 0, PrimitiveCount);
+//                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, MinVertexIndex, NumVerticies, 0, PrimitiveCount);
+                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, PrimitiveCount);
             }
         }
 

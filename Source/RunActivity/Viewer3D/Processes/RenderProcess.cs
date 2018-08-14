@@ -64,7 +64,7 @@ namespace Orts.Viewer3D.Processes
         public int[] ShadowPrimitivePerFrame { get; private set; }
 
         // Dynamic shadow map setup.
-        public static int ShadowMapCount = -1; // number of shadow maps
+        public static int ShadowMapCount { get; private set; } = -1; // number of shadow maps
         public static int[] ShadowMapDistance; // distance of shadow map center from camera
         public static int[] ShadowMapDiameter; // diameter of shadow map
         public static float[] ShadowMapLimit; // diameter of shadow map far edge from camera
@@ -119,6 +119,8 @@ namespace Orts.Viewer3D.Processes
                 ToggleFullScreen();
 
             SynchronizeGraphicsDeviceManager();
+            UserInput.Initialize(game);
+
         }
 
         void GDM_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
@@ -257,7 +259,7 @@ namespace Orts.Viewer3D.Processes
                 Game.UpdaterProcess.WaitTillFinished();
 
                 // Must be done in XNA Game thread.
-                UserInput.Update(Game);
+                UserInput.Update(Game.IsActive);
 
                 // Swap frames and start the next update (non-threaded updater does the whole update).
                 SwapFrames(ref CurrentFrame, ref NextFrame);
@@ -308,7 +310,6 @@ namespace Orts.Viewer3D.Processes
 
             // Sort-of hack to allow the NVIDIA PerfHud to display correctly.
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-
             CurrentFrame.IsScreenChanged = (DisplaySize.X != GraphicsDevice.Viewport.Width) || (DisplaySize.Y != GraphicsDevice.Viewport.Height);
             if (CurrentFrame.IsScreenChanged)
             {
@@ -346,16 +347,18 @@ namespace Orts.Viewer3D.Processes
 
             Game.State.EndRender(CurrentFrame);
 
-            for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
-            {
-                PrimitivePerFrame[i] = PrimitiveCount[i];
-                PrimitiveCount[i] = 0;
-            }
-            for (var shadowMapIndex = 0; shadowMapIndex < ShadowMapCount; shadowMapIndex++)
-            {
-                ShadowPrimitivePerFrame[shadowMapIndex] = ShadowPrimitiveCount[shadowMapIndex];
-                ShadowPrimitiveCount[shadowMapIndex] = 0;
-            }
+            Array.Copy(PrimitiveCount, PrimitivePerFrame, (int)RenderPrimitiveSequence.Sentinel);
+            Array.Copy(ShadowPrimitiveCount, ShadowPrimitivePerFrame, ShadowMapCount);
+            //for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
+            //{
+            //    PrimitivePerFrame[i] = PrimitiveCount[i];
+            //    PrimitiveCount[i] = 0;
+            //}
+            //for (var shadowMapIndex = 0; shadowMapIndex < ShadowMapCount; shadowMapIndex++)
+            //{
+            //    ShadowPrimitivePerFrame[shadowMapIndex] = ShadowPrimitiveCount[shadowMapIndex];
+            //    ShadowPrimitiveCount[shadowMapIndex] = 0;
+            //}
 
             // Sort-of hack to allow the NVIDIA PerfHud to display correctly.
             GraphicsDevice.DepthStencilState = DepthStencilState.None;

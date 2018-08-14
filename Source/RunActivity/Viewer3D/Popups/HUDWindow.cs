@@ -1199,17 +1199,17 @@ namespace Orts.Viewer3D.Popups
             graphicsDevice.DepthStencilState = DepthStencilState.None;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, IEnumerable<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
         {
             var shader = Viewer.MaterialManager.DebugShader;
 
             ShaderPassesGraph.Reset();
             while (ShaderPassesGraph.MoveNext())
             {
-                foreach (var item in renderItems)
+                for (int i = 0; i < renderItems.Count; i++)
                 {
-                    var graphMesh = item.RenderPrimitive as HUDGraphMesh;
-                    if (graphMesh != null)
+                    RenderItem item = renderItems[i];
+                    if (item.RenderPrimitive is HUDGraphMesh graphMesh)
                     {
                         shader.GraphPos = graphMesh.GraphPos;
                         shader.GraphSample = graphMesh.Sample;

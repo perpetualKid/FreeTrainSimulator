@@ -151,14 +151,13 @@ namespace Orts.Viewer3D.Popups
                             var distance = WorldLocation.GetDistance(platform.Location.WorldLocation, cameraLocation).Length();
                             if (distance <= MaximumDistancePlatform)
                             {
+                                // Change color with distance.
+                                var ratio = (MathHelper.Clamp(distance, MinimumDistance, MaximumDistancePlatform) - MinimumDistance) / (MaximumDistancePlatform - MinimumDistance);
+
                                 if (labels.ContainsKey(platform))
                                     newLabels[platform] = labels[platform];
                                 else
-                                    newLabels[platform] = new LabelPrimitive(Owner.Label3DMaterial, Color.Yellow, Color.Black, 0) { Position = platform.Location, Text = platform.ItemName };
-
-                                // Change color with distance.
-                                var ratio = (MathHelper.Clamp(distance, MinimumDistance, MaximumDistancePlatform) - MinimumDistance) / (MaximumDistancePlatform - MinimumDistance);
-                                newLabels[platform].Color.A = newLabels[platform].Outline.A = (byte)MathHelper.Lerp(255, 0, ratio);
+                                    newLabels[platform] = new LabelPrimitive(Owner.Label3DMaterial, Color.Yellow, Color.Black, 0, platform.Location, platform.ItemName, ratio);
                             }
                         }
                     }
@@ -174,14 +173,13 @@ namespace Orts.Viewer3D.Popups
                             var distance = WorldLocation.GetDistance(siding.Location.WorldLocation, cameraLocation).Length();
                             if (distance <= MaximumDistanceSiding)
                             {
+                                // Change color with distance.
+                                var ratio = (MathHelper.Clamp(distance, MinimumDistance, MaximumDistanceSiding) - MinimumDistance) / (MaximumDistanceSiding - MinimumDistance);
+
                                 if (labels.ContainsKey(siding))
                                     newLabels[siding] = labels[siding];
                                 else
-                                    newLabels[siding] = new LabelPrimitive(Owner.Label3DMaterial, Color.Orange, Color.Black, 0) { Position = siding.Location, Text = siding.ItemName };
-
-                                // Change color with distance.
-                                var ratio = (MathHelper.Clamp(distance, MinimumDistance, MaximumDistanceSiding) - MinimumDistance) / (MaximumDistanceSiding - MinimumDistance);
-                                newLabels[siding].Color.A = newLabels[siding].Outline.A = (byte)MathHelper.Lerp(255, 0, ratio);
+                                    newLabels[siding] = new LabelPrimitive(Owner.Label3DMaterial, Color.Orange, Color.Black, 0, siding.Location, siding.ItemName, ratio);
                             }
                         }
                     }

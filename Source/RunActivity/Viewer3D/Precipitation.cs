@@ -518,15 +518,16 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, IEnumerable<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
         {
             var shader = Viewer.MaterialManager.PrecipitationShader;
 
             ShaderPasses.Reset();
             while (ShaderPasses.MoveNext())
             {
-                foreach (var item in renderItems)
+                for (int i = 0; i < renderItems.Count; i++)
                 {
+                    RenderItem item = renderItems[i];
                     // Note: This is quite a hack. We ideally should be able to pass this through RenderItem somehow.
                     shader.cameraTileXZ.SetValue(new Vector2(item.XNAMatrix.M21, item.XNAMatrix.M22));
                     shader.currentTime.SetValue(item.XNAMatrix.M11);

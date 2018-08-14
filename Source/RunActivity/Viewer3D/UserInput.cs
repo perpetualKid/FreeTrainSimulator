@@ -17,9 +17,6 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-// This checks all keys for conflicts.
-//#define CHECK_KEYMAP_DUPLICATES
-
 // This logs the raw changes in input state.
 //#define DEBUG_RAW_INPUT
 
@@ -29,58 +26,65 @@
 // This logs every UserCommandInput change from pressed to released.
 //#define DEBUG_USER_INPUT
 
-using Microsoft.Xna.Framework.Input;
-using ORTS.Settings;
-using System.Collections.Generic;
+using System;
 using System.Runtime.InteropServices;
 using System.Windows;
+using Microsoft.Xna.Framework.Input;
+using ORTS.Settings;
+using System.Linq;      //DEBUG_INPUT only
 using Game = Orts.Viewer3D.Processes.Game;
 
 namespace Orts.Viewer3D
 {
     public static class UserInput
     {
-        public static bool ComposingMessage;
-        static KeyboardState KeyboardState;
-        static MouseState MouseState;
-        static KeyboardState LastKeyboardState;
-        static MouseState LastMouseState;
-        static bool MouseButtonsSwapped;
-
-        public static RailDriverState RDState;
-
-        public static InputSettings InputSettings;
-
         [DllImport("user32.dll")]
         static extern short GetAsyncKeyState(Keys key);
 
-        public static void Update(Game game)
+        private static KeyboardState keyboardState;
+        private static MouseState mouseState;
+        private static KeyboardState lastKeyboardState;
+        private static MouseState lastMouseState;
+        private static readonly KeyboardState emptyKeyboardState = new KeyboardState();
+
+        public static bool ComposingMessage { get; set; }
+
+        public static RailDriverState RDState { get; set; }
+
+        private static InputSettings inputSettings;
+
+        public static void Initialize(Game game)
         {
-            if (Orts.MultiPlayer.MPManager.IsMultiPlayer() && Orts.MultiPlayer.MPManager.Instance().ComposingText) return;
-            if (InputSettings == null) InputSettings = game.Settings.Input;
-            LastKeyboardState = KeyboardState;
-            LastMouseState = MouseState;
+            inputSettings = game.Settings.Input;
+        }
+
+        public static void Update(bool active)
+        {
+            if (Orts.MultiPlayer.MPManager.IsMultiPlayer() && Orts.MultiPlayer.MPManager.Instance().ComposingText)
+                return;
+
+            lastKeyboardState = keyboardState;
+            lastMouseState = mouseState;
             // Make sure we have an "idle" (everything released) keyboard and mouse state if the window isn't active.
-            KeyboardState = game.IsActive ? new KeyboardState(GetKeysWithPrintScreenFix(Keyboard.GetState())) : new KeyboardState();
-            MouseState = game.IsActive ? Mouse.GetState() : new MouseState(0, 0, LastMouseState.ScrollWheelValue, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released);
-            MouseButtonsSwapped = SystemParameters.SwapButtons;
+            keyboardState = active ? Keyboard.GetState() : emptyKeyboardState;
+            mouseState = active ? Mouse.GetState() : new MouseState(0, 0, lastMouseState.ScrollWheelValue, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released);
 
 #if DEBUG_RAW_INPUT
             for (Keys key = 0; key <= Keys.OemClear; key++)
-                if (LastKeyboardState[key] != KeyboardState[key])
-                    Console.WriteLine("Keyboard {0} changed to {1}", key, KeyboardState[key]);
-            if (LastMouseState.LeftButton != MouseState.LeftButton)
-                Console.WriteLine("Mouse left button changed to {0}", MouseState.LeftButton);
-            if (LastMouseState.MiddleButton != MouseState.MiddleButton)
-                Console.WriteLine("Mouse middle button changed to {0}", MouseState.MiddleButton);
-            if (LastMouseState.RightButton != MouseState.RightButton)
-                Console.WriteLine("Mouse right button changed to {0}", MouseState.RightButton);
-            if (LastMouseState.XButton1 != MouseState.XButton1)
-                Console.WriteLine("Mouse X1 button changed to {0}", MouseState.XButton1);
-            if (LastMouseState.XButton2 != MouseState.XButton2)
-                Console.WriteLine("Mouse X2 button changed to {0}", MouseState.XButton2);
-            if (LastMouseState.ScrollWheelValue != MouseState.ScrollWheelValue)
-                Console.WriteLine("Mouse scrollwheel changed by {0}", MouseState.ScrollWheelValue - LastMouseState.ScrollWheelValue);
+                if (lastKeyboardState[key] != keyboardState[key])
+                    Console.WriteLine("Keyboard {0} changed to {1}", key, keyboardState[key]);
+            if (lastMouseState.LeftButton != mouseState.LeftButton)
+                Console.WriteLine("Mouse left button changed to {0}", mouseState.LeftButton);
+            if (lastMouseState.MiddleButton != mouseState.MiddleButton)
+                Console.WriteLine("Mouse middle button changed to {0}", mouseState.MiddleButton);
+            if (lastMouseState.RightButton != mouseState.RightButton)
+                Console.WriteLine("Mouse right button changed to {0}", mouseState.RightButton);
+            if (lastMouseState.XButton1 != mouseState.XButton1)
+                Console.WriteLine("Mouse X1 button changed to {0}", mouseState.XButton1);
+            if (lastMouseState.XButton2 != mouseState.XButton2)
+                Console.WriteLine("Mouse X2 button changed to {0}", mouseState.XButton2);
+            if (lastMouseState.ScrollWheelValue != mouseState.ScrollWheelValue)
+                Console.WriteLine("Mouse scrollwheel changed by {0}", mouseState.ScrollWheelValue - lastMouseState.ScrollWheelValue);
 #endif
 #if DEBUG_INPUT
             var newKeys = GetPressedKeys();
@@ -117,21 +121,26 @@ namespace Orts.Viewer3D
 #endif
         }
 
-        static Keys[] GetKeysWithPrintScreenFix(KeyboardState keyboardState)
+        // this is fixed in Monogame framework
+        private static Keys[] GetKeysWithPrintScreenFix(KeyboardState keyboardState)
         {
             // When running in fullscreen, Win32's GetKeyboardState (the API behind Keyboard.GetState()) never returns
             // the print screen key as being down. Something is eating it or something. So here we simply query that
             // key directly and forcibly add it to the list of pressed keys.
-            var keys = new List<Keys>(keyboardState.GetPressedKeys());
+            Keys[] keys = keyboardState.GetPressedKeys();
             if ((GetAsyncKeyState(Keys.PrintScreen) & 0x8000) != 0)
-                keys.Add(Keys.PrintScreen);
-            return keys.ToArray();
+            {
+                Keys[] keys2 = new Keys[keys.Length + 1];
+                Array.Copy(keys, keys2, keys.Length);
+                keys2[keys.Length] = Keys.PrintScreen;
+                return keys2;
+            }
+            return keys;
         }
 
         public static void Handled()
         {
-            if (RDState != null)
-                RDState.Handled();
+            RDState?.Handled();
         }
 
         public static bool IsPressed(UserCommands command)
@@ -139,8 +148,8 @@ namespace Orts.Viewer3D
             if (ComposingMessage == true) return false;
             if (RDState != null && RDState.IsPressed(command))
                 return true;
-            var setting = InputSettings.Commands[(int)command];
-            return setting.IsKeyDown(KeyboardState) && !setting.IsKeyDown(LastKeyboardState);
+            var setting = inputSettings.Commands[(int)command];
+            return setting.IsKeyDown(keyboardState) && !setting.IsKeyDown(lastKeyboardState);
         }
 
         public static bool IsReleased(UserCommands command)
@@ -148,8 +157,8 @@ namespace Orts.Viewer3D
             if (ComposingMessage == true) return false;
             if (RDState != null && RDState.IsReleased(command))
                 return true;
-            var setting = InputSettings.Commands[(int)command];
-            return !setting.IsKeyDown(KeyboardState) && setting.IsKeyDown(LastKeyboardState);
+            var setting = inputSettings.Commands[(int)command];
+            return !setting.IsKeyDown(keyboardState) && setting.IsKeyDown(lastKeyboardState);
         }
 
         public static bool IsDown(UserCommands command)
@@ -157,32 +166,32 @@ namespace Orts.Viewer3D
             if (ComposingMessage == true) return false;
             if (RDState != null && RDState.IsDown(command))
                 return true;
-            var setting = InputSettings.Commands[(int)command];
-            return setting.IsKeyDown(KeyboardState);
+            var setting = inputSettings.Commands[(int)command];
+            return setting.IsKeyDown(keyboardState);
         }
 
-        public static Keys[] GetPressedKeys() { return KeyboardState.GetPressedKeys(); }
-        public static Keys[] GetPreviousPressedKeys() { return LastKeyboardState.GetPressedKeys(); }
+        public static Keys[] GetPressedKeys() { return keyboardState.GetPressedKeys(); }
+        public static Keys[] GetPreviousPressedKeys() { return lastKeyboardState.GetPressedKeys(); }
 
-        public static bool IsMouseMoved { get { return MouseState.X != LastMouseState.X || MouseState.Y != LastMouseState.Y; } }
-        public static int MouseMoveX { get { return MouseState.X - LastMouseState.X; } }
-        public static int MouseMoveY { get { return MouseState.Y - LastMouseState.Y; } }
-        public static int MouseX { get { return MouseState.X; } }
-        public static int MouseY { get { return MouseState.Y; } }
+        public static bool IsMouseMoved { get { return mouseState.X != lastMouseState.X || mouseState.Y != lastMouseState.Y; } }
+        public static int MouseMoveX { get { return mouseState.X - lastMouseState.X; } }
+        public static int MouseMoveY { get { return mouseState.Y - lastMouseState.Y; } }
+        public static int MouseX { get { return mouseState.X; } }
+        public static int MouseY { get { return mouseState.Y; } }
 
-        public static bool IsMouseWheelChanged { get { return MouseState.ScrollWheelValue != LastMouseState.ScrollWheelValue; } }
-        public static int MouseWheelChange { get { return MouseState.ScrollWheelValue - LastMouseState.ScrollWheelValue; } }
+        public static bool IsMouseWheelChanged { get { return mouseState.ScrollWheelValue != lastMouseState.ScrollWheelValue; } }
+        public static int MouseWheelChange { get { return mouseState.ScrollWheelValue - lastMouseState.ScrollWheelValue; } }
 
-        public static bool IsMouseLeftButtonDown { get { return MouseButtonsSwapped ? MouseState.RightButton == ButtonState.Pressed : MouseState.LeftButton == ButtonState.Pressed; } }
-        public static bool IsMouseLeftButtonPressed { get { return MouseButtonsSwapped ? MouseState.RightButton == ButtonState.Pressed && LastMouseState.RightButton == ButtonState.Released : MouseState.LeftButton == ButtonState.Pressed && LastMouseState.LeftButton == ButtonState.Released; } }
-        public static bool IsMouseLeftButtonReleased { get { return MouseButtonsSwapped ? MouseState.RightButton == ButtonState.Released && LastMouseState.RightButton == ButtonState.Pressed : MouseState.LeftButton == ButtonState.Released && LastMouseState.LeftButton == ButtonState.Pressed; } }
+        public static bool IsMouseLeftButtonDown { get { return mouseState.LeftButton == ButtonState.Pressed; } }
+        public static bool IsMouseLeftButtonPressed { get { return mouseState.LeftButton == ButtonState.Pressed && lastMouseState.LeftButton == ButtonState.Released; } }
+        public static bool IsMouseLeftButtonReleased { get { return mouseState.LeftButton == ButtonState.Released && lastMouseState.LeftButton == ButtonState.Pressed; } }
 
-        public static bool IsMouseMiddleButtonDown { get { return MouseState.MiddleButton == ButtonState.Pressed; } }
-        public static bool IsMouseMiddleButtonPressed { get { return MouseState.MiddleButton == ButtonState.Pressed && LastMouseState.MiddleButton == ButtonState.Released; } }
-        public static bool IsMouseMiddleButtonReleased { get { return MouseState.MiddleButton == ButtonState.Released && LastMouseState.MiddleButton == ButtonState.Pressed; } }
+        public static bool IsMouseMiddleButtonDown { get { return mouseState.MiddleButton == ButtonState.Pressed; } }
+        public static bool IsMouseMiddleButtonPressed { get { return mouseState.MiddleButton == ButtonState.Pressed && lastMouseState.MiddleButton == ButtonState.Released; } }
+        public static bool IsMouseMiddleButtonReleased { get { return mouseState.MiddleButton == ButtonState.Released && lastMouseState.MiddleButton == ButtonState.Pressed; } }
 
-        public static bool IsMouseRightButtonDown { get { return MouseButtonsSwapped ? MouseState.LeftButton == ButtonState.Pressed : MouseState.RightButton == ButtonState.Pressed; } }
-        public static bool IsMouseRightButtonPressed { get { return MouseButtonsSwapped ? MouseState.LeftButton == ButtonState.Pressed && LastMouseState.LeftButton == ButtonState.Released : MouseState.RightButton == ButtonState.Pressed && LastMouseState.RightButton == ButtonState.Released; } }
-        public static bool IsMouseRightButtonReleased { get { return MouseButtonsSwapped ? MouseState.LeftButton == ButtonState.Released && LastMouseState.LeftButton == ButtonState.Pressed : MouseState.RightButton == ButtonState.Released && LastMouseState.RightButton == ButtonState.Pressed; } }
+        public static bool IsMouseRightButtonDown { get { return mouseState.RightButton == ButtonState.Pressed; } }
+        public static bool IsMouseRightButtonPressed { get { return mouseState.RightButton == ButtonState.Pressed && lastMouseState.RightButton == ButtonState.Released; } }
+        public static bool IsMouseRightButtonReleased { get { return mouseState.RightButton == ButtonState.Released && lastMouseState.RightButton == ButtonState.Pressed; } }
     }
 }

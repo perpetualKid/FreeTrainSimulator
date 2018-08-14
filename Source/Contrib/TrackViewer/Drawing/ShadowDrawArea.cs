@@ -186,8 +186,9 @@ namespace ORTS.TrackViewer.Drawing
             {
                 shadowMapCombined.Dispose();
             }
+            var pp = graphicsDevice.PresentationParameters;
             shadowRenderTargetCombined = new RenderTarget2D(graphicsDevice, Nouter * blockW, Nouter * blockH, false, SurfaceFormat.Color,
-                DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
+                pp.DepthStencilFormat, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
             shadowDrawArea.SetScreenSize(0, 0, blockW, blockH);
 
             // create initial empty subtextures

@@ -587,14 +587,15 @@ namespace Orts.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, IEnumerable<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
         {
             var viewProj = XNAViewMatrix * XNAProjectionMatrix;
 
             foreach (var pass in SceneryShader.CurrentTechnique.Passes)
             {
-                foreach (var item in renderItems)
+                for (int i = 0; i < renderItems.Count; i++)
                 {
+                    RenderItem item = renderItems[i];
                     SceneryShader.SetMatrix(item.XNAMatrix, ref viewProj);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
@@ -644,14 +645,15 @@ namespace Orts.Viewer3D
             NightEffect = 1 - MathHelper.Clamp((sunDirection.Y - finishNightTrans) / (startNightTrans - finishNightTrans), 0, 1);
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, IEnumerable<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
         {
             var viewProj = XNAViewMatrix * XNAProjectionMatrix;
 
             foreach (var pass in SceneryShader.CurrentTechnique.Passes)
             {
-                foreach (var item in renderItems)
+                for (int i = 0; i < renderItems.Count; i++)
                 {
+                    RenderItem item = renderItems[i];
                     var slp = item.RenderPrimitive as SignalLightPrimitive;
                     SceneryShader.ZBias = MathHelper.Lerp(slp.GlowIntensityDay, slp.GlowIntensityNight, NightEffect);
                     SceneryShader.SetMatrix(item.XNAMatrix, ref viewProj);

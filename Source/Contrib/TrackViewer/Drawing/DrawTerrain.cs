@@ -401,8 +401,15 @@ namespace ORTS.TrackViewer.Drawing
         {
             UpdateCamera(drawArea);
 
-            device.SamplerStates[0].AddressU = TextureAddressMode.Wrap;
-            device.SamplerStates[0].AddressV = TextureAddressMode.Wrap;
+            //device.SamplerStates[0].AddressU = TextureAddressMode.Wrap;
+            //device.SamplerStates[0].AddressV = TextureAddressMode.Wrap;
+            device.SamplerStates[0] = new SamplerState
+            {
+                AddressU = TextureAddressMode.Wrap,
+                AddressV = TextureAddressMode.Wrap,
+                AddressW = TextureAddressMode.Wrap,
+                Filter = TextureFilter.Point
+            };
 
             foreach (string textureName in vertexBuffers.Keys)
             {

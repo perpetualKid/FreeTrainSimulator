@@ -251,7 +251,7 @@ namespace Orts.Viewer3D
 
         public int ReferenceAlpha { set { referenceAlpha.SetValue(value / 255f); } }
 
-        public int OverlayScale { set { overlayScale.SetValue((Single)value); } }
+        public float OverlayScale { set { overlayScale.SetValue(value); } }
 
         public SceneryShader(GraphicsDevice graphicsDevice)
             : base(graphicsDevice, "SceneryShader")
@@ -633,7 +633,7 @@ namespace Orts.Viewer3D
 
         public Color GlassColor { set { glassColor.SetValue(new Vector3(value.R / 255f, value.G / 255f, value.B / 255f)); } }
 
-        public void SetMatrix(Matrix w, ref Matrix wvp)
+        public void SetMatrix(ref Matrix w, ref Matrix wvp)
         {
             world.SetValue(w);
             worldViewProjection.SetValue(wvp);

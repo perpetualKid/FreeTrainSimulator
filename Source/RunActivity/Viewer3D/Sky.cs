@@ -472,7 +472,7 @@ namespace Orts.Viewer3D
             SkyShader.CloudMapTexture = CloudTexture;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, IEnumerable<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
         {
             // Adjust Fog color for day-night conditions and overcast
             FogDay2Night(
@@ -510,8 +510,9 @@ namespace Orts.Viewer3D
             ShaderPassesSky.Reset();
             while (ShaderPassesSky.MoveNext())
             {
-                foreach (var item in renderItems)
+                for (int i = 0; i < renderItems.Count; i++)
                 {
+                    RenderItem item = renderItems[i];
                     Matrix wvp = item.XNAMatrix * viewXNASkyProj;
                     SkyShader.SetMatrix(ref wvp);
                     ShaderPassesSky.Current.Apply();
@@ -535,8 +536,9 @@ namespace Orts.Viewer3D
             ShaderPassesMoon.Reset();
             while (ShaderPassesMoon.MoveNext())
             {
-                foreach (var item in renderItems)
+                for (int i = 0; i < renderItems.Count; i++)
                 {
+                    RenderItem item = renderItems[i];
                     Matrix wvp = item.XNAMatrix * XNAMoonMatrixView * Camera.XNASkyProjection;
                     SkyShader.SetMatrix(ref wvp);
                     ShaderPassesMoon.Current.Apply();
@@ -553,8 +555,9 @@ namespace Orts.Viewer3D
             ShaderPassesClouds.Reset();
             while (ShaderPassesClouds.MoveNext())
             {
-                foreach (var item in renderItems)
+                for (int i = 0; i < renderItems.Count; i++)
                 {
+                    RenderItem item = renderItems[i];
                     Matrix wvp = item.XNAMatrix * viewXNASkyProj;
                     SkyShader.SetMatrix(ref wvp);
                     ShaderPassesClouds.Current.Apply();
