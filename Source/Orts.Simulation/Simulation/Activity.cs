@@ -746,7 +746,7 @@ namespace Orts.Simulation
         public Train MyPlayerTrain; // Shortcut to player train
 
         public bool ldbfevaldepartbeforeboarding = false;//Debrief Eval
-        public static int nDbfEvalDepartBeforeBoarding = 0;//Debrief Eval
+        public static List<string> DbfEvalDepartBeforeBoarding = new List<string>();//Debrief Eval
 
         public ActivityTaskPassengerStopAt(Simulator simulator, ActivityTask prev, DateTime Arrive, DateTime Depart,
                  PlatformItem Platformend1, PlatformItem Platformend2)
@@ -940,7 +940,7 @@ namespace Orts.Simulation
                         {
                             var train = Simulator.PlayerLocomotive.Train;
                             ldbfevaldepartbeforeboarding = true;
-                            nDbfEvalDepartBeforeBoarding++;
+                            DbfEvalDepartBeforeBoarding.Add(PlatformEnd1.Station);
                             train.DbfEvalValueChanged = true;
                         }
                     }
