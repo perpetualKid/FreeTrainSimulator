@@ -29,12 +29,12 @@ namespace Orts.Viewer3D.Popups
 
         private readonly WorldPosition position;
         private readonly string text;
-        private readonly Color color;
-        private readonly Color outline;
+        private Color color;
+        private Color outline;
 
         private readonly float offsetY;
 
-        public LabelPrimitive(Label3DMaterial material, Color color, Color outline, float offsetY, WorldPosition position, string text, float alphaBlendRatio)
+        public LabelPrimitive(Label3DMaterial material, Color color, Color outline, float offsetY, WorldPosition position, string text)
         {
             this.material = material;
             this.color = color;
@@ -42,7 +42,11 @@ namespace Orts.Viewer3D.Popups
             this.offsetY = offsetY;
             this.position = position;
             this.text = text;
-            this.color.A = this.outline.A = (byte)MathHelper.Lerp(255, 0, alphaBlendRatio);
+        }
+
+        public void UpdateAlphaBlendRatio(float alphaBlendRatio)
+        {
+            color.A = outline.A = (byte)MathHelper.Lerp(255, 0, alphaBlendRatio);
         }
 
         public override void Draw(GraphicsDevice graphicsDevice)
