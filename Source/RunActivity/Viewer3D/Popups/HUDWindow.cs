@@ -1181,30 +1181,26 @@ namespace Orts.Viewer3D.Popups
 
     public class HUDGraphMaterial : Material
     {
-        IEnumerator<EffectPass> ShaderPassesGraph;
+        private readonly DebugShader shader;
 
         public HUDGraphMaterial(Viewer viewer)
             : base(viewer, null)
         {
+            shader = Viewer.MaterialManager.DebugShader;
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            var shader = Viewer.MaterialManager.DebugShader;
-            shader.CurrentTechnique = shader.Techniques["Graph"];
-            if (ShaderPassesGraph == null) ShaderPassesGraph = shader.Techniques["Graph"].Passes.GetEnumerator();
+            shader.CurrentTechnique = shader.Techniques[0]; //["Graph"];
             shader.ScreenSize = new Vector2(Viewer.DisplaySize.X, Viewer.DisplaySize.Y);
 
             graphicsDevice.RasterizerState = RasterizerState.CullNone;
             graphicsDevice.DepthStencilState = DepthStencilState.None;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var shader = Viewer.MaterialManager.DebugShader;
-
-            ShaderPassesGraph.Reset();
-            while (ShaderPassesGraph.MoveNext())
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
@@ -1213,7 +1209,7 @@ namespace Orts.Viewer3D.Popups
                     {
                         shader.GraphPos = graphMesh.GraphPos;
                         shader.GraphSample = graphMesh.Sample;
-                        ShaderPassesGraph.Current.Apply();
+                        pass.Apply();
                     }
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }

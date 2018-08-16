@@ -1277,33 +1277,32 @@ namespace Orts.Viewer3D
 
     public class DebugNormalMaterial : Material
     {
-        IEnumerator<EffectPass> ShaderPassesGraph;
+        private readonly EffectPassCollection shaderPasses;
+        private readonly DebugShader shader;
 
         public DebugNormalMaterial(Viewer viewer)
             : base(viewer, null)
         {
+            shader = viewer.MaterialManager.DebugShader;
+            shaderPasses = shader.Techniques[0].Passes;
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            var shader = Viewer.MaterialManager.DebugShader;
-            shader.CurrentTechnique = shader.Techniques["Normal"];
-            if (ShaderPassesGraph == null) ShaderPassesGraph = shader.Techniques["Normal"].Passes.GetEnumerator();
+            shader.CurrentTechnique = shader.Techniques[0]; //["Normal"];
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var shader = Viewer.MaterialManager.DebugShader;
-            var viewproj = XNAViewMatrix * XNAProjectionMatrix;
+            Matrix viewproj = viewMatrix * projectionMatrix;
 
-            ShaderPassesGraph.Reset();
-            while (ShaderPassesGraph.MoveNext())
+            for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
                     shader.SetMatrix(item.XNAMatrix, ref viewproj);
-                    ShaderPassesGraph.Current.Apply();
+                    shaderPasses[j].Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }

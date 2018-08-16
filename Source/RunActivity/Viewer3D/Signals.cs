@@ -569,34 +569,44 @@ namespace Orts.Viewer3D
 
     public class SignalLightMaterial : Material
     {
-        readonly SceneryShader SceneryShader;
-        readonly Texture2D Texture;
+        private readonly SceneryShader shader;
+        private readonly Texture2D texture;
+        private readonly int techniqueIndex;
 
         public SignalLightMaterial(Viewer viewer, string textureName)
             : base(viewer, textureName)
         {
-            SceneryShader = Viewer.MaterialManager.SceneryShader;
-            Texture = Viewer.TextureManager.Get(textureName, true);
+            shader = Viewer.MaterialManager.SceneryShader;
+            texture = Viewer.TextureManager.Get(textureName, true);
+
+            for (int i = 0; i < shader.Techniques.Count; i++)
+            {
+                if (shader.Techniques[i].Name == "SignalLight")
+                {
+                    techniqueIndex = i;
+                    break;
+                }
+            }
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            SceneryShader.CurrentTechnique = Viewer.MaterialManager.SceneryShader.Techniques["SignalLight"];
-            SceneryShader.ImageTexture = Texture;
+            shader.CurrentTechnique = Viewer.MaterialManager.SceneryShader.Techniques[techniqueIndex]; //["SignalLight"];
+            shader.ImageTexture = texture;
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var viewProj = XNAViewMatrix * XNAProjectionMatrix;
+            var viewProj = viewMatrix * projectionMatrix;
 
-            foreach (var pass in SceneryShader.CurrentTechnique.Passes)
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    SceneryShader.SetMatrix(item.XNAMatrix, ref viewProj);
+                    shader.SetMatrix(item.XNAMatrix, ref viewProj);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
@@ -610,29 +620,38 @@ namespace Orts.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(Texture);
+            Viewer.TextureManager.Mark(texture);
             base.Mark();
         }
     }
 
     public class SignalLightGlowMaterial : Material
     {
-        readonly SceneryShader SceneryShader;
-        readonly Texture2D Texture;
-
-        float NightEffect;
+        private readonly SceneryShader shader;
+        private readonly Texture2D texture;
+        private readonly int techniqueIndex;
+        private float nightEffect;
 
         public SignalLightGlowMaterial(Viewer viewer)
             : base(viewer, null)
         {
-            SceneryShader = Viewer.MaterialManager.SceneryShader;
-            Texture = SharedTextureManager.Get(Viewer.GraphicsDevice, Path.Combine(Viewer.ContentPath, "SignalLightGlow.png"));
+            shader = Viewer.MaterialManager.SceneryShader;
+            texture = SharedTextureManager.Get(Viewer.GraphicsDevice, Path.Combine(Viewer.ContentPath, "SignalLightGlow.png"));
+            for (int i = 0; i < shader.Techniques.Count; i++)
+            {
+                if (shader.Techniques[i].Name == "SignalLightGlow")
+                {
+                    techniqueIndex = i;
+                    break;
+                }
+            }
+
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            SceneryShader.CurrentTechnique = Viewer.MaterialManager.SceneryShader.Techniques["SignalLightGlow"];
-            SceneryShader.ImageTexture = Texture;
+            shader.CurrentTechnique = Viewer.MaterialManager.SceneryShader.Techniques[techniqueIndex];
+            shader.ImageTexture = texture;
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
 
@@ -642,21 +661,21 @@ namespace Orts.Viewer3D
             const float finishNightTrans = -0.1f;
 
             var sunDirection = Viewer.Settings.UseMSTSEnv ? Viewer.World.MSTSSky.mstsskysolarDirection : Viewer.World.Sky.solarDirection;
-            NightEffect = 1 - MathHelper.Clamp((sunDirection.Y - finishNightTrans) / (startNightTrans - finishNightTrans), 0, 1);
+            nightEffect = 1 - MathHelper.Clamp((sunDirection.Y - finishNightTrans) / (startNightTrans - finishNightTrans), 0, 1);
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var viewProj = XNAViewMatrix * XNAProjectionMatrix;
+            var viewProj = viewMatrix * projectionMatrix;
 
-            foreach (var pass in SceneryShader.CurrentTechnique.Passes)
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
                     var slp = item.RenderPrimitive as SignalLightPrimitive;
-                    SceneryShader.ZBias = MathHelper.Lerp(slp.GlowIntensityDay, slp.GlowIntensityNight, NightEffect);
-                    SceneryShader.SetMatrix(item.XNAMatrix, ref viewProj);
+                    shader.ZBias = MathHelper.Lerp(slp.GlowIntensityDay, slp.GlowIntensityNight, nightEffect);
+                    shader.SetMatrix(item.XNAMatrix, ref viewProj);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
@@ -670,7 +689,7 @@ namespace Orts.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(Texture);
+            Viewer.TextureManager.Mark(texture);
             base.Mark();
         }
     }

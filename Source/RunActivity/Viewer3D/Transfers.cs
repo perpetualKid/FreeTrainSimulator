@@ -148,51 +148,58 @@ namespace Orts.Viewer3D
 
     public class TransferMaterial : Material
     {
-        readonly Texture2D Texture;
-        IEnumerator<EffectPass> ShaderPasses;
-        readonly SamplerState TransferSamplerState;
+        private readonly Texture2D texture;
+        private readonly SamplerState transferSamplerState;
+        private readonly SceneryShader shader;
+        private readonly int techniqueIndex;
 
         public TransferMaterial(Viewer viewer, string textureName)
             : base(viewer, textureName)
         {
-            Texture = Viewer.TextureManager.Get(textureName, true);
-            TransferSamplerState = new SamplerState
+            texture = Viewer.TextureManager.Get(textureName, true);
+            transferSamplerState = new SamplerState
             {
                 AddressU = TextureAddressMode.Clamp,
                 AddressV = TextureAddressMode.Clamp,
                 Filter = TextureFilter.Anisotropic,
                 MaxAnisotropy = 16,
             };
+            shader = Viewer.MaterialManager.SceneryShader;
+            string term = Viewer.Settings.ShaderModel > 2 ? "TransferPS3" : "TransferPS2";
+            for (int i = 0; i < shader.Techniques.Count; i++)
+            {
+                if (shader.Techniques[i].Name == term)
+                {
+                    techniqueIndex = i;
+                    break;
+                }
+            }
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            var shader = Viewer.MaterialManager.SceneryShader;
-            shader.CurrentTechnique = shader.Techniques[Viewer.Settings.ShaderModel >= 3 ? "TransferPS3" : "TransferPS2"];
-            if (ShaderPasses == null) ShaderPasses = shader.CurrentTechnique.Passes.GetEnumerator();
-            shader.ImageTexture = Texture;
+            shader.CurrentTechnique = shader.Techniques[techniqueIndex];
+            shader.ImageTexture = texture;
             shader.ReferenceAlpha = 10;
 
-            graphicsDevice.SamplerStates[0] = TransferSamplerState;
+            graphicsDevice.SamplerStates[0] = transferSamplerState;
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var shader = Viewer.MaterialManager.SceneryShader;
-            var viewproj = XNAViewMatrix * XNAProjectionMatrix;
+            var viewproj = viewMatrix * projectionMatrix;
 
-            shader.SetViewMatrix(ref XNAViewMatrix);
-            ShaderPasses.Reset();
-            while (ShaderPasses.MoveNext())
+            shader.SetViewMatrix(ref viewMatrix);
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
                     shader.SetMatrix(item.XNAMatrix, ref viewproj);
                     shader.ZBias = item.RenderPrimitive.ZBias;
-                    ShaderPasses.Current.Apply();
+                    pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
@@ -214,7 +221,7 @@ namespace Orts.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(Texture);
+            Viewer.TextureManager.Mark(texture);
             base.Mark();
         }
     }

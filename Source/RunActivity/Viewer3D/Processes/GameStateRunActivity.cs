@@ -93,7 +93,7 @@ namespace Orts.Viewer3D.Processes
 
             if (LoadingBar != null)
             {
-                LoadingBar.Material.Shader.LoadingPercent = LoadedPercent;
+                LoadingBar.Material.shader.LoadingPercent = LoadedPercent;
                 frame.AddPrimitive(LoadingBar.Material, LoadingBar, RenderPrimitiveGroup.Overlay, ref LoadingMatrix);
             }
 
@@ -1204,7 +1204,7 @@ namespace Orts.Viewer3D.Processes
 
             virtual protected VertexPositionTexture[] GetVerticies(Game game)
             {
-                var dd = (float)Material.Texture.Width / 2;
+                var dd = (float)Material.TextureWidth / 2;
                 return new[] {
                     new VertexPositionTexture(new Vector3(-dd - 0.5f, +dd + 0.5f, -3), new Vector2(0, 0)),
                     new VertexPositionTexture(new Vector3(+dd - 0.5f, +dd + 0.5f, -3), new Vector2(1, 0)),
@@ -1236,14 +1236,10 @@ namespace Orts.Viewer3D.Processes
             {
                 float w, h;
 
-                if (Material.Texture == null)
+                w = Material.TextureWidth;
+                h = Material.TextureHeight;
+                if (w != 0 && h != 0)
                 {
-                    w = h = 0;
-                }
-                else
-                {
-                    w = (float)Material.Texture.Width;
-                    h = (float)Material.Texture.Height;
                     var scaleX = (float)game.RenderProcess.DisplaySize.X / w;
                     var scaleY = (float)game.RenderProcess.DisplaySize.Y / h;
                     var scale = scaleX < scaleY ? scaleX : scaleY;
@@ -1288,16 +1284,19 @@ namespace Orts.Viewer3D.Processes
 
         class LoadingMaterial : Material
         {
-            public readonly LoadingShader Shader;
-            public readonly Texture2D Texture;
+            internal readonly LoadingShader shader;
+            public readonly Texture2D texture;
 
             [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
             public LoadingMaterial(Game game)
                 : base(null, null)
             {
-                Shader = new LoadingShader(game.RenderProcess.GraphicsDevice);
-                Texture = GetTexture(game);
+                shader = new LoadingShader(game.RenderProcess.GraphicsDevice);
+                texture = GetTexture(game);
             }
+
+            public int TextureWidth { get { return texture?.Width ?? 0; } }
+            public int TextureHeight { get { return texture?.Height ?? 0; } }
 
             virtual protected Texture2D GetTexture(Game game)
             {
@@ -1306,19 +1305,19 @@ namespace Orts.Viewer3D.Processes
 
             public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
             {
-                Shader.CurrentTechnique = Shader.Techniques["Loading"];
-                Shader.LoadingTexture = Texture;
+                shader.CurrentTechnique = shader.Techniques[0]; //["Loading"];
+                shader.LoadingTexture = texture;
 
                 graphicsDevice.BlendState = BlendState.NonPremultiplied;
             }
 
-            public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+            public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    Shader.WorldViewProjection = item.XNAMatrix * XNAViewMatrix * XNAProjectionMatrix;
-                    Shader.CurrentTechnique.Passes[0].Apply();
+                    shader.WorldViewProjection = item.XNAMatrix * viewMatrix * projectionMatrix;
+                    shader.CurrentTechnique.Passes[0].Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
@@ -1336,7 +1335,7 @@ namespace Orts.Viewer3D.Processes
             {
             }
 
-            private bool isWideScreen(Game game)
+            private bool IsWideScreen(Game game)
             {
                 float x = game.RenderProcess.DisplaySize.X;
                 float y = game.RenderProcess.DisplaySize.Y;
@@ -1351,12 +1350,12 @@ namespace Orts.Viewer3D.Processes
                 string defaultScreen = "load.ace";
 
                 string loadingScreen = Simulator.TRK.Tr_RouteFile.LoadingScreen;
-                if (isWideScreen(game))
+                if (IsWideScreen(game))
                 {
                     string loadingScreenWide = Simulator.TRK.Tr_RouteFile.LoadingScreenWide;
-                    loadingScreen = loadingScreenWide == null ? loadingScreen : loadingScreenWide;
+                    loadingScreen = loadingScreenWide ?? loadingScreen;
                 }
-                loadingScreen = loadingScreen == null ? defaultScreen : loadingScreen;
+                loadingScreen = loadingScreen ?? defaultScreen;
                 var path = Path.Combine(Simulator.RoutePath, loadingScreen);
                 if (Path.GetExtension(path) == ".dds" && File.Exists(path))
                 {
@@ -1406,7 +1405,7 @@ namespace Orts.Viewer3D.Processes
             public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
             {
                 base.SetState(graphicsDevice, previousMaterial);
-                Shader.CurrentTechnique = Shader.Techniques["LoadingBar"];
+                shader.CurrentTechnique = shader.Techniques[1]; //["LoadingBar"];
             }
         }
 

@@ -406,22 +406,32 @@ namespace Orts.Viewer3D
     [CallOnThread("Render")]
     public class ForestMaterial : Material
     {
-        readonly Texture2D TreeTexture;
-        IEnumerator<EffectPass> ShaderPasses;
+        readonly Texture2D treeTexture;
+        private readonly SceneryShader shader;
+        private readonly int techniqueIndex;
 
         [CallOnThread("Loader")]
-        public ForestMaterial(Viewer viewer, string treeTexture)
-            : base(viewer, treeTexture)
+        public ForestMaterial(Viewer viewer, string treeTexturePath)
+            : base(viewer, treeTexturePath)
         {
-            TreeTexture = Viewer.TextureManager.Get(treeTexture, true);
+            treeTexture = Viewer.TextureManager.Get(treeTexturePath, true);
+            shader = Viewer.MaterialManager.SceneryShader;
+            for (int i = 0; i < shader.Techniques.Count; i++)
+            {
+                if (shader.Techniques[i].Name == "Forest")
+                {
+                    techniqueIndex = i;
+                    break;
+                }
+            }
+
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            var shader = Viewer.MaterialManager.SceneryShader;
-            shader.CurrentTechnique = shader.Techniques["Forest"];
-            if (ShaderPasses == null) ShaderPasses = shader.Techniques["Forest"].Passes.GetEnumerator();
-            shader.ImageTexture = TreeTexture;
+            shader.CurrentTechnique = shader.Techniques[techniqueIndex]; //["Forest"];
+
+            shader.ImageTexture = treeTexture;
             shader.ReferenceAlpha = 200;
 
             // Enable alpha blending for everything: this allows distance scenery to appear smoothly.
@@ -430,21 +440,19 @@ namespace Orts.Viewer3D
             graphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var shader = Viewer.MaterialManager.SceneryShader;
-            var viewproj = XNAViewMatrix * XNAProjectionMatrix;
+            var viewproj = viewMatrix * projectionMatrix;
 
-            shader.SetViewMatrix(ref XNAViewMatrix);
-            ShaderPasses.Reset();
-            while (ShaderPasses.MoveNext())
+            shader.SetViewMatrix(ref viewMatrix);
+            foreach(var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
                     shader.SetMatrix(item.XNAMatrix, ref viewproj);
                     shader.ZBias = item.RenderPrimitive.ZBias;
-                    ShaderPasses.Current.Apply();
+                    pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
@@ -459,12 +467,12 @@ namespace Orts.Viewer3D
 
         public override Texture2D GetShadowTexture()
         {
-            return TreeTexture;
+            return treeTexture;
         }
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(TreeTexture);
+            Viewer.TextureManager.Mark(treeTexture);
             base.Mark();
         }
     }

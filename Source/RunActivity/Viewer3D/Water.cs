@@ -17,13 +17,13 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using ORTS.Common;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 namespace Orts.Viewer3D
 {
@@ -163,41 +163,50 @@ namespace Orts.Viewer3D
 
     public class WaterMaterial : Material
     {
-        readonly Texture2D WaterTexture;
-        IEnumerator<EffectPass> ShaderPasses;
+        private readonly Texture2D waterTexture;
+        private readonly SceneryShader shader;
+        private readonly int techniqueIndex;
+        private EffectPassCollection shaderPasses;
 
         public WaterMaterial(Viewer viewer, string waterTexturePath)
             : base(viewer, waterTexturePath)
         {
-            WaterTexture = Viewer.TextureManager.Get(waterTexturePath, true);
+            waterTexture = Viewer.TextureManager.Get(waterTexturePath, true);
+            shader = Viewer.MaterialManager.SceneryShader;
+            string term = Viewer.Settings.ShaderModel > 2 ? "ImagePS3" : "ImagePS2";
+            for (int i = 0; i < shader.Techniques.Count; i++)
+            {
+                if (shader.Techniques[i].Name == term)
+                {
+                    techniqueIndex = i;
+                    break;
+                }
+            }
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            var shader = Viewer.MaterialManager.SceneryShader;
-            shader.CurrentTechnique = shader.Techniques[Viewer.Settings.ShaderModel >= 3 ? "ImagePS3" : "ImagePS2"];
-            if (ShaderPasses == null) ShaderPasses = shader.Techniques[Viewer.Settings.ShaderModel >= 3 ? "ImagePS3" : "ImagePS2"].Passes.GetEnumerator();
-            shader.ImageTexture = WaterTexture;
+            shader.CurrentTechnique = shader.Techniques[techniqueIndex];
+            shaderPasses = shader.CurrentTechnique.Passes;
+            shader.ImageTexture = waterTexture;
             shader.ReferenceAlpha = 10;
 
             graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var shader = Viewer.MaterialManager.SceneryShader;
-            var viewproj = XNAViewMatrix * XNAProjectionMatrix;
+            Matrix viewproj = viewMatrix * projectionMatrix;
 
-            ShaderPasses.Reset();
-            while (ShaderPasses.MoveNext())
+            for (int j =0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
                     shader.SetMatrix(item.XNAMatrix, ref viewproj);
                     shader.ZBias = item.RenderPrimitive.ZBias;
-                    ShaderPasses.Current.Apply();
+                    shaderPasses[j].Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
@@ -218,7 +227,7 @@ namespace Orts.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(WaterTexture);
+            Viewer.TextureManager.Mark(waterTexture);
             base.Mark();
         }
     }

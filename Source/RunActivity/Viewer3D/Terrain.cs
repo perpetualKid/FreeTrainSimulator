@@ -502,49 +502,57 @@ namespace Orts.Viewer3D
 
     public class TerrainMaterial : Material
     {
-        readonly Texture2D PatchTexture;
-        readonly Texture2D PatchTextureOverlay;
-        readonly int OverlayScale;
-        IEnumerator<EffectPass> ShaderPasses;
+        private readonly Texture2D patchTexture;
+        private readonly Texture2D patchTextureOverlay;
+        private readonly int OverlayScale;
+        private readonly SceneryShader shader;
+        private readonly int techniqueIndex;
 
         public TerrainMaterial(Viewer viewer, string terrainTexture, Texture2D defaultTexture)
             : base(viewer, terrainTexture)
         {
             var textures = terrainTexture.Split('\0');
-            PatchTexture = Viewer.TextureManager.Get(textures[0], defaultTexture);
-            PatchTextureOverlay = textures.Length > 1 ? Viewer.TextureManager.Get(textures[1]) : null;
+            patchTexture = Viewer.TextureManager.Get(textures[0], defaultTexture);
+            patchTextureOverlay = textures.Length > 1 ? Viewer.TextureManager.Get(textures[1]) : null;
             var converted = textures.Length > 2 && Int32.TryParse(textures[2], out OverlayScale);
-            OverlayScale = OverlayScale != 0 && converted ?  OverlayScale : 32; 
+            OverlayScale = OverlayScale != 0 && converted ?  OverlayScale : 32;
+            shader = Viewer.MaterialManager.SceneryShader;
+            string term = Viewer.Settings.ShaderModel > 2 ? "TerrainPS3" : "TerrainPS2";
+            for (int i = 0; i < shader.Techniques.Count; i++)
+            {
+                if (shader.Techniques[i].Name == term)
+                {
+                    techniqueIndex = i;
+                    break;
+                }
+            }
 
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            var shader = Viewer.MaterialManager.SceneryShader;
-            shader.CurrentTechnique = shader.Techniques[Viewer.Settings.ShaderModel >= 3 ? "TerrainPS3" : "TerrainPS2"];
-            if (ShaderPasses == null) ShaderPasses = shader.Techniques[Viewer.Settings.ShaderModel >= 3 ? "TerrainPS3" : "TerrainPS2"].Passes.GetEnumerator();
-            shader.ImageTexture = PatchTexture;
-            shader.OverlayTexture = PatchTextureOverlay;
+            shader.CurrentTechnique = shader.Techniques[techniqueIndex];
+
+            shader.ImageTexture = patchTexture;
+            shader.OverlayTexture = patchTextureOverlay;
             shader.OverlayScale = OverlayScale;
 
             graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var shader = Viewer.MaterialManager.SceneryShader;
-            var viewproj = XNAViewMatrix * XNAProjectionMatrix;
+            var viewproj = viewMatrix * projectionMatrix;
 
-            ShaderPasses.Reset();
-            while (ShaderPasses.MoveNext())
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
                     shader.SetMatrix(item.XNAMatrix, ref viewproj);
                     shader.ZBias = item.RenderPrimitive.ZBias;
-                    ShaderPasses.Current.Apply();
+                    pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
@@ -557,8 +565,8 @@ namespace Orts.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(PatchTexture);
-            Viewer.TextureManager.Mark(PatchTextureOverlay);
+            Viewer.TextureManager.Mark(patchTexture);
+            Viewer.TextureManager.Mark(patchTextureOverlay);
             base.Mark();
         }
     }

@@ -474,56 +474,52 @@ namespace Orts.Viewer3D
 
     public class PrecipitationMaterial : Material
     {
-        Texture2D RainTexture;
-        Texture2D SnowTexture;
-        Texture2D[] DynamicPrecipitationTexture = new Texture2D[12];
-        IEnumerator<EffectPass> ShaderPasses;
+        private readonly Texture2D rainTexture;
+        private readonly Texture2D snowTexture;
+        private readonly Texture2D[] dynamicPrecipitationTexture = new Texture2D[12];
+        private readonly PrecipitationShader shader;
 
         public PrecipitationMaterial(Viewer viewer)
             : base(viewer, null)
         {
             // TODO: This should happen on the loader thread.
-            RainTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Raindrop.png"));
-            SnowTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Snowflake.png"));
-            DynamicPrecipitationTexture[0] = SnowTexture;
-            DynamicPrecipitationTexture[11] = RainTexture;
+            rainTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Raindrop.png"));
+            snowTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Snowflake.png"));
+            dynamicPrecipitationTexture[0] = snowTexture;
+            dynamicPrecipitationTexture[11] = rainTexture;
             for (int i = 1; i<=10; i++)
             {
                 var path = "Raindrop" + i.ToString() + ".png";
-                DynamicPrecipitationTexture[11 - i] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, path));
+                dynamicPrecipitationTexture[11 - i] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, path));
             }
+            shader = Viewer.MaterialManager.PrecipitationShader;
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            var shader = Viewer.MaterialManager.PrecipitationShader;
-            shader.CurrentTechnique = shader.Techniques["Pricipitation"];
-            if (ShaderPasses == null) ShaderPasses = shader.Techniques["Pricipitation"].Passes.GetEnumerator();
+            shader.CurrentTechnique = shader.Techniques[0]; //["Precipitation"];
 
             shader.LightVector.SetValue(Viewer.Settings.UseMSTSEnv ? Viewer.World.MSTSSky.mstsskysolarDirection : Viewer.World.Sky.solarDirection);
             shader.particleSize.SetValue(1f);
             if (Viewer.Simulator.Weather.PrecipitationLiquidity == 0 || Viewer.Simulator.Weather.PrecipitationLiquidity == 1)
             {
-                shader.precipitation_Tex.SetValue(Viewer.Simulator.WeatherType == Orts.Formats.Msts.WeatherType.Snow ? SnowTexture :
-                    Viewer.Simulator.WeatherType == Orts.Formats.Msts.WeatherType.Rain ? RainTexture :
-                    Viewer.Simulator.Weather.PrecipitationLiquidity == 0 ? SnowTexture : RainTexture);
+                shader.precipitation_Tex.SetValue(Viewer.Simulator.WeatherType == Orts.Formats.Msts.WeatherType.Snow ? snowTexture :
+                    Viewer.Simulator.WeatherType == Orts.Formats.Msts.WeatherType.Rain ? rainTexture :
+                    Viewer.Simulator.Weather.PrecipitationLiquidity == 0 ? snowTexture : rainTexture);
             }
             else
             {
                 var precipitation_TexIndex = (int)(Viewer.Simulator.Weather.PrecipitationLiquidity * 11);
-                shader.precipitation_Tex.SetValue(DynamicPrecipitationTexture[precipitation_TexIndex]);
+                shader.precipitation_Tex.SetValue(dynamicPrecipitationTexture[precipitation_TexIndex]);
             }
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var shader = Viewer.MaterialManager.PrecipitationShader;
-
-            ShaderPasses.Reset();
-            while (ShaderPasses.MoveNext())
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
@@ -532,8 +528,8 @@ namespace Orts.Viewer3D
                     shader.cameraTileXZ.SetValue(new Vector2(item.XNAMatrix.M21, item.XNAMatrix.M22));
                     shader.currentTime.SetValue(item.XNAMatrix.M11);
 
-                    shader.SetMatrix(Matrix.Identity, ref XNAViewMatrix, ref XNAProjectionMatrix);
-                    ShaderPasses.Current.Apply();
+                    shader.SetMatrix(Matrix.Identity, ref viewMatrix, ref projectionMatrix);
+                    pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
@@ -552,10 +548,10 @@ namespace Orts.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(RainTexture);
-            Viewer.TextureManager.Mark(SnowTexture);
+            Viewer.TextureManager.Mark(rainTexture);
+            Viewer.TextureManager.Mark(snowTexture);
             for (int i = 1; i <= 10; i++)
-                Viewer.TextureManager.Mark(DynamicPrecipitationTexture[i]);
+                Viewer.TextureManager.Mark(dynamicPrecipitationTexture[i]);
             base.Mark();
         }
     }

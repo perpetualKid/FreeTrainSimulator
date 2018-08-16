@@ -738,29 +738,28 @@ namespace Orts.Viewer3D
 
     public class LightGlowMaterial : Material
     {
-        readonly Texture2D LightGlowTexture;
+        private readonly Texture2D lightGlowTexture;
+        private readonly LightGlowShader shader;
 
         public LightGlowMaterial(Viewer viewer)
             : base(viewer, null)
         {
             // TODO: This should happen on the loader thread.
-            LightGlowTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Lightglow.png"));
+            lightGlowTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Lightglow.png"));
+            shader = Viewer.MaterialManager.LightGlowShader;
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            var shader = Viewer.MaterialManager.LightGlowShader;
-            shader.CurrentTechnique = shader.Techniques["LightGlow"];
-            shader.LightGlowTexture = LightGlowTexture;
+            shader.CurrentTechnique = shader.Techniques[0]; //["LightGlow"];
+            shader.LightGlowTexture = lightGlowTexture;
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var shader = Viewer.MaterialManager.LightGlowShader;
-
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
@@ -768,7 +767,7 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     // Glow lights were not working properly because farPlaneDistance used by XNASkyProjection is hardcoded at 6100.  So when view distance was greater than 6100, the 
                     // glow lights were unable to render properly.
-                    Matrix wvp = item.XNAMatrix * XNAViewMatrix * Viewer.Camera.XnaProjection;
+                    Matrix wvp = item.XNAMatrix * viewMatrix * Viewer.Camera.XnaProjection;
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();
@@ -790,32 +789,32 @@ namespace Orts.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(LightGlowTexture);
+            Viewer.TextureManager.Mark(lightGlowTexture);
             base.Mark();
         }
     }
 
     public class LightConeMaterial : Material
     {
+        private readonly LightConeShader shader;
+
         public LightConeMaterial(Viewer viewer)
             : base(viewer, null)
         {
+            shader = Viewer.MaterialManager.LightConeShader;
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            var shader = Viewer.MaterialManager.LightConeShader;
-            shader.CurrentTechnique = shader.Techniques["LightCone"];
+            shader.CurrentTechnique = shader.Techniques[0]; //["LightCone"];
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
             graphicsDevice.DepthStencilState.StencilEnable = true;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var shader = Viewer.MaterialManager.LightConeShader;
-
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
@@ -823,7 +822,7 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     // Light cone was originally using XNASkyProjection, but with no problems.
                     // Switched to Viewer.Camera.XnaProjection to keep the standard since farPlaneDistance used by XNASkyProjection is limited to 6100.
-                    Matrix wvp = item.XNAMatrix * XNAViewMatrix * Viewer.Camera.XnaProjection;
+                    Matrix wvp = item.XNAMatrix * viewMatrix * Viewer.Camera.XnaProjection;
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();

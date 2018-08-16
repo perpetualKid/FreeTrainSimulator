@@ -527,23 +527,20 @@ namespace Orts.Viewer3D
     #region MSTSSkyMaterial
     public class MSTSSkyMaterial : Material
     {
-        SkyShader MSTSSkyShader;
-        Texture2D MSTSDayTexture;
-        List<Texture2D> MSTSSkyTexture = new List<Texture2D>();
-        Texture2D MSTSSkyStarTexture;
-        Texture2D MSTSSkyMoonTexture;
-        Texture2D MSTSSkyMoonMask;
-        List<Texture2D> MSTSSkyCloudTexture = new List<Texture2D>();
-        Texture2D MSTSSkySunTexture;
-        private Matrix XNAMoonMatrix;
-        IEnumerator<EffectPass> ShaderPassesSky;
-        IEnumerator<EffectPass> ShaderPassesMoon;
-        List<IEnumerator<EffectPass>>ShaderPassesClouds = new List<IEnumerator<EffectPass>>();
+        private readonly SkyShader shader;
+        private readonly Texture2D mstsDayTexture;
+        private readonly List<Texture2D> mstsSkyTextures = new List<Texture2D>();
+        private readonly Texture2D mstsSkyStarTexture;
+        private readonly Texture2D mstsSkyMoonTexture;
+        private readonly Texture2D mstsSkyMoonMask;
+        private readonly List<Texture2D> mstsSkyCloudTextures = new List<Texture2D>();
+        private readonly Texture2D mstsSkySunTexture;
+        private Matrix moonMatrix;
 
         public MSTSSkyMaterial(Viewer viewer)
             : base(viewer, null)
         {
-            MSTSSkyShader = Viewer.MaterialManager.SkyShader;            
+            shader = Viewer.MaterialManager.SkyShader;            
             // TODO: This should happen on the loader thread. 
             if (viewer.ENVFile.SkyLayers != null)
             {
@@ -551,64 +548,56 @@ namespace Orts.Viewer3D
                 int count = Viewer.ENVFile.SkyLayers.Count;
                 
 
-                string[] mstsSkyTexture = new string[Viewer.ENVFile.SkyLayers.Count];
+                string[] mstsSkyTextureNames = new string[Viewer.ENVFile.SkyLayers.Count];
 
                 for (int i = 0; i < Viewer.ENVFile.SkyLayers.Count; i++)
                 {
-                    mstsSkyTexture[i] = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskytexture[i].TextureName.ToString();
-                    MSTSSkyTexture.Add(Orts.Formats.Msts.AceFile.Texture2DFromFile(Viewer.RenderProcess.GraphicsDevice, mstsSkyTexture[i]));
+                    mstsSkyTextureNames[i] = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskytexture[i].TextureName;
+                    mstsSkyTextures.Add(Orts.Formats.Msts.AceFile.Texture2DFromFile(Viewer.RenderProcess.GraphicsDevice, mstsSkyTextureNames[i]));
                     if( i == 0 )
                     {
-                        MSTSDayTexture = MSTSSkyTexture[i];
+                        mstsDayTexture = mstsSkyTextures[i];
 
                     }
                     else if(mstsskytexture[i].Fadein_Begin_Time != null)
                     {
-                        MSTSSkyStarTexture = MSTSSkyTexture[i];
+                        mstsSkyStarTexture = mstsSkyTextures[i];
                     }
                     else
                     {
-                        MSTSSkyCloudTexture.Add(Orts.Formats.Msts.AceFile.Texture2DFromFile(Viewer.RenderProcess.GraphicsDevice, mstsSkyTexture[i]));
+                        mstsSkyCloudTextures.Add(Orts.Formats.Msts.AceFile.Texture2DFromFile(Viewer.RenderProcess.GraphicsDevice, mstsSkyTextureNames[i]));
                     }
                 }
             }
             else
             {
-                MSTSSkyTexture.Add(SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "SkyDome1.png")));
-                MSTSSkyStarTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_N.png"));
+                mstsSkyTextures.Add(SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "SkyDome1.png")));
+                mstsSkyStarTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_N.png"));
             }
             if (viewer.ENVFile.SkySatellite != null)
             {
                 var mstsskysatellitetexture = Viewer.ENVFile.SkySatellite.ToArray();
 
-                string mstsSkySunTexture = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskysatellitetexture[0].TextureName.ToString();
-                string mstsSkyMoonTexture = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskysatellitetexture[1].TextureName.ToString();
+                string mstsSkySunTextureName = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskysatellitetexture[0].TextureName;
+                string mstsSkyMoonTextureName = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskysatellitetexture[1].TextureName;
 
-                MSTSSkySunTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, mstsSkySunTexture);
-                MSTSSkyMoonTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, mstsSkyMoonTexture);
+                mstsSkySunTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, mstsSkySunTextureName);
+                mstsSkyMoonTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, mstsSkyMoonTextureName);
             }
             else
-                MSTSSkyMoonTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMap.png"));
+                mstsSkyMoonTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMap.png"));
 
-            MSTSSkyMoonMask = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMask.png")); //ToDo:  No MSTS equivalent - will need to be fixed in MSTSSky.cs
+            mstsSkyMoonMask = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMask.png")); //ToDo:  No MSTS equivalent - will need to be fixed in MSTSSky.cs
             //MSTSSkyCloudTexture[0] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Clouds01.png"));
 
-            ShaderPassesSky = MSTSSkyShader.Techniques["Sky"].Passes.GetEnumerator();
-            ShaderPassesMoon = MSTSSkyShader.Techniques["Moon"].Passes.GetEnumerator();
-
-
-            for (int i = 0; i < Viewer.ENVFile.SkyLayers.Count - 2; i++)
-            {
-                ShaderPassesClouds.Add(MSTSSkyShader.Techniques["Clouds"].Passes.GetEnumerator());
-            }
-
-            MSTSSkyShader.SkyMapTexture = MSTSDayTexture;
-            MSTSSkyShader.StarMapTexture = MSTSSkyStarTexture;
-            MSTSSkyShader.MoonMapTexture = MSTSSkyMoonTexture;
-            MSTSSkyShader.MoonMaskTexture = MSTSSkyMoonMask;
-            MSTSSkyShader.CloudMapTexture = MSTSSkyCloudTexture[0];
+            shader.SkyMapTexture = mstsDayTexture;
+            shader.StarMapTexture = mstsSkyStarTexture;
+            shader.MoonMapTexture = mstsSkyMoonTexture;
+            shader.MoonMaskTexture = mstsSkyMoonMask;
+            shader.CloudMapTexture = mstsSkyCloudTextures[0];
         }
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
             // Adjust Fog color for day-night conditions and overcast
             FogDay2Night(
@@ -619,39 +608,38 @@ namespace Orts.Viewer3D
             //if (Viewer.Settings.DistantMountains) SharedMaterialManager.FogCoeff *= (3 * (5 - Viewer.Settings.DistantMountainsFogValue) + 0.5f);
 
             if (Viewer.World.MSTSSky.mstsskylatitude > 0) // TODO: Use a dirty flag to determine if it is necessary to set the texture again
-                MSTSSkyShader.StarMapTexture = MSTSSkyStarTexture;
-            MSTSSkyShader.Random = Viewer.World.MSTSSky.mstsskymoonPhase; // Keep setting this before LightVector for the preshader to work correctly
-            MSTSSkyShader.LightVector = Viewer.World.MSTSSky.mstsskysolarDirection;
-            MSTSSkyShader.Time = (float)Viewer.Simulator.ClockTime / 100000;
-            MSTSSkyShader.MoonScale = MSTSSkyConstants.skyRadius / 20;
-            MSTSSkyShader.Overcast = Viewer.World.MSTSSky.mstsskyovercastFactor;
-            MSTSSkyShader.SetFog(Viewer.World.MSTSSky.mstsskyfogDistance, ref SharedMaterialManager.FogColor);
-            MSTSSkyShader.WindSpeed = Viewer.World.MSTSSky.mstsskywindSpeed;
-            MSTSSkyShader.WindDirection = Viewer.World.MSTSSky.mstsskywindDirection; // Keep setting this after Time and Windspeed. Calculating displacement here.
+                shader.StarMapTexture = mstsSkyStarTexture;
+            shader.Random = Viewer.World.MSTSSky.mstsskymoonPhase; // Keep setting this before LightVector for the preshader to work correctly
+            shader.LightVector = Viewer.World.MSTSSky.mstsskysolarDirection;
+            shader.Time = (float)Viewer.Simulator.ClockTime / 100000;
+            shader.MoonScale = MSTSSkyConstants.skyRadius / 20;
+            shader.Overcast = Viewer.World.MSTSSky.mstsskyovercastFactor;
+            shader.SetFog(Viewer.World.MSTSSky.mstsskyfogDistance, ref SharedMaterialManager.FogColor);
+            shader.WindSpeed = Viewer.World.MSTSSky.mstsskywindSpeed;
+            shader.WindDirection = Viewer.World.MSTSSky.mstsskywindDirection; // Keep setting this after Time and Windspeed. Calculating displacement here.
 
             for (var i = 0; i < 5; i++)
                 graphicsDevice.SamplerStates[i] = SamplerState.LinearWrap;
 
             // Sky dome
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-            Matrix viewXNASkyProj = XNAViewMatrix * Camera.XNASkyProjection;
+            Matrix viewXNASkyProj = viewMatrix * Camera.XNASkyProjection;
 
-            MSTSSkyShader.CurrentTechnique = MSTSSkyShader.Techniques["Sky"];
+            shader.CurrentTechnique = shader.Techniques[0]; //["Sky"];
             Viewer.World.MSTSSky.MSTSSkyMesh.drawIndex = 1;
-            MSTSSkyShader.SetViewMatrix(ref XNAViewMatrix);
-            ShaderPassesSky.Reset();
-            while (ShaderPassesSky.MoveNext())
+            shader.SetViewMatrix(ref viewMatrix);
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
                     Matrix wvp = item.XNAMatrix * viewXNASkyProj;
-                    MSTSSkyShader.SetMatrix(ref wvp);
-                    ShaderPassesSky.Current.Apply();
+                    shader.SetMatrix(ref wvp);
+                    pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
-            MSTSSkyShader.CurrentTechnique = MSTSSkyShader.Techniques["Moon"];
+            shader.CurrentTechnique = shader.Techniques[1]; //["Moon"];
             Viewer.World.MSTSSky.MSTSSkyMesh.drawIndex = 2;
 
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
@@ -660,44 +648,38 @@ namespace Orts.Viewer3D
             // Send the transform matrices to the shader
             int mstsskyRadius = Viewer.World.MSTSSky.MSTSSkyMesh.mstsskyRadius;
             int mstscloudRadiusDiff = Viewer.World.MSTSSky.MSTSSkyMesh.mstscloudDomeRadiusDiff;
-            XNAMoonMatrix = Matrix.CreateTranslation(Viewer.World.MSTSSky.mstsskylunarDirection * (mstsskyRadius));
-            Matrix XNAMoonMatrixView = XNAMoonMatrix * XNAViewMatrix;
+            moonMatrix = Matrix.CreateTranslation(Viewer.World.MSTSSky.mstsskylunarDirection * (mstsskyRadius));
+            Matrix XNAMoonMatrixView = moonMatrix * viewMatrix;
 
-            ShaderPassesMoon.Reset();
-            while (ShaderPassesMoon.MoveNext())
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
                     Matrix wvp = item.XNAMatrix * XNAMoonMatrixView * Camera.XNASkyProjection;
-                    MSTSSkyShader.SetMatrix(ref wvp);
-                    ShaderPassesMoon.Current.Apply();
+                    shader.SetMatrix(ref wvp);
+                    pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
-            //TODO Fixme what's that loop for
-            //for (int i = 0; i < MSTSSkyCloudTexture.Count; i++)
-            //    if (i == 0)
-            //    {
 
-                    MSTSSkyShader.CurrentTechnique = MSTSSkyShader.Techniques["Clouds"];
-                    Viewer.World.MSTSSky.MSTSSkyMesh.drawIndex = 3;
 
-                    graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            shader.CurrentTechnique = shader.Techniques[2]; //["Clouds"];
+            Viewer.World.MSTSSky.MSTSSkyMesh.drawIndex = 3;
 
-                    ShaderPassesClouds[0].Reset();
-                    while (ShaderPassesClouds[0].MoveNext())
-                    {
-                        for (int i = 0; i < renderItems.Count; i++)
-                        {
-                            RenderItem item = renderItems[i];
-                            Matrix wvp = item.XNAMatrix * viewXNASkyProj;
-                            MSTSSkyShader.SetMatrix(ref wvp);
-                            ShaderPassesClouds[0].Current.Apply();
-                            item.RenderPrimitive.Draw(graphicsDevice);
-                        }
-                    }
-                //}
+            graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+            foreach (var pass in shader.CurrentTechnique.Passes)
+            {
+                for (int i = 0; i < renderItems.Count; i++)
+                {
+                    RenderItem item = renderItems[i];
+                    Matrix wvp = item.XNAMatrix * viewXNASkyProj;
+                    shader.SetMatrix(ref wvp);
+                    pass.Apply();
+                    item.RenderPrimitive.Draw(graphicsDevice);
+                }
+            }
         }
 
         public override void ResetState(GraphicsDevice graphicsDevice)

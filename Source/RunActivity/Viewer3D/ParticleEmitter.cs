@@ -455,20 +455,19 @@ namespace Orts.Viewer3D
 
     public class ParticleEmitterMaterial : Material
     {
-        public Texture2D Texture;
-
-        IEnumerator<EffectPass> ShaderPasses;
+        private readonly Texture2D texture;
+        private readonly ParticleEmitterShader shader;
 
         public ParticleEmitterMaterial(Viewer viewer, string textureName)
             : base(viewer, null)
         {
-            Texture = viewer.TextureManager.Get(textureName, true);
-            ShaderPasses = Viewer.MaterialManager.ParticleEmitterShader.Techniques["ParticleEmitterTechnique"].Passes.GetEnumerator();
+            texture = viewer.TextureManager.Get(textureName, true);
+            shader = Viewer.MaterialManager.ParticleEmitterShader;
         }
 
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
-            var shader = Viewer.MaterialManager.ParticleEmitterShader;
+            shader.CurrentTechnique = shader.Techniques[0];
             if (Viewer.Settings.UseMSTSEnv == false)
                 shader.LightVector = Viewer.World.Sky.solarDirection;
             else
@@ -478,12 +477,9 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix XNAViewMatrix, ref Matrix XNAProjectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var shader = Viewer.MaterialManager.ParticleEmitterShader;
-
-            ShaderPasses.Reset();
-            while (ShaderPasses.MoveNext())
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
@@ -494,9 +490,9 @@ namespace Orts.Viewer3D
 
                     var emitter = (ParticleEmitterPrimitive)item.RenderPrimitive;
                     shader.EmitSize = emitter.EmitSize;
-                    shader.Texture = Texture;
-                    shader.SetMatrix(Matrix.Identity, ref XNAViewMatrix, ref XNAProjectionMatrix);
-                    ShaderPasses.Current.Apply();
+                    shader.Texture = texture;
+                    shader.SetMatrix(Matrix.Identity, ref viewMatrix, ref projectionMatrix);
+                    pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
@@ -515,7 +511,7 @@ namespace Orts.Viewer3D
 
         public override void Mark()
         {
-            Viewer.TextureManager.Mark(Texture);
+            Viewer.TextureManager.Mark(texture);
             base.Mark();
         }
     }
