@@ -161,7 +161,11 @@ namespace Orts.Viewer3D
 
             public int Compare(RenderItem x, RenderItem y)
             {
-                float distance = (y.XNAMatrix.Translation - viewerPos).Length() - (x.XNAMatrix.Translation - viewerPos).Length();
+                Vector3 yTranslation = y.XNAMatrix.Translation;
+                Vector3.Subtract(ref yTranslation, ref viewerPos, out Vector3 yDistance);
+                Vector3 xTranslation = x.XNAMatrix.Translation;
+                Vector3.Subtract(ref xTranslation, ref viewerPos, out Vector3 xDistance);
+                float distance = yDistance.Length() - xDistance.Length();
                 if (Math.Abs(distance) >= 0.001)
                     return Math.Sign(distance);
                 return Math.Sign(x.RenderPrimitive.SortIndex - y.RenderPrimitive.SortIndex);
@@ -182,7 +186,7 @@ namespace Orts.Viewer3D
 
     public class RenderFrame
     {
-        readonly Game Game;
+        readonly Game game;
 
         // Shared shadow map data.
         private static RenderTarget2D[] shadowMap;
@@ -216,26 +220,29 @@ namespace Orts.Viewer3D
         private Matrix cameraProjection;
         private RenderItem.Comparer renderItemComparer;
 
+        private readonly int shadowMapCount;
+        private readonly bool dynamicShadows;
+
         public RenderFrame(Game game)
         {
-            int shadowMapCount = RenderProcess.ShadowMapCount;
-            Game = game;
+            dynamicShadows = game.Settings.DynamicShadows;
+            this.game = game;
             DummyBlendedMaterial = new EmptyMaterial(null);
 
             for (int i = 0; i < renderItems.Length; i++)
 				renderItems[i] = new Dictionary<Material, List<RenderItem>>();
 
-            if (Game.Settings.DynamicShadows)
+            if (dynamicShadows)
             {
                 if (shadowMap == null)
                 {
-                    int shadowMapSize = Game.Settings.ShadowMapResolution;
+                    int shadowMapSize = game.Settings.ShadowMapResolution;
                     shadowMap = new RenderTarget2D[shadowMapCount];
                     shadowMapRenderTarget = new RenderTarget2D[shadowMapCount];
                     for (int shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                     {
-                        shadowMapRenderTarget[shadowMapIndex] = new RenderTarget2D(Game.RenderProcess.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
-                        shadowMap[shadowMapIndex] = new RenderTarget2D(Game.RenderProcess.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
+                        shadowMapRenderTarget[shadowMapIndex] = new RenderTarget2D(game.RenderProcess.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
+                        shadowMap[shadowMapIndex] = new RenderTarget2D(game.RenderProcess.GraphicsDevice, shadowMapSize, shadowMapSize, false, SurfaceFormat.Rg32, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
                     }
                 }
 
@@ -282,9 +289,9 @@ namespace Orts.Viewer3D
                     renderItems[i][material].Clear();
 
             // Clear out (reset) all of the shadow mapping RenderItem lists.
-            if (Game.Settings.DynamicShadows)
+            if (dynamicShadows)
             {
-                for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
+                for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                 {
                     renderShadowSceneryItems[shadowMapIndex].Clear();
                     renderShadowForestItems[shadowMapIndex].Clear();
@@ -324,7 +331,7 @@ namespace Orts.Viewer3D
             if (UserInput.IsPressed(UserCommands.DebugLockShadows))
                 LockShadows = !LockShadows;
 
-            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && !LockShadows)
+            if (dynamicShadows && (shadowMapCount > 0) && !LockShadows)
             {
                 Vector3 normalizedSolarDirection = solarDirection;
                 normalizedSolarDirection.Normalize();
@@ -341,17 +348,17 @@ namespace Orts.Viewer3D
                 shadowMapX = shadowMapAlignAxisX;
                 shadowMapY = shadowMapAlignAxisY;
 
-                for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
+                for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                 {
-                    var viewingDistance = Game.Settings.ViewingDistance;
+                    var viewingDistance = game.Settings.ViewingDistance;
                     var shadowMapDiameter = RenderProcess.ShadowMapDiameter[shadowMapIndex];
                     var shadowMapLocation = cameraLocation + RenderProcess.ShadowMapDistance[shadowMapIndex] * cameraDirection;
 
                     // Align shadow map location to grid so it doesn't "flutter" so much. This basically means aligning it along a
                     // grid based on the size of a shadow texel (shadowMapSize / shadowMapSize) along the axes of the sun direction
                     // and up/left.
-                    var shadowMapAlignmentGrid = (float)shadowMapDiameter / Game.Settings.ShadowMapResolution;
-                    var shadowMapSize = Game.Settings.ShadowMapResolution;
+                    var shadowMapAlignmentGrid = (float)shadowMapDiameter / game.Settings.ShadowMapResolution;
+                    var shadowMapSize = game.Settings.ShadowMapResolution;
                     var adjustX = (float)Math.IEEERemainder(Vector3.Dot(shadowMapAlignAxisX, shadowMapLocation), shadowMapAlignmentGrid);
                     var adjustY = (float)Math.IEEERemainder(Vector3.Dot(shadowMapAlignAxisY, shadowMapLocation), shadowMapAlignmentGrid);
                     shadowMapLocation.X -= shadowMapAlignAxisX.X * adjustX;
@@ -389,8 +396,8 @@ namespace Orts.Viewer3D
                     AddPrimitive(material, primitive, group, ref xnaMatrix, flags);
             }
 
-            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && ((flags & ShapeFlags.ShadowCaster) != 0))
-                for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
+            if (dynamicShadows && (shadowMapCount > 0) && ((flags & ShapeFlags.ShadowCaster) != 0))
+                for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                     if (IsInShadowMap(shadowMapIndex, mstsLocation, objectRadius, objectViewingDistance))
                         AddShadowPrimitive(shadowMapIndex, material, primitive, ref xnaMatrix, flags);
         }
@@ -446,7 +453,7 @@ namespace Orts.Viewer3D
         {
             System.Threading.Tasks.Parallel.For(0, renderItems.Length, (i) =>
             {
-                foreach (var sequenceMaterial in renderItems[i].Where(kvp => kvp.Value.Count > 0))
+                foreach (var sequenceMaterial in renderItems[i].Where(kvp => kvp.Value.Count > 1))
                 {
                     if (sequenceMaterial.Key == DummyBlendedMaterial)
                         sequenceMaterial.Value.Sort(renderItemComparer);
@@ -470,9 +477,7 @@ namespace Orts.Viewer3D
                 return false;
 
             mstsLocation.Z *= -1;
-            mstsLocation.X -= shadowMapCenter[shadowMapIndex].X;
-            mstsLocation.Y -= shadowMapCenter[shadowMapIndex].Y;
-            mstsLocation.Z -= shadowMapCenter[shadowMapIndex].Z;
+            Vector3.Subtract(ref mstsLocation, ref shadowMapCenter[shadowMapIndex], out mstsLocation);
             objectRadius += RenderProcess.ShadowMapDiameter[shadowMapIndex] / 2;
 
             // Check if object is inside the sphere.
@@ -481,16 +486,16 @@ namespace Orts.Viewer3D
                 return true;
 
             // Check if object is inside cylinder.
-            var dotX = Math.Abs(Vector3.Dot(mstsLocation, shadowMapX));
-            if (dotX > objectRadius)
+            Vector3.Dot(ref mstsLocation, ref shadowMapX, out float dotX);
+            if (Math.Abs(dotX) > objectRadius)
                 return false;
 
-            var dotY = Math.Abs(Vector3.Dot(mstsLocation, shadowMapY));
-            if (dotY > objectRadius)
+            Vector3.Dot(ref mstsLocation, ref shadowMapY, out float dotY);
+            if (Math.Abs(dotY) > objectRadius)
                 return false;
 
             // Check if object is on correct side of center.
-            var dotZ = Vector3.Dot(mstsLocation, steppedSolarDirection);
+            Vector3.Dot(ref mstsLocation, ref steppedSolarDirection, out float dotZ);
             if (dotZ < 0)
                 return false;
 
@@ -518,13 +523,13 @@ namespace Orts.Viewer3D
                 Console.WriteLine("Draw {");
             }
 
-            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && shadowMapMaterial != null)
+            if (dynamicShadows && (shadowMapCount > 0) && shadowMapMaterial != null)
                 DrawShadows(graphicsDevice, logging);
 
             DrawSimple(graphicsDevice, logging);
 
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
-                Game.RenderProcess.PrimitiveCount[i] = renderItems[i].Values.Sum(l => l.Count);
+                game.RenderProcess.PrimitiveCount[i] = renderItems[i].Values.Sum(l => l.Count);
 
             if (logging)
             {
@@ -536,10 +541,10 @@ namespace Orts.Viewer3D
         void DrawShadows( GraphicsDevice graphicsDevice, bool logging )
         {
             if (logging) Console.WriteLine("  DrawShadows {");
-            for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
+            for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                 DrawShadows(graphicsDevice, logging, shadowMapIndex);
-            for (var shadowMapIndex = 0; shadowMapIndex < RenderProcess.ShadowMapCount; shadowMapIndex++)
-                Game.RenderProcess.ShadowPrimitiveCount[shadowMapIndex] = renderShadowSceneryItems[shadowMapIndex].Count + renderShadowForestItems[shadowMapIndex].Count + renderShadowTerrainItems[shadowMapIndex].Count;
+            for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
+                game.RenderProcess.ShadowPrimitiveCount[shadowMapIndex] = renderShadowSceneryItems[shadowMapIndex].Count + renderShadowForestItems[shadowMapIndex].Count + renderShadowTerrainItems[shadowMapIndex].Count;
             if (logging) Console.WriteLine("  }");
         }
 
@@ -588,7 +593,7 @@ namespace Orts.Viewer3D
             graphicsDevice.SetRenderTarget(null);
 
             // Blur the shadow map.
-            if (Game.Settings.ShadowMapBlur)
+            if (game.Settings.ShadowMapBlur)
             {
                 //shadowMap[shadowMapIndex] = 
                 shadowMapMaterial.ApplyBlur(graphicsDevice, shadowMap[shadowMapIndex], shadowMapRenderTarget[shadowMapIndex]);
@@ -609,7 +614,7 @@ namespace Orts.Viewer3D
         /// <param name="logging"></param>
         void DrawSimple(GraphicsDevice graphicsDevice, bool logging)
         {
-            if (Game.Settings.DistantMountains)
+            if (game.Settings.DistantMountains)
             {
                 if (logging) Console.WriteLine("  DrawSimple (Distant Mountains) {");
                 graphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Transparent, 1, 0);
@@ -631,7 +636,7 @@ namespace Orts.Viewer3D
 
         void DrawSequences(GraphicsDevice graphicsDevice, bool logging)
         {
-            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && sceneryShader != null)
+            if (dynamicShadows && (shadowMapCount > 0) && sceneryShader != null)
                 sceneryShader.SetShadowMap(shadowMapLightViewProjectionShadowProjection, shadowMap, RenderProcess.ShadowMapLimit);
 
             renderItemsSequence.Clear();
@@ -685,7 +690,7 @@ namespace Orts.Viewer3D
                     }
                     else
                     {
-                        if (Game.Settings.DistantMountains && (sequenceMaterial.Key is TerrainSharedDistantMountain || sequenceMaterial.Key is SkyMaterial
+                        if (game.Settings.DistantMountains && (sequenceMaterial.Key is TerrainSharedDistantMountain || sequenceMaterial.Key is SkyMaterial
                             || sequenceMaterial.Key is MSTSSkyMaterial))
                             continue;
                         // Opaque: single material, render in one go.
@@ -701,7 +706,7 @@ namespace Orts.Viewer3D
                 if (logging) Console.WriteLine("    }");
             }
 
-            if (Game.Settings.DynamicShadows && (RenderProcess.ShadowMapCount > 0) && sceneryShader != null)
+            if (dynamicShadows && (shadowMapCount > 0) && sceneryShader != null)
                 sceneryShader.ClearShadowMap();
         }
 
