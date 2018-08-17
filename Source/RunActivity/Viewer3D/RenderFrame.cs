@@ -225,6 +225,7 @@ namespace Orts.Viewer3D
 
         public RenderFrame(Game game)
         {
+            shadowMapCount = RenderProcess.ShadowMapCount;
             dynamicShadows = game.Settings.DynamicShadows;
             this.game = game;
             DummyBlendedMaterial = new EmptyMaterial(null);
