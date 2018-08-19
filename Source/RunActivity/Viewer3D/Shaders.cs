@@ -137,10 +137,22 @@ namespace Orts.Viewer3D
         readonly EffectParameter referenceAlpha;
         readonly EffectParameter overlayScale;
 
-        Vector3 _eyeVector;
+        private Vector3 _eyeVector;
         Vector4 _zBias_Lighting;
         Vector3 _sunDirection;
         bool _imageTextureIsNight;
+
+        private readonly float fullBrightness;
+
+        //const float HalfShadowBrightness = 0.75;
+        const float HalfNightBrightness = 0.6f;
+        const float ShadowBrightness = 0.5f;
+        const float NightBrightness = 0.2f;
+
+        // The following constants define the beginning and the end conditions of
+        // the day-night transition. Values refer to the Y postion of LightVector.
+        const float startNightTrans = 0.1f;
+        const float finishNightTrans = -0.1f;
 
         public void SetViewMatrix(ref Matrix v)
         {
@@ -153,34 +165,23 @@ namespace Orts.Viewer3D
         public void SetMatrix(Matrix w, ref Matrix vp)
         {
             world.SetValue(w);
-            worldViewProjection.SetValue(w * vp);
-
-            int vIn = Program.Simulator.Settings.DayAmbientLight;
-            
-            float FullBrightness = (float)vIn / 20.0f ;
-            //const float HalfShadowBrightness = 0.75;
-            const float HalfNightBrightness = 0.6f;
-            const float ShadowBrightness = 0.5f;
-            const float NightBrightness = 0.2f;
+            Matrix.Multiply(ref w, ref vp, out Matrix wvp);
+            worldViewProjection.SetValue(wvp);
+//            worldViewProjection.SetValue(w * vp);
 
             if (_imageTextureIsNight)
             {
-                nightColorModifier.SetValue(FullBrightness);
-                halfNightColorModifier.SetValue(FullBrightness);
-                vegetationAmbientModifier.SetValue(FullBrightness);
+                nightColorModifier.SetValue(fullBrightness);
+                halfNightColorModifier.SetValue(fullBrightness);
+                vegetationAmbientModifier.SetValue(fullBrightness);
             }
             else
             {
-                // The following constants define the beginning and the end conditions of
-                // the day-night transition. Values refer to the Y postion of LightVector.
-                const float startNightTrans = 0.1f;
-                const float finishNightTrans = -0.1f;
-
                 var nightEffect = MathHelper.Clamp((_sunDirection.Y - finishNightTrans) / (startNightTrans - finishNightTrans), 0, 1);
 
-                nightColorModifier.SetValue(MathHelper.Lerp(NightBrightness, FullBrightness, nightEffect));
-                halfNightColorModifier.SetValue(MathHelper.Lerp(HalfNightBrightness, FullBrightness, nightEffect));
-                vegetationAmbientModifier.SetValue(MathHelper.Lerp(ShadowBrightness, FullBrightness, _zBias_Lighting.Y));
+                nightColorModifier.SetValue(MathHelper.Lerp(NightBrightness, fullBrightness, nightEffect));
+                halfNightColorModifier.SetValue(MathHelper.Lerp(HalfNightBrightness, fullBrightness, nightEffect));
+                vegetationAmbientModifier.SetValue(MathHelper.Lerp(ShadowBrightness, fullBrightness, _zBias_Lighting.Y));
             }
         }
 
@@ -285,6 +286,9 @@ namespace Orts.Viewer3D
             overlayTexture = Parameters["OverlayTexture"];
             referenceAlpha = Parameters["ReferenceAlpha"];
             overlayScale = Parameters["OverlayScale"];
+
+            fullBrightness = Program.Simulator.Settings.DayAmbientLight / 20.0f;
+
         }
     }
 

@@ -599,8 +599,8 @@ namespace Orts.Viewer3D
 
         public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var viewProj = viewMatrix * projectionMatrix;
-
+            //            var viewProj = viewMatrix * projectionMatrix;
+            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
@@ -666,8 +666,8 @@ namespace Orts.Viewer3D
 
         public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var viewProj = viewMatrix * projectionMatrix;
-
+            //            var viewProj = viewMatrix * projectionMatrix;
+            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)

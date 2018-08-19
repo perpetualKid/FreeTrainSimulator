@@ -442,7 +442,8 @@ namespace Orts.Viewer3D
 
         public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var viewproj = viewMatrix * projectionMatrix;
+            //            var viewproj = viewMatrix * projectionMatrix;
+            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewproj);
 
             shader.SetViewMatrix(ref viewMatrix);
             foreach(var pass in shader.CurrentTechnique.Passes)

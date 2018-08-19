@@ -535,9 +535,9 @@ namespace Orts.Viewer3D
 
         public override string ToString()
         {
-            if (String.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key))
                 return GetType().Name;
-            return String.Format("{0}({1})", GetType().Name, key);
+            return string.Format("{0}({1})", GetType().Name, key);
         }
 
         public virtual void SetState(GraphicsDevice graphicsDevice, Material previousMaterial) { }
@@ -675,7 +675,7 @@ namespace Orts.Viewer3D
             DepthBufferFunction = CompareFunction.Less,
         };
 
-        private static readonly Dictionary<TextureAddressMode, Dictionary<float, SamplerState>> samplerStates = new Dictionary<TextureAddressMode, Dictionary<float, SamplerState>>();
+        private static readonly Dictionary<float, SamplerState>[] samplerStates = new Dictionary<float, SamplerState>[4]; //Length of TextureAddressMode Values
 
         public SceneryMaterial(Viewer viewer, string texturePath, SceneryMaterialOptions options, float mipMapBias)
             : base(viewer, String.Format("{0}:{1:X}:{2}", texturePath, options, mipMapBias))
@@ -777,7 +777,7 @@ namespace Orts.Viewer3D
             if (((options & SceneryMaterialOptions.NightTexture) != 0) && (nightTexture == SharedMaterialManager.MissingTexture))
             {
                 var nightTexturePath = Helpers.GetNightTextureFile(Viewer.Simulator, texturePath);
-                if (!String.IsNullOrEmpty(nightTexturePath))
+                if (!string.IsNullOrEmpty(nightTexturePath))
                 {
                     nightTexture = Viewer.TextureManager.Get(nightTexturePath);
                     result = true;
@@ -888,8 +888,8 @@ namespace Orts.Viewer3D
 
         public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var viewProj = viewMatrix * projectionMatrix;
-
+            //            var viewProj = viewMatrix * projectionMatrix;
+            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
             for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
@@ -945,37 +945,25 @@ namespace Orts.Viewer3D
 
         public override SamplerState GetShadowTextureAddressMode()
         {
-            var mipMapBias = MipMapBias < -1 ? -1 : MipMapBias;
-            TextureAddressMode textureAddressMode;
+            var mipMapBias = Math.Max(MipMapBias, -1);// MipMapBias < -1 ? -1 : MipMapBias;
+            int textureAddressMode = (int)(options & SceneryMaterialOptions.TextureAddressModeMask);
 
-            switch (options & SceneryMaterialOptions.TextureAddressModeMask)
+            if (samplerStates[textureAddressMode] == null)
             {
-                case SceneryMaterialOptions.TextureAddressModeWrap:
-                    textureAddressMode = TextureAddressMode.Wrap;
-                    break;
-                case SceneryMaterialOptions.TextureAddressModeMirror:
-                    textureAddressMode = TextureAddressMode.Mirror;
-                    break;
-                case SceneryMaterialOptions.TextureAddressModeClamp:
-                    textureAddressMode = TextureAddressMode.Clamp;
-                    break;
-                default:
-                    throw new InvalidDataException("Options has unexpected SceneryMaterialOptions.TextureAddressModeMask value.");
+                samplerStates[textureAddressMode] = new Dictionary<float, SamplerState>();
             }
 
-            if (!samplerStates.ContainsKey(textureAddressMode))
-                samplerStates.Add(textureAddressMode, new Dictionary<float, SamplerState>());
-
             if (!samplerStates[textureAddressMode].ContainsKey(mipMapBias))
+            {
                 samplerStates[textureAddressMode].Add(mipMapBias, new SamplerState
                 {
-                    AddressU = textureAddressMode,
-                    AddressV = textureAddressMode,
+                    AddressU = (TextureAddressMode)textureAddressMode,
+                    AddressV = (TextureAddressMode)textureAddressMode,
                     Filter = TextureFilter.Anisotropic,
                     MaxAnisotropy = 16,
                     MipMapLevelOfDetailBias = mipMapBias
                 });
-
+            }
             return samplerStates[textureAddressMode][mipMapBias];
         }
 
@@ -1027,7 +1015,8 @@ namespace Orts.Viewer3D
 
         public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            Matrix viewproj = viewMatrix * projectionMatrix;
+            //            var viewProj = viewMatrix * projectionMatrix;
+            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
 
             shader.SetData(ref viewMatrix);
             for (int j = 0; j < shaderPasses.Count; j++)
@@ -1035,7 +1024,9 @@ namespace Orts.Viewer3D
                 for (int i= 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    var wvp = item.XNAMatrix * viewproj;
+                    //                    var wvp = item.XNAMatrix * viewProj;
+                    Matrix wvp = item.XNAMatrix;
+                    Matrix.Multiply(ref wvp, ref viewProj, out wvp);
                     shader.SetData(ref wvp, item.Material.GetShadowTexture());
                     graphicsDevice.SamplerStates[0] = item.Material.GetShadowTextureAddressMode();
                     shaderPasses[j].Apply();
@@ -1102,7 +1093,9 @@ namespace Orts.Viewer3D
 
         public void Render(GraphicsDevice graphicsDevice, RenderPrimitive renderPrimitive, ref Matrix worldMatrix, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
+            Matrix.Multiply(ref worldMatrix, ref viewMatrix, out Matrix wvp);
+            Matrix.Multiply(ref wvp, ref projectionMatrix, out wvp);
+//            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
             shader.SetMatrix(ref worldMatrix, ref wvp);
 
             for (int j = 0; j < shaderPasses.Count; j++)
@@ -1294,14 +1287,15 @@ namespace Orts.Viewer3D
 
         public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            Matrix viewproj = viewMatrix * projectionMatrix;
+            //            var viewProj = viewMatrix * projectionMatrix;
+            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
 
             for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref viewproj);
+                    shader.SetMatrix(item.XNAMatrix, ref viewProj);
                     shaderPasses[j].Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }

@@ -526,7 +526,6 @@ namespace Orts.Viewer3D
 
             if (dynamicShadows && (shadowMapCount > 0) && shadowMapMaterial != null)
                 DrawShadows(graphicsDevice, logging);
-
             DrawSimple(graphicsDevice, logging);
 
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
@@ -726,7 +725,7 @@ namespace Orts.Viewer3D
                         // Opaque: single material, render in one go.
                         sequenceMaterial.Key.SetState(graphicsDevice, null);
                         if (logging) Console.WriteLine("      {0,-5} * {1}", sequenceMaterial.Value.Count, sequenceMaterial.Key);
-                        sequenceMaterial.Key.Render(graphicsDevice, sequenceMaterial.Value.ToList(), ref cameraView, ref Camera.XnaDistantMountainProjection);
+                        sequenceMaterial.Key.Render(graphicsDevice, sequenceMaterial.Value, ref cameraView, ref Camera.XnaDistantMountainProjection);
                         sequenceMaterial.Key.ResetState(graphicsDevice);
 #if DEBUG_RENDER_STATE
 						DebugRenderState(graphicsDevice.RenderState, sequenceMaterial.Key.ToString());

@@ -543,14 +543,15 @@ namespace Orts.Viewer3D
 
         public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            var viewproj = viewMatrix * projectionMatrix;
+            //            var viewproj = viewMatrix * projectionMatrix;
+            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref viewproj);
+                    shader.SetMatrix(item.XNAMatrix, ref viewProj);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);

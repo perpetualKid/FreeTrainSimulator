@@ -1321,10 +1321,15 @@ namespace Orts.Viewer3D.Processes
 
             public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
             {
+                Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
+
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.WorldViewProjection = item.XNAMatrix * viewMatrix * projectionMatrix;
+                    Matrix wvp = item.XNAMatrix;
+                    Matrix.Multiply(ref wvp, ref viewProj, out wvp);
+//                    shader.WorldViewProjection = item.XNAMatrix * viewMatrix * projectionMatrix;
+                    shader.WorldViewProjection = wvp;
                     shader.CurrentTechnique.Passes[0].Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
