@@ -782,8 +782,8 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortsdavis_b": DavisBNSpM = stf.ReadFloatBlock(STFReader.UNITS.Resistance, null); break;
                 case "wagon(ortsdavis_c": DavisCNSSpMM = stf.ReadFloatBlock(STFReader.UNITS.ResistanceDavisC, null); break;
                 case "wagon(effects(specialeffects": ParseEffects(lowercasetoken, stf); break;
-                case "wagon(ortsdavisdragconstant": DavisDragConstant = stf.ReadFloat(STFReader.UNITS.None, null); break;
-                case "wagon(ortswagonfrontalarea": WagonFrontalAreaM2 = stf.ReadFloat(STFReader.UNITS.AreaDefaultFT2, null); break;
+                case "wagon(ortsdavisdragconstant": DavisDragConstant = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
+                case "wagon(ortswagonfrontalarea": WagonFrontalAreaM2 = stf.ReadFloatBlock(STFReader.UNITS.AreaDefaultFT2, null); break;
                 case "wagon(ortsbearingtype":
                     stf.MustMatch("(");
                     string typeString2 = stf.ReadString();
@@ -1398,9 +1398,11 @@ namespace Orts.Simulation.RollingStocks
 
             foreach (MSTSCoupling coupler in Couplers)
             {
-                if (IsPlayerTrain) // Only break couplers on player trains
+
+                // Test to see if coupler forces have exceeded the Proof (or safety limit). Exceeding this limit will provide an indication only
+                if (IsPlayerTrain)
                 {
-                    if (-CouplerForceU > coupler.Break1N || IsCriticalMaxSpeed == true)  // break couplers if forces exceeded onm coupler or train has "overturned" on curve
+                    if (-CouplerForceU > coupler.Break1N)  // break couplers if forces exceeded
                     {
                         CouplerOverloaded = true;
                     }
@@ -1409,9 +1411,26 @@ namespace Orts.Simulation.RollingStocks
                         CouplerOverloaded = false;
                     }
                 }
-                else // if not a player train then don't ever break the couplers
+                else
                 {
                     CouplerOverloaded = false;
+                }
+
+                // Test to see if coupler forces have been exceeded, and coupler has broken. Exceeding this limit will break the coupler
+                if (IsPlayerTrain) // Only break couplers on player trains
+                {
+                    if (-CouplerForceU > coupler.Break2N )  // break couplers if forces exceeded
+                    {
+                        CouplerExceedBreakLimit = true;
+                    }
+                    else
+                    {
+                        CouplerExceedBreakLimit = false;
+                    }
+                }
+                else // if not a player train then don't ever break the couplers
+                {
+                    CouplerExceedBreakLimit = false;
                 }
             }
 
@@ -1564,6 +1583,17 @@ namespace Orts.Simulation.RollingStocks
                 // Wagon Direction
                 float direction = (float)Math.Atan2(WorldPosition.XNAMatrix.M13, WorldPosition.XNAMatrix.M11);
                 WagonDirectionDeg = MathHelper.ToDegrees((float)direction);
+
+                // If car is flipped, then the car's direction will be reversed by 180 compared to the rest of the train, and thus for calculation purposes only, 
+                // it is necessary to reverse the "assumed" direction of the car back again. This shouldn't impact the visual appearance of the car.
+                if (Flipped)
+                {
+                    WagonDirectionDeg += 180.0f; // Reverse direction of car
+                    if (WagonDirectionDeg > 360) // If this results in an angle greater then 360, then convert it back to an angle between 0 & 360.
+                    {
+                        WagonDirectionDeg -= 360;
+                    }
+                }                   
 
                 // If a westerly direction (ie -ve) convert to an angle between 0 and 360
                 if (WagonDirectionDeg < 0)
