@@ -1792,12 +1792,16 @@ namespace Orts.Simulation.Physics
             else
                 numOfCouplerBreaksNoted = false;
 
-            AddCouplerImpuseForces();
-            ComputeCouplerForces();
+
             UpdateCarSteamHeat(elapsedClockSeconds);
             UpdateAuxTender();
+
+             AddCouplerImpuseForces();
+            ComputeCouplerForces();
+
             UpdateCarSpeeds(elapsedClockSeconds);
             UpdateCouplerSlack(elapsedClockSeconds);
+
             // Update wind elements for the train, ie the wind speed, and direction, as well as the angle between the train and wind
             UpdateWindComponents();
 
@@ -4107,14 +4111,20 @@ namespace Orts.Simulation.Physics
         {
             float b = Cars[0].CouplerForceB;
             Cars[0].CouplerForceU = Cars[0].CouplerForceR / b;
+
+
             for (int i = 1; i < Cars.Count - 1; i++)
             {
                 Cars[i].CouplerForceG = Cars[i - 1].CouplerForceC / b;
                 b = Cars[i].CouplerForceB - Cars[i].CouplerForceA * Cars[i].CouplerForceG;
                 Cars[i].CouplerForceU = (Cars[i].CouplerForceR - Cars[i].CouplerForceA * Cars[i - 1].CouplerForceU) / b;
             }
+
             for (int i = Cars.Count - 3; i >= 0; i--)
+            {
                 Cars[i].CouplerForceU -= Cars[i + 1].CouplerForceG * Cars[i + 1].CouplerForceU;
+            }
+                
         }
 
 
@@ -4247,15 +4257,23 @@ namespace Orts.Simulation.Physics
         {
             // TODO: this loop could be extracted and become a separate method, that could be called also by TTTrain.physicsPreUpdate
             for (int i = 0; i < Cars.Count; i++)
+            {
                 if (Cars[i].SpeedMpS > 0)
                     Cars[i].TotalForceN -= (Cars[i].FrictionForceN + Cars[i].BrakeForceN + Cars[i].CurveForceN + Cars[i].WindForceN + Cars[i].TunnelForceN +
-                        ((Cars[i] is MSTSLocomotive && (Cars[i] as MSTSLocomotive).DynamicBrakeForceN > 0)? Math.Abs(Cars[i].MotiveForceN) : 0));
+                        ((Cars[i] is MSTSLocomotive && (Cars[i] as MSTSLocomotive).DynamicBrakeForceN > 0) ? Math.Abs(Cars[i].MotiveForceN) : 0));
                 else if (Cars[i].SpeedMpS < 0)
                     Cars[i].TotalForceN += Cars[i].FrictionForceN + Cars[i].BrakeForceN + Cars[i].CurveForceN + Cars[i].WindForceN + Cars[i].TunnelForceN +
-                        ((Cars[i] is MSTSLocomotive && (Cars[i] as MSTSLocomotive).DynamicBrakeForceN > 0)? Math.Abs(Cars[i].MotiveForceN) : 0);
+                        ((Cars[i] is MSTSLocomotive && (Cars[i] as MSTSLocomotive).DynamicBrakeForceN > 0) ? Math.Abs(Cars[i].MotiveForceN) : 0);
+            }
+
             if (Cars.Count < 2)
                 return;
-            SetupCouplerForceEquations();
+
+            SetupCouplerForceEquations(); // Based upon the car Mass, set up LH coupler forces (ABC)
+
+            // Calculate RH side coupler force
+            // Whilever coupler in first zone of expansion, then A = C = R = 0
+            // otherwise R is calculated based on difference in acceleration between cars
             for (int i = 0; i < Cars.Count - 1; i++)
             {
                 TrainCar car = Cars[i];
@@ -4268,16 +4286,24 @@ namespace Orts.Simulation.Physics
                 else
                     car.CouplerForceR = Cars[i + 1].TotalForceN / Cars[i + 1].MassKG - car.TotalForceN / car.MassKG;
             }
+
+            // Solve coupler forces to find CouplerForceU
             do
-                SolveCouplerForceEquations();
+                SolveCouplerForceEquations();  
             while (FixCouplerForceEquations());
+
             for (int i = 0; i < Cars.Count - 1; i++)
             {
+                // Calculate total forces on cars
                 TrainCar car = Cars[i];
                 car.TotalForceN += car.CouplerForceU;
                 Cars[i + 1].TotalForceN -= car.CouplerForceU;
+
+                // Find max coupler force on the car - currently doesn't appear to be used anywhere
                 if (MaximumCouplerForceN < Math.Abs(car.CouplerForceU))
                     MaximumCouplerForceN = Math.Abs(car.CouplerForceU);
+
+                // Update couplerslack2m which acts as an upper limit in slack calculations ???
                 float maxs = car.GetMaximumCouplerSlack2M();
                 if (car.CouplerForceU > 0)
                 {
@@ -4298,6 +4324,8 @@ namespace Orts.Simulation.Physics
                         car.CouplerSlack2M = maxs;
                 }
             }
+
+
         }
 
         //================================================================================================//
@@ -4467,7 +4495,7 @@ namespace Orts.Simulation.Physics
 
         //================================================================================================//
         /// <summary>
-        /// Update coupler slack
+        /// Update coupler slack - ensures that coupler slack doesn't exceed the maximum permissible value, and provides indication to HUD
         /// <\summary>
 
         public void UpdateCouplerSlack(float elapsedTime)
@@ -4476,22 +4504,31 @@ namespace Orts.Simulation.Physics
             NPull = NPush = 0;
             for (int i = 0; i < Cars.Count - 1; i++)
             {
+                // update coupler slack
                 TrainCar car = Cars[i];
                 car.CouplerSlackM += (car.SpeedMpS - Cars[i + 1].SpeedMpS) * elapsedTime;
+                car.CouplerDampingSpeedMpS = car.SpeedMpS - Cars[i + 1].SpeedMpS;
+
+                // Make sure that coupler slack does not exceed the maximum coupler slack
                 float max = car.GetMaximumCouplerSlack2M();
                 if (car.CouplerSlackM < -max)
                     car.CouplerSlackM = -max;
                 else if (car.CouplerSlackM > max)
                     car.CouplerSlackM = max;
-                TotalCouplerSlackM += car.CouplerSlackM;
-//                Trace.TraceInformation("Slack - CarID {0} Slack {1} Zero {2} MaxSlack1 {3} MaxSlack2 {4}", car.CarID, car.CouplerSlackM, car.GetCouplerZeroLengthM(), car.GetMaximumCouplerSlack1M(), car.GetMaximumCouplerSlack2M());
-                max = car.GetMaximumCouplerSlack1M();
-                if (car.CouplerSlackM >= max) // Coupler pulling
+
+                TotalCouplerSlackM += car.CouplerSlackM; // Total coupler slack displayed in HUD only
+
+//                Trace.TraceInformation("Slack - CarID {0} Slack {1} Zero {2} MaxSlack1 {3} MaxSlack2 {4} Damping1 {5} Damping2 {6} Stiffness1 {7} Stiffness2 {8} AdvancedCpl {9} CplSlackA {10} CplSlackB {11}", 
+//                    car.CarID, car.CouplerSlackM, car.GetCouplerZeroLengthM(), 
+//                    car.GetMaximumCouplerSlack1M(), car.GetMaximumCouplerSlack2M(), car.GetCouplerDamping1NMpS(), car.GetCouplerDamping2NMpS(), 
+//                    car.GetCouplerStiffness1NpM(), car.GetCouplerStiffness1NpM(), car.IsAdvancedCoupler, car.GetCouplerSlackAM(), car.GetCouplerSlackBM());
+
+                if (car.CouplerSlackM >= 0.01) // Coupler pulling
                 {
                     NPull++;
                     car.HUDCouplerForceIndication = 1; 
                 }                    
-                else if (car.CouplerSlackM <= -max)
+                else if (car.CouplerSlackM <= -0.01)
                 {
                     NPush++;
                     car.HUDCouplerForceIndication = 2;
@@ -5719,6 +5756,8 @@ namespace Orts.Simulation.Physics
         {
             int directionNow = PresentPosition[0].TCDirection;
             int positionNow = PresentPosition[0].TCSectionIndex;
+            int directionNowBack = PresentPosition[1].TCDirection;
+            int positionNowBack = PresentPosition[1].TCSectionIndex;
 
             if (PresentPosition[0].RouteListIndex >= 0) directionNow = ValidRoute[0][PresentPosition[0].RouteListIndex].Direction;
 
@@ -5731,7 +5770,7 @@ namespace Orts.Simulation.Physics
 
             if (nextRoute[1])
             {
-                if (positionNow == PresentPosition[0].TCSectionIndex && directionNow != PresentPosition[0].TCDirection)
+                if (positionNowBack == PresentPosition[0].TCSectionIndex && directionNowBack != PresentPosition[0].TCDirection)
                 {
                     ReverseFormation(IsActualPlayerTrain);
                     // active subpath must be incremented in parallel in incorporated train if present

@@ -251,7 +251,7 @@ namespace Orts.Simulation
             }
             else
             {
-                if (prevTrainSpeed == 0)
+                if (prevTrainSpeed == 0 && !(Simulator.OriginalPlayerTrain.SpeedMpS < Math.Abs(0.2f)))
                 {
                     prevTrainSpeed = Simulator.OriginalPlayerTrain.SpeedMpS;
                     Current.NotifyEvent(ActivityEventType.TrainStart);
@@ -778,6 +778,7 @@ namespace Orts.Simulation
         public bool IsAtStation(Train myTrain)
         {
             var thisStation = myTrain.StationStops[0];
+            if (myTrain.StationStops[0].SubrouteIndex != myTrain.TCRoute.activeSubpath) return false;
             return myTrain.CheckStationPosition(thisStation.PlatformItem, thisStation.Direction, thisStation.TCSectionIndex);
         }
 
