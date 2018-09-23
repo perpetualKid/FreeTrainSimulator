@@ -517,7 +517,7 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -528,7 +528,7 @@ namespace Orts.Viewer3D
                     shader.cameraTileXZ.SetValue(new Vector2(item.XNAMatrix.M21, item.XNAMatrix.M22));
                     shader.currentTime.SetValue(item.XNAMatrix.M11);
 
-                    shader.SetMatrix(Matrix.Identity, ref viewMatrix, ref projectionMatrix);
+                    shader.SetMatrix(ref matrices[(int)ViewMatrixSequence.View], ref matrices[(int)ViewMatrixSequence.Projection]);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
@@ -579,9 +579,9 @@ namespace Orts.Viewer3D
             precipitation_Tex = Parameters["precipitation_Tex"];
         }
 
-        public void SetMatrix(Matrix world, ref Matrix view, ref Matrix projection)
+        public void SetMatrix(ref Matrix view, ref Matrix projection)
         {
-            worldViewProjection.SetValue(world * view * projection);
+            worldViewProjection.SetValue(Matrix.Identity * view * projection);
             invView.SetValue(Matrix.Invert(view));
         }
     }

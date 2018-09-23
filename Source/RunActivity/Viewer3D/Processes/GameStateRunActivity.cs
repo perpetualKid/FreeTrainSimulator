@@ -1319,17 +1319,15 @@ namespace Orts.Viewer3D.Processes
                 graphicsDevice.BlendState = BlendState.NonPremultiplied;
             }
 
-            public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+            public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
             {
-                Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
-
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
                     Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewProj, out wvp);
-//                    shader.WorldViewProjection = item.XNAMatrix * viewMatrix * projectionMatrix;
+                    Matrix.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
                     shader.WorldViewProjection = wvp;
+//                    shader.WorldViewProjection = item.XNAMatrix * matrices[0] * matrices[1];
                     shader.CurrentTechnique.Passes[0].Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }

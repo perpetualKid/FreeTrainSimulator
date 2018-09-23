@@ -758,10 +758,10 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
             Matrix viewProjection = Viewer.Camera.XnaProjection;
-            Matrix.Multiply(ref viewMatrix, ref viewProjection, out viewProjection);
+            Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewProjection, out viewProjection);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -770,7 +770,6 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     // Glow lights were not working properly because farPlaneDistance used by XNASkyProjection is hardcoded at 6100.  So when view distance was greater than 6100, the 
                     // glow lights were unable to render properly.
-                    //                    Matrix wvp = item.XNAMatrix * viewMatrix * Viewer.Camera.XnaProjection;
                     Matrix wvp = item.XNAMatrix;
                     Matrix.Multiply(ref wvp, ref viewProjection, out wvp);
                     shader.SetMatrix(ref wvp);
@@ -818,10 +817,10 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState.StencilEnable = true;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
             Matrix viewProjection = Viewer.Camera.XnaProjection;
-            Matrix.Multiply(ref viewMatrix, ref viewProjection, out viewProjection);
+            Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewProjection, out viewProjection);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {

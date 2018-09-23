@@ -195,17 +195,14 @@ namespace Orts.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
-            //            var viewproj = viewMatrix * projectionMatrix;
-            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
-
-            for (int j =0; j < shaderPasses.Count; j++)
+            for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref viewProj);
+                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     shaderPasses[j].Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);

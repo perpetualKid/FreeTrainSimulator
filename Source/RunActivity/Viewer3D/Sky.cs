@@ -465,7 +465,7 @@ namespace Orts.Viewer3D
             skyShader.CloudMapTexture = cloudTexture;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
             // Adjust Fog color for day-night conditions and overcast
             FogDay2Night(
@@ -497,11 +497,11 @@ namespace Orts.Viewer3D
 
             graphicsDevice.BlendState = BlendState.Opaque;
 
-//            Matrix viewXNASkyProj = viewMatrix * Camera.XNASkyProjection;
+            //            Matrix viewXNASkyProj = viewMatrix * Camera.XNASkyProjection;
             Matrix viewXNASkyProj = Camera.XNASkyProjection;
-            Matrix.Multiply(ref viewMatrix, ref viewXNASkyProj, out viewXNASkyProj);
+            Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewXNASkyProj, out viewXNASkyProj);
 
-            skyShader.SetViewMatrix(ref viewMatrix);
+            skyShader.SetViewMatrix(ref matrices[(int)ViewMatrixSequence.View]);
             foreach (var pass in skyShader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
@@ -528,9 +528,8 @@ namespace Orts.Viewer3D
             int cloudRadiusDiff = Viewer.World.Sky.Primitive.cloudDomeRadiusDiff;
             moonMatrix = Matrix.CreateTranslation(Viewer.World.Sky.lunarDirection * (skyRadius - (cloudRadiusDiff / 2)));
             //Matrix XNAMoonMatrixView = moonMatrix * viewMatrix;
-            Matrix.Multiply(ref moonMatrix, ref viewMatrix, out moonMatrix);
-            Matrix cameraView = Camera.XNASkyProjection;
-            Matrix.Multiply(ref moonMatrix, ref cameraView, out moonMatrix);
+            Matrix.Multiply(ref moonMatrix, ref matrices[(int)ViewMatrixSequence.View], out moonMatrix);
+            Matrix.Multiply(ref moonMatrix, ref Camera.XNASkyProjection, out moonMatrix);
 
             foreach (var pass in skyShader.CurrentTechnique.Passes)
             {

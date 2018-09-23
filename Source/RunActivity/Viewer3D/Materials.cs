@@ -199,6 +199,7 @@ namespace Orts.Viewer3D
         public readonly PrecipitationShader PrecipitationShader;
         public readonly SceneryShader SceneryShader;
         public readonly ShadowMapShader ShadowMapShader;
+        public readonly ShadowMapShader[] ShadowMapShaders;
         public readonly SkyShader SkyShader;
         public readonly DebugShader DebugShader;
 
@@ -234,6 +235,11 @@ namespace Orts.Viewer3D
                 }
             }
             ShadowMapShader = new ShadowMapShader(viewer.RenderProcess.GraphicsDevice);
+            ShadowMapShaders = new ShadowMapShader[4];
+            for (int i = 0; i < ShadowMapShaders.Length; i++)
+            {
+                ShadowMapShaders[i] = new ShadowMapShader(viewer.RenderProcess.GraphicsDevice);
+            }
             SkyShader = new SkyShader(viewer.RenderProcess.GraphicsDevice);
             DebugShader = new DebugShader(viewer.RenderProcess.GraphicsDevice);
 
@@ -541,12 +547,17 @@ namespace Orts.Viewer3D
         }
 
         public virtual void SetState(GraphicsDevice graphicsDevice, Material previousMaterial) { }
-        public virtual void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix) { }
+
+        public virtual void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices) { }
+
         public virtual void ResetState(GraphicsDevice graphicsDevice) { }
 
         public virtual bool GetBlending() { return false; }
+
         public virtual Texture2D GetShadowTexture() { return null; }
-        public virtual SamplerState GetShadowTextureAddressMode() { return SamplerState.LinearWrap; }
+        
+        public SamplerState SamplerState = SamplerState.LinearWrap;
+
         public int KeyLengthRemainder() //used as a "pseudorandom" number
         {
             return key?.Length % 10 ?? 0;
@@ -576,7 +587,7 @@ namespace Orts.Viewer3D
         {
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
             for (int i = 0; i < renderItems.Count; i++)
                 renderItems[i].RenderPrimitive.Draw(graphicsDevice);
@@ -658,8 +669,10 @@ namespace Orts.Viewer3D
 
     public class SceneryMaterial : Material
     {
+        private readonly float timeOffset;
+        readonly bool nightTextureEnabled;
+        readonly bool undergroundTextureEnabled;
         private readonly SceneryMaterialOptions options;
-        private readonly float MipMapBias;
         protected Texture2D dayTexture;
         protected Texture2D nightTexture;
         private readonly string texturePath;
@@ -678,10 +691,10 @@ namespace Orts.Viewer3D
         private static readonly Dictionary<float, SamplerState>[] samplerStates = new Dictionary<float, SamplerState>[4]; //Length of TextureAddressMode Values
 
         public SceneryMaterial(Viewer viewer, string texturePath, SceneryMaterialOptions options, float mipMapBias)
-            : base(viewer, String.Format("{0}:{1:X}:{2}", texturePath, options, mipMapBias))
+            : base(viewer, string.Format("{0}:{1:X}:{2}", texturePath, options, mipMapBias))
         {
             this.options = options;
-            MipMapBias = mipMapBias;
+            this.SamplerState = GetShadowTextureAddressMode(mipMapBias, options);
             this.texturePath = texturePath;
             dayTexture = SharedMaterialManager.MissingTexture;
             nightTexture = SharedMaterialManager.MissingTexture;
@@ -769,6 +782,10 @@ namespace Orts.Viewer3D
                     }
                 }
             }
+
+            timeOffset = (KeyLengthRemainder()) / 5000f; // TODO for later use for pseudorandom texture switch time
+            nightTextureEnabled = nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture;
+            undergroundTextureEnabled = (options & SceneryMaterialOptions.UndergroundTexture) != 0;
         }
 
         public bool LoadNightTexture()
@@ -870,10 +887,12 @@ namespace Orts.Viewer3D
                     throw new InvalidDataException("Options has unexpected SceneryMaterialOptions.SpecularMask value.");
             }
 
-            graphicsDevice.SamplerStates[0] = GetShadowTextureAddressMode();
+            graphicsDevice.SamplerStates[0] = SamplerState;
 
-            if (nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture && (((options & SceneryMaterialOptions.UndergroundTexture) != 0 &&
-                (Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground)) || Viewer.MaterialManager.sunDirection.Y < 0.0f - ((float)KeyLengthRemainder()) / 5000f))
+            if (nightTextureEnabled && (undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground) || 
+                Viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset)
+            //if (nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture && (((options & SceneryMaterialOptions.UndergroundTexture) != 0 &&
+            //    (Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground)) || Viewer.MaterialManager.sunDirection.Y < 0.0f - ((float)KeyLengthRemainder()) / 5000f))
             {
                 shader.ImageTexture = nightTexture;
                 shader.ImageTextureIsNight = true;
@@ -886,16 +905,14 @@ namespace Orts.Viewer3D
 
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
-            //            var viewProj = viewMatrix * projectionMatrix;
-            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
             for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref viewProj);
+                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     shaderPasses[j].Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
@@ -935,34 +952,46 @@ namespace Orts.Viewer3D
 
         public override Texture2D GetShadowTexture()
         {
-            var timeOffset = (KeyLengthRemainder()) / 5000f; // TODO for later use for pseudorandom texture switch time
-            if (nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture && (((options & SceneryMaterialOptions.UndergroundTexture) != 0 &&
-                (Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground)) || Viewer.MaterialManager.sunDirection.Y < 0.0f - ((float)KeyLengthRemainder()) / 5000f))
-                return nightTexture;
+            //var timeOffset = (KeyLengthRemainder()) / 5000f; // TODO for later use for pseudorandom texture switch time
+            //if (nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture && (((options & SceneryMaterialOptions.UndergroundTexture) != 0 &&
+            //    (Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground)) || Viewer.MaterialManager.sunDirection.Y < 0.0f - ((float)KeyLengthRemainder()) / 5000f))
+                //    return nightTexture;
 
+                //return dayTexture;
+                if (nightTextureEnabled && (undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground) 
+                || Viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset)
+                    return nightTexture;
             return dayTexture;
         }
 
-        public override SamplerState GetShadowTextureAddressMode()
+        private static SamplerState GetShadowTextureAddressMode(float mipMapBias, SceneryMaterialOptions options)
         {
-            var mipMapBias = Math.Max(MipMapBias, -1);// MipMapBias < -1 ? -1 : MipMapBias;
+            mipMapBias = Math.Max(mipMapBias, -1);// MipMapBias < -1 ? -1 : MipMapBias;
             int textureAddressMode = (int)(options & SceneryMaterialOptions.TextureAddressModeMask);
 
             if (samplerStates[textureAddressMode] == null)
             {
-                samplerStates[textureAddressMode] = new Dictionary<float, SamplerState>();
+                lock (samplerStates)
+                {
+                    if (samplerStates[textureAddressMode] == null)
+                        samplerStates[textureAddressMode] = new Dictionary<float, SamplerState>();
+                }
             }
 
             if (!samplerStates[textureAddressMode].ContainsKey(mipMapBias))
             {
-                samplerStates[textureAddressMode].Add(mipMapBias, new SamplerState
+                lock (samplerStates[textureAddressMode])
                 {
-                    AddressU = (TextureAddressMode)textureAddressMode,
-                    AddressV = (TextureAddressMode)textureAddressMode,
-                    Filter = TextureFilter.Anisotropic,
-                    MaxAnisotropy = 16,
-                    MipMapLevelOfDetailBias = mipMapBias
-                });
+                    if (!samplerStates[textureAddressMode].ContainsKey(mipMapBias))
+                        samplerStates[textureAddressMode].Add(mipMapBias, new SamplerState
+                        {
+                            AddressU = (TextureAddressMode)textureAddressMode,
+                            AddressV = (TextureAddressMode)textureAddressMode,
+                            Filter = TextureFilter.Anisotropic,
+                            MaxAnisotropy = 16,
+                            MipMapLevelOfDetailBias = mipMapBias
+                        });
+                }
             }
             return samplerStates[textureAddressMode][mipMapBias];
         }
@@ -980,6 +1009,8 @@ namespace Orts.Viewer3D
         private EffectPassCollection shaderPasses;
         private readonly VertexBuffer blurVertexBuffer;
         private readonly ShadowMapShader shader;
+        //SemaphoreSlim test;
+        //int renderIndex;
 
         //Order needs to match order of techniques in ShadowMap.fx to simplify lookup
         //Blur map coming last (not used in enum)
@@ -988,6 +1019,7 @@ namespace Orts.Viewer3D
             Normal,
             Forest,
             Blocker,
+            Blur,
         }
 
         public ShadowMapMaterial(Viewer viewer)
@@ -1002,44 +1034,81 @@ namespace Orts.Viewer3D
                new VertexPositionTexture(new Vector3(+1, -1, 0), new Vector2(shadowMapResolution, shadowMapResolution)),
             });
             shader = Viewer.MaterialManager.ShadowMapShader;
+//            test = new SemaphoreSlim(1);
+
         }
 
         public void SetState(GraphicsDevice graphicsDevice, Mode mode)
         {
             shader.CurrentTechnique = shader.Techniques[(int)mode]; //order of techniques equals order in ShadowMap.fx, avoiding costly name-based lookups at runtime
 
-            shaderPasses = shader.CurrentTechnique.Passes;
+            for (int i = 0; i < Viewer.MaterialManager.ShadowMapShaders.Length; i++)
+            {
+                Viewer.MaterialManager.ShadowMapShaders[i].CurrentTechnique = Viewer.MaterialManager.ShadowMapShaders[i].Techniques[(int)mode];
+            }
 
+            shaderPasses = shader.CurrentTechnique.Passes;
             graphicsDevice.RasterizerState = mode == Mode.Blocker ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
-            //            var viewProj = viewMatrix * projectionMatrix;
-            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
+            //renderIndex = -1;
+            //System.Threading.Tasks.Parallel.ForEach(Viewer.MaterialManager.ShadowMapShaders, (shadowMapShader) =>
+            //    RenderParallel(graphicsDevice, renderItems, shadowMapShader, matrices, renderItemDirty));
 
-            shader.SetData(ref viewMatrix);
+            shader.SetData(ref matrices[(int)ViewMatrixSequence.View]);
             for (int j = 0; j < shaderPasses.Count; j++)
             {
-                for (int i= 0; i < renderItems.Count; i++)
+                for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    //                    var wvp = item.XNAMatrix * viewProj;
                     Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewProj, out wvp);
+                    Matrix.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
                     shader.SetData(ref wvp, item.Material.GetShadowTexture());
-                    graphicsDevice.SamplerStates[0] = item.Material.GetShadowTextureAddressMode();
                     shaderPasses[j].Apply();
+                    graphicsDevice.SamplerStates[0] = item.Material.SamplerState;
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
             }
         }
 
+//        private void RenderParallel(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ShadowMapShader shadowMapShader, Matrix[] matrices, bool renderItemDirty)
+//        {
+//            shadowMapShader.SetData(ref matrices[0]);
+//            //            foreach (var pass  in shadowMapShader.CurrentTechnique.Passes)
+//            for (int j = 0; j < shadowMapShader.CurrentTechnique.Passes.Count; j++)
+//            {
+//                int i = Interlocked.Increment(ref renderIndex);
+//                while (i < renderItems.Count)
+//                {
+//                    RenderItem item = renderItems[i];
+//                    if (renderItemDirty)
+//                    {
+//                        Matrix wvp = item.XNAMatrix;
+//                        Matrix.Multiply(ref wvp, ref matrices[2], out item.WVP);
+//                    }
+//                    //Matrix wvp = item.XNAMatrix;
+//                    //Matrix.Multiply(ref wvp, ref matrices[2], out item.WVP);
+//                    shadowMapShader.SetData(ref item.WVP, item.Material.GetShadowTexture());
+//                    SamplerState current = item.Material.SamplerState;
+//                    lock (graphicsDevice)
+//                    {
+//                        graphicsDevice.SamplerStates[0] = current;
+//                        shadowMapShader.CurrentTechnique.Passes[j].Apply();
+//                        item.RenderPrimitive.Draw(graphicsDevice);
+//                    }
+////                    test.Release();
+//                    i = Interlocked.Increment(ref renderIndex);
+//                }
+//            }
+//        }
+
         public RenderTarget2D ApplyBlur(GraphicsDevice graphicsDevice, RenderTarget2D shadowMap, RenderTarget2D renderTarget)
         {
             var wvp = Matrix.Identity;
 
-            shader.CurrentTechnique = shader.Techniques[3]; // 3 would be last in Mode-enum, but since not used outside, no need to add to enum
+            shader.CurrentTechnique = shader.Techniques[(int)Mode.Blur];
             shader.SetBlurData(ref wvp);
 
             graphicsDevice.RasterizerState = RasterizerState.CullNone;
@@ -1148,11 +1217,10 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
-
-            basicEffect.View = viewMatrix;
-            basicEffect.Projection = projectionMatrix;
+            basicEffect.View = matrices[(int)ViewMatrixSequence.View];
+            basicEffect.Projection = matrices[(int)ViewMatrixSequence.Projection];
 
             foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
             {
@@ -1197,11 +1265,10 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
-
-            basicEffect.View = viewMatrix;
-            basicEffect.Projection = projectionMatrix;
+            basicEffect.View = matrices[(int)ViewMatrixSequence.View];
+            basicEffect.Projection = matrices[(int)ViewMatrixSequence.Projection];
 
             foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
             {
@@ -1239,10 +1306,10 @@ namespace Orts.Viewer3D
             SpriteBatch.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
             textBoxes.Clear();
-            base.Render(graphicsDevice, renderItems, ref viewMatrix, ref projectionMatrix);
+            base.Render(graphicsDevice, renderItems, matrices);
         }
 
         public override bool GetBlending()
@@ -1285,17 +1352,14 @@ namespace Orts.Viewer3D
             shader.CurrentTechnique = shader.Techniques[0]; //["Normal"];
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
-            //            var viewProj = viewMatrix * projectionMatrix;
-            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
-
             for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref viewProj);
+                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     shaderPasses[j].Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }

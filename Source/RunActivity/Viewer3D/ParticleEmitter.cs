@@ -477,7 +477,7 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -491,7 +491,7 @@ namespace Orts.Viewer3D
                     var emitter = (ParticleEmitterPrimitive)item.RenderPrimitive;
                     shader.EmitSize = emitter.EmitSize;
                     shader.Texture = texture;
-                    shader.SetMatrix(Matrix.Identity, ref viewMatrix, ref projectionMatrix);
+                    shader.SetMatrix(ref matrices[(int)ViewMatrixSequence.View], ref matrices[(int)ViewMatrixSequence.Projection]);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }

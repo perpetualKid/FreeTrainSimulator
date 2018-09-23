@@ -137,7 +137,7 @@ namespace Orts.Viewer3D
         readonly EffectParameter referenceAlpha;
         readonly EffectParameter overlayScale;
 
-        private Vector3 _eyeVector;
+        private Vector3 viewEyeVector;
         Vector4 _zBias_Lighting;
         Vector3 _sunDirection;
         bool _imageTextureIsNight;
@@ -156,10 +156,16 @@ namespace Orts.Viewer3D
 
         public void SetViewMatrix(ref Matrix v)
         {
-            _eyeVector = Vector3.Normalize(new Vector3(v.M13, v.M23, v.M33));
+            viewEyeVector = new Vector3(v.M13, v.M23, v.M33);
+            Vector3.Normalize(ref viewEyeVector, out viewEyeVector);
 
-            eyeVector.SetValue(new Vector4(_eyeVector, Vector3.Dot(_eyeVector, _sunDirection) * 0.5f + 0.5f));
-            sideVector.SetValue(Vector3.Normalize(Vector3.Cross(_eyeVector, Vector3.Down)));
+            Vector3.Dot(ref viewEyeVector, ref _sunDirection, out float dot);
+            eyeVector.SetValue(new Vector4(viewEyeVector, dot * 0.5f + 0.5f));
+            sideVector.SetValue(Vector3.Normalize(Vector3.Cross(viewEyeVector, Vector3.Down)));
+
+            //            _eyeVector = Vector3.Normalize((new Vector3(v.M13, v.M23, v.M33));
+            //eyeVector.SetValue(new Vector4(viewEyeVector, Vector3.Dot(viewEyeVector, _sunDirection) * 0.5f + 0.5f));
+            //sideVector.SetValue(Vector3.Normalize(Vector3.Cross(viewEyeVector, Vector3.Down)));
         }
 
         public void SetMatrix(Matrix w, ref Matrix vp)
@@ -442,7 +448,7 @@ namespace Orts.Viewer3D
 
             var eye = Vector3.Normalize(new Vector3(view.M13, view.M23, view.M33));
             var right = Vector3.Cross(eye, Vector3.Up);
-            var up = Vector3.Cross(right, eye);
+            Vector3.Cross(ref right, ref eye, out Vector3 up);
 
             rightVector.SetValue(right * moonScale);
             upVector.SetValue(up * moonScale);
@@ -550,9 +556,9 @@ namespace Orts.Viewer3D
             fog = Parameters["Fog"];
         }
 
-        public void SetMatrix(Matrix world, ref Matrix view, ref Matrix projection)
+        public void SetMatrix(ref Matrix view, ref Matrix projection)
         {
-            wvp.SetValue(world * view * projection);
+            wvp.SetValue(Matrix.Identity * view * projection);
             invView.SetValue(Matrix.Invert(view));
         }
 

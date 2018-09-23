@@ -597,16 +597,14 @@ namespace Orts.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
-            //            var viewProj = viewMatrix * projectionMatrix;
-            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref viewProj);
+                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }
@@ -664,10 +662,8 @@ namespace Orts.Viewer3D
             nightEffect = 1 - MathHelper.Clamp((sunDirection.Y - finishNightTrans) / (startNightTrans - finishNightTrans), 0, 1);
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
-            //            var viewProj = viewMatrix * projectionMatrix;
-            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProj);
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
@@ -675,7 +671,7 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     var slp = item.RenderPrimitive as SignalLightPrimitive;
                     shader.ZBias = MathHelper.Lerp(slp.GlowIntensityDay, slp.GlowIntensityNight, nightEffect);
-                    shader.SetMatrix(item.XNAMatrix, ref viewProj);
+                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
                 }

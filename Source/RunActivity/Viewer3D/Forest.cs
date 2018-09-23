@@ -440,18 +440,15 @@ namespace Orts.Viewer3D
             graphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
         {
-            //            var viewproj = viewMatrix * projectionMatrix;
-            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewproj);
-
-            shader.SetViewMatrix(ref viewMatrix);
-            foreach(var pass in shader.CurrentTechnique.Passes)
+            shader.SetViewMatrix(ref matrices[(int)ViewMatrixSequence.View]);
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref viewproj);
+                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
