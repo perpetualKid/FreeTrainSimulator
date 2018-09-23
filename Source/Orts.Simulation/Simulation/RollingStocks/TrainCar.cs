@@ -165,9 +165,11 @@ namespace Orts.Simulation.RollingStocks
         public float _PrevSpeedMpS;
         public float AbsSpeedMpS; // Math.Abs(SpeedMps) expression is repeated many times in the subclasses, maybe this deserves a class variable
         public float CouplerSlackM;  // extra distance between cars (calculated based on relative speeds)
+        public float CouplerDampingSpeedMpS; // Dampening applied to coupler
         public int HUDCouplerForceIndication = 0; // Flag to indicate whether coupler is 1 - pulling, 2 - pushing or 0 - neither
-        public bool HUDCouplerRigidIndication = false; // flag to indicate whether coupler is rigid of flexible. False indicates that coupler is flexible
+        public int HUDCouplerRigidIndication = 0; // flag to indicate whether coupler is rigid of flexible. False indicates that coupler is flexible
         public float CouplerSlack2M;  // slack calculated using draft gear force
+        public bool IsAdvancedCoupler = false; // Flag to indicate that coupler is to be treated as an advanced coupler
         public bool WheelSlip;  // true if locomotive wheels slipping
         public bool WheelSlipWarning;
         public bool WheelSkid;  // True if wagon wheels lock up.
@@ -316,7 +318,8 @@ namespace Orts.Simulation.RollingStocks
         public float CouplerForceG; // temporary value used by solver
         public float CouplerForceR; // right hand side value
         public float CouplerForceU; // result
-        public bool CouplerOverloaded; //true when coupler force is higher then Break limit
+        public bool CouplerExceedBreakLimit; //true when coupler force is higher then Break limit (set by 2nd parameter in Break statement)
+        public bool CouplerOverloaded; //true when coupler force is higher then Proof limit, thus overloaded, but not necessarily broken (set by 1nd parameter in Break statement)
         public bool BrakesStuck; //true when brakes stuck
 
         // set when model is loaded
@@ -1153,28 +1156,32 @@ namespace Orts.Simulation.RollingStocks
                             }
                         }
 
+
+                        // This alarm indication comes up even in shunting yard situations where typically no superelevation would be present.
+                        // Code is disabled until a bteer way is determined to work out whether track piees are superelevated or not.
+
                         // if speed doesn't reach minimum speed required around the curve then set notification
-                        if (s < CriticalMinSpeedMpS && Train.GetType() != typeof(AITrain) && Train.GetType() != typeof(TTTrain)) // Breaking of brake hose will not apply to TT mode or AI trains)
-                        {
-                            if (!IsCriticalMinSpeed)
-                            {
-                                IsCriticalMinSpeed = true; // set flag for IsCriticalSpeed not reached
-
-                                if (Train.IsPlayerDriven && !Simulator.TimetableMode)  // Warning messages will only apply if this is player train and not running in TT mode
-                                {
-                                    BrakeSystem.FrontBrakeHoseConnected = false; // break the brake hose connection between cars if the speed is too fast
-                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You were travelling too slow for this curve, and have snapped a brake hose on Car " + CarID + ". You will need to repair the hose and restart."));
-                                }
-                            }
-
-                        }
-                        else if (s > CriticalMinSpeedMpS + SpeedToleranceMpS) // Reset notification once speed increases
-                        {
-                            if (IsCriticalMinSpeed)
-                            {
-                                IsCriticalMinSpeed = false; // reset flag for IsCriticalSpeed reached - if speed on curve decreases
-                            }
-                        }
+                       // Breaking of brake hose will not apply to TT mode or AI trains or if on a curve less then 150m to cover operation in shunting yards, where track would mostly have no superelevation
+//                        if (s < CriticalMinSpeedMpS && Train.GetType() != typeof(AITrain) && Train.GetType() != typeof(TTTrain) && CurrentCurveRadius > 150 ) 
+//                       {
+//                            if (!IsCriticalMinSpeed)
+//                            {
+//                                IsCriticalMinSpeed = true; // set flag for IsCriticalSpeed not reached
+//
+//                                if (Train.IsPlayerDriven && !Simulator.TimetableMode)  // Warning messages will only apply if this is player train and not running in TT mode
+//                                {
+//                                      Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You were travelling too slow for this curve, and Car " + CarID + "may topple over."));
+//                                }
+//                            }
+//
+//                        }
+//                        else if (s > CriticalMinSpeedMpS + SpeedToleranceMpS) // Reset notification once speed increases
+//                        {
+//                            if (IsCriticalMinSpeed)
+//                            {
+//                                IsCriticalMinSpeed = false; // reset flag for IsCriticalSpeed reached - if speed on curve decreases
+//                            }
+//                        }
 
 #if DEBUG_CURVE_SPEED
                    Trace.TraceInformation("================================== TrainCar.cs - DEBUG_CURVE_SPEED ==============================================================");
@@ -1336,7 +1343,7 @@ namespace Orts.Simulation.RollingStocks
                 ThrottlePercent,
                 String.Format("{0}{1}", FormatStrings.FormatSpeedDisplay(SpeedMpS, IsMetric), WheelSlip ? "!!!" : ""),
                 FormatStrings.FormatPower(MotiveForceN * SpeedMpS, IsMetric, false, false),
-                String.Format("{0}{1}", FormatStrings.FormatForce(MotiveForceN, IsMetric), CouplerOverloaded ? "???" : ""));
+                String.Format("{0}{1}", FormatStrings.FormatForce(MotiveForceN, IsMetric), CouplerExceedBreakLimit ? "???" : ""));
         }
         public virtual string GetTrainBrakeStatus() { return null; }
         public virtual string GetEngineBrakeStatus() { return null; }
@@ -1470,6 +1477,41 @@ namespace Orts.Simulation.RollingStocks
             return 2e7f;
         }
 
+        public virtual float GetCouplerStiffness1NpM()
+        {
+            return 1e7f;
+        }
+
+        public virtual float GetCouplerStiffness2NpM()
+        {
+            return 1e7f;
+        }
+
+        public virtual float GetCouplerDamping1NMpS()
+        {
+            return 1e7f;
+        }
+
+        public virtual float GetCouplerDamping2NMpS()
+        {
+            return 1e7f;
+        }
+
+        public virtual float GetCouplerSlackAM()
+        {
+            return 0;
+        }
+
+        public virtual float GetCouplerSlackBM()
+        {
+            return 0.1f;
+        }
+
+        public virtual int GetCouplerRigidIndication()
+        {
+            return 0;
+        }
+
         public virtual float GetMaximumCouplerSlack1M()
         {
             return .012f;
@@ -1489,6 +1531,11 @@ namespace Orts.Simulation.RollingStocks
         {
             CouplerSlackM = other.CouplerSlackM;
             CouplerSlack2M = other.CouplerSlack2M;
+        }
+
+        public virtual bool GetAdvancedCouplerFlag()
+        {
+            return false;
         }
 
         public virtual void CopyControllerSettings(TrainCar other)
@@ -1531,22 +1578,28 @@ namespace Orts.Simulation.RollingStocks
             // Came across a model where the axle offset that is part of a bogie would become 0 during the initial process.  This is something we must test for.
             if (wheels.Length == 8 && Parts.Count > 0)
             {
-                if (wheels == "WHEELS11" || wheels == "WHEELS12" || wheels == "WHEELS13")
+                if (wheels == "WHEELS11" || wheels == "WHEELS12" || wheels == "WHEELS13" || wheels == "WHEELS14")
                     WheelAxles.Add(new WheelAxle(offset, bogieID, parentMatrix));
 
-                if (wheels == "WHEELS21" || wheels == "WHEELS22" || wheels == "WHEELS23")
+                else if (wheels == "WHEELS21" || wheels == "WHEELS22" || wheels == "WHEELS23" || wheels == "WHEELS24")
                     WheelAxles.Add(new WheelAxle(offset, bogieID, parentMatrix));
 
-                if (wheels == "WHEELS31" || wheels == "WHEELS32" || wheels == "WHEELS33")
+                else if (wheels == "WHEELS31" || wheels == "WHEELS32" || wheels == "WHEELS33" || wheels == "WHEELS34")
+                    WheelAxles.Add(new WheelAxle(offset, bogieID, parentMatrix));
+
+                else if (wheels == "WHEELS41" || wheels == "WHEELS42" || wheels == "WHEELS43" || wheels == "WHEELS44")
+                    WheelAxles.Add(new WheelAxle(offset, bogieID, parentMatrix));
+                // This else will cover additional Wheels added following the proper naming convention.
+                else
                     WheelAxles.Add(new WheelAxle(offset, bogieID, parentMatrix));
             }
-            // The else will cover any WHEELS spelling or additions not covered above.
+            // The else will cover WHEELS spelling where the length is less than 8.
             else
                 WheelAxles.Add(new WheelAxle(offset, bogieID, parentMatrix));
 
         } // end AddWheelSet()
 
-        public void AddBogie(float offset, int matrix, int id, string bogie, int numBogie1, int numBogie2, int numBogie)
+        public void AddBogie(float offset, int matrix, int id, string bogie, int numBogie1, int numBogie2)
         {
             if (WheelAxlesLoaded || WheelHasBeenSet)
                 return;
@@ -1583,7 +1636,7 @@ namespace Orts.Simulation.RollingStocks
                     Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
                 }
             }
-            if (bogie == "BOGIE3")
+            else if (bogie == "BOGIE3")
             {
                 while (Parts.Count <= id)
                     Parts.Add(new TrainCarPart(0, 0));
@@ -1591,7 +1644,7 @@ namespace Orts.Simulation.RollingStocks
                 Parts[id].iMatrix = matrix;
                 Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
             }
-            if (bogie == "BOGIE4")
+            else if (bogie == "BOGIE4")
             {
                 while (Parts.Count <= id)
                     Parts.Add(new TrainCarPart(0, 0));
@@ -1607,7 +1660,16 @@ namespace Orts.Simulation.RollingStocks
                 Parts[id].iMatrix = matrix;
                 Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
             }
-            
+            // The else will cover additions not covered above.
+            else
+            {
+                while (Parts.Count <= id)
+                    Parts.Add(new TrainCarPart(0, 0));
+                Parts[id].OffsetM = offset;
+                Parts[id].iMatrix = matrix;
+                Parts[id].bogie = true;//identify this is a bogie, will be used for hold rails on track
+            }
+
         } // end AddBogie()
 
         public void SetUpWheels()

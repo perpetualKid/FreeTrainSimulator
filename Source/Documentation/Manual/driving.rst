@@ -1036,11 +1036,14 @@ Open Rails provides all of the MSTS views plus additional view options:
   pressed);
 - The exterior views (keys 2,3,4,6) and the interior view (key 5) can be 
   attached to any train in the simulation by the Alt+9 key as described
-  below
+  below;
 - The ``<Alt+F9>`` key shows the :ref:`Train List <driving-trainlist>` 
   window, which not only allows attaching the exterior views to any train, 
   but also, in Activity mode, to move to the Cab and :ref:`drive any train 
-  in the simulation <driving-trainlist>`.
+  in the simulation <driving-trainlist>`;
+- when in passenger view (key 5) it is possible to toggle the viewpoint from 
+  one side to the other of the wagon, and to jump to other viewpoints if defined, 
+  as described below.
 
 All of the required key presses are shown by the ``F1 Help`` key in the game. 
 Note that some of the key combinations are different in Open Rails than in 
@@ -1109,7 +1112,12 @@ default position relative to the current target car.
   up or down with ``<Alt>`` + the four arrow keys. Successive presses of the 
   ``<5>`` key will move the view to successive views (if they exist) within 
   the active train. Note that the *active train* may be an AI train selected 
-  by ``<Ctrl+9>``.
+  by ``<Ctrl+9>``. By pressing ``<Shift+5>`` the viewpoint can be toggled to 
+  the other 
+  side of the wagon (if it was right side, it moves to left side and vice-versa). 
+  If more viewpoints are defined for such wagon as explained 
+  :ref:`here <features-passengerviewpoints>`, pressing ``<Shift+5>`` moves 
+  through the various viewpoints.
 - Key ``<6>`` is the brakeman's view -- the camera is assumed to be at 
   either end of the train, selected by ``<Alt+Home>`` and ``<Alt+End>``.
   Rotation is controlled by the arrow keys or mouse with right button 
@@ -1563,24 +1571,61 @@ can be found in :ref:`Open Rails Braking <physics-braking>` and
 Extended HUD for Train Force Information
 ----------------------------------------
 
-In the first part of this display some information related to the player 
+In the top part of this display some information related to the player 
 locomotive is shown. The information format differs if :ref:`advanced 
 adhesion <options-advanced-adhesion>` has been selected or not in the 
 :ref:`Simulation Options <options-simulation>`.
 
-The table part shows total force for up to ten locos/cars in the train. 
-The first number shows the position of the car in the train. The second 
-number is the total force acting on the car. This is the sum of the other 
-forces after the signs are properly adjusted. The next number is the 
-motive force which should only be non-zero for locomotives, and that 
-becomes negative during dynamic braking. Next number is the brake force. 
-Follows the friction force calculated from the Davis equation. The 
-following value is the force due to gravity. Next values are the friction 
-forces due to the car being in a curve and/or in a tunnel. The next value 
-is the coupler force between this car and the next (negative is pull and 
-positive is push). The mass in kg and the track elevation in % under the 
-car follow. All of the force values are in Newtons. Many of these values 
-are relative to the orientation of the car, but some are relative to the 
+The middle line of information shown (provided that Wind Dependent 
+Resistance is selected in the Options Menu) shows the wind speed and 
+direction, the train direction, and the resulting train/wind vectors 
+for speed and direction.
+
+The table part below the above information, shows the relevant forces 
+acting upon the locos/cars in the train.
+
+The columns are as follows:
+
+**Car**  - the position of the car in the train.
+
+**Total**  - the total force acting on the car. This is the sum of the other 
+forces after the signs are properly adjusted.
+ 
+**Motive**  - the motive force which should only be non-zero for locomotives,
+ and that becomes negative during dynamic braking.
+  
+**Brake**  - the brake force.
+ 
+**Friction**  - the friction (or resistance) force calculated from the Davis equation. 
+This is in STILL air only.
+
+**Gravity**  - the force due to gravity.
+ 
+**Curve**  - the resistance forces due to the car being on a curve.
+
+**Tunnel**  -  the resistance forces due to the car being in a tunnel.
+ 
+**Wind**   - the resistance forces due to the car being impacted by wind.
+ 
+**Coupler**   - the coupler force between this car and the next (negative is pull and 
+positive is push). The **F** or **R** symbols indicate whether the coupler is a flexible or 
+rigid coupler respectively.
+
+**Slack**  - indicates the amount of slack (distance due to coupler movement between the cars).
+
+**Mass**  - car mass in kg.
+
+**Gradient**  - gradient of the track underneath the car.
+
+**Curve**  - the radius of the curve.
+
+**Brk Frict**  - friction of the brakes on the car.
+
+**Brk Slide**  - indicates whether the car is skidding due to excessive brake application.
+
+All of the force values will be in Newtons, or the UoM selected by the player. 
+
+Many of these values are relative to the orientation of the car, but some are relative to the 
 train. If applicable, two further fields appear: the first is "True" if 
 the car is flipped with respect to the train or ``False`` otherwise, while 
 the second field signals coupler overload.

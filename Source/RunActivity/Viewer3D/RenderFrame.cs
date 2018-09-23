@@ -547,16 +547,9 @@ namespace Orts.Viewer3D
                 Console.WriteLine();
                 Console.WriteLine("Draw {");
             }
-            if (!game.RenderProcess.StopUpdate)
-            {
-                //System.Threading.Tasks.Task.Run(() =>
-                //{
-                if (dynamicShadows && (shadowMapCount > 0) && shadowMapMaterial != null)
-                    DrawShadows(graphicsDevice, logging);
-                DrawSimple(graphicsDevice, logging);
-                //}
-                //).Wait();
-            }
+            if (dynamicShadows && (shadowMapCount > 0) && shadowMapMaterial != null)
+                DrawShadows(graphicsDevice, logging);
+            DrawSimple(graphicsDevice, logging);
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
                 game.RenderProcess.PrimitiveCount[i] = renderItems[i].Values.Sum(l => l.Count);
 
