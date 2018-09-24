@@ -385,19 +385,27 @@ namespace ORTS
         #region Folders
         private async void ComboBoxFolder_SelectedIndexChanged(object sender, EventArgs e)
         {
-            await Task.WhenAll(LoadRouteListAsync(), LoadLocomotiveListAsync());
-            ShowDetails();
+            try
+            {
+                await Task.WhenAll(LoadRouteListAsync(), LoadLocomotiveListAsync());
+                ShowDetails();
+            }
+            catch (System.Threading.Tasks.TaskCanceledException) { }
         }
         #endregion
 
         #region Routes
         private async void ComboBoxRoute_SelectedIndexChanged(object sender, EventArgs e)
         {
-            await Task.WhenAll(
-                LoadActivityListAsync(), 
-                LoadStartAtListAsync(), 
-                LoadTimetableSetListAsync());
-            ShowDetails();
+            try
+            {
+                await Task.WhenAll(
+                    LoadActivityListAsync(),
+                    LoadStartAtListAsync(),
+                    LoadTimetableSetListAsync());
+                ShowDetails();
+            }
+            catch (System.Threading.Tasks.TaskCanceledException) { }
         }
         #endregion
 
