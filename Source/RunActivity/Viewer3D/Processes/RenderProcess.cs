@@ -82,7 +82,6 @@ namespace Orts.Viewer3D.Processes
 
             Game.Window.Title = "Open Rails";
             GraphicsDeviceManager = new GraphicsDeviceManager(game);
-            GraphicsDeviceManager.ApplyChanges(); //to ensure the graphics device is enabled in MG 3.6
 
             var windowSizeParts = Game.Settings.WindowSize.Split(new[] { 'x' }, 2);
             GameWindowSize = new Point(Convert.ToInt32(windowSizeParts[0]), Convert.ToInt32(windowSizeParts[1]));

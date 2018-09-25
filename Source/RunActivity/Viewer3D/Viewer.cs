@@ -1761,7 +1761,7 @@ namespace Orts.Viewer3D
         {
             if (graphicsDevice.GraphicsProfile != GraphicsProfile.HiDef)
                 return;
-/*
+
             int w = graphicsDevice.PresentationParameters.BackBufferWidth;
             int h = graphicsDevice.PresentationParameters.BackBufferHeight;
             int[] backBuffer = new int[w * h];
@@ -1800,7 +1800,6 @@ namespace Orts.Viewer3D
                 }
                 catch { }
             }).Start();
-            */
         }
     }
 }
