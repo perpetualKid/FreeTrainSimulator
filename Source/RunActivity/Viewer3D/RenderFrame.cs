@@ -167,8 +167,8 @@ namespace Orts.Viewer3D
             public int Compare(RenderItem x, RenderItem y)
             {
 
-                float temp = y.XNAMatrix.M41 - viewerPos.X;
-                float distanceSquared = temp * temp;
+                double temp = y.XNAMatrix.M41 - viewerPos.X;
+                double distanceSquared = temp * temp;
                 temp = y.XNAMatrix.M42 - viewerPos.Y;
                 distanceSquared += temp * temp;
                 temp = y.XNAMatrix.M43 - viewerPos.Z;
