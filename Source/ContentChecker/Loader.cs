@@ -175,7 +175,7 @@ namespace ContentChecker
 
                 //_graphicsDevice = new GraphicsDevice(GraphicsAdapter.DefaultAdapter, DeviceType.NullReference, IntPtr.Zero,
                 //                                    parameters);
-                _graphicsDevice = new GraphicsDevice(GraphicsAdapter.DefaultAdapter, GraphicsProfile.HiDef, new PresentationParameters());
+                _graphicsDevice = new GraphicsDevice(GraphicsAdapter.DefaultAdapter, GraphicsProfile.HiDef, parameters);
             }
             return _graphicsDevice;
         }
