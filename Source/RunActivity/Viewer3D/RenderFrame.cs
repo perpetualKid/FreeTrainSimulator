@@ -491,7 +491,7 @@ namespace Orts.Viewer3D
                     if (sequenceMaterial.Key != DummyBlendedMaterial)
                         continue;
 //                    Debug.WriteLine($"Sorting {sequenceMaterial.ToString()} {sequenceMaterial.Value.Count} items");
-                    dddddddesequenceMaterial.Value.Sort(renderItemComparer);
+                    sequenceMaterial.Value.Sort(renderItemComparer);
                 }
             }
         }
