@@ -1313,9 +1313,21 @@ namespace Orts.Simulation.RollingStocks
 
             UpdateControllers(elapsedClockSeconds);
 
-            // Train Heading
-            var heading = (float)Math.Atan2(WorldPosition.XNAMatrix.M13, WorldPosition.XNAMatrix.M11);
-            Train.PhysicsTrainLocoDirectionDeg = MathHelper.ToDegrees((float)heading);
+            // Train Heading - only check the lead locomotive otherwise flipped locomotives further in consist will overwrite the train direction
+            if (IsLeadLocomotive())
+            {
+                var heading = (float)Math.Atan2(WorldPosition.XNAMatrix.M13, WorldPosition.XNAMatrix.M11);
+                Train.PhysicsTrainLocoDirectionDeg = MathHelper.ToDegrees((float)heading);
+
+                if (Flipped)
+                {
+                    Train.PhysicsTrainLocoDirectionDeg += 180.0f; // Reverse direction of train
+                    if (Train.PhysicsTrainLocoDirectionDeg > 360) // If this results in an angle greater then 360, then convert it back to an angle between 0 & 360.
+                    {
+                        Train.PhysicsTrainLocoDirectionDeg -= 360;
+                    }
+                }
+            }
  
             // TODO  this is a wild simplification for electric and diesel electric
                         float t = ThrottlePercent / 100f;
@@ -3205,6 +3217,116 @@ namespace Orts.Simulation.RollingStocks
             TrainControlSystem.AlerterPressed(pressed);
         }
 
+        //put here because you can have diesel helpers and electric player locomotive
+        public void ToggleHelpersEngine()
+        {
+            var onOffFound = false; //this avoids that locomotive engines toggle in opposite directions
+            var powerOn = false;
+            var helperLocos = 0;
+
+            foreach (var car in Train.Cars)
+            {
+                var mstsDieselLocomotive = car as MSTSDieselLocomotive;
+                if (mstsDieselLocomotive != null && mstsDieselLocomotive.AcceptMUSignals)
+                {
+                    if (mstsDieselLocomotive.DieselEngines.Count > 0)
+                    {
+                        if ((car == Simulator.PlayerLocomotive))
+                        {
+                            if ((mstsDieselLocomotive.DieselEngines.Count > 1))
+                            {
+                                for (int i = 1; i < mstsDieselLocomotive.DieselEngines.Count; i++)
+                                {
+                                    if (!onOffFound)
+                                    {
+                                        onOffFound = true;
+                                        if (mstsDieselLocomotive.DieselEngines[i].EngineStatus == DieselEngine.Status.Stopped)
+                                        {
+                                            mstsDieselLocomotive.DieselEngines[i].Start();
+                                            powerOn = true;
+                                        }
+                                        if (mstsDieselLocomotive.DieselEngines[i].EngineStatus == DieselEngine.Status.Running)
+                                        {
+                                            mstsDieselLocomotive.DieselEngines[i].Stop();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (mstsDieselLocomotive.DieselEngines[i].EngineStatus == DieselEngine.Status.Stopped && powerOn)
+                                        {
+                                            mstsDieselLocomotive.DieselEngines[i].Start();
+                                        }
+                                        if (mstsDieselLocomotive.DieselEngines[i].EngineStatus == DieselEngine.Status.Running && !powerOn)
+                                        {
+                                            mstsDieselLocomotive.DieselEngines[i].Stop();
+                                        }
+                                    }
+                                }
+                                if (mstsDieselLocomotive.DieselEngines[1].EngineStatus == DieselEngine.Status.Stopping)
+                                    mstsDieselLocomotive.SignalEvent(Event.SecondEnginePowerOff);
+                                else if (mstsDieselLocomotive.DieselEngines[1].EngineStatus == DieselEngine.Status.Starting)
+                                    mstsDieselLocomotive.SignalEvent(Event.SecondEnginePowerOn);
+                            }
+                        }
+                        else
+                        {
+                            foreach (DieselEngine de in mstsDieselLocomotive.DieselEngines)
+                            {
+                                if (!onOffFound)
+                                {
+                                    if (de.EngineStatus == DieselEngine.Status.Stopped)
+                                    {
+                                        de.Start();
+                                        powerOn = true;
+                                    }
+                                    if (de.EngineStatus == DieselEngine.Status.Running)
+                                    {
+                                        de.Stop();
+                                    }
+                                }
+                                else
+                                {
+
+                                    if (de.EngineStatus == DieselEngine.Status.Stopped && powerOn)
+                                    {
+                                        de.Start();
+                                    }
+                                    if (de.EngineStatus == DieselEngine.Status.Running && !powerOn)
+                                    {
+                                        de.Stop();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //mstsDieselLocomotive.StartStopDiesel();
+
+                    if ((car != Simulator.PlayerLocomotive) && (mstsDieselLocomotive.AcceptMUSignals))
+                    {
+                        if (mstsDieselLocomotive.DieselEngines[0].EngineStatus == DieselEngine.Status.Stopping)
+                            mstsDieselLocomotive.SignalEvent(Event.EnginePowerOff);
+                        else if (mstsDieselLocomotive.DieselEngines[0].EngineStatus == DieselEngine.Status.Starting)
+                            mstsDieselLocomotive.SignalEvent(Event.EnginePowerOn);
+                        if (mstsDieselLocomotive.DieselEngines.Count > 1)
+                        {
+                            if (mstsDieselLocomotive.DieselEngines[1].EngineStatus == DieselEngine.Status.Stopping)
+                                mstsDieselLocomotive.SignalEvent(Event.SecondEnginePowerOff);
+                            else if (mstsDieselLocomotive.DieselEngines[1].EngineStatus == DieselEngine.Status.Starting)
+                                mstsDieselLocomotive.SignalEvent(Event.SecondEnginePowerOn);
+                        }
+                    }
+                    helperLocos++;
+                }
+            }
+            // One confirmation however many helper locomotives
+            // <CJComment> Couldn't make one confirmation per loco work correctly :-( </CJComment>
+            if (helperLocos > 0)
+            {
+                Simulator.Confirmer.Confirm(CabControl.HelperDiesel, powerOn ? CabSetting.On : CabSetting.Off);
+            }
+
+        }
+
         public override void SignalEvent(Event evt)
         {
             switch (evt)
@@ -3456,6 +3578,55 @@ namespace Orts.Simulation.RollingStocks
                                 data = data / 4448.22162f;
                                 break;
                         }                   
+                        if (direction == 1 && !(cvc is CVCGauge))
+                            data = -data;
+                        break;
+                    }
+                case CABViewControlTypes.DYNAMIC_BRAKE_FORCE:
+                    {
+                        var direction = 0; // Forwards
+                        if (cvc is CVCGauge && ((CVCGauge)cvc).Orientation == 0)
+                            direction = ((CVCGauge)cvc).Direction;
+                        data = 0.0f;
+                        if (FilteredMotiveForceN != 0)
+                            data = this.FilteredMotiveForceN;
+                        else
+                            data = this.LocomotiveAxle.AxleForceN;
+                        if (data > 0 && SpeedMpS > 0 || data < 0 && SpeedMpS < 0)
+                        {
+                            data = 0;
+                            break;
+                        }
+                        data = Math.Abs(data);
+                        switch (cvc.Units)
+                        {
+                            case CABViewControlUnits.AMPS:
+                                if (MaxCurrentA == 0)
+                                    MaxCurrentA = (float)cvc.MaxValue;
+                                if (DynamicBrakeMaxCurrentA == 0)
+                                    DynamicBrakeMaxCurrentA = (float)cvc.MinValue;
+                                if (ThrottlePercent > 0)
+                                {
+                                    data = 0;
+                                }
+                                if (DynamicBrakePercent > 0)
+                                {
+                                    data = (data / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
+                                }
+                                data = Math.Abs(data);
+                                break;
+
+                            case CABViewControlUnits.NEWTONS:
+                                break;
+
+                            case CABViewControlUnits.KILO_NEWTONS:
+                                data = data / 1000.0f;
+                                break;
+
+                            case CABViewControlUnits.KILO_LBS:
+                                data = data / 4448.22162f;
+                                break;
+                        }
                         if (direction == 1 && !(cvc is CVCGauge))
                             data = -data;
                         break;
@@ -3781,6 +3952,18 @@ namespace Orts.Simulation.RollingStocks
                         }
                         break;
                     }
+                case CABViewControlTypes.ORTS_CABLIGHT:
+                    data = CabLightOn ? 1 : 0;
+                    break;
+                case CABViewControlTypes.ORTS_LEFTDOOR:
+                    data = GetCabFlipped() ? (DoorRightOpen ? 1 : 0) : DoorLeftOpen ? 1 : 0;
+                    break;
+                case CABViewControlTypes.ORTS_RIGHTDOOR:
+                    data = GetCabFlipped() ? (DoorLeftOpen ? 1 : 0) : DoorRightOpen ? 1 : 0;
+                    break;
+                case CABViewControlTypes.ORTS_MIRRORS:
+                    data = MirrorOpen ? 1 : 0;
+                    break;
                 default:
                     {
                         data = 0;

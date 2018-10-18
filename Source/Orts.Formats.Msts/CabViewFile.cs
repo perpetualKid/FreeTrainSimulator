@@ -148,6 +148,7 @@ namespace Orts.Formats.Msts
         ORTS_DIESEL_TEMPERATURE,
         ORTS_CYL_COMP,
         GEARS_DISPLAY,
+        DYNAMIC_BRAKE_FORCE,
         ORTS_CIRCUIT_BREAKER_DRIVER_CLOSING_ORDER,
         ORTS_CIRCUIT_BREAKER_DRIVER_OPENING_ORDER,
         ORTS_CIRCUIT_BREAKER_DRIVER_CLOSING_AUTHORIZATION,
@@ -161,6 +162,11 @@ namespace Orts.Formats.Msts
         ORTS_PLAYER_DIESEL_ENGINE_STATE,
         ORTS_PLAYER_DIESEL_ENGINE_STARTER,
         ORTS_PLAYER_DIESEL_ENGINE_STOPPER,
+        ORTS_CABLIGHT,
+        ORTS_LEFTDOOR,
+        ORTS_RIGHTDOOR,
+        ORTS_MIRRORS,
+
         // Further CabViewControlTypes must be added above this line, to avoid their malfunction in 3DCabs
         EXTERNALWIPERS,
         LEFTDOOR,

@@ -1335,11 +1335,11 @@ namespace Orts.Simulation.RollingStocks
         public virtual string GetStatus() { return null; }
         public virtual string GetDebugStatus()
         {
-            return String.Format("Car {0}\t{2} {1}\t\t{3}\t{4:F0}%\t{5}\t\t{6}\t{7}",
-                UiD,
-                Flipped ? Simulator.Catalog.GetString("(flipped)") : "",
+            return String.Format("{0}\t{2}\t{1}\t{3}\t{4:F0}%\t{5}\t\t{6}\t{7}\t",
+                CarID,
+                Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 FormatStrings.Catalog.GetParticularString("Reverser", GetStringAttribute.GetPrettyName(Direction)),
-                AcceptMUSignals ? Simulator.Catalog.GetString("MU'd") : Simulator.Catalog.GetString("Single"),
+                AcceptMUSignals ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 ThrottlePercent,
                 String.Format("{0}{1}", FormatStrings.FormatSpeedDisplay(SpeedMpS, IsMetric), WheelSlip ? "!!!" : ""),
                 FormatStrings.FormatPower(MotiveForceN * SpeedMpS, IsMetric, false, false),
@@ -1512,14 +1512,19 @@ namespace Orts.Simulation.RollingStocks
             return 0;
         }
 
-        public virtual float GetMaximumCouplerSlack1M()
+        public virtual float GetMaximumCouplerSlack0M()
         {
-            return .012f;
+            return 0.005f;
         }
 
+        public virtual float GetMaximumCouplerSlack1M()
+        {
+            return 0.012f;
+        }
+        
         public virtual float GetMaximumCouplerSlack2M()
         {
-            return .12f;
+            return 0.12f;
         }
 
         public virtual float GetMaximumCouplerForceN()

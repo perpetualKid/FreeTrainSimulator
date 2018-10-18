@@ -381,6 +381,8 @@ namespace Orts.Simulation
         {
             ExplorePathFile = path;
             ExploreConFile = consist;
+            patFileName = Path.ChangeExtension(path, "PAT");
+            conFileName = Path.ChangeExtension(consist, "CON");
             var time = start.Split(':');
             TimeSpan StartTime = new TimeSpan(int.Parse(time[0]), time.Length > 1 ? int.Parse(time[1]) : 0, time.Length > 2 ? int.Parse(time[2]) : 0);
             ClockTime = StartTime.TotalSeconds;
@@ -396,6 +398,8 @@ namespace Orts.Simulation
             ActivityRun = new Activity(Activity, this);
             ExplorePathFile = path;
             ExploreConFile = consist;
+            patFileName = Path.ChangeExtension(path, "PAT");
+            conFileName = Path.ChangeExtension(consist, "CON");
             var time = start.Split(':');
             TimeSpan StartTime = new TimeSpan(int.Parse(time[0]), time.Length > 1 ? int.Parse(time[1]) : 0, time.Length > 2 ? int.Parse(time[2]) : 0);
             Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition.Time = StartTime.Hours + StartTime.Minutes * 60 +
@@ -614,6 +618,17 @@ namespace Orts.Simulation
             if (PlayerLocomotive == null)
                 throw new InvalidDataException("Can't find player locomotive in activity");
             return PlayerLocomotive;
+        }
+
+        /// <summary>
+        /// Gets path and consist of player train in multiplayer resume in activity
+        /// </summary>
+        public void GetPathAndConsist()
+        {
+            var PlayerServiceFileName = Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name;
+            var srvFile = new ServiceFile(RoutePath + @"\SERVICES\" + PlayerServiceFileName + ".SRV");
+            conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.Train_Config + ".CON";
+            patFileName = RoutePath + @"\PATHS\" + srvFile.PathID + ".PAT";
         }
 
 

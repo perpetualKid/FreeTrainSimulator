@@ -487,7 +487,7 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Out of Control"), "",
                 Viewer.Catalog.GetString("Cab Aspect"));
             TableAddLine(table);
-            TableSetCells(table, 0, locomotive.UiD + " " + (mstsLocomotive == null ? "" : mstsLocomotive.UsingRearCab ? Viewer.Catalog.GetString("R") : Viewer.Catalog.GetString("F")),
+            TableSetCells(table, 0, locomotive.CarID + " " + (mstsLocomotive == null ? "" : mstsLocomotive.UsingRearCab ? Viewer.Catalog.GetString("R") : Viewer.Catalog.GetString("F")),
                 train.IsTilting ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No"),
                 train.IsFreight ? Viewer.Catalog.GetString("Freight") : Viewer.Catalog.GetString("Pass"),
                 FormatStrings.FormatShortDistanceDisplay(train.Length, locomotive.IsMetric),
@@ -509,7 +509,7 @@ namespace Orts.Viewer3D.Popups
             TableAddLine(table);
             foreach (var car in train.Cars.Take(20))
             {
-                TableSetCells(table, 0, car.UiD.ToString(),
+                TableSetCells(table, 0, car.CarID,
                     car.Flipped ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No"),
                     train.IsFreight ? Viewer.Catalog.GetString("Freight") : Viewer.Catalog.GetString("Pass"),
                     FormatStrings.FormatShortDistanceDisplay(car.CarLengthM, locomotive.IsMetric),
@@ -549,7 +549,7 @@ namespace Orts.Viewer3D.Popups
             var locomotive = Viewer.PlayerLocomotive;
             var train = locomotive.Train;
 
-            TableAddLines(table, String.Format("{0}\t{4}\t{1}\t{5:F0}%\t{2}\t\t{6:F0}%\t{3}\t\t{7}",
+            TableAddLines(table, String.Format("{8}\t\t{0} {4}\t\t{1} {5:F0}%\t\t{2} {6:F0}%\t\t{3} {7}",
                 Viewer.Catalog.GetString("Direction"),
                 Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetParticularString("Steam", "Reverser") : Viewer.Catalog.GetParticularString("NonSteam", "Reverser"),
                 Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"),
@@ -557,7 +557,20 @@ namespace Orts.Viewer3D.Popups
                 FormatStrings.Catalog.GetParticularString("Reverser", GetStringAttribute.GetPrettyName(train.MUDirection)),
                 train.MUReverserPercent,
                 train.MUThrottlePercent,
-                train.MUDynamicBrakePercent >= 0 ? string.Format("{0:F0}%", train.MUDynamicBrakePercent) : Viewer.Catalog.GetString("off")));
+                train.MUDynamicBrakePercent >= 0 ? string.Format("{0:F0}%", train.MUDynamicBrakePercent) : Viewer.Catalog.GetString("off"),
+                Viewer.Catalog.GetString("PlayerLoco")));
+            TableAddLine(table);
+            TableSetCells(table, 0,
+                               Viewer.Catalog.GetString("Loco"),
+                               Viewer.Catalog.GetString("Direction"),
+                               Viewer.Catalog.GetString("Flipped"),
+                               Viewer.Catalog.GetString("MU'd"),
+                               Viewer.Catalog.GetString("Throttle"),
+                               Viewer.Catalog.GetString("Speed"),
+                               "",
+                               Viewer.Catalog.GetString("Power"),
+                               Viewer.Catalog.GetString("Force")
+                               );
             TableAddLine(table);
             foreach (var car in train.Cars)
                 if (car is MSTSLocomotive)
@@ -655,7 +668,7 @@ namespace Orts.Viewer3D.Popups
                 {
                     TableAddLines(table, String.Format("{0}\t{1}\t{2}\t\t{3}\t{4}\t\t{5}",
                         Viewer.Catalog.GetString("Loco"),
-                        train.Cars[i].CarID.ToString(),
+                        car.CarID,
                         Viewer.Catalog.GetString("Main reservoir"),
                         FormatStrings.FormatPressure((car as MSTSLocomotive).MainResPressurePSI, PressureUnit.PSI, (car as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
                         Viewer.Catalog.GetString("Compressor"),
@@ -684,7 +697,7 @@ namespace Orts.Viewer3D.Popups
                 {
                     var j = i < 2 ? i : i * (train.Cars.Count - 1) / (n - 1);
                     var car = train.Cars[j];
-                    TableSetCell(table, 0, "{0}", train.Cars[j].CarID);
+                    TableSetCell(table, 0, "{0}", car.CarID);
                     TableSetCells(table, 1, car.BrakeSystem.GetDebugStatus((Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits));
                     TableAddLine(table);
                 }
@@ -713,7 +726,7 @@ namespace Orts.Viewer3D.Popups
                 {
                     var j = i < 2 ? i : i * (train.Cars.Count - 1) / (n - 1);
                     var car = train.Cars[j];
-                    TableSetCell(table, 0, "{0}", train.Cars[j].CarID);
+                    TableSetCell(table, 0, "{0}", car.CarID);
                     TableSetCells(table, 1, car.BrakeSystem.GetDebugStatus((Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits));
                     TableAddLine(table);
                 }
@@ -813,7 +826,7 @@ namespace Orts.Viewer3D.Popups
             {
                 var j = i == 0 ? 0 : i * (train.Cars.Count - 1) / (n - 1);
                 var car = train.Cars[j];
-                TableSetCell(table, 0, "{0}", j + 1);
+                TableSetCell(table, 0, "{0}", car.CarID);
                 TableSetCell(table, 1, "{0}", FormatStrings.FormatForce(car.TotalForceN, car.IsMetric));
                 TableSetCell(table, 2, "{0}", FormatStrings.FormatForce(car.MotiveForceN, car.IsMetric));
                 TableSetCell(table, 3, "{0}", FormatStrings.FormatForce(car.BrakeForceN, car.IsMetric));
@@ -968,7 +981,7 @@ namespace Orts.Viewer3D.Popups
 
         void TextPageWeather(TableData table)
         {
-            TextPageHeading(table, Viewer.Catalog.GetString("WEATHER INFORMATIOPN"));
+            TextPageHeading(table, Viewer.Catalog.GetString("WEATHER INFORMATION"));
 
             TableAddLabelValue(table, Viewer.Catalog.GetString("Visibility"), Viewer.Catalog.GetStringFmt("{0:N0} m", Viewer.Simulator.Weather.FogDistance));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Cloud cover"), Viewer.Catalog.GetStringFmt("{0:F0} %", Viewer.Simulator.Weather.OvercastFactor * 100));

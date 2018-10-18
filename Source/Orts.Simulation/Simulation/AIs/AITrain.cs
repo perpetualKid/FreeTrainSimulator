@@ -31,6 +31,7 @@
 using Microsoft.Xna.Framework;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
+using Orts.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
@@ -4498,6 +4499,7 @@ namespace Orts.Simulation.AIs
                 Simulator.TrainDictionary.Remove(attachTrain.Number);
                 Simulator.NameDictionary.Remove(attachTrain.Name.ToLower());
             }
+            if (MPManager.IsMultiPlayer()) MPManager.BroadCast((new MSGCouple(this, attachTrain, false)).ToString());
             UpdateOccupancies();
             AddTrackSections();
             ResetActions(true);
@@ -5682,7 +5684,7 @@ namespace Orts.Simulation.AIs
                     if (earlier && thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP &&
                                  nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                     {
-                        float newposition = thisItem.ActivateDistanceM + 0.75f * clearingDistanceM; // correct with clearing distance - leave smaller gap
+                        float newposition = thisItem.ActivateDistanceM + 0.75f * activityClearingDistanceM; // correct with clearing distance - leave smaller gap
                         float actposition = nextActionInfo.ActivateDistanceM;
 
                         if (actposition < newposition) earlier = false;
@@ -6519,7 +6521,7 @@ namespace Orts.Simulation.AIs
                             StationStops[0].CalculateDepartTime(presentTime, this);
                         }
                     }
-                    else
+                    else if (ControlMode == TRAIN_CONTROL.AUTO_NODE || ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
                     {
                         // check if station missed : station must be at least 250m. behind us
                         bool missedStation = IsMissedPlatform(250);

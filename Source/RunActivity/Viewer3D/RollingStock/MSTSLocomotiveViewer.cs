@@ -167,6 +167,7 @@ namespace Orts.Viewer3D.RollingStock
             UserInputCommands.Add(UserCommands.ControlOdoMeterReset, new Action[] { Noop, () => new ResetOdometerCommand(Viewer.Log) });
             UserInputCommands.Add(UserCommands.ControlOdoMeterDirection, new Action[] { Noop, () => new ToggleOdometerDirectionCommand(Viewer.Log) });
             UserInputCommands.Add(UserCommands.ControlCabRadio, new Action[] { Noop, () => new CabRadioCommand(Viewer.Log, !Locomotive.CabRadioOn) });
+            UserInputCommands.Add(UserCommands.ControlDieselHelper, new Action[] { Noop, () => new ToggleHelpersEngineCommand(Viewer.Log) });
             base.InitializeUserInputCommands();
         }
 
@@ -1834,6 +1835,10 @@ namespace Orts.Viewer3D.RollingStock
                 case CABViewControlTypes.ORTS_PLAYER_DIESEL_ENGINE_STATE:
                 case CABViewControlTypes.ORTS_PLAYER_DIESEL_ENGINE_STARTER:
                 case CABViewControlTypes.ORTS_PLAYER_DIESEL_ENGINE_STOPPER:
+                case CABViewControlTypes.ORTS_CABLIGHT:
+                case CABViewControlTypes.ORTS_LEFTDOOR:
+                case CABViewControlTypes.ORTS_RIGHTDOOR:
+                case CABViewControlTypes.ORTS_MIRRORS:
                     index = (int)data;
                     break;
             }
@@ -1973,6 +1978,16 @@ namespace Orts.Viewer3D.RollingStock
                     dieselLoco = Locomotive as MSTSDieselLocomotive;
                     if (dieselLoco.DieselEngines[0].EngineStatus == Orts.Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running &&
                                 ChangedValue(1) == 0) new TogglePlayerEngineCommand(Viewer.Log); break;
+                case CABViewControlTypes.ORTS_CABLIGHT:
+                    if ((Locomotive.CabLightOn ? 1 : 0) != ChangedValue(Locomotive.CabLightOn ? 1 : 0)) new ToggleCabLightCommand(Viewer.Log); break;
+                case CABViewControlTypes.ORTS_LEFTDOOR:
+                    if ((Locomotive.GetCabFlipped() ? (Locomotive.DoorRightOpen ? 1 : 0) : Locomotive.DoorLeftOpen ? 1 : 0)
+                        != ChangedValue(Locomotive.GetCabFlipped() ? (Locomotive.DoorRightOpen ? 1 : 0) : Locomotive.DoorLeftOpen ? 1 : 0)) new ToggleDoorsLeftCommand(Viewer.Log); break;
+                case CABViewControlTypes.ORTS_RIGHTDOOR:
+                    if ((Locomotive.GetCabFlipped() ? (Locomotive.DoorLeftOpen ? 1 : 0) : Locomotive.DoorRightOpen ? 1 : 0)
+                         != ChangedValue(Locomotive.GetCabFlipped() ? (Locomotive.DoorLeftOpen ? 1 : 0) : Locomotive.DoorRightOpen ? 1 : 0)) new ToggleDoorsRightCommand(Viewer.Log); break;
+                case CABViewControlTypes.ORTS_MIRRORS:
+                    if ((Locomotive.MirrorOpen ? 1 : 0) != ChangedValue(Locomotive.MirrorOpen ? 1 : 0)) new ToggleMirrorsCommand(Viewer.Log); break;
             }
 
         }

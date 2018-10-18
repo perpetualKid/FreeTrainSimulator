@@ -209,7 +209,8 @@ Electric Locomotives -- Additional information
 ----------------------------------------------
 
 For electric locomotives information about the pantograph state is also 
-shown and whether the locomotive has power (at least one pantograph raised) 
+shown, as well as info about the circuit breaker state and whether the 
+locomotive has power (at least one pantograph raised and circuit breaker closed) 
 or not.
 
 .. image:: images/driving-hud-electric.png
@@ -560,6 +561,114 @@ as the front of the train passes a location, then when it reaches zero you
 will know, without switching views, that the other end of the train has 
 just reached the same point, e.g. the entrance to a siding, etc. 
 
+
+.. |uarr|   unicode:: U+02191 .. UPWARDS ARROW
+.. |darr|   unicode:: U+02193 .. DOWNWARDS ARROW
+
+.. _debriefeval:
+
+
+Debrief Evaluation
+------------------
+
+``Description``
+'''''''''''''''
+
+This feature displays a real-time evaluation of the player's performance 
+during the activity run and a final report at the end of an activity.
+The evaluation reports various parameters to provide to the player info in order 
+to improve his train driving ability.
+While the activity is running relevant data are stored and displayed.
+The stored data are used to generate a report at the end of the activity.
+
+
+``How it does work``
+''''''''''''''''''''
+
+Activity evaluation is enabled only for Activity mode, and requires the 
+"Debrief evaluation" checkbox in the main menu window to be enabled.
+Checking some checkboxes within the various option tabs of the main menu 
+provides additional parameters for the activity evaluation. 
+
+Here an example about the Options/General tab:
+
+.. image:: images/dbfeval-options-general.png
+
+and here an example about the Options/Simulation tab:
+
+.. image:: images/dbfeval-options-simulation.png
+
+Checkboxes shown as unchecked in the two above pictures may be checked or 
+unchecked, but don't have effect to activity evaluation.
+
+A tab named "Evaluation" is present on the F1 Help Information Monitor.
+Once the activity is running it displays dynamic information about the player 
+train performance up to that moment.
+
+If the "Debrief evaluation" checkbox is unchecked, a message reminds this.
+
+   
+
+.. image:: images/dbfeval-evaluation-unchecked.png
+   :scale: 100%
+   :align: center
+
+
+In case that Debrief evaluation was checked, **Actual status: (**\ |darr| **)**\ , is displayed.
+
+   
+
+.. image:: images/dbfeval-evaluation-ini.png
+   :scale: 100%
+   :align: center
+
+.. raw:: latex
+
+   \newpage
+   
+Cliking **Actual status: (**\ |darr| **)**\  expanded real-time display appears.
+
+
+.. image:: images/dbfeval-evaluation-expanded.png
+   :scale: 100%
+   :align: center
+
+   
+
+Cliking **Actual status: (**\ |uarr| **)**\  collapses all items.
+
+Once the activity has ended, the report file is created and a new window displays it.
+
+.. image:: images/dbfeval-evaluation-ended.png
+   :scale: 100%
+   :align: center
+
+
+.. raw:: latex
+
+   \newpage
+
+This report is made up of several sections.
+
+.. image:: images/dbfeval-report.png
+   :scale: 80%
+   :align: center
+
+.. raw:: latex
+
+    \newpage
+
+Activity saves (F2) will save also the evaluation data, if the "Debrief evaluation" 
+checkbox was checked.
+In such case the activity saves will have the "Eval" checkbox checked in the resume window.
+
+.. image:: images/dbfeval-resume.png
+   :scale: 100%
+   :align: center
+
+
+
+
 .. _driving-dispatcher:
 
 Dispatcher Window
@@ -733,7 +842,8 @@ for a signal behind. You will receive a voice message reporting if you
 received authorization or not. On the Track monitor window the signal 
 colours will change from red to red/white if permission is granted.
 
-7.6.8 Change Cab - ``<Ctrl+E>``
+Change Cab
+----------
 
 All locomotives and some passenger cars have a forward-facing cab which is 
 configured through an entry in the ENG file. For example, the MSTS Dash9 
@@ -1505,11 +1615,14 @@ You can turn off any extended HUD, while continuing to show the basic HUD,
 by pressing ``<Alt+F5>``. Pressing ``<Alt+F5>`` again returns the 
 display of the currently active extended HUD.
 
+In the extended HUDs the trainsets (locos and cars) are identified by the 
+trainset UiD as defined in the consist file, preceded by a train identification.
+
 Extended HUD for Consist Information
 ------------------------------------
 
 This page shows in the first line data about the whole train. Under 
-``Player`` you will find the train number as assigned by OR followed by an 
+``Player`` you will find the player locomotive UiD followed by an 
 ``F`` if the forward cab is selected, and an ``R`` if the rear cab is 
 selected.
 
@@ -1517,7 +1630,7 @@ selected.
     :align: center
     :scale: 80%
 
-``Tilted`` is true in case the consist name ends with ``tilted`` (e.g. 
+``Tilted`` is set at YES in case the consist name ends with ``tilted`` (e.g. 
 ``ETR460_tilted.con``), in which case it means that it is a tilting train.
 
 ``Control mode`` shows the actual control mode. Read more about this here.
@@ -1558,9 +1671,9 @@ Extended HUD for Brake Information
 .. image:: images/physics-hud-brake-connecting.png
 
 This extended HUD display includes all the information of the basic HUD 
-plus Brake status information. Information is shown for all cars. The 
-first number shows the car UiD in the train, as found in the consist file 
-or the activity file; the following alphanumeric string shows the brake 
+plus Brake status information. In the first part specific information for 
+locomotives is shown, while in the second one general information is shown for 
+all cars. After the car UiD the following alphanumeric string shows the brake 
 system (``1P``: single-pipe system, ``V``: vacuum etc.) and the current 
 state of the air brakes on the unit. More information on this display 
 can be found in :ref:`Open Rails Braking <physics-braking>` and 
@@ -1586,7 +1699,7 @@ acting upon the locos/cars in the train.
 
 The columns are as follows:
 
-**Car**  - the position of the car in the train.
+**Car**  - the UiD of the car as defined in the car consist file.
 
 **Total**  - the total force acting on the car. This is the sum of the other 
 forces after the signs are properly adjusted.
