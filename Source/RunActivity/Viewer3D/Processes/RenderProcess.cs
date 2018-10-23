@@ -100,7 +100,7 @@ namespace Orts.Viewer3D.Processes
             GraphicsDeviceManager.SynchronizeWithVerticalRetrace = Game.Settings.VerticalSync;
             GraphicsDeviceManager.PreferredBackBufferFormat = SurfaceFormat.Color;
             GraphicsDeviceManager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
-            GraphicsDeviceManager.IsFullScreen = Game.Settings.FullScreen;
+            GraphicsDeviceManager.IsFullScreen = Game.Settings.FullScreen && ! Game.Settings.FastFullScreenAltTab;
             GraphicsDeviceManager.PreferMultiSampling = Game.Settings.EnableMultisampling;
             GraphicsDeviceManager.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(GDM_PreparingDeviceSettings);
 
