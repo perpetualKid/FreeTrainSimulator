@@ -6790,6 +6790,28 @@ namespace Orts.Simulation.Physics
 
         //================================================================================================//
         /// <summary>
+        /// Switches switch after dispatcher window command, when in auto mode
+        /// </summary>
+
+        public bool ProcessRequestAutoSetSwitch(int reqSwitchIndex)
+        {
+            TrackCircuitSection reqSwitch = signalRef.TrackCircuitList[reqSwitchIndex];
+
+            bool switchSet = false;
+            if (reqSwitch.CircuitState.TrainReserved != null && reqSwitch.CircuitState.TrainReserved.Train == this)
+            {
+                // store required position
+                int reqSwitchPosition = reqSwitch.JunctionSetManual;
+                ClearReservedSections();
+                Reinitialize();
+                reqSwitch.JunctionSetManual = reqSwitchPosition;
+            }
+            switchSet = true;
+            return switchSet;
+        }
+
+        //================================================================================================//
+        /// <summary>
         /// Update section occupy states for manual mode
         /// Note : manual mode has no distance actions so sections must be cleared immediately
         /// </summary>
@@ -8634,13 +8656,16 @@ namespace Orts.Simulation.Physics
                 }
             }
 
-            for (int iindex = 0; iindex < ValidRoute[1].Count - 1 && !switchFound; iindex++)
+            if (ValidRoute[1] != null)
             {
-                if (ValidRoute[1][iindex].TCSectionIndex == reqSwitchIndex)
+                for (int iindex = 0; iindex < ValidRoute[1].Count - 1 && !switchFound; iindex++)
                 {
-                    routeDirectionIndex = 1;
-                    direction = Direction.Reverse;
-                    switchFound = true;
+                    if (ValidRoute[1][iindex].TCSectionIndex == reqSwitchIndex)
+                    {
+                        routeDirectionIndex = 1;
+                        direction = Direction.Reverse;
+                        switchFound = true;
+                    }
                 }
             }
 
@@ -8721,6 +8746,8 @@ namespace Orts.Simulation.Physics
             {
                 signalRef.BreakDownRouteList(selectedRoute, 0, thisRouted);
                 selectedRoute.Clear();
+                TrainRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
+                    PresentPosition[1].TCDirection, Length, false, true, false);
                 UpdateExplorerMode(-1);
             }
         }
@@ -9715,7 +9742,7 @@ namespace Orts.Simulation.Physics
 
         //================================================================================================//
         //
-        // Remove train (after coupling)
+        // Remove train (after coupling or when train disappeared in multiplayer)
         //
 
         public void RemoveFromTrack()
@@ -9729,6 +9756,18 @@ namespace Orts.Simulation.Physics
                 for (int iIndex = presentIndex; iIndex < ValidRoute[0].Count; iIndex++)
                 {
                     TCRouteElement thisElement = ValidRoute[0][iIndex];
+                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
+                    thisSection.RemoveTrain(this, true);
+                }
+            }
+
+            // for explorer (e.g. in Multiplayer) and manual mode check also backward route
+
+            if (ValidRoute[1] != null && ValidRoute[1].Count > 0)
+            {
+                for(int iIndex = 0; iIndex < ValidRoute[1].Count; iIndex++)
+                {
+                    TCRouteElement thisElement = ValidRoute[1][iIndex];
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                     thisSection.RemoveTrain(this, true);
                 }
@@ -19490,6 +19529,22 @@ namespace Orts.Simulation.Physics
             ValidRoute[1] = null;
             LastReservedSection[1] = -1;
         }
+
+        /// <summary>
+        /// Clears reserved sections (used after manual switching)
+        /// </summary>
+        public void ClearReservedSections()
+        {
+
+            if (ValidRoute[0] != null)
+            {
+                int listIndex = PresentPosition[0].RouteListIndex;
+                signalRef.BreakDownRouteList(ValidRoute[0], listIndex, routedForward);
+                ClearDeadlocks();
+            }
+
+        }
+
 
         /// <summary>
         /// After turntable rotation, must find where it is

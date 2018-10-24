@@ -131,14 +131,18 @@ namespace Orts.Viewer3D.Processes
             Acttype = acttype;
 
             // Collect all non-action options.
-            var options = args.Where(a => (a.StartsWith("-") || a.StartsWith("/")) && !actions.Contains(a.Substring(1)) && !acttype.Contains(a.Substring(1))).Select(a => a.Substring(1));
+            var options = args.Where(a => (a.StartsWith("-") || a.StartsWith("/")) && !actions.Contains(a.Substring(1)) && !acttype.Contains(a.Substring(1))).Select(a => a.Substring(1)).ToArray();
 
             // Collect all non-options as data.
             var data = args.Where(a => !a.StartsWith("-") && !a.StartsWith("/")).ToArray();
 
             // No action, check for data; for now assume any data is good data.
-            if ((action.Length == 0) && (data.Length > 0))
-                action = "start";
+            if (action.Length == 0 && data.Length > 0)
+            {
+                // in multiplayer start/resume there is no "-start" or "-resume" string, so you have to discriminate
+                if (Acttype.Length > 0 || options.Length == 0) action = "start";
+                else action = "resume";
+            }
 
             var settings = Game.Settings;
 
@@ -298,7 +302,18 @@ namespace Orts.Viewer3D.Processes
             if (Client != null)
             {
                 Client.Send((new MSGPlayer(UserName, Code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
+                // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
+
+                System.Threading.Thread.Sleep(5000);
+                if (Simulator.Trains[0].jumpRequested)
+                {
+                    Simulator.Trains[0].UpdateRemoteTrainPos(0);
+                }
+                var cancellation = Game.LoaderProcess.CancellationToken;
+                if (cancellation.IsCancellationRequested) return;
             }
+
+            Viewer = new Viewer(Simulator, Game);
 
             Game.ReplaceState(new GameStateViewer3D(Viewer));
         }
@@ -420,9 +435,10 @@ namespace Orts.Viewer3D.Processes
                     InitSimulator(settings, values.args, "Resume", values.acttype);
                     Simulator.Restore(inf, values.pathName, values.initialTileX, values.initialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(Simulator, Game);
+                    if (Client != null || Server != null)
+                        if (Acttype == "activity") Simulator.GetPathAndConsist();
                     if (Client != null)
                     {
-                        if (Acttype == "activity") Simulator.GetPathAndConsist();
                         Client.Send((new MSGPlayer(UserName, Code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
                     }
                     Viewer.Restore(inf);
