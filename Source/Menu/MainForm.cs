@@ -337,6 +337,12 @@ namespace ORTS
 
         private async Task CheckForUpdateAsync()
         {
+            if (string.IsNullOrEmpty(UpdateManager.ChannelName))
+            {
+                linkLabelChangeLog.Visible = false;
+                linkLabelUpdate.Visible = false;
+                return;
+            }
             // This is known directly from the chosen channel so doesn't need to wait for the update check itself.
             linkLabelChangeLog.Visible = !string.IsNullOrEmpty(UpdateManager.ChangeLogLink);
 
