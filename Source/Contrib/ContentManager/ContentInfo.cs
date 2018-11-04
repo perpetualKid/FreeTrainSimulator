@@ -18,14 +18,12 @@
 // Uncomment this define to show a textual representation of the serialised Content items for debugging.
 //#define DEBUG_CONTENT_SERIALIZATION
 
-using Orts.Formats.Msts;
-using ORTS.ContentManager.Models;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using Orts.Formats.Msts;
+using ORTS.ContentManager.Models;
 using Path = ORTS.ContentManager.Models.Path;
 
 namespace ORTS.ContentManager
@@ -35,185 +33,168 @@ namespace ORTS.ContentManager
         public static string GetText(Content content)
         {
             var details = new StringBuilder();
-            details.AppendFormat("Type:\t{1}{0}", Environment.NewLine, content.Type);
-            details.AppendFormat("Name:\t{1}{0}", Environment.NewLine, content.Name);
-            details.AppendFormat("Path:\t{1}{0}", Environment.NewLine, content.PathName);
-
-            try {
-                var stream = new MemoryStream();
-                var serializer = new BinaryFormatter();
-                serializer.Serialize(stream, content);
-#if DEBUG_CONTENT_SERIALIZATION
-                var serializedText = new StringBuilder((int)stream.Length);
-                stream.Position = 0;
-                while (stream.Position < stream.Length)
-                {
-                    var streamByte = stream.ReadByte();
-                    serializedText.Append(streamByte >= 32 ? new String((char)streamByte, 1) : ".");
-                }
-                details.AppendFormat("Serialization:\t{1} bytes\t{2}{0}", Environment.NewLine, stream.Length, serializedText.ToString());
-#else
-                details.AppendFormat("Serialization:\t{1} bytes{0}", Environment.NewLine, stream.Length);
-#endif
-                details.Append(Environment.NewLine);
-            }
-            catch (Exception error)
-            {
-                details.Append(Environment.NewLine);
-                details.Append(error);
-                details.Append(Environment.NewLine);
-                details.Append(Environment.NewLine);
-            }
-
+            details.AppendLine($"Type:\t{content.Type}");
+            details.AppendLine($"Name:\t{content.Name}");
+            details.AppendLine($"Path:\t{content.PathName}");
+ 
             try
             {
+                switch(content.Type)
+                {
+                    case ContentType.Route:
+                        Route route = new Route(content);
+                        details.AppendLine($"Name:\t{route.Name}");
+                        details.AppendLine();
+                        details.AppendLine();
+                        details.AppendLine($"Description:\t{route.Description}");
+                        details.AppendLine();
 
-                if (content.Type == ContentType.Route)
-                {
-                    var data = new Route(content);
-                    details.AppendFormat("Name:\t{1}{0}", Environment.NewLine, data.Name);
-                    details.AppendFormat("Description:\t{0}{0}{1}{0}{0}", Environment.NewLine, data.Description);
-
-                    if (content is ContentMSTSRoute)
-                    {
-                        var file = new RouteFile(System.IO.Path.Combine(content.PathName, content.Name + ".trk"));
-                        details.AppendFormat("Route ID:\t{1}{0}", Environment.NewLine, file.Tr_RouteFile.RouteID);
-                        details.AppendFormat("Route Key:\t{1}{0}", Environment.NewLine, file.Tr_RouteFile.FileName);
-                    }
-                }
-                else if (content.Type == ContentType.Activity)
-                {
-                    var data = new Activity(content);
-                    details.AppendFormat("Name:\t{1}{0}", Environment.NewLine, data.Name);
-                    foreach (var service in data.PlayerServices)
-                        details.AppendFormat("Player:\t\u0001{1}\u0002Service\u0001{0}", Environment.NewLine, service);
-                    foreach (var service in data.Services)
-                        details.AppendFormat("Traffic:\t\u0001{1}\u0002Service\u0001{0}", Environment.NewLine, service);
-                    details.AppendLine();
-                    details.AppendFormat("Description:\t{0}{0}{1}{0}{0}", Environment.NewLine, data.Description);
-                    details.AppendFormat("Briefing:\t{0}{0}{1}{0}{0}", Environment.NewLine, data.Briefing);
-                }
-                else if (content.Type == ContentType.Service)
-                {
-                    var data = new Service(content);
-                    details.AppendFormat("Name:\t{1}{0}", Environment.NewLine, data.Name);
-                    details.AppendFormat("ID:\t{1}{0}", Environment.NewLine, data.ID);
-                    details.AppendFormat("Start time:\t{1}{0}", Environment.NewLine, FormatDateTime(data.StartTime));
-                    details.AppendFormat("Consist:\t\u0001{1}\u0002Consist\u0001{2}{0}", Environment.NewLine, data.Consist, data.Reversed ? " (reversed)" : "");
-                    details.AppendFormat("Path:\t\u0001{1}\u0002Path\u0001{0}", Environment.NewLine, data.Path);
-                    details.AppendLine();
-                    details.AppendFormat("Arrival:\tDeparture:\tStation:\tDistance:\t{0}", Environment.NewLine);
-                    foreach (var item in data.Stops)
-                        if (String.IsNullOrEmpty(item.Station))
-                            details.AppendFormat("{3}\t{4}\t{1}\t{2} m{0}", Environment.NewLine, item.PlatformID, item.Distance, FormatDateTime(item.ArrivalTime), FormatDateTime(item.DepartureTime));
-                        else
-                            details.AppendFormat("{2}\t{3}\t{1}{0}", Environment.NewLine, item.Station, FormatDateTime(item.ArrivalTime), FormatDateTime(item.DepartureTime));
-                }
-                else if (content.Type == ContentType.Path)
-                {
-                    var data = new Path(content);
-                    details.AppendFormat("Name:\t{1}{0}", Environment.NewLine, data.Name);
-                    details.AppendFormat("Start:\t{1}{0}", Environment.NewLine, data.StartName);
-                    details.AppendFormat("End:\t{1}{0}", Environment.NewLine, data.EndName);
-                    details.AppendLine();
-                    details.AppendFormat("Path:\tLocation:\tFlags:\t{0}", Environment.NewLine);
-                    var visitedNodes = new HashSet<Path.Node>();
-                    var rejoinNodes = new HashSet<Path.Node>();
-                    foreach (var node in data.Nodes)
-                    {
-                        foreach (var nextNode in node.Next)
+                        if (content is ContentMSTSRoute)
                         {
-                            if (!visitedNodes.Contains(nextNode))
-                                visitedNodes.Add(nextNode);
-                            else if (!rejoinNodes.Contains(nextNode))
-                                rejoinNodes.Add(nextNode);
+                            RouteFile routeFile = new RouteFile(System.IO.Path.Combine(content.PathName, content.Name + ".trk"));
+                            details.AppendLine($"Route ID:\t{routeFile.Tr_RouteFile.RouteID}");
+                            details.AppendLine($"Route Key:\t{routeFile.Tr_RouteFile.FileName}");
                         }
-                    }
-                    var tracks = new List<Path.Node>() { data.Nodes.First() };
-                    var activeTrack = 0;
-                    while (tracks.Count > 0)
-                    {
-                        var node = tracks[activeTrack];
-                        var line = new StringBuilder();
-                        line.Append(" ");
-                        for (var i = 0; i < tracks.Count; i++)
-                            line.Append(i == activeTrack ? " |" : " .");
-                        if ((node.Flags & Path.Flags.Wait) != 0)
-                            line.AppendFormat("\t{1}\t{2} (wait for {3} seconds){0}", Environment.NewLine, node.Location, node.Flags, node.WaitTime);
-                        else
-                            line.AppendFormat("\t{1}\t{2}{0}", Environment.NewLine, node.Location, node.Flags);
-                        if (node.Next.Count() == 0)
+                        break;
+                    case ContentType.Activity:
+                        Activity activity = new Activity(content);
+                        details.AppendLine($"Name:\t{activity.Name}");
+                        foreach (var playerService in activity.PlayerServices)
+                            details.AppendLine($"Player:\t\u0001{playerService}\u0002Service\u0001");
+                        foreach (var activityService in activity.Services)
+                            details.AppendLine($"Traffic:\t\u0001{activityService}\u0002Service\u0001");
+                        details.AppendLine();
+                        details.AppendLine();
+                        details.AppendLine();
+                        details.AppendLine($"Description:\t{activity.Description}");
+                        details.AppendLine();
+                        details.AppendLine();
+                        details.AppendLine();
+                        details.AppendLine($"Briefing:\t{activity.Briefing}");
+                        details.AppendLine();
+                        break;
+                    case ContentType.Service:
+                        Service service = new Service(content);
+                        details.AppendLine($"Name:\t{service.Name}");
+                        details.AppendLine($"ID:\t{service.ID}");
+                        details.AppendLine($"Start time:\t{service.StartTime}");
+                        details.AppendLine($"Consist:\t\u0001{service.Consist}\u0002Consist\u0001{(service.Reversed ? "(reversed)" : string.Empty)}");
+                        details.AppendLine($"Path:\t\u0001{service.Path}\u0002Path\u0001");
+                        details.AppendLine();
+                        details.AppendLine($"Arrival:\tDeparture:\tStation:\tDistance:\t");
+                        foreach (var item in service.Stops)
+                            if (string.IsNullOrEmpty(item.Station))
+                                details.AppendLine($"{item.ArrivalTime.FormatDateTime()}\t{item.DepartureTime.FormatDateTime()}\t{item.PlatformID}\t{item.Distance} m");
+                            else
+                                details.AppendLine($"{item.ArrivalTime.FormatDateTime()}\t{item.DepartureTime.FormatDateTime()}\t{item.Station}");
+                        break;
+                    case ContentType.Path:
+                        Path path = new Path(content);
+                        details.AppendLine($"Name:\t{path.Name}");
+                        details.AppendLine($"Start:\t{path.StartName}");
+                        details.AppendLine($"End:\t{path.EndName}");
+                        details.AppendLine();
+                        details.AppendLine("Path:\tLocation:\tFlags:\t");
+                        var visitedNodes = new HashSet<Path.Node>();
+                        var rejoinNodes = new HashSet<Path.Node>();
+                        foreach (var node in path.Nodes)
                         {
-                            line.Append(" ");
-                            for (var i = 0; i < tracks.Count; i++)
-                                line.Append(i == activeTrack ? @"  " : @" .");
-                            line.Append(Environment.NewLine);
-                        }
-                        else if (node.Next.Count() == 2)
-                        {
-                            line.Append(" ");
-                            for (var i = 0; i < tracks.Count; i++)
-                                line.Append(i == activeTrack ? @" |\" : @" .");
-                            line.Append(Environment.NewLine);
-                        }
-                        tracks.RemoveAt(activeTrack);
-                        tracks.InsertRange(activeTrack, node.Next);
-                        if (node.Next.Count() >= 1 && rejoinNodes.Contains(tracks[activeTrack]))
-                        {
-                            activeTrack++;
-                            activeTrack %= tracks.Count;
-                            if (rejoinNodes.Contains(tracks[activeTrack]))
+                            foreach (var nextNode in node.Next)
                             {
-                                activeTrack = tracks.IndexOf(tracks[activeTrack]);
-                                tracks.RemoveAt(tracks.LastIndexOf(tracks[activeTrack]));
-                                line.Append(" ");
-                                for (var i = 0; i < tracks.Count; i++)
-                                    line.Append(i == activeTrack ? @" |/" : @" .");
-                                line.Append(Environment.NewLine);
+                                if (!visitedNodes.Contains(nextNode))
+                                    visitedNodes.Add(nextNode);
+                                else if (!rejoinNodes.Contains(nextNode))
+                                    rejoinNodes.Add(nextNode);
                             }
                         }
-                        details.Append(line);
-                    }
-                }
-                else if (content.Type == ContentType.Consist)
-                {
-                    var data = new Consist(content);
-                    details.AppendFormat("Name:\t{1}{0}", Environment.NewLine, data.Name);
-                    details.AppendFormat("Car ID:\tDirection:\tName:\t{0}", Environment.NewLine);
-                    foreach (var car in data.Cars)
-                        details.AppendFormat("{1}\t{2}\t\u0001{3}\u0002Car\u0001{0}", Environment.NewLine, car.ID, car.Direction, car.Name);
-                    details.AppendFormat("{0}", Environment.NewLine);
-                }
-                else if (content.Type == ContentType.Car)
-                {
-                    var data = new Car(content);
-                    details.AppendFormat("Type:\t{1}{0}", Environment.NewLine, data.Type);
-                    details.AppendFormat("Name:\t{1}{0}", Environment.NewLine, data.Name);
-                    details.AppendFormat("Description:\t{0}{0}{1}{0}{0}", Environment.NewLine, data.Description);
-                }
-                else if (content is ContentMSTSCab)
-                {
-                    var file = new CabViewFile(content.PathName, System.IO.Path.GetDirectoryName(content.PathName));
-                    details.AppendFormat("Position:\tDimensions:\tStyle:\tType:\t{0}", Environment.NewLine);
-                    foreach (var control in file.CabViewControls)
-                        details.AppendFormat("{1},{2}\t{3}x{4}\t{5}\t{6}{0}", Environment.NewLine, control.PositionX, control.PositionY, control.Width, control.Height, control.ControlStyle, control.ControlType);
-                    details.AppendFormat("{0}", Environment.NewLine);
+                        var tracks = new List<Path.Node>() { path.Nodes.First() };
+                        var activeTrack = 0;
+                        while (tracks.Count > 0)
+                        {
+                            var node = tracks[activeTrack];
+                            var line = new StringBuilder();
+                            line.Append(" ");
+                            for (var i = 0; i < tracks.Count; i++)
+                                line.Append(i == activeTrack ? " |" : " .");
+                            if ((node.Flags & Path.Flags.Wait) != 0)
+                                line.AppendLine($"\t{node.Location}\t{node.Flags} (wait for {node.WaitTime} seconds)");
+                            else
+                                line.AppendLine($"\t{node.Location}\t{node.Flags}");
+                            if (node.Next.Count() == 0)
+                            {
+                                line.Append(" ");
+                                for (var i = 0; i < tracks.Count; i++)
+                                    line.Append(i == activeTrack ? @"  " : @" .");
+                                line.AppendLine();
+                            }
+                            else if (node.Next.Count() == 2)
+                            {
+                                line.Append(" ");
+                                for (var i = 0; i < tracks.Count; i++)
+                                    line.Append(i == activeTrack ? @" |\" : @" .");
+                                line.AppendLine();
+                            }
+                            tracks.RemoveAt(activeTrack);
+                            tracks.InsertRange(activeTrack, node.Next);
+                            if (node.Next.Count() >= 1 && rejoinNodes.Contains(tracks[activeTrack]))
+                            {
+                                activeTrack++;
+                                activeTrack %= tracks.Count;
+                                if (rejoinNodes.Contains(tracks[activeTrack]))
+                                {
+                                    activeTrack = tracks.IndexOf(tracks[activeTrack]);
+                                    tracks.RemoveAt(tracks.LastIndexOf(tracks[activeTrack]));
+                                    line.Append(" ");
+                                    for (var i = 0; i < tracks.Count; i++)
+                                        line.Append(i == activeTrack ? @" |/" : @" .");
+                                    line.AppendLine();
+                                }
+                            }
+                            details.Append(line);
+                        }
+                        break;
+                    case ContentType.Consist:
+                        Consist consist = new Consist(content);
+                        details.AppendLine($"Name:\t{consist.Name}");
+                        details.AppendLine($"Car ID:\tDirection:\tName:\t");
+                        foreach (var consistCar in consist.Cars)
+                            details.AppendLine($"{consistCar.ID}\t{consistCar.Direction}\t\u0001{consistCar.Name}\u0002Car\u0001");
+                        details.AppendLine();
+                        break;
+                    case ContentType.Car:
+                        Car car = new Car(content);
+                        details.AppendLine($"Type:\t{car.Type}");
+                        details.AppendLine($"Name:\t{car.Name}");
+                        details.AppendLine();
+                        details.AppendLine();
+                        details.AppendLine($"Description:\t{car.Description}");
+                        details.AppendLine();
+                        break;
+                    default:
+                        if (content is ContentMSTSCab)
+                        {
+                            CabViewFile cabView = new CabViewFile(content.PathName, System.IO.Path.GetDirectoryName(content.PathName));
+                            details.AppendLine($"Position:\tDimensions:\tStyle:\tType:\t");
+                            foreach (var control in cabView.CabViewControls)
+                                details.AppendLine($"{control.PositionX},{control.PositionY}\t{control.Width}x{control.Height}\t{control.ControlStyle}\t{control.ControlType}");
+                            details.AppendLine();
+                        }
+                        break;
                 }
             }
             catch (Exception error)
             {
-                details.Append(Environment.NewLine);
-                details.Append(error);
-                details.Append(Environment.NewLine);
-                details.Append(Environment.NewLine);
+                details.AppendLine();
+                details.AppendLine(error.ToString());
+                details.AppendLine();
             }
 
             return details.ToString();
         }
 
-        static string FormatDateTime(DateTime dateTime)
+        static string FormatDateTime(this DateTime dateTime)
         {
-            return String.Format("{0} {1}", dateTime.Day - 1, dateTime.ToLongTimeString());
+            return $"{dateTime.Day - 1} {dateTime.ToLongTimeString()}";
         }
     }
 }

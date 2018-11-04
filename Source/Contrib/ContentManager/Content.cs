@@ -68,7 +68,7 @@ namespace ORTS.ContentManager
 
         public static bool operator ==(Content left, Content right)
         {
-            return Object.ReferenceEquals(left, null) ? Object.ReferenceEquals(left, right) : left.Equals(right);
+            return left?.Equals(right) ?? ReferenceEquals(left, right);
         }
 
         public static bool operator !=(Content left, Content right)
@@ -83,10 +83,8 @@ namespace ORTS.ContentManager
 
         public override bool Equals(object obj)
         {
-            if (obj == null || GetType() != obj.GetType())
-                return false;
-            var content = obj as Content;
-            return Type == content.Type && Name == content.Name && PathName == content.PathName;
+            Content content = obj as Content;
+            return content != null && Type == content.Type && Name == content.Name && PathName == content.PathName;
         }
 
         public override int GetHashCode()
@@ -96,10 +94,9 @@ namespace ORTS.ContentManager
 
         public override string ToString()
         {
-            return String.Format("{0}({1})", Type, PathName);
+            return string.Format("{0}({1})", Type, PathName);
         }
 
-        // TODO: Be abstract.
         public virtual IEnumerable<Content> Get(ContentType type)
         {
             return new Content[0];

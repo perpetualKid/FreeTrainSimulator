@@ -29,45 +29,36 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ContentManagerGUI));
-            this.searchBox = new CueTextBox();
             this.searchResults = new System.Windows.Forms.ListBox();
             this.treeViewContent = new System.Windows.Forms.TreeView();
             this.richTextBoxContent = new System.Windows.Forms.RichTextBox();
             this.splitContainer = new System.Windows.Forms.SplitContainer();
+            this.searchBox = new ORTS.ContentManager.CueTextBox();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();
             this.splitContainer.SuspendLayout();
             this.SuspendLayout();
             // 
-            // searchBox
-            // 
-            this.searchBox.Cue = "Search for items...";
-            this.searchBox.Dock = System.Windows.Forms.DockStyle.Top;
-            this.searchBox.Name = "searchBox";
-            this.searchBox.ShowCueWhenFocused = true;
-            this.searchBox.Size = new System.Drawing.Size(516, 30);
-            this.searchBox.TabIndex = 1;
-            this.searchBox.Text = "";
-            this.searchBox.TextChanged += new System.EventHandler(this.searchBox_TextChanged);
-            // 
             // searchResults
             // 
             this.searchResults.Dock = System.Windows.Forms.DockStyle.Top;
+            this.searchResults.Location = new System.Drawing.Point(0, 20);
             this.searchResults.Name = "searchResults";
-            this.searchResults.Size = new System.Drawing.Size(516, 200);
+            this.searchResults.Size = new System.Drawing.Size(300, 199);
             this.searchResults.TabIndex = 2;
             this.searchResults.Visible = false;
-            this.searchResults.DoubleClick += new System.EventHandler(this.searchResults_DoubleClick);
+            this.searchResults.DoubleClick += new System.EventHandler(this.SearchResults_DoubleClick);
             // 
             // treeViewContent
             // 
             this.treeViewContent.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.treeViewContent.Location = new System.Drawing.Point(0, 0);
+            this.treeViewContent.Location = new System.Drawing.Point(0, 219);
             this.treeViewContent.Name = "treeViewContent";
-            this.treeViewContent.Size = new System.Drawing.Size(300, 514);
+            this.treeViewContent.Size = new System.Drawing.Size(300, 295);
             this.treeViewContent.TabIndex = 0;
-            this.treeViewContent.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.treeViewContent_BeforeExpand);
-            this.treeViewContent.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeViewContent_AfterSelect);
+            this.treeViewContent.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.TreeViewContent_BeforeExpand);
+            this.treeViewContent.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.TreeViewContent_AfterSelect);
             // 
             // richTextBoxContent
             // 
@@ -78,7 +69,7 @@
             this.richTextBoxContent.Size = new System.Drawing.Size(516, 514);
             this.richTextBoxContent.TabIndex = 1;
             this.richTextBoxContent.Text = "";
-            this.richTextBoxContent.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.richTextBoxContent_LinkClicked);
+            this.richTextBoxContent.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.RichTextBoxContent_LinkClicked);
             // 
             // splitContainer
             // 
@@ -103,6 +94,17 @@
             this.splitContainer.SplitterDistance = 300;
             this.splitContainer.TabIndex = 2;
             // 
+            // searchBox
+            // 
+            this.searchBox.Cue = "Search for items...";
+            this.searchBox.Dock = System.Windows.Forms.DockStyle.Top;
+            this.searchBox.Location = new System.Drawing.Point(0, 0);
+            this.searchBox.Name = "searchBox";
+            this.searchBox.ShowCueWhenFocused = true;
+            this.searchBox.Size = new System.Drawing.Size(300, 20);
+            this.searchBox.TabIndex = 1;
+            this.searchBox.TextChanged += new System.EventHandler(this.SearchBox_TextChanged);
+            // 
             // ContentManagerGUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -113,8 +115,11 @@
             this.Name = "ContentManagerGUI";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Open Rails Content Manager";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ContentManagerGUI_FormClosing);
             this.splitContainer.Panel1.ResumeLayout(false);
+            this.splitContainer.Panel1.PerformLayout();
             this.splitContainer.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).EndInit();
             this.splitContainer.ResumeLayout(false);
             this.ResumeLayout(false);
 

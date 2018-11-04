@@ -23,30 +23,31 @@ namespace ORTS.ContentManager
 {
     public class CueTextBox : TextBox
     {
-        [DllImport("user32.dll", EntryPoint = "SendMessageW")]
-        static extern int SendMessageForEMSCB(IntPtr handle, int em_setcuebanner, bool showWhenFocused, IntPtr cueText);
-        const int EM_SETCUEBANNER = 0x1501;
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, string lp);
 
-        string _cue;
+        private const int EM_SETCUEBANNER = 0x1501;
+
+        private string cueText;
 
         public string Cue
         {
-            get { return _cue; }
+            get { return cueText; }
             set
             {
-                _cue = value;
+                cueText = value;
                 UpdateCueText();
             }
         }
 
         public bool ShowCueWhenFocused { get; set; }
 
-        void UpdateCueText()
+        private void UpdateCueText()
         {
-            if (!this.IsHandleCreated || string.IsNullOrEmpty(_cue)) return;
-            var hglobal = Marshal.StringToHGlobalUni(_cue);
-            SendMessageForEMSCB(this.Handle, EM_SETCUEBANNER, ShowCueWhenFocused, hglobal);
-            Marshal.FreeHGlobal(hglobal);
+            if (IsHandleCreated && !string.IsNullOrEmpty(cueText))
+            {
+                SendMessage(this.Handle, EM_SETCUEBANNER, (IntPtr)Convert.ToSingle(ShowCueWhenFocused), cueText);
+            }
         }
 
         protected override void OnHandleCreated(EventArgs e)

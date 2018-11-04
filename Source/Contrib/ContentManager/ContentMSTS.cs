@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace ORTS.ContentManager
 {
@@ -78,7 +77,7 @@ namespace ORTS.ContentManager
             }
             else if (type == ContentType.Consist)
             {
-                var path = Path.Combine(Path.Combine(PathName, "Trains"), "Consists");
+                var path = Path.Combine(PathName, "Trains", "Consists");
                 if (Directory.Exists(path))
                     foreach (var item in Directory.GetFiles(path, "*.con"))
                         yield return new ContentMSTSConsist(this, Path.Combine(path, item));
@@ -89,11 +88,11 @@ namespace ORTS.ContentManager
         {
             if (type == ContentType.Car)
             {
-                var pathEng = Path.Combine(Path.Combine(Path.Combine(PathName, "Trains"), "Trainset"), name + ".eng");
+                var pathEng = Path.Combine(PathName, "Trains", "Trainset", name + ".eng");
                 if (File.Exists(pathEng))
                     return new ContentMSTSCar(this, pathEng);
 
-                var pathWag = Path.Combine(Path.Combine(Path.Combine(PathName, "Trains"), "Trainset"), name + ".wag");
+                var pathWag = Path.Combine(PathName, "Trains", "Trainset", name + ".wag");
                 if (File.Exists(pathWag))
                     return new ContentMSTSCar(this, pathWag);
             }
@@ -133,7 +132,7 @@ namespace ORTS.ContentManager
         {
             if (type == ContentType.Path)
             {
-                var path = Path.Combine(Path.Combine(PathName, "Paths"), name + ".pat");
+                var path = Path.Combine(PathName, "Paths", name + ".pat");
                 if (File.Exists(path))
                     return new ContentMSTSPath(this, path);
             }
@@ -168,7 +167,7 @@ namespace ORTS.ContentManager
 
         string GetRelatedPath(string type, string name, string extension)
         {
-            return Path.Combine(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(PathName)), type), name + extension);
+            return Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(PathName)), type, name + extension);
         }
     }
 

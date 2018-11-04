@@ -17,6 +17,7 @@
 
 using ORTS.Settings;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -24,6 +25,8 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ORTS.ContentManager
@@ -39,29 +42,18 @@ namespace ORTS.ContentManager
         Content PendingSelection;
         List<string> PendingSelections = new List<string>();
 
-        BackgroundWorker SearchWorker = null;
-        const string InitialSearchPendingText = "Searching...";
-        const int InitialSearchPendingLength = 9;
-        int SearchPendingLength = InitialSearchPendingLength;
-        DateTimeOffset SearchPendingTime;
+        private CancellationTokenSource ctsSearching;
+        private CancellationTokenSource ctsExpanding;
+        private readonly ContentType[] contentTypes = (ContentType[])Enum.GetValues(typeof(ContentType));
 
-        class SearchResult
+        private ConcurrentBag<SearchResult> searchResultsList = new ConcurrentBag<SearchResult>();
+        private ConcurrentDictionary<string, string> searchResultDuplicates;
+        private static Native.CharFormat2 rtfLink = new Native.CharFormat2
         {
-            public string Name;
-            public string[] Path;
-            public SearchResult(Content content, string path)
-            {
-                var placeEnd = Math.Max(path.LastIndexOf(" / "), path.LastIndexOf(" -> "));
-                var place = path.Substring(0, placeEnd);
-                Name = string.Format("{0} ({1}) in {2}", content.Name, content.Type, place);
-                Path = path.Split(new[] { " / ", " -> " }, StringSplitOptions.None);
-            }
-
-            public override string ToString()
-            {
-                return Name;
-            }
-        }
+            Size = Marshal.SizeOf(typeof(Native.CharFormat2)),
+            Mask = Native.CfmLink,
+            Effects = Native.CfmLink,
+        };
 
         public ContentManagerGUI()
         {
@@ -81,67 +73,76 @@ namespace ORTS.ContentManager
 
             var width = richTextBoxContent.Font.Height;
             richTextBoxContent.SelectionTabs = new[] { width * 5, width * 15, width * 25, width * 35 };
+
         }
 
-        void treeViewContent_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+        private Task<IEnumerable<TreeNode>> ExpandTreeView(Content content, CancellationToken token)
+        {
+            TaskCompletionSource<IEnumerable<TreeNode>> tcs = new TaskCompletionSource<IEnumerable<TreeNode>>();
+
+            // Get all the different possible types of content from this content item.
+            var childNodes = contentTypes.SelectMany(ct => content.Get(ct).Select(c => CreateContentNode(c)));
+
+            if (token.IsCancellationRequested)
+            {
+                tcs.SetCanceled();
+                return tcs.Task;
+            }
+            var linkChildren = ContentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => CreateContentNode(content, linkMatch.Groups[1].Value, (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value)));
+            Debug.Assert(!childNodes.Any() || !linkChildren.Any(), "Content item should not return items from Get(ContentType) and Get(string, ContentType)");
+            childNodes = childNodes.Concat(linkChildren);
+
+            if (token.IsCancellationRequested)
+            {
+                tcs.SetCanceled();
+            }
+            tcs.TrySetResult(childNodes);
+            return tcs.Task;
+        }
+
+        private async void TreeViewContent_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
             // Are we about to expand a not-yet-loaded node? This is identified by a single child with no text or tag.
             if (e.Node.Tag != null && e.Node.Tag is Content && e.Node.Nodes.Count == 1 && e.Node.Nodes[0].Text == "" && e.Node.Nodes[0].Tag == null)
             {
                 // Make use of the single child to show a loading message.
                 e.Node.Nodes[0].Text = "Loading...";
-                var content = e.Node.Tag as Content;
-                var worker = new BackgroundWorker();
-                worker.WorkerSupportsCancellation = true;
-                worker.DoWork += (object sender1, DoWorkEventArgs e1) =>
+                lock (e.Node)
                 {
-                    // Get all the different possible types of content from this content item.
-                    var getChildren = ((ContentType[])Enum.GetValues(typeof(ContentType))).SelectMany(ct => content.Get(ct).Select(c => CreateContentNode(c)));
-                    var linkChildren = ContentLink.Matches(ContentInfo.GetText(e.Node.Tag as Content)).Cast<Match>().Select(linkMatch => CreateContentNode(content, linkMatch.Groups[1].Value, (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value)));
-                    Debug.Assert(!getChildren.Any() || !linkChildren.Any(), "Content item should not return items from Get(ContentType) and Get(string, ContentType)");
-                    e1.Result = getChildren.Concat(linkChildren).ToArray();
-
-                    if (worker.CancellationPending)
-                        e1.Cancel = true;
-                };
-                worker.RunWorkerCompleted += (object sender2, RunWorkerCompletedEventArgs e2) =>
+                    if (ctsExpanding != null && !ctsExpanding.IsCancellationRequested)
+                        ctsExpanding.Cancel();
+                    ctsExpanding = ResetCancellationTokenSource(ctsExpanding);
+                }
+                try
                 {
-                    // If we got cancelled, or the loading node is missing, we should abort here to avoid issues caused by double-loading.
-                    if (e2.Cancelled || e.Node.Nodes.Count < 1 || e.Node.Nodes[0].Text != "Loading..." || e.Node.Nodes[0].Tag != null)
-                        return;
 
-                    // Get results from worker.
-                    var nodes = e2.Result as TreeNode[];
+                    Content content = e.Node.Tag as Content;
+                    var nodes = await Task.Run(() => ExpandTreeView(content, ctsExpanding.Token));
 
-                    // Collapse node if we're going to end up with no child nodes.
-                    if (e2.Error == null && nodes.Length == 0)
+                    //// Collapse node if we're going to end up with no child nodes.
+                    if (nodes.Count() == 0)
+                    {
                         e.Node.Collapse();
+                    }
 
                     // Remove the loading node.
                     e.Node.Nodes.RemoveAt(0);
-
-                    // Add either the error we encountered or the resulting content items.
-                    if (e2.Error != null)
-                        e.Node.Nodes.Add(new TreeNode(e2.Error.Message));
-                    else
-                        e.Node.Nodes.AddRange(nodes);
-
-                    CheckForPendingActions(e.Node);
-                };
-                worker.RunWorkerAsync(e.Node.Tag);
-            }
-            else
-            {
-                var worker = new BackgroundWorker();
-                worker.RunWorkerCompleted += (object sender2, RunWorkerCompletedEventArgs e2) =>
+                    e.Node.Nodes.AddRange(nodes.ToArray());
+                }
+                catch (TaskCanceledException)
                 {
-                    CheckForPendingActions(e.Node);
-                };
-                worker.RunWorkerAsync(e.Node.Tag);
+                    e.Node.Nodes[0].Text = string.Empty;
+                    e.Node.Collapse();
+                }
+                catch (Exception ex)
+                {
+                    e.Node.Nodes.Add(new TreeNode(ex.Message));
+                }
             }
+            CheckForPendingActions(e.Node);
         }
 
-        void CheckForPendingActions(TreeNode startNode)
+        private void CheckForPendingActions(TreeNode startNode)
         {
             if (PendingSelection != null)
             {
@@ -158,39 +159,32 @@ namespace ORTS.ContentManager
                 var pendingSelectionNode = startNode.Nodes.OfType<TreeNode>().FirstOrDefault(node => ((Content)node.Tag).Name == PendingSelections[0]);
                 if (pendingSelectionNode != null)
                 {
+                    PendingSelections.RemoveAt(0);
                     treeViewContent.SelectedNode = pendingSelectionNode;
                     treeViewContent.SelectedNode.Expand();
                 }
-                PendingSelections.RemoveAt(0);
             }
         }
 
-        static TreeNode CreateContentNode(Content content, string name, ContentType type)
+        private static TreeNode CreateContentNode(Content content, string name, ContentType type)
         {
             var c = content.Get(name, type);
             if (c != null)
                 return CreateContentNode(c);
-            return new TreeNode(String.Format("Missing: {0} ({1})", name, type));
+            return new TreeNode($"Missing: {name} ({type})");
         }
 
-        static TreeNode CreateContentNode(Content c)
+        private static TreeNode CreateContentNode(Content c)
         {
-            return new TreeNode(String.Format("{0} ({1})", c.Name, c.Type), new[] { new TreeNode() }) { Tag = c };
+            return new TreeNode($"{c.Name} ({c.Type})", new[] { new TreeNode() }) { Tag = c };
         }
 
-        void treeViewContent_AfterSelect(object sender, TreeViewEventArgs e)
+        void TreeViewContent_AfterSelect(object sender, TreeViewEventArgs e)
         {
             richTextBoxContent.Clear();
 
-            if (e.Node.Tag == null || !(e.Node.Tag is Content))
+            if (!(e.Node.Tag is Content))
                 return;
-
-            var link = new Native.CharFormat2
-            {
-                Size = Marshal.SizeOf(typeof(Native.CharFormat2)),
-                Mask = Native.CfmLink,
-                Effects = Native.CfmLink,
-            };
 
             Trace.TraceInformation("Updating richTextBoxContent with content {0}", e.Node.Tag as Content);
             richTextBoxContent.Text = ContentInfo.GetText(e.Node.Tag as Content);
@@ -208,14 +202,14 @@ namespace ORTS.ContentManager
                 richTextBoxContent.Select(linkMatch.Index, linkMatch.Length);
                 richTextBoxContent.SelectedRtf = String.Format(@"{{\rtf{{{0}{{\v{{\u1.{0}\u1.{1}}}\v0}}}}}}", linkMatch.Groups[1].Value, linkMatch.Groups[2].Value);
                 richTextBoxContent.Select(linkMatch.Index, linkMatch.Groups[1].Value.Length * 2 + linkMatch.Groups[2].Value.Length + 2);
-                Native.SendMessage(richTextBoxContent.Handle, Native.EmSetCharFormat, Native.ScfSelection, ref link);
+                Native.SendMessage(richTextBoxContent.Handle, Native.EmSetCharFormat, Native.ScfSelection, ref rtfLink);
                 linkMatch = ContentLink.Match(richTextBoxContent.Text);
             }
             richTextBoxContent.Select(0, 0);
             richTextBoxContent.SelectionFont = richTextBoxContent.Font;
         }
 
-        void richTextBoxContent_LinkClicked(object sender, LinkClickedEventArgs e)
+        private void RichTextBoxContent_LinkClicked(object sender, LinkClickedEventArgs e)
         {
             var content = treeViewContent.SelectedNode.Tag as Content;
             var link = e.LinkText.Split('\u0001');
@@ -239,99 +233,132 @@ namespace ORTS.ContentManager
             }
         }
 
-        void searchBox_TextChanged(object sender, EventArgs e)
+        private Task SearchContent(Content content, string path, string searchString, CancellationToken token)
         {
-            if (SearchWorker != null)
+            if (token.IsCancellationRequested)
+                return Task.CompletedTask;
+
+            try
             {
-                SearchWorker.CancelAsync();
-                SearchWorker = null;
+                if (string.IsNullOrEmpty(path))
+                    path = ContentManager.Name;
+
+                if (content.Name.ToLowerInvariant().Contains(searchString))
+                {
+                    if (content.Parent != null)
+                        searchResultsList.Add(new SearchResult(content, path));
+                }
+                Parallel.ForEach(contentTypes.SelectMany(ct => content.Get(ct)),
+                    new ParallelOptions() { CancellationToken = token },
+                    async (child) =>
+                {
+                     await SearchContent(child, path + " / " + child.Name, searchString, token);
+                });
+
+                Parallel.ForEach(ContentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => content.Get(linkMatch.Groups[1].Value,
+                    (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value))).Where(linkContent => linkContent != null),
+                    new ParallelOptions() { CancellationToken = token },
+                    async (child) =>
+                    {
+                        if (!searchResultDuplicates.ContainsKey(path + " -> " + child.Name))
+                        {
+                            searchResultDuplicates.TryAdd(path, content.Name);
+                            await SearchContent(child, path + " -> " + child.Name, searchString, token);
+                        }
+                    });
+
+                if (!token.IsCancellationRequested)
+                    return UpdateSearchResults(token);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            return Task.CompletedTask;
+        }
+
+        private async void SearchBox_TextChanged(object sender, EventArgs e)
+        {
+            lock (searchResultsList)
+            {
+                if (ctsSearching != null && !ctsSearching.IsCancellationRequested)
+                    ctsSearching.Cancel();
+                ctsSearching = ResetCancellationTokenSource(ctsSearching);
             }
 
+            searchResultsList = new ConcurrentBag<SearchResult>();
+            searchResultDuplicates = new ConcurrentDictionary<string, string>();
             searchResults.Items.Clear();
             searchResults.Visible = searchBox.Text.Length > 0;
             if (!searchResults.Visible)
                 return;
 
-            searchResults.Items.Add("");
-            SearchPendingTime = DateTimeOffset.Now;
+            searchResults.Items.Add(string.Empty);
 
-            var worker = new BackgroundWorker();
-            worker.WorkerSupportsCancellation = true;
-            worker.DoWork += (object sender1, DoWorkEventArgs e1) =>
+            try
             {
-                var search = (e1.Argument as string).ToLowerInvariant();
-                var finds = new List<SearchResult>();
-                var pending = new Dictionary<string, Content>();
-                pending.Add(ContentManager.Name, ContentManager);
-
-                while (pending.Count > 0 && !worker.CancellationPending)
-                {
-                    var path = pending.Keys.First();
-                    var content = pending[path];
-                    pending.Remove(path);
-
-                    if (content.Name.ToLowerInvariant().Contains(search))
-                        finds.Add(new SearchResult(content, path));
-
-                    foreach (var child in ((ContentType[])Enum.GetValues(typeof(ContentType))).SelectMany(ct => content.Get(ct)))
-                        pending.Add(path + " / " + child.Name, child);
-
-                    foreach (var child in ContentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => content.Get(linkMatch.Groups[1].Value, (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value))).Where(linkContent => linkContent != null))
-                        if (!pending.ContainsKey(path + " -> " + child.Name))
-                            pending.Add(path + " -> " + child.Name, child);
-
-                    searchResults.Invoke((Action<List<SearchResult>, int, bool>)UpdateSearchResults, finds, pending.Count, false);
-                }
-
-                e1.Result = finds;
-
-                if (worker.CancellationPending)
-                    e1.Cancel = true;
-            };
-            worker.RunWorkerCompleted += (object sender2, RunWorkerCompletedEventArgs e2) =>
+                await Task.Run(() => SearchContent(ContentManager, string.Empty, searchBox.Text, ctsSearching.Token));
+            }
+            catch (Exception ex)
             {
-                if (e2.Cancelled)
-                    return;
-
-                var finds = e2.Result as List<SearchResult>;
-
-                if (e2.Error != null)
-                    MessageBox.Show(e2.Error.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                searchResults.Invoke((Action<List<SearchResult>, int, bool>)UpdateSearchResults, finds, 0, true);
-            };
-            SearchWorker = worker;
-            SearchWorker.RunWorkerAsync(searchBox.Text);
+                MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                UpdateSearchResults(true);
+            }
+            return;
         }
 
-        void UpdateSearchResults(List<SearchResult> results, int pending, bool done)
+        private void UpdateSearchResults(bool done)
         {
-            if (done || (DateTimeOffset.Now - SearchPendingTime).TotalSeconds >= 0.5)
+            while (searchResultsList.TryTake(out SearchResult result))
             {
-                searchResults.Items.AddRange(results.Skip(searchResults.Items.Count - 1).ToArray());
-                SearchPendingLength++;
-                if (SearchPendingLength > InitialSearchPendingText.Length) SearchPendingLength = InitialSearchPendingLength;
-                searchResults.Items[0] = "[" + pending + "/" + results.Count + "] " + InitialSearchPendingText.Substring(0, SearchPendingLength);
-                SearchPendingTime = DateTimeOffset.Now;
+                searchResults.Items.Add(result);
             }
-            if (done)
-            {
-                searchResults.Items.RemoveAt(0);
-            }
+            if (searchResults.Items.Count > 0)
+                searchResults.Items[0] = $"[{(done ? "Done" : "Searching")}] {searchResults.Items.Count - 1} results found";
         }
 
-        void searchResults_DoubleClick(object sender, EventArgs e)
+        private Task UpdateSearchResults(CancellationToken token)
         {
-            var result = searchResults.SelectedItem as SearchResult;
-            if (result == null)
+            try
+            {
+                Invoke((MethodInvoker)delegate { UpdateSearchResults(false); });
+            }
+            catch (ObjectDisposedException) //when Form Closing, object may already be disposing while SearchTask cancelling
+            { }
+            return Task.CompletedTask;
+        }
+
+        void SearchResults_DoubleClick(object sender, EventArgs e)
+        {
+            if (!(searchResults.SelectedItem is SearchResult result))
                 return;
 
             PendingSelections.Clear();
-            PendingSelections.AddRange(result.Path.Skip(1).ToArray());
+            PendingSelections.AddRange(result.Path);
             treeViewContent.Focus();
             treeViewContent.CollapseAll();
             treeViewContent.SelectedNode = treeViewContent.Nodes[0];
             treeViewContent.SelectedNode.Expand();
+        }
+
+        private static CancellationTokenSource ResetCancellationTokenSource(System.Threading.CancellationTokenSource cts)
+        {
+            if (cts != null)
+            {
+                cts.Dispose();
+            }
+            // Create a new cancellation token source so that can cancel all the tokens again 
+            return new CancellationTokenSource();
+        }
+
+        private void ContentManagerGUI_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (null != ctsSearching && !ctsSearching.IsCancellationRequested)
+                ctsSearching.Cancel();
+            if (null != ctsExpanding && !ctsExpanding.IsCancellationRequested)
+                ctsExpanding.Cancel();
         }
     }
 
@@ -370,4 +397,25 @@ namespace ORTS.ContentManager
             public byte Reserved1;
         }
     }
+
+    public class SearchResult
+    {
+        public string Name;
+        public string[] Path;
+
+        static string[] separators = { " / ", " -> " };
+        public SearchResult(Content content, string path)
+        {
+            var placeEnd = Math.Max(path.LastIndexOf(" / "), path.LastIndexOf(" -> "));
+            var place = path.Substring(0, placeEnd);
+            Name = $"{content.Name} ({content.Type}) in {place}";
+            Path = path.Split(separators, StringSplitOptions.None).Skip(1).ToArray();
+        }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+
 }
