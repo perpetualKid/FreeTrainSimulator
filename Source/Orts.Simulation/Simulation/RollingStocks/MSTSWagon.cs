@@ -291,6 +291,8 @@ namespace Orts.Simulation.RollingStocks
         float LoadEmptyORTSDavis_A;
         float LoadEmptyORTSDavis_B;
         float LoadEmptyORTSDavis_C;
+        float LoadEmptyWagonFrontalAreaM2;
+        float LoadEmptyDavisDragConstant;
         float LoadEmptyMaxBrakeForceN;
         float LoadEmptyMaxHandbrakeForceN;
         float LoadEmptyCentreOfGravityM_Y;
@@ -299,6 +301,8 @@ namespace Orts.Simulation.RollingStocks
         float LoadFullORTSDavis_A;
         float LoadFullORTSDavis_B;
         float LoadFullORTSDavis_C;
+        float LoadFullWagonFrontalAreaM2;
+        float LoadFullDavisDragConstant;
         float LoadFullMaxBrakeForceN;
         float LoadFullMaxHandbrakeForceN;
         float LoadFullCentreOfGravityM_Y;
@@ -449,6 +453,24 @@ namespace Orts.Simulation.RollingStocks
                     LoadEmptyORTSDavis_C = DavisCNSSpMM;
                 }
 
+                if (FreightAnimations.EmptyORTSDavisDragConstant > 0)
+                {
+                    LoadEmptyDavisDragConstant = FreightAnimations.EmptyORTSDavisDragConstant;
+                }
+                else
+                {
+                    LoadEmptyDavisDragConstant = DavisDragConstant;
+                }
+
+                if (FreightAnimations.EmptyORTSWagonFrontalAreaM2 > 0)
+                {
+                    LoadEmptyWagonFrontalAreaM2 = FreightAnimations.EmptyORTSWagonFrontalAreaM2;
+                }
+                else
+                {
+                    LoadEmptyWagonFrontalAreaM2 = WagonFrontalAreaM2;
+                }
+
                 if (FreightAnimations.EmptyMaxBrakeForceN > 0)
                 {
                     LoadEmptyMaxBrakeForceN = FreightAnimations.EmptyMaxBrakeForceN;
@@ -506,6 +528,25 @@ namespace Orts.Simulation.RollingStocks
                     {
                         LoadFullORTSDavis_C = DavisCNSSpMM;
                     }
+
+                    if (FreightAnimations.FullPhysicsStaticOne.FullStaticORTSDavisDragConstant > 0)
+                    {
+                        LoadFullDavisDragConstant = FreightAnimations.FullPhysicsStaticOne.FullStaticORTSDavisDragConstant;
+                    }
+                    else
+                    {
+                        LoadFullDavisDragConstant = DavisDragConstant;
+                    }
+
+                    if (FreightAnimations.FullPhysicsStaticOne.FullStaticORTSWagonFrontalAreaM2 > 0)
+                    {
+                        LoadFullWagonFrontalAreaM2 = FreightAnimations.FullPhysicsStaticOne.FullStaticORTSWagonFrontalAreaM2;
+                    }
+                    else
+                    {
+                        LoadFullWagonFrontalAreaM2 = WagonFrontalAreaM2;
+                    }
+
 
                     if (FreightAnimations.FullPhysicsStaticOne.FullStaticMaxBrakeForceN > 0)
                     {
@@ -575,6 +616,25 @@ namespace Orts.Simulation.RollingStocks
                         LoadFullORTSDavis_C = DavisCNSSpMM;
                     }
 
+                    if (FreightAnimations.FullPhysicsContinuousOne.FullORTSDavisDragConstant > 0)
+                    {
+                        LoadFullDavisDragConstant = FreightAnimations.FullPhysicsContinuousOne.FullORTSDavisDragConstant;
+                    }
+                    else
+                    {
+                        LoadFullDavisDragConstant = DavisDragConstant;
+                    }
+
+                    if (FreightAnimations.FullPhysicsContinuousOne.FullORTSWagonFrontalAreaM2 > 0)
+                    {
+                        LoadFullWagonFrontalAreaM2 = FreightAnimations.FullPhysicsContinuousOne.FullORTSWagonFrontalAreaM2;
+                    }
+                    else
+                    {
+                        LoadFullWagonFrontalAreaM2 = WagonFrontalAreaM2;
+                    }
+
+
                     if (FreightAnimations.FullPhysicsContinuousOne.FullMaxBrakeForceN > 0)
                     {
                         LoadFullMaxBrakeForceN = FreightAnimations.FullPhysicsContinuousOne.FullMaxBrakeForceN;
@@ -619,6 +679,8 @@ namespace Orts.Simulation.RollingStocks
                             DavisAN = LoadFullORTSDavis_A;
                             DavisBNSpM = LoadFullORTSDavis_B;
                             DavisCNSSpMM = LoadFullORTSDavis_C;
+                            DavisDragConstant = LoadFullDavisDragConstant;
+                            WagonFrontalAreaM2 = LoadFullWagonFrontalAreaM2;
 
                             // Update CoG related parameters
                             CentreOfGravityM.Y = LoadFullCentreOfGravityM_Y;
@@ -641,6 +703,17 @@ namespace Orts.Simulation.RollingStocks
                     DavisAN = ((LoadFullORTSDavis_A - LoadEmptyORTSDavis_A) * TempMassDiffRatio) + LoadEmptyORTSDavis_A;
                     DavisBNSpM = ((LoadFullORTSDavis_B - LoadEmptyORTSDavis_B) * TempMassDiffRatio) + LoadEmptyORTSDavis_B;
                     DavisCNSSpMM = ((LoadFullORTSDavis_C - LoadEmptyORTSDavis_C) * TempMassDiffRatio) + LoadEmptyORTSDavis_C;
+
+                    if (LoadEmptyDavisDragConstant > LoadFullDavisDragConstant ) // Due to wind turbulence empty drag might be higher then loaded drag, and therefore both scenarios need to be covered.
+                    {
+                        DavisDragConstant = LoadEmptyDavisDragConstant -   ((LoadEmptyDavisDragConstant - LoadFullDavisDragConstant) * TempMassDiffRatio);
+                    }
+                    else
+                    {
+                        DavisDragConstant = ((LoadFullDavisDragConstant - LoadEmptyDavisDragConstant) * TempMassDiffRatio) + LoadEmptyDavisDragConstant;
+                    }
+                    
+                    WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
 
                     // Update CoG related parameters
                     CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
@@ -1035,6 +1108,8 @@ namespace Orts.Simulation.RollingStocks
             LoadEmptyORTSDavis_A = copy.LoadEmptyORTSDavis_A;
             LoadEmptyORTSDavis_B = copy.LoadEmptyORTSDavis_B;
             LoadEmptyORTSDavis_C = copy.LoadEmptyORTSDavis_C;
+            LoadEmptyDavisDragConstant = copy.LoadEmptyDavisDragConstant;
+            LoadEmptyWagonFrontalAreaM2 = copy.LoadEmptyWagonFrontalAreaM2;
             LoadFullMassKg = copy.LoadFullMassKg;
             LoadFullCentreOfGravityM_Y = copy.LoadFullCentreOfGravityM_Y;
             LoadFullMaxBrakeForceN = copy.LoadFullMaxBrakeForceN;
@@ -1042,7 +1117,9 @@ namespace Orts.Simulation.RollingStocks
             LoadFullORTSDavis_A = copy.LoadFullORTSDavis_A;
             LoadFullORTSDavis_B = copy.LoadFullORTSDavis_B;
             LoadFullORTSDavis_C = copy.LoadFullORTSDavis_C;
-            
+            LoadFullDavisDragConstant = copy.LoadFullDavisDragConstant;
+            LoadFullWagonFrontalAreaM2 = copy.LoadFullWagonFrontalAreaM2;
+
             if (copy.IntakePointList != null)
             {
                 foreach (IntakePoint copyIntakePoint in copy.IntakePointList)
@@ -1306,7 +1383,20 @@ namespace Orts.Simulation.RollingStocks
                         DavisAN = ((LoadFullORTSDavis_A - LoadEmptyORTSDavis_A) * TempMassDiffRatio) + LoadEmptyORTSDavis_A;
                         DavisBNSpM = ((LoadFullORTSDavis_B - LoadEmptyORTSDavis_B) * TempMassDiffRatio) + LoadEmptyORTSDavis_B;
                         DavisCNSSpMM = ((LoadFullORTSDavis_C - LoadEmptyORTSDavis_C) * TempMassDiffRatio) + LoadEmptyORTSDavis_C;
-                  // Update CoG related parameters
+
+                        if (LoadEmptyDavisDragConstant > LoadFullDavisDragConstant) // Due to wind turbulence empty drag might be higher then loaded drag, and therefore both scenarios need to be covered.
+                        {
+                            DavisDragConstant = LoadEmptyDavisDragConstant - ((LoadEmptyDavisDragConstant - LoadFullDavisDragConstant) * TempMassDiffRatio);
+                        }
+                        else
+                        {
+                            DavisDragConstant = ((LoadFullDavisDragConstant - LoadEmptyDavisDragConstant) * TempMassDiffRatio) + LoadEmptyDavisDragConstant;
+                        }
+
+                        WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
+
+
+                        // Update CoG related parameters
                         CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                     }
                 }
@@ -1371,6 +1461,18 @@ namespace Orts.Simulation.RollingStocks
                         DavisAN = ((LoadFullORTSDavis_A - LoadEmptyORTSDavis_A) * TempMassDiffRatio) + LoadEmptyORTSDavis_A;
                         DavisBNSpM = ((LoadFullORTSDavis_B - LoadEmptyORTSDavis_B) * TempMassDiffRatio) + LoadEmptyORTSDavis_B;
                         DavisCNSSpMM = ((LoadFullORTSDavis_C - LoadEmptyORTSDavis_C) * TempMassDiffRatio) + LoadEmptyORTSDavis_C;
+
+                        if (LoadEmptyDavisDragConstant > LoadFullDavisDragConstant) // Due to wind turbulence empty drag might be higher then loaded drag, and therefore both scenarios need to be covered.
+                        {
+                            DavisDragConstant = LoadEmptyDavisDragConstant - ((LoadEmptyDavisDragConstant - LoadFullDavisDragConstant) * TempMassDiffRatio);
+                        }
+                        else
+                        {
+                            DavisDragConstant = ((LoadFullDavisDragConstant - LoadEmptyDavisDragConstant) * TempMassDiffRatio) + LoadEmptyDavisDragConstant;
+                        }
+
+                        WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
+
                         // Update CoG related parameters
                         CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                     }
@@ -1404,6 +1506,18 @@ namespace Orts.Simulation.RollingStocks
                         DavisAN = ((LoadFullORTSDavis_A - LoadEmptyORTSDavis_A) * TempMassDiffRatio) + LoadEmptyORTSDavis_A;
                         DavisBNSpM = ((LoadFullORTSDavis_B - LoadEmptyORTSDavis_B) * TempMassDiffRatio) + LoadEmptyORTSDavis_B;
                         DavisCNSSpMM = ((LoadFullORTSDavis_C - LoadEmptyORTSDavis_C) * TempMassDiffRatio) + LoadEmptyORTSDavis_C;
+
+                        if (LoadEmptyDavisDragConstant > LoadFullDavisDragConstant) // Due to wind turbulence empty drag might be higher then loaded drag, and therefore both scenarios need to be covered.
+                        {
+                            DavisDragConstant = LoadEmptyDavisDragConstant - ((LoadEmptyDavisDragConstant - LoadFullDavisDragConstant) * TempMassDiffRatio);
+                        }
+                        else
+                        {
+                            DavisDragConstant = ((LoadFullDavisDragConstant - LoadEmptyDavisDragConstant) * TempMassDiffRatio) + LoadEmptyDavisDragConstant;
+                        }
+
+                        WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
+
                         // Update CoG related parameters
                         CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                         
@@ -1883,6 +1997,18 @@ namespace Orts.Simulation.RollingStocks
                     DavisAN = ((LoadFullORTSDavis_A - LoadEmptyORTSDavis_A) * TempTenderMassDiffRatio) + LoadEmptyORTSDavis_A;
                     DavisBNSpM = ((LoadFullORTSDavis_B - LoadEmptyORTSDavis_B) * TempTenderMassDiffRatio) + LoadEmptyORTSDavis_B;
                     DavisCNSSpMM = ((LoadFullORTSDavis_C - LoadEmptyORTSDavis_C) * TempTenderMassDiffRatio) + LoadEmptyORTSDavis_C;
+
+                    if (LoadEmptyDavisDragConstant > LoadFullDavisDragConstant) // Due to wind turbulence empty drag might be higher then loaded drag, and therefore both scenarios need to be covered.
+                    {
+                        DavisDragConstant = LoadEmptyDavisDragConstant - ((LoadEmptyDavisDragConstant - LoadFullDavisDragConstant) * TempMassDiffRatio);
+                    }
+                    else
+                    {
+                        DavisDragConstant = ((LoadFullDavisDragConstant - LoadEmptyDavisDragConstant) * TempMassDiffRatio) + LoadEmptyDavisDragConstant;
+                    }
+
+                    WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
+
                     // Update CoG related parameters
                     CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempTenderMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                 }
@@ -1904,6 +2030,18 @@ namespace Orts.Simulation.RollingStocks
                     DavisAN = ((LoadFullORTSDavis_A - LoadEmptyORTSDavis_A) * TempTenderMassDiffRatio) + LoadEmptyORTSDavis_A;
                     DavisBNSpM = ((LoadFullORTSDavis_B - LoadEmptyORTSDavis_B) * TempTenderMassDiffRatio) + LoadEmptyORTSDavis_B;
                     DavisCNSSpMM = ((LoadFullORTSDavis_C - LoadEmptyORTSDavis_C) * TempTenderMassDiffRatio) + LoadEmptyORTSDavis_C;
+
+                    if (LoadEmptyDavisDragConstant > LoadFullDavisDragConstant) // Due to wind turbulence empty drag might be higher then loaded drag, and therefore both scenarios need to be covered.
+                    {
+                        DavisDragConstant = LoadEmptyDavisDragConstant - ((LoadEmptyDavisDragConstant - LoadFullDavisDragConstant) * TempMassDiffRatio);
+                    }
+                    else
+                    {
+                        DavisDragConstant = ((LoadFullDavisDragConstant - LoadEmptyDavisDragConstant) * TempMassDiffRatio) + LoadEmptyDavisDragConstant;
+                    }
+
+                    WagonFrontalAreaM2 = ((LoadFullWagonFrontalAreaM2 - LoadEmptyWagonFrontalAreaM2) * TempMassDiffRatio) + LoadEmptyWagonFrontalAreaM2;
+
                     // Update CoG related parameters
                     CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempTenderMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                 }

@@ -139,7 +139,7 @@ namespace ORTS
             checkSpeedControl.Checked = Settings.SpeedControl;
             checkConfirmations.Checked = !Settings.SuppressConfirmations;
             checkViewDispatcher.Checked = Settings.ViewDispatcher;
-            checkUseLargeAddressAware.Checked = Settings.UseLargeAddressAware;
+            checkUseLargeAddressAware.Checked = false; //Settings.UseLargeAddressAware; //Obsolote for AnyCPU/x64 compiled version
             checkRetainers.Checked = Settings.RetainersOnAllCars;
             checkGraduatedRelease.Checked = Settings.GraduatedRelease;
             numericBrakePipeChargingRate.Value = Settings.BrakePipeChargingRate;

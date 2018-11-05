@@ -1390,13 +1390,29 @@ namespace Orts.Simulation.Physics
 
         //================================================================================================//
         /// <summary>
-        /// In multiplayer, only want to change to my locomotives; i.e. those that start with my name.
+        /// In multiplayer, don't want to switch to a locomotive which is player locomotive of another user
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
         private bool SkipOtherUsersCar(int i)
         {
-            return MPManager.IsMultiPlayer() && !Cars[i].CarID.StartsWith(MPManager.GetUserName() + " ");
+            if (!MPManager.IsMultiPlayer()) return false;
+            else
+            {
+                var thisUsername = MPManager.GetUserName();
+                var skip = false;
+                foreach (OnlinePlayer onlinePlayer in MPManager.OnlineTrains.Players.Values)
+                {
+                    // don't consider the present user
+                    if (onlinePlayer.Username == thisUsername) continue;
+                    if (onlinePlayer.LeadingLocomotiveID == Cars[i].CarID)
+                    {
+                        skip = true;
+                        break;
+                    }
+                }
+                return skip;
+            } 
         }
 
         //================================================================================================//
@@ -7986,6 +8002,34 @@ namespace Orts.Simulation.Physics
 
         public void UpdateExplorerMode(int signalObjectIndex)
         {
+            if (MPManager.IsMultiPlayer())
+            // first unreserve all route positions where train is not present
+            {
+                if (ValidRoute[0] != null)
+                {
+                    foreach (var tcRouteElement in ValidRoute[0])
+                    {
+                        var tcSection = signalRef.TrackCircuitList[tcRouteElement.TCSectionIndex];
+                        if (tcSection.CheckReserved(routedForward) && !tcSection.CircuitState.TrainOccupy.ContainsTrain(this))
+                        {
+                            tcSection.Unreserve();
+                            tcSection.UnreserveTrain();
+                        }
+                    }
+                }
+                if (ValidRoute[1] != null)
+                {
+                    foreach (var tcRouteElement in ValidRoute[1])
+                    {
+                        var tcSection = signalRef.TrackCircuitList[tcRouteElement.TCSectionIndex];
+                        if (tcSection.CheckReserved(routedBackward) && !tcSection.CircuitState.TrainOccupy.ContainsTrain(this))                        {
+                            tcSection.Unreserve();
+                            tcSection.UnreserveTrain();
+                        }
+                    }
+                }
+            }
+
             // check present forward
             TCSubpathRoute newRouteF = CheckExplorerPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityType[0],
                 ref DistanceToEndNodeAuthorityM[0]);
@@ -8686,7 +8730,8 @@ namespace Orts.Simulation.Physics
 
         public void ProcessExplorerSwitch(int routeDirectionIndex, TrackCircuitSection switchSection, Direction direction)
         {
-            TrainRouted thisRouted = direction == Direction.Reverse ? routedForward : routedBackward;
+            //<CSComment> Probably also in singleplayer the logic of multiplayer should be used, but it's unwise to modify it just before a release
+            TrainRouted thisRouted = direction == Direction.Reverse ^ !MPManager.IsMultiPlayer() ? routedBackward : routedForward;
             TCSubpathRoute selectedRoute = ValidRoute[routeDirectionIndex];
 
             // store required position
@@ -8725,20 +8770,41 @@ namespace Orts.Simulation.Physics
 
                 // breakdown and clear route
 
-                signalRef.BreakDownRouteList(selectedRoute, lastIndex + 1, thisRouted);
-                selectedRoute.RemoveRange(lastIndex + 1, selectedRoute.Count - lastIndex - 1);
+                // checke whether trailing or leading
+                //<CSComment> Probably also in singleplayer the logic of multiplayer should be used, but it's unwise to modify it just before a release
+                if (switchSection.Pins[0, 0].Link == selectedRoute[lastIndex].TCSectionIndex || !MPManager.IsMultiPlayer())
+                // leading, train may still own switch
 
-                // restore required position (is cleared by route breakdown)
-                switchSection.JunctionSetManual = reqSwitchPosition;
+                {
 
-                // set switch
-                switchSection.deAlignSwitchPins();
-                signalRef.setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
+                    signalRef.BreakDownRouteList(selectedRoute, lastIndex + 1, thisRouted);
+                    selectedRoute.RemoveRange(lastIndex + 1, selectedRoute.Count - lastIndex - 1);
 
-                // build new route - use signal request
-                float remLength = minCheckDistanceM - coveredLength;
-                TCSubpathRoute newRoute = firstSignal.requestClearSignalExplorer(selectedRoute, remLength, thisRouted, false, 0);
-                selectedRoute = newRoute;
+                    // restore required position (is cleared by route breakdown)
+                    switchSection.JunctionSetManual = reqSwitchPosition;
+
+                    // set switch
+                    switchSection.deAlignSwitchPins();
+                    signalRef.setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
+
+                    // build new route - use signal request
+                    float remLength = minCheckDistanceM - coveredLength;
+                    TCSubpathRoute newRoute = firstSignal.requestClearSignalExplorer(selectedRoute, remLength, thisRouted, false, 0);
+                    selectedRoute = newRoute;
+                }
+                else
+                {
+                    // trailing, train must not own switch any more
+                    signalRef.BreakDownRouteList(selectedRoute, junctionIndex, thisRouted);
+                    selectedRoute.RemoveRange(junctionIndex, selectedRoute.Count - junctionIndex);
+
+                    // restore required position (is cleared by route breakdown)
+                    switchSection.JunctionSetManual = reqSwitchPosition;
+
+                    // set switch
+                    switchSection.deAlignSwitchPins();
+                    signalRef.setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
+                }
             }
 
             // no signal is found - build route using full update process
@@ -12373,7 +12439,7 @@ namespace Orts.Simulation.Physics
             statusString[iColumn] = FormatStrings.FormatDistanceDisplay(DistanceTravelledM, metric);
             iColumn++;
             //  2, "Speed"
-            var trainSpeed = TrainType == Train.TRAINTYPE.REMOTE ? targetSpeedMpS : SpeedMpS;
+            var trainSpeed = TrainType == Train.TRAINTYPE.REMOTE && SpeedMpS != 0 ? targetSpeedMpS : SpeedMpS;
             statusString[iColumn] = FormatStrings.FormatSpeed(trainSpeed, metric);
             if (Math.Abs(trainSpeed) > Math.Abs(AllowedMaxSpeedMpS)) statusString[iColumn] += "!!!";
             iColumn++;
