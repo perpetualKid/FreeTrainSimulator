@@ -889,8 +889,8 @@ namespace Orts.Viewer3D
 
             graphicsDevice.SamplerStates[0] = SamplerState;
 
-            if (nightTextureEnabled && (undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground) || 
-                Viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset)
+            if (nightTextureEnabled && ((undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground) ||
+            Viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset))
             //if (nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture && (((options & SceneryMaterialOptions.UndergroundTexture) != 0 &&
             //    (Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground)) || Viewer.MaterialManager.sunDirection.Y < 0.0f - ((float)KeyLengthRemainder()) / 5000f))
             {
@@ -955,11 +955,11 @@ namespace Orts.Viewer3D
             //var timeOffset = (KeyLengthRemainder()) / 5000f; // TODO for later use for pseudorandom texture switch time
             //if (nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture && (((options & SceneryMaterialOptions.UndergroundTexture) != 0 &&
             //    (Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground)) || Viewer.MaterialManager.sunDirection.Y < 0.0f - ((float)KeyLengthRemainder()) / 5000f))
-                //    return nightTexture;
+            //    return nightTexture;
 
-                //return dayTexture;
-                if (nightTextureEnabled && (undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground) 
-                || Viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset)
+            //return dayTexture;
+            if (nightTextureEnabled && ((undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground) 
+                || Viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset))
                     return nightTexture;
             return dayTexture;
         }
