@@ -458,6 +458,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Saved Games";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ResumeForm_FormClosing);
+			this.Shown += new System.EventHandler(this.ResumeForm_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.gridSaves)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.saveBindingSource)).EndInit();
             this.groupBoxInvalid.ResumeLayout(false);
