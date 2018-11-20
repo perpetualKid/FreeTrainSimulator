@@ -101,7 +101,7 @@ namespace Orts.Simulation
 
                     foreach (var i in sd.Player_Traffic_Definition.Player_Traffic_List)
                     {
-                        if (i.PlatformStartID < Simulator.TDB.TrackDB.TrItemTable.Length && i.PlatformStartID >= 0 && 
+                        if (i.PlatformStartID < Simulator.TDB.TrackDB.TrItemTable.Length && i.PlatformStartID >= 0 &&
                             Simulator.TDB.TrackDB.TrItemTable[i.PlatformStartID] is PlatformItem)
                             Platform = Simulator.TDB.TrackDB.TrItemTable[i.PlatformStartID] as PlatformItem;
                         else
@@ -237,28 +237,58 @@ namespace Orts.Simulation
             {
                 Current = Current.NextTask;
             }
-
-            if (Simulator.OriginalPlayerTrain.SpeedMpS == 0)
+            if (Simulator.OriginalPlayerTrain.TrainType == Train.TRAINTYPE.PLAYER || Simulator.OriginalPlayerTrain.TrainType == Train.TRAINTYPE.AI_PLAYERDRIVEN)
             {
-                if (prevTrainSpeed != 0)
+                if (Math.Abs(Simulator.OriginalPlayerTrain.SpeedMpS) < 0.2f)
                 {
-                    prevTrainSpeed = 0;
-                    Current.NotifyEvent(ActivityEventType.TrainStop);
-                    if (Current.IsCompleted != null)
+                    if (Math.Abs(prevTrainSpeed) >= 0.2f)
                     {
-                        Current = Current.NextTask;
+                        prevTrainSpeed = 0;
+                        Current.NotifyEvent(ActivityEventType.TrainStop);
+                        if (Current.IsCompleted != null)
+                        {
+                            Current = Current.NextTask;
+                        }
+                    }
+                }
+                else
+                {
+                    if (Math.Abs(prevTrainSpeed) < 0.2f && Math.Abs(Simulator.OriginalPlayerTrain.SpeedMpS) >= 0.2f)
+                    {
+                        prevTrainSpeed = Simulator.OriginalPlayerTrain.SpeedMpS;
+                        Current.NotifyEvent(ActivityEventType.TrainStart);
+                        if (Current.IsCompleted != null)
+                        {
+                            Current = Current.NextTask;
+                        }
                     }
                 }
             }
             else
             {
-                if (prevTrainSpeed == 0 && !(Simulator.OriginalPlayerTrain.SpeedMpS < Math.Abs(0.2f)))
+
+                if (Simulator.OriginalPlayerTrain.SpeedMpS == 0)
                 {
-                    prevTrainSpeed = Simulator.OriginalPlayerTrain.SpeedMpS;
-                    Current.NotifyEvent(ActivityEventType.TrainStart);
-                    if (Current.IsCompleted != null)
+                    if (prevTrainSpeed != 0)
                     {
-                        Current = Current.NextTask;
+                        prevTrainSpeed = 0;
+                        Current.NotifyEvent(ActivityEventType.TrainStop);
+                        if (Current.IsCompleted != null)
+                        {
+                            Current = Current.NextTask;
+                        }
+                    }
+                }
+                else
+                {
+                    if (prevTrainSpeed == 0 && Math.Abs(Simulator.OriginalPlayerTrain.SpeedMpS) < 0.2f)
+                    {
+                        prevTrainSpeed = Simulator.OriginalPlayerTrain.SpeedMpS;
+                        Current.NotifyEvent(ActivityEventType.TrainStart);
+                        if (Current.IsCompleted != null)
+                        {
+                            Current = Current.NextTask;
+                        }
                     }
                 }
             }
@@ -533,7 +563,7 @@ namespace Orts.Simulation
                 TempSpeedPostItems.Add((TempSpeedPostItem)speedWarningPostItem);
             }
         }
-        
+
         /// <summary>
         /// Add a reference to a new TrItemId to the correct trackNode (which needs to be determined from the position)
         /// </summary>
@@ -844,7 +874,7 @@ namespace Orts.Simulation
                     }
                     else
                     {
-                    // <CSComment> MSTS mode - player
+                        // <CSComment> MSTS mode - player
                         if (Simulator.GameTime < 2)
                         {
                             // If the simulation starts with a scheduled arrive in the past, assume the train arrived on time.
@@ -855,29 +885,29 @@ namespace Orts.Simulation
                         }
                         BoardingS = (double)MyPlayerTrain.StationStops[0].ComputeStationBoardingTime(Simulator.PlayerLocomotive.Train);
                         if (BoardingS > 0 || ((double)(SchDepart - SchArrive).TotalSeconds > 0 &&
-                            MyPlayerTrain.PassengerCarsNumber == 1 && MyPlayerTrain.Cars.Count > 10 ))
+                            MyPlayerTrain.PassengerCarsNumber == 1 && MyPlayerTrain.Cars.Count > 10))
                         {
-                        // accepted station stop because either freight train or passenger train or fake passenger train with passenger car on platform or fake passenger train
+                            // accepted station stop because either freight train or passenger train or fake passenger train with passenger car on platform or fake passenger train
                             // with Scheduled Depart > Scheduled Arrive
-                                // ActArrive is usually same as ClockTime
-                                BoardingEndS = Simulator.ClockTime + BoardingS;
+                            // ActArrive is usually same as ClockTime
+                            BoardingEndS = Simulator.ClockTime + BoardingS;
 
-                                if (ActArrive == null)
-                                {
-                                    ActArrive = new DateTime().Add(TimeSpan.FromSeconds(Simulator.ClockTime));
-                                }
-
-                                arrived = true;
-                                // But not if game starts after scheduled arrival. In which case actual arrival is assumed to be same as schedule arrival.
-                                double sinceActArriveS = (new DateTime().Add(TimeSpan.FromSeconds(Simulator.ClockTime))
-                                                        - ActArrive).Value.TotalSeconds;
-                                BoardingEndS -= sinceActArriveS;
-                                BoardingEndS = CompareTimes.LatestTime((int)SchDepart.TimeOfDay.TotalSeconds, (int)BoardingEndS);
-
+                            if (ActArrive == null)
+                            {
+                                ActArrive = new DateTime().Add(TimeSpan.FromSeconds(Simulator.ClockTime));
                             }
+
+                            arrived = true;
+                            // But not if game starts after scheduled arrival. In which case actual arrival is assumed to be same as schedule arrival.
+                            double sinceActArriveS = (new DateTime().Add(TimeSpan.FromSeconds(Simulator.ClockTime))
+                                                    - ActArrive).Value.TotalSeconds;
+                            BoardingEndS -= sinceActArriveS;
+                            BoardingEndS = CompareTimes.LatestTime((int)SchDepart.TimeOfDay.TotalSeconds, (int)BoardingEndS);
+
                         }
-                    if  (MyPlayerTrain.NextSignalObject[0] != null)
-                           distanceToNextSignal =  MyPlayerTrain.NextSignalObject[0].DistanceTo(MyPlayerTrain.FrontTDBTraveller);
+                    }
+                    if (MyPlayerTrain.NextSignalObject[0] != null)
+                        distanceToNextSignal = MyPlayerTrain.NextSignalObject[0].DistanceTo(MyPlayerTrain.FrontTDBTraveller);
 
                 }
             }
@@ -891,7 +921,7 @@ namespace Orts.Simulation
                     // Completeness depends on the elapsed waiting time
                     IsCompleted = maydepart;
                     if (MyPlayerTrain.TrainType != Train.TRAINTYPE.AI_PLAYERHOSTING)
-                       MyPlayerTrain.ClearStation(PlatformEnd1.LinkedPlatformItemId, PlatformEnd2.LinkedPlatformItemId, true);
+                        MyPlayerTrain.ClearStation(PlatformEnd1.LinkedPlatformItemId, PlatformEnd2.LinkedPlatformItemId, true);
 
                     if (LogStationStops)
                     {
@@ -951,7 +981,7 @@ namespace Orts.Simulation
                     else if (!maydepart)
                     {
                         // check if signal ahead is cleared - if not, do not allow depart
-                        if (distanceToNextSignal >= 0 && distanceToNextSignal< 300 && MyPlayerTrain.NextSignalObject[0] != null &&
+                        if (distanceToNextSignal >= 0 && distanceToNextSignal < 300 && MyPlayerTrain.NextSignalObject[0] != null &&
                             MyPlayerTrain.NextSignalObject[0].this_sig_lr(MstsSignalFunction.NORMAL) == MstsSignalAspect.STOP
                             && MyPlayerTrain.NextSignalObject[0].hasPermission != SignalObject.Permission.Granted)
                         {
@@ -1207,7 +1237,7 @@ namespace Orts.Simulation
             return false;
         }
 
-      
+
     }
 
     public class EventCategoryActionWrapper : EventWrapper
@@ -1402,7 +1432,7 @@ namespace Orts.Simulation
                     lNotFound = false; break;//wagon still part of the train
                 }
             }
-            return (lNotFound? true : false);
+            return (lNotFound ? true : false);
         }
         /// <summary>
         /// Like platforms, checking that one end of the train is within the siding.

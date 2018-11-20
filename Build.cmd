@@ -112,6 +112,15 @@ REM Set update channel.
 >>Program\Updater.ini ECHO Channel=string:%Mode% || GOTO :error
 ECHO Set update channel to "%Mode%".
 
+REM Set version number.
+IF NOT "%Version%" == "" (
+	>Program\Version.txt ECHO %Version%. || GOTO :error
+	ECHO Set version number to "%Version%".
+) ELSE (
+	>Program\Version.txt ECHO X || GOTO :error
+	ECHO Set version number to none.
+)
+
 REM Set revision number.
 >Program\Revision.txt ECHO $Revision: %Revision% $ || GOTO :error
 ECHO Set revision number to "%Revision%".
@@ -142,6 +151,11 @@ FOR %%F IN ("Program\*.exe", "Program\Orts.*.dll", "Program\Contrib.*.dll", "Pro
 	rcedit-x86.exe "%%~F" --set-product-version %VersionInfoVersion% --set-file-version %VersionInfoVersion% --set-version-string ProductVersion %VersionInfoVersion% --set-version-string FileVersion %VersionInfoVersion% || GOTO :error
 )
 ECHO Set product and file version information to "%VersionInfoVersion%".
+
+REM *** Special build step: signs binaries ***
+IF NOT "%JENKINS_TOOLS%" == "" (
+	FOR /R "Program" %%F IN (*.exe *.dll) DO CALL "%JENKINS_TOOLS%\sign.cmd" "%%~F" || GOTO :error
+)
 
 IF NOT "%Mode%" == "Unstable" (
 	REM Restart the Office Click2Run service as this frequently breaks builds.
@@ -175,17 +189,15 @@ IF "%Mode%" == "Stable" (
 	iscc "Source\Installer\OpenRails from DVD\OpenRails from DVD.iss" || GOTO :error
 	CALL :move "Source\Installer\OpenRails from download\Output\OpenRailsTestingSetup.exe" "OpenRails-%Mode%-Setup.exe" || GOTO :error
 	CALL :move "Source\Installer\OpenRails from DVD\Output\OpenRailsTestingDVDSetup.exe" "OpenRails-%Mode%-DVDSetup.exe" || GOTO :error
-)
-
-REM *** Special build step: signs binaries ***
-IF NOT "%JENKINS_TOOLS%" == "" (
-	FOR /R "Program" %%F IN (*.exe *.dll) DO CALL "%JENKINS_TOOLS%\sign.cmd" "%%~F" || GOTO :error
+	REM *** Special build step: signs binaries ***
+	IF NOT "%JENKINS_TOOLS%" == "" CALL "%JENKINS_TOOLS%\sign.cmd" "OpenRails-%Mode%-Setup.exe" || GOTO :error
+	IF NOT "%JENKINS_TOOLS%" == "" CALL "%JENKINS_TOOLS%\sign.cmd" "OpenRails-%Mode%-DVDSetup.exe" || GOTO :error
 )
 
 REM Create binary and source zips.
 CALL :delete "OpenRails-%Mode%*.zip" || GOTO :error
 PUSHD "Program" && 7za.exe a -r -tzip "..\OpenRails-%Mode%.zip" . && POPD || GOTO :error
-7za.exe a -r -tzip -x^^!.* -x^^!obj -x^^!lib -x^^!_build -x^^!*.bak "OpenRails-%Mode%-Source.zip" "Source" || GOTO :error
+7za.exe a -r -tzip -x^^!.* -x^^!obj -x^^!lib -x^^!_build -x^^!*.bak -x^^!Website "OpenRails-%Mode%-Source.zip" "Source" || GOTO :error
 
 ENDLOCAL
 GOTO :EOF
