@@ -256,25 +256,31 @@ namespace Orts.Viewer3D
 
         public Material Load(string materialName)
         {
-            return Load(materialName, null, 0, 0);
+            return Load(materialName, null, 0, 0, 0, null);
         }
 
         public Material Load(string materialName, string textureName)
         {
-            return Load(materialName, textureName, 0, 0);
+            return Load(materialName, textureName, 0, 0, 0, null);
         }
 
         public Material Load(string materialName, string textureName, int options)
         {
-            return Load(materialName, textureName, options, 0);
+            return Load(materialName, textureName, options, 0, 0, null);
         }
 
         public Material Load(string materialName, string textureName, int options, float mipMapBias)
         {
+            return Load(materialName, textureName, options, 0, 0, null);
+        }
+
+        public Material Load(string materialName, string textureName, int options, float mipMapBias, int cabShaderKey, CabShader cabShader)
+        {
+
             if (textureName != null)
                 textureName = textureName.ToLower();
 
-            var materialKey = String.Format("{0}:{1}:{2}:{3}", materialName, textureName, options, mipMapBias);
+            var materialKey = String.Format("{0}:{1}:{2}:{3}:{4}", materialName, textureName, options, mipMapBias, cabShaderKey);
 
             if (!Materials.ContainsKey(materialKey))
             {
@@ -327,6 +333,9 @@ namespace Orts.Viewer3D
                         break;
                     case "SpriteBatch":
                         Materials[materialKey] = new SpriteBatchMaterial(Viewer);
+                        break;
+                    case "CabSpriteBatch":
+                        Materials[materialKey] = new CabSpriteBatchMaterial(Viewer, cabShader);
                         break;
                     case "Terrain":
                         Materials[materialKey] = new TerrainMaterial(Viewer, textureName, SharedMaterialManager.MissingTexture);
@@ -620,6 +629,35 @@ namespace Orts.Viewer3D
         public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
         {
             SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
+        }
+
+        public override void ResetState(GraphicsDevice graphicsDevice)
+        {
+            SpriteBatch.End();
+
+            graphicsDevice.BlendState = BlendState.Opaque;
+            graphicsDevice.DepthStencilState = DepthStencilState.Default;
+        }
+    }
+
+    public class CabSpriteBatchMaterial : BasicBlendedMaterial
+    {
+        public readonly SpriteBatch SpriteBatch;
+        private CabShader CabShader;
+
+        public CabSpriteBatchMaterial(Viewer viewer, CabShader cabShader)
+            : base(viewer, null)
+        {
+            SpriteBatch = new SpriteBatch(Viewer.RenderProcess.GraphicsDevice);
+            CabShader = cabShader;
+        }
+
+        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        {
+            if (CabShader != null)
+                SpriteBatch.Begin(0, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, CabShader);
+            else
+                SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
         }
 
         public override void ResetState(GraphicsDevice graphicsDevice)

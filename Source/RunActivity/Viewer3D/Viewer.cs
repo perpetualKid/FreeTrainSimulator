@@ -126,6 +126,8 @@ namespace Orts.Viewer3D
         public TrainCar PlayerLocomotive { get { return Simulator.PlayerLocomotive; } set { Simulator.PlayerLocomotive = value; } }
         public Train PlayerTrain { get { if (PlayerLocomotive == null) return null; else return PlayerLocomotive.Train; } }
 
+        public readonly Process CurrentProcess = Process.GetCurrentProcess();
+
         // This is the train we are viewing
         public Train SelectedTrain { get; private set; }
         void CameraActivate()

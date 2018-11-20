@@ -1052,7 +1052,9 @@ namespace Orts.Viewer3D.Popups
 
         public uint GetWorkingSetSize()
         {
-            return (uint)Process.GetCurrentProcess().WorkingSet64;
+            Viewer.CurrentProcess.Refresh();
+            return (uint)Viewer.CurrentProcess.WorkingSet64;
+            //            return (uint)Process.GetCurrentProcess().WorkingSet64;
         }
 
         public ulong GetVirtualAddressLimit()

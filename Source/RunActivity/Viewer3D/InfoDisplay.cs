@@ -227,9 +227,10 @@ namespace Orts.Viewer3D
                     Logger.Separator = (DataLogger.Separators)Enum.Parse(typeof(DataLogger.Separators), Viewer.Settings.DataLoggerSeparator);
                     if (Viewer.Settings.DataLogPerformance)
                     {
+                        Viewer.CurrentProcess.Refresh();
                         Logger.Data(VersionInfo.Version);
                         Logger.Data(FrameNumber.ToString("F0"));
-                        Logger.Data(Process.GetCurrentProcess().WorkingSet64.ToString("F0"));
+                        Logger.Data(Viewer.CurrentProcess.WorkingSet64.ToString("F0"));
                         Logger.Data(GC.GetTotalMemory(false).ToString("F0"));
                         Logger.Data(GC.CollectionCount(0).ToString("F0"));
                         Logger.Data(GC.CollectionCount(1).ToString("F0"));

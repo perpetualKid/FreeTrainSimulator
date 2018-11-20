@@ -79,7 +79,7 @@ namespace Orts.Viewer3D
         public override string IntermediateDirectory { get { return string.Empty; } }
         public override string OutputDirectory { get { return string.Empty; } }
         public override string OutputFilename { get { return string.Empty; } }
-
+        public override ContentIdentity SourceIdentity { get { return new ContentIdentity(""); } }
         public override OpaqueDataDictionary Parameters { get { return parameters; } }
         OpaqueDataDictionary parameters = new OpaqueDataDictionary();
 
@@ -92,8 +92,6 @@ namespace Orts.Viewer3D
         public override TOutput Convert<TInput, TOutput>(TInput input, string processorName, OpaqueDataDictionary processorParameters) { throw new NotImplementedException(); }
         public override TOutput BuildAndLoadAsset<TInput, TOutput>(ExternalReference<TInput> sourceAsset, string processorName, OpaqueDataDictionary processorParameters, string importerName) { throw new NotImplementedException(); }
         public override ExternalReference<TOutput> BuildAsset<TInput, TOutput>(ExternalReference<TInput> sourceAsset, string processorName, OpaqueDataDictionary processorParameters, string importerName, string assetName) { throw new NotImplementedException(); }
-
-        public override ContentIdentity SourceIdentity => throw new NotImplementedException();
     }
 
     class Logger : ContentBuildLogger

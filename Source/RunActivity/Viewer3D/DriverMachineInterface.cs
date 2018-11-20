@@ -527,7 +527,7 @@ namespace Orts.Viewer3D
 
 		public override void Draw(GraphicsDevice graphicsDevice)
         {
-            CircularSpeedGauge.Draw(ControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
+            CircularSpeedGauge.Draw(CabShaderControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
         }
     }
 
