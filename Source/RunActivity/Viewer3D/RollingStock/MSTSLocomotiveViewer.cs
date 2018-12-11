@@ -68,8 +68,17 @@ namespace Orts.Viewer3D.RollingStock
 
             if (Locomotive.TrainControlSystem != null && Locomotive.TrainControlSystem.Sounds.Count > 0)
                 foreach (var script in Locomotive.TrainControlSystem.Sounds.Keys)
-                    Viewer.SoundProcess.AddSoundSources(script, new List<SoundSourceBase>() {
-                        new SoundSource(Viewer, Locomotive, Locomotive.TrainControlSystem.Sounds[script])});
+                {
+                    try
+                    {
+                        Viewer.SoundProcess.AddSoundSources(script, new List<SoundSourceBase>() {
+                            new SoundSource(Viewer, Locomotive, Locomotive.TrainControlSystem.Sounds[script])});
+                    }
+                    catch (Exception error)
+                    {
+                        Trace.TraceInformation("File " + Locomotive.TrainControlSystem.Sounds[script] + " in script of locomotive of train " + Locomotive.Train.Name + " : " + error.Message);
+                    }
+                }
         }
 
         protected virtual void StartGearBoxIncrease()
@@ -311,6 +320,19 @@ namespace Orts.Viewer3D.RollingStock
             if (_CabRenderer != null)
                 _CabRenderer.Mark();
             base.Mark();
+        }
+
+        /// <summary>
+        /// Release sounds of TCS if any, but not for player locomotive
+        /// </summary>
+        public override void Unload()
+        {
+            if (Locomotive.TrainControlSystem != null && Locomotive.TrainControlSystem.Sounds.Count > 0)
+                foreach (var script in Locomotive.TrainControlSystem.Sounds.Keys)
+                {
+                         Viewer.SoundProcess.RemoveSoundSources(script);
+                }
+            base.Unload();
         }
 
         /// <summary>
