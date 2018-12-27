@@ -8,5 +8,6 @@ The master branch is kept in sync with [ORTS Source Code](https://git.launchpad.
 
 ## Requirements for Win10 x64
 
+- [.NET Framework 4.7.1](https://support.microsoft.com/en-us/help/4033344/the-net-framework-4-7-1-web-installer-for-windows)
 - [DirectX End-User Runtime Web Installer ](https://www.microsoft.com/en-us/download/details.aspx?id=35&nowin10)
 - [OpenAL Installer](https://www.openal.org/downloads/oalinst.zip)
