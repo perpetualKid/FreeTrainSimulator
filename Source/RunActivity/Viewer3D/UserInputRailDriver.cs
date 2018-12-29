@@ -20,7 +20,6 @@ using Orts.Parsers.Msts;
 using Orts.Simulation.RollingStocks;
 using ORTS.Common;
 using ORTS.Settings;
-using PIEHidDotNet;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -30,12 +29,148 @@ namespace Orts.Viewer3D
     /// <summary>
     /// Class to get data from RailDriver and translate it into something useful for UserInput
     /// </summary>
-    public class UserInputRailDriver : PIEDataHandler, PIEErrorHandler
+    public class UserInputRailDriver
     {
-        PIEDevice Device;                   // Our RailDriver
-        byte[] WriteBuffer;                 // Buffer for sending data to RailDriver
-        bool Active;                        // True when RailDriver values are used to control player loco
-        RailDriverState State;              // Interpreted data from RailDriver passed to UserInput
+        private abstract class RailDriverBase
+        {
+            protected UserInputRailDriver parent;
+
+            public RailDriverBase(UserInputRailDriver parent)
+            {
+                this.parent = parent;
+            }
+
+            public abstract int BufferSize { get; }
+
+            public abstract void WriteData(byte[] writeBuffer);
+
+            public abstract void Shutdown();
+        }
+
+        private class RailDriver32 : RailDriverBase, PIEHid32Net.PIEDataHandler, PIEHid32Net.PIEErrorHandler
+        {
+            private readonly PIEHid32Net.PIEDevice device;                   // Our RailDriver
+
+            public RailDriver32(UserInputRailDriver parent) : base(parent)
+            {
+                try
+                {
+                    foreach (PIEHid32Net.PIEDevice currentDevice in PIEHid32Net.PIEDevice.EnumeratePIE())
+                    {
+                        if (currentDevice.HidUsagePage == 0xc && currentDevice.Pid == 210)
+                        {
+                            device = currentDevice;
+                            device.SetupInterface();
+                            device.SetErrorCallback(this);
+                            device.SetDataCallback(this);
+                            device.suppressDuplicateReports = true;
+                            break;
+                        }
+                    }
+                }
+                catch (Exception error)
+                {
+                    device = null;
+                    Trace.WriteLine(error);
+                }
+            }
+
+            public override int BufferSize => device?.WriteLength ?? 0;
+
+            public void HandlePIEHidData(byte[] data, PIEHid32Net.PIEDevice sourceDevice, int error)
+            {
+                parent.HandlePIEHidData(data, error);
+            }
+
+            public void HandlePIEHidError(PIEHid32Net.PIEDevice sourceDevices, int error)
+            {
+                string errorMessage;
+                try
+                {
+                    errorMessage = sourceDevices.GetErrorString(error);
+                }
+                catch
+                {
+                    errorMessage = string.Empty;
+                }
+                parent.HandlePIEHidError(error, errorMessage);
+            }
+
+            public override void Shutdown()
+            {
+                device?.CloseInterface();
+            }
+
+            public override void WriteData(byte[] writeBuffer)
+            {
+                device?.WriteData(writeBuffer);
+            }
+        }
+
+        private class RailDriver64 : RailDriverBase, PIEHid64Net.PIEDataHandler, PIEHid64Net.PIEErrorHandler
+        {
+            private readonly PIEHid64Net.PIEDevice device;                   // Our RailDriver
+
+            public RailDriver64(UserInputRailDriver parent) : base(parent)
+            {
+                try
+                {
+                    foreach (PIEHid64Net.PIEDevice currentDevice in PIEHid64Net.PIEDevice.EnumeratePIE())
+                    {
+                        if (currentDevice.HidUsagePage == 0xc && currentDevice.Pid == 210)
+                        {
+                            device = currentDevice;
+                            device.SetupInterface();
+                            device.SetErrorCallback(this);
+                            device.SetDataCallback(this);
+                            device.suppressDuplicateReports = true;
+                            break;
+                        }
+                    }
+                }
+                catch (Exception error)
+                {
+                    device = null;
+                    Trace.WriteLine(error);
+                }
+            }
+
+            public override int BufferSize => (int)(device?.WriteLength ?? 0);
+
+            public void HandlePIEHidData(byte[] data, PIEHid64Net.PIEDevice sourceDevice, int error)
+            {
+                parent.HandlePIEHidData(data, error);
+            }
+
+            public void HandlePIEHidError(PIEHid64Net.PIEDevice sourceDevices, long error)
+            {
+                string errorMessage;
+                try
+                {
+                    errorMessage = sourceDevices.GetErrorString((int)error);
+                }
+                catch
+                {
+                    errorMessage = string.Empty;
+                }
+                parent.HandlePIEHidError(error, errorMessage);
+            }
+
+            public override void Shutdown()
+            {
+                device?.CloseInterface();
+            }
+
+            public override void WriteData(byte[] writeBuffer)
+            {
+                device?.WriteData(writeBuffer);
+            }
+        }
+
+
+        private byte[] writeBuffer;                 // Buffer for sending data to RailDriver
+        private bool active;                        // True when RailDriver values are used to control player loco
+        private RailDriverState state;              // Interpreted data from RailDriver passed to UserInput
 
         // calibration values, defaults for the developer's RailDriver
         float FullReversed = 225;
@@ -61,36 +196,28 @@ namespace Orts.Viewer3D
         float Rotary2Position2 = 145;
         float Rotary2Position3 = 189;
 
+        private readonly RailDriverBase railDriverInstance;
+
         /// <summary>
         /// Tries to find a RailDriver and initialize it
         /// </summary>
         /// <param name="basePath"></param>
-        public UserInputRailDriver(string basePath)
+        public UserInputRailDriver(string path)
         {
-            try
+            state = new RailDriverState();
+
+            if (Environment.Is64BitProcess)
             {
-                PIEDevice[] devices = PIEHidDotNet.PIEDevice.EnumeratePIE();
-                for (int i = 0; i < devices.Length; i++)
-                {
-                    if (devices[i].HidUsagePage == 0xc && devices[i].Pid == 210)
-                    {
-                        Device = devices[i];
-                        Device.SetupInterface();
-                        Device.SetErrorCallback(this);
-                        Device.SetDataCallback(this, DataCallbackFilterType.callOnChangedData);
-                        WriteBuffer = new byte[Device.WriteLength];
-                        State = new RailDriverState();
-                        SetLEDs(0x40, 0x40, 0x40);
-                        ReadCalibrationData(basePath);
-                        break;
-                    }
-                }
+                railDriverInstance = new RailDriver64(this);
             }
-            catch (Exception error)
+            else
             {
-                Device = null;
-                Trace.WriteLine(error);
+                railDriverInstance = new RailDriver32(this);
             }
+            writeBuffer = new byte[railDriverInstance.BufferSize];
+
+            ReadCalibrationData(path);
+            SetLEDs(0x40, 0x40, 0x40);
         }
 
         /// <summary>
@@ -98,13 +225,11 @@ namespace Orts.Viewer3D
         /// </summary>
         /// <param name="data"></param>
         /// <param name="sourceDevice"></param>
-        public void HandlePIEHidData(Byte[] data, PIEDevice sourceDevice)
+        private void HandlePIEHidData(byte[] data, int error)
         {
-            if (sourceDevice != Device)
-                return;
-            State.SaveButtonData();
-            byte[] rdata = null;
-            while (0 == sourceDevice.ReadData(ref rdata)) //do this so don't ever miss any data
+            state.SaveButtonData();
+            byte[] rdata = data;
+//            while (0 == sourceDevice.ReadData(ref rdata)) //do this so don't ever miss any data
             {
 #if false
                     String output = "Callback: " + sourceDevice.Pid + ", ID: " + Device.ToString() + ", data=";
@@ -112,36 +237,36 @@ namespace Orts.Viewer3D
                         output = output + rdata[i].ToString() + "  ";
                     Console.WriteLine(output);
 #endif
-                State.DirectionPercent = Percentage(rdata[1], FullReversed, Neutral, FullForward);
+                state.DirectionPercent = Percentage(rdata[1], FullReversed, Neutral, FullForward);
 
-                State.ThrottlePercent = Percentage(rdata[2], ThrottleIdle, FullThrottle);
+                state.ThrottlePercent = Percentage(rdata[2], ThrottleIdle, FullThrottle);
 
-                State.DynamicBrakePercent = Percentage(rdata[2], ThrottleIdle, DynamicBrakeSetup, DynamicBrake);
-                State.TrainBrakePercent = Percentage(rdata[3], AutoBrakeRelease, FullAutoBrake);
-                State.EngineBrakePercent = Percentage(rdata[4], IndependentBrakeRelease, IndependentBrakeFull);
-                float a = .01f * State.EngineBrakePercent;
+                state.DynamicBrakePercent = Percentage(rdata[2], ThrottleIdle, DynamicBrakeSetup, DynamicBrake);
+                state.TrainBrakePercent = Percentage(rdata[3], AutoBrakeRelease, FullAutoBrake);
+                state.EngineBrakePercent = Percentage(rdata[4], IndependentBrakeRelease, IndependentBrakeFull);
+                float a = .01f * state.EngineBrakePercent;
                 float calOff = (1 - a) * BailOffDisengagedRelease + a * BailOffDisengagedFull;
                 float calOn = (1 - a) * BailOffEngagedRelease + a * BailOffEngagedFull;
-                State.BailOff = Percentage(rdata[5], calOff, calOn) > 50;
-                if (State.TrainBrakePercent >= 100)
-                    State.Emergency = Percentage(rdata[3], FullAutoBrake, EmergencyBrake) > 50;
+                state.BailOff = Percentage(rdata[5], calOff, calOn) > 50;
+                if (state.TrainBrakePercent >= 100)
+                    state.Emergency = Percentage(rdata[3], FullAutoBrake, EmergencyBrake) > 50;
 
-                State.Wipers = (int)(.01 * Percentage(rdata[6], Rotary1Position1, Rotary1Position2, Rotary1Position3) + 2.5);
-                State.Lights = (int)(.01 * Percentage(rdata[7], Rotary2Position1, Rotary2Position2, Rotary2Position3) + 2.5);
-                State.AddButtonData(rdata);
+                state.Wipers = (int)(.01 * Percentage(rdata[6], Rotary1Position1, Rotary1Position2, Rotary1Position3) + 2.5);
+                state.Lights = (int)(.01 * Percentage(rdata[7], Rotary2Position1, Rotary2Position2, Rotary2Position3) + 2.5);
+                state.AddButtonData(rdata);
             }
 
-            if (State.IsPressed(4, 0x30))
-                State.Emergency = true;
-            if (State.IsPressed(1, 0x40))
+            if (state.IsPressed(4, 0x30))
+                state.Emergency = true;
+            if (state.IsPressed(1, 0x40))
             {
-                Active = !Active;
-                EnableSpeaker(Active);
-                if (Active)
+                active = !active;
+                EnableSpeaker(active);
+                if (active)
                 {
                     SetLEDs(0x80, 0x80, 0x80);
                     LEDSpeed = -1;
-                    UserInput.RDState = State;
+                    UserInput.RDState = state;
                 }
                 else
                 {
@@ -149,7 +274,7 @@ namespace Orts.Viewer3D
                     UserInput.RDState = null;
                 }
             }
-            State.Changed = true;
+            state.Changed = true;
         }
         
         /// <summary>
@@ -157,14 +282,14 @@ namespace Orts.Viewer3D
         /// </summary>
         /// <param name="error"></param>
         /// <param name="sourceDevice"></param>
-        public void HandlePIEHidError(Int32 error, PIEDevice sourceDevice)
+        private void HandlePIEHidError(long error, string message)
         {
-            Trace.TraceWarning("RailDriver Error: {0}", error);
+            Trace.TraceWarning($"RailDriver Error: {error} : {message}");
         }
 
         static float Percentage(float x, float x0, float x100)
         {
-            float p= 100 * (x - x0) / (x100 - x0);
+            float p = 100 * (x - x0) / (x100 - x0);
             if (p < 5)
                 return 0;
             if (p > 95)
@@ -193,47 +318,41 @@ namespace Orts.Viewer3D
         /// <param name="led3"></param>
         void SetLEDs(byte led1, byte led2, byte led3)
         {
-            if (Device == null)
-                return;
-            for (int i = 0; i < WriteBuffer.Length; i++)
-                WriteBuffer[i] = 0;
-            WriteBuffer[1] = 134;
-            WriteBuffer[2] = led1;
-            WriteBuffer[3] = led2;
-            WriteBuffer[4] = led3;
-            Device.WriteData(WriteBuffer);
+            writeBuffer.Initialize();
+            writeBuffer[1] = 134;
+            writeBuffer[2] = led1;
+            writeBuffer[3] = led2;
+            writeBuffer[4] = led3;
+            railDriverInstance.WriteData(writeBuffer);
         }
 
         /// <summary>
         /// Turns raildriver speaker on or off
         /// </summary>
         /// <param name="on"></param>
-        void EnableSpeaker(bool on)
+        public void EnableSpeaker(bool state)
         {
-            if (Device == null)
-                return;
-            for (int i = 0; i < WriteBuffer.Length; i++)
-                WriteBuffer[i] = 0;
-            WriteBuffer[1] = 133;
-            WriteBuffer[7] = (byte) (on ? 1 : 0);
-            Device.WriteData(WriteBuffer);
+            writeBuffer.Initialize();
+            writeBuffer[1] = 133;
+            writeBuffer[7] = (byte) (state ? 1 : 0);
+            railDriverInstance.WriteData(writeBuffer);
         }
 
         // LED values for digits 0 to 9
-        byte[] LEDDigits = { 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f };
+        private readonly static byte[] LEDDigits = { 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f };
         // LED values for digits 0 to 9 with decimal point
-        byte[] LEDDigitsPoint = { 0xbf, 0x86, 0xdb, 0xcf, 0xe6, 0xed, 0xfd, 0x87, 0xff, 0xef };
-        int LEDSpeed = -1;      // speed in tenths displayed on RailDriver LED
+        private readonly static byte[] LEDDigitsPoint = { 0xbf, 0x86, 0xdb, 0xcf, 0xe6, 0xed, 0xfd, 0x87, 0xff, 0xef };
+
+        private int LEDSpeed = -1;      // speed in tenths displayed on RailDriver LED
 
         /// <summary>
         /// Updates speed display on RailDriver LED
         /// </summary>
         /// <param name="playerLoco"></param>
-        public void Update(TrainCar playerLoco)
+        public void ShowSpeed(float speed)
         {
-            if (!Active || playerLoco == null || Device == null)
+            if (!active)
                 return;
-            float speed = 10 * MpS.FromMpS(playerLoco.SpeedMpS, playerLoco.IsMetric);
             int s = (int) (speed >= 0 ? speed + .5 : -speed + .5);
             if (s != LEDSpeed)
             {
@@ -326,9 +445,8 @@ namespace Orts.Viewer3D
 
         public void Shutdown()
         {
-            if (Device == null)
-                return;
             SetLEDs(0, 0, 0);
+            railDriverInstance.Shutdown();
         }
     }
 

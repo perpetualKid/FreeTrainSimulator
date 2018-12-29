@@ -715,7 +715,9 @@ namespace Orts.Viewer3D
                 MPManager.Instance().Update(Simulator.GameTime);
             }
 
-            RailDriver.Update(PlayerLocomotive);
+            float speed = 10 * MpS.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric);
+
+            RailDriver.ShowSpeed(speed);
 
             // This has to be done also for stopped trains
             var cars = World.Trains.Cars;
