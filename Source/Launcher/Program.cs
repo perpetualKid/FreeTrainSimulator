@@ -89,8 +89,6 @@ namespace ORTS
 				"GNU.Gettext.dll",
 				"GNU.Gettext.WinForms.dll",
 				"ICSharpCode.SharpZipLib.dll",
-				"OpenAL32.dll",
-				"PIEHidDotNet.dll",
 				// Programs:
 				"Menu.exe",
 				"RunActivity.exe",
