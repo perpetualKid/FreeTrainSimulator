@@ -15,14 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Win32;
-using Orts.Parsers.Msts;
-using Orts.Simulation.RollingStocks;
-using ORTS.Common;
-using ORTS.Settings;
 using System;
 using System.Diagnostics;
 using System.IO;
+using Orts.Parsers.Msts;
+using ORTS.Settings;
 
 namespace Orts.Viewer3D
 {
@@ -167,7 +164,6 @@ namespace Orts.Viewer3D
             }
         }
 
-
         private byte[] writeBuffer;                 // Buffer for sending data to RailDriver
         private bool active;                        // True when RailDriver values are used to control player loco
         private RailDriverState state;              // Interpreted data from RailDriver passed to UserInput
@@ -228,33 +224,23 @@ namespace Orts.Viewer3D
         private void HandlePIEHidData(byte[] data, int error)
         {
             state.SaveButtonData();
-            byte[] rdata = data;
-//            while (0 == sourceDevice.ReadData(ref rdata)) //do this so don't ever miss any data
-            {
-#if false
-                    String output = "Callback: " + sourceDevice.Pid + ", ID: " + Device.ToString() + ", data=";
-                    for (int i = 0; i < sourceDevice.ReadLength; i++)
-                        output = output + rdata[i].ToString() + "  ";
-                    Console.WriteLine(output);
-#endif
-                state.DirectionPercent = Percentage(rdata[1], FullReversed, Neutral, FullForward);
 
-                state.ThrottlePercent = Percentage(rdata[2], ThrottleIdle, FullThrottle);
+            state.DirectionPercent = Percentage(data[1], FullReversed, Neutral, FullForward);
+            state.ThrottlePercent = Percentage(data[2], ThrottleIdle, FullThrottle);
 
-                state.DynamicBrakePercent = Percentage(rdata[2], ThrottleIdle, DynamicBrakeSetup, DynamicBrake);
-                state.TrainBrakePercent = Percentage(rdata[3], AutoBrakeRelease, FullAutoBrake);
-                state.EngineBrakePercent = Percentage(rdata[4], IndependentBrakeRelease, IndependentBrakeFull);
-                float a = .01f * state.EngineBrakePercent;
-                float calOff = (1 - a) * BailOffDisengagedRelease + a * BailOffDisengagedFull;
-                float calOn = (1 - a) * BailOffEngagedRelease + a * BailOffEngagedFull;
-                state.BailOff = Percentage(rdata[5], calOff, calOn) > 50;
-                if (state.TrainBrakePercent >= 100)
-                    state.Emergency = Percentage(rdata[3], FullAutoBrake, EmergencyBrake) > 50;
+            state.DynamicBrakePercent = Percentage(data[2], ThrottleIdle, DynamicBrakeSetup, DynamicBrake);
+            state.TrainBrakePercent = Percentage(data[3], AutoBrakeRelease, FullAutoBrake);
+            state.EngineBrakePercent = Percentage(data[4], IndependentBrakeRelease, IndependentBrakeFull);
+            float a = .01f * state.EngineBrakePercent;
+            float calOff = (1 - a) * BailOffDisengagedRelease + a * BailOffDisengagedFull;
+            float calOn = (1 - a) * BailOffEngagedRelease + a * BailOffEngagedFull;
+            state.BailOff = Percentage(data[5], calOff, calOn) > 50;
+            if (state.TrainBrakePercent >= 100)
+                state.Emergency = Percentage(data[3], FullAutoBrake, EmergencyBrake) > 50;
 
-                state.Wipers = (int)(.01 * Percentage(rdata[6], Rotary1Position1, Rotary1Position2, Rotary1Position3) + 2.5);
-                state.Lights = (int)(.01 * Percentage(rdata[7], Rotary2Position1, Rotary2Position2, Rotary2Position3) + 2.5);
-                state.AddButtonData(rdata);
-            }
+            state.Wipers = (int)(.01 * Percentage(data[6], Rotary1Position1, Rotary1Position2, Rotary1Position3) + 2.5);
+            state.Lights = (int)(.01 * Percentage(data[7], Rotary2Position1, Rotary2Position2, Rotary2Position3) + 2.5);
+            state.AddButtonData(data);
 
             if (state.IsPressed(4, 0x30))
                 state.Emergency = true;
@@ -265,7 +251,7 @@ namespace Orts.Viewer3D
                 if (active)
                 {
                     SetLEDs(0x80, 0x80, 0x80);
-                    LEDSpeed = -1;
+                    displayedSpeed = -1;
                     UserInput.RDState = state;
                 }
                 else
@@ -287,7 +273,7 @@ namespace Orts.Viewer3D
             Trace.TraceWarning($"RailDriver Error: {error} : {message}");
         }
 
-        static float Percentage(float x, float x0, float x100)
+        private static float Percentage(float x, float x0, float x100)
         {
             float p = 100 * (x - x0) / (x100 - x0);
             if (p < 5)
@@ -297,7 +283,7 @@ namespace Orts.Viewer3D
             return p;
         }
         
-        static float Percentage(float x, float xminus100, float x0, float xplus100)
+        private static float Percentage(float x, float xminus100, float x0, float xplus100)
         {
             float p = 100 * (x - x0) / (xplus100 - x0);
             if (p < 0)
@@ -316,7 +302,7 @@ namespace Orts.Viewer3D
         /// <param name="led1"></param>
         /// <param name="led2"></param>
         /// <param name="led3"></param>
-        void SetLEDs(byte led1, byte led2, byte led3)
+        private void SetLEDs(byte led1, byte led2, byte led3)
         {
             writeBuffer.Initialize();
             writeBuffer[1] = 134;
@@ -343,7 +329,7 @@ namespace Orts.Viewer3D
         // LED values for digits 0 to 9 with decimal point
         private readonly static byte[] LEDDigitsPoint = { 0xbf, 0x86, 0xdb, 0xcf, 0xe6, 0xed, 0xfd, 0x87, 0xff, 0xef };
 
-        private int LEDSpeed = -1;      // speed in tenths displayed on RailDriver LED
+        private int displayedSpeed = -1;      // speed in tenths displayed on RailDriver LED
 
         /// <summary>
         /// Updates speed display on RailDriver LED
@@ -353,8 +339,9 @@ namespace Orts.Viewer3D
         {
             if (!active)
                 return;
+            speed *= 10;    //simplify display setting for fractional part
             int s = (int) (speed >= 0 ? speed + .5 : -speed + .5);
-            if (s != LEDSpeed)
+            if (s != displayedSpeed)
             {
                 if (s < 100)
                     SetLEDs(LEDDigits[s % 10], LEDDigitsPoint[s / 10], 0);
@@ -362,7 +349,7 @@ namespace Orts.Viewer3D
                     SetLEDs(LEDDigits[s % 10], LEDDigitsPoint[(s / 10) % 10], LEDDigits[(s / 100) % 10]);
                 else if (s < 10000)
                     SetLEDs(LEDDigitsPoint[(s / 10) % 10], LEDDigits[(s / 100) % 10], LEDDigits[(s / 1000) % 10]);
-                LEDSpeed = s;
+                displayedSpeed = s;
             }
         }
 
@@ -373,23 +360,12 @@ namespace Orts.Viewer3D
         /// <param name="basePath"></param>
         void ReadCalibrationData(string basePath)
         {
-            string file = basePath + "\\ModernCalibration.rdm";
+            string file = Path.Combine(basePath, "ModernCalibration.rdm");
             if (!File.Exists(file))
             {
-                RegistryKey RK = Registry.LocalMachine.OpenSubKey("SOFTWARE\\PI Engineering\\PIBUS");
-                if (RK != null)
-                {
-                    string dir = (string)RK.GetValue("RailDriver", null, RegistryValueOptions.None);
-                    if (dir != null)
-                        file = dir + "\\..\\controller\\ModernCalibration.rdm";
-                }
-
-                if (!File.Exists(file))
-                {
-                    SetLEDs(0, 0, 0);
-                    Trace.TraceWarning("Cannot find RailDriver calibration file {0}", file);
-                    return;
-                }
+                SetLEDs(0, 0, 0);
+                Trace.TraceWarning("Cannot find RailDriver calibration file {0}", file);
+                return;
             }
 			// TODO: This is... kinda weird and cool at the same time. STF parsing being used on RailDriver's calebration file. Probably should be a dedicated parser, though.
             STFReader reader = new STFReader(file, false);
@@ -465,14 +441,14 @@ namespace Orts.Viewer3D
         public bool Emergency;              // true when train brake handle in emergency or E-stop button pressed
         public int Wipers;                  // wiper rotary, 1 off, 2 slow, 3 full
         public int Lights;                  // lights rotary, 1 off, 2 dim, 3 full
-        byte[] ButtonData;                  // latest button data, one bit per button
-        byte[] PreviousButtonData;
-        RailDriverUserCommand[] Commands;
+        private readonly byte[] buttonData;                  // latest button data, one bit per button
+        private readonly byte[] previousButtonData;
+        private RailDriverUserCommand[] Commands;
 
         public RailDriverState()
         {
-            ButtonData = new byte[6];
-            PreviousButtonData = new byte[6];
+            buttonData = new byte[6];
+            previousButtonData = new byte[6];
             Commands = new RailDriverUserCommand[Enum.GetNames(typeof(UserCommands)).Length];
 
             // top row of blue buttons left to right
@@ -538,10 +514,10 @@ namespace Orts.Viewer3D
         /// </summary>
         public void SaveButtonData()
         {
-            for (int i = 0; i < ButtonData.Length; i++)
+            for (int i = 0; i < buttonData.Length; i++)
             {
-                PreviousButtonData[i] = ButtonData[i];
-                ButtonData[i] = 0;
+                previousButtonData[i] = buttonData[i];
+                buttonData[i] = 0;
             }
         }
 
@@ -551,15 +527,15 @@ namespace Orts.Viewer3D
         /// <param name="data"></param>
         public void AddButtonData(byte[] data)
         {
-            for (int i = 0; i < ButtonData.Length; i++)
-                ButtonData[i] |= data[i + 8];
+            for (int i = 0; i < buttonData.Length; i++)
+                buttonData[i] |= data[i + 8];
         }
 
         public override string ToString()
         {
             string s= String.Format("{0} {1} {2} {3} {4} {5} {6}", DirectionPercent, ThrottlePercent, DynamicBrakePercent, TrainBrakePercent, EngineBrakePercent, BailOff, Emergency);
             for (int i = 0; i < 6; i++)
-                s += " " + ButtonData[i];
+                s += " " + buttonData[i];
             return s;
         }
 
@@ -570,7 +546,7 @@ namespace Orts.Viewer3D
 
         public bool IsPressed(int index, byte mask)
         {
-            return (ButtonData[index] & mask) != 0 && (PreviousButtonData[index] & mask) == 0;
+            return (buttonData[index] & mask) != 0 && (previousButtonData[index] & mask) == 0;
         }
 
 		public bool IsPressed(UserCommands command)
@@ -578,7 +554,7 @@ namespace Orts.Viewer3D
 			RailDriverUserCommand c = Commands[(int)command];
             if (c == null || Changed == false)
                 return false;
-			return c.IsButtonDown(ButtonData) && !c.IsButtonDown(PreviousButtonData);
+			return c.IsButtonDown(buttonData) && !c.IsButtonDown(previousButtonData);
 		}
 
 		public bool IsReleased(UserCommands command)
@@ -586,7 +562,7 @@ namespace Orts.Viewer3D
             RailDriverUserCommand c = Commands[(int)command];
             if (c == null || Changed == false)
                 return false;
-            return !c.IsButtonDown(ButtonData) && c.IsButtonDown(PreviousButtonData);
+            return !c.IsButtonDown(buttonData) && c.IsButtonDown(previousButtonData);
 		}
 
 		public bool IsDown(UserCommands command)
@@ -594,23 +570,24 @@ namespace Orts.Viewer3D
             RailDriverUserCommand c = Commands[(int)command];
             if (c == null)
                 return false;
-            return c.IsButtonDown(ButtonData);
+            return c.IsButtonDown(buttonData);
 		}
     }
 
     public class RailDriverUserCommand
     {
-        int Index;
-        byte Mask;
+        private readonly int index;
+        private readonly byte mask;
+
         public RailDriverUserCommand(int index, byte mask)
         {
-            Index = index;
-            Mask = mask;
+            this.index = index;
+            this.mask = mask;
         }
 
         public bool IsButtonDown(byte[] data)
         {
-            return (data[Index] & Mask) != 0;
+            return (data[index] & mask) != 0;
         }
     }
 
