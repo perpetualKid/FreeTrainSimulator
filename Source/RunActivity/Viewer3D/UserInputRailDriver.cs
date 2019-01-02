@@ -223,8 +223,6 @@ namespace Orts.Viewer3D
         /// <param name="sourceDevice"></param>
         private void HandlePIEHidData(byte[] data, int error)
         {
-            state.SaveButtonData();
-
             state.DirectionPercent = Percentage(data[1], FullReversed, Neutral, FullForward);
             state.ThrottlePercent = Percentage(data[2], ThrottleIdle, FullThrottle);
 
@@ -234,7 +232,7 @@ namespace Orts.Viewer3D
             float a = .01f * state.EngineBrakePercent;
             float calOff = (1 - a) * BailOffDisengagedRelease + a * BailOffDisengagedFull;
             float calOn = (1 - a) * BailOffEngagedRelease + a * BailOffEngagedFull;
-            state.BailOff = Percentage(data[5], calOff, calOn) > 50;
+            state.BailOff = Percentage(data[5], calOff, calOn) > 80;
             if (state.TrainBrakePercent >= 100)
                 state.Emergency = Percentage(data[3], FullAutoBrake, EmergencyBrake) > 50;
 
@@ -541,6 +539,7 @@ namespace Orts.Viewer3D
 
         public void Handled()
         {
+            SaveButtonData();
             Changed = false;
         }
 

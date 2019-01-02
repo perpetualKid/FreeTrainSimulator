@@ -195,10 +195,6 @@ namespace Orts.Viewer3D.RollingStock
 
             if (UserInput.RDState != null)
             {
-                if (UserInput.RDState.BailOff)
-                {
-                    Locomotive.SetBailOff(true);
-                }
                 if (UserInput.RDState.Changed)
                 {
                     Locomotive.AlerterReset();
@@ -206,6 +202,7 @@ namespace Orts.Viewer3D.RollingStock
                     Locomotive.SetThrottlePercent(UserInput.RDState.ThrottlePercent);
                     Locomotive.SetTrainBrakePercent(UserInput.RDState.TrainBrakePercent);
                     Locomotive.SetEngineBrakePercent(UserInput.RDState.EngineBrakePercent);
+                    Locomotive.SetBailOff(UserInput.RDState.BailOff);
                     if (Locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
                         Locomotive.SetDynamicBrakePercent(UserInput.RDState.DynamicBrakePercent);
                     if (UserInput.RDState.DirectionPercent > 50)

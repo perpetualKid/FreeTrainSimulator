@@ -3134,8 +3134,11 @@ namespace Orts.Simulation.RollingStocks
 
         public void SetBailOff(bool bailOff)
         {
-            BailOff = bailOff;
-            Simulator.Confirmer.Confirm(CabControl.BailOff, bailOff ? CabSetting.On : CabSetting.Off);
+            if (bailOff != BailOff)
+            {
+                BailOff = bailOff;
+                Simulator.Confirmer.Confirm(CabControl.BailOff, bailOff ? CabSetting.On : CabSetting.Off);
+            }
         }
 
         public virtual void Refuel()
