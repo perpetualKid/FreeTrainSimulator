@@ -198,7 +198,7 @@ namespace Orts.Viewer3D
 
         public Camera SuspendedCamera { get; private set; }
 
-        UserInputRailDriver RailDriver;
+//        UserInputRailDriver RailDriver;
 
         public static double DbfEvalAutoPilotTimeS = 0;//Debrief eval
         public static double DbfEvalIniAutoPilotTimeS = 0;//Debrief eval  
@@ -281,7 +281,7 @@ namespace Orts.Viewer3D
             LoTiles = new TileManager(Simulator.RoutePath + @"\LO_TILES\", true);
             MilepostUnitsMetric = Simulator.TRK.Tr_RouteFile.MilepostUnitsMetric;
 
-            RailDriver = new UserInputRailDriver(Simulator.BasePath);
+//            RailDriver = new UserInputRailDriver(Simulator.BasePath);
 
             Simulator.AllowedSpeedRaised += (object sender, EventArgs e) =>
             {
@@ -715,7 +715,7 @@ namespace Orts.Viewer3D
                 MPManager.Instance().Update(Simulator.GameTime);
             }
 
-            RailDriver.ShowSpeed(MpS.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
+            UserInput.raildriver.ShowSpeed(MpS.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
 
             // This has to be done also for stopped trains
             var cars = World.Trains.Cars;
@@ -1444,9 +1444,6 @@ namespace Orts.Viewer3D
                 }
             }
 
-            if (UserInput.RDState != null)
-                UserInput.RDState.Handled();
-
             MouseState currentMouseState = Mouse.GetState();
 
             if (currentMouseState.X != originalMouseState.X ||
@@ -1574,7 +1571,7 @@ namespace Orts.Viewer3D
         internal void Terminate()
         {
             InfoDisplay.Terminate();
-            RailDriver.Shutdown();
+            UserInput.raildriver.Shutdown();
         }
 
         private int trainCount;

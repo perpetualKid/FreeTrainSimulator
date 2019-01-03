@@ -51,15 +51,19 @@ namespace Orts.Viewer3D
 
         public static RailDriverState RDState { get; set; }
 
+        public static UserInputRailDriver raildriver;
+
         private static InputSettings inputSettings;
 
         public static void Initialize(Game game)
         {
             inputSettings = game.Settings.Input;
+            raildriver = new UserInputRailDriver(game.ContentPath);
         }
 
         public static void Update(bool active)
         {
+            raildriver.Update();
             if (Orts.MultiPlayer.MPManager.IsMultiPlayer() && Orts.MultiPlayer.MPManager.Instance().ComposingText)
                 return;
 

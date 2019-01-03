@@ -30,25 +30,22 @@ namespace Orts.Viewer3D
     {
         private abstract class RailDriverBase
         {
-            protected UserInputRailDriver parent;
+            public abstract int WriteBufferSize { get; }
 
-            public RailDriverBase(UserInputRailDriver parent)
-            {
-                this.parent = parent;
-            }
-
-            public abstract int BufferSize { get; }
+            public abstract int ReadBufferSize { get; }
 
             public abstract void WriteData(byte[] writeBuffer);
+
+            public abstract int ReadCurrentData(ref byte[] data);
 
             public abstract void Shutdown();
         }
 
-        private class RailDriver32 : RailDriverBase, PIEHid32Net.PIEDataHandler, PIEHid32Net.PIEErrorHandler
+        private class RailDriver32 : RailDriverBase
         {
             private readonly PIEHid32Net.PIEDevice device;                   // Our RailDriver
 
-            public RailDriver32(UserInputRailDriver parent) : base(parent)
+            public RailDriver32(UserInputRailDriver parent)
             {
                 try
                 {
@@ -58,8 +55,6 @@ namespace Orts.Viewer3D
                         {
                             device = currentDevice;
                             device.SetupInterface();
-                            device.SetErrorCallback(this);
-                            device.SetDataCallback(this);
                             device.suppressDuplicateReports = true;
                             break;
                         }
@@ -72,25 +67,13 @@ namespace Orts.Viewer3D
                 }
             }
 
-            public override int BufferSize => device?.WriteLength ?? 0;
+            public override int WriteBufferSize => device?.WriteLength ?? 0;
 
-            public void HandlePIEHidData(byte[] data, PIEHid32Net.PIEDevice sourceDevice, int error)
-            {
-                parent.HandlePIEHidData(data, error);
-            }
+            public override int ReadBufferSize => device?.ReadLength ?? 0;
 
-            public void HandlePIEHidError(PIEHid32Net.PIEDevice sourceDevices, int error)
+            public override int ReadCurrentData(ref byte[] data)
             {
-                string errorMessage;
-                try
-                {
-                    errorMessage = sourceDevices.GetErrorString(error);
-                }
-                catch
-                {
-                    errorMessage = string.Empty;
-                }
-                parent.HandlePIEHidError(error, errorMessage);
+                return device.ReadLast(ref data);
             }
 
             public override void Shutdown()
@@ -104,11 +87,11 @@ namespace Orts.Viewer3D
             }
         }
 
-        private class RailDriver64 : RailDriverBase, PIEHid64Net.PIEDataHandler, PIEHid64Net.PIEErrorHandler
+        private class RailDriver64 : RailDriverBase
         {
             private readonly PIEHid64Net.PIEDevice device;                   // Our RailDriver
 
-            public RailDriver64(UserInputRailDriver parent) : base(parent)
+            public RailDriver64(UserInputRailDriver parent)
             {
                 try
                 {
@@ -118,8 +101,6 @@ namespace Orts.Viewer3D
                         {
                             device = currentDevice;
                             device.SetupInterface();
-                            device.SetErrorCallback(this);
-                            device.SetDataCallback(this);
                             device.suppressDuplicateReports = true;
                             break;
                         }
@@ -132,25 +113,13 @@ namespace Orts.Viewer3D
                 }
             }
 
-            public override int BufferSize => (int)(device?.WriteLength ?? 0);
+            public override int WriteBufferSize => (int)(device?.WriteLength ?? 0);
 
-            public void HandlePIEHidData(byte[] data, PIEHid64Net.PIEDevice sourceDevice, int error)
-            {
-                parent.HandlePIEHidData(data, error);
-            }
+            public override int ReadBufferSize => (int)(device?.ReadLength ?? 0);
 
-            public void HandlePIEHidError(PIEHid64Net.PIEDevice sourceDevices, long error)
+            public override int ReadCurrentData(ref byte[] data)
             {
-                string errorMessage;
-                try
-                {
-                    errorMessage = sourceDevices.GetErrorString((int)error);
-                }
-                catch
-                {
-                    errorMessage = string.Empty;
-                }
-                parent.HandlePIEHidError(error, errorMessage);
+                return device.ReadLast(ref data);
             }
 
             public override void Shutdown()
@@ -167,6 +136,9 @@ namespace Orts.Viewer3D
         private byte[] writeBuffer;                 // Buffer for sending data to RailDriver
         private bool active;                        // True when RailDriver values are used to control player loco
         private RailDriverState state;              // Interpreted data from RailDriver passed to UserInput
+
+        private byte[] readBuffer;
+        private byte[] readBufferHistory;
 
         // calibration values, defaults for the developer's RailDriver
         float FullReversed = 225;
@@ -210,57 +182,57 @@ namespace Orts.Viewer3D
             {
                 railDriverInstance = new RailDriver32(this);
             }
-            writeBuffer = new byte[railDriverInstance.BufferSize];
-
+            writeBuffer = new byte[railDriverInstance.WriteBufferSize];
+            readBuffer = new byte[railDriverInstance.ReadBufferSize];
+            readBufferHistory = new byte[railDriverInstance.ReadBufferSize];
             ReadCalibrationData(path);
             SetLEDs(0x40, 0x40, 0x40);
         }
 
-        /// <summary>
-        /// Data callback, called when RailDriver data is available
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="sourceDevice"></param>
-        private void HandlePIEHidData(byte[] data, int error)
+        public void Update()
         {
-            state.DirectionPercent = Percentage(data[1], FullReversed, Neutral, FullForward);
-            state.ThrottlePercent = Percentage(data[2], ThrottleIdle, FullThrottle);
-
-            state.DynamicBrakePercent = Percentage(data[2], ThrottleIdle, DynamicBrakeSetup, DynamicBrake);
-            state.TrainBrakePercent = Percentage(data[3], AutoBrakeRelease, FullAutoBrake);
-            state.EngineBrakePercent = Percentage(data[4], IndependentBrakeRelease, IndependentBrakeFull);
-            float a = .01f * state.EngineBrakePercent;
-            float calOff = (1 - a) * BailOffDisengagedRelease + a * BailOffDisengagedFull;
-            float calOn = (1 - a) * BailOffEngagedRelease + a * BailOffEngagedFull;
-            state.BailOff = Percentage(data[5], calOff, calOn) > 80;
-            if (state.TrainBrakePercent >= 100)
-                state.Emergency = Percentage(data[3], FullAutoBrake, EmergencyBrake) > 50;
-
-            state.Wipers = (int)(.01 * Percentage(data[6], Rotary1Position1, Rotary1Position2, Rotary1Position3) + 2.5);
-            state.Lights = (int)(.01 * Percentage(data[7], Rotary2Position1, Rotary2Position2, Rotary2Position3) + 2.5);
-            state.AddButtonData(data);
-
-            if (state.IsPressed(4, 0x30))
-                state.Emergency = true;
-            if (state.IsPressed(1, 0x40))
+            if (0 == railDriverInstance.ReadCurrentData(ref readBuffer))
             {
-                active = !active;
-                EnableSpeaker(active);
-                if (active)
+                state.DirectionPercent = Percentage(readBuffer[1], FullReversed, Neutral, FullForward);
+                state.ThrottlePercent = Percentage(readBuffer[2], ThrottleIdle, FullThrottle);
+
+                state.DynamicBrakePercent = Percentage(readBuffer[2], ThrottleIdle, DynamicBrakeSetup, DynamicBrake);
+                state.TrainBrakePercent = Percentage(readBuffer[3], AutoBrakeRelease, FullAutoBrake);
+                state.EngineBrakePercent = Percentage(readBuffer[4], IndependentBrakeRelease, IndependentBrakeFull);
+                float a = .01f * state.EngineBrakePercent;
+                float calOff = (1 - a) * BailOffDisengagedRelease + a * BailOffDisengagedFull;
+                float calOn = (1 - a) * BailOffEngagedRelease + a * BailOffEngagedFull;
+                state.BailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
+                if (state.TrainBrakePercent >= 100)
+                    state.Emergency = Percentage(readBuffer[3], FullAutoBrake, EmergencyBrake) > 50;
+
+                state.Wipers = (int)(.01 * Percentage(readBuffer[6], Rotary1Position1, Rotary1Position2, Rotary1Position3) + 2.5);
+                state.Lights = (int)(.01 * Percentage(readBuffer[7], Rotary2Position1, Rotary2Position2, Rotary2Position3) + 2.5);
+                state.SaveButtonData();
+                state.AddButtonData(readBuffer);
+
+                if (state.IsPressed(4, 0x30))
+                    state.Emergency = true;
+                if (state.IsPressed(1, 0x40))
                 {
-                    SetLEDs(0x80, 0x80, 0x80);
-                    displayedSpeed = -1;
-                    UserInput.RDState = state;
+                    active = !active;
+                    EnableSpeaker(active);
+                    if (active)
+                    {
+                        SetLEDs(0x80, 0x80, 0x80);
+                        displayedSpeed = -1;
+                        UserInput.RDState = state;
+                    }
+                    else
+                    {
+                        SetLEDs(0x40, 0x40, 0x40);
+                        UserInput.RDState = null;
+                    }
                 }
-                else
-                {
-                    SetLEDs(0x40, 0x40, 0x40);
-                    UserInput.RDState = null;
-                }
+                state.Changed = true;
             }
-            state.Changed = true;
         }
-        
+
         /// <summary>
         /// Error callback
         /// </summary>
@@ -358,6 +330,7 @@ namespace Orts.Viewer3D
         /// <param name="basePath"></param>
         void ReadCalibrationData(string basePath)
         {
+            basePath = @"C:\Storage\OR\Train Simulator";
             string file = Path.Combine(basePath, "ModernCalibration.rdm");
             if (!File.Exists(file))
             {
@@ -420,7 +393,7 @@ namespace Orts.Viewer3D
         public void Shutdown()
         {
             SetLEDs(0, 0, 0);
-            railDriverInstance.Shutdown();
+            railDriverInstance?.Shutdown();
         }
     }
 
@@ -526,7 +499,8 @@ namespace Orts.Viewer3D
         public void AddButtonData(byte[] data)
         {
             for (int i = 0; i < buttonData.Length; i++)
-                buttonData[i] |= data[i + 8];
+                //buttonData[i] |= data[i + 8];
+                buttonData[i] = data[i + 8];
         }
 
         public override string ToString()
@@ -539,7 +513,7 @@ namespace Orts.Viewer3D
 
         public void Handled()
         {
-            SaveButtonData();
+//            SaveButtonData();
             Changed = false;
         }
 
