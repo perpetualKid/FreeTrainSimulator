@@ -281,8 +281,6 @@ namespace Orts.Viewer3D
             LoTiles = new TileManager(Simulator.RoutePath + @"\LO_TILES\", true);
             MilepostUnitsMetric = Simulator.TRK.Tr_RouteFile.MilepostUnitsMetric;
 
-//            RailDriver = new UserInputRailDriver(Simulator.BasePath);
-
             Simulator.AllowedSpeedRaised += (object sender, EventArgs e) =>
             {
                 var train = sender as Train;

@@ -56,7 +56,7 @@ namespace Orts.Viewer3D
         public static void Initialize(Game game)
         {
             inputSettings = game.Settings.Input;
-            Raildriver = new UserInputRailDriver(game.ContentPath);
+            Raildriver = new UserInputRailDriver();
         }
 
         public static void Update(bool active)

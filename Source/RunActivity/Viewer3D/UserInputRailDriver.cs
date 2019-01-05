@@ -192,7 +192,7 @@ namespace Orts.Viewer3D
         /// Tries to find a RailDriver and initialize it
         /// </summary>
         /// <param name="basePath"></param>
-        public UserInputRailDriver(string path)
+        public UserInputRailDriver()
         {
 
             if (Environment.Is64BitProcess)
@@ -207,7 +207,7 @@ namespace Orts.Viewer3D
             writeBuffer = new byte[railDriverInstance.WriteBufferSize];
             readBuffer = new byte[railDriverInstance.ReadBufferSize];
             readBufferHistory = new byte[8];
-            ReadCalibrationData(path);
+            ReadCalibrationData();
             SetLEDs(0x40, 0x40, 0x40);
 
             railDriverCommands = new ulong[Enum.GetNames(typeof(UserCommands)).Length];
@@ -397,10 +397,9 @@ namespace Orts.Viewer3D
         /// This file is not in the usual STF format, but the STFReader can handle it okay.
         /// </summary>
         /// <param name="basePath"></param>
-        void ReadCalibrationData(string basePath)
+        void ReadCalibrationData()
         {
-            basePath = @"C:\Storage\OR\Train Simulator";
-            string file = Path.Combine(basePath, "ModernCalibration.rdm");
+            string file = Path.Combine(Environment.CurrentDirectory, "ModernCalibration.rdm");
             if (!File.Exists(file))
             {
                 SetLEDs(0, 0, 0);
