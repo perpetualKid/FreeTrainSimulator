@@ -193,38 +193,32 @@ namespace Orts.Viewer3D.RollingStock
             if (UserInput.IsPressed(UserCommands.DebugResetWheelSlip)) { Locomotive.Train.SignalEvent(Event._ResetWheelSlip); }
             if (UserInput.IsPressed(UserCommands.DebugToggleAdvancedAdhesion)) { Locomotive.Train.SignalEvent(Event._ResetWheelSlip); Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion; }
 
-            if (UserInput.RDState != null)
+            if (UserInput.Raildriver.Enabled)
             {
-                if (UserInput.RDState.Changed)
-                {
                     Locomotive.AlerterReset();
 
-                    Locomotive.SetThrottlePercent(UserInput.RDState.ThrottlePercent);
-                    Locomotive.SetTrainBrakePercent(UserInput.RDState.TrainBrakePercent);
-                    Locomotive.SetEngineBrakePercent(UserInput.RDState.EngineBrakePercent);
-                    Locomotive.SetBailOff(UserInput.RDState.BailOff);
+                    Locomotive.SetThrottlePercent(UserInput.Raildriver.ThrottlePercent);
+                    Locomotive.SetTrainBrakePercent(UserInput.Raildriver.TrainBrakePercent);
+                    Locomotive.SetEngineBrakePercent(UserInput.Raildriver.EngineBrakePercent);
+                    Locomotive.SetBailOff(UserInput.Raildriver.BailOff);
                     if (Locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
-                        Locomotive.SetDynamicBrakePercent(UserInput.RDState.DynamicBrakePercent);
-                    if (UserInput.RDState.DirectionPercent > 50)
+                        Locomotive.SetDynamicBrakePercent(UserInput.Raildriver.DynamicBrakePercent);
+                    if (UserInput.Raildriver.DirectionPercent > 50)
                         Locomotive.SetDirection(Direction.Forward);
-                    else if (UserInput.RDState.DirectionPercent < -50)
+                    else if (UserInput.Raildriver.DirectionPercent < -50)
                         Locomotive.SetDirection(Direction.Reverse);
                     else
                         Locomotive.SetDirection(Direction.N);
-                    if (UserInput.RDState.Emergency)
-                        Locomotive.SetEmergency(true);
-                    else
-                        Locomotive.SetEmergency(false);
-                    if (UserInput.RDState.Wipers == 1 && Locomotive.Wiper)
+                        Locomotive.SetEmergency(UserInput.Raildriver.Emergency);
+                    if (UserInput.Raildriver.Wipers == 1 && Locomotive.Wiper)
                         Locomotive.SignalEvent(Event.WiperOff);
-                    if (UserInput.RDState.Wipers != 1 && !Locomotive.Wiper)
+                    else if (UserInput.Raildriver.Wipers != 1 && !Locomotive.Wiper)
                         Locomotive.SignalEvent(Event.WiperOn);
                     // changing Headlight more than one step at a time doesn't work for some reason
-                    if (Locomotive.Headlight < UserInput.RDState.Lights - 1)
+                    if (Locomotive.Headlight < UserInput.Raildriver.Lights - 1)
                         Locomotive.Headlight++;
-                    if (Locomotive.Headlight > UserInput.RDState.Lights - 1)
+                    if (Locomotive.Headlight > UserInput.Raildriver.Lights - 1)
                         Locomotive.Headlight--;
-                }
             }
 
             foreach (var command in UserInputCommands.Keys)

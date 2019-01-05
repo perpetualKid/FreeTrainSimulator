@@ -49,21 +49,19 @@ namespace Orts.Viewer3D
 
         public static bool ComposingMessage { get; set; }
 
-        public static RailDriverState RDState { get; set; }
-
-        public static UserInputRailDriver raildriver;
+        public static UserInputRailDriver Raildriver { get; private set; }
 
         private static InputSettings inputSettings;
 
         public static void Initialize(Game game)
         {
             inputSettings = game.Settings.Input;
-            raildriver = new UserInputRailDriver(game.ContentPath);
+            Raildriver = new UserInputRailDriver(game.ContentPath);
         }
 
         public static void Update(bool active)
         {
-            raildriver.Update();
+            Raildriver.Update();
             if (Orts.MultiPlayer.MPManager.IsMultiPlayer() && Orts.MultiPlayer.MPManager.Instance().ComposingText)
                 return;
 
@@ -144,13 +142,12 @@ namespace Orts.Viewer3D
 
         public static void Handled()
         {
-            RDState?.Handled();
         }
 
         public static bool IsPressed(UserCommands command)
         {
             if (ComposingMessage == true) return false;
-            if (RDState != null && RDState.IsPressed(command))
+            if (Raildriver.IsPressed(command))
                 return true;
             var setting = inputSettings.Commands[(int)command];
             return setting.IsKeyDown(keyboardState) && !setting.IsKeyDown(lastKeyboardState);
@@ -159,7 +156,7 @@ namespace Orts.Viewer3D
         public static bool IsReleased(UserCommands command)
         {
             if (ComposingMessage == true) return false;
-            if (RDState != null && RDState.IsReleased(command))
+            if (Raildriver.IsReleased(command))
                 return true;
             var setting = inputSettings.Commands[(int)command];
             return !setting.IsKeyDown(keyboardState) && setting.IsKeyDown(lastKeyboardState);
@@ -168,7 +165,7 @@ namespace Orts.Viewer3D
         public static bool IsDown(UserCommands command)
         {
             if (ComposingMessage == true) return false;
-            if (RDState != null && RDState.IsDown(command))
+            if (Raildriver.IsDown(command))
                 return true;
             var setting = inputSettings.Commands[(int)command];
             return setting.IsKeyDown(keyboardState);

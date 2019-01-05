@@ -715,7 +715,7 @@ namespace Orts.Viewer3D
                 MPManager.Instance().Update(Simulator.GameTime);
             }
 
-            UserInput.raildriver.ShowSpeed(MpS.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
+            UserInput.Raildriver.ShowSpeed(MpS.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
 
             // This has to be done also for stopped trains
             var cars = World.Trains.Cars;
@@ -1571,7 +1571,7 @@ namespace Orts.Viewer3D
         internal void Terminate()
         {
             InfoDisplay.Terminate();
-            UserInput.raildriver.Shutdown();
+            UserInput.Raildriver.Shutdown();
         }
 
         private int trainCount;
