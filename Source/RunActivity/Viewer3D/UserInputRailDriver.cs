@@ -203,72 +203,73 @@ namespace Orts.Viewer3D
             {
                 railDriverInstance = new RailDriver32(this);
             }
+            if (railDriverInstance.Enabled)
+            {
+                writeBuffer = new byte[railDriverInstance.WriteBufferSize];
+                readBuffer = new byte[railDriverInstance.ReadBufferSize];
+                readBufferHistory = new byte[8];
+                ReadCalibrationData();
+                SetLEDs(0x40, 0x40, 0x40);
 
-            writeBuffer = new byte[railDriverInstance.WriteBufferSize];
-            readBuffer = new byte[railDriverInstance.ReadBufferSize];
-            readBufferHistory = new byte[8];
-            ReadCalibrationData();
-            SetLEDs(0x40, 0x40, 0x40);
+                railDriverCommands = new ulong[Enum.GetNames(typeof(UserCommands)).Length];
 
-            railDriverCommands = new ulong[Enum.GetNames(typeof(UserCommands)).Length];
+                // top row of blue buttons left to right
 
-            // top row of blue buttons left to right
+                railDriverCommands[(int)UserCommands.GamePauseMenu] = 0x01L << (0 * 8);
+                railDriverCommands[(int)UserCommands.GameSave] = 0x02L << (0 * 8);
 
-            railDriverCommands[(int)UserCommands.GamePauseMenu] = 0x01L << (0*8);
-            railDriverCommands[(int)UserCommands.GameSave] = 0x02L << (0 * 8);
+                railDriverCommands[(int)UserCommands.DisplayTrackMonitorWindow] = 0x08L << (0 * 8);
 
-            railDriverCommands[(int)UserCommands.DisplayTrackMonitorWindow] = 0x08L << (0 * 8);
+                railDriverCommands[(int)UserCommands.DisplaySwitchWindow] = 0x40L << (0 * 8);
+                railDriverCommands[(int)UserCommands.DisplayTrainOperationsWindow] = 0x80L << (0 * 8);
+                railDriverCommands[(int)UserCommands.DisplayNextStationWindow] = 0x01L << (1 * 8);
 
-            railDriverCommands[(int)UserCommands.DisplaySwitchWindow] = 0x40L << (0 * 8);
-            railDriverCommands[(int)UserCommands.DisplayTrainOperationsWindow] = 0x80L << (0 * 8);
-            railDriverCommands[(int)UserCommands.DisplayNextStationWindow] = 0x01L << (1 * 8);
+                railDriverCommands[(int)UserCommands.DisplayCompassWindow] = 0x08L << (1 * 8);
+                railDriverCommands[(int)UserCommands.GameSwitchAhead] = 0x10L << (1 * 8);
+                railDriverCommands[(int)UserCommands.GameSwitchBehind] = 0x20L << (1 * 8);
 
-            railDriverCommands[(int)UserCommands.DisplayCompassWindow] = 0x08L << (1 * 8);
-            railDriverCommands[(int)UserCommands.GameSwitchAhead] = 0x10L << (1 * 8);
-            railDriverCommands[(int)UserCommands.GameSwitchBehind] = 0x20L << (1 * 8);
+                // bottom row of blue buttons left to right
 
-            // bottom row of blue buttons left to right
+                //Commands[(int)UserCommands.RailDriverOnOff] = new RailDriverUserCommand(1, 0x40);         // Btn 15 Default Legend RailDriver Run/Stophandled elsewhere
+                railDriverCommands[(int)UserCommands.CameraToggleShowCab] = 0x80L << (1 * 8);       // Btn 16 Default Legend Hide Cab Panel
 
-            //Commands[(int)UserCommands.RailDriverOnOff] = new RailDriverUserCommand(1, 0x40);         // Btn 15 Default Legend RailDriver Run/Stophandled elsewhere
-            railDriverCommands[(int)UserCommands.CameraToggleShowCab] = 0x80L << (1 * 8);       // Btn 16 Default Legend Hide Cab Panel
+                railDriverCommands[(int)UserCommands.CameraCab] = 0x01L << (2 * 8);                 // Btn 17 Default Legend Frnt Cab View
+                railDriverCommands[(int)UserCommands.CameraOutsideFront] = 0x02L << (2 * 8);        // Btn 18 Default Legend Ext View 1
+                railDriverCommands[(int)UserCommands.CameraOutsideRear] = 0x04L << (2 * 8);         // Btn 19 Default Legend Ext.View 2
+                railDriverCommands[(int)UserCommands.CameraCarPrevious] = 0x08L << (2 * 8);         // Btn 20 Default Legend FrontCoupler
 
-            railDriverCommands[(int)UserCommands.CameraCab] = 0x01L << (2 * 8);                 // Btn 17 Default Legend Frnt Cab View
-            railDriverCommands[(int)UserCommands.CameraOutsideFront] = 0x02L << (2 * 8);        // Btn 18 Default Legend Ext View 1
-            railDriverCommands[(int)UserCommands.CameraOutsideRear] = 0x04L << (2 * 8);         // Btn 19 Default Legend Ext.View 2
-            railDriverCommands[(int)UserCommands.CameraCarPrevious] = 0x08L << (2 * 8);         // Btn 20 Default Legend FrontCoupler
+                railDriverCommands[(int)UserCommands.CameraCarNext] = 0x10L << (2 * 8);             // Btn 21 Default Legend Rear Coupler
+                railDriverCommands[(int)UserCommands.CameraTrackside] = 0x20L << (2 * 8);           // Btn 22 Default Legend Track View      
+                railDriverCommands[(int)UserCommands.CameraPassenger] = 0x40L << (2 * 8);           // Btn 23 Default Legend Passgr View      
+                railDriverCommands[(int)UserCommands.CameraBrakeman] = 0x80L << (2 * 8);            // Btn 24 Default Legend Coupler View
 
-            railDriverCommands[(int)UserCommands.CameraCarNext] = 0x10L << (2 * 8);             // Btn 21 Default Legend Rear Coupler
-            railDriverCommands[(int)UserCommands.CameraTrackside] = 0x20L << (2 * 8);           // Btn 22 Default Legend Track View      
-            railDriverCommands[(int)UserCommands.CameraPassenger] = 0x40L << (2 * 8);           // Btn 23 Default Legend Passgr View      
-            railDriverCommands[(int)UserCommands.CameraBrakeman] = 0x80L << (2 * 8);            // Btn 24 Default Legend Coupler View
+                railDriverCommands[(int)UserCommands.CameraFree] = 0x01L << (3 * 8);                // Btn 25 Default Legend Yard View
+                railDriverCommands[(int)UserCommands.GameClearSignalForward] = 0x02L << (3 * 8);    // Btn 26 Default Legend Request Pass
+                                                                                                    //Commands[(int)UserCommands. load passengers] = new RailDriverUserCommand(3, 0x04);        // Btn 27 Default Legend Load/Unload
+                                                                                                    //Commands[(int)UserCommands. ok] = new RailDriverUserCommand(3, 0x08);                     // Btn 28 Default Legend OK
 
-            railDriverCommands[(int)UserCommands.CameraFree] = 0x01L << (3 * 8);                // Btn 25 Default Legend Yard View
-            railDriverCommands[(int)UserCommands.GameClearSignalForward] = 0x02L << (3 * 8);    // Btn 26 Default Legend Request Pass
-            //Commands[(int)UserCommands. load passengers] = new RailDriverUserCommand(3, 0x04);        // Btn 27 Default Legend Load/Unload
-            //Commands[(int)UserCommands. ok] = new RailDriverUserCommand(3, 0x08);                     // Btn 28 Default Legend OK
+                // controls to right of blue buttons
 
-            // controls to right of blue buttons
+                railDriverCommands[(int)UserCommands.CameraZoomIn] = 0x10L << (3 * 8);
+                railDriverCommands[(int)UserCommands.CameraZoomOut] = 0x20L << (3 * 8);
+                railDriverCommands[(int)UserCommands.CameraPanUp] = 0x40L << (3 * 8);
+                railDriverCommands[(int)UserCommands.CameraPanRight] = 0x80L << (3 * 8);
+                railDriverCommands[(int)UserCommands.CameraPanDown] = 0x01L << (4 * 8);
+                railDriverCommands[(int)UserCommands.CameraPanLeft] = 0x02L << (4 * 8);
 
-            railDriverCommands[(int)UserCommands.CameraZoomIn] = 0x10L << (3 * 8);
-            railDriverCommands[(int)UserCommands.CameraZoomOut] = 0x20L << (3 * 8);
-            railDriverCommands[(int)UserCommands.CameraPanUp] = 0x40L << (3 * 8);
-            railDriverCommands[(int)UserCommands.CameraPanRight] = 0x80L << (3 * 8);
-            railDriverCommands[(int)UserCommands.CameraPanDown] = 0x01L << (4 * 8);
-            railDriverCommands[(int)UserCommands.CameraPanLeft] = 0x02L << (4 * 8);
+                // buttons on top left
 
-            // buttons on top left
-
-            //Commands[(int)UserCommands. gear shift] = new RailDriverUserCommand(4, 0x04);
-            railDriverCommands[(int)UserCommands.ControlGearUp] = 0x04L << (4 * 8);
-            //Commands[(int)UserCommands. gear shift] = new RailDriverUserCommand(4, 0x08);
-            railDriverCommands[(int)UserCommands.ControlGearDown] = 0x08L << (4 * 8);
-            //Commands[(int)UserCommands.ControlEmergency] = new RailDriverUserCommand(4, 0x30); handled elsewhere
-            railDriverCommands[(int)UserCommands.ControlAlerter] = 0x40L << (4 * 8);
-            railDriverCommands[(int)UserCommands.ControlSander] = 0x80L << (4 * 8);
-            railDriverCommands[(int)UserCommands.ControlPantograph1] = 0x01L << (5 * 8);
-            railDriverCommands[(int)UserCommands.ControlBellToggle] = 0x02L << (5 * 8);
-            railDriverCommands[(int)UserCommands.ControlHorn] = 0x0cL << (5 * 8);//either of two bits
-
+                //Commands[(int)UserCommands. gear shift] = new RailDriverUserCommand(4, 0x04);
+                railDriverCommands[(int)UserCommands.ControlGearUp] = 0x04L << (4 * 8);
+                //Commands[(int)UserCommands. gear shift] = new RailDriverUserCommand(4, 0x08);
+                railDriverCommands[(int)UserCommands.ControlGearDown] = 0x08L << (4 * 8);
+                //Commands[(int)UserCommands.ControlEmergency] = new RailDriverUserCommand(4, 0x30); handled elsewhere
+                railDriverCommands[(int)UserCommands.ControlAlerter] = 0x40L << (4 * 8);
+                railDriverCommands[(int)UserCommands.ControlSander] = 0x80L << (4 * 8);
+                railDriverCommands[(int)UserCommands.ControlPantograph1] = 0x01L << (5 * 8);
+                railDriverCommands[(int)UserCommands.ControlBellToggle] = 0x02L << (5 * 8);
+                railDriverCommands[(int)UserCommands.ControlHorn] = 0x0cL << (5 * 8);//either of two bits
+            }
         }
 
         public void Update()
@@ -471,6 +472,8 @@ namespace Orts.Viewer3D
 
         public bool IsPressed(UserCommands command)
         {
+            if (!active)
+                return false;
             ulong raildriverCommand = railDriverCommands[(int)command];
             if (raildriverCommand != 0)
                 return IsPressed(raildriverCommand);
@@ -480,6 +483,8 @@ namespace Orts.Viewer3D
 
         public bool IsReleased(UserCommands command)
         {
+            if (!active)
+                return false;
             ulong raildriverCommand = railDriverCommands[(int)command];
             if (raildriverCommand != 0)
                 return (buttonData & raildriverCommand) == 0 && (buttonDataHistory & raildriverCommand) != 0;
@@ -489,6 +494,8 @@ namespace Orts.Viewer3D
 
         public bool IsDown(UserCommands command)
         {
+            if (!active)
+                return false;
             ulong raildriverCommand = railDriverCommands[(int)command];
             if (raildriverCommand != 0)
                 return (buttonData & raildriverCommand) != 0;
