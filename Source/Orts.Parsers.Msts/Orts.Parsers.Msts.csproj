@@ -63,9 +63,6 @@
     <PackageReference Include="MonoGame.Framework.WindowsDX">
       <Version>3.7.1.189</Version>
     </PackageReference>
-    <PackageReference Include="SharpZipLib">
-      <Version>1.1.0</Version>
-    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
