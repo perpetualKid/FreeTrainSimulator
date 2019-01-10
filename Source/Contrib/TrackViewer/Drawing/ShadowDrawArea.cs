@@ -202,8 +202,9 @@ namespace ORTS.TrackViewer.Drawing
                 {
                     shadowMapsSingle[i].Dispose();
                 }
+                pp = graphicsDevice.PresentationParameters;
                 shadowRenderTargetSingle[i] = new RenderTarget2D(graphicsDevice, 1 * blockW, 1 * blockH, false, SurfaceFormat.Color,
-                    DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
+                    pp.DepthStencilFormat, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
                 shadowMapsSingle[i] = new Texture2D(graphicsDevice, 1, 1);
             }
         }
