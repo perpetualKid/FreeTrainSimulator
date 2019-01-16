@@ -150,6 +150,8 @@ namespace ORTS.Common
         [Description("Control Light")] ControlLight,
         [Description("Control Pantograph 1")] ControlPantograph1,
         [Description("Control Pantograph 2")] ControlPantograph2,
+        [Description("Control Pantograph 3")] ControlPantograph3,
+        [Description("Control Pantograph 4")] ControlPantograph4,
         [Description("Control Circuit Breaker Closing Order")] ControlCircuitBreakerClosingOrder,
         [Description("Control Circuit Breaker Opening Order")] ControlCircuitBreakerOpeningOrder,
         [Description("Control Circuit Breaker Closing Authorization")] ControlCircuitBreakerClosingAuthorization,
