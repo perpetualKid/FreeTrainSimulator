@@ -100,8 +100,8 @@ namespace Orts.Viewer3D
     {
         private int _prevTType = -1;
         private int _curTType = -1;
-        private SoundSource _activeInSource;
-        private SoundSource _activeOutSource;
+        public SoundSource _activeInSource;
+        public SoundSource _activeOutSource;
         private List<SoundSource> _inSources;
         private List<SoundSource> _outSources;
 
