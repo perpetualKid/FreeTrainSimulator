@@ -67,6 +67,7 @@ namespace ORTS.Settings
         [GetString("Display Help Window")] DisplayHelpWindow,
         [GetString("Display Track Monitor Window")] DisplayTrackMonitorWindow,
         [GetString("Display HUD")] DisplayHUD,
+        [GetString("Display HUD Scroll Window")] DisplayHUDScrollWindow,
         [GetString("Display Car Labels")] DisplayCarLabels,
         [GetString("Display Station Labels")] DisplayStationLabels,
         [GetString("Display Switch Window")] DisplaySwitchWindow,
@@ -320,7 +321,7 @@ namespace ORTS.Settings
                 Reset(command.ToString());
         }
 
-        #region External APIs
+#region External APIs
         enum MapVirtualKeyType
         {
             VirtualToCharacter = 2,
@@ -335,7 +336,7 @@ namespace ORTS.Settings
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         static extern int GetKeyNameText(int scanCode, [Out] string name, int nameLength);
-        #endregion
+#endregion
 
         // Keyboard scancodes are basically constant; some keyboards have extra buttons (e.g. UK ones tend to have an
         // extra button next to Left Shift) or move one or two around (e.g. UK ones tend to move 0x2B down one row)
@@ -476,7 +477,7 @@ namespace ORTS.Settings
             rectangle.Height *= scaleY;
         }
 
-        #region Default Input Settings
+#region Default Input Settings
         static void InitializeCommands(UserCommandInput[] Commands)
         {
             // All UserCommandModifierInput commands go here.
@@ -635,6 +636,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommands.DisplayCompassWindow] = new UserCommandKeyInput(0x0B);
             Commands[(int)UserCommands.DisplayHelpWindow] = new UserCommandModifiableKeyInput(0x3B, Commands[(int)UserCommands.DisplayNextWindowTab]);
             Commands[(int)UserCommands.DisplayHUD] = new UserCommandModifiableKeyInput(0x3F, Commands[(int)UserCommands.DisplayNextWindowTab]);
+            Commands[(int)UserCommands.DisplayHUDScrollWindow] = new UserCommandModifiableKeyInput(0x3F, KeyModifiers.Control);
             Commands[(int)UserCommands.DisplayNextStationWindow] = new UserCommandKeyInput(0x44);
             Commands[(int)UserCommands.DisplayStationLabels] = new UserCommandModifiableKeyInput(0x40, Commands[(int)UserCommands.DisplayNextWindowTab]);
             Commands[(int)UserCommands.DisplaySwitchWindow] = new UserCommandKeyInput(0x42);
@@ -663,7 +665,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommands.GameSwitchPicked] = new UserCommandKeyInput(0x22, KeyModifiers.Alt);
             Commands[(int)UserCommands.GameUncoupleWithMouse] = new UserCommandKeyInput(0x16);
         }
-        #endregion
+#endregion
 
         bool IsModifier(UserCommands command)
         {

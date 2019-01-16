@@ -25,6 +25,7 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
+using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
 using System;
@@ -33,13 +34,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Orts.Viewer3D.Popups
 {
     public class HUDWindow : LayeredWindow
     {
-        // Set this to the width of each column in font-height units.
-        readonly int ColumnWidth = 4;
+        // Set this to the width of each column in font-height units.     
+        readonly int ColumnWidth = 5;
 
         // Set to distance from top-left corner to place text.
         const int TextOffset = 10;
@@ -53,6 +55,23 @@ namespace Orts.Viewer3D.Popups
         readonly Action<TableData>[] TextPages;
         readonly WindowTextFont TextFont;
         readonly HUDGraphMaterial HUDGraphMaterial;
+
+        //Set lines rows HUDScroll.
+        public int nLinesShow;
+        public int charFitPerLine;
+        public int columnsCount = 0;
+        public int headerToRestore = 0;
+        public static int columnsChars = 0;
+        public int[] lineOffsetLocoInfo = { 0, 0, 0, 0, 0, 0 };
+        public static int hudWindowLinesActualPage = 1;
+        public static int hudWindowLinesPagesCount = 1;
+        public static int hudWindowColumnsActualPage = 0;
+        public static int hudWindowColumnsPagesCount = 0;
+        public static int hudWindowLocoActualPage = 0;
+        public static int hudWindowLocoPagesCount = 1;
+        public static bool hudWindowFullScreen = false;
+        public static bool hudWindowHorizontalScroll = false;
+        List<string> stringStatus = new List<string>();
 
         int TextPage;
         int LocomotivePage = 2;
@@ -120,7 +139,8 @@ namespace Orts.Viewer3D.Popups
             textPages.Add(TextPageDebugInfo);
             TextPages = textPages.ToArray();
 
-            TextFont = owner.TextFontDefaultOutlined;
+            TextFont = owner.TextFontMonoSpacedOutlined;
+
             ColumnWidth *= TextFont.Height;
 
             HUDGraphMaterial = (HUDGraphMaterial)Viewer.MaterialManager.Load("Debug");
@@ -184,7 +204,11 @@ namespace Orts.Viewer3D.Popups
         public override void TabAction()
         {
             TextPage = (TextPage + 1) % TextPages.Length;
-            if (TextPage != 0) LastTextPage = TextPage;
+            if (TextPage != 0)
+            {
+                LastTextPage = TextPage;
+                lResetHudScroll = false;
+            }
         }
 
         public void ToggleBasicHUD()
@@ -257,7 +281,10 @@ namespace Orts.Viewer3D.Popups
             if (updateFull)
             {
                 var table = new TableData() { Cells = new string[TextTable.Cells.GetLength(0), TextTable.Cells.GetLength(1)] };
-                TextPages[0](table);
+                //Normal screen or full screen
+                if (!hudWindowFullScreen)
+                    TextPages[0](table);
+
                 if (TextPage > 0)
                     TextPages[TextPage](table);
                 TextTable = table;
@@ -276,7 +303,12 @@ namespace Orts.Viewer3D.Popups
                         var text = TextTable.Cells[row, column];
                         var align = text.StartsWith(" ") ? LabelAlignment.Right : LabelAlignment.Left;
                         var color = Color.White;
-                        if (text.EndsWith("!!!") || text.EndsWith("???"))
+                        if (text.Contains("!!!"))
+                        {//Change to red color, an example: overspeed.
+                            color = Color.OrangeRed;
+                            text = text.Contains("!!!") && text.Contains("???")? text.Substring(0, text.Length - 6) :text.Substring(0, text.Length - 3);
+                        }
+                        else if (text.EndsWith("!!!") || text.EndsWith("???"))
                         {
                             color = text.EndsWith("!!!") ? Color.OrangeRed : Color.Yellow;
                             text = text.Substring(0, text.Length - 3);
@@ -296,7 +328,7 @@ namespace Orts.Viewer3D.Popups
                 DebugGraphs.Draw(spriteBatch);
         }
 
-        #region Table handling
+#region Table handling
         sealed class TableData
         {
             public string[,] Cells;
@@ -367,7 +399,7 @@ namespace Orts.Viewer3D.Popups
             TableSetCell(table, table.CurrentRow, table.CurrentValueColumn, format, args);
             table.CurrentRow++;
         }
-        #endregion
+#endregion
 
         void TextPageCommon(TableData table)
         {
@@ -427,7 +459,7 @@ namespace Orts.Viewer3D.Popups
             else if (Viewer.PlayerTrain.IsWheelSlipWarninq)
                 TableAddLine(table, Viewer.Catalog.GetString("Wheel slip warning") + "???");
 
-            if (Viewer.PlayerTrain.IsBrakeSkid )
+            if (Viewer.PlayerTrain.IsBrakeSkid)
                 TableAddLine(table, Viewer.Catalog.GetString("Wheel skid") + "!!!");
 
             if (Viewer.PlayerLocomotive.GetSanderOn())
@@ -444,7 +476,7 @@ namespace Orts.Viewer3D.Popups
                 var color = Math.Abs(Viewer.PlayerLocomotive.SpeedMpS) > 0.1f ? "!!!" : "???";
                 var status = "";
                 if ((Viewer.PlayerLocomotive as MSTSWagon).DoorLeftOpen)
-                    status += Viewer.Catalog.GetString((Viewer.PlayerLocomotive as MSTSLocomotive).GetCabFlipped()? "Right" : "Left");
+                    status += Viewer.Catalog.GetString((Viewer.PlayerLocomotive as MSTSLocomotive).GetCabFlipped() ? "Right" : "Left");
                 if ((Viewer.PlayerLocomotive as MSTSWagon).DoorRightOpen)
                     status += string.Format(status == "" ? "{0}" : " {0}", Viewer.Catalog.GetString((Viewer.PlayerLocomotive as MSTSLocomotive).GetCabFlipped() ? "Left" : "Right"));
                 status += color;
@@ -475,51 +507,66 @@ namespace Orts.Viewer3D.Popups
             float tonnage = 0f;
             foreach (var car in train.Cars)
             {
-                if(car.WagonType == TrainCar.WagonTypes.Freight || car.WagonType == TrainCar.WagonTypes.Passenger)
+                if (car.WagonType == TrainCar.WagonTypes.Freight || car.WagonType == TrainCar.WagonTypes.Passenger)
                     tonnage += car.MassKG;
             }
-            TableSetCells(table, 0,
+
+            ResetHudScroll();//Reset Hudscroll.
+
+            List<string> statusConsist = new List<string>();
+            //Consist information. Header.
+            statusConsist.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t\t{5}\t{6}\t\t{7}\t\t{8}",
                 Viewer.Catalog.GetString("Player"),
                 Viewer.Catalog.GetString("Tilted"),
                 Viewer.Catalog.GetString("Type"),
                 Viewer.Catalog.GetString("Length"),
-                Viewer.Catalog.GetString("Weight"), "",
-                Viewer.Catalog.GetString("Tonnage"), "",
-                Viewer.Catalog.GetString("Control Mode"), "",
-                Viewer.Catalog.GetString("Out of Control"), "",
-                Viewer.Catalog.GetString("Cab Aspect"));
-            TableAddLine(table);
-            TableSetCells(table, 0, locomotive.CarID + " " + (mstsLocomotive == null ? "" : mstsLocomotive.UsingRearCab ? Viewer.Catalog.GetString("R") : Viewer.Catalog.GetString("F")),
-                train.IsTilting ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No"),
-                train.IsFreight ? Viewer.Catalog.GetString("Freight") : Viewer.Catalog.GetString("Pass"),
+                Viewer.Catalog.GetString("Weight"), //"",
+                Viewer.Catalog.GetString("Tonnage"), //"",
+                Viewer.Catalog.GetString("Control Mode"),// "",
+                Viewer.Catalog.GetString("Out of Control"),// "",
+                Viewer.Catalog.GetString("Cab Aspect")));
+            //Consist information. Data.
+            statusConsist.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t\t{5}\t{6}\t\t{7}\t\t{8}",
+                locomotive.CarID + " " + (mstsLocomotive == null ? "" : mstsLocomotive.UsingRearCab ? Viewer.Catalog.GetString("R") : Viewer.Catalog.GetString("F")),
+                (train.IsTilting ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No")),
+                (train.IsFreight ? Viewer.Catalog.GetString("Freight") : Viewer.Catalog.GetString("Pass")),
                 FormatStrings.FormatShortDistanceDisplay(train.Length, locomotive.IsMetric),
-                FormatStrings.FormatLargeMass(train.MassKg, locomotive.IsMetric, locomotive.IsUK), "",
-                FormatStrings.FormatLargeMass(tonnage, locomotive.IsMetric, locomotive.IsUK), "",
-                train.ControlMode.ToString(), "",
-                train.OutOfControlReason.ToString(), "",
-                mstsLocomotive.TrainControlSystem.CabSignalAspect.ToString());
-            TableAddLine(table);
-            TableAddLine(table);
-            TableSetCells(table, 0,
+                FormatStrings.FormatLargeMass(train.MassKg, locomotive.IsMetric, locomotive.IsUK),
+                FormatStrings.FormatLargeMass(tonnage, locomotive.IsMetric, locomotive.IsUK),
+                train.ControlMode.ToString(),
+                train.OutOfControlReason.ToString(),
+                mstsLocomotive.TrainControlSystem.CabSignalAspect.ToString()));
+
+            //Car information
+            statusConsist.Add(string.Format("\n{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}",
                 Viewer.Catalog.GetString("Car"),
                 Viewer.Catalog.GetString("Flipped"),
                 Viewer.Catalog.GetString("Type"),
                 Viewer.Catalog.GetString("Length"),
                 Viewer.Catalog.GetString("Weight"),
                 Viewer.Catalog.GetString("Drv/Cabs"),
-                Viewer.Catalog.GetString("Wheels"));
-            TableAddLine(table);
-            foreach (var car in train.Cars.Take(20))
+                Viewer.Catalog.GetString("Wheels")
+                ));
+
+            //Pages count from number of nLinesShow.
+            columnsCount = statusConsist[statusConsist.Count - 1].Count(x => x == '\t') + (statusConsist[statusConsist.Count - 1].EndsWith("\t") ? 0 : 1);
+            //table.CurrentRow + 1 (Consist information. Header) + 1 (Consist information. Data.) + 1 (TableAddLine(table)) + 1 (Car information)
+            TextLineNumber(train.Cars.Count, table.CurrentRow + 4, columnsCount);//HudScroll
+
+            for (var i = (hudWindowLinesActualPage * nLinesShow) - nLinesShow; i < (train.Cars.Count > hudWindowLinesActualPage * nLinesShow ? hudWindowLinesActualPage * nLinesShow : train.Cars.Count); i++)
             {
-                TableSetCells(table, 0, car.CarID,
-                    car.Flipped ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No"),
-                    train.IsFreight ? Viewer.Catalog.GetString("Freight") : Viewer.Catalog.GetString("Pass"),
-                    FormatStrings.FormatShortDistanceDisplay(car.CarLengthM, locomotive.IsMetric),
-                    FormatStrings.FormatLargeMass(car.MassKG, locomotive.IsMetric, locomotive.IsUK),
-                    (car.IsDriveable ? "D" : "") + (car.HasFrontCab || car.HasFront3DCab ? "F" : "") + (car.HasRearCab || car.HasRear3DCab ? "R" : ""),
-                    GetCarWhyteLikeNotation(car));
-                TableAddLine(table);
+                var j = (i == 0) ? 0 : i;
+                var car = train.Cars[j];
+                statusConsist.Add( car.CarID + "\t" +
+                    (car.Flipped ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No")) + "\t" +
+                    (train.IsFreight ? Viewer.Catalog.GetString("Freight") : Viewer.Catalog.GetString("Pass")) + "\t" +
+                    FormatStrings.FormatShortDistanceDisplay(car.CarLengthM, locomotive.IsMetric) + "\t" +
+                    FormatStrings.FormatLargeMass(car.MassKG, locomotive.IsMetric, locomotive.IsUK) + "\t" +
+                    (car.IsDriveable ? "D" : "") + (car.HasFrontCab || car.HasFront3DCab ? "F" : "") + (car.HasRearCab || car.HasRear3DCab ? "R" : "") + "\t" +
+                    GetCarWhyteLikeNotation(car) + "\t");
             }
+
+            DrawScrollArrows(statusConsist, table, false);
         }
 
         static string GetCarWhyteLikeNotation(TrainCar car)
@@ -550,117 +597,333 @@ namespace Orts.Viewer3D.Popups
 
             var locomotive = Viewer.PlayerLocomotive;
             var train = locomotive.Train;
+            ResetHudScroll();//Reset Hudscroll.
 
-            TableAddLines(table, String.Format("{8}\t\t{0} {4}\t\t{1} {5:F0}%\t\t{2} {6:F0}%\t\t{3} {7}",
-                Viewer.Catalog.GetString("Direction"),
-                Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetParticularString("Steam", "Reverser") : Viewer.Catalog.GetParticularString("NonSteam", "Reverser"),
-                Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"),
-                Viewer.Catalog.GetString("Dynamic brake"),
-                FormatStrings.Catalog.GetParticularString("Reverser", GetStringAttribute.GetPrettyName(train.MUDirection)),
-                train.MUReverserPercent,
-                train.MUThrottlePercent,
-                train.MUDynamicBrakePercent >= 0 ? string.Format("{0:F0}%", train.MUDynamicBrakePercent) : Viewer.Catalog.GetString("off"),
-                Viewer.Catalog.GetString("PlayerLoco")));
-            TableAddLine(table);
-            TableSetCells(table, 0,
-                               Viewer.Catalog.GetString("Loco"),
-                               Viewer.Catalog.GetString("Direction"),
-                               Viewer.Catalog.GetString("Flipped"),
-                               Viewer.Catalog.GetString("MU'd"),
-                               Viewer.Catalog.GetString("Throttle"),
-                               Viewer.Catalog.GetString("Speed"),
-                               "",
-                               Viewer.Catalog.GetString("Power"),
-                               Viewer.Catalog.GetString("Force")
-                               );
-            TableAddLine(table);
+            //HudScroll
+            //Store status for each locomotive
+            List<string> LocomotiveID = new List<string>();
+            List<string> LocomotiveName = new List<string>(); List<string> statusHeader = new List<string>();
+            List<string> statusData = new List<string>();
+            Dictionary<string, int> sectionsLocomotive = new Dictionary<string, int>();
+            bool IsSteamLocomotive = false;
+            int maxColumns = 0;
+            string space = new string(' ', columnsChars);
+            hudWindowLocoPagesCount = 0;
+
+            //Count Locomotive.
             foreach (var car in train.Cars)
+            {
                 if (car is MSTSLocomotive)
-                    TableAddLines(table, car.GetDebugStatus());
+                {
+                    LocomotiveID.Add(car.CarID);
+                    hudWindowLocoPagesCount++;
+                    IsSteamLocomotive = !IsSteamLocomotive && car.EngineType == TrainCar.EngineTypes.Steam ? true : false;
+                }
+            }
+
+            //PlayerLoco
+            statusHeader.Add(String.Format("{8}\t{0}\t{4}\t{1}\t{5:F0}%\t{2}\t{6:F0}%\t{3}\t\t{7}\n",
+                //0
+                Viewer.Catalog.GetString("Direction"),
+                //1
+                Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetParticularString("Steam", "Reverser") : Viewer.Catalog.GetParticularString("NonSteam", "Reverser"),
+                //2
+                Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"),
+                //3
+                Viewer.Catalog.GetString("Dynamic brake"),
+                //4
+                FormatStrings.Catalog.GetParticularString("Reverser", GetStringAttribute.GetPrettyName(train.MUDirection)),
+                //5                
+                train.MUReverserPercent,
+                //6
+                train.MUThrottlePercent,
+                //7
+                train.MUDynamicBrakePercent >= 0 ? string.Format("{0:F0}%", train.MUDynamicBrakePercent) : Viewer.Catalog.GetString("off"),
+                //8
+                Viewer.Catalog.GetString("PlayerLoco")));
+
+            foreach (var car in train.Cars)
+            {
+                if (car is MSTSLocomotive && (hudWindowLocoActualPage > 0 ? car.CarID == LocomotiveID[hudWindowLocoActualPage - 1] : true))
+                {
+                    foreach (var line in car.GetDebugStatus().Split('\n'))
+                    {
+                        if (line.Contains(car.CarID) && !statusHeader.Contains(car.CarID))
+                        {
+                            //Header. Supports different types of locomotives.
+                            statusHeader.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t\t{6}\t{7}\t{8}\t{9}\t\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}",
+                                //00
+                                Viewer.Catalog.GetString("Loco"),
+                                //01
+                                Viewer.Catalog.GetString("Direction"),
+                                //02
+                                Viewer.Catalog.GetString("Flipped"),
+                                //03
+                                Viewer.Catalog.GetString("MU'd"),
+                                //04
+                                Viewer.Catalog.GetString("Throttle"),
+                                //05
+                                Viewer.Catalog.GetString("Speed"),
+                                //06
+                                Viewer.Catalog.GetString("Power"),
+                                //07
+                                Viewer.Catalog.GetString("Force"),
+                                //08
+                                car is MSTSDieselLocomotive && (car as MSTSDieselLocomotive).DieselEngines[0].HasGearBox ?
+                                Viewer.Catalog.GetString("Gear") : Viewer.Catalog.GetString(""),
+                                //09
+                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Fuel") :
+                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("Circuit breaker") : Viewer.Catalog.GetString(""),
+                                //10
+                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Status") :
+                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("TCS") : Viewer.Catalog.GetString(""),
+                                //11
+                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Power") :
+                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("Driver") : Viewer.Catalog.GetString(""),
+                                //12
+                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Load") :
+                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("Auxiliar power") : Viewer.Catalog.GetString(""),
+                                //13
+                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Rpm") :
+                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString(""),
+                                //14
+                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Flow") :
+                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString(""),
+                                //15
+                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Temperature") :
+                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString(""),
+                                //16
+                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Oil") :
+                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString("")
+                                ));
+
+                            statusHeader.Add(line);
+                        }
+                        var column = 0;
+                        if (line.Length > 1)
+                        {
+                            foreach (var cell in line.Split('\t'))
+                            {
+                                column++;
+                                if (cell.Contains(car.CarID)) LocomotiveName.Add(cell);
+                            }
+                            if (column > maxColumns) maxColumns = column;
+
+                            statusData.Add(line);
+                        }
+                        else
+                            statusData.Add("");
+                    }
+                }
+            }
+            //statusHeader[0] contains PlayerLoco data.
+            maxColumns = statusHeader[1].TrimEnd('\t').Count(x => x == '\t');
+            //The lines that fit by pages.
+            TextLineNumber(hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : statusHeader.Count, hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : table.CurrentRow, hudWindowLocoActualPage == 0 ? 1 : maxColumns);
+            var initialHeaderRow = table.CurrentRow;
+            //Display headers
+            DrawScrollArrows(statusHeader, table, IsSteamLocomotive);
+
+            var HeaderRows = table.CurrentRow - initialHeaderRow;
+            var nLine = 0;
+            var cLine = "";
+            foreach (var Line in statusData)
+            {
+                nLine++;
+                if (Line.Contains("==="))
+                {
+                    if (sectionsLocomotive.ContainsKey(cLine))
+                        sectionsLocomotive[cLine] = nLine;
+
+                    if (!sectionsLocomotive.ContainsKey(Line))
+                    {
+                        cLine = Line;
+                        sectionsLocomotive.Add(cLine, nLine);
+                        nLine = 0;
+                    }
+                }
+            }
+            //Last section header.
+            sectionsLocomotive[cLine] = nLine;
+
+            //Lines that fit by pages.
+            TextLineNumber(hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : statusData.Count, hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : table.CurrentRow, maxColumns); //hudWindowLocoActualPage == 0 ? 1 : maxColumns);
+
+            var CurrentFirstLine = (hudWindowLinesActualPage * nLinesShow) - nLinesShow;
+            var CurrentLastLine = hudWindowLinesActualPage * nLinesShow;
+
+            for (var i = CurrentFirstLine; i < CurrentLastLine + 1; i++)
+            {
+                //Locomotive info, line limit.
+                if ((CurrentFirstLine >= nLinesShow ? hudWindowLocoActualPage == 0 || hudWindowLinesActualPage > 1 ? i - lineOffsetLocoInfo[hudWindowLinesActualPage] : i - 1 : i) > statusData.Count - 1)
+                    break;
+                //Locomotive, line limit.
+                if (hudWindowLocoActualPage == 0 && i > HeaderRows - 3)
+                    break;
+
+                if (i - CurrentFirstLine < (hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : 1))
+                {
+                    int index = statusData.FindIndex(x => x.Contains(LocomotiveName[i - CurrentFirstLine]));
+                    TextColNumber(statusData[index], 0, IsSteamLocomotive);//Horizontal string width to display Locomotives.
+                }
+                else if ((i > nLinesShow ? i - lineOffsetLocoInfo[hudWindowLinesActualPage] : i) < statusData.Count || nLinesShow > statusData.Count)
+                {
+                    //Avoid to truncated sections.
+                    var offsetI = (i > nLinesShow ? i - lineOffsetLocoInfo[hudWindowLinesActualPage] : i);
+                    var dataText = statusData[offsetI];
+                    if (statusData[offsetI].Contains("===") && CurrentLastLine < i + sectionsLocomotive[statusData[offsetI]])
+                    {   //Calc string col number to display.
+                        lineOffsetLocoInfo[hudWindowLinesActualPage + 1] = nLinesShow - (i - CurrentFirstLine) + 2;//2 = First line + empty line
+                        break;
+                    }
+                    else
+                    {
+                        var newI = i > nLinesShow ? i - lineOffsetLocoInfo[hudWindowLinesActualPage] : i;
+                        var newStatus = statusData[newI];
+                        TextColNumber(statusData[offsetI], 0, IsSteamLocomotive);
+                    }
+                }
+
+                if (hudWindowLocoActualPage > 0 && !statusData[i > nLinesShow ? i - lineOffsetLocoInfo[hudWindowLinesActualPage] : i].StartsWith(LocomotiveName[0]))
+                {
+                    if (hudWindowColumnsActualPage > 0)
+                    {
+                        //Nav arrows. Don't use DrawScrollArrows() function with locomotive info.
+                        //◄ \u25C0 - ► \u25B6 - ↔ \u2194
+                        if (stringStatus.Count > 1 && stringStatus.Count <= hudWindowColumnsActualPage)
+                            TableAddLines(table, hudWindowColumnsActualPage > 1 ? "◄" + stringStatus[(stringStatus.Count < hudWindowColumnsActualPage ? stringStatus.Count - 1 : hudWindowColumnsActualPage - 1)] : stringStatus[hudWindowColumnsActualPage - 1]);
+                        else if (stringStatus.Count > 1 && hudWindowColumnsActualPage == 1)
+                            TableAddLines(table, hudWindowColumnsActualPage > 0 ? "►" + stringStatus[hudWindowColumnsActualPage - 1] : stringStatus[hudWindowColumnsActualPage - 1]);
+                        else if (stringStatus.Count > 1 && hudWindowColumnsActualPage > 1 && stringStatus.Count >= hudWindowColumnsActualPage)
+                            TableAddLines(table, hudWindowColumnsActualPage > 0 ? "↔" + stringStatus[hudWindowColumnsActualPage - 1] : stringStatus[hudWindowColumnsActualPage - 1]);
+                        else
+                        {
+                            if (stringStatus.Count > 0)
+                            {
+                                if (!stringStatus[0].StartsWith(LocomotiveName[0]))
+                                    TableAddLines(table, stringStatus[0]);
+                            }
+                            else
+                                TableAddLines(table, statusData[i > nLinesShow ? i - lineOffsetLocoInfo[hudWindowLinesActualPage] : i]);
+                        }
+                    }
+                    else
+                    {
+                        if (i - CurrentFirstLine < (hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : 1) && hudWindowColumnsActualPage == 0)
+                        {}
+                        else
+                        {   //Display other locomotive info data.
+                            var x = 0;
+                            if (CurrentFirstLine >= nLinesShow)
+                            {
+                                if (hudWindowLocoActualPage == 0 || hudWindowLinesActualPage > 1)
+                                {
+                                    x = i - lineOffsetLocoInfo[hudWindowLinesActualPage];
+                                }
+                                else
+                                    x = i - 1;
+                            }
+                            else
+                                x = i;
+
+                            var textout = statusData[x];
+                            TableAddLines(table, textout);
+                        }
+                    }
+                }
+            }
         }
 
         void TextPageBrakeInfo(TableData table)
         {
             TextPageHeading(table, Viewer.Catalog.GetString("BRAKE INFORMATION"));
 
+            ResetHudScroll(); //Reset Hudscroll.
+
             var train = Viewer.PlayerLocomotive.Train;
             var mstsLocomotive = Viewer.PlayerLocomotive as MSTSLocomotive;
             var HUDSteamEngineType = mstsLocomotive.SteamEngineType;
             var HUDEngineType = mstsLocomotive.EngineType;
 
-                // If vacuum brakes are used then use this display
-                if ((Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystem is VacuumSinglePipe)
-                {
-
-                        if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumBrakeEQFitted)
-                            {
-                                TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
-                                Viewer.Catalog.GetString("PlayerLoco"),
-                                Viewer.Catalog.GetString("Main reservoir"),
-                                FormatStrings.FormatPressure(Vac.FromPress((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumMainResVacuumPSIAorInHg), PressureUnit.InHg, PressureUnit.InHg, true),
-                                Viewer.Catalog.GetString("Exhauster"),
-                                (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumExhausterIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
-                            }
-
-                        else if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpFitted && (Viewer.PlayerLocomotive as MSTSLocomotive).SmallEjectorFitted)
-                            {
-                                // Display if vacuum pump, large ejector and small ejector fitted
-                                TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}\t\t{7}\t\t{8}",
-                                Viewer.Catalog.GetString("PlayerLoco"),
-                                Viewer.Catalog.GetString("Large Ejector"),
-                                (Viewer.PlayerLocomotive as MSTSLocomotive).LargeSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                                Viewer.Catalog.GetString("Small Ejector"),
-                                (Viewer.PlayerLocomotive as MSTSLocomotive).SmallSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                                Viewer.Catalog.GetString("Pressure"),
-                                FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
-                                Viewer.Catalog.GetString("Vacuum Pump"),
-                                (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpOperating ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")
-                                ));
-                            }
-                        else if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpFitted && !(Viewer.PlayerLocomotive as MSTSLocomotive).SmallEjectorFitted) // Change display so that small ejector is not displayed for vacuum pump operated locomotives
-                            {
-                                // Display if vacuum pump, and large ejector only fitted
-                                TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
-                                Viewer.Catalog.GetString("PlayerLoco"),
-                                Viewer.Catalog.GetString("Large Ejector"),
-                                (Viewer.PlayerLocomotive as MSTSLocomotive).LargeSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                                Viewer.Catalog.GetString("Vacuum Pump"),
-                                (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpOperating ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
-                            }
-                        else
-                            {
-                                // Display if large ejector and small ejector only fitted
-                                TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}",
-                                Viewer.Catalog.GetString("PlayerLoco"),
-                                Viewer.Catalog.GetString("Large Ejector"),
-                                (Viewer.PlayerLocomotive as MSTSLocomotive).LargeSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                                Viewer.Catalog.GetString("Small Ejector"),
-                                (Viewer.PlayerLocomotive as MSTSLocomotive).SmallSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                                Viewer.Catalog.GetString("Pressure"),
-                                FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true)));
-                            }
-
-                        // Lines to show brake system volumes
-                        TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}",
-                        Viewer.Catalog.GetString("Brake Sys Vol"),
-                        Viewer.Catalog.GetString("Train Pipe"),
-                        FormatStrings.FormatVolume(train.TotalTrainBrakePipeVolumeM3, mstsLocomotive.IsMetric),
-                        Viewer.Catalog.GetString("Brake Cyl"),
-                        FormatStrings.FormatVolume(train.TotalTrainBrakeCylinderVolumeM3, mstsLocomotive.IsMetric),
-                        Viewer.Catalog.GetString("Air Vol"),
-                        FormatStrings.FormatVolume(train.TotalCurrentTrainBrakeSystemVolumeM3, mstsLocomotive.IsMetric)
-                        ));
-
-                }
-                else  // Default to air or electronically braked, use this display
+            // If vacuum brakes are used then use this display
+            if ((Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystem is VacuumSinglePipe)
+            {
+                if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumBrakeEQFitted)
                 {
                     TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
-                        Viewer.Catalog.GetString("PlayerLoco"),
-                        Viewer.Catalog.GetString("Main reservoir"),
-                        FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
-                        Viewer.Catalog.GetString("Compressor"),
-                        (Viewer.PlayerLocomotive as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
+                    Viewer.Catalog.GetString("PlayerLoco"),
+                    Viewer.Catalog.GetString("Main reservoir"),
+                    FormatStrings.FormatPressure(Vac.FromPress((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumMainResVacuumPSIAorInHg), PressureUnit.InHg, PressureUnit.InHg, true),
+                    Viewer.Catalog.GetString("Exhauster"),
+                    (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumExhausterIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
                 }
+
+                else if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpFitted && (Viewer.PlayerLocomotive as MSTSLocomotive).SmallEjectorFitted)
+                {
+                    // Display if vacuum pump, large ejector and small ejector fitted
+                    TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}\t\t{7}\t\t{8}",
+                    Viewer.Catalog.GetString("PlayerLoco"),
+                    Viewer.Catalog.GetString("Large Ejector"),
+                    (Viewer.PlayerLocomotive as MSTSLocomotive).LargeSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
+                    Viewer.Catalog.GetString("Small Ejector"),
+                    (Viewer.PlayerLocomotive as MSTSLocomotive).SmallSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
+                    Viewer.Catalog.GetString("Pressure"),
+                    FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
+                    Viewer.Catalog.GetString("Vacuum Pump"),
+                    (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpOperating ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")
+                    ));
+                }
+                else if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpFitted && !(Viewer.PlayerLocomotive as MSTSLocomotive).SmallEjectorFitted) // Change display so that small ejector is not displayed for vacuum pump operated locomotives 
+                {
+                    // Display if vacuum pump, and large ejector only fitted
+                    TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
+                    Viewer.Catalog.GetString("PlayerLoco"),
+                    Viewer.Catalog.GetString("Large Ejector"),
+                    (Viewer.PlayerLocomotive as MSTSLocomotive).LargeSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
+                    Viewer.Catalog.GetString("Vacuum Pump"),
+                    (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpOperating ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
+                }
+                else
+                {
+                    // Display if large ejector and small ejector only fitted
+                    TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}",
+                    Viewer.Catalog.GetString("PlayerLoco"),
+                    Viewer.Catalog.GetString("Large Ejector"),
+                    (Viewer.PlayerLocomotive as MSTSLocomotive).LargeSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
+                    Viewer.Catalog.GetString("Small Ejector"),
+                    (Viewer.PlayerLocomotive as MSTSLocomotive).SmallSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
+                    Viewer.Catalog.GetString("Pressure"),
+                    FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true)));
+                }
+
+                // Lines to show brake system volumes 
+                TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}",
+                Viewer.Catalog.GetString("Brake Sys Vol"),
+                Viewer.Catalog.GetString("Train Pipe"),
+                FormatStrings.FormatVolume(train.TotalTrainBrakePipeVolumeM3, mstsLocomotive.IsMetric),
+                Viewer.Catalog.GetString("Brake Cyl"),
+                FormatStrings.FormatVolume(train.TotalTrainBrakeCylinderVolumeM3, mstsLocomotive.IsMetric),
+                Viewer.Catalog.GetString("Air Vol"),
+                FormatStrings.FormatVolume(train.TotalCurrentTrainBrakeSystemVolumeM3, mstsLocomotive.IsMetric)
+                ));
+            }
+            else  // Default to air or electronically braked, use this display
+            {
+                TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
+                    Viewer.Catalog.GetString("PlayerLoco"),
+                    Viewer.Catalog.GetString("Main reservoir"),
+                    FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
+                    Viewer.Catalog.GetString("Compressor"),
+                    (Viewer.PlayerLocomotive as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
+            }
 
             // Display data for other locomotives
             for (var i = 0; i < train.Cars.Count; i++)
@@ -678,61 +941,102 @@ namespace Orts.Viewer3D.Popups
                 }
             }
             TableAddLine(table);
+
+            //Initialize
+            hudWindowLocoPagesCount = 0;
+            int n = train.Cars.Count;
+            int maxColumns = 0;
+            List<string> statusBrake = new List<string>();
+            List<string> statusHeader = new List<string>();
+
             // Different display depending upon whether vacuum braked or air braked
-            if ((Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystem is VacuumSinglePipe)
+            for (var i = 0; i < n; i++)
             {
-                TableSetCells(table, 0,
-                                Viewer.Catalog.GetString("Car"),
-                                Viewer.Catalog.GetString("Type"),
-                                Viewer.Catalog.GetString("BrkCyl"),
-                                Viewer.Catalog.GetString("BrkPipe"),
-                                Viewer.Catalog.GetString("VacRes"),
-                                Viewer.Catalog.GetString(""),
-                                Viewer.Catalog.GetString("Handbrk"),
-                                Viewer.Catalog.GetString("Conn"),
-                                Viewer.Catalog.GetString("AnglCock")
-                                );
-                TableAddLine(table);
-
-                var n = train.Cars.Count; // Number of lines to show
-                for (var i = 0; i < n; i++)
+                var car = train.Cars[i];
+                if (car.BrakeSystem is VacuumSinglePipe)
                 {
-                    var j = i < 2 ? i : i * (train.Cars.Count - 1) / (n - 1);
-                    var car = train.Cars[j];
-                    TableSetCell(table, 0, "{0}", car.CarID);
-                    TableSetCells(table, 1, car.BrakeSystem.GetDebugStatus((Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits));
-                    TableAddLine(table);
+                    statusHeader.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}",
+                        //0
+                        Viewer.Catalog.GetString("Car"),
+                        //1
+                        Viewer.Catalog.GetString("Type"),
+                        //2
+                        Viewer.Catalog.GetString("BrkCyl"),
+                        //3
+                        Viewer.Catalog.GetString("BrkPipe"),
+                        //4
+                        Viewer.Catalog.GetString("VacRes"),
+                        //Viewer.Catalog.GetString(""),
+                        //5
+                        Viewer.Catalog.GetString("Handbrk"),
+                        //6
+                        Viewer.Catalog.GetString("Conn"),
+                        //7
+                        Viewer.Catalog.GetString("AnglCock")
+                        ));
+                }
+                else // default air braked
+                {
+                    statusHeader.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}",
+                    //0
+                    Viewer.Catalog.GetString("Car"),
+                    //1
+                    Viewer.Catalog.GetString("Type"),
+                    //2
+                    Viewer.Catalog.GetString("BrkCyl"),
+                    //3
+                    Viewer.Catalog.GetString("BrkPipe"),
+                    //4
+                    Viewer.Catalog.GetString("AuxRes"),
+                    //5
+                    Viewer.Catalog.GetString("ErgRes"),
+                    //6
+                    Viewer.Catalog.GetString("MRPipe"),
+                    //7
+                    Viewer.Catalog.GetString("RetValve"),
+                    //8
+                    Viewer.Catalog.GetString("TripleValve"),
+                    //9
+                    Viewer.Catalog.GetString(""),
+                    //10
+                    Viewer.Catalog.GetString("Handbrk"),
+                    //11
+                    Viewer.Catalog.GetString("Conn"),
+                    //12
+                    Viewer.Catalog.GetString("AnglCock"),
+                    //13
+                    Viewer.Catalog.GetString("BleedOff")
+                    ));
                 }
             }
-            else  // default air braked
-            {
-                TableSetCells(table, 0,
-                                Viewer.Catalog.GetString("Car"),
-                                Viewer.Catalog.GetString("Type"),
-                                Viewer.Catalog.GetString("BrkCyl"),
-                                Viewer.Catalog.GetString("BrkPipe"),
-                                Viewer.Catalog.GetString("AuxRes"),
-                                Viewer.Catalog.GetString("ErgRes"),
-                                Viewer.Catalog.GetString("MRPipe"),
-                                Viewer.Catalog.GetString("RetValve"),
-                                Viewer.Catalog.GetString("TripleValve"),
-                                Viewer.Catalog.GetString(""),
-                                Viewer.Catalog.GetString("Handbrk"),
-                                Viewer.Catalog.GetString("Conn"),
-                                Viewer.Catalog.GetString("AnglCock"),
-                                Viewer.Catalog.GetString("BleedOff"));
-                TableAddLine(table);
+            //TableAddLine(table);
+            maxColumns = statusHeader[statusHeader.Count-1].Count(x => x == '\t');
+            //The lines that fit by pages.
+            TextLineNumber(train.Cars.Count, table.CurrentRow + 1, columnsCount);
 
-                var n = train.Cars.Count; // Number of lines to show
-                for (var i = 0; i < n; i++)
+            for (var i = (hudWindowLinesActualPage * nLinesShow) - nLinesShow; i < (train.Cars.Count > hudWindowLinesActualPage * nLinesShow ? hudWindowLinesActualPage * nLinesShow : train.Cars.Count); i++)
+            {
+                var j = (i == 0) ? 0 : i;
+                var car = train.Cars[j];
+                var statusString = "";
+                foreach (var cell in car.BrakeSystem.GetDebugStatus((Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits))
                 {
-                    var j = i < 2 ? i : i * (train.Cars.Count - 1) / (n - 1);
-                    var car = train.Cars[j];
-                    TableSetCell(table, 0, "{0}", car.CarID);
-                    TableSetCells(table, 1, car.BrakeSystem.GetDebugStatus((Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits));
-                    TableAddLine(table);
+                    statusString = statusString + cell + "\t";
                 }
+                if (statusString.StartsWith("1V"))
+                {
+                    var indexMatch = statusHeader.FindIndex(x => x.Contains(Viewer.Catalog.GetString("VacRes")));
+                    statusBrake.Add(statusHeader[indexMatch]);
+                }
+                else
+                {
+                    var indexMatch = statusHeader.FindIndex(x => x.Contains(Viewer.Catalog.GetString("AuxRes")));
+                    statusBrake.Add(statusHeader[indexMatch]);
+                }
+                statusBrake.Add(car.CarID + "\t" + statusString);
             }
+            //Draw arrows.
+            DrawScrollArrows(statusBrake, table, false);
         }
 
         void TextPageForceInfo(TableData table)
@@ -742,9 +1046,13 @@ namespace Orts.Viewer3D.Popups
             var train = Viewer.PlayerLocomotive.Train;
             var mstsLocomotive = Viewer.PlayerLocomotive as MSTSLocomotive;
 
+            ResetHudScroll(); //Reset Hudscroll.
+            if (hudWindowFullScreen)
+                TableSetLabelValueColumns(table, 0, 2);
+
             if (mstsLocomotive != null)
             {
-                if ( mstsLocomotive.AdvancedAdhesionModel)
+                if (mstsLocomotive.AdvancedAdhesionModel)
                 {
                     var HUDSteamEngineType = mstsLocomotive.SteamEngineType;
                     var HUDEngineType = mstsLocomotive.EngineType;
@@ -756,7 +1064,7 @@ namespace Orts.Viewer3D.Popups
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Wag Adhesion"), "{0:F0}%", mstsLocomotive.WagonCoefficientFrictionHUD * 100.0f);
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Tang. Force"), "{0:F0}", FormatStrings.FormatForce(N.FromLbf(mstsLocomotive.SteamTangentialWheelForce), mstsLocomotive.IsMetric));
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Static Force"), "{0:F0}", FormatStrings.FormatForce(N.FromLbf(mstsLocomotive.SteamStaticWheelForce), mstsLocomotive.IsMetric));
-                      //  TableAddLabelValue(table, Viewer.Catalog.GetString("Axle brake force"), "{0}", FormatStrings.FormatForce(mstsLocomotive.LocomotiveAxle.BrakeForceN, mstsLocomotive.IsMetric));
+                        //  TableAddLabelValue(table, Viewer.Catalog.GetString("Axle brake force"), "{0}", FormatStrings.FormatForce(mstsLocomotive.LocomotiveAxle.BrakeForceN, mstsLocomotive.IsMetric));
                     }
                     else  // Advanced adhesion non steam locomotives HUD display
                     {
@@ -787,99 +1095,176 @@ namespace Orts.Viewer3D.Popups
 
                 if (train.TrainWindResistanceDependent) // Only show this information if wind resistance is selected
                 {
-                    TableAddLine(table, "Wind Speed: {0:N2} mph   Wind Direction: {1:N2} Deg   Train Direction: {2:N2} Deg    ResWind: {3:N2} Deg   ResSpeed {4:N2} mph", Me.ToMi(pS.TopH(train.PhysicsWindSpeedMpS)), train.PhysicsWindDirectionDeg, train.PhysicsTrainLocoDirectionDeg, train.ResultantWindComponentDeg, Me.ToMi(pS.TopH(train.WindResultantSpeedMpS)));
-
-                    TableAddLine(table);
+                    var status = new StringBuilder();
+                    if (hudWindowColumnsActualPage > 0)
+                    {
+                        status.AppendFormat("\n{0}\t{1:N2} mph\t{2}\t{3:N2} mph\n",
+                            Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
+                            Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(pS.TopH(train.WindResultantSpeedMpS)));
+                    }
+                    else
+                    {
+                        status.AppendFormat("\n{0}\t{1:N2} mph\t{2}\t\t{3:N2} Deg\t{4}\t\t{5:N2} Deg\t{6}\t{7:N2} mph\t{8}\t{9:N2} mph\n",
+                            Viewer.Catalog.GetString("Wind Speed:"), Me.ToMi(pS.TopH(train.PhysicsWindSpeedMpS)),
+                            Viewer.Catalog.GetString("Wind Direction:"), train.PhysicsWindDirectionDeg,
+                            Viewer.Catalog.GetString("Train Direction:"), train.PhysicsTrainLocoDirectionDeg,
+                            Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
+                            Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(pS.TopH(train.WindResultantSpeedMpS)));
+                    }
+                    TableAddLines(table, status.ToString());
                 }
-
-
             }
 
-            TableSetCells(table, 0,
-                Viewer.Catalog.GetString("Car"),
-                Viewer.Catalog.GetString("Total"),
-                Viewer.Catalog.GetString("Motive"),
-                Viewer.Catalog.GetString("Brake"),
-                Viewer.Catalog.GetString("Friction"),
-                Viewer.Catalog.GetString("Gravity"),
-                Viewer.Catalog.GetString("Curve"),
-                Viewer.Catalog.GetString("Tunnel"),
-                Viewer.Catalog.GetString("Wind"),
-                Viewer.Catalog.GetString("Coupler"),
-                Viewer.Catalog.GetString("Coupler"),
-                Viewer.Catalog.GetString("Slack"),
-                Viewer.Catalog.GetString("Mass"),
-                Viewer.Catalog.GetString("Gradient"),
-                Viewer.Catalog.GetString("Curve"),
-                Viewer.Catalog.GetString("Brk Frict."),
-                Viewer.Catalog.GetString("Brk Slide")
+            //HudScroll
+            if (hudWindowColumnsActualPage > 0)
+            {
+                //HudScroll
+                TableSetCells(table, 0,
+                    Viewer.Catalog.GetString("Car"),
+                    Viewer.Catalog.GetString("Coupler"),
+                    Viewer.Catalog.GetString("Coupler"),
+                    Viewer.Catalog.GetString("Mass"),
+                    Viewer.Catalog.GetString("Gradient"),
+                    Viewer.Catalog.GetString("Curve"),
+                    Viewer.Catalog.GetString("Brk Frict."),
+                    Viewer.Catalog.GetString("Brk Slide")
+                    //Here new added items.
+                    // Possibly needed for buffing forces
+                    //                Viewer.Catalog.GetString("VertD"),
+                    //                Viewer.Catalog.GetString("VertL"),
+                    //                Viewer.Catalog.GetString("BuffExc"),
+                    //                Viewer.Catalog.GetString("CplAng")
 
-                // Possibly needed for buffing forces
-//                Viewer.Catalog.GetString("VertD"),
-//                Viewer.Catalog.GetString("VertL"),
-//                Viewer.Catalog.GetString("BuffExc"),
-//                Viewer.Catalog.GetString("CplAng")
-
-                );
+                    );
+            }
+            else
+            {
+                //Normal view
+                TableSetCells(table, 0,
+                    Viewer.Catalog.GetString("Car"),
+                    Viewer.Catalog.GetString("Total"),
+                    Viewer.Catalog.GetString("Motive"),
+                    Viewer.Catalog.GetString("Brake"),
+                    Viewer.Catalog.GetString("Friction"),
+                    Viewer.Catalog.GetString("Gravity"),
+                    Viewer.Catalog.GetString("Curve"),
+                    Viewer.Catalog.GetString("Tunnel"),
+                    Viewer.Catalog.GetString("Wind"),
+                    Viewer.Catalog.GetString("Coupler"),
+                    Viewer.Catalog.GetString("Coupler"),
+                    Viewer.Catalog.GetString("Slack"),
+                    Viewer.Catalog.GetString("Mass"),
+                    Viewer.Catalog.GetString("Gradient"),
+                    Viewer.Catalog.GetString("Curve"),
+                    Viewer.Catalog.GetString("Brk Frict."),
+                    Viewer.Catalog.GetString("Brk Slide")
+                    );
+            }
+            //Columns. HudScroll
+            var columnsCount = ColumnsCount(table);
             TableAddLine(table);
 
-            var n = train.Cars.Count; // Number of lines to show
-            for (var i = 0; i < n; i++)
+            //Pages count from number of nLinesShow.
+            TextLineNumber(train.Cars.Count, table.CurrentRow + 1, columnsCount);
+            //Number of lines to show
+            for (var i = (hudWindowLinesActualPage * nLinesShow) - nLinesShow; i < (train.Cars.Count > hudWindowLinesActualPage * nLinesShow ? hudWindowLinesActualPage * nLinesShow : train.Cars.Count); i++)
             {
-                var j = i == 0 ? 0 : i * (train.Cars.Count - 1) / (n - 1);
+                var j = (i == 0) ? 0 : i;
                 var car = train.Cars[j];
                 TableSetCell(table, 0, "{0}", car.CarID);
-                TableSetCell(table, 1, "{0}", FormatStrings.FormatForce(car.TotalForceN, car.IsMetric));
-                TableSetCell(table, 2, "{0}", FormatStrings.FormatForce(car.MotiveForceN, car.IsMetric));
-                TableSetCell(table, 3, "{0}", FormatStrings.FormatForce(car.BrakeForceN, car.IsMetric));
-                TableSetCell(table, 4, "{0}", FormatStrings.FormatForce(car.FrictionForceN, car.IsMetric));
-                TableSetCell(table, 5, "{0}", FormatStrings.FormatForce(car.GravityForceN, car.IsMetric));
-                TableSetCell(table, 6, "{0}", FormatStrings.FormatForce(car.CurveForceN, car.IsMetric));
-                TableSetCell(table, 7, "{0}", FormatStrings.FormatForce(car.TunnelForceN, car.IsMetric));
-                TableSetCell(table, 8, "{0}", FormatStrings.FormatForce(car.WindForceN, car.IsMetric));
-                TableSetCell(table, 9, "{0}", FormatStrings.FormatForce(car.CouplerForceU, car.IsMetric));
-                TableSetCell(table, 10, "{0} : {1}", car.HUDCouplerRigidIndication == 2 ? "F" : car.HUDCouplerRigidIndication == 1 ? "R": "N", car.CouplerExceedBreakLimit ? "xxx" : car.CouplerOverloaded ? "O/L" : car.HUDCouplerForceIndication == 1 ? "Pull" : car.HUDCouplerForceIndication == 2 ? "Push" : "-");
-                TableSetCell(table, 11, "{0}", FormatStrings.FormatVeryShortDistanceDisplay( car.CouplerSlackM, car.IsMetric));
-                TableSetCell(table, 12, "{0}", FormatStrings.FormatLargeMass(car.MassKG, car.IsMetric, car.IsUK));
-                TableSetCell(table, 13, "{0:F2}%", -car.CurrentElevationPercent);
-                TableSetCell(table, 14, "{0}", FormatStrings.FormatDistance(car.CurrentCurveRadius, car.IsMetric));
-                TableSetCell(table, 15, "{0:F0}%", car.BrakeShoeCoefficientFriction * 100.0f);
-                TableSetCell(table, 16, car.HUDBrakeSkid ? Viewer.Catalog.GetString("Yes") : "No");
+                if (hudWindowColumnsActualPage > 0)
+                {
+                    TableSetCell(table, 1, "{0} : {1}", car.HUDCouplerRigidIndication == 2 ? "F" : car.HUDCouplerRigidIndication == 1 ? "R" : "N", car.CouplerExceedBreakLimit ? "xxx" : car.CouplerOverloaded ? "O/L" : car.HUDCouplerForceIndication == 1 ? "Pull" : car.HUDCouplerForceIndication == 2 ? "Push" : "-");
+                    TableSetCell(table, 2, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(car.CouplerSlackM, car.IsMetric));
+                    TableSetCell(table, 3, "{0}", FormatStrings.FormatLargeMass(car.MassKG, car.IsMetric, car.IsUK));
+                    TableSetCell(table, 4, "{0:F2}%", -car.CurrentElevationPercent);
+                    TableSetCell(table, 5, "{0}", FormatStrings.FormatDistance(car.CurrentCurveRadius, car.IsMetric));
+                    TableSetCell(table, 6, "{0:F0}%", car.BrakeShoeCoefficientFriction * 100.0f);
+                    TableSetCell(table, 7, car.HUDBrakeSkid ? Viewer.Catalog.GetString("Yes") : "No");
 
-                // Possibly needed for buffing forces
-//                TableSetCell(table, 17, "{0}", FormatStrings.FormatForce(car.WagonVerticalDerailForceN, car.IsMetric));
-//                TableSetCell(table, 18, "{0}", FormatStrings.FormatForce(car.TotalWagonLateralDerailForceN, car.IsMetric));
-//                TableSetCell(table, 19, car.BuffForceExceeded ? Viewer.Catalog.GetString("Yes") : "No");
+                    TableSetCell(table, 8, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
 
-//                TableSetCell(table, 20, "{0:F2}", MathHelper.ToDegrees(car.WagonFrontCouplerAngleRad));
+                    // Possibly needed for buffing forces
+                    //                TableSetCell(table, 17, "{0}", FormatStrings.FormatForce(car.WagonVerticalDerailForceN, car.IsMetric));
+                    //                TableSetCell(table, 18, "{0}", FormatStrings.FormatForce(car.TotalWagonLateralDerailForceN, car.IsMetric));
+                    //                TableSetCell(table, 19, car.BuffForceExceeded ? Viewer.Catalog.GetString("Yes") : "No");
 
+                    //                TableSetCell(table, 20, "{0:F2}", MathHelper.ToDegrees(car.WagonFrontCouplerAngleRad));
+                    TableAddLine(table);
+                    TableSetCell(table, 1, "Tot.Slack:");
+                    TableSetCell(table, 2, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
+                }
+                else
+                {
+                    TableSetCell(table, 1, "{0}", FormatStrings.FormatForce(car.TotalForceN, car.IsMetric));
+                    TableSetCell(table, 2, "{0}", FormatStrings.FormatForce(car.MotiveForceN, car.IsMetric));
+                    TableSetCell(table, 3, "{0}", FormatStrings.FormatForce(car.BrakeForceN, car.IsMetric));
+                    TableSetCell(table, 4, "{0}", FormatStrings.FormatForce(car.FrictionForceN, car.IsMetric));
+                    TableSetCell(table, 5, "{0}", FormatStrings.FormatForce(car.GravityForceN, car.IsMetric));
+                    TableSetCell(table, 6, "{0}", FormatStrings.FormatForce(car.CurveForceN, car.IsMetric));
+                    TableSetCell(table, 7, "{0}", FormatStrings.FormatForce(car.TunnelForceN, car.IsMetric));
+                    TableSetCell(table, 8, "{0}", FormatStrings.FormatForce(car.WindForceN, car.IsMetric));
+                    TableSetCell(table, 9, "{0}", FormatStrings.FormatForce(car.CouplerForceU, car.IsMetric));
+                    TableSetCell(table, 10, "{0} : {1}", car.HUDCouplerRigidIndication == 2 ? "F" : car.HUDCouplerRigidIndication == 1 ? "R" : "N", car.CouplerExceedBreakLimit ? "xxx" : car.CouplerOverloaded ? "O/L" : car.HUDCouplerForceIndication == 1 ? "Pull" : car.HUDCouplerForceIndication == 2 ? "Push" : "-");
+                    TableSetCell(table, 11, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(car.CouplerSlackM, car.IsMetric));
+                    TableSetCell(table, 12, "{0}", FormatStrings.FormatLargeMass(car.MassKG, car.IsMetric, car.IsUK));
+                    TableSetCell(table, 13, "{0:F2}%", -car.CurrentElevationPercent);
+                    TableSetCell(table, 14, "{0}", FormatStrings.FormatDistance(car.CurrentCurveRadius, car.IsMetric));
+                    TableSetCell(table, 15, "{0:F0}%", car.BrakeShoeCoefficientFriction * 100.0f);
+                    TableSetCell(table, 16, car.HUDBrakeSkid ? Viewer.Catalog.GetString("Yes") : "No");
 
-                TableSetCell(table, 17, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
-                TableAddLine(table);
+                    TableSetCell(table, 17, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
 
+                    TableAddLine(table);
+                    //TableSetCell(table, 11, "Tot {0}", FormatStrings.FormatShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
+                    TableSetCell(table, 10, "Tot.Slack:");
+                    TableSetCell(table, 11, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
+                    //                TableAddLine(table);
+                }
             }
-
-            TableAddLine(table);
-            TableSetCell(table, 11, "Tot {0}", FormatStrings.FormatShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
         }
-
+        
         void TextPageDispatcherInfo(TableData table)
         {
             TextPageHeading(table, Viewer.Catalog.GetString("DISPATCHER INFORMATION"));
-            TableSetCells(table, 0,
-                Viewer.Catalog.GetString("Train"),
-                Viewer.Catalog.GetString("Travelled"),
-                Viewer.Catalog.GetString("Speed"),
-                Viewer.Catalog.GetString("Max"),
-                Viewer.Catalog.GetString("AI mode"),
-                Viewer.Catalog.GetString("AI data"),
-                Viewer.Catalog.GetString("Mode"),
-                Viewer.Catalog.GetString("Auth"),
-                Viewer.Catalog.GetString("Distance"),
-                Viewer.Catalog.GetString("Signal"),
-                Viewer.Catalog.GetString("Distance"),
-                Viewer.Catalog.GetString("Consist"),
-                Viewer.Catalog.GetString("Path"));
+
+            ResetHudScroll();//Reset HudScroll
+
+            if (hudWindowColumnsActualPage > 0)
+            {
+                //HudScroll
+                TableSetCells(table, 0,
+                    Viewer.Catalog.GetString("Train"),
+                    Viewer.Catalog.GetString("Consist"),
+                    Viewer.Catalog.GetString("Path"));
+                //New added items, here.
+            }
+            else
+            {
+                //Normal view
+                TableSetCells(table, 0,
+                    Viewer.Catalog.GetString("Train"),
+                    Viewer.Catalog.GetString("Travelled"),
+                    Viewer.Catalog.GetString("Speed"),
+                    Viewer.Catalog.GetString("Max"),
+                    Viewer.Catalog.GetString("AI mode"),
+                    Viewer.Catalog.GetString("AI data"),
+                    Viewer.Catalog.GetString("Mode"),
+                    Viewer.Catalog.GetString("Auth"),
+                    Viewer.Catalog.GetString("Distance"),
+                    Viewer.Catalog.GetString("Signal"),
+                    Viewer.Catalog.GetString("Distance"),
+                    Viewer.Catalog.GetString("Consist"),
+                    Viewer.Catalog.GetString("Path"));
+                //New added items, here
+            }
+            //HudScroll. Columns
+            var columnsCount = ColumnsCount(table);
+
+            List<string[]> statusDispatcher = new List<string[]>();
+            statusDispatcher.Clear();
+            var TextToYellowColor = "#";
+
             TableAddLine(table);
 
             // first is player train
@@ -893,9 +1278,12 @@ namespace Orts.Viewer3D.Popups
                     else if (thisTrain == Program.Simulator.OriginalPlayerTrain && Program.Simulator.Activity != null) status = thisTrain.AddRestartTime(status);
                     else if (thisTrain.IsActualPlayerTrain && Program.Simulator.Activity != null && thisTrain.ControlMode != Train.TRAIN_CONTROL.EXPLORER && !thisTrain.IsPathless)
                         status = thisTrain.AddRestartTime(status);
-                    for (var iCell = 0; iCell < status.Length; iCell++)
-                        TableSetCell(table, table.CurrentRow, iCell, status[iCell]);
-                    TableAddLine(table);
+
+                    //HudScroll
+                    if (Viewer.SelectedTrain.Name == thisTrain.Name)
+                        TextToYellowColor = status[0];
+
+                    statusDispatcher.Add(status);
                 }
             }
 
@@ -907,9 +1295,12 @@ namespace Orts.Viewer3D.Popups
                 {
                     var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
                     status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);
-                    for (var iCell = 0; iCell < status.Length; iCell++)
-                        TableSetCell(table, table.CurrentRow, iCell, status[iCell]);
-                    TableAddLine(table);
+
+                    //HudScroll
+                    if (Viewer.SelectedTrain.Name == thisTrain.Name)
+                        TextToYellowColor = status[0];
+
+                    statusDispatcher.Add(status);
                 }
             }
 
@@ -920,11 +1311,61 @@ namespace Orts.Viewer3D.Popups
                 {
                     var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
                     status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);
-                    for (var iCell = 0; iCell < status.Length; iCell++)
-                        TableSetCell(table, table.CurrentRow, iCell, status[iCell]);
-                    TableAddLine(table);
+
+                    //HudScroll
+                    if (Viewer.SelectedTrain.Name == thisTrain.Name)
+                        TextToYellowColor = status[0];
+
+                    statusDispatcher.Add(status);
                 }
             }
+
+            //HudScroll. Pages count from nLinesShow number.
+            TextLineNumber(statusDispatcher.Count, table.CurrentRow, columnsCount);
+
+            //Number of lines to show. HudScroll
+            for (var i = (hudWindowLinesActualPage * nLinesShow) - nLinesShow; i < (Viewer.Simulator.Trains.Count > hudWindowLinesActualPage * nLinesShow ? hudWindowLinesActualPage * nLinesShow : Viewer.Simulator.Trains.Count); i++)
+            {
+                if (statusDispatcher.Count > i)
+                {
+                    //Calc col number and take in count 2 left columns car and consist name 
+                    TextColNumber(statusDispatcher[i][12], 2, false);
+                    var arrow = "";
+                    //Add yellow color to string.
+                    var EndText = statusDispatcher[i][0].Length == TextToYellowColor.Length && statusDispatcher[i][0].Contains(TextToYellowColor) ? "???" : "";
+                    
+                    //DrawScrollArrows() can't be used because it works with TableAddLines, here we work with TableSetCell. 
+                    if (hudWindowColumnsActualPage > 0)
+                    {
+                        if (stringStatus.Count > 1 && stringStatus.Count <= hudWindowColumnsActualPage)
+                        {
+                            arrow = arrow + "◀";// \u25C0
+                            TableSetCell(table, 2, hudWindowColumnsActualPage > 1 ? stringStatus[(stringStatus.Count < hudWindowColumnsActualPage ? stringStatus.Count - 1 : hudWindowColumnsActualPage - 1)] + EndText : stringStatus[hudWindowColumnsActualPage - 1] + EndText);
+                        }
+                        else if (stringStatus.Count > 1 && hudWindowColumnsActualPage == 1)
+                        {
+                            arrow = arrow + "►";// \u25B6
+                            TableSetCell(table, 2, hudWindowColumnsActualPage > 0 ? stringStatus[hudWindowColumnsActualPage - 1] + EndText : stringStatus[hudWindowColumnsActualPage - 1] + EndText);
+                        }
+                        else if (stringStatus.Count > 1 && hudWindowColumnsActualPage > 1 && stringStatus.Count >= hudWindowColumnsActualPage)
+                        {
+                            arrow = arrow + "↔";// \u2194
+                            TableSetCell(table, 2, hudWindowColumnsActualPage > 0 ? stringStatus[hudWindowColumnsActualPage - 1] + EndText : stringStatus[hudWindowColumnsActualPage - 1] + EndText);
+                        }
+                        else
+                            TableSetCell(table, table.CurrentRow, 2, statusDispatcher[i][12] + EndText);
+
+                        TableSetCell(table, table.CurrentRow, 0, arrow + statusDispatcher[i][0] + EndText);
+                        TableSetCell(table, table.CurrentRow, 1, statusDispatcher[i][11] + EndText);
+                    }
+                    else
+                        for (int iCell = 0; iCell < statusDispatcher[0].Length; iCell++)
+                            TableSetCell(table, table.CurrentRow, iCell, statusDispatcher[i][iCell] + EndText);
+
+                    TableAddLine(table);
+                }
+            }           
+
 #if WITH_PATH_DEBUG
             TextPageHeading(table, "PATH info");
 
@@ -985,6 +1426,9 @@ namespace Orts.Viewer3D.Popups
         {
             TextPageHeading(table, Viewer.Catalog.GetString("WEATHER INFORMATION"));
 
+            //Disable Hudscroll.
+            Viewer.HUDScrollWindow.Visible = false;//HudScroll
+
             TableAddLabelValue(table, Viewer.Catalog.GetString("Visibility"), Viewer.Catalog.GetStringFmt("{0:N0} m", Viewer.Simulator.Weather.FogDistance));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Cloud cover"), Viewer.Catalog.GetStringFmt("{0:F0} %", Viewer.Simulator.Weather.OvercastFactor * 100));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Intensity"), Viewer.Catalog.GetStringFmt("{0:F4} p/s/m^2", Viewer.Simulator.Weather.PricipitationIntensityPPSPM2));
@@ -995,6 +1439,9 @@ namespace Orts.Viewer3D.Popups
         void TextPageDebugInfo(TableData table)
         {
             TextPageHeading(table, Viewer.Catalog.GetString("DEBUG INFORMATION"));
+
+            //Disable Hudscroll.
+            Viewer.HUDScrollWindow.Visible = false;//HudScroll
 
             var allocatedBytesPerSecond = AllocatedBytesPerSecCounter == null ? 0 : AllocatedBytesPerSecCounter.NextValue();
             if (allocatedBytesPerSecond >= 1 && AllocatedBytesPerSecLastValue != allocatedBytesPerSecond)
@@ -1025,13 +1472,355 @@ namespace Orts.Viewer3D.Popups
             TableAddLine(table);
         }
 
+        /// <summary>
+        /// Columns count
+        /// used in TextLineNumber(int CarsCount, int CurrentRow, int ColumnCount)  
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        private int ColumnsCount(TableData table)
+        {
+            //Check columns for not null value. HudScroll
+            int nColumnsCount = 0;
+            for (int i = 0; i < table.Cells.GetLength(1); i++)
+            {
+                if (table.Cells[table.CurrentRow, i] != null)
+                    nColumnsCount++;
+            }
+            return nColumnsCount;
+        }
+
+        /// <summary>
+        /// Compute the max. lines to show.
+        /// </summary>
+        /// <param name="CarsCount"></param>
+        /// <param name="CurrentRow"></param>
+        /// <param name="ColumnCount"></param>
+        void TextLineNumber(int CarsCount, int CurrentRow, int ColumnCount)
+        {
+            //LinesPages
+            nLinesShow = (Viewer.DisplaySize.Y / TextFont.Height) - CurrentRow - 1;
+            if (nLinesShow < 1) nLinesShow = 1;
+            hudWindowLinesPagesCount = (nLinesShow >= CarsCount) ? 1 : (int)Math.Ceiling(Convert.ToDouble(CarsCount / nLinesShow) + 0.5);
+
+            //Character per line
+            charFitPerLine = CharFitPerLine("");
+
+            //Columns pages
+            int statusPathLenght = ColumnCount * columnsChars;
+            hudWindowColumnsPagesCount = (statusPathLenght < charFitPerLine) ? 0 : (int)Math.Ceiling(Convert.ToDouble(statusPathLenght / charFitPerLine) + 0.5);
+
+            //Hide - Show HUDScrollWindow
+            if (Viewer.HUDScrollWindow.Visible && (hudWindowLinesActualPage == 1 && hudWindowLinesPagesCount == 1 && hudWindowColumnsActualPage == 0 && hudWindowColumnsPagesCount == 0) && TextPages[TextPage] != TextPageLocomotiveInfo && !hudWindowFullScreen)
+                Viewer.HUDScrollWindow.Visible = false;
+            if (!Viewer.HUDScrollWindow.Visible && (hudWindowLinesPagesCount > 1 || hudWindowColumnsPagesCount > 0))
+                Viewer.HUDScrollWindow.Visible = true;
+        }
+
+        /// <summary>
+        /// Compute the string width to be displayed.
+        /// </summary>
+        /// <param name="StringStatus"></param>
+        /// <param name="initColumn"></param>
+        void TextColNumber(string StringStatus, int initColumn, bool IsSteamLocomotive)
+        {
+            char[] stringToChar = StringStatus.TrimEnd('\t').ToCharArray();
+            
+            stringStatus.Clear();//Reset
+            var tabCount = StringStatus.TrimEnd('\t').Count(x => x == '\t');
+            //Character per line
+            charFitPerLine = CharFitPerLine("");
+            string space = new string('X', columnsChars);
+
+            var StringStatusLength = tabCount * columnsChars;
+            var lastText = StringStatus.Substring(StringStatus.LastIndexOf("\t") + 1);
+            StringStatusLength = StringStatus.EndsWith("\t") ? StringStatusLength : StringStatusLength + lastText.Length;
+            var CurrentPathColumnsPagesCount = (StringStatusLength < charFitPerLine) ? 0 : (int)Math.Ceiling(Convert.ToDouble(StringStatusLength / charFitPerLine) + 0.5);
+            
+            //TO DO: Apply new code to DispacherInfo
+            if (CurrentPathColumnsPagesCount == 0 && TextPages[TextPage] == TextPageDispatcherInfo)
+                CurrentPathColumnsPagesCount = 1;
+            
+            //Update columns pages count.
+            if (CurrentPathColumnsPagesCount > hudWindowColumnsPagesCount)
+                hudWindowColumnsPagesCount = CurrentPathColumnsPagesCount;
+
+            List<string> cellTextList = new List<string>(); 
+            int i = 0;//Counter original status with tab code
+            //87 = character fit per line with minimun 800*600 display size.
+            //Font Monospace.
+            if (StringStatus.Contains("\t"))
+            {
+                i = 0;
+                bool lText = false;
+                List<string> dataText = new List<string>();
+                List<string> dataValue = new List<string>();
+                List<string> dataTextString = new List<string>();
+                string[] statusSplit = StringStatus.TrimEnd('\t').Split('\t');
+                Dictionary<int, string> CumulativeTextStatus = new Dictionary<int, string>();
+                Dictionary<int, string> CumulativeTabStatus = new Dictionary<int, string>();
+                var cumulativeLenght = 0;
+                var cumulativeTextStatus = "";
+                var cumulativeTabStatus = "";
+                var cellString = "";
+                var cellIndex = 0;
+                CumulativeTabStatus.Clear();
+                CumulativeTextStatus.Clear();
+                foreach (var cell in statusSplit)
+                {
+                    cellIndex++;
+                    if (cell == "")
+                    {
+                        var cellStringLength = cellString.Length > columnsChars ? 0 : columnsChars;
+                        cumulativeLenght = cumulativeLenght + cellStringLength;
+                        CumulativeTextStatus.Add(cumulativeLenght, cumulativeTextStatus + (cellString.Length > columnsChars ? "" : space));
+                        CumulativeTabStatus.Add(cumulativeLenght, cumulativeTabStatus + "\t");
+                        lText = false;
+                        //Reset
+                        cellString = "";
+                        cumulativeTextStatus = "";
+                        cumulativeTabStatus = "";
+                        continue;
+                    }
+                    else if (cell.Length > 0 && lText && !CumulativeTextStatus.ContainsKey(cumulativeLenght))
+                    {
+                        CumulativeTextStatus.Add(cumulativeLenght, cumulativeTextStatus);
+                        CumulativeTabStatus.Add(cumulativeLenght, cumulativeTabStatus);
+                        lText = false;
+                    }
+                    //Avoid cell > columnsChars
+                    cellString = cell.Length > columnsChars ? cell + CellTabSpace(cell.Substring(columnsChars, cell.Length - columnsChars), 1) : cell + CellTabSpace(cell, 1);
+                    cumulativeLenght = cumulativeLenght + cellString.Length;
+                    cumulativeTextStatus = cellString;
+                    cumulativeTabStatus = cell + "\t";
+                    lText = true;
+
+                    if (lText && statusSplit.Length == cellIndex)
+                    {
+                        CumulativeTextStatus.Add(cumulativeLenght, cumulativeTextStatus.TrimEnd('X'));
+                        CumulativeTabStatus.Add(cumulativeLenght, cumulativeTabStatus.TrimEnd('\t'));
+                    }
+                }
+
+                var cumulativeTabString = "";
+                var cumulativeTextString = "";
+                var offsetFlag = 0;
+                cellIndex = 0;
+                foreach (var cell in CumulativeTextStatus)
+                {
+                    cumulativeTabString = cumulativeTabString + CumulativeTabStatus[cell.Key];
+                    cumulativeTextString = cumulativeTextString + cell.Value;
+                    if (cell.Key - offsetFlag > charFitPerLine || (cell.Key - offsetFlag < charFitPerLine && CumulativeTextStatus.Keys.Last() == cell.Key))
+                    {
+                        //Place first column data at cumulativeTabString begin
+                        cumulativeTabString = cumulativeTabString.Contains(CumulativeTabStatus.Values.First()) ?
+                                   cumulativeTabString :
+                                   CumulativeTabStatus.Values.First() + cumulativeTabString;
+
+                        cumulativeTextString = cumulativeTextString.Contains(CumulativeTextStatus.Values.First()) ?
+                                   cumulativeTextString :
+                                   CumulativeTextStatus.Values.First() + cumulativeTextString;
+
+                        if (CumulativeTextStatus.ElementAt(0).Value.Contains(":"))
+                        {
+                            //cumulativeTextString.TrimEnd('X').Length
+                            if (cumulativeTextString.Length <= charFitPerLine)
+                            {
+                                stringStatus.Add(cumulativeTabString.TrimEnd('\t'));
+
+                                offsetFlag = cell.Key;
+                                cumulativeTabString = "";
+                                cumulativeTextString = "";
+                            }
+                            else
+                            {
+                                //string > charFitPerLine
+                                //truncate to charFitPerLine
+                                int countDown = cellIndex;
+                                while (CumulativeTabStatus.ElementAt(countDown).Key - offsetFlag > charFitPerLine)
+                                {
+                                    countDown--;
+                                }
+                                int newCellKey = CumulativeTabStatus.ElementAt(countDown).Key;
+                                if (cellIndex - countDown == 1)
+                                    stringStatus.Add(cumulativeTabString.Substring(0, cumulativeTabString.Length - (charFitPerLine - newCellKey < columnsChars ? CumulativeTabStatus[cell.Key].Length : CumulativeTabStatus[newCellKey].Length)));
+                                else
+                                    stringStatus.Add(cumulativeTabString.Substring(0, cumulativeTabString.Length - CumulativeTabStatus[cell.Key].Length));
+
+                                offsetFlag = newCellKey;
+                                cumulativeTabString = cellIndex - countDown == 1 && charFitPerLine - newCellKey < columnsChars ? CumulativeTabStatus[cell.Key] : CumulativeTabStatus[cell.Key];
+                                cumulativeTextString = cellIndex - countDown == 1 && charFitPerLine - newCellKey < columnsChars ? CumulativeTextStatus[cell.Key] : cell.Value.TrimStart('X');
+                            }
+                        }
+                        else
+                        {
+                            if (cumulativeTextString.Length <= charFitPerLine)
+                            {
+                                stringStatus.Add(cumulativeTabString.TrimEnd('\t'));
+                                offsetFlag = cell.Key;
+                                cumulativeTabString = "";
+                                cumulativeTextString = "";
+                            }
+                            else
+                            {
+                                //string > charFitPerLine
+                                //truncate to charFitPerLine
+                                int countDown = cellIndex;
+                                while (CumulativeTabStatus.ElementAt(countDown).Key - offsetFlag > charFitPerLine)
+                                {
+                                    countDown--;
+                                }
+                                int newCellKey = CumulativeTabStatus.ElementAt(countDown).Key;
+                                if (cellIndex - countDown == 1)
+                                    stringStatus.Add(cumulativeTabString.Substring(0, cumulativeTabString.Length - CumulativeTabStatus[cell.Key].Length));
+                                else
+                                    stringStatus.Add(cumulativeTabString.Substring(0, cumulativeTabString.Length - CumulativeTabStatus[cell.Key].Length));
+
+                                offsetFlag = newCellKey;
+                                cumulativeTabString = cellIndex - countDown == 1 && charFitPerLine - newCellKey < columnsChars ? CumulativeTabStatus[cell.Key] : CumulativeTabStatus[cell.Key];
+                                cumulativeTextString = cellIndex - countDown == 1 && charFitPerLine - newCellKey < columnsChars ? CumulativeTextStatus[cell.Key] : cell.Value.TrimStart('X');
+                            }
+                        }
+                    }
+                    cellIndex++;
+                }
+                if (cumulativeTextString.Length > 0 && cumulativeTextString.TrimEnd('X').Length <= charFitPerLine)
+                {
+                    stringStatus.Add(cumulativeTabString.Contains(CumulativeTabStatus.Values.First()) ? cumulativeTabString.TrimEnd('\t') : CumulativeTabStatus.Values.First() + cumulativeTabString.TrimEnd('\t'));
+                    cumulativeTabString = "";
+                    cumulativeTextString = "";
+                }
+
+                //Update 'page right' and 'page left' labels.
+                if (stringStatus.Count > 1 && stringStatus.Count > hudWindowColumnsPagesCount)
+                    hudWindowColumnsPagesCount = stringStatus.Count;
+            }
+            else
+            {   //StringStatus without \t.
+                //Only Force information and Dispatcher information.
+                //Horizontal scroll.
+                stringStatus.Clear();//Reset
+                var n = 0;
+                //Take in count left columns.
+                charFitPerLine = initColumn > 0 ? charFitPerLine - (columnsChars * initColumn) - 1 : charFitPerLine;
+                for (i = 0; i < StringStatusLength; i += charFitPerLine)
+                {
+                    if (StringStatusLength - i > charFitPerLine)
+                        stringStatus.Add(StringStatus.Substring(i, charFitPerLine));
+                    else
+                        stringStatus.Add(StringStatus.Substring(i, StringStatus.Length - i));
+                    n++;
+                    if (n > hudWindowColumnsPagesCount) break;
+                }
+
+                //Update 'page right' and 'page left' labels.
+                if (stringStatus.Count > hudWindowColumnsPagesCount)
+                    hudWindowColumnsPagesCount = stringStatus.Count;
+            }
+            
+            CurrentPathColumnsPagesCount = (StringStatusLength < charFitPerLine) ? 0 : (int)Math.Ceiling(Convert.ToDouble(StringStatusLength / charFitPerLine) + 0.5);
+            //Update columns pages count.
+            if (CurrentPathColumnsPagesCount > hudWindowColumnsPagesCount)
+                hudWindowColumnsPagesCount = CurrentPathColumnsPagesCount;
+
+            //Hide - Show HUDScrollWindow
+            var locomotive = Viewer.PlayerLocomotive;
+            var train = locomotive.Train;
+            if (Viewer.HUDScrollWindow.Visible && hudWindowColumnsPagesCount == 0 && hudWindowLinesPagesCount == 1 && TextPages[TextPage] != TextPageLocomotiveInfo && !hudWindowFullScreen)
+                Viewer.HUDScrollWindow.Visible = false;//                                                                                                                          TrainCar.EngineTypes.Steam                            
+            if (!Viewer.HUDScrollWindow.Visible && hudWindowColumnsPagesCount > 0 || (TextPages[TextPage] == TextPageLocomotiveInfo && (IsSteamLocomotive || hudWindowLocoPagesCount > 1)))
+                Viewer.HUDScrollWindow.Visible = true;
+        }
+
+        /// <summary>
+        /// Count space requiered to fit a column
+        /// </summary>
+        /// <param name="cell"></param>
+        /// <param name="tabCount"></param>
+        /// <returns></returns>
+        private string CellTabSpace(string cell, int tabCount)
+        {
+            var cellSpace = "";
+            string space = new string('X', columnsChars);
+            int cellColumns = (int)Math.Ceiling((decimal) cell.Length/ columnsChars);
+            cellSpace = cell.Length > 0 && tabCount > 0 ? space.Substring(0, Math.Abs((columnsChars * cellColumns) - cell.Length)) : "";
+            cellSpace = tabCount > cellColumns ? cellSpace + space : cellSpace;
+            return cellSpace;
+        }
+
+        /// <summary>
+        /// Compute how many character fit per line.
+        /// </summary>
+        /// <returns> x 
+        /// </returns>
+        public int CharFitPerLine(string status)
+        {
+            var stringReference = status.Length > 0? status : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 \",.-+|!$%&/()=?;:'_[]";
+            var textStringPixels = TextFont.MeasureString(stringReference);
+            var charWidth = textStringPixels / stringReference.Length;
+            columnsChars = (int)Math.Ceiling(Convert.ToDouble(ColumnWidth / charWidth));
+            //Minus left and right space
+            var x = (Viewer.DisplaySize.X - (TextOffset * 2)) / charWidth;
+            return (int)x;
+        }
+
+        bool lResetHudScroll = false;
+        /// <summary>
+        /// Reset Scroll Control window
+        /// </summary>
+        private void ResetHudScroll()
+        {
+            if (!lResetHudScroll)
+            {
+                hudWindowLinesActualPage = 1;
+                hudWindowLinesPagesCount = 1;
+                hudWindowColumnsActualPage = 0;
+                hudWindowColumnsPagesCount = 0;
+                hudWindowLocoActualPage = 0;
+                hudWindowLocoPagesCount = 1;
+                lResetHudScroll = true;
+            }
+        }
+
+        /// <summary>
+        /// Allow to draw arrows
+        /// </summary>
+        /// <param name="statusConsist"></param>
+        /// <param name="table"></param>
+        private void DrawScrollArrows(List<string> statusConsist, TableData table, bool IsSteamLocomotive)
+        {
+            for (int i = 0; i < statusConsist.Count; i++)
+            {
+                if (i > 0 && i < 2 && (statusConsist[i] == stringStatus[i - 1]) || i > 1 && (statusConsist[i - 2] == statusConsist[i]))
+                    continue;
+
+                TextColNumber(statusConsist[i], 0, IsSteamLocomotive);
+                if (hudWindowColumnsActualPage > 0)
+                {//◄ \u25C0 - ► \u25B6 - ↔ \u2194
+                    if (stringStatus.Count > 1 && stringStatus.Count <= hudWindowColumnsActualPage)
+                        TableAddLines(table, hudWindowColumnsActualPage > 1 ? "◀" + stringStatus[(stringStatus.Count < hudWindowColumnsActualPage ? stringStatus.Count - 1 : hudWindowColumnsActualPage - 1)] : stringStatus[hudWindowColumnsActualPage - 1]);
+                    else if (stringStatus.Count > 1 && hudWindowColumnsActualPage == 1)
+                        TableAddLines(table, hudWindowColumnsActualPage > 0 ? "▶" + stringStatus[hudWindowColumnsActualPage - 1] : stringStatus[hudWindowColumnsActualPage - 1]);
+                    else if (stringStatus.Count > 1 && hudWindowColumnsActualPage > 1 && stringStatus.Count >= hudWindowColumnsActualPage)
+                        TableAddLines(table, hudWindowColumnsActualPage > 0 ? "↔" + stringStatus[hudWindowColumnsActualPage - 1] : stringStatus[hudWindowColumnsActualPage - 1]);
+                    else
+                    {
+                        TableAddLines(table, (stringStatus.Count > 0 ? stringStatus[0] : statusConsist[i]));
+                    }
+                }
+                else
+                    TableAddLines(table, statusConsist[i]);
+
+            }
+        }
+
         static void TextPageHeading(TableData table, string name)
         {
             TableAddLine(table);
             TableAddLine(table, name);
         }
 
-        #region Native code
+#region Native code
         [StructLayout(LayoutKind.Sequential, Size = 64)]
         public class MEMORYSTATUSEX
         {
@@ -1073,7 +1862,7 @@ namespace Orts.Viewer3D.Popups
         readonly IntPtr ProcessHandle;
         PROCESS_MEMORY_COUNTERS ProcessMemoryCounters;
         readonly ulong ProcessVirtualAddressLimit;
-        #endregion
+#endregion
 
         public uint GetWorkingSetSize()
         {
