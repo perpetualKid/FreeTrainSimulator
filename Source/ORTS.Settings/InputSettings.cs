@@ -67,6 +67,7 @@ namespace ORTS.Settings
         [GetString("Display Help Window")] DisplayHelpWindow,
         [GetString("Display Track Monitor Window")] DisplayTrackMonitorWindow,
         [GetString("Display HUD")] DisplayHUD,
+        [GetString("Display HUD Scroll Window")] DisplayHUDScrollWindow,
         [GetString("Display Car Labels")] DisplayCarLabels,
         [GetString("Display Station Labels")] DisplayStationLabels,
         [GetString("Display Switch Window")] DisplaySwitchWindow,
@@ -110,6 +111,7 @@ namespace ORTS.Settings
         [GetString("Camera Outside Front")] CameraOutsideFront,
         [GetString("Camera Outside Rear")] CameraOutsideRear,
         [GetString("Camera Trackside")] CameraTrackside,
+        [GetString("Camera SpecialTracksidePoint")] CameraSpecialTracksidePoint,
         [GetString("Camera Passenger")] CameraPassenger,
         [GetString("Camera Brakeman")] CameraBrakeman,
         [GetString("Camera Free")] CameraFree,
@@ -177,6 +179,8 @@ namespace ORTS.Settings
         [GetString("Control Light")] ControlLight,
         [GetString("Control Pantograph 1")] ControlPantograph1,
         [GetString("Control Pantograph 2")] ControlPantograph2,
+        [GetString("Control Pantograph 3")] ControlPantograph3,
+        [GetString("Control Pantograph 4")] ControlPantograph4,
         [GetString("Control Circuit Breaker Closing Order")] ControlCircuitBreakerClosingOrder,
         [GetString("Control Circuit Breaker Opening Order")] ControlCircuitBreakerOpeningOrder,
         [GetString("Control Circuit Breaker Closing Authorization")] ControlCircuitBreakerClosingAuthorization,
@@ -317,7 +321,7 @@ namespace ORTS.Settings
                 Reset(command.ToString());
         }
 
-        #region External APIs
+#region External APIs
         enum MapVirtualKeyType
         {
             VirtualToCharacter = 2,
@@ -332,7 +336,7 @@ namespace ORTS.Settings
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         static extern int GetKeyNameText(int scanCode, [Out] string name, int nameLength);
-        #endregion
+#endregion
 
         // Keyboard scancodes are basically constant; some keyboards have extra buttons (e.g. UK ones tend to have an
         // extra button next to Left Shift) or move one or two around (e.g. UK ones tend to move 0x2B down one row)
@@ -473,7 +477,7 @@ namespace ORTS.Settings
             rectangle.Height *= scaleY;
         }
 
-        #region Default Input Settings
+#region Default Input Settings
         static void InitializeCommands(UserCommandInput[] Commands)
         {
             // All UserCommandModifierInput commands go here.
@@ -515,6 +519,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommands.CameraChangePassengerViewPoint] = new UserCommandKeyInput(0x06, KeyModifiers.Shift);
             Commands[(int)UserCommands.CameraToggleShowCab] = new UserCommandKeyInput(0x02, KeyModifiers.Shift);
             Commands[(int)UserCommands.CameraTrackside] = new UserCommandKeyInput(0x05);
+            Commands[(int)UserCommands.CameraSpecialTracksidePoint] = new UserCommandKeyInput(0x05, KeyModifiers.Shift);
             Commands[(int)UserCommands.CameraVibrate] = new UserCommandKeyInput(0x2F, KeyModifiers.Control);
             Commands[(int)UserCommands.CameraZoomIn] = new UserCommandModifiableKeyInput(0x49, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
             Commands[(int)UserCommands.CameraZoomOut] = new UserCommandModifiableKeyInput(0x51, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
@@ -575,6 +580,8 @@ namespace ORTS.Settings
             Commands[(int)UserCommands.ControlMirror] = new UserCommandKeyInput(0x2F, KeyModifiers.Shift);
             Commands[(int)UserCommands.ControlPantograph1] = new UserCommandKeyInput(0x19);
             Commands[(int)UserCommands.ControlPantograph2] = new UserCommandKeyInput(0x19, KeyModifiers.Shift);
+            Commands[(int)UserCommands.ControlPantograph3] = new UserCommandKeyInput(0x19, KeyModifiers.Control);
+            Commands[(int)UserCommands.ControlPantograph4] = new UserCommandKeyInput(0x19, KeyModifiers.Shift | KeyModifiers.Control);
             Commands[(int)UserCommands.ControlOdoMeterShowHide] = new UserCommandKeyInput(0x2C, KeyModifiers.Shift);
             Commands[(int)UserCommands.ControlOdoMeterReset] = new UserCommandKeyInput(0x2C, KeyModifiers.Control);
             Commands[(int)UserCommands.ControlOdoMeterDirection] = new UserCommandKeyInput(0x2C, KeyModifiers.Control | KeyModifiers.Shift);
@@ -629,6 +636,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommands.DisplayCompassWindow] = new UserCommandKeyInput(0x0B);
             Commands[(int)UserCommands.DisplayHelpWindow] = new UserCommandModifiableKeyInput(0x3B, Commands[(int)UserCommands.DisplayNextWindowTab]);
             Commands[(int)UserCommands.DisplayHUD] = new UserCommandModifiableKeyInput(0x3F, Commands[(int)UserCommands.DisplayNextWindowTab]);
+            Commands[(int)UserCommands.DisplayHUDScrollWindow] = new UserCommandModifiableKeyInput(0x3F, KeyModifiers.Control);
             Commands[(int)UserCommands.DisplayNextStationWindow] = new UserCommandKeyInput(0x44);
             Commands[(int)UserCommands.DisplayStationLabels] = new UserCommandModifiableKeyInput(0x40, Commands[(int)UserCommands.DisplayNextWindowTab]);
             Commands[(int)UserCommands.DisplaySwitchWindow] = new UserCommandKeyInput(0x42);
@@ -657,7 +665,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommands.GameSwitchPicked] = new UserCommandKeyInput(0x22, KeyModifiers.Alt);
             Commands[(int)UserCommands.GameUncoupleWithMouse] = new UserCommandKeyInput(0x16);
         }
-        #endregion
+#endregion
 
         bool IsModifier(UserCommands command)
         {

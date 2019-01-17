@@ -30,7 +30,6 @@
 
 //#define ALLOW_ORTS_SPECIFIC_ENG_PARAMETERS
 
-
 using Microsoft.Xna.Framework;
 using Orts.Formats.Msts;
 using Orts.Parsers.Msts;
@@ -547,10 +546,11 @@ namespace Orts.Simulation.RollingStocks
             var status = new StringBuilder(base.GetDebugStatus());
 
             if (DieselEngines.HasGearBox)
-                status.AppendFormat("\t{0} {1}", Simulator.Catalog.GetString("Gear"), DieselEngines[0].GearBox.CurrentGearIndex);
-            status.AppendFormat("\t{0} {1}\t\t{2}", 
-                Simulator.Catalog.GetString("Fuel"), 
-                FormatStrings.FormatFuelVolume(DieselLevelL, IsMetric, IsUK), DieselEngines.GetStatus());
+                //Simulator.Catalog.GetString("Gear"), 
+                status.AppendFormat("{0}", DieselEngines[0].GearBox.CurrentGearIndex);
+            //Simulator.Catalog.GetString("Fuel"),
+            status.AppendFormat("\t{0}\t{1}\t",            
+            FormatStrings.FormatFuelVolume(DieselLevelL, IsMetric, IsUK), DieselEngines.GetStatus());
 
             if (IsSteamHeatFitted && TrainFittedSteamHeat && this.IsLeadLocomotive() && Train.PassengerCarsNumber > 0)
                {

@@ -166,6 +166,8 @@ namespace Orts.Formats.Msts
         ORTS_LEFTDOOR,
         ORTS_RIGHTDOOR,
         ORTS_MIRRORS,
+        ORTS_PANTOGRAPH3,
+        ORTS_PANTOGRAPH4,
 
         // Further CabViewControlTypes must be added above this line, to avoid their malfunction in 3DCabs
         EXTERNALWIPERS,
@@ -546,9 +548,9 @@ namespace Orts.Formats.Msts
             white.G = 255f;
             white.B = 255f;
             PositiveColor = white;
-            FontSize = 10;
+            FontSize = 8;
             FontStyle = 0;
-            FontFamily = "Courier New";
+            FontFamily = "Lucida Sans";
             
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -645,9 +647,9 @@ namespace Orts.Formats.Msts
 
         public CVCDigitalClock(STFReader stf, string basepath)
         {
-            FontSize = 10;
+            FontSize = 8;
             FontStyle = 0;
-            FontFamily = "Courier New";
+            FontFamily = "Lucida Sans";
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("type", ()=>{ ParseType(stf); }),
@@ -986,7 +988,8 @@ namespace Orts.Formats.Msts
                 // MSTS ignores/overrides various settings by the following exceptional cases:
                 if (ControlType == CABViewControlTypes.CP_HANDLE)
                     ControlStyle = CABViewControlStyles.NOT_SPRUNG;
-                if (ControlType == CABViewControlTypes.PANTOGRAPH || ControlType == CABViewControlTypes.PANTOGRAPH2)
+                if (ControlType == CABViewControlTypes.PANTOGRAPH || ControlType == CABViewControlTypes.PANTOGRAPH2 ||
+                    ControlType == CABViewControlTypes.ORTS_PANTOGRAPH3 || ControlType == CABViewControlTypes.ORTS_PANTOGRAPH4)
                     ControlStyle = CABViewControlStyles.ONOFF;
                 if (ControlType == CABViewControlTypes.HORN || ControlType == CABViewControlTypes.SANDERS || ControlType == CABViewControlTypes.BELL 
                     || ControlType == CABViewControlTypes.RESET)

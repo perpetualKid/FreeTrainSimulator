@@ -82,6 +82,7 @@ namespace Orts.Viewer3D
         public HelpWindow HelpWindow { get; private set; } // F1 window
         public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
+        public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
         public SwitchWindow SwitchWindow { get; private set; } // F8 window
@@ -111,6 +112,7 @@ namespace Orts.Viewer3D
         public TrackingCamera FrontCamera { get; private set; } // Camera 2
         public TrackingCamera BackCamera { get; private set; } // Camera 3
         public TracksideCamera TracksideCamera { get; private set; } // Camera 4
+        public SpecialTracksideCamera SpecialTracksideCamera { get; private set; } // Camera 4 for special points (platforms and level crossings)
         public PassengerCamera PassengerCamera { get; private set; } // Camera 5
         public BrakemanCamera BrakemanCamera { get; private set; } // Camera 6
         public List<FreeRoamCamera> FreeRoamCameraList = new List<FreeRoamCamera>();
@@ -252,6 +254,7 @@ namespace Orts.Viewer3D
             WellKnownCameras.Add(HeadOutForwardCamera = new HeadOutCamera(this, HeadOutCamera.HeadDirection.Forward));
             WellKnownCameras.Add(HeadOutBackCamera = new HeadOutCamera(this, HeadOutCamera.HeadDirection.Backward));
             WellKnownCameras.Add(TracksideCamera = new TracksideCamera(this));
+            WellKnownCameras.Add(SpecialTracksideCamera = new SpecialTracksideCamera(this));
             WellKnownCameras.Add(new FreeRoamCamera(this, FrontCamera)); // Any existing camera will suffice to satisfy .Save() and .Restore()
             WellKnownCameras.Add(ThreeDimCabCamera = new ThreeDimCabCamera(this));
 
@@ -408,6 +411,7 @@ namespace Orts.Viewer3D
             HelpWindow = new HelpWindow(WindowManager);
             TrackMonitorWindow = new TrackMonitorWindow(WindowManager);
             HUDWindow = new HUDWindow(WindowManager);
+            HUDScrollWindow = new HUDScrollWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
             OSDCars = new OSDCars(WindowManager);
             SwitchWindow = new SwitchWindow(WindowManager);
@@ -875,7 +879,23 @@ namespace Orts.Viewer3D
             if (UserInput.IsPressed(UserCommands.GameSave)) { GameStateRunActivity.Save(); }
             if (UserInput.IsPressed(UserCommands.DisplayHelpWindow)) if (UserInput.IsDown(UserCommands.DisplayNextWindowTab)) HelpWindow.TabAction(); else HelpWindow.Visible = !HelpWindow.Visible;
             if (UserInput.IsPressed(UserCommands.DisplayTrackMonitorWindow)) if (UserInput.IsDown(UserCommands.DisplayNextWindowTab)) TrackMonitorWindow.TabAction(); else TrackMonitorWindow.Visible = !TrackMonitorWindow.Visible;
-            if (UserInput.IsPressed(UserCommands.DisplayHUD)) if (UserInput.IsDown(UserCommands.DisplayNextWindowTab)) HUDWindow.TabAction(); else HUDWindow.Visible = !HUDWindow.Visible;
+            if (UserInput.IsPressed(UserCommands.DisplayHUD)) if (UserInput.IsDown(UserCommands.DisplayNextWindowTab)) HUDWindow.TabAction();
+                else
+                {
+                    HUDWindow.Visible = !HUDWindow.Visible;
+                    if (!HUDWindow.Visible) HUDScrollWindow.Visible = false;
+                }
+            if (UserInput.IsPressed(UserCommands.DisplayHUDScrollWindow))
+            {
+                if (HUDWindow.Visible)
+                {
+                    if (UserInput.IsDown(UserCommands.DisplayNextWindowTab))
+                        HUDScrollWindow.TabAction();
+                    else
+                        HUDScrollWindow.Visible = !HUDScrollWindow.Visible;
+                }
+            }
+           
             if (UserInput.IsPressed(UserCommands.DisplayStationLabels))
             {
                 if (UserInput.IsDown(UserCommands.DisplayNextWindowTab)) OSDLocations.TabAction(); else OSDLocations.Visible = !OSDLocations.Visible;
@@ -1002,6 +1022,11 @@ namespace Orts.Viewer3D
             {
                 CheckReplaying();
                 new UseTracksideCameraCommand(Log);
+            }
+            if (UserInput.IsPressed(UserCommands.CameraSpecialTracksidePoint))
+            {
+                CheckReplaying();
+                new UseSpecialTracksideCameraCommand(Log);
             }
             // Could add warning if PassengerCamera not available.
             if (UserInput.IsPressed(UserCommands.CameraPassenger) && PassengerCamera.IsAvailable)
