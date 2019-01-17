@@ -19,6 +19,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Orts.Parsers.Msts;
+using ORTS.Common;
 using ORTS.Settings;
 
 namespace Orts.Viewer3D
