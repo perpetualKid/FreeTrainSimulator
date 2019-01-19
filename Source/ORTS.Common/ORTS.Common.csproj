@@ -68,7 +68,7 @@
     <Compile Include="Coordinates.cs" />
     <Compile Include="DataLogger.cs" />
     <Compile Include="ElapsedTime.cs" />
-    <Compile Include="enums.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="Filter.cs" />
     <Compile Include="FxCopAttributes.cs" />
     <Compile Include="GetStringAttribute.cs" />
@@ -79,6 +79,7 @@
     <Compile Include="SmoothedData.cs" />
     <Compile Include="SystemInfo.cs" />
     <Compile Include="TrackMonitorSignalAspect.cs" />
+    <Compile Include="UserCommands.cs" />
     <Compile Include="VersionInfo.cs" />
   </ItemGroup>
   <ItemGroup>

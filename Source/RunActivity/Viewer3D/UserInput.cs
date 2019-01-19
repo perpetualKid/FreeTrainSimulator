@@ -33,6 +33,7 @@ using Microsoft.Xna.Framework.Input;
 using ORTS.Settings;
 using System.Linq;      //DEBUG_INPUT only
 using Game = Orts.Viewer3D.Processes.Game;
+using ORTS.Common;
 
 namespace Orts.Viewer3D
 {
@@ -56,7 +57,7 @@ namespace Orts.Viewer3D
         public static void Initialize(Game game)
         {
             inputSettings = game.Settings.Input;
-            Raildriver = new UserInputRailDriver();
+            Raildriver = new UserInputRailDriver(game);
         }
 
         public static void Update(bool active)

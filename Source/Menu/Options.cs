@@ -18,6 +18,7 @@
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
 using MSTS;
+using ORTS.Common;
 using ORTS.Settings;
 using ORTS.Updater;
 using System;

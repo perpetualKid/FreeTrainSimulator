@@ -19,6 +19,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Orts.Parsers.Msts;
+using Orts.Viewer3D.Processes;
+using ORTS.Common;
 using ORTS.Settings;
 
 namespace Orts.Viewer3D
@@ -189,12 +191,14 @@ namespace Orts.Viewer3D
         public int Wipers;                  // wiper rotary, 1 off, 2 slow, 3 full
         public int Lights;                  // lights rotary, 1 off, 2 dim, 3 full
 
+        private static RailDriverSettings settings;
         /// <summary>
         /// Tries to find a RailDriver and initialize it
         /// </summary>
         /// <param name="basePath"></param>
-        public UserInputRailDriver()
+        public UserInputRailDriver(Game game)
         {
+            settings = game.Settings.RailDriver;
 
             if (Environment.Is64BitProcess)
             {
