@@ -17,8 +17,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
-using Orts.Parsers.Msts;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
 using ORTS.Settings;
@@ -147,39 +145,15 @@ namespace Orts.Viewer3D
         private byte[] readBuffer;
         private byte[] readBufferHistory;
 
-        private ulong buttonData;
-        private ulong buttonDataHistory;
         private readonly byte[] railDriverCommands;
 
         private const byte EnableRailDriverCommand = 14;
         private const byte EmergencyStopCommandUp = 36;
         private const byte EmergencyStopCommandDown = 37;
 
-        // calibration values, defaults for the developer's RailDriver
-        float FullReversed = 225;
-        float Neutral = 116;
-        float FullForward = 60;
-        float FullThrottle = 229;
-        float ThrottleIdle = 176;
-        float DynamicBrake = 42;
-        float DynamicBrakeSetup = 119;
-        float AutoBrakeRelease = 216;
-        float FullAutoBrake = 79;
-        float EmergencyBrake = 58;
-        float IndependentBrakeRelease = 213;
-        float BailOffEngagedRelease = 179;
-        float IndependentBrakeFull = 30;
-        float BailOffEngagedFull = 209;
-        float BailOffDisengagedRelease = 109;
-        float BailOffDisengagedFull = 121;
-        float Rotary1Position1 = 73;
-        float Rotary1Position2 = 135;
-        float Rotary1Position3 = 180;
-        float Rotary2Position1 = 86;
-        float Rotary2Position2 = 145;
-        float Rotary2Position3 = 189;
-
         private readonly RailDriverBase railDriverInstance;
+        private static RailDriverSettings settings;
+        private static byte cutOff;
 
         public float DirectionPercent;      // -100 (reverse) to 100 (forward)
         public float ThrottlePercent;       // 0 to 100
@@ -187,18 +161,16 @@ namespace Orts.Viewer3D
         public float TrainBrakePercent;     // 0 (release) to 100 (CS), does not include emergency
         public float EngineBrakePercent;    // 0 to 100
         public bool BailOff;                // true when bail off pressed
-        public bool Emergency { get; set; }              // true when train brake handle in emergency or E-stop button pressed
+        public bool Emergency;              // true when train brake handle in emergency or E-stop button pressed
         public int Wipers;                  // wiper rotary, 1 off, 2 slow, 3 full
         public int Lights;                  // lights rotary, 1 off, 2 dim, 3 full
 
-        private static RailDriverSettings settings;
         /// <summary>
         /// Tries to find a RailDriver and initialize it
         /// </summary>
         /// <param name="basePath"></param>
         public UserInputRailDriver(Game game)
         {
-            settings = game.Settings.RailDriver;
 
             if (Environment.Is64BitProcess)
             {
@@ -210,10 +182,13 @@ namespace Orts.Viewer3D
             }
             if (railDriverInstance.Enabled)
             {
+                settings = game.Settings.RailDriver;
+                cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.CutOffPoint];
+
                 writeBuffer = new byte[railDriverInstance.WriteBufferSize];
                 readBuffer = new byte[railDriverInstance.ReadBufferSize];
                 readBufferHistory = new byte[railDriverInstance.ReadBufferSize];
-                ReadCalibrationData();
+
                 SetLEDs(0x40, 0x40, 0x40);
 
                 railDriverCommands = new byte[Enum.GetNames(typeof(UserCommands)).Length];
@@ -280,23 +255,42 @@ namespace Orts.Viewer3D
         {
             if (railDriverInstance.Enabled && 0 == railDriverInstance.ReadCurrentData(ref readBuffer))
             {
-                DirectionPercent = Percentage(readBuffer[1], FullReversed, Neutral, FullForward);
-                ThrottlePercent = Percentage(readBuffer[2], ThrottleIdle, FullThrottle);
-
-                DynamicBrakePercent = Percentage(readBuffer[2], ThrottleIdle, DynamicBrakeSetup, DynamicBrake);
-                TrainBrakePercent = Percentage(readBuffer[3], AutoBrakeRelease, FullAutoBrake);
-                EngineBrakePercent = Percentage(readBuffer[4], IndependentBrakeRelease, IndependentBrakeFull);
+                DirectionPercent = Percentage(readBuffer[1],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.FullReversed],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Neutral],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.FullForward]);
+                ThrottlePercent = Percentage(readBuffer[2],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ThrottleIdle],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.FullThrottle]);
+                DynamicBrakePercent = Percentage(readBuffer[2],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ThrottleIdle],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.DynamicBrakeSetup],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.DynamicBrake]);
+                TrainBrakePercent = Percentage(readBuffer[3],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.AutoBrakeRelease],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.FullAutoBrake]);
+                EngineBrakePercent = Percentage(readBuffer[4],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.IndependentBrakeRelease],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.IndependentBrakeFull]);
                 float a = .01f * EngineBrakePercent;
-                float calOff = (1 - a) * BailOffDisengagedRelease + a * BailOffDisengagedFull;
-                float calOn = (1 - a) * BailOffEngagedRelease + a * BailOffEngagedFull;
+                float calOff = (1 - a) * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffDisengagedRelease] + a * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffDisengagedFull];
+                float calOn = (1 - a) * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffEngagedRelease] + a * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffEngagedFull];
                 BailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
                 if (TrainBrakePercent >= 100)
-                    Emergency = Percentage(readBuffer[3], FullAutoBrake, EmergencyBrake) > 50;
+                    Emergency = Percentage(readBuffer[3],
+                        settings.CalibrationSettings[(int)RailDriverCalibrationSetting.FullAutoBrake],
+                        settings.CalibrationSettings[(int)RailDriverCalibrationSetting.EmergencyBrake]) > 50;
 
-                Wipers = (int)(.01 * Percentage(readBuffer[6], Rotary1Position1, Rotary1Position2, Rotary1Position3) + 2.5);
-                Lights = (int)(.01 * Percentage(readBuffer[7], Rotary2Position1, Rotary2Position2, Rotary2Position3) + 2.5);
+                Wipers = (int)(.01 * Percentage(readBuffer[6],
+                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary1Position1],
+                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary1Position2],
+                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary1Position3]) + 2.5);
+                Lights = (int)(.01 * Percentage(readBuffer[7],
+                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary2Position1],
+                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary2Position2],
+                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary2Position3]) + 2.5);
 
-                Buffer.BlockCopy(readBuffer, 0, readBufferHistory, 0, readBufferHistory.Length);
+                (readBufferHistory, readBuffer) = (readBuffer, readBufferHistory);
 
                 if (IsPressed(EmergencyStopCommandUp) || IsPressed(EmergencyStopCommandDown))
                     Emergency = true;
@@ -326,12 +320,22 @@ namespace Orts.Viewer3D
             return p;
         }
         
-        private static float Percentage(float x, float xminus100, float x0, float xplus100)
+        private static float Percentage(byte value, byte p0, byte p100)
         {
-            float p = 100 * (x - x0) / (xplus100 - x0);
+            float p = 100 * (value - p0) / (p100 - p0);
+            if (p < cutOff)
+                return 0;
+            if (p > (100 - cutOff))
+                return 100;
+            return p;
+        }
+
+        private static float Percentage(byte value, byte p100Minus, byte p0, byte p100Plus)
+        {
+            float p = 100 * (value - p0) / (p100Plus - p0);
             if (p < 0)
-                p = 100 * (x - x0) / (x0 - xminus100);
-            if (p < -95)
+                p = 100 * (value - p0) / (p0 - p100Minus);
+            if (p < (-100 + cutOff))
                 return -100;
             if (p > 95)
                 return 100;
@@ -390,72 +394,6 @@ namespace Orts.Viewer3D
                     SetLEDs(LEDDigits[s % 10], LEDDigitsPoint[(s / 10) % 10], LEDDigits[(s / 100) % 10]);
                 else if (s < 10000)
                     SetLEDs(LEDDigitsPoint[(s / 10) % 10], LEDDigits[(s / 100) % 10], LEDDigits[(s / 1000) % 10]);
-        }
-
-        /// <summary>
-        /// Reads RailDriver calibration data from a ModernCalibration.rdm file
-        /// This file is not in the usual STF format, but the STFReader can handle it okay.
-        /// </summary>
-        /// <param name="basePath"></param>
-        void ReadCalibrationData()
-        {
-            string file = Path.Combine(Environment.CurrentDirectory, "ModernCalibration.rdm");
-            if (!File.Exists(file))
-            {
-                SetLEDs(0, 0, 0);
-                Trace.TraceWarning("Cannot find RailDriver calibration file {0}", file);
-                return;
-            }
-			// TODO: This is... kinda weird and cool at the same time. STF parsing being used on RailDriver's calebration file. Probably should be a dedicated parser, though.
-            STFReader reader = new STFReader(file, false);
-            while (!reader.Eof)
-            {
-                string token = reader.ReadItem();
-                if (token == "Position")
-                {
-                    string name = reader.ReadItem();
-                    int min= -1;
-                    int max= -1;
-                    while (token != "}")
-                    {
-                        token = reader.ReadItem();
-                        if (token == "Min")
-                            min = reader.ReadInt(-1);
-                        else if (token == "Max")
-                            max = reader.ReadInt(-1);
-                    }
-                    if (min >= 0 && max >= 0)
-                    {
-                        float v = .5f * (min + max);
-                        switch (name)
-                        {
-                            case "Full Reversed": FullReversed = v; break;
-                            case "Neutral": Neutral = v; break;
-                            case "Full Forward": FullForward = v; break;
-                            case "Full Throttle": FullThrottle = v; break;
-                            case "Throttle Idle": ThrottleIdle = v; break;
-                            case "Dynamic Brake": DynamicBrake = v; break;
-                            case "Dynamic Brake Setup": DynamicBrakeSetup = v; break;
-                            case "Auto Brake Released": AutoBrakeRelease = v; break;
-                            case "Full Auto Brake (CS)": FullAutoBrake = v; break;
-                            case "Emergency Brake (EMG)": EmergencyBrake = v; break;
-                            case "Independent Brake Released": IndependentBrakeRelease = v; break;
-                            case "Bail Off Engaged (in Released position)": BailOffEngagedRelease = v; break;
-                            case "Independent Brake Full": IndependentBrakeFull = v; break;
-                            case "Bail Off Engaged (in Full position)": BailOffEngagedFull = v; break;
-                            case "Bail Off Disengaged (in Released position)": BailOffDisengagedRelease = v; break;
-                            case "Bail Off Disengaged (in Full position)": BailOffDisengagedFull = v; break;
-                            case "Rotary Switch 1-Position 1(OFF)": Rotary1Position1 = v; break;
-                            case "Rotary Switch 1-Position 2(SLOW)": Rotary1Position2 = v; break;
-                            case "Rotary Switch 1-Position 3(FULL)": Rotary1Position3 = v; break;
-                            case "Rotary Switch 2-Position 1(OFF)": Rotary2Position1 = v; break;
-                            case "Rotary Switch 2-Position 2(DIM)": Rotary2Position2 = v; break;
-                            case "Rotary Switch 2-Position 3(FULL)": Rotary2Position3 = v; break;
-                            default: STFException.TraceInformation(reader, "Skipped unknown calibration value " + name); break;
-                        }
-                    }
-                }
-            }
         }
 
         public void Shutdown()

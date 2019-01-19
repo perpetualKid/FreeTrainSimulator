@@ -33,6 +33,7 @@ namespace ORTS.Settings
         Rotary2Position1,
         Rotary2Position2,
         Rotary2Position3,
+        CutOffPoint,
     }
 
     public class RailDriverSettings : SettingsBase
@@ -50,16 +51,14 @@ namespace ORTS.Settings
 
         static RailDriverSettings()
         {
+            DefaultCalibrationSettings = new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 5 };
             InitializeCommands(DefaultCommands);
         }
 
         private static void InitializeCommands(byte[] commands)
         { }
 
-        private static byte[] DefaultCalibrationSettings()
-        {
-            return new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189 };
-        }
+        private static byte[] DefaultCalibrationSettings { get; set; }
 
     /// <summary>
     /// Initializes a new instances of the <see cref="InputSettings"/> class with the specified options.
@@ -69,7 +68,7 @@ namespace ORTS.Settings
         : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "RailDriver"))
         {
             InitializeCommands(UserCommands);
-            CalibrationSettings = DefaultCalibrationSettings();
+            CalibrationSettings = new byte[DefaultCalibrationSettings.Length];
             Load(options);
         }
 
@@ -77,7 +76,7 @@ namespace ORTS.Settings
         {
             if (Enum.TryParse(name, true, out RailDriverCalibrationSetting calibrationSetting))
             {
-                return DefaultCalibrationSettings()[(int)calibrationSetting];        // no default parameters for Calibration Settings
+                return DefaultCalibrationSettings[(int)calibrationSetting];        // no default parameters for Calibration Settings
             }
             else if (Enum.TryParse(name, true, out UserCommands userCommand))
             {
@@ -94,13 +93,18 @@ namespace ORTS.Settings
 
         public override void Save()
         {
+            byte[] tempCalibrationSettings = DefaultCalibrationSettings;    //temporarily "disable" default calibration settings, so Calibration Settings are always getting written to SettingsStore
+            DefaultCalibrationSettings = new byte[tempCalibrationSettings.Length];
+
             foreach (RailDriverCalibrationSetting setting in calibrationSettingNames)
                 Save(setting.ToString());
+
+            DefaultCalibrationSettings = tempCalibrationSettings;
         }
 
         public override void Save(string name)
         {
-            Save(name, typeof(string));
+            Save(name, typeof(byte));
         }
 
         protected override object GetValue(string name)

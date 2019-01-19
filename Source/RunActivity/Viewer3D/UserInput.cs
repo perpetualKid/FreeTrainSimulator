@@ -124,23 +124,6 @@ namespace Orts.Viewer3D
 #endif
         }
 
-        // this is fixed in Monogame framework
-        private static Keys[] GetKeysWithPrintScreenFix(KeyboardState keyboardState)
-        {
-            // When running in fullscreen, Win32's GetKeyboardState (the API behind Keyboard.GetState()) never returns
-            // the print screen key as being down. Something is eating it or something. So here we simply query that
-            // key directly and forcibly add it to the list of pressed keys.
-            Keys[] keys = keyboardState.GetPressedKeys();
-            if ((GetAsyncKeyState(Keys.PrintScreen) & 0x8000) != 0)
-            {
-                Keys[] keys2 = new Keys[keys.Length + 1];
-                Array.Copy(keys, keys2, keys.Length);
-                keys2[keys.Length] = Keys.PrintScreen;
-                return keys2;
-            }
-            return keys;
-        }
-
         public static void Handled()
         {
         }

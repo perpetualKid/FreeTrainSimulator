@@ -57,6 +57,7 @@ namespace ORTS.Common
                 typeof(string),
                 typeof(int[]),
                 typeof(string[]),
+                typeof(byte),
             }.Contains(expectedType), String.Format("GetUserValue called with unexpected type {0}.", expectedType.FullName));
         }
 
@@ -86,6 +87,13 @@ namespace ORTS.Common
         /// <param name="name">name of the setting</param>
         /// <param name="value">value of the setting</param>
         public abstract void SetUserValue(string name, int value);
+
+        /// <summary>
+        /// Set a value of a user setting
+        /// </summary>
+        /// <param name="name">name of the setting</param>
+        /// <param name="value">value of the setting</param>
+        public abstract void SetUserValue(string name, byte value);
 
         /// <summary>
         /// Set a value of a user setting
@@ -226,6 +234,16 @@ namespace ORTS.Common
         /// <param name="name">name of the setting</param>
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, int value)
+        {
+            Key.SetValue(name, value, RegistryValueKind.DWord);
+        }
+
+        /// <summary>
+        /// Set a value of a user setting
+        /// </summary>
+        /// <param name="name">name of the setting</param>
+        /// <param name="value">value of the setting</param>
+        public override void SetUserValue(string name, byte value)
         {
             Key.SetValue(name, value, RegistryValueKind.DWord);
         }
@@ -389,6 +407,9 @@ namespace ORTS.Common
                     case "int":
                         userValue = int.Parse(Uri.UnescapeDataString(value[1]), CultureInfo.InvariantCulture);
                         break;
+                    case "byte":
+                        userValue = byte.Parse(Uri.UnescapeDataString(value[1]), CultureInfo.InvariantCulture);
+                        break;
                     case "DateTime":
                         userValue = DateTime.FromBinary(long.Parse(Uri.UnescapeDataString(value[1]), CultureInfo.InvariantCulture));
                         break;
@@ -437,6 +458,16 @@ namespace ORTS.Common
         public override void SetUserValue(string name, int value)
         {
             NativeMethods.WritePrivateProfileString(Section, name, "int:" + Uri.EscapeDataString(value.ToString(CultureInfo.InvariantCulture)), FilePath);
+        }
+
+        /// <summary>
+        /// Set a value of a user setting
+        /// </summary>
+        /// <param name="name">name of the setting</param>
+        /// <param name="value">value of the setting</param>
+        public override void SetUserValue(string name, byte value)
+        {
+            NativeMethods.WritePrivateProfileString(Section, name, "byte:" + Uri.EscapeDataString(value.ToString(CultureInfo.InvariantCulture)), FilePath);
         }
 
         /// <summary>

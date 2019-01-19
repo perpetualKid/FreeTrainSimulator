@@ -453,6 +453,7 @@ namespace ORTS.Settings
 
             Folders.Save();
             Input.Save();
+            RailDriver.Save();
         }
 
         public override void Save(string name)
