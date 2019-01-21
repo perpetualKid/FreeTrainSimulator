@@ -27,6 +27,7 @@ namespace ORTS.Menu
     public class Activity
     {
         public string Name { get; private set; }
+        public string ActivityID { get; private set; }
         public string Description { get; private set; }
         public string Briefing { get; private set; }
         public StartTime StartTime { get; protected set; } = new StartTime(10, 0, 0);
@@ -53,7 +54,10 @@ namespace ORTS.Menu
             else if (null != activityFile)
             {
                 // ITR activities are excluded.
-                Name = activityFile.Tr_Activity.Tr_Activity_Header.Name.Trim();
+                if (actFile.Tr_Activity.Tr_Activity_Header.RouteID.ToUpper() == route.RouteID.ToUpper())
+                {
+
+                    Name = activityFile.Tr_Activity.Tr_Activity_Header.Name.Trim();
                 if (activityFile.Tr_Activity.Tr_Activity_Header.Mode == ActivityMode.IntroductoryTrainRide)
                     Name = "Introductory Train Ride";
                 Description = activityFile.Tr_Activity.Tr_Activity_Header.Description;
@@ -65,6 +69,9 @@ namespace ORTS.Menu
                 Duration = activityFile.Tr_Activity.Tr_Activity_Header.Duration;
                 Consist = consist;
                 Path = path;
+                      else//Activity and route have different RouteID.
+                        Name = "<" + catalog.GetString("Not same route:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                }
             }
             else
             {

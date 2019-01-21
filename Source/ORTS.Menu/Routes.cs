@@ -28,6 +28,7 @@ namespace ORTS.Menu
     public class Route
     {
         public string Name { get; private set; }
+        public readonly string RouteID { get; private set; }
         public string Description { get; private set; }
         public string Path { get; private set; }
 
@@ -42,6 +43,7 @@ namespace ORTS.Menu
                 {
 					var trkFile = new RouteFile(trkFilePath);
                     Name = trkFile.Tr_RouteFile.Name.Trim();
+                    RouteID = trkFile.Tr_RouteFile.RouteID;
                     Description = trkFile.Tr_RouteFile.Description.Trim();
                 }
                 catch
