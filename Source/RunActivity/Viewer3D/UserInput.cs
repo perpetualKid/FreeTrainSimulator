@@ -128,7 +128,7 @@ namespace Orts.Viewer3D
         {
         }
 
-        public static bool IsPressed(UserCommands command)
+        public static bool IsPressed(UserCommand command)
         {
             if (ComposingMessage == true) return false;
             if (Raildriver.IsPressed(command))
@@ -137,7 +137,7 @@ namespace Orts.Viewer3D
             return setting.IsKeyDown(keyboardState) && !setting.IsKeyDown(lastKeyboardState);
         }
 
-        public static bool IsReleased(UserCommands command)
+        public static bool IsReleased(UserCommand command)
         {
             if (ComposingMessage == true) return false;
             if (Raildriver.IsReleased(command))
@@ -146,7 +146,7 @@ namespace Orts.Viewer3D
             return !setting.IsKeyDown(keyboardState) && setting.IsKeyDown(lastKeyboardState);
         }
 
-        public static bool IsDown(UserCommands command)
+        public static bool IsDown(UserCommand command)
         {
             if (ComposingMessage == true) return false;
             if (Raildriver.IsDown(command))

@@ -348,7 +348,7 @@ namespace Orts.Viewer3D
         [CallOnThread("Updater")]
         public void PrepareFrame(ElapsedTime elapsedTime)
         {
-            if (UserInput.IsPressed(UserCommands.DebugLockShadows))
+            if (UserInput.IsPressed(UserCommand.DebugLockShadows))
                 LockShadows = !LockShadows;
 
             if (dynamicShadows && (shadowMapCount > 0) && !LockShadows)
@@ -540,7 +540,7 @@ namespace Orts.Viewer3D
 #if DEBUG_RENDER_STATE
 			DebugRenderState(graphicsDevice, "RenderFrame.Draw");
 #endif
-            var logging = UserInput.IsPressed(UserCommands.DebugLogRenderFrame);
+            var logging = UserInput.IsPressed(UserCommand.DebugLogRenderFrame);
             if (logging)
             {
                 Console.WriteLine();

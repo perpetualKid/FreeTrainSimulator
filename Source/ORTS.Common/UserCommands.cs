@@ -8,7 +8,7 @@ namespace ORTS.Common
     /// <remarks>
     /// <para>The ordering and naming of these commands is important. They are listed in the UI in the order they are defined in the code, and the first word of each command is the "group" to which it belongs.</para>
     /// </remarks>
-    public enum UserCommands
+    public enum UserCommand
     {
         [GetString("Game Pause Menu")] GamePauseMenu,
         [GetString("Game Save")] GameSave,

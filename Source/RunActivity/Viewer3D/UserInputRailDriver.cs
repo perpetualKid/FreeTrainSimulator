@@ -363,36 +363,36 @@ namespace Orts.Viewer3D
             return (!ButtonCurrentlyDown(command)) && ButtonPreviouslyDown(command);
         }
 
-        public bool IsPressed(UserCommands command)
+        public bool IsPressed(UserCommand command)
         {
             if (!active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
-            if (command == UserCommands.GamePauseMenu || raildriverCommand != 0)
-                return command == UserCommands.ControlHorn ? (IsPressed(raildriverCommand) || IsPressed((byte)(raildriverCommand + 1))) :
+            if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
+                return command == UserCommand.ControlHorn ? (IsPressed(raildriverCommand) || IsPressed((byte)(raildriverCommand + 1))) :
                     IsPressed(raildriverCommand);
             else
                 return false;
         }
 
-        public bool IsReleased(UserCommands command)
+        public bool IsReleased(UserCommand command)
         {
             if (!active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
-            if (command == UserCommands.GamePauseMenu || raildriverCommand != 0)
-                return command == UserCommands.ControlHorn ? (IsReleased(raildriverCommand) || IsReleased((byte)(raildriverCommand + 1))) :
+            if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
+                return command == UserCommand.ControlHorn ? (IsReleased(raildriverCommand) || IsReleased((byte)(raildriverCommand + 1))) :
                 IsReleased(raildriverCommand);
             else
                 return false;
         }
 
-        public bool IsDown(UserCommands command)
+        public bool IsDown(UserCommand command)
         {
             if (!active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
-            if (command == UserCommands.GamePauseMenu || raildriverCommand != 0)
+            if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
                 return ButtonCurrentlyDown(raildriverCommand);
             else
                 return false;

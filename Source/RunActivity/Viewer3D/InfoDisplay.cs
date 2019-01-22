@@ -91,7 +91,7 @@ namespace Orts.Viewer3D
 
         public void HandleUserInput(ElapsedTime elapsedTime)
         {
-            if (UserInput.IsPressed(UserCommands.DebugLogger))
+            if (UserInput.IsPressed(UserCommand.DebugLogger))
             {
                 Viewer.Settings.DataLogger = !Viewer.Settings.DataLogger;
                 if (Viewer.Settings.DataLogger)

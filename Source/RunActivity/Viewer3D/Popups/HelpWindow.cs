@@ -89,7 +89,7 @@ namespace Orts.Viewer3D.Popups
                     InputSettings.Scale(ref keyBox, keyWidth, keyHeight);
                     scrollbox.Add(new Key(keyBox.Left - scrollbox.CurrentLeft, keyBox.Top - scrollbox.CurrentTop, keyBox.Width - 1, keyBox.Height - 1, keyName, color));
                 });
-                foreach (UserCommands command in Enum.GetValues(typeof(UserCommands)))
+                foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
                 {
                     var line = scrollbox.AddLayoutHorizontalLineOfText();
                     var width = line.RemainingWidth / 2;

@@ -51,8 +51,8 @@ namespace ORTS.Settings
     {
         static GettextResourceManager catalog = new GettextResourceManager("ORTS.Settings");
 
-        public static readonly UserCommandInput[] DefaultCommands = new UserCommandInput[Enum.GetNames(typeof(UserCommands)).Length];
-        public readonly UserCommandInput[] Commands = new UserCommandInput[Enum.GetNames(typeof(UserCommands)).Length];
+        public static readonly UserCommandInput[] DefaultCommands = new UserCommandInput[Enum.GetNames(typeof(UserCommand)).Length];
+        public readonly UserCommandInput[] Commands = new UserCommandInput[Enum.GetNames(typeof(UserCommand)).Length];
 
         static InputSettings()
         {
@@ -70,14 +70,14 @@ namespace ORTS.Settings
             Load(options);
         }
 
-        UserCommands GetCommand(string name)
+        UserCommand GetCommand(string name)
         {
-            return (UserCommands)Enum.Parse(typeof(UserCommands), name);
+            return (UserCommand)Enum.Parse(typeof(UserCommand), name);
         }
 
-        UserCommands[] GetCommands()
+        UserCommand[] GetCommands()
         {
-            return (UserCommands[])Enum.GetValues(typeof(UserCommands));
+            return (UserCommand[])Enum.GetValues(typeof(UserCommand));
         }
 
         public override object GetDefaultValue(string name)
@@ -181,7 +181,7 @@ namespace ORTS.Settings
             }
         }
 
-        IEnumerable<UserCommands> GetScanCodeCommands(int scanCode)
+        IEnumerable<UserCommand> GetScanCodeCommands(int scanCode)
         {
             return GetCommands().Where(uc => (Commands[(int)uc] is UserCommandKeyInput) && ((Commands[(int)uc] as UserCommandKeyInput).ScanCode == scanCode));
         }
@@ -278,190 +278,190 @@ namespace ORTS.Settings
         static void InitializeCommands(UserCommandInput[] Commands)
         {
             // All UserCommandModifierInput commands go here.
-            Commands[(int)UserCommands.GameSwitchWithMouse] = new UserCommandModifierInput(KeyModifiers.Alt);
-            Commands[(int)UserCommands.DisplayNextWindowTab] = new UserCommandModifierInput(KeyModifiers.Shift);
-            Commands[(int)UserCommands.CameraMoveFast] = new UserCommandModifierInput(KeyModifiers.Shift);
-            Commands[(int)UserCommands.GameSuspendOldPlayer] = new UserCommandModifierInput(KeyModifiers.Shift);
-            Commands[(int)UserCommands.CameraMoveSlow] = new UserCommandModifierInput(KeyModifiers.Control);
+            Commands[(int)UserCommand.GameSwitchWithMouse] = new UserCommandModifierInput(KeyModifiers.Alt);
+            Commands[(int)UserCommand.DisplayNextWindowTab] = new UserCommandModifierInput(KeyModifiers.Shift);
+            Commands[(int)UserCommand.CameraMoveFast] = new UserCommandModifierInput(KeyModifiers.Shift);
+            Commands[(int)UserCommand.GameSuspendOldPlayer] = new UserCommandModifierInput(KeyModifiers.Shift);
+            Commands[(int)UserCommand.CameraMoveSlow] = new UserCommandModifierInput(KeyModifiers.Control);
 
             // Everything else goes here, sorted alphabetically please (and grouped by first word of name).
-            Commands[(int)UserCommands.CameraBrakeman] = new UserCommandKeyInput(0x07);
-			Commands[(int)UserCommands.CameraCab] = new UserCommandKeyInput(0x02);
-			Commands[(int)UserCommands.CameraThreeDimensionalCab] = new UserCommandKeyInput(0x02, KeyModifiers.Alt);
-            Commands[(int)UserCommands.CameraCarFirst] = new UserCommandKeyInput(0x47, KeyModifiers.Alt);
-            Commands[(int)UserCommands.CameraCarLast] = new UserCommandKeyInput(0x4F, KeyModifiers.Alt);
-            Commands[(int)UserCommands.CameraCarNext] = new UserCommandKeyInput(0x49, KeyModifiers.Alt);
-            Commands[(int)UserCommands.CameraCarPrevious] = new UserCommandKeyInput(0x51, KeyModifiers.Alt);
-            Commands[(int)UserCommands.CameraFree] = new UserCommandKeyInput(0x09);
-            Commands[(int)UserCommands.CameraHeadOutBackward] = new UserCommandKeyInput(0x4F);
-            Commands[(int)UserCommands.CameraHeadOutForward] = new UserCommandKeyInput(0x47);
-            Commands[(int)UserCommands.CameraJumpBackPlayer] = new UserCommandKeyInput(0x0A);
-            Commands[(int)UserCommands.CameraJumpingTrains] = new UserCommandKeyInput(0x0A, KeyModifiers.Alt);
-            Commands[(int)UserCommands.CameraJumpSeeSwitch] = new UserCommandKeyInput(0x22, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommands.CameraOutsideFront] = new UserCommandKeyInput(0x03);
-            Commands[(int)UserCommands.CameraOutsideRear] = new UserCommandKeyInput(0x04);
-            Commands[(int)UserCommands.CameraPanDown] = new UserCommandModifiableKeyInput(0x50, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
-            Commands[(int)UserCommands.CameraPanLeft] = new UserCommandModifiableKeyInput(0x4B, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
-            Commands[(int)UserCommands.CameraPanRight] = new UserCommandModifiableKeyInput(0x4D, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
-            Commands[(int)UserCommands.CameraPanUp] = new UserCommandModifiableKeyInput(0x48, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
-            Commands[(int)UserCommands.CameraPassenger] = new UserCommandKeyInput(0x06);
-            Commands[(int)UserCommands.CameraPreviousFree] = new UserCommandKeyInput(0x09, KeyModifiers.Shift);
-            Commands[(int)UserCommands.CameraReset] = new UserCommandKeyInput(0x09, KeyModifiers.Control);
-            Commands[(int)UserCommands.CameraRotateDown] = new UserCommandModifiableKeyInput(0x50, KeyModifiers.Alt, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
-            Commands[(int)UserCommands.CameraRotateLeft] = new UserCommandModifiableKeyInput(0x4B, KeyModifiers.Alt, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
-            Commands[(int)UserCommands.CameraRotateRight] = new UserCommandModifiableKeyInput(0x4D, KeyModifiers.Alt, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
-            Commands[(int)UserCommands.CameraRotateUp] = new UserCommandModifiableKeyInput(0x48, KeyModifiers.Alt, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
-            Commands[(int)UserCommands.CameraScrollLeft] = new UserCommandModifiableKeyInput(0x4B, KeyModifiers.Alt);
-            Commands[(int)UserCommands.CameraScrollRight] = new UserCommandModifiableKeyInput(0x4D, KeyModifiers.Alt);
-            Commands[(int)UserCommands.CameraChangePassengerViewPoint] = new UserCommandKeyInput(0x06, KeyModifiers.Shift);
-            Commands[(int)UserCommands.CameraToggleShowCab] = new UserCommandKeyInput(0x02, KeyModifiers.Shift);
-            Commands[(int)UserCommands.CameraTrackside] = new UserCommandKeyInput(0x05);
-            Commands[(int)UserCommands.CameraVibrate] = new UserCommandKeyInput(0x2F, KeyModifiers.Control);
-            Commands[(int)UserCommands.CameraZoomIn] = new UserCommandModifiableKeyInput(0x49, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
-            Commands[(int)UserCommands.CameraZoomOut] = new UserCommandModifiableKeyInput(0x51, Commands[(int)UserCommands.CameraMoveFast], Commands[(int)UserCommands.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraBrakeman] = new UserCommandKeyInput(0x07);
+			Commands[(int)UserCommand.CameraCab] = new UserCommandKeyInput(0x02);
+			Commands[(int)UserCommand.CameraThreeDimensionalCab] = new UserCommandKeyInput(0x02, KeyModifiers.Alt);
+            Commands[(int)UserCommand.CameraCarFirst] = new UserCommandKeyInput(0x47, KeyModifiers.Alt);
+            Commands[(int)UserCommand.CameraCarLast] = new UserCommandKeyInput(0x4F, KeyModifiers.Alt);
+            Commands[(int)UserCommand.CameraCarNext] = new UserCommandKeyInput(0x49, KeyModifiers.Alt);
+            Commands[(int)UserCommand.CameraCarPrevious] = new UserCommandKeyInput(0x51, KeyModifiers.Alt);
+            Commands[(int)UserCommand.CameraFree] = new UserCommandKeyInput(0x09);
+            Commands[(int)UserCommand.CameraHeadOutBackward] = new UserCommandKeyInput(0x4F);
+            Commands[(int)UserCommand.CameraHeadOutForward] = new UserCommandKeyInput(0x47);
+            Commands[(int)UserCommand.CameraJumpBackPlayer] = new UserCommandKeyInput(0x0A);
+            Commands[(int)UserCommand.CameraJumpingTrains] = new UserCommandKeyInput(0x0A, KeyModifiers.Alt);
+            Commands[(int)UserCommand.CameraJumpSeeSwitch] = new UserCommandKeyInput(0x22, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.CameraOutsideFront] = new UserCommandKeyInput(0x03);
+            Commands[(int)UserCommand.CameraOutsideRear] = new UserCommandKeyInput(0x04);
+            Commands[(int)UserCommand.CameraPanDown] = new UserCommandModifiableKeyInput(0x50, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraPanLeft] = new UserCommandModifiableKeyInput(0x4B, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraPanRight] = new UserCommandModifiableKeyInput(0x4D, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraPanUp] = new UserCommandModifiableKeyInput(0x48, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraPassenger] = new UserCommandKeyInput(0x06);
+            Commands[(int)UserCommand.CameraPreviousFree] = new UserCommandKeyInput(0x09, KeyModifiers.Shift);
+            Commands[(int)UserCommand.CameraReset] = new UserCommandKeyInput(0x09, KeyModifiers.Control);
+            Commands[(int)UserCommand.CameraRotateDown] = new UserCommandModifiableKeyInput(0x50, KeyModifiers.Alt, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraRotateLeft] = new UserCommandModifiableKeyInput(0x4B, KeyModifiers.Alt, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraRotateRight] = new UserCommandModifiableKeyInput(0x4D, KeyModifiers.Alt, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraRotateUp] = new UserCommandModifiableKeyInput(0x48, KeyModifiers.Alt, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraScrollLeft] = new UserCommandModifiableKeyInput(0x4B, KeyModifiers.Alt);
+            Commands[(int)UserCommand.CameraScrollRight] = new UserCommandModifiableKeyInput(0x4D, KeyModifiers.Alt);
+            Commands[(int)UserCommand.CameraChangePassengerViewPoint] = new UserCommandKeyInput(0x06, KeyModifiers.Shift);
+            Commands[(int)UserCommand.CameraToggleShowCab] = new UserCommandKeyInput(0x02, KeyModifiers.Shift);
+            Commands[(int)UserCommand.CameraTrackside] = new UserCommandKeyInput(0x05);
+            Commands[(int)UserCommand.CameraVibrate] = new UserCommandKeyInput(0x2F, KeyModifiers.Control);
+            Commands[(int)UserCommand.CameraZoomIn] = new UserCommandModifiableKeyInput(0x49, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraZoomOut] = new UserCommandModifiableKeyInput(0x51, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
 
-            Commands[(int)UserCommands.ControlAlerter] = new UserCommandKeyInput(0x2C);
-            Commands[(int)UserCommands.ControlBackwards] = new UserCommandKeyInput(0x1F);
-            Commands[(int)UserCommands.ControlBailOff] = new UserCommandKeyInput(0x35);
-            Commands[(int)UserCommands.ControlBell] = new UserCommandKeyInput(0x30);
-            Commands[(int)UserCommands.ControlBellToggle] = new UserCommandKeyInput(0x30, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlBlowerDecrease] = new UserCommandKeyInput(0x31, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlBlowerIncrease] = new UserCommandKeyInput(0x31);
-            Commands[(int)UserCommands.ControlSteamHeatDecrease] = new UserCommandKeyInput(0x20, KeyModifiers.Alt);
-            Commands[(int)UserCommands.ControlSteamHeatIncrease] = new UserCommandKeyInput(0x16, KeyModifiers.Alt);
-            Commands[(int)UserCommands.ControlBrakeHoseConnect] = new UserCommandKeyInput(0x2B);
-            Commands[(int)UserCommands.ControlBrakeHoseDisconnect] = new UserCommandKeyInput(0x2B, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlCabRadio] = new UserCommandKeyInput(0x13, KeyModifiers.Alt);
-            Commands[(int)UserCommands.ControlCircuitBreakerClosingOrder] = new UserCommandKeyInput(0x18);
-            Commands[(int)UserCommands.ControlCircuitBreakerOpeningOrder] = new UserCommandKeyInput(0x17);
-            Commands[(int)UserCommands.ControlCircuitBreakerClosingAuthorization] = new UserCommandKeyInput(0x18, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlCylinderCocks] = new UserCommandKeyInput(0x2E);
-            Commands[(int)UserCommands.ControlSmallEjectorIncrease] = new UserCommandKeyInput(0x24);
-            Commands[(int)UserCommands.ControlSmallEjectorDecrease] = new UserCommandKeyInput(0x24, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlCylinderCompound] = new UserCommandKeyInput(0x19);
-            Commands[(int)UserCommands.ControlDamperDecrease] = new UserCommandKeyInput(0x32, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlDamperIncrease] = new UserCommandKeyInput(0x32);
-            Commands[(int)UserCommands.ControlDieselHelper] = new UserCommandKeyInput(0x15, KeyModifiers.Control);
-            Commands[(int)UserCommands.ControlDieselPlayer] = new UserCommandKeyInput(0x15, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlDoorLeft] = new UserCommandKeyInput(0x10);
-            Commands[(int)UserCommands.ControlDoorRight] = new UserCommandKeyInput(0x10, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlDynamicBrakeDecrease] = new UserCommandKeyInput(0x33);
-            Commands[(int)UserCommands.ControlDynamicBrakeIncrease] = new UserCommandKeyInput(0x34);
-            Commands[(int)UserCommands.ControlEmergencyPushButton] = new UserCommandKeyInput(0x0E);
-            Commands[(int)UserCommands.ControlEngineBrakeDecrease] = new UserCommandKeyInput(0x1A);
-            Commands[(int)UserCommands.ControlEngineBrakeIncrease] = new UserCommandKeyInput(0x1B);
-            Commands[(int)UserCommands.ControlFireboxClose] = new UserCommandKeyInput(0x21, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlFireboxOpen] = new UserCommandKeyInput(0x21);
-            Commands[(int)UserCommands.ControlFireShovelFull] = new UserCommandKeyInput(0x13, KeyModifiers.Control);
-            Commands[(int)UserCommands.ControlFiring] = new UserCommandKeyInput(0x21, KeyModifiers.Control);
-            Commands[(int)UserCommands.ControlFiringRateDecrease] = new UserCommandKeyInput(0x13, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlFiringRateIncrease] = new UserCommandKeyInput(0x13);
-            Commands[(int)UserCommands.ControlForwards] = new UserCommandKeyInput(0x11);
-            Commands[(int)UserCommands.ControlGearDown] = new UserCommandKeyInput(0x12, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlGearUp] = new UserCommandKeyInput(0x12);
-            Commands[(int)UserCommands.ControlHandbrakeFull] = new UserCommandKeyInput(0x28, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlHandbrakeNone] = new UserCommandKeyInput(0x27, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlHeadlightDecrease] = new UserCommandKeyInput(0x23, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlHeadlightIncrease] = new UserCommandKeyInput(0x23);
-            Commands[(int)UserCommands.ControlHorn] = new UserCommandKeyInput(0x39);
-            Commands[(int)UserCommands.ControlImmediateRefill] = new UserCommandKeyInput(0x14, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlInitializeBrakes] = new UserCommandKeyInput(0x35, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlInjector1] = new UserCommandKeyInput(0x17);
-            Commands[(int)UserCommands.ControlInjector1Decrease] = new UserCommandKeyInput(0x25, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlInjector1Increase] = new UserCommandKeyInput(0x25);
-            Commands[(int)UserCommands.ControlInjector2] = new UserCommandKeyInput(0x18);
-            Commands[(int)UserCommands.ControlInjector2Decrease] = new UserCommandKeyInput(0x26, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlInjector2Increase] = new UserCommandKeyInput(0x26);
-            Commands[(int)UserCommands.ControlLight] = new UserCommandKeyInput(0x26);
-            Commands[(int)UserCommands.ControlMirror] = new UserCommandKeyInput(0x2F, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlPantograph1] = new UserCommandKeyInput(0x19);
-            Commands[(int)UserCommands.ControlPantograph2] = new UserCommandKeyInput(0x19, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlOdoMeterShowHide] = new UserCommandKeyInput(0x2C, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlOdoMeterReset] = new UserCommandKeyInput(0x2C, KeyModifiers.Control);
-            Commands[(int)UserCommands.ControlOdoMeterDirection] = new UserCommandKeyInput(0x2C, KeyModifiers.Control | KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlRefill] = new UserCommandKeyInput(0x14);
-            Commands[(int)UserCommands.ControlRetainersOff] = new UserCommandKeyInput(0x1A, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlRetainersOn] = new UserCommandKeyInput(0x1B, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlSander] = new UserCommandKeyInput(0x2D);
-            Commands[(int)UserCommands.ControlSanderToggle] = new UserCommandKeyInput(0x2D, KeyModifiers.Shift);
-            Commands[(int)UserCommands.ControlThrottleDecrease] = new UserCommandKeyInput(0x1E);
-            Commands[(int)UserCommands.ControlThrottleIncrease] = new UserCommandKeyInput(0x20);
-            Commands[(int)UserCommands.ControlThrottleZero] = new UserCommandKeyInput(0x1E, KeyModifiers.Control);
-            Commands[(int)UserCommands.ControlTrainBrakeDecrease] = new UserCommandKeyInput(0x27);
-            Commands[(int)UserCommands.ControlTrainBrakeIncrease] = new UserCommandKeyInput(0x28);
-            Commands[(int)UserCommands.ControlTrainBrakeZero] = new UserCommandKeyInput(0x27, KeyModifiers.Control);
-            Commands[(int)UserCommands.ControlTroughRefill] = new UserCommandKeyInput(0x15);
-            Commands[(int)UserCommands.ControlTurntableClockwise] = new UserCommandKeyInput(0x2E, KeyModifiers.Alt);
-            Commands[(int)UserCommands.ControlTurntableCounterclockwise] = new UserCommandKeyInput(0x2E, KeyModifiers.Control);
-            Commands[(int)UserCommands.ControlAIFireOn] = new UserCommandKeyInput(0x23, KeyModifiers.Alt);
-            Commands[(int)UserCommands.ControlAIFireOff] = new UserCommandKeyInput(0x23, KeyModifiers.Control);
-            Commands[(int)UserCommands.ControlAIFireReset] = new UserCommandKeyInput(0x23, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.ControlAlerter] = new UserCommandKeyInput(0x2C);
+            Commands[(int)UserCommand.ControlBackwards] = new UserCommandKeyInput(0x1F);
+            Commands[(int)UserCommand.ControlBailOff] = new UserCommandKeyInput(0x35);
+            Commands[(int)UserCommand.ControlBell] = new UserCommandKeyInput(0x30);
+            Commands[(int)UserCommand.ControlBellToggle] = new UserCommandKeyInput(0x30, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlBlowerDecrease] = new UserCommandKeyInput(0x31, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlBlowerIncrease] = new UserCommandKeyInput(0x31);
+            Commands[(int)UserCommand.ControlSteamHeatDecrease] = new UserCommandKeyInput(0x20, KeyModifiers.Alt);
+            Commands[(int)UserCommand.ControlSteamHeatIncrease] = new UserCommandKeyInput(0x16, KeyModifiers.Alt);
+            Commands[(int)UserCommand.ControlBrakeHoseConnect] = new UserCommandKeyInput(0x2B);
+            Commands[(int)UserCommand.ControlBrakeHoseDisconnect] = new UserCommandKeyInput(0x2B, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlCabRadio] = new UserCommandKeyInput(0x13, KeyModifiers.Alt);
+            Commands[(int)UserCommand.ControlCircuitBreakerClosingOrder] = new UserCommandKeyInput(0x18);
+            Commands[(int)UserCommand.ControlCircuitBreakerOpeningOrder] = new UserCommandKeyInput(0x17);
+            Commands[(int)UserCommand.ControlCircuitBreakerClosingAuthorization] = new UserCommandKeyInput(0x18, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlCylinderCocks] = new UserCommandKeyInput(0x2E);
+            Commands[(int)UserCommand.ControlSmallEjectorIncrease] = new UserCommandKeyInput(0x24);
+            Commands[(int)UserCommand.ControlSmallEjectorDecrease] = new UserCommandKeyInput(0x24, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlCylinderCompound] = new UserCommandKeyInput(0x19);
+            Commands[(int)UserCommand.ControlDamperDecrease] = new UserCommandKeyInput(0x32, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlDamperIncrease] = new UserCommandKeyInput(0x32);
+            Commands[(int)UserCommand.ControlDieselHelper] = new UserCommandKeyInput(0x15, KeyModifiers.Control);
+            Commands[(int)UserCommand.ControlDieselPlayer] = new UserCommandKeyInput(0x15, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlDoorLeft] = new UserCommandKeyInput(0x10);
+            Commands[(int)UserCommand.ControlDoorRight] = new UserCommandKeyInput(0x10, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlDynamicBrakeDecrease] = new UserCommandKeyInput(0x33);
+            Commands[(int)UserCommand.ControlDynamicBrakeIncrease] = new UserCommandKeyInput(0x34);
+            Commands[(int)UserCommand.ControlEmergencyPushButton] = new UserCommandKeyInput(0x0E);
+            Commands[(int)UserCommand.ControlEngineBrakeDecrease] = new UserCommandKeyInput(0x1A);
+            Commands[(int)UserCommand.ControlEngineBrakeIncrease] = new UserCommandKeyInput(0x1B);
+            Commands[(int)UserCommand.ControlFireboxClose] = new UserCommandKeyInput(0x21, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlFireboxOpen] = new UserCommandKeyInput(0x21);
+            Commands[(int)UserCommand.ControlFireShovelFull] = new UserCommandKeyInput(0x13, KeyModifiers.Control);
+            Commands[(int)UserCommand.ControlFiring] = new UserCommandKeyInput(0x21, KeyModifiers.Control);
+            Commands[(int)UserCommand.ControlFiringRateDecrease] = new UserCommandKeyInput(0x13, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlFiringRateIncrease] = new UserCommandKeyInput(0x13);
+            Commands[(int)UserCommand.ControlForwards] = new UserCommandKeyInput(0x11);
+            Commands[(int)UserCommand.ControlGearDown] = new UserCommandKeyInput(0x12, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlGearUp] = new UserCommandKeyInput(0x12);
+            Commands[(int)UserCommand.ControlHandbrakeFull] = new UserCommandKeyInput(0x28, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlHandbrakeNone] = new UserCommandKeyInput(0x27, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlHeadlightDecrease] = new UserCommandKeyInput(0x23, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlHeadlightIncrease] = new UserCommandKeyInput(0x23);
+            Commands[(int)UserCommand.ControlHorn] = new UserCommandKeyInput(0x39);
+            Commands[(int)UserCommand.ControlImmediateRefill] = new UserCommandKeyInput(0x14, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlInitializeBrakes] = new UserCommandKeyInput(0x35, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlInjector1] = new UserCommandKeyInput(0x17);
+            Commands[(int)UserCommand.ControlInjector1Decrease] = new UserCommandKeyInput(0x25, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlInjector1Increase] = new UserCommandKeyInput(0x25);
+            Commands[(int)UserCommand.ControlInjector2] = new UserCommandKeyInput(0x18);
+            Commands[(int)UserCommand.ControlInjector2Decrease] = new UserCommandKeyInput(0x26, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlInjector2Increase] = new UserCommandKeyInput(0x26);
+            Commands[(int)UserCommand.ControlLight] = new UserCommandKeyInput(0x26);
+            Commands[(int)UserCommand.ControlMirror] = new UserCommandKeyInput(0x2F, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlPantograph1] = new UserCommandKeyInput(0x19);
+            Commands[(int)UserCommand.ControlPantograph2] = new UserCommandKeyInput(0x19, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlOdoMeterShowHide] = new UserCommandKeyInput(0x2C, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlOdoMeterReset] = new UserCommandKeyInput(0x2C, KeyModifiers.Control);
+            Commands[(int)UserCommand.ControlOdoMeterDirection] = new UserCommandKeyInput(0x2C, KeyModifiers.Control | KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlRefill] = new UserCommandKeyInput(0x14);
+            Commands[(int)UserCommand.ControlRetainersOff] = new UserCommandKeyInput(0x1A, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlRetainersOn] = new UserCommandKeyInput(0x1B, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlSander] = new UserCommandKeyInput(0x2D);
+            Commands[(int)UserCommand.ControlSanderToggle] = new UserCommandKeyInput(0x2D, KeyModifiers.Shift);
+            Commands[(int)UserCommand.ControlThrottleDecrease] = new UserCommandKeyInput(0x1E);
+            Commands[(int)UserCommand.ControlThrottleIncrease] = new UserCommandKeyInput(0x20);
+            Commands[(int)UserCommand.ControlThrottleZero] = new UserCommandKeyInput(0x1E, KeyModifiers.Control);
+            Commands[(int)UserCommand.ControlTrainBrakeDecrease] = new UserCommandKeyInput(0x27);
+            Commands[(int)UserCommand.ControlTrainBrakeIncrease] = new UserCommandKeyInput(0x28);
+            Commands[(int)UserCommand.ControlTrainBrakeZero] = new UserCommandKeyInput(0x27, KeyModifiers.Control);
+            Commands[(int)UserCommand.ControlTroughRefill] = new UserCommandKeyInput(0x15);
+            Commands[(int)UserCommand.ControlTurntableClockwise] = new UserCommandKeyInput(0x2E, KeyModifiers.Alt);
+            Commands[(int)UserCommand.ControlTurntableCounterclockwise] = new UserCommandKeyInput(0x2E, KeyModifiers.Control);
+            Commands[(int)UserCommand.ControlAIFireOn] = new UserCommandKeyInput(0x23, KeyModifiers.Alt);
+            Commands[(int)UserCommand.ControlAIFireOff] = new UserCommandKeyInput(0x23, KeyModifiers.Control);
+            Commands[(int)UserCommand.ControlAIFireReset] = new UserCommandKeyInput(0x23, KeyModifiers.Control | KeyModifiers.Alt);
 
-            Commands[(int)UserCommands.ControlWiper] = new UserCommandKeyInput(0x2F);
+            Commands[(int)UserCommand.ControlWiper] = new UserCommandKeyInput(0x2F);
 
-            Commands[(int)UserCommands.DebugClockBackwards] = new UserCommandKeyInput(0x0C);
-            Commands[(int)UserCommands.DebugClockForwards] = new UserCommandKeyInput(0x0D);
-            Commands[(int)UserCommands.DebugDumpKeymap] = new UserCommandKeyInput(0x3B, KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugFogDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Shift);
-            Commands[(int)UserCommands.DebugFogIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Shift);
-            Commands[(int)UserCommands.DebugLockShadows] = new UserCommandKeyInput(0x1F, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugLogger] = new UserCommandKeyInput(0x58);
-            Commands[(int)UserCommands.DebugLogRenderFrame] = new UserCommandKeyInput(0x58, KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugOvercastDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Control);
-            Commands[(int)UserCommands.DebugOvercastIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Control);
-            Commands[(int)UserCommands.DebugPhysicsForm] = new UserCommandKeyInput(0x3D, KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugPrecipitationDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugPrecipitationIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugPrecipitationLiquidityDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugPrecipitationLiquidityIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugResetWheelSlip] = new UserCommandKeyInput(0x2D, KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugSignalling] = new UserCommandKeyInput(0x57, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugSoundForm] = new UserCommandKeyInput(0x1F, KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugSpeedDown] = new UserCommandKeyInput(0x51, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugSpeedReset] = new UserCommandKeyInput(0x47, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugSpeedUp] = new UserCommandKeyInput(0x49, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugToggleAdvancedAdhesion] = new UserCommandKeyInput(0x2D, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugTracks] = new UserCommandKeyInput(0x40, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommands.DebugWeatherChange] = new UserCommandKeyInput(0x19, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugClockBackwards] = new UserCommandKeyInput(0x0C);
+            Commands[(int)UserCommand.DebugClockForwards] = new UserCommandKeyInput(0x0D);
+            Commands[(int)UserCommand.DebugDumpKeymap] = new UserCommandKeyInput(0x3B, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugFogDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Shift);
+            Commands[(int)UserCommand.DebugFogIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Shift);
+            Commands[(int)UserCommand.DebugLockShadows] = new UserCommandKeyInput(0x1F, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugLogger] = new UserCommandKeyInput(0x58);
+            Commands[(int)UserCommand.DebugLogRenderFrame] = new UserCommandKeyInput(0x58, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugOvercastDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Control);
+            Commands[(int)UserCommand.DebugOvercastIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Control);
+            Commands[(int)UserCommand.DebugPhysicsForm] = new UserCommandKeyInput(0x3D, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugPrecipitationDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugPrecipitationIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugPrecipitationLiquidityDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugPrecipitationLiquidityIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugResetWheelSlip] = new UserCommandKeyInput(0x2D, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugSignalling] = new UserCommandKeyInput(0x57, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugSoundForm] = new UserCommandKeyInput(0x1F, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugSpeedDown] = new UserCommandKeyInput(0x51, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugSpeedReset] = new UserCommandKeyInput(0x47, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugSpeedUp] = new UserCommandKeyInput(0x49, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugToggleAdvancedAdhesion] = new UserCommandKeyInput(0x2D, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugTracks] = new UserCommandKeyInput(0x40, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugWeatherChange] = new UserCommandKeyInput(0x19, KeyModifiers.Alt);
 
-            Commands[(int)UserCommands.DisplayTrainListWindow] = new UserCommandKeyInput(0x43, KeyModifiers.Alt);
-            Commands[(int)UserCommands.DisplayBasicHUDToggle] = new UserCommandKeyInput(0x3F, KeyModifiers.Alt);
-            Commands[(int)UserCommands.DisplayCarLabels] = new UserCommandModifiableKeyInput(0x41, Commands[(int)UserCommands.DisplayNextWindowTab]);
-            Commands[(int)UserCommands.DisplayCompassWindow] = new UserCommandKeyInput(0x0B);
-            Commands[(int)UserCommands.DisplayHelpWindow] = new UserCommandModifiableKeyInput(0x3B, Commands[(int)UserCommands.DisplayNextWindowTab]);
-            Commands[(int)UserCommands.DisplayHUD] = new UserCommandModifiableKeyInput(0x3F, Commands[(int)UserCommands.DisplayNextWindowTab]);
-            Commands[(int)UserCommands.DisplayNextStationWindow] = new UserCommandKeyInput(0x44);
-            Commands[(int)UserCommands.DisplayStationLabels] = new UserCommandModifiableKeyInput(0x40, Commands[(int)UserCommands.DisplayNextWindowTab]);
-            Commands[(int)UserCommands.DisplaySwitchWindow] = new UserCommandKeyInput(0x42);
-            Commands[(int)UserCommands.DisplayTrackMonitorWindow] = new UserCommandKeyInput(0x3E);
-            Commands[(int)UserCommands.DisplayTrainOperationsWindow] = new UserCommandKeyInput(0x43);
+            Commands[(int)UserCommand.DisplayTrainListWindow] = new UserCommandKeyInput(0x43, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DisplayBasicHUDToggle] = new UserCommandKeyInput(0x3F, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DisplayCarLabels] = new UserCommandModifiableKeyInput(0x41, Commands[(int)UserCommand.DisplayNextWindowTab]);
+            Commands[(int)UserCommand.DisplayCompassWindow] = new UserCommandKeyInput(0x0B);
+            Commands[(int)UserCommand.DisplayHelpWindow] = new UserCommandModifiableKeyInput(0x3B, Commands[(int)UserCommand.DisplayNextWindowTab]);
+            Commands[(int)UserCommand.DisplayHUD] = new UserCommandModifiableKeyInput(0x3F, Commands[(int)UserCommand.DisplayNextWindowTab]);
+            Commands[(int)UserCommand.DisplayNextStationWindow] = new UserCommandKeyInput(0x44);
+            Commands[(int)UserCommand.DisplayStationLabels] = new UserCommandModifiableKeyInput(0x40, Commands[(int)UserCommand.DisplayNextWindowTab]);
+            Commands[(int)UserCommand.DisplaySwitchWindow] = new UserCommandKeyInput(0x42);
+            Commands[(int)UserCommand.DisplayTrackMonitorWindow] = new UserCommandKeyInput(0x3E);
+            Commands[(int)UserCommand.DisplayTrainOperationsWindow] = new UserCommandKeyInput(0x43);
 
-            Commands[(int)UserCommands.GameAutopilotMode] = new UserCommandKeyInput(0x1E, KeyModifiers.Alt);
-            Commands[(int)UserCommands.GameChangeCab] = new UserCommandKeyInput(0x12, KeyModifiers.Control);
-            Commands[(int)UserCommands.GameClearSignalBackward] = new UserCommandKeyInput(0x0F, KeyModifiers.Shift);
-            Commands[(int)UserCommands.GameClearSignalForward] = new UserCommandKeyInput(0x0F);
-            Commands[(int)UserCommands.GameExternalCabController] = new UserCommandKeyInput(0x29);
-            Commands[(int)UserCommands.GameFullscreen] = new UserCommandKeyInput(0x1C, KeyModifiers.Alt);
-            Commands[(int)UserCommands.GameMultiPlayerDispatcher] = new UserCommandKeyInput(0x0A, KeyModifiers.Control);
-            Commands[(int)UserCommands.GameMultiPlayerTexting] = new UserCommandKeyInput(0x14, KeyModifiers.Control);
-            Commands[(int)UserCommands.GamePause] = new UserCommandKeyInput(Keys.Pause);
-            Commands[(int)UserCommands.GamePauseMenu] = new UserCommandKeyInput(0x01);
-            Commands[(int)UserCommands.GameQuit] = new UserCommandKeyInput(0x3E, KeyModifiers.Alt);
-            Commands[(int)UserCommands.GameRequestControl] = new UserCommandKeyInput(0x12, KeyModifiers.Alt);
-            Commands[(int)UserCommands.GameResetSignalBackward] = new UserCommandKeyInput(0x0F, KeyModifiers.Control | KeyModifiers.Shift);
-            Commands[(int)UserCommands.GameResetSignalForward] = new UserCommandKeyInput(0x0F, KeyModifiers.Control);
-            Commands[(int)UserCommands.GameSave] = new UserCommandKeyInput(0x3C);
-            Commands[(int)UserCommands.GameScreenshot] = new UserCommandKeyInput(Keys.PrintScreen);
-            Commands[(int)UserCommands.GameSignalPicked] = new UserCommandKeyInput(0x22, KeyModifiers.Control);
-            Commands[(int)UserCommands.GameSwitchAhead] = new UserCommandKeyInput(0x22);
-            Commands[(int)UserCommands.GameSwitchBehind] = new UserCommandKeyInput(0x22, KeyModifiers.Shift);
-            Commands[(int)UserCommands.GameSwitchManualMode] = new UserCommandKeyInput(0x32, KeyModifiers.Control);
-            Commands[(int)UserCommands.GameSwitchPicked] = new UserCommandKeyInput(0x22, KeyModifiers.Alt);
-            Commands[(int)UserCommands.GameUncoupleWithMouse] = new UserCommandKeyInput(0x16);
+            Commands[(int)UserCommand.GameAutopilotMode] = new UserCommandKeyInput(0x1E, KeyModifiers.Alt);
+            Commands[(int)UserCommand.GameChangeCab] = new UserCommandKeyInput(0x12, KeyModifiers.Control);
+            Commands[(int)UserCommand.GameClearSignalBackward] = new UserCommandKeyInput(0x0F, KeyModifiers.Shift);
+            Commands[(int)UserCommand.GameClearSignalForward] = new UserCommandKeyInput(0x0F);
+            Commands[(int)UserCommand.GameExternalCabController] = new UserCommandKeyInput(0x29);
+            Commands[(int)UserCommand.GameFullscreen] = new UserCommandKeyInput(0x1C, KeyModifiers.Alt);
+            Commands[(int)UserCommand.GameMultiPlayerDispatcher] = new UserCommandKeyInput(0x0A, KeyModifiers.Control);
+            Commands[(int)UserCommand.GameMultiPlayerTexting] = new UserCommandKeyInput(0x14, KeyModifiers.Control);
+            Commands[(int)UserCommand.GamePause] = new UserCommandKeyInput(Keys.Pause);
+            Commands[(int)UserCommand.GamePauseMenu] = new UserCommandKeyInput(0x01);
+            Commands[(int)UserCommand.GameQuit] = new UserCommandKeyInput(0x3E, KeyModifiers.Alt);
+            Commands[(int)UserCommand.GameRequestControl] = new UserCommandKeyInput(0x12, KeyModifiers.Alt);
+            Commands[(int)UserCommand.GameResetSignalBackward] = new UserCommandKeyInput(0x0F, KeyModifiers.Control | KeyModifiers.Shift);
+            Commands[(int)UserCommand.GameResetSignalForward] = new UserCommandKeyInput(0x0F, KeyModifiers.Control);
+            Commands[(int)UserCommand.GameSave] = new UserCommandKeyInput(0x3C);
+            Commands[(int)UserCommand.GameScreenshot] = new UserCommandKeyInput(Keys.PrintScreen);
+            Commands[(int)UserCommand.GameSignalPicked] = new UserCommandKeyInput(0x22, KeyModifiers.Control);
+            Commands[(int)UserCommand.GameSwitchAhead] = new UserCommandKeyInput(0x22);
+            Commands[(int)UserCommand.GameSwitchBehind] = new UserCommandKeyInput(0x22, KeyModifiers.Shift);
+            Commands[(int)UserCommand.GameSwitchManualMode] = new UserCommandKeyInput(0x32, KeyModifiers.Control);
+            Commands[(int)UserCommand.GameSwitchPicked] = new UserCommandKeyInput(0x22, KeyModifiers.Alt);
+            Commands[(int)UserCommand.GameUncoupleWithMouse] = new UserCommandKeyInput(0x16);
         }
         #endregion
 
-        bool IsModifier(UserCommands command)
+        bool IsModifier(UserCommand command)
         {
             return Commands[(int)command].GetType() == typeof(UserCommandModifierInput);
         }
@@ -530,7 +530,7 @@ namespace ORTS.Settings
             return catalog.GetString(GetStringAttribute.GetPrettyName(value));
         }
 
-        public static string GetPrettyCommandName(UserCommands command)
+        public static string GetPrettyCommandName(UserCommand command)
         {
             var name = command.ToString();
             var nameU = name.ToUpperInvariant();
