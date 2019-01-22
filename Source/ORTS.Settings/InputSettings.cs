@@ -440,6 +440,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommands.GameChangeCab] = new UserCommandKeyInput(0x12, KeyModifiers.Control);
             Commands[(int)UserCommands.GameClearSignalBackward] = new UserCommandKeyInput(0x0F, KeyModifiers.Shift);
             Commands[(int)UserCommands.GameClearSignalForward] = new UserCommandKeyInput(0x0F);
+            Commands[(int)UserCommands.GameExternalCabController] = new UserCommandKeyInput(0x29);
             Commands[(int)UserCommands.GameFullscreen] = new UserCommandKeyInput(0x1C, KeyModifiers.Alt);
             Commands[(int)UserCommands.GameMultiPlayerDispatcher] = new UserCommandKeyInput(0x0A, KeyModifiers.Control);
             Commands[(int)UserCommands.GameMultiPlayerTexting] = new UserCommandKeyInput(0x14, KeyModifiers.Control);

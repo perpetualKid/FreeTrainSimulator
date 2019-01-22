@@ -145,8 +145,6 @@ namespace Orts.Viewer3D
         private byte[] readBuffer;
         private byte[] readBufferHistory;
 
-        private readonly byte[] railDriverCommands;
-
         private const byte EnableRailDriverCommand = 14;
         private const byte EmergencyStopCommandUp = 36;
         private const byte EmergencyStopCommandDown = 37;
@@ -183,7 +181,7 @@ namespace Orts.Viewer3D
             if (railDriverInstance.Enabled)
             {
                 settings = game.Settings.RailDriver;
-                cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.CutOffPoint];
+                cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta];
 
                 writeBuffer = new byte[railDriverInstance.WriteBufferSize];
                 readBuffer = new byte[railDriverInstance.ReadBufferSize];
@@ -191,63 +189,6 @@ namespace Orts.Viewer3D
 
                 SetLEDs(0x40, 0x40, 0x40);
 
-                railDriverCommands = new byte[Enum.GetNames(typeof(UserCommands)).Length];
-
-                // top row of blue buttons left to right
-
-                railDriverCommands[(int)UserCommands.GamePauseMenu] = 0;
-                railDriverCommands[(int)UserCommands.GameSave] = 1;
-
-                railDriverCommands[(int)UserCommands.DisplayTrackMonitorWindow] = 3;
-
-                railDriverCommands[(int)UserCommands.DisplaySwitchWindow] = 6;
-                railDriverCommands[(int)UserCommands.DisplayTrainOperationsWindow] = 7;
-                railDriverCommands[(int)UserCommands.DisplayNextStationWindow] = 8;
-
-                railDriverCommands[(int)UserCommands.DisplayCompassWindow] = 11;
-                railDriverCommands[(int)UserCommands.GameSwitchAhead] = 12;
-                railDriverCommands[(int)UserCommands.GameSwitchBehind] = 13;
-
-                // bottom row of blue buttons left to right
-
-                //railDriverCommands[(int)UserCommands.RailDriverOnOff] = 14;         // Btn 14 Default Legend RailDriver Run/Stophandled elsewhere
-                railDriverCommands[(int)UserCommands.CameraToggleShowCab] = 15;       // Btn 15 Default Legend Hide Cab Panel
-
-                railDriverCommands[(int)UserCommands.CameraCab] = 16;                 // Btn 16 Default Legend Frnt Cab View
-                railDriverCommands[(int)UserCommands.CameraOutsideFront] = 17;        // Btn 17 Default Legend Ext View 1
-                railDriverCommands[(int)UserCommands.CameraOutsideRear] = 18;         // Btn 18 Default Legend Ext.View 2
-                railDriverCommands[(int)UserCommands.CameraCarPrevious] = 19;         // Btn 19 Default Legend FrontCoupler
-
-                railDriverCommands[(int)UserCommands.CameraCarNext] = 20;             // Btn 20 Default Legend Rear Coupler
-                railDriverCommands[(int)UserCommands.CameraTrackside] = 21;           // Btn 21 Default Legend Track View      
-                railDriverCommands[(int)UserCommands.CameraPassenger] = 22;           // Btn 22 Default Legend Passgr View      
-                railDriverCommands[(int)UserCommands.CameraBrakeman] = 23;            // Btn 23 Default Legend Coupler View
-
-                railDriverCommands[(int)UserCommands.CameraFree] = 24;                // Btn 24 Default Legend Yard View
-                railDriverCommands[(int)UserCommands.GameClearSignalForward] = 25;    // Btn 25 Default Legend Request Pass
-
-                //Commands[(int)UserCommands. load passengers] = new RailDriverUserCommand(3, 0x04);        // Btn 26 Default Legend Load/Unload
-                //Commands[(int)UserCommands. ok] = new RailDriverUserCommand(3, 0x08);                     // Btn 27 Default Legend OK
-
-                // controls to right of blue buttons
-
-                railDriverCommands[(int)UserCommands.CameraZoomIn] = 28;
-                railDriverCommands[(int)UserCommands.CameraZoomOut] = 29;
-                railDriverCommands[(int)UserCommands.CameraPanUp] = 30;
-                railDriverCommands[(int)UserCommands.CameraPanRight] = 31;
-                railDriverCommands[(int)UserCommands.CameraPanDown] = 32;
-                railDriverCommands[(int)UserCommands.CameraPanLeft] = 33;
-
-                // buttons on top left
-
-                railDriverCommands[(int)UserCommands.ControlGearUp] = 34;
-                railDriverCommands[(int)UserCommands.ControlGearDown] = 35;
-                //Commands[(int)UserCommands.ControlEmergency] = 36,37; handled elsewhere
-                railDriverCommands[(int)UserCommands.ControlAlerter] = 38;
-                railDriverCommands[(int)UserCommands.ControlSander] = 39;
-                railDriverCommands[(int)UserCommands.ControlPantograph1] = 40;
-                railDriverCommands[(int)UserCommands.ControlBellToggle] = 41;
-                railDriverCommands[(int)UserCommands.ControlHorn] = 42;//either of two bits
             }
         }
 
@@ -426,8 +367,8 @@ namespace Orts.Viewer3D
         {
             if (!active)
                 return false;
-            byte raildriverCommand = railDriverCommands[(int)command];
-            if (raildriverCommand != 0)
+            byte raildriverCommand = settings.UserCommands[(int)command];
+            if (command == UserCommands.GamePauseMenu || raildriverCommand != 0)
                 return command == UserCommands.ControlHorn ? (IsPressed(raildriverCommand) || IsPressed((byte)(raildriverCommand + 1))) :
                     IsPressed(raildriverCommand);
             else
@@ -438,8 +379,8 @@ namespace Orts.Viewer3D
         {
             if (!active)
                 return false;
-            byte raildriverCommand = railDriverCommands[(int)command];
-            if (raildriverCommand != 0)
+            byte raildriverCommand = settings.UserCommands[(int)command];
+            if (command == UserCommands.GamePauseMenu || raildriverCommand != 0)
                 return command == UserCommands.ControlHorn ? (IsReleased(raildriverCommand) || IsReleased((byte)(raildriverCommand + 1))) :
                 IsReleased(raildriverCommand);
             else
@@ -450,8 +391,8 @@ namespace Orts.Viewer3D
         {
             if (!active)
                 return false;
-            byte raildriverCommand = railDriverCommands[(int)command];
-            if (raildriverCommand != 0)
+            byte raildriverCommand = settings.UserCommands[(int)command];
+            if (command == UserCommands.GamePauseMenu || raildriverCommand != 0)
                 return ButtonCurrentlyDown(raildriverCommand);
             else
                 return false;
