@@ -74,13 +74,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdPartyLibs\MonoGame.Framework.Content.Pipeline.dll</HintPath>
     </Reference>
-    <Reference Include="PIEHid32Net">
-      <HintPath>..\3rdPartyLibs\PIEHid32Net.dll</HintPath>
-    </Reference>
-    <Reference Include="PIEHid64Net">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\3rdPartyLibs\PIEHid64Net.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>

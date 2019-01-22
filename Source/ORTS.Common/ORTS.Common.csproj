@@ -43,6 +43,14 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdPartyLibs\GNU.Gettext.dll</HintPath>
     </Reference>
+    <Reference Include="PIEHid32Net, Version=2.2.4.21348, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\3rdPartyLibs\PIEHid32Net.dll</HintPath>
+    </Reference>
+    <Reference Include="PIEHid64Net, Version=2.2.5.23674, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\3rdPartyLibs\PIEHid64Net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -72,7 +80,10 @@
     <Compile Include="Filter.cs" />
     <Compile Include="FxCopAttributes.cs" />
     <Compile Include="GetStringAttribute.cs" />
+    <Compile Include="Input\RailDriverBase.cs" />
     <Compile Include="Integrator.cs" />
+    <Compile Include="IO\BufferedInMemoryStream.cs" />
+    <Compile Include="IO\ByteEncoding.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SettingsBase.cs" />
     <Compile Include="SettingsStore.cs" />
@@ -87,6 +98,7 @@
       <Version>3.7.1.189</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

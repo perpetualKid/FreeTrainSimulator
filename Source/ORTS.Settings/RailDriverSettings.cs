@@ -58,15 +58,15 @@ namespace ORTS.Settings
             // top row of blue buttons left to right
             DefaultUserCommands[0] = UserCommand.GamePauseMenu;                 // Btn 00 Default Legend Game Pause
             DefaultUserCommands[1] = UserCommand.GameSave;                      // Btn 01 Default Legend Game Save
-                                                                                        // Btn 02 Default Legend Control Gauges
+                                                                                // Btn 02 Default Legend Control Gauges
             DefaultUserCommands[3] = UserCommand.DisplayTrackMonitorWindow;     // Btn 03 Default Legend Track Monitor
-                                                                                        // Btn 04 Default Legend Station/Siding Names
-                                                                                        // Btn 05 Default Legend Car #
+                                                                                // Btn 04 Default Legend Station/Siding Names
+                                                                                // Btn 05 Default Legend Car #
             DefaultUserCommands[6] = UserCommand.DisplaySwitchWindow;           // Btn 06 Default Legend Switching Drive Aids
             DefaultUserCommands[7] = UserCommand.DisplayTrainOperationsWindow;  // Btn 07 Default Legend Train Operations
             DefaultUserCommands[8] = UserCommand.DisplayNextStationWindow;      // Btn 08 Default Legend Next Station Window
-                                                                                        // Btn 09 Default Legend Ops Notebook
-                                                                                        // Btn 10 Default Legend Hide Drive Aids
+                                                                                // Btn 09 Default Legend Ops Notebook
+                                                                                // Btn 10 Default Legend Hide Drive Aids
             DefaultUserCommands[11] = UserCommand.DisplayCompassWindow;         // Btn 11 Default Legend Compass Window
             DefaultUserCommands[12] = UserCommand.GameSwitchAhead;              // Btn 12 Default Legend Switch Ahead
             DefaultUserCommands[13] = UserCommand.GameSwitchBehind;             // Btn 13 Default Legend Switch Behind
@@ -84,8 +84,8 @@ namespace ORTS.Settings
             DefaultUserCommands[23] = UserCommand.CameraBrakeman;               // Btn 23 Default Legend Coupler View
             DefaultUserCommands[24] = UserCommand.CameraFree;                   // Btn 24 Default Legend Yard View
             DefaultUserCommands[25] = UserCommand.GameClearSignalForward;       // Btn 25 Default Legend Request Pass
-                                                                                        // Btn 26 Default Legend Load/Unload
-                                                                                        // Btn 27 Default Legend OK
+                                                                                // Btn 26 Default Legend Load/Unload
+                                                                                // Btn 27 Default Legend OK
 
             // controls to right of blue buttons
             DefaultUserCommands[28] = UserCommand.CameraZoomIn;

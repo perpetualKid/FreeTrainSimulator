@@ -21,7 +21,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
-using ORTS.IO;
+using ORTS.Common.IO;
 
 namespace Orts.Formats.Msts
 {

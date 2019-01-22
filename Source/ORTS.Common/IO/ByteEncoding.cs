@@ -17,7 +17,7 @@
 
 using System.Text;
 
-namespace ORTS.IO
+namespace ORTS.Common.IO
 {
 	/// <summary>
 	/// A basic encoding which maps bytes 0-255 to Unicode characters 0-255.

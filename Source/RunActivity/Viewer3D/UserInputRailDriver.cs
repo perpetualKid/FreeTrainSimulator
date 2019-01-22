@@ -15,10 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Diagnostics;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
+using ORTS.Common.Input;
 using ORTS.Settings;
 
 namespace Orts.Viewer3D
@@ -28,117 +27,6 @@ namespace Orts.Viewer3D
     /// </summary>
     public class UserInputRailDriver
     {
-        private abstract class RailDriverBase
-        {
-            public abstract int WriteBufferSize { get; }
-
-            public abstract int ReadBufferSize { get; }
-
-            public abstract void WriteData(byte[] writeBuffer);
-
-            public abstract int ReadCurrentData(ref byte[] data);
-
-            public abstract void Shutdown();
-
-            public abstract bool Enabled { get; }
-        }
-
-        private class RailDriver32 : RailDriverBase
-        {
-            private readonly PIEHid32Net.PIEDevice device;                   // Our RailDriver
-
-            public RailDriver32(UserInputRailDriver parent)
-            {
-                try
-                {
-                    foreach (PIEHid32Net.PIEDevice currentDevice in PIEHid32Net.PIEDevice.EnumeratePIE())
-                    {
-                        if (currentDevice.HidUsagePage == 0xc && currentDevice.Pid == 210)
-                        {
-                            device = currentDevice;
-                            device.SetupInterface();
-                            device.suppressDuplicateReports = true;
-                            break;
-                        }
-                    }
-                }
-                catch (Exception error)
-                {
-                    device = null;
-                    Trace.WriteLine(error);
-                }
-            }
-
-            public override int WriteBufferSize => device?.WriteLength ?? 0;
-
-            public override int ReadBufferSize => device?.ReadLength ?? 0;
-
-            public override bool Enabled => device != null;
-
-            public override int ReadCurrentData(ref byte[] data)
-            {
-                return device?.ReadLast(ref data) ?? 0;
-            }
-
-            public override void Shutdown()
-            {
-                device?.CloseInterface();
-            }
-
-            public override void WriteData(byte[] writeBuffer)
-            {
-                device?.WriteData(writeBuffer);
-            }
-        }
-
-        private class RailDriver64 : RailDriverBase
-        {
-            private readonly PIEHid64Net.PIEDevice device;                   // Our RailDriver
-
-            public RailDriver64(UserInputRailDriver parent)
-            {
-                try
-                {
-                    foreach (PIEHid64Net.PIEDevice currentDevice in PIEHid64Net.PIEDevice.EnumeratePIE())
-                    {
-                        if (currentDevice.HidUsagePage == 0xc && currentDevice.Pid == 210)
-                        {
-                            device = currentDevice;
-                            device.SetupInterface();
-                            device.suppressDuplicateReports = true;
-                            break;
-                        }
-                    }
-                }
-                catch (Exception error)
-                {
-                    device = null;
-                    Trace.WriteLine(error);
-                }
-            }
-
-            public override int WriteBufferSize => (int)(device?.WriteLength ?? 0);
-
-            public override int ReadBufferSize => (int)(device?.ReadLength ?? 0);
-
-            public override bool Enabled => device != null;
-
-            public override int ReadCurrentData(ref byte[] data)
-            {
-                return device?.ReadLast(ref data) ?? 0;
-            }
-
-            public override void Shutdown()
-            {
-                device?.CloseInterface();
-            }
-
-            public override void WriteData(byte[] writeBuffer)
-            {
-                device?.WriteData(writeBuffer);
-            }
-        }
-
         private byte[] writeBuffer;                 // Buffer for sending data to RailDriver
         private bool active;                        // True when RailDriver values are used to control player loco
 
@@ -170,14 +58,7 @@ namespace Orts.Viewer3D
         public UserInputRailDriver(Game game)
         {
 
-            if (Environment.Is64BitProcess)
-            {
-                railDriverInstance = new RailDriver64(this);
-            }
-            else
-            {
-                railDriverInstance = new RailDriver32(this);
-            }
+            railDriverInstance = RailDriverBase.GetInstance();
             if (railDriverInstance.Enabled)
             {
                 settings = game.Settings.RailDriver;

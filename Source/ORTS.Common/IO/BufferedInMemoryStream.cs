@@ -18,7 +18,7 @@
 using System;
 using System.IO;
 
-namespace ORTS.IO
+namespace ORTS.Common.IO
 {
 	/// <summary>
 	/// A <see cref="Stream"/> which buffers both reads and writes in memory (as a <see cref="MemoryStream"/>).
