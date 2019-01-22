@@ -59,6 +59,8 @@ namespace ORTS
         public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup)
         {
             InitializeComponent();
+            if (!Common.Input.RailDriverBase.GetInstance().Enabled)
+                tabOptions.TabPages.Remove(tabPageRailDriver);
 
             Localizer.Localize(this, catalog);
 
