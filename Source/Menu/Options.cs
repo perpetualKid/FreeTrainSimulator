@@ -59,10 +59,6 @@ namespace ORTS
         public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup)
         {
             InitializeComponent();
-#if !DEBUG
-            if (!Common.Input.RailDriverBase.GetInstance().Enabled)
-                tabOptions.TabPages.Remove(tabPageRailDriver);
-#endif
             Localizer.Localize(this, catalog);
 
             Settings = settings;
@@ -200,6 +196,9 @@ namespace ORTS
 
             // Keyboard tab
             InitializeKeyboardSettings();
+
+            //RailDriver tab
+            InitializeRailDriverSettings();
 
             // DataLogger tab
             var dictionaryDataLoggerSeparator = new Dictionary<string, string>
@@ -756,52 +755,6 @@ namespace ORTS
         private void button1_Click(object sender, EventArgs e)
         {
             ShowRailDriverLegend();
-        }
-
-        private Form railDriverLegend;
-        private void ShowRailDriverLegend()
-        {
-            const int WM_NCLBUTTONDOWN = 0xA1;
-            const int HT_CAPTION = 0x2;
-
-            if (null == railDriverLegend)
-            {
-                void FormClosed(object sender, FormClosedEventArgs e)
-                {
-                    railDriverLegend.FormClosed -= FormClosed;
-                    railDriverLegend = null;
-                }
-                void Legend_MouseDown(object sender, MouseEventArgs e)
-                {
-                    (sender as Control).Capture = false;
-                    Message msg = Message.Create(railDriverLegend.Handle, WM_NCLBUTTONDOWN, (IntPtr)HT_CAPTION, IntPtr.Zero);
-                    base.WndProc(ref msg);
-                }
-                void KeyEvent(object sender, KeyEventArgs e)
-                {
-                    if (e.KeyValue == 0x1b)
-                        railDriverLegend.Close();
-                }
-
-                Size clientSize = new Size(Properties.Resources.RailDriverLegend.Width, Properties.Resources.RailDriverLegend.Height);
-                PictureBox legend = new PictureBox() { Image = Properties.Resources.RailDriverLegend, Size = clientSize };
-                legend.MouseDown += Legend_MouseDown;
-
-                railDriverLegend = new Form()
-                {
-                    ShowIcon = false,
-                    ShowInTaskbar = false,
-                    ControlBox = false,
-                    Text = string.Empty,
-                    FormBorderStyle = FormBorderStyle.FixedSingle,
-                    ClientSize = clientSize
-                };
-                railDriverLegend.Controls.Add(legend);
-                railDriverLegend.FormClosed += FormClosed;
-                railDriverLegend.KeyDown += KeyEvent; ;
-
-                railDriverLegend.Show(this);
-            }
         }
     }
 }

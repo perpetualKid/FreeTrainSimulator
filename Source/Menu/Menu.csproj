@@ -80,6 +80,9 @@
     <Compile Include="KeyInputControl.Designer.cs">
       <DependentUpon>KeyInputControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="OptionsRailDriver.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
