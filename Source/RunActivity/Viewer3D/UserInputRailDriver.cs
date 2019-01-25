@@ -64,9 +64,9 @@ namespace Orts.Viewer3D
                 settings = game.Settings.RailDriver;
                 cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta];
 
-                writeBuffer = new byte[railDriverInstance.WriteBufferSize];
-                readBuffer = new byte[railDriverInstance.ReadBufferSize];
-                readBufferHistory = new byte[railDriverInstance.ReadBufferSize];
+                writeBuffer = railDriverInstance.NewWriteBuffer;
+                readBuffer = railDriverInstance.NewReadBuffer;
+                readBufferHistory = railDriverInstance.NewReadBuffer;
 
                 SetLEDs(0x40, 0x40, 0x40);
 

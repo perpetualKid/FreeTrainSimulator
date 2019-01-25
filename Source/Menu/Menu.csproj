@@ -62,6 +62,15 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OptionsKeyboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RDButtonInputControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="RDButtonInputControl.Designer.cs">
+      <DependentUpon>RDButtonInputControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="KeyInputEditControl.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -108,6 +117,10 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="RDButtonInputControl.resx">
+      <DependentUpon>RDButtonInputControl.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="KeyInputEditControl.resx">
       <DependentUpon>KeyInputEditControl.cs</DependentUpon>
       <SubType>Designer</SubType>

@@ -134,10 +134,15 @@ namespace ORTS.Settings
             }
             else if (Enum.TryParse(name, true, out UserCommand userCommand))
             {
-                return DefaultCommands[(int)userCommand];
+                return GetDefaultValue(userCommand);
             }
             else
                 throw new ArgumentOutOfRangeException($"Enum parameter {nameof(name)} not within expected range of either {nameof(RailDriverCalibrationSetting)} or {nameof(UserCommands)}");
+        }
+
+        public static byte GetDefaultValue(UserCommand command)
+        {
+            return (byte)Array.FindIndex(DefaultUserCommands, c => c == command);
         }
 
         public override void Reset()
@@ -186,7 +191,7 @@ namespace ORTS.Settings
             foreach (RailDriverCalibrationSetting setting in (RailDriverCalibrationSetting[])Enum.GetValues(typeof(RailDriverCalibrationSetting)))
                 Load(allowUserSettings, optionsDictionary, setting.ToString(), typeof(byte));
             foreach (var command in (UserCommand[])Enum.GetValues(typeof(UserCommand)))
-                Load(allowUserSettings, optionsDictionary, command.ToString(), typeof(string));
+                Load(allowUserSettings, optionsDictionary, command.ToString(), typeof(byte));
         }
 
         protected override void SetValue(string name, object value)

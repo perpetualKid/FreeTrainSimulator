@@ -6,12 +6,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ORTS.Common;
+using ORTS.Common.Input;
 using ORTS.Settings;
 
 namespace ORTS
 {
     public partial class OptionsForm : Form
     {
+        private RailDriverBase instance;
+
         private Form railDriverLegend;
         private void ShowRailDriverLegend()
         {
@@ -20,26 +23,14 @@ namespace ORTS
 
             if (null == railDriverLegend)
             {
-                void FormClosed(object sender, FormClosedEventArgs e)
-                {
-                    railDriverLegend.FormClosed -= FormClosed;
-                    railDriverLegend = null;
-                }
-                void Legend_MouseDown(object sender, MouseEventArgs e)
+                Size clientSize = new Size(Properties.Resources.RailDriverLegend.Width, Properties.Resources.RailDriverLegend.Height);
+                PictureBox legend = new PictureBox() { Image = Properties.Resources.RailDriverLegend, Size = clientSize };
+                legend.MouseDown += (object sender, MouseEventArgs e) =>
                 {
                     (sender as Control).Capture = false;
                     Message msg = Message.Create(railDriverLegend.Handle, WM_NCLBUTTONDOWN, (IntPtr)HT_CAPTION, IntPtr.Zero);
                     base.WndProc(ref msg);
-                }
-                void KeyEvent(object sender, KeyEventArgs e)
-                {
-                    if (e.KeyValue == 0x1b)
-                        railDriverLegend.Close();
-                }
-
-                Size clientSize = new Size(Properties.Resources.RailDriverLegend.Width, Properties.Resources.RailDriverLegend.Height);
-                PictureBox legend = new PictureBox() { Image = Properties.Resources.RailDriverLegend, Size = clientSize };
-                legend.MouseDown += Legend_MouseDown;
+                };
 
                 railDriverLegend = new Form()
                 {
@@ -51,31 +42,34 @@ namespace ORTS
                     ClientSize = clientSize
                 };
                 railDriverLegend.Controls.Add(legend);
-                railDriverLegend.FormClosed += FormClosed;
-                railDriverLegend.KeyDown += KeyEvent; ;
+                railDriverLegend.FormClosed += (object sender, FormClosedEventArgs e) =>
+                {
+                    railDriverLegend = null;
+                };
+                railDriverLegend.KeyDown += (object sender, KeyEventArgs e) =>
+                {
+                    if (e.KeyValue == 0x1b)
+                        railDriverLegend.Close();
+                }; ;
 
                 railDriverLegend.Show(this);
             }
         }
 
-        private void InitializeRailDriverSettings()
+        private Task<Panel> InitializeRailDriverInputControls()
         {
-#if !DEBUG
-            if (!Common.Input.RailDriverBase.GetInstance().Enabled)
-                tabOptions.TabPages.Remove(tabPageRailDriver);
-#endif
-
-            panelRDButtons.Controls.Clear();
+            TaskCompletionSource<Panel> tcs = new TaskCompletionSource<Panel>();
+            Panel panel = new Panel();
 
             var columnWidth = (panelRDButtons.ClientSize.Width - 20) / 2;
 
-            var tempLabel = new Label();
-            var tempKIC = new KeyInputControl(Settings.Input.Commands[(int)UserCommand.GameQuit], InputSettings.DefaultCommands[(int)UserCommand.GameQuit]);
-            var rowTop = Math.Max(tempLabel.Margin.Top, tempKIC.Margin.Top);
-            var rowHeight = tempKIC.Height;
-            var rowSpacing = rowHeight + tempKIC.Margin.Vertical;
+            Label tempLabel = new Label();
+            RDButtonInputControl tempControl = new RDButtonInputControl(Settings.RailDriver.UserCommands[(int)UserCommand.GameQuit], RailDriverSettings.GetDefaultValue(UserCommand.GameQuit), instance);
+            int rowTop = Math.Max(tempLabel.Margin.Top, tempControl.Margin.Top);
+            int rowHeight = tempControl.Height;
+            int rowSpacing = rowHeight + tempControl.Margin.Vertical;
 
-            var lastCategory = "";
+            string previousCategory = "";
             var i = 0;
             foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
             {
@@ -83,7 +77,7 @@ namespace ORTS
                 var category = ParseCategoryFrom(name);
                 var descriptor = ParseDescriptorFrom(name);
 
-                if (category != lastCategory)
+                if (category != previousCategory)
                 {
                     var catlabel = new Label
                     {
@@ -93,9 +87,9 @@ namespace ORTS
                         TextAlign = ContentAlignment.MiddleCenter
                     };
                     catlabel.Font = new Font(catlabel.Font, FontStyle.Bold);
-                    panelRDButtons.Controls.Add(catlabel);
+                    panel.Controls.Add(catlabel);
 
-                    lastCategory = category;
+                    previousCategory = category;
                     ++i;
                 }
 
@@ -106,20 +100,40 @@ namespace ORTS
                     Text = descriptor,
                     TextAlign = ContentAlignment.MiddleRight
                 };
-                panelRDButtons.Controls.Add(label);
+                panel.Controls.Add(label);
 
-                var keyInputControl = new KeyInputControl(Settings.Input.Commands[(int)command], InputSettings.DefaultCommands[(int)command])
+                var keyInputControl = new RDButtonInputControl(Settings.RailDriver.UserCommands[(int)command], RailDriverSettings.GetDefaultValue(command), instance)
                 {
-                    Location = new Point(columnWidth + tempKIC.Margin.Left, rowTop + rowSpacing * i),
-                    Size = new Size(columnWidth - tempKIC.Margin.Horizontal, rowHeight),
-                    ReadOnly = true,
+                    Location = new Point(columnWidth + tempControl.Margin.Left, rowTop + rowSpacing * i),
+                    Size = new Size(columnWidth - tempControl.Margin.Horizontal, rowHeight),
                     Tag = command
                 };
-                panelRDButtons.Controls.Add(keyInputControl);
-                toolTip1.SetToolTip(keyInputControl, catalog.GetString("Click to change this key"));
+                panel.Controls.Add(keyInputControl);
+                toolTip1.SetToolTip(keyInputControl, catalog.GetString("Click to change this button"));
 
                 ++i;
             }
+            tcs.SetResult(panel);
+            return tcs.Task;
+        }
+
+        private async Task InitializeRailDriverSettingsAsync()
+        {
+            instance = RailDriverBase.GetInstance();
+#if !DEBUG
+            if (!instance.Enabled)
+            {
+                tabOptions.TabPages.Remove(tabPageRailDriver);
+                await Task.CompletedTask;
+            }
+#endif
+            panelRDButtons.SuspendLayout();
+            panelRDButtons.Controls.Clear();
+
+            Panel controls = await Task.Run(InitializeRailDriverInputControls);
+            panelRDButtons.Controls.Add(controls);
+            controls.Dock = DockStyle.Fill;
+            panelRDButtons.ResumeLayout(true);
 
         }
     }

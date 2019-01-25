@@ -27,6 +27,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ORTS
@@ -194,11 +195,11 @@ namespace ORTS
             checkExtendedAIShunting.Checked = Settings.ExtendedAIShunting;
             checkDoorsAITrains.Checked = Settings.OpenDoorsInAITrains;
 
-            // Keyboard tab
-            InitializeKeyboardSettings();
+            //// Keyboard tab
+            //InitializeKeyboardSettings();
 
-            //RailDriver tab
-            InitializeRailDriverSettings();
+            ////RailDriver tab
+            //InitializeRailDriverSettings());
 
             // DataLogger tab
             var dictionaryDataLoggerSeparator = new Dictionary<string, string>
@@ -341,6 +342,14 @@ namespace ORTS
             numericActWeatherRandomizationLevel.Value = Settings.ActWeatherRandomizationLevel;
         }
 
+        private async void OptionsForm_Shown(object sender, EventArgs e)
+        {
+            List<Task> initTasks = new List<Task>()
+            {   InitializeKeyboardSettingsAsync(),
+                InitializeRailDriverSettingsAsync() };
+            await Task.WhenAll(initTasks);
+        }
+
         private static string ParseCategoryFrom(string name)
         {
             var len = name.IndexOf(' ');
@@ -359,69 +368,15 @@ namespace ORTS
                 return name.Substring(len + 1);
         }
 
-        private void InitializeKeyboardSettings()
-        {
-            panelKeys.Controls.Clear();
-            var columnWidth = (panelKeys.ClientSize.Width - 20) / 2;
-
-            var tempLabel = new Label();
-            var tempKIC = new KeyInputControl(Settings.Input.Commands[(int)UserCommand.GameQuit], InputSettings.DefaultCommands[(int)UserCommand.GameQuit]);
-            var rowTop = Math.Max(tempLabel.Margin.Top, tempKIC.Margin.Top);
-            var rowHeight = tempKIC.Height;
-            var rowSpacing = rowHeight + tempKIC.Margin.Vertical;
-
-            var lastCategory = "";
-            var i = 0;
-            foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
-            {
-                var name = InputSettings.GetPrettyLocalizedName(command);
-                var category = ParseCategoryFrom(name);
-                var descriptor = ParseDescriptorFrom(name);
-
-                if (category != lastCategory)
-                {
-                    var catlabel = new Label
-                    {
-                        Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i),
-                        Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight),
-                        Text = category,
-                        TextAlign = ContentAlignment.MiddleCenter
-                    };
-                    catlabel.Font = new Font(catlabel.Font, FontStyle.Bold);
-                    panelKeys.Controls.Add(catlabel);
-
-                    lastCategory = category;
-                    ++i;
-                }
-
-                var label = new Label
-                {
-                    Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i),
-                    Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight),
-                    Text = descriptor,
-                    TextAlign = ContentAlignment.MiddleRight
-                };
-                panelKeys.Controls.Add(label);
-
-                var keyInputControl = new KeyInputControl(Settings.Input.Commands[(int)command], InputSettings.DefaultCommands[(int)command])
-                {
-                    Location = new Point(columnWidth + tempKIC.Margin.Left, rowTop + rowSpacing * i),
-                    Size = new Size(columnWidth - tempKIC.Margin.Horizontal, rowHeight),
-                    ReadOnly = true,
-                    Tag = command
-                };
-                panelKeys.Controls.Add(keyInputControl);
-                toolTip1.SetToolTip(keyInputControl, catalog.GetString("Click to change this key"));
-
-                ++i;
-            }
-        }
 
         private void SaveKeyboardSettings()
         {
-            foreach (Control control in panelKeys.Controls)
-                if (control is KeyInputControl)
-                    Settings.Input.Commands[(int)control.Tag].PersistentDescriptor = (control as KeyInputControl).UserInput.PersistentDescriptor;
+            //foreach (Control control in panelKeys.Controls)
+            //    if (control is KeyInputControl)
+            //        Settings.Input.Commands[(int)control.Tag].PersistentDescriptor = (control as KeyInputControl).UserInput.PersistentDescriptor;
+            foreach (Control control in panelRDButtons.Controls)
+                if (control is RDButtonInputControl)
+                    Settings.RailDriver.UserCommands[(int)control.Tag] = (control as RDButtonInputControl).UserButton; 
         }
 
         private void ButtonOK_Click(object sender, EventArgs e)
@@ -491,6 +446,7 @@ namespace ORTS
 
             // Keyboard tab
             // These are edited live.
+            SaveKeyboardSettings();
 
             // DataLogger tab
             Settings.DataLoggerSeparator = comboDataLoggerSeparator.SelectedValue.ToString();
@@ -546,12 +502,12 @@ namespace ORTS
             Settings.Save();
         }
 
-        private void ButtonDefaultKeys_Click(object sender, EventArgs e)
+        private async void ButtonDefaultKeys_Click(object sender, EventArgs e)
         {
             if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom key assignments?"), Application.ProductName, MessageBoxButtons.YesNo))
             {
                 Settings.Input.Reset();
-                InitializeKeyboardSettings();
+                await InitializeKeyboardSettingsAsync();
             }
         }
 

@@ -10,7 +10,13 @@ namespace ORTS.Common.Input
 
         public abstract void WriteData(byte[] writeBuffer);
 
+        public byte[] NewReadBuffer => new byte[ReadBufferSize]; 
+
+        public byte[] NewWriteBuffer => new byte[WriteBufferSize];
+
         public abstract int ReadCurrentData(ref byte[] data);
+
+        public abstract int BlockingReadCurrentData(ref byte[] data, int timeout);
 
         public abstract void Shutdown();
 
@@ -66,6 +72,11 @@ namespace ORTS.Common.Input
 
         public override bool Enabled => device != null;
 
+        public override int BlockingReadCurrentData(ref byte[] data, int timeout)
+        {
+            return device?.BlockingReadData(ref data, timeout) ?? 0;
+        }
+
         public override int ReadCurrentData(ref byte[] data)
         {
             return device?.ReadLast(ref data) ?? 0;
@@ -113,6 +124,11 @@ namespace ORTS.Common.Input
         public override int ReadBufferSize => (int)(device?.ReadLength ?? 0);
 
         public override bool Enabled => device != null;
+
+        public override int BlockingReadCurrentData(ref byte[] data, int timeout)
+        {
+            return device?.BlockingReadData(ref data, timeout) ?? 0;
+        }
 
         public override int ReadCurrentData(ref byte[] data)
         {
