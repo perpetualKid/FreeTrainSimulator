@@ -78,19 +78,19 @@ namespace Orts.Viewer3D
             if (railDriverInstance.Enabled && 0 == railDriverInstance.ReadCurrentData(ref readBuffer))
             {
                 DirectionPercent = Percentage(readBuffer[1],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.FullReversed],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Neutral],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.FullForward]);
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverserFullReversed],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverserNeutral],
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverserFullForward]);
                 ThrottlePercent = Percentage(readBuffer[2],
                     settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ThrottleIdle],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.FullThrottle]);
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ThrottleFull]);
                 DynamicBrakePercent = Percentage(readBuffer[2],
                     settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ThrottleIdle],
                     settings.CalibrationSettings[(int)RailDriverCalibrationSetting.DynamicBrakeSetup],
                     settings.CalibrationSettings[(int)RailDriverCalibrationSetting.DynamicBrake]);
                 TrainBrakePercent = Percentage(readBuffer[3],
                     settings.CalibrationSettings[(int)RailDriverCalibrationSetting.AutoBrakeRelease],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.FullAutoBrake]);
+                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.AutoBrakeFull]);
                 EngineBrakePercent = Percentage(readBuffer[4],
                     settings.CalibrationSettings[(int)RailDriverCalibrationSetting.IndependentBrakeRelease],
                     settings.CalibrationSettings[(int)RailDriverCalibrationSetting.IndependentBrakeFull]);
@@ -100,7 +100,7 @@ namespace Orts.Viewer3D
                 BailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
                 if (TrainBrakePercent >= 100)
                     Emergency = Percentage(readBuffer[3],
-                        settings.CalibrationSettings[(int)RailDriverCalibrationSetting.FullAutoBrake],
+                        settings.CalibrationSettings[(int)RailDriverCalibrationSetting.AutoBrakeFull],
                         settings.CalibrationSettings[(int)RailDriverCalibrationSetting.EmergencyBrake]) > 50;
 
                 Wipers = (int)(.01 * Percentage(readBuffer[6],

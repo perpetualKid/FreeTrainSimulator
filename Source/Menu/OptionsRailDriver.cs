@@ -14,9 +14,19 @@ namespace ORTS
     public partial class OptionsForm : Form
     {
         private RailDriverBase instance;
-
         private Form railDriverLegend;
-        private void ShowRailDriverLegend()
+        private RailDriverCalibrationSetting currentCalibrationStep;
+
+        private static int[,] startingPoints = { 
+            { 170, 110 }, { 170, 150 }, { 170, 60 }, //Reverser
+            { 230, 120 },  { 230, 150 }, { 230, 90 }, { 230, 60 }, //Throttle
+            { 340, 150}, { 340, 90}, { 340, 60}, // Auto Brake
+            { 440, 150}, { 470, 150}, { 440, 60}, { 470, 60}, { 440, 150}, { 470, 150}, // Independent Brake
+            { 520, 150}, { 535, 150}, { 550, 150}, // Rotary Switch 1
+            { 520, 80}, { 540, 80}, { 560, 80}, // Rotary Switch 2
+        };
+        
+        private Form GetRailDriverLegend()
         {
             const int WM_NCLBUTTONDOWN = 0xA1;
             const int HT_CAPTION = 0x2;
@@ -50,10 +60,25 @@ namespace ORTS
                 {
                     if (e.KeyValue == 0x1b)
                         railDriverLegend.Close();
-                }; ;
+                };
+                legend.Paint += (object sender, PaintEventArgs e) =>
+                {
+                    Pen penLine = new Pen(Color.Red, 4f);
+                    Pen penArrow = new Pen(Color.Red, 4f) { EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor };
 
-                railDriverLegend.Show(this);
+                    if ((int)currentCalibrationStep < (startingPoints.Length / 2))
+                    {
+                        e.Graphics.DrawRectangle(penLine, startingPoints[(int)currentCalibrationStep, 0], startingPoints[(int)currentCalibrationStep, 1], 60, 40);
+                        e.Graphics.DrawLine(penArrow, 10, 10, startingPoints[(int)currentCalibrationStep, 0] - 5, startingPoints[(int)currentCalibrationStep, 1] + 20);
+                        e.Graphics.DrawString(GetStringAttribute.GetPrettyName(currentCalibrationStep), new Font("Arial", 14), new SolidBrush(Color.Red), 80, 225);
+                    }
+                };
             }
+            else
+            {
+                railDriverLegend.Hide();
+            }
+            return railDriverLegend;
         }
 
         private Task<Panel> InitializeRailDriverInputControls()
@@ -135,6 +160,33 @@ namespace ORTS
             controls.Dock = DockStyle.Fill;
             panelRDButtons.ResumeLayout(true);
 
+        }
+
+        private void RunCalibration()
+        {
+            RailDriverCalibrationSetting nextStep = RailDriverCalibrationSetting.ReverserNeutral;
+            DialogResult result = DialogResult.OK;
+            while (result == DialogResult.OK && nextStep < RailDriverCalibrationSetting.ReverseReverser)
+            {
+                currentCalibrationStep = nextStep;
+                railDriverLegend.Invalidate(true);  //enforce redraw legend to show guidance
+                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{GetStringAttribute.GetPrettyName(currentCalibrationStep)}\". \r\n\r\nClick OK to continue, or Cancel to abort the process any time", "RailDriver Calibration", MessageBoxButtons.OKCancel);
+                // Read Setting
+                if (result == DialogResult.OK)
+                {
+                    //TODO
+                }
+                nextStep++;
+            }
+            railDriverLegend.Invalidate(true);
+            if (nextStep == RailDriverCalibrationSetting.ReverseReverser)
+            {
+                if (MessageBox.Show(railDriverLegend, "Calibration Completed. Do you want to store the results?", "Calibration Done", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    // store settings
+                }
+            }
+            currentCalibrationStep = RailDriverCalibrationSetting.PercentageCutOffDelta;
         }
     }
 }

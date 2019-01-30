@@ -11,29 +11,33 @@ namespace ORTS.Settings
 
     public enum RailDriverCalibrationSetting
     {
-        FullReversed,
-        Neutral,
-        FullForward,
-        FullThrottle,
-        ThrottleIdle,
-        DynamicBrake,
-        DynamicBrakeSetup,
-        AutoBrakeRelease,
-        FullAutoBrake,
-        EmergencyBrake,
-        IndependentBrakeRelease,
-        BailOffEngagedRelease,
-        IndependentBrakeFull,
-        BailOffEngagedFull,
-        BailOffDisengagedRelease,
-        BailOffDisengagedFull,
-        Rotary1Position1,
-        Rotary1Position2,
-        Rotary1Position3,
-        Rotary2Position1,
-        Rotary2Position2,
-        Rotary2Position3,
-        PercentageCutOffDelta,
+        [GetString("Reverser Neutral")] ReverserNeutral,
+        [GetString("Reverser Full Reversed")] ReverserFullReversed,
+        [GetString("Reverser Full Forward")] ReverserFullForward,
+        [GetString("Throttle Idle")] ThrottleIdle,
+        [GetString("Full Throttle")] ThrottleFull,
+        [GetString("Dynamic Brake Setup")] DynamicBrakeSetup,
+        [GetString("Dynamic Brake")] DynamicBrake,
+        [GetString("Auto Brake Released")] AutoBrakeRelease,
+        [GetString("Full Auto Brake ")] AutoBrakeFull,
+        [GetString("Emergency Brake")] EmergencyBrake,
+        [GetString("Independent Brake Released")] IndependentBrakeRelease,
+        [GetString("Bail Off Engaged (in Released position)")] BailOffEngagedRelease,
+        [GetString("Independent Brake Full")] IndependentBrakeFull,
+        [GetString("Bail Off Engaged (in Full position)")] BailOffEngagedFull,
+        [GetString("Bail Off Disengaged (in Released position)")] BailOffDisengagedRelease,
+        [GetString("Bail Off Disengaged (in Full position)")] BailOffDisengagedFull,
+        [GetString("Rotary Switch 1-Position 1(OFF)")] Rotary1Position1,
+        [GetString("Rotary Switch 1-Position 2(SLOW)")] Rotary1Position2,
+        [GetString("Rotary Switch 1-Position 3(FULL)")] Rotary1Position3,
+        [GetString("Rotary Switch 2-Position 1(OFF)")] Rotary2Position1,
+        [GetString("Rotary Switch 2-Position 2(DIM)")] Rotary2Position2,
+        [GetString("Rotary Switch 2-Position 3(FULL)")] Rotary2Position3,
+        [GetString("Reverse Reverser Direction")] ReverseReverser,
+        [GetString("Reverse Throttle Direction")] ReverseThrottle,
+        [GetString("Reverse Auto Brake Direction")] ReverseAutoBrake,
+        [GetString("Reverse Independent Brake Direction")] ReverseIndependentBrake,
+        [GetString("Cut Off Delta (Percent)")] PercentageCutOffDelta,
     }
 
     public class RailDriverSettings : SettingsBase
@@ -52,7 +56,7 @@ namespace ORTS.Settings
         static RailDriverSettings()
         {
             //default calibration settings from another developer's PC, they are as good as random numbers...
-            DefaultCalibrationSettings = new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 5 };
+            DefaultCalibrationSettings = new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 0, 0, 0, 0, 5 };
             DefaultUserCommands = new UserCommand[48]; //there are 6 bytes for User-Buttons on RailDriver board
 
             // top row of blue buttons left to right
