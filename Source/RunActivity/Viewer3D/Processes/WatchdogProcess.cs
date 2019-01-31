@@ -130,7 +130,8 @@ namespace Orts.Viewer3D.Processes
                 {
                     // Report every hung thread as a fatal error.
                     foreach (var token in hungTokens)
-                        Trace.WriteLine(new FatalException(new ThreadHangException(token.Thread, token.Stacks)));
+//                        Trace.WriteLine(new FatalException(new ThreadHangException(token.Thread, token.Stacks)));
+                        Trace.WriteLine(new ThreadHangException(token.Thread, token.Stacks));
 
                     // Report every waiting thread as a warning (it might be relevant).
                     foreach (var token in waitTokens)
