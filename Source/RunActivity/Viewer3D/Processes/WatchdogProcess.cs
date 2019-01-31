@@ -135,12 +135,12 @@ namespace Orts.Viewer3D.Processes
                     // Report every waiting thread as a warning (it might be relevant).
                     foreach (var token in waitTokens)
                         Trace.WriteLine(new ThreadWaitException(token.Thread, token.Stacks));
-
+/*
                     // Abandon ship!
                     if (Debugger.IsAttached)
                         Debugger.Break();
                     else
-                        Environment.Exit(1);
+                        Environment.Exit(1);*/
                 }
             }
         }
