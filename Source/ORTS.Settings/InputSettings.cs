@@ -97,13 +97,13 @@ namespace ORTS.Settings
 
         protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
         {
-            foreach (var command in GetCommands())
+            foreach (var command in EnumExtension.GetValues<UserCommand>())
                 Load(allowUserSettings, optionsDictionary, command.ToString(), typeof(string));
         }
 
         public override void Save()
         {
-            foreach (var command in GetCommands())
+            foreach (var command in EnumExtension.GetValues<UserCommand>())
                 Save(command.ToString());
         }
 
@@ -114,7 +114,7 @@ namespace ORTS.Settings
 
         public override void Reset()
         {
-            foreach (var command in GetCommands())
+            foreach (var command in EnumExtension.GetValues<UserCommand>())
                 Reset(command.ToString());
         }
 
@@ -183,7 +183,7 @@ namespace ORTS.Settings
 
         IEnumerable<UserCommand> GetScanCodeCommands(int scanCode)
         {
-            return GetCommands().Where(uc => (Commands[(int)uc] is UserCommandKeyInput) && ((Commands[(int)uc] as UserCommandKeyInput).ScanCode == scanCode));
+            return EnumExtension.GetValues<UserCommand>().Where(uc => (Commands[(int)uc] is UserCommandKeyInput) && ((Commands[(int)uc] as UserCommandKeyInput).ScanCode == scanCode));
         }
 
         public Color GetScanCodeColor(int scanCode)
@@ -221,7 +221,7 @@ namespace ORTS.Settings
             {
                 writer.WriteLine("{0,-40}{1,-40}{2}", "Command", "Key", "Unique Inputs");
                 writer.WriteLine(new String('=', 40 * 3));
-                foreach (var command in GetCommands())
+                foreach (var command in EnumExtension.GetValues<UserCommand>())
                     writer.WriteLine("{0,-40}{1,-40}{2}", GetPrettyCommandName(command), Commands[(int)command], String.Join(", ", Commands[(int)command].GetUniqueInputs().OrderBy(s => s).ToArray()));
             }
         }
@@ -476,24 +476,24 @@ namespace ORTS.Settings
             var errors = new List<String>();
 
             // Check for commands which both require a particular modifier, and ignore it.
-            foreach (var command in GetCommands())
+            foreach (var command in EnumExtension.GetValues<UserCommand>())
             {
                 var input = Commands[(int)command];
                 var modInput = input as UserCommandModifiableKeyInput;
                 if (modInput != null)
                 {
                     if (modInput.Shift && modInput.IgnoreShift)
-                        errors.Add(catalog.GetStringFmt("{0} requires and is modified by Shift", GetPrettyLocalizedName(command)));
+                        errors.Add(catalog.GetStringFmt("{0} requires and is modified by Shift", catalog.GetString(command.GetDescription())));
                     if (modInput.Control && modInput.IgnoreControl)
-                        errors.Add(catalog.GetStringFmt("{0} requires and is modified by Control", GetPrettyLocalizedName(command)));
+                        errors.Add(catalog.GetStringFmt("{0} requires and is modified by Control", catalog.GetString(command.GetDescription())));
                     if (modInput.Alt && modInput.IgnoreAlt)
-                        errors.Add(catalog.GetStringFmt("{0} requires and is modified by Alt", GetPrettyLocalizedName(command)));
+                        errors.Add(catalog.GetStringFmt("{0} requires and is modified by Alt", catalog.GetString(command.GetDescription())));
                 }
             }
 
             // Check for two commands assigned to the same key
-            var firstCommand = GetCommands().Min();
-            var lastCommand = GetCommands().Max();
+            var firstCommand = EnumExtension.GetValues<UserCommand>().Min();
+            var lastCommand = EnumExtension.GetValues<UserCommand>().Max();
             for (var command1 = firstCommand; command1 <= lastCommand; command1++)
             {
                 var input1 = Commands[(int)command1];
@@ -518,16 +518,16 @@ namespace ORTS.Settings
                     var unique2 = input2.GetUniqueInputs();
                     var sharedUnique = unique1.Where(id => unique2.Contains(id));
                     foreach (var uniqueInput in sharedUnique)
-                        errors.Add(catalog.GetStringFmt("{0} and {1} both match {2}", GetPrettyLocalizedName(command1), GetPrettyLocalizedName(command2), GetPrettyUniqueInput(uniqueInput)));
+                        errors.Add(catalog.GetStringFmt("{0} and {1} both match {2}", catalog.GetString(command1.GetDescription()), catalog.GetString(command2.GetDescription()), GetPrettyUniqueInput(uniqueInput)));
                 }
             }
 
             return String.Join("\n", errors.ToArray());
         }
 
-        public static string GetPrettyLocalizedName(Enum value)
-        {
-            return catalog.GetString(GetStringAttribute.GetPrettyName(value));
+        public static string GetPrettyLocalizedName(UserCommand value)
+        {            
+            return catalog.GetString(value.GetDescription());
         }
 
         public static string GetPrettyCommandName(UserCommand command)

@@ -8,7 +8,7 @@ namespace ORTS.Common.Input
 
         public abstract int ReadBufferSize { get; }
 
-        public abstract void WriteData(byte[] writeBuffer);
+        public abstract int WriteData(byte[] writeBuffer);
 
         public byte[] NewReadBuffer => new byte[ReadBufferSize]; 
 
@@ -74,12 +74,12 @@ namespace ORTS.Common.Input
 
         public override int BlockingReadCurrentData(ref byte[] data, int timeout)
         {
-            return device?.BlockingReadData(ref data, timeout) ?? 0;
+            return device?.BlockingReadData(ref data, timeout) ?? -1;
         }
 
         public override int ReadCurrentData(ref byte[] data)
         {
-            return device?.ReadLast(ref data) ?? 0;
+            return device?.ReadLast(ref data) ?? -1;
         }
 
         public override void Shutdown()
@@ -87,9 +87,9 @@ namespace ORTS.Common.Input
             device?.CloseInterface();
         }
 
-        public override void WriteData(byte[] writeBuffer)
+        public override int WriteData(byte[] writeBuffer)
         {
-            device?.WriteData(writeBuffer);
+            return device?.WriteData(writeBuffer) ?? -1;
         }
     }
 
@@ -127,12 +127,12 @@ namespace ORTS.Common.Input
 
         public override int BlockingReadCurrentData(ref byte[] data, int timeout)
         {
-            return device?.BlockingReadData(ref data, timeout) ?? 0;
+            return device?.BlockingReadData(ref data, timeout) ?? -1;
         }
 
         public override int ReadCurrentData(ref byte[] data)
         {
-            return device?.ReadLast(ref data) ?? 0;
+            return device?.ReadLast(ref data) ?? -1;
         }
 
         public override void Shutdown()
@@ -140,9 +140,9 @@ namespace ORTS.Common.Input
             device?.CloseInterface();
         }
 
-        public override void WriteData(byte[] writeBuffer)
+        public override int WriteData(byte[] writeBuffer)
         {
-            device?.WriteData(writeBuffer);
+            return device?.WriteData(writeBuffer) ?? -1;
         }
     }
 

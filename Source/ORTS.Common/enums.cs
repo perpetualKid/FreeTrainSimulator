@@ -17,11 +17,68 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 
 namespace ORTS.Common
 {
+    public static class EnumExtension
+    {
+        private static class EnumCache<T> where T : struct
+        {
+            internal static readonly IList<string> Names;
+            internal static readonly IList<T> Values;
+            internal static readonly Dictionary<T, string> ValueToDescriptionMap;
+
+            static EnumCache()
+            {
+                Values = new ReadOnlyCollection<T>((T[])Enum.GetValues(typeof(T)));
+                Names = new ReadOnlyCollection<string>(Enum.GetNames(typeof(T)));
+                ValueToDescriptionMap = new Dictionary<T, string>();
+
+                foreach (T value in (T[])Enum.GetValues(typeof(T)))
+                {
+                    ValueToDescriptionMap[value] = GetDescription(value);
+                }
+            }
+
+            private static string GetDescription(T value)
+            {
+                FieldInfo field = typeof(T).GetField(value.ToString());
+                return field.GetCustomAttributes(typeof(DescriptionAttribute), false)
+                            .Cast<DescriptionAttribute>()
+                            .Select(x => x.Description)
+                            .FirstOrDefault();
+            }
+        }
+
+        public static string GetDescription<T>(this T item) where T : struct
+        {
+            if (EnumCache<T>.ValueToDescriptionMap.TryGetValue(item, out string description))
+            {
+                return description;
+            }
+            throw new ArgumentOutOfRangeException("item");
+        }
+
+        public static IList<string> GetNames<T>() where T : struct
+        {
+            return EnumCache<T>.Names;
+        }
+
+        public static IList<T> GetValues<T>() where T : struct
+        {
+            return EnumCache<T>.Values;
+        }
+
+        public static int GetLength<T>() where T: struct
+        {
+            return EnumCache<T>.Values.Count;
+        }
+    }
+
     public enum Direction
     {
         [GetParticularString("Reverser", "Forward")] Forward,

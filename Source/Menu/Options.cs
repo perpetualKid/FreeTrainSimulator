@@ -374,9 +374,19 @@ namespace ORTS
             //foreach (Control control in panelKeys.Controls)
             //    if (control is KeyInputControl)
             //        Settings.Input.Commands[(int)control.Tag].PersistentDescriptor = (control as KeyInputControl).UserInput.PersistentDescriptor;
+        }
+
+        private void SaveRailDriverSettings()
+        {
             foreach (Control control in panelRDButtons.Controls)
                 if (control is RDButtonInputControl)
-                    Settings.RailDriver.UserCommands[(int)control.Tag] = (control as RDButtonInputControl).UserButton; 
+                    Settings.RailDriver.UserCommands[(int)control.Tag] = (control as RDButtonInputControl).UserButton;
+            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseReverser] = Convert.ToByte(checkReverseReverser.Checked);
+            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseThrottle] = Convert.ToByte(checkReverseThrottle.Checked);
+            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake] = Convert.ToByte(checkReverseAutoBrake.Checked);
+            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake] = Convert.ToByte(checkReverseIndependentBrake.Checked);
+            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta] = (byte)numericUpDownRDLeverCutOff.Value;
+
         }
 
         private void ButtonOK_Click(object sender, EventArgs e)
@@ -446,7 +456,10 @@ namespace ORTS
 
             // Keyboard tab
             // These are edited live.
-            SaveKeyboardSettings();
+            //SaveKeyboardSettings();
+
+            // Raildriver Tab
+            SaveRailDriverSettings();
 
             // DataLogger tab
             Settings.DataLoggerSeparator = comboDataLoggerSeparator.SelectedValue.ToString();
@@ -500,31 +513,6 @@ namespace ORTS
             Settings.ActWeatherRandomizationLevel = (int)numericActWeatherRandomizationLevel.Value;
 
             Settings.Save();
-        }
-
-        private async void ButtonDefaultKeys_Click(object sender, EventArgs e)
-        {
-            if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom key assignments?"), Application.ProductName, MessageBoxButtons.YesNo))
-            {
-                Settings.Input.Reset();
-                await InitializeKeyboardSettingsAsync();
-            }
-        }
-
-        private void ButtonExport_Click(object sender, EventArgs e)
-        {
-            var outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Open Rails Keyboard.txt");
-            Settings.Input.DumpToText(outputPath);
-            MessageBox.Show(catalog.GetString("A listing of all keyboard commands and keys has been placed here:\n\n") + outputPath, Application.ProductName);
-        }
-
-        private void ButtonCheckKeys_Click(object sender, EventArgs e)
-        {
-            var errors = Settings.Input.CheckForErrors();
-            if (errors != "")
-                MessageBox.Show(errors, Application.ProductName);
-            else
-                MessageBox.Show(catalog.GetString("No errors found."), Application.ProductName);
         }
 
         private void NumericUpDownFOV_ValueChanged(object sender, EventArgs e)
@@ -708,15 +696,5 @@ namespace ORTS
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            GetRailDriverLegend().Show(this);
-        }
-
-        private void button2_Click_1(object sender, EventArgs e)
-        {
-            GetRailDriverLegend().Show(this);
-            RunCalibration();
-        }
     }
 }

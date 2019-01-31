@@ -46,7 +46,6 @@ namespace ORTS
             this.buttonOK.Size = new System.Drawing.Size(23, 24);
             this.buttonOK.TabIndex = 3;
             this.buttonOK.Text = "✔";
-            this.toolTip1.SetToolTip(this.buttonOK, "Accept changes");
             this.buttonOK.Visible = false;
             this.buttonOK.Click += new System.EventHandler(this.ButtonOK_Click);
             // 
@@ -58,7 +57,6 @@ namespace ORTS
             this.buttonCancel.Size = new System.Drawing.Size(23, 24);
             this.buttonCancel.TabIndex = 2;
             this.buttonCancel.Text = "✘";
-            this.toolTip1.SetToolTip(this.buttonCancel, "Cancel changes");
             this.buttonCancel.Visible = false;
             this.buttonCancel.Click += new System.EventHandler(this.ButtonCancel_Click);
             // 
@@ -70,7 +68,6 @@ namespace ORTS
             this.textBox.ReadOnly = true;
             this.textBox.Size = new System.Drawing.Size(135, 20);
             this.textBox.TabIndex = 0;
-            this.toolTip1.SetToolTip(this.textBox, "Press any key");
             this.textBox.Enter += new System.EventHandler(this.TextBox_Enter);
             this.textBox.Leave += new System.EventHandler(this.TextBox_Leave);
             // 
@@ -83,7 +80,6 @@ namespace ORTS
             this.buttonDefault.Size = new System.Drawing.Size(23, 24);
             this.buttonDefault.TabIndex = 1;
             this.buttonDefault.Text = "↺";
-            this.toolTip1.SetToolTip(this.buttonDefault, "Reset to default");
             this.buttonDefault.UseVisualStyleBackColor = false;
             this.buttonDefault.Visible = false;
             this.buttonDefault.Click += new System.EventHandler(this.ButtonDefault_Click);

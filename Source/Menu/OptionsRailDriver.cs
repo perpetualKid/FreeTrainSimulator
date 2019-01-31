@@ -15,7 +15,9 @@ namespace ORTS
     {
         private RailDriverBase instance;
         private Form railDriverLegend;
-        private RailDriverCalibrationSetting currentCalibrationStep;
+        private RailDriverCalibrationSetting currentCalibrationStep = RailDriverCalibrationSetting.PercentageCutOffDelta;
+
+        private byte[] calibrationSettings = new byte[EnumExtension.GetLength<RailDriverCalibrationSetting>()];
 
         private static int[,] startingPoints = { 
             { 170, 110 }, { 170, 150 }, { 170, 60 }, //Reverser
@@ -70,7 +72,7 @@ namespace ORTS
                     {
                         e.Graphics.DrawRectangle(penLine, startingPoints[(int)currentCalibrationStep, 0], startingPoints[(int)currentCalibrationStep, 1], 60, 40);
                         e.Graphics.DrawLine(penArrow, 10, 10, startingPoints[(int)currentCalibrationStep, 0] - 5, startingPoints[(int)currentCalibrationStep, 1] + 20);
-                        e.Graphics.DrawString(GetStringAttribute.GetPrettyName(currentCalibrationStep), new Font("Arial", 14), new SolidBrush(Color.Red), 80, 225);
+                        e.Graphics.DrawString(currentCalibrationStep.GetDescription(), new Font("Arial", 14), new SolidBrush(Color.Red), 80, 225);
                     }
                 };
             }
@@ -84,35 +86,50 @@ namespace ORTS
         private Task<Panel> InitializeRailDriverInputControls()
         {
             TaskCompletionSource<Panel> tcs = new TaskCompletionSource<Panel>();
-            Panel panel = new Panel();
+            Panel panel = new Panel() { AutoScroll = true, Width = panelRDSettings.Width / 2 };
+            panel.SuspendLayout();
 
-            var columnWidth = (panelRDButtons.ClientSize.Width - 20) / 2;
+            var columnWidth = (panel.ClientSize.Width - 20) / 3;
 
             Label tempLabel = new Label();
             RDButtonInputControl tempControl = new RDButtonInputControl(Settings.RailDriver.UserCommands[(int)UserCommand.GameQuit], RailDriverSettings.GetDefaultValue(UserCommand.GameQuit), instance);
             int rowTop = Math.Max(tempLabel.Margin.Top, tempControl.Margin.Top);
             int rowHeight = tempControl.Height;
             int rowSpacing = rowHeight + tempControl.Margin.Vertical;
+            Size categorySize = new Size(columnWidth * 2 - tempLabel.Margin.Horizontal, rowHeight);
+            Size inputControlSize = new Size(columnWidth - tempControl.Margin.Horizontal, rowHeight);
+            Size labelSize = new Size(columnWidth * 2 - tempLabel.Margin.Horizontal, rowHeight);
 
             string previousCategory = "";
             var i = 0;
-            foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
+
+            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
-                var name = InputSettings.GetPrettyLocalizedName(command);
-                var category = ParseCategoryFrom(name);
-                var descriptor = ParseDescriptorFrom(name);
+                string name = catalog.GetString(command.GetDescription());
+                string category, description;
+                int index = name.IndexOf(' ');
+                if (index == -1)
+                {
+                    category = string.Empty;
+                    description = name;
+                }
+                else
+                {
+                    category = name.Substring(0, index);
+                    description = name.Substring(index + 1);
+                }
 
                 if (category != previousCategory)
                 {
-                    var catlabel = new Label
+                    Label categorylabel = new Label
                     {
                         Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i),
-                        Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight),
+                        Size = categorySize,
                         Text = category,
-                        TextAlign = ContentAlignment.MiddleCenter
+                        TextAlign = ContentAlignment.MiddleLeft
                     };
-                    catlabel.Font = new Font(catlabel.Font, FontStyle.Bold);
-                    panel.Controls.Add(catlabel);
+                    categorylabel.Font = new Font(categorylabel.Font, FontStyle.Bold);
+                    panel.Controls.Add(categorylabel);
 
                     previousCategory = category;
                     ++i;
@@ -121,23 +138,23 @@ namespace ORTS
                 var label = new Label
                 {
                     Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i),
-                    Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight),
-                    Text = descriptor,
+                    Size = labelSize,
+                    Text = description,
                     TextAlign = ContentAlignment.MiddleRight
                 };
                 panel.Controls.Add(label);
 
-                var keyInputControl = new RDButtonInputControl(Settings.RailDriver.UserCommands[(int)command], RailDriverSettings.GetDefaultValue(command), instance)
+                RDButtonInputControl rdButtonControl = new RDButtonInputControl(Settings.RailDriver.UserCommands[(int)command], RailDriverSettings.GetDefaultValue(command), instance)
                 {
-                    Location = new Point(columnWidth + tempControl.Margin.Left, rowTop + rowSpacing * i),
-                    Size = new Size(columnWidth - tempControl.Margin.Horizontal, rowHeight),
+                    Location = new Point(columnWidth * 2 + tempControl.Margin.Left, rowTop + rowSpacing * i),
+                    Size = inputControlSize,
                     Tag = command
                 };
-                panel.Controls.Add(keyInputControl);
-                toolTip1.SetToolTip(keyInputControl, catalog.GetString("Click to change this button"));
+                panel.Controls.Add(rdButtonControl);
 
                 ++i;
             }
+            panel.ResumeLayout(true);
             tcs.SetResult(panel);
             return tcs.Task;
         }
@@ -150,34 +167,60 @@ namespace ORTS
             {
                 tabOptions.TabPages.Remove(tabPageRailDriver);
                 await Task.CompletedTask;
+                return;
             }
 #endif
-            panelRDButtons.SuspendLayout();
+            panelRDButtons.Width = panelRDSettings.Width / 2;
             panelRDButtons.Controls.Clear();
 
+            checkReverseReverser.Checked = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseReverser] != 0;
+            checkReverseThrottle.Checked = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseThrottle] != 0;
+            checkReverseAutoBrake.Checked = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake] != 0;
+            checkReverseIndependentBrake.Checked = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake] != 0;
+            numericUpDownRDLeverCutOff.Value = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta];
             Panel controls = await Task.Run(InitializeRailDriverInputControls);
-            panelRDButtons.Controls.Add(controls);
             controls.Dock = DockStyle.Fill;
-            panelRDButtons.ResumeLayout(true);
-
+            panelRDButtons.Controls.Add(controls);
+            foreach(Control control in controls.Controls)
+                if (control is RDButtonInputControl)
+                    toolTip1.SetToolTip(control, catalog.GetString("Click to change this button"));
         }
 
         private void RunCalibration()
         {
+            byte[] readData = instance.NewReadBuffer;
             RailDriverCalibrationSetting nextStep = RailDriverCalibrationSetting.ReverserNeutral;
             DialogResult result = DialogResult.OK;
             while (result == DialogResult.OK && nextStep < RailDriverCalibrationSetting.ReverseReverser)
             {
                 currentCalibrationStep = nextStep;
                 railDriverLegend.Invalidate(true);  //enforce redraw legend to show guidance
-                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{GetStringAttribute.GetPrettyName(currentCalibrationStep)}\". \r\n\r\nClick OK to continue, or Cancel to abort the process any time", "RailDriver Calibration", MessageBoxButtons.OKCancel);
+                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{currentCalibrationStep.GetDescription()}\", move the Lever as shown the guidance. \r\n\r\nClick OK to read the position and continue. Click Cancel anytime to abort the calibration process.", "RailDriver Calibration", MessageBoxButtons.OKCancel);
                 // Read Setting
                 if (result == DialogResult.OK)
                 {
-                    //TODO
+                    if (0 == instance.BlockingReadCurrentData(ref readData, 2000))
+                    {
+                        int index = 0;
+                        if ((int)currentCalibrationStep < 3)        //Reverser
+                            index = 1;
+                        else if ((int)currentCalibrationStep < 7)   //Throttle/Dynamic Brake
+                            index = 2;  
+                        else if ((int)currentCalibrationStep < 10)  //Auto Brake
+                            index = 3;
+                        else if ((int)currentCalibrationStep < 16)  //Independent Brake
+                            index = 4;
+                        else if ((int)currentCalibrationStep < 19)  //Rotary 1
+                            index = 6;
+                        else if ((int)currentCalibrationStep < 22)  //Rotary 2
+                            index = 7;
+
+                        calibrationSettings[(int)currentCalibrationStep] = readData[index];
+                    }
                 }
                 nextStep++;
             }
+            currentCalibrationStep = RailDriverCalibrationSetting.PercentageCutOffDelta;
             railDriverLegend.Invalidate(true);
             if (nextStep == RailDriverCalibrationSetting.ReverseReverser)
             {
@@ -186,7 +229,27 @@ namespace ORTS
                     // store settings
                 }
             }
-            currentCalibrationStep = RailDriverCalibrationSetting.PercentageCutOffDelta;
         }
+        private void StartRDCalibration_Click(object sender, EventArgs e)
+        {
+            GetRailDriverLegend().Show(this);
+            RunCalibration();
+        }
+        private async void BtnRDReset_Click(object sender, EventArgs e)
+        {
+            if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom button assignments?"), Application.ProductName, MessageBoxButtons.YesNo))
+            {
+                Settings.RailDriver.Reset();
+                await InitializeRailDriverSettingsAsync();
+            }
+        }
+        private void btnShowRDLegend_Click(object sender, EventArgs e)
+        {
+            GetRailDriverLegend().Show(this);
+        }
+
+
+
+
     }
 }
