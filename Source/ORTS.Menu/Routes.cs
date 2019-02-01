@@ -28,7 +28,7 @@ namespace ORTS.Menu
     public class Route
     {
         public string Name { get; private set; }
-        public readonly string RouteID { get; private set; }
+        public string RouteID { get; private set; }
         public string Description { get; private set; }
         public string Path { get; private set; }
 

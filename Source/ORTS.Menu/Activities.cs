@@ -54,10 +54,7 @@ namespace ORTS.Menu
             else if (null != activityFile)
             {
                 // ITR activities are excluded.
-                if (actFile.Tr_Activity.Tr_Activity_Header.RouteID.ToUpper() == route.RouteID.ToUpper())
-                {
-
-                    Name = activityFile.Tr_Activity.Tr_Activity_Header.Name.Trim();
+                Name = activityFile.Tr_Activity.Tr_Activity_Header.Name.Trim();
                 if (activityFile.Tr_Activity.Tr_Activity_Header.Mode == ActivityMode.IntroductoryTrainRide)
                     Name = "Introductory Train Ride";
                 Description = activityFile.Tr_Activity.Tr_Activity_Header.Description;
@@ -69,9 +66,6 @@ namespace ORTS.Menu
                 Duration = activityFile.Tr_Activity.Tr_Activity_Header.Duration;
                 Consist = consist;
                 Path = path;
-                      else//Activity and route have different RouteID.
-                        Name = "<" + catalog.GetString("Not same route:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
-                }
             }
             else
             {
@@ -104,6 +98,12 @@ namespace ORTS.Menu
                         // Not nice to throw an error now. Error was originally thrown by new Path(...);
                         throw new InvalidDataException("Not a player path");
                     }
+                    else if (activityFile.Tr_Activity.Tr_Activity_Header.RouteID.ToUpper() != route.RouteID.ToUpper())
+                    {
+                        //Activity and route have different RouteID.
+                        result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)} >", filePath, null, null, null);
+                    }
+                    else
                     result = new Activity(string.Empty, filePath, activityFile, consist, path);
                 }
                 catch
