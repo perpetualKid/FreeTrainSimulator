@@ -204,5 +204,10 @@ namespace ORTS.Settings
             else
                 throw new ArgumentOutOfRangeException($"Enum parameter {nameof(name)} not within expected range of either {nameof(RailDriverCalibrationSetting)} or {nameof(UserCommands)}");
         }
+
+        public string CheckForErrors()
+        {
+            return string.Empty;
+        }
     }
 }

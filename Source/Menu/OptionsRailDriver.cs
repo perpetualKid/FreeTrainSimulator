@@ -224,7 +224,7 @@ namespace ORTS
             railDriverLegend.Invalidate(true);
             if (nextStep == RailDriverCalibrationSetting.ReverseReverser)
             {
-                if (MessageBox.Show(railDriverLegend, "Calibration Completed. Do you want to store the results?", "Calibration Done", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                if (MessageBox.Show(railDriverLegend, "Calibration Completed. Do you want to keep the results?", "Calibration Done", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     // store settings
                 }

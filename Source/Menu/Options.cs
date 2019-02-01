@@ -386,7 +386,6 @@ namespace ORTS
             Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake] = Convert.ToByte(checkReverseAutoBrake.Checked);
             Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake] = Convert.ToByte(checkReverseIndependentBrake.Checked);
             Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta] = (byte)numericUpDownRDLeverCutOff.Value;
-
         }
 
         private void ButtonOK_Click(object sender, EventArgs e)

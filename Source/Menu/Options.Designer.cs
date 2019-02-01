@@ -115,6 +115,9 @@
             this.panelRDSettings = new System.Windows.Forms.Panel();
             this.panelRDOptions = new System.Windows.Forms.Panel();
             this.groupBoxReverseRDLevers = new System.Windows.Forms.GroupBox();
+            this.checkReverseIndependentBrake = new System.Windows.Forms.CheckBox();
+            this.checkReverseAutoBrake = new System.Windows.Forms.CheckBox();
+            this.checkReverseThrottle = new System.Windows.Forms.CheckBox();
             this.checkReverseReverser = new System.Windows.Forms.CheckBox();
             this.numericUpDownRDLeverCutOff = new System.Windows.Forms.NumericUpDown();
             this.panelRDButtons = new System.Windows.Forms.Panel();
@@ -198,9 +201,7 @@
             this.ElevationText = new System.Windows.Forms.Label();
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.checkReverseThrottle = new System.Windows.Forms.CheckBox();
-            this.checkReverseAutoBrake = new System.Windows.Forms.CheckBox();
-            this.checkReverseIndependentBrake = new System.Windows.Forms.CheckBox();
+            this.labelRDLeverCutOffPercentage = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -1296,6 +1297,7 @@
             // 
             // panelRDOptions
             // 
+            this.panelRDOptions.Controls.Add(this.labelRDLeverCutOffPercentage);
             this.panelRDOptions.Controls.Add(this.groupBoxReverseRDLevers);
             this.panelRDOptions.Controls.Add(this.numericUpDownRDLeverCutOff);
             this.panelRDOptions.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -1318,6 +1320,39 @@
             this.groupBoxReverseRDLevers.TabStop = false;
             this.groupBoxReverseRDLevers.Text = "Reverse Levers";
             // 
+            // checkReverseIndependentBrake
+            // 
+            this.checkReverseIndependentBrake.AutoSize = true;
+            this.checkReverseIndependentBrake.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkReverseIndependentBrake.Location = new System.Drawing.Point(7, 89);
+            this.checkReverseIndependentBrake.Name = "checkReverseIndependentBrake";
+            this.checkReverseIndependentBrake.Size = new System.Drawing.Size(205, 17);
+            this.checkReverseIndependentBrake.TabIndex = 3;
+            this.checkReverseIndependentBrake.Text = "Reverse Independent Brake Direction";
+            this.checkReverseIndependentBrake.UseVisualStyleBackColor = true;
+            // 
+            // checkReverseAutoBrake
+            // 
+            this.checkReverseAutoBrake.AutoSize = true;
+            this.checkReverseAutoBrake.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkReverseAutoBrake.Location = new System.Drawing.Point(7, 66);
+            this.checkReverseAutoBrake.Name = "checkReverseAutoBrake";
+            this.checkReverseAutoBrake.Size = new System.Drawing.Size(167, 17);
+            this.checkReverseAutoBrake.TabIndex = 2;
+            this.checkReverseAutoBrake.Text = "Reverse Auto Brake Direction";
+            this.checkReverseAutoBrake.UseVisualStyleBackColor = true;
+            // 
+            // checkReverseThrottle
+            // 
+            this.checkReverseThrottle.AutoSize = true;
+            this.checkReverseThrottle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkReverseThrottle.Location = new System.Drawing.Point(7, 43);
+            this.checkReverseThrottle.Name = "checkReverseThrottle";
+            this.checkReverseThrottle.Size = new System.Drawing.Size(150, 17);
+            this.checkReverseThrottle.TabIndex = 1;
+            this.checkReverseThrottle.Text = "Reverse Throttle Direction";
+            this.checkReverseThrottle.UseVisualStyleBackColor = true;
+            // 
             // checkReverseReverser
             // 
             this.checkReverseReverser.AutoSize = true;
@@ -1331,7 +1366,7 @@
             // 
             // numericUpDownRDLeverCutOff
             // 
-            this.numericUpDownRDLeverCutOff.Location = new System.Drawing.Point(6, 165);
+            this.numericUpDownRDLeverCutOff.Location = new System.Drawing.Point(13, 150);
             this.numericUpDownRDLeverCutOff.Maximum = new decimal(new int[] {
             10,
             0,
@@ -2392,38 +2427,16 @@
             this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
             this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
-            // checkReverseThrottle
+            // labelRDLeverCutOffPercentage
             // 
-            this.checkReverseThrottle.AutoSize = true;
-            this.checkReverseThrottle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkReverseThrottle.Location = new System.Drawing.Point(7, 43);
-            this.checkReverseThrottle.Name = "checkReverseThrottle";
-            this.checkReverseThrottle.Size = new System.Drawing.Size(150, 17);
-            this.checkReverseThrottle.TabIndex = 1;
-            this.checkReverseThrottle.Text = "Reverse Throttle Direction";
-            this.checkReverseThrottle.UseVisualStyleBackColor = true;
-            // 
-            // checkReverseAutoBrake
-            // 
-            this.checkReverseAutoBrake.AutoSize = true;
-            this.checkReverseAutoBrake.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkReverseAutoBrake.Location = new System.Drawing.Point(7, 66);
-            this.checkReverseAutoBrake.Name = "checkReverseAutoBrake";
-            this.checkReverseAutoBrake.Size = new System.Drawing.Size(167, 17);
-            this.checkReverseAutoBrake.TabIndex = 2;
-            this.checkReverseAutoBrake.Text = "Reverse Auto Brake Direction";
-            this.checkReverseAutoBrake.UseVisualStyleBackColor = true;
-            // 
-            // checkReverseIndependentBrake
-            // 
-            this.checkReverseIndependentBrake.AutoSize = true;
-            this.checkReverseIndependentBrake.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkReverseIndependentBrake.Location = new System.Drawing.Point(7, 89);
-            this.checkReverseIndependentBrake.Name = "checkReverseIndependentBrake";
-            this.checkReverseIndependentBrake.Size = new System.Drawing.Size(205, 17);
-            this.checkReverseIndependentBrake.TabIndex = 3;
-            this.checkReverseIndependentBrake.Text = "Reverse Independent Brake Direction";
-            this.checkReverseIndependentBrake.UseVisualStyleBackColor = true;
+            this.labelRDLeverCutOffPercentage.AutoSize = true;
+            this.labelRDLeverCutOffPercentage.Location = new System.Drawing.Point(62, 152);
+            this.labelRDLeverCutOffPercentage.Name = "labelRDLeverCutOffPercentage";
+            this.labelRDLeverCutOffPercentage.Size = new System.Drawing.Size(139, 13);
+            this.labelRDLeverCutOffPercentage.TabIndex = 3;
+            this.labelRDLeverCutOffPercentage.Text = "% Levers Cutoff Percentage";
+            this.toolTip1.SetToolTip(this.labelRDLeverCutOffPercentage, "The upper/lower end lever position cutoff point, i.e. with 2%, a Throttle positio" +
+        "n of 98% would be treated as 100% ");
             // 
             // OptionsForm
             // 
@@ -2468,6 +2481,7 @@
             this.tabPageRailDriver.ResumeLayout(false);
             this.panelRDSettings.ResumeLayout(false);
             this.panelRDOptions.ResumeLayout(false);
+            this.panelRDOptions.PerformLayout();
             this.groupBoxReverseRDLevers.ResumeLayout(false);
             this.groupBoxReverseRDLevers.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownRDLeverCutOff)).EndInit();
@@ -2675,5 +2689,6 @@
         private System.Windows.Forms.CheckBox checkReverseIndependentBrake;
         private System.Windows.Forms.CheckBox checkReverseAutoBrake;
         private System.Windows.Forms.CheckBox checkReverseThrottle;
+        private System.Windows.Forms.Label labelRDLeverCutOffPercentage;
     }
 }
