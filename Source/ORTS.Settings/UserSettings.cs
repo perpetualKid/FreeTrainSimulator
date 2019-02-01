@@ -138,6 +138,8 @@ namespace ORTS.Settings
         public String Units { get; set; }
         [Default(false)]
         public bool DisableTCSScripts { get; set; }
+        [Default(true)]
+        public bool EnableWatchdog { get; set; }
 
         // Audio settings:
         [Default(true)]
