@@ -77,17 +77,19 @@ namespace ORTS
             buttonDefault.Visible = enable;
         }
 
-        private void TextBox_Enter(object sender, EventArgs e)
+        private async void TextBox_Enter(object sender, EventArgs e)
         {
             EnableEditButtons(true);
-            if (0 == instance.BlockingReadCurrentData(ref readBuffer, 2000))
+            while (edit)
             {
+                instance.ReadCurrentData(ref readBuffer);
                 sbyte data = ValidateButtonIndex();
                 if (data > -1)
                 {
                     textBox.Text = ((byte)data).ToString();
                 }
-            }
+                await System.Threading.Tasks.Task.Delay(200);
+            }                
         }
 
         private sbyte ValidateButtonIndex()
@@ -97,7 +99,7 @@ namespace ORTS
                 Buffer.BlockCopy(readBuffer, 8, buttonData, 0, 6);
                 ulong buttons = BitConverter.ToUInt64(buttonData, 0);
                 //check that only 1 button is pressed
-                if ((buttons & (buttons - 1)) == 0)
+                if (buttons > 0 && ((buttons & (buttons - 1)) == 0))
                 {
                     // loop which bit is set
                     for (sbyte i = 0; i < 48; i++)

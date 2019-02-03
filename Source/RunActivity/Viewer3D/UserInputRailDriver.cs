@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
 using ORTS.Common.Input;
@@ -51,6 +52,12 @@ namespace Orts.Viewer3D
         public int Wipers;                  // wiper rotary, 1 off, 2 slow, 3 full
         public int Lights;                  // lights rotary, 1 off, 2 dim, 3 full
 
+        private static byte[] calibrationSettings;
+
+        private readonly (byte, byte, byte) reverser, dynamicBrake, wipers, headlight;
+        private readonly (byte, byte) throttle, autoBrake, independentBrake, emergencyBrake;
+        private readonly bool fullRangeThrottle;
+
         /// <summary>
         /// Tries to find a RailDriver and initialize it
         /// </summary>
@@ -62,6 +69,47 @@ namespace Orts.Viewer3D
             if (railDriverInstance.Enabled)
             {
                 settings = game.Settings.RailDriver;
+                calibrationSettings = settings.CalibrationSettings;
+
+                if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseReverser]))
+                    reverser = (calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullForward], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserNeutral], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullReversed]);
+                else
+                    reverser = (calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullReversed], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserNeutral], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullForward]);
+
+                if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.FullRangeThrottle]))
+                {
+                    if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseThrottle]))
+                        throttle = (calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrake], calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleFull]);
+                    else
+                        throttle = (calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleFull], calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrake]);
+                    fullRangeThrottle = true;
+                }
+                else
+                {
+                    if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseThrottle]))
+                    {
+                        throttle = (calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrake], calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrakeSetup]);
+                        dynamicBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleFull]);
+                    }
+                    else
+                    {
+                        throttle = (calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleFull]);
+                        dynamicBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrake]);
+                    }
+                }
+                if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake]))
+                    autoBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeFull], calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeRelease]);
+                else
+                    autoBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeFull]);
+                if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake]))
+                    independentBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeFull], calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeRelease]);
+                else
+                    independentBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeFull]);
+
+                emergencyBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeFull], calibrationSettings[(byte)RailDriverCalibrationSetting.EmergencyBrake]);
+
+                wipers = (calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position1], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position2], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position3]);
+                headlight = (calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position1], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position2], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position3]);
                 cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta];
 
                 writeBuffer = railDriverInstance.NewWriteBuffer;
@@ -69,7 +117,6 @@ namespace Orts.Viewer3D
                 readBufferHistory = railDriverInstance.NewReadBuffer;
 
                 SetLEDs(0x40, 0x40, 0x40);
-
             }
         }
 
@@ -77,40 +124,22 @@ namespace Orts.Viewer3D
         {
             if (railDriverInstance.Enabled && 0 == railDriverInstance.ReadCurrentData(ref readBuffer))
             {
-                DirectionPercent = Percentage(readBuffer[1],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverserFullReversed],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverserNeutral],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverserFullForward]);
-                ThrottlePercent = Percentage(readBuffer[2],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ThrottleIdle],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ThrottleFull]);
-                DynamicBrakePercent = Percentage(readBuffer[2],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.ThrottleIdle],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.DynamicBrakeSetup],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.DynamicBrake]);
-                TrainBrakePercent = Percentage(readBuffer[3],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.AutoBrakeRelease],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.AutoBrakeFull]);
-                EngineBrakePercent = Percentage(readBuffer[4],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.IndependentBrakeRelease],
-                    settings.CalibrationSettings[(int)RailDriverCalibrationSetting.IndependentBrakeFull]);
+                DirectionPercent = Percentage(readBuffer[1], reverser);
+                ThrottlePercent = Percentage(readBuffer[2], throttle);
+                if (!fullRangeThrottle)
+                    DynamicBrakePercent = Percentage(readBuffer[2], dynamicBrake);
+                TrainBrakePercent = Percentage(readBuffer[3], autoBrake);
+                EngineBrakePercent = Percentage(readBuffer[4], independentBrake);
                 float a = .01f * EngineBrakePercent;
                 float calOff = (1 - a) * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffDisengagedRelease] + a * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffDisengagedFull];
                 float calOn = (1 - a) * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffEngagedRelease] + a * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffEngagedFull];
                 BailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
-                if (TrainBrakePercent >= 100)
-                    Emergency = Percentage(readBuffer[3],
-                        settings.CalibrationSettings[(int)RailDriverCalibrationSetting.AutoBrakeFull],
-                        settings.CalibrationSettings[(int)RailDriverCalibrationSetting.EmergencyBrake]) > 50;
 
-                Wipers = (int)(.01 * Percentage(readBuffer[6],
-                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary1Position1],
-                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary1Position2],
-                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary1Position3]) + 2.5);
-                Lights = (int)(.01 * Percentage(readBuffer[7],
-                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary2Position1],
-                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary2Position2],
-                                            settings.CalibrationSettings[(int)RailDriverCalibrationSetting.Rotary2Position3]) + 2.5);
+                if (TrainBrakePercent >= 100)
+                    Emergency = Percentage(readBuffer[3], emergencyBrake) > 50;
+
+                Wipers = (int)(.01 * Percentage(readBuffer[6], wipers) + 2.5);
+                Lights = (int)(.01 * Percentage(readBuffer[7], headlight) + 2.5);
 
                 (readBufferHistory, readBuffer) = (readBuffer, readBufferHistory);
 
@@ -141,10 +170,10 @@ namespace Orts.Viewer3D
                 return 100;
             return p;
         }
-        
-        private static float Percentage(byte value, byte p0, byte p100)
+
+        private static float Percentage(byte value, (byte p0, byte p100) range)
         {
-            float p = 100 * (value - p0) / (p100 - p0);
+            float p = 100 * (value - range.p0) / (range.p100- range.p0);
             if (p < cutOff)
                 return 0;
             if (p > (100 - cutOff))
@@ -152,14 +181,14 @@ namespace Orts.Viewer3D
             return p;
         }
 
-        private static float Percentage(byte value, byte p100Minus, byte p0, byte p100Plus)
+        private static float Percentage(byte value, (byte p100Minus, byte p0, byte p100Plus) range) 
         {
-            float p = 100 * (value - p0) / (p100Plus - p0);
+            float p = 100 * (value - range.p0) / (range.p100Plus - range.p0);
             if (p < 0)
-                p = 100 * (value - p0) / (p0 - p100Minus);
+                p = 100 * (value - range.p0) / (range.p0 - range.p100Minus);
             if (p < (-100 + cutOff))
                 return -100;
-            if (p > 95)
+            if (p > (100 - cutOff))
                 return 100;
             return p;
         }
@@ -249,6 +278,8 @@ namespace Orts.Viewer3D
             if (!active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
+            if (raildriverCommand == byte.MaxValue)
+                return false;
             if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
                 return command == UserCommand.ControlHorn ? (IsPressed(raildriverCommand) || IsPressed((byte)(raildriverCommand + 1))) :
                     IsPressed(raildriverCommand);
@@ -261,6 +292,8 @@ namespace Orts.Viewer3D
             if (!active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
+            if (raildriverCommand == byte.MaxValue)
+                return false;
             if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
                 return command == UserCommand.ControlHorn ? (IsReleased(raildriverCommand) || IsReleased((byte)(raildriverCommand + 1))) :
                 IsReleased(raildriverCommand);
@@ -273,6 +306,8 @@ namespace Orts.Viewer3D
             if (!active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
+            if (raildriverCommand == byte.MaxValue)
+                return false;
             if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
                 return ButtonCurrentlyDown(raildriverCommand);
             else

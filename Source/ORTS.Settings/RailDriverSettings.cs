@@ -13,17 +13,17 @@ namespace ORTS.Settings
         [Description("Reverser Full Forward")] ReverserFullForward,
         [Description("Throttle Idle")] ThrottleIdle,
         [Description("Full Throttle")] ThrottleFull,
-        [Description("Dynamic Brake Setup")] DynamicBrakeSetup,
         [Description("Dynamic Brake")] DynamicBrake,
+        [Description("Dynamic Brake Setup")] DynamicBrakeSetup,
         [Description("Auto Brake Released")] AutoBrakeRelease,
         [Description("Full Auto Brake ")] AutoBrakeFull,
         [Description("Emergency Brake")] EmergencyBrake,
         [Description("Independent Brake Released")] IndependentBrakeRelease,
-        [Description("Bail Off Engaged (in Released position)")] BailOffEngagedRelease,
         [Description("Independent Brake Full")] IndependentBrakeFull,
-        [Description("Bail Off Engaged (in Full position)")] BailOffEngagedFull,
         [Description("Bail Off Disengaged (in Released position)")] BailOffDisengagedRelease,
+        [Description("Bail Off Engaged (in Released position)")] BailOffEngagedRelease,
         [Description("Bail Off Disengaged (in Full position)")] BailOffDisengagedFull,
+        [Description("Bail Off Engaged (in Full position)")] BailOffEngagedFull,
         [Description("Rotary Switch 1-Position 1(OFF)")] Rotary1Position1,
         [Description("Rotary Switch 1-Position 2(SLOW)")] Rotary1Position2,
         [Description("Rotary Switch 1-Position 3(FULL)")] Rotary1Position3,
@@ -34,6 +34,7 @@ namespace ORTS.Settings
         [Description("Reverse Throttle Direction")] ReverseThrottle,
         [Description("Reverse Auto Brake Direction")] ReverseAutoBrake,
         [Description("Reverse Independent Brake Direction")] ReverseIndependentBrake,
+        [Description("Full Range Throttle")] FullRangeThrottle,
         [Description("Cut Off Delta (Percent)")] PercentageCutOffDelta,
     }
 
@@ -53,7 +54,7 @@ namespace ORTS.Settings
         static RailDriverSettings()
         {
             //default calibration settings from another developer's PC, they are as good as random numbers...
-            DefaultCalibrationSettings = new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 0, 0, 0, 0, 5 };
+            DefaultCalibrationSettings = new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 0, 0, 0, 0, 0, 5 };
             DefaultUserCommands = new Dictionary<UserCommand, byte>();
 
             // top row of blue buttons left to right
