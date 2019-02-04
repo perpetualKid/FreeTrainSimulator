@@ -88,7 +88,6 @@ namespace ORTS
 				// Required libraries:
 				"GNU.Gettext.dll",
 				"GNU.Gettext.WinForms.dll",
-				"ICSharpCode.SharpZipLib.dll",
 				// Programs:
 				"Menu.exe",
 				"RunActivity.exe",
