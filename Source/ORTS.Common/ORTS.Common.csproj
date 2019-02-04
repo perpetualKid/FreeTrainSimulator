@@ -84,6 +84,7 @@
     <Compile Include="Integrator.cs" />
     <Compile Include="IO\BufferedInMemoryStream.cs" />
     <Compile Include="IO\ByteEncoding.cs" />
+    <Compile Include="Msts\MstsPath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SettingsBase.cs" />
     <Compile Include="SettingsStore.cs" />

@@ -20,8 +20,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using GNU.Gettext;
-using MSTS;
 using Orts.Formats.Msts;
+using ORTS.Common.Msts;
 
 namespace ORTS.Menu
 {
@@ -38,7 +38,7 @@ namespace ORTS.Menu
         {
             if (Directory.Exists(path))
             {
-				string trkFilePath = MSTSPath.GetTRKFileName(path);
+				string trkFilePath = MstsPath.GetTRKFileName(path);
                 try
                 {
 					var trkFile = new RouteFile(trkFilePath);

@@ -57,8 +57,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
-using MSTS;
 using ORTS.Common;
+using ORTS.Common.Msts;
 using ORTS.Menu;
 using ORTS.Settings;
 using Path = System.IO.Path;
@@ -575,7 +575,7 @@ namespace ORTS
                     if( !File.Exists(filePath) )
                     {
                         // Show the dialog and get result.
-                        openFileDialog1.InitialDirectory = MSTSPath.Base();
+                        openFileDialog1.InitialDirectory = MstsPath.Base();
                         openFileDialog1.FileName = Path.GetFileName(filePath);
                         openFileDialog1.Title = @"Find location for file " + filePath;
                         if( openFileDialog1.ShowDialog() != DialogResult.OK )
@@ -590,7 +590,7 @@ namespace ORTS
                         if( !File.Exists(filePath) )
                         {
                             // Show the dialog and get result.
-                            openFileDialog1.InitialDirectory = MSTSPath.Base();
+                            openFileDialog1.InitialDirectory = MstsPath.Base();
                             openFileDialog1.FileName = Path.GetFileName(filePath);
                             openFileDialog1.Title = @"Find location for file " + filePath;
                             if( openFileDialog1.ShowDialog() != DialogResult.OK )
