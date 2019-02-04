@@ -475,7 +475,7 @@ namespace ORTS.Settings
                 if (command is UserCommandModifiableKeyInput)
                     (command as UserCommandModifiableKeyInput).SynchronizeCombine();
 
-            var errors = new List<String>();
+            StringBuilder errors = new StringBuilder();
 
             // Check for commands which both require a particular modifier, and ignore it.
             foreach (var command in EnumExtension.GetValues<UserCommand>())
@@ -485,11 +485,11 @@ namespace ORTS.Settings
                 if (modInput != null)
                 {
                     if (modInput.Shift && modInput.IgnoreShift)
-                        errors.Add(catalog.GetStringFmt("{0} requires and is modified by Shift", catalog.GetString(command.GetDescription())));
+                        errors.AppendLine(catalog.GetStringFmt("{0} requires and is modified by Shift", catalog.GetString(command.GetDescription())));
                     if (modInput.Control && modInput.IgnoreControl)
-                        errors.Add(catalog.GetStringFmt("{0} requires and is modified by Control", catalog.GetString(command.GetDescription())));
+                        errors.AppendLine(catalog.GetStringFmt("{0} requires and is modified by Control", catalog.GetString(command.GetDescription())));
                     if (modInput.Alt && modInput.IgnoreAlt)
-                        errors.Add(catalog.GetStringFmt("{0} requires and is modified by Alt", catalog.GetString(command.GetDescription())));
+                        errors.AppendLine(catalog.GetStringFmt("{0} requires and is modified by Alt", catalog.GetString(command.GetDescription())));
                 }
             }
 
@@ -520,11 +520,11 @@ namespace ORTS.Settings
                     var unique2 = input2.GetUniqueInputs();
                     var sharedUnique = unique1.Where(id => unique2.Contains(id));
                     foreach (var uniqueInput in sharedUnique)
-                        errors.Add(catalog.GetStringFmt("{0} and {1} both match {2}", catalog.GetString(command1.GetDescription()), catalog.GetString(command2.GetDescription()), GetPrettyUniqueInput(uniqueInput)));
+                        errors.AppendLine(catalog.GetStringFmt("{0} and {1} both match {2}", catalog.GetString(command1.GetDescription()), catalog.GetString(command2.GetDescription()), GetPrettyUniqueInput(uniqueInput)));
                 }
             }
 
-            return String.Join("\n", errors.ToArray());
+            return errors.ToString();
         }
 
         public static string GetPrettyLocalizedName(UserCommand value)

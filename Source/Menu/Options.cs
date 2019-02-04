@@ -376,19 +376,6 @@ namespace ORTS
             //        Settings.Input.Commands[(int)control.Tag].PersistentDescriptor = (control as KeyInputControl).UserInput.PersistentDescriptor;
         }
 
-        private void SaveRailDriverSettings()
-        {
-            foreach (Control control in panelRDButtons.Controls)
-                if (control is RDButtonInputControl)
-                    Settings.RailDriver.UserCommands[(int)control.Tag] = (control as RDButtonInputControl).UserButton;
-            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseReverser] = Convert.ToByte(checkReverseReverser.Checked);
-            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseThrottle] = Convert.ToByte(checkReverseThrottle.Checked);
-            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake] = Convert.ToByte(checkReverseAutoBrake.Checked);
-            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake] = Convert.ToByte(checkReverseIndependentBrake.Checked);
-            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta] = (byte)numericUpDownRDLeverCutOff.Value;
-
-        }
-
         private void ButtonOK_Click(object sender, EventArgs e)
         {
             var result = Settings.Input.CheckForErrors();
