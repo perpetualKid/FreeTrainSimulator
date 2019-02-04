@@ -195,7 +195,7 @@ namespace ORTS
             {
                 currentCalibrationStep = nextStep;
                 railDriverLegend.Invalidate(true);  //enforce redraw legend to show guidance
-                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{currentCalibrationStep.GetDescription()}\", move the Lever as shown the guidance. \r\n\r\nClick OK to read the position and continue. Click Cancel anytime to abort the calibration process.", "RailDriver Calibration", MessageBoxButtons.OKCancel);
+                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{currentCalibrationStep.GetDescription()}\". Move the Lever as indicated through guidance. \r\n\r\nClick OK to read the position and continue. Click Cancel anytime to abort the calibration process.", "RailDriver Calibration", MessageBoxButtons.OKCancel);
                 // Read Setting
                 if (result == DialogResult.OK)
                 {
@@ -283,9 +283,6 @@ namespace ORTS
 
             currentCalibrationStep = RailDriverCalibrationSetting.PercentageCutOffDelta;
         }
-
-
-
 
     }
 }

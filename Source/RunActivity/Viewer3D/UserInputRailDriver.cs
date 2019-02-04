@@ -52,10 +52,8 @@ namespace Orts.Viewer3D
         public int Wipers;                  // wiper rotary, 1 off, 2 slow, 3 full
         public int Lights;                  // lights rotary, 1 off, 2 dim, 3 full
 
-        private static byte[] calibrationSettings;
-
         private readonly (byte, byte, byte) reverser, dynamicBrake, wipers, headlight;
-        private readonly (byte, byte) throttle, autoBrake, independentBrake, emergencyBrake;
+        private readonly (byte, byte) throttle, autoBrake, independentBrake, emergencyBrake, bailoffDisengaged, bailoffEngaged;
         private readonly bool fullRangeThrottle;
 
         /// <summary>
@@ -69,7 +67,7 @@ namespace Orts.Viewer3D
             if (railDriverInstance.Enabled)
             {
                 settings = game.Settings.RailDriver;
-                calibrationSettings = settings.CalibrationSettings;
+                byte[] calibrationSettings = settings.CalibrationSettings;
 
                 if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseReverser]))
                     reverser = (calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullForward], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserNeutral], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullReversed]);
@@ -110,6 +108,10 @@ namespace Orts.Viewer3D
 
                 wipers = (calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position1], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position2], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position3]);
                 headlight = (calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position1], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position2], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position3]);
+
+                bailoffDisengaged = (calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffDisengagedRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffDisengagedFull]);
+                bailoffEngaged = (calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffEngagedRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffEngagedFull]);
+
                 cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta];
 
                 writeBuffer = railDriverInstance.NewWriteBuffer;
@@ -131,8 +133,8 @@ namespace Orts.Viewer3D
                 TrainBrakePercent = Percentage(readBuffer[3], autoBrake);
                 EngineBrakePercent = Percentage(readBuffer[4], independentBrake);
                 float a = .01f * EngineBrakePercent;
-                float calOff = (1 - a) * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffDisengagedRelease] + a * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffDisengagedFull];
-                float calOn = (1 - a) * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffEngagedRelease] + a * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffEngagedFull];
+                float calOff = (1 - a) * bailoffDisengaged.Item1 + a * bailoffDisengaged.Item2;
+                float calOn = (1 - a) * bailoffEngaged.Item1 + a * bailoffEngaged.Item2;
                 BailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
 
                 if (TrainBrakePercent >= 100)
