@@ -189,6 +189,7 @@ namespace ORTS
         private void RunCalibration()
         {
             byte[] readData = instance.NewReadBuffer;
+            instance.SetLeds(RailDriverDisplaySigns.Char_C, RailDriverDisplaySigns.Char_A, RailDriverDisplaySigns.Char_L);
             RailDriverCalibrationSetting nextStep = RailDriverCalibrationSetting.ReverserNeutral;
             DialogResult result = DialogResult.OK;
             while (result == DialogResult.OK && nextStep < RailDriverCalibrationSetting.ReverseReverser)
@@ -218,6 +219,7 @@ namespace ORTS
                             index = 7;
 
                         calibrationSettings[(int)currentCalibrationStep] = readData[index];
+                        instance.SetLedsNumeric(readData[index]);
                     }
                 }
                 nextStep++;
@@ -228,6 +230,7 @@ namespace ORTS
             {
                 isCalibrationSet = (MessageBox.Show(railDriverLegend, "Calibration Completed. Do you want to keep the results?", "Calibration Done", MessageBoxButtons.YesNo) == DialogResult.Yes);
             }
+            instance.SetLeds(RailDriverDisplaySigns.Blank, RailDriverDisplaySigns.Blank, RailDriverDisplaySigns.Blank);
         }
 
         private void StartRDCalibration_Click(object sender, EventArgs e)

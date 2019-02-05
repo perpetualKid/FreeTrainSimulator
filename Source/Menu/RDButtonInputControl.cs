@@ -87,6 +87,7 @@ namespace ORTS
                 if (data > -1)
                 {
                     textBox.Text = ((byte)data).ToString();
+                    instance.SetLedsNumeric((byte)data);
                 }
                 await System.Threading.Tasks.Task.Delay(200);
             }                
@@ -140,6 +141,7 @@ namespace ORTS
         {
             Parent.Focus();
             EnableEditButtons(false);
+            instance.ClearDisplay();
             UpdateText();
         }
     }
