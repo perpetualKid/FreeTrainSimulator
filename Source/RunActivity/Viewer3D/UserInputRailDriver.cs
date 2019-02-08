@@ -196,7 +196,9 @@ namespace Orts.Viewer3D
                 return 100;
             return p;
         }
-        
+
+        public bool Active { get { return this.active; } }
+
         /// <summary>
         /// Updates speed display on RailDriver LED
         /// </summary>
@@ -275,8 +277,6 @@ namespace Orts.Viewer3D
             else
                 return false;
         }
-
-        public bool Enabled => railDriverInstance.Enabled;
 
     }
 }

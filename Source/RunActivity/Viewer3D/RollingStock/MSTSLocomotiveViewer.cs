@@ -193,7 +193,7 @@ namespace Orts.Viewer3D.RollingStock
             if (UserInput.IsPressed(UserCommand.DebugResetWheelSlip)) { Locomotive.Train.SignalEvent(Event._ResetWheelSlip); }
             if (UserInput.IsPressed(UserCommand.DebugToggleAdvancedAdhesion)) { Locomotive.Train.SignalEvent(Event._ResetWheelSlip); Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion; }
 
-            if (UserInput.Raildriver.Enabled)
+            if (UserInput.Raildriver.Active)
             {
                     Locomotive.AlerterReset();
 
