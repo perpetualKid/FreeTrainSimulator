@@ -748,6 +748,8 @@ namespace Orts.Viewer3D
                 Log.ReplayComplete = false;
             }
 
+            World.Update(elapsedTime);
+
             if (frame.IsScreenChanged)
                 Camera.ScreenChanged();
 
@@ -794,8 +796,6 @@ namespace Orts.Viewer3D
                     AbovegroundCamera = null;
                 }
             }
-
-            World.Update(elapsedTime);
 
             Simulator.ActiveMovingTable = FindActiveMovingTable();
 
