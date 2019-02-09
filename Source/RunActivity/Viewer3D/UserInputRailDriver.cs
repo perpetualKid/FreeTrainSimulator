@@ -28,9 +28,6 @@ namespace Orts.Viewer3D
     /// </summary>
     public class UserInputRailDriver
     {
-        private byte[] writeBuffer;                 // Buffer for sending data to RailDriver
-        private bool active;                        // True when RailDriver values are used to control player loco
-
         private byte[] readBuffer;
         private byte[] readBufferHistory;
 
@@ -114,11 +111,10 @@ namespace Orts.Viewer3D
 
                 cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta];
 
-                writeBuffer = railDriverInstance.NewWriteBuffer;
                 readBuffer = railDriverInstance.NewReadBuffer;
                 readBufferHistory = railDriverInstance.NewReadBuffer;
 
-                railDriverInstance.SetLeds(RailDriverDisplaySigns.Hyphen, RailDriverDisplaySigns.Hyphen, RailDriverDisplaySigns.Hyphen);
+                railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
             }
         }
 
@@ -126,7 +122,7 @@ namespace Orts.Viewer3D
         {
             if (railDriverInstance.Enabled && 0 == railDriverInstance.ReadCurrentData(ref readBuffer))
             {
-                if (active)
+                if (Active)
                 {
                     DirectionPercent = Percentage(readBuffer[1], reverser);
                     ThrottlePercent = Percentage(readBuffer[2], throttle);
@@ -150,15 +146,15 @@ namespace Orts.Viewer3D
                 }
                 if (IsPressed(EnableRailDriverCommand))
                 {
-                    active = !active;
-                    railDriverInstance.EnableSpeaker(active);
-                    if (active)
+                    Active = !Active;
+                    railDriverInstance.EnableSpeaker(Active);
+                    if (Active)
                     {
                         railDriverInstance.SetLeds(0x39, 0x09, 0x0F);
                     }
                     else
                     {
-                        railDriverInstance.SetLeds(RailDriverDisplaySigns.Hyphen, RailDriverDisplaySigns.Hyphen, RailDriverDisplaySigns.Hyphen);
+                        railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
                     }
                 }
                 (readBufferHistory, readBuffer) = (readBuffer, readBufferHistory);
@@ -197,7 +193,7 @@ namespace Orts.Viewer3D
             return p;
         }
 
-        public bool Active { get { return this.active; } }
+        public bool Active { get; private set; }
 
         /// <summary>
         /// Updates speed display on RailDriver LED
@@ -205,7 +201,7 @@ namespace Orts.Viewer3D
         /// <param name="speed"></param>
         public void ShowSpeed(float speed)
         {
-            if (active)
+            if (Active)
                 railDriverInstance?.SetLedsNumeric(speed);
         }
 
@@ -237,7 +233,7 @@ namespace Orts.Viewer3D
 
         public bool IsPressed(UserCommand command)
         {
-            if (!active)
+            if (!Active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
             if (raildriverCommand == byte.MaxValue)
@@ -252,7 +248,7 @@ namespace Orts.Viewer3D
 
         public bool IsReleased(UserCommand command)
         {
-            if (!active)
+            if (!Active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
             if (raildriverCommand == byte.MaxValue)
@@ -267,7 +263,7 @@ namespace Orts.Viewer3D
 
         public bool IsDown(UserCommand command)
         {
-            if (!active)
+            if (!Active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
             if (raildriverCommand == byte.MaxValue)

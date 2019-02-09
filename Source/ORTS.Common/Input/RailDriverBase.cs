@@ -2,7 +2,7 @@
 
 namespace ORTS.Common.Input
 {
-    public enum RailDriverDisplaySigns : byte
+    public enum RailDriverDisplaySign : byte
     {
         Blank = 0x0,
         Digit_0 = 0x3f,
@@ -39,14 +39,14 @@ namespace ORTS.Common.Input
 
     public abstract class RailDriverBase
     {
-        public static readonly byte[] LedDigits = { (byte)RailDriverDisplaySigns.Digit_0, (byte)RailDriverDisplaySigns.Digit_1, (byte)RailDriverDisplaySigns.Digit_2,
-            (byte)RailDriverDisplaySigns.Digit_3, (byte)RailDriverDisplaySigns.Digit_4, (byte)RailDriverDisplaySigns.Digit_5, (byte)RailDriverDisplaySigns.Digit_6,
-            (byte)RailDriverDisplaySigns.Digit_7, (byte)RailDriverDisplaySigns.Digit_8, (byte)RailDriverDisplaySigns.Digit_9};
-        public static readonly byte[] LedDecimalDigits = { (byte)RailDriverDisplaySigns.Digit_0 | (byte)RailDriverDisplaySigns.Decimal, (byte)RailDriverDisplaySigns.Digit_1 | (byte)RailDriverDisplaySigns.Decimal,
-            (byte)RailDriverDisplaySigns.Digit_2 | (byte)RailDriverDisplaySigns.Decimal, (byte)RailDriverDisplaySigns.Digit_3 | (byte)RailDriverDisplaySigns.Decimal,
-            (byte)RailDriverDisplaySigns.Digit_4 | (byte)RailDriverDisplaySigns.Decimal, (byte)RailDriverDisplaySigns.Digit_5 | (byte)RailDriverDisplaySigns.Decimal,
-            (byte)RailDriverDisplaySigns.Digit_6 | (byte)RailDriverDisplaySigns.Decimal, (byte)RailDriverDisplaySigns.Digit_7 | (byte)RailDriverDisplaySigns.Decimal,
-            (byte)RailDriverDisplaySigns.Digit_8 | (byte)RailDriverDisplaySigns.Decimal, (byte)RailDriverDisplaySigns.Digit_9 | (byte)RailDriverDisplaySigns.Decimal};
+        public static readonly byte[] LedDigits = { (byte)RailDriverDisplaySign.Digit_0, (byte)RailDriverDisplaySign.Digit_1, (byte)RailDriverDisplaySign.Digit_2,
+            (byte)RailDriverDisplaySign.Digit_3, (byte)RailDriverDisplaySign.Digit_4, (byte)RailDriverDisplaySign.Digit_5, (byte)RailDriverDisplaySign.Digit_6,
+            (byte)RailDriverDisplaySign.Digit_7, (byte)RailDriverDisplaySign.Digit_8, (byte)RailDriverDisplaySign.Digit_9};
+        public static readonly byte[] LedDecimalDigits = { (byte)RailDriverDisplaySign.Digit_0 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_1 | (byte)RailDriverDisplaySign.Decimal,
+            (byte)RailDriverDisplaySign.Digit_2 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_3 | (byte)RailDriverDisplaySign.Decimal,
+            (byte)RailDriverDisplaySign.Digit_4 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_5 | (byte)RailDriverDisplaySign.Decimal,
+            (byte)RailDriverDisplaySign.Digit_6 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_7 | (byte)RailDriverDisplaySign.Decimal,
+            (byte)RailDriverDisplaySign.Digit_8 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_9 | (byte)RailDriverDisplaySign.Decimal};
 
         public abstract int WriteBufferSize { get; }
 
@@ -108,7 +108,7 @@ namespace ORTS.Common.Input
         /// <param name="led1"></param>
         /// <param name="led2"></param>
         /// <param name="led3"></param>
-        public void SetLeds(RailDriverDisplaySigns led1, RailDriverDisplaySigns led2, RailDriverDisplaySigns led3)
+        public void SetLeds(RailDriverDisplaySign led1, RailDriverDisplaySign led2, RailDriverDisplaySign led3)
         {
             writeBuffer.Initialize();
             writeBuffer[1] = 134;
@@ -121,7 +121,7 @@ namespace ORTS.Common.Input
         /// <summary>
         /// Displays the given numeric value on RailDriver LED display
         /// </summary>
-        public void SetLedsNumeric(int value)
+        public void SetLedsNumeric(uint value)
         {
             if (value > 999)
                 throw new ArgumentOutOfRangeException(nameof(value), value, "Display Value needs to be between 0 and 999");
@@ -138,8 +138,8 @@ namespace ORTS.Common.Input
         /// </summary>
         public void SetLedsNumeric(float value)
         {
-            if (value > 999)
-                throw new ArgumentOutOfRangeException(nameof(value), value, "Display Value needs to be between 0 and 999");
+            if (value < 0 || value > 999.9)
+                throw new ArgumentOutOfRangeException(nameof(value), value, "Display Value needs to be between 0.0 and 999.9");
             value *= 10;    //simplify display setting for fractional part
             int s = (int)(value >= 0 ? value + .5 : -value + .5);
             if (s < 100)
@@ -152,7 +152,7 @@ namespace ORTS.Common.Input
 
         public void ClearDisplay()
         {
-            SetLeds(RailDriverDisplaySigns.Blank, RailDriverDisplaySigns.Blank, RailDriverDisplaySigns.Blank);
+            SetLeds(RailDriverDisplaySign.Blank, RailDriverDisplaySign.Blank, RailDriverDisplaySign.Blank);
         }
 
         /// <summary>
