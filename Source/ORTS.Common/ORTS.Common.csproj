@@ -91,7 +91,7 @@
     <Compile Include="SmoothedData.cs" />
     <Compile Include="SystemInfo.cs" />
     <Compile Include="TrackMonitorSignalAspect.cs" />
-    <Compile Include="UserCommands.cs" />
+    <Compile Include="UserCommand.cs" />
     <Compile Include="VersionInfo.cs" />
   </ItemGroup>
   <ItemGroup>
