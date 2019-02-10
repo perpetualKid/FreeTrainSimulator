@@ -120,6 +120,7 @@ namespace Orts.Viewer3D
 
         public void Update()
         {
+            (readBufferHistory, readBuffer) = (readBuffer, readBufferHistory);
             if (railDriverInstance.Enabled && 0 == railDriverInstance.ReadCurrentData(ref readBuffer))
             {
                 if (Active)
@@ -157,7 +158,6 @@ namespace Orts.Viewer3D
                         railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
                     }
                 }
-                (readBufferHistory, readBuffer) = (readBuffer, readBufferHistory);
             }
         }
 
