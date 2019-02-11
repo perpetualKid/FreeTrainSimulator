@@ -13,6 +13,8 @@
     <FileAlignment>512</FileAlignment>
     <ApplicationIcon>..\ORTS.ico</ApplicationIcon>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>..\Launcher\app.manifest</ApplicationManifest>
@@ -50,10 +52,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdPartyLibs\GNU.Gettext.WinForms.dll</HintPath>
     </Reference>
-    <Reference Include="MonoGame.Framework, Version=3.6.0.1625, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\3rdPartyLibs\MonoGame\MonoGame.Framework.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -64,6 +62,15 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OptionsKeyboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RDButtonInputControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="RDButtonInputControl.Designer.cs">
+      <DependentUpon>RDButtonInputControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="KeyInputEditControl.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -81,6 +88,9 @@
     </Compile>
     <Compile Include="KeyInputControl.Designer.cs">
       <DependentUpon>KeyInputControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="OptionsRailDriver.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -107,6 +117,10 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="RDButtonInputControl.resx">
+      <DependentUpon>RDButtonInputControl.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="KeyInputEditControl.resx">
       <DependentUpon>KeyInputEditControl.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -168,10 +182,6 @@
       <Project>{DA94D876-7D35-46C3-AECE-AFACE72C686C}</Project>
       <Name>ORTS.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ORTS.Content\ORTS.Content.csproj">
-      <Project>{812685A7-2683-4102-A3CA-2A5CED2E61EE}</Project>
-      <Name>ORTS.Content</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj">
       <Project>{0d8d312b-2c02-4b77-a795-566394a9db95}</Project>
       <Name>Orts.Formats.OR</Name>
@@ -188,6 +198,14 @@
       <Project>{88108A94-0389-43FF-A75C-C55BD202FC8D}</Project>
       <Name>ORTS.Updater</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.WindowsDX">
+      <Version>3.7.1.189</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="RailDriverLegend.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -21,18 +21,7 @@
 // Here all possible key commands are defined (enumerated) as well as linked to a specific key or key combination.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using Microsoft.Win32;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-
+using ORTS.Common;
 using ORTS.Settings;
 
 namespace ORTS.TrackViewer.UserInterface
@@ -146,17 +135,6 @@ namespace ORTS.TrackViewer.UserInterface
         MenuHelp,
     }
 
-    /* not used, because ORTS.Settings.KeyModifiers is used
-    [Flags]
-    public enum KeyModifierss
-    {
-        None = 0,
-        Shift = 1,
-        Control = 2,
-        Alt = 4
-    }
-    */
-
     /// <summary>
     /// static class to map keyboard combinations to enumeration
     /// </summary>
@@ -182,63 +160,63 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         public static void SetDefaults()
         {
-            Commands[(int)TVUserCommands.ReloadRoute] = new ORTS.Settings.UserCommandKeyInput(0x13, ORTS.Settings.KeyModifiers.Control);
-            Commands[(int)TVUserCommands.ZoomIn]     = new ORTS.Settings.UserCommandKeyInput(0x0D);
-            Commands[(int)TVUserCommands.ZoomOut]    = new ORTS.Settings.UserCommandKeyInput(0x0C);
-            Commands[(int)TVUserCommands.ZoomInSlow] = new ORTS.Settings.UserCommandKeyInput(0x0D, ORTS.Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.ZoomOutSlow]= new ORTS.Settings.UserCommandKeyInput(0x0C, ORTS.Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.ZoomReset]  = new ORTS.Settings.UserCommandKeyInput(0x13);
-            Commands[(int)TVUserCommands.ZoomToTile] = new ORTS.Settings.UserCommandKeyInput(0x2C);
-            Commands[(int)TVUserCommands.ShiftLeft]  = new ORTS.Settings.UserCommandKeyInput(0x4B);
-            Commands[(int)TVUserCommands.ShiftRight] = new ORTS.Settings.UserCommandKeyInput(0x4D);
-            Commands[(int)TVUserCommands.ShiftUp]    = new ORTS.Settings.UserCommandKeyInput(0x48);
-            Commands[(int)TVUserCommands.ShiftDown]  = new ORTS.Settings.UserCommandKeyInput(0x50);
-            Commands[(int)TVUserCommands.ShiftToPathLocation] = new ORTS.Settings.UserCommandKeyInput(0x2E);
-            Commands[(int)TVUserCommands.ShiftToMouseLocation] = new ORTS.Settings.UserCommandKeyInput(0x2E, ORTS.Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.ToggleZoomAroundMouse] = new ORTS.Settings.UserCommandKeyInput(0x32);
+            Commands[(int)TVUserCommands.ReloadRoute] = new UserCommandKeyInput(0x13, KeyModifiers.Control);
+            Commands[(int)TVUserCommands.ZoomIn]     = new UserCommandKeyInput(0x0D);
+            Commands[(int)TVUserCommands.ZoomOut]    = new UserCommandKeyInput(0x0C);
+            Commands[(int)TVUserCommands.ZoomInSlow] = new UserCommandKeyInput(0x0D, KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.ZoomOutSlow]= new UserCommandKeyInput(0x0C, KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.ZoomReset]  = new UserCommandKeyInput(0x13);
+            Commands[(int)TVUserCommands.ZoomToTile] = new UserCommandKeyInput(0x2C);
+            Commands[(int)TVUserCommands.ShiftLeft]  = new UserCommandKeyInput(0x4B);
+            Commands[(int)TVUserCommands.ShiftRight] = new UserCommandKeyInput(0x4D);
+            Commands[(int)TVUserCommands.ShiftUp]    = new UserCommandKeyInput(0x48);
+            Commands[(int)TVUserCommands.ShiftDown]  = new UserCommandKeyInput(0x50);
+            Commands[(int)TVUserCommands.ShiftToPathLocation] = new UserCommandKeyInput(0x2E);
+            Commands[(int)TVUserCommands.ShiftToMouseLocation] = new UserCommandKeyInput(0x2E, KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.ToggleZoomAroundMouse] = new UserCommandKeyInput(0x32);
             
-            Commands[(int)TVUserCommands.ToggleShowSpeedLimits] = new ORTS.Settings.UserCommandKeyInput(0x3F);
-            Commands[(int)TVUserCommands.ToggleShowMilePosts] = new ORTS.Settings.UserCommandKeyInput(0x3F, ORTS.Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.ToggleShowTerrain] = new ORTS.Settings.UserCommandKeyInput(0x40);
-            Commands[(int)TVUserCommands.ToggleShowDMTerrain] = new ORTS.Settings.UserCommandKeyInput(0x40, ORTS.Settings.KeyModifiers.Control);
-            Commands[(int)TVUserCommands.ToggleShowPatchLines] = new ORTS.Settings.UserCommandKeyInput(0x40, ORTS.Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.ToggleShowSignals] = new ORTS.Settings.UserCommandKeyInput(0x41);
-            Commands[(int)TVUserCommands.ToggleShowPlatforms] = new ORTS.Settings.UserCommandKeyInput(0x42);
-            Commands[(int)TVUserCommands.ToggleShowPlatformNames] = new ORTS.Settings.UserCommandKeyInput(0x42, ORTS.Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.ToggleShowSidings] = new ORTS.Settings.UserCommandKeyInput(0x43);
-            Commands[(int)TVUserCommands.ToggleShowSidingNames] = new ORTS.Settings.UserCommandKeyInput(0x43, ORTS.Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.ToggleHighlightTracks] = new ORTS.Settings.UserCommandKeyInput(0x44);
-            Commands[(int)TVUserCommands.ToggleHighlightItems] = new ORTS.Settings.UserCommandKeyInput(0x44, ORTS.Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.ToggleShowTrainpath] = new ORTS.Settings.UserCommandKeyInput(0x57);
-            Commands[(int)TVUserCommands.ToggleShowPatFile] = new ORTS.Settings.UserCommandKeyInput(0x57, ORTS.Settings.KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.ToggleShowSpeedLimits] = new UserCommandKeyInput(0x3F);
+            Commands[(int)TVUserCommands.ToggleShowMilePosts] = new UserCommandKeyInput(0x3F, KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.ToggleShowTerrain] = new UserCommandKeyInput(0x40);
+            Commands[(int)TVUserCommands.ToggleShowDMTerrain] = new UserCommandKeyInput(0x40, KeyModifiers.Control);
+            Commands[(int)TVUserCommands.ToggleShowPatchLines] = new UserCommandKeyInput(0x40, KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.ToggleShowSignals] = new UserCommandKeyInput(0x41);
+            Commands[(int)TVUserCommands.ToggleShowPlatforms] = new UserCommandKeyInput(0x42);
+            Commands[(int)TVUserCommands.ToggleShowPlatformNames] = new UserCommandKeyInput(0x42, KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.ToggleShowSidings] = new UserCommandKeyInput(0x43);
+            Commands[(int)TVUserCommands.ToggleShowSidingNames] = new UserCommandKeyInput(0x43, KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.ToggleHighlightTracks] = new UserCommandKeyInput(0x44);
+            Commands[(int)TVUserCommands.ToggleHighlightItems] = new UserCommandKeyInput(0x44, KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.ToggleShowTrainpath] = new UserCommandKeyInput(0x57);
+            Commands[(int)TVUserCommands.ToggleShowPatFile] = new UserCommandKeyInput(0x57, KeyModifiers.Shift);
 
-            Commands[(int)TVUserCommands.ExtendPath] = new ORTS.Settings.UserCommandKeyInput(0x49);
-            Commands[(int)TVUserCommands.ExtendPathFull] = new ORTS.Settings.UserCommandKeyInput(0x49, ORTS.Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.ReducePath] = new ORTS.Settings.UserCommandKeyInput(0x51);
-            Commands[(int)TVUserCommands.ReducePathFull] = new ORTS.Settings.UserCommandKeyInput(0x51, ORTS.Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.PlaceEndPoint] = new ORTS.Settings.UserCommandKeyInput(0x12);
-            Commands[(int)TVUserCommands.PlaceWaitPoint] = new ORTS.Settings.UserCommandKeyInput(0x11);
+            Commands[(int)TVUserCommands.ExtendPath] = new UserCommandKeyInput(0x49);
+            Commands[(int)TVUserCommands.ExtendPathFull] = new UserCommandKeyInput(0x49, KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.ReducePath] = new UserCommandKeyInput(0x51);
+            Commands[(int)TVUserCommands.ReducePathFull] = new UserCommandKeyInput(0x51, KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.PlaceEndPoint] = new UserCommandKeyInput(0x12);
+            Commands[(int)TVUserCommands.PlaceWaitPoint] = new UserCommandKeyInput(0x11);
 
-            Commands[(int)TVUserCommands.AddLabel]   = new ORTS.Settings.UserCommandKeyInput(0x26);
-            Commands[(int)TVUserCommands.Quit]       = new ORTS.Settings.UserCommandKeyInput(0x10);
-            Commands[(int)TVUserCommands.Debug]      = new ORTS.Settings.UserCommandKeyInput(0x34);
-            Commands[(int)TVUserCommands.DebugDumpKeymap] = new ORTS.Settings.UserCommandKeyInput(0x3B, ORTS.Settings.KeyModifiers.Alt);
+            Commands[(int)TVUserCommands.AddLabel]   = new UserCommandKeyInput(0x26);
+            Commands[(int)TVUserCommands.Quit]       = new UserCommandKeyInput(0x10);
+            Commands[(int)TVUserCommands.Debug]      = new UserCommandKeyInput(0x34);
+            Commands[(int)TVUserCommands.DebugDumpKeymap] = new UserCommandKeyInput(0x3B, KeyModifiers.Alt);
 
-            Commands[(int)TVUserCommands.MouseZoomSlow] = new UserCommandModifierInput(Settings.KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.MouseZoomSlow] = new UserCommandModifierInput(KeyModifiers.Shift);
 
-            Commands[(int)TVUserCommands.EditorTakesMouseClickAction] = new UserCommandModifierInput(Settings.KeyModifiers.Shift);
-            Commands[(int)TVUserCommands.EditorTakesMouseClickDrag] = new UserCommandModifierInput(Settings.KeyModifiers.Control);
-            Commands[(int)TVUserCommands.EditorUndo] = new ORTS.Settings.UserCommandKeyInput(0x2C, ORTS.Settings.KeyModifiers.Control);
-            Commands[(int)TVUserCommands.EditorRedo] = new ORTS.Settings.UserCommandKeyInput(0x15, ORTS.Settings.KeyModifiers.Control);
+            Commands[(int)TVUserCommands.EditorTakesMouseClickAction] = new UserCommandModifierInput(KeyModifiers.Shift);
+            Commands[(int)TVUserCommands.EditorTakesMouseClickDrag] = new UserCommandModifierInput(KeyModifiers.Control);
+            Commands[(int)TVUserCommands.EditorUndo] = new UserCommandKeyInput(0x2C, KeyModifiers.Control);
+            Commands[(int)TVUserCommands.EditorRedo] = new UserCommandKeyInput(0x15, KeyModifiers.Control);
 
-            Commands[(int)TVUserCommands.MenuFile] = new ORTS.Settings.UserCommandKeyInput(0x21, ORTS.Settings.KeyModifiers.Alt);
-            Commands[(int)TVUserCommands.MenuView] = new ORTS.Settings.UserCommandKeyInput(0x2F, ORTS.Settings.KeyModifiers.Alt);
-            Commands[(int)TVUserCommands.MenuTrackItems] = new ORTS.Settings.UserCommandKeyInput(0x17, ORTS.Settings.KeyModifiers.Alt);
-            Commands[(int)TVUserCommands.MenuStatusbar] = new ORTS.Settings.UserCommandKeyInput(0x1F, ORTS.Settings.KeyModifiers.Alt);
-            Commands[(int)TVUserCommands.MenuPreferences] = new ORTS.Settings.UserCommandKeyInput(0x19, ORTS.Settings.KeyModifiers.Alt);
-            Commands[(int)TVUserCommands.MenuPathEditor] = new ORTS.Settings.UserCommandKeyInput(0x12, ORTS.Settings.KeyModifiers.Alt);
-            Commands[(int)TVUserCommands.MenuTerrain] = new ORTS.Settings.UserCommandKeyInput(0x14, ORTS.Settings.KeyModifiers.Alt);
-            Commands[(int)TVUserCommands.MenuHelp] = new ORTS.Settings.UserCommandKeyInput(0x23, ORTS.Settings.KeyModifiers.Alt);
+            Commands[(int)TVUserCommands.MenuFile] = new UserCommandKeyInput(0x21, KeyModifiers.Alt);
+            Commands[(int)TVUserCommands.MenuView] = new UserCommandKeyInput(0x2F, KeyModifiers.Alt);
+            Commands[(int)TVUserCommands.MenuTrackItems] = new UserCommandKeyInput(0x17, KeyModifiers.Alt);
+            Commands[(int)TVUserCommands.MenuStatusbar] = new UserCommandKeyInput(0x1F, KeyModifiers.Alt);
+            Commands[(int)TVUserCommands.MenuPreferences] = new UserCommandKeyInput(0x19, KeyModifiers.Alt);
+            Commands[(int)TVUserCommands.MenuPathEditor] = new UserCommandKeyInput(0x12, KeyModifiers.Alt);
+            Commands[(int)TVUserCommands.MenuTerrain] = new UserCommandKeyInput(0x14, KeyModifiers.Alt);
+            Commands[(int)TVUserCommands.MenuHelp] = new UserCommandKeyInput(0x23, KeyModifiers.Alt);
         }
 
     }

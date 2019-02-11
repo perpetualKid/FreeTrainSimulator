@@ -37,6 +37,7 @@ using ORTS.TrackViewer.Drawing.Labels;
 using ORTS.TrackViewer.UserInterface;
 using ORTS.TrackViewer.Editing;
 using ORTS.TrackViewer.Editing.Charts;
+using ORTS.Common.Msts;
 
 namespace ORTS.TrackViewer
 {
@@ -212,7 +213,7 @@ namespace ORTS.TrackViewer
             {
                 try
                 {
-                    Properties.Settings.Default.installDirectory = MSTS.MSTSPath.Base();
+                    Properties.Settings.Default.installDirectory = MstsPath.Base();
                 }
                 catch {}
             }

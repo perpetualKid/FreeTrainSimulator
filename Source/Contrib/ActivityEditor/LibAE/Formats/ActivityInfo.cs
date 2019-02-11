@@ -21,16 +21,11 @@
 /// 
 
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using MSTS;
 using Orts.Formats.Msts;
-using Orts.Parsers.Msts;
-using ORTS.Common;
 using Orts.Formats.OR;
 
 namespace LibAE.Formats

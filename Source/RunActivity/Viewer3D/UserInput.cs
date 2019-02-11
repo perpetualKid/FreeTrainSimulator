@@ -33,6 +33,7 @@ using Microsoft.Xna.Framework.Input;
 using ORTS.Settings;
 using System.Linq;      //DEBUG_INPUT only
 using Game = Orts.Viewer3D.Processes.Game;
+using ORTS.Common;
 
 namespace Orts.Viewer3D
 {
@@ -49,17 +50,19 @@ namespace Orts.Viewer3D
 
         public static bool ComposingMessage { get; set; }
 
-        public static RailDriverState RDState { get; set; }
+        public static UserInputRailDriver Raildriver { get; private set; }
 
         private static InputSettings inputSettings;
 
         public static void Initialize(Game game)
         {
             inputSettings = game.Settings.Input;
+            Raildriver = new UserInputRailDriver(game);
         }
 
         public static void Update(bool active)
         {
+            Raildriver.Update();
             if (Orts.MultiPlayer.MPManager.IsMultiPlayer() && Orts.MultiPlayer.MPManager.Instance().ComposingText)
                 return;
 
@@ -121,50 +124,32 @@ namespace Orts.Viewer3D
 #endif
         }
 
-        // this is fixed in Monogame framework
-        private static Keys[] GetKeysWithPrintScreenFix(KeyboardState keyboardState)
-        {
-            // When running in fullscreen, Win32's GetKeyboardState (the API behind Keyboard.GetState()) never returns
-            // the print screen key as being down. Something is eating it or something. So here we simply query that
-            // key directly and forcibly add it to the list of pressed keys.
-            Keys[] keys = keyboardState.GetPressedKeys();
-            if ((GetAsyncKeyState(Keys.PrintScreen) & 0x8000) != 0)
-            {
-                Keys[] keys2 = new Keys[keys.Length + 1];
-                Array.Copy(keys, keys2, keys.Length);
-                keys2[keys.Length] = Keys.PrintScreen;
-                return keys2;
-            }
-            return keys;
-        }
-
         public static void Handled()
         {
-            RDState?.Handled();
         }
 
-        public static bool IsPressed(UserCommands command)
+        public static bool IsPressed(UserCommand command)
         {
             if (ComposingMessage == true) return false;
-            if (RDState != null && RDState.IsPressed(command))
+            if (Raildriver.IsPressed(command))
                 return true;
             var setting = inputSettings.Commands[(int)command];
             return setting.IsKeyDown(keyboardState) && !setting.IsKeyDown(lastKeyboardState);
         }
 
-        public static bool IsReleased(UserCommands command)
+        public static bool IsReleased(UserCommand command)
         {
             if (ComposingMessage == true) return false;
-            if (RDState != null && RDState.IsReleased(command))
+            if (Raildriver.IsReleased(command))
                 return true;
             var setting = inputSettings.Commands[(int)command];
             return !setting.IsKeyDown(keyboardState) && setting.IsKeyDown(lastKeyboardState);
         }
 
-        public static bool IsDown(UserCommands command)
+        public static bool IsDown(UserCommand command)
         {
             if (ComposingMessage == true) return false;
-            if (RDState != null && RDState.IsDown(command))
+            if (Raildriver.IsDown(command))
                 return true;
             var setting = inputSettings.Commands[(int)command];
             return setting.IsKeyDown(keyboardState);

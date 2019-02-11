@@ -78,14 +78,10 @@ namespace ORTS.Common
             var builds = new Dictionary<TimeSpan, string>();
             foreach (var fileName in fileNames)
             {
-                try
-                {
-                    var version = FileVersionInfo.GetVersionInfo(Path.Combine(ApplicationPath, fileName));
-                    builds.Add(new TimeSpan(version.ProductBuildPart, 0, 0, version.ProductPrivatePart * 2), version.ProductVersion);
-                }
-                catch
-                {
-                }
+                var version = FileVersionInfo.GetVersionInfo(Path.Combine(ApplicationPath, fileName));
+                TimeSpan ts = new TimeSpan(version.ProductBuildPart, 0, 0, version.ProductPrivatePart * 2);
+                if (!builds.ContainsKey(ts))
+                    builds.Add(ts, version.ProductVersion);
             }
             if (builds.Count > 0)
             {

@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
+using Microsoft.Xna.Framework;
 
 namespace Orts.Parsers.Msts
 {
@@ -60,7 +60,16 @@ namespace Orts.Parsers.Msts
             // SIMISA@@  means uncompressed
             if (headerString.StartsWith("SIMISA@F"))
             {
-                fb = new InflaterInputStream(fb);
+
+                /* Skipping past the first two bytes. Those bytes are part of zlib specification (RFC 1950), not the deflate specification (RFC 1951) and 
+                 * contain information about the compression method and flags.
+                 * The zlib and deflate formats are related; the compressed data part of zlib-formatted data may be stored in the deflate format. 
+                 * In particular, if the compression method in the zlib header is set to 8, then the compressed data is stored in the deflate format. 
+                 * System.IO.Compression.DeflateStream, represents the deflate specification (RFC 1951) but not RFC 1950. So a workaround of skipping 
+                 * past the first 2 bytes to get to the deflate data will work.
+                */
+                fb.Seek(2, SeekOrigin.Current);
+                fb = new DeflateStream(fb, CompressionMode.Decompress);
             }
             else if (headerString.StartsWith("\r\nSIMISA"))
             {

@@ -17,7 +17,8 @@
 
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
-using MSTS;
+using ORTS.Common;
+using ORTS.Common.Msts;
 using ORTS.Settings;
 using ORTS.Updater;
 using System;
@@ -26,6 +27,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ORTS
@@ -58,7 +60,6 @@ namespace ORTS
         public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup)
         {
             InitializeComponent();
-
             Localizer.Localize(this, catalog);
 
             Settings = settings;
@@ -180,7 +181,7 @@ namespace ORTS
             // Simulation tab
             checkUseAdvancedAdhesion.Checked = Settings.UseAdvancedAdhesion;
             labelAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked;
-            numericAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked; 
+            numericAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked;
             numericAdhesionMovingAverageFilterSize.Value = Settings.AdhesionMovingAverageFilterSize;
             checkBreakCouplers.Checked = Settings.BreakCouplers;
             checkCurveResistanceDependent.Checked = Settings.CurveResistanceDependent;
@@ -194,8 +195,11 @@ namespace ORTS
             checkExtendedAIShunting.Checked = Settings.ExtendedAIShunting;
             checkDoorsAITrains.Checked = Settings.OpenDoorsInAITrains;
 
-            // Keyboard tab
-            InitializeKeyboardSettings();
+            //// Keyboard tab
+            //InitializeKeyboardSettings();
+
+            ////RailDriver tab
+            //InitializeRailDriverSettings());
 
             // DataLogger tab
             var dictionaryDataLoggerSeparator = new Dictionary<string, string>
@@ -230,7 +234,7 @@ namespace ORTS
             checkDataLogTrainSpeed.Checked = Settings.DataLogTrainSpeed;
             labelDataLogTSInterval.Enabled = checkDataLogTrainSpeed.Checked;
             numericDataLogTSInterval.Enabled = checkDataLogTrainSpeed.Checked;
-            checkListDataLogTSContents.Enabled = checkDataLogTrainSpeed.Checked;  
+            checkListDataLogTSContents.Enabled = checkDataLogTrainSpeed.Checked;
             numericDataLogTSInterval.Value = Settings.DataLogTSInterval;
             checkListDataLogTSContents.Items.AddRange(new object[] {
                 catalog.GetString("Time"),
@@ -260,7 +264,7 @@ namespace ORTS
                 buttonContentBrowse.Enabled = false; // Initial state because browsing a null path leads to an exception
                 try
                 {
-                    bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = MSTSPath.Base() });
+                    bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = MstsPath.Base() });
                 }
                 catch { }
             }
@@ -338,6 +342,14 @@ namespace ORTS
             numericActWeatherRandomizationLevel.Value = Settings.ActWeatherRandomizationLevel;
         }
 
+        private async void OptionsForm_Shown(object sender, EventArgs e)
+        {
+            List<Task> initTasks = new List<Task>()
+            {   InitializeKeyboardSettingsAsync(),
+                InitializeRailDriverSettingsAsync() };
+            await Task.WhenAll(initTasks);
+        }
+
         private static string ParseCategoryFrom(string name)
         {
             var len = name.IndexOf(' ');
@@ -356,69 +368,12 @@ namespace ORTS
                 return name.Substring(len + 1);
         }
 
-        private void InitializeKeyboardSettings()
-        {
-            panelKeys.Controls.Clear();
-            var columnWidth = (panelKeys.ClientSize.Width - 20) / 2;
-
-            var tempLabel = new Label();
-            var tempKIC = new KeyInputControl(Settings.Input.Commands[(int)UserCommands.GameQuit], InputSettings.DefaultCommands[(int)UserCommands.GameQuit]);
-            var rowTop = Math.Max(tempLabel.Margin.Top, tempKIC.Margin.Top);
-            var rowHeight = tempKIC.Height;
-            var rowSpacing = rowHeight + tempKIC.Margin.Vertical;
-
-            var lastCategory = "";
-            var i = 0;
-            foreach (UserCommands command in Enum.GetValues(typeof(UserCommands)))
-            {
-                var name = InputSettings.GetPrettyLocalizedName(command);
-                var category = ParseCategoryFrom(name);
-                var descriptor = ParseDescriptorFrom(name);
-
-                if (category != lastCategory)
-                {
-                    var catlabel = new Label
-                    {
-                        Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i),
-                        Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight),
-                        Text = category,
-                        TextAlign = ContentAlignment.MiddleCenter
-                    };
-                    catlabel.Font = new Font(catlabel.Font, FontStyle.Bold);
-                    panelKeys.Controls.Add(catlabel);
-
-                    lastCategory = category;
-                    ++i;
-                }
-
-                var label = new Label
-                {
-                    Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i),
-                    Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight),
-                    Text = descriptor,
-                    TextAlign = ContentAlignment.MiddleRight
-                };
-                panelKeys.Controls.Add(label);
-
-                var keyInputControl = new KeyInputControl(Settings.Input.Commands[(int)command], InputSettings.DefaultCommands[(int)command])
-                {
-                    Location = new Point(columnWidth + tempKIC.Margin.Left, rowTop + rowSpacing * i),
-                    Size = new Size(columnWidth - tempKIC.Margin.Horizontal, rowHeight),
-                    ReadOnly = true,
-                    Tag = command
-                };
-                panelKeys.Controls.Add(keyInputControl);
-                toolTip1.SetToolTip(keyInputControl, catalog.GetString("Click to change this key"));
-
-                ++i;
-            }
-        }
 
         private void SaveKeyboardSettings()
         {
-            foreach (Control control in panelKeys.Controls)
-                if (control is KeyInputControl)
-                    Settings.Input.Commands[(int)control.Tag].PersistentDescriptor = (control as KeyInputControl).UserInput.PersistentDescriptor;
+            //foreach (Control control in panelKeys.Controls)
+            //    if (control is KeyInputControl)
+            //        Settings.Input.Commands[(int)control.Tag].PersistentDescriptor = (control as KeyInputControl).UserInput.PersistentDescriptor;
         }
 
         private void ButtonOK_Click(object sender, EventArgs e)
@@ -488,6 +443,10 @@ namespace ORTS
 
             // Keyboard tab
             // These are edited live.
+            //SaveKeyboardSettings();
+
+            // Raildriver Tab
+            SaveRailDriverSettings();
 
             // DataLogger tab
             Settings.DataLoggerSeparator = comboDataLoggerSeparator.SelectedValue.ToString();
@@ -541,31 +500,6 @@ namespace ORTS
             Settings.ActWeatherRandomizationLevel = (int)numericActWeatherRandomizationLevel.Value;
 
             Settings.Save();
-        }
-
-        private void ButtonDefaultKeys_Click(object sender, EventArgs e)
-        {
-            if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom key assignments?"), Application.ProductName, MessageBoxButtons.YesNo))
-            {
-                Settings.Input.Reset();
-                InitializeKeyboardSettings();
-            }
-        }
-
-        private void ButtonExport_Click(object sender, EventArgs e)
-        {
-            var outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Open Rails Keyboard.txt");
-            Settings.Input.DumpToText(outputPath);
-            MessageBox.Show(catalog.GetString("A listing of all keyboard commands and keys has been placed here:\n\n") + outputPath, Application.ProductName);
-        }
-
-        private void ButtonCheckKeys_Click(object sender, EventArgs e)
-        {
-            var errors = Settings.Input.CheckForErrors();
-            if (errors != "")
-                MessageBox.Show(errors, Application.ProductName);
-            else
-                MessageBox.Show(catalog.GetString("No errors found."), Application.ProductName);
         }
 
         private void NumericUpDownFOV_ValueChanged(object sender, EventArgs e)
@@ -713,21 +647,21 @@ namespace ORTS
         private void CheckAlerter_CheckedChanged(object sender, EventArgs e)
         {
             //Disable checkAlerterExternal when checkAlerter is not checked
-            if (checkAlerter.Checked )
+            if (checkAlerter.Checked)
             {
-                checkAlerterExternal.Enabled = true; 
+                checkAlerterExternal.Enabled = true;
             }
             else
             {
                 checkAlerterExternal.Enabled = false;
-                checkAlerterExternal.Checked = false; 
+                checkAlerterExternal.Checked = false;
             }
         }
 
         private void CheckDistantMountains_Click(object sender, EventArgs e)
         {
-           labelDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
-           numericDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
+            labelDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
+            numericDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
         }
 
         private void CheckUseAdvancedAdhesion_Click(object sender, EventArgs e)
@@ -748,5 +682,6 @@ namespace ORTS
             numericPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
         }
+
     }
 }

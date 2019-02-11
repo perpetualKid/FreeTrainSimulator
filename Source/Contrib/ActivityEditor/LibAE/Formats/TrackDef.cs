@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using LibAE;
 using Microsoft.Xna.Framework;
-using MSTS;
 using Orts.Formats.Msts;
 using Orts.Parsers.Msts;
 using ORTS.Common;

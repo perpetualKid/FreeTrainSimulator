@@ -183,7 +183,7 @@ namespace Orts.Viewer3D.Popups
                 (PickedTrainFromList as AITrain).IncorporatingTrain.IsPathless && (PickedTrainFromList as AITrain).IncorporatingTrain == Viewer.SelectedTrain)) && !PickedTrainFromList.IsActualPlayerTrain &&
                 Viewer.Simulator.IsAutopilotMode && PickedTrainFromList.IsPlayable)
             {
-                if (UserInput.IsDown(UserCommands.GameSuspendOldPlayer))
+                if (UserInput.IsDown(UserCommand.GameSuspendOldPlayer))
                     Viewer.Simulator.TrainSwitcher.SuspendOldPlayer = true;
                 //Ask for change of driven train
                 Viewer.Simulator.TrainSwitcher.SelectedAsPlayer = PickedTrainFromList;

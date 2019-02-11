@@ -27,6 +27,7 @@ namespace ORTS.Menu
     public class Activity
     {
         public string Name { get; private set; }
+        public string ActivityID { get; private set; }
         public string Description { get; private set; }
         public string Briefing { get; private set; }
         public StartTime StartTime { get; protected set; } = new StartTime(10, 0, 0);
@@ -97,6 +98,12 @@ namespace ORTS.Menu
                         // Not nice to throw an error now. Error was originally thrown by new Path(...);
                         throw new InvalidDataException("Not a player path");
                     }
+                    else if (activityFile.Tr_Activity.Tr_Activity_Header.RouteID.ToUpper() != route.RouteID.ToUpper())
+                    {
+                        //Activity and route have different RouteID.
+                        result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)} >", filePath, null, null, null);
+                    }
+                    else
                     result = new Activity(string.Empty, filePath, activityFile, consist, path);
                 }
                 catch

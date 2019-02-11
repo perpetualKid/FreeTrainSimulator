@@ -69,7 +69,7 @@ namespace Orts.Viewer3D.RollingStock
 
         public override void InitializeUserInputCommands()
         {
-            UserInputCommands.Add(UserCommands.ControlDieselPlayer, new Action[] { Noop, () => new TogglePlayerEngineCommand(Viewer.Log) });
+            UserInputCommands.Add(UserCommand.ControlDieselPlayer, new Action[] { Noop, () => new TogglePlayerEngineCommand(Viewer.Log) });
             base.InitializeUserInputCommands();
         }
 
@@ -88,7 +88,7 @@ namespace Orts.Viewer3D.RollingStock
             {
                 var colorR = car.ExhaustColorR.SmoothedValue / 255f;
                 var colorG = car.ExhaustColorG.SmoothedValue / 255f;
-                var colorB = car.ExhaustColorG.SmoothedValue / 255f;
+                var colorB = car.ExhaustColorB.SmoothedValue / 255f;
                 drawer.SetOutput(exhaustParticles, car.ExhaustMagnitude.SmoothedValue, new Color((byte)car.ExhaustColorR.SmoothedValue, (byte)car.ExhaustColorG.SmoothedValue, (byte)car.ExhaustColorB.SmoothedValue));
             }
             

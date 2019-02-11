@@ -73,15 +73,10 @@ namespace ORTS
         private UpdateManager UpdateManager;
         private readonly Image ElevationIcon;
 
-        public List<Route> Routes { get { return this.routes; } }
-
         internal string RunActivityProgram
         {
             get
             {
-                var programLAA = System.IO.Path.Combine(Application.StartupPath, "RunActivityLAA.exe");
-                if (settings.UseLargeAddressAware && File.Exists(programLAA))
-                    return programLAA;
                 return System.IO.Path.Combine(Application.StartupPath, "RunActivity.exe"); ;
             }
         }
@@ -139,10 +134,11 @@ namespace ORTS
             var options = Environment.GetCommandLineArgs().Where(a => (a.StartsWith("-") || a.StartsWith("/"))).Select(a => a.Substring(1));
             settings = new UserSettings(options);
 
-            List<Task> initTasks = new List<Task>();
-
-            initTasks.Add(InitializeUpdateManager());
-            initTasks.Add(LoadToolsAndDocuments());
+            List<Task> initTasks = new List<Task>
+            {
+                InitializeUpdateManager(),
+                LoadToolsAndDocuments()
+            };
 
             LoadOptions();
             LoadLanguage();
@@ -766,7 +762,8 @@ namespace ORTS
             comboBoxStartTime.DropDownStyle = SelectedActivity is ExploreActivity ? ComboBoxStyle.DropDown : ComboBoxStyle.DropDownList;
             comboBoxTimetable.Enabled = comboBoxTimetableSet.Items.Count > 0;
             comboBoxTimetableTrain.Enabled = comboBoxTimetable.Items.Count > 0;
-            buttonResume.Enabled = buttonStart.Enabled = radioButtonModeActivity.Checked ?
+            //Avoid to Start with a non valid Activity/Locomotive/Consist.
+            buttonResume.Enabled = buttonStart.Enabled = radioButtonModeActivity.Checked && !comboBoxActivity.Text.StartsWith("<") && !comboBoxLocomotive.Text.StartsWith("<") ?
                 SelectedActivity != null && (!(SelectedActivity is ExploreActivity) || (comboBoxConsist.Items.Count > 0 && comboBoxHeadTo.Items.Count > 0)) :
                 SelectedTimetableTrain != null;
             buttonResumeMP.Enabled = buttonStartMP.Enabled = buttonStart.Enabled && !String.IsNullOrEmpty(textBoxMPUser.Text) && !String.IsNullOrEmpty(textBoxMPHost.Text);
@@ -1178,6 +1175,7 @@ namespace ORTS
             }
         }
         #endregion
+
         #region Timetable list
         private void ShowTimetableList()
         {
