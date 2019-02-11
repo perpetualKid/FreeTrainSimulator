@@ -202,7 +202,7 @@ namespace Orts.Viewer3D
         public void ShowSpeed(float speed)
         {
             if (Active)
-                railDriverInstance?.SetLedsNumeric(speed);
+                railDriverInstance?.SetLedsNumeric(Math.Abs(speed));
         }
 
         public void Shutdown()
