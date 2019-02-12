@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.buttonOK = new System.Windows.Forms.Button();
             this.numericBrakePipeChargingRate = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -116,6 +116,7 @@
             this.panelRDOptions = new System.Windows.Forms.Panel();
             this.labelRDLeverCutOffPercentage = new System.Windows.Forms.Label();
             this.groupBoxReverseRDLevers = new System.Windows.Forms.GroupBox();
+            this.checkFullRangeThrottle = new System.Windows.Forms.CheckBox();
             this.checkReverseIndependentBrake = new System.Windows.Forms.CheckBox();
             this.checkReverseAutoBrake = new System.Windows.Forms.CheckBox();
             this.checkReverseThrottle = new System.Windows.Forms.CheckBox();
@@ -202,7 +203,7 @@
             this.ElevationText = new System.Windows.Forms.Label();
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.checkFullRangeThrottle = new System.Windows.Forms.CheckBox();
+            this.btnCheck = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -1240,6 +1241,7 @@
             // 
             // tabPageRailDriver
             // 
+            this.tabPageRailDriver.Controls.Add(this.btnCheck);
             this.tabPageRailDriver.Controls.Add(this.btnRDReset);
             this.tabPageRailDriver.Controls.Add(this.btnStartRDCalibration);
             this.tabPageRailDriver.Controls.Add(this.btnShowRDLegend);
@@ -1253,22 +1255,24 @@
             // 
             // btnRDReset
             // 
-            this.btnRDReset.Location = new System.Drawing.Point(106, 372);
+            this.btnRDReset.Location = new System.Drawing.Point(166, 372);
             this.btnRDReset.Name = "btnRDReset";
             this.btnRDReset.Size = new System.Drawing.Size(75, 23);
             this.btnRDReset.TabIndex = 2;
             this.btnRDReset.Text = "Defaults";
+            this.toolTip1.SetToolTip(this.btnRDReset, "Load the factory default button assignments.");
             this.btnRDReset.UseVisualStyleBackColor = true;
             this.btnRDReset.Click += new System.EventHandler(this.BtnRDReset_Click);
             // 
             // btnStartRDCalibration
             // 
-            this.btnStartRDCalibration.Location = new System.Drawing.Point(186, 372);
+            this.btnStartRDCalibration.Location = new System.Drawing.Point(86, 372);
             this.btnStartRDCalibration.Margin = new System.Windows.Forms.Padding(2);
             this.btnStartRDCalibration.Name = "btnStartRDCalibration";
-            this.btnStartRDCalibration.Size = new System.Drawing.Size(95, 23);
+            this.btnStartRDCalibration.Size = new System.Drawing.Size(75, 23);
             this.btnStartRDCalibration.TabIndex = 3;
-            this.btnStartRDCalibration.Text = "Run Calibration";
+            this.btnStartRDCalibration.Text = "Calibration";
+            this.toolTip1.SetToolTip(this.btnStartRDCalibration, "Calibrate the lever position reading");
             this.btnStartRDCalibration.UseVisualStyleBackColor = true;
             this.btnStartRDCalibration.Click += new System.EventHandler(this.StartRDCalibration_Click);
             // 
@@ -1276,9 +1280,11 @@
             // 
             this.btnShowRDLegend.Location = new System.Drawing.Point(6, 372);
             this.btnShowRDLegend.Name = "btnShowRDLegend";
-            this.btnShowRDLegend.Size = new System.Drawing.Size(95, 23);
+            this.btnShowRDLegend.Size = new System.Drawing.Size(75, 23);
             this.btnShowRDLegend.TabIndex = 1;
             this.btnShowRDLegend.Text = "Legend";
+            this.toolTip1.SetToolTip(this.btnShowRDLegend, "Show a legend of RailDriver board with button and lever description. Press cancel" +
+        " to close again.");
             this.btnShowRDLegend.UseVisualStyleBackColor = true;
             this.btnShowRDLegend.Click += new System.EventHandler(this.BtnShowRDLegend_Click);
             // 
@@ -1332,6 +1338,18 @@
             this.groupBoxReverseRDLevers.TabIndex = 2;
             this.groupBoxReverseRDLevers.TabStop = false;
             this.groupBoxReverseRDLevers.Text = "Reverse Levers";
+            // 
+            // checkFullRangeThrottle
+            // 
+            this.checkFullRangeThrottle.AutoSize = true;
+            this.checkFullRangeThrottle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkFullRangeThrottle.Location = new System.Drawing.Point(7, 121);
+            this.checkFullRangeThrottle.Name = "checkFullRangeThrottle";
+            this.checkFullRangeThrottle.Size = new System.Drawing.Size(116, 17);
+            this.checkFullRangeThrottle.TabIndex = 4;
+            this.checkFullRangeThrottle.Text = "Full Range Throttle";
+            this.toolTip1.SetToolTip(this.checkFullRangeThrottle, "Use the full range of the Throttle Lever. There will be no Auto Brake!");
+            this.checkFullRangeThrottle.UseVisualStyleBackColor = true;
             // 
             // checkReverseIndependentBrake
             // 
@@ -1739,27 +1757,27 @@
             this.dataGridViewContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dataGridViewContent.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dataGridViewContent.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dataGridViewContent.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dataGridViewContent.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.nameDataGridViewTextBoxColumn,
             this.pathDataGridViewTextBoxColumn});
             this.dataGridViewContent.DataSource = this.bindingSourceContent;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridViewContent.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewContent.Location = new System.Drawing.Point(0, 0);
             this.dataGridViewContent.MultiSelect = false;
@@ -2440,17 +2458,16 @@
             this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
             this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
-            // checkFullRangeThrottle
+            // btnCheck
             // 
-            this.checkFullRangeThrottle.AutoSize = true;
-            this.checkFullRangeThrottle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkFullRangeThrottle.Location = new System.Drawing.Point(7, 121);
-            this.checkFullRangeThrottle.Name = "checkFullRangeThrottle";
-            this.checkFullRangeThrottle.Size = new System.Drawing.Size(116, 17);
-            this.checkFullRangeThrottle.TabIndex = 4;
-            this.checkFullRangeThrottle.Text = "Full Range Throttle";
-            this.toolTip1.SetToolTip(this.checkFullRangeThrottle, "Use the full range of the Throttle Lever. There will be no Auto Brake!");
-            this.checkFullRangeThrottle.UseVisualStyleBackColor = true;
+            this.btnCheck.Location = new System.Drawing.Point(247, 372);
+            this.btnCheck.Name = "btnCheck";
+            this.btnCheck.Size = new System.Drawing.Size(75, 23);
+            this.btnCheck.TabIndex = 4;
+            this.btnCheck.Text = "Check";
+            this.toolTip1.SetToolTip(this.btnCheck, "Load the factory default button assignments.");
+            this.btnCheck.UseVisualStyleBackColor = true;
+            this.btnCheck.Click += new System.EventHandler(this.BtnCheck_Click);
             // 
             // OptionsForm
             // 
@@ -2705,5 +2722,6 @@
         private System.Windows.Forms.CheckBox checkReverseThrottle;
         private System.Windows.Forms.Label labelRDLeverCutOffPercentage;
         private System.Windows.Forms.CheckBox checkFullRangeThrottle;
+        private System.Windows.Forms.Button btnCheck;
     }
 }

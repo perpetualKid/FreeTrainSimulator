@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using System.Text;
 using GNU.Gettext;
 using ORTS.Common;
 
@@ -144,8 +146,9 @@ namespace ORTS.Settings
 
         public override void Reset()
         {
-            foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
-                Reset(setting.ToString());
+            //do not reset calibrations
+            //foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
+            //    Reset(setting.ToString());
 
             foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
                 Reset(command.ToString());
@@ -206,9 +209,11 @@ namespace ORTS.Settings
                 throw new ArgumentOutOfRangeException($"Enum parameter {nameof(name)} not within expected range of either {nameof(RailDriverCalibrationSetting)} or {nameof(UserCommands)}");
         }
 
-        public string CheckForErrors()
+        public string CheckForErrors(byte[] buttonSettings)
         {
-            return string.Empty;
+            StringBuilder errors = new StringBuilder();
+
+            return errors.ToString();
         }
     }
 }

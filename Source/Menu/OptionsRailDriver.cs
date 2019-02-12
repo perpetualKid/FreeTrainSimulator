@@ -253,6 +253,32 @@ namespace ORTS
             GetRailDriverLegend().Show(this);
         }
 
+        private void BtnCheck_Click(object sender, EventArgs e)
+        {
+            CheckButtonAssignments();
+        }
+
+        private void CheckButtonAssignments()
+        {
+            byte[] buttons = new byte[EnumExtension.GetLength<UserCommand>()];
+            foreach (Control control in panelRDButtons.Controls)
+            {
+                if (control is Panel)
+                {
+                    foreach (Control child in control.Controls)
+                        if (child is RDButtonInputControl)
+                            buttons[(int)child.Tag] = (child as RDButtonInputControl).UserButton;
+                    break;
+                }
+            }
+            string errors = Settings.RailDriver.CheckForErrors(buttons);
+            if (!string.IsNullOrEmpty(errors))
+                MessageBox.Show(errors, Application.ProductName);
+            else
+//                MessageBox.Show(catalog.GetString("No errors found."), Application.ProductName);
+            MessageBox.Show(catalog.GetString("Not yet implemented."), Application.ProductName);
+        }
+
         private void SaveRailDriverSettings()
         {
             foreach (Control control in panelRDButtons.Controls)
