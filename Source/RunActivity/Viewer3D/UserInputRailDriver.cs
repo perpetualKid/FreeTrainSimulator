@@ -28,9 +28,6 @@ namespace Orts.Viewer3D
     /// </summary>
     public class UserInputRailDriver
     {
-        private byte[] writeBuffer;                 // Buffer for sending data to RailDriver
-        private bool active;                        // True when RailDriver values are used to control player loco
-
         private byte[] readBuffer;
         private byte[] readBufferHistory;
 
@@ -52,10 +49,8 @@ namespace Orts.Viewer3D
         public int Wipers;                  // wiper rotary, 1 off, 2 slow, 3 full
         public int Lights;                  // lights rotary, 1 off, 2 dim, 3 full
 
-        private static byte[] calibrationSettings;
-
         private readonly (byte, byte, byte) reverser, dynamicBrake, wipers, headlight;
-        private readonly (byte, byte) throttle, autoBrake, independentBrake, emergencyBrake;
+        private readonly (byte, byte) throttle, autoBrake, independentBrake, emergencyBrake, bailoffDisengaged, bailoffEngaged;
         private readonly bool fullRangeThrottle;
 
         /// <summary>
@@ -69,7 +64,7 @@ namespace Orts.Viewer3D
             if (railDriverInstance.Enabled)
             {
                 settings = game.Settings.RailDriver;
-                calibrationSettings = settings.CalibrationSettings;
+                byte[] calibrationSettings = settings.CalibrationSettings;
 
                 if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseReverser]))
                     reverser = (calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullForward], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserNeutral], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullReversed]);
@@ -110,52 +105,57 @@ namespace Orts.Viewer3D
 
                 wipers = (calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position1], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position2], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position3]);
                 headlight = (calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position1], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position2], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position3]);
+
+                bailoffDisengaged = (calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffDisengagedRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffDisengagedFull]);
+                bailoffEngaged = (calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffEngagedRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffEngagedFull]);
+
                 cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta];
 
-                writeBuffer = railDriverInstance.NewWriteBuffer;
                 readBuffer = railDriverInstance.NewReadBuffer;
                 readBufferHistory = railDriverInstance.NewReadBuffer;
 
-                SetLEDs(0x40, 0x40, 0x40);
+                railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
             }
         }
 
         public void Update()
         {
+            (readBufferHistory, readBuffer) = (readBuffer, readBufferHistory);
             if (railDriverInstance.Enabled && 0 == railDriverInstance.ReadCurrentData(ref readBuffer))
             {
-                DirectionPercent = Percentage(readBuffer[1], reverser);
-                ThrottlePercent = Percentage(readBuffer[2], throttle);
-                if (!fullRangeThrottle)
-                    DynamicBrakePercent = Percentage(readBuffer[2], dynamicBrake);
-                TrainBrakePercent = Percentage(readBuffer[3], autoBrake);
-                EngineBrakePercent = Percentage(readBuffer[4], independentBrake);
-                float a = .01f * EngineBrakePercent;
-                float calOff = (1 - a) * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffDisengagedRelease] + a * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffDisengagedFull];
-                float calOn = (1 - a) * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffEngagedRelease] + a * settings.CalibrationSettings[(int)RailDriverCalibrationSetting.BailOffEngagedFull];
-                BailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
+                if (Active)
+                {
+                    DirectionPercent = Percentage(readBuffer[1], reverser);
+                    ThrottlePercent = Percentage(readBuffer[2], throttle);
+                    if (!fullRangeThrottle)
+                        DynamicBrakePercent = Percentage(readBuffer[2], dynamicBrake);
+                    TrainBrakePercent = Percentage(readBuffer[3], autoBrake);
+                    EngineBrakePercent = Percentage(readBuffer[4], independentBrake);
+                    float a = .01f * EngineBrakePercent;
+                    float calOff = (1 - a) * bailoffDisengaged.Item1 + a * bailoffDisengaged.Item2;
+                    float calOn = (1 - a) * bailoffEngaged.Item1 + a * bailoffEngaged.Item2;
+                    BailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
 
-                if (TrainBrakePercent >= 100)
-                    Emergency = Percentage(readBuffer[3], emergencyBrake) > 50;
+                    if (TrainBrakePercent >= 100)
+                        Emergency = Percentage(readBuffer[3], emergencyBrake) > 50;
 
-                Wipers = (int)(.01 * Percentage(readBuffer[6], wipers) + 2.5);
-                Lights = (int)(.01 * Percentage(readBuffer[7], headlight) + 2.5);
+                    Wipers = (int)(.01 * Percentage(readBuffer[6], wipers) + 2.5);
+                    Lights = (int)(.01 * Percentage(readBuffer[7], headlight) + 2.5);
 
-                (readBufferHistory, readBuffer) = (readBuffer, readBufferHistory);
-
-                if (IsPressed(EmergencyStopCommandUp) || IsPressed(EmergencyStopCommandDown))
-                    Emergency = true;
+                    if (IsPressed(EmergencyStopCommandUp) || IsPressed(EmergencyStopCommandDown))
+                        Emergency = true;
+                }
                 if (IsPressed(EnableRailDriverCommand))
                 {
-                    active = !active;
-                    EnableSpeaker(active);
-                    if (active)
+                    Active = !Active;
+                    railDriverInstance.EnableSpeaker(Active);
+                    if (Active)
                     {
-                        SetLEDs(0x80, 0x80, 0x80);
+                        railDriverInstance.SetLeds(0x39, 0x09, 0x0F);
                     }
                     else
                     {
-                        SetLEDs(0x40, 0x40, 0x40);
+                        railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
                     }
                 }
             }
@@ -193,63 +193,21 @@ namespace Orts.Viewer3D
             return p;
         }
 
-        /// <summary>
-        /// Set the RailDriver LEDs to the specified values
-        /// led1 is the right most
-        /// </summary>
-        /// <param name="led1"></param>
-        /// <param name="led2"></param>
-        /// <param name="led3"></param>
-        private void SetLEDs(byte led1, byte led2, byte led3)
-        {
-            if (!railDriverInstance.Enabled)
-                return;
-            writeBuffer.Initialize();
-            writeBuffer[1] = 134;
-            writeBuffer[2] = led1;
-            writeBuffer[3] = led2;
-            writeBuffer[4] = led3;
-            railDriverInstance.WriteData(writeBuffer);
-        }
-
-        /// <summary>
-        /// Turns raildriver speaker on or off
-        /// </summary>
-        /// <param name="on"></param>
-        public void EnableSpeaker(bool state)
-        {
-            writeBuffer.Initialize();
-            writeBuffer[1] = 133;
-            writeBuffer[7] = (byte) (state ? 1 : 0);
-            railDriverInstance.WriteData(writeBuffer);
-        }
-
-        // LED values for digits 0 to 9
-        private readonly static byte[] LEDDigits = { 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f };
-        // LED values for digits 0 to 9 with decimal point
-        private readonly static byte[] LEDDigitsPoint = { 0xbf, 0x86, 0xdb, 0xcf, 0xe6, 0xed, 0xfd, 0x87, 0xff, 0xef };
+        public bool Active { get; private set; }
 
         /// <summary>
         /// Updates speed display on RailDriver LED
         /// </summary>
-        /// <param name="playerLoco"></param>
+        /// <param name="speed"></param>
         public void ShowSpeed(float speed)
         {
-            if (!active)
-                return;
-            speed *= 10;    //simplify display setting for fractional part
-            int s = (int) (speed >= 0 ? speed + .5 : -speed + .5);
-                if (s < 100)
-                    SetLEDs(LEDDigits[s % 10], LEDDigitsPoint[s / 10], 0);
-                else if (s < 1000)
-                    SetLEDs(LEDDigits[s % 10], LEDDigitsPoint[(s / 10) % 10], LEDDigits[(s / 100) % 10]);
-                else if (s < 10000)
-                    SetLEDs(LEDDigitsPoint[(s / 10) % 10], LEDDigits[(s / 100) % 10], LEDDigits[(s / 1000) % 10]);
+            if (Active)
+                railDriverInstance?.SetLedsNumeric(Math.Abs(speed));
         }
 
         public void Shutdown()
         {
-            SetLEDs(0, 0, 0);
+            railDriverInstance?.ClearDisplay();
             railDriverInstance?.Shutdown();
         }
 
@@ -275,13 +233,14 @@ namespace Orts.Viewer3D
 
         public bool IsPressed(UserCommand command)
         {
-            if (!active)
+            if (!Active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
             if (raildriverCommand == byte.MaxValue)
                 return false;
             if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
-                return command == UserCommand.ControlHorn ? (IsPressed(raildriverCommand) || IsPressed((byte)(raildriverCommand + 1))) :
+                return 
+                    command == UserCommand.ControlHorn ? (IsPressed(raildriverCommand) || IsPressed((byte)(raildriverCommand + 1))) :
                     IsPressed(raildriverCommand);
             else
                 return false;
@@ -289,13 +248,14 @@ namespace Orts.Viewer3D
 
         public bool IsReleased(UserCommand command)
         {
-            if (!active)
+            if (!Active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
             if (raildriverCommand == byte.MaxValue)
                 return false;
             if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
-                return command == UserCommand.ControlHorn ? (IsReleased(raildriverCommand) || IsReleased((byte)(raildriverCommand + 1))) :
+                return 
+                    command == UserCommand.ControlHorn ? (IsReleased(raildriverCommand) || IsReleased((byte)(raildriverCommand + 1))) :
                 IsReleased(raildriverCommand);
             else
                 return false;
@@ -303,7 +263,7 @@ namespace Orts.Viewer3D
 
         public bool IsDown(UserCommand command)
         {
-            if (!active)
+            if (!Active)
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
             if (raildriverCommand == byte.MaxValue)
@@ -313,8 +273,6 @@ namespace Orts.Viewer3D
             else
                 return false;
         }
-
-        public bool Enabled => railDriverInstance.Enabled;
 
     }
 }

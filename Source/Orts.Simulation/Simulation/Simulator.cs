@@ -29,6 +29,7 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using ORTS.Common;
+using ORTS.Common.Msts;
 using ORTS.Settings;
 using System;
 using System.Collections.Generic;
@@ -277,7 +278,7 @@ namespace Orts.Simulation
             Trace.Write("Loading ");
 
             Trace.Write(" TRK");
-            TRK = new RouteFile(MSTS.MSTSPath.GetTRKFileName(RoutePath));
+            TRK = new RouteFile(MstsPath.GetTRKFileName(RoutePath));
             RouteName = TRK.Tr_RouteFile.Name;
             MilepostUnitsMetric = TRK.Tr_RouteFile.MilepostUnitsMetric;
             OpenDoorsInAITrains = TRK.Tr_RouteFile.OpenDoorsInAITrains == null ? Settings.OpenDoorsInAITrains : (bool)TRK.Tr_RouteFile.OpenDoorsInAITrains;

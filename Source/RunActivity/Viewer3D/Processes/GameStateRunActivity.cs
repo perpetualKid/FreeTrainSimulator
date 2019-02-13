@@ -25,6 +25,7 @@ using Orts.MultiPlayer;
 using Orts.Simulation;
 using Orts.Viewer3D.Debugging;
 using ORTS.Common;
+using ORTS.Common.Msts;
 using ORTS.Settings;
 using System;
 using System.Collections.Generic;
@@ -1086,7 +1087,7 @@ namespace Orts.Viewer3D.Processes
             {
                 if (Path.GetExtension(path).Equals(".act", StringComparison.OrdinalIgnoreCase) || Path.GetExtension(path).Equals(".pat", StringComparison.OrdinalIgnoreCase))
                 {
-                    var trk = new Orts.Formats.Msts.RouteFile(MSTS.MSTSPath.GetTRKFileName(Path.GetDirectoryName(Path.GetDirectoryName(path))));
+                    var trk = new Orts.Formats.Msts.RouteFile(MstsPath.GetTRKFileName(Path.GetDirectoryName(Path.GetDirectoryName(path))));
                     return trk.Tr_RouteFile.Name;
                 }
             }

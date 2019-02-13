@@ -35,19 +35,19 @@ namespace ORTS
         public byte UserButton { get; private set; }
         public byte DefaultButton { get; private set; }
 
-        private static RailDriverBase instance;
+        private static RailDriverBase railDriver;
         private static byte[] readBuffer;
         private static byte[] buttonData = new byte[8];
 
         private static bool edit;
 
-        public RDButtonInputControl(byte userButton, byte defaultButton, RailDriverBase instance)
+        public RDButtonInputControl(byte userButton, byte defaultButton, RailDriverBase railDriver)
         {
             InitializeComponent();
-            if (RDButtonInputControl.instance == null)
-                RDButtonInputControl.instance = instance;
+            if (RDButtonInputControl.railDriver == null)
+                RDButtonInputControl.railDriver = railDriver;
             if (null == readBuffer)
-                readBuffer = instance.NewReadBuffer;
+                readBuffer = railDriver.NewReadBuffer;
             UserButton = userButton;
             DefaultButton = defaultButton;
 
@@ -82,13 +82,14 @@ namespace ORTS
             EnableEditButtons(true);
             while (edit)
             {
-                instance.ReadCurrentData(ref readBuffer);
+                railDriver.ReadCurrentData(ref readBuffer);
                 sbyte data = ValidateButtonIndex();
                 if (data > -1)
                 {
                     textBox.Text = ((byte)data).ToString();
+                    railDriver.SetLedsNumeric((byte)data);
                 }
-                await System.Threading.Tasks.Task.Delay(200);
+                await System.Threading.Tasks.Task.Delay(100);
             }                
         }
 
@@ -123,6 +124,8 @@ namespace ORTS
         {
             if (byte.TryParse(textBox.Text, out byte result))
                 UserButton = result;
+            else
+                UserButton = 255;
             ButtonClick();
         }
         private void ButtonCancel_Click(object sender, EventArgs e)
@@ -138,9 +141,19 @@ namespace ORTS
 
         private void ButtonClick()
         {
-            Parent.Focus();
             EnableEditButtons(false);
+            railDriver.ClearDisplay();
             UpdateText();
+            Parent.Focus();
         }
+
+        private void TextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)8)   //Backspace
+            {
+                textBox.Text = string.Empty;
+            }
+        }
+
     }
 }

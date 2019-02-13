@@ -174,7 +174,7 @@ namespace Orts.Viewer3D.RollingStock
             // Keeping separated, since it is not a real engine control. (Probably wrong classification?)
             if (UserInput.IsPressed(UserCommand.ControlAIFireReset)) new AIFireResetCommand(Viewer.Log);
 
-            if (UserInput.Raildriver.Enabled)
+            if (UserInput.Raildriver.Active)
                 SteamLocomotive.SetCutoffPercent(UserInput.Raildriver.DirectionPercent);
 
             base.HandleUserInput(elapsedTime);

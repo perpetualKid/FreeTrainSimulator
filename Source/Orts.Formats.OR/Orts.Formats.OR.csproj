@@ -85,10 +85,6 @@
       <Project>{da94d876-7d35-46c3-aece-aface72c686c}</Project>
       <Name>ORTS.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ORTS.Content\ORTS.Content.csproj">
-      <Project>{812685a7-2683-4102-a3ca-2a5ced2e61ee}</Project>
-      <Name>ORTS.Content</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj">
       <Project>{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}</Project>
       <Name>Orts.Formats.Msts</Name>

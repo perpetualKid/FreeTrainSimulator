@@ -189,13 +189,14 @@ namespace ORTS
         private void RunCalibration()
         {
             byte[] readData = instance.NewReadBuffer;
+            instance.SetLeds(RailDriverDisplaySign.Char_C, RailDriverDisplaySign.Char_A, RailDriverDisplaySign.Char_L);
             RailDriverCalibrationSetting nextStep = RailDriverCalibrationSetting.ReverserNeutral;
             DialogResult result = DialogResult.OK;
             while (result == DialogResult.OK && nextStep < RailDriverCalibrationSetting.ReverseReverser)
             {
                 currentCalibrationStep = nextStep;
                 railDriverLegend.Invalidate(true);  //enforce redraw legend to show guidance
-                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{currentCalibrationStep.GetDescription()}\", move the Lever as shown the guidance. \r\n\r\nClick OK to read the position and continue. Click Cancel anytime to abort the calibration process.", "RailDriver Calibration", MessageBoxButtons.OKCancel);
+                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{currentCalibrationStep.GetDescription()}\". Move the Lever as indicated through guidance. \r\n\r\nClick OK to read the position and continue. Click Cancel anytime to abort the calibration process.", "RailDriver Calibration", MessageBoxButtons.OKCancel);
                 // Read Setting
                 if (result == DialogResult.OK)
                 {
@@ -218,6 +219,7 @@ namespace ORTS
                             index = 7;
 
                         calibrationSettings[(int)currentCalibrationStep] = readData[index];
+                        instance.SetLedsNumeric(readData[index]);
                     }
                 }
                 nextStep++;
@@ -228,6 +230,7 @@ namespace ORTS
             {
                 isCalibrationSet = (MessageBox.Show(railDriverLegend, "Calibration Completed. Do you want to keep the results?", "Calibration Done", MessageBoxButtons.YesNo) == DialogResult.Yes);
             }
+            instance.SetLeds(RailDriverDisplaySign.Blank, RailDriverDisplaySign.Blank, RailDriverDisplaySign.Blank);
         }
 
         private void StartRDCalibration_Click(object sender, EventArgs e)
@@ -248,6 +251,32 @@ namespace ORTS
         private void BtnShowRDLegend_Click(object sender, EventArgs e)
         {
             GetRailDriverLegend().Show(this);
+        }
+
+        private void BtnCheck_Click(object sender, EventArgs e)
+        {
+            CheckButtonAssignments();
+        }
+
+        private void CheckButtonAssignments()
+        {
+            byte[] buttons = new byte[EnumExtension.GetLength<UserCommand>()];
+            foreach (Control control in panelRDButtons.Controls)
+            {
+                if (control is Panel)
+                {
+                    foreach (Control child in control.Controls)
+                        if (child is RDButtonInputControl)
+                            buttons[(int)child.Tag] = (child as RDButtonInputControl).UserButton;
+                    break;
+                }
+            }
+            string errors = Settings.RailDriver.CheckForErrors(buttons);
+            if (!string.IsNullOrEmpty(errors))
+                MessageBox.Show(errors, Application.ProductName);
+            else
+//                MessageBox.Show(catalog.GetString("No errors found."), Application.ProductName);
+            MessageBox.Show(catalog.GetString("Not yet implemented."), Application.ProductName);
         }
 
         private void SaveRailDriverSettings()
@@ -283,9 +312,6 @@ namespace ORTS
 
             currentCalibrationStep = RailDriverCalibrationSetting.PercentageCutOffDelta;
         }
-
-
-
 
     }
 }
