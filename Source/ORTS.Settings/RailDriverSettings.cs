@@ -213,6 +213,22 @@ namespace ORTS.Settings
         {
             StringBuilder errors = new StringBuilder();
 
+            var duplicates = buttonSettings.Where(button => button < 255).
+                Select((value, index) => new { Index = index, Button = value }).
+                GroupBy(g => g.Button).
+                Where(g => g.Count() > 1).
+                OrderBy(g => g.Key);
+
+            foreach(var duplicate in duplicates)
+            {
+                errors.Append(catalog.GetStringFmt("Button {0} is assigned to \r\n\t", duplicate.Key));
+                foreach (var buttonMapping in duplicate)
+                {
+                   errors.Append($"\"{catalog.GetString(((UserCommand)buttonMapping.Index).GetDescription())}\" and ");
+                }
+                errors.Remove(errors.Length - 5, 5);
+                errors.AppendLine();
+            }
             return errors.ToString();
         }
     }

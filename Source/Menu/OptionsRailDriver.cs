@@ -255,10 +255,14 @@ namespace ORTS
 
         private void BtnCheck_Click(object sender, EventArgs e)
         {
-            CheckButtonAssignments();
+            string result = CheckButtonAssignments();
+            if (!string.IsNullOrEmpty(result))
+                MessageBox.Show(result, Application.ProductName);
+            else
+                MessageBox.Show(catalog.GetString("No errors found."), Application.ProductName);
         }
 
-        private void CheckButtonAssignments()
+        private string CheckButtonAssignments()
         {
             byte[] buttons = new byte[EnumExtension.GetLength<UserCommand>()];
             foreach (Control control in panelRDButtons.Controls)
@@ -271,12 +275,7 @@ namespace ORTS
                     break;
                 }
             }
-            string errors = Settings.RailDriver.CheckForErrors(buttons);
-            if (!string.IsNullOrEmpty(errors))
-                MessageBox.Show(errors, Application.ProductName);
-            else
-//                MessageBox.Show(catalog.GetString("No errors found."), Application.ProductName);
-            MessageBox.Show(catalog.GetString("Not yet implemented."), Application.ProductName);
+            return Settings.RailDriver.CheckForErrors(buttons);
         }
 
         private void SaveRailDriverSettings()
