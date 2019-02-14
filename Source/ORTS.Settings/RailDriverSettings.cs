@@ -37,7 +37,7 @@ namespace ORTS.Settings
         [Description("Reverse Auto Brake Direction")] ReverseAutoBrake,
         [Description("Reverse Independent Brake Direction")] ReverseIndependentBrake,
         [Description("Full Range Throttle")] FullRangeThrottle,
-        [Description("Cut Off Delta (Percent)")] PercentageCutOffDelta,
+        [Description("Cut Off Delta")] CutOffDelta,
     }
 
     public class RailDriverSettings : SettingsBase
@@ -56,7 +56,7 @@ namespace ORTS.Settings
         static RailDriverSettings()
         {
             //default calibration settings from another developer's PC, they are as good as random numbers...
-            DefaultCalibrationSettings = new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 0, 0, 0, 0, 0, 2 };
+            DefaultCalibrationSettings = new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 0, 0, 0, 0, 0, 1 };
             DefaultUserCommands = new Dictionary<UserCommand, byte>();
 
             // top row of blue buttons left to right

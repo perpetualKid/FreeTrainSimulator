@@ -70,7 +70,7 @@ namespace ORTS
             this.textBox.ReadOnly = true;
             this.textBox.Size = new System.Drawing.Size(131, 20);
             this.textBox.TabIndex = 0;
-            this.toolTip1.SetToolTip(this.textBox, "Press any RailDriver button");
+            this.toolTip1.SetToolTip(this.textBox, "Press any RailDriver button to Assign. Press Backspace to remove an assignment.");
             this.textBox.Enter += new System.EventHandler(this.TextBox_Enter);
             this.textBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_KeyPress);
             this.textBox.Leave += new System.EventHandler(this.TextBox_Leave);

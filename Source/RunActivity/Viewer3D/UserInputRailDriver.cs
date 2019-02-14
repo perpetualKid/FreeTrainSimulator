@@ -37,7 +37,6 @@ namespace Orts.Viewer3D
 
         private readonly RailDriverBase railDriverInstance;
         private static RailDriverSettings settings;
-        private static byte cutOff;
 
         public float DirectionPercent;      // -100 (reverse) to 100 (forward)
         public float ThrottlePercent;       // 0 to 100
@@ -64,12 +63,15 @@ namespace Orts.Viewer3D
             if (railDriverInstance.Enabled)
             {
                 settings = game.Settings.RailDriver;
+                byte cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.CutOffDelta];
+
                 byte[] calibrationSettings = settings.CalibrationSettings;
 
                 if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseReverser]))
                     reverser = (calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullForward], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserNeutral], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullReversed]);
                 else
                     reverser = (calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullReversed], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserNeutral], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullForward]);
+                reverser = UpdateCutOff(reverser, cutOff);
 
                 if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.FullRangeThrottle]))
                 {
@@ -92,6 +94,9 @@ namespace Orts.Viewer3D
                         dynamicBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrake]);
                     }
                 }
+                throttle = UpdateCutOff(throttle, cutOff);
+                dynamicBrake = UpdateCutOff(dynamicBrake, cutOff);
+
                 if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake]))
                     autoBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeFull], calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeRelease]);
                 else
@@ -100,16 +105,19 @@ namespace Orts.Viewer3D
                     independentBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeFull], calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeRelease]);
                 else
                     independentBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeFull]);
+                autoBrake = UpdateCutOff(autoBrake, cutOff);
+                independentBrake = UpdateCutOff(independentBrake, cutOff);
 
                 emergencyBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeFull], calibrationSettings[(byte)RailDriverCalibrationSetting.EmergencyBrake]);
+                emergencyBrake = UpdateCutOff(emergencyBrake, cutOff);
 
                 wipers = (calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position1], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position2], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position3]);
                 headlight = (calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position1], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position2], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position3]);
 
                 bailoffDisengaged = (calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffDisengagedRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffDisengagedFull]);
                 bailoffEngaged = (calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffEngagedRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffEngagedFull]);
-
-                cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta];
+                bailoffDisengaged = UpdateCutOff(bailoffDisengaged, cutOff);
+                bailoffEngaged = UpdateCutOff(bailoffEngaged, cutOff);
 
                 readBuffer = railDriverInstance.NewReadBuffer;
                 readBufferHistory = railDriverInstance.NewReadBuffer;
@@ -164,9 +172,9 @@ namespace Orts.Viewer3D
         private static float Percentage(float x, float x0, float x100)
         {
             float p = 100 * (x - x0) / (x100 - x0);
-            if (p < 5)
+            if (p < 0)
                 return 0;
-            if (p > 95)
+            if (p > 100)
                 return 100;
             return p;
         }
@@ -174,9 +182,9 @@ namespace Orts.Viewer3D
         private static float Percentage(byte value, (byte p0, byte p100) range)
         {
             float p = 100 * (value - range.p0) / (range.p100- range.p0);
-            if (p < cutOff)
+            if (p < 0)
                 return 0;
-            if (p > (100 - cutOff))
+            if (p > 100)
                 return 100;
             return p;
         }
@@ -186,11 +194,41 @@ namespace Orts.Viewer3D
             float p = 100 * (value - range.p0) / (range.p100Plus - range.p0);
             if (p < 0)
                 p = 100 * (value - range.p0) / (range.p0 - range.p100Minus);
-            if (p < (-100 + cutOff))
+            if (p < -100)
                 return -100;
-            if (p > (100 - cutOff))
+            if (p > 100)
                 return 100;
             return p;
+        }
+
+        private (byte, byte) UpdateCutOff((byte, byte) range, byte cutOff)
+        {
+            if (range.Item1 < range.Item2)
+            {
+                range.Item1 += cutOff;
+                range.Item2 -= cutOff;
+            }
+            else
+            {
+                range.Item2 += cutOff;
+                range.Item1 -= cutOff;
+            }
+            return range;
+        }
+
+        private (byte, byte, byte) UpdateCutOff((byte, byte, byte) range, byte cutOff)
+        {
+            if (range.Item1 < range.Item3)
+            {
+                range.Item1 += cutOff;
+                range.Item3 -= cutOff;
+            }
+            else
+            {
+                range.Item3 += cutOff;
+                range.Item1 -= cutOff;
+            }
+            return range;
         }
 
         public bool Active { get; private set; }

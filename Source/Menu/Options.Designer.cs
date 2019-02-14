@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.buttonOK = new System.Windows.Forms.Button();
             this.numericBrakePipeChargingRate = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -109,19 +109,18 @@
             this.buttonCheckKeys = new System.Windows.Forms.Button();
             this.panelKeys = new System.Windows.Forms.Panel();
             this.tabPageRailDriver = new System.Windows.Forms.TabPage();
+            this.btnCheck = new System.Windows.Forms.Button();
             this.btnRDReset = new System.Windows.Forms.Button();
             this.btnStartRDCalibration = new System.Windows.Forms.Button();
             this.btnShowRDLegend = new System.Windows.Forms.Button();
             this.panelRDSettings = new System.Windows.Forms.Panel();
             this.panelRDOptions = new System.Windows.Forms.Panel();
-            this.labelRDLeverCutOffPercentage = new System.Windows.Forms.Label();
             this.groupBoxReverseRDLevers = new System.Windows.Forms.GroupBox();
             this.checkFullRangeThrottle = new System.Windows.Forms.CheckBox();
             this.checkReverseIndependentBrake = new System.Windows.Forms.CheckBox();
             this.checkReverseAutoBrake = new System.Windows.Forms.CheckBox();
             this.checkReverseThrottle = new System.Windows.Forms.CheckBox();
             this.checkReverseReverser = new System.Windows.Forms.CheckBox();
-            this.numericUpDownRDLeverCutOff = new System.Windows.Forms.NumericUpDown();
             this.panelRDButtons = new System.Windows.Forms.Panel();
             this.tabPageDataLogger = new System.Windows.Forms.TabPage();
             this.comboDataLogSpeedUnits = new System.Windows.Forms.ComboBox();
@@ -203,7 +202,6 @@
             this.ElevationText = new System.Windows.Forms.Label();
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.btnCheck = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -226,7 +224,6 @@
             this.panelRDSettings.SuspendLayout();
             this.panelRDOptions.SuspendLayout();
             this.groupBoxReverseRDLevers.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownRDLeverCutOff)).BeginInit();
             this.tabPageDataLogger.SuspendLayout();
             this.tabPageEvaluate.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericDataLogTSInterval)).BeginInit();
@@ -1253,6 +1250,17 @@
             this.tabPageRailDriver.Text = "RailDriver";
             this.tabPageRailDriver.UseVisualStyleBackColor = true;
             // 
+            // btnCheck
+            // 
+            this.btnCheck.Location = new System.Drawing.Point(247, 372);
+            this.btnCheck.Name = "btnCheck";
+            this.btnCheck.Size = new System.Drawing.Size(75, 23);
+            this.btnCheck.TabIndex = 4;
+            this.btnCheck.Text = "Check";
+            this.toolTip1.SetToolTip(this.btnCheck, "Load the factory default button assignments.");
+            this.btnCheck.UseVisualStyleBackColor = true;
+            this.btnCheck.Click += new System.EventHandler(this.BtnCheck_Click);
+            // 
             // btnRDReset
             // 
             this.btnRDReset.Location = new System.Drawing.Point(166, 372);
@@ -1304,25 +1312,12 @@
             // 
             // panelRDOptions
             // 
-            this.panelRDOptions.Controls.Add(this.labelRDLeverCutOffPercentage);
             this.panelRDOptions.Controls.Add(this.groupBoxReverseRDLevers);
-            this.panelRDOptions.Controls.Add(this.numericUpDownRDLeverCutOff);
             this.panelRDOptions.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelRDOptions.Location = new System.Drawing.Point(283, 0);
             this.panelRDOptions.Name = "panelRDOptions";
             this.panelRDOptions.Size = new System.Drawing.Size(307, 361);
             this.panelRDOptions.TabIndex = 2;
-            // 
-            // labelRDLeverCutOffPercentage
-            // 
-            this.labelRDLeverCutOffPercentage.AutoSize = true;
-            this.labelRDLeverCutOffPercentage.Location = new System.Drawing.Point(62, 179);
-            this.labelRDLeverCutOffPercentage.Name = "labelRDLeverCutOffPercentage";
-            this.labelRDLeverCutOffPercentage.Size = new System.Drawing.Size(139, 13);
-            this.labelRDLeverCutOffPercentage.TabIndex = 3;
-            this.labelRDLeverCutOffPercentage.Text = "% Levers Cutoff Percentage";
-            this.toolTip1.SetToolTip(this.labelRDLeverCutOffPercentage, "The upper/lower end lever position cutoff point, i.e. with 2%, a Throttle positio" +
-        "n of 98% would be treated as 100% ");
             // 
             // groupBoxReverseRDLevers
             // 
@@ -1394,20 +1389,6 @@
             this.checkReverseReverser.TabIndex = 0;
             this.checkReverseReverser.Text = "Reverse Reverser Direction";
             this.checkReverseReverser.UseVisualStyleBackColor = true;
-            // 
-            // numericUpDownRDLeverCutOff
-            // 
-            this.numericUpDownRDLeverCutOff.Location = new System.Drawing.Point(13, 177);
-            this.numericUpDownRDLeverCutOff.Maximum = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-            this.numericUpDownRDLeverCutOff.Name = "numericUpDownRDLeverCutOff";
-            this.numericUpDownRDLeverCutOff.Size = new System.Drawing.Size(43, 20);
-            this.numericUpDownRDLeverCutOff.TabIndex = 1;
-            this.numericUpDownRDLeverCutOff.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.numericUpDownRDLeverCutOff.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
             // 
             // panelRDButtons
             // 
@@ -1757,27 +1738,27 @@
             this.dataGridViewContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dataGridViewContent.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dataGridViewContent.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dataGridViewContent.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dataGridViewContent.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.nameDataGridViewTextBoxColumn,
             this.pathDataGridViewTextBoxColumn});
             this.dataGridViewContent.DataSource = this.bindingSourceContent;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridViewContent.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewContent.Location = new System.Drawing.Point(0, 0);
             this.dataGridViewContent.MultiSelect = false;
@@ -2458,17 +2439,6 @@
             this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
             this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
-            // btnCheck
-            // 
-            this.btnCheck.Location = new System.Drawing.Point(247, 372);
-            this.btnCheck.Name = "btnCheck";
-            this.btnCheck.Size = new System.Drawing.Size(75, 23);
-            this.btnCheck.TabIndex = 4;
-            this.btnCheck.Text = "Check";
-            this.toolTip1.SetToolTip(this.btnCheck, "Load the factory default button assignments.");
-            this.btnCheck.UseVisualStyleBackColor = true;
-            this.btnCheck.Click += new System.EventHandler(this.BtnCheck_Click);
-            // 
             // OptionsForm
             // 
             this.AcceptButton = this.buttonOK;
@@ -2512,10 +2482,8 @@
             this.tabPageRailDriver.ResumeLayout(false);
             this.panelRDSettings.ResumeLayout(false);
             this.panelRDOptions.ResumeLayout(false);
-            this.panelRDOptions.PerformLayout();
             this.groupBoxReverseRDLevers.ResumeLayout(false);
             this.groupBoxReverseRDLevers.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownRDLeverCutOff)).EndInit();
             this.tabPageDataLogger.ResumeLayout(false);
             this.tabPageDataLogger.PerformLayout();
             this.tabPageEvaluate.ResumeLayout(false);
@@ -2712,7 +2680,6 @@
         private System.Windows.Forms.Button btnShowRDLegend;
         private System.Windows.Forms.Button btnStartRDCalibration;
         private System.Windows.Forms.Button btnRDReset;
-        private System.Windows.Forms.NumericUpDown numericUpDownRDLeverCutOff;
         private System.Windows.Forms.Panel panelRDOptions;
         private System.Windows.Forms.Panel panelRDButtons;
         private System.Windows.Forms.GroupBox groupBoxReverseRDLevers;
@@ -2720,7 +2687,6 @@
         private System.Windows.Forms.CheckBox checkReverseIndependentBrake;
         private System.Windows.Forms.CheckBox checkReverseAutoBrake;
         private System.Windows.Forms.CheckBox checkReverseThrottle;
-        private System.Windows.Forms.Label labelRDLeverCutOffPercentage;
         private System.Windows.Forms.CheckBox checkFullRangeThrottle;
         private System.Windows.Forms.Button btnCheck;
     }

@@ -15,7 +15,7 @@ namespace ORTS
     {
         private RailDriverBase instance;
         private Form railDriverLegend;
-        private RailDriverCalibrationSetting currentCalibrationStep = RailDriverCalibrationSetting.PercentageCutOffDelta;
+        private RailDriverCalibrationSetting currentCalibrationStep = RailDriverCalibrationSetting.CutOffDelta;
 
         private byte[] calibrationSettings = new byte[EnumExtension.GetLength<RailDriverCalibrationSetting>()];
         private bool isCalibrationSet;
@@ -177,7 +177,6 @@ namespace ORTS
             checkReverseAutoBrake.Checked = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake] != 0;
             checkReverseIndependentBrake.Checked = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake] != 0;
             checkFullRangeThrottle.Checked = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.FullRangeThrottle] != 0;
-            numericUpDownRDLeverCutOff.Value = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta];
             Panel controls = await Task.Run(InitializeRailDriverInputControls);
             controls.Dock = DockStyle.Fill;
             panelRDButtons.Controls.Add(controls);
@@ -224,7 +223,7 @@ namespace ORTS
                 }
                 nextStep++;
             }
-            currentCalibrationStep = RailDriverCalibrationSetting.PercentageCutOffDelta;
+            currentCalibrationStep = RailDriverCalibrationSetting.CutOffDelta;
             railDriverLegend.Invalidate(true);
             if (nextStep == RailDriverCalibrationSetting.ReverseReverser)
             {
@@ -307,9 +306,8 @@ namespace ORTS
             Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake] = Convert.ToByte(checkReverseAutoBrake.Checked);
             Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake] = Convert.ToByte(checkReverseIndependentBrake.Checked);
             Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.FullRangeThrottle] = Convert.ToByte(checkFullRangeThrottle.Checked);
-            Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.PercentageCutOffDelta] = (byte)numericUpDownRDLeverCutOff.Value;
 
-            currentCalibrationStep = RailDriverCalibrationSetting.PercentageCutOffDelta;
+            currentCalibrationStep = RailDriverCalibrationSetting.CutOffDelta;
         }
 
     }
