@@ -109,18 +109,18 @@
             this.buttonCheckKeys = new System.Windows.Forms.Button();
             this.panelKeys = new System.Windows.Forms.Panel();
             this.tabPageRailDriver = new System.Windows.Forms.TabPage();
+            this.btnCheck = new System.Windows.Forms.Button();
             this.btnRDReset = new System.Windows.Forms.Button();
             this.btnStartRDCalibration = new System.Windows.Forms.Button();
             this.btnShowRDLegend = new System.Windows.Forms.Button();
             this.panelRDSettings = new System.Windows.Forms.Panel();
             this.panelRDOptions = new System.Windows.Forms.Panel();
-            this.labelRDLeverCutOffPercentage = new System.Windows.Forms.Label();
             this.groupBoxReverseRDLevers = new System.Windows.Forms.GroupBox();
+            this.checkFullRangeThrottle = new System.Windows.Forms.CheckBox();
             this.checkReverseIndependentBrake = new System.Windows.Forms.CheckBox();
             this.checkReverseAutoBrake = new System.Windows.Forms.CheckBox();
             this.checkReverseThrottle = new System.Windows.Forms.CheckBox();
             this.checkReverseReverser = new System.Windows.Forms.CheckBox();
-            this.numericUpDownRDLeverCutOff = new System.Windows.Forms.NumericUpDown();
             this.panelRDButtons = new System.Windows.Forms.Panel();
             this.tabPageDataLogger = new System.Windows.Forms.TabPage();
             this.comboDataLogSpeedUnits = new System.Windows.Forms.ComboBox();
@@ -202,7 +202,6 @@
             this.ElevationText = new System.Windows.Forms.Label();
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.checkFullRangeThrottle = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -225,7 +224,6 @@
             this.panelRDSettings.SuspendLayout();
             this.panelRDOptions.SuspendLayout();
             this.groupBoxReverseRDLevers.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownRDLeverCutOff)).BeginInit();
             this.tabPageDataLogger.SuspendLayout();
             this.tabPageEvaluate.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericDataLogTSInterval)).BeginInit();
@@ -1240,6 +1238,7 @@
             // 
             // tabPageRailDriver
             // 
+            this.tabPageRailDriver.Controls.Add(this.btnCheck);
             this.tabPageRailDriver.Controls.Add(this.btnRDReset);
             this.tabPageRailDriver.Controls.Add(this.btnStartRDCalibration);
             this.tabPageRailDriver.Controls.Add(this.btnShowRDLegend);
@@ -1251,24 +1250,37 @@
             this.tabPageRailDriver.Text = "RailDriver";
             this.tabPageRailDriver.UseVisualStyleBackColor = true;
             // 
+            // btnCheck
+            // 
+            this.btnCheck.Location = new System.Drawing.Point(247, 372);
+            this.btnCheck.Name = "btnCheck";
+            this.btnCheck.Size = new System.Drawing.Size(75, 23);
+            this.btnCheck.TabIndex = 4;
+            this.btnCheck.Text = "Check";
+            this.toolTip1.SetToolTip(this.btnCheck, "Load the factory default button assignments.");
+            this.btnCheck.UseVisualStyleBackColor = true;
+            this.btnCheck.Click += new System.EventHandler(this.BtnCheck_Click);
+            // 
             // btnRDReset
             // 
-            this.btnRDReset.Location = new System.Drawing.Point(106, 372);
+            this.btnRDReset.Location = new System.Drawing.Point(166, 372);
             this.btnRDReset.Name = "btnRDReset";
             this.btnRDReset.Size = new System.Drawing.Size(75, 23);
             this.btnRDReset.TabIndex = 2;
             this.btnRDReset.Text = "Defaults";
+            this.toolTip1.SetToolTip(this.btnRDReset, "Load the factory default button assignments.");
             this.btnRDReset.UseVisualStyleBackColor = true;
             this.btnRDReset.Click += new System.EventHandler(this.BtnRDReset_Click);
             // 
             // btnStartRDCalibration
             // 
-            this.btnStartRDCalibration.Location = new System.Drawing.Point(186, 372);
+            this.btnStartRDCalibration.Location = new System.Drawing.Point(86, 372);
             this.btnStartRDCalibration.Margin = new System.Windows.Forms.Padding(2);
             this.btnStartRDCalibration.Name = "btnStartRDCalibration";
-            this.btnStartRDCalibration.Size = new System.Drawing.Size(95, 23);
+            this.btnStartRDCalibration.Size = new System.Drawing.Size(75, 23);
             this.btnStartRDCalibration.TabIndex = 3;
-            this.btnStartRDCalibration.Text = "Run Calibration";
+            this.btnStartRDCalibration.Text = "Calibration";
+            this.toolTip1.SetToolTip(this.btnStartRDCalibration, "Calibrate the lever position reading");
             this.btnStartRDCalibration.UseVisualStyleBackColor = true;
             this.btnStartRDCalibration.Click += new System.EventHandler(this.StartRDCalibration_Click);
             // 
@@ -1276,9 +1288,11 @@
             // 
             this.btnShowRDLegend.Location = new System.Drawing.Point(6, 372);
             this.btnShowRDLegend.Name = "btnShowRDLegend";
-            this.btnShowRDLegend.Size = new System.Drawing.Size(95, 23);
+            this.btnShowRDLegend.Size = new System.Drawing.Size(75, 23);
             this.btnShowRDLegend.TabIndex = 1;
             this.btnShowRDLegend.Text = "Legend";
+            this.toolTip1.SetToolTip(this.btnShowRDLegend, "Show a legend of RailDriver board with button and lever description. Press cancel" +
+        " to close again.");
             this.btnShowRDLegend.UseVisualStyleBackColor = true;
             this.btnShowRDLegend.Click += new System.EventHandler(this.BtnShowRDLegend_Click);
             // 
@@ -1298,25 +1312,12 @@
             // 
             // panelRDOptions
             // 
-            this.panelRDOptions.Controls.Add(this.labelRDLeverCutOffPercentage);
             this.panelRDOptions.Controls.Add(this.groupBoxReverseRDLevers);
-            this.panelRDOptions.Controls.Add(this.numericUpDownRDLeverCutOff);
             this.panelRDOptions.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelRDOptions.Location = new System.Drawing.Point(283, 0);
             this.panelRDOptions.Name = "panelRDOptions";
             this.panelRDOptions.Size = new System.Drawing.Size(307, 361);
             this.panelRDOptions.TabIndex = 2;
-            // 
-            // labelRDLeverCutOffPercentage
-            // 
-            this.labelRDLeverCutOffPercentage.AutoSize = true;
-            this.labelRDLeverCutOffPercentage.Location = new System.Drawing.Point(62, 179);
-            this.labelRDLeverCutOffPercentage.Name = "labelRDLeverCutOffPercentage";
-            this.labelRDLeverCutOffPercentage.Size = new System.Drawing.Size(139, 13);
-            this.labelRDLeverCutOffPercentage.TabIndex = 3;
-            this.labelRDLeverCutOffPercentage.Text = "% Levers Cutoff Percentage";
-            this.toolTip1.SetToolTip(this.labelRDLeverCutOffPercentage, "The upper/lower end lever position cutoff point, i.e. with 2%, a Throttle positio" +
-        "n of 98% would be treated as 100% ");
             // 
             // groupBoxReverseRDLevers
             // 
@@ -1332,6 +1333,18 @@
             this.groupBoxReverseRDLevers.TabIndex = 2;
             this.groupBoxReverseRDLevers.TabStop = false;
             this.groupBoxReverseRDLevers.Text = "Reverse Levers";
+            // 
+            // checkFullRangeThrottle
+            // 
+            this.checkFullRangeThrottle.AutoSize = true;
+            this.checkFullRangeThrottle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkFullRangeThrottle.Location = new System.Drawing.Point(7, 121);
+            this.checkFullRangeThrottle.Name = "checkFullRangeThrottle";
+            this.checkFullRangeThrottle.Size = new System.Drawing.Size(116, 17);
+            this.checkFullRangeThrottle.TabIndex = 4;
+            this.checkFullRangeThrottle.Text = "Full Range Throttle";
+            this.toolTip1.SetToolTip(this.checkFullRangeThrottle, "Use the full range of the Throttle Lever. There will be no Auto Brake!");
+            this.checkFullRangeThrottle.UseVisualStyleBackColor = true;
             // 
             // checkReverseIndependentBrake
             // 
@@ -1376,20 +1389,6 @@
             this.checkReverseReverser.TabIndex = 0;
             this.checkReverseReverser.Text = "Reverse Reverser Direction";
             this.checkReverseReverser.UseVisualStyleBackColor = true;
-            // 
-            // numericUpDownRDLeverCutOff
-            // 
-            this.numericUpDownRDLeverCutOff.Location = new System.Drawing.Point(13, 177);
-            this.numericUpDownRDLeverCutOff.Maximum = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-            this.numericUpDownRDLeverCutOff.Name = "numericUpDownRDLeverCutOff";
-            this.numericUpDownRDLeverCutOff.Size = new System.Drawing.Size(43, 20);
-            this.numericUpDownRDLeverCutOff.TabIndex = 1;
-            this.numericUpDownRDLeverCutOff.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.numericUpDownRDLeverCutOff.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
             // 
             // panelRDButtons
             // 
@@ -2440,18 +2439,6 @@
             this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
             this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
-            // checkFullRangeThrottle
-            // 
-            this.checkFullRangeThrottle.AutoSize = true;
-            this.checkFullRangeThrottle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkFullRangeThrottle.Location = new System.Drawing.Point(7, 121);
-            this.checkFullRangeThrottle.Name = "checkFullRangeThrottle";
-            this.checkFullRangeThrottle.Size = new System.Drawing.Size(116, 17);
-            this.checkFullRangeThrottle.TabIndex = 4;
-            this.checkFullRangeThrottle.Text = "Full Range Throttle";
-            this.toolTip1.SetToolTip(this.checkFullRangeThrottle, "Use the full range of the Throttle Lever. There will be no Auto Brake!");
-            this.checkFullRangeThrottle.UseVisualStyleBackColor = true;
-            // 
             // OptionsForm
             // 
             this.AcceptButton = this.buttonOK;
@@ -2495,10 +2482,8 @@
             this.tabPageRailDriver.ResumeLayout(false);
             this.panelRDSettings.ResumeLayout(false);
             this.panelRDOptions.ResumeLayout(false);
-            this.panelRDOptions.PerformLayout();
             this.groupBoxReverseRDLevers.ResumeLayout(false);
             this.groupBoxReverseRDLevers.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownRDLeverCutOff)).EndInit();
             this.tabPageDataLogger.ResumeLayout(false);
             this.tabPageDataLogger.PerformLayout();
             this.tabPageEvaluate.ResumeLayout(false);
@@ -2695,7 +2680,6 @@
         private System.Windows.Forms.Button btnShowRDLegend;
         private System.Windows.Forms.Button btnStartRDCalibration;
         private System.Windows.Forms.Button btnRDReset;
-        private System.Windows.Forms.NumericUpDown numericUpDownRDLeverCutOff;
         private System.Windows.Forms.Panel panelRDOptions;
         private System.Windows.Forms.Panel panelRDButtons;
         private System.Windows.Forms.GroupBox groupBoxReverseRDLevers;
@@ -2703,7 +2687,7 @@
         private System.Windows.Forms.CheckBox checkReverseIndependentBrake;
         private System.Windows.Forms.CheckBox checkReverseAutoBrake;
         private System.Windows.Forms.CheckBox checkReverseThrottle;
-        private System.Windows.Forms.Label labelRDLeverCutOffPercentage;
         private System.Windows.Forms.CheckBox checkFullRangeThrottle;
+        private System.Windows.Forms.Button btnCheck;
     }
 }

@@ -382,6 +382,10 @@ namespace ORTS
             if (result != "" && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, Application.ProductName, MessageBoxButtons.YesNo))
                 return;
 
+            result = CheckButtonAssignments();
+            if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting button assignments?\n\n") + result, Application.ProductName, MessageBoxButtons.YesNo))
+                return;
+
             DialogResult = DialogResult.OK;
             if (Settings.Language != comboLanguage.SelectedValue.ToString())
                 DialogResult = DialogResult.Retry;

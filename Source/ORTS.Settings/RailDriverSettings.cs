@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using System.Text;
 using GNU.Gettext;
 using ORTS.Common;
 
@@ -35,7 +37,7 @@ namespace ORTS.Settings
         [Description("Reverse Auto Brake Direction")] ReverseAutoBrake,
         [Description("Reverse Independent Brake Direction")] ReverseIndependentBrake,
         [Description("Full Range Throttle")] FullRangeThrottle,
-        [Description("Cut Off Delta (Percent)")] PercentageCutOffDelta,
+        [Description("Cut Off Delta")] CutOffDelta,
     }
 
     public class RailDriverSettings : SettingsBase
@@ -54,7 +56,7 @@ namespace ORTS.Settings
         static RailDriverSettings()
         {
             //default calibration settings from another developer's PC, they are as good as random numbers...
-            DefaultCalibrationSettings = new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 0, 0, 0, 0, 0, 2 };
+            DefaultCalibrationSettings = new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 0, 0, 0, 0, 0, 1 };
             DefaultUserCommands = new Dictionary<UserCommand, byte>();
 
             // top row of blue buttons left to right
@@ -144,8 +146,9 @@ namespace ORTS.Settings
 
         public override void Reset()
         {
-            foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
-                Reset(setting.ToString());
+            //do not reset calibrations
+            //foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
+            //    Reset(setting.ToString());
 
             foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
                 Reset(command.ToString());
@@ -206,9 +209,27 @@ namespace ORTS.Settings
                 throw new ArgumentOutOfRangeException($"Enum parameter {nameof(name)} not within expected range of either {nameof(RailDriverCalibrationSetting)} or {nameof(UserCommands)}");
         }
 
-        public string CheckForErrors()
+        public string CheckForErrors(byte[] buttonSettings)
         {
-            return string.Empty;
+            StringBuilder errors = new StringBuilder();
+
+            var duplicates = buttonSettings.Where(button => button < 255).
+                Select((value, index) => new { Index = index, Button = value }).
+                GroupBy(g => g.Button).
+                Where(g => g.Count() > 1).
+                OrderBy(g => g.Key);
+
+            foreach(var duplicate in duplicates)
+            {
+                errors.Append(catalog.GetStringFmt("Button {0} is assigned to \r\n\t", duplicate.Key));
+                foreach (var buttonMapping in duplicate)
+                {
+                   errors.Append($"\"{catalog.GetString(((UserCommand)buttonMapping.Index).GetDescription())}\" and ");
+                }
+                errors.Remove(errors.Length - 5, 5);
+                errors.AppendLine();
+            }
+            return errors.ToString();
         }
     }
 }

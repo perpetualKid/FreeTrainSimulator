@@ -527,11 +527,6 @@ namespace ORTS.Settings
             return errors.ToString();
         }
 
-        public static string GetPrettyLocalizedName(UserCommand value)
-        {            
-            return catalog.GetString(value.GetDescription());
-        }
-
         public static string GetPrettyCommandName(UserCommand command)
         {
             var name = command.ToString();
