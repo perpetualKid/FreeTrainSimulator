@@ -83,6 +83,7 @@ namespace ORTS.Common
         [Description("Camera Outside Front")] CameraOutsideFront,
         [Description("Camera Outside Rear")] CameraOutsideRear,
         [Description("Camera Trackside")] CameraTrackside,
+        [Description("Camera SpecialTracksidePoint")] CameraSpecialTracksidePoint,
         [Description("Camera Passenger")] CameraPassenger,
         [Description("Camera Brakeman")] CameraBrakeman,
         [Description("Camera Free")] CameraFree,
