@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -163,12 +164,14 @@ namespace ORTS
         private async Task InitializeRailDriverSettingsAsync()
         {
             instance = RailDriverBase.GetInstance();
+#if !DEBUG
             if (!instance.Enabled)
             {
                 tabOptions.TabPages.Remove(tabPageRailDriver);
                 await Task.CompletedTask;
                 return;
             }
+#endif
             panelRDButtons.Width = panelRDSettings.Width / 2;
             panelRDButtons.Controls.Clear();
 
@@ -259,6 +262,13 @@ namespace ORTS
                 MessageBox.Show(result, Application.ProductName);
             else
                 MessageBox.Show(catalog.GetString("No errors found."), Application.ProductName);
+        }
+
+        private void BtnRDSettingsExport_Click(object sender, EventArgs e)
+        {
+            string outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Open Rails RailDriver.txt");
+            Settings.RailDriver.DumpToText(outputPath);
+            MessageBox.Show(catalog.GetString("A listing of all Raildriver button assignments has been placed here:\n\n") + outputPath, Application.ProductName);
         }
 
         private string CheckButtonAssignments()
