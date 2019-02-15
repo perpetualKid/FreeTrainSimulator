@@ -342,31 +342,13 @@ namespace Orts.Viewer3D
             switch (drawIndex)
             {
                 case 1: // Sky dome
-                    graphicsDevice.DrawIndexedPrimitives(
-                        PrimitiveType.TriangleList,
-                        0,
-                        0,
-                        (numVertices - 4) / 2,
-                        0,
-                        (indexCount - 6) / 6);
+                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (indexCount - 6) / 6);
                     break;
                 case 2: // Moon
-                    graphicsDevice.DrawIndexedPrimitives(
-                    PrimitiveType.TriangleList,
-                    0,
-                    numVertices - 4,
-                    4,
-                    indexCount - 6,
-                    2);
+                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, indexCount - 6, 2);
                     break;
                 case 3: // Clouds Dome
-                    graphicsDevice.DrawIndexedPrimitives(
-                        PrimitiveType.TriangleList,
-                        0,
-                        (numVertices - 4) / 2,
-                        (numVertices - 4) / 2,
-                        (indexCount - 6) / 2,
-                        (indexCount - 6) / 6);
+                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, (indexCount - 6) / 2, (indexCount - 6) / 6);
                     break;
                 default:
                     break;

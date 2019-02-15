@@ -46,7 +46,6 @@
             this.labelOtherUnits = new System.Windows.Forms.Label();
             this.labelPressureUnit = new System.Windows.Forms.Label();
             this.comboBoxOtherUnits = new System.Windows.Forms.ComboBox();
-            this.checkUseLargeAddressAware = new System.Windows.Forms.CheckBox();
             this.comboPressureUnit = new System.Windows.Forms.ComboBox();
             this.labelLanguage = new System.Windows.Forms.Label();
             this.comboLanguage = new System.Windows.Forms.ComboBox();
@@ -372,7 +371,6 @@
             this.tabPageGeneral.Controls.Add(this.labelOtherUnits);
             this.tabPageGeneral.Controls.Add(this.labelPressureUnit);
             this.tabPageGeneral.Controls.Add(this.comboBoxOtherUnits);
-            this.tabPageGeneral.Controls.Add(this.checkUseLargeAddressAware);
             this.tabPageGeneral.Controls.Add(this.comboPressureUnit);
             this.tabPageGeneral.Controls.Add(this.labelLanguage);
             this.tabPageGeneral.Controls.Add(this.comboLanguage);
@@ -440,17 +438,6 @@
             this.comboBoxOtherUnits.Name = "comboBoxOtherUnits";
             this.comboBoxOtherUnits.Size = new System.Drawing.Size(121, 21);
             this.comboBoxOtherUnits.TabIndex = 8;
-            // 
-            // checkUseLargeAddressAware
-            // 
-            this.checkUseLargeAddressAware.AutoSize = true;
-            this.checkUseLargeAddressAware.Enabled = false;
-            this.checkUseLargeAddressAware.Location = new System.Drawing.Point(6, 98);
-            this.checkUseLargeAddressAware.Name = "checkUseLargeAddressAware";
-            this.checkUseLargeAddressAware.Size = new System.Drawing.Size(342, 17);
-            this.checkUseLargeAddressAware.TabIndex = 3;
-            this.checkUseLargeAddressAware.Text = "Large address aware binaries (for all 64bit and 3GB tuning on 32bit)";
-            this.checkUseLargeAddressAware.UseVisualStyleBackColor = true;
             // 
             // comboPressureUnit
             // 
@@ -2623,7 +2610,6 @@
         private System.Windows.Forms.TrackBar trackAdhesionFactor;
         private System.Windows.Forms.CheckBox checkAdhesionPropToWeather;
         private System.Windows.Forms.CheckBox checkModelInstancing;
-        private System.Windows.Forms.CheckBox checkUseLargeAddressAware;
         private System.Windows.Forms.TrackBar trackDayAmbientLight;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.CheckBox checkConditionalLoadOfNightTextures;
