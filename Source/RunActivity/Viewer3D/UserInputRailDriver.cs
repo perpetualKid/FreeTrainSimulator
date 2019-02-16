@@ -155,16 +155,24 @@ namespace Orts.Viewer3D
                 }
                 if (IsPressed(EnableRailDriverCommand))
                 {
-                    Active = !Active;
-                    railDriverInstance.EnableSpeaker(Active);
-                    if (Active)
-                    {
-                        railDriverInstance.SetLeds(0x39, 0x09, 0x0F);
-                    }
-                    else
-                    {
-                        railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
-                    }
+                    Activate();
+                }
+            }
+        }
+
+        public void Activate()
+        {
+            if (railDriverInstance.Enabled)
+            {
+                Active = !Active;
+                railDriverInstance.EnableSpeaker(Active);
+                if (Active)
+                {
+                    railDriverInstance.SetLeds(0x39, 0x09, 0x0F);
+                }
+                else
+                {
+                    railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
                 }
             }
         }
@@ -245,8 +253,11 @@ namespace Orts.Viewer3D
 
         public void Shutdown()
         {
-            railDriverInstance?.ClearDisplay();
-            railDriverInstance?.Shutdown();
+            if (railDriverInstance.Enabled)
+            {
+                railDriverInstance?.ClearDisplay();
+                railDriverInstance?.Shutdown();
+            }
         }
 
         private bool ButtonCurrentlyDown(byte command)
