@@ -164,14 +164,14 @@ namespace ORTS
         private async Task InitializeRailDriverSettingsAsync()
         {
             instance = RailDriverBase.GetInstance();
-#if !DEBUG
+//#if !DEBUG
             if (!instance.Enabled)
             {
                 tabOptions.TabPages.Remove(tabPageRailDriver);
                 await Task.CompletedTask;
                 return;
             }
-#endif
+//#endif
             panelRDButtons.Width = panelRDSettings.Width / 2;
             panelRDButtons.Controls.Clear();
 
@@ -273,6 +273,8 @@ namespace ORTS
 
         private string CheckButtonAssignments()
         {
+            //if (!instance.Enabled)
+            //    return string.Empty;
             byte[] buttons = new byte[EnumExtension.GetLength<UserCommand>()];
             foreach (Control control in panelRDButtons.Controls)
             {
