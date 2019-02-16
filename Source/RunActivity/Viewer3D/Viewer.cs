@@ -696,12 +696,10 @@ namespace Orts.Viewer3D
 
             if (ComposeMessageWindow.Visible == true)
             {
-                UserInput.Handled();
                 ComposeMessageWindow.AppendMessage(UserInput.GetPressedKeys(), UserInput.GetPreviousPressedKeys());
             }
 
             HandleUserInput(elapsedTime);
-            UserInput.Handled();
             Simulator.Update(elapsedTime.ClockSeconds);
             if (PlayerLocomotive.Train.BrakingTime == -2) // We just had a wagon with stuck brakes
             {
@@ -1040,6 +1038,10 @@ namespace Orts.Viewer3D
                     new UsePreviousFreeRoamCameraCommand(Log);
                 }
             }
+            if (UserInput.IsPressed(UserCommand.GameExternalCabController))
+            {
+                UserInput.Raildriver.Activate();
+            }
             if (UserInput.IsPressed(UserCommand.CameraHeadOutForward) && HeadOutForwardCamera.IsAvailable)
             {
                 CheckReplaying();
@@ -1247,7 +1249,6 @@ namespace Orts.Viewer3D
                 if (UserInput.IsMouseLeftButtonPressed)
                 {
                     TryThrowSwitchAt();
-                    UserInput.Handled();
                 }
             }
             else if (!Simulator.Paused && UserInput.IsDown(UserCommand.GameUncoupleWithMouse))
@@ -1256,7 +1257,6 @@ namespace Orts.Viewer3D
                 if (UserInput.IsMouseLeftButtonPressed)
                 {
                     TryUncoupleAt();
-                    UserInput.Handled();
                 }
             }
             else
@@ -1291,7 +1291,6 @@ namespace Orts.Viewer3D
                     if (UserInput.IsMouseLeftButtonReleased)
                     {
                         MouseChangingControl = null;
-                        UserInput.Handled();
                     }
                 }
             }
@@ -1380,7 +1379,6 @@ namespace Orts.Viewer3D
                     if (UserInput.IsMouseLeftButtonReleased)
                     {
                         MouseChangingControl = null;
-                        UserInput.Handled();
                     }
                 }
             }

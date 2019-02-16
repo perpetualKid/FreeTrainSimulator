@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using GNU.Gettext;
@@ -43,7 +44,6 @@ namespace ORTS.Settings
     public class RailDriverSettings : SettingsBase
     {
         private static readonly GettextResourceManager catalog = new GettextResourceManager("ORTS.Settings");
-        private static readonly byte[] DefaultCommands = new byte[EnumExtension.GetLength<UserCommand>()];
         private static readonly byte[] DefaultCalibrationSettings;
         private static readonly Dictionary<UserCommand, byte> DefaultUserCommands;
 
@@ -231,5 +231,22 @@ namespace ORTS.Settings
             }
             return errors.ToString();
         }
+
+        public void DumpToText(string filePath)
+        {
+            var buttonMappings = UserCommands.
+                Select((value, index) => new { Index = index, Button = value }).
+                Where(button => button.Button < 255).
+                OrderBy(button => button.Button);
+
+            using (var writer = new StreamWriter(File.OpenWrite(filePath)))
+            {
+                writer.WriteLine("{0,-40}{1,-40}", "Command", "Button");
+                writer.WriteLine(new string('=', 40 * 2));
+                foreach (var buttonMapping in buttonMappings)
+                    writer.WriteLine("{0,-40}{1,-40}", catalog.GetString(((UserCommand)buttonMapping.Index).GetDescription()), buttonMapping.Button);
+            }
+        }
+
     }
 }
