@@ -273,8 +273,8 @@ namespace ORTS
 
         private string CheckButtonAssignments()
         {
-            //if (!instance.Enabled)
-            //    return string.Empty;
+            if (!instance.Enabled)
+                return string.Empty;
             byte[] buttons = new byte[EnumExtension.GetLength<UserCommand>()];
             foreach (Control control in panelRDButtons.Controls)
             {
