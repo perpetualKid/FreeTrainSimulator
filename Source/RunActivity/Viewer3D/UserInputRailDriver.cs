@@ -153,10 +153,6 @@ namespace Orts.Viewer3D
                     if (IsPressed(EmergencyStopCommandUp) || IsPressed(EmergencyStopCommandDown))
                         Emergency = true;
                 }
-                if (IsPressed(EnableRailDriverCommand))
-                {
-                    Activate();
-                }
             }
         }
 
@@ -282,7 +278,7 @@ namespace Orts.Viewer3D
 
         public bool IsPressed(UserCommand command)
         {
-            if (!Active)
+            if (!(Active || (railDriverInstance.Enabled && command == UserCommand.GameExternalCabController)))
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
             if (raildriverCommand == byte.MaxValue)
