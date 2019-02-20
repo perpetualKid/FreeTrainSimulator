@@ -44,7 +44,6 @@ sampler ImageSampler = sampler_state
 
 struct PIXEL_INPUT
 {
-	//float2 Position  : VPOS;
 	float4 Position  : SV_POSITION;
 	float4 Color     : COLOR0;
 	float2 TexCoords : TEXCOORD0;
