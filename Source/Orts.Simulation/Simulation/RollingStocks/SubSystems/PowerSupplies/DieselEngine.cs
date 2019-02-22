@@ -393,6 +393,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
     public class DieselEngine
     {
+        [Description("Engine")]
         public enum Status
         {
             [Description("Stopped")] Stopped = 0,

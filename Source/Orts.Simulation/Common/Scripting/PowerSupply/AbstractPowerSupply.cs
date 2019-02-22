@@ -79,6 +79,7 @@ namespace ORTS.Scripting.Api
         RemovePowerContactorClosingAuthorization
     }
 
+    [Description("PowerSupply")]
     public enum PowerSupplyState
     {
         [Description("Off")] PowerOff,
@@ -86,6 +87,7 @@ namespace ORTS.Scripting.Api
         [Description("On")] PowerOn
     }
 
+    [Description("Pantograph")]
     public enum PantographState
     {
         [Description("Down")] Down,

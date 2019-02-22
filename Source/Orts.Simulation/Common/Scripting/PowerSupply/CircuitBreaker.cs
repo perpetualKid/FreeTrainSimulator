@@ -107,6 +107,7 @@ namespace ORTS.Scripting.Api
         public abstract void HandleEvent(PowerSupplyEvent evt);
     }
 
+    [Description("CircuitBreaker")]
     public enum CircuitBreakerState
     {
         [Description("Open")] Open,
