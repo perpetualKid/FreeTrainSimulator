@@ -80,16 +80,16 @@ namespace ORTS.Scripting.Api
 
     public enum PowerSupplyState
     {
-        [GetParticularString("PowerSupply", "Off")] PowerOff,
-        [GetParticularString("PowerSupply", "On ongoing")] PowerOnOngoing,
-        [GetParticularString("PowerSupply", "On")] PowerOn
+        [GetString("Off")] PowerOff,
+        [GetString("On ongoing")] PowerOnOngoing,
+        [GetString("On")] PowerOn
     }
 
     public enum PantographState
     {
-        [GetParticularString("Pantograph", "Down")] Down,
-        [GetParticularString("Pantograph", "Lowering")] Lowering,
-        [GetParticularString("Pantograph", "Raising")] Raising,
-        [GetParticularString("Pantograph", "Up")] Up
+        [GetString("Down")] Down,
+        [GetString("Lowering")] Lowering,
+        [GetString("Raising")] Raising,
+        [GetString("Up")] Up
     }
 }

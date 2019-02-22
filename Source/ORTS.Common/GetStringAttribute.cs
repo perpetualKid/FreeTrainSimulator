@@ -40,14 +40,4 @@ namespace ORTS.Common
                 .Name;
         }
     }
-
-    /// <summary>
-    /// Localization attribute for decorating enums
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
-    public class GetParticularStringAttribute : GetStringAttribute
-    {
-        public string Context { get; protected set; }
-        public GetParticularStringAttribute(string context, string name) : base(name) { Context = context; }
-    }
 }

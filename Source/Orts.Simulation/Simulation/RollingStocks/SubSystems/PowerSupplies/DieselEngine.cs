@@ -394,10 +394,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
     {
         public enum Status
         {
-            [GetParticularString("Engine", "Stopped")] Stopped = 0,
-            [GetParticularString("Engine", "Starting")] Starting = 1,
-            [GetParticularString("Engine", "Running")] Running = 2,
-            [GetParticularString("Engine", "Stopping")] Stopping = 3
+            [GetString("Stopped")] Stopped = 0,
+            [GetString("Starting")] Starting = 1,
+            [GetString("Running")] Running = 2,
+            [GetString("Stopping")] Stopping = 3
         }
 
         public enum Cooling

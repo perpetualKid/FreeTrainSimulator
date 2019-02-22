@@ -108,8 +108,8 @@ namespace ORTS.Scripting.Api
 
     public enum CircuitBreakerState
     {
-        [GetParticularString("CircuitBreaker", "Open")] Open,
-        [GetParticularString("CircuitBreaker", "Closing")] Closing,
-        [GetParticularString("CircuitBreaker", "Closed")] Closed
+        [GetString("Open")] Open,
+        [GetString("Closing")] Closing,
+        [GetString("Closed")] Closed
     }
 }
