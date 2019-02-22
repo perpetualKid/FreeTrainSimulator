@@ -17,6 +17,7 @@
 
 using ORTS.Common;
 using System;
+using System.ComponentModel;
 
 namespace ORTS.Scripting.Api
 {
@@ -108,8 +109,8 @@ namespace ORTS.Scripting.Api
 
     public enum CircuitBreakerState
     {
-        [GetString("Open")] Open,
-        [GetString("Closing")] Closing,
-        [GetString("Closed")] Closed
+        [Description("Open")] Open,
+        [Description("Closing")] Closing,
+        [Description("Closed")] Closed
     }
 }

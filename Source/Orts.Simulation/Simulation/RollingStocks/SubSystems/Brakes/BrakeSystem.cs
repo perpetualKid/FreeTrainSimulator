@@ -17,6 +17,7 @@
 
 using ORTS.Common;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
@@ -98,9 +99,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 
     public enum RetainerSetting
     {
-        [GetString("Exhaust")] Exhaust,
-        [GetString("High Pressure")] HighPressure,
-        [GetString("Low Pressure")] LowPressure,
-        [GetString("Slow Direct")] SlowDirect
+        [Description("Exhaust")] Exhaust,
+        [Description("High Pressure")] HighPressure,
+        [Description("Low Pressure")] LowPressure,
+        [Description("Slow Direct")] SlowDirect
     };
 }

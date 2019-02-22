@@ -81,9 +81,9 @@ namespace ORTS.Common
 
     public enum Direction
     {
-        [GetString("Forward")] Forward,
-        [GetString("Reverse")] Reverse,
-        [GetString("N")] N
+        [Description("Forward")] Forward,
+        [Description("Reverse")] Reverse,
+        [Description("N")] N
     }
 
     public class DirectionControl

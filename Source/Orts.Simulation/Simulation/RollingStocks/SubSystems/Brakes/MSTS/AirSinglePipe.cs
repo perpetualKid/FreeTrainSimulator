@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
+using System.ComponentModel;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
@@ -72,10 +73,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public enum ValveState
         {
-            [GetString("Lap")] Lap,
-            [GetString("Apply")] Apply,
-            [GetString("Release")] Release,
-            [GetString("Emergency")] Emergency
+            [Description("Lap")] Lap,
+            [Description("Apply")] Apply,
+            [Description("Release")] Release,
+            [Description("Emergency")] Emergency
         };
         protected ValveState TripleValveState = ValveState.Lap;
 
@@ -158,7 +159,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 (Car as MSTSWagon).EmergencyReservoirPresent ? FormatStrings.FormatPressure(EmergResPressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.EmergencyReservoir], true) : string.Empty,
                 TwoPipes ? FormatStrings.FormatPressure(BrakeLine2PressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.MainPipe], true) : string.Empty,
                 (Car as MSTSWagon).RetainerPositions == 0 ? string.Empty : RetainerDebugState,
-                Simulator.Catalog.GetString(GetStringAttribute.GetPrettyName(TripleValveState)),
+                Simulator.Catalog.GetString(TripleValveState.GetDescription()),
                 string.Empty, // Spacer because the state above needs 2 columns.
                 (Car as MSTSWagon).HandBrakePresent ? string.Format("{0:F0}%", HandbrakePercent) : string.Empty,
                 FrontBrakeHoseConnected ? "I" : "T",

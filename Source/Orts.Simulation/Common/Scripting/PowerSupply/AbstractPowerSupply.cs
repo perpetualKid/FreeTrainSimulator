@@ -17,6 +17,7 @@
 
 using ORTS.Common;
 using System;
+using System.ComponentModel;
 
 namespace ORTS.Scripting.Api
 {
@@ -80,16 +81,16 @@ namespace ORTS.Scripting.Api
 
     public enum PowerSupplyState
     {
-        [GetString("Off")] PowerOff,
-        [GetString("On ongoing")] PowerOnOngoing,
-        [GetString("On")] PowerOn
+        [Description("Off")] PowerOff,
+        [Description("On ongoing")] PowerOnOngoing,
+        [Description("On")] PowerOn
     }
 
     public enum PantographState
     {
-        [GetString("Down")] Down,
-        [GetString("Lowering")] Lowering,
-        [GetString("Raising")] Raising,
-        [GetString("Up")] Up
+        [Description("Down")] Down,
+        [Description("Lowering")] Lowering,
+        [Description("Raising")] Raising,
+        [Description("Up")] Up
     }
 }

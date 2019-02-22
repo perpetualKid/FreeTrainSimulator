@@ -79,7 +79,6 @@
     <Compile Include="Enums.cs" />
     <Compile Include="Filter.cs" />
     <Compile Include="FxCopAttributes.cs" />
-    <Compile Include="GetStringAttribute.cs" />
     <Compile Include="Input\RailDriverBase.cs" />
     <Compile Include="Integrator.cs" />
     <Compile Include="IO\BufferedInMemoryStream.cs" />

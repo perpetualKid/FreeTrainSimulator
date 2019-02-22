@@ -401,25 +401,25 @@ namespace Orts.Simulation.RollingStocks
             var status = new StringBuilder();
             status.AppendFormat("{0} = ", Simulator.Catalog.GetString("Pantographs"));
             foreach (var pantograph in Pantographs.List)
-                status.AppendFormat("{0} ", Simulator.Catalog.GetParticularString("Pantograph", GetStringAttribute.GetPrettyName(pantograph.State)));
+                status.AppendFormat("{0} ", Simulator.Catalog.GetParticularString("Pantograph", pantograph.State.GetDescription()));
             status.AppendLine();
             status.AppendFormat("{0} = {1}",
                 Simulator.Catalog.GetString("Circuit breaker"),
-                Simulator.Catalog.GetParticularString("CircuitBreaker", GetStringAttribute.GetPrettyName(PowerSupply.CircuitBreaker.State)));
+                Simulator.Catalog.GetParticularString("CircuitBreaker", PowerSupply.CircuitBreaker.State.GetDescription()));
             status.AppendLine();
             status.AppendFormat("{0} = {1}",
                 Simulator.Catalog.GetParticularString("PowerSupply", "Power"),
-                Simulator.Catalog.GetParticularString("PowerSupply", GetStringAttribute.GetPrettyName(PowerSupply.State)));
+                Simulator.Catalog.GetParticularString("PowerSupply", PowerSupply.State.GetDescription()));
             return status.ToString();
         }
 
         public override string GetDebugStatus()
         {
             var status = new StringBuilder(base.GetDebugStatus());
-            status.AppendFormat("\t{0}\t\t{1}", Simulator.Catalog.GetString("Circuit breaker"), Simulator.Catalog.GetParticularString("CircuitBreaker", GetStringAttribute.GetPrettyName(PowerSupply.CircuitBreaker.State)));
+            status.AppendFormat("\t{0}\t\t{1}", Simulator.Catalog.GetString("Circuit breaker"), Simulator.Catalog.GetParticularString("CircuitBreaker", PowerSupply.CircuitBreaker.State.GetDescription()));
             status.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetString("TCS"), PowerSupply.CircuitBreaker.TCSClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"));
             status.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetString("Driver"), PowerSupply.CircuitBreaker.DriverClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"));
-            status.AppendFormat("\t{0}\t\t{1}", Simulator.Catalog.GetString("Auxiliary power"), Simulator.Catalog.GetParticularString("PowerSupply", GetStringAttribute.GetPrettyName(PowerSupply.AuxiliaryState)));
+            status.AppendFormat("\t{0}\t\t{1}", Simulator.Catalog.GetString("Auxiliary power"), Simulator.Catalog.GetParticularString("PowerSupply", PowerSupply.AuxiliaryState.GetDescription()));
             return status.ToString();
         }
 

@@ -17,17 +17,18 @@
 
 using ORTS.Common;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace Orts.Simulation
 {
     public enum ConfirmLevel
     {
-        [GetString("None")] None,
-        [GetString("Information")] Information,
-        [GetString("Warning")] Warning,
-        [GetString("Error")] Error,
-		[GetString("MSG")] MSG,
+        [Description("None")] None,
+        [Description("Information")] Information,
+        [Description("Warning")] Warning,
+        [Description("Error")] Error,
+		[Description("MSG")] MSG,
     };
 
     // <CJComment> Some of these are not cab controls or even controls. However they all make good use of structured text. </CJComment>
@@ -357,7 +358,7 @@ namespace Orts.Simulation
 			var duration = DefaultDurationS;
 			if (level >= ConfirmLevel.Warning) duration *= 2;
 			if (level >= ConfirmLevel.MSG) duration *= 5;
-            if (DisplayMessage != null) DisplayMessage(this, new DisplayMessageEventArgs(String.Format("{0}/{1}", control, level), String.Format(format, ConfirmText[(int)control][0], Simulator.Catalog.GetString(GetStringAttribute.GetPrettyName(level)), message), duration));
+            DisplayMessage?.Invoke(this, new DisplayMessageEventArgs($"{control}/{level}", string.Format(format, ConfirmText[(int)control][0], Simulator.Catalog.GetString(level.GetDescription()), message), duration));
         }
     }
 }
