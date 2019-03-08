@@ -42,7 +42,7 @@ here to reject Savepoints which are definitely incompatible and warn of Savepoin
 is marked as "may be incompatible" may not be resumed successfully by the RunActivity which will
 stop and issue an error message.
 
-Some problems remain (see <CJ comment> in the source code):
+Some problems remain (see comments in the code):
 1. A screen-capture image is saved along with the SavePoint. The intention is that this image should be a thumbnail
    but I can't find how to code this successfully. In the meantime, the screen-capture image that is saved is full-size 
    but displayed as a thumbnail.

@@ -414,6 +414,7 @@ namespace Orts.Simulation.Physics
         public double RunningTime;              // Total running time, used to check whether a locomotive is partly or totally unpowered due to a fault
         public int UnpoweredLoco = -1;          // car index of unpowered loco
 
+        // TODO: Replace this with an event
         public bool FormationReversed;          // flags the execution of the ReverseFormation method (executed at reversal points)
 
         public enum END_AUTHORITY
@@ -1476,7 +1477,7 @@ namespace Orts.Simulation.Physics
                 MUDirection = DirectionControl.Flip(MUDirection);
                 MUReverserPercent = -MUReverserPercent;
             }
-            if (!(this is AITrain && (this as AITrain).AI.PreUpdate)) FormationReversed = true;
+            if (!((this is AITrain && (this as AITrain).AI.PreUpdate) || this.TrainType == TRAINTYPE.STATIC)) FormationReversed = true;
         }
 
         //================================================================================================//
@@ -1604,6 +1605,8 @@ namespace Orts.Simulation.Physics
             if (!auxiliaryUpdate)
                 FormationReversed = false;
             {
+            if (!auxiliaryUpdate)
+                FormationReversed = false;
                 if (IsActualPlayerTrain && Simulator.ActiveMovingTable != null)
                     Simulator.ActiveMovingTable.CheckTrainOnMovingTable(this);
 
@@ -6530,7 +6533,7 @@ namespace Orts.Simulation.Physics
                     actualWaitTimeS = 0.0f;
                     ClaimState = false;
 
-                    //<RRComment reset any invalid claims (occurs on WAIT commands, reason still to be checked! - not unclaiming causes deadlocks
+                    // Reset any invalid claims (occurs on WAIT commands, reason still to be checked!) - not unclaiming causes deadlocks
                     for (int iIndex = PresentPosition[0].RouteListIndex; iIndex <= ValidRoute[0].Count - 1; iIndex++)
                     {
                         int sectionIndex = ValidRoute[0][iIndex].TCSectionIndex;

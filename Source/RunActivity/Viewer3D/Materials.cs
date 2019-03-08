@@ -844,7 +844,7 @@ namespace Orts.Viewer3D
         public bool LoadDayTexture()
         {
             bool result = false;
-            if (dayTexture == SharedMaterialManager.MissingTexture)
+           if (dayTexture == SharedMaterialManager.MissingTexture && !String.IsNullOrEmpty(TexturePath))
             {
                 dayTexture = Viewer.TextureManager.Get(texturePath);
                 result = true;
