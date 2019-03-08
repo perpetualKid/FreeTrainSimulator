@@ -744,12 +744,17 @@ namespace Orts.Viewer3D
                 Log.ReplayComplete = false;
             }
 
+            World.Update(elapsedTime);
+
             if (frame.IsScreenChanged)
                 Camera.ScreenChanged();
 
             // Check if you need to swap camera
             if (Camera is TrackingCamera && Camera.AttachedCar != null && Camera.AttachedCar.Train != null && Camera.AttachedCar.Train.FormationReversed)
+            {
+                Camera.AttachedCar.Train.FormationReversed = false;
                 (Camera as TrackingCamera).SwapCameras();
+            }
 
             // Update camera first...
             Camera.Update(elapsedTime);
@@ -790,8 +795,6 @@ namespace Orts.Viewer3D
                     AbovegroundCamera = null;
                 }
             }
-
-            World.Update(elapsedTime);
 
             Simulator.ActiveMovingTable = FindActiveMovingTable();
 
@@ -1006,6 +1009,11 @@ namespace Orts.Viewer3D
             {
                 CheckReplaying();
                 new UseTracksideCameraCommand(Log);
+            }
+            if (UserInput.IsPressed(UserCommand.CameraSpecialTracksidePoint))
+            {
+                CheckReplaying();
+                new UseSpecialTracksideCameraCommand(Log);
             }
             if (UserInput.IsPressed(UserCommand.CameraSpecialTracksidePoint))
             {

@@ -348,11 +348,10 @@ namespace Orts.Simulation
             Location = new WorldLocation(trItem.TileX, trItem.TileZ, trItem.X, trItem.Y, trItem.Z);
         }
 
-        public LevelCrossingItem()
+        public LevelCrossingItem ()
         {
 
         }
-
 
         [CallOnThread("Updater")]
         public void AddTrain(Train train)
