@@ -1010,7 +1010,7 @@ namespace Orts.Viewer3D
                 CheckReplaying();
                 new UseTracksideCameraCommand(Log);
             }
-            if (UserInput.IsPressed(UserCommands.CameraSpecialTracksidePoint))
+            if (UserInput.IsPressed(UserCommand.CameraSpecialTracksidePoint))
             {
                 CheckReplaying();
                 new UseSpecialTracksideCameraCommand(Log);

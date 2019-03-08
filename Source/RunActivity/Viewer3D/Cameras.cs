@@ -1927,10 +1927,11 @@ namespace Orts.Viewer3D
         public override void Update(ElapsedTime elapsedTime)
         {
             bool trainForwards;
-            var train = PrepUpdate( out trainForwards);
+            var train = PrepUpdate(out trainForwards);
 
             // Train is close enough if the last car we used is part of the same train and still close enough.
-            var trainClose = (LastCheckCar != null) && (LastCheckCar.Train == train) && (WorldLocation.GetDistance2D(LastCheckCar.WorldPosition.WorldLocation, cameraLocation).Length() < (SpecialPointFound ? MaximumSpecialPointDistance * 0.8f : MaximumDistance));
+            var trainClose = (LastCheckCar != null) && (LastCheckCar.Train == train) && (WorldLocation.GetDistance2D(LastCheckCar.WorldPosition.WorldLocation, cameraLocation).Length() < MaximumDistance);
+
             // Otherwise, let's check out every car and remember which is the first one close enough for next time.
             if (!trainClose)
             {
@@ -1943,30 +1944,29 @@ namespace Orts.Viewer3D
                         break;
                     }
                 }
-                if (!trainClose)
-                    LastCheckCar = null;
             }
-            var trySpecial = false;
-            DistanceRunM += elapsedTime.ClockSeconds * train.SpeedMpS;
-            if (Math.Abs(DistanceRunM) >= CheckIntervalM)
-            {
-                DistanceRunM = 0;
-                if (!SpecialPointFound && SpecialPoints && trainClose) trySpecial = true;
-            }
+
             // Switch to new position.
-            if (!trainClose || (TrackCameraLocation == WorldLocation.None) || trySpecial)
+            if (!trainClose || (TrackCameraLocation == WorldLocation.None))
             {
-                SpecialPointFound = false;
+                var tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
                 var newLocation = GoToNewLocation(ref tdb, train, trainForwards);
                 newLocation.Normalize();
 
                 var newLocationElevation = Viewer.Tiles.GetElevation(newLocation);
+
                 cameraLocation = newLocation;
+
                 cameraLocation.Location.Y = Math.Max(tdb.Y, newLocationElevation) + CameraAltitude + CameraAltitudeOffset;
+
             }
 
+
+
             targetLocation.Location.Y += TargetAltitude;
+
             UpdateListener();
+
         }
 
         protected Train PrepUpdate (out bool trainForwards)
@@ -1988,111 +1988,12 @@ namespace Orts.Viewer3D
             return train;
         }
 
-
-        protected WorldLocation GoToNewLocation ( ref Traveller tdb, Train train, bool trainForwards)
+        protected WorldLocation GoToNewLocation(ref Traveller tdb, Train train, bool trainForwards)
         {
-                        {
-                            float distanceToViewingPoint = 0;
-                            TrackCircuitSection TCSection = train.signalRef.TrackCircuitList[tcSectionIndex];
-                            float distanceToAdd = TCSection.Length;
-                            float incrDistance;
-                            if (FirstUpdateLoop)
-                                incrDistance = trainForwards ? -train.PresentPosition[1].TCOffset : -TCSection.Length + train.PresentPosition[0].TCOffset;
-                            else
-                                incrDistance = trainForwards ? -train.PresentPosition[0].TCOffset : -TCSection.Length + train.PresentPosition[1].TCOffset;
-                            while (incrDistance < MaximumSpecialPointDistance * 0.7f)
-                            {
-                                foreach (int platformIndex in TCSection.PlatformIndex)
-                                {
-                                    PlatformDetails thisPlatform = train.signalRef.PlatformDetailsList[platformIndex];
-                                    if (thisPlatform.TCOffset[0, thisRoute[routeIndex].Direction] + incrDistance < MaximumSpecialPointDistance * 0.7f
-                                        && (thisPlatform.TCOffset[0, thisRoute[routeIndex].Direction] + incrDistance > 0 || FirstUpdateLoop))
-                                    {
-                                        // platform found, compute distance to viewing point
-                                        distanceToViewingPoint = Math.Min(MaximumSpecialPointDistance * 0.7f,
-                                            incrDistance + thisPlatform.TCOffset[0, thisRoute[routeIndex].Direction] + thisPlatform.Length * 0.7f);
-                                        if (FirstUpdateLoop && Math.Abs(train.SpeedMpS) <= 0.2f) distanceToViewingPoint =
-                                                Math.Min(distanceToViewingPoint, train.Length * 0.95f);
-                                        tdb.Move(distanceToViewingPoint);
-                                        newLocation = tdb.WorldLocation;
-                                        Traveller shortTrav;
-                                        PlatformItem platformItem = Viewer.Simulator.TDB.TrackDB.TrItemTable[thisPlatform.PlatformFrontUiD] as PlatformItem;
-                                        if (platformItem == null) continue;
-                                        shortTrav = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.TDB.TrackDB.TrackNodes, platformItem.TileX,
-                                            platformItem.TileZ, platformItem.X, platformItem.Z, Traveller.TravellerDirection.Forward);
-                                        var distanceToViewingPoint1 = shortTrav.DistanceTo(newLocation.TileX, newLocation.TileZ,
-                                            newLocation.Location.X, newLocation.Location.Y, newLocation.Location.Z, thisPlatform.Length);
-                                        if (distanceToViewingPoint1 == -1) //try other direction
-                                        {
-                                            shortTrav.ReverseDirection();
-                                            distanceToViewingPoint1 = shortTrav.DistanceTo(newLocation.TileX, newLocation.TileZ,
-                                            newLocation.Location.X, newLocation.Location.Y, newLocation.Location.Z, thisPlatform.Length);
-                                            if (distanceToViewingPoint1 == -1) continue;
-                                        }
-                                        platformFound = true;
-                                        SpecialPointFound = true;
-                                        trainClose = false;
-                                        LastCheckCar = FirstUpdateLoop ^ trainForwards ? train.Cars.First() : train.Cars.Last();
-                                        shortTrav.Move(distanceToViewingPoint1);
-                                        newLocation.Location.X += (PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Cos(shortTrav.RotY) *
-                                            (thisPlatform.PlatformSide[1] ? 1 : -1);
-                                        newLocation.Location.Z += -(PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Sin(shortTrav.RotY) *
-                                            (thisPlatform.PlatformSide[1] ? 1 : -1);
-                                        TrackCameraLocation = new WorldLocation(newLocation);
-                                        break;
-                                    }
-                                }
-                                if (platformFound) break;
-                                if (routeIndex < thisRoute.Count - 1)
-                                {
-                                    incrDistance += distanceToAdd;
-                                    routeIndex++;
-                                    TCSection = train.signalRef.TrackCircuitList[thisRoute[routeIndex].TCSectionIndex];
-                                    distanceToAdd = TCSection.Length;
-                                }
-                                else break;
-                            }
-                        }
-                    }
-
-                    if (!SpecialPointFound)
-                    {
-                        // try to find near level crossing then
-                        LevelCrossingItem newLevelCrossingItem = LevelCrossingItem.None;
-                        float FrontDist = -1;
-                        newLevelCrossingItem = Viewer.Simulator.LevelCrossings.SearchNearLevelCrossing(train, MaximumSpecialPointDistance * 0.7f, trainForwards, out FrontDist);
-                        if (newLevelCrossingItem != LevelCrossingItem.None)
-                        {
-                            SpecialPointFound = true;
-                            trainClose = false;
-                            LastCheckCar = trainForwards ? train.Cars.First() : train.Cars.Last();
-                            newLocation = newLevelCrossingItem.Location;
-                            TrackCameraLocation = new WorldLocation(newLocation);
-                            Traveller roadTraveller;
-                            if (Viewer.Random.Next(2) == 0)
-                            {
-                                roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex],
-                                    newLocation.TileX, newLocation.TileZ, newLocation.Location.X, newLocation.Location.Z, Traveller.TravellerDirection.Forward);
-                            }
-                            else
-                            {
-                                roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex],
-                                    newLocation.TileX, newLocation.TileZ, newLocation.Location.X, newLocation.Location.Z, Traveller.TravellerDirection.Backward);
-                            }
-                            roadTraveller.Move(12.5f);
-                            tdb.Move(FrontDist);
-                            newLocation = roadTraveller.WorldLocation;
-                        }
-                    }
-                }
-                if (!SpecialPointFound && !trainClose)
-                {
-                    tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward); // return to standard
             tdb.Move(MaximumDistance * 0.75f);
             var newLocation = tdb.WorldLocation;
             TrackCameraLocation = new WorldLocation(newLocation);
             var directionForward = WorldLocation.GetDistance((trainForwards ? train.FirstCar : train.LastCar).WorldPosition.WorldLocation, newLocation);
-                    LastCheckCar = trainForwards ? train.FirstCar : train.LastCar;
             if (Viewer.Random.Next(2) == 0)
             {
                 newLocation.Location.X += -directionForward.Z / SidewaysScale; // Use swapped -X and Z to move to the left of the track.
@@ -2104,13 +2005,6 @@ namespace Orts.Viewer3D
                 newLocation.Location.Z += -directionForward.X / SidewaysScale;
             }
             return newLocation;
-                if (newLocation != WorldLocation.None && !trainClose)
-                {
-                    TrackCameraLocation = new WorldLocation(cameraLocation);
-                    cameraLocation.Location.Y = Math.Max(tdb.Y, newLocationElevation) + CameraAltitude + CameraAltitudeOffset + (platformFound ? 0.35f : 0.0f);
-                    DistanceRunM = 0f;
-                }
-            FirstUpdateLoop = false;
         }
 
         protected virtual void PanRight(float speed)

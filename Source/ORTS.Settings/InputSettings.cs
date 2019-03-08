@@ -31,7 +31,6 @@ using ORTS.Common;
 namespace ORTS.Settings
 {
     /// <summary>
-        [GetString("Camera SpecialTracksidePoint")] CameraSpecialTracksidePoint,
     /// Loads, stores and manages keyboard input settings for all available <see cref="UserCommands"/>.
     /// </summary>
     /// <remarks>
