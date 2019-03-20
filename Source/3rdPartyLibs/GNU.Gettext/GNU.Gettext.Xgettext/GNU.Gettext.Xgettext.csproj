@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>GNU.Gettext.Xgettext</RootNamespace>
     <AssemblyName>GNU.Gettext.Xgettext</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -23,6 +23,7 @@
     <ConsolePause>false</ConsolePause>
     <Commandlineparameters>-j -D "../../GNU.Gettext/Examples.Hello" --recursive -o "../../GNU.Gettext/Examples.Hello/po/Messages.pot"</Commandlineparameters>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>

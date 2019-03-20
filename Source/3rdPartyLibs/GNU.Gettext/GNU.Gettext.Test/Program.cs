@@ -23,4 +23,3 @@ namespace GNU.Gettext.Test
 		}
 	}
 }
-
