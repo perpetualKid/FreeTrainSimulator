@@ -651,6 +651,28 @@
             this.checkShadowAllShapes.Text = "Shadow for all shapes";
             this.checkShadowAllShapes.UseVisualStyleBackColor = true;
             // 
+            // checkEnableMultisampling
+            // 
+            this.checkEnableMultisampling.AutoSize = true;
+            this.checkEnableMultisampling.Checked = true;
+            this.checkEnableMultisampling.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkEnableMultisampling.Location = new System.Drawing.Point(6, 144);
+            this.checkEnableMultisampling.Name = "checkEnableMultisampling";
+            this.checkEnableMultisampling.Size = new System.Drawing.Size(124, 17);
+            this.checkEnableMultisampling.TabIndex = 25;
+            this.checkEnableMultisampling.Text = "Enable multisampling";
+            this.checkEnableMultisampling.UseVisualStyleBackColor = true;
+            // 
+            // checkShadowAllShapes
+            // 
+            this.checkShadowAllShapes.AutoSize = true;
+            this.checkShadowAllShapes.Location = new System.Drawing.Point(6, 29);
+            this.checkShadowAllShapes.Name = "checkShadowAllShapes";
+            this.checkShadowAllShapes.Size = new System.Drawing.Size(130, 17);
+            this.checkShadowAllShapes.TabIndex = 24;
+            this.checkShadowAllShapes.Text = "Shadow for all shapes";
+            this.checkShadowAllShapes.UseVisualStyleBackColor = true;
+            // 
             // checkDoubleWire
             // 
             this.checkDoubleWire.AutoSize = true;
