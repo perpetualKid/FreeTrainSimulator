@@ -88,7 +88,7 @@ namespace Orts.Viewer3D.Popups
             var y = location.Y;
             location.X = (int)(inf.ReadSingle() * (Owner.ScreenSize.X - location.Width));
             location.Y = (int)(inf.ReadSingle() * (Owner.ScreenSize.Y - location.Height));
-            // <CS comment> To move the window background to the correct position this is needed
+            // This is needed to move the window background to the correct position
             if ((location.X != x) || (location.Y != y))
                 LocationChanged();
         }
@@ -271,7 +271,7 @@ namespace Orts.Viewer3D.Popups
 
             graphicsDevice.SetVertexBuffer(WindowVertexBuffer);
             graphicsDevice.Indices = WindowIndexBuffer;
-            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, 0, 0, 16, 0, 20);
+            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, 0, 0, 20);
         }
 
         [CallOnThread("Updater")]

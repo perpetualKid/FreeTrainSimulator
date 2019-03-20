@@ -111,6 +111,7 @@ namespace Orts.Viewer3D
         public TrackingCamera FrontCamera { get; private set; } // Camera 2
         public TrackingCamera BackCamera { get; private set; } // Camera 3
         public TracksideCamera TracksideCamera { get; private set; } // Camera 4
+        public SpecialTracksideCamera SpecialTracksideCamera { get; private set; } // Camera 4 for special points (platforms and level crossings)
         public PassengerCamera PassengerCamera { get; private set; } // Camera 5
         public BrakemanCamera BrakemanCamera { get; private set; } // Camera 6
         public List<FreeRoamCamera> FreeRoamCameraList = new List<FreeRoamCamera>();
@@ -254,6 +255,7 @@ namespace Orts.Viewer3D
             WellKnownCameras.Add(HeadOutForwardCamera = new HeadOutCamera(this, HeadOutCamera.HeadDirection.Forward));
             WellKnownCameras.Add(HeadOutBackCamera = new HeadOutCamera(this, HeadOutCamera.HeadDirection.Backward));
             WellKnownCameras.Add(TracksideCamera = new TracksideCamera(this));
+            WellKnownCameras.Add(SpecialTracksideCamera = new SpecialTracksideCamera(this));
             WellKnownCameras.Add(new FreeRoamCamera(this, FrontCamera)); // Any existing camera will suffice to satisfy .Save() and .Restore()
             WellKnownCameras.Add(ThreeDimCabCamera = new ThreeDimCabCamera(this));
 
@@ -694,12 +696,10 @@ namespace Orts.Viewer3D
 
             if (ComposeMessageWindow.Visible == true)
             {
-                UserInput.Handled();
                 ComposeMessageWindow.AppendMessage(UserInput.GetPressedKeys(), UserInput.GetPreviousPressedKeys());
             }
 
             HandleUserInput(elapsedTime);
-            UserInput.Handled();
             Simulator.Update(elapsedTime.ClockSeconds);
             if (PlayerLocomotive.Train.BrakingTime == -2) // We just had a wagon with stuck brakes
             {
@@ -744,8 +744,17 @@ namespace Orts.Viewer3D
                 Log.ReplayComplete = false;
             }
 
+            World.Update(elapsedTime);
+
             if (frame.IsScreenChanged)
                 Camera.ScreenChanged();
+
+            // Check if you need to swap camera
+            if (Camera is TrackingCamera && Camera.AttachedCar != null && Camera.AttachedCar.Train != null && Camera.AttachedCar.Train.FormationReversed)
+            {
+                Camera.AttachedCar.Train.FormationReversed = false;
+                (Camera as TrackingCamera).SwapCameras();
+            }
 
             // Update camera first...
             Camera.Update(elapsedTime);
@@ -786,8 +795,6 @@ namespace Orts.Viewer3D
                     AbovegroundCamera = null;
                 }
             }
-
-            World.Update(elapsedTime);
 
             Simulator.ActiveMovingTable = FindActiveMovingTable();
 
@@ -1003,6 +1010,16 @@ namespace Orts.Viewer3D
                 CheckReplaying();
                 new UseTracksideCameraCommand(Log);
             }
+            if (UserInput.IsPressed(UserCommand.CameraSpecialTracksidePoint))
+            {
+                CheckReplaying();
+                new UseSpecialTracksideCameraCommand(Log);
+            }
+            if (UserInput.IsPressed(UserCommand.CameraSpecialTracksidePoint))
+            {
+                CheckReplaying();
+                new UseSpecialTracksideCameraCommand(Log);
+            }
             // Could add warning if PassengerCamera not available.
             if (UserInput.IsPressed(UserCommand.CameraPassenger) && PassengerCamera.IsAvailable)
             {
@@ -1028,6 +1045,10 @@ namespace Orts.Viewer3D
                     CheckReplaying();
                     new UsePreviousFreeRoamCameraCommand(Log);
                 }
+            }
+            if (UserInput.IsPressed(UserCommand.GameExternalCabController))
+            {
+                UserInput.Raildriver.Activate();
             }
             if (UserInput.IsPressed(UserCommand.CameraHeadOutForward) && HeadOutForwardCamera.IsAvailable)
             {
@@ -1236,7 +1257,6 @@ namespace Orts.Viewer3D
                 if (UserInput.IsMouseLeftButtonPressed)
                 {
                     TryThrowSwitchAt();
-                    UserInput.Handled();
                 }
             }
             else if (!Simulator.Paused && UserInput.IsDown(UserCommand.GameUncoupleWithMouse))
@@ -1245,7 +1265,6 @@ namespace Orts.Viewer3D
                 if (UserInput.IsMouseLeftButtonPressed)
                 {
                     TryUncoupleAt();
-                    UserInput.Handled();
                 }
             }
             else
@@ -1280,7 +1299,6 @@ namespace Orts.Viewer3D
                     if (UserInput.IsMouseLeftButtonReleased)
                     {
                         MouseChangingControl = null;
-                        UserInput.Handled();
                     }
                 }
             }
@@ -1369,7 +1387,6 @@ namespace Orts.Viewer3D
                     if (UserInput.IsMouseLeftButtonReleased)
                     {
                         MouseChangingControl = null;
-                        UserInput.Handled();
                     }
                 }
             }

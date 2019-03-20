@@ -23,6 +23,7 @@ using ORTS.Common;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 
@@ -298,7 +299,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             result.AppendFormat(Simulator.Catalog.GetString("Status"));
             foreach (var eng in DEList)
-                result.AppendFormat("\t{0}", Simulator.Catalog.GetString(GetStringAttribute.GetPrettyName(eng.EngineStatus)));
+                result.AppendFormat("\t{0}", Simulator.Catalog.GetString(eng.EngineStatus.GetDescription()));
 
             result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), FormatStrings.FormatPower(MaxOutputPowerW, Locomotive.IsMetric, false, false));
             foreach (var eng in DEList)
@@ -392,12 +393,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
     public class DieselEngine
     {
+        [Description("Engine")]
         public enum Status
         {
-            [GetParticularString("Engine", "Stopped")] Stopped = 0,
-            [GetParticularString("Engine", "Starting")] Starting = 1,
-            [GetParticularString("Engine", "Running")] Running = 2,
-            [GetParticularString("Engine", "Stopping")] Stopping = 3
+            [Description("Stopped")] Stopped = 0,
+            [Description("Starting")] Starting = 1,
+            [Description("Running")] Running = 2,
+            [Description("Stopping")] Stopping = 3
         }
 
         public enum Cooling

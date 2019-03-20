@@ -17,6 +17,7 @@
 
 using ORTS.Common;
 using System;
+using System.ComponentModel;
 
 namespace ORTS.Scripting.Api
 {
@@ -78,18 +79,20 @@ namespace ORTS.Scripting.Api
         RemovePowerContactorClosingAuthorization
     }
 
+    [Description("PowerSupply")]
     public enum PowerSupplyState
     {
-        [GetParticularString("PowerSupply", "Off")] PowerOff,
-        [GetParticularString("PowerSupply", "On ongoing")] PowerOnOngoing,
-        [GetParticularString("PowerSupply", "On")] PowerOn
+        [Description("Off")] PowerOff,
+        [Description("On ongoing")] PowerOnOngoing,
+        [Description("On")] PowerOn
     }
 
+    [Description("Pantograph")]
     public enum PantographState
     {
-        [GetParticularString("Pantograph", "Down")] Down,
-        [GetParticularString("Pantograph", "Lowering")] Lowering,
-        [GetParticularString("Pantograph", "Raising")] Raising,
-        [GetParticularString("Pantograph", "Up")] Up
+        [Description("Down")] Down,
+        [Description("Lowering")] Lowering,
+        [Description("Raising")] Raising,
+        [Description("Up")] Up
     }
 }

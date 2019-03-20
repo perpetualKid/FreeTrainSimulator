@@ -532,7 +532,7 @@ namespace Orts.Simulation.RollingStocks
         {
             var status = new StringBuilder();
             status.AppendFormat("{0} = {1}\n", Simulator.Catalog.GetString("Engine"),
-                Simulator.Catalog.GetParticularString("Engine", GetStringAttribute.GetPrettyName(DieselEngines[0].EngineStatus)));
+                Simulator.Catalog.GetParticularString("Engine", DieselEngines[0].EngineStatus.GetDescription()));
 
             if (DieselEngines.HasGearBox)
                 status.AppendFormat("{0} = {1}\n", Simulator.Catalog.GetString("Gear"), DieselEngines[0].GearBox.CurrentGearIndex < 0

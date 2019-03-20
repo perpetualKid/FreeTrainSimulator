@@ -17,6 +17,7 @@
 
 using ORTS.Common;
 using System;
+using System.ComponentModel;
 
 namespace ORTS.Scripting.Api
 {
@@ -106,10 +107,11 @@ namespace ORTS.Scripting.Api
         public abstract void HandleEvent(PowerSupplyEvent evt);
     }
 
+    [Description("CircuitBreaker")]
     public enum CircuitBreakerState
     {
-        [GetParticularString("CircuitBreaker", "Open")] Open,
-        [GetParticularString("CircuitBreaker", "Closing")] Closing,
-        [GetParticularString("CircuitBreaker", "Closed")] Closed
+        [Description("Open")] Open,
+        [Description("Closing")] Closing,
+        [Description("Closed")] Closed
     }
 }

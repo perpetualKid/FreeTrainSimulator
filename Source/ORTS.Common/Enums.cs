@@ -31,13 +31,17 @@ namespace ORTS.Common
             internal static readonly IList<string> Names;
             internal static readonly IList<T> Values;
             internal static readonly Dictionary<T, string> ValueToDescriptionMap;
+            internal static string EnumDescription;
 
             static EnumCache()
             {
                 Values = new ReadOnlyCollection<T>((T[])Enum.GetValues(typeof(T)));
                 Names = new ReadOnlyCollection<string>(Enum.GetNames(typeof(T)));
                 ValueToDescriptionMap = new Dictionary<T, string>();
-
+                EnumDescription = typeof(T).GetCustomAttributes(typeof(DescriptionAttribute), false).
+                    Cast<DescriptionAttribute>().
+                    Select(x => x.Description).
+                    FirstOrDefault();
                 foreach (T value in (T[])Enum.GetValues(typeof(T)))
                 {
                     ValueToDescriptionMap[value] = GetDescription(value);
@@ -63,6 +67,11 @@ namespace ORTS.Common
             throw new ArgumentOutOfRangeException("item");
         }
 
+        public static string EnumDescription<T>() where T: struct
+        {
+            return EnumCache<T>.EnumDescription;
+        }
+
         public static IList<string> GetNames<T>() where T : struct
         {
             return EnumCache<T>.Names;
@@ -79,11 +88,12 @@ namespace ORTS.Common
         }
     }
 
+    [Description("Reverser")]
     public enum Direction
     {
-        [GetParticularString("Reverser", "Forward")] Forward,
-        [GetParticularString("Reverser", "Reverse")] Reverse,
-        [GetParticularString("Reverser", "N")] N
+        [Description("Forward")] Forward,
+        [Description("Reverse")] Reverse,
+        [Description("N")] N
     }
 
     public class DirectionControl

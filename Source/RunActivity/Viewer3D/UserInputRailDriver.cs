@@ -153,18 +153,22 @@ namespace Orts.Viewer3D
                     if (IsPressed(EmergencyStopCommandUp) || IsPressed(EmergencyStopCommandDown))
                         Emergency = true;
                 }
-                if (IsPressed(EnableRailDriverCommand))
+            }
+        }
+
+        public void Activate()
+        {
+            if (railDriverInstance.Enabled)
+            {
+                Active = !Active;
+                railDriverInstance.EnableSpeaker(Active);
+                if (Active)
                 {
-                    Active = !Active;
-                    railDriverInstance.EnableSpeaker(Active);
-                    if (Active)
-                    {
-                        railDriverInstance.SetLeds(0x39, 0x09, 0x0F);
-                    }
-                    else
-                    {
-                        railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
-                    }
+                    railDriverInstance.SetLeds(0x39, 0x09, 0x0F);
+                }
+                else
+                {
+                    railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
                 }
             }
         }
@@ -245,8 +249,11 @@ namespace Orts.Viewer3D
 
         public void Shutdown()
         {
-            railDriverInstance?.ClearDisplay();
-            railDriverInstance?.Shutdown();
+            if (railDriverInstance.Enabled)
+            {
+                railDriverInstance?.ClearDisplay();
+                railDriverInstance?.Shutdown();
+            }
         }
 
         private bool ButtonCurrentlyDown(byte command)
@@ -271,7 +278,7 @@ namespace Orts.Viewer3D
 
         public bool IsPressed(UserCommand command)
         {
-            if (!Active)
+            if (!(Active || (railDriverInstance.Enabled && command == UserCommand.GameExternalCabController)))
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
             if (raildriverCommand == byte.MaxValue)

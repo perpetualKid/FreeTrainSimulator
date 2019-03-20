@@ -124,10 +124,6 @@ namespace Orts.Viewer3D
 #endif
         }
 
-        public static void Handled()
-        {
-        }
-
         public static bool IsPressed(UserCommand command)
         {
             if (ComposingMessage == true) return false;
