@@ -4,13 +4,14 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
-- master
+- Master
 
 pool:
   vmImage: 'VS2017-Win2016'
 
 variables:
-  solution: '**/*.sln'
+  #solution: '**/*.sln'
+  #solution: '**/ORTS.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
