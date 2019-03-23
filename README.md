@@ -1,3 +1,5 @@
+[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/perpetualKid.ORTS-MG?branchName=master)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=1&branchName=master)
+
 # [OpenRails Train Simulator](http://openrails.org/)
 
 Now updated for MonoGame 3.7.1<br> 
