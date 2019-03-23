@@ -11,7 +11,7 @@ pool:
 
 variables:
   #solution: '**/*.sln'
-  #solution: '**/ORTS.sln'
+  solution: '**/ORTS.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
