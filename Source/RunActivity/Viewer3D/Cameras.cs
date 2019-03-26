@@ -1155,9 +1155,9 @@ namespace Orts.Viewer3D
             if (UserInput.IsReleased(UserCommand.CameraRotateLeft) || UserInput.IsReleased(UserCommand.CameraRotateRight))
                 new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
 
-            if (UserInput.IsPressed(UserCommands.CameraBrowseBackwards))
+            if (UserInput.IsPressed(UserCommand.CameraBrowseBackwards))
                 new ToggleBrowseBackwardsCommand(Viewer.Log);
-            if (UserInput.IsPressed(UserCommands.CameraBrowseForwards))
+            if (UserInput.IsPressed(UserCommand.CameraBrowseForwards))
                 new ToggleBrowseForwardsCommand(Viewer.Log);
         }
 
