@@ -74,6 +74,8 @@ namespace ORTS.Common
         [Description("Debug Sound Form")] DebugSoundForm,
         [Description("Debug Physics Form")] DebugPhysicsForm,
 
+        [Description("Camera Browse Backwards")] CameraBrowseBackwards,
+        [Description("Camera Browse Forwards")] CameraBrowseForwards,
         [Description("Camera Cab")] CameraCab,
         [Description("Camera Change Passenger Viewpoint")] CameraChangePassengerViewPoint,
         [Description("Camera 3D Cab")] CameraThreeDimensionalCab,

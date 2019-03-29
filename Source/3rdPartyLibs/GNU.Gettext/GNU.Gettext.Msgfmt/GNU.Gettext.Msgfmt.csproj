@@ -11,7 +11,7 @@
     <RootNamespace>GNU.Gettext.Msgfmt</RootNamespace>
     <AssemblyName>GNU.Gettext.Msgfmt</AssemblyName>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -24,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
     <Commandlineparameters>-l ru-RU -d ../../GNU.Gettext/Examples.Hello/bin/Debug -r Examples.Hello  -L ./../../Bin/Debug -v ../../GNU.Gettext/Examples.Hello/po/ru.po </Commandlineparameters>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

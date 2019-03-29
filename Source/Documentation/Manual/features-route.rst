@@ -140,7 +140,7 @@ SICILIA 1.trk::
 
 
   include ( "../Sicilia 1.trk" )
-			ORTSDefaultTurntableSMS ( turntable.sms )
+      ORTSDefaultTurntableSMS ( turntable.sms )
 
 The first line must be empty. 
 
@@ -150,26 +150,28 @@ the last parenthesis the contents of file ``a1t27mturntable_animations.zip``.
 If other .s files have to be used for turntables, or new ones have to be developed, it must be considered that 
 the rotation animation should be as follows::
 
-		animation ( 3599 30
-			anim_nodes ( ..
-				..
-				..
-				..
-				anim_node TRACKPIECE (
-					controllers ( ..
-						tcb_rot ( 3
-							tcb_key ( 0 0 0 0 1 0 0 0 0 0 )
-							tcb_key ( 1800 0 1 0 0.0 0 0 0 0 0 )
-							tcb_key ( 3600 0 0 0 -1 0 0 0 0 0 )
-						)
+    animation ( 3599 30
+      anim_nodes ( ..
+        ..
+        ..
+        ..
+        anim_node TRACKPIECE (
+          controllers ( ..
+            tcb_rot ( 5
+              tcb_key ( 0 0 0 0 1 0 0 0 0 0 )
+              tcb_key ( 900 0 0.7071068 0 0.7071067 0 0 0 0 0 )
+              tcb_key ( 1800 0 1 0 0.0 0 0 0 0 0 )
+              tcb_key ( 2700 0 -0.7071068 0 0.7071067 0 0 0 0 0 )
+              tcb_key ( 3600 0 0 0 -1 0 0 0 0 0 )
+            )
 
 or as follows::
 
-		animation ( 3599 30
-			anim_nodes ( ..
-				..
-				..
-				..
+    animation ( 3599 30
+      anim_nodes ( ..
+        ..
+        ..
+        ..
                 anim_node WHEEL1 (
                     controllers ( 1
                        tcb_rot ( 5
@@ -271,23 +273,23 @@ The first line must be empty.
 
 The animation block for the above transfertable is as follows::
 
-		animations ( 1
-		animation ( 3600 30
-			anim_nodes ( 2
-				anim_node BASIN (
-					controllers ( 0 )
-				)
-				anim_node TRACKPIECE (
-					controllers ( 1
-						linear_pos ( 2
-  linear_key (	0	0	-1.92177	0	 )
-  linear_key (	3600	39.88	-1.92177	0	 )
-  						)					
-					)
-				)
-			)
-		)
-	)
+    animations ( 1
+    animation ( 3600 30
+      anim_nodes ( 2
+        anim_node BASIN (
+          controllers ( 0 )
+        )
+        anim_node TRACKPIECE (
+          controllers ( 1
+            linear_pos ( 2
+  linear_key (  0 0 -1.92177  0  )
+  linear_key (  3600  39.88 -1.92177  0  )
+              )         
+          )
+        )
+      )
+    )
+  )
 
 3600 is not a mandatory value, however to have a reasonable transfer speed a number of 
 animation keys equal to 60 - 90 every meter should be selected. 
@@ -335,18 +337,18 @@ Here an example of a w. file chunk for USA1 .w file w-011008+014318.w::
   SIMISA@@@@@@@@@@JINX0w0t______
 
   Tr_Worldfile (
-		CarSpawner (
-			UiD ( 532 )
-			ORTSListName ( "List2" )
-		)
-		CarSpawner (
-			UiD ( 533 )
-			ORTSListName ( "List3" )
-		)
-		Static (
-			UiD ( 296 )
-			FileName ( hut3.s )
-	  )
+    CarSpawner (
+      UiD ( 532 )
+      ORTSListName ( "List2" )
+    )
+    CarSpawner (
+      UiD ( 533 )
+      ORTSListName ( "List3" )
+    )
+    Static (
+      UiD ( 296 )
+      FileName ( hut3.s )
+    )
   )
 
 With the two CarSpawner block chunks OR interprets the CarSpawners with same UiD 
@@ -399,7 +401,7 @@ Such file must have the structure as in following example::
 The first ``3`` defines the number of the additional car spawner lists.
 To associate a CarSpawner block to one of these lists, a line like this one::
 
-			ORTSListName ( "List2" )
+      ORTSListName ( "List2" )
 
 has to be inserted in the CarSpawn block, in any position after the UiD line.
 
@@ -467,10 +469,10 @@ line must be blank)::
   )
   _SKIP ( Bernina )
     TrackSection ( 33080
-	    SectionSize ( 0.9 1.5825815 )
+      SectionSize ( 0.9 1.5825815 )
     )
     TrackSection ( 19950
-	    SectionSize ( 0.9 12 )
+      SectionSize ( 0.9 12 )
     )
   )
   TrackShapes ( 40000
@@ -481,14 +483,14 @@ line must be blank)::
   _INFO(by Massimo Calvi)
   _INFO(straight sections)
     TrackShape ( 30000
-	    FileName ( track1_6m_wt.s )
-	    NumPaths ( 1 )
-	    SectionIdx ( 1 0 0 0 0 33080 )
+      FileName ( track1_6m_wt.s )
+      NumPaths ( 1 )
+      SectionIdx ( 1 0 0 0 0 33080 )
     )
     TrackShape ( 19858
-	    FileName ( track12m_wt.s )
-	    NumPaths ( 1 )
-	    SectionIdx ( 1 0 0 0 0 19950 )
+      FileName ( track12m_wt.s )
+      NumPaths ( 1 )
+      SectionIdx ( 1 0 0 0 0 19950 )
     )
   )
 
@@ -560,7 +562,7 @@ Loading screen
 
 In the ``.trk`` file of the route the parameter ``loadingscreen`` can be used as in this example::
 
-	LoadingScreen ( Load.ace )
+  LoadingScreen ( Load.ace )
 
 If in the main directory of the route there is a file with the same name but with extension ``.dds`` 
 and the :ref:`DDS texture support<options-dds-textures>` is enabled
@@ -609,7 +611,7 @@ of such file::
 
   
   include ( "../Platformtest.trk" )
-  			ORTSOpenDoorsInAITrains ( 1 )
+        ORTSOpenDoorsInAITrains ( 1 )
 
 The first line must be empty.
 
@@ -706,6 +708,17 @@ values as desired. Each paired set of values must have an x and y value present.
 to 'hold' a certain value of SuperElevation for a number of different radii curves, then the same 
 y value needs to be used for succeeding values of curve radius. Where the y value changes between 
 curve radii, then Open Rails will extrapolate the y value between the two points. 
+
+
+Overhead (catenary) wire
+========================
+
+Open Rails uses texture overheadwire.ace to display the overhead wire. Such 
+texture must be present in the route's ``TEXTURES`` folder. If the texture is not found 
+there, Open Rails looks for it in the ``GLOBAL\TEXTURES`` folder. If the texture isn't 
+there either, Open Rails selects texture ``GLOBAL\TEXTURES\diselsmoke.ace``. It is however 
+strongly suggested to use a specific texture to display the overhead wire. A possible 
+texture to be used can be downloaded here ``Documentation\SampleFiles\Manual\overheadwire.zip``.
 
 
 
