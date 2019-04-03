@@ -264,24 +264,6 @@ namespace Orts.Simulation.RollingStocks
         SmoothedData BurnRateSmoothKGpS = new SmoothedData(150); // Changes in BurnRate take x seconds to fully react to changing needs - models increase and decrease in heat.
         float FuelRateSmoothed = 0.0f;     // Smoothed Fuel Rate
 
-        // Water trough filling
-        public bool HasWaterScoop = false; // indicates whether loco + tender have a water scoop or not
-//        public float ScoopMinPickupSpeedMpS = 0.0f; // Minimum scoop pickup speed
-        public float ScoopMaxPickupSpeedMpS = 200.0f; // Maximum scoop pickup speed - used in steam locomotive viewer
-//        public float ScoopResistanceN = 0.0f; // Scoop resistance
-        public bool ScoopIsBroken = false; // becomes broken if activated where there is no trough
-        public bool RefillingFromTrough = false; // refilling from through is ongoing
-        public float WaterScoopFillElevationM; // height water has to be raised to fill tender
-        public float WaterScoopDepthM; // depth that water scoop goes into trough (pan)
-        public float WaterScoopWidthM; // width of water scoop
-        public float WaterScoopVelocityMpS; // Velocity of water entering water scoop
-        public float WaterScoopDragForceN; // drag force due to scoop being in water trough
-        public float WaterScoopedQuantityGalukpS; // Amount of water scooped up by water scoop per second
-        public float WaterScoopInputAmountGals; // Water scooped in elapsed time
-        public float WaterScoopMinSpeedMpS; // Minimum speed for water pickup
-        public bool IsWaterScoopDown = false;
-
-
         // steam performance reporting
         public float SteamPerformanceTimeS = 0.0f; // Records the time since starting movement
         public float CumulativeWaterConsumptionLbs = 0.0f;
@@ -790,7 +772,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(steamfiremanismechanicalstoker": Stoker = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
                 case "engine(ortssteamfiremanmaxpossiblefiringrate": ORTSMaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.UNITS.MassRateDefaultLBpH, null) / 2.2046f / 3600; break;
                 case "engine(enginecontrollers(cutoff": CutoffController.Parse(stf); break;
-                case "engine(enginecontrollers(ortssmallejector": SmallEjectorController.Parse(stf); break;
+                case "engine(enginecontrollers(ortssmallejector": SmallEjectorController.Parse(stf); SmallEjectorFitted = true; break;
                 case "engine(enginecontrollers(injector1water": Injector1Controller.Parse(stf); break;
                 case "engine(enginecontrollers(injector2water": Injector2Controller.Parse(stf); break;
                 case "engine(enginecontrollers(blower": BlowerController.Parse(stf); break;
@@ -1197,16 +1179,6 @@ namespace Orts.Simulation.RollingStocks
             if (EjectorLargeSteamConsumptionLbpS == 0)
             {
                 EjectorLargeSteamConsumptionLbpS = pS.FrompH(650.0f); // Based upon Gresham publication - steam consumption for 20mm ejector is 650lbs/hr or 0.180555 lb/s
-            }
-
-            // Check to see if a small ejector is fitted
-            if (SmallEjectorController == null)
-            {
-                SmallEjectorFitted = false;
-            }
-            else
-            {
-                SmallEjectorFitted = true;
             }
 
             // ******************  Test Locomotive and Gearing type *********************** 
@@ -2395,8 +2367,9 @@ namespace Orts.Simulation.RollingStocks
             if (HasWaterScoop && IsWaterScoopDown && RefillingFromTrough && Direction == Direction.Forward && AbsSpeedMpS > WaterScoopMinSpeedMpS)
             {
             // Calculate water velocity
+            const float GravitationalAccelerationFtpSpsS = 32.26f;
                float Avalue = ((float)Math.Pow(MpS.ToMpH(absSpeedMpS), 2) * 2.15f);
-               float Bvalue = 2.0f * 32.2f * Me.ToFt(WaterScoopFillElevationM);
+               float Bvalue = 2.0f * GravitationalAccelerationFtpSpsS * Me.ToFt(WaterScoopFillElevationM);
                
                if (Avalue > Bvalue)
                {
@@ -2408,7 +2381,7 @@ namespace Orts.Simulation.RollingStocks
                }
                
                // calculate volume of water scooped per period
-               float CuFttoGalUK = 6.22884f; // imperial gallons of water in a cubic foot of water
+               const float CuFttoGalUK = 6.22884f; // imperial gallons of water in a cubic foot of water
                WaterScoopedQuantityGalukpS = Me2.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Me.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK;
                WaterScoopInputAmountGals = WaterScoopedQuantityGalukpS * elapsedClockSeconds; // Calculate current input quantity
                CombinedTenderWaterVolumeUKG += WaterScoopInputAmountGals; // add the amouunt of water added by scoop

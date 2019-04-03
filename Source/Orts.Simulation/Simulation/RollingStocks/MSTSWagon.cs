@@ -153,6 +153,11 @@ namespace Orts.Simulation.RollingStocks
         public float HeatingHoseSteamVelocityMpS;
         public float HeatingHoseSteamVolumeM3pS;
 
+        // Water Scoop Spray
+        public float WaterScoopParticleDurationS;
+        public float WaterScoopWaterVelocityMpS;
+        public float WaterScoopWaterVolumeM3pS;
+
         // Wagon Power Generator
         public float WagonGeneratorDurationS = 1.5f;
         public float WagonGeneratorVolumeM3pS = 2.0f;
@@ -213,7 +218,7 @@ namespace Orts.Simulation.RollingStocks
         /// Diesel locomotive identifier  (pass parameters from MSTSDieselLocomotive to MSTSWagon)
         /// </summary>
         public MSTSDieselLocomotive DieselLocomotiveIdentification { get; private set; }
-
+ 
         public Dictionary<string, List<ParticleEmitterData>> EffectData = new Dictionary<string, List<ParticleEmitterData>>();
 
         protected void ParseEffects(string lowercasetoken, STFReader stf)
@@ -2066,6 +2071,28 @@ namespace Orts.Simulation.RollingStocks
                 HeatingHoseParticleDurationS = 0.0f;
                 HeatingHoseSteamVelocityMpS = 0.0f;
                 HeatingHoseSteamVolumeM3pS = 0.0f;
+            }
+
+            // Update Water Scoop Spray Information when scoop is down and filling from trough
+
+            var LocomotiveIdentification = Simulator.PlayerLocomotive as MSTSLocomotive;
+
+            if (LocomotiveIdentification.HasWaterScoop && LocomotiveIdentification.IsWaterScoopDown && LocomotiveIdentification.RefillingFromTrough && Direction == Direction.Forward && AbsSpeedMpS > LocomotiveIdentification.WaterScoopMinSpeedMpS)
+            {
+
+                float SpeedRatio = AbsSpeedMpS / 40.0f; // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
+                
+                // Turn wagon steam leaks on 
+                WaterScoopParticleDurationS = 0.75f;
+                WaterScoopWaterVelocityMpS = 30.0f;
+                WaterScoopWaterVolumeM3pS = 6.0f;
+            }
+            else
+            {
+//                // Turn wagon steam leaks off 
+                WaterScoopParticleDurationS = 0.0f;
+                WaterScoopWaterVelocityMpS = 0.0f;
+                WaterScoopWaterVolumeM3pS = 0.0f;
             }
 
             // Decrease wagon smoke as speed increases, smoke completely dissappears when wagon reaches 5MpS.
