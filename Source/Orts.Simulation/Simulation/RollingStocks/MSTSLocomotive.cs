@@ -141,6 +141,23 @@ namespace Orts.Simulation.RollingStocks
         public bool OnLineCabRadio;
         public string OnLineCabRadioURL;
 
+        // Water trough filling
+        public bool HasWaterScoop = false; // indicates whether loco + tender have a water scoop or not
+                                           //        public float ScoopMinPickupSpeedMpS = 0.0f; // Minimum scoop pickup speed
+        public float ScoopMaxPickupSpeedMpS = 200.0f; // Maximum scoop pickup speed - used in steam locomotive viewer
+                                                      //        public float ScoopResistanceN = 0.0f; // Scoop resistance
+        public bool ScoopIsBroken = false; // becomes broken if activated where there is no trough
+        public bool RefillingFromTrough = false; // refilling from through is ongoing
+        public float WaterScoopFillElevationM; // height water has to be raised to fill tender
+        public float WaterScoopDepthM; // depth that water scoop goes into trough (pan)
+        public float WaterScoopWidthM; // width of water scoop
+        public float WaterScoopVelocityMpS; // Velocity of water entering water scoop
+        public float WaterScoopDragForceN; // drag force due to scoop being in water trough
+        public float WaterScoopedQuantityGalukpS; // Amount of water scooped up by water scoop per second
+        public float WaterScoopInputAmountGals; // Water scooped in elapsed time
+        public float WaterScoopMinSpeedMpS; // Minimum speed for water pickup
+        public bool IsWaterScoopDown = false;
+
         // Vacuum Reservoir and Exhauster Settings
 
         // Steam heating Flags
@@ -186,7 +203,7 @@ namespace Orts.Simulation.RollingStocks
         public bool VacuumPumpOperating = false;
         public float SteamEjectorSmallPressurePSI = 0.0f;
         public bool VacuumPumpFitted;
-        public bool SmallEjectorFitted;
+        public bool SmallEjectorFitted = false;
         public float VacuumPumpResistanceN;
         public float EjectorSmallSteamConsumptionLbpS;
         public float EjectorLargeSteamConsumptionLbpS;
