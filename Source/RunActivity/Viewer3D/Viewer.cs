@@ -908,7 +908,7 @@ namespace Orts.Viewer3D
                         HUDScrollWindow.Visible = !HUDScrollWindow.Visible;
                 }
             }
-           
+
             if (UserInput.IsPressed(UserCommands.DisplayStationLabels))
             {
                 if (UserInput.IsDown(UserCommands.DisplayNextWindowTab)) OSDLocations.TabAction(); else OSDLocations.Visible = !OSDLocations.Visible;

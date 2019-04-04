@@ -40,7 +40,7 @@ namespace Orts.Viewer3D.Popups
 {
     public class HUDWindow : LayeredWindow
     {
-        // Set this to the width of each column in font-height units.     
+        // Set this to the width of each column in font-height units.
         readonly int ColumnWidth = 5;
 
         // Set to distance from top-left corner to place text.
@@ -71,6 +71,7 @@ namespace Orts.Viewer3D.Popups
         public static int hudWindowLocoPagesCount = 1;
         public static bool hudWindowFullScreen = false;
         public static bool hudWindowHorizontalScroll = false;
+        public static bool hudWindowSteamLocoLead = false;
         List<string> stringStatus = new List<string>();
 
         int TextPage;
@@ -621,6 +622,9 @@ namespace Orts.Viewer3D.Popups
                 }
             }
 
+            //Disable loco nav scroll button when only one loco.
+            hudWindowSteamLocoLead = LocomotiveID.Count == 1 && IsSteamLocomotive ? true : false;
+
             //PlayerLoco
             statusHeader.Add(String.Format("{8}\t{0}\t{4}\t{1}\t{5:F0}%\t{2}\t{6:F0}%\t{3}\t\t{7}\n",
                 //0
@@ -633,7 +637,7 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Dynamic brake"),
                 //4
                 FormatStrings.Catalog.GetParticularString("Reverser", GetStringAttribute.GetPrettyName(train.MUDirection)),
-                //5                
+                //5
                 train.MUReverserPercent,
                 //6
                 train.MUThrottlePercent,
@@ -881,7 +885,7 @@ namespace Orts.Viewer3D.Popups
                     (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpOperating ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")
                     ));
                 }
-                else if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpFitted && !(Viewer.PlayerLocomotive as MSTSLocomotive).SmallEjectorFitted) // Change display so that small ejector is not displayed for vacuum pump operated locomotives 
+                else if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpFitted && !(Viewer.PlayerLocomotive as MSTSLocomotive).SmallEjectorFitted) // Change display so that small ejector is not displayed for vacuum pump operated locomotives
                 {
                     // Display if vacuum pump, and large ejector only fitted
                     TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
@@ -904,7 +908,7 @@ namespace Orts.Viewer3D.Popups
                     FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true)));
                 }
 
-                // Lines to show brake system volumes 
+                // Lines to show brake system volumes
                 TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}\t{5}\t{6}",
                 Viewer.Catalog.GetString("Brake Sys Vol"),
                 Viewer.Catalog.GetString("Train Pipe"),
@@ -1328,18 +1332,18 @@ namespace Orts.Viewer3D.Popups
             {
                 if (statusDispatcher.Count > i)
                 {
-                    //Calc col number and take in count 2 left columns car and consist name 
+                    //Calc col number and take in count 2 left columns car and consist name
                     TextColNumber(statusDispatcher[i][12], 2, false);
                     var arrow = "";
                     //Add yellow color to string.
                     var EndText = statusDispatcher[i][0].Length == TextToYellowColor.Length && statusDispatcher[i][0].Contains(TextToYellowColor) ? "???" : "";
-                    
-                    //DrawScrollArrows() can't be used because it works with TableAddLines, here we work with TableSetCell. 
+
+                    //DrawScrollArrows() can't be used because it works with TableAddLines, here we work with TableSetCell.
                     if (hudWindowColumnsActualPage > 0)
                     {
                         if (stringStatus.Count > 1 && stringStatus.Count <= hudWindowColumnsActualPage)
                         {
-                            arrow = arrow + "◀";// \u25C0
+                            arrow = arrow + "◄";// \u25C0
                             TableSetCell(table, 2, hudWindowColumnsActualPage > 1 ? stringStatus[(stringStatus.Count < hudWindowColumnsActualPage ? stringStatus.Count - 1 : hudWindowColumnsActualPage - 1)] + EndText : stringStatus[hudWindowColumnsActualPage - 1] + EndText);
                         }
                         else if (stringStatus.Count > 1 && hudWindowColumnsActualPage == 1)
@@ -1365,6 +1369,7 @@ namespace Orts.Viewer3D.Popups
                     TableAddLine(table);
                 }
             }           
+
 
 #if WITH_PATH_DEBUG
             TextPageHeading(table, "PATH info");
@@ -1474,7 +1479,7 @@ namespace Orts.Viewer3D.Popups
 
         /// <summary>
         /// Columns count
-        /// used in TextLineNumber(int CarsCount, int CurrentRow, int ColumnCount)  
+        /// used in TextLineNumber(int CarsCount, int CurrentRow, int ColumnCount)
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
@@ -1525,7 +1530,7 @@ namespace Orts.Viewer3D.Popups
         void TextColNumber(string StringStatus, int initColumn, bool IsSteamLocomotive)
         {
             char[] stringToChar = StringStatus.TrimEnd('\t').ToCharArray();
-            
+
             stringStatus.Clear();//Reset
             var tabCount = StringStatus.TrimEnd('\t').Count(x => x == '\t');
             //Character per line
@@ -1536,16 +1541,16 @@ namespace Orts.Viewer3D.Popups
             var lastText = StringStatus.Substring(StringStatus.LastIndexOf("\t") + 1);
             StringStatusLength = StringStatus.EndsWith("\t") ? StringStatusLength : StringStatusLength + lastText.Length;
             var CurrentPathColumnsPagesCount = (StringStatusLength < charFitPerLine) ? 0 : (int)Math.Ceiling(Convert.ToDouble(StringStatusLength / charFitPerLine) + 0.5);
-            
+
             //TO DO: Apply new code to DispacherInfo
             if (CurrentPathColumnsPagesCount == 0 && TextPages[TextPage] == TextPageDispatcherInfo)
                 CurrentPathColumnsPagesCount = 1;
-            
+
             //Update columns pages count.
             if (CurrentPathColumnsPagesCount > hudWindowColumnsPagesCount)
                 hudWindowColumnsPagesCount = CurrentPathColumnsPagesCount;
 
-            List<string> cellTextList = new List<string>(); 
+            List<string> cellTextList = new List<string>();
             int i = 0;//Counter original status with tab code
             //87 = character fit per line with minimun 800*600 display size.
             //Font Monospace.
@@ -1717,7 +1722,7 @@ namespace Orts.Viewer3D.Popups
                 if (stringStatus.Count > hudWindowColumnsPagesCount)
                     hudWindowColumnsPagesCount = stringStatus.Count;
             }
-            
+
             CurrentPathColumnsPagesCount = (StringStatusLength < charFitPerLine) ? 0 : (int)Math.Ceiling(Convert.ToDouble(StringStatusLength / charFitPerLine) + 0.5);
             //Update columns pages count.
             if (CurrentPathColumnsPagesCount > hudWindowColumnsPagesCount)
@@ -1727,7 +1732,7 @@ namespace Orts.Viewer3D.Popups
             var locomotive = Viewer.PlayerLocomotive;
             var train = locomotive.Train;
             if (Viewer.HUDScrollWindow.Visible && hudWindowColumnsPagesCount == 0 && hudWindowLinesPagesCount == 1 && TextPages[TextPage] != TextPageLocomotiveInfo && !hudWindowFullScreen)
-                Viewer.HUDScrollWindow.Visible = false;//                                                                                                                          TrainCar.EngineTypes.Steam                            
+                Viewer.HUDScrollWindow.Visible = false;//                                                                                                                          TrainCar.EngineTypes.Steam
             if (!Viewer.HUDScrollWindow.Visible && hudWindowColumnsPagesCount > 0 || (TextPages[TextPage] == TextPageLocomotiveInfo && (IsSteamLocomotive || hudWindowLocoPagesCount > 1)))
                 Viewer.HUDScrollWindow.Visible = true;
         }
@@ -1751,7 +1756,7 @@ namespace Orts.Viewer3D.Popups
         /// <summary>
         /// Compute how many character fit per line.
         /// </summary>
-        /// <returns> x 
+        /// <returns> x
         /// </returns>
         public int CharFitPerLine(string status)
         {
@@ -1776,8 +1781,10 @@ namespace Orts.Viewer3D.Popups
                 hudWindowLinesPagesCount = 1;
                 hudWindowColumnsActualPage = 0;
                 hudWindowColumnsPagesCount = 0;
-                hudWindowLocoActualPage = 0;
+                //Allow to show loco info by default
+                hudWindowLocoActualPage = TextPages[TextPage] == TextPageLocomotiveInfo ? 1 : 0;
                 hudWindowLocoPagesCount = 1;
+                hudWindowSteamLocoLead = false;
                 lResetHudScroll = true;
             }
         }

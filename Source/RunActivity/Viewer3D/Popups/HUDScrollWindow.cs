@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
+// COPYRIGHT 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -102,17 +102,16 @@ namespace Orts.Viewer3D.Popups
 
         private void NextLoco_Click(Control arg1, Point arg2)
         {
-            if (HUDWindow.hudWindowLocoPagesCount > 0 && HUDWindow.hudWindowLocoPagesCount > HUDWindow.hudWindowLocoActualPage)
+            if (!HUDWindow.hudWindowSteamLocoLead && HUDWindow.hudWindowLocoPagesCount > 0 && HUDWindow.hudWindowLocoPagesCount > HUDWindow.hudWindowLocoActualPage)
             {
                 HUDWindow.hudWindowLocoActualPage += 1;
                 nextLoco.Color = Color.White;
             }
-
         }
 
         private void PrevLoco_Click(Control arg1, Point arg2)
         {
-            if (HUDWindow.hudWindowLocoActualPage > 0)
+            if (!HUDWindow.hudWindowSteamLocoLead && HUDWindow.hudWindowLocoActualPage > 0)
             {
                 HUDWindow.hudWindowLocoActualPage -= 1;
                 prevLoco.Color = Color.White;
@@ -126,8 +125,8 @@ namespace Orts.Viewer3D.Popups
 
         private void LabelReset()
         {
-            if (HUDWindow.hudWindowLinesPagesCount==1) pageDown.Text = "▼ Page Down";
-            if (HUDWindow.hudWindowLinesPagesCount>1) pageUp.Text= "▲ Page Up";
+            if (HUDWindow.hudWindowLinesPagesCount==1) pageDown.Text = "? Page Down";
+            if (HUDWindow.hudWindowLinesPagesCount>1) pageUp.Text= "? Page Up";
         }
 
         protected override ControlLayout Layout(ControlLayout layout)
@@ -135,29 +134,29 @@ namespace Orts.Viewer3D.Popups
             var vbox = base.Layout(layout).AddLayoutVertical();
             {
                 var hbox = vbox.AddLayoutHorizontalLineOfText();
-                pageDown = new Label(hbox.RemainingWidth, hbox.RemainingHeight, HUDWindow.hudWindowLinesPagesCount > 1 ? "▼ Page Down (" + HUDWindow.hudWindowLinesActualPage + "/" + HUDWindow.hudWindowLinesPagesCount + ")" : "▼ Page Down") { Color = (HUDWindow.hudWindowLinesPagesCount > HUDWindow.hudWindowLinesActualPage) ? Color.Gray : Color.Black };
+                pageDown = new Label(hbox.RemainingWidth, hbox.RemainingHeight, HUDWindow.hudWindowLinesPagesCount > 1 ? "? Page Down (" + HUDWindow.hudWindowLinesActualPage + "/" + HUDWindow.hudWindowLinesPagesCount + ")" : "? Page Down") { Color = (HUDWindow.hudWindowLinesPagesCount > HUDWindow.hudWindowLinesActualPage) ? Color.Gray : Color.Black };
                 pageDown.Click += PageDown_Click;
                 vbox.Add(pageDown);
                 
-                pageUp = new Label(hbox.RemainingWidth, hbox.RemainingHeight, HUDWindow.hudWindowLinesPagesCount > 1 ? "▲ Page Up (" + HUDWindow.hudWindowLinesActualPage + " / " + HUDWindow.hudWindowLinesPagesCount + ")" : "▲ Page Up") { Color = HUDWindow.hudWindowLinesActualPage > 1 ? Color.Gray : Color.Black };
+                pageUp = new Label(hbox.RemainingWidth, hbox.RemainingHeight, HUDWindow.hudWindowLinesPagesCount > 1 ? "? Page Up (" + HUDWindow.hudWindowLinesActualPage + " / " + HUDWindow.hudWindowLinesPagesCount + ")" : "? Page Up") { Color = HUDWindow.hudWindowLinesActualPage > 1 ? Color.Gray : Color.Black };
                 pageUp.Click += PageUp_Click;
                 vbox.Add(pageUp);
 
                 vbox.AddHorizontalSeparator();
-                pageLeft = new Label(hbox.RemainingWidth, hbox.RemainingHeight, "◄ Page Left") { Color = HUDWindow.hudWindowColumnsActualPage > 0 ? Color.Gray : Color.Black };
+                pageLeft = new Label(hbox.RemainingWidth, hbox.RemainingHeight, "? Page Left") { Color = HUDWindow.hudWindowColumnsActualPage > 0 ? Color.Gray : Color.Black };
                 pageLeft.Click += PageLeft_Click;
                 vbox.Add(pageLeft);
 
-                pageRight = new Label(hbox.RemainingWidth, hbox.RemainingHeight, "► Page Right") { Color = HUDWindow.hudWindowColumnsPagesCount > 0 && HUDWindow.hudWindowColumnsActualPage < HUDWindow.hudWindowColumnsPagesCount ? Color.Gray : Color.Black };
+                pageRight = new Label(hbox.RemainingWidth, hbox.RemainingHeight, "? Page Right") { Color = HUDWindow.hudWindowColumnsPagesCount > 0 && HUDWindow.hudWindowColumnsActualPage < HUDWindow.hudWindowColumnsPagesCount ? Color.Gray : Color.Black };
                 pageRight.Click += PageRight_Click;
                 vbox.Add(pageRight);
 
                 vbox.AddHorizontalSeparator();
-                nextLoco = new Label(hbox.RemainingWidth, hbox.RemainingHeight, HUDWindow.hudWindowLocoActualPage > 0 ? "▼ Next Loco (" + HUDWindow.hudWindowLocoActualPage + "/" + HUDWindow.hudWindowLocoPagesCount + ")" : Viewer.Catalog.GetPluralStringFmt("= One Locomotive.", "= All Locomotives.", (long)HUDWindow.hudWindowLocoPagesCount), LabelAlignment.Left) { Color = HUDWindow.hudWindowLocoPagesCount > HUDWindow.hudWindowLocoActualPage ? Color.Gray : Color.Black };
+                nextLoco = new Label(hbox.RemainingWidth, hbox.RemainingHeight, !HUDWindow.hudWindowSteamLocoLead && HUDWindow.hudWindowLocoActualPage > 0 ? "? Next Loco (" + HUDWindow.hudWindowLocoActualPage + "/" + HUDWindow.hudWindowLocoPagesCount + ")" : Viewer.Catalog.GetPluralStringFmt("= One Locomotive.", "= All Locomotives.", (long)HUDWindow.hudWindowLocoPagesCount), LabelAlignment.Left) { Color = HUDWindow.hudWindowSteamLocoLead || HUDWindow.hudWindowLocoPagesCount > HUDWindow.hudWindowLocoActualPage ? Color.Gray : Color.Black };
                 nextLoco.Click += NextLoco_Click;
                 vbox.Add(nextLoco);
 
-                prevLoco = new Label(hbox.RemainingWidth, hbox.RemainingHeight, "▲ Prev. Loco") { Color = HUDWindow.hudWindowLocoActualPage > 0 ? Color.Gray : Color.Black };
+                prevLoco = new Label(hbox.RemainingWidth, hbox.RemainingHeight, "? Prev. Loco") { Color = !HUDWindow.hudWindowSteamLocoLead && HUDWindow.hudWindowLocoActualPage > 0 ? Color.Gray : Color.Black };
                 prevLoco.Click += PrevLoco_Click;
                 vbox.Add(prevLoco);
 
