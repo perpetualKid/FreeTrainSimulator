@@ -12510,7 +12510,7 @@ namespace Orts.Simulation.Physics
             iColumn++;
             //  2, "Speed"
             var trainSpeed = TrainType == Train.TRAINTYPE.REMOTE && SpeedMpS != 0 ? targetSpeedMpS : SpeedMpS;
-            statusString[iColumn] = FormatStrings.FormatSpeed(trainSpeed, metric);
+            statusString[iColumn] = FormatStrings.FormatSpeedDisplay(trainSpeed, metric);
             if (Math.Abs(trainSpeed) > Math.Abs(AllowedMaxSpeedMpS)) statusString[iColumn] += "!!!";
             iColumn++;
             //  3, "Max"

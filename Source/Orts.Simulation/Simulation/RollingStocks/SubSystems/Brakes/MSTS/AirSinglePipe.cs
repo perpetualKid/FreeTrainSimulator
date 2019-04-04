@@ -163,7 +163,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 (Car as MSTSWagon).HandBrakePresent ? string.Format("{0:F0}%", HandbrakePercent) : string.Empty,
                 FrontBrakeHoseConnected ? "I" : "T",
                 string.Format("A{0} B{1}", AngleCockAOpen ? "+" : "-", AngleCockBOpen ? "+" : "-"),
-                BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : string.Empty,
+                BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : " ",//HudScroll feature requires for the last value, at least one space instead of string.Empty,
             };
         }
 
