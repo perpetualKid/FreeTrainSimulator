@@ -412,6 +412,10 @@ namespace Orts.Viewer3D.Popups
             var locomotiveStatus = Viewer.PlayerLocomotive.GetStatus();
             var stretched = playerTrain.Cars.Count > 1 && playerTrain.NPull == playerTrain.Cars.Count - 1;
             var bunched = !stretched && playerTrain.Cars.Count > 1 && playerTrain.NPush == playerTrain.Cars.Count - 1;
+            
+            //Disable Hudscroll.
+            if(Viewer.HUDScrollWindow.Visible && TextPage == 0)
+                Viewer.HUDScrollWindow.Visible = false;
 
             TableSetLabelValueColumns(table, 0, 2);
             TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.VersionOrBuild);
@@ -1732,7 +1736,7 @@ namespace Orts.Viewer3D.Popups
             var locomotive = Viewer.PlayerLocomotive;
             var train = locomotive.Train;
             if (Viewer.HUDScrollWindow.Visible && hudWindowColumnsPagesCount == 0 && hudWindowLinesPagesCount == 1 && TextPages[TextPage] != TextPageLocomotiveInfo && !hudWindowFullScreen)
-                Viewer.HUDScrollWindow.Visible = false;//                                                                                                                          TrainCar.EngineTypes.Steam
+                Viewer.HUDScrollWindow.Visible = false;
             if (!Viewer.HUDScrollWindow.Visible && hudWindowColumnsPagesCount > 0 || (TextPages[TextPage] == TextPageLocomotiveInfo && (IsSteamLocomotive || hudWindowLocoPagesCount > 1)))
                 Viewer.HUDScrollWindow.Visible = true;
         }
