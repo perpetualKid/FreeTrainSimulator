@@ -112,15 +112,6 @@ namespace ORTS
             });
         }
 
-            missingDependencies.Add(new DependencyHint()
-            {
-                Name = "Microsoft XNA Framework 3.1",
-                Text = "Please go to\n https://www.microsoft.com/en-us/download/details.aspx?id=15163 \nto download the installer for " +
-                "Microsoft XNA Framework Redistributable 3.1 and install the software.",
-                Url = "https://www.microsoft.com/en-us/download/details.aspx?id=15163"
-            });
-        }
-
         static void CheckDXRuntime(List<DependencyHint> missingDependencies)
         {
             if (File.Exists(Path.Combine(Environment.SystemDirectory, "D3Dcompiler_43.dll")))       //there is a dependency in Monogame requiring the specific version of D3D compiler
