@@ -1,5 +1,0 @@
-../Source/3rdPartyLibs/openal-soft/build/CMakeFiles/ALL_BUILD.dir
-../Source/3rdPartyLibs/openal-soft/build/CMakeFiles/OpenAL32.dir
-../Source/3rdPartyLibs/openal-soft/build/CMakeFiles/ZERO_CHECK.dir
-../Source/3rdPartyLibs/openal-soft/build/CMakeFiles/makehrtf.dir
-../Source/3rdPartyLibs/openal-soft/build/CMakeFiles/openal-info.dir
