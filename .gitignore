@@ -4,10 +4,6 @@
 /OpenRails-*.zip
 /Open Rails
 /Program
-/Source/**/*.user
-/Source/**/obj
-/Source/*.suo
-/Source/.vs
 /Source/Contrib/TimetableEditor/*.lps
 /Source/Contrib/TimetableEditor/*.res
 /Source/Contrib/TimetableEditor/backup
@@ -356,3 +352,7 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database 
 healthchecksdb
+healthchecksdb
+
+# Backup folder for Package Reference Convert tool in Visual Studio 2017
+MigrationBackup/
