@@ -113,6 +113,8 @@ namespace ORTS.Common
         [Description("Camera Vibrate")] CameraVibrate,
         [Description("Camera Scroll Right")] CameraScrollRight,
         [Description("Camera Scroll Left")] CameraScrollLeft,
+        [Description("Camera Browse Backwards")] CameraBrowseBackwards,
+        [Description("Camera Browse Forwards")] CameraBrowseForwards,
 
         [Description("Control Forwards")] ControlForwards,
         [Description("Control Backwards")] ControlBackwards,

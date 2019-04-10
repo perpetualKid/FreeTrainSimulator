@@ -1604,103 +1604,100 @@ namespace Orts.Simulation.Physics
         {
             if (!auxiliaryUpdate)
                 FormationReversed = false;
-            {
-            if (!auxiliaryUpdate)
-                FormationReversed = false;
-                if (IsActualPlayerTrain && Simulator.ActiveMovingTable != null)
-                    Simulator.ActiveMovingTable.CheckTrainOnMovingTable(this);
+            if (IsActualPlayerTrain && Simulator.ActiveMovingTable != null)
+                Simulator.ActiveMovingTable.CheckTrainOnMovingTable(this);
 
-                if (IsActualPlayerTrain && Simulator.OriginalPlayerTrain != this && !CheckStations) // if player train is to check own stations
+            if (IsActualPlayerTrain && Simulator.OriginalPlayerTrain != this && !CheckStations) // if player train is to check own stations
+            {
+                CheckStationTask();
+            }
+
+
+            if (IsActualPlayerTrain && Simulator.Settings.Autopilot && Simulator.Settings.ActRandomizationLevel > 0 && Simulator.ActivityRun != null) // defects might occur
+            {
+                CheckFailures(elapsedClockSeconds);
+            }
+
+            // Update train physics, position and movement
+
+            physicsUpdate(elapsedClockSeconds);
+
+            // Update the UiD of First Wagon
+            FirstCarUiD = GetFirstWagonUiD();
+
+            // Check to see if wagons are attached to train
+            WagonsAttached = GetWagonsAttachedIndication();
+
+            //Exit here when train is static consist (no further actions required)
+
+            if (GetAIMovementState() == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+            {
+                int presentTime = Convert.ToInt32(Math.Floor(Simulator.ClockTime));
+                UpdateAIStaticState(presentTime);
+            }
+
+            if (TrainType == TRAINTYPE.STATIC)
+                return;
+
+            // perform overall update
+
+            if (ControlMode == TRAIN_CONTROL.TURNTABLE)
+            {
+                UpdateTurntable(elapsedClockSeconds);
+            }
+
+            else if (ControlMode == TRAIN_CONTROL.MANUAL)                                        // manual mode
+            {
+                UpdateManual(elapsedClockSeconds);
+            }
+
+            else if (ControlMode == TRAIN_CONTROL.EXPLORER)                                 // explorer mode
+            {
+                UpdateExplorer(elapsedClockSeconds);
+            }
+
+            else if (ValidRoute[0] != null && GetAIMovementState() != AITrain.AI_MOVEMENT_STATE.AI_STATIC)     // no actions required for static objects //
+            {
+                if (ControlMode != TRAIN_CONTROL.OUT_OF_CONTROL) movedBackward = CheckBackwardClearance();  // check clearance at rear if not out of control //
+                UpdateTrainPosition();                                                          // position update         //
+                UpdateTrainPositionInformation();                                               // position update         //
+                int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[0]);   // check if passed signal  //
+                UpdateSectionState(movedBackward);                                              // update track occupation //
+                if (!(this is AITrain && (this as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.SUSPENDED)) ObtainRequiredActions(movedBackward);    // process list of actions //
+
+                if (TrainType == TRAINTYPE.PLAYER && CheckStations) // if player train is to check own stations
                 {
                     CheckStationTask();
+                    CheckPlayerAttachState();                                                   // check for player attach
                 }
 
-
-                if (IsActualPlayerTrain && Simulator.Settings.Autopilot && Simulator.Settings.ActRandomizationLevel > 0 && Simulator.ActivityRun != null) // defects might occur
+                bool stillExist = true;
+                if ((TrainType != TRAINTYPE.AI && TrainType != TRAINTYPE.AI_PLAYERHOSTING) && ControlMode != TRAIN_CONTROL.OUT_OF_CONTROL)
                 {
-                    CheckFailures(elapsedClockSeconds);
+                    stillExist = CheckRouteActions(elapsedClockSeconds);                          // check routepath (AI check at other point) //
                 }
 
-                // Update train physics, position and movement
-
-                physicsUpdate(elapsedClockSeconds);
-
-                // Update the UiD of First Wagon
-                FirstCarUiD = GetFirstWagonUiD();
-
-                // Check to see if wagons are attached to train
-                WagonsAttached = GetWagonsAttachedIndication();
-
-                //Exit here when train is static consist (no further actions required)
-
-                if (GetAIMovementState() == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+                if (stillExist)
                 {
-                    int presentTime = Convert.ToInt32(Math.Floor(Simulator.ClockTime));
-                    UpdateAIStaticState(presentTime);
-                }
-
-                if (TrainType == TRAINTYPE.STATIC)
-                    return;
-
-                // perform overall update
-
-                if (ControlMode == TRAIN_CONTROL.TURNTABLE)
-                {
-                    UpdateTurntable(elapsedClockSeconds);
-                }
-
-                else if (ControlMode == TRAIN_CONTROL.MANUAL)                                        // manual mode
-                {
-                    UpdateManual(elapsedClockSeconds);
-                }
-
-                else if (ControlMode == TRAIN_CONTROL.EXPLORER)                                 // explorer mode
-                {
-                    UpdateExplorer(elapsedClockSeconds);
-                }
-
-                else if (ValidRoute[0] != null && GetAIMovementState() != AITrain.AI_MOVEMENT_STATE.AI_STATIC)     // no actions required for static objects //
-                {
-                    if (ControlMode != TRAIN_CONTROL.OUT_OF_CONTROL) movedBackward = CheckBackwardClearance();  // check clearance at rear if not out of control //
-                    UpdateTrainPosition();                                                          // position update         //
-                    UpdateTrainPositionInformation();                                               // position update         //
-                    int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[0]);   // check if passed signal  //
-                    UpdateSectionState(movedBackward);                                              // update track occupation //
-                    if (!(this is AITrain && (this as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.SUSPENDED)) ObtainRequiredActions(movedBackward);    // process list of actions //
-
-                    if (TrainType == TRAINTYPE.PLAYER && CheckStations) // if player train is to check own stations
-                    {
-                        CheckStationTask();
-                        CheckPlayerAttachState();                                                   // check for player attach
-                    }
-
-                    bool stillExist = true;
-                    if ((TrainType != TRAINTYPE.AI && TrainType != TRAINTYPE.AI_PLAYERHOSTING) && ControlMode != TRAIN_CONTROL.OUT_OF_CONTROL)
-                    {
-                        stillExist = CheckRouteActions(elapsedClockSeconds);                          // check routepath (AI check at other point) //
-                    }
-
-                    if (stillExist)
-                    {
-                        UpdateRouteClearanceAhead(SignalObjIndex, movedBackward, elapsedClockSeconds);  // update route clearance  //
-                        if (!(TrainType == TRAINTYPE.REMOTE && MPManager.IsClient()))
-                            UpdateSignalState(movedBackward);                                               // update signal state     //
-                    }
-                }
-
-                // calculate minimal delay (Timetable only)
-                UpdateMinimalDelay();
-
-                // check position of train wrt tunnels
-                ProcessTunnels();
-
-                // log train details
-
-                if (DatalogTrainSpeed)
-                {
-                    LogTrainSpeed(Simulator.ClockTime);
+                    UpdateRouteClearanceAhead(SignalObjIndex, movedBackward, elapsedClockSeconds);  // update route clearance  //
+                    if (!(TrainType == TRAINTYPE.REMOTE && MPManager.IsClient()))
+                        UpdateSignalState(movedBackward);                                               // update signal state     //
                 }
             }
+
+            // calculate minimal delay (Timetable only)
+            UpdateMinimalDelay();
+
+            // check position of train wrt tunnels
+            ProcessTunnels();
+
+            // log train details
+
+            if (DatalogTrainSpeed)
+            {
+                LogTrainSpeed(Simulator.ClockTime);
+            }
+
         } // end Update
 
         //================================================================================================//
@@ -1827,7 +1824,7 @@ namespace Orts.Simulation.Physics
             UpdateCarSteamHeat(elapsedClockSeconds);
             UpdateAuxTender();
 
-            AddCouplerImpuseForces();
+            AddCouplerImpulseForces();
             ComputeCouplerForces();
 
             UpdateCarSpeeds(elapsedClockSeconds);
@@ -1857,7 +1854,19 @@ namespace Orts.Simulation.Physics
 #if DEBUG_SPEED_FORCES
             Trace.TraceInformation(" ========================= Train Speed #1 (Train.cs) ======================================== ");
             Trace.TraceInformation("Total Raw Speed {0} Train Speed {1}", SpeedMpS, SpeedMpS / Cars.Count);
-#endif 
+#endif
+            // This next statement looks odd - how can you find the updated speed of the train just by averaging the speeds of
+            // the individual TrainCars? No problem if all the TrainCars had equal masses but, if they differ, then surely
+            // you must find the total force on the train and then divide by the total mass?
+            // Not to worry as comparison with those totals shows that this statement does indeed give a correct updated speed !
+            //
+            // The reason, I believe, is that when the train forces are balanced (e.g. constant power on a constant gradient),
+            // then the calculation of forces in the couplers works out them out so that all the TrainCars share the
+            // same acceleration.
+            //
+            // The updated speed for each TrainCar is simply calculated from the mass of the TrainCar and the force on it but
+            // the force on it was previously such that all the TrainCars have the same acceleration. There is little need to
+            // add them up and average them, as they only differ when the train forces are out of balance - Chris Jakeman 4-Mar-2019
             SpeedMpS /= Cars.Count;
 
             SlipperySpotDistanceM -= SpeedMpS * elapsedClockSeconds;
@@ -4297,7 +4306,7 @@ namespace Orts.Simulation.Physics
         /// computes and applies coupler impulse forces which force speeds to match when no relative movement is possible
         /// <\summary>
 
-        public void AddCouplerImpuseForces()
+        public void AddCouplerImpulseForces()
         {
             if (Cars.Count < 2)
                 return;

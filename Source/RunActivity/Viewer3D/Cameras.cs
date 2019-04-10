@@ -875,7 +875,8 @@ namespace Orts.Viewer3D
             SetCameraCar(trainCars.Last());
         }
 
-        public void UpdateLocation(WorldPosition worldPosition)        {
+        public void UpdateLocation(WorldPosition worldPosition)
+        {
             if (worldPosition != null)
             {
                 cameraLocation.TileX = worldPosition.TileX;
@@ -1058,6 +1059,7 @@ namespace Orts.Viewer3D
 
         protected override void OnActivate(bool sameCamera)
         {
+            BrowseMode = BrowseForwards = BrowseBackwards = false;
             if (attachedCar == null || attachedCar.Train != Viewer.SelectedTrain)
             {
                 if (Front)

@@ -62,7 +62,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {22764F18-6A26-4D70-973F-DE9957B02C68}
+		SolutionGuid = {7BA2E0FC-0C93-43F8-AC6B-24CBD3D1BBE0}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = GNU.Gettext.Msgfmt\GNU.Gettext.Msgfmt.csproj
