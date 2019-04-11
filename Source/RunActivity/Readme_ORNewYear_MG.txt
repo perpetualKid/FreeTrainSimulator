@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.15
-April 4th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.16
+April 11th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -13,7 +13,7 @@ you would return to a non-MG OR version.
 
 RELEASE NOTES
 This unofficial version is based on the Monogame XNA emulation software (release 3.7.1).
-It has been derived from the official Open Rails revision X1.3.1-43-etc, by modifying anything needed to access the Monogame software.
+It has been derived from the official Open Rails revision X1.3.1-46-etc, by modifying anything needed to access the Monogame software.
 The Monogame modification are in sync with the ones of perpetualKid.
 Moreover it includes some features not (yet) available in the Open Rails official version, that is:
 - addition of track sounds in the sound debug window
@@ -24,8 +24,8 @@ Moreover it includes some features not (yet) available in the Open Rails officia
 - enable/disable on screen control confirmations with Ctrl-Alt-F10
 - removal of on screen notification of camera change
 - dynamic management of trough refill
-- bug fix for https://bugs.launchpad.net/or/+bug/1822648 Lights stay on in uncoupled loco
-- bug fix for https://bugs.launchpad.net/or/+bug/1822556 small ejector read incorrectly.
+- bug fix for https://bugs.launchpad.net/or/+bug/1824364 Precipitation is falling within 3D cab.
+
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
