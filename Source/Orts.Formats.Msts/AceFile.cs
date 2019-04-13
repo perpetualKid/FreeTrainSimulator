@@ -21,7 +21,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
-using ORTS.Common.IO;
 
 namespace Orts.Formats.Msts
 {
@@ -39,7 +38,7 @@ namespace Orts.Formats.Msts
 
         static Texture2D Texture2DFromStream(GraphicsDevice graphicsDevice, Stream stream)
         {
-            using (var reader = new BinaryReader(stream, ByteEncoding.Encoding))
+            using (var reader = new BinaryReader(stream))
             {
                 var signature = new String(reader.ReadChars(8));
                 if (signature == "SIMISA@F")
@@ -54,8 +53,7 @@ namespace Orts.Formats.Msts
                     var zlib = reader.ReadUInt16();
                     if ((zlib & 0x20FF) != 0x0078) throw new InvalidDataException(String.Format("Incorrect signature; expected 'xx78', got '{0:X4}'", zlib));
 
-                    // The BufferedInMemoryStream is needed because DeflateStream only supports reading forwards - no seeking.
-                    return Texture2DFromReader(graphicsDevice, new BinaryReader(new BufferedInMemoryStream(new DeflateStream(stream, CompressionMode.Decompress))));
+                    return Texture2DFromReader(graphicsDevice, new BinaryReader(new DeflateStream(stream, CompressionMode.Decompress)));
                 }
                 if (signature == "SIMISA@@")
                 {
