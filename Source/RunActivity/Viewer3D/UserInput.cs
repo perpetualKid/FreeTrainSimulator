@@ -29,9 +29,10 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows;
-using Microsoft.Xna.Framework.Input;
-using ORTS.Settings;
 using System.Linq;      //DEBUG_INPUT only
+using Microsoft.Xna.Framework.Input;
+using ORTS.Common.Input;
+using ORTS.Settings;
 using Game = Orts.Viewer3D.Processes.Game;
 using ORTS.Common;
 
@@ -114,7 +115,7 @@ namespace Orts.Viewer3D
                 Console.WriteLine("Mouse scrollwheel changed by {0}", MouseWheelChange);
 #endif
 #if DEBUG_USER_INPUT
-            foreach (UserCommands command in Enum.GetValues(typeof(UserCommands)))
+            foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
             {
                 if (UserInput.IsPressed(command))
                     Console.WriteLine("Pressed  {0} - {1}", command, InputSettings.Commands[(int)command]);
