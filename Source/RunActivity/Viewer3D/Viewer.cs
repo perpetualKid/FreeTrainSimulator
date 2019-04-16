@@ -17,6 +17,14 @@
 
 // This file is the responsibility of the 3D & Environment Team.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Management;
+using System.Threading;
+using System.Windows.Forms;
 using GNU.Gettext;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -32,16 +40,8 @@ using Orts.Viewer3D.Popups;
 using Orts.Viewer3D.Processes;
 using Orts.Viewer3D.RollingStock;
 using ORTS.Common;
+using ORTS.Common.Input;
 using ORTS.Settings;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Management;
-using System.Threading;
-using System.Windows.Forms;
 using Event = Orts.Common.Event;
 
 namespace Orts.Viewer3D

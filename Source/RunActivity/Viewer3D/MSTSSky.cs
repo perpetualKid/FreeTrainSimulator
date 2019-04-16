@@ -17,15 +17,15 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Viewer3D.Common;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
-using ORTS.Settings;
-using System;
-using System.Collections.Generic;
+using ORTS.Common.Input;
 
 namespace Orts.Viewer3D
 {
