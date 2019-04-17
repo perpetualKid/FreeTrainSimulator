@@ -1716,8 +1716,9 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Calculate minimum speed to pickup water
-               WaterScoopMinSpeedMpS = Me.FromFt((float)Math.Sqrt(2 * 32.2 * Me.ToFt(WaterScoopFillElevationM)));
-            
+            const float Aconst = 2;
+            WaterScoopMinSpeedMpS = Me.FromFt((float)Math.Sqrt(Aconst * GravitationalAccelerationFtpSpS * Me.ToFt(WaterScoopFillElevationM)));
+
             // If DrvWheelWeight is not in ENG file, then calculate from Factor of Adhesion(FoA) = DrvWheelWeight / Start (Max) Tractive Effort, assume FoA = 4.2
 
             if (DrvWheelWeightKg == 0) // if DrvWheelWeightKg not in ENG file.
@@ -2210,8 +2211,7 @@ namespace Orts.Simulation.RollingStocks
 
             if (RefillingFromTrough && !IsOverTrough())
             {
-                // Bad thing, scoop gets broken!
-                Simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop broken because activated outside through"));
+                // Don't set refill values
                 WaterController.UpdateValue = 0.0f;
                 RefillingFromTrough = false;
                 SignalEvent(Event.WaterScoopUp);
@@ -2227,7 +2227,7 @@ namespace Orts.Simulation.RollingStocks
 
         private void UpdateTender(float elapsedClockSeconds)
         {
-
+            TenderWaterLevelFraction = CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG;
             float TempCylinderSteamUsageLbpS = CylinderSteamUsageLBpS;
             // Limit Cylinder steam usage to the maximum boiler evaporation rate, lower limit is for when the locomotive is at rest and "no steam" is being used by cylinder, ensures some coal is used.
             TempCylinderSteamUsageLbpS = MathHelper.Clamp(TempCylinderSteamUsageLbpS, 0.1f, TheoreticalMaxSteamOutputLBpS); 
@@ -2364,43 +2364,55 @@ namespace Orts.Simulation.RollingStocks
             // Water scoop fill charateristics can be found in - 
             // Calculate water velocity entering pipe: v = SQRT ( loco speed^2 - 2 * gravity * h)
             // Calculate the drag of the water scoop in the water: Drag Force = 0.5 * Drag Coeff * Fluid Density * Reference Area * Velocity
-            
-            if (HasWaterScoop && IsWaterScoopDown && RefillingFromTrough && Direction == Direction.Forward && AbsSpeedMpS > WaterScoopMinSpeedMpS)
+
+            if (RefillingFromTrough && Direction == Direction.Forward && AbsSpeedMpS > WaterScoopMinSpeedMpS)
             {
-            // Calculate water velocity
-            const float GravitationalAccelerationFtpSpsS = 32.26f;
-               float Avalue = ((float)Math.Pow(MpS.ToMpH(absSpeedMpS), 2) * 2.15f);
-               float Bvalue = 2.0f * GravitationalAccelerationFtpSpsS * Me.ToFt(WaterScoopFillElevationM);
-               
-               if (Avalue > Bvalue)
-               {
-                  WaterScoopVelocityMpS = Me.FromFt((float)Math.Sqrt(Avalue - Bvalue));
-               }
-               else
-               {
-                  WaterScoopVelocityMpS = 0;
-               }
-               
-               // calculate volume of water scooped per period
-               const float CuFttoGalUK = 6.22884f; // imperial gallons of water in a cubic foot of water
-               WaterScoopedQuantityGalukpS = Me2.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Me.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK;
-               WaterScoopInputAmountGals = WaterScoopedQuantityGalukpS * elapsedClockSeconds; // Calculate current input quantity
-               CombinedTenderWaterVolumeUKG += WaterScoopInputAmountGals; // add the amouunt of water added by scoop
-//                Trace.TraceInformation("Water Scoop - Current {0} Added {1}", TenderWaterPercent, WaterScoopedQuantityGalukpS * elapsedClockSeconds / MaxTotalCombinedWaterVolumeUKG);
-               
-               // Calculate drag force
-               float ScoopDragCoeff = 1.05f;
-               float ScoopDragAreaM = WaterScoopDepthM * WaterScoopWidthM;
-               float ScoopFluidDensityKgpM3 = 998.2f; // Fuild density of water @ 20c
-               WaterScoopDragForceN = 0.5f * ScoopDragCoeff * ScoopFluidDensityKgpM3 * ScoopDragAreaM * absSpeedMpS * absSpeedMpS;
-             
+                // Calculate water velocity
+                const float Aconst = 2;
+                const float Bconst = 2.15f;
+                float Avalue = ((float)Math.Pow(MpS.ToMpH(absSpeedMpS), 2) * Bconst);
+                float Bvalue = Aconst * GravitationalAccelerationFtpSpS * Me.ToFt(WaterScoopFillElevationM);
+                
+                if (Avalue > Bvalue)
+                {
+                    WaterScoopVelocityMpS = Me.FromFt((float)Math.Sqrt(Avalue - Bvalue));
+                }
+                else
+                {
+                    WaterScoopVelocityMpS = 0;
+                }
+                
+                // calculate volume of water scooped per period
+                const float CuFttoGalUK = 6.22884f; // imperial gallons of water in a cubic foot of water
+                WaterScoopedQuantityLpS = L.FromGUK(Me2.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Me.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK);
+                WaterScoopInputAmountL = WaterScoopedQuantityLpS * elapsedClockSeconds; // Calculate current input quantity
+                
+                // Max sure that water level can't exceed maximum tender water level. Assume that water will be vented out of tender if maximum value exceeded. 
+                // If filling from water trough this will be done with force
+                const float NominalExtraWaterVolumeFactor = 1.0001f;
+                CombinedTenderWaterVolumeUKG += L.ToGUK(WaterScoopInputAmountL); // add the amouunt of water added by scoop
+                WaterScoopTotalWaterL += WaterScoopInputAmountL;
+                
+                CombinedTenderWaterVolumeUKG = MathHelper.Clamp(CombinedTenderWaterVolumeUKG, 0.0f, MaxTotalCombinedWaterVolumeUKG * NominalExtraWaterVolumeFactor);
+                
+                // Calculate drag force
+                float ScoopDragCoeff = 1.05f;
+                float ScoopDragAreaM = WaterScoopDepthM * WaterScoopWidthM;
+                float ScoopFluidDensityKgpM3 = 998.2f; // Fuild density of water @ 20c
+                WaterScoopDragForceN = 0.5f * ScoopDragCoeff * ScoopFluidDensityKgpM3 * ScoopDragAreaM * absSpeedMpS * absSpeedMpS;
+
             }
             else // Ensure water scoop values are zero if not taking water.
             {
-               WaterScoopDragForceN = 0f;
-               WaterScoopedQuantityGalukpS = 0;
-               WaterScoopInputAmountGals = 0;
-               WaterScoopVelocityMpS = 0;
+                WaterScoopDragForceN = 0f;
+                WaterScoopedQuantityLpS = 0;
+                WaterScoopInputAmountL = 0;
+                WaterScoopVelocityMpS = 0;
+                
+                if (!IsOverTrough()) // Only reset once train moves off the trough
+                {
+                    WaterScoopTotalWaterL = 0.0f; // Reset amount of water picked up by water sccop.
+                }
             }
 
         }
@@ -5763,7 +5775,6 @@ namespace Orts.Simulation.RollingStocks
                     status.AppendFormat("{0} = {1:F0}%\n", Simulator.Catalog.GetString("Fire Heat Loss"), FireHeatLossPercent * 100);
             }
 
-//            status.AppendFormat("{0}{5} = {3:F0}% {1}, {4:F0}% {2}{5}\n", Simulator.Catalog.GetString("Fuel levels"), Simulator.Catalog.GetString("coal"), Simulator.Catalog.GetString("water"), 100 * coalPercent, 100 * waterPercent, fuelSafety);
             status.AppendFormat("{0}{5} = {3:F0}% {1}, {4:F0}% {2}{5}\n", Simulator.Catalog.GetString("Fuel levels"), Simulator.Catalog.GetString("coal"), Simulator.Catalog.GetString("water"), 100 * coalPercent, 100 * TenderWaterPercent, fuelSafety);
 
             return status.ToString();
@@ -6445,8 +6456,8 @@ namespace Orts.Simulation.RollingStocks
             if (HasWaterScoop)
             {
                status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Water Scoop"));
-               status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13},\t{14}\n",
-               Simulator.Catalog.GetString("Fill:"),
+                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\n",
+                Simulator.Catalog.GetString("Fill:"),
                Simulator.Catalog.GetString("ScDwn"),
                IsWaterScoopDown ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                Simulator.Catalog.GetString("ScBrk"),
@@ -6458,9 +6469,11 @@ namespace Orts.Simulation.RollingStocks
                Simulator.Catalog.GetString("Drag"),
                FormatStrings.FormatForce(WaterScoopDragForceN, IsMetric),
                Simulator.Catalog.GetString("WaterU"),
-               FormatStrings.FormatFuelVolume(L.FromGUK(WaterScoopedQuantityGalukpS), IsMetric, IsUK),
-               Simulator.Catalog.GetString("InputG"),
-               WaterScoopInputAmountGals
+               FormatStrings.FormatFuelVolume(WaterScoopedQuantityLpS, IsMetric, IsUK),
+               Simulator.Catalog.GetString("Input"),
+               FormatStrings.FormatFuelVolume(WaterScoopInputAmountL, IsMetric, IsUK),
+               Simulator.Catalog.GetString("Total"),
+               FormatStrings.FormatFuelVolume(WaterScoopTotalWaterL, IsMetric, IsUK)
                
                );
             }

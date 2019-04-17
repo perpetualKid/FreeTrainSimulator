@@ -153,10 +153,14 @@ namespace Orts.Simulation.RollingStocks
         public float WaterScoopWidthM; // width of water scoop
         public float WaterScoopVelocityMpS; // Velocity of water entering water scoop
         public float WaterScoopDragForceN; // drag force due to scoop being in water trough
-        public float WaterScoopedQuantityGalukpS; // Amount of water scooped up by water scoop per second
-        public float WaterScoopInputAmountGals; // Water scooped in elapsed time
+        public float WaterScoopedQuantityLpS; // Amount of water scooped up by water scoop per second
+        public float WaterScoopInputAmountL; // Water scooped in elapsed time
         public float WaterScoopMinSpeedMpS; // Minimum speed for water pickup
         public bool IsWaterScoopDown = false;
+        public const float GravitationalAccelerationFtpSpS = 32.26f;
+        public float TenderWaterLevelFraction;
+        public float WaterScoopTotalWaterL;
+
 
         // Vacuum Reservoir and Exhauster Settings
 

@@ -158,6 +158,11 @@ namespace Orts.Simulation.RollingStocks
         public float WaterScoopWaterVelocityMpS;
         public float WaterScoopWaterVolumeM3pS;
 
+        // Tender Water overflow
+        public float TenderWaterOverflowParticleDurationS;
+        public float TenderWaterOverflowVelocityMpS;
+        public float TenderWaterOverflowVolumeM3pS;
+
         // Wagon Power Generator
         public float WagonGeneratorDurationS = 1.5f;
         public float WagonGeneratorVolumeM3pS = 2.0f;
@@ -1294,6 +1299,9 @@ namespace Orts.Simulation.RollingStocks
 
             UpdateSpecialEffects(elapsedClockSeconds); // Updates the special effects
 
+            var LocomotiveIdentity = Simulator.PlayerLocomotive as MSTSLocomotive;
+           
+
             // Update Aux Tender Information
 
             // TODO: Replace AuxWagonType with new values of WagonType or similar. It's a bad idea having two fields that are nearly the same but not quite.
@@ -2086,6 +2094,17 @@ namespace Orts.Simulation.RollingStocks
                 WaterScoopParticleDurationS = 0.75f;
                 WaterScoopWaterVelocityMpS = 30.0f;
                 WaterScoopWaterVolumeM3pS = 6.0f;
+
+                // Turn tender water overflow on if water level is greater then 100% nominally
+                if (LocomotiveIdentification.TenderWaterLevelFraction >= 0.9999)
+                {
+                
+                // Turn tender water overflow on 
+                  TenderWaterOverflowParticleDurationS = 0.75f;
+                  TenderWaterOverflowVelocityMpS = 30.0f;
+                  TenderWaterOverflowVolumeM3pS = 6.0f;
+                }
+
             }
             else
             {
@@ -2093,6 +2112,12 @@ namespace Orts.Simulation.RollingStocks
                 WaterScoopParticleDurationS = 0.0f;
                 WaterScoopWaterVelocityMpS = 0.0f;
                 WaterScoopWaterVolumeM3pS = 0.0f;
+
+                // Turn tender water overflow off 
+                TenderWaterOverflowParticleDurationS = 0.0f;
+                TenderWaterOverflowVelocityMpS = 0.0f;
+                TenderWaterOverflowVolumeM3pS = 0.0f;
+
             }
 
             // Decrease wagon smoke as speed increases, smoke completely dissappears when wagon reaches 5MpS.

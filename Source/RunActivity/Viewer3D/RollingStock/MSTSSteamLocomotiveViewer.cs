@@ -223,13 +223,13 @@ namespace Orts.Viewer3D.RollingStock
         }
 
         /// <summary>
-        /// Checks if on trough. If not, tell that the scoop is destroyed; else, starts refilling
+        /// Checks if on trough. If not, prevent refilling; else, starts refilling
         /// </summary>
         public void AttemptToRefillFromTrough()
         {
             if (!SteamLocomotive.HasWaterScoop)
             {
-                Viewer.Simulator.Confirmer.Message(ConfirmLevel.Warning, Viewer.Catalog.GetString("No scoop in this loco"));
+                Viewer.Simulator.Confirmer.Message(ConfirmLevel.Warning, Viewer.Catalog.GetString("No water scoop on this loco"));
                 return;
             }
             if (SteamLocomotive.ScoopIsBroken)
@@ -237,10 +237,16 @@ namespace Orts.Viewer3D.RollingStock
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.Error, Viewer.Catalog.GetString("Scoop is broken, can't refill"));
                 return;
             }
+            if (SteamLocomotive.IsOverJunction())
+            {
+                Viewer.Simulator.Confirmer.Message(ConfirmLevel.Error, Viewer.Catalog.GetString("Scoop is broken by junction track"));
+                SteamLocomotive.ScoopIsBroken = true;
+                return;
+            }
             if (!SteamLocomotive.IsOverTrough())
             {
                 // Bad thing, scoop gets broken!
-                Viewer.Simulator.Confirmer.Message(ConfirmLevel.Error, Viewer.Catalog.GetString("Scoop broken because activated outside trough"));
+                Viewer.Simulator.Confirmer.Message(ConfirmLevel.Error, Viewer.Catalog.GetString("Scoop is not over trough, can't refill"));
                 return;
             }
             if (SteamLocomotive.Direction == Direction.Reverse)
@@ -268,10 +274,8 @@ namespace Orts.Viewer3D.RollingStock
             //                return;
             //            }
 
-            //TODO - causes damage to locomotive if over full????
-
             var fraction = SteamLocomotive.GetFilledFraction((uint)MSTSWagon.PickupType.FuelWater);
-            if (fraction > 0.99)
+            if (fraction > 1.0)
             {
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: {0} supply now replenished.",
                     PickupTypeDictionary[(uint)MSTSWagon.PickupType.FuelWater]));
@@ -284,7 +288,6 @@ namespace Orts.Viewer3D.RollingStock
                 SteamLocomotive.RefillingFromTrough = true;
                 SteamLocomotive.IsWaterScoopDown = true;
                 SteamLocomotive.SignalEvent(Event.WaterScoopDown);
-//                StartRefilling((uint)MSTSWagon.PickupType.FuelWater, fraction);
             }
 
         }

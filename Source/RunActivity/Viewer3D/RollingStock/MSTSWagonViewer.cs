@@ -70,6 +70,7 @@ namespace Orts.Viewer3D.RollingStock
         // Create viewers for special steam/smoke effects on car
         List<ParticleEmitterViewer> HeatingHose = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WaterScoop = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> TenderWaterOverflow = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WagonSmoke = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> HeatingSteamBoiler = new List<ParticleEmitterViewer>();
 
@@ -138,7 +139,7 @@ namespace Orts.Viewer3D.RollingStock
                 }
 
 
-                // Water spray for when water scoop is in use (use steam effects for the time being 
+                // Water spray for when water scoop is in use (use steam effects for the time being)
 
                 if (emitter.Key.ToLowerInvariant() == "waterscoopfx")
                     WaterScoop.AddRange(emitter.Value);
@@ -146,6 +147,16 @@ namespace Orts.Viewer3D.RollingStock
                 foreach (var drawer in WaterScoop)
                 {
                     drawer.Initialize(steamTexture);
+                }
+
+                // Water overflow when tender is over full during water trough filling (use steam effects for the time being) 
+
+                if (emitter.Key.ToLowerInvariant() == "tenderwateroverflowfx")
+                   TenderWaterOverflow.AddRange(emitter.Value);
+                
+                foreach (var drawer in TenderWaterOverflow)
+                {
+                   drawer.Initialize(steamTexture);
                 }
 
             }
@@ -494,6 +505,12 @@ namespace Orts.Viewer3D.RollingStock
             foreach (var drawer in WaterScoop)
             {
                 drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+            }
+
+            // Water overflow from tender (uses steam effects currently)
+            foreach (var drawer in TenderWaterOverflow)
+            {
+                drawer.SetOutput(car.TenderWaterOverflowVelocityMpS, car.TenderWaterOverflowVolumeM3pS, car.TenderWaterOverflowParticleDurationS);
             }
 
             foreach (List<ParticleEmitterViewer> drawers in ParticleDrawers.Values)
