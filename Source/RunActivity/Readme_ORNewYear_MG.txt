@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.16
-April 11th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.17
+April 18th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -13,7 +13,7 @@ you would return to a non-MG OR version.
 
 RELEASE NOTES
 This unofficial version is based on the Monogame XNA emulation software (release 3.7.1).
-It has been derived from the official Open Rails revision X1.3.1-46-etc, by modifying anything needed to access the Monogame software.
+It has been derived from the official Open Rails revision X1.3.1-50-etc, by modifying anything needed to access the Monogame software.
 The Monogame modification are in sync with the ones of perpetualKid.
 Moreover it includes some features not (yet) available in the Open Rails official version, that is:
 - addition of track sounds in the sound debug window
@@ -24,7 +24,8 @@ Moreover it includes some features not (yet) available in the Open Rails officia
 - enable/disable on screen control confirmations with Ctrl-Alt-F10
 - removal of on screen notification of camera change
 - dynamic management of trough refill
-- bug fix for https://bugs.launchpad.net/or/+bug/1824364 Precipitation is falling within 3D cab.
+- bug fix for https://bugs.launchpad.net/or/+bug/1824364 Precipitation is falling within 3D cab
+- activity specific options setting.
 
 
 CREDITS
@@ -35,7 +36,7 @@ This unofficial version couldn't have been created without following contributio
 - Carlo Santucci, who updated Peter Gulyas' work and provided some additional features
 - Dennis A T, which was of great help by providing many important patches, by performing testing activities and by providing the sound debug window patch
 - Mauricio (mbm_OR), who provided the F5 HUD scrolling feature
-- steamer_ctn, who provided the dynamic management of trough refill
+- steamer_ctn, who provided the dynamic management of trough refill and the activity specific options setting
 - perpetualKid, which now manages the process of refining the MG porting
 - all those who contributed with ideas and provided contents for testing and pointed to malfunctions.
 
