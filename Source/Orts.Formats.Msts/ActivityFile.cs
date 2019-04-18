@@ -488,6 +488,34 @@ namespace Orts.Formats.Msts
         public ActivityRestrictedSpeedZones ActivityRestrictedSpeedZones;
         public int ORTSAIHornAtCrossings = -1;
 
+        // Override values for activity creators
+        bool IsActivityOverride = false;
+
+        // General TAB
+        public int ORTSOptionsGraduatedBrakeRelease = -1;
+        public int ORTSOptionsViewDispatcherWindow = -1;
+
+
+        // Video TAB
+        public int ORTSOptionsFastFullScreenAltTab = -1;
+
+        // Simulation TAB
+        public int ORTSOptionsForcedRedAtStationStops = -1;
+        public int ORTSOptionsAutopilot = -1;
+        public int ORTSOptionsExtendedAITrainShunting = -1;
+        public int ORTSOptionsUseAdvancedAdhesion = -1;
+        public int ORTSOptionsBreakCouplers = -1;
+        public int ORTSOptionsCurveResistanceDependent = -1;
+        public int ORTSOptionsCurveSpeedDependent = -1;
+        public int ORTSOptionsTunnelResistanceDependent = -1;
+        public int ORTSOptionsWindResistanceDependent = -1;
+        public int ORTSOptionsHotStart = -1;
+
+        // Experimental TAB
+        public int ORTSOptionsUseLocationPassingPaths = -1;
+        public int ORTSOptionsAdhesionFactor = -1;
+        public int ORTSOptionsAdhesionFactorChange = -1;
+
 
         public Tr_Activity_File(STFReader stf) {
             stf.MustMatch("(");
@@ -521,6 +549,32 @@ namespace Orts.Formats.Msts
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortsaihornatcrossings", ()=>{ ORTSAIHornAtCrossings = stf.ReadIntBlock(ORTSAIHornAtCrossings); }),
+
+                // General TAB
+                new STFReader.TokenProcessor("ortsgraduatedbrakerelease", ()=>{ ORTSOptionsGraduatedBrakeRelease = stf.ReadIntBlock(ORTSOptionsGraduatedBrakeRelease); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortsviewdispatchwindow", ()=>{ ORTSOptionsViewDispatcherWindow = stf.ReadIntBlock(ORTSOptionsViewDispatcherWindow); IsActivityOverride = true; }),
+
+                // Video TAB
+                new STFReader.TokenProcessor("ortsfastfullscreenalttab", ()=>{ ORTSOptionsFastFullScreenAltTab = stf.ReadIntBlock(ORTSOptionsFastFullScreenAltTab); IsActivityOverride = true; }),
+
+                // Simulation TAB
+                new STFReader.TokenProcessor("ortsforcedredatstationstops", ()=>{ ORTSOptionsForcedRedAtStationStops = stf.ReadIntBlock(ORTSOptionsForcedRedAtStationStops); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortsautopilot", ()=>{ ORTSOptionsAutopilot = stf.ReadIntBlock(ORTSOptionsAutopilot); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortsextendedaitrainshunting", ()=>{ ORTSOptionsExtendedAITrainShunting = stf.ReadIntBlock(ORTSOptionsExtendedAITrainShunting); IsActivityOverride = true; }),
+
+                new STFReader.TokenProcessor("ortsuseadvancedadhesion", ()=>{ ORTSOptionsUseAdvancedAdhesion = stf.ReadIntBlock(ORTSOptionsUseAdvancedAdhesion); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortsbreakcouplers", ()=>{ ORTSOptionsBreakCouplers = stf.ReadIntBlock(ORTSOptionsBreakCouplers); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortscurveresistancedependent", ()=>{ ORTSOptionsCurveResistanceDependent = stf.ReadIntBlock(ORTSOptionsCurveResistanceDependent); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortscurvespeeddependent", ()=>{ ORTSOptionsCurveSpeedDependent = stf.ReadIntBlock(ORTSOptionsCurveSpeedDependent); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortstunnelresistancedependent", ()=>{ ORTSOptionsTunnelResistanceDependent = stf.ReadIntBlock(ORTSOptionsTunnelResistanceDependent); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortswindresistancedependent", ()=>{ ORTSOptionsWindResistanceDependent = stf.ReadIntBlock(ORTSOptionsWindResistanceDependent); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortshotstart", ()=>{ ORTSOptionsHotStart = stf.ReadIntBlock(ORTSOptionsHotStart); IsActivityOverride = true; }),
+
+                // Experimental TAB
+                new STFReader.TokenProcessor("ortslocationlinkedpassingpaths", ()=>{ ORTSOptionsUseLocationPassingPaths = stf.ReadIntBlock(ORTSOptionsUseLocationPassingPaths); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortsadhesionfactorcorrection", ()=>{ ORTSOptionsAdhesionFactor = stf.ReadIntBlock(ORTSOptionsAdhesionFactor); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortsadhesionfactorchange", ()=>{ ORTSOptionsAdhesionFactorChange = stf.ReadIntBlock(ORTSOptionsAdhesionFactorChange); IsActivityOverride = true; }),
+
                 new STFReader.TokenProcessor("events",()=>
                 {
                     if ( Events == null) Events = new Events(stf);
@@ -528,6 +582,194 @@ namespace Orts.Formats.Msts
                 }
                 ),
             });
+        }
+
+        // Override User settings with activity creator settings if present in INCLUDE file
+        public void OverrideUserSettings(ORTS.Settings.UserSettings setting)
+        {
+            if (IsActivityOverride)
+            {
+                Trace.Write("\n------------------------------------------------------------------------------------------------");
+                Trace.Write("\nThe following Options settings have been set by this activity:");
+
+                // General TAB 
+                if (ORTSOptionsGraduatedBrakeRelease == 1)
+                {
+                    setting.GraduatedRelease = true;
+                    Trace.Write("\nGraduated Brake Release          =   True");
+                }
+                else if (ORTSOptionsGraduatedBrakeRelease == 0)
+                {
+                    setting.GraduatedRelease = false;
+                    Trace.Write("\nGraduated Brake Release          =   False");
+
+                }
+
+
+                if (ORTSOptionsViewDispatcherWindow == 1)
+                {
+                    setting.ViewDispatcher = true;
+                    Trace.Write("\nView Dispatch Window             =   True");
+                }
+                else if (ORTSOptionsViewDispatcherWindow == 0)
+                {
+                    setting.ViewDispatcher = false;
+                    Trace.Write("\nView Dispatch Window             =   False");
+                }
+
+                // Video TAB
+                if (ORTSOptionsFastFullScreenAltTab == 1)
+                {
+                    setting.FastFullScreenAltTab = true;
+                    Trace.Write("\nFast Full Screen Alt TAB         =   True");
+                }
+                else if (ORTSOptionsFastFullScreenAltTab == 0)
+                {
+                    setting.FastFullScreenAltTab = false;
+                    Trace.Write("\nFast Full Screen Alt TAB         =   False");
+                }
+
+
+                // Simulation TAB
+                if (ORTSOptionsAutopilot == 1)
+                {
+                    setting.Autopilot = true;
+                    Trace.Write("\nAutopilot                        =   True");
+                }
+                else if (ORTSOptionsAutopilot == 0)
+                {
+                    setting.Autopilot = false;
+                    Trace.Write("\nAutopilot                        =   False");
+                }
+
+                if (ORTSOptionsForcedRedAtStationStops == 1)
+                {
+                    setting.NoForcedRedAtStationStops = false; // Note this parameter is reversed in its logic to others.
+                    Trace.Write("\nForced Red at Station Stops      =   True");
+                }
+                else if (ORTSOptionsForcedRedAtStationStops == 0)
+                {
+                    setting.NoForcedRedAtStationStops = true; // Note this parameter is reversed in its logic to others.
+                    Trace.Write("\nForced Red at Station Stops      =   False");
+                }
+
+
+                if (ORTSOptionsExtendedAITrainShunting == 1)
+                {
+                    setting.ExtendedAIShunting = true;
+                    Trace.Write("\nExtended AI Train Shunting       =   True");
+                }
+                else if (ORTSOptionsExtendedAITrainShunting == 0)
+                {
+                    setting.ExtendedAIShunting = false;
+                    Trace.Write("\nExtended AI Train Shunting       =   False");
+                }
+
+                if (ORTSOptionsUseAdvancedAdhesion == 1)
+                {
+                    setting.UseAdvancedAdhesion = true;
+                    Trace.Write("\nUse Advanced Adhesion            =   True");
+                }
+                else if (ORTSOptionsUseAdvancedAdhesion == 0)
+                {
+                    setting.UseAdvancedAdhesion = false;
+                    Trace.Write("\nUse Advanced Adhesion            =   False");
+                }
+
+                if (ORTSOptionsBreakCouplers == 1)
+                {
+                    setting.BreakCouplers = true;
+                    Trace.Write("\nBreak Couplers                   =   True");
+                }
+                else if (ORTSOptionsBreakCouplers == 0)
+                {
+                    setting.BreakCouplers = false;
+                    Trace.Write("\nBreak Couplers                   =   False");
+                }
+
+                if (ORTSOptionsCurveResistanceDependent == 1)
+                {
+                    setting.CurveResistanceDependent = true;
+                    Trace.Write("\nCurve Resistance Dependent       =   True");
+                }
+                else if (ORTSOptionsCurveResistanceDependent == 0)
+                {
+                    setting.CurveResistanceDependent = false;
+                    Trace.Write("\nCurve Resistance Dependent       =   False");
+                }
+
+                if (ORTSOptionsCurveSpeedDependent == 1)
+                {
+                    setting.CurveSpeedDependent = true;
+                    Trace.Write("\nCurve Speed Dependent            =   True");
+                }
+                else if (ORTSOptionsCurveSpeedDependent == 1)
+                {
+                    setting.CurveSpeedDependent = false;
+                    Trace.Write("\nCurve Speed Dependent            =   False");
+                }
+
+                if (ORTSOptionsTunnelResistanceDependent == 1)
+                {
+                    setting.TunnelResistanceDependent = true;
+                    Trace.Write("\nTunnel Resistance Dependent      =   True");
+                }
+                else if (ORTSOptionsTunnelResistanceDependent == 0)
+                {
+                    setting.TunnelResistanceDependent = false;
+                    Trace.Write("\nTunnel Resistance Dependent      =   False");
+                }
+
+                if (ORTSOptionsWindResistanceDependent == 1)
+                {
+                    setting.WindResistanceDependent = true;
+                    Trace.Write("\nWind Resistance Dependent        =   True");
+                }
+                else if (ORTSOptionsWindResistanceDependent == 0)
+                {
+                    setting.WindResistanceDependent = false;
+                    Trace.Write("\nWind Resistance Dependent        =   False");
+                }
+
+                if (ORTSOptionsHotStart == 1)
+                {
+                    setting.HotStart = true;
+                    Trace.Write("\nHot Start                        =   True");
+                }
+                else if (ORTSOptionsHotStart == 0)
+                {
+                    setting.HotStart = false;
+                    Trace.Write("\nHot Start                        =   False");
+                }
+
+                // Experimental TAB
+                if (ORTSOptionsUseLocationPassingPaths == 1)
+                {
+                    setting.UseLocationPassingPaths = true;
+                    Trace.Write("\nLocation Linked Passing Paths    =   True");
+                }
+                else if (ORTSOptionsUseLocationPassingPaths == 0)
+                {
+                    setting.UseLocationPassingPaths = false;
+                    Trace.Write("\nLocation Linked Passing Paths    =   False");
+                }
+                // ToDo - Limit inputs to reasonable range?
+
+                if (ORTSOptionsAdhesionFactor > 0)
+                {
+                    setting.AdhesionFactor = ORTSOptionsAdhesionFactor;
+                    Trace.Write("\nAdhesion Factor Correction       =   Changed");
+                }
+
+                if (ORTSOptionsAdhesionFactorChange > 0)
+                {
+                    setting.AdhesionFactorChange = ORTSOptionsAdhesionFactorChange;
+                    Trace.Write("\nAdhesion Factor Change           =   Changed");
+                }
+
+                Trace.Write("\n------------------------------------------------------------------------------------------------");
+
+            }
         }
     }
 
