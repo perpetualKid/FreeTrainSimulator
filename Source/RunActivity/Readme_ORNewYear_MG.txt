@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.17
-April 18th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.18
+April 19th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -13,7 +13,7 @@ you would return to a non-MG OR version.
 
 RELEASE NOTES
 This unofficial version is based on the Monogame XNA emulation software (release 3.7.1).
-It has been derived from the official Open Rails revision X1.3.1-50-etc, by modifying anything needed to access the Monogame software.
+It has been derived from the official Open Rails revision X1.3.1-52-etc, by modifying anything needed to access the Monogame software.
 The Monogame modification are in sync with the ones of perpetualKid.
 Moreover it includes some features not (yet) available in the Open Rails official version, that is:
 - addition of track sounds in the sound debug window

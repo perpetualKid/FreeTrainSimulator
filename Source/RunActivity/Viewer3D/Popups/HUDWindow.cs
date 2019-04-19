@@ -1234,7 +1234,18 @@ namespace Orts.Viewer3D.Popups
         
         void TextPageDispatcherInfo(TableData table)
         {
-            TextPageHeading(table, Viewer.Catalog.GetString("DISPATCHER INFORMATION"));
+            // count active trains
+            int totalactive = 0;
+            foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
+            {
+                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != Train.TRAINTYPE.AI_INCORPORATED)
+                {
+                    totalactive++;
+                }
+            }
+
+            TextPageHeading(table, Viewer.Catalog.GetString("DISPATCHER INFORMATION : active trains : " + totalactive));
+
 
             ResetHudScroll();//Reset HudScroll
 
@@ -1295,20 +1306,41 @@ namespace Orts.Viewer3D.Popups
                 }
             }
 
-            // next is active AI trains
+            // next is active AI trains which are delayed
             foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
             {
                 if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != Train.TRAINTYPE.PLAYER
                     && thisTrain.TrainType != Train.TRAINTYPE.AI_INCORPORATED)
                 {
-                    var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
-                    status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);
+                    if (thisTrain.Delay.HasValue && thisTrain.Delay.Value.TotalMinutes >= 1)
+                    {
+                        var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
+                        status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);
+                        //HudScroll
+                        if (Viewer.SelectedTrain.Name == thisTrain.Name)
+                             TextToYellowColor = status[0];
 
-                    //HudScroll
-                    if (Viewer.SelectedTrain.Name == thisTrain.Name)
-                        TextToYellowColor = status[0];
+                        statusDispatcher.Add(status);
+                    }
+                }
+            }
 
-                    statusDispatcher.Add(status);
+            // next is active AI trains which are not delayed
+            foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
+            {
+                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != Train.TRAINTYPE.PLAYER
+                    && thisTrain.TrainType != Train.TRAINTYPE.AI_INCORPORATED)
+                {
+                    if (!thisTrain.Delay.HasValue || thisTrain.Delay.Value.TotalMinutes < 1)
+                    {
+                        var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
+                        status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);
+                        //HudScroll
+                        if (Viewer.SelectedTrain.Name == thisTrain.Name)
+                            TextToYellowColor = status[0];
+
+                        statusDispatcher.Add(status);
+                    }
                 }
             }
 
