@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.18
-April 19th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.19
+April 20th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -25,7 +25,8 @@ Moreover it includes some features not (yet) available in the Open Rails officia
 - removal of on screen notification of camera change
 - dynamic management of trough refill
 - bug fix for https://bugs.launchpad.net/or/+bug/1824364 Precipitation is falling within 3D cab
-- activity specific options setting.
+- activity specific options setting
+- bug fix for https://bugs.launchpad.net/or/+bug/1825670 Crash when activity event at start of run.
 
 
 CREDITS
