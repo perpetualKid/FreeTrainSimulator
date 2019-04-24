@@ -35,5 +35,6 @@ steps:
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '..\..\Program\'
+    rootFolderOrFile: '$(Build.BinariesDirectory)'
     includeRootFolder: true 
+    verbose: true # Optional
