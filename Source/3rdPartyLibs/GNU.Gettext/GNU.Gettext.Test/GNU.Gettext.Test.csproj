@@ -10,7 +10,7 @@
     <RootNamespace>GNU.Gettext.Test</RootNamespace>
     <AssemblyName>GNU.Gettext.Test</AssemblyName>
     <StartupObject>GNU.Gettext.Test.MainClass</StartupObject>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>

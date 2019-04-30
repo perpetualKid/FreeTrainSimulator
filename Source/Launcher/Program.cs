@@ -57,7 +57,6 @@ namespace ORTS
             List<DependencyHint> missingDependencies = new List<DependencyHint>();
 
             CheckNetFx(missingDependencies);
-            CheckXNA(missingDependencies);
             CheckDXRuntime(missingDependencies);
 
             if (missingDependencies.Count > 0)
@@ -100,33 +99,15 @@ namespace ORTS
         static void CheckNetFx(List<DependencyHint> missingDependencies)
         {
             using (var RK = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"))
-                if ((SafeReadKey(RK, "Install", 0) == 1) && (SafeReadKey(RK, "Release", 0) >= 461808))  //https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed#find-net-framework-versions-45-and-later-with-code
+                if ((SafeReadKey(RK, "Install", 0) == 1) && (SafeReadKey(RK, "Release", 0) >= 528040))  //https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed#find-net-framework-versions-45-and-later-with-code
                     return;
 
             missingDependencies.Add(new DependencyHint()
             {
-                Name = ("Microsoft .NET Framework 4.7.2 or later"),
-                Text = "Please go to\n https://support.microsoft.com/en-us/help/4054530/microsoft-net-framework-4-7-2-offline-installer-for-windows \nto download the installation package " +
-                "for Microsoft .NET Framework 4.7.2 and install the software.",
-                Url = "https://support.microsoft.com/en-us/help/4054530/microsoft-net-framework-4-7-2-offline-installer-for-windows"
-            });
-        }
-
-        static void CheckXNA(List<DependencyHint> missingDependencies)
-        {
-            foreach (var key in new[] { @"SOFTWARE\Wow6432Node\Microsoft\XNA\Framework\v3.1", @"SOFTWARE\Microsoft\XNA\Framework\v3.1" })
-            {
-                using (var RK = Registry.LocalMachine.OpenSubKey(key))
-                    if (SafeReadKey(RK, "Installed", 0) == 1)
-                        return;
-            }
-
-            missingDependencies.Add(new DependencyHint()
-            {
-                Name = "Microsoft XNA Framework 3.1",
-                Text = "Please go to\n https://www.microsoft.com/en-us/download/details.aspx?id=15163 \nto download the installer for " +
-                "Microsoft XNA Framework Redistributable 3.1 and install the software.",
-                Url = "https://www.microsoft.com/en-us/download/details.aspx?id=15163"
+                Name = ("Microsoft .NET Framework 4.8 or later"),
+                Text = "Please go to\n https://dotnet.microsoft.com/download/dotnet-framework/net48 \nto download the installation package " +
+                "for Microsoft .NET Framework 4.8 and install the software.",
+                Url = "https://dotnet.microsoft.com/download/dotnet-framework/net48"
             });
         }
 
@@ -138,7 +119,7 @@ namespace ORTS
             missingDependencies.Add(new DependencyHint()
             {
                 Name = "DirectX 9 Runtime",
-                Text = "Please go to\n https://www.microsoft.com/en-us/download/details.aspx?id=35&nowin10 \nto download the web installer for " +
+                Text = $"Please go to\n https://www.microsoft.com/en-us/download/details.aspx?id=35&nowin10 \nto download the web installer for " +
                 "DirectX Runtime and install the software. While downloading and installing, you may uncheck the installation of MSN and Bing software.",
                 Url = "https://www.microsoft.com/en-us/download/details.aspx?id=35&nowin10"
             });
