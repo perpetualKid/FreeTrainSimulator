@@ -642,8 +642,8 @@ float4 PSSignalLight(in VERTEX_OUTPUT In) : COLOR0
 
 technique ImagePS2 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_1 VSGeneral2();
-		PixelShader = compile ps_4_0_level_9_1 PSImage2();
+		VertexShader = compile vs_5_0 VSGeneral2();
+		PixelShader = compile ps_5_0 PSImage2();
 	}
 }
 
@@ -656,8 +656,8 @@ technique ImagePS3 {
 
 technique TransferPS2 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_1 VSTransfer2();
-		PixelShader = compile ps_4_0_level_9_1 PSImage4();
+		VertexShader = compile vs_5_0 VSTransfer2();
+		PixelShader = compile ps_5_0 PSImage4();
 	}
 }
 
@@ -670,15 +670,15 @@ technique TransferPS3 {
 
 technique Forest {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_1 VSForest();
-		PixelShader = compile ps_4_0_level_9_1 PSVegetation();
+		VertexShader = compile vs_5_0 VSForest();
+		PixelShader = compile ps_5_0 PSVegetation();
 	}
 }
 
 technique VegetationPS2 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_1 VSGeneral2();
-		PixelShader = compile ps_4_0_level_9_1 PSVegetation();
+		VertexShader = compile vs_5_0 VSGeneral2();
+		PixelShader = compile ps_5_0 PSVegetation();
 	}
 }
 
@@ -691,8 +691,8 @@ technique VegetationPS3 {
 
 technique TerrainPS2 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_1 VSTerrain2();
-		PixelShader = compile ps_4_0_level_9_1 PSTerrain2();
+		VertexShader = compile vs_5_0 VSTerrain2();
+		PixelShader = compile ps_5_0 PSTerrain2();
 	}
 }
 
@@ -712,8 +712,8 @@ technique DarkShadePS3 {
 
 technique DarkShadePS2 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_1 VSGeneral2();
-		PixelShader = compile ps_4_0_level_9_1 PSDarkShade();
+		VertexShader = compile vs_5_0 VSGeneral2();
+		PixelShader = compile ps_5_0 PSDarkShade();
 	}
 }
 
@@ -726,8 +726,8 @@ technique HalfBrightPS3 {
 
 technique HalfBrightPS2 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_1 VSGeneral2();
-		PixelShader = compile ps_4_0_level_9_1 PSHalfBright();
+		VertexShader = compile vs_5_0 VSGeneral2();
+		PixelShader = compile ps_5_0 PSHalfBright();
 	}
 }
 
@@ -740,21 +740,21 @@ technique FullBrightPS3 {
 
 technique FullBrightPS2 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_1 VSGeneral2();
-		PixelShader = compile ps_4_0_level_9_1 PSFullBright();
+		VertexShader = compile vs_5_0 VSGeneral2();
+		PixelShader = compile ps_5_0 PSFullBright();
 	}
 }
 
 technique SignalLight {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_1 VSSignalLight();
-		PixelShader = compile ps_4_0_level_9_1 PSSignalLight();
+		VertexShader = compile vs_5_0 VSSignalLight();
+		PixelShader = compile ps_5_0 PSSignalLight();
 	}
 }
 
 technique SignalLightGlow {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_1 VSSignalLightGlow();
-		PixelShader = compile ps_4_0_level_9_1 PSSignalLight();
+		VertexShader = compile vs_5_0 VSSignalLightGlow();
+		PixelShader = compile ps_5_0 PSSignalLight();
 	}
 }

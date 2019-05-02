@@ -130,7 +130,7 @@ technique Precipitation
 {
 	pass Pass_0
 	{
-		VertexShader = compile vs_4_0_level_9_1 VSPrecipitation();
-		PixelShader = compile ps_4_0_level_9_1 PSPrecipitation();
+		VertexShader = compile vs_5_0 VSPrecipitation();
+		PixelShader = compile ps_5_0 PSPrecipitation();
 	}
 }

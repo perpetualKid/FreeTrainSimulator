@@ -181,7 +181,7 @@ technique ParticleEmitterTechnique
 {
 	pass Pass_0
 	{
-		VertexShader = compile vs_4_0_level_9_1 VSParticles();
-		PixelShader = compile ps_4_0_level_9_1 PSParticles();
+		VertexShader = compile vs_5_0 VSParticles();
+		PixelShader = compile ps_5_0 PSParticles();
 	}
 }
