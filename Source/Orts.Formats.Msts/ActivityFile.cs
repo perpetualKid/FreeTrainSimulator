@@ -267,6 +267,7 @@
 
 
 using System;
+using Microsoft.Xna.Framework;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -494,7 +495,8 @@ namespace Orts.Formats.Msts
         // General TAB
         public int ORTSOptionsGraduatedBrakeRelease = -1;
         public int ORTSOptionsViewDispatcherWindow = -1;
-
+        public int ORTSOptionsRetainersOnAllCars = -1;
+        public int ORTSOptionsSoundSpeedControl = -1;
 
         // Video TAB
         public int ORTSOptionsFastFullScreenAltTab = -1;
@@ -515,6 +517,12 @@ namespace Orts.Formats.Msts
         public int ORTSOptionsUseLocationPassingPaths = -1;
         public int ORTSOptionsAdhesionFactor = -1;
         public int ORTSOptionsAdhesionFactorChange = -1;
+        public int ORTSOptionsAdhesionProportionalToWeather = -1;
+        public int ORTSOptionsActivityRandomization = -1;
+        public int ORTSOptionsActivityWeatherRandomization = -1;
+        public int ORTSOptionsSuperElevationLevel = -1;
+        public int ORTSOptionsSuperElevationMinimumLength = -1;
+        public int ORTSOptionsSuperElevationGauge = -1;
 
 
         public Tr_Activity_File(STFReader stf) {
@@ -553,6 +561,8 @@ namespace Orts.Formats.Msts
                 // General TAB
                 new STFReader.TokenProcessor("ortsgraduatedbrakerelease", ()=>{ ORTSOptionsGraduatedBrakeRelease = stf.ReadIntBlock(ORTSOptionsGraduatedBrakeRelease); IsActivityOverride = true; }),
                 new STFReader.TokenProcessor("ortsviewdispatchwindow", ()=>{ ORTSOptionsViewDispatcherWindow = stf.ReadIntBlock(ORTSOptionsViewDispatcherWindow); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortsretainersonallcars", ()=>{ ORTSOptionsRetainersOnAllCars = stf.ReadIntBlock(ORTSOptionsRetainersOnAllCars); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortssoundspeedcontrol", ()=>{ ORTSOptionsSoundSpeedControl = stf.ReadIntBlock(ORTSOptionsSoundSpeedControl); IsActivityOverride = true; }),
 
                 // Video TAB
                 new STFReader.TokenProcessor("ortsfastfullscreenalttab", ()=>{ ORTSOptionsFastFullScreenAltTab = stf.ReadIntBlock(ORTSOptionsFastFullScreenAltTab); IsActivityOverride = true; }),
@@ -575,6 +585,16 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("ortsadhesionfactorcorrection", ()=>{ ORTSOptionsAdhesionFactor = stf.ReadIntBlock(ORTSOptionsAdhesionFactor); IsActivityOverride = true; }),
                 new STFReader.TokenProcessor("ortsadhesionfactorchange", ()=>{ ORTSOptionsAdhesionFactorChange = stf.ReadIntBlock(ORTSOptionsAdhesionFactorChange); IsActivityOverride = true; }),
 
+                new STFReader.TokenProcessor("ortsadhesionproportionaltoweather", ()=>{ ORTSOptionsAdhesionProportionalToWeather = stf.ReadIntBlock(ORTSOptionsAdhesionProportionalToWeather); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortsactivityrandomization", ()=>{ ORTSOptionsActivityRandomization = stf.ReadIntBlock(ORTSOptionsActivityRandomization); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortsactivityweatherrandomization", ()=>{ ORTSOptionsActivityWeatherRandomization = stf.ReadIntBlock(ORTSOptionsActivityWeatherRandomization); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortssuperelevationlevel", ()=>{ ORTSOptionsSuperElevationLevel = stf.ReadIntBlock(ORTSOptionsSuperElevationLevel); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortssuperelevationminimumlength", ()=>{ ORTSOptionsSuperElevationMinimumLength = stf.ReadIntBlock(ORTSOptionsSuperElevationMinimumLength); IsActivityOverride = true; }),
+                new STFReader.TokenProcessor("ortssuperelevationgauge", ()=>{ ORTSOptionsSuperElevationGauge = stf.ReadIntBlock(ORTSOptionsSuperElevationGauge); IsActivityOverride = true; }),
+
+
+
+
                 new STFReader.TokenProcessor("events",()=>
                 {
                     if ( Events == null) Events = new Events(stf);
@@ -590,9 +610,21 @@ namespace Orts.Formats.Msts
             if (IsActivityOverride)
             {
                 Trace.Write("\n------------------------------------------------------------------------------------------------");
-                Trace.Write("\nThe following Options settings have been set by this activity:");
+                Trace.Write("\nThe following Option settings have been temporarily set by this activity (no permanent changes have been made to your settings):");
 
                 // General TAB 
+
+                if (ORTSOptionsRetainersOnAllCars == 1)
+                {
+                    setting.RetainersOnAllCars = true;
+                    Trace.Write("\nRetainers on all cars            =   True");
+                }
+                else if (ORTSOptionsRetainersOnAllCars == 0)
+                {
+                    setting.RetainersOnAllCars = false;
+                    Trace.Write("\nRetainers on all cars            =   True");
+                }
+
                 if (ORTSOptionsGraduatedBrakeRelease == 1)
                 {
                     setting.GraduatedRelease = true;
@@ -602,10 +634,8 @@ namespace Orts.Formats.Msts
                 {
                     setting.GraduatedRelease = false;
                     Trace.Write("\nGraduated Brake Release          =   False");
-
                 }
-
-
+                               
                 if (ORTSOptionsViewDispatcherWindow == 1)
                 {
                     setting.ViewDispatcher = true;
@@ -615,6 +645,17 @@ namespace Orts.Formats.Msts
                 {
                     setting.ViewDispatcher = false;
                     Trace.Write("\nView Dispatch Window             =   False");
+                }
+
+                if (ORTSOptionsSoundSpeedControl == 1)
+                {
+                    setting.SpeedControl = true;
+                    Trace.Write("\nSound speed control              =   True");
+                }
+                else if (ORTSOptionsSoundSpeedControl == 0)
+                {
+                    setting.SpeedControl = false;
+                    Trace.Write("\nSound speed control              =   True");
                 }
 
                 // Video TAB
@@ -753,19 +794,67 @@ namespace Orts.Formats.Msts
                     setting.UseLocationPassingPaths = false;
                     Trace.Write("\nLocation Linked Passing Paths    =   False");
                 }
-                // ToDo - Limit inputs to reasonable range?
 
                 if (ORTSOptionsAdhesionFactor > 0)
                 {
                     setting.AdhesionFactor = ORTSOptionsAdhesionFactor;
-                    Trace.Write("\nAdhesion Factor Correction       =   Changed");
+                    setting.AdhesionFactor = MathHelper.Clamp(setting.AdhesionFactor, 10, 200);
+                    Trace.Write("\nAdhesion Factor Correction       =   " + setting.AdhesionFactor.ToString());
                 }
 
                 if (ORTSOptionsAdhesionFactorChange > 0)
                 {
                     setting.AdhesionFactorChange = ORTSOptionsAdhesionFactorChange;
-                    Trace.Write("\nAdhesion Factor Change           =   Changed");
+                    setting.AdhesionFactorChange = MathHelper.Clamp(setting.AdhesionFactorChange, 0, 100);
+                    Trace.Write("\nAdhesion Factor Change           =   " + setting.AdhesionFactorChange.ToString());
                 }
+
+                if (ORTSOptionsAdhesionProportionalToWeather == 1)
+                {
+                    setting.AdhesionProportionalToWeather = true;
+                    Trace.Write("\nAdhesion Proportional to Weather =   True");
+                }
+                else if (ORTSOptionsAdhesionProportionalToWeather ==0)
+                {
+                    setting.AdhesionProportionalToWeather = true;
+                    Trace.Write("\nAdhesion Proportional to Weather =   False");
+                }
+
+                if (ORTSOptionsActivityRandomization > 0)
+                {
+                    setting.ActRandomizationLevel = ORTSOptionsActivityRandomization;
+                    setting.ActRandomizationLevel = MathHelper.Clamp(setting.ActRandomizationLevel, 0, 3);
+                    Trace.Write("\nActivity Randomization           =   " + setting.ActRandomizationLevel.ToString() );
+                }
+
+                if (ORTSOptionsActivityWeatherRandomization > 0)
+                {
+                    setting.ActWeatherRandomizationLevel = ORTSOptionsActivityWeatherRandomization;
+                    setting.ActWeatherRandomizationLevel = MathHelper.Clamp(setting.ActWeatherRandomizationLevel, 0, 3);
+                    Trace.Write("\nActivity Weather Randomization   =   " + setting.ActWeatherRandomizationLevel.ToString());
+                }
+
+                if (ORTSOptionsSuperElevationLevel > 0)
+                {
+                    setting.UseSuperElevation = ORTSOptionsSuperElevationLevel;
+                    setting.UseSuperElevation = MathHelper.Clamp(setting.UseSuperElevation, 0, 10);
+                    Trace.Write("\nSuper elevation - level          =   " + setting.UseSuperElevation.ToString());
+                }
+
+                if (ORTSOptionsSuperElevationMinimumLength > 0)
+                {
+                    setting.SuperElevationMinLen = ORTSOptionsSuperElevationMinimumLength;
+                    setting.SuperElevationMinLen = MathHelper.Clamp(setting.SuperElevationMinLen, 50, 1000000);
+                    Trace.Write("\nSuper elevation - minimum length =   " + setting.SuperElevationMinLen.ToString());
+                }
+
+                if (ORTSOptionsSuperElevationGauge > 0)
+                {
+                    setting.SuperElevationGauge = ORTSOptionsSuperElevationGauge;
+                    setting.SuperElevationGauge = MathHelper.Clamp(setting.SuperElevationGauge, 300, 2500);
+                    Trace.Write("\nSuper elevation - gauge          =   " + setting.SuperElevationGauge.ToString());
+                }
+
 
                 Trace.Write("\n------------------------------------------------------------------------------------------------");
 
