@@ -63,7 +63,6 @@ namespace Updater
             {
                 try
                 {
-//                    Thread.CurrentThread.CurrentUICulture = new CultureInfo(Settings.Language);
                     CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(Settings.Language);
                 }
                 catch { }
