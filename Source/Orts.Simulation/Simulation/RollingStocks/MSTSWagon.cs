@@ -181,6 +181,8 @@ namespace Orts.Simulation.RollingStocks
         public float WagonSmokeVelocityMpS = 15.0f;
         public Color WagonSmokeSteadyColor = Color.Gray;
 
+        float TrueCouplerCount = 0;
+        int CouplerCountLocation;
 
         /// <summary>
         /// True if vehicle is equipped with an additional emergency brake reservoir
@@ -922,35 +924,53 @@ namespace Orts.Simulation.RollingStocks
                     }
                     break;
                 case "wagon(coupling":
-                    Couplers.Add(new MSTSCoupling());
+                    Couplers.Add(new MSTSCoupling()); // Adds a new coupler every time "Coupler" parameters found in WAG and INC file
+                    CouplerCountLocation = 0;
+                    TrueCouplerCount += 1;
+                    // it is possible for there to be more then two couplers per car if the coupler details are added via an INC file. Therefore the couplers need to be adjusted appropriately.
+                    // Front coupler stored in slot 0, and rear coupler stored in slot 1
+                    if (Couplers.Count > 2 && TrueCouplerCount == 3)  // If front coupler has been added via INC file
+                    {
+                        Couplers.RemoveAt(0);  // Remove old front coupler
+                        CouplerCountLocation = 0;  // Write info to old front coupler location. 
+                    } else if (Couplers.Count > 2 && TrueCouplerCount == 4)  // If rear coupler has been added via INC file
+                    {
+                        Couplers.RemoveAt(1);  // Remove old rear coupler
+                        CouplerCountLocation = 1;  // Write info to old rear coupler location. 
+                    }
+                    else
+                    {
+                        CouplerCountLocation = Couplers.Count - 1;  // By default write info into 0 and 1 slots as required.
+                    };
                     break;
                 case "wagon(coupling(couplinghasrigidconnection":
-                    Couplers[Couplers.Count - 1].Rigid = stf.ReadBoolBlock(true);
+                    Couplers[CouplerCountLocation].Rigid = false;
+                    Couplers[CouplerCountLocation].Rigid = stf.ReadBoolBlock(true);
                     break;
                 case "wagon(coupling(spring(stiffness":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetStiffness(stf.ReadFloat(STFReader.UNITS.Stiffness, null), stf.ReadFloat(STFReader.UNITS.Stiffness, null));
+                    Couplers[CouplerCountLocation].SetStiffness(stf.ReadFloat(STFReader.UNITS.Stiffness, null), stf.ReadFloat(STFReader.UNITS.Stiffness, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(damping":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetDamping(stf.ReadFloat(STFReader.UNITS.Resistance, null), stf.ReadFloat(STFReader.UNITS.Resistance, null));
+                    Couplers[CouplerCountLocation].SetDamping(stf.ReadFloat(STFReader.UNITS.Resistance, null), stf.ReadFloat(STFReader.UNITS.Resistance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(ortsslack":
                     stf.MustMatch("(");
-                     // IsAdvancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.  Temporarily disabled for v1.3 release
-                    Couplers[Couplers.Count - 1].SetSlack(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    IsAdvancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.
+                    Couplers[CouplerCountLocation].SetSlack(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(break":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetBreak(stf.ReadFloat(STFReader.UNITS.Force, null), stf.ReadFloat(STFReader.UNITS.Force, null));
+                    Couplers[CouplerCountLocation].SetBreak(stf.ReadFloat(STFReader.UNITS.Force, null), stf.ReadFloat(STFReader.UNITS.Force, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(r0":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetR0(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    Couplers[CouplerCountLocation].SetR0(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(adheasion":
@@ -1104,7 +1124,9 @@ namespace Orts.Simulation.RollingStocks
             }
             IsAdvancedCoupler = copy.IsAdvancedCoupler;
             foreach (MSTSCoupling coupler in copy.Couplers)
+            {
                 Couplers.Add(coupler);
+            }
             Pantographs.Copy(copy.Pantographs);
             if (copy.FreightAnimations != null)
             {
@@ -2414,11 +2436,11 @@ namespace Orts.Simulation.RollingStocks
 
         public MSTSCoupling Coupler
         {
-            get
+            get  // This determines which coupler to use from WAG file, typically it will be the first one as by convention the rear coupler is always read first.
             {
                 if (Couplers.Count == 0) return null;
                 if (Flipped && Couplers.Count > 1) return Couplers[1];
-                return Couplers[0];
+                return Couplers[0];   // defaults to the rear coupler (typically the first read)
             }
         }
         public override float GetCouplerZeroLengthM()
@@ -2463,6 +2485,7 @@ namespace Orts.Simulation.RollingStocks
                 return base.GetCouplerStiffness1NpM();
             }
             return Coupler.Rigid? 10 * Coupler.Stiffness1NpM : Coupler.Stiffness1NpM;
+
         }
  
         public override float GetCouplerStiffness2NpM()
@@ -2471,7 +2494,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 return base.GetCouplerStiffness2NpM();
             }
-            return Coupler.Rigid? 10 * Coupler.Stiffness1NpM : Coupler.Stiffness2NpM;
+            return Coupler.Rigid? 10 * Coupler.Stiffness2NpM : Coupler.Stiffness2NpM;
         }
 
         public override float GetCouplerDamping1NMpS()
@@ -2510,13 +2533,13 @@ namespace Orts.Simulation.RollingStocks
             return Coupler.CouplerSlackBM;
         }
 
-        public override int GetCouplerRigidIndication()
+        public override bool GetCouplerRigidIndication()
         {
             if (Coupler == null)
             {
                  return base.GetCouplerRigidIndication();   // If no coupler defined
             }
-            return Coupler.Rigid ? 1 : 2; // Return whether coupler Rigid or Flexible
+            return Coupler.Rigid ? true : false; // Return whether coupler Rigid or Flexible
         }
 
         public override bool GetAdvancedCouplerFlag()

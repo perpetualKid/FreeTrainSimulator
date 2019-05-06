@@ -1182,7 +1182,7 @@ namespace Orts.Viewer3D.Popups
                 TableSetCell(table, 0, "{0}", car.CarID);
                 if (hudWindowColumnsActualPage > 0)
                 {
-                    TableSetCell(table, 1, "{0} : {1}", car.HUDCouplerRigidIndication == 2 ? "F" : car.HUDCouplerRigidIndication == 1 ? "R" : "N", car.CouplerExceedBreakLimit ? "xxx" : car.CouplerOverloaded ? "O/L" : car.HUDCouplerForceIndication == 1 ? "Pull" : car.HUDCouplerForceIndication == 2 ? "Push" : "-");
+                    TableSetCell(table, 1, "{0} : {1}", car.HUDCouplerRigidIndication ? "R" : "F", car.CouplerExceedBreakLimit ? "xxx" : car.CouplerOverloaded ? "O/L" : car.HUDCouplerForceIndication == 1 ? "Pull" : car.HUDCouplerForceIndication == 2 ? "Push" : "-");
                     TableSetCell(table, 2, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(car.CouplerSlackM, car.IsMetric));
                     TableSetCell(table, 3, "{0}", FormatStrings.FormatLargeMass(car.MassKG, car.IsMetric, car.IsUK));
                     TableSetCell(table, 4, "{0:F2}%", -car.CurrentElevationPercent);
@@ -1213,7 +1213,7 @@ namespace Orts.Viewer3D.Popups
                     TableSetCell(table, 7, "{0}", FormatStrings.FormatForce(car.TunnelForceN, car.IsMetric));
                     TableSetCell(table, 8, "{0}", FormatStrings.FormatForce(car.WindForceN, car.IsMetric));
                     TableSetCell(table, 9, "{0}", FormatStrings.FormatForce(car.CouplerForceU, car.IsMetric));
-                    TableSetCell(table, 10, "{0} : {1}", car.HUDCouplerRigidIndication == 2 ? "F" : car.HUDCouplerRigidIndication == 1 ? "R" : "N", car.CouplerExceedBreakLimit ? "xxx" : car.CouplerOverloaded ? "O/L" : car.HUDCouplerForceIndication == 1 ? "Pull" : car.HUDCouplerForceIndication == 2 ? "Push" : "-");
+                    TableSetCell(table, 10, "{0} : {1}", car.HUDCouplerRigidIndication ? "R" : "F", car.CouplerExceedBreakLimit ? "xxx" : car.CouplerOverloaded ? "O/L" : car.HUDCouplerForceIndication == 1 ? "Pull" : car.HUDCouplerForceIndication == 2 ? "Push" : "-");
                     TableSetCell(table, 11, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(car.CouplerSlackM, car.IsMetric));
                     TableSetCell(table, 12, "{0}", FormatStrings.FormatLargeMass(car.MassKG, car.IsMetric, car.IsUK));
                     TableSetCell(table, 13, "{0:F2}%", -car.CurrentElevationPercent);

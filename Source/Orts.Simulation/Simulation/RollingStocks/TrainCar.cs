@@ -167,7 +167,7 @@ namespace Orts.Simulation.RollingStocks
         public float CouplerSlackM;  // extra distance between cars (calculated based on relative speeds)
         public float CouplerDampingSpeedMpS; // Dampening applied to coupler
         public int HUDCouplerForceIndication = 0; // Flag to indicate whether coupler is 1 - pulling, 2 - pushing or 0 - neither
-        public int HUDCouplerRigidIndication = 0; // flag to indicate whether coupler is rigid of flexible. False indicates that coupler is flexible
+        public bool HUDCouplerRigidIndication = false; // flag to indicate whether coupler is rigid or flexible. fasle indicates that coupler is flexible, true indicates that coupler is rigid
         public float CouplerSlack2M;  // slack calculated using draft gear force
         public bool IsAdvancedCoupler = false; // Flag to indicate that coupler is to be treated as an advanced coupler
         public bool WheelSlip;  // true if locomotive wheels slipping
@@ -1512,9 +1512,9 @@ namespace Orts.Simulation.RollingStocks
             return 0.1f;
         }
 
-        public virtual int GetCouplerRigidIndication()
+        public virtual bool GetCouplerRigidIndication()
         {
-            return 0;
+            return false;
         }
 
         public virtual float GetMaximumCouplerSlack0M()

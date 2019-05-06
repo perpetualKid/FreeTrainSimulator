@@ -49,6 +49,9 @@
 // Debug for calculation of speed forces
 // #define DEBUG_SPEED_FORCES
 
+// Debug for calculation of Advanced coupler forces
+// #define DEBUG_COUPLER_FORCES
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Formats.Msts;
@@ -106,8 +109,8 @@ namespace Orts.Simulation.Physics
         public Train UncoupledFrom;                      // train not to coupled back onto
         public float TotalCouplerSlackM;
         public float MaximumCouplerForceN;
-        public int NPull;
-        public int NPush;
+        public int NPull;                                // Count of number of couplings being stretched (pulled)
+        public int NPush;                                // Count of number of couplings being compressed (pushed)
         public int LeadLocomotiveIndex = -1;
         public bool IsFreight;                           // has at least one freight car
         public int PassengerCarsNumber = 0;              // Number of passenger cars
@@ -4666,26 +4669,53 @@ namespace Orts.Simulation.Physics
 
                 TotalCouplerSlackM += car.CouplerSlackM; // Total coupler slack displayed in HUD only
 
-//                Trace.TraceInformation("Slack - CarID {0} Slack {1} Zero {2} MaxSlack0 {3} MaxSlack1 {4} MaxSlack2 {5} Damping1 {6} Damping2 {7} Stiffness1 {8} Stiffness2 {9} AdvancedCpl {10} CplSlackA {11} CplSlackB {12}", 
-//                    car.CarID, car.CouplerSlackM, car.GetCouplerZeroLengthM(), car.GetMaximumCouplerSlack0M(),
-//                    car.GetMaximumCouplerSlack1M(), car.GetMaximumCouplerSlack2M(), car.GetCouplerDamping1NMpS(), car.GetCouplerDamping2NMpS(), 
-//                    car.GetCouplerStiffness1NpM(), car.GetCouplerStiffness1NpM(), car.IsAdvancedCoupler, car.GetCouplerSlackAM(), car.GetCouplerSlackBM());
+#if DEBUG_COUPLER_FORCES
+                Trace.TraceInformation("Slack - CarID {0} Slack {1} Zero {2} MaxSlack0 {3} MaxSlack1 {4} MaxSlack2 {5} Damping1 {6} Damping2 {7} Stiffness1 {8} Stiffness2 {9} " +
+                    "AdvancedCpl {10} CplSlackA {11} CplSlackB {12}  Rigid {13}", 
+                    car.CarID, car.CouplerSlackM, car.GetCouplerZeroLengthM(), car.GetMaximumCouplerSlack0M(),
+                    car.GetMaximumCouplerSlack1M(), car.GetMaximumCouplerSlack2M(), car.GetCouplerDamping1NMpS(), car.GetCouplerDamping2NMpS(), 
+                    car.GetCouplerStiffness1NpM(), car.GetCouplerStiffness2NpM(), car.IsAdvancedCoupler, car.GetCouplerSlackAM(), car.GetCouplerSlackBM(), car.HUDCouplerRigidIndication);
 
-                if (car.CouplerSlackM >= 0.001) // Coupler pulling
+#endif
+                if (!car.HUDCouplerRigidIndication) // Flexible coupling - pulling and pushing value will be equal to slack when couplers faces touch
                 {
-                    NPull++;
-                    car.HUDCouplerForceIndication = 1; 
-                }                    
-                else if (car.CouplerSlackM <= -0.001)
-                {
-                    NPush++;
-                    car.HUDCouplerForceIndication = 2;
+                   if (car.CouplerSlackM >= 0.001) // Coupler pulling
+                   {
+                       NPull++;
+                       car.HUDCouplerForceIndication = 1;
+                   }
+                   else if (car.CouplerSlackM <= -0.001) // Coupler pushing
+                   {
+                       NPush++;
+                       car.HUDCouplerForceIndication = 2;
+                   }
+                   else
+                   {
+                       car.HUDCouplerForceIndication = 0; // Coupler neutral
+                   }
                 }
-                else
+                else if (car.HUDCouplerRigidIndication) // Rigid coupling - starts pulling/pushing at a lower value then flexible coupling
                 {
-                    car.HUDCouplerForceIndication = 0;
+                    if (car.CouplerSlackM >= 0.000125) // Coupler pulling
+                    {
+                        NPull++;
+                        car.HUDCouplerForceIndication = 1;
+                    }
+                    else if (car.CouplerSlackM <= -0.000125) // Coupler pushing
+                    {
+                        NPush++;
+                        car.HUDCouplerForceIndication = 2;
+                    }
+                    else
+                    {
+                        car.HUDCouplerForceIndication = 0; // Coupler neutral
+                    }
+
                 }
-                    
+
+
+
+
             }
             foreach (TrainCar car in Cars)
                 car.DistanceM += Math.Abs(car.SpeedMpS * elapsedTime);
