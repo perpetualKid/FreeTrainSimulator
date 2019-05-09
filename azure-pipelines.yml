@@ -23,7 +23,8 @@ steps:
       $outpath = "$PSScriptRoot/NDP48-DevPack-ENU.exe";
       Invoke-WebRequest -UseBasicParsing -Uri $InstallerURI -OutFile $outpath;
       $args = @("Setup", "/passive", "/norestart" );
-      Start-Process -Filepath "$PSScriptRoot/NDP48-DevPack-ENU.exe" -ArgumentList $args;'
+      Start-Process -Filepath "$PSScriptRoot/NDP48-DevPack-ENU.exe" -ArgumentList $args;
+      Restart-Computer;'
 
 - task: NuGetToolInstaller@0
 
