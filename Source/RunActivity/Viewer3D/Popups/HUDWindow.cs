@@ -73,6 +73,7 @@ namespace Orts.Viewer3D.Popups
         public static bool hudWindowHorizontalScroll = false;
         public static bool hudWindowSteamLocoLead = false;
         List<string> stringStatus = new List<string>();
+        public static bool BrakeInfoVisible = false;
 
         int TextPage;
         int LocomotivePage = 2;
@@ -417,6 +418,10 @@ namespace Orts.Viewer3D.Popups
             if(Viewer.HUDScrollWindow.Visible && TextPage == 0)
                 Viewer.HUDScrollWindow.Visible = false;
 
+            //Disable Hudscroll.
+            if (Viewer.HUDScrollWindow.Visible && TextPage == 0)
+                Viewer.HUDScrollWindow.Visible = false;
+
             TableSetLabelValueColumns(table, 0, 2);
             TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.VersionOrBuild);
 
@@ -562,7 +567,7 @@ namespace Orts.Viewer3D.Popups
             {
                 var j = (i == 0) ? 0 : i;
                 var car = train.Cars[j];
-                statusConsist.Add( car.CarID + "\t" +
+                statusConsist.Add(car.CarID + "\t" +
                     (car.Flipped ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No")) + "\t" +
                     (train.IsFreight ? Viewer.Catalog.GetString("Freight") : Viewer.Catalog.GetString("Pass")) + "\t" +
                     FormatStrings.FormatShortDistanceDisplay(car.CarLengthM, locomotive.IsMetric) + "\t" +
@@ -951,11 +956,12 @@ namespace Orts.Viewer3D.Popups
             TableAddLine(table);
 
             //Initialize
+            List<string> statusBrake = new List<string>();
+            List<string> statusHeader = new List<string>();
+            string[] stringStatusToList;//Allow to change data from TableAddLines to TableSetCell
             hudWindowLocoPagesCount = 0;
             int n = train.Cars.Count;
             int maxColumns = 0;
-            List<string> statusBrake = new List<string>();
-            List<string> statusHeader = new List<string>();
 
             // Different display depending upon whether vacuum braked or air braked
             for (var i = 0; i < n; i++)
@@ -1018,11 +1024,11 @@ namespace Orts.Viewer3D.Popups
                 }
             }
             //TableAddLine(table);
-            maxColumns = statusHeader[statusHeader.Count-1].Count(x => x == '\t');
+            columnsCount = statusHeader[statusHeader.Count-1].Count(x => x == '\t');
             //The lines that fit by pages.
             TextLineNumber(train.Cars.Count, table.CurrentRow + 1, columnsCount);
 
-            for (var i = (hudWindowLinesActualPage * nLinesShow) - nLinesShow; i < (train.Cars.Count > hudWindowLinesActualPage * nLinesShow ? hudWindowLinesActualPage * nLinesShow : train.Cars.Count); i++)
+            for (var i = 0; i < train.Cars.Count; i++)
             {
                 var j = (i == 0) ? 0 : i;
                 var car = train.Cars[j];
@@ -1034,18 +1040,115 @@ namespace Orts.Viewer3D.Popups
                 if (statusString.StartsWith("1V"))
                 {
                     var indexMatch = statusHeader.FindIndex(x => x.Contains(Viewer.Catalog.GetString("VacRes")));
-                    statusBrake.Add(statusHeader[indexMatch]);
+                    if (!statusBrake.Contains(statusHeader[indexMatch]))//Avoid header duplicity
+                        statusBrake.Add(statusHeader[indexMatch]);
                 }
                 else
                 {
                     var indexMatch = statusHeader.FindIndex(x => x.Contains(Viewer.Catalog.GetString("AuxRes")));
-                    statusBrake.Add(statusHeader[indexMatch]);
+                    if (!statusBrake.Contains(statusHeader[indexMatch]))//Avoid header duplicity
+                        statusBrake.Add(statusHeader[indexMatch]);
                 }
                 statusBrake.Add(car.CarID + "\t" + statusString);
             }
-            //Draw arrows.
-            DrawScrollArrows(statusBrake, table, false);
+
+            //HudScroll. Pages count from nLinesShow number.
+            TextLineNumber(statusBrake.Count, table.CurrentRow, columnsCount);
+
+            //Number of lines to show. HudScroll
+            for (var i = (hudWindowLinesActualPage * nLinesShow) - nLinesShow; i < (statusBrake.Count > hudWindowLinesActualPage * nLinesShow ? hudWindowLinesActualPage * nLinesShow : statusBrake.Count); i++)
+            {
+                if (i > 0 && i < 2 && (statusBrake[i] == stringStatus[i - 1]) || i > 1 && (statusBrake[i - 2] == statusBrake[i]))
+                    continue;
+
+                if (statusBrake.Count > i)
+                {
+                    //Calc col number and take in count 1 left column carID
+                    if (i > 0 && i % nLinesShow == 0 && hudWindowColumnsActualPage > 0)
+                        TextColNumber(statusBrake[0], 0, false);
+                    else
+                        TextColNumber(statusBrake[i], 0, false);
+
+                    //Update Brake Information view to show selected car from TrainOperationsWindow (F9)
+                    //Once a car clicked CarOperationsWindow remains visible
+                    BrakeInfoVisible = false;
+                    if (Viewer.CarOperationsWindow.Visible)
+                    {
+                        int indexMatch = statusBrake.FindIndex(x => x.Contains(Viewer.Catalog.GetString((Viewer.CarOperationsWindow.CarPosition >= Viewer.PlayerTrain.Cars.Count ? " " : Viewer.PlayerTrain.Cars[Viewer.CarOperationsWindow.CarPosition].CarID))));
+                        hudWindowLinesActualPage = (int)Math.Ceiling(Convert.ToDouble(indexMatch / nLinesShow) + 0.5);
+                        BrakeInfoVisible = true;
+                    }
+
+                    //Add yellow color to string when car was selected at CarOperationWindow (F9).
+                    stringStatusToList = (statusBrake[i].TrimEnd('\t').Split('\t'));//Convert to string[]
+
+                    var EndText = stringStatusToList[0] == (Viewer.CarOperationsWindow.CarPosition >= Viewer.PlayerTrain.Cars.Count ? " " : Viewer.PlayerTrain.Cars[Viewer.CarOperationsWindow.CarPosition].CarID) ? "???" : "";
+                    var arrow = "";
+
+                    //DrawScrollArrows() can't be used because it works with TableAddLines, here we work with TableSetCell.
+                    if (hudWindowColumnsActualPage > 0)
+                    {
+                        if (stringStatus.Count > 1 && stringStatus.Count <= hudWindowColumnsActualPage)
+                        {
+                            arrow = arrow + "◄";// \u25C0
+                        }
+                        else if (stringStatus.Count > 1 && hudWindowColumnsActualPage == 1)
+                        {
+                            arrow = arrow + "►";// \u25B6
+                        }
+
+                        if (i > 0 && i % nLinesShow == 0)
+                        {//Display header when page was changed
+                            TextColNumber(statusBrake[0], 0, false);
+                            stringStatusToList = stringStatus[hudWindowColumnsActualPage - 1].TrimEnd('\t').Split('\t');// string[]
+                            stringStatusToList[0] = arrow + stringStatusToList[0];
+                            BrakeInfoData(table, stringStatusToList, "");
+                            TableAddLine(table);
+                            TextColNumber(statusBrake[i], 0, false);
+                        }
+
+                        if (stringStatus.Count >= hudWindowColumnsActualPage)
+                        {//Avoid crash when not same brake system
+                            stringStatusToList = stringStatus[hudWindowColumnsActualPage - 1].TrimEnd('\t').Split('\t');// string[]
+                            stringStatusToList[0] = arrow + stringStatusToList[0];
+                            BrakeInfoData(table, stringStatusToList, EndText);
+                        }
+                        else if (stringStatus.Count == 1)
+                        {
+                            stringStatusToList = stringStatus[0].TrimEnd('\t').Split('\t');// string[]
+                            stringStatusToList[0] = arrow + stringStatusToList[0];
+                            BrakeInfoData(table, stringStatusToList, EndText);
+                        }
+                    }
+                    else
+                    {   //hudWindowColumnsActualPage == 0.
+                        if (i > 0 && i % nLinesShow == 0)
+                        {//Display header when page was changed
+                            stringStatusToList = statusBrake[0].TrimEnd('\t').Split('\t');// string[]
+                            BrakeInfoData(table, stringStatusToList, "");
+                            TableAddLine(table);
+                        }
+
+                        stringStatusToList = statusBrake[i].TrimEnd('\t').Split('\t');// string[]
+                        BrakeInfoData(table, stringStatusToList, EndText);
+                    }
+                    TableAddLine(table);
+                }
+            }
         }
+
+        /// <summary>
+        /// Allow to draw brake info data.
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="stringToDraw"></param>
+        /// <param name="endtext"></param>
+        void BrakeInfoData(TableData table, string[] stringToDraw, string endtext)
+        {
+            for (int iCell = 0; iCell<stringToDraw.Length; iCell++)
+                TableSetCell(table, table.CurrentRow, iCell, stringToDraw[iCell] + endtext);
+        }
+
 
         void TextPageForceInfo(TableData table)
         {
@@ -1107,69 +1210,68 @@ namespace Orts.Viewer3D.Popups
                     if (hudWindowColumnsActualPage > 0)
                     {
                         status.AppendFormat("\n{0}\t{1:N2} mph\t{2}\t{3:N2} mph\n",
-                            Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
-                            Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(pS.TopH(train.WindResultantSpeedMpS)));
+                        Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
+                        Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(pS.TopH(train.WindResultantSpeedMpS)));
                     }
                     else
                     {
                         status.AppendFormat("\n{0}\t{1:N2} mph\t{2}\t\t{3:N2} Deg\t{4}\t\t{5:N2} Deg\t{6}\t{7:N2} mph\t{8}\t{9:N2} mph\n",
-                            Viewer.Catalog.GetString("Wind Speed:"), Me.ToMi(pS.TopH(train.PhysicsWindSpeedMpS)),
-                            Viewer.Catalog.GetString("Wind Direction:"), train.PhysicsWindDirectionDeg,
-                            Viewer.Catalog.GetString("Train Direction:"), train.PhysicsTrainLocoDirectionDeg,
-                            Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
-                            Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(pS.TopH(train.WindResultantSpeedMpS)));
+                        Viewer.Catalog.GetString("Wind Speed:"), Me.ToMi(pS.TopH(train.PhysicsWindSpeedMpS)),
+                        Viewer.Catalog.GetString("Wind Direction:"), train.PhysicsWindDirectionDeg,
+                        Viewer.Catalog.GetString("Train Direction:"), train.PhysicsTrainLocoDirectionDeg,
+                        Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
+                        Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(pS.TopH(train.WindResultantSpeedMpS)));
                     }
                     TableAddLines(table, status.ToString());
                 }
             }
-
             //HudScroll
             if (hudWindowColumnsActualPage > 0)
             {
                 //HudScroll
                 TableSetCells(table, 0,
-                    Viewer.Catalog.GetString("Car"),
-                    Viewer.Catalog.GetString("Coupler"),
-                    Viewer.Catalog.GetString("Coupler"),
-                    Viewer.Catalog.GetString("Mass"),
-                    Viewer.Catalog.GetString("Gradient"),
-                    Viewer.Catalog.GetString("Curve"),
-                    Viewer.Catalog.GetString("Brk Frict."),
-                    Viewer.Catalog.GetString("Brk Slide")
-                    //Here new added items.
-                    // Possibly needed for buffing forces
-                    //                Viewer.Catalog.GetString("VertD"),
-                    //                Viewer.Catalog.GetString("VertL"),
-                    //                Viewer.Catalog.GetString("BuffExc"),
-                    //                Viewer.Catalog.GetString("CplAng")
-
-                    );
+                Viewer.Catalog.GetString("Car"),
+                Viewer.Catalog.GetString("Coupler"),
+                Viewer.Catalog.GetString("Slack"),
+                Viewer.Catalog.GetString("Mass"),
+                Viewer.Catalog.GetString("Gradient"),
+                Viewer.Catalog.GetString("Curve"),
+                Viewer.Catalog.GetString("Brk Frict."),
+                Viewer.Catalog.GetString("Brk Slide")
+                //Here new added items.
+                // Possibly needed for buffing forces
+                //                Viewer.Catalog.GetString("VertD"),
+                //                Viewer.Catalog.GetString("VertL"),
+                //                Viewer.Catalog.GetString("BuffExc"),
+                //                Viewer.Catalog.GetString("CplAng")
+                );
             }
             else
             {
                 //Normal view
                 TableSetCells(table, 0,
-                    Viewer.Catalog.GetString("Car"),
-                    Viewer.Catalog.GetString("Total"),
-                    Viewer.Catalog.GetString("Motive"),
-                    Viewer.Catalog.GetString("Brake"),
-                    Viewer.Catalog.GetString("Friction"),
-                    Viewer.Catalog.GetString("Gravity"),
-                    Viewer.Catalog.GetString("Curve"),
-                    Viewer.Catalog.GetString("Tunnel"),
-                    Viewer.Catalog.GetString("Wind"),
-                    Viewer.Catalog.GetString("Coupler"),
-                    Viewer.Catalog.GetString("Coupler"),
-                    Viewer.Catalog.GetString("Slack"),
-                    Viewer.Catalog.GetString("Mass"),
-                    Viewer.Catalog.GetString("Gradient"),
-                    Viewer.Catalog.GetString("Curve"),
-                    Viewer.Catalog.GetString("Brk Frict."),
-                    Viewer.Catalog.GetString("Brk Slide")
-                    );
+                Viewer.Catalog.GetString("Car"),
+                Viewer.Catalog.GetString("Total"),
+                Viewer.Catalog.GetString("Motive"),
+                Viewer.Catalog.GetString("Brake"),
+                Viewer.Catalog.GetString("Friction"),
+                Viewer.Catalog.GetString("Gravity"),
+                Viewer.Catalog.GetString("Curve"),
+                Viewer.Catalog.GetString("Tunnel"),
+                Viewer.Catalog.GetString("Wind"),
+                Viewer.Catalog.GetString("Coupler"),
+                Viewer.Catalog.GetString("Coupler"),
+                Viewer.Catalog.GetString("Slack"),
+                Viewer.Catalog.GetString("Mass"),
+                Viewer.Catalog.GetString("Gradient"),
+                Viewer.Catalog.GetString("Curve"),
+                Viewer.Catalog.GetString("Brk Frict."),
+                Viewer.Catalog.GetString("Brk Slide")
+                );
             }
             //Columns. HudScroll
             var columnsCount = ColumnsCount(table);
+
             TableAddLine(table);
 
             //Pages count from number of nLinesShow.
@@ -1227,7 +1329,6 @@ namespace Orts.Viewer3D.Popups
                     //TableSetCell(table, 11, "Tot {0}", FormatStrings.FormatShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
                     TableSetCell(table, 10, "Tot.Slack:");
                     TableSetCell(table, 11, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
-                    //                TableAddLine(table);
                 }
             }
         }
@@ -1246,7 +1347,6 @@ namespace Orts.Viewer3D.Popups
 
             TextPageHeading(table, Viewer.Catalog.GetString("DISPATCHER INFORMATION : active trains : " + totalactive));
 
-
             ResetHudScroll();//Reset HudScroll
 
             if (hudWindowColumnsActualPage > 0)
@@ -1256,7 +1356,7 @@ namespace Orts.Viewer3D.Popups
                     Viewer.Catalog.GetString("Train"),
                     Viewer.Catalog.GetString("Consist"),
                     Viewer.Catalog.GetString("Path"));
-                //New added items, here.
+                    //New added items, here.
             }
             else
             {
@@ -1275,7 +1375,7 @@ namespace Orts.Viewer3D.Popups
                     Viewer.Catalog.GetString("Distance"),
                     Viewer.Catalog.GetString("Consist"),
                     Viewer.Catalog.GetString("Path"));
-                //New added items, here
+                    //New added items, here
             }
             //HudScroll. Columns
             var columnsCount = ColumnsCount(table);
@@ -1318,7 +1418,7 @@ namespace Orts.Viewer3D.Popups
                         status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);
                         //HudScroll
                         if (Viewer.SelectedTrain.Name == thisTrain.Name)
-                             TextToYellowColor = status[0];
+                            TextToYellowColor = status[0];
 
                         statusDispatcher.Add(status);
                     }
@@ -1405,6 +1505,7 @@ namespace Orts.Viewer3D.Popups
                     TableAddLine(table);
                 }
             }           
+
 
 
 #if WITH_PATH_DEBUG
@@ -1822,11 +1923,14 @@ namespace Orts.Viewer3D.Popups
                 hudWindowLocoPagesCount = 1;
                 hudWindowSteamLocoLead = false;
                 lResetHudScroll = true;
+                BrakeInfoVisible = false;//Enable PgUp & PgDown (Scroll nav window)
             }
         }
 
         /// <summary>
-        /// Allow to draw arrows
+        /// Allow to draw arrows.
+        /// Consist info data.
+        /// Locomotive info headers.
         /// </summary>
         /// <param name="statusConsist"></param>
         /// <param name="table"></param>

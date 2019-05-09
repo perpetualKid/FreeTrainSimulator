@@ -893,11 +893,11 @@ namespace Orts.Viewer3D
             if (UserInput.IsPressed(UserCommand.DisplayHelpWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) HelpWindow.TabAction(); else HelpWindow.Visible = !HelpWindow.Visible;
             if (UserInput.IsPressed(UserCommand.DisplayTrackMonitorWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) TrackMonitorWindow.TabAction(); else TrackMonitorWindow.Visible = !TrackMonitorWindow.Visible;
             if (UserInput.IsPressed(UserCommand.DisplayHUD)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) HUDWindow.TabAction();
-                else
-                {
-                    HUDWindow.Visible = !HUDWindow.Visible;
-                    if (!HUDWindow.Visible) HUDScrollWindow.Visible = false;
-                }
+            else
+            {
+                HUDWindow.Visible = !HUDWindow.Visible;
+                if (!HUDWindow.Visible) HUDScrollWindow.Visible = false;
+            }
             if (UserInput.IsPressed(UserCommand.DisplayHUDScrollWindow))
             {
                 if (HUDWindow.Visible)
