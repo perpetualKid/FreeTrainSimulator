@@ -16,16 +16,6 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: PowerShell@2
-  inputs:
-    targetType: 'inline'
-    script: '$InstallerURI = "https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/c8c829444416e811be84c5765ede6148/NDP48-DevPack-ENU.exe";
-      $outpath = "$PSScriptRoot/NDP48-DevPack-ENU.exe";
-      Invoke-WebRequest -UseBasicParsing -Uri $InstallerURI -OutFile $outpath;
-      $args = @("Setup", "/passive", "/norestart" );
-      Start-Process -Filepath "$PSScriptRoot/NDP48-DevPack-ENU.exe" -ArgumentList $args;
-      Restart-Computer;'
-
 - task: NuGetToolInstaller@0
 
 - task: NuGetCommand@2
