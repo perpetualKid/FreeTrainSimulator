@@ -27,6 +27,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Orts.Formats.Msts.Signalling;
 
@@ -985,7 +986,7 @@ namespace Orts.Formats.Msts
                     conditionalBlock.Tokens.RemoveRange(0, 2);
 
                     //ElseIf-Term
-                    while ((conditionalBlock.Tokens.Count > 0) && ((conditionalBlock.Tokens[0] as ConditionalBlock)?.IsAlternateCondition ?? false))
+                    while ((conditionalBlock.Tokens.FirstOrDefault() as ConditionalBlock)?.IsAlternateCondition ?? false)
                     {
                         if (ElseIfBlock == null)
                             ElseIfBlock = new List<SCRBlock>();

@@ -124,8 +124,8 @@ namespace Orts.Formats.Msts.Signalling
 
         protected BlockBase SetAsAlternateReturn()
         {
-            if (!(this is ConditionalBlock && (this as ConditionalBlock).SkipOnReturn))
-            isAlternateReturn = true;
+            if (!(this as ConditionalBlock)?.SkipOnReturn ?? true)
+                isAlternateReturn = true;
             return this;
         }
 
@@ -339,23 +339,20 @@ namespace Orts.Formats.Msts.Signalling
 
         public BlockBase RequiresAlternate()
         {
-                            if (HasAlternate)
-                    return null;
-                if (IsAlternateCondition)
-                {
-                if (Tokens.Count == 2 && Tokens[1] is ConditionalBlock && !(Tokens[1] as ConditionalBlock).HasAlternate)
+            // return this instance if there is no Else yet, or if this is the If part of an ElseIf, else just null for simpified handling
+            if (HasAlternate || IsAlternateCondition)
+            {
+                ConditionalBlock child = Tokens.ElementAtOrDefault(1) as ConditionalBlock;
+                //only true on isAlternateCondition
+                if (!child?.HasAlternate ?? false)
                 {
                     //since we are going deeper one more, we want to skip this one as return block reference next time
-                    (Tokens[1] as ConditionalBlock).SkipOnReturn = true;
-                    return this;
+                    child.SkipOnReturn = true;
                 }
                 else
                     return null;
-                }
-                return this;
-
-            //// return this instance if there is no Else yet, or if this is the If part of an ElseIf, else just null for simpified handling
-            //get { return HasAlternate || IsAlternateCondition ? null : this; }
+            }
+            return this;
         }
 
         public override string ToString()
