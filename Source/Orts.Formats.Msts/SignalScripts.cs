@@ -32,664 +32,6 @@ using Orts.Formats.Msts.Signalling;
 
 namespace Orts.Formats.Msts
 {
-    #region Script Tokenizer and Parser
-    internal enum SignalScriptTokenType
-    {
-        Value = 0x00,
-        Operator,               // ! & | ^ + - * / % #
-        Tab = 0x09,             // \t
-        LineEnd = 0x0a,         // \n
-        Separator = 0x20,       // blank
-        BracketOpen = 0x28,     // (
-        BracketClose = 0x29,    // )
-        Comma = 0x2c,           // ,
-        StatementEnd = 0x3b,    // ;
-        BlockOpen = 0x7b,       // {
-        BlockClose = 0x7d,      // }
-    }
-
-    internal struct SignalScriptToken
-    {
-        public SignalScriptToken(SignalScriptTokenType type, string value)
-        {
-            Value = value;
-            Type = type;
-        }
-        public SignalScriptToken(SignalScriptTokenType type, char value)
-        {
-            Value = value.ToString();
-            Type = type;
-        }
-
-        public string Value { get; private set; }
-        public SignalScriptTokenType Type { get; private set; }
-    }
-
-    internal enum CommentParserState
-    {
-        None,
-        OpenComment,
-        EndComment,
-        Operator,
-    }
-
-    internal static class OperatorTokenExtension
-    {
-        public static bool ValidateOperator(string value, char c)
-        {
-            if (value.Length > 3)
-                return false;
-            switch (value)
-            {
-                case "|":
-                    return (c == '|');
-                case "&":
-                    return (c == '&');
-                case "^":
-                    return false;
-                case "!": case "*": case "%": case "=": case "/#":
-                    return (c == '=');
-                case "+": case "-":
-                    return (c == '=' || c == value[0]);
-                case "/": case "<": case ">":
-                    return (c == '=' || c == '#');
-                case "#":
-                    return false;
-                case "==": case "!=": case "<=": case ">=":
-                    return (c == '#');
-            }
-            return false;
-        }
-    }
-
-    internal class SignalScriptTokenizer : IEnumerable<SignalScriptToken>
-    {
-        private TextReader reader;
-
-        internal int LineNumber { get; private set; }
-
-        public SignalScriptTokenizer(TextReader reader) : this(reader, 0)
-        {
-        }
-
-        public SignalScriptTokenizer(TextReader reader, int lineNumberOffset)
-        {
-            this.reader = reader;
-            this.LineNumber = lineNumberOffset;
-        }
-
-        public IEnumerator<SignalScriptToken> GetEnumerator()
-        {
-            string line;
-            CommentParserState state = CommentParserState.None;
-            StringBuilder value = new StringBuilder();
-            bool lineContent = false;
-
-            while ((line = reader.ReadLine()) != null)
-            {
-                LineNumber++;
-                lineContent = false;
-
-                foreach (char c in line)
-                {
-                    switch (c)
-                    {
-                        case '/':
-                            switch (state)
-                            {
-                                case CommentParserState.None:
-                                    if (value.Length > 0)
-                                    {
-                                        yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
-                                        value.Length = 0;
-                                    }
-                                    value.Append(c);
-                                    state = CommentParserState.Operator;
-                                    continue;
-                                case CommentParserState.Operator:
-                                    if (value.Length == 1 && value.ToString() == "/")
-                                    {
-                                        state = CommentParserState.None;
-                                        value.Length = value.Length - 1;
-                                        goto SkipLineComment;
-                                    }
-                                    else
-                                    {
-                                        if (!OperatorTokenExtension.ValidateOperator(value.ToString(), c))
-                                        {
-                                            yield return new SignalScriptToken(SignalScriptTokenType.Operator, value.ToString());
-                                            value.Length = 0;
-                                        }
-                                        value.Append(c);
-                                        continue;
-                                    }
-                                case CommentParserState.EndComment:
-                                    state = CommentParserState.None;
-                                    continue;
-                                case CommentParserState.OpenComment:
-                                    continue;
-                                default:
-                                    value.Append(c);
-                                    continue;
-                            }
-                        case '*':
-                            switch (state)
-                            {
-                                case CommentParserState.OpenComment:
-                                    state = CommentParserState.EndComment;
-                                    continue;
-                                case CommentParserState.Operator:
-                                    if (value.Length == 1 && value.ToString() == "/")
-                                    {
-                                        value.Length = value.Length - 1;
-                                        state = CommentParserState.OpenComment;
-                                        continue;
-                                    }
-                                    if (!OperatorTokenExtension.ValidateOperator(value.ToString(), c))
-                                    {
-                                        yield return new SignalScriptToken(SignalScriptTokenType.Operator, value.ToString());
-                                        value.Length = 0;
-                                    }
-                                    value.Append(c);
-                                    continue;
-                                default:
-                                    if (value.Length > 0)
-                                    {
-                                        yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
-                                        value.Length = 0;
-                                    }
-                                    value.Append(c);
-                                    state = CommentParserState.Operator;
-                                    continue;
-                            }
-                        case ';': case '{': case '}': case '(': case ')': case '\t': case ' ': case ',':
-                            switch (state)
-                            {
-                                case CommentParserState.OpenComment:
-                                    continue;
-                                default:
-                                    if (value.Length > 0)
-                                    {
-                                        yield return new SignalScriptToken((state == CommentParserState.Operator ? SignalScriptTokenType.Operator : SignalScriptTokenType.Value), value.ToString());
-                                        value.Length = 0;
-                                    }
-                                    lineContent = true;
-                                    state = CommentParserState.None;
-                                    yield return new SignalScriptToken((SignalScriptTokenType)c, c);
-                                    continue;
-                            }
-                        case '|': case '&': case '^': case '!': case '+': case '-': case '%': case '#': case '<': case '>': case '=':
-                            switch (state)
-                            {
-                                case CommentParserState.OpenComment:
-                                    continue;
-                                case CommentParserState.Operator:
-                                    if (!OperatorTokenExtension.ValidateOperator(value.ToString(), c))
-                                    {
-                                        yield return new SignalScriptToken(SignalScriptTokenType.Operator, value.ToString());
-                                        value.Length = 0;
-                                    }
-                                    value.Append(c);
-                                    continue;
-                                default:
-                                    if (value.Length > 0)
-                                    {
-                                        yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
-                                        value.Length = 0;
-                                    }
-                                    value.Append(c);
-                                    state = CommentParserState.Operator;
-                                    continue;
-                            }
-                        default:
-                            switch (state)
-                            {
-                                case CommentParserState.OpenComment:
-                                    continue;
-                                case CommentParserState.Operator:
-                                    if (value.Length > 0)
-                                    {
-                                        yield return new SignalScriptToken(SignalScriptTokenType.Operator, value.ToString());
-                                        value.Length = 0;
-                                    }
-                                    state = CommentParserState.None;
-                                    value.Append(char.ToUpper(c));
-                                    continue;
-                                default:
-                                    state = CommentParserState.None;
-                                    value.Append(char.ToUpper(c));
-                                    continue;
-                            }
-                    }
-                }
-                SkipLineComment:
-                if (state != CommentParserState.OpenComment)
-                {
-                    if (value.Length > 0)
-                    {
-                        lineContent = true;
-                        yield return new SignalScriptToken((state == CommentParserState.Operator ? SignalScriptTokenType.Operator : SignalScriptTokenType.Value), value.ToString());
-                        value.Length = 0;
-                    }
-                    if (lineContent)
-                        yield return new SignalScriptToken(SignalScriptTokenType.LineEnd, '\n');
-                    state = CommentParserState.None;
-                }
-            }
-            if (value.Length > 0)
-            {
-                yield return new SignalScriptToken(SignalScriptTokenType.Value, value.ToString());
-                value.Length = 0;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-    }
-
-    #region Script Tokens
-    internal class ScriptToken
-    {
-        public virtual string Token { get; set; }
-
-        public override string ToString()
-        {
-            return Token;
-        }
-    }
-
-    internal enum OperatorType
-    {
-        Negator,
-        Logical,
-        Equality,
-        Assignment,
-        Operation,
-        Other,
-    }
-
-    internal class OperatorToken : ScriptToken
-    {
-        public OperatorToken(string token)
-        {
-            Token = token;
-
-            switch(token)
-            {
-                case "NOT":
-                case "!":
-                    OperatorType = OperatorType.Negator;
-                    break;
-                case "AND": case "OR": case "||": case "&&": case "EOR": case "^":
-                    OperatorType = OperatorType.Logical;
-                    break;
-                case "=": case "#=": case "+=": case "-=": case "*=": case "/=": case "/#=": case "%=":
-                    OperatorType = OperatorType.Assignment;
-                    break;
-                case "-": case "*": case "+": case "/": case "/#": case "%": case "DIV": case "MOD":
-                    OperatorType = OperatorType.Operation;
-                    break;
-                case ">": case ">#": case ">=": case ">=#": case "<": case "<#": case "<=": case "<=#": case "==": case "==#": case "!=": case "!=#":
-                    OperatorType = OperatorType.Equality;
-                    break;
-                default:
-                    OperatorType = OperatorType.Other;
-                    Trace.TraceWarning($"sigscr-file : Invalid operator token {token}");
-                    break;
-            }
-        }
-
-        public OperatorType OperatorType { get; private set; }
-    }
-
-    internal class ScriptStatement : ScriptToken
-    {
-        public int LineNumber { get; set; }
-
-        public List<ScriptToken> Tokens { get; private set; } = new List<ScriptToken>();
-
-        public virtual void Add(ScriptToken token)
-        {
-            Tokens.Add(token);
-        }
-
-        public override string Token
-        {
-            get { return ToString(); }
-        }
-
-        public override string ToString()
-        {
-            if (Tokens.Count == 0)
-                return string.Empty;
-            StringBuilder builder = new StringBuilder();
-            foreach (ScriptToken item in Tokens)
-            {
-                if (item is BlockToken)
-                {
-                    builder.Append("\r\n");
-                    builder.Append(item.ToString());
-                    builder.Append("\r\n");
-                }
-                else
-                {
-                    builder.Append(item.ToString());
-                    builder.Append(' ');
-                }
-            }
-            builder.Length -= builder[builder.Length - 1] == '\n' ? 2 : 1;
-            return builder.ToString();
-        }
-    }
-
-    internal class ConditionalStatementTerm : ScriptStatement
-    {
-        private static readonly ScriptToken ifToken = new ScriptToken() { Token = "IF" };
-        private static readonly ScriptToken elseifToken = new ScriptToken() { Token = "ELSEIF" };
-        private static readonly ScriptToken elseToken = new ScriptToken() { Token = "ELSE" };
-
-        public static ScriptToken IF { get; } = ifToken;
-        public static ScriptToken ELSEIF { get; } = elseifToken;
-        public static ScriptToken ELSE { get; } = elseToken;
-
-        public ScriptToken ConditionalToken { get { return Tokens.Count > 0 ? Tokens[0] : null; } }
-        public BracketToken Condition { get { return (this.Else ? null : (Tokens.Count > 1 ? Tokens[1] as BracketToken : null)); } }
-        public ScriptStatement Statement { get { return (Else ? Tokens.Count > 1 ? Tokens[1] : null : Tokens.Count > 2 ? Tokens[2] : null) as ScriptStatement; } }
-
-        public override void Add(ScriptToken token)
-        {
-            //If this is a simple token, not a block, it might be a statement which is not encapsulated, so we will create a statement for the token
-            if (!(token is ScriptStatement) && (Else || Condition != null))
-            {
-                if (Statement == null)
-                    base.Add(new ScriptStatement());
-                Statement.Tokens.Add(token);
-            }
-            else
-            {
-                base.Add(token);
-            }
-        }
-
-        internal bool Else { get { return (Tokens.Count > 0 && Tokens[0] == elseToken); } }
-    }
-
-    internal abstract class ScriptBlockBase : ScriptToken
-    {
-        public List<ScriptStatement> Statements { get; } = new List<ScriptStatement>();
-
-        public ScriptStatement CurrentStatement { get; private set; } = new ScriptStatement();
-
-        private ConditionalBlockToken conditionalBlock;
-
-        public virtual void CompleteCurrentStatement(int lineNumber)
-        {
-            if (CurrentStatement.Tokens.Count > 0)
-            {
-                if (((CurrentStatement is ConditionalStatementTerm) && (CurrentStatement as ConditionalStatementTerm).Statement == null))
-                {
-                }
-                else
-                {
-                    if (null != conditionalBlock)
-                    {
-                        CurrentStatement.LineNumber = lineNumber;
-                        Statements.Add(new ScriptStatement() { Tokens = { conditionalBlock } });
-                        CurrentStatement = new ScriptStatement();
-                        conditionalBlock = null;
-                    }
-                    else
-                    {
-                        CurrentStatement.LineNumber = lineNumber;
-                        Statements.Add(CurrentStatement);
-                        CurrentStatement = new ScriptStatement();
-                    }
-                }
-            }
-        }
-        public void StartConditionalStatement()
-        {
-            if ((CurrentStatement is ConditionalStatementTerm)) // this is the If Token for the Else Token before, so replace as ElseIf
-            {
-                CurrentStatement.Tokens[0] = ConditionalStatementTerm.ELSEIF;
-            }
-            else
-            {
-                conditionalBlock = new ConditionalBlockToken();
-                CurrentStatement = conditionalBlock.Statements[0];  //new If statement
-            }
-        }
-
-        public void StartAlternateStatement(int lineNumber)
-        {
-            //check if there is a prior If or ElseIf
-            conditionalBlock = Statements[Statements.Count - 1].Tokens[0] as ConditionalBlockToken;
-            Statements.RemoveAt(Statements.Count - 1);
-            if (null == conditionalBlock)
-                throw new InvalidDataException($"Missing If or Else If statement before Else in Line {lineNumber}");
-
-            CurrentStatement = new ConditionalStatementTerm() { Tokens = { ConditionalStatementTerm.ELSE } };
-            conditionalBlock.Statements.Add(CurrentStatement as ConditionalStatementTerm);
-        }
-
-        public override string Token { get { return ToString(); } }
-
-        public override string ToString()
-        {
-            if (Statements.Count == 0)
-                return string.Empty;
-            StringBuilder builder = new StringBuilder();
-            foreach (ScriptToken statement in Statements)
-            {
-                builder.Append(statement.ToString());
-                builder.Append("\r\n");
-            }
-            if (builder.Length > 0)
-                builder.Length -= 2;
-            return builder.ToString();
-        }
-    }
-
-    internal class ScriptBlock : ScriptBlockBase
-    {
-        public string ScriptName { get; set; } = string.Empty;
-
-        public override string ToString()
-        {
-            return base.ToString();
-        }
-    }
-
-    internal class BlockToken : ScriptBlockBase
-    {
-        public override string ToString()
-        {
-            return $"{{\r\n{base.ToString()}\r\n}}";
-        }
-    }
-
-    internal class BracketToken : ScriptBlockBase
-    {
-        public override string ToString()
-        {
-            return $"({base.ToString()})";
-        }
-    }
-
-    internal class ConditionalBlockToken : ScriptBlockBase
-    {
-        public ConditionalBlockToken()
-        {
-            Statements.Add(new ConditionalStatementTerm() { Tokens = { ConditionalStatementTerm.IF } });
-        }
-    }
-
-    #endregion
-
-    internal class ScriptStatementParser : IEnumerable<ScriptBlock>
-    {
-        private readonly SignalScriptTokenizer tokenizer;
-
-        public int LineNumber { get { return tokenizer.LineNumber; } }
-
-        public ScriptStatementParser(TextReader reader)
-        {
-            this.tokenizer = new SignalScriptTokenizer(reader);
-        }
-
-        internal enum ScriptParserState
-        {
-            None,
-            ScriptName,
-            Remark,
-        }
-
-        public IEnumerator<ScriptBlock> GetEnumerator()
-        {
-            bool inScript = false;
-            ScriptParserState parserState = ScriptParserState.None;
-            Stack<ScriptBlockBase> blockStack = new Stack<ScriptBlockBase>();
-            ScriptBlockBase currentBlock = null;
-
-            foreach (SignalScriptToken token in tokenizer)
-            {
-                if (inScript)
-                {
-                    switch (token.Type)
-                    {
-                        case SignalScriptTokenType.StatementEnd:
-                            currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
-                            parserState = ScriptParserState.None;
-                            continue;
-                        case SignalScriptTokenType.LineEnd:
-                            if (parserState == ScriptParserState.ScriptName)
-                                parserState = ScriptParserState.None;
-                            continue;
-                        case SignalScriptTokenType.BlockOpen:
-                            blockStack.Push(currentBlock);
-                            currentBlock = new BlockToken();
-                            continue;
-                        case SignalScriptTokenType.BracketOpen:
-                            blockStack.Push(currentBlock);
-                            currentBlock = new BracketToken();
-                            continue;
-                        case SignalScriptTokenType.BlockClose:
-                        case SignalScriptTokenType.BracketClose:
-                            if ((token.Type == SignalScriptTokenType.BracketClose && currentBlock is BracketToken) ||
-                            (token.Type == SignalScriptTokenType.BlockClose && currentBlock is BlockToken))
-                            {
-                                currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
-                                ScriptBlockBase outer = blockStack.Pop();
-                                outer.CurrentStatement.Add(currentBlock);
-                                if (outer.CurrentStatement is ConditionalStatementTerm)
-                                {
-                                    outer.CompleteCurrentStatement(tokenizer.LineNumber);
-                                }
-                                currentBlock = outer;
-                                continue;
-                            }
-                            else //something wrong here
-                                throw new InvalidDataException($"Error in signal script data, matching element not found in line {tokenizer.LineNumber}.");
-                        case SignalScriptTokenType.Value:
-                            if (parserState == ScriptParserState.ScriptName)        //script names may include any value token or operator, only ended by line end
-                            {
-                                (currentBlock as ScriptBlock).ScriptName += token.Value;
-                                continue;
-                            }
-
-                            switch (token.Value)
-                            {
-                                case "REM":
-                                    if (blockStack.Count > 0) //something wrong here
-                                        throw new InvalidDataException($"Error in signal script, matching element not found before new script in line {tokenizer.LineNumber}.");
-                                    //end current script
-                                    currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
-                                    yield return currentBlock as ScriptBlock;
-                                    inScript = false;
-                                    parserState = ScriptParserState.Remark;
-                                    continue;
-                                case "SCRIPT":
-                                    if (blockStack.Count > 0) //something wrong here
-                                        throw new InvalidDataException($"Error in signal script, matching element not found before new script in line {tokenizer.LineNumber}.");
-                                    currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
-                                    yield return currentBlock as ScriptBlock;
-                                    if (parserState == ScriptParserState.Remark)
-                                        parserState = ScriptParserState.None;
-                                    else
-                                    {
-                                        currentBlock = new ScriptBlock();
-                                        parserState = ScriptParserState.ScriptName;
-                                        inScript = true;
-                                    }
-                                    continue;
-                                case "IF":
-                                    currentBlock.StartConditionalStatement();
-                                    continue;
-                                case "ELSE":
-                                    currentBlock.StartAlternateStatement(tokenizer.LineNumber);
-                                    continue;
-                                case "AND":
-                                case "OR":
-                                case "NOT":
-                                case "MOD":
-                                case "DIV":
-                                    currentBlock.CurrentStatement.Add(new OperatorToken(token.Value));
-                                    continue;
-                                default:
-                                    currentBlock.CurrentStatement.Add(new ScriptToken() { Token = token.Value });
-                                    continue;
-                            }
-                        case SignalScriptTokenType.Separator:
-                        case SignalScriptTokenType.Tab:
-                        case SignalScriptTokenType.Comma:
-                            continue;
-                        case SignalScriptTokenType.Operator:
-                            if (parserState == ScriptParserState.ScriptName)
-                            {
-                                (currentBlock as ScriptBlock).ScriptName += token.Value;
-                            }
-                            else
-                            {
-                                currentBlock.CurrentStatement.Add(new OperatorToken(token.Value));
-                            }
-                            continue;
-                        default:
-                            throw new InvalidOperationException($"Unknown token type {token.Type} containing '{token.Value}' in line {tokenizer.LineNumber}");
-                    }
-                }
-                else if (token.Type == SignalScriptTokenType.Value)
-                {
-                    switch (token.Value)
-                    {
-                        case "REM":
-                            parserState = ScriptParserState.Remark;
-                            continue;
-                        case "SCRIPT":
-                            if (parserState == ScriptParserState.Remark)
-                                parserState = ScriptParserState.None;
-                            else // start new script
-                            {
-                                currentBlock = new ScriptBlock();
-                                parserState = ScriptParserState.ScriptName;
-                                inScript = true;
-                            }
-                            continue;
-                    }
-                }
-            }
-            currentBlock.CompleteCurrentStatement(tokenizer.LineNumber);
-            yield return currentBlock as ScriptBlock;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-    }
-    #endregion
-
     public class SignalScripts
     {
         #region SCRExternalFunctions
@@ -913,24 +255,6 @@ namespace Orts.Formats.Msts
 
                             Trace.Write("s");
                         }
-//                        stream.BaseStream.Position = 0;
-//                        ScriptStatementParser scriptParser = new ScriptStatementParser(stream);
-//                        foreach (ScriptBlock script in scriptParser)
-//                        {
-//                            #region DEBUG
-//#if DEBUG_PRINT_IN
-//                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n===============================\n");
-//                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nNew Script : " + script.ScriptName + "\n");
-//#endif
-//#if DEBUG_PRINT_OUT
-//                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n===============================\n");
-//                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nNew Script : " + script.ScriptName + "\n");
-//#endif
-//                            #endregion
-//                            AssignScriptToSignalType(new SCRScripts(script, orSignalTypes, orNormalSubtypes),
-//                                signalTypes, scriptParser.LineNumber, fileName);
-//                            Trace.Write("s");
-//                        }
                         #region DEBUG
 #if DEBUG_PRINT_OUT
                         // print processed details 
@@ -1229,64 +553,6 @@ namespace Orts.Formats.Msts
 
             public string ScriptName { get; private set; }
 
-            internal SCRScripts(ScriptBlock script, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-            {
-                localFloats = new Dictionary<string, int>();
-                Statements = new ArrayList();
-                ScriptName = script.ScriptName;
-                int statementLine = 0;
-                int maxCount = script.Statements.Count;
-                #region DEBUG_PRINT_IN
-#if DEBUG_PRINT_IN
-                // print inputlines
-                File.AppendAllText(din_fileLoc + @"sigscr.txt", script.ToString() + '\n');
-                File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n+++++++++++++++++++++++++++++++++++\n\n");
-
-#endif
-                #endregion
-                // Skip external floats (exist automatically)
-                while (script.Statements[statementLine].Tokens[0].Token == "EXTERN" && script.Statements[statementLine].Tokens[1].Token == "FLOAT" && statementLine++ < maxCount) ;
-
-                //// Process floats : build list with internal floats
-                while ((script.Statements[statementLine].Tokens[0].Token == "FLOAT") && statementLine < maxCount)
-                {
-                    string floatString = script.Statements[statementLine].Tokens[1].Token;
-                    if (!localFloats.ContainsKey(floatString))
-                    {
-                        localFloats.Add(floatString, localFloats.Count);
-                    }
-                    statementLine++;
-                }
-
-                #region DEBUG_PRINT_OUT
-#if DEBUG_PRINT_OUT
-                // print details of internal floats
-
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n\nFloats : \n");
-                foreach (KeyValuePair<string, int> item in localFloats)
-                {
-                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", $"Float : {item.Key} = {item.Value}\n");
-                }
-                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Total : " + localFloats.Count.ToString() + "\n\n\n");
-#endif
-                #endregion
-                script.Statements.RemoveRange(0, statementLine);
-
-                foreach (ScriptStatement statement in script.Statements)
-                {
-                    if (statement.Tokens[0] is ConditionalBlockToken)
-                    {
-                        SCRConditionBlock condition = new SCRConditionBlock(statement.Tokens[0] as ConditionalBlockToken, localFloats, orSignalTypes, orNormalSubtypes);
-                        Statements.Add(condition);
-                    }
-                    else
-                    {
-                        SCRStatement scrStatement = new SCRStatement(statement, localFloats, orSignalTypes, orNormalSubtypes);
-                        Statements.Add(scrStatement);
-                    }
-                }
-            }// constructor
-
             internal SCRScripts(Script script, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
             {
                 localFloats = new Dictionary<string, int>();
@@ -1453,168 +719,18 @@ namespace Orts.Formats.Msts
                 return new SCRParameterType(SCRTermType.Constant, 0);
             }//process_TermPart
 
-            internal static SCRParameterType ParameterFromToken(Signalling.ScriptToken token, int lineNumber, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-            {
-
-                int index;
-
-                // try constant
-                if (int.TryParse(token.Token, out int constantInt))
-                {
-                    return new SCRParameterType(SCRTermType.Constant, constantInt);
-                }
-                // try external float
-                else if (Enum.TryParse(token.Token, true, out SCRExternalFloats externalFloat))
-                {
-                    return new SCRParameterType(SCRTermType.ExternalFloat, (int)externalFloat);
-                }
-                // try local float
-                else if (localFloats.TryGetValue(token.Token, out int localFloat))
-                {
-                    return new SCRParameterType(SCRTermType.LocalFloat, localFloat);
-                }
-                string[] definitions = token.Token.Split(new char[] { '_' }, 2);
-                if (definitions.Length == 2)
-                    switch (definitions[0])
-                    {
-                        // try blockstate
-                        case "BLOCK":
-                            if (Enum.TryParse(definitions[1], out MstsBlockState blockstate))
-                            {
-                                return new SCRParameterType(SCRTermType.Block, (int)blockstate);
-                            }
-                            else
-                            {
-                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Blockstate : {definitions[1]} \n");
-#if DEBUG_PRINT_IN
-                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Blockstate : {token.Token} \n");
-#endif
-                            }
-                            break;
-                        // try SIGASP definition
-                        case "SIGASP":
-                            if (Enum.TryParse(definitions[1], out MstsSignalAspect aspect))
-                            {
-                                return new SCRParameterType(SCRTermType.Sigasp, (int)aspect);
-                            }
-                            else
-                            {
-                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Aspect : {definitions[1]} \n");
-#if DEBUG_PRINT_IN
-                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Aspect : {token.Token} \n");
-#endif
-                            }
-                            break;
-                        // try SIGFN definition
-                        case "SIGFN":
-                            index = orSignalTypes.IndexOf(definitions[1]);
-                            if (index != -1)
-                            {
-                                return new SCRParameterType(SCRTermType.Sigfn, index);
-                            }
-                            else
-                            {
-                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown SIGFN Type : {definitions[1]} \n");
-#if DEBUG_PRINT_IN
-                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Type : {token.Token} \n");
-#endif
-                            }
-                            break;
-                        // try ORSubtype definition
-                        case "ORSUBTYPE":
-                            index = orNormalSubtypes.IndexOf(definitions[1]);
-                            if (index != -1)
-                            {
-                                return new SCRParameterType(SCRTermType.ORNormalSubtype, index);
-                            }
-                            else
-                            {
-                                Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown ORSUBTYPE : {definitions[1]} \n");
-#if DEBUG_PRINT_IN
-                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Type : {token.Token} \n");
-#endif
-                            }
-                            break;
-                        // try SIGFEAT definition
-                        case "SIGFEAT":
-                            index = SignalShape.SignalSubObj.SignalSubTypes.IndexOf(definitions[1]);
-                            if (index != -1)
-                            {
-                                return new SCRParameterType(SCRTermType.Sigfeat, index);
-                            }
-                            else
-                            {
-                                Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown SubType : {definitions[1]} \n");
-#if DEBUG_PRINT_IN
-                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown SubType : {token.Token} \n");
-#endif
-                            }
-                            break;
-                        default:
-                            // nothing found - set error
-                            Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown parameter in statement : {token.Token}");
-#if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown parameter : {token.Token} \n");
-#endif
-                            break;
-                    }
-                return new SCRParameterType(SCRTermType.Constant, 0);
-            }//process_TermPart
-
             //================================================================================================//
             //
             // process IF condition line - split into logic parts
             //
             //================================================================================================//
-            internal static ArrayList ParseConditions(ScriptStatement statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-            {
-                ArrayList result = new ArrayList();
-                SCRAndOr logicalOperator = SCRAndOr.NONE;
-                while (statement.Tokens.Count > 0)
-                {
-                    if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Logical)
-                    {
-                        if (TranslateAndOr.TryGetValue(statement.Tokens[0].Token, out logicalOperator))
-                        {
-                            result.Add(logicalOperator);
-                        }
-                        else
-                        {
-                            Trace.TraceWarning($"sigscr-file line {statement.LineNumber} : Invalid logical operator in : {statement.Token[0]}");
-                        }
-                        statement.Tokens.RemoveAt(0);
-                    }
-                    else if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Negator && statement.Tokens[1] is ScriptBlockBase)
-                    {
-                        result.Add(SCRNegate.NEGATE);
-                        statement.Tokens.RemoveAt(0);
-                    }
-                    //Conditions are dedicated blocks, but always separated by logical operators
-                    else if (statement.Tokens[0] is ScriptBlockBase) //process sub block
-                    {
-                        result.AddRange(ParseConditions((statement.Tokens[0] as ScriptBlockBase).Statements[0], localFloats, orSignalTypes, orNormalSubtypes));
-                        //recurse in the block
-                        statement.Tokens.RemoveAt(0);
-                    }
-                    else //single term
-                    {
-                        SCRConditions condition = new SCRConditions(statement, localFloats, orSignalTypes, orNormalSubtypes);
-                        result.Add(condition);
-                    }
-                }
-                // TODO: This can be removed, only for debug output compatibility
-                if (logicalOperator != SCRAndOr.NONE)
-                    result.Add(logicalOperator);
-                return result;
-            }
-
             internal static ArrayList ParseConditions(Enclosure condition, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
             {
                 ArrayList result = new ArrayList();
                 SCRAndOr logicalOperator = SCRAndOr.NONE;
                 while (condition.Tokens.Count > 0)
                 {
-                    if ((condition.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Logical)
+                    if ((condition.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Logical)
                     {
                         if (TranslateAndOr.TryGetValue(condition.Tokens[0].Token, out logicalOperator))
                         {
@@ -1626,7 +742,7 @@ namespace Orts.Formats.Msts
                         }
                         condition.Tokens.RemoveAt(0);
                     }
-                    else if ((condition.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Negator && (condition.Tokens[1] is Enclosure || condition.Tokens[1] is Signalling.ScriptToken))
+                    else if ((condition.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Negator && (condition.Tokens[1] is Enclosure || condition.Tokens[1] is ScriptToken))
                     {
                         result.Add(SCRNegate.NEGATE);
                         condition.Tokens.RemoveAt(0);
@@ -1667,36 +783,13 @@ namespace Orts.Formats.Msts
 
                 public int AssignParameter { get; private set; }
 
-                internal SCRStatement(ScriptStatement statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-                {
-                    AssignType = SCRTermType.Invalid;
-
-                    //TODO: may want to process other Assignment Operations (+=, -= etc)
-                    if (statement.Tokens.Count > 1 && (statement.Tokens[1] as OperatorToken).OperatorType == OperatorType.Assignment)
-                    {
-                        if (Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFloats result))
-                        {
-                            AssignParameter = (int)result;
-                            AssignType = SCRTermType.ExternalFloat;
-                        }
-                        else if (localFloats.TryGetValue(statement.Tokens[0].Token, out int value))
-                        {
-                            AssignParameter = value;
-                            AssignType = SCRTermType.LocalFloat;
-                        }
-                        // Assignment term
-                        statement.Tokens.RemoveRange(0, 2);
-                    }
-                    ProcessScriptStatement(statement, 0, localFloats, orSignalTypes, orNormalSubtypes);
-                }
-
                 internal SCRStatement(BlockBase statementBlock, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     AssignType = SCRTermType.Invalid;
 
                     //TODO: may want to process other Assignment Operations as well (+=, -= etc)
                     Statement statement = statementBlock as Statement;
-                    if (statement?.Tokens.Count > 1 && (statement?.Tokens[1] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Assignment)
+                    if (statement?.Tokens.Count > 1 && (statement?.Tokens[1] as OperatorToken)?.OperatorType == OperatorType.Assignment)
                     {
                         if (Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFloats result))
                         {
@@ -1714,65 +807,6 @@ namespace Orts.Formats.Msts
                     ProcessScriptStatement(statementBlock, 0, localFloats, orSignalTypes, orNormalSubtypes);
                 }
 
-                private void ProcessScriptStatement(ScriptStatement statement, int level, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-                {
-                    string operatorString = string.Empty;
-                    int termNumber = level;
-                    bool negated = false;
-
-                    while (statement.Tokens.Count > 0)
-                    {
-                        negated = false;
-                        if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Operation)
-                        {
-                            operatorString = statement.Tokens[0].Token;
-                            statement.Tokens.RemoveAt(0);
-                            if (statement.Tokens.Count == 0)
-                            {
-                                Trace.TraceWarning($"sigscr-file line {statement.LineNumber} : Invalid statement syntax : {statement.ToString()}");
-                                StatementTerms.Clear();
-                                return;
-                            }
-                        }
-                        else
-                            operatorString = string.Empty;
-
-                        if (statement.Tokens[0] is ScriptBlockBase)
-                        {
-                            termNumber++;
-                            //recurse through inner statemement
-                            SCRStatTerm term = new SCRStatTerm(termNumber, level, operatorString);
-                            StatementTerms.Add(term);
-
-                            foreach (ScriptStatement subStatement in (statement.Tokens[0] as ScriptBlockBase).Statements)
-                            {
-                                // recursive call to process at sublevel
-                                ProcessScriptStatement(subStatement, termNumber, localFloats, orSignalTypes, orNormalSubtypes);
-                            }
-                        }
-                        else
-                        {
-                            if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Negator)
-                            {
-                                statement.Tokens.RemoveAt(0);
-                                negated = true;
-                            }
-                            if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is ScriptBlockBase)   //check if it is a Sub Function ()
-                            {
-                                StatementTerms.Add(
-                                    new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as ScriptBlockBase, termNumber, operatorString, negated, localFloats, orSignalTypes, orNormalSubtypes));
-                                statement.Tokens.RemoveAt(0);
-                            }
-                            else
-                            {
-                                StatementTerms.Add(
-                                    new SCRStatTerm(statement.Tokens[0], termNumber, operatorString, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes));
-                            }
-                        }
-                        statement.Tokens.RemoveAt(0);
-                    }
-                }
-
                 private void ProcessScriptStatement(BlockBase statementBlock, int level, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     string operatorString = string.Empty;
@@ -1782,7 +816,7 @@ namespace Orts.Formats.Msts
                     while (statementBlock.Tokens.Count > 0)
                     {
                         negated = false;
-                        if ((statementBlock.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Operation)
+                        if ((statementBlock.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Operation)
                         {
                             operatorString = statementBlock.Tokens[0].Token;
                             statementBlock.Tokens.RemoveAt(0);
@@ -1807,7 +841,7 @@ namespace Orts.Formats.Msts
                         }
                         else
                         {
-                            if ((statementBlock.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Negator)
+                            if ((statementBlock.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Negator)
                             {
                                 statementBlock.Tokens.RemoveAt(0);
                                 negated = true;
@@ -1861,37 +895,6 @@ namespace Orts.Formats.Msts
                 } // constructor
 
                 // Function term
-                internal SCRStatTerm(SCRExternalFunctions externalFunction, ScriptBlockBase block, int subLevel, string operatorTerm, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-                {
-                    Negated = negated;
-                    TermLevel = subLevel;
-                    Function = externalFunction;
-                    TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
-
-                    List<SCRParameterType> result = new List<SCRParameterType>();
-                    ScriptStatement statement = block.Statements.Count > 0 ? block.Statements[0] : null;
-
-                    while (statement?.Tokens.Count > 0)
-                    {
-                        if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is ScriptBlockBase)   //check if it is a Function ()
-                        {
-                            // TODO Nested Function Call in Parameter not supported
-                            throw new NotImplementedException($"Nested function call in parameter {statement.Token} not supported at line {statement.LineNumber}");
-                            //SCRParameterType parameter = ParameterFromToken(statement.Tokens[0], lineNumber, localFloats, orSignalTypes, orNormalSubtypes);
-                            //StatementTerms.Add(
-                            //    new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as ScriptBlockBase, termNumber, operatorString, statement.LineNumber, localFloats, orSignalTypes, orNormalSubtypes));
-                            //statement.Tokens.RemoveAt(0);
-                        }
-                        else
-                        {
-                            SCRParameterType parameter = ParameterFromToken(statement.Tokens[0], statement.LineNumber, localFloats, orSignalTypes, orNormalSubtypes);
-                            result.Add(parameter);
-                        }
-                        statement.Tokens.RemoveAt(0);
-                    }
-                    PartParameter = result.Count > 0 ? result.ToArray() : null;
-                }
-
                 internal SCRStatTerm(SCRExternalFunctions externalFunction, BlockBase block, int subLevel, string operatorTerm, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     Negated = negated;
@@ -1923,24 +926,6 @@ namespace Orts.Formats.Msts
                 }
 
                 internal SCRStatTerm(ScriptToken token, int subLevel, string operatorTerm, int lineNumber, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-                {
-                    TermLevel = subLevel;
-                    Negated = negated;
-
-                    if (token.Token == "RETURN")
-                    {
-                        Function = SCRExternalFunctions.RETURN;
-                    }
-                    else
-                    {
-                        Function = SCRExternalFunctions.NONE;
-                        PartParameter = new SCRParameterType[1];
-                        PartParameter[0] = ParameterFromToken(token, lineNumber, localFloats, orSignalTypes, orNormalSubtypes);
-                        TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
-                    }
-                } // constructor
-
-                internal SCRStatTerm(Signalling.ScriptToken token, int subLevel, string operatorTerm, int lineNumber, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     TermLevel = subLevel;
                     Negated = negated;
@@ -1992,31 +977,6 @@ namespace Orts.Formats.Msts
 
                 public SCRBlock ElseBlock { get; private set; }
 
-                internal SCRConditionBlock(ConditionalBlockToken conditionalBlock, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-                {
-                    ConditionalStatementTerm term = conditionalBlock.Statements[0] as ConditionalStatementTerm;
-                    //IF-Term
-                    Conditions = ParseConditions(term.Condition.Statements[0], localFloats, orSignalTypes, orNormalSubtypes);
-                    IfBlock = new SCRBlock(term.Statement, localFloats, orSignalTypes, orNormalSubtypes);
-                    conditionalBlock.Statements.RemoveAt(0);
-
-                    //ElseIf-Term
-                    while ((conditionalBlock.Statements.Count > 0) && (term = conditionalBlock.Statements[0] as ConditionalStatementTerm).ConditionalToken == ConditionalStatementTerm.ELSEIF)
-                    {
-                        if (ElseIfBlock == null)
-                            ElseIfBlock = new List<SCRBlock>();
-                        ElseIfBlock.Add(new SCRBlock(term, localFloats, orSignalTypes, orNormalSubtypes));
-                        conditionalBlock.Statements.RemoveAt(0);
-                    }
-
-                    // Else-Block
-                    if ((conditionalBlock.Statements.Count > 0 && (term = conditionalBlock.Statements[0] as ConditionalStatementTerm).Else))
-                    {
-                        ElseBlock = new SCRBlock(term.Statement, localFloats, orSignalTypes, orNormalSubtypes);
-                        conditionalBlock.Statements.RemoveAt(0);
-                    }
-                }
-
                 internal SCRConditionBlock(ConditionalBlock conditionalBlock, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     //IF-Term
@@ -2040,13 +1000,6 @@ namespace Orts.Formats.Msts
                         conditionalBlock.Tokens.RemoveAt(0);
                     }
                 }
-
-                internal SCRConditionBlock(ConditionalStatementTerm conditionalStatement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-                {
-                    Conditions = ParseConditions(conditionalStatement.Condition.Statements[0], localFloats, orSignalTypes, orNormalSubtypes);
-                    IfBlock = new SCRBlock(conditionalStatement.Statement, localFloats, orSignalTypes, orNormalSubtypes);
-                }
-
             } // class SCRConditionBlock
 
             //================================================================================================//
@@ -2062,7 +1015,7 @@ namespace Orts.Formats.Msts
 
                 public SCRTermCondition Condition { get; private set; }
 
-                internal SCRConditions(ScriptStatement statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                internal SCRConditions(Enclosure statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     bool negated = false;
 
@@ -2072,9 +1025,9 @@ namespace Orts.Formats.Msts
                         negated = true;
                     }
 
-                    if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is ScriptBlockBase)   //check if it is a Sub Function ()
+                    if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
                     {
-                        Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as ScriptBlockBase, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                        Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
                         statement.Tokens.RemoveAt(0);
                     }
                     else
@@ -2111,68 +1064,6 @@ namespace Orts.Formats.Msts
                             negated = true;
                         }
 
-                        if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is ScriptBlockBase)   //check if it is a Sub Function ()
-                        {
-                            Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as ScriptBlockBase, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
-                            statement.Tokens.RemoveAt(0);
-                        }
-                        else
-                        {
-                            Term2 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes);
-                        }
-                        statement.Tokens.RemoveAt(0);
-                    }
-                }
-
-                internal SCRConditions(Enclosure statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-                {
-                    bool negated = false;
-
-                    if ((statement.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Negator)
-                    {
-                        statement.Tokens.RemoveAt(0);
-                        negated = true;
-                    }
-
-                    if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
-                    {
-                        Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
-                        statement.Tokens.RemoveAt(0);
-                    }
-                    else
-                    {
-                        Term1 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes);
-                    }
-                    statement.Tokens.RemoveAt(0);
-
-                    if (statement.Tokens.Count > 0)
-                    {
-                        if ((statement.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Logical)
-                        {
-                            // if this is a unary (boolean)comparison
-                            return;
-                        }
-                        //Comparison Operator
-                        else if (TranslateConditions.TryGetValue(statement.Tokens[0].Token, out SCRTermCondition comparison))
-                        {
-                            Condition = comparison;
-                        }
-                        else
-                        {
-                            Trace.TraceWarning($"sigscr-file line {statement.LineNumber} : Invalid comparison operator in : {statement}");
-#if DEBUG_PRINT_IN
-                            File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Invalid comparison operator in : {statement}\n"); ;
-#endif
-                        }
-                        statement.Tokens.RemoveAt(0);
-
-                        //Term 2
-                        if ((statement.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Negator)
-                        {
-                            statement.Tokens.RemoveAt(0);
-                            negated = true;
-                        }
-
                         if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
                         {
                             Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
@@ -2196,36 +1087,9 @@ namespace Orts.Formats.Msts
             {
                 public ArrayList Statements { get; private set; }
 
-                internal SCRBlock(ScriptStatement statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-                {
-                    List<ScriptStatement> statements;
-
-                    ScriptBlockBase block;
-                    block = statement.Tokens[0] as BlockToken ?? new BlockToken() { Statements = { statement } };
-
-                    while ((statements = block.Statements)?.Count == 1 && statements[0].Tokens[0] is BlockToken)    //remove nested empty blocks, primarily for legacy compatiblity
-                        block = statements[0].Tokens[0] as BlockToken;
-
-                    Statements = new ArrayList();
-
-                    foreach (ScriptStatement item in statements)
-                    {
-                        if (item.Tokens[0] is ConditionalBlockToken)
-                        {
-                            SCRConditionBlock conditionBlock = new SCRConditionBlock(item.Tokens[0] as ConditionalBlockToken, localFloats, orSignalTypes, orNormalSubtypes);
-                            Statements.Add(conditionBlock);
-                        }
-                        else
-                        {
-                            SCRStatement statementBlock = new SCRStatement(item, localFloats, orSignalTypes, orNormalSubtypes);
-                            Statements.Add(statementBlock);
-                        }
-                    }
-                }
-
                 internal SCRBlock(BlockBase block, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
-                    List<Signalling.ScriptToken> statements;
+                    List<ScriptToken> statements;
 
                     if (block is ConditionalBlock || block is Statement)
                         block = new Block(null, block.LineNumber) { Tokens = { block } };      //if this is a single If-Statement or Statement, encapsulate as block
@@ -2248,14 +1112,6 @@ namespace Orts.Formats.Msts
                             Statements.Add(scrStatement);
                         }
                     }
-                }
-
-                internal SCRBlock(ConditionalStatementTerm conditionalStatement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
-                {
-                    Statements = new ArrayList
-                    {
-                        new SCRConditionBlock(conditionalStatement, localFloats, orSignalTypes, orNormalSubtypes)
-                    };
                 }
             } // class SCRBlock
         } // class Scripts

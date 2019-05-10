@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Orts.Formats.Msts.Signalling
 {
@@ -97,9 +95,9 @@ namespace Orts.Formats.Msts.Signalling
     internal abstract class BlockBase : ScriptToken
     {
 
-        protected static int blockID;
+        //protected static int blockID;
 
-        protected int BlockId = blockID++;
+        //protected int BlockId = blockID++;
 
         protected bool isAlternateReturn;
 
@@ -126,6 +124,7 @@ namespace Orts.Formats.Msts.Signalling
 
         protected BlockBase SetAsAlternateReturn()
         {
+            if (!(this is ConditionalBlock && (this as ConditionalBlock).SkipOnReturn))
             isAlternateReturn = true;
             return this;
         }
@@ -175,8 +174,9 @@ namespace Orts.Formats.Msts.Signalling
 
         public virtual BlockBase StartAlternate(int lineNumber)
         {
+            SetAsAlternateReturn();
             //find the deepest Condition block which does not yet have an alternate (no Else, or Else If only)
-            return (((Tokens.Last() as ConditionalBlock)?.RequiresAlternate?.StartAlternate(lineNumber) as ConditionalBlock) ?? this as ConditionalBlock).SetAsAlternateReturn();
+            return (((Tokens.Last() as ConditionalBlock)?.RequiresAlternate()?.StartAlternate(lineNumber) as ConditionalBlock) ?? this as ConditionalBlock).SetAsAlternateReturn();
         }
 
         public virtual BlockBase CompleteBlock()
@@ -290,6 +290,8 @@ namespace Orts.Formats.Msts.Signalling
 
         internal bool HasAlternate { get; private set; }
 
+        internal bool SkipOnReturn;
+
         public override BlockBase Add(ScriptToken token)
         {
             return base.Add(token);
@@ -335,10 +337,25 @@ namespace Orts.Formats.Msts.Signalling
             return result;
         }
 
-        public BlockBase RequiresAlternate
+        public BlockBase RequiresAlternate()
         {
-            // return this instance if there is no Else yet, or if this is the If part of an ElseIf, else just null for simpified handling
-            get { return HasAlternate || IsAlternateCondition ? null : this; }
+                            if (HasAlternate)
+                    return null;
+                if (IsAlternateCondition)
+                {
+                if (Tokens.Count == 2 && Tokens[1] is ConditionalBlock && !(Tokens[1] as ConditionalBlock).HasAlternate)
+                {
+                    //since we are going deeper one more, we want to skip this one as return block reference next time
+                    (Tokens[1] as ConditionalBlock).SkipOnReturn = true;
+                    return this;
+                }
+                else
+                    return null;
+                }
+                return this;
+
+            //// return this instance if there is no Else yet, or if this is the If part of an ElseIf, else just null for simpified handling
+            //get { return HasAlternate || IsAlternateCondition ? null : this; }
         }
 
         public override string ToString()
