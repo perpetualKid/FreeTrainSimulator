@@ -50,6 +50,10 @@
     <Compile Include="CabViewFile.cs" />
     <Compile Include="EngineFile.cs" />
     <Compile Include="EnvironmentFile.cs" />
+    <Compile Include="Signalling\Enums.cs" />
+    <Compile Include="Signalling\Parser.cs" />
+    <Compile Include="Signalling\Tokenizer.cs" />
+    <Compile Include="Signalling\Tokens.cs" />
     <Compile Include="SignalScripts.cs" />
     <Compile Include="TerrainFlagsFile.cs" />
     <Compile Include="HazardFile.cs" />
@@ -91,6 +95,7 @@
       <Version>3.7.1.189</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

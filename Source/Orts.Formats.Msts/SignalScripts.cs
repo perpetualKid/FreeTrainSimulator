@@ -16,10 +16,10 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 #if DEBUG
 // prints details of the file as read from input
-// #define DEBUG_PRINT_IN
+ #define DEBUG_PRINT_IN
 
 // prints details of the file as processed
-// #define DEBUG_PRINT_OUT
+ #define DEBUG_PRINT_OUT
 #endif
 
 using System;
@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Orts.Formats.Msts.Signalling;
 
 namespace Orts.Formats.Msts
 {
@@ -894,9 +895,8 @@ namespace Orts.Formats.Msts
 #if DEBUG_PRINT_IN
                         File.AppendAllText(din_fileLoc + @"sigscr.txt", "Reading file : " + fullName + "\n\n");
 #endif
-
-                        ScriptStatementParser scriptParser = new ScriptStatementParser(stream);
-                        foreach (ScriptBlock script in scriptParser)
+                        Parser parser = new Parser(stream);
+                        foreach(Script script in parser)
                         {
                             #region DEBUG
 #if DEBUG_PRINT_IN
@@ -909,9 +909,28 @@ namespace Orts.Formats.Msts
 #endif
                             #endregion
                             AssignScriptToSignalType(new SCRScripts(script, orSignalTypes, orNormalSubtypes),
-                                signalTypes, scriptParser.LineNumber, fileName);
+                                signalTypes, parser.LineNumber, fileName);
+
                             Trace.Write("s");
                         }
+//                        stream.BaseStream.Position = 0;
+//                        ScriptStatementParser scriptParser = new ScriptStatementParser(stream);
+//                        foreach (ScriptBlock script in scriptParser)
+//                        {
+//                            #region DEBUG
+//#if DEBUG_PRINT_IN
+//                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n===============================\n");
+//                            File.AppendAllText(din_fileLoc + @"sigscr.txt", "\nNew Script : " + script.ScriptName + "\n");
+//#endif
+//#if DEBUG_PRINT_OUT
+//                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n===============================\n");
+//                            File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nNew Script : " + script.ScriptName + "\n");
+//#endif
+//                            #endregion
+//                            AssignScriptToSignalType(new SCRScripts(script, orSignalTypes, orNormalSubtypes),
+//                                signalTypes, scriptParser.LineNumber, fileName);
+//                            Trace.Write("s");
+//                        }
                         #region DEBUG
 #if DEBUG_PRINT_OUT
                         // print processed details 
@@ -1268,7 +1287,173 @@ namespace Orts.Formats.Msts
                 }
             }// constructor
 
+            internal SCRScripts(Script script, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            {
+                localFloats = new Dictionary<string, int>();
+                Statements = new ArrayList();
+                ScriptName = script.ScriptName;
+                int statementLine = 0;
+                int maxCount = script.Tokens.Count;
+                #region DEBUG_PRINT_IN
+#if DEBUG_PRINT_IN
+                // print inputlines
+                File.AppendAllText(din_fileLoc + @"sigscr.txt", script.ToString() + '\n');
+                File.AppendAllText(din_fileLoc + @"sigscr.txt", "\n+++++++++++++++++++++++++++++++++++\n\n");
+
+#endif
+                #endregion
+                // Skip external floats (exist automatically)
+                while ((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "EXTERN" && (script.Tokens[statementLine] as Statement)?.Tokens[1].Token == "FLOAT" && statementLine++ < maxCount)
+
+                    //// Process floats : build list with internal floats
+                    while (((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "FLOAT") && statementLine < maxCount)
+                    {
+                        string floatString = (script.Tokens[statementLine] as Statement)?.Tokens[1].Token;
+                        if (!localFloats.ContainsKey(floatString))
+                        {
+                            localFloats.Add(floatString, localFloats.Count);
+                        }
+                        statementLine++;
+                    }
+
+                #region DEBUG_PRINT_OUT
+#if DEBUG_PRINT_OUT
+                // print details of internal floats
+
+                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\n\nFloats : \n");
+                foreach (KeyValuePair<string, int> item in localFloats)
+                {
+                    File.AppendAllText(dout_fileLoc + @"scriptproc.txt", $"Float : {item.Key} = {item.Value}\n");
+                }
+                File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Total : " + localFloats.Count.ToString() + "\n\n\n");
+#endif
+                #endregion
+                script.Tokens.RemoveRange(0, statementLine);
+
+                foreach (BlockBase statementBlock in script.Tokens)
+                {
+                    if (statementBlock is ConditionalBlock)
+                    {
+                        SCRConditionBlock condition = new SCRConditionBlock(statementBlock as ConditionalBlock, localFloats, orSignalTypes, orNormalSubtypes);
+                        Statements.Add(condition);
+                    }
+                    else
+                    {
+                        SCRStatement scrStatement = new SCRStatement(statementBlock, localFloats, orSignalTypes, orNormalSubtypes);
+                        Statements.Add(scrStatement);
+                    }
+                }
+            }// constructor
+
             internal static SCRParameterType ParameterFromToken(ScriptToken token, int lineNumber, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            {
+
+                int index;
+
+                // try constant
+                if (int.TryParse(token.Token, out int constantInt))
+                {
+                    return new SCRParameterType(SCRTermType.Constant, constantInt);
+                }
+                // try external float
+                else if (Enum.TryParse(token.Token, true, out SCRExternalFloats externalFloat))
+                {
+                    return new SCRParameterType(SCRTermType.ExternalFloat, (int)externalFloat);
+                }
+                // try local float
+                else if (localFloats.TryGetValue(token.Token, out int localFloat))
+                {
+                    return new SCRParameterType(SCRTermType.LocalFloat, localFloat);
+                }
+                string[] definitions = token.Token.Split(new char[] { '_' }, 2);
+                if (definitions.Length == 2)
+                    switch (definitions[0])
+                    {
+                        // try blockstate
+                        case "BLOCK":
+                            if (Enum.TryParse(definitions[1], out MstsBlockState blockstate))
+                            {
+                                return new SCRParameterType(SCRTermType.Block, (int)blockstate);
+                            }
+                            else
+                            {
+                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Blockstate : {definitions[1]} \n");
+#if DEBUG_PRINT_IN
+                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Blockstate : {token.Token} \n");
+#endif
+                            }
+                            break;
+                        // try SIGASP definition
+                        case "SIGASP":
+                            if (Enum.TryParse(definitions[1], out MstsSignalAspect aspect))
+                            {
+                                return new SCRParameterType(SCRTermType.Sigasp, (int)aspect);
+                            }
+                            else
+                            {
+                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Aspect : {definitions[1]} \n");
+#if DEBUG_PRINT_IN
+                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Aspect : {token.Token} \n");
+#endif
+                            }
+                            break;
+                        // try SIGFN definition
+                        case "SIGFN":
+                            index = orSignalTypes.IndexOf(definitions[1]);
+                            if (index != -1)
+                            {
+                                return new SCRParameterType(SCRTermType.Sigfn, index);
+                            }
+                            else
+                            {
+                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown SIGFN Type : {definitions[1]} \n");
+#if DEBUG_PRINT_IN
+                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Type : {token.Token} \n");
+#endif
+                            }
+                            break;
+                        // try ORSubtype definition
+                        case "ORSUBTYPE":
+                            index = orNormalSubtypes.IndexOf(definitions[1]);
+                            if (index != -1)
+                            {
+                                return new SCRParameterType(SCRTermType.ORNormalSubtype, index);
+                            }
+                            else
+                            {
+                                Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown ORSUBTYPE : {definitions[1]} \n");
+#if DEBUG_PRINT_IN
+                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Type : {token.Token} \n");
+#endif
+                            }
+                            break;
+                        // try SIGFEAT definition
+                        case "SIGFEAT":
+                            index = SignalShape.SignalSubObj.SignalSubTypes.IndexOf(definitions[1]);
+                            if (index != -1)
+                            {
+                                return new SCRParameterType(SCRTermType.Sigfeat, index);
+                            }
+                            else
+                            {
+                                Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown SubType : {definitions[1]} \n");
+#if DEBUG_PRINT_IN
+                                File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown SubType : {token.Token} \n");
+#endif
+                            }
+                            break;
+                        default:
+                            // nothing found - set error
+                            Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown parameter in statement : {token.Token}");
+#if DEBUG_PRINT_IN
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown parameter : {token.Token} \n");
+#endif
+                            break;
+                    }
+                return new SCRParameterType(SCRTermType.Constant, 0);
+            }//process_TermPart
+
+            internal static SCRParameterType ParameterFromToken(Signalling.ScriptToken token, int lineNumber, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
             {
 
                 int index;
@@ -1423,6 +1608,47 @@ namespace Orts.Formats.Msts
                 return result;
             }
 
+            internal static ArrayList ParseConditions(Enclosure condition, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            {
+                ArrayList result = new ArrayList();
+                SCRAndOr logicalOperator = SCRAndOr.NONE;
+                while (condition.Tokens.Count > 0)
+                {
+                    if ((condition.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Logical)
+                    {
+                        if (TranslateAndOr.TryGetValue(condition.Tokens[0].Token, out logicalOperator))
+                        {
+                            result.Add(logicalOperator);
+                        }
+                        else
+                        {
+                            Trace.TraceWarning($"sigscr-file line {condition.LineNumber} : Invalid logical operator in : {condition.Token[0]}");
+                        }
+                        condition.Tokens.RemoveAt(0);
+                    }
+                    else if ((condition.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Negator && (condition.Tokens[1] is Enclosure || condition.Tokens[1] is Signalling.ScriptToken))
+                    {
+                        result.Add(SCRNegate.NEGATE);
+                        condition.Tokens.RemoveAt(0);
+                    }
+                    //Conditions are dedicated blocks, but always separated by logical operators
+                    else if (condition.Tokens[0] is Enclosure) //process sub block
+                    {
+                        result.AddRange(ParseConditions((condition.Tokens[0] as Enclosure), localFloats, orSignalTypes, orNormalSubtypes));
+                        //recurse in the block
+                        condition.Tokens.RemoveAt(0);
+                    }
+                    else //single term
+                    {
+                        result.Add(new SCRConditions(condition, localFloats, orSignalTypes, orNormalSubtypes));
+                    }
+                }
+                // TODO: This may be removed, only for debug output compatibility
+                if (logicalOperator != SCRAndOr.NONE)
+                    result.Add(logicalOperator);
+                return result;
+            }
+
             //================================================================================================//
             //
             // sub classes
@@ -1462,6 +1688,30 @@ namespace Orts.Formats.Msts
                         statement.Tokens.RemoveRange(0, 2);
                     }
                     ProcessScriptStatement(statement, 0, localFloats, orSignalTypes, orNormalSubtypes);
+                }
+
+                internal SCRStatement(BlockBase statementBlock, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    AssignType = SCRTermType.Invalid;
+
+                    //TODO: may want to process other Assignment Operations as well (+=, -= etc)
+                    Statement statement = statementBlock as Statement;
+                    if (statement?.Tokens.Count > 1 && (statement?.Tokens[1] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Assignment)
+                    {
+                        if (Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFloats result))
+                        {
+                            AssignParameter = (int)result;
+                            AssignType = SCRTermType.ExternalFloat;
+                        }
+                        else if (localFloats.TryGetValue(statement.Tokens[0].Token, out int value))
+                        {
+                            AssignParameter = value;
+                            AssignType = SCRTermType.LocalFloat;
+                        }
+                        // Assignment term
+                        statement.Tokens.RemoveRange(0, 2);
+                    }
+                    ProcessScriptStatement(statementBlock, 0, localFloats, orSignalTypes, orNormalSubtypes);
                 }
 
                 private void ProcessScriptStatement(ScriptStatement statement, int level, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
@@ -1522,8 +1772,63 @@ namespace Orts.Formats.Msts
                         statement.Tokens.RemoveAt(0);
                     }
                 }
-            }
 
+                private void ProcessScriptStatement(BlockBase statementBlock, int level, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    string operatorString = string.Empty;
+                    int termNumber = level;
+                    bool negated = false;
+
+                    while (statementBlock.Tokens.Count > 0)
+                    {
+                        negated = false;
+                        if ((statementBlock.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Operation)
+                        {
+                            operatorString = statementBlock.Tokens[0].Token;
+                            statementBlock.Tokens.RemoveAt(0);
+                            if (statementBlock.Tokens.Count == 0)
+                            {
+                                Trace.TraceWarning($"sigscr-file line {statementBlock.LineNumber} : Invalid statement syntax : {statementBlock.ToString()}");
+                                StatementTerms.Clear();
+                                return;
+                            }
+                        }
+                        else
+                            operatorString = string.Empty;
+
+                        if (statementBlock.Tokens[0] is Enclosure)
+                        {
+                            termNumber++;
+                            //recurse through inner statemement
+                            SCRStatTerm term = new SCRStatTerm(termNumber, level, operatorString);
+                            StatementTerms.Add(term);
+
+                            ProcessScriptStatement(statementBlock.Tokens[0] as Enclosure, termNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                        }
+                        else
+                        {
+                            if ((statementBlock.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Negator)
+                            {
+                                statementBlock.Tokens.RemoveAt(0);
+                                negated = true;
+                            }
+                            if (statementBlock.Tokens.Count > 1 && Enum.TryParse(statementBlock.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statementBlock.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
+                            {
+                                StatementTerms.Add(
+                                    new SCRStatTerm(externalFunctionsResult, statementBlock.Tokens[1] as Enclosure, termNumber, operatorString, negated, localFloats, orSignalTypes, orNormalSubtypes));
+                                statementBlock.Tokens.RemoveAt(0);
+                            }
+                            else 
+                            {
+                                StatementTerms.Add(
+                                    new SCRStatTerm(statementBlock.Tokens[0], termNumber, operatorString, statementBlock.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes));
+                            }
+
+                        }
+                        statementBlock.Tokens.RemoveAt(0);
+                    }
+                }
+            }
 
             //================================================================================================//
             //
@@ -1587,7 +1892,55 @@ namespace Orts.Formats.Msts
                     PartParameter = result.Count > 0 ? result.ToArray() : null;
                 }
 
+                internal SCRStatTerm(SCRExternalFunctions externalFunction, BlockBase block, int subLevel, string operatorTerm, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    Negated = negated;
+                    TermLevel = subLevel;
+                    Function = externalFunction;
+                    TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
+
+                    List<SCRParameterType> result = new List<SCRParameterType>();
+
+                    while (block.Tokens.Count > 0)
+                    {
+                        if (block.Tokens.Count > 1 && Enum.TryParse(block.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && block.Tokens[1] is Enclosure)   //check if it is a Function ()
+                        {
+                            // TODO Nested Function Call in Parameter not supported
+                            throw new NotImplementedException($"Nested function call in parameter {block.Token} not supported at line {block.LineNumber}");
+                            //SCRParameterType parameter = ParameterFromToken(statement.Tokens[0], lineNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                            //StatementTerms.Add(
+                            //    new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as ScriptBlockBase, termNumber, operatorString, statement.LineNumber, localFloats, orSignalTypes, orNormalSubtypes));
+                            //statement.Tokens.RemoveAt(0);
+                        }
+                        else
+                        {
+                            SCRParameterType parameter = ParameterFromToken(block.Tokens[0], block.LineNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                            result.Add(parameter);
+                        }
+                        block.Tokens.RemoveAt(0);
+                    }
+                    PartParameter = result.Count > 0 ? result.ToArray() : null;
+                }
+
                 internal SCRStatTerm(ScriptToken token, int subLevel, string operatorTerm, int lineNumber, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    TermLevel = subLevel;
+                    Negated = negated;
+
+                    if (token.Token == "RETURN")
+                    {
+                        Function = SCRExternalFunctions.RETURN;
+                    }
+                    else
+                    {
+                        Function = SCRExternalFunctions.NONE;
+                        PartParameter = new SCRParameterType[1];
+                        PartParameter[0] = ParameterFromToken(token, lineNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                        TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
+                    }
+                } // constructor
+
+                internal SCRStatTerm(Signalling.ScriptToken token, int subLevel, string operatorTerm, int lineNumber, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     TermLevel = subLevel;
                     Negated = negated;
@@ -1663,6 +2016,31 @@ namespace Orts.Formats.Msts
                         conditionalBlock.Statements.RemoveAt(0);
                     }
                 }
+
+                internal SCRConditionBlock(ConditionalBlock conditionalBlock, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    //IF-Term
+                    Conditions = ParseConditions(conditionalBlock.Tokens[0] as Enclosure, localFloats, orSignalTypes, orNormalSubtypes);
+                    IfBlock = new SCRBlock(conditionalBlock.Tokens[1] as BlockBase, localFloats, orSignalTypes, orNormalSubtypes);
+                    conditionalBlock.Tokens.RemoveRange(0, 2);
+
+                    //ElseIf-Term
+                    while ((conditionalBlock.Tokens.Count > 0) && ((conditionalBlock.Tokens[0] as ConditionalBlock)?.IsAlternateCondition ?? false))
+                    {
+                        if (ElseIfBlock == null)
+                            ElseIfBlock = new List<SCRBlock>();
+                        ElseIfBlock.Add(new SCRBlock(conditionalBlock.Tokens[0] as ConditionalBlock, localFloats, orSignalTypes, orNormalSubtypes));
+                        conditionalBlock.Tokens.RemoveAt(0);
+                    }
+
+                    // Else-Block
+                    if (conditionalBlock.Tokens.Count > 0 && conditionalBlock.HasAlternate)
+                    {
+                        ElseBlock = new SCRBlock(conditionalBlock.Tokens[0] as BlockBase, localFloats, orSignalTypes, orNormalSubtypes);
+                        conditionalBlock.Tokens.RemoveAt(0);
+                    }
+                }
+
                 internal SCRConditionBlock(ConditionalStatementTerm conditionalStatement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     Conditions = ParseConditions(conditionalStatement.Condition.Statements[0], localFloats, orSignalTypes, orNormalSubtypes);
@@ -1745,6 +2123,68 @@ namespace Orts.Formats.Msts
                         statement.Tokens.RemoveAt(0);
                     }
                 }
+
+                internal SCRConditions(Enclosure statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    bool negated = false;
+
+                    if ((statement.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Negator)
+                    {
+                        statement.Tokens.RemoveAt(0);
+                        negated = true;
+                    }
+
+                    if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
+                    {
+                        Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                        statement.Tokens.RemoveAt(0);
+                    }
+                    else
+                    {
+                        Term1 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                    }
+                    statement.Tokens.RemoveAt(0);
+
+                    if (statement.Tokens.Count > 0)
+                    {
+                        if ((statement.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Logical)
+                        {
+                            // if this is a unary (boolean)comparison
+                            return;
+                        }
+                        //Comparison Operator
+                        else if (TranslateConditions.TryGetValue(statement.Tokens[0].Token, out SCRTermCondition comparison))
+                        {
+                            Condition = comparison;
+                        }
+                        else
+                        {
+                            Trace.TraceWarning($"sigscr-file line {statement.LineNumber} : Invalid comparison operator in : {statement}");
+#if DEBUG_PRINT_IN
+                            File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Invalid comparison operator in : {statement}\n"); ;
+#endif
+                        }
+                        statement.Tokens.RemoveAt(0);
+
+                        //Term 2
+                        if ((statement.Tokens[0] as Signalling.OperatorToken)?.OperatorType == Signalling.OperatorType.Negator)
+                        {
+                            statement.Tokens.RemoveAt(0);
+                            negated = true;
+                        }
+
+                        if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
+                        {
+                            Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                            statement.Tokens.RemoveAt(0);
+                        }
+                        else
+                        {
+                            Term2 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                        }
+                        statement.Tokens.RemoveAt(0);
+                    }
+                }
             } // class SCRConditions
 
             //================================================================================================//
@@ -1779,6 +2219,33 @@ namespace Orts.Formats.Msts
                         {
                             SCRStatement statementBlock = new SCRStatement(item, localFloats, orSignalTypes, orNormalSubtypes);
                             Statements.Add(statementBlock);
+                        }
+                    }
+                }
+
+                internal SCRBlock(BlockBase block, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                {
+                    List<Signalling.ScriptToken> statements;
+
+                    if (block is ConditionalBlock || block is Statement)
+                        block = new Block(null, block.LineNumber) { Tokens = { block } };      //if this is a single If-Statement or Statement, encapsulate as block
+
+                    while ((statements = block.Tokens)?.Count == 1 && statements[0] is Block)    //remove nested empty blocks, primarily for legacy compatiblity
+                        block = statements[0] as Block;
+
+                    Statements = new ArrayList();
+
+                    foreach (BlockBase statementBlock in block.Tokens)
+                    {
+                        if (statementBlock is ConditionalBlock)
+                        {
+                            SCRConditionBlock condition = new SCRConditionBlock(statementBlock as ConditionalBlock, localFloats, orSignalTypes, orNormalSubtypes);
+                            Statements.Add(condition);
+                        }
+                        else
+                        {
+                            SCRStatement scrStatement = new SCRStatement(statementBlock, localFloats, orSignalTypes, orNormalSubtypes);
+                            Statements.Add(scrStatement);
                         }
                     }
                 }
