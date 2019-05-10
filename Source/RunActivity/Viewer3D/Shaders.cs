@@ -714,7 +714,7 @@ namespace Orts.Viewer3D
         readonly EffectParameter limitColor;
         readonly EffectParameter pointerColor;
         readonly EffectParameter backgroundColor;
-        //readonly EffectParameter imageTexture;
+        readonly EffectParameter imageTexture;
 
         public void SetData(Vector4 angle, Color gaugeColor, Color needleColor)
         {
@@ -731,7 +731,7 @@ namespace Orts.Viewer3D
             pointerColor = Parameters["PointerColor"];
             backgroundColor = Parameters["BackgroundColor"];
             limitAngle = Parameters["LimitAngle"];
-            //imageTexture = Parameters["ImageTexture"];
+            imageTexture = Parameters["ImageTexture"];
         }
     }
 
