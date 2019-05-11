@@ -150,7 +150,6 @@ namespace Orts.Viewer3D.RollingStock
             UserInputCommands.Add(UserCommand.ControlFireShovelFull, new Action[] { Noop, () => new FireShovelfullCommand(Viewer.Log) });
             UserInputCommands.Add(UserCommand.ControlCylinderCocks, new Action[] { Noop, () => new ToggleCylinderCocksCommand(Viewer.Log) });
             UserInputCommands.Add(UserCommand.ControlCylinderCompound, new Action[] { Noop, () => new ToggleCylinderCompoundCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlTroughRefill, new Action[] { Noop, () => ToggleTroughRefill() });
             UserInputCommands.Add(UserCommand.ControlSmallEjectorIncrease, new Action[] { () => SteamLocomotive.StopSmallEjectorIncrease(), () => SteamLocomotive.StartSmallEjectorIncrease(null) });
             UserInputCommands.Add(UserCommand.ControlSmallEjectorDecrease, new Action[] { () => SteamLocomotive.StopSmallEjectorDecrease(), () => SteamLocomotive.StartSmallEjectorDecrease(null) });
              base.InitializeUserInputCommands();
@@ -206,110 +205,6 @@ namespace Orts.Viewer3D.RollingStock
             }
 #endif
         }
-
-        /// <summary>
-        /// Switches between refill start and refill end
-        /// </summary>
-        protected void ToggleTroughRefill()
-        {
-            if (SteamLocomotive.RefillingFromTrough)
-            {
-               StopRefillingFromTrough(Viewer.Log);
-            }
-            else
-            {
-               AttemptToRefillFromTrough();
-            }
-        }
-
-        /// <summary>
-        /// Checks if on trough. If not, prevent refilling; else, starts refilling
-        /// </summary>
-        public void AttemptToRefillFromTrough()
-        {
-            if (!SteamLocomotive.HasWaterScoop)
-            {
-                Viewer.Simulator.Confirmer.Message(ConfirmLevel.Warning, Viewer.Catalog.GetString("No water scoop on this loco"));
-                return;
-            }
-            if (SteamLocomotive.ScoopIsBroken)
-            {
-                Viewer.Simulator.Confirmer.Message(ConfirmLevel.Error, Viewer.Catalog.GetString("Scoop is broken, can't refill"));
-                return;
-            }
-            if (SteamLocomotive.IsOverJunction())
-            {
-                Viewer.Simulator.Confirmer.Message(ConfirmLevel.Error, Viewer.Catalog.GetString("Scoop is broken by junction track"));
-                SteamLocomotive.ScoopIsBroken = true;
-                return;
-            }
-            if (!SteamLocomotive.IsOverTrough())
-            {
-                // Bad thing, scoop gets broken!
-                Viewer.Simulator.Confirmer.Message(ConfirmLevel.Error, Viewer.Catalog.GetString("Scoop is not over trough, can't refill"));
-                return;
-            }
-            if (SteamLocomotive.Direction == Direction.Reverse)
-            {
-                Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: Loco must be moving forward."));
-                return;
-            }
-            if (SteamLocomotive.SpeedMpS < SteamLocomotive.WaterScoopMinSpeedMpS)
-            {
-                Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: Loco speed must exceed {0}.",
-                    FormatStrings.FormatSpeedLimit(SteamLocomotive.WaterScoopMinSpeedMpS, Viewer.MilepostUnitsMetric)));
-                return;
-            }
-            if (SteamLocomotive.SpeedMpS > SteamLocomotive.ScoopMaxPickupSpeedMpS)
-            {
-                Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: Loco speed must not exceed {0}.",
-                    FormatStrings.FormatSpeedLimit(SteamLocomotive.ScoopMaxPickupSpeedMpS, Viewer.MilepostUnitsMetric)));
-                return;
-            }
-
-            //            if (SteamLocomotive.SpeedMpS > SteamLocomotive.ScoopMaxPickupSpeedMpS)
-            //            {
-            //                Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: Loco speed must not exceed {0}.",
-            //                    FormatStrings.FormatSpeedLimit(SteamLocomotive.ScoopMaxPickupSpeedMpS, Viewer.MilepostUnitsMetric)));
-            //                return;
-            //            }
-
-            var fraction = SteamLocomotive.GetFilledFraction((uint)MSTSWagon.PickupType.FuelWater);
-            if (fraction > 1.0)
-            {
-                Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: {0} supply now replenished.",
-                    PickupTypeDictionary[(uint)MSTSWagon.PickupType.FuelWater]));
-                return;
-            }
-            else
-            {
-                MSTSWagon.RefillProcess.OkToRefill = true;
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = -1;
-                SteamLocomotive.RefillingFromTrough = true;
-                SteamLocomotive.IsWaterScoopDown = true;
-                SteamLocomotive.SignalEvent(Event.WaterScoopDown);
-            }
-
-        }
-
-        /// <summary>
-        /// Ends a continuous increase in controlled value.
-        /// </summary>
-        public void StopRefillingFromTrough(CommandLog log)
-        {
-            MSTSWagon.RefillProcess.OkToRefill = false;
-            MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
-            SteamLocomotive.RefillingFromTrough = false;
-//            var controller = new MSTSNotchController();
-//            controller = SteamLocomotive.GetRefillController((uint)MSTSWagon.PickupType.FuelWater);
-
-//            new RefillCommand(log, controller.CurrentValue, controller.CommandStartTime);  // for Replay to use
-//            controller.StopIncrease();
-            SteamLocomotive.IsWaterScoopDown = false;
-            SteamLocomotive.SignalEvent(Event.WaterScoopUp);
-        }
-
-
 
         /// <summary>
         /// We are about to display a video frame.  Calculate positions for 

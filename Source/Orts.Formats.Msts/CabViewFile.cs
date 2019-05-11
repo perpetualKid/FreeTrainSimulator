@@ -168,6 +168,7 @@ namespace Orts.Formats.Msts
         ORTS_MIRRORS,
         ORTS_PANTOGRAPH3,
         ORTS_PANTOGRAPH4,
+        ORTS_WATER_SCOOP,
 
         // Further CabViewControlTypes must be added above this line, to avoid their malfunction in 3DCabs
         EXTERNALWIPERS,

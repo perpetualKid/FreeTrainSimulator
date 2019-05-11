@@ -2087,73 +2087,100 @@ namespace Orts.Simulation.RollingStocks
         // This section updates the special effects
         {
 
-            // Update Steam Leaks Information
-            if (Train.CarSteamHeatOn)
+            if (WagonType == WagonTypes.Tender || WagonType == WagonTypes.Engine)
             {
-                // Turn wagon steam leaks on 
-                HeatingHoseParticleDurationS = 0.75f;
-                HeatingHoseSteamVelocityMpS = 15.0f;
-                HeatingHoseSteamVolumeM3pS = 4.0f;
-            }
-            else
-            {
-                // Turn wagon steam leaks off 
-                HeatingHoseParticleDurationS = 0.0f;
-                HeatingHoseSteamVelocityMpS = 0.0f;
-                HeatingHoseSteamVolumeM3pS = 0.0f;
-            }
-
-            // Update Water Scoop Spray Information when scoop is down and filling from trough
-
-            var LocomotiveIdentification = Simulator.PlayerLocomotive as MSTSLocomotive;
-
-            if (LocomotiveIdentification.HasWaterScoop && LocomotiveIdentification.IsWaterScoopDown && LocomotiveIdentification.RefillingFromTrough && Direction == Direction.Forward && AbsSpeedMpS > LocomotiveIdentification.WaterScoopMinSpeedMpS)
-            {
-
-                float SpeedRatio = AbsSpeedMpS / 40.0f; // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
-                
-                // Turn wagon steam leaks on 
-                WaterScoopParticleDurationS = 0.75f;
-                WaterScoopWaterVelocityMpS = 30.0f;
-                WaterScoopWaterVolumeM3pS = 6.0f;
-
-                // Turn tender water overflow on if water level is greater then 100% nominally
-                if (LocomotiveIdentification.TenderWaterLevelFraction >= 0.9999)
+                // Update Steam Leaks Information
+                if (Train.CarSteamHeatOn)
                 {
-                
-                // Turn tender water overflow on 
-                  TenderWaterOverflowParticleDurationS = 0.75f;
-                  TenderWaterOverflowVelocityMpS = 30.0f;
-                  TenderWaterOverflowVolumeM3pS = 6.0f;
+                    // Turn wagon steam leaks on 
+                    HeatingHoseParticleDurationS = 0.75f;
+                    HeatingHoseSteamVelocityMpS = 15.0f;
+                    HeatingHoseSteamVolumeM3pS = 4.0f;
+                }
+                else
+                {
+                    // Turn wagon steam leaks off 
+                    HeatingHoseParticleDurationS = 0.0f;
+                    HeatingHoseSteamVelocityMpS = 0.0f;
+                    HeatingHoseSteamVolumeM3pS = 0.0f;
                 }
 
+                // Update Water Scoop Spray Information when scoop is down and filling from trough
+
+                bool ProcessWaterEffects = false; // Initialise test flag to see whether this wagon will have water sccop effects active
+                var LocomotiveIdentification = Simulator.PlayerLocomotive as MSTSLocomotive;
+
+                if (WagonType == WagonTypes.Tender || WagonType == WagonTypes.Engine)
+                {
+
+                    if (WagonType == WagonTypes.Tender)
+                    {
+                        // Find the associated steam locomotive for this tender
+                        if (TendersSteamLocomotive == null) FindTendersSteamLocomotive();
+
+                        if (TendersSteamLocomotive == LocomotiveIdentification && TendersSteamLocomotive.HasWaterScoop)
+                        {
+                            ProcessWaterEffects = true; // Set flag if this tender is attached to player locomotive
+                        }
+
+                    }
+                    else if (Simulator.PlayerLocomotive == this && LocomotiveIdentification.HasWaterScoop)
+                    {
+                        ProcessWaterEffects = true; // Allow water effects to be processed
+                    }
+                    else
+                    {
+                        ProcessWaterEffects = false; // Default off
+                    }
+
+                    if (LocomotiveIdentification.RefillingFromTrough && ProcessWaterEffects)
+                    {
+
+                        float SpeedRatio = AbsSpeedMpS / 40.0f; // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
+
+                        // Turn wagon steam leaks on 
+                        WaterScoopParticleDurationS = 0.75f;
+                        WaterScoopWaterVelocityMpS = 30.0f;
+                        WaterScoopWaterVolumeM3pS = 6.0f;
+
+                        // Turn tender water overflow on if water level is greater then 100% nominally
+                        if (LocomotiveIdentification.TenderWaterLevelFraction >= 0.9999)
+                        {
+
+                            // Turn tender water overflow on 
+                            TenderWaterOverflowParticleDurationS = 0.75f;
+                            TenderWaterOverflowVelocityMpS = 30.0f;
+                            TenderWaterOverflowVolumeM3pS = 6.0f;
+                        }
+                    }
+                    else
+                    {
+                        // Turn wagon steam leaks off 
+                        WaterScoopParticleDurationS = 0.0f;
+                        WaterScoopWaterVelocityMpS = 0.0f;
+                        WaterScoopWaterVolumeM3pS = 0.0f;
+
+                        // Turn tender water overflow off 
+                        TenderWaterOverflowParticleDurationS = 0.0f;
+                        TenderWaterOverflowVelocityMpS = 0.0f;
+                        TenderWaterOverflowVolumeM3pS = 0.0f;
+                    }
+
+
+                }
+
+                // Decrease wagon smoke as speed increases, smoke completely dissappears when wagon reaches 5MpS.
+                float WagonSmokeMaxRise = -1.0f;
+                float WagonSmokeMaxRun = 5.0f;
+                float WagonSmokeGrad = WagonSmokeMaxRise / WagonSmokeMaxRun;
+
+                float WagonSmokeRatio = (WagonSmokeGrad * AbsSpeedMpS) + 1.0f;
+                //   WagonSmokeDurationS = InitialWagonSmokeDurationS * WagonSmokeRatio;
+                //   WagonSmokeVolumeM3pS = InitialWagonSmokeVolumeM3pS * WagonSmokeRatio;
+                WagonSmokeDurationS = InitialWagonSmokeDurationS;
+                WagonSmokeVolumeM3pS = InitialWagonSmokeVolumeM3pS;
             }
-            else
-            {
-//                // Turn wagon steam leaks off 
-                WaterScoopParticleDurationS = 0.0f;
-                WaterScoopWaterVelocityMpS = 0.0f;
-                WaterScoopWaterVolumeM3pS = 0.0f;
-
-                // Turn tender water overflow off 
-                TenderWaterOverflowParticleDurationS = 0.0f;
-                TenderWaterOverflowVelocityMpS = 0.0f;
-                TenderWaterOverflowVolumeM3pS = 0.0f;
-
-            }
-
-            // Decrease wagon smoke as speed increases, smoke completely dissappears when wagon reaches 5MpS.
-            float WagonSmokeMaxRise = -1.0f;
-            float WagonSmokeMaxRun = 5.0f;
-            float WagonSmokeGrad = WagonSmokeMaxRise / WagonSmokeMaxRun;
-
-            float WagonSmokeRatio = (WagonSmokeGrad * AbsSpeedMpS) + 1.0f;
-         //   WagonSmokeDurationS = InitialWagonSmokeDurationS * WagonSmokeRatio;
-         //   WagonSmokeVolumeM3pS = InitialWagonSmokeVolumeM3pS * WagonSmokeRatio;
-            WagonSmokeDurationS = InitialWagonSmokeDurationS;
-            WagonSmokeVolumeM3pS = InitialWagonSmokeVolumeM3pS;
         }
-
 
         public override void SignalEvent(Event evt)
         {
@@ -2335,10 +2362,11 @@ namespace Orts.Simulation.RollingStocks
                 TendersSteamLocomotive = null;
         }
 
+        /// <summary>
+        /// This function checks each steam locomotive to see if it has a tender attached.
+        /// </summary>
         public void ConfirmSteamLocomotiveTender()
         {
-            
-            // Check each steam locomotive to see if it has a tender attached.
             if (this is MSTSSteamLocomotive )
             {
 
@@ -2380,10 +2408,12 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
+        /// <summary>
+        /// This function finds the steam locomotive associated with this wagon aux tender, this allows parameters processed in the steam loocmotive module to be used elsewhere.
+        /// </summary>
         public void FindAuxTendersSteamLocomotive()
         {
-            // Find the steam locomotive associated with this wagon aux tender, this allows parameters processed in the steam loocmotive module to be used elsewhere
-            if (Train == null || Train.Cars == null || Train.Cars.Count == 1)
+             if (Train == null || Train.Cars == null || Train.Cars.Count == 1)
             {
                 AuxTendersSteamLocomotive = null;
                 return;

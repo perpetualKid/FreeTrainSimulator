@@ -101,7 +101,6 @@ namespace Orts.Simulation.RollingStocks
         public MSTSNotchController FiringRateController = new MSTSNotchController(0, 1, 0.1f);
         public MSTSNotchController FireboxDoorController = new MSTSNotchController(0, 1, 0.1f);
         public MSTSNotchController FuelController = new MSTSNotchController(0, 1, 0.01f); // Could be coal, wood, oil or even peat !
-        public MSTSNotchController WaterController = new MSTSNotchController(0, 1, 0.01f);
         public MSTSNotchController SmallEjectorController = new MSTSNotchController(0, 1, 0.1f);
 
         public bool Injector1IsOn;
@@ -150,20 +149,11 @@ namespace Orts.Simulation.RollingStocks
         float PrevCombinedTenderWaterVolumeUKG;
         float PreviousTenderWaterVolumeUKG;
         public float MaxLocoTenderWaterMassKG;         // Maximum read from Eng file
-        public float MaxTotalCombinedWaterVolumeUKG;
         float RestoredMaxTotalCombinedWaterVolumeUKG; // Values to restore after game save
         float RestoredCombinedTenderWaterVolumeUKG;     // Values to restore after game save
 
         // Tender
-        public float IsTenderRequired = 1.0f;  // Flag indicates that a tender is required for operation of the locomotive. Typically tank locomotives do not require a tender. Assume by default that tender is required.
         public bool HasTenderCoupled = true;
-
-        public float CombinedTenderWaterVolumeUKG          // Decreased by running injectors and increased by refilling
-        {
-            get { return WaterController.CurrentValue * MaxTotalCombinedWaterVolumeUKG; }
-            set { WaterController.CurrentValue = value / MaxTotalCombinedWaterVolumeUKG; }
-        }
-
 
         // Carriage Steam Heating Parameters
         float CalculatedCarHeaterSteamUsageLBpS;  //
@@ -828,15 +818,6 @@ namespace Orts.Simulation.RollingStocks
                     IsSelectGeared = String.Compare(typeString2, "Select") == 0;
                     break;
                 case "engine(enginecontrollers(waterscoop": HasWaterScoop = true; break;
-//                case "engine(steamwaterscoopminpickupspeed": ScoopMinPickupSpeedMpS = stf.ReadFloatBlock(STFReader.UNITS.SpeedDefaultMPH, 0.0f); break;
-//                case "engine(steamwaterscoopmaxpickupspeed": ScoopMaxPickupSpeedMpS = stf.ReadFloatBlock(STFReader.UNITS.SpeedDefaultMPH, 0.0f); break;
-//                case "engine(steamwaterscoopresistance": ScoopResistanceN = stf.ReadFloatBlock(STFReader.UNITS.Force, 0.0f); break;
-                    //Not used at the moment. Default unit of measure libs/s does not exist either
-                    //                case "engine(steamwaterpickuprate": ScoopPickupRateKGpS = stf.ReadFloatBlock(STFReader.UNITS.MassRateDefaultLBpH, null); break;
-
-               case "engine(ortswaterscoopfillelevation": WaterScoopFillElevationM = stf.ReadFloatBlock(STFReader.UNITS.Distance, 0.0f); break;
-               case "engine(ortswaterscoopdepth": WaterScoopDepthM = stf.ReadFloatBlock(STFReader.UNITS.Distance, 0.0f); break;
-               case "engine(ortswaterscoopwidth": WaterScoopWidthM = stf.ReadFloatBlock(STFReader.UNITS.Distance, 0.0f); break;
                 default: base.Parse(lowercasetoken, stf); break;
             }
         }
@@ -901,13 +882,6 @@ namespace Orts.Simulation.RollingStocks
             HasSuperheater = locoCopy.HasSuperheater;
             IsFixGeared = locoCopy.IsFixGeared;
             IsSelectGeared = locoCopy.IsSelectGeared;
-            HasWaterScoop = locoCopy.HasWaterScoop;
-//            ScoopMinPickupSpeedMpS = locoCopy.ScoopMinPickupSpeedMpS;
-//            ScoopMaxPickupSpeedMpS = locoCopy.ScoopMaxPickupSpeedMpS;
-//            ScoopResistanceN = locoCopy.ScoopResistanceN;
-            WaterScoopFillElevationM = locoCopy.WaterScoopFillElevationM;
-            WaterScoopDepthM = locoCopy.WaterScoopDepthM;
-            WaterScoopWidthM = locoCopy.WaterScoopWidthM;
             CylinderExhausttoCutoff = locoCopy.CylinderExhausttoCutoff;
             CylinderCompressiontoCutoff = locoCopy.CylinderCompressiontoCutoff;
             CylinderAdmissiontoCutoff = locoCopy.CylinderAdmissiontoCutoff;
@@ -1699,26 +1673,6 @@ namespace Orts.Simulation.RollingStocks
             
             }
 
-            // Check to see if water scoop elements have been configured
-            if (WaterScoopFillElevationM == 0)
-            {
-               WaterScoopFillElevationM = 2.7432f; // Set to default of 9 ft
-            }
-            
-            if (WaterScoopDepthM == 0)
-            {
-               WaterScoopDepthM = 0.0889f; // Set to default of 3.5 ins
-            }
-            
-            if (WaterScoopWidthM == 0)
-            {
-               WaterScoopWidthM = 0.3048f; // Set to default of 1 ft
-            }
-
-            // Calculate minimum speed to pickup water
-            const float Aconst = 2;
-            WaterScoopMinSpeedMpS = Me.FromFt((float)Math.Sqrt(Aconst * GravitationalAccelerationFtpSpS * Me.ToFt(WaterScoopFillElevationM)));
-
             // If DrvWheelWeight is not in ENG file, then calculate from Factor of Adhesion(FoA) = DrvWheelWeight / Start (Max) Tractive Effort, assume FoA = 4.2
 
             if (DrvWheelWeightKg == 0) // if DrvWheelWeightKg not in ENG file.
@@ -2209,14 +2163,6 @@ namespace Orts.Simulation.RollingStocks
                     Simulator.Confirmer.UpdateWithPerCent(CabControl.TenderCoal, CabSetting.Increase, FuelController.CurrentValue * 100);
             }
 
-            if (RefillingFromTrough && !IsOverTrough())
-            {
-                // Don't set refill values
-                WaterController.UpdateValue = 0.0f;
-                RefillingFromTrough = false;
-                SignalEvent(Event.WaterScoopUp);
-            }
-
             WaterController.Update(elapsedClockSeconds);
             if (IsPlayerTrain)
             {
@@ -2230,10 +2176,10 @@ namespace Orts.Simulation.RollingStocks
             TenderWaterLevelFraction = CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG;
             float TempCylinderSteamUsageLbpS = CylinderSteamUsageLBpS;
             // Limit Cylinder steam usage to the maximum boiler evaporation rate, lower limit is for when the locomotive is at rest and "no steam" is being used by cylinder, ensures some coal is used.
-            TempCylinderSteamUsageLbpS = MathHelper.Clamp(TempCylinderSteamUsageLbpS, 0.1f, TheoreticalMaxSteamOutputLBpS); 
+            TempCylinderSteamUsageLbpS = MathHelper.Clamp(TempCylinderSteamUsageLbpS, 0.1f, TheoreticalMaxSteamOutputLBpS);
 
             if (HasTenderCoupled) // If a tender is coupled then coal is available
-            {         
+            {
                 TenderCoalMassKG -= elapsedClockSeconds * pS.FrompH(Kg.FromLb(NewBurnRateSteamToCoalLbspH[pS.TopH(TempCylinderSteamUsageLbpS)])); // Current Tender coal mass determined by burn rate.
                 TenderCoalMassKG = MathHelper.Clamp(TenderCoalMassKG, 0, MaxTenderCoalMassKG); // Clamp value so that it doesn't go out of bounds
             }
@@ -2359,62 +2305,6 @@ namespace Orts.Simulation.RollingStocks
             {
                 WaterIsExhausted = false;
             }
-
-            // update water scoop
-            // Water scoop fill charateristics can be found in - 
-            // Calculate water velocity entering pipe: v = SQRT ( loco speed^2 - 2 * gravity * h)
-            // Calculate the drag of the water scoop in the water: Drag Force = 0.5 * Drag Coeff * Fluid Density * Reference Area * Velocity
-
-            if (RefillingFromTrough && Direction == Direction.Forward && AbsSpeedMpS > WaterScoopMinSpeedMpS)
-            {
-                // Calculate water velocity
-                const float Aconst = 2;
-                const float Bconst = 2.15f;
-                float Avalue = ((float)Math.Pow(MpS.ToMpH(absSpeedMpS), 2) * Bconst);
-                float Bvalue = Aconst * GravitationalAccelerationFtpSpS * Me.ToFt(WaterScoopFillElevationM);
-                
-                if (Avalue > Bvalue)
-                {
-                    WaterScoopVelocityMpS = Me.FromFt((float)Math.Sqrt(Avalue - Bvalue));
-                }
-                else
-                {
-                    WaterScoopVelocityMpS = 0;
-                }
-                
-                // calculate volume of water scooped per period
-                const float CuFttoGalUK = 6.22884f; // imperial gallons of water in a cubic foot of water
-                WaterScoopedQuantityLpS = L.FromGUK(Me2.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Me.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK);
-                WaterScoopInputAmountL = WaterScoopedQuantityLpS * elapsedClockSeconds; // Calculate current input quantity
-                
-                // Max sure that water level can't exceed maximum tender water level. Assume that water will be vented out of tender if maximum value exceeded. 
-                // If filling from water trough this will be done with force
-                const float NominalExtraWaterVolumeFactor = 1.0001f;
-                CombinedTenderWaterVolumeUKG += L.ToGUK(WaterScoopInputAmountL); // add the amouunt of water added by scoop
-                WaterScoopTotalWaterL += WaterScoopInputAmountL;
-                
-                CombinedTenderWaterVolumeUKG = MathHelper.Clamp(CombinedTenderWaterVolumeUKG, 0.0f, MaxTotalCombinedWaterVolumeUKG * NominalExtraWaterVolumeFactor);
-                
-                // Calculate drag force
-                float ScoopDragCoeff = 1.05f;
-                float ScoopDragAreaM = WaterScoopDepthM * WaterScoopWidthM;
-                float ScoopFluidDensityKgpM3 = 998.2f; // Fuild density of water @ 20c
-                WaterScoopDragForceN = 0.5f * ScoopDragCoeff * ScoopFluidDensityKgpM3 * ScoopDragAreaM * absSpeedMpS * absSpeedMpS;
-
-            }
-            else // Ensure water scoop values are zero if not taking water.
-            {
-                WaterScoopDragForceN = 0f;
-                WaterScoopedQuantityLpS = 0;
-                WaterScoopInputAmountL = 0;
-                WaterScoopVelocityMpS = 0;
-                
-                if (!IsOverTrough()) // Only reset once train moves off the trough
-                {
-                    WaterScoopTotalWaterL = 0.0f; // Reset amount of water picked up by water sccop.
-                }
-            }
-
         }
 
         private void UpdateFirebox(float elapsedClockSeconds, float absSpeedMpS)
@@ -6452,8 +6342,8 @@ namespace Orts.Simulation.RollingStocks
 
             }
 
-            // If a water scoop fitted display relevant debug info
-            if (HasWaterScoop)
+            // If a water scoop fitted display relevant debug info for the player train only
+            if (IsPlayerTrain && HasWaterScoop)
             {
                status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Water Scoop"));
                 status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\n",
