@@ -61,6 +61,7 @@ namespace Orts.Viewer3D.Popups
         public int charFitPerLine;
         public int columnsCount = 0;
         public int headerToRestore = 0;
+        public int PathHeaderColumn = 0;
         public static int columnsChars = 0;
         public int[] lineOffsetLocoInfo = { 0, 0, 0, 0, 0, 0 };
         public static int hudWindowLinesActualPage = 1;
@@ -1270,7 +1271,7 @@ namespace Orts.Viewer3D.Popups
                 );
             }
             //Columns. HudScroll
-            var columnsCount = ColumnsCount(table);
+            var columnsCount = ColumnsCount(table, false);
 
             TableAddLine(table);
 
@@ -1348,7 +1349,7 @@ namespace Orts.Viewer3D.Popups
             TextPageHeading(table, Viewer.Catalog.GetString("DISPATCHER INFORMATION : active trains : " + totalactive));
 
             ResetHudScroll();//Reset HudScroll
-
+            
             if (hudWindowColumnsActualPage > 0)
             {
                 //HudScroll
@@ -1375,11 +1376,16 @@ namespace Orts.Viewer3D.Popups
                     Viewer.Catalog.GetString("Distance"),
                     Viewer.Catalog.GetString("Consist"),
                     Viewer.Catalog.GetString("Path"));
-                    //New added items, here
-            }
-            //HudScroll. Columns
-            var columnsCount = ColumnsCount(table);
+                //New added items, here
 
+                //Find 'Path' header column
+                //Requiered to avoid conflict with human dispatcher code.
+                PathHeaderColumn = ColumnsCount(table, true); 
+            }
+
+            //HudScroll. Columns
+            var columnsCount = ColumnsCount(table, false);
+            
             List<string[]> statusDispatcher = new List<string[]>();
             statusDispatcher.Clear();
             var TextToYellowColor = "#";
@@ -1469,7 +1475,7 @@ namespace Orts.Viewer3D.Popups
                 if (statusDispatcher.Count > i)
                 {
                     //Calc col number and take in count 2 left columns car and consist name
-                    TextColNumber(statusDispatcher[i][12], 2, false);
+                    TextColNumber(statusDispatcher[i][PathHeaderColumn], 2, false);
                     var arrow = "";
                     //Add yellow color to string.
                     var EndText = statusDispatcher[i][0].Length == TextToYellowColor.Length && statusDispatcher[i][0].Contains(TextToYellowColor) ? "???" : "";
@@ -1479,28 +1485,33 @@ namespace Orts.Viewer3D.Popups
                     {
                         if (stringStatus.Count > 1 && stringStatus.Count <= hudWindowColumnsActualPage)
                         {
-                            arrow = arrow + "◄";// \u25C0
+                            arrow = "◄";// \u25C0
                             TableSetCell(table, 2, hudWindowColumnsActualPage > 1 ? stringStatus[(stringStatus.Count < hudWindowColumnsActualPage ? stringStatus.Count - 1 : hudWindowColumnsActualPage - 1)] + EndText : stringStatus[hudWindowColumnsActualPage - 1] + EndText);
                         }
                         else if (stringStatus.Count > 1 && hudWindowColumnsActualPage == 1)
                         {
-                            arrow = arrow + "►";// \u25B6
+                            arrow = "►";// \u25B6
                             TableSetCell(table, 2, hudWindowColumnsActualPage > 0 ? stringStatus[hudWindowColumnsActualPage - 1] + EndText : stringStatus[hudWindowColumnsActualPage - 1] + EndText);
                         }
                         else if (stringStatus.Count > 1 && hudWindowColumnsActualPage > 1 && stringStatus.Count >= hudWindowColumnsActualPage)
                         {
-                            arrow = arrow + "↔";// \u2194
+                            arrow = "↔";// \u2194
                             TableSetCell(table, 2, hudWindowColumnsActualPage > 0 ? stringStatus[hudWindowColumnsActualPage - 1] + EndText : stringStatus[hudWindowColumnsActualPage - 1] + EndText);
                         }
+                        else if (stringStatus.Count == 1 && hudWindowColumnsActualPage == 1 && stringStatus.Count >= hudWindowColumnsActualPage)
+                        {
+                            arrow = "◄";// \u25C0
+                            TableSetCell(table, 2, statusDispatcher[i][PathHeaderColumn]);
+                        }
                         else
-                            TableSetCell(table, table.CurrentRow, 2, statusDispatcher[i][12] + EndText);
+                            TableSetCell(table, table.CurrentRow, 2, statusDispatcher[i][PathHeaderColumn] + EndText);
 
                         TableSetCell(table, table.CurrentRow, 0, arrow + statusDispatcher[i][0] + EndText);
                         TableSetCell(table, table.CurrentRow, 1, statusDispatcher[i][11] + EndText);
                     }
                     else
                         for (int iCell = 0; iCell < statusDispatcher[0].Length; iCell++)
-                            TableSetCell(table, table.CurrentRow, iCell, statusDispatcher[i][iCell] + EndText);
+                            TableSetCell(table, table.CurrentRow, iCell, statusDispatcher[i][iCell] + (iCell == PathHeaderColumn ? "" : EndText));//Avoid yellow color for Path info
 
                     TableAddLine(table);
                 }
@@ -1616,18 +1627,27 @@ namespace Orts.Viewer3D.Popups
 
         /// <summary>
         /// Columns count
-        /// used in TextLineNumber(int CarsCount, int CurrentRow, int ColumnCount)
+        /// Used in TextLineNumber(int CarsCount, int CurrentRow, int ColumnCount)
+        /// PathColumn == true return 'Path' header column position
         /// </summary>
         /// <param name="table"></param>
-        /// <returns></returns>
-        private int ColumnsCount(TableData table)
+        /// <param name="PathColumn"></param>
+        /// <returns "nColumnsCount"></returns>
+        private int ColumnsCount(TableData table, bool PathColumn)
         {
             //Check columns for not null value. HudScroll
             int nColumnsCount = 0;
             for (int i = 0; i < table.Cells.GetLength(1); i++)
             {
                 if (table.Cells[table.CurrentRow, i] != null)
+                {                    
+                    //Search Path column position. Dispatcher Information
+                    //Avoid conflict with human dispatcher
+                    var dato = table.Cells[table.CurrentRow, i].ToString();
+                    if (PathColumn && table.Cells[table.CurrentRow, i].ToString() == "Path") break;
+                    
                     nColumnsCount++;
+                }
             }
             return nColumnsCount;
         }
