@@ -1468,7 +1468,7 @@ namespace Orts.Viewer3D.Popups
 
             //HudScroll. Pages count from nLinesShow number.
             TextLineNumber(statusDispatcher.Count, table.CurrentRow, columnsCount);
-
+            
             //Number of lines to show. HudScroll
             for (var i = (hudWindowLinesActualPage * nLinesShow) - nLinesShow; i < (Viewer.Simulator.Trains.Count > hudWindowLinesActualPage * nLinesShow ? hudWindowLinesActualPage * nLinesShow : Viewer.Simulator.Trains.Count); i++)
             {
@@ -1476,6 +1476,7 @@ namespace Orts.Viewer3D.Popups
                 {
                     //Calc col number and take in count 2 left columns car and consist name
                     TextColNumber(statusDispatcher[i][PathHeaderColumn], 2, false);
+
                     var arrow = "";
                     //Add yellow color to string.
                     var EndText = statusDispatcher[i][0].Length == TextToYellowColor.Length && statusDispatcher[i][0].Contains(TextToYellowColor) ? "???" : "";
@@ -1483,6 +1484,9 @@ namespace Orts.Viewer3D.Popups
                     //DrawScrollArrows() can't be used because it works with TableAddLines, here we work with TableSetCell.
                     if (hudWindowColumnsActualPage > 0)
                     {
+                        if (statusDispatcher[i][PathHeaderColumn].Contains(stringStatus[hudWindowColumnsActualPage - 1]) || stringStatus[hudWindowColumnsActualPage - 1].EndsWith("???"))
+                            EndText = "";
+
                         if (stringStatus.Count > 1 && stringStatus.Count <= hudWindowColumnsActualPage)
                         {
                             arrow = "◄";// \u25C0
@@ -1504,14 +1508,16 @@ namespace Orts.Viewer3D.Popups
                             TableSetCell(table, 2, statusDispatcher[i][PathHeaderColumn]);
                         }
                         else
-                            TableSetCell(table, table.CurrentRow, 2, statusDispatcher[i][PathHeaderColumn] + EndText);
+                            TableSetCell(table, table.CurrentRow, 2, statusDispatcher[i][PathHeaderColumn]);
 
+                        //Add yellow color to string.
+                        EndText = statusDispatcher[i][0].Length == TextToYellowColor.Length && statusDispatcher[i][0].Contains(TextToYellowColor) ? "???" : "";
                         TableSetCell(table, table.CurrentRow, 0, arrow + statusDispatcher[i][0] + EndText);
                         TableSetCell(table, table.CurrentRow, 1, statusDispatcher[i][11] + EndText);
                     }
                     else
                         for (int iCell = 0; iCell < statusDispatcher[0].Length; iCell++)
-                            TableSetCell(table, table.CurrentRow, iCell, statusDispatcher[i][iCell] + (iCell == PathHeaderColumn ? "" : EndText));//Avoid yellow color for Path info
+                            TableSetCell(table, table.CurrentRow, iCell, statusDispatcher[i][iCell] + (iCell == PathHeaderColumn && !statusDispatcher[i][PathHeaderColumn].EndsWith("???")? "" : EndText));//Avoid yellow color for Path info
 
                     TableAddLine(table);
                 }
@@ -1868,7 +1874,7 @@ namespace Orts.Viewer3D.Popups
                 for (i = 0; i < StringStatusLength; i += charFitPerLine)
                 {
                     if (StringStatusLength - i > charFitPerLine)
-                        stringStatus.Add(StringStatus.Substring(i, charFitPerLine));
+                        stringStatus.Add(StringStatus.Substring(i, charFitPerLine) + (StringStatus.EndsWith("???")? "???" : ""));//Required by human dispacher path data
                     else
                         stringStatus.Add(StringStatus.Substring(i, StringStatus.Length - i));
                     n++;
