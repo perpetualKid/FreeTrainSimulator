@@ -1484,7 +1484,8 @@ namespace Orts.Viewer3D.Popups
                     //DrawScrollArrows() can't be used because it works with TableAddLines, here we work with TableSetCell.
                     if (hudWindowColumnsActualPage > 0)
                     {
-                        if (statusDispatcher[i][PathHeaderColumn].Contains(stringStatus[hudWindowColumnsActualPage - 1]) || stringStatus[hudWindowColumnsActualPage - 1].EndsWith("???"))
+                        var statusIndex = stringStatus.Count >= hudWindowColumnsActualPage ? hudWindowColumnsActualPage - 1 : stringStatus.Count - 1;
+                        if (statusDispatcher[i][PathHeaderColumn].Contains(stringStatus[statusIndex]) || stringStatus[statusIndex].EndsWith("???"))
                             EndText = "";
 
                         if (stringStatus.Count > 1 && stringStatus.Count <= hudWindowColumnsActualPage)
