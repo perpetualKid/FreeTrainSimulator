@@ -16,10 +16,10 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 #if DEBUG
 // prints details of the file as read from input
- #define DEBUG_PRINT_IN
+// #define DEBUG_PRINT_IN
 
 // prints details of the file as processed
- #define DEBUG_PRINT_OUT
+// #define DEBUG_PRINT_OUT
 #endif
 
 using System;
@@ -485,7 +485,9 @@ namespace Orts.Formats.Msts
         /// </summary>
         private void AssignScriptToSignalType(SCRScripts script, IDictionary<string, SignalType> signalTypes, int currentLine, string fileName)
         {
+#pragma warning disable 219     //variable only used for DEBUG output using DEBUG_PRINT_OUT or DEBUG_PRINT_IN
             bool isValid = false;
+#pragma warning restore 210
             string scriptName = script.ScriptName;
             // try and find signal type with same name as script
             if (signalTypes.TryGetValue(script.ScriptName.ToLower(), out SignalType signalType))
