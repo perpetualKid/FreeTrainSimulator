@@ -26,6 +26,7 @@ using Orts.Formats.Msts;
 using Orts.Simulation.Signalling;
 using Orts.Viewer3D.Common;
 using ORTS.Common;
+using ORTS.Common.Xna;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -151,10 +152,10 @@ namespace Orts.Viewer3D
             var dTileX = Location.TileX - Viewer.Camera.TileX;
             var dTileZ = Location.TileZ - Viewer.Camera.TileZ;
             var xnaTileTranslation = Matrix.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
-            Matrix.Multiply(ref Location.XNAMatrix, ref xnaTileTranslation, out xnaTileTranslation);
+            MatrixExtension.Multiply(in Location.XNAMatrix, in xnaTileTranslation, out Matrix xnaTileTranslationResult);
 
             foreach (var head in Heads)
-                head.PrepareFrame(frame, elapsedTime, xnaTileTranslation);
+                head.PrepareFrame(frame, elapsedTime, xnaTileTranslationResult);
 
             SharedShape.PrepareFrame(frame, Location, XNAMatrices, SubObjVisible, Flags);
         }
@@ -358,13 +359,13 @@ namespace Orts.Viewer3D
                     if (!SignalTypeData.DayLight && isDay && !isPoorVisibility)
                         continue;
 
-                    var xnaMatrix = Matrix.CreateTranslation(SignalTypeData.Lights[i].Position);
-
+                    var translationMatrix = Matrix.CreateTranslation(SignalTypeData.Lights[i].Position);
+                    Matrix temp = default;
                     foreach (int MatrixIndex in MatrixIndices)
                     {
-                        Matrix.Multiply(ref xnaMatrix, ref SignalShape.XNAMatrices[MatrixIndex], out xnaMatrix);
+                        MatrixExtension.Multiply(in translationMatrix, in SignalShape.XNAMatrices[MatrixIndex], out temp);
                     }
-                    Matrix.Multiply(ref xnaMatrix, ref xnaTileTranslation, out xnaMatrix);
+                    MatrixExtension.Multiply(in temp, in xnaTileTranslation, out Matrix xnaMatrix);
 
                     frame.AddPrimitive(SignalTypeData.Material, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix);
                     if (Viewer.Settings.SignalLightGlow)

@@ -41,6 +41,7 @@ using Orts.Viewer3D.Processes;
 using Orts.Viewer3D.RollingStock;
 using ORTS.Common;
 using ORTS.Common.Input;
+using ORTS.Common.Xna;
 using ORTS.Settings;
 using Event = Orts.Common.Event;
 
@@ -1359,15 +1360,16 @@ namespace Orts.Viewer3D
                         if (cabRenderer is CabViewDiscreteRenderer)
                         {
                             foreach (var iMatrix in animatedPart.Value.MatrixIndexes)
-                            { 
-                                var matrix = Matrix.Identity;
+                            {
+                                Matrix startingPoint = Matrix.Identity;
                                 var hi = iMatrix;
                                 while (hi >= 0 && hi < trainCarShape.Hierarchy.Length && trainCarShape.Hierarchy[hi] != -1)
                                 {
-                                    Matrix.Multiply(ref matrix, ref trainCarShape.XNAMatrices[hi], out matrix);
+                                    MatrixExtension.Multiply(in startingPoint, in trainCarShape.XNAMatrices[hi], out Matrix result);
                                     hi = trainCarShape.Hierarchy[hi];
+                                    startingPoint = result;
                                 }
-                                matrix = Matrix.Multiply(matrix, trainCarShape.Location.XNAMatrix);
+                                MatrixExtension.Multiply(in startingPoint, in trainCarShape.Location.XNAMatrix, out Matrix matrix);
                                 var matrixWorldLocation = trainCarShape.Location.WorldLocation;
                                 matrixWorldLocation.Location.X = matrix.Translation.X;
                                 matrixWorldLocation.Location.Y = matrix.Translation.Y;
@@ -1421,14 +1423,15 @@ namespace Orts.Viewer3D
                         {
                             foreach (var iMatrix in animatedPart.Value.MatrixIndexes)
                             {
-                                var matrix = Matrix.Identity;
+                                Matrix startingPoint = Matrix.Identity;
                                 var hi = iMatrix;
                                 while (hi >= 0 && hi < trainCarShape.Hierarchy.Length && trainCarShape.Hierarchy[hi] != -1)
                                 {
-                                    Matrix.Multiply(ref matrix, ref trainCarShape.XNAMatrices[hi], out matrix);
+                                    MatrixExtension.Multiply(in startingPoint, in trainCarShape.XNAMatrices[hi], out Matrix result);
                                     hi = trainCarShape.Hierarchy[hi];
+                                    startingPoint = result;
                                 }
-                                matrix = Matrix.Multiply(matrix, trainCarShape.Location.XNAMatrix);
+                                MatrixExtension.Multiply(in startingPoint, in trainCarShape.Location.XNAMatrix, out Matrix matrix);
                                 var matrixWorldLocation = trainCarShape.Location.WorldLocation;
                                 matrixWorldLocation.Location.X = matrix.Translation.X;
                                 matrixWorldLocation.Location.Y = matrix.Translation.Y;

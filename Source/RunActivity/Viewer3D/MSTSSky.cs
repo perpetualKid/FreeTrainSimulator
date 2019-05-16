@@ -26,6 +26,7 @@ using Orts.Viewer3D.Common;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
 using ORTS.Common.Input;
+using ORTS.Common.Xna;
 
 namespace Orts.Viewer3D
 {
@@ -605,8 +606,7 @@ namespace Orts.Viewer3D
 
             // Sky dome
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-            Matrix viewXNASkyProj = Camera.XNASkyProjection;
-            Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewXNASkyProj, out viewXNASkyProj);
+            MatrixExtension.Multiply(in matrices[(int)ViewMatrixSequence.View], in Camera.XNASkyProjection, out Matrix viewXNASkyProj);
 
             shader.CurrentTechnique = shader.Techniques[0]; //["Sky"];
             Viewer.World.MSTSSky.MSTSSkyMesh.drawIndex = 1;
@@ -616,8 +616,7 @@ namespace Orts.Viewer3D
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewXNASkyProj, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
@@ -635,9 +634,8 @@ namespace Orts.Viewer3D
             moonMatrix = Matrix.CreateTranslation(Viewer.World.MSTSSky.mstsskylunarDirection * (mstsskyRadius));
             //            Matrix XNAMoonMatrixView = moonMatrix * viewMatrix;
 
-            Matrix.Multiply(ref moonMatrix, ref matrices[(int)ViewMatrixSequence.View], out moonMatrix);
-            Matrix cameraProjection = Camera.XNASkyProjection;
-            Matrix.Multiply(ref moonMatrix, ref cameraProjection, out moonMatrix);
+            MatrixExtension.Multiply(in moonMatrix, in matrices[(int)ViewMatrixSequence.View], out Matrix result);
+            MatrixExtension.Multiply(in result, in Camera.XNASkyProjection, out Matrix cameraProjection);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -645,8 +643,7 @@ namespace Orts.Viewer3D
                 {
                     RenderItem item = renderItems[i];
                     //                    Matrix wvp = item.XNAMatrix * XNAMoonMatrixView * Camera.XNASkyProjection;
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref moonMatrix, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in cameraProjection, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
@@ -665,8 +662,7 @@ namespace Orts.Viewer3D
                 {
                     RenderItem item = renderItems[i];
                     //                    Matrix wvp = item.XNAMatrix * viewXNASkyProj;
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewXNASkyProj, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);

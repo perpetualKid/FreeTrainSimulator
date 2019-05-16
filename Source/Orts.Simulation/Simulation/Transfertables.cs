@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using ORTS.Common.Xna;
 
 namespace Orts.Simulation
 {

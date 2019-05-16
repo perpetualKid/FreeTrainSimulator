@@ -23,6 +23,7 @@ using Orts.Common;
 using Orts.Viewer3D.Common;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
+using ORTS.Common.Xna;
 using System;
 using System.Collections.Generic;
 
@@ -480,8 +481,7 @@ namespace Orts.Viewer3D
             graphicsDevice.BlendState = BlendState.Opaque;
 
             //            Matrix viewXNASkyProj = viewMatrix * Camera.XNASkyProjection;
-            Matrix viewXNASkyProj = Camera.XNASkyProjection;
-            Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewXNASkyProj, out viewXNASkyProj);
+            MatrixExtension.Multiply(in matrices[(int)ViewMatrixSequence.View], in Camera.XNASkyProjection, out Matrix viewXNASkyProj);
 
             skyShader.SetViewMatrix(ref matrices[(int)ViewMatrixSequence.View]);
             foreach (var pass in skyShader.CurrentTechnique.Passes)
@@ -490,8 +490,7 @@ namespace Orts.Viewer3D
                 {
                     RenderItem item = renderItems[i];
                     //                    Matrix wvp = item.XNAMatrix * viewXNASkyProj;
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewXNASkyProj, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
                     skyShader.SetMatrix(ref wvp);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
@@ -508,10 +507,10 @@ namespace Orts.Viewer3D
             // Send the transform matrices to the shader
             int skyRadius = Viewer.World.Sky.Primitive.skyRadius;
             int cloudRadiusDiff = Viewer.World.Sky.Primitive.cloudDomeRadiusDiff;
-            moonMatrix = Matrix.CreateTranslation(Viewer.World.Sky.lunarDirection * (skyRadius - (cloudRadiusDiff / 2)));
+            Matrix translation = Matrix.CreateTranslation(Viewer.World.Sky.lunarDirection * (skyRadius - (cloudRadiusDiff / 2)));
             //Matrix XNAMoonMatrixView = moonMatrix * viewMatrix;
-            Matrix.Multiply(ref moonMatrix, ref matrices[(int)ViewMatrixSequence.View], out moonMatrix);
-            Matrix.Multiply(ref moonMatrix, ref Camera.XNASkyProjection, out moonMatrix);
+            MatrixExtension.Multiply(in translation, in matrices[(int)ViewMatrixSequence.View], out Matrix moonMatrix);
+            MatrixExtension.Multiply(in moonMatrix, in Camera.XNASkyProjection, out Matrix moonMatrixView);
 
             foreach (var pass in skyShader.CurrentTechnique.Passes)
             {
@@ -519,8 +518,7 @@ namespace Orts.Viewer3D
                 {
                     RenderItem item = renderItems[i];
                     //                    Matrix wvp = item.XNAMatrix * XNAMoonMatrixView * Camera.XNASkyProjection;
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref moonMatrix, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in moonMatrixView, out Matrix wvp);
                     skyShader.SetMatrix(ref wvp);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);
@@ -539,8 +537,7 @@ namespace Orts.Viewer3D
                 {
                     RenderItem item = renderItems[i];
                     //                    Matrix wvp = item.XNAMatrix * viewXNASkyProj;
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewXNASkyProj, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
                     skyShader.SetMatrix(ref wvp);
                     pass.Apply();
                     item.RenderPrimitive.Draw(graphicsDevice);

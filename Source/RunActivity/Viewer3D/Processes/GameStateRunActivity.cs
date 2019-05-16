@@ -26,6 +26,7 @@ using Orts.Simulation;
 using Orts.Viewer3D.Debugging;
 using ORTS.Common;
 using ORTS.Common.Msts;
+using ORTS.Common.Xna;
 using ORTS.Settings;
 using System;
 using System.Collections.Generic;
@@ -1364,8 +1365,7 @@ namespace Orts.Viewer3D.Processes
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in matrices[(int)ViewMatrixSequence.ViewProjection], out Matrix wvp);
                     shader.WorldViewProjection = wvp;
 //                    shader.WorldViewProjection = item.XNAMatrix * matrices[0] * matrices[1];
                     shader.CurrentTechnique.Passes[0].Apply();

@@ -34,6 +34,7 @@ using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Orts.Viewer3D.Common;
 using ORTS.Common;
+using ORTS.Common.Xna;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1057,8 +1058,7 @@ namespace Orts.Viewer3D
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, AnimationKey);
 
-            var absAnimationMatrix = XNAMatrices[IAnimationMatrix];
-            Matrix.Multiply(ref absAnimationMatrix, ref Location.XNAMatrix, out absAnimationMatrix);
+            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in Location.XNAMatrix, out Matrix absAnimationMatrix);
             Turntable.ReInitTrainPositions(absAnimationMatrix);
         }
 
@@ -1098,8 +1098,7 @@ namespace Orts.Viewer3D
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, AnimationKey);
 
-            var absAnimationMatrix = XNAMatrices[IAnimationMatrix];
-            Matrix.Multiply(ref absAnimationMatrix, ref Location.XNAMatrix, out absAnimationMatrix);
+            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in Location.XNAMatrix, out Matrix absAnimationMatrix);
             Turntable.PerformUpdateActions(absAnimationMatrix);
             SharedShape.PrepareFrame(frame, Location, XNAMatrices, Flags);
         }
@@ -1154,8 +1153,7 @@ namespace Orts.Viewer3D
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, AnimationKey);
 
-            var absAnimationMatrix = XNAMatrices[IAnimationMatrix];
-            Matrix.Multiply(ref absAnimationMatrix, ref Location.XNAMatrix, out absAnimationMatrix);
+            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in Location.XNAMatrix, out Matrix absAnimationMatrix);
             Transfertable.ReInitTrainPositions(absAnimationMatrix);
         }
 
@@ -1195,8 +1193,7 @@ namespace Orts.Viewer3D
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, AnimationKey);
 
-            var absAnimationMatrix = XNAMatrices[IAnimationMatrix];
-            Matrix.Multiply(ref absAnimationMatrix, ref Location.XNAMatrix, out absAnimationMatrix);
+            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in Location.XNAMatrix, out Matrix absAnimationMatrix);
             Transfertable.PerformUpdateActions(absAnimationMatrix, Location);
             SharedShape.PrepareFrame(frame, Location, XNAMatrices, Flags);
         }
@@ -1968,14 +1965,15 @@ namespace Orts.Viewer3D
 
                     foreach (var shapePrimitive in subObject.ShapePrimitives)
                     {
-                        var xnaMatrix = Matrix.Identity;
+                        Matrix startingPoint = Matrix.Identity;
                         var hi = shapePrimitive.HierarchyIndex;
                         while (hi >= 0 && hi < shapePrimitive.Hierarchy.Length)
                         {
-                            Matrix.Multiply(ref xnaMatrix, ref animatedXNAMatrices[hi], out xnaMatrix);
+                            MatrixExtension.Multiply(in startingPoint, in animatedXNAMatrices[hi], out Matrix result);
                             hi = shapePrimitive.Hierarchy[hi];
+                            startingPoint = result;
                         }
-                        Matrix.Multiply(ref xnaMatrix, ref xnaDTileTranslation, out xnaMatrix);
+                        MatrixExtension.Multiply(in startingPoint, in xnaDTileTranslation, out Matrix xnaMatrix);
 
                         // TODO make shadows depend on shape overrides
 

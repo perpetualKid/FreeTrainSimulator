@@ -90,6 +90,7 @@
     <Compile Include="TrackMonitorSignalAspect.cs" />
     <Compile Include="UserCommand.cs" />
     <Compile Include="VersionInfo.cs" />
+    <Compile Include="Xna\MatrixExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX">

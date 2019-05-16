@@ -34,6 +34,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using ORTS.Common.Xna;
 
 namespace Orts.Viewer3D
 {
@@ -762,7 +763,7 @@ namespace Orts.Viewer3D
         public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             Matrix viewProjection = Viewer.Camera.XnaProjection;
-            Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewProjection, out viewProjection);
+            MatrixExtension.Multiply(in matrices[(int)ViewMatrixSequence.View], in viewProjection, out Matrix result);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -771,8 +772,7 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     // Glow lights were not working properly because farPlaneDistance used by XNASkyProjection is hardcoded at 6100.  So when view distance was greater than 6100, the 
                     // glow lights were unable to render properly.
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewProjection, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in result, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();
@@ -821,7 +821,7 @@ namespace Orts.Viewer3D
         public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             Matrix viewProjection = Viewer.Camera.XnaProjection;
-            Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewProjection, out viewProjection);
+            MatrixExtension.Multiply(in matrices[(int)ViewMatrixSequence.View], in viewProjection, out Matrix result);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -831,8 +831,7 @@ namespace Orts.Viewer3D
                     // Light cone was originally using XNASkyProjection, but with no problems.
                     // Switched to Viewer.Camera.XnaProjection to keep the standard since farPlaneDistance used by XNASkyProjection is limited to 6100.
                     //                    Matrix wvp = item.XNAMatrix * viewMatrix * Viewer.Camera.XnaProjection;
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewProjection, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in result, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();
