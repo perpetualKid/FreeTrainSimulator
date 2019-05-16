@@ -51,9 +51,9 @@ namespace Orts.Viewer3D
             if (Viewer.ENVFile.WaterLayers != null)
             WaterLayers = Viewer.ENVFile.WaterLayers.Select(layer => new KeyValuePair<float, Material>(layer.Height, Viewer.MaterialManager.Load("Water", Viewer.Simulator.RoutePath + @"\envfiles\textures\" + layer.TextureName))).ToArray();
 
-            LoadGeometry(Viewer.GraphicsDevice, tile, out PrimitiveCount, out IndexBuffer, out VertexBuffer);
+            LoadGeometry(Viewer.RenderProcess.GraphicsDevice, tile, out PrimitiveCount, out IndexBuffer, out VertexBuffer);
             
-            DummyVertexBuffer = new VertexBuffer(Viewer.GraphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
+            DummyVertexBuffer = new VertexBuffer(Viewer.RenderProcess.GraphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
             DummyVertexBuffer.SetData(new Matrix[] { Matrix.Identity });
             VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(DummyVertexBuffer) };
         }

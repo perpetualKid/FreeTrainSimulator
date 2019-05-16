@@ -130,7 +130,7 @@ namespace Orts.Viewer3D
 
             ReleaseSpeed = new TextPrimitive(ReleaseSpeedPosition, ColorGrey, String.Empty, FontReleaseSpeed);
 
-            Shader = new DriverMachineInterfaceShader(Viewer.GraphicsDevice);
+            Shader = new DriverMachineInterfaceShader(Viewer.RenderProcess.GraphicsDevice);
             if (NeedleTextureData == null)
             {
                 NeedleTextureData = new Color[128 * 16];

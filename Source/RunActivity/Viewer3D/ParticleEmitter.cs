@@ -218,7 +218,7 @@ namespace Orts.Viewer3D
         public ParticleEmitterPrimitive(Viewer viewer, ParticleEmitterData data, WorldPosition worldPosition)
         {
             this.viewer = viewer;
-            this.graphicsDevice = viewer.GraphicsDevice;
+            this.graphicsDevice = viewer.RenderProcess.GraphicsDevice;
 
             MaxParticles = (int)(ParticleEmitterViewer.MaxParticlesPerSecond * ParticleEmitterViewer.MaxParticleDuration);
             Vertices = new ParticleVertex[MaxParticles * VerticiesPerParticle];

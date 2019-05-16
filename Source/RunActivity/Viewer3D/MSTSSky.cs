@@ -535,7 +535,7 @@ namespace Orts.Viewer3D
                 for (int i = 0; i < Viewer.ENVFile.SkyLayers.Count; i++)
                 {
                     mstsSkyTextureNames[i] = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskytexture[i].TextureName;
-                    mstsSkyTextures.Add(Orts.Formats.Msts.AceFile.Texture2DFromFile(Viewer.RenderProcess.GraphicsDevice, mstsSkyTextureNames[i]));
+                    mstsSkyTextures.Add(Orts.Formats.Msts.AceFile.Texture2DFromFile(graphicsDevice, mstsSkyTextureNames[i]));
                     if( i == 0 )
                     {
                         mstsDayTexture = mstsSkyTextures[i];
@@ -547,14 +547,14 @@ namespace Orts.Viewer3D
                     }
                     else
                     {
-                        mstsSkyCloudTextures.Add(Orts.Formats.Msts.AceFile.Texture2DFromFile(Viewer.RenderProcess.GraphicsDevice, mstsSkyTextureNames[i]));
+                        mstsSkyCloudTextures.Add(Orts.Formats.Msts.AceFile.Texture2DFromFile(graphicsDevice, mstsSkyTextureNames[i]));
                     }
                 }
             }
             else
             {
-                mstsSkyTextures.Add(SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "SkyDome1.png")));
-                mstsSkyStarTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_N.png"));
+                mstsSkyTextures.Add(SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "SkyDome1.png")));
+                mstsSkyStarTexture = SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_N.png"));
             }
             if (viewer.ENVFile.SkySatellite != null)
             {
@@ -563,13 +563,13 @@ namespace Orts.Viewer3D
                 string mstsSkySunTextureName = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskysatellitetexture[0].TextureName;
                 string mstsSkyMoonTextureName = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskysatellitetexture[1].TextureName;
 
-                mstsSkySunTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, mstsSkySunTextureName);
-                mstsSkyMoonTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, mstsSkyMoonTextureName);
+                mstsSkySunTexture = SharedTextureManager.Get(graphicsDevice, mstsSkySunTextureName);
+                mstsSkyMoonTexture = SharedTextureManager.Get(graphicsDevice, mstsSkyMoonTextureName);
             }
             else
-                mstsSkyMoonTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMap.png"));
+                mstsSkyMoonTexture = SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMap.png"));
 
-            mstsSkyMoonMask = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMask.png")); //ToDo:  No MSTS equivalent - will need to be fixed in MSTSSky.cs
+            mstsSkyMoonMask = SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "MoonMask.png")); //ToDo:  No MSTS equivalent - will need to be fixed in MSTSSky.cs
             //MSTSSkyCloudTexture[0] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Clouds01.png"));
 
             shader.SkyMapTexture = mstsDayTexture;

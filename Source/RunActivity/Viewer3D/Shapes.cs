@@ -193,7 +193,7 @@ namespace Orts.Viewer3D
             foreach (var lod in shapes[0].SharedShape.LodControls)
                 for (var subObjectIndex = 0; subObjectIndex < lod.DistanceLevels[0].SubObjects.Length; subObjectIndex++)
                     foreach (var prim in lod.DistanceLevels[0].SubObjects[subObjectIndex].ShapePrimitives)
-                        prims.Add(new ShapePrimitiveInstances(viewer.GraphicsDevice, prim, GetMatricies(shapes, prim), subObjectIndex));
+                        prims.Add(new ShapePrimitiveInstances(viewer.RenderProcess.GraphicsDevice, prim, GetMatricies(shapes, prim), subObjectIndex));
             Primitives = prims.ToArray();
         }
 
@@ -587,10 +587,10 @@ namespace Orts.Viewer3D
             for (i = 0; i < NumIndices; i++) newTList[i] = TriangleListIndices[i];
             VertexPositionNormalTexture[] newVList = new VertexPositionNormalTexture[NumVertices];
             for (i = 0; i < NumVertices; i++) newVList[i] = VertexList[i];
-            IndexBuffer IndexBuffer = new IndexBuffer(viewer.GraphicsDevice, typeof(short),
+            IndexBuffer IndexBuffer = new IndexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(short),
                                                             NumIndices, BufferUsage.WriteOnly);
             IndexBuffer.SetData(newTList);
-            shapePrimitive = new ShapePrimitive(viewer.GraphicsDevice, material, new SharedShape.VertexBufferSet(newVList, viewer.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
+            shapePrimitive = new ShapePrimitive(viewer.RenderProcess.GraphicsDevice, material, new SharedShape.VertexBufferSet(newVList, viewer.RenderProcess.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
 
         }
 
@@ -1600,7 +1600,7 @@ namespace Orts.Viewer3D
                 var debugShapeHierarchy = new StringBuilder();
                 debugShapeHierarchy.AppendFormat("      Sub object {0}:\n", subObjectIndex);
 #endif
-                var vertexBufferSet = new VertexBufferSet(sub_object, sFile, sharedShape.Viewer.GraphicsDevice);
+                var vertexBufferSet = new VertexBufferSet(sub_object, sFile, sharedShape.Viewer.RenderProcess.GraphicsDevice);
 #if DEBUG_SHAPE_NORMALS
                 var debugNormalsMaterial = sharedShape.Viewer.MaterialManager.Load("DebugNormals");
 #endif
@@ -1717,11 +1717,11 @@ namespace Orts.Viewer3D
                         foreach (var index in new[] { vertex_idx.a, vertex_idx.b, vertex_idx.c })
                             indexData.Add((ushort)index);
 
-                    ShapePrimitives[primitiveIndex] = new ShapePrimitive(material, vertexBufferSet, indexData, sharedShape.Viewer.GraphicsDevice, hierarchy, vertexState.imatrix);
+                    ShapePrimitives[primitiveIndex] = new ShapePrimitive(material, vertexBufferSet, indexData, sharedShape.Viewer.RenderProcess.GraphicsDevice, hierarchy, vertexState.imatrix);
                     ShapePrimitives[primitiveIndex].SortIndex = ++totalPrimitiveIndex;
                     ++primitiveIndex;
 #if DEBUG_SHAPE_NORMALS
-                    ShapePrimitives[primitiveIndex] = new ShapeDebugNormalsPrimitive(debugNormalsMaterial, vertexBufferSet, indexData, sharedShape.Viewer.GraphicsDevice, hierarchy, vertexState.imatrix);
+                    ShapePrimitives[primitiveIndex] = new ShapeDebugNormalsPrimitive(debugNormalsMaterial, vertexBufferSet, indexData, sharedShape.Viewer.RenderProcess.GraphicsDevice, hierarchy, vertexState.imatrix);
                     ShapePrimitives[primitiveIndex].SortIndex = totalPrimitiveIndex;
                     ++primitiveIndex;
 #endif
@@ -1758,7 +1758,7 @@ namespace Orts.Viewer3D
                 var primitiveIndex = 0;
                 foreach (var index in indexes)
                 {
-                    var indexBuffer = new IndexBuffer(sharedShape.Viewer.GraphicsDevice, typeof(short), index.Value.Count, BufferUsage.WriteOnly);
+                    var indexBuffer = new IndexBuffer(sharedShape.Viewer.RenderProcess.GraphicsDevice, typeof(short), index.Value.Count, BufferUsage.WriteOnly);
                     indexBuffer.SetData(index.Value.ToArray());
                     var primitiveMaterial = primitiveMaterials.First(d => d.Key == index.Key);
                     ShapePrimitives[primitiveIndex] = new ShapePrimitive(primitiveMaterial.Material, vertexBufferSet, indexBuffer, index.Value.Min(), index.Value.Max() - index.Value.Min() + 1, index.Value.Count / 3, hierarchy, primitiveMaterial.HierachyIndex);

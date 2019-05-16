@@ -129,11 +129,11 @@ namespace Orts.Viewer3D
                 }
             }
 
-            VertexBuffer = new VertexBuffer(viewer.GraphicsDevice, typeof(VertexPositionTexture), verticies.Length, BufferUsage.WriteOnly);
+            VertexBuffer = new VertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionTexture), verticies.Length, BufferUsage.WriteOnly);
             VertexBuffer.SetData(verticies);
             VertexCount = verticies.Length;
 
-            IndexBuffer = new IndexBuffer(viewer.GraphicsDevice, typeof(short), indicies.Length, BufferUsage.WriteOnly);
+            IndexBuffer = new IndexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(short), indicies.Length, BufferUsage.WriteOnly);
             IndexBuffer.SetData(indicies);
             PrimitiveCount = indicies.Length / 3;
         }

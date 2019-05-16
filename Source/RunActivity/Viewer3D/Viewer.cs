@@ -57,8 +57,6 @@ namespace Orts.Viewer3D
         public UpdaterProcess UpdaterProcess { get; private set; }
         public RenderProcess RenderProcess { get; private set; }
         public SoundProcess SoundProcess { get; private set; }
-        // Access to the XNA Game class
-        public GraphicsDevice GraphicsDevice { get; private set; }
         public string ContentPath { get; private set; }
         public SharedTextureManager TextureManager { get; private set; }
         public SharedMaterialManager MaterialManager { get; private set; }
@@ -380,9 +378,8 @@ namespace Orts.Viewer3D
         [CallOnThread("Loader")]
         internal void Initialize()
         {
-            GraphicsDevice = RenderProcess.GraphicsDevice;
-            UpdateAdapterInformation(GraphicsDevice.Adapter);
-            DefaultViewport = GraphicsDevice.Viewport;
+            UpdateAdapterInformation(Game.GraphicsDevice.Adapter);
+            DefaultViewport = Game.GraphicsDevice.Viewport;
 
             if (PlayerLocomotive == null) PlayerLocomotive = Simulator.InitialPlayerLocomotive();
             SelectedTrain = PlayerTrain;
@@ -394,7 +391,7 @@ namespace Orts.Viewer3D
 
             InitializeAutomaticTrackSounds();
 
-            TextureManager = new SharedTextureManager(this, GraphicsDevice);
+            TextureManager = new SharedTextureManager(this, Game.GraphicsDevice);
 
             AdjustCabHeight(DisplaySize.X, DisplaySize.Y); 
 
@@ -1789,7 +1786,7 @@ namespace Orts.Viewer3D
 
             graphicsDevice.GetBackBufferData(backBuffer);
             //copy into a texture 
-            Texture2D screenshot = new Texture2D(GraphicsDevice, w, h, false, GraphicsDevice.PresentationParameters.BackBufferFormat);
+            Texture2D screenshot = new Texture2D(graphicsDevice, w, h, false, graphicsDevice.PresentationParameters.BackBufferFormat);
             screenshot.SetData(backBuffer);
             new Thread(() =>
             {

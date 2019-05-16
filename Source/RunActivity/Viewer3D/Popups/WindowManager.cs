@@ -80,16 +80,16 @@ namespace Orts.Viewer3D.Popups
             TextFontSmall = TextManager.GetScaled("Arial", 8, System.Drawing.FontStyle.Regular);
             TextFontSmallOutlined = TextManager.GetScaled("Arial", 8, System.Drawing.FontStyle.Regular, 1);
 
-            SpriteBatch = new SpriteBatch(Viewer.GraphicsDevice);
+            SpriteBatch = new SpriteBatch(Viewer.RenderProcess.GraphicsDevice);
 
             if (WhiteTexture == null)
             {
-                WhiteTexture = new Texture2D(Viewer.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+                WhiteTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
                 WhiteTexture.SetData(new[] { Color.White });
             }
             if (FlushTexture == null)
             {
-                FlushTexture = new Texture2D(Viewer.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+                FlushTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
                 FlushTexture.SetData(new[] { Color.Transparent });
             }
             if (ScrollbarTexture == null)
@@ -116,7 +116,7 @@ namespace Orts.Viewer3D.Popups
                             data[y * size + x] = background;
 
                 // Notice texture is just the rounded corner background.
-                NoticeTexture = new Texture2D(Viewer.GraphicsDevice, size, size, false, SurfaceFormat.Color);
+                NoticeTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, size, size, false, SurfaceFormat.Color);
                 NoticeTexture.SetData(data, 0, size * size);
 
                 // Clone the background for pause texture (it has two states).
@@ -138,7 +138,7 @@ namespace Orts.Viewer3D.Popups
                         data[y * size + x] = Color.White;
                 }
 
-                PauseTexture = new Texture2D(Viewer.GraphicsDevice, size, size * 2, false, SurfaceFormat.Color);
+                PauseTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, size, size * 2, false, SurfaceFormat.Color);
                 PauseTexture.SetData(data);
             }
         }
@@ -183,7 +183,7 @@ namespace Orts.Viewer3D.Popups
 			{
 				if (Screen != null)
 					Screen.Dispose();
-                Screen = new RenderTarget2D(Viewer.GraphicsDevice, ScreenSize.X, ScreenSize.Y, false, Viewer.GraphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.Depth24Stencil8);
+                Screen = new RenderTarget2D(Viewer.RenderProcess.GraphicsDevice, ScreenSize.X, ScreenSize.Y, false, Viewer.RenderProcess.GraphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.Depth24Stencil8);
             }
 
             // Reposition all the windows.
@@ -345,7 +345,7 @@ namespace Orts.Viewer3D.Popups
         [CallOnThread("Loader")]
         public void Load()
         {
-            TextManager.Load(Viewer.GraphicsDevice);
+            TextManager.Load(Viewer.RenderProcess.GraphicsDevice);
         }
     }
 }

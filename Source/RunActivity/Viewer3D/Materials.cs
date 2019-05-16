@@ -223,7 +223,7 @@ namespace Orts.Viewer3D
             {
                 try
                 {
-                    SceneryShader.OverlayTexture = Orts.Formats.Msts.AceFile.Texture2DFromFile(viewer.GraphicsDevice, microtexPath);
+                    SceneryShader.OverlayTexture = Orts.Formats.Msts.AceFile.Texture2DFromFile(viewer.RenderProcess.GraphicsDevice, microtexPath);
                 }
                 catch (InvalidDataException error)
                 {
@@ -547,7 +547,7 @@ namespace Orts.Viewer3D
         {
             Viewer = viewer;
             this.key = key;
-            this.graphicsDevice = Viewer?.GraphicsDevice;
+            graphicsDevice = Viewer?.RenderProcess.GraphicsDevice;
         }
 
         protected Material(GraphicsDevice device): this (null, null)
@@ -630,7 +630,7 @@ namespace Orts.Viewer3D
         public SpriteBatchMaterial(Viewer viewer)
             : base(viewer, null)
         {
-            SpriteBatch = new SpriteBatch(Viewer.RenderProcess.GraphicsDevice);
+            SpriteBatch = new SpriteBatch(graphicsDevice);
         }
 
         public override void SetState(Material previousMaterial)
@@ -655,7 +655,7 @@ namespace Orts.Viewer3D
         public CabSpriteBatchMaterial(Viewer viewer, CabShader cabShader)
             : base(viewer, null)
         {
-            SpriteBatch = new SpriteBatch(Viewer.RenderProcess.GraphicsDevice);
+            SpriteBatch = new SpriteBatch(graphicsDevice);
             CabShader = cabShader;
         }
 
@@ -1071,7 +1071,7 @@ namespace Orts.Viewer3D
             : base(viewer, null)
         {
             int shadowMapResolution = Viewer.Settings.ShadowMapResolution;
-            blurVertexBuffer = new VertexBuffer(Viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
+            blurVertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
             blurVertexBuffer.SetData(new[] {
                new VertexPositionTexture(new Vector3(-1, +1, 0), new Vector2(0, 0)),
                new VertexPositionTexture(new Vector3(-1, -1, 0), new Vector2(0, shadowMapResolution)),
@@ -1241,7 +1241,7 @@ namespace Orts.Viewer3D
         {
             if (basicEffect == null)
             {
-                basicEffect = new BasicEffect(Viewer.RenderProcess.GraphicsDevice);
+                basicEffect = new BasicEffect(graphicsDevice);
                 basicEffect.Alpha = 1.0f;
                 basicEffect.DiffuseColor = new Vector3(197.0f / 255.0f, 203.0f / 255.0f, 37.0f / 255.0f);
                 basicEffect.SpecularColor = new Vector3(0.25f, 0.25f, 0.25f);
@@ -1289,7 +1289,7 @@ namespace Orts.Viewer3D
         {
             if (basicEffect == null)
             {
-                basicEffect = new BasicEffect(Viewer.RenderProcess.GraphicsDevice);
+                basicEffect = new BasicEffect(graphicsDevice);
                 basicEffect.Alpha = a;
                 basicEffect.DiffuseColor = new Vector3(r , g , b );
                 basicEffect.SpecularColor = new Vector3(0.25f, 0.25f, 0.25f);

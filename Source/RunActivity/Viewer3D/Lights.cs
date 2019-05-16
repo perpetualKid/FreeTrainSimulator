@@ -746,7 +746,7 @@ namespace Orts.Viewer3D
             : base(viewer, null)
         {
             // TODO: This should happen on the loader thread.
-            lightGlowTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Lightglow.png"));
+            lightGlowTexture = SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Lightglow.png"));
             shader = Viewer.MaterialManager.LightGlowShader;
         }
 

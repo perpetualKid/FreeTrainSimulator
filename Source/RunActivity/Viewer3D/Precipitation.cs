@@ -54,7 +54,7 @@ namespace Orts.Viewer3D
             Weather = viewer.Simulator.Weather;
 
             Material = viewer.MaterialManager.Load("Precipitation");
-            Pricipitation = new PrecipitationPrimitive(Viewer.GraphicsDevice);
+            Pricipitation = new PrecipitationPrimitive(Viewer.RenderProcess.GraphicsDevice);
 
             Wind = new Vector3(0, 0, 0);
             Reset();
