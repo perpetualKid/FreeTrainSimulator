@@ -184,7 +184,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[techniqueIndex];
             shaderPasses = shader.CurrentTechnique.Passes;
@@ -195,7 +195,7 @@ namespace Orts.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             for (int j = 0; j < shaderPasses.Count; j++)
             {
@@ -210,7 +210,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             var shader = Viewer.MaterialManager.SceneryShader;
             shader.ReferenceAlpha = 0;

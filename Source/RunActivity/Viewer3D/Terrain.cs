@@ -529,7 +529,7 @@ namespace Orts.Viewer3D
 
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[techniqueIndex];
 
@@ -541,7 +541,7 @@ namespace Orts.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -556,7 +556,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
         }
@@ -576,9 +576,9 @@ namespace Orts.Viewer3D
         {
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
-            base.SetState(graphicsDevice, previousMaterial);
+            base.SetState(previousMaterial);
             graphicsDevice.Indices = TerrainPrimitive.SharedPatchIndexBuffer;
         }
     }
@@ -590,18 +590,18 @@ namespace Orts.Viewer3D
         {
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
-            base.SetState(graphicsDevice, previousMaterial);
+            base.SetState(previousMaterial);
             graphicsDevice.Indices = TerrainPrimitive.SharedPatchIndexBuffer;
 
             graphicsDevice.BlendState = BlendState.Opaque; // Override the normal terrain blending!
             graphicsDevice.RasterizerState = RasterizerState.CullNone;
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
-            base.ResetState(graphicsDevice);
+            base.ResetState();
 
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         }

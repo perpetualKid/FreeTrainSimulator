@@ -1280,7 +1280,7 @@ namespace Orts.Viewer3D.Popups
             shader = Viewer.MaterialManager.DebugShader;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["Graph"];
             shader.ScreenSize = new Vector2(Viewer.DisplaySize.X, Viewer.DisplaySize.Y);
@@ -1289,7 +1289,7 @@ namespace Orts.Viewer3D.Popups
             graphicsDevice.DepthStencilState = DepthStencilState.None;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -1307,7 +1307,7 @@ namespace Orts.Viewer3D.Popups
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;

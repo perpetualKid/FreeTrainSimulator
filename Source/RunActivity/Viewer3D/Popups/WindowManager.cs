@@ -234,9 +234,9 @@ namespace Orts.Viewer3D.Popups
                 // FIXME: MonoGame cannot read backbuffer
                 //if (Screen != null)
                 //    graphicsDevice.ResolveBackBuffer(Screen);
-                PopupWindowMaterial.SetState(graphicsDevice, Screen);
-                PopupWindowMaterial.Render(graphicsDevice, window, ref xnaWorld, ref XNAView, ref XNAProjection);
-                PopupWindowMaterial.ResetState(graphicsDevice);
+                PopupWindowMaterial.SetState(Screen);
+                PopupWindowMaterial.Render(window, ref xnaWorld, ref XNAView, ref XNAProjection);
+                PopupWindowMaterial.ResetState();
 
                 SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null);
                 window.Draw(SpriteBatch);

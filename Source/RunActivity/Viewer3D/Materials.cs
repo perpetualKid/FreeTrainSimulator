@@ -541,11 +541,18 @@ namespace Orts.Viewer3D
     {
         protected readonly Viewer Viewer;
         private readonly string key;
+        protected readonly GraphicsDevice graphicsDevice;
 
         protected Material(Viewer viewer, string key)
         {
             Viewer = viewer;
             this.key = key;
+            this.graphicsDevice = Viewer?.GraphicsDevice;
+        }
+
+        protected Material(GraphicsDevice device): this (null, null)
+        {
+            graphicsDevice = device;
         }
 
         public override string ToString()
@@ -555,11 +562,11 @@ namespace Orts.Viewer3D
             return string.Format("{0}({1})", GetType().Name, key);
         }
 
-        public virtual void SetState(GraphicsDevice graphicsDevice, Material previousMaterial) { }
+        public virtual void SetState(Material previousMaterial) { }
 
-        public virtual void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices) { }
+        public virtual void Render(List<RenderItem> renderItems, Matrix[] matrices) { }
 
-        public virtual void ResetState(GraphicsDevice graphicsDevice) { }
+        public virtual void ResetState() { }
 
         public virtual bool GetBlending() { return false; }
 
@@ -596,7 +603,7 @@ namespace Orts.Viewer3D
         {
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             for (int i = 0; i < renderItems.Count; i++)
                 renderItems[i].RenderPrimitive.Draw(graphicsDevice);
@@ -626,12 +633,12 @@ namespace Orts.Viewer3D
             SpriteBatch = new SpriteBatch(Viewer.RenderProcess.GraphicsDevice);
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             SpriteBatch.End();
 
@@ -652,7 +659,7 @@ namespace Orts.Viewer3D
             CabShader = cabShader;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             if (CabShader != null)
                 SpriteBatch.Begin(0, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, CabShader);
@@ -660,7 +667,7 @@ namespace Orts.Viewer3D
                 SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             SpriteBatch.End();
 
@@ -852,7 +859,7 @@ namespace Orts.Viewer3D
             return result;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
@@ -943,7 +950,7 @@ namespace Orts.Viewer3D
 
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             for (int j = 0; j < shaderPasses.Count; j++)
             {
@@ -958,7 +965,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             shader.ImageTextureIsNight = false;
             shader.LightingDiffuse = 1;
@@ -1076,7 +1083,7 @@ namespace Orts.Viewer3D
 
         }
 
-        public void SetState(GraphicsDevice graphicsDevice, Mode mode)
+        public void SetState(Mode mode)
         {
             shader.CurrentTechnique = shader.Techniques[(int)mode]; //order of techniques equals order in ShadowMap.fx, avoiding costly name-based lookups at runtime
 
@@ -1089,7 +1096,7 @@ namespace Orts.Viewer3D
             graphicsDevice.RasterizerState = mode == Mode.Blocker ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             //renderIndex = -1;
             //System.Threading.Tasks.Parallel.ForEach(Viewer.MaterialManager.ShadowMapShaders, (shadowMapShader) =>
@@ -1142,7 +1149,7 @@ namespace Orts.Viewer3D
 //            }
 //        }
 
-        public RenderTarget2D ApplyBlur(GraphicsDevice graphicsDevice, RenderTarget2D shadowMap, RenderTarget2D renderTarget)
+        public RenderTarget2D ApplyBlur(RenderTarget2D shadowMap, RenderTarget2D renderTarget)
         {
             var wvp = Matrix.Identity;
 
@@ -1167,7 +1174,7 @@ namespace Orts.Viewer3D
             return shadowMap;
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         }
@@ -1184,7 +1191,7 @@ namespace Orts.Viewer3D
             shader = Viewer.MaterialManager.PopupWindowShader;
         }
 
-        public void SetState(GraphicsDevice graphicsDevice, Texture2D screen)
+        public void SetState(Texture2D screen)
         {
             shader.CurrentTechnique = shader.Techniques[screen == null ? 0 : 1]; //screen == null ? shader.Techniques["PopupWindow"] : shader.Techniques["PopupWindowGlass"];
             shaderPasses = shader.CurrentTechnique.Passes;
@@ -1198,7 +1205,7 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.None;
         }
 
-        public void Render(GraphicsDevice graphicsDevice, RenderPrimitive renderPrimitive, ref Matrix worldMatrix, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public void Render(RenderPrimitive renderPrimitive, ref Matrix worldMatrix, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
             Matrix.Multiply(ref worldMatrix, ref viewMatrix, out Matrix wvp);
             Matrix.Multiply(ref wvp, ref projectionMatrix, out wvp);
@@ -1212,7 +1219,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -1255,7 +1262,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             basicEffect.View = matrices[(int)ViewMatrixSequence.View];
             basicEffect.Projection = matrices[(int)ViewMatrixSequence.Projection];
@@ -1303,7 +1310,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             basicEffect.View = matrices[(int)ViewMatrixSequence.View];
             basicEffect.Projection = matrices[(int)ViewMatrixSequence.Projection];
@@ -1336,7 +1343,7 @@ namespace Orts.Viewer3D
             Font = Viewer.WindowManager.TextManager.GetScaled("Arial", 12, System.Drawing.FontStyle.Bold, 1);
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             var scaling = (float)graphicsDevice.PresentationParameters.BackBufferHeight / Viewer.RenderProcess.GraphicsDeviceManager.PreferredBackBufferHeight;
             Vector3 screenScaling = new Vector3(scaling);
@@ -1344,10 +1351,10 @@ namespace Orts.Viewer3D
             SpriteBatch.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             textBoxes.Clear();
-            base.Render(graphicsDevice, renderItems, matrices);
+            base.Render(renderItems, matrices);
         }
 
         public override bool GetBlending()
@@ -1385,12 +1392,12 @@ namespace Orts.Viewer3D
             shaderPasses = shader.Techniques[0].Passes;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["Normal"];
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             for (int j = 0; j < shaderPasses.Count; j++)
             {

@@ -427,7 +427,7 @@ namespace Orts.Viewer3D
 
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[techniqueIndex]; //["Forest"];
 
@@ -440,7 +440,7 @@ namespace Orts.Viewer3D
             graphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             shader.SetViewMatrix(ref matrices[(int)ViewMatrixSequence.View]);
             foreach (var pass in shader.CurrentTechnique.Passes)
@@ -456,7 +456,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             Viewer.MaterialManager.SceneryShader.ReferenceAlpha = 0;
 

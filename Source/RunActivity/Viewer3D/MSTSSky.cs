@@ -579,7 +579,7 @@ namespace Orts.Viewer3D
             shader.CloudMapTexture = mstsSkyCloudTextures[0];
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             // Adjust Fog color for day-night conditions and overcast
             FogDay2Night(
@@ -674,7 +674,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;

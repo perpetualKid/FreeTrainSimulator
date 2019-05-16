@@ -750,7 +750,7 @@ namespace Orts.Viewer3D
             shader = Viewer.MaterialManager.LightGlowShader;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["LightGlow"];
             shader.LightGlowTexture = lightGlowTexture;
@@ -759,7 +759,7 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             Matrix viewProjection = Viewer.Camera.XnaProjection;
             Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewProjection, out viewProjection);
@@ -781,7 +781,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -809,7 +809,7 @@ namespace Orts.Viewer3D
             shader = Viewer.MaterialManager.LightConeShader;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["LightCone"];
 
@@ -818,7 +818,7 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState.StencilEnable = true;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             Matrix viewProjection = Viewer.Camera.XnaProjection;
             Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewProjection, out viewProjection);
@@ -841,7 +841,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;

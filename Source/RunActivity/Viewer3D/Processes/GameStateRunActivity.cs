@@ -1337,7 +1337,7 @@ namespace Orts.Viewer3D.Processes
 
             [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
             public LoadingMaterial(Game game)
-                : base(null, null)
+                : base(game.GraphicsDevice)
             {
                 shader = new LoadingShader(game.RenderProcess.GraphicsDevice);
                 texture = GetTexture(game);
@@ -1351,7 +1351,7 @@ namespace Orts.Viewer3D.Processes
                 return SharedTextureManager.Get(game.RenderProcess.GraphicsDevice, Path.Combine(game.ContentPath, "Loading.png"));
             }
 
-            public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+            public override void SetState(Material previousMaterial)
             {
                 shader.CurrentTechnique = shader.Techniques[0]; //["Loading"];
                 shader.LoadingTexture = texture;
@@ -1359,7 +1359,7 @@ namespace Orts.Viewer3D.Processes
                 graphicsDevice.BlendState = BlendState.NonPremultiplied;
             }
 
-            public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+            public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
@@ -1373,7 +1373,7 @@ namespace Orts.Viewer3D.Processes
                 }
             }
 
-            public override void ResetState(GraphicsDevice graphicsDevice)
+            public override void ResetState()
             {
                 graphicsDevice.BlendState = BlendState.Opaque;
             }
@@ -1453,9 +1453,9 @@ namespace Orts.Viewer3D.Processes
             {
             }
 
-            public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+            public override void SetState(Material previousMaterial)
             {
-                base.SetState(graphicsDevice, previousMaterial);
+                base.SetState(previousMaterial);
                 shader.CurrentTechnique = shader.Techniques[1]; //["LoadingBar"];
             }
         }

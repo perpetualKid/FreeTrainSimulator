@@ -583,40 +583,40 @@ namespace Orts.Viewer3D
             graphicsDevice.Clear(ClearOptions.DepthBuffer | ClearOptions.Target, Color.White, 1, 0);
 
             // Prepare for normal (non-blocking) rendering of scenery.
-            shadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Normal);
+            shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Normal);
 
             // Render non-terrain, non-forest shadow items first.
             if (logging) Console.WriteLine("      {0,-5} * SceneryMaterial (normal)", renderShadowSceneryItems[shadowMapIndex].Count);
 //            shadowMapMaterial.Render(graphicsDevice, renderShadowSceneryItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
-            shadowMapMaterial.Render(graphicsDevice, renderShadowSceneryItems[shadowMapIndex], matrices);
+            shadowMapMaterial.Render(renderShadowSceneryItems[shadowMapIndex], matrices);
 
             // Prepare for normal (non-blocking) rendering of forests.
-            shadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Forest);
+            shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Forest);
 
             // Render forest shadow items next.
             if (logging) Console.WriteLine("      {0,-5} * ForestMaterial (forest)", renderShadowForestItems[shadowMapIndex].Count);
 //            shadowMapMaterial.Render(graphicsDevice, renderShadowForestItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
-            shadowMapMaterial.Render(graphicsDevice, renderShadowForestItems[shadowMapIndex], matrices);
+            shadowMapMaterial.Render(renderShadowForestItems[shadowMapIndex], matrices);
 
             // Prepare for normal (non-blocking) rendering of terrain.
-            shadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Normal);
+            shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Normal);
 
             // Render terrain shadow items now, with their magic.
             if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (normal)", renderShadowTerrainItems[shadowMapIndex].Count);
             graphicsDevice.Indices = TerrainPrimitive.SharedPatchIndexBuffer;
 //            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
-            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], matrices);
+            shadowMapMaterial.Render(renderShadowTerrainItems[shadowMapIndex], matrices);
 
             // Prepare for blocking rendering of terrain.
-            shadowMapMaterial.SetState(graphicsDevice, ShadowMapMaterial.Mode.Blocker);
+            shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Blocker);
 
             // Render terrain shadow items in blocking mode.
             if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (blocker)", renderShadowTerrainItems[shadowMapIndex].Count);
 //            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
-            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], matrices);
+            shadowMapMaterial.Render(renderShadowTerrainItems[shadowMapIndex], matrices);
 
             // All done.
-            shadowMapMaterial.ResetState(graphicsDevice);
+            shadowMapMaterial.ResetState();
 #if DEBUG_RENDER_STATE
             DebugRenderState(graphicsDevice, ShadowMapMaterial.ToString());
 #endif
@@ -626,7 +626,7 @@ namespace Orts.Viewer3D
             if (game.Settings.ShadowMapBlur)
             {
                 //shadowMap[shadowMapIndex] = 
-                shadowMapMaterial.ApplyBlur(graphicsDevice, shadowMap[shadowMapIndex], shadowMapRenderTarget[shadowMapIndex]);
+                shadowMapMaterial.ApplyBlur(shadowMap[shadowMapIndex], shadowMapRenderTarget[shadowMapIndex]);
 #if DEBUG_RENDER_STATE
                 DebugRenderState(graphicsDevice, ShadowMapMaterial.ToString() + " ApplyBlur()");
 #endif
@@ -689,17 +689,17 @@ namespace Orts.Viewer3D
                                 if (renderItemsSequence.Count > 0)
                                 {
                                     if (logging) Console.WriteLine("      {0,-5} * {1}", renderItemsSequence.Count, lastMaterial);
-                                    lastMaterial.Render(graphicsDevice, renderItemsSequence, viewMatrices);
+                                    lastMaterial.Render(renderItemsSequence, viewMatrices);
                                     renderItemsSequence.Clear();
                                 }
 
                                 if (lastMaterial != null)
-                                    lastMaterial.ResetState(graphicsDevice);
+                                    lastMaterial.ResetState();
 #if DEBUG_RENDER_STATE
 								if (lastMaterial != null)
 									DebugRenderState(graphicsDevice, lastMaterial.ToString());
 #endif
-                                renderItem.Material.SetState(graphicsDevice, lastMaterial);
+                                renderItem.Material.SetState(lastMaterial);
                                 lastMaterial = renderItem.Material;
                             }
                             renderItemsSequence.Add(renderItem);
@@ -707,12 +707,12 @@ namespace Orts.Viewer3D
                         if (renderItemsSequence.Count > 0)
                         {
                             if (logging) Console.WriteLine("      {0,-5} * {1}", renderItemsSequence.Count, lastMaterial);
-                            lastMaterial.Render(graphicsDevice, renderItemsSequence, viewMatrices);
+                            lastMaterial.Render(renderItemsSequence, viewMatrices);
                             renderItemsSequence.Clear();
                         }
 
                         if (lastMaterial != null)
-                            lastMaterial.ResetState(graphicsDevice);
+                            lastMaterial.ResetState();
 #if DEBUG_RENDER_STATE
 						if (lastMaterial != null)
 							DebugRenderState(graphicsDevice, lastMaterial.ToString());
@@ -724,10 +724,10 @@ namespace Orts.Viewer3D
                             || sequenceMaterial.Key is MSTSSkyMaterial))
                             continue;
                         // Opaque: single material, render in one go.
-                        sequenceMaterial.Key.SetState(graphicsDevice, null);
+                        sequenceMaterial.Key.SetState(null);
                         if (logging) Console.WriteLine("      {0,-5} * {1}", sequenceMaterial.Value.Count, sequenceMaterial.Key);
-                        sequenceMaterial.Key.Render(graphicsDevice, sequenceMaterial.Value, viewMatrices);
-                        sequenceMaterial.Key.ResetState(graphicsDevice);
+                        sequenceMaterial.Key.Render(sequenceMaterial.Value, viewMatrices);
+                        sequenceMaterial.Key.ResetState();
 #if DEBUG_RENDER_STATE
 						DebugRenderState(graphicsDevice, sequenceMaterial.Key.ToString());
 #endif
@@ -758,10 +758,10 @@ namespace Orts.Viewer3D
                     if (sequenceMaterial.Key is TerrainSharedDistantMountain || sequenceMaterial.Key is SkyMaterial || sequenceMaterial.Key is MSTSSkyMaterial)
                     {
                         // Opaque: single material, render in one go.
-                        sequenceMaterial.Key.SetState(graphicsDevice, null);
+                        sequenceMaterial.Key.SetState(null);
                         if (logging) Console.WriteLine("      {0,-5} * {1}", sequenceMaterial.Value.Count, sequenceMaterial.Key);
-                        sequenceMaterial.Key.Render(graphicsDevice, sequenceMaterial.Value, mountainViewMatrices);
-                        sequenceMaterial.Key.ResetState(graphicsDevice);
+                        sequenceMaterial.Key.Render(sequenceMaterial.Value, mountainViewMatrices);
+                        sequenceMaterial.Key.ResetState();
 #if DEBUG_RENDER_STATE
 						DebugRenderState(graphicsDevice.RenderState, sequenceMaterial.Key.ToString());
 #endif
