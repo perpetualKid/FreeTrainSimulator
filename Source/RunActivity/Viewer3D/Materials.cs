@@ -22,12 +22,14 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Viewer3D.Common;
 using Orts.Viewer3D.Popups;
 using ORTS.Common;
+using ORTS.Common.Xna;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Orts.Viewer3D
 {
@@ -1054,8 +1056,9 @@ namespace Orts.Viewer3D
         private EffectPassCollection shaderPasses;
         private readonly VertexBuffer blurVertexBuffer;
         private readonly ShadowMapShader shader;
-        //SemaphoreSlim test;
-        //int renderIndex;
+        //static SemaphoreSlim test = new SemaphoreSlim(1);
+        private static AutoResetEvent drawEvent = new AutoResetEvent(false);
+        private static AutoResetEvent renderEvent = new AutoResetEvent(false);
 
         //Order needs to match order of techniques in ShadowMap.fx to simplify lookup
         //Blur map coming last (not used in enum)
@@ -1079,8 +1082,6 @@ namespace Orts.Viewer3D
                new VertexPositionTexture(new Vector3(+1, -1, 0), new Vector2(shadowMapResolution, shadowMapResolution)),
             });
             shader = Viewer.MaterialManager.ShadowMapShader;
-//            test = new SemaphoreSlim(1);
-
         }
 
         public void SetState(Mode mode)
@@ -1096,20 +1097,105 @@ namespace Orts.Viewer3D
             graphicsDevice.RasterizerState = mode == Mode.Blocker ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
         }
 
+//        private Queue<Action> drawDirectives = new Queue<Action>();
+        //private System.Collections.Concurrent.ConcurrentQueue<Action> drawDirectives = new System.Collections.Concurrent.ConcurrentQueue<Action>();
+        private System.Collections.Concurrent.ConcurrentQueue<Tuple<int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader>> drawDirectives = 
+            new System.Collections.Concurrent.ConcurrentQueue<Tuple<int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader>>();
+        Thread drawThread; 
+        private bool awaitMore;
+
+        private void DrawItems(int shaderPassIndex, Matrix worldViewProjection, in RenderItem renderItem, EffectPassCollection effectPasses, ShadowMapShader shadowMapShader)
+        {
+            //shadowMapShader.SetData(ref worldViewProjection, renderItem.Material.GetShadowTexture());
+            //effectPasses[shaderPassIndex].Apply();
+            //device.SamplerStates[0] = renderItem.Material.SamplerState;
+            //renderItem.RenderPrimitive.Draw(device);
+            shader.SetData(ref worldViewProjection, renderItem.Material.GetShadowTexture());
+            shaderPasses[shaderPassIndex].Apply();
+            graphicsDevice.SamplerStates[0] = renderItem.Material.SamplerState;
+            renderItem.RenderPrimitive.Draw(graphicsDevice);
+        }
+
         public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
-            //renderIndex = -1;
-            //System.Threading.Tasks.Parallel.ForEach(Viewer.MaterialManager.ShadowMapShaders, (shadowMapShader) =>
-            //    RenderParallel(graphicsDevice, renderItems, shadowMapShader, matrices, renderItemDirty));
 
-            shader.SetData(ref matrices[(int)ViewMatrixSequence.View]);
+            //////shader.SetData(ref matrices[(int)ViewMatrixSequence.View]);
+            //if (null == drawThread)
+            //{
+            //    drawThread = new Thread(new ThreadStart(RenderItemDrawingThread));
+            //    drawThread.Start();
+            //}
+            //awaitMore = true;
+            ////test.Release();
+
+            //drawEvent.Set();
+            //for (int j = 0; j < shaderPasses.Count; j++)
+            //{
+            //    for (int i = 0; i < renderItems.Count; i++)
+            //    {
+            //        int itemIndex = i;
+            //        RenderItem item = renderItems[i];
+            //        Matrix wvp = item.XNAMatrix;
+            //        MatrixExtension.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
+            //        //Matrix wvp = MatrixExtension.Multiply(item.XNAMatrix, matrices[(int)ViewMatrixSequence.ViewProjection]);
+            //        int passIndex = j;
+            //        //if (renderItems[i].DrawAction == null)
+            //        //{
+            //        //    renderItems[i].DrawAction = new Action<GraphicsDevice, int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader>((GraphicsDevice device, int shaderPassIndex, Matrix worldViewProjection, RenderItem renderItem, EffectPassCollection effectPasses, ShadowMapShader shadowMapShader) =>
+            //        //    {
+            //        //        shadowMapShader.SetData(ref worldViewProjection, renderItem.Material.GetShadowTexture());
+            //        //        effectPasses[shaderPassIndex].Apply();
+            //        //        device.SamplerStates[0] = renderItem.Material.SamplerState;
+            //        //        renderItem.RenderPrimitive.Draw(device);
+            //        //    });
+            //        //}
+            //        //drawDirectives.Enqueue(new Tuple<GraphicsDevice, int, Matrix, Action<GraphicsDevice, int, Matrix>>(graphicsDevice, passIndex, wvp, item.DrawAction));
+            //        //drawDirectives.Enqueue(new Action(() =>
+            //        //{
+            //        //    shader.SetData(ref wvp, item.Material.GetShadowTexture());// item.Material.GetShadowTexture());
+            //        //    shaderPasses[passIndex].Apply();
+            //        //    graphicsDevice.SamplerStates[0] = item.Material.SamplerState;
+            //        //    item.RenderPrimitive.Draw(graphicsDevice);
+            //        //}));
+            //        drawDirectives.Enqueue(new Tuple<int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader>(j, wvp, item, shaderPasses, shader));
+            //        //drawDirectives.Enqueue(new Tuple<GraphicsDevice, int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader, Action<GraphicsDevice, int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader>>
+            //        //    (graphicsDevice, passIndex, wvp, item, shaderPasses, shader, item.DrawAction));
+            //    }
+            //}
+            ////drawEvent.Set();
+            ////while (drawDirectives.Count > 0)
+            ////{
+            ////    if (drawDirectives.TryDequeue(out Action result))
+            ////        result.Invoke();
+            ////}
+            //awaitMore = false;
+            //renderEvent.WaitOne();
+            ////            test.Wait();
+
+            //            for (int j = 0; j < shaderPasses.Count; j++)
+            //            {
+            //                for (int i = 0; i < renderItems.Count; i++)
+            //                {
+            //                    RenderItem item = renderItems[i];
+            ////                    ref Matrix wvp = ref item.XNAMatrix;
+            //                    Matrix wvp = item.XNAMatrix;
+            ////                    MatrixExtension.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
+            //                    MatrixMultiply(in wvp, in matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
+            //                    shader.SetData(ref wvp, item.Material.GetShadowTexture());
+            //                    shaderPasses[j].Apply();
+            //                    graphicsDevice.SamplerStates[0] = item.Material.SamplerState;
+            //                    item.RenderPrimitive.Draw(graphicsDevice);
+            //                }
+            //            }
+
             for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
+                    //                    ref Matrix wvp = ref item.XNAMatrix;
+                    //                    MatrixExtension.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in matrices[(int)ViewMatrixSequence.ViewProjection], out Matrix wvp);
                     shader.SetData(ref wvp, item.Material.GetShadowTexture());
                     shaderPasses[j].Apply();
                     graphicsDevice.SamplerStates[0] = item.Material.SamplerState;
@@ -1118,36 +1204,43 @@ namespace Orts.Viewer3D
             }
         }
 
-//        private void RenderParallel(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, ShadowMapShader shadowMapShader, Matrix[] matrices, bool renderItemDirty)
-//        {
-//            shadowMapShader.SetData(ref matrices[0]);
-//            //            foreach (var pass  in shadowMapShader.CurrentTechnique.Passes)
-//            for (int j = 0; j < shadowMapShader.CurrentTechnique.Passes.Count; j++)
-//            {
-//                int i = Interlocked.Increment(ref renderIndex);
-//                while (i < renderItems.Count)
-//                {
-//                    RenderItem item = renderItems[i];
-//                    if (renderItemDirty)
-//                    {
-//                        Matrix wvp = item.XNAMatrix;
-//                        Matrix.Multiply(ref wvp, ref matrices[2], out item.WVP);
-//                    }
-//                    //Matrix wvp = item.XNAMatrix;
-//                    //Matrix.Multiply(ref wvp, ref matrices[2], out item.WVP);
-//                    shadowMapShader.SetData(ref item.WVP, item.Material.GetShadowTexture());
-//                    SamplerState current = item.Material.SamplerState;
-//                    lock (graphicsDevice)
-//                    {
-//                        graphicsDevice.SamplerStates[0] = current;
-//                        shadowMapShader.CurrentTechnique.Passes[j].Apply();
-//                        item.RenderPrimitive.Draw(graphicsDevice);
-//                    }
-////                    test.Release();
-//                    i = Interlocked.Increment(ref renderIndex);
-//                }
-//            }
-//        }
+        private void RenderItemDrawingThread()
+        {
+            while (true)
+            {
+                drawEvent.WaitOne();
+                if (awaitMore || drawDirectives.Count > 0)
+                {
+                    //SpinWait.SpinUntil(() => drawDirectives.Count > 0);
+                    while (drawDirectives.Count > 0)
+                    {
+                        //if (drawDirectives.TryDequeue(out Action result))
+                        //    result.Invoke();
+                        if (drawDirectives.TryDequeue(out Tuple<int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader> result))
+                            this.DrawItems(result.Item1, result.Item2, result.Item3, result.Item4, result.Item5);
+                        //    result.Invoke();
+                        //Tuple<GraphicsDevice, int, Matrix, Action<GraphicsDevice, int, Matrix>> dummy = drawDirectives.Dequeue();
+                        //dummy.Item4.Invoke(dummy.Item1, dummy.Item2, dummy.Item3);
+                    }
+                }
+                Thread.Sleep(10);
+                renderEvent.Set();
+            }
+        }
+
+        //private void DrawThreadDrawing()
+        //{
+        //    test.Wait();
+        //    if (awaitMore)
+        //    {
+        //        SpinWait.SpinUntil(() => drawDirectives.Count > 0);
+        //        while (drawDirectives.Count > 0)
+        //        {
+        //            drawDirectives.Dequeue().Invoke();
+        //        }
+        //    }
+        //    test.Release();
+        //}
 
         public RenderTarget2D ApplyBlur(RenderTarget2D shadowMap, RenderTarget2D renderTarget)
         {
@@ -1207,8 +1300,8 @@ namespace Orts.Viewer3D
 
         public void Render(RenderPrimitive renderPrimitive, ref Matrix worldMatrix, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
-            Matrix.Multiply(ref worldMatrix, ref viewMatrix, out Matrix wvp);
-            Matrix.Multiply(ref wvp, ref projectionMatrix, out wvp);
+            MatrixExtension.Multiply(in worldMatrix, in viewMatrix, out Matrix result);
+            MatrixExtension.Multiply(in result, in projectionMatrix, out Matrix wvp);
 //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
             shader.SetMatrix(ref worldMatrix, ref wvp);
 

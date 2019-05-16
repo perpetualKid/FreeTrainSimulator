@@ -28,6 +28,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
+using ORTS.Common.Xna;
 using ORTS.Settings;
 using Game = Orts.Viewer3D.Processes.Game;
 
@@ -133,7 +134,7 @@ namespace Orts.Viewer3D
     }
 
     [DebuggerDisplay("{Material} {RenderPrimitive} {Flags}")]
-    public struct RenderItem
+    public readonly struct RenderItem
     {
         public readonly Material Material;
         public readonly RenderPrimitive RenderPrimitive;
@@ -282,7 +283,7 @@ namespace Orts.Viewer3D
 
             viewMatrices[(int)ViewMatrixSequence.View] = Matrix.Identity; 
             viewMatrices[(int)ViewMatrixSequence.Projection] = Matrix.CreateOrthographic(game.RenderProcess.DisplaySize.X, game.RenderProcess.DisplaySize.Y, 1, 100);
-            Matrix.Multiply(ref viewMatrices[0], ref viewMatrices[1], out viewMatrices[2]);
+            MatrixExtension.Multiply(in viewMatrices[0], in viewMatrices[1], out viewMatrices[2]);
 
             renderItemComparer = new RenderItem.Comparer(Vector3.Zero);
         }
@@ -340,7 +341,7 @@ namespace Orts.Viewer3D
 
             viewMatrices[(int)ViewMatrixSequence.View] = camera.XnaView;
             viewMatrices[(int)ViewMatrixSequence.Projection] = camera.XnaProjection;
-            Matrix.Multiply(ref viewMatrices[0], ref viewMatrices[1], out viewMatrices[2]);
+            MatrixExtension.Multiply(in viewMatrices[0], in viewMatrices[1], out viewMatrices[2]);
             renderItemComparer.Update(cameraLocation);
         }
 
@@ -391,7 +392,7 @@ namespace Orts.Viewer3D
 
                     shadowMapLightView[shadowMapIndex] = Matrix.CreateLookAt(shadowMapLocation + viewingDistance * steppedSolarDirection, shadowMapLocation, Vector3.Up);
                     shadowMapLightProjection[shadowMapIndex] = Matrix.CreateOrthographic(shadowMapDiameter, shadowMapDiameter, 0, viewingDistance + shadowMapDiameter / 2);
-                    Matrix.Multiply(ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex], out shadowMapLightViewProjection[shadowMapIndex]);
+                    MatrixExtension.Multiply(in shadowMapLightView[shadowMapIndex], in shadowMapLightProjection[shadowMapIndex], out shadowMapLightViewProjection[shadowMapIndex]);
 //                    shadowMapLightViewProjection[shadowMapIndex] = shadowMapLightView[shadowMapIndex] * shadowMapLightProjection[shadowMapIndex];
 
                     shadowMapLightViewProjectionShadowProjection[shadowMapIndex] = shadowMapLightView[shadowMapIndex] * shadowMapLightProjection[shadowMapIndex] * new Matrix(0.5f, 0, 0, 0, 0, -0.5f, 0, 0, 0, 0, 1, 0, 0.5f + 0.5f / shadowMapSize, 0.5f + 0.5f / shadowMapSize, 0, 1);
@@ -490,7 +491,7 @@ namespace Orts.Viewer3D
                 {
                     if (sequenceMaterial.Key != DummyBlendedMaterial)
                         continue;
-//                    Debug.WriteLine($"Sorting {sequenceMaterial.ToString()} {sequenceMaterial.Value.Count} items");
+                    //Debug.WriteLine($"Sorting {sequenceMaterial.ToString()} {sequenceMaterial.Value.Count} items");
                     sequenceMaterial.Value.Sort(renderItemComparer);
                 }
             }
@@ -560,7 +561,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        void DrawShadows( GraphicsDevice graphicsDevice, bool logging )
+        void DrawShadows(GraphicsDevice graphicsDevice, bool logging )
         {
             if (logging) Console.WriteLine("  DrawShadows {");
             for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
@@ -745,7 +746,7 @@ namespace Orts.Viewer3D
             Matrix[] mountainViewMatrices = new Matrix[3];
             mountainViewMatrices[0] = viewMatrices[0];
             mountainViewMatrices[1] = Camera.XnaDistantMountainProjection;
-            Matrix.Multiply(ref mountainViewMatrices[0], ref mountainViewMatrices[1], out mountainViewMatrices[2]);
+            MatrixExtension.Multiply(in mountainViewMatrices[0], in mountainViewMatrices[1], out mountainViewMatrices[2]);
 
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
             {
