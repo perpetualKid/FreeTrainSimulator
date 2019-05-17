@@ -165,7 +165,7 @@ namespace ORTS.Updater
             try
             {
                 // If we're not at the appropriate time for the next check (and we're not forced), we reconstruct the cached update/error and exit.
-                if (DateTime.Now < updateState.NextCheck && !forceUpdate)
+                if (DateTime.UtcNow < updateState.NextCheck && !forceUpdate)
                 {
                     LastUpdate = updateState.Update.Length > 0 ? JsonConvert.DeserializeObject<Update>(updateState.Update) : null;
                     LastCheckError = updateState.Update.Length > 0 || string.IsNullOrEmpty(channel.URL) ? null : new InvalidDataException("Last update check failed.");
@@ -317,7 +317,7 @@ namespace ORTS.Updater
 
         void ResetCachedUpdate()
         {
-            updateState.LastCheck = DateTime.Now;
+            updateState.LastCheck = DateTime.UtcNow;
             // So what we're doing here is rounding up the DateTime (LastCheck) to the next TimeSpan (TTL) period. For
             // example, if the TTL was 1 hour, we'd round up the the start of the next hour. Similarly, if the TTL was
             // 1 day, we'd round up to midnight (the start of the next day). The purpose of this is to avoid 2 * TTL 

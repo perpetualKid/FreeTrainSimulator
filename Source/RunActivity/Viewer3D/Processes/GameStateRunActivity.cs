@@ -832,7 +832,7 @@ namespace Orts.Viewer3D.Processes
             catch { }
 
             LoadingTime = loadingTime;
-            LoadingStart = DateTime.Now;
+            LoadingStart = DateTime.UtcNow;
             LoadingBytesExpected = bytesExpected;
             LoadingBytesActual = bytesActual;
             // Using the cached loading time, pick a sample rate that will get us ~100 samples. Clamp to 100ms < x < 10,000ms.
@@ -856,7 +856,7 @@ namespace Orts.Viewer3D.Processes
             var bytes = GetProcessBytesLoaded() - LoadingBytesInitial;
 
             // Negative indicates no progress data; this happens if the loaded bytes exceeds the cached maximum expected bytes.
-            LoadedPercent = -(float)(DateTime.Now - LoadingStart).TotalSeconds / 15;
+            LoadedPercent = -(float)(DateTime.UtcNow - LoadingStart).TotalSeconds / 15;
             for (var i = 0; i < LoadingSampleCount; i++)
             {
                 // Find the first expected sample with more bytes. This means we're currently in the (i - 1) to (i) range.
@@ -871,7 +871,7 @@ namespace Orts.Viewer3D.Processes
                 }
             }
 
-            if (DateTime.Now > LoadingNextSample)
+            if (DateTime.UtcNow > LoadingNextSample)
             {
                 // Record a sample every time we should.
                 LoadingBytesActual.Add(bytes);
@@ -884,7 +884,7 @@ namespace Orts.Viewer3D.Processes
             if (LoadingDataKey == null)
                 return;
 
-            var loadingTime = DateTime.Now - LoadingStart;
+            var loadingTime = DateTime.UtcNow - LoadingStart;
             var bytes = GetProcessBytesLoaded() - LoadingBytesInitial;
             LoadingBytesActual.Add(bytes);
 

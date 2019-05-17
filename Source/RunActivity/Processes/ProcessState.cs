@@ -48,7 +48,7 @@ namespace Orts.Processes
         public void SignalStart()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},SS\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},SS\n", DateTime.UtcNow.Ticks);
 #endif
             Finished = false;
             FinishEvent.Reset();
@@ -58,7 +58,7 @@ namespace Orts.Processes
         public void SignalFinish()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},SF\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},SF\n", DateTime.UtcNow.Ticks);
 #endif
             Finished = true;
             StartEvent.Reset();
@@ -68,7 +68,7 @@ namespace Orts.Processes
         public void SignalTerminate()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},ST\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},ST\n", DateTime.UtcNow.Ticks);
 #endif
             Terminated = true;
             TerminateEvent.Set();
@@ -77,22 +77,22 @@ namespace Orts.Processes
         public void WaitTillStarted()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},WTS+\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},WTS+\n", DateTime.UtcNow.Ticks);
 #endif
             WaitHandle.WaitAny(StartEvents);
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},WTS-\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},WTS-\n", DateTime.UtcNow.Ticks);
 #endif
         }
 
         public void WaitTillFinished()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},WTF+\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},WTF+\n", DateTime.UtcNow.Ticks);
 #endif
             WaitHandle.WaitAny(FinishEvents);
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},WTF-\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},WTF-\n", DateTime.UtcNow.Ticks);
 #endif
         }
     }

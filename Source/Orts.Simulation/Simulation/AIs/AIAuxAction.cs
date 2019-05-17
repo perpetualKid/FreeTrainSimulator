@@ -1141,7 +1141,7 @@ namespace Orts.Simulation.AIs
             if (distances[0] >= -minDist)   //  We call the handler to generate an actionRef
             {
                 //Pseudorandom value between 2 and 5
-                int Rand = (DateTime.Now.Millisecond % 10) / 3 + 2;
+                int Rand = (DateTime.UtcNow.Millisecond % 10) / 3 + 2;
                 this.Delay = Rand;
                 newAction = Handler(distances[0] + thisTrain.DistanceTravelledM, thisTrain.SpeedMpS, distances[0] + thisTrain.DistanceTravelledM, thisTrain.DistanceTravelledM);
                 Register(thisTrain.Number, location);

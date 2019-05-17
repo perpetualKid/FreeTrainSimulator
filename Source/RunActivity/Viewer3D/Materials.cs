@@ -1110,8 +1110,8 @@ namespace Orts.Viewer3D
             //effectPasses[shaderPassIndex].Apply();
             //device.SamplerStates[0] = renderItem.Material.SamplerState;
             //renderItem.RenderPrimitive.Draw(device);
-            shader.SetData(ref worldViewProjection, renderItem.Material.GetShadowTexture());
-            shaderPasses[shaderPassIndex].Apply();
+            shadowMapShader.SetData(ref worldViewProjection, renderItem.Material.GetShadowTexture());
+            effectPasses[shaderPassIndex].Apply();
             graphicsDevice.SamplerStates[0] = renderItem.Material.SamplerState;
             renderItem.RenderPrimitive.Draw(graphicsDevice);
         }
@@ -1135,8 +1135,7 @@ namespace Orts.Viewer3D
             //    {
             //        int itemIndex = i;
             //        RenderItem item = renderItems[i];
-            //        Matrix wvp = item.XNAMatrix;
-            //        MatrixExtension.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
+            //        MatrixExtension.Multiply(in item.XNAMatrix, in matrices[(int)ViewMatrixSequence.ViewProjection], out Matrix wvp);
             //        //Matrix wvp = MatrixExtension.Multiply(item.XNAMatrix, matrices[(int)ViewMatrixSequence.ViewProjection]);
             //        int passIndex = j;
             //        //if (renderItems[i].DrawAction == null)
@@ -1171,22 +1170,6 @@ namespace Orts.Viewer3D
             //awaitMore = false;
             //renderEvent.WaitOne();
             ////            test.Wait();
-
-            //            for (int j = 0; j < shaderPasses.Count; j++)
-            //            {
-            //                for (int i = 0; i < renderItems.Count; i++)
-            //                {
-            //                    RenderItem item = renderItems[i];
-            ////                    ref Matrix wvp = ref item.XNAMatrix;
-            //                    Matrix wvp = item.XNAMatrix;
-            ////                    MatrixExtension.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
-            //                    MatrixMultiply(in wvp, in matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
-            //                    shader.SetData(ref wvp, item.Material.GetShadowTexture());
-            //                    shaderPasses[j].Apply();
-            //                    graphicsDevice.SamplerStates[0] = item.Material.SamplerState;
-            //                    item.RenderPrimitive.Draw(graphicsDevice);
-            //                }
-            //            }
 
             for (int j = 0; j < shaderPasses.Count; j++)
             {
@@ -1223,7 +1206,6 @@ namespace Orts.Viewer3D
                         //dummy.Item4.Invoke(dummy.Item1, dummy.Item2, dummy.Item3);
                     }
                 }
-                Thread.Sleep(10);
                 renderEvent.Set();
             }
         }
