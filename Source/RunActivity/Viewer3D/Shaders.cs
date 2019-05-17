@@ -169,7 +169,7 @@ namespace Orts.Viewer3D
             //sideVector.SetValue(Vector3.Normalize(Vector3.Cross(viewEyeVector, Vector3.Down)));
         }
 
-        public void SetMatrix(Matrix w, ref Matrix vp)
+        public void SetMatrix(in Matrix w, in Matrix vp)
         {
             world.SetValue(w);
             MatrixExtension.Multiply(in w, in vp, out Matrix wvp);

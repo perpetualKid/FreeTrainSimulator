@@ -605,7 +605,7 @@ namespace Orts.Viewer3D
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
+                    shader.SetMatrix(in item.XNAMatrix, in matrices[(int)ViewMatrixSequence.ViewProjection]);
                     pass.Apply();
                     item.RenderPrimitive.Draw();
                 }
@@ -672,7 +672,7 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     var slp = item.RenderPrimitive as SignalLightPrimitive;
                     shader.ZBias = MathHelper.Lerp(slp.GlowIntensityDay, slp.GlowIntensityNight, nightEffect);
-                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
+                    shader.SetMatrix(in item.XNAMatrix, in matrices[(int)ViewMatrixSequence.ViewProjection]);
                     pass.Apply();
                     item.RenderPrimitive.Draw();
                 }
