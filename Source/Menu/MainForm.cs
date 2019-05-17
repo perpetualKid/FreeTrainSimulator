@@ -369,7 +369,7 @@ namespace ORTS
             {
                 try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(Settings.Language);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(settings.Language);
                 }
                 catch
                 {
