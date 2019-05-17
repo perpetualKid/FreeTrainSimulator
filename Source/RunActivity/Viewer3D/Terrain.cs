@@ -261,7 +261,7 @@ namespace Orts.Viewer3D
             frame.AddAutoPrimitive(mstsLocation, PatchSize * 0.7071F, Size > 2 ? float.PositiveInfinity : float.MaxValue, PatchMaterial, this, RenderPrimitiveGroup.World, ref xnaPatchMatrix, Size <= 2 ? ShapeFlags.ShadowCaster : ShapeFlags.None);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffers(VertexBufferBindings);
             if (PatchIndexBuffer != null)
@@ -551,7 +551,7 @@ namespace Orts.Viewer3D
                     shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }

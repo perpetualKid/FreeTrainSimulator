@@ -543,13 +543,12 @@ namespace Orts.Viewer3D
     {
         protected readonly Viewer Viewer;
         private readonly string key;
-        protected readonly GraphicsDevice graphicsDevice;
+        protected static GraphicsDevice graphicsDevice;
 
         protected Material(Viewer viewer, string key)
         {
             Viewer = viewer;
             this.key = key;
-            graphicsDevice = Viewer?.RenderProcess.GraphicsDevice;
         }
 
         protected Material(GraphicsDevice device): this (null, null)
@@ -608,7 +607,7 @@ namespace Orts.Viewer3D
         public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
         {
             for (int i = 0; i < renderItems.Count; i++)
-                renderItems[i].RenderPrimitive.Draw(graphicsDevice);
+                renderItems[i].RenderPrimitive.Draw();
         }
     }
 
@@ -962,7 +961,7 @@ namespace Orts.Viewer3D
                     shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     shaderPasses[j].Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
@@ -1113,7 +1112,7 @@ namespace Orts.Viewer3D
             shadowMapShader.SetData(ref worldViewProjection, renderItem.Material.GetShadowTexture());
             effectPasses[shaderPassIndex].Apply();
             graphicsDevice.SamplerStates[0] = renderItem.Material.SamplerState;
-            renderItem.RenderPrimitive.Draw(graphicsDevice);
+            renderItem.RenderPrimitive.Draw();
         }
 
         public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
@@ -1182,7 +1181,7 @@ namespace Orts.Viewer3D
                     shader.SetData(ref wvp, item.Material.GetShadowTexture());
                     shaderPasses[j].Apply();
                     graphicsDevice.SamplerStates[0] = item.Material.SamplerState;
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
@@ -1290,7 +1289,7 @@ namespace Orts.Viewer3D
             for (int j = 0; j < shaderPasses.Count; j++)
             {
                 shaderPasses[j].Apply();
-                renderPrimitive.Draw(graphicsDevice);
+                renderPrimitive.Draw();
             }
         }
 
@@ -1349,7 +1348,7 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     basicEffect.World = item.XNAMatrix;
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
@@ -1397,7 +1396,7 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     basicEffect.World = item.XNAMatrix;
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
@@ -1481,7 +1480,7 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     shaderPasses[j].Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }

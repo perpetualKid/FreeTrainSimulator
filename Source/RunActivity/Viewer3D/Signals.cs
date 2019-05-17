@@ -561,7 +561,7 @@ namespace Orts.Viewer3D
             VertexBuffer.SetData(verticies);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
@@ -607,7 +607,7 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
@@ -674,7 +674,7 @@ namespace Orts.Viewer3D
                     shader.ZBias = MathHelper.Lerp(slp.GlowIntensityDay, slp.GlowIntensityNight, nightEffect);
                     shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }

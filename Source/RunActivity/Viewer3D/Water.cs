@@ -77,7 +77,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.Indices = IndexBuffer;
             graphicsDevice.SetVertexBuffers(VertexBufferBindings);
@@ -205,7 +205,7 @@ namespace Orts.Viewer3D
                     shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     shaderPasses[j].Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }

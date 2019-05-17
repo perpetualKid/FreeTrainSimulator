@@ -75,6 +75,9 @@ namespace Orts.Viewer3D
 
     public abstract class RenderPrimitive
     {
+        protected static GraphicsDevice graphicsDevice;
+        public static void SetGraphicsDevice(GraphicsDevice device) => graphicsDevice = device;
+
         /// <summary>
         /// Mapping from <see cref="RenderPrimitiveGroup"/> to <see cref="RenderPrimitiveSequence"/> for blended
         /// materials. The number of items in the array must equal the number of values in
@@ -129,8 +132,7 @@ namespace Orts.Viewer3D
         /// Do not reference any volatile data.
         /// Executes in the RenderProcess thread
         /// </summary>
-        /// <param name="graphicsDevice"></param>
-        public abstract void Draw(GraphicsDevice graphicsDevice);
+        public abstract void Draw();
     }
 
     [DebuggerDisplay("{Material} {RenderPrimitive} {Flags}")]
@@ -536,7 +538,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Render")]
-        public void Draw(GraphicsDevice graphicsDevice)
+        public void Draw()
         {
 #if DEBUG_RENDER_STATE
 			DebugRenderState(graphicsDevice, "RenderFrame.Draw");
@@ -549,8 +551,8 @@ namespace Orts.Viewer3D
                 Console.WriteLine("Draw {");
             }
             if (dynamicShadows && (shadowMapCount > 0) && shadowMapMaterial != null)
-                DrawShadows(graphicsDevice, logging);
-            DrawSimple(graphicsDevice, logging);
+                DrawShadows(logging);
+            DrawSimple(logging);
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
                 game.RenderProcess.PrimitiveCount[i] = renderItems[i].Values.Sum(l => l.Count);
 
@@ -561,17 +563,17 @@ namespace Orts.Viewer3D
             }
         }
 
-        void DrawShadows(GraphicsDevice graphicsDevice, bool logging )
+        void DrawShadows(bool logging )
         {
             if (logging) Console.WriteLine("  DrawShadows {");
             for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
-                DrawShadows(graphicsDevice, logging, shadowMapIndex);
+                DrawShadows(logging, shadowMapIndex);
             for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                 game.RenderProcess.ShadowPrimitiveCount[shadowMapIndex] = renderShadowSceneryItems[shadowMapIndex].Count + renderShadowForestItems[shadowMapIndex].Count + renderShadowTerrainItems[shadowMapIndex].Count;
             if (logging) Console.WriteLine("  }");
         }
 
-        void DrawShadows(GraphicsDevice graphicsDevice, bool logging, int shadowMapIndex)
+        void DrawShadows(bool logging, int shadowMapIndex)
         {
             if (logging) Console.WriteLine("    {0} {{", shadowMapIndex);
             Matrix[] matrices = new Matrix[3];
@@ -580,8 +582,8 @@ namespace Orts.Viewer3D
             matrices[2] = shadowMapLightViewProjection[shadowMapIndex];
 
             // Prepare renderer for drawing the shadow map.
-            graphicsDevice.SetRenderTarget(shadowMapRenderTarget[shadowMapIndex]);
-            graphicsDevice.Clear(ClearOptions.DepthBuffer | ClearOptions.Target, Color.White, 1, 0);
+            game.GraphicsDevice.SetRenderTarget(shadowMapRenderTarget[shadowMapIndex]);
+            game.GraphicsDevice.Clear(ClearOptions.DepthBuffer | ClearOptions.Target, Color.White, 1, 0);
 
             // Prepare for normal (non-blocking) rendering of scenery.
             shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Normal);
@@ -604,7 +606,7 @@ namespace Orts.Viewer3D
 
             // Render terrain shadow items now, with their magic.
             if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (normal)", renderShadowTerrainItems[shadowMapIndex].Count);
-            graphicsDevice.Indices = TerrainPrimitive.SharedPatchIndexBuffer;
+            game.GraphicsDevice.Indices = TerrainPrimitive.SharedPatchIndexBuffer;
 //            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
             shadowMapMaterial.Render(renderShadowTerrainItems[shadowMapIndex], matrices);
 
@@ -621,7 +623,7 @@ namespace Orts.Viewer3D
 #if DEBUG_RENDER_STATE
             DebugRenderState(graphicsDevice, ShadowMapMaterial.ToString());
 #endif
-            graphicsDevice.SetRenderTarget(null);
+            game.GraphicsDevice.SetRenderTarget(null);
 
             // Blur the shadow map.
             if (game.Settings.ShadowMapBlur)
@@ -643,29 +645,29 @@ namespace Orts.Viewer3D
         /// </summary>
         /// <param name="graphicsDevice"></param>
         /// <param name="logging"></param>
-        void DrawSimple(GraphicsDevice graphicsDevice, bool logging)
+        void DrawSimple(bool logging)
         {
             if (game.Settings.DistantMountains)
             {
                 if (logging) Console.WriteLine("  DrawSimple (Distant Mountains) {");
-                graphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Transparent, 1, 0);
-                DrawSequencesDistantMountains(graphicsDevice, logging);
+                game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Transparent, 1, 0);
+                DrawSequencesDistantMountains(logging);
                 if (logging) Console.WriteLine("  }");
                 if (logging) Console.WriteLine("  DrawSimple {");
-                graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.Transparent, 1, 0);
-                DrawSequences(graphicsDevice, logging);
+                game.GraphicsDevice.Clear(ClearOptions.DepthBuffer, Color.Transparent, 1, 0);
+                DrawSequences(logging);
                 if (logging) Console.WriteLine("  }");
             }
             else
             {
                 if (logging) Console.WriteLine("  DrawSimple {");
-                graphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Transparent, 1, 0);
-                DrawSequences(graphicsDevice, logging);
+                game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Transparent, 1, 0);
+                DrawSequences(logging);
                 if (logging) Console.WriteLine("  }");
             }
         }
 
-        void DrawSequences(GraphicsDevice graphicsDevice, bool logging)
+        void DrawSequences(bool logging)
         {
             if (dynamicShadows && (shadowMapCount > 0) && sceneryShader != null)
                 sceneryShader.SetShadowMap(shadowMapLightViewProjectionShadowProjection, shadowMap, RenderProcess.ShadowMapLimit);
@@ -741,7 +743,7 @@ namespace Orts.Viewer3D
                 sceneryShader.ClearShadowMap();
         }
 
-        void DrawSequencesDistantMountains(GraphicsDevice graphicsDevice, bool logging)
+        void DrawSequencesDistantMountains(bool logging)
         {
             Matrix[] mountainViewMatrices = new Matrix[3];
             mountainViewMatrices[0] = viewMatrices[0];

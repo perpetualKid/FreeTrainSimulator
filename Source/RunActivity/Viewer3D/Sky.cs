@@ -246,7 +246,7 @@ namespace Orts.Viewer3D
             InitializeVertexBuffers(renderProcess.GraphicsDevice);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffer(SkyVertexBuffer);
             graphicsDevice.Indices = SkyIndexBuffer;
@@ -493,7 +493,7 @@ namespace Orts.Viewer3D
                     MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
                     skyShader.SetMatrix(ref wvp);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
 
@@ -521,7 +521,7 @@ namespace Orts.Viewer3D
                     MatrixExtension.Multiply(in item.XNAMatrix, in moonMatrixView, out Matrix wvp);
                     skyShader.SetMatrix(ref wvp);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
 
@@ -540,7 +540,7 @@ namespace Orts.Viewer3D
                     MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
                     skyShader.SetMatrix(ref wvp);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }

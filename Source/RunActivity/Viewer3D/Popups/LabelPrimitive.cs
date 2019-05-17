@@ -49,7 +49,7 @@ namespace Orts.Viewer3D.Popups
             color.A = outline.A = (byte)MathHelper.Lerp(255, 0, alphaBlendRatio);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             Camera camera = material.CurrentCamera;
             var lineLocation3D = position.XNAMatrix.Translation;

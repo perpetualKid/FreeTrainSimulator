@@ -335,7 +335,7 @@ namespace Orts.Viewer3D
             // Meshes have now been assembled, so put everything into vertex and index buffers
             InitializeVertexBuffers(renderProcess.GraphicsDevice);
         }
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffer(MSTSSkyVertexBuffer);
             graphicsDevice.Indices = MSTSSkyIndexBuffer;
@@ -619,7 +619,7 @@ namespace Orts.Viewer3D
                     MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
             shader.CurrentTechnique = shader.Techniques[1]; //["Moon"];
@@ -646,7 +646,7 @@ namespace Orts.Viewer3D
                     MatrixExtension.Multiply(in item.XNAMatrix, in cameraProjection, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
 
@@ -665,7 +665,7 @@ namespace Orts.Viewer3D
                     MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }

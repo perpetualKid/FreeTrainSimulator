@@ -213,7 +213,7 @@ namespace Orts.Viewer3D.Popups
         }
 
         [CallOnThread("Render")]
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
 		{
 			// Nothing visible? Nothing more to do!
 			if (!VisibleWindows.Any())

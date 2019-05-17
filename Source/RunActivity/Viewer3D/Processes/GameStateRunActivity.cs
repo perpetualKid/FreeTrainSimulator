@@ -1262,7 +1262,7 @@ namespace Orts.Viewer3D.Processes
                 };
             }
             
-            public override void Draw(GraphicsDevice graphicsDevice)
+            public override void Draw()
             {
                 graphicsDevice.SetVertexBuffer(VertexBuffer);
                 graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
@@ -1336,7 +1336,6 @@ namespace Orts.Viewer3D.Processes
             internal readonly LoadingShader shader;
             public readonly Texture2D texture;
 
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
             public LoadingMaterial(Game game)
                 : base(game.GraphicsDevice)
             {
@@ -1369,7 +1368,7 @@ namespace Orts.Viewer3D.Processes
                     shader.WorldViewProjection = wvp;
 //                    shader.WorldViewProjection = item.XNAMatrix * matrices[0] * matrices[1];
                     shader.CurrentTechnique.Passes[0].Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
 

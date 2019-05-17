@@ -548,7 +548,7 @@ namespace Orts.Viewer3D
             UpdateState(lightViewer);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.Indices = IndexBuffer;
@@ -674,7 +674,7 @@ namespace Orts.Viewer3D
             UpdateState(lightViewer);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.Indices = IndexBuffer;
@@ -776,7 +776,7 @@ namespace Orts.Viewer3D
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
@@ -835,7 +835,7 @@ namespace Orts.Viewer3D
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }

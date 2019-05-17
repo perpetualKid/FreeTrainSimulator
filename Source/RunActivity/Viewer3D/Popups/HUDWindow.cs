@@ -1252,7 +1252,7 @@ namespace Orts.Viewer3D.Popups
             Sample.X = SampleIndex;
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (VertexBuffer.IsContentLost)
                 VertexBuffer_ContentLost();
@@ -1302,7 +1302,7 @@ namespace Orts.Viewer3D.Popups
                         shader.GraphSample = graphMesh.Sample;
                         pass.Apply();
                     }
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }

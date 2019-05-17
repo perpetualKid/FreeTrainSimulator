@@ -1240,7 +1240,7 @@ namespace Orts.Viewer3D
             IndexBuffer.SetData(indexData.ToArray());
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (PrimitiveCount > 0)
             {
@@ -1315,7 +1315,7 @@ namespace Orts.Viewer3D
             VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(InstanceBuffer, 0, 1) };
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.Indices = IndexBuffer;
             graphicsDevice.SetVertexBuffers(VertexBufferBindings);

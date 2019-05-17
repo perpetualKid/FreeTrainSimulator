@@ -421,7 +421,7 @@ namespace Orts.Viewer3D
             return FirstActiveParticle != FirstFreeParticle;
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (VertexBuffer.IsContentLost)
                 VertexBuffer_ContentLost();
@@ -493,7 +493,7 @@ namespace Orts.Viewer3D
                     shader.Texture = texture;
                     shader.SetMatrix(ref matrices[(int)ViewMatrixSequence.View], ref matrices[(int)ViewMatrixSequence.Projection]);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }

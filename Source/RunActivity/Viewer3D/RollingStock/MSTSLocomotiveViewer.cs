@@ -1284,7 +1284,7 @@ namespace Orts.Viewer3D.RollingStock
                     cvcr.PrepareFrame(frame, elapsedTime);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             // Cab view vertical position adjusted to allow for clip or stretch.
             Rectangle stretchedCab;
@@ -1460,7 +1460,7 @@ namespace Orts.Viewer3D.RollingStock
             Rotation = MathHelper.WrapAngle(MathHelper.ToRadians(ControlDial.FromDegree + direction * rangeDegrees * rangeFraction));
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (Shader != null)
             {
@@ -1639,7 +1639,7 @@ namespace Orts.Viewer3D.RollingStock
             }
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (Shader != null)
             {
@@ -1728,7 +1728,7 @@ namespace Orts.Viewer3D.RollingStock
             DestinationRectangle.Height = (int)(yratio * Math.Min(Control.Height, Texture.Height));  // Allow only downscaling of the texture, and not upscaling
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (Shader != null)
             {
@@ -2148,7 +2148,7 @@ namespace Orts.Viewer3D.RollingStock
             base.PrepareFrame(frame, elapsedTime);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             DrawFont.Draw(CabShaderControlView.SpriteBatch, DrawPosition, Point.Zero, DrawText, Alignment, DrawColor);
         }
@@ -3050,7 +3050,7 @@ namespace Orts.Viewer3D.RollingStock
             Font = font;
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             Font.Draw(Material.SpriteBatch, Position, Text, Color);
         }
