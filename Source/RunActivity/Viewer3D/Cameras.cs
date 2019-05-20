@@ -2250,7 +2250,7 @@ namespace Orts.Viewer3D
         protected float DistanceRunM = 0f; // distance run since last check interval
         protected bool FirstUpdateLoop = true; // first update loop
 
-        const float MaxDistFromRoadCarM = 100.0f; // maximum distance of train traveller to spawned roadcar
+        const float MaxDistFromRoadCarM = 200.0f; // maximum distance of train traveller to spawned roadcar
         protected RoadCar NearRoadCar;
         protected bool RoadCarFound;
 
@@ -2291,9 +2291,15 @@ namespace Orts.Viewer3D
                 else NearRoadCar = null;
             }
 
+            bool trainClose = false;
             // Train is close enough if the last car we used is part of the same train and still close enough.
-            var trainClose = (LastCheckCar != null) && (LastCheckCar.Train == train) && (WorldLocation.GetDistance2D(LastCheckCar.WorldPosition.WorldLocation, cameraLocation).Length() < (SpecialPointFound ? MaximumSpecialPointDistance * 0.8f : MaximumDistance));
-
+            if ((LastCheckCar != null) && (LastCheckCar.Train == train))
+            {
+                float distance = WorldLocation.GetDistance2D(LastCheckCar.WorldPosition.WorldLocation, cameraLocation).Length();
+                trainClose = distance < (SpecialPointFound ? MaximumSpecialPointDistance * 0.8f : MaximumDistance);
+                if (!trainClose && SpecialPointFound && NearRoadCar != null) trainClose = distance < MaximumSpecialPointDistance * 1.5f;
+            }
+ 
             // Otherwise, let's check out every car and remember which is the first one close enough for next time.
             if (!trainClose)
             {
@@ -2307,7 +2313,7 @@ namespace Orts.Viewer3D
                         break;
                     }
                     else if (WorldLocation.GetDistance2D(car.WorldPosition.WorldLocation, cameraLocation).Length() <
-                        (SpecialPointFound && NearRoadCar != null && train.SpeedMpS > NearRoadCar.Speed + 10 ? MaximumSpecialPointDistance * 0.8f : MaximumDistance))
+                        (SpecialPointFound && NearRoadCar != null && train.SpeedMpS > NearRoadCar.Speed + 10 ? MaximumSpecialPointDistance * 1.5f : MaximumDistance))
                     {
                         LastCheckCar = car;
                         trainClose = true;
