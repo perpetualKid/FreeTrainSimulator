@@ -1289,7 +1289,7 @@ namespace Orts.Viewer3D.Popups
             graphicsDevice.DepthStencilState = DepthStencilState.None;
         }
 
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {

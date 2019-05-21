@@ -29,7 +29,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Orts.Viewer3D
 {
@@ -565,7 +564,7 @@ namespace Orts.Viewer3D
 
         public virtual void SetState(Material previousMaterial) { }
 
-        public virtual void Render(List<RenderItem> renderItems, Matrix[] matrices) { }
+        public abstract void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection);
 
         public virtual void ResetState() { }
 
@@ -595,6 +594,11 @@ namespace Orts.Viewer3D
             : base(viewer, null)
         {
         }
+
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class BasicMaterial : Material
@@ -604,7 +608,7 @@ namespace Orts.Viewer3D
         {
         }
 
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             for (int i = 0; i < renderItems.Count; i++)
                 renderItems[i].RenderPrimitive.Draw();
@@ -951,14 +955,14 @@ namespace Orts.Viewer3D
 
         }
 
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(in item.XNAMatrix, in matrices[(int)ViewMatrixSequence.ViewProjection]);
+                    shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     shaderPasses[j].Apply();
                     item.RenderPrimitive.Draw();
@@ -1055,9 +1059,6 @@ namespace Orts.Viewer3D
         private EffectPassCollection shaderPasses;
         private readonly VertexBuffer blurVertexBuffer;
         private readonly ShadowMapShader shader;
-        //static SemaphoreSlim test = new SemaphoreSlim(1);
-        private static AutoResetEvent drawEvent = new AutoResetEvent(false);
-        private static AutoResetEvent renderEvent = new AutoResetEvent(false);
 
         //Order needs to match order of techniques in ShadowMap.fx to simplify lookup
         //Blur map coming last (not used in enum)
@@ -1096,80 +1097,8 @@ namespace Orts.Viewer3D
             graphicsDevice.RasterizerState = mode == Mode.Blocker ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
         }
 
-//        private Queue<Action> drawDirectives = new Queue<Action>();
-        //private System.Collections.Concurrent.ConcurrentQueue<Action> drawDirectives = new System.Collections.Concurrent.ConcurrentQueue<Action>();
-        private System.Collections.Concurrent.ConcurrentQueue<Tuple<int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader>> drawDirectives = 
-            new System.Collections.Concurrent.ConcurrentQueue<Tuple<int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader>>();
-        Thread drawThread; 
-        private bool awaitMore;
-
-        private void DrawItems(int shaderPassIndex, Matrix worldViewProjection, in RenderItem renderItem, EffectPassCollection effectPasses, ShadowMapShader shadowMapShader)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            //shadowMapShader.SetData(ref worldViewProjection, renderItem.Material.GetShadowTexture());
-            //effectPasses[shaderPassIndex].Apply();
-            //device.SamplerStates[0] = renderItem.Material.SamplerState;
-            //renderItem.RenderPrimitive.Draw(device);
-            shadowMapShader.SetData(ref worldViewProjection, renderItem.Material.GetShadowTexture());
-            effectPasses[shaderPassIndex].Apply();
-            graphicsDevice.SamplerStates[0] = renderItem.Material.SamplerState;
-            renderItem.RenderPrimitive.Draw();
-        }
-
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
-        {
-
-            //////shader.SetData(ref matrices[(int)ViewMatrixSequence.View]);
-            //if (null == drawThread)
-            //{
-            //    drawThread = new Thread(new ThreadStart(RenderItemDrawingThread));
-            //    drawThread.Start();
-            //}
-            //awaitMore = true;
-            ////test.Release();
-
-            //drawEvent.Set();
-            //for (int j = 0; j < shaderPasses.Count; j++)
-            //{
-            //    for (int i = 0; i < renderItems.Count; i++)
-            //    {
-            //        int itemIndex = i;
-            //        RenderItem item = renderItems[i];
-            //        MatrixExtension.Multiply(in item.XNAMatrix, in matrices[(int)ViewMatrixSequence.ViewProjection], out Matrix wvp);
-            //        //Matrix wvp = MatrixExtension.Multiply(item.XNAMatrix, matrices[(int)ViewMatrixSequence.ViewProjection]);
-            //        int passIndex = j;
-            //        //if (renderItems[i].DrawAction == null)
-            //        //{
-            //        //    renderItems[i].DrawAction = new Action<GraphicsDevice, int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader>((GraphicsDevice device, int shaderPassIndex, Matrix worldViewProjection, RenderItem renderItem, EffectPassCollection effectPasses, ShadowMapShader shadowMapShader) =>
-            //        //    {
-            //        //        shadowMapShader.SetData(ref worldViewProjection, renderItem.Material.GetShadowTexture());
-            //        //        effectPasses[shaderPassIndex].Apply();
-            //        //        device.SamplerStates[0] = renderItem.Material.SamplerState;
-            //        //        renderItem.RenderPrimitive.Draw(device);
-            //        //    });
-            //        //}
-            //        //drawDirectives.Enqueue(new Tuple<GraphicsDevice, int, Matrix, Action<GraphicsDevice, int, Matrix>>(graphicsDevice, passIndex, wvp, item.DrawAction));
-            //        //drawDirectives.Enqueue(new Action(() =>
-            //        //{
-            //        //    shader.SetData(ref wvp, item.Material.GetShadowTexture());// item.Material.GetShadowTexture());
-            //        //    shaderPasses[passIndex].Apply();
-            //        //    graphicsDevice.SamplerStates[0] = item.Material.SamplerState;
-            //        //    item.RenderPrimitive.Draw(graphicsDevice);
-            //        //}));
-            //        drawDirectives.Enqueue(new Tuple<int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader>(j, wvp, item, shaderPasses, shader));
-            //        //drawDirectives.Enqueue(new Tuple<GraphicsDevice, int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader, Action<GraphicsDevice, int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader>>
-            //        //    (graphicsDevice, passIndex, wvp, item, shaderPasses, shader, item.DrawAction));
-            //    }
-            //}
-            ////drawEvent.Set();
-            ////while (drawDirectives.Count > 0)
-            ////{
-            ////    if (drawDirectives.TryDequeue(out Action result))
-            ////        result.Invoke();
-            ////}
-            //awaitMore = false;
-            //renderEvent.WaitOne();
-            ////            test.Wait();
-
             for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
@@ -1177,7 +1106,7 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     //                    ref Matrix wvp = ref item.XNAMatrix;
                     //                    MatrixExtension.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
-                    MatrixExtension.Multiply(in item.XNAMatrix, in matrices[(int)ViewMatrixSequence.ViewProjection], out Matrix wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in viewProjection, out Matrix wvp);
                     shader.SetData(ref wvp, item.Material.GetShadowTexture());
                     shaderPasses[j].Apply();
                     graphicsDevice.SamplerStates[0] = item.Material.SamplerState;
@@ -1185,43 +1114,6 @@ namespace Orts.Viewer3D
                 }
             }
         }
-
-        private void RenderItemDrawingThread()
-        {
-            while (true)
-            {
-                drawEvent.WaitOne();
-                if (awaitMore || drawDirectives.Count > 0)
-                {
-                    //SpinWait.SpinUntil(() => drawDirectives.Count > 0);
-                    while (drawDirectives.Count > 0)
-                    {
-                        //if (drawDirectives.TryDequeue(out Action result))
-                        //    result.Invoke();
-                        if (drawDirectives.TryDequeue(out Tuple<int, Matrix, RenderItem, EffectPassCollection, ShadowMapShader> result))
-                            this.DrawItems(result.Item1, result.Item2, result.Item3, result.Item4, result.Item5);
-                        //    result.Invoke();
-                        //Tuple<GraphicsDevice, int, Matrix, Action<GraphicsDevice, int, Matrix>> dummy = drawDirectives.Dequeue();
-                        //dummy.Item4.Invoke(dummy.Item1, dummy.Item2, dummy.Item3);
-                    }
-                }
-                renderEvent.Set();
-            }
-        }
-
-        //private void DrawThreadDrawing()
-        //{
-        //    test.Wait();
-        //    if (awaitMore)
-        //    {
-        //        SpinWait.SpinUntil(() => drawDirectives.Count > 0);
-        //        while (drawDirectives.Count > 0)
-        //        {
-        //            drawDirectives.Dequeue().Invoke();
-        //        }
-        //    }
-        //    test.Release();
-        //}
 
         public RenderTarget2D ApplyBlur(RenderTarget2D shadowMap, RenderTarget2D renderTarget)
         {
@@ -1293,6 +1185,23 @@ namespace Orts.Viewer3D
             }
         }
 
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        {
+            MatrixExtension.Multiply(in view, in projection, out Matrix result);
+            MatrixExtension.Multiply(in result, in viewProjection, out Matrix wvp);
+            //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
+            shader.SetMatrix(ref view, ref wvp);
+
+            for (int j = 0; j < shaderPasses.Count; j++)
+            {
+                for (int i = 0; i < renderItems.Count; i++)
+                {
+                    shaderPasses[j].Apply();
+                    renderItems[i].RenderPrimitive.Draw();
+                }
+            }
+        }
+
         public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
@@ -1336,10 +1245,10 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            basicEffect.View = matrices[(int)ViewMatrixSequence.View];
-            basicEffect.Projection = matrices[(int)ViewMatrixSequence.Projection];
+            basicEffect.View = view;
+            basicEffect.Projection = projection;
 
             foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
             {
@@ -1384,10 +1293,10 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            basicEffect.View = matrices[(int)ViewMatrixSequence.View];
-            basicEffect.Projection = matrices[(int)ViewMatrixSequence.Projection];
+            basicEffect.View = view;
+            basicEffect.Projection = projection;
 
             foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
             {
@@ -1400,6 +1309,7 @@ namespace Orts.Viewer3D
                 }
             }
         }
+
     }
 
     public class Label3DMaterial : SpriteBatchMaterial
@@ -1425,10 +1335,10 @@ namespace Orts.Viewer3D
             SpriteBatch.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         }
 
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             textBoxes.Clear();
-            base.Render(renderItems, matrices);
+            base.Render(renderItems, ref view, ref projection, ref viewProjection);
         }
 
         public override bool GetBlending()
@@ -1471,14 +1381,14 @@ namespace Orts.Viewer3D
             shader.CurrentTechnique = shader.Techniques[0]; //["Normal"];
         }
 
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
+                    shader.SetMatrix(item.XNAMatrix, ref viewProjection);
                     shaderPasses[j].Apply();
                     item.RenderPrimitive.Draw();
                 }

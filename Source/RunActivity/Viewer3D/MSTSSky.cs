@@ -580,7 +580,7 @@ namespace Orts.Viewer3D
             shader.CloudMapTexture = mstsSkyCloudTextures[0];
         }
 
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             // Adjust Fog color for day-night conditions and overcast
             FogDay2Night(
@@ -606,11 +606,11 @@ namespace Orts.Viewer3D
 
             // Sky dome
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-            MatrixExtension.Multiply(in matrices[(int)ViewMatrixSequence.View], in Camera.XNASkyProjection, out Matrix viewXNASkyProj);
+            MatrixExtension.Multiply(in view, in Camera.XNASkyProjection, out Matrix viewXNASkyProj);
 
             shader.CurrentTechnique = shader.Techniques[0]; //["Sky"];
             Viewer.World.MSTSSky.MSTSSkyMesh.drawIndex = 1;
-            shader.SetViewMatrix(ref matrices[(int)ViewMatrixSequence.View]);
+            shader.SetViewMatrix(ref view);
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
@@ -634,7 +634,7 @@ namespace Orts.Viewer3D
             moonMatrix = Matrix.CreateTranslation(Viewer.World.MSTSSky.mstsskylunarDirection * (mstsskyRadius));
             //            Matrix XNAMoonMatrixView = moonMatrix * viewMatrix;
 
-            MatrixExtension.Multiply(in moonMatrix, in matrices[(int)ViewMatrixSequence.View], out Matrix result);
+            MatrixExtension.Multiply(in moonMatrix, in view, out Matrix result);
             MatrixExtension.Multiply(in result, in Camera.XNASkyProjection, out Matrix cameraProjection);
 
             foreach (var pass in shader.CurrentTechnique.Passes)

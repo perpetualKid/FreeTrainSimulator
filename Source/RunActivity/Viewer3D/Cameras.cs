@@ -53,17 +53,22 @@ namespace Orts.Viewer3D
         protected internal float FieldOfView;
 
         protected Matrix xnaView;
-        public Matrix XnaView { get { return xnaView; } }
+        public ref Matrix XnaView => ref xnaView; 
 
-        Matrix xnaProjection;
-        public Matrix XnaProjection { get { return xnaProjection; } }
-        public static Matrix XnaDistantMountainProjection;
+        private Matrix projection;
+        private static Matrix skyProjection;
+        private static Matrix distantMountainProjection;
+
+        public ref Matrix XnaProjection => ref projection;
+
+        public static ref Matrix XnaDistantMountainProjection => ref distantMountainProjection;
+
+        // This sucks. It's really not camera-related at all.
+        public static ref Matrix XNASkyProjection => ref skyProjection;
+
         Vector3 frustumRightProjected;
         Vector3 frustumLeft;
         Vector3 frustumRight;
-
-        // This sucks. It's really not camera-related at all.
-        public static Matrix XNASkyProjection;
 
         // The following group of properties are used by other code to vary
         // behavior by camera; e.g. Style is used for activating sounds,
@@ -172,10 +177,11 @@ namespace Orts.Viewer3D
             var aspectRatio = (float)Viewer.DisplaySize.X / Viewer.DisplaySize.Y;
             var farPlaneDistance = SkyConstants.skyRadius + 100;  // so far the sky is the biggest object in view
             var fovWidthRadians = MathHelper.ToRadians(FieldOfView);
+
             if (Viewer.Settings.DistantMountains)
-                XnaDistantMountainProjection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, MathHelper.Clamp(Viewer.Settings.ViewingDistance - 500, 500, 1500), Viewer.Settings.DistantMountainsViewingDistance);
-            xnaProjection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, Viewer.Settings.ViewingDistance);
-            XNASkyProjection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, farPlaneDistance);    // TODO remove? 
+                distantMountainProjection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, MathHelper.Clamp(Viewer.Settings.ViewingDistance - 500, 500, 1500), Viewer.Settings.DistantMountainsViewingDistance);
+            projection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, Viewer.Settings.ViewingDistance);
+            skyProjection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, farPlaneDistance);    // TODO remove? 
             frustumRightProjected.X = (float)Math.Cos(fovWidthRadians / 2 * aspectRatio);  // Precompute the right edge of the view frustrum.
             frustumRightProjected.Z = (float)Math.Sin(fovWidthRadians / 2 * aspectRatio);
         }

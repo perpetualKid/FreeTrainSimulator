@@ -237,7 +237,10 @@ namespace Orts.Viewer3D
         private Camera camera;
         private Vector3 cameraLocation;
         private RenderItem.Comparer renderItemComparer;
-        private readonly Matrix[] viewMatrices = new Matrix[3];
+
+        private Matrix cameraViewProjection;
+        private Matrix identity;
+        private Matrix projection;
 
         private readonly int shadowMapCount;
         private readonly bool dynamicShadows;
@@ -283,9 +286,9 @@ namespace Orts.Viewer3D
                 }
             }
 
-            viewMatrices[(int)ViewMatrixSequence.View] = Matrix.Identity; 
-            viewMatrices[(int)ViewMatrixSequence.Projection] = Matrix.CreateOrthographic(game.RenderProcess.DisplaySize.X, game.RenderProcess.DisplaySize.Y, 1, 100);
-            MatrixExtension.Multiply(in viewMatrices[0], in viewMatrices[1], out viewMatrices[2]);
+            identity = Matrix.Identity;
+            projection = Matrix.CreateOrthographic(game.RenderProcess.DisplaySize.X, game.RenderProcess.DisplaySize.Y, 1, 100);
+            MatrixExtension.Multiply(in identity, in projection, out cameraViewProjection);
 
             renderItemComparer = new RenderItem.Comparer(Vector3.Zero);
         }
@@ -341,9 +344,11 @@ namespace Orts.Viewer3D
             cameraLocation = camera.Location;
             cameraLocation.Z *= -1;
 
-            viewMatrices[(int)ViewMatrixSequence.View] = camera.XnaView;
-            viewMatrices[(int)ViewMatrixSequence.Projection] = camera.XnaProjection;
-            MatrixExtension.Multiply(in viewMatrices[0], in viewMatrices[1], out viewMatrices[2]);
+            //viewMatrices[(int)ViewMatrixSequence.View] = camera.XnaView;
+            //viewMatrices[(int)ViewMatrixSequence.Projection] = camera.XnaProjection;
+            //MatrixExtension.Multiply(in viewMatrices[0], in viewMatrices[1], out viewMatrices[2]);
+            MatrixExtension.Multiply(in camera.XnaView, in camera.XnaProjection, out cameraViewProjection);
+
             renderItemComparer.Update(cameraLocation);
         }
 
@@ -361,8 +366,9 @@ namespace Orts.Viewer3D
                 if (Vector3.Dot(steppedSolarDirection, normalizedSolarDirection) < 0.99999)
                     steppedSolarDirection = normalizedSolarDirection;
 
-//                var cameraDirection = new Vector3(-cameraView.M13, -cameraView.M23, -cameraView.M33);
-                var cameraDirection = new Vector3(-viewMatrices[(int)ViewMatrixSequence.View].M13, -viewMatrices[(int)ViewMatrixSequence.View].M23, -viewMatrices[(int)ViewMatrixSequence.View].M33);
+                //                var cameraDirection = new Vector3(-cameraView.M13, -cameraView.M23, -cameraView.M33);
+                //                var cameraDirection = new Vector3(-viewMatrices[(int)ViewMatrixSequence.View].M13, -viewMatrices[(int)ViewMatrixSequence.View].M23, -viewMatrices[(int)ViewMatrixSequence.View].M33);
+                Vector3 cameraDirection = new Vector3(-(camera?.XnaView.M13 ?? 0), -(camera?.XnaView.M13 ?? 0), -(camera?.XnaView.M13 ?? 1)); // viewMatrices[(int)ViewMatrixSequence.View].M13, -viewMatrices[(int)ViewMatrixSequence.View].M23, -viewMatrices[(int)ViewMatrixSequence.View].M33);
                 cameraDirection.Normalize();
 
                 var shadowMapAlignAxisX = Vector3.Cross(steppedSolarDirection, Vector3.UnitY);
@@ -576,10 +582,6 @@ namespace Orts.Viewer3D
         void DrawShadows(bool logging, int shadowMapIndex)
         {
             if (logging) Console.WriteLine("    {0} {{", shadowMapIndex);
-            Matrix[] matrices = new Matrix[3];
-            matrices[0] = shadowMapLightView[shadowMapIndex];
-            matrices[1] = shadowMapLightProjection[shadowMapIndex];
-            matrices[2] = shadowMapLightViewProjection[shadowMapIndex];
 
             // Prepare renderer for drawing the shadow map.
             game.GraphicsDevice.SetRenderTarget(shadowMapRenderTarget[shadowMapIndex]);
@@ -590,8 +592,8 @@ namespace Orts.Viewer3D
 
             // Render non-terrain, non-forest shadow items first.
             if (logging) Console.WriteLine("      {0,-5} * SceneryMaterial (normal)", renderShadowSceneryItems[shadowMapIndex].Count);
-//            shadowMapMaterial.Render(graphicsDevice, renderShadowSceneryItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
-            shadowMapMaterial.Render(renderShadowSceneryItems[shadowMapIndex], matrices);
+            //            shadowMapMaterial.Render(graphicsDevice, renderShadowSceneryItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
+            shadowMapMaterial.Render(renderShadowSceneryItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex], ref shadowMapLightViewProjection[shadowMapIndex]);
 
             // Prepare for normal (non-blocking) rendering of forests.
             shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Forest);
@@ -599,7 +601,7 @@ namespace Orts.Viewer3D
             // Render forest shadow items next.
             if (logging) Console.WriteLine("      {0,-5} * ForestMaterial (forest)", renderShadowForestItems[shadowMapIndex].Count);
 //            shadowMapMaterial.Render(graphicsDevice, renderShadowForestItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
-            shadowMapMaterial.Render(renderShadowForestItems[shadowMapIndex], matrices);
+            shadowMapMaterial.Render(renderShadowForestItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex], ref shadowMapLightViewProjection[shadowMapIndex]);
 
             // Prepare for normal (non-blocking) rendering of terrain.
             shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Normal);
@@ -608,7 +610,7 @@ namespace Orts.Viewer3D
             if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (normal)", renderShadowTerrainItems[shadowMapIndex].Count);
             game.GraphicsDevice.Indices = TerrainPrimitive.SharedPatchIndexBuffer;
 //            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
-            shadowMapMaterial.Render(renderShadowTerrainItems[shadowMapIndex], matrices);
+            shadowMapMaterial.Render(renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex], ref shadowMapLightViewProjection[shadowMapIndex]);
 
             // Prepare for blocking rendering of terrain.
             shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Blocker);
@@ -616,7 +618,7 @@ namespace Orts.Viewer3D
             // Render terrain shadow items in blocking mode.
             if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (blocker)", renderShadowTerrainItems[shadowMapIndex].Count);
 //            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
-            shadowMapMaterial.Render(renderShadowTerrainItems[shadowMapIndex], matrices);
+            shadowMapMaterial.Render(renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex], ref shadowMapLightViewProjection[shadowMapIndex]);
 
             // All done.
             shadowMapMaterial.ResetState();
@@ -669,6 +671,9 @@ namespace Orts.Viewer3D
 
         void DrawSequences(bool logging)
         {
+            ref Matrix viewRef = ref (camera != null ? ref camera.XnaView : ref identity);
+            ref Matrix projectionRef = ref (camera != null ? ref camera.XnaProjection : ref projection);
+
             if (dynamicShadows && (shadowMapCount > 0) && sceneryShader != null)
                 sceneryShader.SetShadowMap(shadowMapLightViewProjectionShadowProjection, shadowMap, RenderProcess.ShadowMapLimit);
 
@@ -692,7 +697,7 @@ namespace Orts.Viewer3D
                                 if (renderItemsSequence.Count > 0)
                                 {
                                     if (logging) Console.WriteLine("      {0,-5} * {1}", renderItemsSequence.Count, lastMaterial);
-                                    lastMaterial.Render(renderItemsSequence, viewMatrices);
+                                    lastMaterial.Render(renderItemsSequence, ref viewRef, ref projectionRef, ref cameraViewProjection);
                                     renderItemsSequence.Clear();
                                 }
 
@@ -710,7 +715,7 @@ namespace Orts.Viewer3D
                         if (renderItemsSequence.Count > 0)
                         {
                             if (logging) Console.WriteLine("      {0,-5} * {1}", renderItemsSequence.Count, lastMaterial);
-                            lastMaterial.Render(renderItemsSequence, viewMatrices);
+                            lastMaterial.Render(renderItemsSequence, ref viewRef, ref projectionRef, ref cameraViewProjection);
                             renderItemsSequence.Clear();
                         }
 
@@ -729,7 +734,7 @@ namespace Orts.Viewer3D
                         // Opaque: single material, render in one go.
                         sequenceMaterial.Key.SetState(null);
                         if (logging) Console.WriteLine("      {0,-5} * {1}", sequenceMaterial.Value.Count, sequenceMaterial.Key);
-                        sequenceMaterial.Key.Render(sequenceMaterial.Value, viewMatrices);
+                        sequenceMaterial.Key.Render(sequenceMaterial.Value, ref viewRef, ref projectionRef, ref cameraViewProjection);
                         sequenceMaterial.Key.ResetState();
 #if DEBUG_RENDER_STATE
 						DebugRenderState(graphicsDevice, sequenceMaterial.Key.ToString());
@@ -745,10 +750,11 @@ namespace Orts.Viewer3D
 
         void DrawSequencesDistantMountains(bool logging)
         {
-            Matrix[] mountainViewMatrices = new Matrix[3];
-            mountainViewMatrices[0] = viewMatrices[0];
-            mountainViewMatrices[1] = Camera.XnaDistantMountainProjection;
-            MatrixExtension.Multiply(in mountainViewMatrices[0], in mountainViewMatrices[1], out mountainViewMatrices[2]);
+            Matrix mountainViewProjection;
+            if (camera == null)
+                MatrixExtension.Multiply(in identity, in Camera.XnaDistantMountainProjection, out mountainViewProjection);
+            else
+                MatrixExtension.Multiply(in camera.XnaView, in Camera.XnaDistantMountainProjection, out mountainViewProjection);
 
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
             {
@@ -763,7 +769,7 @@ namespace Orts.Viewer3D
                         // Opaque: single material, render in one go.
                         sequenceMaterial.Key.SetState(null);
                         if (logging) Console.WriteLine("      {0,-5} * {1}", sequenceMaterial.Value.Count, sequenceMaterial.Key);
-                        sequenceMaterial.Key.Render(sequenceMaterial.Value, mountainViewMatrices);
+                        sequenceMaterial.Key.Render(sequenceMaterial.Value, ref camera.XnaView, ref Camera.XnaDistantMountainProjection, ref mountainViewProjection);
                         sequenceMaterial.Key.ResetState();
 #if DEBUG_RENDER_STATE
 						DebugRenderState(graphicsDevice.RenderState, sequenceMaterial.Key.ToString());

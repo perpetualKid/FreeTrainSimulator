@@ -760,10 +760,9 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            Matrix viewProjection = Viewer.Camera.XnaProjection;
-            MatrixExtension.Multiply(in matrices[(int)ViewMatrixSequence.View], in viewProjection, out Matrix result);
+            MatrixExtension.Multiply(in view, in Viewer.Camera.XnaProjection, out Matrix result);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -818,10 +817,9 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState.StencilEnable = true;
         }
 
-        public override void Render(List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            Matrix viewProjection = Viewer.Camera.XnaProjection;
-            MatrixExtension.Multiply(in matrices[(int)ViewMatrixSequence.View], in viewProjection, out Matrix result);
+            MatrixExtension.Multiply(in view, in Viewer.Camera.XnaProjection, out Matrix result);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {

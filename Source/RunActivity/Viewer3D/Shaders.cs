@@ -768,7 +768,8 @@ namespace Orts.Viewer3D
 
         public void SetMatrix(Matrix matrix, ref Matrix viewproj)
         {
-            worldViewProjection.SetValue(matrix * viewproj);
+            MatrixExtension.Multiply(in matrix, in viewproj, out Matrix wvp);
+            worldViewProjection.SetValue(wvp);
         }
     }
 }
