@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Orts.Formats.Msts.Signalling
 {
-    internal struct Token
+    internal readonly struct Token
     {
         public Token(TokenType type, string value)
         {
@@ -18,8 +18,8 @@ namespace Orts.Formats.Msts.Signalling
             Type = type;
         }
 
-        public string Value { get; private set; }
-        public TokenType Type { get; private set; }
+        public readonly string Value;
+        public readonly TokenType Type;
     }
 
     internal static class OperatorTokenExtension
