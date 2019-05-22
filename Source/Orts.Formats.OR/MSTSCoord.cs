@@ -79,12 +79,6 @@ namespace Orts.Formats.OR
             TileY = minTileY;
         }
 
-        public MSTSCoord getMstsCoord(PointF point)
-        {
-            MSTSCoord coord = new MSTSCoord(point);
-            return coord;
-        }
-
         public void reduce(TrackDatabaseFile TDB)
         {
             TrackNode[] nodes = TDB.TrackDB.TrackNodes;
@@ -104,135 +98,117 @@ namespace Orts.Formats.OR
         }
     }
 
-    public class MSTSCoord
+    public readonly struct MSTSCoord: IEquatable<MSTSCoord>
 
     {
-        public float TileX { get; set; }
-        public float TileY { get; set; }
-        public float X { get; set; }
-        public float Y { get; set; }
-        private bool Reduced = false;
+        public readonly float TileX; 
+        public readonly float TileY;
+        public readonly float X;
+        public readonly float Y;
+        private readonly bool reduced;
 
-        public MSTSCoord()
+        public MSTSCoord(float tileX, float tileY, float x, float y, bool reduced = false)
+        {
+            TileX = tileX;
+            TileY = tileY;
+            X = x;
+            Y = y;
+            this.reduced = reduced;
+        }
+
+        public MSTSCoord(MSTSCoord coord): this(coord.TileX, coord.TileY, coord.X, coord.Y, coord.reduced)
         {
         }
 
-        public MSTSCoord(MSTSCoord coord)
+        public MSTSCoord(WorldLocation location): this(location.TileX, location.TileZ, location.Location.X, location.Location.Z, true)
         {
-            TileX = coord.TileX;
-            TileY = coord.TileY;
-            X = coord.X;
-            Y = coord.Y;
-            Reduced = coord.Reduced;
         }
 
-        public MSTSCoord(WorldLocation location)
+        public MSTSCoord(TrVectorSection section): this(section.TileX, section.TileZ, section.X, section.Z, section.Reduced)
         {
-            TileX = location.TileX;
-            TileY = location.TileZ;
-            X = location.Location.X;
-            Y = location.Location.Z;
-            Reduced = true;
         }
 
-        public MSTSCoord(TrVectorSection section)
+        public MSTSCoord(TrVectorSection section, bool reduced) : this(section.TileX, section.TileZ, section.X, section.Z, reduced)
         {
-            TileX = section.TileX;
-            TileY = section.TileZ;
-            X = section.X;
-            Y = section.Z;
-            Reduced = section.Reduced;
         }
 
-        public MSTSCoord(TrackNode node)
+        public MSTSCoord(TrackNode node): this(node.UiD.TileX, node.UiD.TileZ, node.UiD.X, node.UiD.Z, node.Reduced)
         {
-            TileX = node.UiD.TileX;
-            TileY = node.UiD.TileZ;
-            X = node.UiD.X;
-            Y = node.UiD.Z;
-            Reduced = node.Reduced;
+        }
+
+        public MSTSCoord(TrackNode node, bool reduced) : this(node.UiD.TileX, node.UiD.TileZ, node.UiD.X, node.UiD.Z, reduced)
+        {
         }
 
         public MSTSCoord(PointF point)
         {
             point.X += 1024f;
             point.Y += 1024f;
-            int signX = Math.Sign(point.X);
-            int signY = Math.Sign(point.Y);
-            int tileX = ((int)(point.X / 2048f));
-            int tileY = ((int)(point.Y / 2048f));
-            X = (float)((point.X) % 2048f);
-            Y = (float)((point.Y) % 2048f);
-            if (signX < 0) 
+            TileX = ((int)(point.X / 2048f));
+            TileY = ((int)(point.Y / 2048f));
+            X = ((point.X) % 2048f);
+            Y = ((point.Y) % 2048f);
+
+            if (point.X < 0) 
             {
-                tileX -= 1;
+                TileX -= 1;
                 X += 2048f;
             }
-            if (signY < 0)
+            if (point.Y < 0)
             {
-                tileY -= 1;
+                TileY -= 1;
                 Y += 2048f;
             }
-            TileX = tileX;
-            TileY = tileY;
             X -= 1024f;
             Y -= 1024F;
-            Reduced = true;
+            reduced = true;
         }
 
-        public void Unreduce(MSTSBase tileBase)
+        public MSTSCoord Unreduce(MSTSBase tileBase)
         {
-            if (Reduced)
-            {
-                TileX += (int)tileBase.TileX;
-                TileY += (int)tileBase.TileY;
-            }
-            Reduced = false;
+            return (reduced ? new MSTSCoord(TileX + (int)tileBase.TileX, TileY + (int)tileBase.TileY, X, Y, false) : new MSTSCoord(TileX, TileY, X, Y, false));
         }
 
-        public void Reduce(MSTSBase tileBase)
+        public MSTSCoord Reduce(MSTSBase tileBase)
         {
-            if (!Reduced)
-            {
-                TileX -= (int)tileBase.TileX;
-                TileY -= (int)tileBase.TileY;
-            }
-            Reduced = true;
+            return (reduced ? new MSTSCoord(TileX, TileY, X, Y, true) : new MSTSCoord( TileX - (int)tileBase.TileX, TileY - (int)tileBase.TileY, X, Y, true));
         }
 
         // Equality operator. test if the coordinates are at the same point.
         public override bool Equals(object obj)
         {
-            if (obj == null)
-                return false;
 
-            if (GetType() != obj.GetType())
+            if (!(obj is MSTSCoord other)) // type pattern here
                 return false;
+            return Equals(other);
+        }
 
-            MSTSCoord other = (MSTSCoord) obj;
+
+        public bool Equals(MSTSCoord other)
+        {
             return (this.X == other.X && this.Y == other.Y && this.TileX == other.TileX && this.TileY == other.TileY);
         }
 
         public static bool operator ==(MSTSCoord x, MSTSCoord y)
         {
-            return Object.Equals(x, y);  
+            return x.Equals(y);  
         }
 
         public static bool operator !=(MSTSCoord x, MSTSCoord y)
         {
-            return !Object.Equals(x, y);
+            return !x.Equals(y);
         }
 
-        public static bool near(MSTSCoord x, MSTSCoord y)
+        public static bool Near(in MSTSCoord x, in MSTSCoord y)
         {
             float squareA = (float)Math.Pow((x.X - y.X), 2);
             float squareB = (float)Math.Pow((x.Y - y.Y), 2);
-            float AX = (float)Math.Round((Decimal)(x.X - y.Y), 2, MidpointRounding.ToEven);
-            float AY = (float)Math.Round((Decimal)x.Y, 2, MidpointRounding.ToEven);
-            float BX = (float)Math.Round((Decimal)y.X, 2, MidpointRounding.ToEven);
-            float BY = (float)Math.Round((Decimal)y.Y, 2, MidpointRounding.ToEven);
+            float AX = (float)Math.Round((double)(x.X - y.Y), 2, MidpointRounding.ToEven);
+            float AY = (float)Math.Round((double)x.Y, 2, MidpointRounding.ToEven);
+            float BX = (float)Math.Round((double)y.X, 2, MidpointRounding.ToEven);
+            float BY = (float)Math.Round((double)y.Y, 2, MidpointRounding.ToEven);
 
-            if ((float)Math.Round((Decimal)(squareA + squareB)) < 0.1f && x.TileX == y.TileX && x.TileY == y.TileY)
+            if ((float)Math.Round((double)(squareA + squareB)) < 0.1f && x.TileX == y.TileX && x.TileY == y.TileY)
                 return true;
             return false;
         }
@@ -250,13 +226,9 @@ namespace Orts.Formats.OR
             }
         }
 
-
         public PointF ConvertToPointF()
         {
-            PointF val = new PointF(0, 0);
-            val.X = ((TileX * 2048f) + X);  // - minX) ;
-            val.Y = ((TileY * 2048f) + Y);  // - minY) ;
-            return val;
+            return new PointF((TileX * 2048f + X), (TileY * 2048f + Y));
         }
 
         public dVector ConvertVector()
@@ -270,14 +242,9 @@ namespace Orts.Formats.OR
         }
 
 
-        public string asString()
+        public override string ToString()
         {
-            //File.AppendAllText(@"F:\temp\AE.txt", "Coord: X:" + TileX + ".." + X + "/ Y:" + TileY + ".." + Y);
-            string X1 = string.Format("{0:d}", (int)((TileX * 2048f) + X));
-            string Y1 = string.Format("{0:d}", (int)((TileY * 2048f) + Y));
-            string info = "(" + X1 + "," + Y1 + ")";
-            //File.AppendAllText(@"F:\temp\AE.txt", "/ donne :" + info + "\n");
-            return info;
+            return $"({(int)(TileX * 2048f):d + X)},{(int)((TileY * 2048f) + Y):d})";
         }
     }
 

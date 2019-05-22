@@ -511,21 +511,7 @@ namespace Orts.Viewer3D
             // TODO: Read this stuff from a file. Provide the ability to use alternative profiles.
 
             // Initialize a scalar DtrackData object
-            DTrackData = new DtrackData();
-            if (radius < 0)
-            {
-                DTrackData.IsCurved = 0;
-                DTrackData.param1 = angle;
-                DTrackData.param2 = 0;
-
-            }
-            else
-            {
-                DTrackData.IsCurved = 1;
-                DTrackData.param1 = angle;
-                DTrackData.param2 = radius;
-            }
-            DTrackData.deltaY = 0;
+            DTrackData = new DtrackData(radius >= 0, angle, Math.Max(0, radius), 0);
 
             if (viewer.TRP == null)
             {
@@ -564,8 +550,8 @@ namespace Orts.Viewer3D
             }
 
 
-            if (DTrackData.IsCurved == 0) ObjectRadius = 0.5f * DTrackData.param1; // half-length
-            else ObjectRadius = DTrackData.param2 * (float)Math.Sin(0.5 * Math.Abs(DTrackData.param1)); // half chord length
+            if (!DTrackData.IsCurved) ObjectRadius = 0.5f * DTrackData.Length; // half-length
+            else ObjectRadius = DTrackData.Radius * (float)Math.Sin(0.5 * Math.Abs(DTrackData.Length)); // half chord length
         }
 
         int offSet = 0;
@@ -583,7 +569,7 @@ namespace Orts.Viewer3D
         public new ShapePrimitive BuildPrimitive(Viewer viewer, WorldPosition worldPosition, int iLOD, int iLODItem)
         {
             // Call for track section to initialize itself
-            if (DTrackData.IsCurved == 0) LinearGen();
+            if (!DTrackData.IsCurved) LinearGen();
             else CircArcGen();
 
             // Count vertices and indices
@@ -610,7 +596,7 @@ namespace Orts.Viewer3D
             else whichCase = 3;//in middle
             Matrix PreRotation = Matrix.Identity;
             elevated = MaxElev;
-            if (whichCase == 3 || whichCase == 2) PreRotation = Matrix.CreateRotationZ(-elevated * Math.Sign(DTrackData.param1));
+            if (whichCase == 3 || whichCase == 2) PreRotation = Matrix.CreateRotationZ(-elevated * Math.Sign(DTrackData.Length));
             //if section is in the middle of curve, will only rotate the first set of vertex, others will follow the same rotation
             prevRotation = 0f;
 
@@ -642,17 +628,17 @@ namespace Orts.Viewer3D
 
             for (uint i = 0; i < NumSections; i++)
             {
-                currentRotation = determineRotation(DTrackData.param1);
+                currentRotation = determineRotation(DTrackData.Length);
                 elevated = currentRotation - prevRotation;
                 prevRotation = currentRotation;
-                if (DTrackData.param1 > 0) elevated *= -1;
+                if (DTrackData.Length > 0) elevated *= -1;
 
                 foreach (Polyline pl in lodItem.Polylines)
                 {
                     uint plv = 0; // Polyline vertex index
                     foreach (Vertex v in pl.Vertices)
                     {
-                        if (DTrackData.IsCurved == 0) LinearGen(stride, pl); // Generation call
+                        if (!DTrackData.IsCurved) LinearGen(stride, pl); // Generation call
                         else CircArcGen(stride, pl);
 
                         if (plv > 0)
@@ -691,8 +677,8 @@ namespace Orts.Viewer3D
             //numSections = 10; //TESTING
             // TODO: Generalize count to profile file specification
 
-            SegmentLength = DTrackData.param1 / NumSections; // Length of each mesh segment (meters)
-            DDY = new Vector3(0, DTrackData.deltaY / NumSections, 0); // Incremental elevation change
+            SegmentLength = DTrackData.Length / NumSections; // Length of each mesh segment (meters)
+            DDY = new Vector3(0, DTrackData.DeltaElevation / NumSections, 0); // Incremental elevation change
         }
 
         /// <summary>
@@ -701,7 +687,7 @@ namespace Orts.Viewer3D
         void CircArcGen()
         {
             // Define the number of track cross sections in addition to the base.
-            NumSections = (int)(Math.Abs(MathHelper.ToDegrees(DTrackData.param1)) / TrProfile.ChordSpan);
+            NumSections = (int)(Math.Abs(MathHelper.ToDegrees(DTrackData.Length)) / TrProfile.ChordSpan);
             if (NumSections == 0) NumSections = 2; // Very small radius track - zero avoidance
 
             // Use pitch control methods
@@ -711,34 +697,34 @@ namespace Orts.Viewer3D
                     break; // Good enough
                 case TrProfile.PitchControls.ChordLength:
                     // Calculate chord length for NumSections
-                    float l = 2.0f * DTrackData.param2 * (float)Math.Sin(0.5f * Math.Abs(DTrackData.param1) / NumSections);
+                    float l = 2.0f * DTrackData.Radius * (float)Math.Sin(0.5f * Math.Abs(DTrackData.Length) / NumSections);
                     if (l > TrProfile.PitchControlScalar)
                     {
                         // Number of sections determined by chord length of PitchControlScalar meters
-                        float chordAngle = 2.0f * (float)Math.Asin(0.5f * TrProfile.PitchControlScalar / DTrackData.param2);
-                        NumSections = (int)Math.Abs((DTrackData.param1 / chordAngle));
+                        float chordAngle = 2.0f * (float)Math.Asin(0.5f * TrProfile.PitchControlScalar / DTrackData.Radius);
+                        NumSections = (int)Math.Abs((DTrackData.Length / chordAngle));
                     }
                     break;
                 case TrProfile.PitchControls.ChordDisplacement:
                     // Calculate chord displacement for NumSections
-                    float d = DTrackData.param2 * (float)(1.0f - Math.Cos(0.5f * Math.Abs(DTrackData.param1) / NumSections));
+                    float d = DTrackData.Radius * (float)(1.0f - Math.Cos(0.5f * Math.Abs(DTrackData.Length) / NumSections));
                     if (d > TrProfile.PitchControlScalar)
                     {
                         // Number of sections determined by chord displacement of PitchControlScalar meters
-                        float chordAngle = 2.0f * (float)Math.Acos(1.0f - TrProfile.PitchControlScalar / DTrackData.param2);
-                        NumSections = (int)Math.Abs((DTrackData.param1 / chordAngle));
+                        float chordAngle = 2.0f * (float)Math.Acos(1.0f - TrProfile.PitchControlScalar / DTrackData.Radius);
+                        NumSections = (int)Math.Abs((DTrackData.Length / chordAngle));
                     }
                     break;
             }
             if (NumSections % 2 == 1) NumSections++; //make it even number
 
-            SegmentLength = DTrackData.param1 / NumSections; // Length of each mesh segment (radians)
-            DDY = new Vector3(0, DTrackData.deltaY / NumSections, 0); // Incremental elevation change
+            SegmentLength = DTrackData.Length / NumSections; // Length of each mesh segment (radians)
+            DDY = new Vector3(0, DTrackData.DeltaElevation / NumSections, 0); // Incremental elevation change
 
             // The approach here is to replicate the previous cross section, 
             // rotated into its position on the curve and vertically displaced if on grade.
             // The local center for the curve lies to the left or right of the local origin and ON THE BASE PLANE
-            center = DTrackData.param2 * (DTrackData.param1 < 0 ? Vector3.Left : Vector3.Right);
+            center = DTrackData.Radius * (DTrackData.Length < 0 ? Vector3.Left : Vector3.Right);
             sectionRotation = Matrix.CreateRotationY(-SegmentLength); // Rotation per iteration (constant)
         }
 

@@ -54,7 +54,7 @@ namespace Orts.Formats.OR
         [JsonIgnore]
         private bool actEdit;
         [JsonIgnore]
-        public bool isSeen;
+        public bool visible;
         [JsonIgnore]
         public bool asMetadata { get; protected set; }  //  If true, the sideItem will be in the routeMetadata json file
         [JsonIgnore]
@@ -70,7 +70,7 @@ namespace Orts.Formats.OR
             editable = false;
             lineSnap = false;
             actEdit = false;
-            isSeen = false;
+            visible = false;
             asMetadata = false;
             typeItem = (int)TypeItem.GLOBAL_ITEM;
             Location = new PointF(float.NegativeInfinity, float.NegativeInfinity);
@@ -80,14 +80,14 @@ namespace Orts.Formats.OR
 
         public virtual void alignEdition(TypeEditor interfaceType, GlobalItem ownParent) { }
 
-        public virtual void configCoord(MSTSCoord coord)
+        public virtual void ConfigCoord(in MSTSCoord coord)
         {
-            Coord = new MSTSCoord(coord);
+            Coord = coord; // new MSTSCoord(coord);
             Location.X = coord.TileX * 2048f + coord.X;
             Location.Y = coord.TileY * 2048f + coord.Y;
         }
 
-        public virtual void Update(MSTSCoord coord)
+        public virtual void Update(in MSTSCoord coord)
         {
         }
 
@@ -98,7 +98,7 @@ namespace Orts.Formats.OR
         public virtual double FindItem(PointF point, double snap, double actualDist, MSTSItems aeItems)
         {
             double usedSnap = snap;
-            isSeen = false;
+            visible = false;
             //snap =  1.0;// / snap;
             if ((((this.Location.X < (point.X - usedSnap)) || (Location.X > (point.X + usedSnap))) || (Location.Y < (point.Y - usedSnap))) || (this.Location.Y > (point.Y + usedSnap)))
             {
@@ -109,17 +109,17 @@ namespace Orts.Formats.OR
             {
                 return double.PositiveInfinity;
             }
-            isSeen = true;
+            visible = true;
             return dist;
         }
 
-        public virtual void complete(ORRouteConfig orRouteConfig, MSTSItems aeItems, MSTSBase tileBase) { }
+        public virtual void Complete(ORRouteConfig orRouteConfig, MSTSItems aeItems, MSTSBase tileBase) { }
 
         public virtual void Edit() { }
 
-        public virtual void setAngle(float angle) { }
+        public virtual void SetAngle(float angle) { }
 
-        public bool isItSeen() { return isSeen; }
+        public bool IsVisible() { return visible; }
         public bool IsMovable() { return movable; }
         public bool IsRotable() { return rotable; }
         public bool IsEditable() { return editable; }
@@ -131,13 +131,15 @@ namespace Orts.Formats.OR
         protected void setLineSnap() { lineSnap = true; }
         protected void setActEdit() { actEdit = true; }
         protected void unsetEditable() { editable = false; }
+
         public void Unreduce(MSTSBase tileBase)
         {
-            Coord.Unreduce(tileBase);
+            Coord = Coord.Unreduce(tileBase);
         }
+
         public void Reduce(MSTSBase tileBase)
         {
-            Coord.Reduce(tileBase);
+            Coord = Coord.Reduce(tileBase);
             Location.X = Coord.TileX * 2048f + Coord.X;
             Location.Y = Coord.TileY * 2048f + Coord.Y;
 

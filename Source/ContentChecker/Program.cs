@@ -344,10 +344,11 @@ namespace ContentChecker
 
         #endregion
 
-        private struct FileAndLoader
+        private readonly struct FileAndLoader
         {
-            public string File;
-            public Loader Loader;
+            public readonly string File;
+            public readonly Loader Loader;
+
             public FileAndLoader(string file, Loader loader)
             {
                 File = file;

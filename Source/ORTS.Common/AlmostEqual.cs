@@ -29,16 +29,9 @@ namespace ORTS.Common
         /// <param name="value">The value to compare with.</param>
         /// <param name="tolerance">The amount the two values may differ while still being considered equal</param>
         /// <returns></returns>
-        public static bool AlmostEqual(this float thisValue, float value, float tolerance)
+        public static bool AlmostEqual(this ref float thisValue, float value, float tolerance)
         {
-            bool returnValue = false;
-
-            if (Math.Abs(thisValue - value) <= tolerance)
-            {
-                returnValue = true;
-            }
-
-            return returnValue;
+            return (Math.Abs(thisValue - value) <= tolerance);
         }
     }
 }
