@@ -1651,7 +1651,7 @@ namespace Orts.Viewer3D.Popups
                     //Search Path column position. Dispatcher Information
                     //Avoid conflict with human dispatcher
                     var dato = table.Cells[table.CurrentRow, i].ToString();
-                    if (PathColumn && table.Cells[table.CurrentRow, i].ToString() == "Path") break;
+                    if (PathColumn && table.Cells[table.CurrentRow, i].ToString() == Viewer.Catalog.GetString("Path")) break;
                     
                     nColumnsCount++;
                 }
