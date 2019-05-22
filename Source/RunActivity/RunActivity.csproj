@@ -413,10 +413,22 @@
   </Target>
   -->
   <PropertyGroup>
+  <PostBuildEventDependsOn>
+    $(PostBuildEventDependsOn);
+    PostBuildMacros;
+  </PostBuildEventDependsOn>    
     <PreBuildEvent>
     </PreBuildEvent>
-    <PostBuildEvent>echo $Revision: 000 $&gt;Revision.txt
+    <PostBuildEvent>echo $Revision: @(VersionNumber) $&gt;Revision.txt
 date /t&gt;&gt;Revision.txt
 time /t&gt;&gt;Revision.txt</PostBuildEvent>
   </PropertyGroup>
+  <Target Name="PostBuildMacros">
+  <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+    <Output TaskParameter="Assemblies" ItemName="Targets" />
+  </GetAssemblyIdentity>
+  <ItemGroup>
+    <VersionNumber Include="@(Targets->'%(Version)')"/>
+  </ItemGroup>
+</Target>
 </Project>
