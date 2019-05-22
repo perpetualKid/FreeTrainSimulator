@@ -66,13 +66,6 @@ namespace Orts.Viewer3D
         Overlay
     }
 
-    public enum ViewMatrixSequence
-    {
-        View = 0,
-        Projection = 1,
-        ViewProjection = 2,
-    }
-
     public abstract class RenderPrimitive
     {
         protected static GraphicsDevice graphicsDevice;
