@@ -42,6 +42,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using ORTS.Common.Threading;
 
 namespace Orts.Simulation.AIs
 {

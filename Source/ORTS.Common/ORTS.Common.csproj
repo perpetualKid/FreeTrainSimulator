@@ -37,7 +37,6 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
-
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GNU.Gettext, Version=1.1.5151.39896, Culture=neutral, processorArchitecture=MSIL">
@@ -60,8 +59,8 @@
   <ItemGroup>
     <Compile Include="AEDefinitions.cs" />
     <Compile Include="AlmostEqual.cs" />
-    <Compile Include="CancellationToken.cs" />
-    <Compile Include="CancellationTokenSource.cs" />
+    <Compile Include="Threading\CancellationToken.cs" />
+    <Compile Include="Threading\CancellationTokenSource.cs" />
     <Compile Include="Conversions.cs" />
     <Compile Include="Coordinates.cs" />
     <Compile Include="DataLogger.cs" />

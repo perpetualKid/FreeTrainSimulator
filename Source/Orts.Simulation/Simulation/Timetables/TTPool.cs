@@ -31,7 +31,7 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Parsers.OR;
-using ORTS.Common;
+using ORTS.Common.Threading;
 
 namespace Orts.Simulation.Timetables
 {
