@@ -31,14 +31,7 @@ namespace ORTS.Common
         /// <returns></returns>
         public static bool AlmostEqual(this ref float thisValue, float value, float tolerance)
         {
-            bool returnValue = false;
-
-            if (Math.Abs(thisValue - value) <= tolerance)
-            {
-                returnValue = true;
-            }
-
-            return returnValue;
+            return (Math.Abs(thisValue - value) <= tolerance);
         }
     }
 }
