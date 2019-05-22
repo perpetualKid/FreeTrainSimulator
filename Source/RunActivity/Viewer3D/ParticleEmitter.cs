@@ -183,7 +183,7 @@ namespace Orts.Viewer3D
                 new VertexElement(16 + 16 + 16 + 16, VertexElementFormat.Color, VertexElementUsage.Position, 4)
             };
 
-            public static int VertexStride = sizeof(float) * 12 + sizeof(float) * 4 + sizeof(float) * 4;
+            public static readonly int VertexStride = sizeof(float) * 12 + sizeof(float) * 4 + sizeof(float) * 4;
         }
 
         internal ParticleEmitterData EmitterData;
@@ -210,7 +210,6 @@ namespace Orts.Viewer3D
         int DrawCounter;
 
         Viewer viewer;
-        GraphicsDevice graphicsDevice;
         
         static float windDisplacementX;
         static float windDisplacementZ;
@@ -218,7 +217,6 @@ namespace Orts.Viewer3D
         public ParticleEmitterPrimitive(Viewer viewer, ParticleEmitterData data, WorldPosition worldPosition)
         {
             this.viewer = viewer;
-            this.graphicsDevice = viewer.RenderProcess.GraphicsDevice;
 
             MaxParticles = (int)(ParticleEmitterViewer.MaxParticlesPerSecond * ParticleEmitterViewer.MaxParticleDuration);
             Vertices = new ParticleVertex[MaxParticles * VerticiesPerParticle];
