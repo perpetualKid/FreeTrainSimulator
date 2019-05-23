@@ -35,7 +35,6 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
-
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GNU.Gettext, Version=1.1.5151.39896, Culture=neutral, processorArchitecture=MSIL">
@@ -47,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Activities.cs" />
     <Compile Include="Consists.cs" />
+    <Compile Include="ContentBase.cs" />
     <Compile Include="Folders.cs" />
     <Compile Include="ORTimetables.cs" />
     <Compile Include="Paths.cs" />

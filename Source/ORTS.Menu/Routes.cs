@@ -19,20 +19,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using GNU.Gettext;
 using Orts.Formats.Msts;
 using ORTS.Common.Msts;
 
 namespace ORTS.Menu
 {
-    public class Route
+    public class Route: ContentBase
     {
         public string Name { get; private set; }
         public string RouteID { get; private set; }
         public string Description { get; private set; }
         public string Path { get; private set; }
-
-        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         internal Route(string path)
         {
@@ -48,16 +45,16 @@ namespace ORTS.Menu
                 }
                 catch
                 {
-                    Name = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileName(path) + ">";
+                    Name = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileName(path)}>";
                 }
                 if (string.IsNullOrEmpty(Name))
-                    Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(path) + ">";
+                    Name = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(path)}>";
                 if (string.IsNullOrEmpty(Description))
                     Description = null;
             }
             else
             {
-                Name = "<" + catalog.GetString("missing:") + " " + System.IO.Path.GetFileName(path) + ">";
+                Name = $"<{catalog.GetString("missing:")} {System.IO.Path.GetFileName(path)}>";
             }
             Path = path;
         }
@@ -69,32 +66,28 @@ namespace ORTS.Menu
 
         public static Task<List<Route>> GetRoutes(Folder folder, CancellationToken token)
         {
-            TaskCompletionSource<List<Route>> tcs = new TaskCompletionSource<List<Route>>();
-
+            SemaphoreSlim addItem = new SemaphoreSlim(1);
             List<Route> routes = new List<Route>();
             string directory = System.IO.Path.Combine(folder.Path, "ROUTES");
             if (Directory.Exists(directory))
             {
-                Parallel.ForEach(Directory.GetDirectories(directory), (routeDirectory, state) =>
+                Parallel.ForEach(Directory.GetDirectories(directory),
+                    new ParallelOptions() { CancellationToken = token},
+                    (routeDirectory, state) =>
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        tcs.SetCanceled();
-                        state.Stop();
-                    }
                     try
                     {
                         Route route = new Route(routeDirectory);
-                        lock (routes)
-                        {
-                            routes.Add(route);
-                        }
+                        addItem.Wait(token);
+                        routes.Add(route);
                     }
                     catch { }
+                    finally { addItem.Release(); }
                 });
+                if (token.IsCancellationRequested)
+                    return Task.FromCanceled<List<Route>>(token);
             }
-            tcs.TrySetResult(routes);
-            return tcs.Task;
+            return Task.FromResult(routes);
         }
     }
 }

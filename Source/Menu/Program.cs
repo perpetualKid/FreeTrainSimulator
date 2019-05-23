@@ -95,7 +95,7 @@ namespace ORTS
                             if (MainForm.SelectedActivity is ORTS.Menu.DefaultExploreActivity)
                             {
                                 var exploreActivity = MainForm.SelectedActivity as ORTS.Menu.DefaultExploreActivity;
-                                parameters.Add(String.Format("-explorer \"{0}\" \"{1}\" {2} {3} {4}",
+                                parameters.Add(string.Format("-explorer \"{0}\" \"{1}\" {2} {3} {4}",
                                     exploreActivity.Path.FilePath,
                                     exploreActivity.Consist.FilePath,
                                     exploreActivity.StartTime.FormattedStartTime(),
@@ -105,7 +105,7 @@ namespace ORTS
                             else if (MainForm.SelectedActivity is ORTS.Menu.ExploreThroughActivity)
                             {
                                 var exploreActivity = MainForm.SelectedActivity as ORTS.Menu.ExploreThroughActivity;
-                                parameters.Add(String.Format("-exploreactivity \"{0}\" \"{1}\" {2} {3} {4}",
+                                parameters.Add(string.Format("-exploreactivity \"{0}\" \"{1}\" {2} {3} {4}",
                                     exploreActivity.Path.FilePath,
                                     exploreActivity.Consist.FilePath,
                                     exploreActivity.StartTime.FormattedStartTime(),
@@ -114,7 +114,7 @@ namespace ORTS
                             }
                             else
                             {
-                                parameters.Add(String.Format("-activity \"{0}\"", MainForm.SelectedActivity.FilePath));
+                                parameters.Add(string.Format("-activity \"{0}\"", MainForm.SelectedActivity.FilePath));
                             }
                             break;
                         case MainForm.UserAction.SingleplayerResumeSave:
@@ -138,11 +138,13 @@ namespace ORTS
                             break;
                     }
 
-                    var processStartInfo = new System.Diagnostics.ProcessStartInfo();
-                    processStartInfo.FileName = MainForm.RunActivityProgram;
-                    processStartInfo.Arguments = String.Join(" ", parameters.ToArray());
-                    processStartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
-                    processStartInfo.WorkingDirectory = Application.StartupPath;
+                    ProcessStartInfo processStartInfo = new ProcessStartInfo
+                    {
+                        FileName = MainForm.RunActivityProgram,
+                        Arguments = string.Join(" ", parameters),
+                        WindowStyle = ProcessWindowStyle.Normal,
+                        WorkingDirectory = Application.StartupPath
+                    };
 
                     var process = Process.Start(processStartInfo);
                     process.WaitForExit();

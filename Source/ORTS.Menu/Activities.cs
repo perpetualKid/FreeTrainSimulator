@@ -19,12 +19,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using GNU.Gettext;
 using Orts.Formats.Msts;
 
 namespace ORTS.Menu
 {
-    public class Activity
+    public class Activity: ContentBase
     {
         public string Name { get; private set; }
         public string ActivityID { get; private set; }
@@ -38,8 +37,6 @@ namespace ORTS.Menu
         public Consist Consist { get; protected set; } = Consist.GetConsist("unknown", null);
         public Path Path { get; protected set; } = new Path("unknown");
         public string FilePath { get; private set; }
-
-        private static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         protected Activity(string name, string filePath, ActivityFile activityFile, Consist consist, Path path)
         {
@@ -72,7 +69,7 @@ namespace ORTS.Menu
                 Name = name;
             }
             if (string.IsNullOrEmpty(Name))
-                Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                Name = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
             if (string.IsNullOrEmpty(Description))
                 Description = null;
             if (string.IsNullOrEmpty(Briefing))
@@ -101,7 +98,7 @@ namespace ORTS.Menu
                     else if (activityFile.Tr_Activity.Tr_Activity_Header.RouteID.ToUpper() != route.RouteID.ToUpper())
                     {
                         //Activity and route have different RouteID.
-                        result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)} >", filePath, null, null, null);
+                        result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
                     }
                     else
                     result = new Activity(string.Empty, filePath, activityFile, consist, path);
@@ -126,7 +123,7 @@ namespace ORTS.Menu
 
         public static Task<List<Activity>> GetActivities(Folder folder, Route route, CancellationToken token)
         {
-            TaskCompletionSource<List<Activity>> tcs = new TaskCompletionSource<List<Activity>>();
+            SemaphoreSlim addItem = new SemaphoreSlim(1);
             var activities = new List<Activity>();
             if (route != null)
             {
@@ -135,30 +132,27 @@ namespace ORTS.Menu
                 var directory = System.IO.Path.Combine(route.Path, "ACTIVITIES");
                 if (Directory.Exists(directory))
                 {
-                    Parallel.ForEach(Directory.GetFiles(directory, "*.act"), (activityFile, state) =>
-                    {
-                        if (token.IsCancellationRequested)
+                    Parallel.ForEach(Directory.GetFiles(directory, "*.act"),
+                        new ParallelOptions() { CancellationToken = token},
+                        (activityFile, state) =>
                         {
-                            tcs.SetCanceled();
-                            state.Stop();
-                        }
-                        try
-                        {
-                            Activity activity = GetActivity(activityFile, folder, route);
-                            if (null != activityFile)
-                            {
-                                lock (activities)
-                                {
-                                    activities.Add(activity);
-                                }
-                            }
-                        }
-                        catch { }
-                    });
+                           try
+                           {
+                               Activity activity = GetActivity(activityFile, folder, route);
+                               if (null != activityFile)
+                               {
+                                   addItem.Wait(token);
+                                   activities.Add(activity);
+                               }
+                           }
+                           catch { }
+                           finally { addItem.Release(); }
+                       });
+                    if (token.IsCancellationRequested)
+                        return Task.FromCanceled<List<Activity>>(token);
                 }
             }
-            tcs.TrySetResult(activities);
-            return tcs.Task;
+            return Task.FromResult(activities);
         }
     }
 

@@ -63,11 +63,11 @@ namespace ORTS
         private List<Path> paths = new List<Path>();
         private List<TimetableInfo> timetableSets = new List<TimetableInfo>();
 
-        private System.Threading.CancellationTokenSource ctsRouteLoading;
-        private System.Threading.CancellationTokenSource ctsActivityLoading;
-        private System.Threading.CancellationTokenSource ctsConsistLoading;
-        private System.Threading.CancellationTokenSource ctsPathLoading;
-        private System.Threading.CancellationTokenSource ctsTimeTableLoading;
+        private CancellationTokenSource ctsRouteLoading;
+        private CancellationTokenSource ctsActivityLoading;
+        private CancellationTokenSource ctsConsistLoading;
+        private CancellationTokenSource ctsPathLoading;
+        private CancellationTokenSource ctsTimeTableLoading;
 
         private readonly ResourceManager Resources = new ResourceManager("ORTS.Properties.Resources", typeof(MainForm).Assembly);
         private UpdateManager UpdateManager;
@@ -182,7 +182,6 @@ namespace ORTS
 
                 initTasks.Add(LoadFolderListAsync());
 
-                await Task.WhenAll(initTasks);
                 initialized = true;
             }
 
@@ -191,6 +190,9 @@ namespace ORTS
             ShowDetails();
 
             this.Resume();
+
+            await Task.WhenAll(initTasks);
+
         }
 
         private async Task InitializeUpdateManager()
@@ -200,12 +202,11 @@ namespace ORTS
                 UpdateManager = new UpdateManager(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
             });
             await CheckForUpdateAsync();
-
         }
 
         private Task<List<ToolStripItem>> LoadTools()
         {
-            TaskCompletionSource<List<ToolStripItem>> tcs = new TaskCompletionSource<List<ToolStripItem>>();
+            SemaphoreSlim addItems = new SemaphoreSlim(1);
             List<ToolStripItem> result = new List<ToolStripItem>();
 
             var coreExecutables = new[] {
@@ -230,10 +231,9 @@ namespace ORTS
                 // Remove the product name from the tool's name and localise.
                 string toolName = catalog.GetString(toolInfo.FileDescription.Replace(Application.ProductName, "").Trim());
 
-                lock (result)
-                {
+                addItems.Wait();
                     // Create menu item to execute tool.
-                    result.Add(new ToolStripMenuItem(toolName, null, (Object sender2, EventArgs e2) =>
+                    result.Add(new ToolStripMenuItem(toolName, null, (object sender2, EventArgs e2) =>
                     {
                         string toolPath = (sender2 as ToolStripItem).Tag as string;
                         bool toolIsConsole = false;
@@ -247,15 +247,14 @@ namespace ORTS
                             Process.Start(toolPath);
                     })
                     { Tag = fileName });
-                }
+                addItems.Release();
             });
-            tcs.TrySetResult(result);
-            return tcs.Task;
+            return Task.FromResult(result);
         }
 
         private Task<List<ToolStripItem>> LoadDocuments()
         {
-            TaskCompletionSource<List<ToolStripItem>> tcs = new TaskCompletionSource<List<ToolStripItem>>();
+            SemaphoreSlim addItems = new SemaphoreSlim(1);
             List<ToolStripItem> result = new List<ToolStripItem>();
 
             string path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Documentation");
@@ -266,20 +265,18 @@ namespace ORTS
                     // These are the following formats that can be selected.
                     if (fileName.EndsWith(".pdf") || fileName.EndsWith(".doc") || fileName.EndsWith(".docx") || fileName.EndsWith(".pptx") || fileName.EndsWith(".txt"))
                     {
-                        lock (result)
-                        {
+                        addItems.Wait();
                             result.Add(new ToolStripMenuItem(System.IO.Path.GetFileName(fileName), null, (Object sender2, EventArgs e2) =>
                             {
                                 var docPath = (sender2 as ToolStripItem).Tag as string;
                                 Process.Start(docPath);
                             })
                             { Tag = fileName });
-                        }
+                        addItems.Release();
                     }
                 });
             }
-            tcs.TrySetResult(result);
-            return tcs.Task;
+            return Task.FromResult(result);
         }
 
         private async Task LoadToolsAndDocuments()
@@ -394,7 +391,7 @@ namespace ORTS
                 await Task.WhenAll(LoadRouteListAsync(), LoadLocomotiveListAsync());
                 ShowDetails();
             }
-            catch (System.Threading.Tasks.TaskCanceledException) { }
+            catch (TaskCanceledException) { }
         }
         #endregion
 
@@ -409,7 +406,7 @@ namespace ORTS
                     LoadTimetableSetListAsync());
                 ShowDetails();
             }
-            catch (System.Threading.Tasks.TaskCanceledException) { }
+            catch (TaskCanceledException) { }
         }
         #endregion
 
@@ -1201,30 +1198,30 @@ namespace ORTS
         #endregion
 
         #region Timetable Train list
-                private void ShowTimetableTrainList()
+        private void ShowTimetableTrainList()
+        {
+            if (null != SelectedTimetableSet)
+            {
+                try
                 {
-                    if (null != SelectedTimetableSet)
-                    {
-                        try
-                        {
-                            comboBoxTimetableTrain.BeginUpdate();
-                            comboBoxTimetableTrain.Items.Clear();
+                    comboBoxTimetableTrain.BeginUpdate();
+                    comboBoxTimetableTrain.Items.Clear();
 
-                            var trains = SelectedTimetableSet.ORTTList[comboBoxTimetable.SelectedIndex].Trains;
-                            trains.Sort();
-                            comboBoxTimetableTrain.Items.AddRange(trains.ToArray());
-                        }
-                        finally
-                        {
-                            comboBoxTimetableTrain.EndUpdate();
-                        }
-                        UpdateFromMenuSelection<TimetableFileLite.TrainInformation>(comboBoxTimetableTrain, UserSettings.Menu_SelectionIndex.Train, t => t.Column.ToString());
-                    }
-                    else
-                        comboBoxTimetableTrain.Items.Clear();
-
-                    UpdateEnabled();
+                    var trains = SelectedTimetableSet.ORTTList[comboBoxTimetable.SelectedIndex].Trains;
+                    trains.Sort();
+                    comboBoxTimetableTrain.Items.AddRange(trains.ToArray());
                 }
+                finally
+                {
+                    comboBoxTimetableTrain.EndUpdate();
+                }
+                UpdateFromMenuSelection<TimetableFileLite.TrainInformation>(comboBoxTimetableTrain, UserSettings.Menu_SelectionIndex.Train, t => t.Column.ToString());
+            }
+            else
+                comboBoxTimetableTrain.Items.Clear();
+
+            UpdateEnabled();
+        }
         #endregion
 
         #region Timetable environment
@@ -1558,14 +1555,14 @@ namespace ORTS
         }
         #endregion
 
-        private static System.Threading.CancellationTokenSource ResetCancellationTokenSource(System.Threading.CancellationTokenSource cts)
+        private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
         {
             if (cts != null)
             {
                 cts.Dispose();
             }
             // Create a new cancellation token source so that can cancel all the tokens again 
-            return new System.Threading.CancellationTokenSource();
+            return new CancellationTokenSource();
         }
 
         private void ComboBoxTimetable_EnabledChanged(object sender, EventArgs e)

@@ -19,12 +19,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using GNU.Gettext;
 using Orts.Formats.OR;
 
 namespace ORTS.Menu
 {
-    public class TimetableInfo
+    public class TimetableInfo: ContentBase
     {
         public List<TimetableFileLite> ORTTList { get; private set; } = new List<TimetableFileLite>();
         public string Description { get; private set; }
@@ -37,8 +36,6 @@ namespace ORTS.Menu
 
         // note : file is read preliminary only, extracting description and train information
         // all other information is read only when activity is started
-
-        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         internal TimetableInfo(string filePath)
         {
@@ -53,12 +50,12 @@ namespace ORTS.Menu
                 }
                 catch
                 {
-                    Description = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                    Description = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
                 }
             }
             else
             {
-                Description = "<" + catalog.GetString("missing:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                Description = $"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
             }
         }
 
@@ -75,12 +72,12 @@ namespace ORTS.Menu
                 }
                 catch
                 {
-                    Description = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                    Description = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
                 }
             }
             else
             {
-                Description = "<" + catalog.GetString("missing:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                Description = $"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
             }
         }
 
@@ -91,51 +88,39 @@ namespace ORTS.Menu
 
         public static Task<List<TimetableInfo>> GetTimetableInfo(Folder folder, Route route, CancellationToken token)
         {
-            TaskCompletionSource<List<TimetableInfo>> tcs = new TaskCompletionSource<List<TimetableInfo>>();
             string[] extensions = { "*.timetable_or", "*.timetable-or", "*.timetablelist_or", "*.timetablelist-or" };
+            SemaphoreSlim addItem = new SemaphoreSlim(1);
 
             List<TimetableInfo> result = new List<TimetableInfo>();
             if (route != null)
             {
                 string path = System.IO.Path.Combine(route.Path, "ACTIVITIES", "OPENRAILS");
 
-                void AddFiles(string[] files)
-                {
-                    Parallel.ForEach(files, (timetableFile, state) =>
-                    {
-                        if (token.IsCancellationRequested)
-                        {
-                            tcs.SetCanceled();
-                            state.Stop();
-                        }
-                        try
-                        {
-                            TimetableInfo timetableInfo = new TimetableInfo(timetableFile);
-                            lock (result)
-                            {
-                                result.Add(timetableInfo);
-                            }
-                        }
-                        catch { }
-                    });
-                }
-
                 if (Directory.Exists(path))
                 {
-                    Parallel.ForEach(extensions, (extension, state) =>
+                    Parallel.ForEach(extensions, 
+                        new ParallelOptions() { CancellationToken = token},
+                        (extension, state) =>
                     {
-                        if (token.IsCancellationRequested)
+                        Parallel.ForEach(Directory.GetFiles(path, extension),
+                            new ParallelOptions() { CancellationToken = token},
+                            (timetableFile, innerState) =>
                         {
-                            tcs.TrySetCanceled();
-                            state.Stop();
-                        }
-                        AddFiles(Directory.GetFiles(path, extension));
+                            try
+                            {
+                                TimetableInfo timetableInfo = new TimetableInfo(timetableFile);
+                                addItem.Wait(token);
+                                result.Add(timetableInfo);
+                            }
+                            catch { }
+                            finally { addItem.Release(); }
+                        });
                     });
+                    if (token.IsCancellationRequested)
+                        return Task.FromCanceled<List<TimetableInfo>>(token);
                 }
             }
-
-            tcs.TrySetResult(result);
-            return tcs.Task;
+            return Task.FromResult(result);
         }
     }
 }

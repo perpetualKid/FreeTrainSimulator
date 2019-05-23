@@ -20,18 +20,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GNU.Gettext;
 using Orts.Formats.Msts;
 
 namespace ORTS.Menu
 {
-    public class Consist
+    public class Consist: ContentBase
     {
         public string Name { get; private set; }
         public Locomotive Locomotive { get; private set; } = Locomotive.GetLocomotive("unknown");
         public string FilePath { get; private set; }
-
-        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         public override string ToString()
         {
@@ -42,7 +39,7 @@ namespace ORTS.Menu
         {
             Locomotive = locomotive;
             if (string.IsNullOrEmpty(consist.Name))
-                Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(fileName) + ">";
+                Name = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>";
             else
                 Name = consist.Name?.Trim();
             FilePath = fileName;
@@ -79,46 +76,43 @@ namespace ORTS.Menu
                 }
                 catch
                 {
-                    result = new Consist($"<{catalog.GetString("load error:")}  {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
+                    result = new Consist($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
                 }
             }
             else
             {
-                result = new Consist($"<{catalog.GetString("missing:")}  {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
+                result = new Consist($"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
             }
             return result;
         }
 
         public static Task<List<Consist>> GetConsists(Folder folder, CancellationToken token)
         {
-            TaskCompletionSource<List<Consist>> tcs = new TaskCompletionSource<List<Consist>>();
+            SemaphoreSlim addItem = new SemaphoreSlim(1);
             List<Consist> consists = new List<Consist>();
             string directory = System.IO.Path.Combine(folder.Path, "TRAINS", "CONSISTS");
             if (Directory.Exists(directory))
             {
-                Parallel.ForEach(Directory.GetFiles(directory, "*.con"), (consistFile, state) =>
+                Parallel.ForEach(Directory.GetFiles(directory, "*.con"),
+                    new ParallelOptions() { CancellationToken = token},
+                    (consistFile, state) =>
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        tcs.SetCanceled();
-                        state.Stop();
-                    }
                     try
                     {
                         Consist consist = GetConsist(consistFile, folder, false);
                         if (null != consist)
                         {
-                            lock (consists)
-                            {
-                                consists.Add(consist);
-                            }
+                            addItem.Wait(token);
+                            consists.Add(consist);
                         }
                     }
                     catch { }
+                    finally { addItem.Release(); }
                 });
+                if (token.IsCancellationRequested)
+                    return Task.FromCanceled<List<Consist>>(token);
             }
-            tcs.TrySetResult(consists);
-            return tcs.Task;
+            return Task.FromResult(consists);
         }
 
         private static Locomotive GetLocomotive(ConsistFile conFile, Folder folder)
@@ -149,13 +143,11 @@ namespace ORTS.Menu
 
     }
 
-    public class Locomotive
+    public class Locomotive: ContentBase
     {
         public string Name { get; private set; }
         public string Description { get; private set; }
         public string FilePath { get; private set; }
-
-        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         public static Locomotive GetLocomotive(string fileName)
         {
@@ -189,7 +181,7 @@ namespace ORTS.Menu
             Name = engine.Name?.Trim();
             Description = engine.Description?.Trim();
             if (string.IsNullOrEmpty(Name))
-                Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(fileName) + ">";
+                Name = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>";
             if (string.IsNullOrEmpty(Description))
                 Description = null;
             FilePath = fileName;

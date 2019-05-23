@@ -22,7 +22,7 @@ using ORTS.Settings;
 
 namespace ORTS.Menu
 {
-    public class Folder
+    public class Folder: ContentBase
     {
         public string Name { get; private set; }
         public string Path { get; private set; }
@@ -42,7 +42,6 @@ namespace ORTS.Menu
         {
             string folderDataFile = System.IO.Path.Combine(UserSettings.UserDataFolder, "folder.dat");
             List<Folder> folders = new List<Folder>();
-            TaskCompletionSource<List<Folder>> tcs = new TaskCompletionSource<List<Folder>>();
 
             if (settings.Folders.Folders.Count == 0 && File.Exists(folderDataFile))
             {
@@ -72,8 +71,7 @@ namespace ORTS.Menu
                     folders.Add(new Folder(folder.Key, folder.Value));
             }
 
-            tcs.TrySetResult(folders);
-            return tcs.Task;
+            return Task.FromResult(folders);
         }
 
         public static void SetFolders(UserSettings settings, List<Folder> folders)

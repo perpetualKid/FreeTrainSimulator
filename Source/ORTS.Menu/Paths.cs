@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using GNU.Gettext;
 using Orts.Formats.Msts;
 
 namespace ORTS.Menu
@@ -29,7 +28,7 @@ namespace ORTS.Menu
     /// Representation of the metadata of a path, where the path is coded in a .pat file. So not the full .pat file,
     /// but just basic information to be used in menus etc.
     /// </summary>
-    public class Path
+    public class Path: ContentBase
     {
         /// <summary>Name of the path</summary>
         public string Name { get; private set; }
@@ -41,8 +40,6 @@ namespace ORTS.Menu
         public string FilePath { get; private set; }
         /// <summary>Is the path a player path or not</summary>
         public bool IsPlayerPath { get; private set; }
-
-        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Menu");
 
         /// <summary>
         /// Constructor. This will try to have the requested .pat file parsed for its metadata
@@ -62,18 +59,18 @@ namespace ORTS.Menu
                 }
                 catch
                 {
-                    Name = "<" + catalog.GetString("load error:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                    Name = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
                 }
                 if (string.IsNullOrEmpty(Name))
-                    Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                    Name = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
                 if (string.IsNullOrEmpty(Start))
-                    Start = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                    Start = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
                 if (string.IsNullOrEmpty(End))
-                    End = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                    End = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
             }
             else
             {
-                Name = Start = End = "<" + catalog.GetString("missing:") + " " + System.IO.Path.GetFileNameWithoutExtension(filePath) + ">";
+                Name = Start = End = $"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
             }
             FilePath = filePath;
         }
@@ -93,18 +90,15 @@ namespace ORTS.Menu
         /// <param name="includeNonPlayerPaths">Selects whether non-player paths are included or not</param>
         public static Task<List<Path>> GetPaths(Route route, bool includeNonPlayerPaths, CancellationToken token)
         {
-            TaskCompletionSource<List<Path>> tcs = new TaskCompletionSource<List<Path>>();
+            SemaphoreSlim addItem = new SemaphoreSlim(1);
             List<Path> paths = new List<Path>();
             string directory = System.IO.Path.Combine(route.Path, "PATHS");
             if (Directory.Exists(directory))
             {
-                Parallel.ForEach(Directory.GetFiles(directory, "*.pat"), (file, state) =>
+                Parallel.ForEach(Directory.GetFiles(directory, "*.pat"),
+                    new ParallelOptions() { CancellationToken = token},
+                    (file, state) =>
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        tcs.SetCanceled();
-                        state.Stop();
-                    }
                     try
                     {
                         Path path = new Path(file);
@@ -128,18 +122,18 @@ namespace ORTS.Menu
                                 && !file.EndsWith(@"ROUTES\USA2\PATHS\long-haul west (blizzard).pat", StringComparison.OrdinalIgnoreCase)
                                 )
                             {
-                                lock (paths)
-                                {
-                                    paths.Add(path);
-                                }
+                                addItem.Wait(token);
+                                paths.Add(path);
                             }
                         }
                     }
                     catch { }
+                    finally { addItem.Release(); }
                 });
+                if (token.IsCancellationRequested)
+                    return Task.FromCanceled<List<Path>>(token);
             }
-            tcs.TrySetResult(paths);
-            return tcs.Task;
+            return Task.FromResult(paths);
         }
 
         /// <summary>
@@ -158,7 +152,8 @@ namespace ORTS.Menu
             {
                 path = new Path(file);
             }
-            catch {
+            catch
+            {
                 path = null;
             }
 
