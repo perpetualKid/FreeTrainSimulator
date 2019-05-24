@@ -347,16 +347,16 @@ namespace Orts.Formats.OR
             nameTag = "tag" + info;
         }
 
-        public override void configCoord (MSTSCoord coord)
+        public override void ConfigCoord (in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
             typeItem = (int)TypeItem.TAG_ITEM;
             nameVisible = false;
         }
 
-        public override void Update(MSTSCoord coord)
+        public override void Update(in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
         }
     }
     #endregion
@@ -413,9 +413,9 @@ namespace Orts.Formats.OR
             nameStation = "station" + info;
         }
 
-        public override void configCoord(MSTSCoord coord)
+        public override void ConfigCoord(in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
             typeItem = (int)TypeItem.STATION_ITEM;
             nameVisible = false;
         }
@@ -448,12 +448,12 @@ namespace Orts.Formats.OR
 
         }
 
-        public override void Update(MSTSCoord coord)
+        public override void Update(in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
         }
 
-        public override void setAngle(float angle)
+        public override void SetAngle(float angle)
         {
             icoAngle = angle;
         }
@@ -521,7 +521,7 @@ namespace Orts.Formats.OR
         }
         
 #endif
-        public StationAreaItem AddPointArea(MSTSCoord coord, double snapDist, MSTSBase tileBase)
+        public StationAreaItem AddPointArea(in MSTSCoord coord, double snapDist, MSTSBase tileBase)
         {
             PointF closest = new PointF(0f, 0f);
             double num = -1.0;
@@ -559,13 +559,13 @@ namespace Orts.Formats.OR
                 {
                     return null;
                 }
-                coord = tileBase.getMstsCoord(tf2);
-                item.configCoord(coord);
+                MSTSCoord completedCoord = new MSTSCoord(tf2);
+                item.ConfigCoord(completedCoord);
                 item.toggleSelected();
                 stationArea.Insert(index, item);
                 return item;
             }
-            item.configCoord(coord);
+            item.ConfigCoord(coord);
             item.toggleSelected();
             stationArea.Add(item);
             return item;
@@ -589,7 +589,7 @@ namespace Orts.Formats.OR
             }
         }
 
-        public override void complete(ORRouteConfig orRouteConfig, MSTSItems aeItems, MSTSBase tileBase)
+        public override void Complete(ORRouteConfig orRouteConfig, MSTSItems aeItems, MSTSBase tileBase)
         {
             if (stationArea.Count > 0)
             {
@@ -694,11 +694,11 @@ namespace Orts.Formats.OR
             double dist = double.PositiveInfinity;
             double usedSnap = snap;
 
-            isSeen = false;
+            visible = false;
             if (!((Location.X < point.X - usedSnap) || (Location.X > point.X + usedSnap)
                 || (Location.Y < point.Y - usedSnap) || (Location.Y > point.Y + usedSnap)))
             {
-                isSeen = true;
+                visible = true;
                 iconDist = (Math.Sqrt(Math.Pow((Location.X - point.X), 2) + Math.Pow((Location.Y - point.Y), 2)));
             }
             //File.AppendAllText(@"F:\temp\AE.txt", "FindItem: pointX: " + point.X +
@@ -706,9 +706,9 @@ namespace Orts.Formats.OR
             for (i = 0; i < poly.Count; i++)
             {
                 dist = ((StationAreaItem)stationArea[i]).FindItem(point, usedSnap, iconDist < actualDist ? iconDist : actualDist, aeItems);
-                if (stationArea[i].isSeen)
+                if (stationArea[i].IsVisible())
                 {
-                    isSeen = false;
+                    visible = false;
                     return dist;
                 }
                 //File.AppendAllText(@"F:\temp\AE.txt", "FindItem: polyX" + poly[i].X + 
@@ -831,8 +831,8 @@ namespace Orts.Formats.OR
                     if (!pointIntersect.IsEmpty)
                     {
                         StationAreaItem newPoint = new StationAreaItem(TypeEditor.ROUTECONFIG, this);
-                        MSTSCoord coord = tileBase.getMstsCoord(pointIntersect);
-                        newPoint.configCoord(coord);
+                        MSTSCoord coord = new MSTSCoord(pointIntersect);
+                        newPoint.ConfigCoord(coord);
                         num++;
                         //newPoint.toggleSelected();
                         stationArea.Insert(num, newPoint);
@@ -871,7 +871,7 @@ namespace Orts.Formats.OR
             return list;
         }
 
-        public bool IsInStation(MSTSCoord place)
+        public bool IsInStation(in MSTSCoord place)
         {
             double iconDist = double.PositiveInfinity;
             List<System.Drawing.PointF> poly = getPolyPoints();
@@ -879,11 +879,11 @@ namespace Orts.Formats.OR
             bool oddNodes = false;
             PointF placeNormalized = place.ConvertToPointF();
 
-            isSeen = false;
+            visible = false;
             if (!((Location.X < placeNormalized.X) || (Location.X > placeNormalized.X)
                 || (Location.Y < placeNormalized.Y) || (Location.Y > placeNormalized.Y)))
             {
-                isSeen = true;
+                visible = true;
                 iconDist = (Math.Sqrt(Math.Pow((Location.X - placeNormalized.X), 2) + Math.Pow((Location.Y - placeNormalized.Y), 2)));
             }
             //File.AppendAllText(@"F:\temp\AE.txt", "FindItem: pointX: " + point.X +
@@ -938,9 +938,9 @@ namespace Orts.Formats.OR
                 parent = (StationItem)ownParent;
         }
 
-        public override void configCoord(MSTSCoord coord)
+        public override void ConfigCoord(in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
         }
 
         public void DefineAsInterface(TrackSegment segment)
@@ -970,9 +970,9 @@ namespace Orts.Formats.OR
             return selected;
         }
 
-        public override void Update(MSTSCoord coord)
+        public override void Update(in MSTSCoord coord)
         {   
-                base.configCoord(coord);
+                base.ConfigCoord(in coord);
         }
 
         public bool IsInterface()
@@ -1395,7 +1395,7 @@ namespace Orts.Formats.OR
         public int direction;
         public int step;
         public MSTSCoord C;
-        public MSTSCoord Centre = null;
+        public MSTSCoord Centre; // = null;
         public double startAngle;
         public double angleTot;
         public List<MSTSCoord> checkedPoint = null;

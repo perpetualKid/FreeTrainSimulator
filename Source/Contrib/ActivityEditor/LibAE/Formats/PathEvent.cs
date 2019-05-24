@@ -100,16 +100,16 @@ namespace LibAE.Formats
             nameEvent = "start" + info;
         }
 
-        public override void configCoord(MSTSCoord coord)
+        public override void ConfigCoord(in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
             typeItem = (int)TypeItem.ACTIVITY_ITEM;
             nameVisible = false;
         }
 
-        public override void Update(MSTSCoord coord)
+        public override void Update(in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
         }
 
         public override Icon getIcon() { return StartIcon; }
@@ -137,16 +137,16 @@ namespace LibAE.Formats
             nameEvent = "stop" + info;
         }
 
-        public override void configCoord(MSTSCoord coord)
+        public override void ConfigCoord(in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
             typeItem = (int)TypeItem.ACTIVITY_ITEM;
             nameVisible = false;
         }
 
-        public override void Update(MSTSCoord coord)
+        public override void Update(in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
         }
 
         public override Icon getIcon() { return StopIcon; }
@@ -174,16 +174,16 @@ namespace LibAE.Formats
             nameEvent = "wait" + info;
         }
 
-        public override void configCoord(MSTSCoord coord)
+        public override void ConfigCoord(in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
             typeItem = (int)TypeItem.ACTIVITY_ITEM;
             nameVisible = false;
         }
 
-        public override void Update(MSTSCoord coord)
+        public override void Update(in MSTSCoord coord)
         {
-            base.configCoord(coord);
+            base.ConfigCoord(in coord);
         }
 
         public override Icon getIcon() { return WaitIcon; }

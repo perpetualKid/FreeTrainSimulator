@@ -55,9 +55,9 @@ namespace Orts.Common
         else return (float)Math.Atan2(-m.M31, m.M11);
      }
 
-      public struct Matrix2x2
+      public readonly struct Matrix2x2
       {
-         public float M00, M01, M10, M11;
+         public readonly float M00, M01, M10, M11;
 
          public Matrix2x2(float m00, float m01, float m10, float m11)
          {
@@ -65,7 +65,7 @@ namespace Orts.Common
          }
       }
 
-      public static float Interpolate2D(float x, float z, Matrix2x2 y)
+      public static float Interpolate2D(float x, float z, in Matrix2x2 y)
       {
          float result = 0;
 

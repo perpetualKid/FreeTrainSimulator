@@ -147,16 +147,16 @@ namespace ActivityEditor
                     if (currNode.TrEndNode)
                     {
                         //Program.actEditor.DisplayStatusMessage("Init data for display...  Load End Nodes: " + currNode.Index);
-                        try
-                        {
-                            foundBuffer = (AEBufferItem)orRouteConfig.AllItems.First(x => x.associateNodeIdx == currNode.Index);
-                            foundBuffer.updateNode(currNode);
-                        }
-                        catch (InvalidOperationException)
+                        foundBuffer = orRouteConfig.AllItems.FirstOrDefault(x => x.associateNodeIdx == currNode.Index) as AEBufferItem;
+                        if (null == foundBuffer)
                         {
                             foundBuffer = new AEBufferItem((TrackNode)currNode);
                             mstsItems.buffers.Add(foundBuffer);
-                       }
+                        }
+                        else
+                        {
+                            foundBuffer.updateNode(currNode);
+                        }
 #if SHOW_STOPWATCH
                         ts = stopWatch.Elapsed;
                         stopWatch.Reset();
@@ -211,11 +211,11 @@ namespace ActivityEditor
                             {
                                 TrackNode connectedNode = nodes[pin.Link];
                                 int direction = DrawUtility.getDirection(currNode, connectedNode);
-                                if (MSTSCoord.near (currNode.getMSTSCoord(direction), connectedNode.getMSTSCoord(direction)))
+                                if (MSTSCoord.Near(currNode.getMSTSCoord(direction), connectedNode.getMSTSCoord(direction)))
                                     continue;
                                 AESegment aeSegment = new AESegment(currNode.getMSTSCoord(direction), connectedNode.getMSTSCoord(direction));
                                 TrackSegment lineSeg = new TrackSegment(aeSegment, currNode, 0, direction, TSectionDat);
-                                addTrItems (lineSeg, currNode);
+                                addTrItems(lineSeg, currNode);
                                 mstsItems.AddSegment(lineSeg);
                             }
 #if SHOW_STOPWATCH
@@ -386,7 +386,7 @@ namespace ActivityEditor
             foreach (var item in stationItem)
             {
                 Program.actEditor.DisplayStatusMessage("Completing station ...");
-                ((StationItem)item).complete(orRouteConfig, mstsItems, mstsDataConfig.TileBase);
+                ((StationItem)item).Complete(orRouteConfig, mstsItems, mstsDataConfig.TileBase);
             }
             return;
 #if false

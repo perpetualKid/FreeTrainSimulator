@@ -32,39 +32,15 @@ namespace Orts.Formats.OR
             MSTSCoord coord = new MSTSCoord();
             if (node.TrEndNode || node.TrJunctionNode != null || node.TrVectorNode.TrVectorSections == null)
             {
-                coord.TileX = node.UiD.TileX;
-                coord.TileY = node.UiD.TileZ;
-                coord.X = node.UiD.X;
-                coord.Y = node.UiD.Z;
+                return new MSTSCoord(node, false);
             }
             else if (node.TrVectorNode != null && node.TrVectorNode.TrVectorSections.Length > 1)
             {
-                if (direction == 0)
-                {
-                    TrVectorSection section = node.TrVectorNode.TrVectorSections.Last();
-                    coord.TileX = section.TileX;
-                    coord.TileY = section.TileZ;
-                    coord.X = section.X;
-                    coord.Y = section.Z;
-
-                }
-                else
-                {
-                    TrVectorSection section = node.TrVectorNode.TrVectorSections.First();
-                    coord.TileX = section.TileX;
-                    coord.TileY = section.TileZ;
-                    coord.X = section.X;
-                    coord.Y = section.Z;
-
-                }
+                return new MSTSCoord(direction == 0 ? node.TrVectorNode.TrVectorSections.Last() : node.TrVectorNode.TrVectorSections.First(), false);
             }
             else if (node.TrVectorNode != null)
             {
-                coord.TileX = node.TrVectorNode.TrVectorSections[0].TileX;
-                coord.TileY = node.TrVectorNode.TrVectorSections[0].TileZ;
-                coord.X = node.TrVectorNode.TrVectorSections[0].X;
-                coord.Y = node.TrVectorNode.TrVectorSections[0].Z;
-
+                return new MSTSCoord(node.TrVectorNode.TrVectorSections[0], false);
             }
             return coord;
         }

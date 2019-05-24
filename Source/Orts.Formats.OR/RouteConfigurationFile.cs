@@ -314,7 +314,7 @@ namespace Orts.Formats.OR
                     continue;
                 item2.SynchroLocation();
                 positiveInfinity = item2.FindItem(point, snapSize, actualDist, aeItems);
-                if ((((item != null) && (positiveInfinity <= actualDist)) && ((positiveInfinity == 0.0) || item2.isItSeen())) || (item == null))
+                if ((((item != null) && (positiveInfinity <= actualDist)) && ((positiveInfinity == 0.0) || item2.IsVisible())) || (item == null))
                 {
                     actualDist = positiveInfinity;
                     item = item2;
@@ -326,7 +326,7 @@ namespace Orts.Formats.OR
                 {
                     item2.SynchroLocation();
                     positiveInfinity = item2.FindItem(point, snapSize, actualDist, aeItems);
-                    if ((((item != null) && (positiveInfinity <= actualDist)) && ((positiveInfinity == 0.0) || item2.isItSeen())) || (item == null))
+                    if ((((item != null) && (positiveInfinity <= actualDist)) && ((positiveInfinity == 0.0) || item2.IsVisible())) || (item == null))
                     {
                         actualDist = positiveInfinity;
                         item = item2;
@@ -338,7 +338,7 @@ namespace Orts.Formats.OR
                 }
 
             }
-            item.isSeen = true;
+            item.visible = true;
             return item;
         }
 

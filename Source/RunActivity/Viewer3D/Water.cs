@@ -143,7 +143,7 @@ namespace Orts.Viewer3D
                     var e = (a - 0.5f) * 2048 * Size;
                     var n = (b - 0.5f) * 2048 * Size;
 
-                    var y = ORTSMath.Interpolate2D(a, b, waterLevels);
+                    var y = ORTSMath.Interpolate2D(a, b, in waterLevels);
 
                     vertexData.Add(new VertexPositionNormalTexture(new Vector3(e, y, n), Vector3.UnitY, new Vector2(U, V)));
                 }

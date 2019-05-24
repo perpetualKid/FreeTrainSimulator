@@ -383,7 +383,7 @@ namespace ActivityEditor.Engine
                         scaledA.Y = decal.Height - (((float)buffer.Location.Y - subY) / usedScale);
                         g.DrawRectangle(pen, (int)scaledA.X, (int)scaledA.Y, 5, 5);
                         g.DrawString((string)buffer.associateNode.Index.ToString(), sidingFont, sidingBrush, scaledA.X - 20, scaledA.Y);
-                        if (Program.aePreference.ShowPlSiLabel && buffer.isItSeen())
+                        if (Program.aePreference.ShowPlSiLabel && buffer.IsVisible())
                         {
                             System.Drawing.Drawing2D.Matrix matrixSA = new System.Drawing.Drawing2D.Matrix();
                             matrixSA.RotateAt((float)0.0f, new System.Drawing.Point((int)scaledA.X, (int)scaledA.Y), MatrixOrder.Append);
@@ -531,7 +531,7 @@ namespace ActivityEditor.Engine
                     }
                     gMod.DrawIcon(StationIcon, rect);
                     gMod.ResetTransform();
-                    if (station.isItSeen())
+                    if (station.IsVisible())
                     {
                         g.DrawEllipse(r, scaledA.X - 4, scaledA.Y - 4, 8, 8);
                     }
@@ -603,7 +603,7 @@ namespace ActivityEditor.Engine
                                     }
                                     if (SAWidget.getStationConnector().getLabel().Length > 0 && 
                                         Program.aePreference.ShowPlSiLabel && Program.aePreference.PlSiZoom >= usedScale &&
-                                        SAWidget.isItSeen())
+                                        SAWidget.IsVisible())
                                         g.DrawString(SAWidget.getStationConnector().getLabel(), stationFont, sidingBrush, new System.Drawing.Point(X+15, Y+10));
                                 }
                             }
@@ -668,13 +668,13 @@ namespace ActivityEditor.Engine
                 if (Program.aePreference.ShowSnapCircle && (ToolClicked == ToolClicked.NO_TOOL))
                 {
                     PointF point = convertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
-                    MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(point);
+                    MSTSCoord coord = new MSTSCoord(point);
                     int sizeEllipse = (int)(Program.aePreference.getSnapCircle() / usedScale);
                     g.DrawEllipse(pen, (int)(CurrentMousePosition.X - (sizeEllipse / 2)),
                                         (int)(CurrentMousePosition.Y - sizeEllipse / 2),
                                         (int)(sizeEllipse),
                                         (int)(sizeEllipse));
-                    g.DrawString(coord.asString(), sidingFont, sidingBrush, CurrentMousePosition.X + 20, CurrentMousePosition.Y - 10);
+                    g.DrawString(coord.ToString(), sidingFont, sidingBrush, CurrentMousePosition.X + 20, CurrentMousePosition.Y - 10);
                 }
                 else if (ToolClicked == ToolClicked.NO_TOOL)
                 {
@@ -805,7 +805,7 @@ namespace ActivityEditor.Engine
                         double tempo = 0;
 
                         g.DrawRectangle(pen, (int)x, (int)y, 5, 5);
-                        if (Program.aePreference.ShowPlSiLabel && crossOver.isItSeen())
+                        if (Program.aePreference.ShowPlSiLabel && crossOver.IsVisible())
                         {
                             matrixSA.RotateAt((float)tempo, new System.Drawing.Point((int)x, (int)y), MatrixOrder.Append);
                             g.Transform = matrixSA;
@@ -837,7 +837,7 @@ namespace ActivityEditor.Engine
                         {
                             g.DrawEllipse(Pens.Blue, x - 1, y - 1, 3, 3);
                             //g.DrawEllipse(Pens.Blue, x2 - 1, y2 - 1, 3, 3);
-                            if (Program.aePreference.ShowPlSiLabel && siding.isItSeen())
+                            if (Program.aePreference.ShowPlSiLabel && siding.IsVisible())
                             {
                                 matrixSA.RotateAt((float)tempo, new System.Drawing.Point((int)x, (int)y), MatrixOrder.Append);
                                 g.Transform = matrixSA;
@@ -848,7 +848,7 @@ namespace ActivityEditor.Engine
                         {
                             g.DrawEllipse(Pens.Brown, x - 1, y - 1, 3, 3);
                             //g.DrawEllipse(Pens.Brown, x2 - 1, y2 - 1, 3, 3);
-                            if (Program.aePreference.ShowPlSiLabel && siding.isItSeen())
+                            if (Program.aePreference.ShowPlSiLabel && siding.IsVisible())
                             {
                                 matrixSA.RotateAt((float)tempo, new System.Drawing.Point((int)x, (int)y), MatrixOrder.Append);
                                 g.Transform = matrixSA;
@@ -934,7 +934,7 @@ namespace ActivityEditor.Engine
             if (LeftClick == true && RightClick == false)
             {
                 PointF point = convertScreen2ViewCoord(e.X, e.Y);
-                MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(point);
+                MSTSCoord coord = new MSTSCoord(point);
 
                 LeftMouseDown(sender, e, shiftKey);
             }
@@ -955,7 +955,7 @@ namespace ActivityEditor.Engine
                 (itemToUpdate.GetType() == typeof(StationItem)))
             {
                 PointF point = convertScreen2ViewCoord(e.X, e.Y);
-                MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(point);
+                MSTSCoord coord = new MSTSCoord(point);
                 StationAreaItem info = aeConfig.AddPointArea((StationItem)itemToUpdate, coord);
                 if (info != null)
                 {
@@ -1025,7 +1025,7 @@ namespace ActivityEditor.Engine
                 refZoomPoint.X = e.X;
                 refZoomPoint.Y = e.Y;
                 PointF point = convertScreen2ViewCoord(refZoomPoint.X, refZoomPoint.Y);
-                coordZoomPoint = Simulator.mstsDataConfig.TileBase.getMstsCoord(point);
+                coordZoomPoint = new MSTSCoord(point);
                 refZoomPoint.Y = routeDrawing.Height - e.Y;
                 ToolClicked = ToolClicked.ZOOM;
                 System.Drawing.Point refCoord = convertViewCoord2Screen(coordZoomPoint);
@@ -1048,7 +1048,7 @@ namespace ActivityEditor.Engine
                 (itemToUpdate.GetType() == typeof(StationAreaItem)))
             {
                 PointF point = convertScreen2ViewCoord(e.X, e.Y);
-                MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(point);
+                MSTSCoord coord = new MSTSCoord(point);
                 aeConfig.UpdateItem (itemToUpdate, coord, controlKey, false);
                 //((StationAreaWidget)itemToUpdate).UpdatePointArea(aeConfig.getSegments(), );
             }
@@ -1066,7 +1066,7 @@ namespace ActivityEditor.Engine
                         dragWindow(e, -1);
                     }
                     PointF point = convertScreen2ViewCoord (e.X, e.Y);
-                    MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(point);
+                    MSTSCoord coord = new MSTSCoord(point);
                     aeConfig.UpdateItem(itemToUpdate, coord, controlKey, false);
                     //itemToUpdate.configCoord(coord, aeConfig.getSegments(), controlKey);
                 }
@@ -1078,7 +1078,7 @@ namespace ActivityEditor.Engine
                     double tempo = Math.Atan2(itemToUpdate.Location2D.Y - point.Y, itemToUpdate.Location2D.X - point.X);
                     tempo = (tempo * 180.0d) / Math.PI;
                     tempo = tempo - 90d;
-                    itemToUpdate.setAngle((float)tempo);
+                    itemToUpdate.SetAngle((float)tempo);
                     //itemToUpdate.setAngle(((float)(Math.Atan2(itemToUpdate.Location2D.Y - point.Y, itemToUpdate.Location2D.X - point.X) * 180.0d / Math.PI)) - 90.0f);
                 }
                 GenerateView();
@@ -1163,12 +1163,12 @@ namespace ActivityEditor.Engine
                 itemToUpdate != null && itemToUpdate.GetType() == typeof(StationAreaItem))
             {
                 PointF point = convertScreen2ViewCoord(e.X, e.Y);
-                MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(point);
+                MSTSCoord coord = new MSTSCoord(point);
                 stationItem = (StationItem)aeConfig.UpdateItem(itemToUpdate, coord, false, true);
                 itemToUpdate = stationItem;
                 if (stationItem != null && !(ToolClicked == ToolClicked.AREA_ADD))
                 {
-                    stationItem.complete(aeConfig.aeRouteConfig.orRouteConfig,
+                    stationItem.Complete(aeConfig.aeRouteConfig.orRouteConfig,
                         aeConfig.aeItems,
                         Simulator.mstsDataConfig.TileBase);
                 }
@@ -1218,7 +1218,7 @@ namespace ActivityEditor.Engine
                 GlobalItem edited = aeConfig.EditItem(itemToEdit);
                 if (edited != null && edited.GetType() == typeof(StationItem))
                 {
-                    ((StationItem)edited).complete(aeConfig.aeRouteConfig.orRouteConfig,
+                    ((StationItem)edited).Complete(aeConfig.aeRouteConfig.orRouteConfig,
                         aeConfig.aeItems,
                         Simulator.mstsDataConfig.TileBase);
                 }
@@ -1311,13 +1311,13 @@ namespace ActivityEditor.Engine
         private void CenterAndZoomWindow ()
         {
             PointF point = convertScreen2ViewCoord(ViewWindow.Width / 2f, ViewWindow.Height / 2f);
-            MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(point);
+            MSTSCoord coord = new MSTSCoord(point);
 
             ZoomViewWindow();
             GenerateView();
         }
 
-        private void ZoomAndAlignWindow(MSTSCoord coord, PointF point)
+        private void ZoomAndAlignWindow(in MSTSCoord coord, PointF point)
         {
             ZoomViewWindow();
 
@@ -1325,7 +1325,7 @@ namespace ActivityEditor.Engine
             GenerateView();
         }
 
-        public void CenterViewWindow(MSTSCoord coord)
+        public void CenterViewWindow(in MSTSCoord coord)
         {
 
             PointF point = new PointF(routeDrawing.Width / 2f, routeDrawing.Height / 2f);
@@ -1337,7 +1337,7 @@ namespace ActivityEditor.Engine
         //  RealignViewWindow:
         //  This function try to align the current ViewWindow in order to have the coord under the refPoint
         //  whatever is the zoomFactor
-        private void RealignViewWindow(MSTSCoord coord, System.Drawing.Point refPoint)
+        private void RealignViewWindow(in MSTSCoord coord, System.Drawing.Point refPoint)
         {
             System.Drawing.Point refCoord = convertViewCoord2Screen(coord);
             System.Drawing.Point current = refPoint;
@@ -1379,9 +1379,9 @@ namespace ActivityEditor.Engine
             ActEditor tmp = Program.actEditor;
             tmp.SuspendLayout();
             PointF point = convertScreen2ViewCoord(lastContextMenuPos.X, lastContextMenuPos.Y);
-            MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(point);
+            MSTSCoord coord = new MSTSCoord(point);
             TagItem tag = new TagItem(ViewerMode);
-            tag.configCoord(coord);
+            tag.ConfigCoord(coord);
             tag.setNameTag(cnt);
             aeConfig.AddORItem(tag);
             System.Drawing.Point current = aeConfig.aeRouteConfig.GetTagPanelPosition();
@@ -1401,9 +1401,9 @@ namespace ActivityEditor.Engine
             ActEditor tmp = Program.actEditor;
             tmp.SuspendLayout();
             PointF point = convertScreen2ViewCoord(lastContextMenuPos.X, lastContextMenuPos.Y);
-            MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(point);
+            MSTSCoord coord = new MSTSCoord(point);
             StationItem station = new StationItem(ViewerMode, Simulator.traveller);
-            station.configCoord(coord);
+            station.ConfigCoord(coord);
             station.setNameStation(cnt);
             aeConfig.AddORItem(station);
             System.Drawing.Point current = aeConfig.aeRouteConfig.GetStationPanelPosition();
@@ -1453,11 +1453,11 @@ namespace ActivityEditor.Engine
             tmp.SuspendLayout();
             PointF point = convertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
             dist = DrawUtility.FindDistanceToSegment(point, segment, out closest);
-            MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(closest);
+            MSTSCoord coord = new MSTSCoord(closest);
             StartActivity newStart = new StartActivity(aeConfig);
             newStart.ShowDialog();
             ActStartItem actStart = new ActStartItem(ViewerMode);
-            actStart.configCoord(coord);
+            actStart.ConfigCoord(coord);
             actStart.setNameStart(cnt);
             aeConfig.AddORItem(actStart);
             aeConfig.AddActItem(actStart);
@@ -1474,7 +1474,7 @@ namespace ActivityEditor.Engine
             tmp.SuspendLayout();
             PointF point = convertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
             dist = DrawUtility.FindDistanceToSegment(point, segment, out closest);
-            MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(closest);
+            MSTSCoord coord = new MSTSCoord(closest);
             tmp.ResumeLayout(false);
             tmp.PerformLayout();
         }
@@ -1489,12 +1489,12 @@ namespace ActivityEditor.Engine
             tmp.SuspendLayout();
             PointF point = convertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
             dist = DrawUtility.FindDistanceToSegment(point, segment, out closest);
-            MSTSCoord coord = Simulator.mstsDataConfig.TileBase.getMstsCoord(closest);
+            MSTSCoord coord = new MSTSCoord(closest);
             WaitActivity newWait = new WaitActivity();
             newWait.SW_PlaceValue.Text = (string)"wait" + cnt;
             newWait.ShowDialog();
             ActWaitItem actWait = new ActWaitItem(ViewerMode);
-            actWait.configCoord(coord);
+            actWait.ConfigCoord(coord);
             actWait.setNameWait(cnt);
             aeConfig.AddORItem(actWait);
             aeConfig.AddActItem(actWait);
@@ -1639,12 +1639,12 @@ namespace ActivityEditor.Engine
             return val;
         }
 
-        public System.Drawing.Point convertViewCoord2Screen(MSTSCoord coord)
+        public System.Drawing.Point convertViewCoord2Screen(in MSTSCoord coord)
         {
             return System.Drawing.Point.Truncate((PointF)convertViewCoord2ScreenF(coord));
         }
 
-        public PointF convertViewCoord2ScreenF(MSTSCoord coord)
+        public PointF convertViewCoord2ScreenF(in MSTSCoord coord)
         {
             PointF val = new PointF(0, 0);
             val.X = (((coord.TileX * 2048f) + coord.X));    // - areaRoute.getMinX());
@@ -1732,7 +1732,7 @@ namespace ActivityEditor.Engine
         void CancelOperation()
         {
             if (itemToUpdate != null)
-                itemToUpdate.complete(aeConfig.aeRouteConfig.orRouteConfig, aeConfig.aeItems, Simulator.mstsDataConfig.TileBase);
+                itemToUpdate.Complete(aeConfig.aeRouteConfig.orRouteConfig, aeConfig.aeItems, Simulator.mstsDataConfig.TileBase);
             itemToUpdate = null;
             Dragging = false;
             Zooming = false;

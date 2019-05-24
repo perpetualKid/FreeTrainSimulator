@@ -16,10 +16,10 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 #if DEBUG
 // prints details of the file as read from input
-// #define DEBUG_PRINT_IN
+ #define DEBUG_PRINT_IN
 
 // prints details of the file as processed
-// #define DEBUG_PRINT_OUT
+ #define DEBUG_PRINT_OUT
 #endif
 
 using System;
@@ -226,6 +226,9 @@ namespace Orts.Formats.Msts
 #if DEBUG_PRINT_PROCESS
             File.Delete(dpr_fileLoc + @"printproc.txt");
 #endif
+            orSignalTypes.Add("ROUTING");
+            orSignalTypes.Add("RSRROUTING");
+            orSignalTypes.Add("JUNCTION");
 
             // Process all files listed in SIGCFG
             foreach (string fileName in scriptFiles)
@@ -572,18 +575,18 @@ namespace Orts.Formats.Msts
 #endif
                 #endregion
                 // Skip external floats (exist automatically)
-                while ((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "EXTERN" && (script.Tokens[statementLine] as Statement)?.Tokens[1].Token == "FLOAT" && statementLine++ < maxCount)
+                while ((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "EXTERN" && (script.Tokens[statementLine] as Statement)?.Tokens[1].Token == "FLOAT" && statementLine++ < maxCount) ;
 
-                    //// Process floats : build list with internal floats
-                    while (((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "FLOAT") && statementLine < maxCount)
+                //// Process floats : build list with internal floats
+                while (((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "FLOAT") && statementLine < maxCount)
+                {
+                    string floatString = (script.Tokens[statementLine] as Statement)?.Tokens[1].Token;
+                    if (!localFloats.ContainsKey(floatString))
                     {
-                        string floatString = (script.Tokens[statementLine] as Statement)?.Tokens[1].Token;
-                        if (!localFloats.ContainsKey(floatString))
-                        {
-                            localFloats.Add(floatString, localFloats.Count);
-                        }
-                        statementLine++;
+                        localFloats.Add(floatString, localFloats.Count);
                     }
+                    statementLine++;
+                }
 
                 #region DEBUG_PRINT_OUT
 #if DEBUG_PRINT_OUT
@@ -792,6 +795,16 @@ namespace Orts.Formats.Msts
 
                     //TODO: may want to process other Assignment Operations as well (+=, -= etc)
                     Statement statement = statementBlock as Statement;
+                    //there are some scripts misusing equality operators (==, ==#) for assignment (=, #=), so we are warning them and trying to correct adhoc
+                    if (statement?.Tokens.Count > 1 && (statement?.Tokens[1] as OperatorToken)?.OperatorType == OperatorType.Equality && statement?.Tokens[1].Token[0] == '=')
+                    {
+#if DEBUG
+                        Trace.TraceWarning($"Invalid equality operation {statement?.Tokens[1].Token} in line {statementBlock.LineNumber} - processing as {new OperatorToken(statement?.Tokens[1].Token.Substring(1).Replace("==", "=").Replace("=#", "#="), statement.LineNumber)} assignment operation.");
+                        statement.Tokens[1] = new OperatorToken(statement?.Tokens[1].Token.Substring(1).Replace("==", "=").Replace("=#", "#="), statement.LineNumber);
+#else
+                        Trace.TraceWarning($"Invalid equality operation {statement?.Tokens[1].Token} in line {statementBlock.LineNumber}");
+#endif
+                    }
                     if (statement?.Tokens.Count > 1 && (statement?.Tokens[1] as OperatorToken)?.OperatorType == OperatorType.Assignment)
                     {
                         if (Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFloats result))
@@ -803,6 +816,10 @@ namespace Orts.Formats.Msts
                         {
                             AssignParameter = value;
                             AssignType = SCRTermType.LocalFloat;
+                        }
+                        else
+                        {
+                            Trace.TraceWarning($"Invalid Assignment operation target in line {statementBlock.LineNumber} - could not find {statement.Tokens[0].Token} as local or external float");
                         }
                         // Assignment term
                         statement.Tokens.RemoveRange(0, 2);
@@ -841,6 +858,7 @@ namespace Orts.Formats.Msts
                             StatementTerms.Add(term);
 
                             ProcessScriptStatement(statementBlock.Tokens[0] as Enclosure, termNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                            termNumber--;
                         }
                         else
                         {
@@ -920,6 +938,12 @@ namespace Orts.Formats.Msts
                         }
                         else
                         {
+                            //substitute a trailing + or - operator token to become part of the (numeric) parameter 
+                            if (block.Tokens.Count > 1 && ((block.Tokens[0] as OperatorToken)?.Token == "-" || (block.Tokens[0] as OperatorToken)?.Token == "+"))
+                            {
+                                block.Tokens[1].Token = block.Tokens[0].Token + block.Tokens[1].Token;
+                                block.Tokens.RemoveAt(0);
+                            }
                             SCRParameterType parameter = ParameterFromToken(block.Tokens[0], block.LineNumber, localFloats, orSignalTypes, orNormalSubtypes);
                             result.Add(parameter);
                         }
@@ -1027,7 +1051,12 @@ namespace Orts.Formats.Msts
                         statement.Tokens.RemoveAt(0);
                         negated = true;
                     }
-
+                    //substitute a trailing + or - operator token to become part of the (numeric) term 
+                    if (statement.Tokens.Count > 1 && ((statement.Tokens[0] as OperatorToken)?.Token == "-" || (statement.Tokens[0] as OperatorToken)?.Token == "+"))
+                    {
+                        statement.Tokens[1].Token = statement.Tokens[0].Token + statement.Tokens[1].Token;
+                        statement.Tokens.RemoveAt(0);
+                    }
                     if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
                     {
                         Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
@@ -1059,24 +1088,35 @@ namespace Orts.Formats.Msts
 #endif
                         }
                         statement.Tokens.RemoveAt(0);
-
-                        //Term 2
-                        if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Negator)
+                        if (statement.Tokens.Count > 0)
                         {
-                            statement.Tokens.RemoveAt(0);
-                            negated = true;
-                        }
-
-                        if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
-                        {
-                            Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                            //Term 2
+                            if ((statement.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Negator)
+                            {
+                                statement.Tokens.RemoveAt(0);
+                                negated = true;
+                            }
+                            //substitute a trailing + or - operator token to become part of the (numeric) term 
+                            if (statement.Tokens.Count > 1 && ((statement.Tokens[0] as OperatorToken)?.Token == "-" || (statement.Tokens[0] as OperatorToken)?.Token == "+"))
+                            {
+                                statement.Tokens[1].Token = statement.Tokens[0].Token + statement.Tokens[1].Token;
+                                statement.Tokens.RemoveAt(0);
+                            }
+                            if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
+                            {
+                                Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                                statement.Tokens.RemoveAt(0);
+                            }
+                            else
+                            {
+                                Term2 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                            }
                             statement.Tokens.RemoveAt(0);
                         }
                         else
                         {
-                            Term2 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                            Trace.TraceWarning($"Invalid statement in line {statement.LineNumber}");
                         }
-                        statement.Tokens.RemoveAt(0);
                     }
                 }
             } // class SCRConditions

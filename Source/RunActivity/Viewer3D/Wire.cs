@@ -514,21 +514,7 @@ namespace Orts.Viewer3D
             // TODO: Read this stuff from a file. Provide the ability to use alternative profiles.
 
             // Initialize a scalar DtrackData object
-            DTrackData = new DtrackData();
-            if (radius < 0)
-            {
-                DTrackData.IsCurved = 0;
-                DTrackData.param1 = angle;
-                DTrackData.param2 = 0;
-
-            }
-            else
-            {
-                DTrackData.IsCurved = 1;
-                DTrackData.param1 = angle;
-                DTrackData.param2 = radius;
-            }
-            DTrackData.deltaY = 0;
+            DTrackData = new DtrackData(radius >= 0, angle, Math.Max(0, radius), 0);
 
             if (WireProfile == null)
             {
@@ -567,8 +553,8 @@ namespace Orts.Viewer3D
             }
 
 
-            if (DTrackData.IsCurved == 0) ObjectRadius = 0.5f * DTrackData.param1; // half-length
-            else ObjectRadius = DTrackData.param2 * (float)Math.Sin(0.5 * Math.Abs(DTrackData.param1)); // half chord length
+            if (!DTrackData.IsCurved) ObjectRadius = 0.5f * DTrackData.Length; // half-length
+            else ObjectRadius = DTrackData.Radius * (float)Math.Sin(0.5 * Math.Abs(DTrackData.Length)); // half chord length
         }
         
         /// <summary>
@@ -582,7 +568,7 @@ namespace Orts.Viewer3D
         public ShapePrimitive BuildPrimitive(Viewer viewer, int lodIndex, int lodItemIndex)
         {
             // Call for track section to initialize itself
-            if (DTrackData.IsCurved == 0) LinearGen();
+            if (!DTrackData.IsCurved) LinearGen();
             else CircArcGen();
 
             // Count vertices and indices
@@ -622,7 +608,7 @@ namespace Orts.Viewer3D
                     uint plv = 0; // Polyline vertex index
                     foreach (Vertex v in pl.Vertices)
                     {
-                        if (DTrackData.IsCurved == 0) LinearGen(stride, pl); // Generation call
+                        if (!DTrackData.IsCurved) LinearGen(stride, pl); // Generation call
                         else CircArcGen(stride, pl);
 
                         if (plv > 0)
@@ -677,7 +663,7 @@ namespace Orts.Viewer3D
                         {
                             foreach (Vertex v in pl.Vertices)
                             {
-                                if (DTrackData.IsCurved != 0)
+                                if (DTrackData.IsCurved)
                                 {
 
                                     OldV = v.Position - center - OldRadius;
@@ -747,13 +733,13 @@ namespace Orts.Viewer3D
             // Cute the lines to have vertical stuff if needed
             if (WireProfile.expectedSegmentLength > 1)
             {
-                NumSections = (int)(DTrackData.param1 / WireProfile.expectedSegmentLength);
+                NumSections = (int)(DTrackData.Length / WireProfile.expectedSegmentLength);
             }
 
             if (NumSections < 1) NumSections = 1;
 
-            SegmentLength = DTrackData.param1 / NumSections; // Length of each mesh segment (meters)
-            DDY = new Vector3(0, DTrackData.deltaY / NumSections, 0); // Incremental elevation change
+            SegmentLength = DTrackData.Length / NumSections; // Length of each mesh segment (meters)
+            DDY = new Vector3(0, DTrackData.DeltaElevation / NumSections, 0); // Incremental elevation change
         }
 
         /// <summary>
@@ -761,7 +747,7 @@ namespace Orts.Viewer3D
         /// </summary>
         void CircArcGen()
         {
-            float arcLength = Math.Abs(DTrackData.param2 * DTrackData.param1);
+            float arcLength = Math.Abs(DTrackData.Radius * DTrackData.Length);
             // Define the number of track cross sections in addition to the base.
             // Assume one skewed straight section per degree of curvature
             // Define the number of track cross sections in addition to the base.
@@ -775,21 +761,21 @@ namespace Orts.Viewer3D
                 {
                     NumSections = (int)(2 * arcLength / WireProfile.expectedSegmentLength);
                 }
-                else NumSections = (int)Math.Abs(MathHelper.ToDegrees(DTrackData.param1 / 4));
+                else NumSections = (int)Math.Abs(MathHelper.ToDegrees(DTrackData.Length / 4));
             }
-            else NumSections = (int)Math.Abs(MathHelper.ToDegrees(DTrackData.param1 / 3));
+            else NumSections = (int)Math.Abs(MathHelper.ToDegrees(DTrackData.Length / 3));
 
             if (NumSections < 1) NumSections = 1; // Very small radius track - zero avoidance
             //numSections = 10; //TESTING
             // TODO: Generalize count to profile file specification
 
-            SegmentLength = DTrackData.param1 / NumSections; // Length of each mesh segment (radians)
-            DDY = new Vector3(0, DTrackData.deltaY / NumSections, 0); // Incremental elevation change
+            SegmentLength = DTrackData.Length / NumSections; // Length of each mesh segment (radians)
+            DDY = new Vector3(0, DTrackData.DeltaElevation / NumSections, 0); // Incremental elevation change
 
             // The approach here is to replicate the previous cross section, 
             // rotated into its position on the curve and vertically displaced if on grade.
             // The local center for the curve lies to the left or right of the local origin and ON THE BASE PLANE
-            center = DTrackData.param2 * (DTrackData.param1 < 0 ? Vector3.Left : Vector3.Right);
+            center = DTrackData.Radius * (DTrackData.Length < 0 ? Vector3.Left : Vector3.Right);
             sectionRotation = Matrix.CreateRotationY(-SegmentLength); // Rotation per iteration (constant)
         }
 
