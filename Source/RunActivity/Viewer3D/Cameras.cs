@@ -2456,17 +2456,32 @@ namespace Orts.Viewer3D
                     foreach (RoadCar visibleCar in Viewer.World.RoadCars.VisibleCars)
                     {
                         // check for direction
-                        if (Math.Abs(visibleCar.FrontTraveller.RotY - train.FrontTDBTraveller.RotY) < 0.5f)
+                        if (Math.Abs(visibleCar.FrontTraveller.RotY - train.FrontTDBTraveller.RotY) < 0.5f && visibleCar.Travelled < visibleCar.Spawner.Length - 30)
                         {
-                            var traveller = visibleCar.Speed > Math.Abs(train.SpeedMpS) ^ trainForwards ?
-                                train.RearTDBTraveller : train.FrontTDBTraveller;
-                            var distanceTo = WorldLocation.GetDistance2D(visibleCar.FrontTraveller.WorldLocation, traveller.WorldLocation).Length();
-                            if (distanceTo < MaxDistFromRoadCarM && Math.Abs(visibleCar.FrontTraveller.WorldLocation.Location.Y - traveller.WorldLocation.Location.Y) < 30.0f)
+                            TrainCar testTrainCar = null;
+                            if (visibleCar.Speed < Math.Abs(train.SpeedMpS) ^ trainForwards)
                             {
-                                if (visibleCar.Travelled < visibleCar.Spawner.Length - 30)
+                                // we want to select an intermediate car so that the car will have the time to reach the head of the train
+                                // before the end of its car spawner
+                                float maxTrainLengthRecoveredM = (visibleCar.Spawner.Length - 10 - visibleCar.Travelled) / visibleCar.Speed *
+                                    (visibleCar.Speed - Math.Abs(train.SpeedMpS));
+                                var carNumber = (int)(Math.Max(maxTrainLengthRecoveredM - 40, maxTrainLengthRecoveredM / 2) / 30);
+                                testTrainCar = trainForwards ? train.Cars[Math.Min(carNumber, train.Cars.Count - 1)] :
+                                    train.Cars[Math.Max(0, train.Cars.Count - 1 - carNumber)];
+                            }
+                            else
+                            {
+                                // select first car in direction of movement
+                                testTrainCar = trainForwards ? train.FirstCar : train.LastCar ;
+                            }
+                            if (Math.Abs(visibleCar.FrontTraveller.WorldLocation.Location.Y - testTrainCar.WorldPosition.WorldLocation.Location.Y) < 30.0f)
+                            {
+                                var distanceTo = WorldLocation.GetDistance2D(visibleCar.FrontTraveller.WorldLocation, testTrainCar.WorldPosition.WorldLocation).Length();
+                                if (distanceTo < MaxDistFromRoadCarM)
                                 {
                                     minDistanceM = distanceTo;
                                     NearRoadCar = visibleCar;
+                                    LastCheckCar = testTrainCar;
                                     break;
                                 }
                             }
@@ -2482,7 +2497,6 @@ namespace Orts.Viewer3D
                         var traveller = new Traveller(NearRoadCar.FrontTraveller);
                         traveller.Move(-2.5f - 0.15f * NearRoadCar.Length);
                         TrackCameraLocation = newLocation = new WorldLocation(traveller.WorldLocation);
-                        LastCheckCar = trainForwards ? train.Cars.First() : train.Cars.Last();
                     }
                 }
 
