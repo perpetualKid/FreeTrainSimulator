@@ -59,6 +59,7 @@ namespace ContentChecker
             {
                 ShowHelp();
             }
+            Console.ReadLine();
         }
 
         #region Initialization
