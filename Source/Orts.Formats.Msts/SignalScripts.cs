@@ -226,10 +226,6 @@ namespace Orts.Formats.Msts
 #if DEBUG_PRINT_PROCESS
             File.Delete(dpr_fileLoc + @"printproc.txt");
 #endif
-            orSignalTypes.Add("ROUTING");
-            orSignalTypes.Add("RSRROUTING");
-            orSignalTypes.Add("JUNCTION");
-
             // Process all files listed in SIGCFG
             foreach (string fileName in scriptFiles)
             {
