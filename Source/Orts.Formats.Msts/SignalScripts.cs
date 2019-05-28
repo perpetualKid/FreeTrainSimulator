@@ -493,7 +493,7 @@ namespace Orts.Formats.Msts
             {
                 if (Scripts.ContainsKey(signalType))
                 {
-                    Trace.TraceWarning($"Ignored duplicate SignalType script {scriptName} in {0} {fileName} before {currentLine}");
+                    Trace.TraceWarning($"Ignored duplicate SignalType script {scriptName} in {fileName} before {currentLine}");
                 }
                 else
                 {
