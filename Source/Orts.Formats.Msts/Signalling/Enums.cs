@@ -28,4 +28,24 @@ namespace Orts.Formats.Msts.Signalling
         Operator,
     }
 
+    internal enum OperatorType
+    {
+        Negator,
+        Logical,
+        Equality,
+        Assignment,
+        Operation,
+        Other,
+    }
+
+    internal enum ConditionState
+    {
+        Started,
+        HasCondition,
+        HasStatement,
+        ExpectingAlternate,
+        HasAlternate,
+        HasAlternateCondition,
+    }
+
 }

@@ -570,20 +570,23 @@ namespace Orts.Formats.Msts
 
 #endif
                 #endregion
-                // Skip external floats (exist automatically)
-                while ((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "EXTERN" && (script.Tokens[statementLine] as Statement)?.Tokens[1].Token == "FLOAT" && statementLine++ < maxCount) ;
 
-                //// Process floats : build list with internal floats
-                while (((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "FLOAT") && statementLine < maxCount)
+                while ((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "EXTERN" || (script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "FLOAT")
                 {
-                    string floatString = (script.Tokens[statementLine] as Statement)?.Tokens[1].Token;
-                    if (!localFloats.ContainsKey(floatString))
-                    {
-                        localFloats.Add(floatString, localFloats.Count);
-                    }
-                    statementLine++;
-                }
+                    // Skip external floats (exist automatically)
+                    while ((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "EXTERN" && (script.Tokens[statementLine] as Statement)?.Tokens[1].Token == "FLOAT" && statementLine++ < maxCount) ;
 
+                    //// Process floats : build list with internal floats
+                    while (((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "FLOAT") && statementLine < maxCount)
+                    {
+                        string floatString = (script.Tokens[statementLine] as Statement)?.Tokens[1].Token;
+                        if (!localFloats.ContainsKey(floatString))
+                        {
+                            localFloats.Add(floatString, localFloats.Count);
+                        }
+                        statementLine++;
+                    }
+                }
                 #region DEBUG_PRINT_OUT
 #if DEBUG_PRINT_OUT
                 // print details of internal floats
@@ -598,19 +601,7 @@ namespace Orts.Formats.Msts
                 #endregion
                 script.Tokens.RemoveRange(0, statementLine);
 
-                foreach (BlockBase statementBlock in script.Tokens)
-                {
-                    if (statementBlock is ConditionalBlock)
-                    {
-                        SCRConditionBlock condition = new SCRConditionBlock(statementBlock as ConditionalBlock, localFloats, orSignalTypes, orNormalSubtypes);
-                        Statements.Add(condition);
-                    }
-                    else
-                    {
-                        SCRStatement scrStatement = new SCRStatement(statementBlock, localFloats, orSignalTypes, orNormalSubtypes);
-                        Statements.Add(scrStatement);
-                    }
-                }
+                ProcessBlock(script, Statements, localFloats, orSignalTypes, orNormalSubtypes);
             }// constructor
 
             internal static SCRParameterType ParameterFromToken(ScriptToken token, int lineNumber, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
@@ -785,6 +776,8 @@ namespace Orts.Formats.Msts
 
                 public int AssignParameter { get; private set; }
 
+                private int termNumber;
+
                 internal SCRStatement(BlockBase statementBlock, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     AssignType = SCRTermType.Invalid;
@@ -826,7 +819,6 @@ namespace Orts.Formats.Msts
                 private void ProcessScriptStatement(BlockBase statementBlock, int level, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
                 {
                     string operatorString = string.Empty;
-                    int termNumber = level;
                     bool negated = false;
 
                     while (statementBlock.Tokens.Count > 0)
@@ -853,8 +845,7 @@ namespace Orts.Formats.Msts
                             SCRStatTerm term = new SCRStatTerm(termNumber, level, operatorString);
                             StatementTerms.Add(term);
 
-                            ProcessScriptStatement(statementBlock.Tokens[0] as Enclosure, termNumber, localFloats, orSignalTypes, orNormalSubtypes);
-                            termNumber--;
+                            ProcessScriptStatement(statementBlock.Tokens[0] as Enclosure, level + 1, localFloats, orSignalTypes, orNormalSubtypes);
                         }
                         else
                         {
@@ -866,13 +857,13 @@ namespace Orts.Formats.Msts
                             if (statementBlock.Tokens.Count > 1 && Enum.TryParse(statementBlock.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statementBlock.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
                             {
                                 StatementTerms.Add(
-                                    new SCRStatTerm(externalFunctionsResult, statementBlock.Tokens[1] as Enclosure, termNumber, operatorString, negated, localFloats, orSignalTypes, orNormalSubtypes));
+                                    new SCRStatTerm(externalFunctionsResult, statementBlock.Tokens[1] as Enclosure, level, operatorString, negated, localFloats, orSignalTypes, orNormalSubtypes));
                                 statementBlock.Tokens.RemoveAt(0);
                             }
                             else 
                             {
                                 StatementTerms.Add(
-                                    new SCRStatTerm(statementBlock.Tokens[0], termNumber, operatorString, statementBlock.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes));
+                                    new SCRStatTerm(statementBlock.Tokens[0], level, operatorString, statementBlock.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes));
                             }
 
                         }
@@ -1117,6 +1108,27 @@ namespace Orts.Formats.Msts
                 }
             } // class SCRConditions
 
+            internal static void ProcessBlock(BlockBase block, ArrayList statements, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            {
+                foreach (BlockBase statementBlock in block.Tokens)
+                {
+                    switch (statementBlock)
+                    {
+                        case ConditionalBlock nestedCondition:
+                            SCRConditionBlock condition = new SCRConditionBlock(nestedCondition, localFloats, orSignalTypes, orNormalSubtypes);
+                            statements.Add(condition);
+                            break;
+                        case Block nestedBlock:
+                            ProcessBlock(nestedBlock, statements, localFloats, orSignalTypes, orNormalSubtypes);
+                            break;
+                        default:
+                            SCRStatement scrStatement = new SCRStatement(statementBlock, localFloats, orSignalTypes, orNormalSubtypes);
+                            statements.Add(scrStatement);
+                            break;
+                    }
+                }
+            }
+
             //================================================================================================//
             //
             // class SCRBlock
@@ -1138,19 +1150,7 @@ namespace Orts.Formats.Msts
 
                     Statements = new ArrayList();
 
-                    foreach (BlockBase statementBlock in block.Tokens)
-                    {
-                        if (statementBlock is ConditionalBlock)
-                        {
-                            SCRConditionBlock condition = new SCRConditionBlock(statementBlock as ConditionalBlock, localFloats, orSignalTypes, orNormalSubtypes);
-                            Statements.Add(condition);
-                        }
-                        else
-                        {
-                            SCRStatement scrStatement = new SCRStatement(statementBlock, localFloats, orSignalTypes, orNormalSubtypes);
-                            Statements.Add(scrStatement);
-                        }
-                    }
+                    ProcessBlock(block, Statements, localFloats, orSignalTypes, orNormalSubtypes);
                 }
             } // class SCRBlock
         } // class Scripts
