@@ -192,6 +192,7 @@ namespace ORTS.Menu
                 Name = "<" + catalog.GetString("unnamed:") + " " + System.IO.Path.GetFileNameWithoutExtension(fileName) + ">";
             if (string.IsNullOrEmpty(Description))
                 Description = null;
+            FilePath = fileName;
         }
 
         private Locomotive(string name, string filePath)

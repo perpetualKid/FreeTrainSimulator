@@ -240,11 +240,11 @@ namespace Orts.Viewer3D
                 PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(viewer.Simulator, ts[0].Filename) + "\0" + Helpers.GetTerrainTextureFile(viewer.Simulator, "microtex.ace"));
 
             if (SharedPatchIndexBuffer == null)
-                SetupSharedData(Viewer.GraphicsDevice);
+                SetupSharedData(Viewer.RenderProcess.GraphicsDevice);
 
             Tile = null;
             Patch = null;
-            DummyVertexBuffer = new VertexBuffer(viewer.GraphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
+            DummyVertexBuffer = new VertexBuffer(viewer.RenderProcess.GraphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
             DummyVertexBuffer.SetData(DummyVertexData);
             VertexBufferBindings = new[] { new VertexBufferBinding(PatchVertexBuffer), new VertexBufferBinding(DummyVertexBuffer) };
         }
@@ -261,7 +261,7 @@ namespace Orts.Viewer3D
             frame.AddAutoPrimitive(mstsLocation, PatchSize * 0.7071F, Size > 2 ? float.PositiveInfinity : float.MaxValue, PatchMaterial, this, RenderPrimitiveGroup.World, ref xnaPatchMatrix, Size <= 2 ? ShapeFlags.ShadowCaster : ShapeFlags.None);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffers(VertexBufferBindings);
             if (PatchIndexBuffer != null)
@@ -409,7 +409,7 @@ namespace Orts.Viewer3D
             if (i == bufferSize) //16 * 16 * 6
                 return null;
 
-            IndexBuffer result = new IndexBuffer(Viewer.GraphicsDevice, typeof(short), i, BufferUsage.WriteOnly);
+            IndexBuffer result = new IndexBuffer(Viewer.RenderProcess.GraphicsDevice, typeof(short), i, BufferUsage.WriteOnly);
             result.SetData(indexBuffer, 0, i);
             return result;
         }
@@ -445,7 +445,7 @@ namespace Orts.Viewer3D
             }
 
             averageElevation = totalElevation / bufferSize;
-            VertexBuffer result = new VertexBuffer(Viewer.GraphicsDevice, typeof(VertexPositionNormalTexture), bufferSize, BufferUsage.WriteOnly);
+            VertexBuffer result = new VertexBuffer(Viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionNormalTexture), bufferSize, BufferUsage.WriteOnly);
             result.SetData(vertexbuffer);
             return result;
         }
@@ -529,7 +529,7 @@ namespace Orts.Viewer3D
 
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[techniqueIndex];
 
@@ -541,22 +541,21 @@ namespace Orts.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
+                    shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
-
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
         }
@@ -576,9 +575,9 @@ namespace Orts.Viewer3D
         {
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
-            base.SetState(graphicsDevice, previousMaterial);
+            base.SetState(previousMaterial);
             graphicsDevice.Indices = TerrainPrimitive.SharedPatchIndexBuffer;
         }
     }
@@ -590,18 +589,18 @@ namespace Orts.Viewer3D
         {
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
-            base.SetState(graphicsDevice, previousMaterial);
+            base.SetState(previousMaterial);
             graphicsDevice.Indices = TerrainPrimitive.SharedPatchIndexBuffer;
 
             graphicsDevice.BlendState = BlendState.Opaque; // Override the normal terrain blending!
             graphicsDevice.RasterizerState = RasterizerState.CullNone;
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
-            base.ResetState(graphicsDevice);
+            base.ResetState();
 
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         }

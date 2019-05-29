@@ -51,9 +51,9 @@ namespace Orts.Viewer3D
             if (Viewer.ENVFile.WaterLayers != null)
             WaterLayers = Viewer.ENVFile.WaterLayers.Select(layer => new KeyValuePair<float, Material>(layer.Height, Viewer.MaterialManager.Load("Water", Viewer.Simulator.RoutePath + @"\envfiles\textures\" + layer.TextureName))).ToArray();
 
-            LoadGeometry(Viewer.GraphicsDevice, tile, out PrimitiveCount, out IndexBuffer, out VertexBuffer);
+            LoadGeometry(Viewer.RenderProcess.GraphicsDevice, tile, out PrimitiveCount, out IndexBuffer, out VertexBuffer);
             
-            DummyVertexBuffer = new VertexBuffer(Viewer.GraphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
+            DummyVertexBuffer = new VertexBuffer(Viewer.RenderProcess.GraphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
             DummyVertexBuffer.SetData(new Matrix[] { Matrix.Identity });
             VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(DummyVertexBuffer) };
         }
@@ -77,7 +77,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.Indices = IndexBuffer;
             graphicsDevice.SetVertexBuffers(VertexBufferBindings);
@@ -184,7 +184,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[techniqueIndex];
             shaderPasses = shader.CurrentTechnique.Passes;
@@ -195,22 +195,22 @@ namespace Orts.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             for (int j = 0; j < shaderPasses.Count; j++)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
+                    shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     shaderPasses[j].Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             var shader = Viewer.MaterialManager.SceneryShader;
             shader.ReferenceAlpha = 0;

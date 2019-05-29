@@ -34,6 +34,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using ORTS.Common.Xna;
 
 namespace Orts.Viewer3D
 {
@@ -547,7 +548,7 @@ namespace Orts.Viewer3D
             UpdateState(lightViewer);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.Indices = IndexBuffer;
@@ -673,7 +674,7 @@ namespace Orts.Viewer3D
             UpdateState(lightViewer);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.Indices = IndexBuffer;
@@ -746,11 +747,11 @@ namespace Orts.Viewer3D
             : base(viewer, null)
         {
             // TODO: This should happen on the loader thread.
-            lightGlowTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Lightglow.png"));
+            lightGlowTexture = SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Lightglow.png"));
             shader = Viewer.MaterialManager.LightGlowShader;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["LightGlow"];
             shader.LightGlowTexture = lightGlowTexture;
@@ -759,10 +760,9 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            Matrix viewProjection = Viewer.Camera.XnaProjection;
-            Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewProjection, out viewProjection);
+            MatrixExtension.Multiply(in view, in Viewer.Camera.XnaProjection, out Matrix result);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -771,17 +771,16 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     // Glow lights were not working properly because farPlaneDistance used by XNASkyProjection is hardcoded at 6100.  So when view distance was greater than 6100, the 
                     // glow lights were unable to render properly.
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewProjection, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in result, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -809,7 +808,7 @@ namespace Orts.Viewer3D
             shader = Viewer.MaterialManager.LightConeShader;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["LightCone"];
 
@@ -818,10 +817,9 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState.StencilEnable = true;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            Matrix viewProjection = Viewer.Camera.XnaProjection;
-            Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewProjection, out viewProjection);
+            MatrixExtension.Multiply(in view, in Viewer.Camera.XnaProjection, out Matrix result);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -831,17 +829,16 @@ namespace Orts.Viewer3D
                     // Light cone was originally using XNASkyProjection, but with no problems.
                     // Switched to Viewer.Camera.XnaProjection to keep the standard since farPlaneDistance used by XNASkyProjection is limited to 6100.
                     //                    Matrix wvp = item.XNAMatrix * viewMatrix * Viewer.Camera.XnaProjection;
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewProjection, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in result, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;

@@ -34,6 +34,7 @@ using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Orts.Viewer3D.Common;
 using ORTS.Common;
+using ORTS.Common.Xna;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -193,7 +194,7 @@ namespace Orts.Viewer3D
             foreach (var lod in shapes[0].SharedShape.LodControls)
                 for (var subObjectIndex = 0; subObjectIndex < lod.DistanceLevels[0].SubObjects.Length; subObjectIndex++)
                     foreach (var prim in lod.DistanceLevels[0].SubObjects[subObjectIndex].ShapePrimitives)
-                        prims.Add(new ShapePrimitiveInstances(viewer.GraphicsDevice, prim, GetMatricies(shapes, prim), subObjectIndex));
+                        prims.Add(new ShapePrimitiveInstances(viewer.RenderProcess.GraphicsDevice, prim, GetMatricies(shapes, prim), subObjectIndex));
             Primitives = prims.ToArray();
         }
 
@@ -587,10 +588,10 @@ namespace Orts.Viewer3D
             for (i = 0; i < NumIndices; i++) newTList[i] = TriangleListIndices[i];
             VertexPositionNormalTexture[] newVList = new VertexPositionNormalTexture[NumVertices];
             for (i = 0; i < NumVertices; i++) newVList[i] = VertexList[i];
-            IndexBuffer IndexBuffer = new IndexBuffer(viewer.GraphicsDevice, typeof(short),
+            IndexBuffer IndexBuffer = new IndexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(short),
                                                             NumIndices, BufferUsage.WriteOnly);
             IndexBuffer.SetData(newTList);
-            shapePrimitive = new ShapePrimitive(viewer.GraphicsDevice, material, new SharedShape.VertexBufferSet(newVList, viewer.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
+            shapePrimitive = new ShapePrimitive(viewer.RenderProcess.GraphicsDevice, material, new SharedShape.VertexBufferSet(newVList, viewer.RenderProcess.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
 
         }
 
@@ -1057,8 +1058,7 @@ namespace Orts.Viewer3D
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, AnimationKey);
 
-            var absAnimationMatrix = XNAMatrices[IAnimationMatrix];
-            Matrix.Multiply(ref absAnimationMatrix, ref Location.XNAMatrix, out absAnimationMatrix);
+            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in Location.XNAMatrix, out Matrix absAnimationMatrix);
             Turntable.ReInitTrainPositions(absAnimationMatrix);
         }
 
@@ -1098,8 +1098,7 @@ namespace Orts.Viewer3D
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, AnimationKey);
 
-            var absAnimationMatrix = XNAMatrices[IAnimationMatrix];
-            Matrix.Multiply(ref absAnimationMatrix, ref Location.XNAMatrix, out absAnimationMatrix);
+            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in Location.XNAMatrix, out Matrix absAnimationMatrix);
             Turntable.PerformUpdateActions(absAnimationMatrix);
             SharedShape.PrepareFrame(frame, Location, XNAMatrices, Flags);
         }
@@ -1154,8 +1153,7 @@ namespace Orts.Viewer3D
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, AnimationKey);
 
-            var absAnimationMatrix = XNAMatrices[IAnimationMatrix];
-            Matrix.Multiply(ref absAnimationMatrix, ref Location.XNAMatrix, out absAnimationMatrix);
+            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in Location.XNAMatrix, out Matrix absAnimationMatrix);
             Transfertable.ReInitTrainPositions(absAnimationMatrix);
         }
 
@@ -1195,8 +1193,7 @@ namespace Orts.Viewer3D
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, AnimationKey);
 
-            var absAnimationMatrix = XNAMatrices[IAnimationMatrix];
-            Matrix.Multiply(ref absAnimationMatrix, ref Location.XNAMatrix, out absAnimationMatrix);
+            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in Location.XNAMatrix, out Matrix absAnimationMatrix);
             Transfertable.PerformUpdateActions(absAnimationMatrix, Location);
             SharedShape.PrepareFrame(frame, Location, XNAMatrices, Flags);
         }
@@ -1243,7 +1240,7 @@ namespace Orts.Viewer3D
             IndexBuffer.SetData(indexData.ToArray());
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (PrimitiveCount > 0)
             {
@@ -1318,7 +1315,7 @@ namespace Orts.Viewer3D
             VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(InstanceBuffer, 0, 1) };
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.Indices = IndexBuffer;
             graphicsDevice.SetVertexBuffers(VertexBufferBindings);
@@ -1600,7 +1597,7 @@ namespace Orts.Viewer3D
                 var debugShapeHierarchy = new StringBuilder();
                 debugShapeHierarchy.AppendFormat("      Sub object {0}:\n", subObjectIndex);
 #endif
-                var vertexBufferSet = new VertexBufferSet(sub_object, sFile, sharedShape.Viewer.GraphicsDevice);
+                var vertexBufferSet = new VertexBufferSet(sub_object, sFile, sharedShape.Viewer.RenderProcess.GraphicsDevice);
 #if DEBUG_SHAPE_NORMALS
                 var debugNormalsMaterial = sharedShape.Viewer.MaterialManager.Load("DebugNormals");
 #endif
@@ -1717,11 +1714,11 @@ namespace Orts.Viewer3D
                         foreach (var index in new[] { vertex_idx.a, vertex_idx.b, vertex_idx.c })
                             indexData.Add((ushort)index);
 
-                    ShapePrimitives[primitiveIndex] = new ShapePrimitive(material, vertexBufferSet, indexData, sharedShape.Viewer.GraphicsDevice, hierarchy, vertexState.imatrix);
+                    ShapePrimitives[primitiveIndex] = new ShapePrimitive(material, vertexBufferSet, indexData, sharedShape.Viewer.RenderProcess.GraphicsDevice, hierarchy, vertexState.imatrix);
                     ShapePrimitives[primitiveIndex].SortIndex = ++totalPrimitiveIndex;
                     ++primitiveIndex;
 #if DEBUG_SHAPE_NORMALS
-                    ShapePrimitives[primitiveIndex] = new ShapeDebugNormalsPrimitive(debugNormalsMaterial, vertexBufferSet, indexData, sharedShape.Viewer.GraphicsDevice, hierarchy, vertexState.imatrix);
+                    ShapePrimitives[primitiveIndex] = new ShapeDebugNormalsPrimitive(debugNormalsMaterial, vertexBufferSet, indexData, sharedShape.Viewer.RenderProcess.GraphicsDevice, hierarchy, vertexState.imatrix);
                     ShapePrimitives[primitiveIndex].SortIndex = totalPrimitiveIndex;
                     ++primitiveIndex;
 #endif
@@ -1758,7 +1755,7 @@ namespace Orts.Viewer3D
                 var primitiveIndex = 0;
                 foreach (var index in indexes)
                 {
-                    var indexBuffer = new IndexBuffer(sharedShape.Viewer.GraphicsDevice, typeof(short), index.Value.Count, BufferUsage.WriteOnly);
+                    var indexBuffer = new IndexBuffer(sharedShape.Viewer.RenderProcess.GraphicsDevice, typeof(short), index.Value.Count, BufferUsage.WriteOnly);
                     indexBuffer.SetData(index.Value.ToArray());
                     var primitiveMaterial = primitiveMaterials.First(d => d.Key == index.Key);
                     ShapePrimitives[primitiveIndex] = new ShapePrimitive(primitiveMaterial.Material, vertexBufferSet, indexBuffer, index.Value.Min(), index.Value.Max() - index.Value.Min() + 1, index.Value.Count / 3, hierarchy, primitiveMaterial.HierachyIndex);
@@ -1968,14 +1965,15 @@ namespace Orts.Viewer3D
 
                     foreach (var shapePrimitive in subObject.ShapePrimitives)
                     {
-                        var xnaMatrix = Matrix.Identity;
+                        Matrix startingPoint = Matrix.Identity;
                         var hi = shapePrimitive.HierarchyIndex;
                         while (hi >= 0 && hi < shapePrimitive.Hierarchy.Length)
                         {
-                            Matrix.Multiply(ref xnaMatrix, ref animatedXNAMatrices[hi], out xnaMatrix);
+                            MatrixExtension.Multiply(in startingPoint, in animatedXNAMatrices[hi], out Matrix result);
                             hi = shapePrimitive.Hierarchy[hi];
+                            startingPoint = result;
                         }
-                        Matrix.Multiply(ref xnaMatrix, ref xnaDTileTranslation, out xnaMatrix);
+                        MatrixExtension.Multiply(in startingPoint, in xnaDTileTranslation, out Matrix xnaMatrix);
 
                         // TODO make shadows depend on shape overrides
 

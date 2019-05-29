@@ -12378,7 +12378,7 @@ namespace Orts.Simulation.Physics
 
         public int RandomizedDelayWithThreshold(int maxAddedDelay)
         {
-            if (DateTime.Now.Millisecond % 10 < 6 - Simulator.Settings.ActRandomizationLevel) return 0;
+            if (DateTime.UtcNow.Millisecond % 10 < 6 - Simulator.Settings.ActRandomizationLevel) return 0;
             return (int)(Simulator.Random.Next(0, (int)(Simulator.Resolution * Simulator.Random.NextDouble()) + 1) / Simulator.Resolution * maxAddedDelay);
         }
 
@@ -19472,7 +19472,7 @@ namespace Orts.Simulation.Physics
             {
                 if (stopTrain.Simulator.Settings.ActRandomizationLevel > 0)
                 {
-                    var randms = DateTime.Now.Millisecond % 10;
+                    var randms = DateTime.UtcNow.Millisecond % 10;
                     if (randms >= 6 - stopTrain.Simulator.Settings.ActRandomizationLevel)
                     {
                         if (randms < 8)

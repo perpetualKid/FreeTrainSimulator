@@ -1202,8 +1202,8 @@ namespace Orts.Viewer3D.Popups
 
         public HUDGraphMesh(Viewer viewer, Color color, int height)
         {
-            VertexBuffer = new DynamicVertexBuffer(viewer.GraphicsDevice, typeof(VertexPositionColor), VertexCount, BufferUsage.WriteOnly);
-            BorderVertexBuffer = new VertexBuffer(viewer.GraphicsDevice, typeof(VertexPositionColor), 10, BufferUsage.WriteOnly);
+            VertexBuffer = new DynamicVertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionColor), VertexCount, BufferUsage.WriteOnly);
+            BorderVertexBuffer = new VertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionColor), 10, BufferUsage.WriteOnly);
             var borderOffset = new Vector2(1f / SampleCount, 1f / height);
             var borderColor = new Color(1f, 1f, 1f, 0f);
             BorderVertexBuffer.SetData(new[] {
@@ -1252,7 +1252,7 @@ namespace Orts.Viewer3D.Popups
             Sample.X = SampleIndex;
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (VertexBuffer.IsContentLost)
                 VertexBuffer_ContentLost();
@@ -1280,7 +1280,7 @@ namespace Orts.Viewer3D.Popups
             shader = Viewer.MaterialManager.DebugShader;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["Graph"];
             shader.ScreenSize = new Vector2(Viewer.DisplaySize.X, Viewer.DisplaySize.Y);
@@ -1289,7 +1289,7 @@ namespace Orts.Viewer3D.Popups
             graphicsDevice.DepthStencilState = DepthStencilState.None;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -1302,12 +1302,12 @@ namespace Orts.Viewer3D.Popups
                         shader.GraphSample = graphMesh.Sample;
                         pass.Apply();
                     }
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;

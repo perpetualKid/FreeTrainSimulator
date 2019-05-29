@@ -118,6 +118,9 @@ namespace Orts.Viewer3D.Processes
                 ToggleFullScreen();
 
             SynchronizeGraphicsDeviceManager();
+
+            RenderPrimitive.SetGraphicsDevice(game.GraphicsDevice);
+
             UserInput.Initialize(game);
 
         }
@@ -324,13 +327,13 @@ namespace Orts.Viewer3D.Processes
         {
             if (Debugger.IsAttached)
             {
-                CurrentFrame.Draw(Game.GraphicsDevice);
+                CurrentFrame.Draw();
             }
             else
             {
                 try
                 {
-                    CurrentFrame.Draw(Game.GraphicsDevice);
+                    CurrentFrame.Draw();
                 }
                 catch (Exception error)
                 {

@@ -26,6 +26,7 @@ using Orts.Simulation;
 using Orts.Viewer3D.Debugging;
 using ORTS.Common;
 using ORTS.Common.Msts;
+using ORTS.Common.Xna;
 using ORTS.Settings;
 using System;
 using System.Collections.Generic;
@@ -831,7 +832,7 @@ namespace Orts.Viewer3D.Processes
             catch { }
 
             LoadingTime = loadingTime;
-            LoadingStart = DateTime.Now;
+            LoadingStart = DateTime.UtcNow;
             LoadingBytesExpected = bytesExpected;
             LoadingBytesActual = bytesActual;
             // Using the cached loading time, pick a sample rate that will get us ~100 samples. Clamp to 100ms < x < 10,000ms.
@@ -855,7 +856,7 @@ namespace Orts.Viewer3D.Processes
             var bytes = GetProcessBytesLoaded() - LoadingBytesInitial;
 
             // Negative indicates no progress data; this happens if the loaded bytes exceeds the cached maximum expected bytes.
-            LoadedPercent = -(float)(DateTime.Now - LoadingStart).TotalSeconds / 15;
+            LoadedPercent = -(float)(DateTime.UtcNow - LoadingStart).TotalSeconds / 15;
             for (var i = 0; i < LoadingSampleCount; i++)
             {
                 // Find the first expected sample with more bytes. This means we're currently in the (i - 1) to (i) range.
@@ -870,7 +871,7 @@ namespace Orts.Viewer3D.Processes
                 }
             }
 
-            if (DateTime.Now > LoadingNextSample)
+            if (DateTime.UtcNow > LoadingNextSample)
             {
                 // Record a sample every time we should.
                 LoadingBytesActual.Add(bytes);
@@ -883,7 +884,7 @@ namespace Orts.Viewer3D.Processes
             if (LoadingDataKey == null)
                 return;
 
-            var loadingTime = DateTime.Now - LoadingStart;
+            var loadingTime = DateTime.UtcNow - LoadingStart;
             var bytes = GetProcessBytesLoaded() - LoadingBytesInitial;
             LoadingBytesActual.Add(bytes);
 
@@ -1261,7 +1262,7 @@ namespace Orts.Viewer3D.Processes
                 };
             }
             
-            public override void Draw(GraphicsDevice graphicsDevice)
+            public override void Draw()
             {
                 graphicsDevice.SetVertexBuffer(VertexBuffer);
                 graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
@@ -1335,9 +1336,8 @@ namespace Orts.Viewer3D.Processes
             internal readonly LoadingShader shader;
             public readonly Texture2D texture;
 
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
             public LoadingMaterial(Game game)
-                : base(null, null)
+                : base(game.GraphicsDevice)
             {
                 shader = new LoadingShader(game.RenderProcess.GraphicsDevice);
                 texture = GetTexture(game);
@@ -1351,7 +1351,7 @@ namespace Orts.Viewer3D.Processes
                 return SharedTextureManager.Get(game.RenderProcess.GraphicsDevice, Path.Combine(game.ContentPath, "Loading.png"));
             }
 
-            public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+            public override void SetState(Material previousMaterial)
             {
                 shader.CurrentTechnique = shader.Techniques[0]; //["Loading"];
                 shader.LoadingTexture = texture;
@@ -1359,21 +1359,20 @@ namespace Orts.Viewer3D.Processes
                 graphicsDevice.BlendState = BlendState.NonPremultiplied;
             }
 
-            public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+            public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in viewProjection, out Matrix wvp);
                     shader.WorldViewProjection = wvp;
-//                    shader.WorldViewProjection = item.XNAMatrix * matrices[0] * matrices[1];
+                    //                    shader.WorldViewProjection = item.XNAMatrix * matrices[0] * matrices[1];
                     shader.CurrentTechnique.Passes[0].Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
 
-            public override void ResetState(GraphicsDevice graphicsDevice)
+            public override void ResetState()
             {
                 graphicsDevice.BlendState = BlendState.Opaque;
             }
@@ -1453,9 +1452,9 @@ namespace Orts.Viewer3D.Processes
             {
             }
 
-            public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+            public override void SetState(Material previousMaterial)
             {
-                base.SetState(graphicsDevice, previousMaterial);
+                base.SetState(previousMaterial);
                 shader.CurrentTechnique = shader.Techniques[1]; //["LoadingBar"];
             }
         }

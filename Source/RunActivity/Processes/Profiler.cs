@@ -87,7 +87,7 @@ namespace Orts.Processes
         public void Start()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},+\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},+\n", DateTime.UtcNow.Ticks);
 #endif
             TimeRunning.Start();
             if (ProcessThread != null)
@@ -97,7 +97,7 @@ namespace Orts.Processes
         public void Stop()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},-\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},-\n", DateTime.UtcNow.Ticks);
 #endif
             TimeRunning.Stop();
             if (ProcessThread != null)

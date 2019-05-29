@@ -23,6 +23,7 @@ using Orts.Common;
 using Orts.Viewer3D.Common;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
+using ORTS.Common.Xna;
 using System;
 using System.Collections.Generic;
 
@@ -245,7 +246,7 @@ namespace Orts.Viewer3D
             InitializeVertexBuffers(renderProcess.GraphicsDevice);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffer(SkyVertexBuffer);
             graphicsDevice.Indices = SkyIndexBuffer;
@@ -447,7 +448,7 @@ namespace Orts.Viewer3D
             skyShader.CloudMapTexture = cloudTexture;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             // Adjust Fog color for day-night conditions and overcast
             FogDay2Night(
@@ -480,21 +481,19 @@ namespace Orts.Viewer3D
             graphicsDevice.BlendState = BlendState.Opaque;
 
             //            Matrix viewXNASkyProj = viewMatrix * Camera.XNASkyProjection;
-            Matrix viewXNASkyProj = Camera.XNASkyProjection;
-            Matrix.Multiply(ref matrices[(int)ViewMatrixSequence.View], ref viewXNASkyProj, out viewXNASkyProj);
+            MatrixExtension.Multiply(in view, in Camera.XNASkyProjection, out Matrix viewXNASkyProj);
 
-            skyShader.SetViewMatrix(ref matrices[(int)ViewMatrixSequence.View]);
+            skyShader.SetViewMatrix(ref view);
             foreach (var pass in skyShader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
                     //                    Matrix wvp = item.XNAMatrix * viewXNASkyProj;
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewXNASkyProj, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
                     skyShader.SetMatrix(ref wvp);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
 
@@ -508,10 +507,10 @@ namespace Orts.Viewer3D
             // Send the transform matrices to the shader
             int skyRadius = Viewer.World.Sky.Primitive.skyRadius;
             int cloudRadiusDiff = Viewer.World.Sky.Primitive.cloudDomeRadiusDiff;
-            moonMatrix = Matrix.CreateTranslation(Viewer.World.Sky.lunarDirection * (skyRadius - (cloudRadiusDiff / 2)));
+            Matrix translation = Matrix.CreateTranslation(Viewer.World.Sky.lunarDirection * (skyRadius - (cloudRadiusDiff / 2)));
             //Matrix XNAMoonMatrixView = moonMatrix * viewMatrix;
-            Matrix.Multiply(ref moonMatrix, ref matrices[(int)ViewMatrixSequence.View], out moonMatrix);
-            Matrix.Multiply(ref moonMatrix, ref Camera.XNASkyProjection, out moonMatrix);
+            MatrixExtension.Multiply(in translation, in view, out Matrix moonMatrix);
+            MatrixExtension.Multiply(in moonMatrix, in Camera.XNASkyProjection, out Matrix moonMatrixView);
 
             foreach (var pass in skyShader.CurrentTechnique.Passes)
             {
@@ -519,11 +518,10 @@ namespace Orts.Viewer3D
                 {
                     RenderItem item = renderItems[i];
                     //                    Matrix wvp = item.XNAMatrix * XNAMoonMatrixView * Camera.XNASkyProjection;
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref moonMatrix, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in moonMatrixView, out Matrix wvp);
                     skyShader.SetMatrix(ref wvp);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
 
@@ -539,16 +537,15 @@ namespace Orts.Viewer3D
                 {
                     RenderItem item = renderItems[i];
                     //                    Matrix wvp = item.XNAMatrix * viewXNASkyProj;
-                    Matrix wvp = item.XNAMatrix;
-                    Matrix.Multiply(ref wvp, ref viewXNASkyProj, out wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
                     skyShader.SetMatrix(ref wvp);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;

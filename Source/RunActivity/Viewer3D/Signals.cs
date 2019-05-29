@@ -26,6 +26,7 @@ using Orts.Formats.Msts;
 using Orts.Simulation.Signalling;
 using Orts.Viewer3D.Common;
 using ORTS.Common;
+using ORTS.Common.Xna;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -151,10 +152,10 @@ namespace Orts.Viewer3D
             var dTileX = Location.TileX - Viewer.Camera.TileX;
             var dTileZ = Location.TileZ - Viewer.Camera.TileZ;
             var xnaTileTranslation = Matrix.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
-            Matrix.Multiply(ref Location.XNAMatrix, ref xnaTileTranslation, out xnaTileTranslation);
+            MatrixExtension.Multiply(in Location.XNAMatrix, in xnaTileTranslation, out Matrix xnaTileTranslationResult);
 
             foreach (var head in Heads)
-                head.PrepareFrame(frame, elapsedTime, xnaTileTranslation);
+                head.PrepareFrame(frame, elapsedTime, xnaTileTranslationResult);
 
             SharedShape.PrepareFrame(frame, Location, XNAMatrices, SubObjVisible, Flags);
         }
@@ -358,13 +359,13 @@ namespace Orts.Viewer3D
                     if (!SignalTypeData.DayLight && isDay && !isPoorVisibility)
                         continue;
 
-                    var xnaMatrix = Matrix.CreateTranslation(SignalTypeData.Lights[i].Position);
-
+                    var translationMatrix = Matrix.CreateTranslation(SignalTypeData.Lights[i].Position);
+                    Matrix temp = default;
                     foreach (int MatrixIndex in MatrixIndices)
                     {
-                        Matrix.Multiply(ref xnaMatrix, ref SignalShape.XNAMatrices[MatrixIndex], out xnaMatrix);
+                        MatrixExtension.Multiply(in translationMatrix, in SignalShape.XNAMatrices[MatrixIndex], out temp);
                     }
-                    Matrix.Multiply(ref xnaMatrix, ref xnaTileTranslation, out xnaMatrix);
+                    MatrixExtension.Multiply(in temp, in xnaTileTranslation, out Matrix xnaMatrix);
 
                     frame.AddPrimitive(SignalTypeData.Material, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix);
                     if (Viewer.Settings.SignalLightGlow)
@@ -556,11 +557,11 @@ namespace Orts.Viewer3D
 				new VertexPositionColorTexture(new Vector3(+radius, -radius, 0), color, new Vector2(u0, v1)),
 			};
 
-            VertexBuffer = new VertexBuffer(viewer.GraphicsDevice, typeof(VertexPositionColorTexture), verticies.Length, BufferUsage.WriteOnly);
+            VertexBuffer = new VertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionColorTexture), verticies.Length, BufferUsage.WriteOnly);
             VertexBuffer.SetData(verticies);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
@@ -589,7 +590,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = Viewer.MaterialManager.SceneryShader.Techniques[techniqueIndex]; //["SignalLight"];
             shader.ImageTexture = texture;
@@ -597,21 +598,21 @@ namespace Orts.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
+                    shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
         }
@@ -634,7 +635,7 @@ namespace Orts.Viewer3D
             : base(viewer, null)
         {
             shader = Viewer.MaterialManager.SceneryShader;
-            texture = SharedTextureManager.Get(Viewer.GraphicsDevice, Path.Combine(Viewer.ContentPath, "SignalLightGlow.png"));
+            texture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, Path.Combine(Viewer.ContentPath, "SignalLightGlow.png"));
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
                 if (shader.Techniques[i].Name == "SignalLightGlow")
@@ -646,7 +647,7 @@ namespace Orts.Viewer3D
 
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = Viewer.MaterialManager.SceneryShader.Techniques[techniqueIndex];
             shader.ImageTexture = texture;
@@ -662,7 +663,7 @@ namespace Orts.Viewer3D
             nightEffect = 1 - MathHelper.Clamp((sunDirection.Y - finishNightTrans) / (startNightTrans - finishNightTrans), 0, 1);
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -671,14 +672,14 @@ namespace Orts.Viewer3D
                     RenderItem item = renderItems[i];
                     var slp = item.RenderPrimitive as SignalLightPrimitive;
                     shader.ZBias = MathHelper.Lerp(slp.GlowIntensityDay, slp.GlowIntensityNight, nightEffect);
-                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
+                    shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
         }

@@ -92,9 +92,9 @@ namespace Orts.Common
                         // ActivityCommands need dedicated code as the clock is no longer advancing.
                         if( resumeTime == null ) {
                             var resumeCommand = (PausedCommand)c;
-                            resumeTime = DateTime.Now.AddSeconds(resumeCommand.PauseDurationS );
+                            resumeTime = DateTime.UtcNow.AddSeconds(resumeCommand.PauseDurationS );
                         } else {
-                            if( DateTime.Now >= resumeTime ) {
+                            if( DateTime.UtcNow >= resumeTime ) {
                                 resumeTime = null;  // cancel trigger
                                 ReplayCommand( elapsedTime, replayCommandList, c );
                             }

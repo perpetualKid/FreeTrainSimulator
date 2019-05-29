@@ -183,7 +183,7 @@ namespace Orts.Viewer3D
                 new VertexElement(16 + 16 + 16 + 16, VertexElementFormat.Color, VertexElementUsage.Position, 4)
             };
 
-            public static int VertexStride = sizeof(float) * 12 + sizeof(float) * 4 + sizeof(float) * 4;
+            public static readonly int VertexStride = sizeof(float) * 12 + sizeof(float) * 4 + sizeof(float) * 4;
         }
 
         internal ParticleEmitterData EmitterData;
@@ -210,7 +210,6 @@ namespace Orts.Viewer3D
         int DrawCounter;
 
         Viewer viewer;
-        GraphicsDevice graphicsDevice;
         
         static float windDisplacementX;
         static float windDisplacementZ;
@@ -218,7 +217,6 @@ namespace Orts.Viewer3D
         public ParticleEmitterPrimitive(Viewer viewer, ParticleEmitterData data, WorldPosition worldPosition)
         {
             this.viewer = viewer;
-            this.graphicsDevice = viewer.GraphicsDevice;
 
             MaxParticles = (int)(ParticleEmitterViewer.MaxParticlesPerSecond * ParticleEmitterViewer.MaxParticleDuration);
             Vertices = new ParticleVertex[MaxParticles * VerticiesPerParticle];
@@ -421,7 +419,7 @@ namespace Orts.Viewer3D
             return FirstActiveParticle != FirstFreeParticle;
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (VertexBuffer.IsContentLost)
                 VertexBuffer_ContentLost();
@@ -465,7 +463,7 @@ namespace Orts.Viewer3D
             shader = Viewer.MaterialManager.ParticleEmitterShader;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0];
             if (Viewer.Settings.UseMSTSEnv == false)
@@ -477,7 +475,7 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -491,14 +489,14 @@ namespace Orts.Viewer3D
                     var emitter = (ParticleEmitterPrimitive)item.RenderPrimitive;
                     shader.EmitSize = emitter.EmitSize;
                     shader.Texture = texture;
-                    shader.SetMatrix(ref matrices[(int)ViewMatrixSequence.View], ref matrices[(int)ViewMatrixSequence.Projection]);
+                    shader.SetMatrix(ref view, ref projection);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;

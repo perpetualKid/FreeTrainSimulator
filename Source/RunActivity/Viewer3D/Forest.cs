@@ -90,7 +90,7 @@ namespace Orts.Viewer3D
 
             if (trees.Count > 0)
             {
-                VertexBuffer = new VertexBuffer(viewer.GraphicsDevice, typeof(VertexPositionNormalTexture), trees.Count, BufferUsage.WriteOnly);
+                VertexBuffer = new VertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionNormalTexture), trees.Count, BufferUsage.WriteOnly);
                 VertexBuffer.SetData(trees.ToArray());
             }
 
@@ -396,7 +396,7 @@ namespace Orts.Viewer3D
             return trackSection.SectionCurve != null ? trackSection.SectionCurve.Radius * Math.Abs(MathHelper.ToRadians(trackSection.SectionCurve.Angle)) : trackSection.SectionSize.Length;
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, PrimitiveCount);
@@ -427,7 +427,7 @@ namespace Orts.Viewer3D
 
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[techniqueIndex]; //["Forest"];
 
@@ -440,23 +440,23 @@ namespace Orts.Viewer3D
             graphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            shader.SetViewMatrix(ref matrices[(int)ViewMatrixSequence.View]);
+            shader.SetViewMatrix(ref view);
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    shader.SetMatrix(item.XNAMatrix, ref matrices[(int)ViewMatrixSequence.ViewProjection]);
+                    shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     shader.ZBias = item.RenderPrimitive.ZBias;
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             Viewer.MaterialManager.SceneryShader.ReferenceAlpha = 0;
 

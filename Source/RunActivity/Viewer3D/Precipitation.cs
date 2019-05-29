@@ -54,7 +54,7 @@ namespace Orts.Viewer3D
             Weather = viewer.Simulator.Weather;
 
             Material = viewer.MaterialManager.Load("Precipitation");
-            Pricipitation = new PrecipitationPrimitive(Viewer.GraphicsDevice);
+            Pricipitation = new PrecipitationPrimitive(Viewer.RenderProcess.GraphicsDevice);
 
             Wind = new Vector3(0, 0, 0);
             Reset();
@@ -379,7 +379,7 @@ namespace Orts.Viewer3D
             return FirstActiveParticle != FirstFreeParticle;
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (VertexBuffer.IsContentLost)
                 VertexBuffer_ContentLost();
@@ -496,7 +496,7 @@ namespace Orts.Viewer3D
             shader = Viewer.MaterialManager.PrecipitationShader;
         }
 
-        public override void SetState(GraphicsDevice graphicsDevice, Material previousMaterial)
+        public override void SetState(Material previousMaterial)
         {
             shader.CurrentTechnique = shader.Techniques[0]; //["Precipitation"];
 
@@ -518,7 +518,7 @@ namespace Orts.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(GraphicsDevice graphicsDevice, List<RenderItem> renderItems, Matrix[] matrices)
+        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -529,14 +529,14 @@ namespace Orts.Viewer3D
                     shader.cameraTileXZ.SetValue(new Vector2(item.XNAMatrix.M21, item.XNAMatrix.M22));
                     shader.currentTime.SetValue(item.XNAMatrix.M11);
 
-                    shader.SetMatrix(ref matrices[(int)ViewMatrixSequence.View], ref matrices[(int)ViewMatrixSequence.Projection]);
+                    shader.SetMatrix(ref view, ref projection);
                     pass.Apply();
-                    item.RenderPrimitive.Draw(graphicsDevice);
+                    item.RenderPrimitive.Draw();
                 }
             }
         }
 
-        public override void ResetState(GraphicsDevice graphicsDevice)
+        public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;

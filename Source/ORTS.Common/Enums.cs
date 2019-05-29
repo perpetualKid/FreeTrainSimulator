@@ -26,7 +26,7 @@ namespace ORTS.Common
 {
     public static class EnumExtension
     {
-        private static class EnumCache<T> where T : struct
+        private static class EnumCache<T> where T : Enum
         {
             internal static readonly IList<string> Names;
             internal static readonly IList<T> Values;
@@ -58,7 +58,7 @@ namespace ORTS.Common
             }
         }
 
-        public static string GetDescription<T>(this T item) where T : struct
+        public static string GetDescription<T>(this T item) where T : Enum
         {
             if (EnumCache<T>.ValueToDescriptionMap.TryGetValue(item, out string description))
             {
@@ -67,22 +67,22 @@ namespace ORTS.Common
             throw new ArgumentOutOfRangeException("item");
         }
 
-        public static string EnumDescription<T>() where T: struct
+        public static string EnumDescription<T>() where T: Enum
         {
             return EnumCache<T>.EnumDescription;
         }
 
-        public static IList<string> GetNames<T>() where T : struct
+        public static IList<string> GetNames<T>() where T : Enum
         {
             return EnumCache<T>.Names;
         }
 
-        public static IList<T> GetValues<T>() where T : struct
+        public static IList<T> GetValues<T>() where T : Enum
         {
             return EnumCache<T>.Values;
         }
 
-        public static int GetLength<T>() where T: struct
+        public static int GetLength<T>() where T: Enum
         {
             return EnumCache<T>.Values.Count;
         }

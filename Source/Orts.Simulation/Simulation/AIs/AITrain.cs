@@ -581,7 +581,7 @@ namespace Orts.Simulation.AIs
         private void RandomizeEfficiency (ref float efficiency)
         {
             efficiency *= 100;
-            var incOrDecEfficiency = DateTime.Now.Millisecond % 2 == 0 ? true : false;
+            var incOrDecEfficiency = DateTime.UtcNow.Millisecond % 2 == 0 ? true : false;
             if (incOrDecEfficiency) efficiency = Math.Min(100, efficiency + RandomizedDelayWithThreshold(20)); // increment it
             else if (efficiency > 50) efficiency = Math.Max(50, efficiency - RandomizedDelayWithThreshold(20)); // decrement it
             efficiency /= 100;

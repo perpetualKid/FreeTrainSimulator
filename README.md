@@ -1,4 +1,4 @@
-[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/perpetualKid.ORTS-MG?branchName=master)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=1&branchName=master)
+[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/perpetualKid.ORTS-MG?branchName=master)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=1&branchName=master) <<== Hosted Build Agents are not yet updated to .NET FX 4.8, should be fixed soon.
 
 # [OpenRails Train Simulator](http://openrails.org/)
 

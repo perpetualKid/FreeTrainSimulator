@@ -15,25 +15,42 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 
-namespace ORTS.Common
+namespace ORTS.Common.Threading
 {
-    public struct CancellationToken
+    public class CancellationTokenSource
     {
-        readonly CancellationTokenSource Source;
+        public CancellationToken Token { get; private set; }
 
-        public CancellationToken(CancellationTokenSource source)
+        readonly Action Ping;
+        bool Cancelled;
+
+        public CancellationTokenSource(Action ping)
         {
-            Source = source;
+            Ping = ping;
+            Token = new CancellationToken(this);
         }
 
         public bool IsCancellationRequested
         {
             get
             {
-                Source.DoPing();
-                return Source.IsCancellationRequested;
+                DoPing();
+                return Cancelled;
             }
+        }
+
+        public void Cancel()
+        {
+            Cancelled = true;
+        }
+
+        internal void DoPing()
+        {
+            var ping = Ping;
+            if (ping != null)
+                ping();
         }
     }
 }

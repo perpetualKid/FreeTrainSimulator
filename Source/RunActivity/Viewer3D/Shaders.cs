@@ -29,6 +29,7 @@ using System.IO;
 using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
 using Microsoft.Xna.Framework.Content.Pipeline.Processors;
+using ORTS.Common.Xna;
 
 namespace Orts.Viewer3D
 {
@@ -168,10 +169,10 @@ namespace Orts.Viewer3D
             //sideVector.SetValue(Vector3.Normalize(Vector3.Cross(viewEyeVector, Vector3.Down)));
         }
 
-        public void SetMatrix(Matrix w, ref Matrix vp)
+        public void SetMatrix(in Matrix w, in Matrix vp)
         {
             world.SetValue(w);
-            Matrix.Multiply(ref w, ref vp, out Matrix wvp);
+            MatrixExtension.Multiply(in w, in vp, out Matrix wvp);
             worldViewProjection.SetValue(wvp);
 //            worldViewProjection.SetValue(w * vp);
 
@@ -767,7 +768,8 @@ namespace Orts.Viewer3D
 
         public void SetMatrix(Matrix matrix, ref Matrix viewproj)
         {
-            worldViewProjection.SetValue(matrix * viewproj);
+            MatrixExtension.Multiply(in matrix, in viewproj, out Matrix wvp);
+            worldViewProjection.SetValue(wvp);
         }
     }
 }

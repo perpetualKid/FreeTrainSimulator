@@ -48,7 +48,7 @@ namespace ActivityEditor.Engine
         public void SignalStart()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},SS\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},SS\n", DateTime.UtcNow.Ticks);
 #endif
             Finished = false;
             FinishEvent.Reset();
@@ -58,7 +58,7 @@ namespace ActivityEditor.Engine
         public void SignalFinish()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},SF\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},SF\n", DateTime.UtcNow.Ticks);
 #endif
             Finished = true;
             StartEvent.Reset();
@@ -68,22 +68,22 @@ namespace ActivityEditor.Engine
         public void WaitTillStarted()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},WTS+\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},WTS+\n", DateTime.UtcNow.Ticks);
 #endif
             StartEvent.WaitOne();
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},WTS-\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},WTS-\n", DateTime.UtcNow.Ticks);
 #endif
         }
 
         public void WaitTillFinished()
         {
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},WTF+\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},WTF+\n", DateTime.UtcNow.Ticks);
 #endif
             FinishEvent.WaitOne();
 #if DEBUG_THREAD_PERFORMANCE
-            DebugFileStream.Write("{0},WTF-\n", DateTime.Now.Ticks);
+            DebugFileStream.Write("{0},WTF-\n", DateTime.UtcNow.Ticks);
 #endif
         }
     }

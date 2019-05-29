@@ -33,7 +33,7 @@ namespace Orts.Viewer3D.Popups
 			return layout;
 		}
 
-		public override void Draw(GraphicsDevice graphicsDevice)
+		public override void Draw()
 		{
 			// Don't draw the normal window stuff here.
 		}

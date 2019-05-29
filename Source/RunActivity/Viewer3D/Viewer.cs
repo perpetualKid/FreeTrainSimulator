@@ -41,6 +41,7 @@ using Orts.Viewer3D.Processes;
 using Orts.Viewer3D.RollingStock;
 using ORTS.Common;
 using ORTS.Common.Input;
+using ORTS.Common.Xna;
 using ORTS.Settings;
 using Event = Orts.Common.Event;
 
@@ -57,8 +58,6 @@ namespace Orts.Viewer3D
         public UpdaterProcess UpdaterProcess { get; private set; }
         public RenderProcess RenderProcess { get; private set; }
         public SoundProcess SoundProcess { get; private set; }
-        // Access to the XNA Game class
-        public GraphicsDevice GraphicsDevice { get; private set; }
         public string ContentPath { get; private set; }
         public SharedTextureManager TextureManager { get; private set; }
         public SharedMaterialManager MaterialManager { get; private set; }
@@ -380,9 +379,8 @@ namespace Orts.Viewer3D
         [CallOnThread("Loader")]
         internal void Initialize()
         {
-            GraphicsDevice = RenderProcess.GraphicsDevice;
-            UpdateAdapterInformation(GraphicsDevice.Adapter);
-            DefaultViewport = GraphicsDevice.Viewport;
+            UpdateAdapterInformation(Game.GraphicsDevice.Adapter);
+            DefaultViewport = Game.GraphicsDevice.Viewport;
 
             if (PlayerLocomotive == null) PlayerLocomotive = Simulator.InitialPlayerLocomotive();
             SelectedTrain = PlayerTrain;
@@ -394,7 +392,7 @@ namespace Orts.Viewer3D
 
             InitializeAutomaticTrackSounds();
 
-            TextureManager = new SharedTextureManager(this, GraphicsDevice);
+            TextureManager = new SharedTextureManager(this, Game.GraphicsDevice);
 
             AdjustCabHeight(DisplaySize.X, DisplaySize.Y); 
 
@@ -1362,15 +1360,16 @@ namespace Orts.Viewer3D
                         if (cabRenderer is CabViewDiscreteRenderer)
                         {
                             foreach (var iMatrix in animatedPart.Value.MatrixIndexes)
-                            { 
-                                var matrix = Matrix.Identity;
+                            {
+                                Matrix startingPoint = Matrix.Identity;
                                 var hi = iMatrix;
                                 while (hi >= 0 && hi < trainCarShape.Hierarchy.Length && trainCarShape.Hierarchy[hi] != -1)
                                 {
-                                    Matrix.Multiply(ref matrix, ref trainCarShape.XNAMatrices[hi], out matrix);
+                                    MatrixExtension.Multiply(in startingPoint, in trainCarShape.XNAMatrices[hi], out Matrix result);
                                     hi = trainCarShape.Hierarchy[hi];
+                                    startingPoint = result;
                                 }
-                                matrix = Matrix.Multiply(matrix, trainCarShape.Location.XNAMatrix);
+                                MatrixExtension.Multiply(in startingPoint, in trainCarShape.Location.XNAMatrix, out Matrix matrix);
                                 var matrixWorldLocation = trainCarShape.Location.WorldLocation;
                                 matrixWorldLocation.Location.X = matrix.Translation.X;
                                 matrixWorldLocation.Location.Y = matrix.Translation.Y;
@@ -1424,14 +1423,15 @@ namespace Orts.Viewer3D
                         {
                             foreach (var iMatrix in animatedPart.Value.MatrixIndexes)
                             {
-                                var matrix = Matrix.Identity;
+                                Matrix startingPoint = Matrix.Identity;
                                 var hi = iMatrix;
                                 while (hi >= 0 && hi < trainCarShape.Hierarchy.Length && trainCarShape.Hierarchy[hi] != -1)
                                 {
-                                    Matrix.Multiply(ref matrix, ref trainCarShape.XNAMatrices[hi], out matrix);
+                                    MatrixExtension.Multiply(in startingPoint, in trainCarShape.XNAMatrices[hi], out Matrix result);
                                     hi = trainCarShape.Hierarchy[hi];
+                                    startingPoint = result;
                                 }
-                                matrix = Matrix.Multiply(matrix, trainCarShape.Location.XNAMatrix);
+                                MatrixExtension.Multiply(in startingPoint, in trainCarShape.Location.XNAMatrix, out Matrix matrix);
                                 var matrixWorldLocation = trainCarShape.Location.WorldLocation;
                                 matrixWorldLocation.Location.X = matrix.Translation.X;
                                 matrixWorldLocation.Location.Y = matrix.Translation.Y;
@@ -1789,7 +1789,7 @@ namespace Orts.Viewer3D
 
             graphicsDevice.GetBackBufferData(backBuffer);
             //copy into a texture 
-            Texture2D screenshot = new Texture2D(GraphicsDevice, w, h, false, GraphicsDevice.PresentationParameters.BackBufferFormat);
+            Texture2D screenshot = new Texture2D(graphicsDevice, w, h, false, graphicsDevice.PresentationParameters.BackBufferFormat);
             screenshot.SetData(backBuffer);
             new Thread(() =>
             {

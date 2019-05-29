@@ -227,7 +227,7 @@ namespace Orts.Viewer3D.Popups
                 PrepareFrame(elapsedTime, updateFull);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (WindowVertexBuffer == null)
             {

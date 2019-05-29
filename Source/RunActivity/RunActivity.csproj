@@ -188,11 +188,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\3rdPartyLibs\openal-soft\Win32\OpenAL32.dll">
-      <Link>Native\X86\OpenAL32.dll</Link>
+      <Link>Native\x86\OpenAL32.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\3rdPartyLibs\openal-soft\Win64\OpenAL32.dll">
-      <Link>Native\X64\OpenAL32.dll</Link>
+      <Link>Native\x64\OpenAL32.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\blank.bmp">
@@ -404,10 +404,22 @@
   </Target>
   -->
   <PropertyGroup>
+  <PostBuildEventDependsOn>
+    $(PostBuildEventDependsOn);
+    PostBuildMacros;
+  </PostBuildEventDependsOn>    
     <PreBuildEvent>
     </PreBuildEvent>
-    <PostBuildEvent>echo $Revision: 000 $&gt;Revision.txt
+    <PostBuildEvent>echo $Revision: @(VersionNumber) $&gt;Revision.txt
 date /t&gt;&gt;Revision.txt
 time /t&gt;&gt;Revision.txt</PostBuildEvent>
   </PropertyGroup>
+  <Target Name="PostBuildMacros">
+  <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+    <Output TaskParameter="Assemblies" ItemName="Targets" />
+  </GetAssemblyIdentity>
+  <ItemGroup>
+    <VersionNumber Include="@(Targets->'%(Version)')"/>
+  </ItemGroup>
+</Target>
 </Project>

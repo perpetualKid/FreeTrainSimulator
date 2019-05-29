@@ -90,7 +90,7 @@ namespace Orts.Viewer3D.Popups
 
         void ResumeActivity_Click(Control arg1, Point arg2)
         {
-            TimeSpan diff = DateTime.Now - PopupTime;
+            TimeSpan diff = DateTime.UtcNow - PopupTime;
             if (Owner.Viewer.Simulator.Paused)
                 new ResumeActivityCommand(Owner.Viewer.Log, EventNameLabel.Text, diff.TotalMilliseconds / 1000);
             //it's a toggle click
@@ -100,13 +100,13 @@ namespace Orts.Viewer3D.Popups
 
         void CloseBox_Click(Control arg1, Point arg2)
         {
-            TimeSpan diff = DateTime.Now - PopupTime;
+            TimeSpan diff = DateTime.UtcNow - PopupTime;
             new CloseAndResumeActivityCommand(Owner.Viewer.Log, EventNameLabel.Text, diff.TotalMilliseconds / 1000);
         }
 
         void QuitActivity_Click(Control arg1, Point arg2)
         {
-            TimeSpan diff = DateTime.Now - PopupTime;
+            TimeSpan diff = DateTime.UtcNow - PopupTime;
             new QuitActivityCommand(Owner.Viewer.Log, EventNameLabel.Text, diff.TotalMilliseconds / 1000);
         }
 
@@ -195,7 +195,7 @@ namespace Orts.Viewer3D.Popups
                                     {
                                         Owner.Viewer.Simulator.Paused = true;
                                         ResumeMenu();
-                                        PopupTime = DateTime.Now;
+                                        PopupTime = DateTime.UtcNow;
                                     }
                                     Visible = Owner.Viewer.HelpWindow.ActivityUpdated = true;
                                 }
@@ -211,7 +211,7 @@ namespace Orts.Viewer3D.Popups
                                             if (e.ParsedObject.ORTSContinue < 0) ResumeMenu();
                                             else NoPauseMenu();
                                         }
-                                        PopupTime = DateTime.Now;
+                                        PopupTime = DateTime.UtcNow;
                                         Visible = Owner.Viewer.HelpWindow.ActivityUpdated = true;
                                     }
                                 }                              
@@ -221,7 +221,7 @@ namespace Orts.Viewer3D.Popups
                                 // Cancel the event as pop-up not needed.
                                 Activity.TriggeredEvent = null;
                             }
-                            TimeSpan diff1 = DateTime.Now - PopupTime;
+                            TimeSpan diff1 = DateTime.UtcNow - PopupTime;
                             if (Visible && e.ParsedObject.ORTSContinue >= 0 && diff1.TotalSeconds >= e.ParsedObject.ORTSContinue && !Owner.Viewer.Simulator.Paused)
                             {
                                 CloseBox();
@@ -246,7 +246,7 @@ namespace Orts.Viewer3D.Popups
                                 {
                                     Owner.Viewer.Simulator.Paused = true;
                                     ResumeMenu();
-                                    PopupTime = DateTime.Now;
+                                    PopupTime = DateTime.UtcNow;
                                 }
                             }
                             else
@@ -256,7 +256,7 @@ namespace Orts.Viewer3D.Popups
                                 {
                                     ComposeActualPlayerTrainMenu(Owner.Viewer.PlayerTrain.Name, text);
                                     NoPauseMenu();
-                                    PopupTime = DateTime.Now;
+                                    PopupTime = DateTime.UtcNow;
                                 }
                                 else if (Owner.Viewer.Simulator.Paused)
                                 {
@@ -269,7 +269,7 @@ namespace Orts.Viewer3D.Popups
                         {
                             Activity.NewMsgFromNewPlayer = false;
                         }
-                        TimeSpan diff1 = DateTime.Now - PopupTime;
+                        TimeSpan diff1 = DateTime.UtcNow - PopupTime;
                         if (Visible && diff1.TotalSeconds >= 10 && !Owner.Viewer.Simulator.Paused)
                         {
                             CloseBox();

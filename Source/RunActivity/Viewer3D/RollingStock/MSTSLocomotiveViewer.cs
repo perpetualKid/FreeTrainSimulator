@@ -1035,7 +1035,7 @@ namespace Orts.Viewer3D.RollingStock
                         // Use same shader for both front-facing and rear-facing cabs.
                         if (_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF != null)
                            {
-               _Shader = new CabShader(viewer.GraphicsDevice,
+               _Shader = new CabShader(viewer.RenderProcess.GraphicsDevice,
                 ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
                 ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
                 ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Color),
@@ -1284,7 +1284,7 @@ namespace Orts.Viewer3D.RollingStock
                     cvcr.PrepareFrame(frame, elapsedTime);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             // Cab view vertical position adjusted to allow for clip or stretch.
             Rectangle stretchedCab;
@@ -1460,7 +1460,7 @@ namespace Orts.Viewer3D.RollingStock
             Rotation = MathHelper.WrapAngle(MathHelper.ToRadians(ControlDial.FromDegree + direction * rangeDegrees * rangeFraction));
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (Shader != null)
             {
@@ -1639,7 +1639,7 @@ namespace Orts.Viewer3D.RollingStock
             }
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (Shader != null)
             {
@@ -1676,7 +1676,7 @@ namespace Orts.Viewer3D.RollingStock
             : base(viewer, locomotive, control, shader)
         {
             ControlDiscrete = control;
-            CABTextureManager.DisassembleTexture(viewer.GraphicsDevice, Control.ACEFile, (int)Control.Width, (int)Control.Height, ControlDiscrete.FramesCount, ControlDiscrete.FramesX, ControlDiscrete.FramesY);
+            CABTextureManager.DisassembleTexture(viewer.RenderProcess.GraphicsDevice, Control.ACEFile, (int)Control.Width, (int)Control.Height, ControlDiscrete.FramesCount, ControlDiscrete.FramesX, ControlDiscrete.FramesY);
             Texture = CABTextureManager.GetTextureByIndexes(Control.ACEFile, 0, false, false, out IsNightTexture, HasCabLightDirectory);
             SourceRectangle = new Rectangle(0, 0, Texture.Width, Texture.Height);
             Scale = (float)(Math.Min(Control.Height, Texture.Height) / Texture.Height); // Allow only downscaling of the texture, and not upscaling
@@ -1728,7 +1728,7 @@ namespace Orts.Viewer3D.RollingStock
             DestinationRectangle.Height = (int)(yratio * Math.Min(Control.Height, Texture.Height));  // Allow only downscaling of the texture, and not upscaling
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             if (Shader != null)
             {
@@ -2148,7 +2148,7 @@ namespace Orts.Viewer3D.RollingStock
             base.PrepareFrame(frame, elapsedTime);
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             DrawFont.Draw(CabShaderControlView.SpriteBatch, DrawPosition, Point.Zero, DrawText, Alignment, DrawColor);
         }
@@ -2592,10 +2592,10 @@ namespace Orts.Viewer3D.RollingStock
             for (i = 0; i < NumIndices; i++) newTList[i] = TriangleListIndices[i];
             VertexPositionNormalTexture[] newVList = new VertexPositionNormalTexture[NumVertices];
             for (i = 0; i < NumVertices; i++) newVList[i] = VertexList[i];
-            IndexBuffer IndexBuffer = new IndexBuffer(viewer.GraphicsDevice, typeof(short),
+            IndexBuffer IndexBuffer = new IndexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(short),
                                                             NumIndices, BufferUsage.WriteOnly);
             IndexBuffer.SetData(newTList);
-            shapePrimitive = new ShapePrimitive(viewer.GraphicsDevice, Material, new SharedShape.VertexBufferSet(newVList, viewer.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
+            shapePrimitive = new ShapePrimitive(viewer.RenderProcess.GraphicsDevice, Material, new SharedShape.VertexBufferSet(newVList, viewer.RenderProcess.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
 
         }
 
@@ -2698,11 +2698,11 @@ namespace Orts.Viewer3D.RollingStock
             for (i = 0; i < NumIndices; i++) newTList[i] = TriangleListIndices[i];
             VertexPositionNormalTexture[] newVList = new VertexPositionNormalTexture[NumVertices];
             for (i = 0; i < NumVertices; i++) newVList[i] = VertexList[i];
-            IndexBuffer IndexBuffer = new IndexBuffer(Viewer.GraphicsDevice, typeof(short),
+            IndexBuffer IndexBuffer = new IndexBuffer(Viewer.RenderProcess.GraphicsDevice, typeof(short),
                                                             NumIndices, BufferUsage.WriteOnly);
             IndexBuffer.SetData(newTList);
             shapePrimitive = null;
-            shapePrimitive = new ShapePrimitive(Viewer.GraphicsDevice, UsedMaterial, new SharedShape.VertexBufferSet(newVList, Viewer.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
+            shapePrimitive = new ShapePrimitive(Viewer.RenderProcess.GraphicsDevice, UsedMaterial, new SharedShape.VertexBufferSet(newVList, Viewer.RenderProcess.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
 
         }
 
@@ -2825,10 +2825,10 @@ namespace Orts.Viewer3D.RollingStock
             for (i = 0; i < NumIndices; i++) newTList[i] = TriangleListIndices[i];
             VertexPositionNormalTexture[] newVList = new VertexPositionNormalTexture[NumVertices];
             for (i = 0; i < NumVertices; i++) newVList[i] = VertexList[i];
-            IndexBuffer IndexBuffer = new IndexBuffer(viewer.GraphicsDevice, typeof(short),
+            IndexBuffer IndexBuffer = new IndexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(short),
                                                             NumIndices, BufferUsage.WriteOnly);
             IndexBuffer.SetData(newTList);
-            shapePrimitive = new ShapePrimitive(viewer.GraphicsDevice, FindMaterial(), new SharedShape.VertexBufferSet(newVList, viewer.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
+            shapePrimitive = new ShapePrimitive(viewer.RenderProcess.GraphicsDevice, FindMaterial(), new SharedShape.VertexBufferSet(newVList, viewer.RenderProcess.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
 
         }
 
@@ -2914,11 +2914,11 @@ namespace Orts.Viewer3D.RollingStock
             for (i = 0; i < NumIndices; i++) newTList[i] = TriangleListIndices[i];
             VertexPositionNormalTexture[] newVList = new VertexPositionNormalTexture[NumVertices];
             for (i = 0; i < NumVertices; i++) newVList[i] = VertexList[i];
-            IndexBuffer IndexBuffer = new IndexBuffer(Viewer.GraphicsDevice, typeof(short),
+            IndexBuffer IndexBuffer = new IndexBuffer(Viewer.RenderProcess.GraphicsDevice, typeof(short),
                                                             NumIndices, BufferUsage.WriteOnly);
             IndexBuffer.SetData(newTList);
             shapePrimitive = null;
-            shapePrimitive = new ShapePrimitive(Viewer.GraphicsDevice, UsedMaterial, new SharedShape.VertexBufferSet(newVList, Viewer.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
+            shapePrimitive = new ShapePrimitive(Viewer.RenderProcess.GraphicsDevice, UsedMaterial, new SharedShape.VertexBufferSet(newVList, Viewer.RenderProcess.GraphicsDevice), IndexBuffer, 0, NumVertices, NumIndices / 3, new[] { -1 }, 0);
 
         }
 
@@ -3050,7 +3050,7 @@ namespace Orts.Viewer3D.RollingStock
             Font = font;
         }
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
             Font.Draw(Material.SpriteBatch, Position, Text, Color);
         }

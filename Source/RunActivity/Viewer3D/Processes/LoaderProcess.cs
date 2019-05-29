@@ -22,8 +22,8 @@ using ORTS.Common;
 using System;
 using System.Diagnostics;
 using System.Threading;
-using CancellationToken = ORTS.Common.CancellationToken;
-using CancellationTokenSource = ORTS.Common.CancellationTokenSource;
+using CancellationToken = ORTS.Common.Threading.CancellationToken;
+using CancellationTokenSource = ORTS.Common.Threading.CancellationTokenSource;
 
 
 namespace Orts.Viewer3D.Processes
@@ -35,7 +35,7 @@ namespace Orts.Viewer3D.Processes
         readonly Game Game;
         readonly Thread Thread;
         readonly WatchdogToken WatchdogToken;
-        readonly ORTS.Common.CancellationTokenSource CancellationTokenSource;
+        readonly ORTS.Common.Threading.CancellationTokenSource CancellationTokenSource;
 
         public LoaderProcess(Game game)
         {
@@ -43,7 +43,7 @@ namespace Orts.Viewer3D.Processes
             Thread = new Thread(LoaderThread);
             WatchdogToken = new WatchdogToken(Thread);
             WatchdogToken.SpecialDispensationFactor = 6;
-            CancellationTokenSource = new ORTS.Common.CancellationTokenSource(WatchdogToken.Ping);
+            CancellationTokenSource = new ORTS.Common.Threading.CancellationTokenSource(WatchdogToken.Ping);
         }
 
         public void Start()
@@ -82,7 +82,7 @@ namespace Orts.Viewer3D.Processes
         /// and should not be used.
         /// </para>
         /// </remarks>
-        public ORTS.Common.CancellationToken CancellationToken
+        public ORTS.Common.Threading.CancellationToken CancellationToken
         {
             get
             {
