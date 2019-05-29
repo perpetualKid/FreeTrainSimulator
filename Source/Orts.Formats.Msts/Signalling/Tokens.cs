@@ -18,16 +18,6 @@ namespace Orts.Formats.Msts.Signalling
         }
     }
 
-    internal enum OperatorType
-    {
-        Negator,
-        Logical,
-        Equality,
-        Assignment,
-        Operation,
-        Other,
-    }
-
     internal class OperatorToken : ScriptToken
     {
         public OperatorToken(string token, int lineNumber)
@@ -95,11 +85,11 @@ namespace Orts.Formats.Msts.Signalling
     internal abstract class BlockBase : ScriptToken
     {
 
-        //protected static int blockID;
+        protected static int blockID;
 
-        //protected int BlockId = blockID++;
+        protected int BlockId = blockID++;
 
-        protected bool isAlternateReturn;
+        protected int returnBlockId;
 
         public BlockBase Parent { get; private set; }
 
@@ -122,16 +112,9 @@ namespace Orts.Formats.Msts.Signalling
             Tokens.Add(block);
         }
 
-        protected BlockBase SetAsAlternateReturn()
+        protected BlockBase FindAlternateReturn(int returnBlockId)
         {
-            if (!(this as ConditionalBlock)?.SkipOnReturn ?? true)
-                isAlternateReturn = true;
-            return this;
-        }
-
-        protected BlockBase FindAlternateReturn()
-        {
-            return isAlternateReturn ? this : Parent.FindAlternateReturn();
+            return returnBlockId == BlockId ? this : Parent.FindAlternateReturn(returnBlockId);
         }
 
         public override string Token { get { return ToString(); } }
@@ -174,9 +157,19 @@ namespace Orts.Formats.Msts.Signalling
 
         public virtual BlockBase StartAlternate(int lineNumber)
         {
-            SetAsAlternateReturn();
-            //find the deepest Condition block which does not yet have an alternate (no Else, or Else If only)
-            return (((Tokens.Last() as ConditionalBlock)?.RequiresAlternate()?.StartAlternate(lineNumber) as ConditionalBlock) ?? this as ConditionalBlock).SetAsAlternateReturn();
+            if (Tokens.Last() is ConditionalBlock child)
+            {
+                child.returnBlockId = this is ConditionalBlock ? returnBlockId : BlockId;
+                BlockBase result = child.RequiresAlternate();
+                if (result != null)
+                {
+                    result = result.StartAlternate(lineNumber);
+                    (result as ConditionalBlock).AcceptAlternate();
+                    return result;
+                }
+                return this;
+            }
+            return this as ConditionalBlock;
         }
 
         public virtual BlockBase CompleteBlock()
@@ -194,7 +187,7 @@ namespace Orts.Formats.Msts.Signalling
         }
     }
 
-    internal class Script : BlockBase
+    internal class Script : Block
     {
         public Script(int lineNumber) : base(null, lineNumber)
         { }
@@ -279,18 +272,14 @@ namespace Orts.Formats.Msts.Signalling
 
     internal class ConditionalBlock : BlockBase
     {
-        private bool hasCondition;
-        private bool hasStatement;
-        private bool hasAlternateCondition;
+        private ConditionState state = ConditionState.Started;
 
         public ConditionalBlock(BlockBase parent, int lineNumber) : base(parent, lineNumber)
         { }
 
         internal bool IsAlternateCondition { get; private set; }
 
-        internal bool HasAlternate { get; private set; }
-
-        internal bool SkipOnReturn;
+        internal bool HasAlternate => state == ConditionState.HasAlternate;
 
         public override BlockBase Add(ScriptToken token, int lineNumber)
         {
@@ -300,25 +289,24 @@ namespace Orts.Formats.Msts.Signalling
         public override BlockBase CompleteBlock()
         {
             BlockBase result;
-            if (!hasCondition && Current is Enclosure)
+            if (state == ConditionState.Started && Current is Enclosure)
             {
-                hasCondition = true;
+                state = ConditionState.HasCondition;
                 result = this;
             }
-            else if (hasCondition && !hasStatement && (Current is Statement || Current is Block || Current is ConditionalBlock))
+            else if (state == ConditionState.HasCondition && (Current is Statement || Current is Block || Current is ConditionalBlock))
             {
-                hasStatement = true;
+                state = ConditionState.HasStatement;
                 result = base.CompleteBlock();
             }
-            else if (hasCondition && hasStatement && hasAlternateCondition)
+            else if (state == ConditionState.HasAlternateCondition)
             {
-                hasAlternateCondition = false;
-                result = FindAlternateReturn().Parent;
+                result = FindAlternateReturn(returnBlockId);
             }
-            else if (hasCondition && hasStatement && !HasAlternate && (Current is Statement || Current is Block || Current is ConditionalBlock))
+            else if (state == ConditionState.ExpectingAlternate && (Current is Statement || Current is Block || Current is ConditionalBlock))
             {
-                HasAlternate = true;
-                result = FindAlternateReturn().Parent;
+                state = ConditionState.HasAlternate;
+                result = FindAlternateReturn(returnBlockId);
             }
             else
                 result = null;
@@ -329,9 +317,9 @@ namespace Orts.Formats.Msts.Signalling
         public override BlockBase StartCondition(int lineNumber)
         {
             ConditionalBlock result = base.StartCondition(lineNumber) as ConditionalBlock;
-            if (isAlternateReturn) //this is the If after Else for ElseIf
+            if (state == ConditionState.ExpectingAlternate) //this is the If after Else for ElseIf
             {
-                hasAlternateCondition = true;   //mark myself to have ElseIf
+                state = ConditionState.HasAlternateCondition; //mark myself to have ElseIf
                 result.IsAlternateCondition = true; //mark as ElseIf Condition
             }   //else this is just a nested Condition If () If () ;
             return result;
@@ -339,20 +327,12 @@ namespace Orts.Formats.Msts.Signalling
 
         public BlockBase RequiresAlternate()
         {
-            // return this instance if there is no Else yet, or if this is the If part of an ElseIf, else just null for simpified handling
-            if (HasAlternate || IsAlternateCondition)
-            {
-                ConditionalBlock child = Tokens.ElementAtOrDefault(1) as ConditionalBlock;
-                //only true on isAlternateCondition
-                if (!child?.HasAlternate ?? false)
-                {
-                    //since we are going deeper one more, we want to skip this one as return block reference next time
-                    child.SkipOnReturn = true;
-                }
-                else
-                    return null;
-            }
-            return this;
+            return (state == ConditionState.HasAlternate || IsAlternateCondition) ? null : this;
+        }
+
+        public void AcceptAlternate()
+        {
+            state = ConditionState.ExpectingAlternate;
         }
 
         public override string ToString()
@@ -366,7 +346,7 @@ namespace Orts.Formats.Msts.Signalling
             int index = 0;
             while (index++ < Tokens.Count - 1)
             {
-                if (HasAlternate && index == Tokens.Count - 1)  //the last block is the alternate
+                if (state == ConditionState.HasAlternate && index == Tokens.Count - 1)  //the last block is the alternate
                     builder.AppendLine($"{new string(' ', indent)}ELSE");
                 builder.Append(AdjustIndentAndPrint(Tokens[index] as BlockBase));
                 if (builder[builder.Length - 1] != '\n')
