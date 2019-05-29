@@ -49,7 +49,8 @@ namespace ORTS.Settings
     /// </remarks>
     public class InputSettings : SettingsBase
     {
-        static GettextResourceManager catalog = new GettextResourceManager("ORTS.Settings");
+        static GettextResourceManager commonCatalog = new GettextResourceManager("ORTS.Common");
+        static GettextResourceManager settingsCatalog = new GettextResourceManager("ORTS.Settings");
 
         public static readonly UserCommandInput[] DefaultCommands = new UserCommandInput[Enum.GetNames(typeof(UserCommand)).Length];
         public readonly UserCommandInput[] Commands = new UserCommandInput[Enum.GetNames(typeof(UserCommand)).Length];
@@ -488,11 +489,11 @@ namespace ORTS.Settings
                 if (modInput != null)
                 {
                     if (modInput.Shift && modInput.IgnoreShift)
-                        errors.AppendLine(catalog.GetStringFmt("{0} requires and is modified by Shift", catalog.GetString(command.GetDescription())));
+                        errors.AppendLine(settingsCatalog.GetStringFmt("{0} requires and is modified by Shift", commonCatalog.GetString(command.GetDescription())));
                     if (modInput.Control && modInput.IgnoreControl)
-                        errors.AppendLine(catalog.GetStringFmt("{0} requires and is modified by Control", catalog.GetString(command.GetDescription())));
+                        errors.AppendLine(settingsCatalog.GetStringFmt("{0} requires and is modified by Control", commonCatalog.GetString(command.GetDescription())));
                     if (modInput.Alt && modInput.IgnoreAlt)
-                        errors.AppendLine(catalog.GetStringFmt("{0} requires and is modified by Alt", catalog.GetString(command.GetDescription())));
+                        errors.AppendLine(settingsCatalog.GetStringFmt("{0} requires and is modified by Alt", commonCatalog.GetString(command.GetDescription())));
                 }
             }
 
@@ -523,7 +524,7 @@ namespace ORTS.Settings
                     var unique2 = input2.GetUniqueInputs();
                     var sharedUnique = unique1.Where(id => unique2.Contains(id));
                     foreach (var uniqueInput in sharedUnique)
-                        errors.AppendLine(catalog.GetStringFmt("{0} and {1} both match {2}", catalog.GetString(command1.GetDescription()), catalog.GetString(command2.GetDescription()), GetPrettyUniqueInput(uniqueInput)));
+                        errors.AppendLine(settingsCatalog.GetStringFmt("{0} and {1} both match {2}", commonCatalog.GetString(command1.GetDescription()), commonCatalog.GetString(command2.GetDescription()), GetPrettyUniqueInput(uniqueInput)));
                 }
             }
 
