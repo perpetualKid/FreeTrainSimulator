@@ -45,6 +45,7 @@ using ORTS.Common;
 using ORTS.Scripting.Api;
 using ORTS.Settings;
 using System;
+using Orts.Parsers.Msts;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -131,6 +132,7 @@ namespace Orts.Simulation.RollingStocks
         public float CarHeatLossWpT;      // Transmission loss for the wagon
         public float CarHeatVolumeM3;     // Volume of car for heating purposes
         public float CarHeatPipeAreaM2;  // Area of surface of car pipe
+        public float CarOutsideTempC;   // Ambient temperature outside of car
 
         // Used to calculate wheel sliding for locked brake
         public bool BrakeSkid = false;
@@ -175,6 +177,76 @@ namespace Orts.Simulation.RollingStocks
         public bool WheelSkid;  // True if wagon wheels lock up.
         public float _AccelerationMpSS;
         protected IIRFilter AccelerationFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, 1.0f, 0.1f);
+
+        public float WheelBearingTemperatureDegC = 40.0f;
+        public string DisplayWheelBearingTemperatureStatus;
+        public float WheelBearingTemperatureRiseTimeS = 0;
+        public float HotBoxTemperatureRiseTimeS = 0;
+        public float WheelBearingTemperatureDeclineTimeS = 0;
+        public float InitialWheelBearingDeclineTemperatureDegC;
+        public float InitialWheelBearingRiseTemperatureDegC;
+        public float InitialHotBoxRiseTemperatureDegS;
+        public bool WheelBearingFailed = false;
+        public bool WheelBearingHot = false;
+        public bool HotBoxActivated = false;
+        public bool HotBoxHasBeenInitialized = false;
+        public float HotBoxDelayS;
+        public float ActivityHotBoxDurationS;
+        public float ActivityElapsedDurationS;
+        public float HotBoxStartTimeS;
+
+        // Setup for ambient temperature dependency
+        Interpolator OutsideWinterTempbyLatitudeC;
+        Interpolator OutsideAutumnTempbyLatitudeC;
+        Interpolator OutsideSpringTempbyLatitudeC;
+        Interpolator OutsideSummerTempbyLatitudeC;
+
+        // Input values to allow the temperature for different values of latitude to be calculated
+        static float[] WorldLatitudeDeg = new float[]
+        {
+           -50.0f, -40.0f, -30.0f, -20.0f, -10.0f, 0.0f, 10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f
+        };
+
+        // Temperature in deg Celcius
+        static float[] WorldTemperatureWinter = new float[]
+        {
+            0.9f, 8.7f, 12.4f, 17.2f, 20.9f, 25.9f, 22.8f, 18.2f, 11.1f, 1.1f, -10.2f, -18.7f
+         };
+
+        static float[] WorldTemperatureAutumn = new float[]
+        {
+            7.5f, 13.7f, 18.8f, 22.0f, 24.0f, 26.0f, 25.0f, 21.6f, 21.0f, 14.3f, 6.0f, 3.8f
+         };
+
+        static float[] WorldTemperatureSpring = new float[]
+        {
+            8.5f, 13.1f, 17.6f, 18.6f, 24.6f, 25.9f, 26.8f, 23.4f, 18.5f, 12.6f, 6.1f, 1.7f
+         };
+
+        static float[] WorldTemperatureSummer = new float[]
+        {
+            13.4f, 18.3f, 22.8f, 24.3f, 24.4f, 25.0f, 25.2f, 22.5f, 26.6f, 24.8f, 19.4f, 14.3f
+         };
+
+        public static Interpolator WorldWinterLatitudetoTemperatureC()
+        {
+            return new Interpolator(WorldLatitudeDeg, WorldTemperatureWinter);
+        }
+
+        public static Interpolator WorldAutumnLatitudetoTemperatureC()
+        {
+            return new Interpolator(WorldLatitudeDeg, WorldTemperatureAutumn);
+        }
+
+        public static Interpolator WorldSpringLatitudetoTemperatureC()
+        {
+            return new Interpolator(WorldLatitudeDeg, WorldTemperatureSpring);
+        }
+
+        public static Interpolator WorldSummerLatitudetoTemperatureC()
+        {
+            return new Interpolator(WorldLatitudeDeg, WorldTemperatureSummer);
+        }
 
         public bool AcceptMUSignals = true; //indicates if the car accepts multiple unit signals
         public bool IsMetric;
@@ -423,6 +495,8 @@ namespace Orts.Simulation.RollingStocks
             // get route speed limit
             RouteSpeedMpS = (float)Simulator.TRK.Tr_RouteFile.SpeedLimit;
 
+            InitializeTrainTemperatures();
+
             // if no values are in TRK file, calculate default values.
             // Single track Tunnels
 
@@ -496,6 +570,7 @@ namespace Orts.Simulation.RollingStocks
                     DoubleTunnelCrossSectAreaM2 = 41.8f;  // Typically older slower speed designed tunnels
                     DoubleTunnelPerimeterM = 25.01f;
                 }
+
             }
 
 #if DEBUG_TUNNEL_RESISTANCE
@@ -530,6 +605,11 @@ namespace Orts.Simulation.RollingStocks
             UpdateBrakeSlideCalculation();
             UpdateTrainDerailmentRisk();
 
+            if (this is MSTSLocomotive) // Set train outside temperature the same as the locomotive - TO BE RECHECKED
+            {
+                Train.TrainOutsideTempC = CarOutsideTempC;
+            }
+
             // acceleration
             if (elapsedClockSeconds > 0.0f)
             {
@@ -540,6 +620,54 @@ namespace Orts.Simulation.RollingStocks
 
                 _PrevSpeedMpS = _SpeedMpS;
             }
+        }
+
+
+        /// <summary>
+        /// Initialise Train Temperatures
+        /// <\summary>           
+        public void InitializeTrainTemperatures()
+        {
+            OutsideWinterTempbyLatitudeC = WorldWinterLatitudetoTemperatureC();
+            OutsideAutumnTempbyLatitudeC = WorldAutumnLatitudetoTemperatureC();
+            OutsideSpringTempbyLatitudeC = WorldSpringLatitudetoTemperatureC();
+            OutsideSummerTempbyLatitudeC = WorldSummerLatitudetoTemperatureC();
+
+            // Find the latitude reading and set outside temperature
+            double latitude = 0;
+            double longitude = 0;
+
+            new Orts.Common.WorldLatLon().ConvertWTC(WorldPosition.TileX, WorldPosition.TileZ, WorldPosition.Location, ref latitude, ref longitude);
+            
+            float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
+                      
+
+            // Sets outside temperature dependent upon the season
+            if (Simulator.Season == SeasonType.Winter)
+            {
+                // Winter temps
+                CarOutsideTempC = OutsideWinterTempbyLatitudeC[LatitudeDeg];
+            }
+            else if (Simulator.Season == SeasonType.Autumn)
+            {
+                // Autumn temps
+                CarOutsideTempC = OutsideAutumnTempbyLatitudeC[LatitudeDeg];
+            }
+            else if (Simulator.Season == SeasonType.Spring)
+            {
+                // Spring temps
+                CarOutsideTempC = OutsideSpringTempbyLatitudeC[LatitudeDeg];
+            }
+            else
+            {
+                // Summer temps
+                CarOutsideTempC = OutsideSummerTempbyLatitudeC[LatitudeDeg];
+            }
+
+            // Initialise wheel bearing temperature to ambient temperature
+            WheelBearingTemperatureDegC = CarOutsideTempC;
+            InitialWheelBearingRiseTemperatureDegC = CarOutsideTempC;
+            InitialWheelBearingDeclineTemperatureDegC = CarOutsideTempC;
         }
 
         #region Calculate Brake Skid
@@ -697,8 +825,9 @@ namespace Orts.Simulation.RollingStocks
                 // Transmission heat loss = exposed area * heat transmission coeff (inside temp - outside temp)
                 // Calculate the heat loss through the roof, wagon sides, and floor separately  
 
+                CarOutsideTempC = Train.TrainOutsideTempC;  // Get Car Outside Temp from MSTSSteamLocomotive file
+
                 float CarriageHeatTempC = Train.TrainCurrentCarriageHeatTempC;     // Get current Car Heat Temp (Calculated in MSTSSteamLocomotive )
-                float CarOutsideTempC = Train.TrainOutsideTempC;  // Get Car Outside Temp from MSTSSteamLocomotive file
 
                 // Calculate the heat loss through the carriage sides, per degree of temp change
                 float HeatTransCoeffRoofWm2K = 1.7f; // 2 inch wood - uninsulated

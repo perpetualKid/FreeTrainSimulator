@@ -316,6 +316,16 @@ namespace Orts.Viewer3D.Popups
                             color = text.EndsWith("!!!") ? Color.OrangeRed : Color.Yellow;
                             text = text.Substring(0, text.Length - 3);
                         }
+                        else if (text.EndsWith("%%%"))
+                        {
+                            color = Color.Cyan;
+                            text = text.Substring(0, text.Length - 3);
+                        }
+                        else if (text.EndsWith("$$$"))
+                        {
+                            color = Color.Pink;
+                            text = text.Substring(0, text.Length - 3);
+                        }
                         TextFont.Draw(spriteBatch, new Rectangle(TextOffset + column * ColumnWidth, TextOffset + row * TextFont.Height, ColumnWidth, TextFont.Height), Point.Zero, text, align, color);
                     }
                 }
@@ -1239,6 +1249,7 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Curve"),
                 Viewer.Catalog.GetString("Brk Frict."),
                 Viewer.Catalog.GetString("Brk Slide")
+
                 //Here new added items.
                 // Possibly needed for buffing forces
                 //                Viewer.Catalog.GetString("VertD"),
@@ -1267,7 +1278,9 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Gradient"),
                 Viewer.Catalog.GetString("Curve"),
                 Viewer.Catalog.GetString("Brk Frict."),
-                Viewer.Catalog.GetString("Brk Slide")
+                Viewer.Catalog.GetString("Brk Slide"),
+                Viewer.Catalog.GetString("Bear Temp")
+
                 );
             }
             //Columns. HudScroll
@@ -1323,11 +1336,11 @@ namespace Orts.Viewer3D.Popups
                     TableSetCell(table, 14, "{0}", FormatStrings.FormatDistance(car.CurrentCurveRadius, car.IsMetric));
                     TableSetCell(table, 15, "{0:F0}%", car.BrakeShoeCoefficientFriction * 100.0f);
                     TableSetCell(table, 16, car.HUDBrakeSkid ? Viewer.Catalog.GetString("Yes") : "No");
+                    TableSetCell(table, 17, "{0} {1}", FormatStrings.FormatTemperature(car.WheelBearingTemperatureDegC, car.IsMetric, false), car.DisplayWheelBearingTemperatureStatus);
 
-                    TableSetCell(table, 17, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
+                    TableSetCell(table, 18, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
 
                     TableAddLine(table);
-                    //TableSetCell(table, 11, "Tot {0}", FormatStrings.FormatShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
                     TableSetCell(table, 10, "Tot.Slack:");
                     TableSetCell(table, 11, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
                 }
@@ -1588,12 +1601,13 @@ namespace Orts.Viewer3D.Popups
 
             //Disable Hudscroll.
             Viewer.HUDScrollWindow.Visible = false;//HudScroll
-
+         
             TableAddLabelValue(table, Viewer.Catalog.GetString("Visibility"), Viewer.Catalog.GetStringFmt("{0:N0} m", Viewer.Simulator.Weather.FogDistance));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Cloud cover"), Viewer.Catalog.GetStringFmt("{0:F0} %", Viewer.Simulator.Weather.OvercastFactor * 100));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Intensity"), Viewer.Catalog.GetStringFmt("{0:F4} p/s/m^2", Viewer.Simulator.Weather.PricipitationIntensityPPSPM2));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Liquidity"), Viewer.Catalog.GetStringFmt("{0:F0} %", Viewer.Simulator.Weather.PrecipitationLiquidity * 100));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Wind"), Viewer.Catalog.GetStringFmt("{0:F1},{1:F1} m/s", Viewer.Simulator.Weather.WindSpeedMpS.X, Viewer.Simulator.Weather.WindSpeedMpS.Y));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Amb Temp"), FormatStrings.FormatTemperature(Viewer.PlayerLocomotive.Train.TrainOutsideTempC, Viewer.PlayerLocomotive.IsMetric, false));
         }
 
         void TextPageDebugInfo(TableData table)

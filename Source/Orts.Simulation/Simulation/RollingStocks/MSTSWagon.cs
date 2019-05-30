@@ -799,6 +799,8 @@ namespace Orts.Simulation.RollingStocks
                         break;
                 }
             }
+
+
         }
 
         /// <summary>
@@ -1319,7 +1321,7 @@ namespace Orts.Simulation.RollingStocks
 
             UpdateLocomotiveLoadPhysics(); // Updates the load physics characteristics of locomotives
 
-            UpdateSpecialEffects(elapsedClockSeconds); // Updates the special effects
+            UpdateSpecialEffects(elapsedClockSeconds); // Updates the wagon special effects
 
             var LocomotiveIdentity = Simulator.PlayerLocomotive as MSTSLocomotive;
            
@@ -1349,6 +1351,8 @@ namespace Orts.Simulation.RollingStocks
             UpdateWindForce();
 
             //            Trace.TraceInformation("Coupler - ID {0} GetSlack1 {1:N4} GetSlack2 {2:N4} GetStiff {3:N3} GetZero {4:N3}", CarID, GetMaximumCouplerSlack1M(), GetMaximumCouplerSlack2M(), GetCouplerStiffnessNpM(), GetCouplerZeroLengthM());
+
+            UpdateWheelBearingTemperature(elapsedClockSeconds);
 
             // Get Coupler HUD Indication
             HUDCouplerRigidIndication = GetCouplerRigidIndication();
@@ -1861,7 +1865,155 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
-        private void UpdateWindForce()
+        /// <summary>
+        /// Updates the temperature of the wheel bearing on each wagon.
+        /// </summary>
+        private void UpdateWheelBearingTemperature(float elapsedClockSeconds)
+        {
+            // Increased bearing temperature impacts the train physics model in two ways - it reduces the starting friction, and also a hot box failure, can result in failure of the train.
+            // This is a "representative" model of bearing heat based upon the information described in the following publications- 
+            // PRR Report (Bulletin #26) - Train Resistance and Tonnage Rating
+            // Illinois Test Report (Bulletin #59) - The Effects of Cold Weather upon Train Resistance and Tonnage Rating
+            // This information is for plain (friction) type bearings, and there are many variables that effect bearing heating and cooling, however it is considered a "close approximation" 
+            // for the purposes it serves, ie to simulate resistance variation with temperature.
+            // The model uses the Newton Law of Heating and cooling to model the time taken for temperature rise and fall - ie of the form T(t) = Ts + (T0 - Ts)exp(kt)
+
+            // Keep track of Activity details if an activity, setup random wagon, and start time for hotbox
+            if (Simulator.ActivityRun != null)
+            {
+                if (ActivityElapsedDurationS < HotBoxStartTimeS)
+                {
+                    ActivityElapsedDurationS += elapsedClockSeconds;
+                }
+
+                // Determine whether car will be activated with a random hot box, only tested once at start of activity
+                if (!HotBoxHasBeenInitialized) // If already initialised then skip
+                {
+                    if (Simulator.Settings.ActRandomizationLevel > 0)
+                    {                        
+                        var HotboxRandom = Simulator.Random.Next(100) / Simulator.Settings.ActRandomizationLevel;
+                        float PerCentRandom = 0.66f; // Set so that random time is always in first 66% of activity duration
+                        var RawHotBoxTimeRandomS = Simulator.Random.Next(Train.ActivityDurationS);
+                        if (!Train.HotBoxSetOnTrain) // only allow one hot box to be set per train 
+                        {
+                            if (HotboxRandom < 10)
+                            {
+                                HotBoxActivated = true;
+                                Train.HotBoxSetOnTrain = true;
+                                HotBoxStartTimeS = PerCentRandom * RawHotBoxTimeRandomS;
+//                                HotBoxTemperatureRiseTimeS = HotBoxStartTimeS;
+                                Trace.TraceInformation("Hotbox Bearing Activated on CarID {0}. Hotbox to start from {1:F1} minutes into activity", CarID, S.ToM(HotBoxStartTimeS));
+                            }
+                        }
+
+                                            
+                    }
+                }
+
+                HotBoxHasBeenInitialized = true; // Only allow to loop once at first pass
+            }
+            
+
+            float BearingSpeedMaximumTemperatureDegC = 0;
+            float MaximumNormalBearingTemperatureDegC = 90.0f;
+            float MaximumHotBoxBearingTemperatureDegC = 120.0f;
+
+            // K values calculated based on data in PRR report
+            float CoolingKConst = -0.0003355569417321907f; // Time = 1380s, amb = -9.4. init = 56.7C, final = 32.2C
+            float HeatingKConst = -0.000790635114477831f;  // Time = 3600s, amb = -9.4. init = 56.7C, final = 12.8C
+            float HotBoxKConst = -0.002938026821980944f;  // Time = 600s, amb = -9.4. init = 120.0C, final = 12.8C
+
+            if (elapsedClockSeconds > 0) // Prevents zero values resetting temperature
+            {
+                
+                // Keep track of wheel bearing temperature until activtaion time reached
+                if (ActivityElapsedDurationS < HotBoxStartTimeS) 
+                {
+                   InitialHotBoxRiseTemperatureDegS = WheelBearingTemperatureDegC;
+                }
+
+                // Calculate Hot box bearing temperature
+                if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS && AbsSpeedMpS > 7.0)
+                {
+
+                    HotBoxTemperatureRiseTimeS += elapsedClockSeconds;
+
+                    // Calculate predicted bearing temperature based upon elapsed time
+                    WheelBearingTemperatureDegC = MaximumHotBoxBearingTemperatureDegC + (InitialHotBoxRiseTemperatureDegS - MaximumHotBoxBearingTemperatureDegC) * (float)(Math.Exp(HotBoxKConst * HotBoxTemperatureRiseTimeS));
+
+                    // Reset temperature decline values in preparation for next cylce
+                    WheelBearingTemperatureDeclineTimeS = 0;
+                    InitialWheelBearingDeclineTemperatureDegC = WheelBearingTemperatureDegC;
+
+                }
+                // Normal bearing temperature operation
+                else if (AbsSpeedMpS > 7.0) // If train is moving calculate heating temperature
+                {
+                    // Calculate maximum bearing temperature based on current speed using approximated linear graph y = 0.25x + 55
+                    const float MConst = 0.25f;
+                    const float BConst = 55;
+                    BearingSpeedMaximumTemperatureDegC = MConst * AbsSpeedMpS + BConst;
+
+                    WheelBearingTemperatureRiseTimeS += elapsedClockSeconds;
+
+                    // Calculate predicted bearing temperature based upon elapsed time
+                    WheelBearingTemperatureDegC = MaximumNormalBearingTemperatureDegC + (InitialWheelBearingRiseTemperatureDegC - MaximumNormalBearingTemperatureDegC) * (float)(Math.Exp(HeatingKConst * WheelBearingTemperatureRiseTimeS));
+
+                    // Cap bearing temperature depending upon speed
+                    if (WheelBearingTemperatureDegC > BearingSpeedMaximumTemperatureDegC)
+                    {
+                        WheelBearingTemperatureDegC = BearingSpeedMaximumTemperatureDegC;
+                    }
+
+                    // Reset Decline values in preparation for next cylce
+                    WheelBearingTemperatureDeclineTimeS = 0;
+                    InitialWheelBearingDeclineTemperatureDegC = WheelBearingTemperatureDegC;
+
+                }
+                // Calculate cooling temperature if train stops or slows down 
+                else
+                {
+                    if (WheelBearingTemperatureDegC > CarOutsideTempC)
+                    {
+                        WheelBearingTemperatureDeclineTimeS += elapsedClockSeconds;
+                        WheelBearingTemperatureDegC = CarOutsideTempC + (InitialWheelBearingDeclineTemperatureDegC - CarOutsideTempC) * (float)(Math.Exp(CoolingKConst * WheelBearingTemperatureDeclineTimeS));
+                    }
+
+                    WheelBearingTemperatureRiseTimeS = 0;
+                    InitialWheelBearingRiseTemperatureDegC = WheelBearingTemperatureDegC;
+
+                }
+
+            }
+
+            // Set warning messages for hot bearing and failed bearings
+            if (WheelBearingTemperatureDegC > 115)
+            {
+                var hotboxfailuremessage = "CarID" + CarID + "has experienced a failure due to a hot wheel bearing";
+                Simulator.Confirmer.Message(ConfirmLevel.Warning, hotboxfailuremessage);
+                WheelBearingFailed = true;
+            }
+            else if (WheelBearingTemperatureDegC > 100 && WheelBearingTemperatureDegC <= 115)
+            {
+                if (!WheelBearingHot)
+                {
+                    var hotboxmessage = "CarID" + CarID + "is experiencing a hot wheel bearing";
+                    Simulator.Confirmer.Message(ConfirmLevel.Warning, hotboxmessage);
+                    WheelBearingHot = true;
+                }
+            }
+            else
+            {
+                WheelBearingHot = false;
+            }
+
+            // Assume following limits for HUD - Normal operation: 50 - 90, Cool: < 50, Warm: 90 - 100, Hot: 100 - 115, Fail: > 115 - Set up text for HUD
+            DisplayWheelBearingTemperatureStatus = WheelBearingTemperatureDegC > 115 ? "Fail" + "!!!" : WheelBearingTemperatureDegC > 100 && WheelBearingTemperatureDegC <= 115 ? "Hot" + "!!!"
+                : WheelBearingTemperatureDegC > 90 && WheelBearingTemperatureDegC <= 100 ? "Warm" + "???" : WheelBearingTemperatureDegC <= 50 ? "Cool" + "%%%" : "Norm" + "";
+        }
+
+
+    private void UpdateWindForce()
         {
 
             // Calculate compensation for  wind
