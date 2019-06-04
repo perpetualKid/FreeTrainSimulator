@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Orts.Formats.Msts.Signalling
 {
@@ -101,10 +97,10 @@ namespace Orts.Formats.Msts.Signalling
                                 case "NOT":
                                 case "MOD":
                                 case "DIV":
-                                    currentBlock = currentBlock.Add(new OperatorToken(token.Value, LineNumber), LineNumber);
+                                    currentBlock = currentBlock.Add(new OperatorToken(token.Value, tokenizer.LineNumber), tokenizer.LineNumber);
                                     continue;
                                 default:
-                                    currentBlock = currentBlock.Add(new ScriptToken() { Token = token.Value }, LineNumber);
+                                    currentBlock = currentBlock.Add(new ScriptToken() { Token = token.Value }, tokenizer.LineNumber);
                                     continue;
                             }
                         case TokenType.Separator:
@@ -118,7 +114,7 @@ namespace Orts.Formats.Msts.Signalling
                             }
                             else
                             {
-                                currentBlock = currentBlock.Add(new OperatorToken(token.Value, LineNumber), LineNumber);
+                                currentBlock = currentBlock.Add(new OperatorToken(token.Value, tokenizer.LineNumber), tokenizer.LineNumber);
                             }
                             continue;
                         default:

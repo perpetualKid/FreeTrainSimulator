@@ -1377,6 +1377,7 @@ namespace Orts.Viewer3D
         public int RootSubObjectIndex = 0;
         //public bool negativeBogie = false;
         public string SoundFileName = "";
+        public float BellAnimationFPS = 8;
 
 
         readonly Viewer Viewer;
@@ -1440,6 +1441,7 @@ namespace Orts.Viewer3D
                 if ((textureFlags & Helpers.TextureFlags.Night) != 0 && FilePath.Contains("\\trainset\\"))
                     textureFlags |= Helpers.TextureFlags.Underground;
                 SoundFileName = sdFile.shape.ESD_SoundFileName;
+                BellAnimationFPS = sdFile.shape.ESD_BellAnimationFPS;
             }
 
             var matrixCount = sFile.shape.matrices.Count;

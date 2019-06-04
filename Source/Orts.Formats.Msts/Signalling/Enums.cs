@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Orts.Formats.Msts.Signalling
+﻿namespace Orts.Formats.Msts.Signalling
 {
     internal enum TokenType
     {
@@ -20,6 +14,7 @@ namespace Orts.Formats.Msts.Signalling
         BlockOpen = 0x7b,       // {
         BlockClose = 0x7d,      // }
     }
+
     internal enum CommentParserState
     {
         None,
@@ -47,5 +42,4 @@ namespace Orts.Formats.Msts.Signalling
         HasAlternate,
         HasAlternateCondition,
     }
-
 }
