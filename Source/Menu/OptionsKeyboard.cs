@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ORTS.Common;
+using ORTS.Common.Input;
 using ORTS.Settings;
 
 namespace ORTS

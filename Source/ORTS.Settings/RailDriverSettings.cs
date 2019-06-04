@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using GNU.Gettext;
 using ORTS.Common;
+using ORTS.Common.Input;
 
 namespace ORTS.Settings
 {

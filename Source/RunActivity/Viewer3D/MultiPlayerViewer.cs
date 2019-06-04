@@ -17,6 +17,7 @@
 
 using Orts.MultiPlayer;
 using ORTS.Common;
+using ORTS.Common.Input;
 
 namespace Orts.Viewer3D
 {

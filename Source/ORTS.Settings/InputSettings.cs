@@ -27,6 +27,7 @@ using GNU.Gettext;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using ORTS.Common;
+using ORTS.Common.Input;
 
 namespace ORTS.Settings
 {

@@ -28,6 +28,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
+using ORTS.Common.Input;
 using ORTS.Common.Xna;
 using ORTS.Settings;
 using Game = Orts.Viewer3D.Processes.Game;

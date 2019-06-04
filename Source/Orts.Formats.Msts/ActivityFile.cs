@@ -273,6 +273,7 @@ using System.Diagnostics;
 using System.Text;
 using System.IO;
 using Orts.Parsers.Msts; // For class S (seconds)
+using Microsoft.Xna.Framework;
 
 namespace Orts.Formats.Msts
 {

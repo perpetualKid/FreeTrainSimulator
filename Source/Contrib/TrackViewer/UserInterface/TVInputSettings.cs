@@ -22,6 +22,7 @@
 
 using System;
 using ORTS.Common;
+using ORTS.Common.Input;
 using ORTS.Settings;
 
 namespace ORTS.TrackViewer.UserInterface
