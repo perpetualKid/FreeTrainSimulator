@@ -60,6 +60,7 @@ namespace Orts.Viewer3D.RollingStock
         AnimatedPart RightDoor;
         AnimatedPart Mirrors;
         protected AnimatedPart Wipers;
+        protected AnimatedPart Bell;
         AnimatedPart UnloadingParts;
 
         public Dictionary<string, List<ParticleEmitterViewer>> ParticleDrawers = new Dictionary<string, List<ParticleEmitterViewer>>();
@@ -69,6 +70,8 @@ namespace Orts.Viewer3D.RollingStock
 
         // Create viewers for special steam/smoke effects on car
         List<ParticleEmitterViewer> HeatingHose = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> WaterScoop = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> TenderWaterOverflow = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WagonSmoke = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> HeatingSteamBoiler = new List<ParticleEmitterViewer>();
 
@@ -136,6 +139,27 @@ namespace Orts.Viewer3D.RollingStock
                     drawer.Initialize(steamTexture);
                 }
 
+
+                // Water spray for when water scoop is in use (use steam effects for the time being)
+
+                if (emitter.Key.ToLowerInvariant() == "waterscoopfx")
+                    WaterScoop.AddRange(emitter.Value);
+
+                foreach (var drawer in WaterScoop)
+                {
+                    drawer.Initialize(steamTexture);
+                }
+
+                // Water overflow when tender is over full during water trough filling (use steam effects for the time being) 
+
+                if (emitter.Key.ToLowerInvariant() == "tenderwateroverflowfx")
+                   TenderWaterOverflow.AddRange(emitter.Value);
+                
+                foreach (var drawer in TenderWaterOverflow)
+                {
+                   drawer.Initialize(steamTexture);
+                }
+
             }
 
             var wagonFolderSlash = Path.GetDirectoryName(car.WagFilePath) + @"\";
@@ -182,6 +206,7 @@ namespace Orts.Viewer3D.RollingStock
             Mirrors = new AnimatedPart(TrainCarShape);
             Wipers = new AnimatedPart(TrainCarShape);
             UnloadingParts = new AnimatedPart(TrainCarShape);
+            Bell = new AnimatedPart(TrainCarShape);
 
             if (car.FreightAnimations != null)
                 FreightAnimations = new FreightAnimationsViewer(viewer, car, wagonFolderSlash);
@@ -407,6 +432,10 @@ namespace Orts.Viewer3D.RollingStock
                     else Pantograph2.AddMatrix(matrix);
                 }
             }
+            else if (matrixName.StartsWith("ORTSBELL")) // wipers
+            {
+                Bell.AddMatrix(matrix);
+            }
             else
             {
                 if (matrixAnimated && matrix != 0)
@@ -476,7 +505,18 @@ namespace Orts.Viewer3D.RollingStock
             foreach (var drawer in WagonSmoke)
             {
                   drawer.SetOutput(car.WagonSmokeVelocityMpS, car.WagonSmokeVolumeM3pS, car.WagonSmokeDurationS, car.WagonSmokeSteadyColor);
-               // drawer.SetOutput(car.WagonSmokeVolumeM3pS, car.WagonSmokeDurationS, car.WagonSmokeSteadyColor);
+            }
+
+            // Water spray for water sccop (uses steam effects currently)
+            foreach (var drawer in WaterScoop)
+            {
+                drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+            }
+
+            // Water overflow from tender (uses steam effects currently)
+            foreach (var drawer in TenderWaterOverflow)
+            {
+                drawer.SetOutput(car.TenderWaterOverflowVelocityMpS, car.TenderWaterOverflowVolumeM3pS, car.TenderWaterOverflowParticleDurationS);
             }
 
             foreach (List<ParticleEmitterViewer> drawers in ParticleDrawers.Values)

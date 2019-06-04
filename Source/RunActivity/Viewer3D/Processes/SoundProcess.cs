@@ -41,7 +41,7 @@ namespace Orts.Viewer3D.Processes
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
         //   assignment of a new instance (possibly cloned and then modified).
-        Dictionary<object, List<SoundSourceBase>> SoundSources = new Dictionary<object, List<SoundSourceBase>>();
+        public Dictionary<object, List<SoundSourceBase>> SoundSources = new Dictionary<object, List<SoundSourceBase>>();
 
 #if DEBUG_SOURCE_SOURCES
         private float SoundSrcCount = 0;
@@ -261,7 +261,7 @@ namespace Orts.Viewer3D.Processes
         /// <returns></returns>
         internal Dictionary<object, List<SoundSourceBase>> GetSoundSources()
         {
-            lock (SoundSources)
+            //lock (SoundSources)
             {
                 return new Dictionary<object, List<SoundSourceBase>>(SoundSources);
             }

@@ -480,6 +480,7 @@ namespace Orts.Viewer3D
 
             graphicsDevice.BlendState = BlendState.Opaque;
 
+
             //            Matrix viewXNASkyProj = viewMatrix * Camera.XNASkyProjection;
             MatrixExtension.Multiply(in view, in Camera.XNASkyProjection, out Matrix viewXNASkyProj);
 

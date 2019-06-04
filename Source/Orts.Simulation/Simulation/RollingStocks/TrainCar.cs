@@ -167,7 +167,7 @@ namespace Orts.Simulation.RollingStocks
         public float CouplerSlackM;  // extra distance between cars (calculated based on relative speeds)
         public float CouplerDampingSpeedMpS; // Dampening applied to coupler
         public int HUDCouplerForceIndication = 0; // Flag to indicate whether coupler is 1 - pulling, 2 - pushing or 0 - neither
-        public int HUDCouplerRigidIndication = 0; // flag to indicate whether coupler is rigid of flexible. False indicates that coupler is flexible
+        public bool HUDCouplerRigidIndication = false; // flag to indicate whether coupler is rigid or flexible. fasle indicates that coupler is flexible, true indicates that coupler is rigid
         public float CouplerSlack2M;  // slack calculated using draft gear force
         public bool IsAdvancedCoupler = false; // Flag to indicate that coupler is to be treated as an advanced coupler
         public bool WheelSlip;  // true if locomotive wheels slipping
@@ -1512,9 +1512,9 @@ namespace Orts.Simulation.RollingStocks
             return 0.1f;
         }
 
-        public virtual int GetCouplerRigidIndication()
+        public virtual bool GetCouplerRigidIndication()
         {
-            return 0;
+            return false;
         }
 
         public virtual float GetMaximumCouplerSlack0M()
@@ -2239,6 +2239,64 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
             return isOverTrough;
+        }
+
+
+        /// <summary>
+        /// Checks if traincar is over junction or crossover. Used to check if water scoop breaks
+        /// </summary>
+        /// <returns> returns true if car is over junction</returns>
+
+        public bool IsOverJunction()
+        {
+
+            // To Do - This identifies the start of the train, but needs to be further refined to work for each carriage.
+            var isOverJunction = false;
+            // start at front of train
+            int thisSectionIndex = Train.PresentPosition[0].TCSectionIndex;
+            float thisSectionOffset = Train.PresentPosition[0].TCOffset;
+            int thisSectionDirection = Train.PresentPosition[0].TCDirection;
+
+
+            float usedCarLength = CarLengthM;
+
+            if (Train.PresentPosition[0].TCSectionIndex != Train.PresentPosition[1].TCSectionIndex)
+            {
+                try
+                {
+                    var copyOccupiedTrack = Train.OccupiedTrack.ToArray();
+                    foreach (var thisSection in copyOccupiedTrack)
+                    {
+
+//                    Trace.TraceInformation(" Track Section - Index {0} Ciruit Type {1}", thisSectionIndex, thisSection.CircuitType);
+
+                    if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                        {
+
+                        // train is on a switch; let's see if car is on a switch too
+                        WorldLocation switchLocation = TileLocation(Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD);
+                        var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
+                            if (distanceFromSwitch<CarLengthM* CarLengthM + Math.Min(SpeedMpS* 3, 150))
+                            {
+                                isOverJunction = true;
+                                return isOverJunction;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
+            }
+
+            return isOverJunction;
+        }
+
+
+        public static WorldLocation TileLocation(UiD uid)
+        {
+            return new WorldLocation(uid.TileX, uid.TileZ, uid.X, uid.Y, uid.Z);
         }
 
         public virtual void SwitchToPlayerControl()

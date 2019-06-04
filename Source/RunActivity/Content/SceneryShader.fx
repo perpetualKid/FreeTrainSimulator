@@ -118,7 +118,7 @@ struct VERTEX_INPUT
 };
 
 struct VERTEX_INPUT_FOREST
- {
+{
 	float4 Position  : POSITION;
 	float2 TexCoords : TEXCOORD0;
 	float3 Normal    : NORMAL;
@@ -160,7 +160,7 @@ void _VSNormalProjection(in VERTEX_INPUT In, inout VERTEX_OUTPUT Out)
 	Out.RelPosition.w = Out.Position.z;
 	Out.TexCoords.xy = In.TexCoords;
 	Out.Normal_Light.xyz = normalize(mul(In.Normal, (float3x3)World).xyz);
-	
+
 	// Normal lighting (range 0.0 - 1.0)
 	// Need to calc. here instead of _VSLightsAndShadows() to avoid calling it from VSForest(), where it has gone into pre-shader in Shaders.cs
 	Out.Normal_Light.w = dot(Out.Normal_Light.xyz, LightVector_ZFar.xyz) * 0.5 + 0.5;
@@ -504,6 +504,7 @@ float4 PSImage4(in VERTEX_OUTPUT In) : COLOR0
 	return PSImage(false, true, In);
 }
 
+
 float4 PSVegetation(in VERTEX_OUTPUT In) : COLOR0
 {
 	float4 Color = tex2D(Image, In.TexCoords.xy);
@@ -538,7 +539,7 @@ float4 PSTerrain(uniform bool ShaderModel3, in VERTEX_OUTPUT In) : COLOR0
 	// Night-time darkens everything, except night-time textures.
 	litColor *= NightColorModifier;
 	// Overlay image for terrain.
-	litColor.rgb *= (float3)(tex2D(Overlay, In.TexCoords.xy * OverlayScale) * 2);
+	litColor.rgb *= (float3)tex2D(Overlay, In.TexCoords.xy * OverlayScale) * 2;
 	// Headlights effect use original Color.
 	_PSApplyHeadlights(litColor, Color, In);
 	// And fogging is last.
@@ -649,8 +650,8 @@ technique ImagePS2 {
 
 technique ImagePS3 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_3 VSGeneral3();
-		PixelShader = compile ps_4_0_level_9_3 PSImage3();
+		VertexShader = compile vs_5_0 VSGeneral3();
+		PixelShader = compile ps_5_0 PSImage3();
 	}
 }
 
@@ -663,8 +664,8 @@ technique TransferPS2 {
 
 technique TransferPS3 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_3 VSTransfer3();
-		PixelShader = compile ps_4_0_level_9_3 PSImage5();
+		VertexShader = compile vs_5_0 VSTransfer3();
+		PixelShader = compile ps_5_0 PSImage5();
 	}
 }
 
@@ -684,8 +685,8 @@ technique VegetationPS2 {
 
 technique VegetationPS3 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_3 VSGeneral3();
-		PixelShader = compile ps_4_0_level_9_3 PSVegetation();
+		VertexShader = compile vs_5_0 VSGeneral3();
+		PixelShader = compile ps_5_0 PSVegetation();
 	}
 }
 
@@ -698,15 +699,15 @@ technique TerrainPS2 {
 
 technique TerrainPS3 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_3 VSTerrain3();
-		PixelShader = compile ps_4_0_level_9_3 PSTerrain3();
+		VertexShader = compile vs_5_0 VSTerrain3();
+		PixelShader = compile ps_5_0 PSTerrain3();
 	}
 }
 
 technique DarkShadePS3 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_3 VSGeneral3();
-		PixelShader = compile ps_4_0_level_9_3 PSDarkShade();
+		VertexShader = compile vs_5_0 VSGeneral3();
+		PixelShader = compile ps_5_0 PSDarkShade();
 	}
 }
 
@@ -719,8 +720,8 @@ technique DarkShadePS2 {
 
 technique HalfBrightPS3 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_3 VSGeneral3();
-		PixelShader = compile ps_4_0_level_9_3 PSHalfBright();
+		VertexShader = compile vs_5_0 VSGeneral3();
+		PixelShader = compile ps_5_0 PSHalfBright();
 	}
 }
 
@@ -733,8 +734,8 @@ technique HalfBrightPS2 {
 
 technique FullBrightPS3 {
 	pass Pass_0 {
-		VertexShader = compile vs_4_0_level_9_3 VSGeneral3();
-		PixelShader = compile ps_4_0_level_9_3 PSFullBright();
+		VertexShader = compile vs_5_0 VSGeneral3();
+		PixelShader = compile ps_5_0 PSFullBright();
 	}
 }
 

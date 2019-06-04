@@ -153,6 +153,16 @@ namespace Orts.Simulation.RollingStocks
         public float HeatingHoseSteamVelocityMpS;
         public float HeatingHoseSteamVolumeM3pS;
 
+        // Water Scoop Spray
+        public float WaterScoopParticleDurationS;
+        public float WaterScoopWaterVelocityMpS;
+        public float WaterScoopWaterVolumeM3pS;
+
+        // Tender Water overflow
+        public float TenderWaterOverflowParticleDurationS;
+        public float TenderWaterOverflowVelocityMpS;
+        public float TenderWaterOverflowVolumeM3pS;
+
         // Wagon Power Generator
         public float WagonGeneratorDurationS = 1.5f;
         public float WagonGeneratorVolumeM3pS = 2.0f;
@@ -171,6 +181,8 @@ namespace Orts.Simulation.RollingStocks
         public float WagonSmokeVelocityMpS = 15.0f;
         public Color WagonSmokeSteadyColor = Color.Gray;
 
+        float TrueCouplerCount = 0;
+        int CouplerCountLocation;
 
         /// <summary>
         /// True if vehicle is equipped with an additional emergency brake reservoir
@@ -912,35 +924,53 @@ namespace Orts.Simulation.RollingStocks
                     }
                     break;
                 case "wagon(coupling":
-                    Couplers.Add(new MSTSCoupling());
+                    Couplers.Add(new MSTSCoupling()); // Adds a new coupler every time "Coupler" parameters found in WAG and INC file
+                    CouplerCountLocation = 0;
+                    TrueCouplerCount += 1;
+                    // it is possible for there to be more then two couplers per car if the coupler details are added via an INC file. Therefore the couplers need to be adjusted appropriately.
+                    // Front coupler stored in slot 0, and rear coupler stored in slot 1
+                    if (Couplers.Count > 2 && TrueCouplerCount == 3)  // If front coupler has been added via INC file
+                    {
+                        Couplers.RemoveAt(0);  // Remove old front coupler
+                        CouplerCountLocation = 0;  // Write info to old front coupler location. 
+                    } else if (Couplers.Count > 2 && TrueCouplerCount == 4)  // If rear coupler has been added via INC file
+                    {
+                        Couplers.RemoveAt(1);  // Remove old rear coupler
+                        CouplerCountLocation = 1;  // Write info to old rear coupler location. 
+                    }
+                    else
+                    {
+                        CouplerCountLocation = Couplers.Count - 1;  // By default write info into 0 and 1 slots as required.
+                    };
                     break;
                 case "wagon(coupling(couplinghasrigidconnection":
-                    Couplers[Couplers.Count - 1].Rigid = stf.ReadBoolBlock(true);
+                    Couplers[CouplerCountLocation].Rigid = false;
+                    Couplers[CouplerCountLocation].Rigid = stf.ReadBoolBlock(true);
                     break;
                 case "wagon(coupling(spring(stiffness":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetStiffness(stf.ReadFloat(STFReader.UNITS.Stiffness, null), stf.ReadFloat(STFReader.UNITS.Stiffness, null));
+                    Couplers[CouplerCountLocation].SetStiffness(stf.ReadFloat(STFReader.UNITS.Stiffness, null), stf.ReadFloat(STFReader.UNITS.Stiffness, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(damping":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetDamping(stf.ReadFloat(STFReader.UNITS.Resistance, null), stf.ReadFloat(STFReader.UNITS.Resistance, null));
+                    Couplers[CouplerCountLocation].SetDamping(stf.ReadFloat(STFReader.UNITS.Resistance, null), stf.ReadFloat(STFReader.UNITS.Resistance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(ortsslack":
                     stf.MustMatch("(");
-                     // IsAdvancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.  Temporarily disabled for v1.3 release
-                    Couplers[Couplers.Count - 1].SetSlack(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    IsAdvancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.
+                    Couplers[CouplerCountLocation].SetSlack(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(break":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetBreak(stf.ReadFloat(STFReader.UNITS.Force, null), stf.ReadFloat(STFReader.UNITS.Force, null));
+                    Couplers[CouplerCountLocation].SetBreak(stf.ReadFloat(STFReader.UNITS.Force, null), stf.ReadFloat(STFReader.UNITS.Force, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(r0":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetR0(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    Couplers[CouplerCountLocation].SetR0(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(adheasion":
@@ -1094,7 +1124,9 @@ namespace Orts.Simulation.RollingStocks
             }
             IsAdvancedCoupler = copy.IsAdvancedCoupler;
             foreach (MSTSCoupling coupler in copy.Couplers)
+            {
                 Couplers.Add(coupler);
+            }
             Pantographs.Copy(copy.Pantographs);
             if (copy.FreightAnimations != null)
             {
@@ -1288,6 +1320,9 @@ namespace Orts.Simulation.RollingStocks
             UpdateLocomotiveLoadPhysics(); // Updates the load physics characteristics of locomotives
 
             UpdateSpecialEffects(elapsedClockSeconds); // Updates the special effects
+
+            var LocomotiveIdentity = Simulator.PlayerLocomotive as MSTSLocomotive;
+           
 
             // Update Aux Tender Information
 
@@ -2052,34 +2087,100 @@ namespace Orts.Simulation.RollingStocks
         // This section updates the special effects
         {
 
-            // Update Steam Leaks Information
-            if (Train.CarSteamHeatOn)
+            if (WagonType == WagonTypes.Tender || WagonType == WagonTypes.Engine)
             {
-                // Turn wagon steam leaks on 
-                HeatingHoseParticleDurationS = 0.75f;
-                HeatingHoseSteamVelocityMpS = 15.0f;
-                HeatingHoseSteamVolumeM3pS = 4.0f;
-            }
-            else
-            {
-                // Turn wagon steam leaks off 
-                HeatingHoseParticleDurationS = 0.0f;
-                HeatingHoseSteamVelocityMpS = 0.0f;
-                HeatingHoseSteamVolumeM3pS = 0.0f;
-            }
+                // Update Steam Leaks Information
+                if (Train.CarSteamHeatOn)
+                {
+                    // Turn wagon steam leaks on 
+                    HeatingHoseParticleDurationS = 0.75f;
+                    HeatingHoseSteamVelocityMpS = 15.0f;
+                    HeatingHoseSteamVolumeM3pS = 4.0f;
+                }
+                else
+                {
+                    // Turn wagon steam leaks off 
+                    HeatingHoseParticleDurationS = 0.0f;
+                    HeatingHoseSteamVelocityMpS = 0.0f;
+                    HeatingHoseSteamVolumeM3pS = 0.0f;
+                }
 
-            // Decrease wagon smoke as speed increases, smoke completely dissappears when wagon reaches 5MpS.
-            float WagonSmokeMaxRise = -1.0f;
-            float WagonSmokeMaxRun = 5.0f;
-            float WagonSmokeGrad = WagonSmokeMaxRise / WagonSmokeMaxRun;
+                // Update Water Scoop Spray Information when scoop is down and filling from trough
 
-            float WagonSmokeRatio = (WagonSmokeGrad * AbsSpeedMpS) + 1.0f;
-         //   WagonSmokeDurationS = InitialWagonSmokeDurationS * WagonSmokeRatio;
-         //   WagonSmokeVolumeM3pS = InitialWagonSmokeVolumeM3pS * WagonSmokeRatio;
-            WagonSmokeDurationS = InitialWagonSmokeDurationS;
-            WagonSmokeVolumeM3pS = InitialWagonSmokeVolumeM3pS;
+                bool ProcessWaterEffects = false; // Initialise test flag to see whether this wagon will have water sccop effects active
+                var LocomotiveIdentification = Simulator.PlayerLocomotive as MSTSLocomotive;
+
+                if (WagonType == WagonTypes.Tender || WagonType == WagonTypes.Engine)
+                {
+
+                    if (WagonType == WagonTypes.Tender)
+                    {
+                        // Find the associated steam locomotive for this tender
+                        if (TendersSteamLocomotive == null) FindTendersSteamLocomotive();
+
+                        if (TendersSteamLocomotive == LocomotiveIdentification && TendersSteamLocomotive.HasWaterScoop)
+                        {
+                            ProcessWaterEffects = true; // Set flag if this tender is attached to player locomotive
+                        }
+
+                    }
+                    else if (Simulator.PlayerLocomotive == this && LocomotiveIdentification.HasWaterScoop)
+                    {
+                        ProcessWaterEffects = true; // Allow water effects to be processed
+                    }
+                    else
+                    {
+                        ProcessWaterEffects = false; // Default off
+                    }
+
+                    if (LocomotiveIdentification.RefillingFromTrough && ProcessWaterEffects)
+                    {
+
+                        float SpeedRatio = AbsSpeedMpS / 40.0f; // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
+
+                        // Turn wagon steam leaks on 
+                        WaterScoopParticleDurationS = 0.75f;
+                        WaterScoopWaterVelocityMpS = 30.0f;
+                        WaterScoopWaterVolumeM3pS = 6.0f;
+
+                        // Turn tender water overflow on if water level is greater then 100% nominally
+                        if (LocomotiveIdentification.TenderWaterLevelFraction >= 0.9999)
+                        {
+
+                            // Turn tender water overflow on 
+                            TenderWaterOverflowParticleDurationS = 0.75f;
+                            TenderWaterOverflowVelocityMpS = 30.0f;
+                            TenderWaterOverflowVolumeM3pS = 6.0f;
+                        }
+                    }
+                    else
+                    {
+                        // Turn wagon steam leaks off 
+                        WaterScoopParticleDurationS = 0.0f;
+                        WaterScoopWaterVelocityMpS = 0.0f;
+                        WaterScoopWaterVolumeM3pS = 0.0f;
+
+                        // Turn tender water overflow off 
+                        TenderWaterOverflowParticleDurationS = 0.0f;
+                        TenderWaterOverflowVelocityMpS = 0.0f;
+                        TenderWaterOverflowVolumeM3pS = 0.0f;
+                    }
+
+
+                }
+
+                // Decrease wagon smoke as speed increases, smoke completely dissappears when wagon reaches 5MpS.
+                float WagonSmokeMaxRise = -1.0f;
+                float WagonSmokeMaxRun = 5.0f;
+                float WagonSmokeGrad = WagonSmokeMaxRise / WagonSmokeMaxRun;
+
+                float WagonSmokeRatio = (WagonSmokeGrad * AbsSpeedMpS) + 1.0f;
+                //   WagonSmokeDurationS = InitialWagonSmokeDurationS * WagonSmokeRatio;
+                //   WagonSmokeVolumeM3pS = InitialWagonSmokeVolumeM3pS * WagonSmokeRatio;
+                WagonSmokeDurationS = InitialWagonSmokeDurationS;
+                WagonSmokeVolumeM3pS = InitialWagonSmokeVolumeM3pS;
+            }
         }
-
 
         public override void SignalEvent(Event evt)
         {
@@ -2261,10 +2362,11 @@ namespace Orts.Simulation.RollingStocks
                 TendersSteamLocomotive = null;
         }
 
+        /// <summary>
+        /// This function checks each steam locomotive to see if it has a tender attached.
+        /// </summary>
         public void ConfirmSteamLocomotiveTender()
         {
-            
-            // Check each steam locomotive to see if it has a tender attached.
             if (this is MSTSSteamLocomotive )
             {
 
@@ -2306,10 +2408,12 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
+        /// <summary>
+        /// This function finds the steam locomotive associated with this wagon aux tender, this allows parameters processed in the steam loocmotive module to be used elsewhere.
+        /// </summary>
         public void FindAuxTendersSteamLocomotive()
         {
-            // Find the steam locomotive associated with this wagon aux tender, this allows parameters processed in the steam loocmotive module to be used elsewhere
-            if (Train == null || Train.Cars == null || Train.Cars.Count == 1)
+             if (Train == null || Train.Cars == null || Train.Cars.Count == 1)
             {
                 AuxTendersSteamLocomotive = null;
                 return;
@@ -2362,11 +2466,11 @@ namespace Orts.Simulation.RollingStocks
 
         public MSTSCoupling Coupler
         {
-            get
+            get  // This determines which coupler to use from WAG file, typically it will be the first one as by convention the rear coupler is always read first.
             {
                 if (Couplers.Count == 0) return null;
                 if (Flipped && Couplers.Count > 1) return Couplers[1];
-                return Couplers[0];
+                return Couplers[0];   // defaults to the rear coupler (typically the first read)
             }
         }
         public override float GetCouplerZeroLengthM()
@@ -2411,6 +2515,7 @@ namespace Orts.Simulation.RollingStocks
                 return base.GetCouplerStiffness1NpM();
             }
             return Coupler.Rigid? 10 * Coupler.Stiffness1NpM : Coupler.Stiffness1NpM;
+
         }
  
         public override float GetCouplerStiffness2NpM()
@@ -2419,7 +2524,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 return base.GetCouplerStiffness2NpM();
             }
-            return Coupler.Rigid? 10 * Coupler.Stiffness1NpM : Coupler.Stiffness2NpM;
+            return Coupler.Rigid? 10 * Coupler.Stiffness2NpM : Coupler.Stiffness2NpM;
         }
 
         public override float GetCouplerDamping1NMpS()
@@ -2458,13 +2563,13 @@ namespace Orts.Simulation.RollingStocks
             return Coupler.CouplerSlackBM;
         }
 
-        public override int GetCouplerRigidIndication()
+        public override bool GetCouplerRigidIndication()
         {
             if (Coupler == null)
             {
                  return base.GetCouplerRigidIndication();   // If no coupler defined
             }
-            return Coupler.Rigid ? 1 : 2; // Return whether coupler Rigid or Flexible
+            return Coupler.Rigid ? true : false; // Return whether coupler Rigid or Flexible
         }
 
         public override bool GetAdvancedCouplerFlag()

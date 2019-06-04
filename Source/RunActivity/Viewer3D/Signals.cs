@@ -541,7 +541,6 @@ namespace Orts.Viewer3D
         internal readonly Vector3 Position;
         internal readonly float GlowIntensityDay;
         internal readonly float GlowIntensityNight;
-
         readonly VertexBuffer VertexBuffer;
 
         public SignalLightPrimitive(Viewer viewer, Vector3 position, float radius, Color color, float glowDay, float glowNight, float u0, float v0, float u1, float v1)

@@ -989,7 +989,7 @@ namespace ORTS.TrackViewer.Drawing
             var renderedTexture = renderTarget;
             int width = renderedTexture.Width;
             int height = renderedTexture.Height;
-            var scaledTexture = new Texture2D(device, width, height, true, SurfaceFormat.Color);
+            var scaledTexture = new Texture2D(device, width, height, false, SurfaceFormat.Color);
             Color[] data = GetColorDataArray(width * height);
             renderedTexture.GetData<Color>(data);
             scaledTexture.SetData(data);
@@ -1026,7 +1026,7 @@ namespace ORTS.TrackViewer.Drawing
             PresentationParameters pp = device.PresentationParameters;
             var renderTarget =
                     new RenderTarget2D(device, width, height, 
-                    false, SurfaceFormat.Color, pp.DepthStencilFormat, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
+                        false, SurfaceFormat.Color, pp.DepthStencilFormat, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
             return renderTarget;
 
         }

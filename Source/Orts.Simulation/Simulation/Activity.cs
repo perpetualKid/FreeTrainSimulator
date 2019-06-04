@@ -539,11 +539,11 @@ namespace Orts.Simulation
                 float distanceOfWarningPost = 0;
                 TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
-                {
+			{
                     FlipRestrSpeedPost((TempSpeedPostItem)newSpeedPostItems[0]);
                     FlipRestrSpeedPost((TempSpeedPostItem)newSpeedPostItems[1]);
                     distanceOfWarningPost = (float)Math.Min(MaxDistanceOfWarningPost, traveller.TrackNodeLength - (double)startOffset);
-                }
+            }
                 else if (startOffset != null && endOffset != null && startOffset <= endOffset)
                     distanceOfWarningPost = (float)Math.Max(-MaxDistanceOfWarningPost, -(double)startOffset);
                 traveller.Move(distanceOfWarningPost);
@@ -554,7 +554,7 @@ namespace Orts.Simulation
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                 {
                     FlipRestrSpeedPost((TempSpeedPostItem)speedWarningPostItem);
-                }
+        }
                 ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[0]);
                 TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[0]);
                 ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[1]);

@@ -679,7 +679,7 @@ namespace Orts.Viewer3D
         public override void SetState(Material previousMaterial)
         {
             if (CabShader != null)
-                SpriteBatch.Begin(0, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, CabShader);
+                SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, CabShader);
             else
                 SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
         }
@@ -894,7 +894,6 @@ namespace Orts.Viewer3D
                     // Enable alpha blending for everything: this allows distance scenery to appear smoothly.
                     graphicsDevice.BlendState = BlendState.NonPremultiplied;
                     graphicsDevice.DepthStencilState = DepthStencilState.Default;
-
                     shader.ReferenceAlpha = 250;
                 }
                 else // Alpha blended pixels only
@@ -964,7 +963,6 @@ namespace Orts.Viewer3D
                 shader.ImageTexture = dayTexture;
                 shader.ImageTextureIsNight = false;
             }
-
         }
 
         public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)

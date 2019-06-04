@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.12
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunActivity", "RunActivity\RunActivity.csproj", "{9BE44F64-417D-4AA6-AF4D-2A6A0CBC814D}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -141,6 +141,18 @@ Global
 		{0D8D312B-2C02-4B77-A795-566394A9DB95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D8D312B-2C02-4B77-A795-566394A9DB95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D8D312B-2C02-4B77-A795-566394A9DB95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4848FAB-C391-438B-BE29-3BFFF9469480}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4848FAB-C391-438B-BE29-3BFFF9469480}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4848FAB-C391-438B-BE29-3BFFF9469480}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4848FAB-C391-438B-BE29-3BFFF9469480}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C4EBEBF-71E9-4336-B4DF-288E8BD399A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C4EBEBF-71E9-4336-B4DF-288E8BD399A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C4EBEBF-71E9-4336-B4DF-288E8BD399A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C4EBEBF-71E9-4336-B4DF-288E8BD399A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D4848FAB-C391-438B-BE29-3BFFF9469480}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D4848FAB-C391-438B-BE29-3BFFF9469480}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4848FAB-C391-438B-BE29-3BFFF9469480}.Release|Any CPU.ActiveCfg = Release|Any CPU

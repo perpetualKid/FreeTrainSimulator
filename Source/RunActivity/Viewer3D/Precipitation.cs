@@ -137,6 +137,7 @@ namespace Orts.Viewer3D
                 new VertexElement(16, VertexElementFormat.Vector4, VertexElementUsage.Position, 1),
                 new VertexElement(16 + 16, VertexElementFormat.Vector4, VertexElementUsage.Position, 2),
             };
+
             public static int SizeInBytes = sizeof(float) * (4 + 4) + sizeof(float) * 4;
         }
 

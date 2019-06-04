@@ -35,7 +35,7 @@ namespace ORTS.Settings
     /// </summary>
     /// <remarks>
     /// <para>Keyboard input is processed by associating specific combinations of keys (either scan codes or virtual keys) and modifiers with each <see cref="UserCommands"/>.</para>
-    /// <para>There are three kinds of <see cref="UserCommands"/>, each using a different <see cref="UserCommandInput"/>:</para>
+    /// <para>There are three kinds of <see cref="UserCommand"/>, each using a different <see cref="UserCommandInput"/>:</para>
     /// <list type="bullet">
     /// <item><description><see cref="UserCommandModifierInput"/> represents a specific combination of keyboard modifiers (Shift, Control and Alt). E.g. Shift.</description></item>
     /// <item><description><see cref="UserCommandKeyInput"/> represents a key (scan code or virtual key) and a specific combination of keyboard modifiers. E.g. Alt-F4.</description></item>
@@ -119,7 +119,7 @@ namespace ORTS.Settings
                 Reset(command.ToString());
         }
 
-        #region External APIs
+#region External APIs
         enum MapVirtualKeyType
         {
             VirtualToCharacter = 2,
@@ -134,7 +134,7 @@ namespace ORTS.Settings
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         static extern int GetKeyNameText(int scanCode, [Out] string name, int nameLength);
-        #endregion
+#endregion
 
         // Keyboard scancodes are basically constant; some keyboards have extra buttons (e.g. UK ones tend to have an
         // extra button next to Left Shift) or move one or two around (e.g. UK ones tend to move 0x2B down one row)
@@ -275,7 +275,7 @@ namespace ORTS.Settings
             rectangle.Height *= scaleY;
         }
 
-        #region Default Input Settings
+#region Default Input Settings
         static void InitializeCommands(UserCommandInput[] Commands)
         {
             // All UserCommandModifierInput commands go here.
@@ -324,6 +324,9 @@ namespace ORTS.Settings
             Commands[(int)UserCommand.CameraZoomIn] = new UserCommandModifiableKeyInput(0x49, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
             Commands[(int)UserCommand.CameraZoomOut] = new UserCommandModifiableKeyInput(0x51, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
 
+            Commands[(int)UserCommand.ControlAIFireOn] = new UserCommandKeyInput(0x23, KeyModifiers.Alt);
+            Commands[(int)UserCommand.ControlAIFireOff] = new UserCommandKeyInput(0x23, KeyModifiers.Control);
+            Commands[(int)UserCommand.ControlAIFireReset] = new UserCommandKeyInput(0x23, KeyModifiers.Control | KeyModifiers.Alt);
             Commands[(int)UserCommand.ControlAlerter] = new UserCommandKeyInput(0x2C);
             Commands[(int)UserCommand.ControlBackwards] = new UserCommandKeyInput(0x1F);
             Commands[(int)UserCommand.ControlBailOff] = new UserCommandKeyInput(0x35);
@@ -396,13 +399,9 @@ namespace ORTS.Settings
             Commands[(int)UserCommand.ControlTrainBrakeDecrease] = new UserCommandKeyInput(0x27);
             Commands[(int)UserCommand.ControlTrainBrakeIncrease] = new UserCommandKeyInput(0x28);
             Commands[(int)UserCommand.ControlTrainBrakeZero] = new UserCommandKeyInput(0x27, KeyModifiers.Control);
-            Commands[(int)UserCommand.ControlTroughRefill] = new UserCommandKeyInput(0x15);
             Commands[(int)UserCommand.ControlTurntableClockwise] = new UserCommandKeyInput(0x2E, KeyModifiers.Alt);
             Commands[(int)UserCommand.ControlTurntableCounterclockwise] = new UserCommandKeyInput(0x2E, KeyModifiers.Control);
-            Commands[(int)UserCommand.ControlAIFireOn] = new UserCommandKeyInput(0x23, KeyModifiers.Alt);
-            Commands[(int)UserCommand.ControlAIFireOff] = new UserCommandKeyInput(0x23, KeyModifiers.Control);
-            Commands[(int)UserCommand.ControlAIFireReset] = new UserCommandKeyInput(0x23, KeyModifiers.Control | KeyModifiers.Alt);
-
+            Commands[(int)UserCommand.ControlWaterScoop] = new UserCommandKeyInput(0x15);
             Commands[(int)UserCommand.ControlWiper] = new UserCommandKeyInput(0x2F);
 
             Commands[(int)UserCommand.DebugClockBackwards] = new UserCommandKeyInput(0x0C);
@@ -429,6 +428,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommand.DebugToggleAdvancedAdhesion] = new UserCommandKeyInput(0x2D, KeyModifiers.Control | KeyModifiers.Alt);
             Commands[(int)UserCommand.DebugTracks] = new UserCommandKeyInput(0x40, KeyModifiers.Control | KeyModifiers.Alt);
             Commands[(int)UserCommand.DebugWeatherChange] = new UserCommandKeyInput(0x19, KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugToggleConfirmations] = new UserCommandKeyInput(0x44, KeyModifiers.Control | KeyModifiers.Alt);
 
             Commands[(int)UserCommand.DisplayTrainListWindow] = new UserCommandKeyInput(0x43, KeyModifiers.Alt);
             Commands[(int)UserCommand.DisplayBasicHUDToggle] = new UserCommandKeyInput(0x3F, KeyModifiers.Alt);
@@ -436,6 +436,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommand.DisplayCompassWindow] = new UserCommandKeyInput(0x0B);
             Commands[(int)UserCommand.DisplayHelpWindow] = new UserCommandModifiableKeyInput(0x3B, Commands[(int)UserCommand.DisplayNextWindowTab]);
             Commands[(int)UserCommand.DisplayHUD] = new UserCommandModifiableKeyInput(0x3F, Commands[(int)UserCommand.DisplayNextWindowTab]);
+            Commands[(int)UserCommand.DisplayHUDScrollWindow] = new UserCommandModifiableKeyInput(0x3F, KeyModifiers.Control);
             Commands[(int)UserCommand.DisplayNextStationWindow] = new UserCommandKeyInput(0x44);
             Commands[(int)UserCommand.DisplayStationLabels] = new UserCommandModifiableKeyInput(0x40, Commands[(int)UserCommand.DisplayNextWindowTab]);
             Commands[(int)UserCommand.DisplaySwitchWindow] = new UserCommandKeyInput(0x42);
@@ -465,7 +466,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommand.GameSwitchPicked] = new UserCommandKeyInput(0x22, KeyModifiers.Alt);
             Commands[(int)UserCommand.GameUncoupleWithMouse] = new UserCommandKeyInput(0x16);
         }
-        #endregion
+#endregion
 
         bool IsModifier(UserCommand command)
         {

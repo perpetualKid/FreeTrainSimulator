@@ -90,6 +90,10 @@
       <Project>{DA94D876-7D35-46C3-AECE-AFACE72C686C}</Project>
       <Name>ORTS.Common</Name>
     </ProjectReference>
+    </ProjectReference>
+    <ProjectReference Include="..\ORTS.Settings\ORTS.Settings.csproj">
+      <Project>{67f84996-8769-4fd8-819b-464af269037b}</Project>
+      <Name>ORTS.Settings</Name>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX">

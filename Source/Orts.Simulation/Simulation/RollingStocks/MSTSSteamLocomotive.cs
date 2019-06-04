@@ -101,7 +101,6 @@ namespace Orts.Simulation.RollingStocks
         public MSTSNotchController FiringRateController = new MSTSNotchController(0, 1, 0.1f);
         public MSTSNotchController FireboxDoorController = new MSTSNotchController(0, 1, 0.1f);
         public MSTSNotchController FuelController = new MSTSNotchController(0, 1, 0.01f); // Could be coal, wood, oil or even peat !
-        public MSTSNotchController WaterController = new MSTSNotchController(0, 1, 0.01f);
         public MSTSNotchController SmallEjectorController = new MSTSNotchController(0, 1, 0.1f);
 
         public bool Injector1IsOn;
@@ -150,20 +149,11 @@ namespace Orts.Simulation.RollingStocks
         float PrevCombinedTenderWaterVolumeUKG;
         float PreviousTenderWaterVolumeUKG;
         public float MaxLocoTenderWaterMassKG;         // Maximum read from Eng file
-        public float MaxTotalCombinedWaterVolumeUKG;
         float RestoredMaxTotalCombinedWaterVolumeUKG; // Values to restore after game save
         float RestoredCombinedTenderWaterVolumeUKG;     // Values to restore after game save
 
         // Tender
-        public float IsTenderRequired = 1.0f;  // Flag indicates that a tender is required for operation of the locomotive. Typically tank locomotives do not require a tender. Assume by default that tender is required.
         public bool HasTenderCoupled = true;
-
-        public float CombinedTenderWaterVolumeUKG          // Decreased by running injectors and increased by refilling
-        {
-            get { return WaterController.CurrentValue * MaxTotalCombinedWaterVolumeUKG; }
-            set { WaterController.CurrentValue = value / MaxTotalCombinedWaterVolumeUKG; }
-        }
-
 
         // Carriage Steam Heating Parameters
         float CalculatedCarHeaterSteamUsageLBpS;  //
@@ -263,12 +253,7 @@ namespace Orts.Simulation.RollingStocks
         SmoothedData FuelRate = new SmoothedData(45); // Automatic fireman takes x seconds to fully react to changing needs.
         SmoothedData BurnRateSmoothKGpS = new SmoothedData(150); // Changes in BurnRate take x seconds to fully react to changing needs - models increase and decrease in heat.
         float FuelRateSmoothed = 0.0f;     // Smoothed Fuel Rate
-        public bool HasWaterScoop = false; // indicates whether loco + tender have a water scoop or not
-        public float ScoopMinPickupSpeedMpS = 0.0f; // Minimum scoop pickup speed
-        public float ScoopMaxPickupSpeedMpS = 200.0f; // Maximum scoop pickup speed
-        public float ScoopResistanceN = 0.0f; // Scoop resistance
-        public bool ScoopIsBroken = false; // becomes broken if activated where there is no trough
-        public bool RefillingFromTrough = false; // refilling from through is ongoing
+
 
         // steam performance reporting
         public float SteamPerformanceTimeS = 0.0f; // Records the time since starting movement
@@ -833,12 +818,6 @@ namespace Orts.Simulation.RollingStocks
                     IsSelectGeared = String.Compare(typeString2, "Select") == 0;
                     break;
                 case "engine(enginecontrollers(waterscoop": HasWaterScoop = true; break;
-                case "engine(steamwaterscoopminpickupspeed": ScoopMinPickupSpeedMpS = stf.ReadFloatBlock(STFReader.UNITS.SpeedDefaultMPH, 0.0f); break;
-                case "engine(steamwaterscoopmaxpickupspeed": ScoopMaxPickupSpeedMpS = stf.ReadFloatBlock(STFReader.UNITS.SpeedDefaultMPH, 0.0f); break;
-                case "engine(steamwaterscoopresistance": ScoopResistanceN = stf.ReadFloatBlock(STFReader.UNITS.Force, 0.0f); break;
-                //Not used at the moment. Default unit of measure libs/s does not exist either
-                //                case "engine(steamwaterpickuprate": ScoopPickupRateKGpS = stf.ReadFloatBlock(STFReader.UNITS.MassRateDefaultLBpH, null); break;
-       
                 default: base.Parse(lowercasetoken, stf); break;
             }
         }
@@ -903,10 +882,6 @@ namespace Orts.Simulation.RollingStocks
             HasSuperheater = locoCopy.HasSuperheater;
             IsFixGeared = locoCopy.IsFixGeared;
             IsSelectGeared = locoCopy.IsSelectGeared;
-            HasWaterScoop = locoCopy.HasWaterScoop;
-            ScoopMinPickupSpeedMpS = locoCopy.ScoopMinPickupSpeedMpS;
-            ScoopMaxPickupSpeedMpS = locoCopy.ScoopMaxPickupSpeedMpS;
-            ScoopResistanceN = locoCopy.ScoopResistanceN;
             CylinderExhausttoCutoff = locoCopy.CylinderExhausttoCutoff;
             CylinderCompressiontoCutoff = locoCopy.CylinderCompressiontoCutoff;
             CylinderAdmissiontoCutoff = locoCopy.CylinderAdmissiontoCutoff;
@@ -1697,7 +1672,7 @@ namespace Orts.Simulation.RollingStocks
                 }
             
             }
-            
+
             // If DrvWheelWeight is not in ENG file, then calculate from Factor of Adhesion(FoA) = DrvWheelWeight / Start (Max) Tractive Effort, assume FoA = 4.2
 
             if (DrvWheelWeightKg == 0) // if DrvWheelWeightKg not in ENG file.
@@ -2188,15 +2163,6 @@ namespace Orts.Simulation.RollingStocks
                     Simulator.Confirmer.UpdateWithPerCent(CabControl.TenderCoal, CabSetting.Increase, FuelController.CurrentValue * 100);
             }
 
-            if (RefillingFromTrough && !IsOverTrough())
-            {
-                // Bad thing, scoop gets broken!
-                Simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop broken because activated outside through"));
-                WaterController.UpdateValue = 0.0f;
-                RefillingFromTrough = false;
-                SignalEvent(Event.WaterScoopUp);
-            }
-
             WaterController.Update(elapsedClockSeconds);
             if (IsPlayerTrain)
             {
@@ -2207,13 +2173,13 @@ namespace Orts.Simulation.RollingStocks
 
         private void UpdateTender(float elapsedClockSeconds)
         {
-
+            TenderWaterLevelFraction = CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG;
             float TempCylinderSteamUsageLbpS = CylinderSteamUsageLBpS;
             // Limit Cylinder steam usage to the maximum boiler evaporation rate, lower limit is for when the locomotive is at rest and "no steam" is being used by cylinder, ensures some coal is used.
-            TempCylinderSteamUsageLbpS = MathHelper.Clamp(TempCylinderSteamUsageLbpS, 0.1f, TheoreticalMaxSteamOutputLBpS); 
+            TempCylinderSteamUsageLbpS = MathHelper.Clamp(TempCylinderSteamUsageLbpS, 0.1f, TheoreticalMaxSteamOutputLBpS);
 
             if (HasTenderCoupled) // If a tender is coupled then coal is available
-            {         
+            {
                 TenderCoalMassKG -= elapsedClockSeconds * pS.FrompH(Kg.FromLb(NewBurnRateSteamToCoalLbspH[pS.TopH(TempCylinderSteamUsageLbpS)])); // Current Tender coal mass determined by burn rate.
                 TenderCoalMassKG = MathHelper.Clamp(TenderCoalMassKG, 0, MaxTenderCoalMassKG); // Clamp value so that it doesn't go out of bounds
             }
@@ -4419,8 +4385,8 @@ namespace Orts.Simulation.RollingStocks
             // Set Max Velocity of locomotive
             MaxSpeedMpS = Me.FromMi(pS.FrompH(MaxLocoSpeedMpH)); // Note this is not the true max velocity of the locomotive, but  the speed at which max HP is reached
 
-            // Set "current" motive force based upon the throttle, cylinders, steam pressure, etc	
-            MotiveForceN = (Direction == Direction.Forward ? 1 : -1) * N.FromLbf(TractiveEffortLbsF);
+            // Set "current" motive force based upon the throttle, cylinders, steam pressure, etc. Also reduce motive force by water scoop drag if applicable	
+            MotiveForceN = (Direction == Direction.Forward ? 1 : -1) * N.FromLbf(TractiveEffortLbsF) - WaterScoopDragForceN;
 
             // On starting allow maximum motive force to be used
             if (absSpeedMpS < 1.0f && cutoff > 0.70f && throttle > 0.98f)
@@ -5699,7 +5665,7 @@ namespace Orts.Simulation.RollingStocks
                     status.AppendFormat("{0} = {1:F0}%\n", Simulator.Catalog.GetString("Fire Heat Loss"), FireHeatLossPercent * 100);
             }
 
-            status.AppendFormat("{0}{5} = {3:F0}% {1}, {4:F0}% {2}{5}\n", Simulator.Catalog.GetString("Fuel levels"), Simulator.Catalog.GetString("coal"), Simulator.Catalog.GetString("water"), 100 * coalPercent, 100 * waterPercent, fuelSafety);
+            status.AppendFormat("{0}{5} = {3:F0}% {1}, {4:F0}% {2}{5}\n", Simulator.Catalog.GetString("Fuel levels"), Simulator.Catalog.GetString("coal"), Simulator.Catalog.GetString("water"), 100 * coalPercent, 100 * TenderWaterPercent, fuelSafety);
 
             return status.ToString();
         }
@@ -6376,7 +6342,33 @@ namespace Orts.Simulation.RollingStocks
 
             }
 
-                return status.ToString();
+            // If a water scoop fitted display relevant debug info for the player train only
+            if (IsPlayerTrain && HasWaterScoop)
+            {
+               status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Water Scoop"));
+                status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\n",
+                Simulator.Catalog.GetString("Fill:"),
+               Simulator.Catalog.GetString("ScDwn"),
+               IsWaterScoopDown ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
+               Simulator.Catalog.GetString("ScBrk"),
+               ScoopIsBroken ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
+               Simulator.Catalog.GetString("Min"),
+               FormatStrings.FormatSpeedDisplay(WaterScoopMinSpeedMpS, IsMetric),
+               Simulator.Catalog.GetString("WaVel"),
+               FormatStrings.FormatSpeedDisplay(WaterScoopVelocityMpS, IsMetric),
+               Simulator.Catalog.GetString("Drag"),
+               FormatStrings.FormatForce(WaterScoopDragForceN, IsMetric),
+               Simulator.Catalog.GetString("WaterU"),
+               FormatStrings.FormatFuelVolume(WaterScoopedQuantityLpS, IsMetric, IsUK),
+               Simulator.Catalog.GetString("Input"),
+               FormatStrings.FormatFuelVolume(WaterScoopInputAmountL, IsMetric, IsUK),
+               Simulator.Catalog.GetString("Total"),
+               FormatStrings.FormatFuelVolume(WaterScoopTotalWaterL, IsMetric, IsUK)
+               
+               );
+            }
+
+            return status.ToString();
             }
         
 

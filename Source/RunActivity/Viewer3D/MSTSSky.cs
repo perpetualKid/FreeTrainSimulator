@@ -40,6 +40,7 @@ namespace Orts.Viewer3D
         public const short skyLevels = 4;
         public static bool IsNight = false;       
     }
+
     #endregion
 
     #region MSTSSkyDrawer
@@ -108,7 +109,6 @@ namespace Orts.Viewer3D
             date.month = 1 + date.ordinalDate / 30;
             date.day = 21;
             date.year = 2010;
-
             // Default wind speed and direction
             mstsskywindSpeed = 5.0f; // m/s (approx 11 mph)
             mstsskywindDirection = 4.7f; // radians (approx 270 deg, i.e. westerly)
@@ -265,7 +265,7 @@ namespace Orts.Viewer3D
 
         public void LoadPrep()
         {
-
+            if (mstsskyseasonType != (int)MSTSSkyViewer.Simulator.Season)
             if (mstsskyseasonType != (int)MSTSSkyViewer.Simulator.Season)
             {
                 mstsskyseasonType = (int)MSTSSkyViewer.Simulator.Season;
@@ -324,6 +324,7 @@ namespace Orts.Viewer3D
             // Initialize the vertex and point-index buffers
             vertexList = new VertexPositionNormalTexture[numVertices];
             triangleListIndices = new short[indexCount];
+
             // Sky dome
             MSTSSkyDomeVertexList(0, mstsskyRadius, 8.0f, 8.0f);
             MSTSSkyDomeTriangleList(0, 0);
@@ -529,7 +530,6 @@ namespace Orts.Viewer3D
             {
                 var mstsskytexture = Viewer.ENVFile.SkyLayers.ToArray();
                 int count = Viewer.ENVFile.SkyLayers.Count;
-                
 
                 string[] mstsSkyTextureNames = new string[Viewer.ENVFile.SkyLayers.Count];
 
@@ -540,7 +540,6 @@ namespace Orts.Viewer3D
                     if( i == 0 )
                     {
                         mstsDayTexture = mstsSkyTextures[i];
-
                     }
                     else if(mstsskytexture[i].Fadein_Begin_Time != null)
                     {

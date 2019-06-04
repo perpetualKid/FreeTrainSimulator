@@ -416,10 +416,10 @@ namespace Orts.Simulation.RollingStocks
         public override string GetDebugStatus()
         {
             var status = new StringBuilder(base.GetDebugStatus());
-            status.AppendFormat("\t{0}\t\t{1}", Simulator.Catalog.GetString("Circuit breaker"), Simulator.Catalog.GetParticularString("CircuitBreaker", PowerSupply.CircuitBreaker.State.GetDescription()));
-            status.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetString("TCS"), PowerSupply.CircuitBreaker.TCSClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"));
-            status.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetString("Driver"), PowerSupply.CircuitBreaker.DriverClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"));
-            status.AppendFormat("\t{0}\t\t{1}", Simulator.Catalog.GetString("Auxiliary power"), Simulator.Catalog.GetParticularString("PowerSupply", PowerSupply.AuxiliaryState.GetDescription()));
+            status.AppendFormat("\t{0}\t\t", Simulator.Catalog.GetParticularString("CircuitBreaker", PowerSupply.CircuitBreaker.State.GetDescription()));
+            status.AppendFormat("{0}\t", PowerSupply.CircuitBreaker.TCSClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"));
+            status.AppendFormat("{0}\t", PowerSupply.CircuitBreaker.DriverClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"));
+            status.AppendFormat("{0}", Simulator.Catalog.GetParticularString("PowerSupply", PowerSupply.AuxiliaryState.GetDescription()));
             return status.ToString();
         }
 

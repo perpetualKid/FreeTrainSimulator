@@ -159,7 +159,7 @@ namespace ORTS.TrackViewer
             graphics.IsFullScreen = false;
             Window.AllowUserResizing = true;
             Window.ClientSizeChanged += new System.EventHandler<EventArgs>(Window_ClientSizeChanged);
-
+        
             //we do not a very fast behaviour, but we do need to get all key presses
             IsFixedTimeStep = true;
             TargetElapsedTime = TimeSpan.FromSeconds(0.05);
@@ -641,7 +641,7 @@ namespace ORTS.TrackViewer
             ScreenH = Window.ClientBounds.Height;
             // if something went wrong during fast window switching, let's not continue
             if (menuControl == null || statusBarControl == null || ScreenW == 0 || ScreenH == 0)
-            { 
+            {
                 return;
             }
             SetSubwindowSizes();

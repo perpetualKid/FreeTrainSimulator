@@ -536,7 +536,6 @@ namespace Orts.Viewer3D
             shader.ImageTexture = patchTexture;
             shader.OverlayTexture = patchTextureOverlay;
             shader.OverlayScale = OverlayScale;
-
             graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }

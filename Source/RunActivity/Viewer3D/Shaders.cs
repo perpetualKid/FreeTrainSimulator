@@ -53,6 +53,7 @@ namespace Orts.Viewer3D
             EffectProcessor processor = new EffectProcessor();
             CompiledEffectContent compiledEffect = processor.Process(effectSource, new ProcessorContext());
             return compiledEffect.GetEffectCode();
+            
 #if DEBUG_SHADER_CODE
             // NOTE: We may need to implement a CompilerIncludeHandler here if we ever use #include in our shaders.
             var compiledEffect = Effect.CompileEffectFromFile(effectFileName, null, null, CompilerOptions.Debug, TargetPlatform.Windows);
@@ -72,6 +73,7 @@ namespace Orts.Viewer3D
 #endif
         }
     }
+
     class ProcessorContext : ContentProcessorContext
     {
         public override TargetPlatform TargetPlatform { get { return TargetPlatform.Windows; } }
@@ -81,6 +83,7 @@ namespace Orts.Viewer3D
         public override string OutputDirectory { get { return string.Empty; } }
         public override string OutputFilename { get { return string.Empty; } }
         public override ContentIdentity SourceIdentity { get { return new ContentIdentity(""); } }
+
         public override OpaqueDataDictionary Parameters { get { return parameters; } }
         OpaqueDataDictionary parameters = new OpaqueDataDictionary();
 
@@ -682,7 +685,7 @@ namespace Orts.Viewer3D
             texSize.SetValue(new Vector2(width, height));
         }
 
-        public void SetLightPositions(Vector4 light1Position, Vector4 light2Position)
+        public void SetLightPositions (Vector4 light1Position, Vector4 light2Position)
         {
             light1Pos.SetValue(light1Position);
             light2Pos.SetValue(light2Position);
@@ -722,7 +725,7 @@ namespace Orts.Viewer3D
         readonly EffectParameter limitColor;
         readonly EffectParameter pointerColor;
         readonly EffectParameter backgroundColor;
-        //readonly EffectParameter imageTexture;
+        readonly EffectParameter imageTexture;
 
         public void SetData(Vector4 angle, Color gaugeColor, Color needleColor)
         {
@@ -739,7 +742,7 @@ namespace Orts.Viewer3D
             pointerColor = Parameters["PointerColor"];
             backgroundColor = Parameters["BackgroundColor"];
             limitAngle = Parameters["LimitAngle"];
-            //imageTexture = Parameters["ImageTexture"];
+            imageTexture = Parameters["ImageTexture"];
         }
     }
 

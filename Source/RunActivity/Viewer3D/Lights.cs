@@ -216,7 +216,7 @@ namespace Orts.Viewer3D
 			var locomotive = Car.Train != null && Car.Train.IsActualPlayerTrain ? Viewer.PlayerLocomotive : null;
             if (locomotive == null && Car.Train != null && Car.Train.TrainType == Train.TRAINTYPE.REMOTE && Car is MSTSLocomotive && (Car as MSTSLocomotive) == Car.Train.LeadLocomotive)
                 locomotive = Car.Train.LeadLocomotive;
-			var mstsLocomotive = locomotive as MSTSLocomotive;
+            var mstsLocomotive = locomotive as MSTSLocomotive;
 
             // Headlight
 			var newTrainHeadlight = locomotive != null ? locomotive.Headlight : Car.Train != null && Car.Train.TrainType != Train.TRAINTYPE.STATIC ? 2 : 0;

@@ -542,7 +542,7 @@ namespace Orts.Viewer3D.Popups
         public abstract int ScrollSize { get; }
 
         public abstract void SetScrollPosition(int position);
-        
+
         internal RasterizerState ScissorTestEnable = new RasterizerState { ScissorTestEnable = true };
 
     }
