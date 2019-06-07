@@ -359,6 +359,8 @@ namespace Orts.Viewer3D
                         continue;
 
                     var xnaMatrix = Matrix.CreateTranslation(SignalTypeData.Lights[i].Position);
+                    if ((SignalTypeData.DrawAspects[DisplayState].FlashLights[i] && (CumulativeTime <= SignalTypeData.FlashTimeOn)))
+                        xnaMatrix.M43 += 0.002f;
 
                     foreach (int MatrixIndex in MatrixIndices)
                     {
