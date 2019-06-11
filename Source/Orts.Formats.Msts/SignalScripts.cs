@@ -16,10 +16,10 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 #if DEBUG
 // prints details of the file as read from input
- #define DEBUG_PRINT_IN
+// #define DEBUG_PRINT_IN
 
 // prints details of the file as processed
- #define DEBUG_PRINT_OUT
+// #define DEBUG_PRINT_OUT
 #endif
 
 using System;

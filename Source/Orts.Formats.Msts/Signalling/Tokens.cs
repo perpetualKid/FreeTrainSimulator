@@ -163,6 +163,7 @@ namespace Orts.Formats.Msts.Signalling
                 BlockBase result = child.RequiresAlternate();
                 if (result != null)
                 {
+                    result.returnBlockId = this is ConditionalBlock ? returnBlockId : BlockId;
                     result = result.StartAlternate(lineNumber);
                     (result as ConditionalBlock).AcceptAlternate();
                     return result;
@@ -327,7 +328,14 @@ namespace Orts.Formats.Msts.Signalling
 
         public BlockBase RequiresAlternate()
         {
-            return (state == ConditionState.HasAlternate || IsAlternateCondition) ? null : this;
+            if (state == ConditionState.HasAlternate || IsAlternateCondition)
+            {
+                if (Tokens.ElementAtOrDefault(1) is ConditionalBlock child)
+                    return child.RequiresAlternate();
+                else
+                    return null;
+            }
+            return this;
         }
 
         public void AcceptAlternate()
