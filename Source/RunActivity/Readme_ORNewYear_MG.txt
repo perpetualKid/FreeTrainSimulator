@@ -32,9 +32,9 @@ Moreover it includes some features not (yet) available in the Open Rails officia
 - improved distance management in roadcar camera
 - animation of bell (now bell animation FPS can be tuned via .sd file)
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
-- UPDATED: bug correction in signal script parser (by perpetualKid)
+- UPDATED: major bug correction in signal script parser (by perpetualKid)
 - NEW: second phase of wheel bearing management (by steamer_ctn)
-- NEW: bug fix for Italian signals not flashing (present also in standard OR)
+
 
 
 
