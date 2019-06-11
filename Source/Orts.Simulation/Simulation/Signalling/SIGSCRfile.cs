@@ -152,7 +152,7 @@ namespace Orts.Simulation.Signalling
             {
                 File.AppendAllText(dpr_fileLoc + @"printproc.txt", "\n\nSIGNAL : " + thisHead.TDBIndex.ToString() + "\n");
                 File.AppendAllText(dpr_fileLoc + @"printproc.txt", "OBJECT : " + thisHead.mainSignal.thisRef.ToString() + "\n");
-                File.AppendAllText(dpr_fileLoc + @"printproc.txt", "type   : " + signalScript.scriptname + "\n");
+                File.AppendAllText(dpr_fileLoc + @"printproc.txt", "type   : " + signalScript.ScriptName + "\n");
                 String fnstring = String.Copy(thisHead.mainSignal.signalRef.Simulator.SIGCFG.ORTSFunctionTypes[thisHead.ORTSsigFunctionIndex]);
                 File.AppendAllText(dpr_fileLoc + @"printproc.txt", "fntype : " + thisHead.ORTSsigFunctionIndex + " = " + fnstring + "\n\n");
 
@@ -241,10 +241,11 @@ namespace Orts.Simulation.Signalling
                     if (TDB_debug_ref.Contains(thisHead.TDBIndex) || OBJ_debug_ref.Contains(thisHead.mainSignal.thisRef))
                     {
                         File.AppendAllText(dpr_fileLoc + @"printproc.txt", "Statement : \n");
-                        foreach (string statstring in ThisStat.StatementParts)
-                        {
-                            File.AppendAllText(dpr_fileLoc + @"printproc.txt", "   " + statstring + "\n");
-                        }
+                        //TODO TBD there is no equivalent in new parser
+                        //foreach (string statstring in ThisStat.StatementParts)
+                        //{
+                        //    File.AppendAllText(dpr_fileLoc + @"printproc.txt", "   " + statstring + "\n");
+                        //}
                         foreach (int lfloat in localFloats)
                         {
                             File.AppendAllText(dpr_fileLoc + @"printproc.txt", " local : " + lfloat.ToString() + "\n");
@@ -1625,7 +1626,7 @@ namespace Orts.Simulation.Signalling
                 if (TDB_debug_ref.Contains(thisHead.TDBIndex) || OBJ_debug_ref.Contains(thisHead.mainSignal.thisRef))
                 {
                     File.AppendAllText(dpr_fileLoc + @"printproc.txt", "Result of single condition : " +
-                            " : " + condition.ToString() + " (NOT : " + thisCond.negate1.ToString() + ")\n\n");
+                            " : " + condition.ToString() + " (NOT : " + thisCond.Term1.Negated.ToString() + ")\n\n");
                 }
 #endif
             }
