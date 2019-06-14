@@ -264,7 +264,7 @@ namespace Orts.Viewer3D.RollingStock
             {
                 if (ThreeDimentionCabViewer != null)
                     ThreeDimentionCabViewer.PrepareFrame(frame, elapsedTime);
-                return;
+                //return;
             }
 
             // Wipers and bell animation
