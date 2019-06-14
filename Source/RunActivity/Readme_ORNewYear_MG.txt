@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.24
-June 11th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.25
+June 14th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -26,14 +26,15 @@ Moreover it includes some features not (yet) available in the Open Rails officia
 - dynamic management of trough refill (by steamer_ctn)
 - activity specific options setting (by steamer_ctn)
 - preparation for advanced coupler forces management (by steamer_ctn)
-- when car is selected through the F9 window, the car's brake line in the extended brake HUD is highlighted in yellow (by mbm_or)
+- when car is ( cted through the F9 window, the car's brake line in the extended brake HUD is highlighted in yellow (by mbm_or)
 - removed bug in OR MG concerning display of ETCS gauge (by dennisat)
 - removed OR-MG specific bug not displaying some icons in TrackViewer (by dennisat)
 - improved distance management in roadcar camera
 - animation of bell (now bell animation FPS can be tuned via .sd file)
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
-- UPDATED: major bug correction in signal script parser (by perpetualKid)
-- NEW: second phase of wheel bearing management (by steamer_ctn)
+- UPDATED: further major bug correction in signal script parser (by perpetualKid with the support of eugenR)
+- second phase of wheel bearing management (by steamer_ctn)
+- NEW: corrected bug that didn't display smoke and steam of own loco when within a 3Dcab (by dennisat).
 
 
 
