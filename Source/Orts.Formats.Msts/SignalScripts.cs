@@ -743,7 +743,7 @@ namespace Orts.Formats.Msts
                     //Conditions are dedicated blocks, but always separated by logical operators
                     else if (condition.Tokens[0] is Enclosure) //process sub block
                     {
-                        result.AddRange(ParseConditions((condition.Tokens[0] as Enclosure), localFloats, orSignalTypes, orNormalSubtypes));
+                        result.Add(ParseConditions((condition.Tokens[0] as Enclosure), localFloats, orSignalTypes, orNormalSubtypes));
                         //recurse in the block
                         condition.Tokens.RemoveAt(0);
                     }

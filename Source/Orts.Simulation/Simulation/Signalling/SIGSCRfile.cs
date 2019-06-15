@@ -143,7 +143,7 @@ namespace Orts.Simulation.Signalling
             {
                 File.AppendAllText(dpe_fileLoc + @"printproc.txt", "\n\nSIGNAL : " + thisHead.TDBIndex.ToString() + "\n");
                 File.AppendAllText(dpe_fileLoc + @"printproc.txt", "OBJECT : " + thisHead.mainSignal.thisRef.ToString() + "\n");
-                File.AppendAllText(dpe_fileLoc + @"printproc.txt", "type   : " + signalScript.scriptname + "\n");
+                File.AppendAllText(dpe_fileLoc + @"printproc.txt", "type   : " + signalScript.ScriptName + "\n");
                 String fnstring = String.Copy(thisHead.mainSignal.signalRef.Simulator.SIGCFG.ORTSFunctionTypes[thisHead.ORTSsigFunctionIndex]);
                 File.AppendAllText(dpr_fileLoc + @"printproc.txt", "fntype : " + thisHead.ORTSsigFunctionIndex + " = " + fnstring + "\n\n");
             }
@@ -221,7 +221,7 @@ namespace Orts.Simulation.Signalling
                     if (thisHead.mainSignal.enabledTrain != null)
                     {
                         File.AppendAllText(dpe_fileLoc + @"printproc.txt", "Statement : \n");
-                        foreach (string statstring in ThisStat.StatementParts)
+                        foreach (var statstring in ThisStat.StatementTerms)
                         {
                             File.AppendAllText(dpe_fileLoc + @"printproc.txt", "   " + statstring + "\n");
                         }
@@ -1620,7 +1620,7 @@ namespace Orts.Simulation.Signalling
                 if (thisHead.mainSignal.enabledTrain != null)
                 {
                     File.AppendAllText(dpe_fileLoc + @"printproc.txt", "Result of single condition : " +
-                        " : " + condition.ToString() + " (NOT : " + thisCond.negate1.ToString() + ")\n\n");
+                        " : " + condition.ToString() + " (NOT : " + thisCond.Term1.Negated.ToString() + ")\n\n");
                 }
 #endif
 #if DEBUG_PRINT_PROCESS
