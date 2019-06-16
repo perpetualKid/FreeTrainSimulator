@@ -86,6 +86,15 @@ namespace ORTS.Common
         {
             return EnumCache<T>.Values.Count;
         }
+
+        public static T Next<T>(this T item) where T : Enum
+        {
+            return EnumCache<T>.Values[(EnumCache<T>.Values.IndexOf(item) + 1) % EnumCache<T>.Values.Count];
+        }
+        public static T Previous<T>(this T item) where T : Enum
+        {
+            return EnumCache<T>.Values[(EnumCache<T>.Values.IndexOf(item) -1 + EnumCache<T>.Values.Count) % EnumCache<T>.Values.Count];
+        }
     }
 
     [Description("Reverser")]
