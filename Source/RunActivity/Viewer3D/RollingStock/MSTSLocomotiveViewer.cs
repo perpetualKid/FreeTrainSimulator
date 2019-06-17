@@ -264,7 +264,6 @@ namespace Orts.Viewer3D.RollingStock
             {
                 if (ThreeDimentionCabViewer != null)
                     ThreeDimentionCabViewer.PrepareFrame(frame, elapsedTime);
-                //return;
             }
 
             // Wipers and bell animation
@@ -275,7 +274,6 @@ namespace Orts.Viewer3D.RollingStock
             if (Viewer.Camera.AttachedCar == this.MSTSWagon &&
                 Viewer.Camera.Style == Camera.Styles.Cab)
             {
-
                 if (_CabRenderer != null)
                     _CabRenderer.PrepareFrame(frame, elapsedTime);
             }
