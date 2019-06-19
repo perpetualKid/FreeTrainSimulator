@@ -34,18 +34,20 @@ namespace Orts.Viewer3D.Processes
         //public const int ShadowMapMipCount = 1;
 
         public Point DisplaySize { get; private set; }
-        public GraphicsDevice GraphicsDevice { get { return Game.GraphicsDevice; } }
-        public bool IsActive { get { return Game.IsActive; } }
-        public Viewer Viewer { get { return Game.State is GameStateViewer3D ? (Game.State as GameStateViewer3D).Viewer : null; } }
+        public GraphicsDevice GraphicsDevice { get { return game.GraphicsDevice; } }
+        public bool IsActive { get { return game.IsActive; } }
+        public Viewer Viewer { get { return (game.State as GameStateViewer3D)?.Viewer; } }
 
         public Profiler Profiler { get; private set; }
 
-        readonly Game Game;
-        readonly Form GameForm;
-        readonly Point GameWindowSize;
-        readonly WatchdogToken WatchdogToken;
-        readonly System.Drawing.Point GameFullScreenOrigin = new System.Drawing.Point(0, 0);
-        private System.Drawing.Point GameWindowOrigin = new System.Drawing.Point(0, 0);
+        private readonly Game game;
+        private readonly Form gameForm;
+        readonly System.Drawing.Size gameWindowSize;
+        private readonly WatchdogToken watchdogToken;
+        readonly System.Drawing.Point gameFullScreenOrigin = new System.Drawing.Point(0, 0);
+        private System.Drawing.Point gameWindowOrigin = new System.Drawing.Point(0, 0);
+        private bool isFullScreen;
+        private bool toggleFullScreenRequested;
 
         public GraphicsDeviceManager GraphicsDeviceManager { get; private set; }
 
@@ -71,20 +73,20 @@ namespace Orts.Viewer3D.Processes
 
         internal RenderProcess(Game game)
         {
-            Game = game;
-            GameForm = (Form)Control.FromHandle(Game.Window.Handle);
+            this.game = game;
+            gameForm = (Form)Control.FromHandle(game.Window.Handle);
 
-            WatchdogToken = new WatchdogToken(System.Threading.Thread.CurrentThread);
+            watchdogToken = new WatchdogToken(System.Threading.Thread.CurrentThread);
 
             Profiler = new Profiler("Render");
             Profiler.SetThread();
-            Game.SetThreadLanguage();
+            game.SetThreadLanguage();
 
-            Game.Window.Title = "Open Rails";
+            game.Window.Title = "Open Rails";
             GraphicsDeviceManager = new GraphicsDeviceManager(game);
 
-            var windowSizeParts = Game.Settings.WindowSize.Split(new[] { 'x' }, 2);
-            GameWindowSize = new Point(Convert.ToInt32(windowSizeParts[0]), Convert.ToInt32(windowSizeParts[1]));
+            var windowSizeParts = game.Settings.WindowSize.Split(new[] { 'x' }, 2);
+            gameWindowSize = new System.Drawing.Size(Convert.ToInt32(windowSizeParts[0]), Convert.ToInt32(windowSizeParts[1]));
 
             FrameRate = new SmoothedData();
             FrameTime = new SmoothedDataWithPercentiles();
@@ -92,29 +94,24 @@ namespace Orts.Viewer3D.Processes
             PrimitivePerFrame = new int[(int)RenderPrimitiveSequence.Sentinel];
 
             // Run the game initially at 10FPS fixed-time-step. Do not change this! It affects the loading performance.
-            Game.IsFixedTimeStep = true;
-            Game.TargetElapsedTime = TimeSpan.FromMilliseconds(100);
-            Game.InactiveSleepTime = TimeSpan.FromMilliseconds(100);
+            game.IsFixedTimeStep = true;
+            game.TargetElapsedTime = TimeSpan.FromMilliseconds(100);
+            game.InactiveSleepTime = TimeSpan.FromMilliseconds(100);
 
             // Set up the rest of the graphics according to the settings.
-            GraphicsDeviceManager.SynchronizeWithVerticalRetrace = Game.Settings.VerticalSync;
+            GraphicsDeviceManager.SynchronizeWithVerticalRetrace = game.Settings.VerticalSync;
             GraphicsDeviceManager.PreferredBackBufferFormat = SurfaceFormat.Color;
             GraphicsDeviceManager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
-            GraphicsDeviceManager.IsFullScreen = Game.Settings.FullScreen && ! Game.Settings.FastFullScreenAltTab;
-            GraphicsDeviceManager.PreferMultiSampling = Game.Settings.EnableMultisampling;
+            GraphicsDeviceManager.IsFullScreen = game.Settings.FullScreen && !game.Settings.FastFullScreenAltTab;
+            GraphicsDeviceManager.PreferMultiSampling = game.Settings.EnableMultisampling;
             GraphicsDeviceManager.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(GDM_PreparingDeviceSettings);
 
-            var screen = Game.Settings.FastFullScreenAltTab ? Screen.FromControl(GameForm) : Screen.PrimaryScreen;
-            if (screen.Primary)
-            {
-                var wa = Screen.PrimaryScreen.WorkingArea;
-                GameForm.Location = new System.Drawing.Point((wa.Right - GameWindowSize.X) / 2, (wa.Bottom - GameWindowSize.Y) / 2);
-            }
-            else
-                GameForm.Location = new System.Drawing.Point((screen.Bounds.Width - GameWindowSize.X) / 2, (screen.Bounds.Height - GameWindowSize.Y) / 2);
-            GameWindowOrigin = GameForm.Location;
+            var screen = Screen.PrimaryScreen;
+            var wa = Screen.PrimaryScreen.WorkingArea;
+            gameForm.Location = new System.Drawing.Point((wa.Right - gameWindowSize.Width) / 2, (wa.Bottom - gameWindowSize.Height) / 2);
+            gameWindowOrigin = gameForm.Location;
 
-            if (Game.Settings.FullScreen)
+            if (game.Settings.FullScreen)
                 ToggleFullScreen();
 
             SynchronizeGraphicsDeviceManager();
@@ -122,7 +119,6 @@ namespace Orts.Viewer3D.Processes
             RenderPrimitive.SetGraphicsDevice(game.GraphicsDevice);
 
             UserInput.Initialize(game);
-
         }
 
         void GDM_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
@@ -141,41 +137,41 @@ namespace Orts.Viewer3D.Processes
             // This stops ResolveBackBuffer() clearing the back buffer.
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
-            if (Game.Settings.EnableMultisampling == false) e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
+            if (game.Settings.EnableMultisampling == false) e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
         }
 
         internal void Start()
         {
-            Game.WatchdogProcess.Register(WatchdogToken);
+            game.WatchdogProcess.Register(watchdogToken);
 
             DisplaySize = new Point(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
-            if (Game.Settings.ShaderModel == 0)
+            if (game.Settings.ShaderModel == 0)
             {
                 if (GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef)
-                    Game.Settings.ShaderModel = 3;
+                    game.Settings.ShaderModel = 3;
                 else if (GraphicsDevice.GraphicsProfile == GraphicsProfile.Reach)
-                    Game.Settings.ShaderModel = 2;
+                    game.Settings.ShaderModel = 2;
             }
-            else if (Game.Settings.ShaderModel < 2)
-                Game.Settings.ShaderModel = 2;
-            else if (Game.Settings.ShaderModel > 3)
-                Game.Settings.ShaderModel = 3;
+            else if (game.Settings.ShaderModel < 2)
+                game.Settings.ShaderModel = 2;
+            else if (game.Settings.ShaderModel > 3)
+                game.Settings.ShaderModel = 3;
 
-            if (Game.Settings.ShadowMapDistance == 0)
-                Game.Settings.ShadowMapDistance = Game.Settings.ViewingDistance / 2;
+            if (game.Settings.ShadowMapDistance == 0)
+                game.Settings.ShadowMapDistance = game.Settings.ViewingDistance / 2;
 
-            ShadowMapCount = Game.Settings.ShadowMapCount;
-            if (!Game.Settings.DynamicShadows)
+            ShadowMapCount = game.Settings.ShadowMapCount;
+            if (!game.Settings.DynamicShadows)
                 ShadowMapCount = 0;
-            else if ((ShadowMapCount > 1) && (Game.Settings.ShaderModel < 3))
+            else if ((ShadowMapCount > 1) && (game.Settings.ShaderModel < 3))
                 ShadowMapCount = 1;
             else if (ShadowMapCount < 0)
                 ShadowMapCount = 0;
             else if (ShadowMapCount > ShadowMapCountMaximum)
                 ShadowMapCount = ShadowMapCountMaximum;
             if (ShadowMapCount < 1)
-                Game.Settings.DynamicShadows = false;
+                game.Settings.DynamicShadows = false;
 
             ShadowMapDistance = new int[ShadowMapCount];
             ShadowMapDiameter = new int[ShadowMapCount];
@@ -186,18 +182,18 @@ namespace Orts.Viewer3D.Processes
 
             InitializeShadowMapLocations();
 
-            CurrentFrame = new RenderFrame(Game);
-            NextFrame = new RenderFrame(Game);
+            CurrentFrame = new RenderFrame(game);
+            NextFrame = new RenderFrame(game);
         }
 
         void InitializeShadowMapLocations()
         {
             var ratio = (float)DisplaySize.X / DisplaySize.Y;
-            var fov = MathHelper.ToRadians(Game.Settings.ViewingFOV);
+            var fov = MathHelper.ToRadians(game.Settings.ViewingFOV);
             var n = (float)0.5;
-            var f = (float)Game.Settings.ShadowMapDistance;
+            var f = (float)game.Settings.ShadowMapDistance;
             if (f == 0)
-                f = Game.Settings.ViewingDistance / 2;
+                f = game.Settings.ViewingDistance / 2;
 
             var m = (float)ShadowMapCount;
             var LastC = n;
@@ -245,59 +241,59 @@ namespace Orts.Viewer3D.Processes
 
         internal void Update(GameTime gameTime)
         {
-            if (IsMouseVisible != Game.IsMouseVisible)
-                Game.IsMouseVisible = IsMouseVisible;
+            if (IsMouseVisible != game.IsMouseVisible)
+                game.IsMouseVisible = IsMouseVisible;
 
             Cursor.Current = ActualCursor;
 
-            if (ToggleFullScreenRequested)
+            if (toggleFullScreenRequested)
             {
                 SynchronizeGraphicsDeviceManager();
-                ToggleFullScreenRequested = false;
+                toggleFullScreenRequested = false;
                 Viewer.DefaultViewport = GraphicsDevice.Viewport;
             }
 
             if (gameTime.TotalGameTime.TotalSeconds > 0.001)
             {
-                Game.UpdaterProcess.WaitTillFinished();
+                game.UpdaterProcess.WaitTillFinished();
 
                 // Must be done in XNA Game thread.
-                UserInput.Update(Game.IsActive);
+                UserInput.Update(game.IsActive);
 
                 // Swap frames and start the next update (non-threaded updater does the whole update).
                 SwapFrames(ref CurrentFrame, ref NextFrame);
-                Game.UpdaterProcess.StartUpdate(NextFrame, gameTime.TotalGameTime.TotalSeconds);
+                game.UpdaterProcess.StartUpdate(NextFrame, gameTime.TotalGameTime.TotalSeconds);
             }
         }
 
         void SynchronizeGraphicsDeviceManager()
         {
-            var screen = Game.Settings.FastFullScreenAltTab ? Screen.FromControl(GameForm) : Screen.PrimaryScreen;
-            if (IsFullScreen)
+            var screen = game.Settings.FastFullScreenAltTab ? Screen.FromControl(gameForm) : Screen.PrimaryScreen;
+            if (isFullScreen)
             {
                 GraphicsDeviceManager.PreferredBackBufferWidth = screen.Bounds.Width;
                 GraphicsDeviceManager.PreferredBackBufferHeight = screen.Bounds.Height;
             }
             else
             {
-                GraphicsDeviceManager.PreferredBackBufferWidth = GameWindowSize.X;
-                GraphicsDeviceManager.PreferredBackBufferHeight = GameWindowSize.Y;
+                GraphicsDeviceManager.PreferredBackBufferWidth = gameWindowSize.Width;
+                GraphicsDeviceManager.PreferredBackBufferHeight = gameWindowSize.Height;
             }
-            if (Game.Settings.FastFullScreenAltTab)
+            if (game.Settings.FastFullScreenAltTab)
             {
-                GameForm.FormBorderStyle = IsFullScreen ? FormBorderStyle.None : FormBorderStyle.FixedSingle;
-                if (IsFullScreen)
+                gameForm.FormBorderStyle = isFullScreen ? FormBorderStyle.None : FormBorderStyle.FixedSingle;
+                if (isFullScreen)
                 {
-                    GameWindowOrigin = GameForm.Location;
-                    GameForm.Location = GameFullScreenOrigin;
+                    gameWindowOrigin = gameForm.Location;
+                    gameForm.Location = gameFullScreenOrigin;
                 }
                 else
                 {
-                    GameForm.Location = GameWindowOrigin;
+                    gameForm.Location = gameWindowOrigin;
                 }
                 GraphicsDeviceManager.ApplyChanges();
             }
-            else if (GraphicsDeviceManager.IsFullScreen != IsFullScreen)
+            else if (GraphicsDeviceManager.IsFullScreen != isFullScreen)
             {
                 GraphicsDeviceManager.ToggleFullScreen();
             }
@@ -305,11 +301,11 @@ namespace Orts.Viewer3D.Processes
 
         internal void BeginDraw()
         {
-            if (Game.State == null)
+            if (game.State == null)
                 return;
 
             Profiler.Start();
-            WatchdogToken.Ping();
+            watchdogToken.Ping();
 
             // Sort-of hack to allow the NVIDIA PerfHud to display correctly.
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -320,7 +316,7 @@ namespace Orts.Viewer3D.Processes
                 InitializeShadowMapLocations();
             }
 
-            Game.State.BeginRender(CurrentFrame);
+            game.State.BeginRender(CurrentFrame);
         }
 
         [ThreadName("Render")]
@@ -338,17 +334,17 @@ namespace Orts.Viewer3D.Processes
                 }
                 catch (Exception error)
                 {
-                    Game.ProcessReportError(error);
+                    game.ProcessReportError(error);
                 }
             }
         }
 
         internal void EndDraw()
         {
-            if (Game.State == null)
+            if (game.State == null)
                 return;
 
-            Game.State.EndRender(CurrentFrame);
+            game.State.EndRender(CurrentFrame);
 
             Array.Copy(PrimitiveCount, PrimitivePerFrame, (int)RenderPrimitiveSequence.Sentinel);
             Array.Copy(ShadowPrimitiveCount, ShadowPrimitivePerFrame, ShadowMapCount);
@@ -371,7 +367,7 @@ namespace Orts.Viewer3D.Processes
 
         internal void Stop()
         {
-            Game.WatchdogProcess.Unregister(WatchdogToken);
+            game.WatchdogProcess.Unregister(watchdogToken);
         }
 
         static void SwapFrames(ref RenderFrame frame1, ref RenderFrame frame2)
@@ -381,13 +377,11 @@ namespace Orts.Viewer3D.Processes
             frame2 = temp;
         }
 
-        bool IsFullScreen;
-        bool ToggleFullScreenRequested;
         [CallOnThread("Updater")]
         public void ToggleFullScreen()
         {
-            IsFullScreen = !IsFullScreen;
-            ToggleFullScreenRequested = true;
+            isFullScreen = !isFullScreen;
+            toggleFullScreenRequested = true;
         }
 
         [CallOnThread("Render")]
