@@ -58,7 +58,8 @@ namespace Orts.Simulation.Signalling
     {
 
 #if DEBUG_PRINT_PROCESS
-        public static int[] TDB_debug_ref = { 4813 };            /* signal TDB idents         */
+//        public static int[] TDB_debug_ref = { 4813 };            /* signal TDB idents         */
+        public static int[] TDB_debug_ref = { 704, 705, 706, 707, 967 };            /* signal TDB idents         */
         public static int[] OBJ_debug_ref = { -1 };            /* signal object reference   */
         public static string dpr_fileLoc = @"C:\temp\";     /* file path for debug files */
 #endif
@@ -142,7 +143,7 @@ namespace Orts.Simulation.Signalling
             {
                 File.AppendAllText(dpe_fileLoc + @"printproc.txt", "\n\nSIGNAL : " + thisHead.TDBIndex.ToString() + "\n");
                 File.AppendAllText(dpe_fileLoc + @"printproc.txt", "OBJECT : " + thisHead.mainSignal.thisRef.ToString() + "\n");
-                File.AppendAllText(dpe_fileLoc + @"printproc.txt", "type   : " + signalScript.scriptname + "\n");
+                File.AppendAllText(dpe_fileLoc + @"printproc.txt", "type   : " + signalScript.ScriptName + "\n");
                 String fnstring = String.Copy(thisHead.mainSignal.signalRef.Simulator.SIGCFG.ORTSFunctionTypes[thisHead.ORTSsigFunctionIndex]);
                 File.AppendAllText(dpr_fileLoc + @"printproc.txt", "fntype : " + thisHead.ORTSsigFunctionIndex + " = " + fnstring + "\n\n");
             }
@@ -152,7 +153,7 @@ namespace Orts.Simulation.Signalling
             {
                 File.AppendAllText(dpr_fileLoc + @"printproc.txt", "\n\nSIGNAL : " + thisHead.TDBIndex.ToString() + "\n");
                 File.AppendAllText(dpr_fileLoc + @"printproc.txt", "OBJECT : " + thisHead.mainSignal.thisRef.ToString() + "\n");
-                File.AppendAllText(dpr_fileLoc + @"printproc.txt", "type   : " + signalScript.scriptname + "\n");
+                File.AppendAllText(dpr_fileLoc + @"printproc.txt", "type   : " + signalScript.ScriptName + "\n");
                 String fnstring = String.Copy(thisHead.mainSignal.signalRef.Simulator.SIGCFG.ORTSFunctionTypes[thisHead.ORTSsigFunctionIndex]);
                 File.AppendAllText(dpr_fileLoc + @"printproc.txt", "fntype : " + thisHead.ORTSsigFunctionIndex + " = " + fnstring + "\n\n");
 
@@ -220,7 +221,7 @@ namespace Orts.Simulation.Signalling
                     if (thisHead.mainSignal.enabledTrain != null)
                     {
                         File.AppendAllText(dpe_fileLoc + @"printproc.txt", "Statement : \n");
-                        foreach (string statstring in ThisStat.StatementParts)
+                        foreach (var statstring in ThisStat.StatementTerms)
                         {
                             File.AppendAllText(dpe_fileLoc + @"printproc.txt", "   " + statstring + "\n");
                         }
@@ -241,9 +242,10 @@ namespace Orts.Simulation.Signalling
                     if (TDB_debug_ref.Contains(thisHead.TDBIndex) || OBJ_debug_ref.Contains(thisHead.mainSignal.thisRef))
                     {
                         File.AppendAllText(dpr_fileLoc + @"printproc.txt", "Statement : \n");
-                        foreach (string statstring in ThisStat.StatementParts)
+                        foreach (SignalScripts.SCRScripts.SCRStatTerm term in ThisStat.StatementTerms)
                         {
-                            File.AppendAllText(dpr_fileLoc + @"printproc.txt", "   " + statstring + "\n");
+                            //TBD - there is no equivalent string representation of statement terms
+                            File.AppendAllText(dpr_fileLoc + @"printproc.txt", "   " + term.ToString() + "\n");
                         }
                         foreach (int lfloat in localFloats)
                         {
@@ -1618,14 +1620,14 @@ namespace Orts.Simulation.Signalling
                 if (thisHead.mainSignal.enabledTrain != null)
                 {
                     File.AppendAllText(dpe_fileLoc + @"printproc.txt", "Result of single condition : " +
-                        " : " + condition.ToString() + " (NOT : " + thisCond.negate1.ToString() + ")\n\n");
+                        " : " + condition.ToString() + " (NOT : " + thisCond.Term1.Negated.ToString() + ")\n\n");
                 }
 #endif
 #if DEBUG_PRINT_PROCESS
                 if (TDB_debug_ref.Contains(thisHead.TDBIndex) || OBJ_debug_ref.Contains(thisHead.mainSignal.thisRef))
                 {
                     File.AppendAllText(dpr_fileLoc + @"printproc.txt", "Result of single condition : " +
-                            " : " + condition.ToString() + " (NOT : " + thisCond.negate1.ToString() + ")\n\n");
+                            " : " + condition.ToString() + " (NOT : " + thisCond.Term1.Negated.ToString() + ")\n\n");
                 }
 #endif
             }
