@@ -543,7 +543,11 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Tonnage"), //"",
                 Viewer.Catalog.GetString("Control Mode"),// "",
                 Viewer.Catalog.GetString("Out of Control"),// "",
-                Viewer.Catalog.GetString("Cab Aspect")));
+                Viewer.Catalog.GetString("Cab Aspect")
+
+                //Add new header data here, if adding additional column.
+
+                ));
             //Consist information. Data.
             statusConsist.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t\t{5}\t{6}\t\t{7}\t\t{8}",
                 locomotive.CarID + " " + (mstsLocomotive == null ? "" : mstsLocomotive.UsingRearCab ? Viewer.Catalog.GetString("R") : Viewer.Catalog.GetString("F")),
@@ -554,7 +558,11 @@ namespace Orts.Viewer3D.Popups
                 FormatStrings.FormatLargeMass(tonnage, locomotive.IsMetric, locomotive.IsUK),
                 train.ControlMode.ToString(),
                 train.OutOfControlReason.ToString(),
-                mstsLocomotive.TrainControlSystem.CabSignalAspect.ToString()));
+                mstsLocomotive.TrainControlSystem.CabSignalAspect.ToString()
+
+                //Add new data here, if adding additional column.
+
+                ));
 
             //Car information
             statusConsist.Add(string.Format("\n{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}",
@@ -565,6 +573,9 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Weight"),
                 Viewer.Catalog.GetString("Drv/Cabs"),
                 Viewer.Catalog.GetString("Wheels")
+
+                //Add new header data here, if adding additional column.
+
                 ));
 
             //Pages count from number of nLinesShow.
@@ -583,6 +594,9 @@ namespace Orts.Viewer3D.Popups
                     FormatStrings.FormatLargeMass(car.MassKG, locomotive.IsMetric, locomotive.IsUK) + "\t" +
                     (car.IsDriveable ? "D" : "") + (car.HasFrontCab || car.HasFront3DCab ? "F" : "") + (car.HasRearCab || car.HasRear3DCab ? "R" : "") + "\t" +
                     GetCarWhyteLikeNotation(car) + "\t");
+
+                //Add new data here, if adding additional column.
+
             }
 
             DrawScrollArrows(statusConsist, table, false);
@@ -725,6 +739,9 @@ namespace Orts.Viewer3D.Popups
                                 car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
                                 car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Oil") :
                                 car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString("")
+
+                                //Add new Locomotive header here, if required.
+
                                 ));
 
                             statusHeader.Add(line);
@@ -996,6 +1013,9 @@ namespace Orts.Viewer3D.Popups
                         Viewer.Catalog.GetString("Conn"),
                         //7
                         Viewer.Catalog.GetString("AnglCock")
+
+                        //Add new header data here, if addining additional column.
+
                         ));
                 }
                 else // default air braked
@@ -1029,6 +1049,9 @@ namespace Orts.Viewer3D.Popups
                     Viewer.Catalog.GetString("AnglCock"),
                     //13
                     Viewer.Catalog.GetString("BleedOff")
+
+                    //Add new header data here, if addining additional column.
+
                     ));
                 }
             }
@@ -1229,7 +1252,11 @@ namespace Orts.Viewer3D.Popups
                         Viewer.Catalog.GetString("Wind Direction:"), train.PhysicsWindDirectionDeg,
                         Viewer.Catalog.GetString("Train Direction:"), train.PhysicsTrainLocoDirectionDeg,
                         Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
-                        Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(pS.TopH(train.WindResultantSpeedMpS)));
+                        Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(pS.TopH(train.WindResultantSpeedMpS))
+
+                        //Add new header + data here, if required.
+
+                        );
                     }
                     TableAddLines(table, status.ToString());
                 }
@@ -1246,14 +1273,11 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Gradient"),
                 Viewer.Catalog.GetString("Curve"),
                 Viewer.Catalog.GetString("Brk Frict."),
-                Viewer.Catalog.GetString("Brk Slide")
+                Viewer.Catalog.GetString("Brk Slide"),
+                Viewer.Catalog.GetString("Bear Temp")
 
-                //Here new added items.
-                // Possibly needed for buffing forces
-                //                Viewer.Catalog.GetString("VertD"),
-                //                Viewer.Catalog.GetString("VertL"),
-                //                Viewer.Catalog.GetString("BuffExc"),
-                //                Viewer.Catalog.GetString("CplAng")
+                //Add new header data here, if adding additional column.
+
                 );
             }
             else
@@ -1279,6 +1303,8 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Brk Slide"),
                 Viewer.Catalog.GetString("Bear Temp")
 
+                //Add new header data here, if adding additional column.
+
                 );
             }
             //Columns. HudScroll
@@ -1303,15 +1329,12 @@ namespace Orts.Viewer3D.Popups
                     TableSetCell(table, 5, "{0}", FormatStrings.FormatDistance(car.CurrentCurveRadius, car.IsMetric));
                     TableSetCell(table, 6, "{0:F0}%", car.BrakeShoeCoefficientFriction * 100.0f);
                     TableSetCell(table, 7, car.HUDBrakeSkid ? Viewer.Catalog.GetString("Yes") : "No");
+                    TableSetCell(table, 8, "{0} {1}", FormatStrings.FormatTemperature(car.WheelBearingTemperatureDegC, car.IsMetric, false), car.DisplayWheelBearingTemperatureStatus);
 
-                    TableSetCell(table, 8, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
+                    TableSetCell(table, 9, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
 
-                    // Possibly needed for buffing forces
-                    //                TableSetCell(table, 17, "{0}", FormatStrings.FormatForce(car.WagonVerticalDerailForceN, car.IsMetric));
-                    //                TableSetCell(table, 18, "{0}", FormatStrings.FormatForce(car.TotalWagonLateralDerailForceN, car.IsMetric));
-                    //                TableSetCell(table, 19, car.BuffForceExceeded ? Viewer.Catalog.GetString("Yes") : "No");
+                    //Add new column data here, if adding additional column.
 
-                    //                TableSetCell(table, 20, "{0:F2}", MathHelper.ToDegrees(car.WagonFrontCouplerAngleRad));
                     TableAddLine(table);
                     TableSetCell(table, 1, "Tot.Slack:");
                     TableSetCell(table, 2, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
@@ -1337,6 +1360,8 @@ namespace Orts.Viewer3D.Popups
                     TableSetCell(table, 17, "{0} {1}", FormatStrings.FormatTemperature(car.WheelBearingTemperatureDegC, car.IsMetric, false), car.DisplayWheelBearingTemperatureStatus);
 
                     TableSetCell(table, 18, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
+
+                    //Add new column data here, if adding additional column.
 
                     TableAddLine(table);
                     TableSetCell(table, 10, "Tot.Slack:");
@@ -1368,7 +1393,9 @@ namespace Orts.Viewer3D.Popups
                     Viewer.Catalog.GetString("Train"),
                     Viewer.Catalog.GetString("Consist"),
                     Viewer.Catalog.GetString("Path"));
-                    //New added items, here.
+
+                //Add new header data here, if adding additional column.
+
             }
             else
             {
@@ -1387,7 +1414,8 @@ namespace Orts.Viewer3D.Popups
                     Viewer.Catalog.GetString("Distance"),
                     Viewer.Catalog.GetString("Consist"),
                     Viewer.Catalog.GetString("Path"));
-                //New added items, here
+
+                //Add new header data here, if adding additional column.
 
                 //Find 'Path' header column
                 //Requiered to avoid conflict with human dispatcher code.

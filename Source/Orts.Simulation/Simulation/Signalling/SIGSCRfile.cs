@@ -242,11 +242,11 @@ namespace Orts.Simulation.Signalling
                     if (TDB_debug_ref.Contains(thisHead.TDBIndex) || OBJ_debug_ref.Contains(thisHead.mainSignal.thisRef))
                     {
                         File.AppendAllText(dpr_fileLoc + @"printproc.txt", "Statement : \n");
-                        foreach (SignalScripts.SCRScripts.SCRStatTerm term in ThisStat.StatementTerms)
-                        {
-                            //TBD - there is no equivalent string representation of statement terms
-                            File.AppendAllText(dpr_fileLoc + @"printproc.txt", "   " + term.ToString() + "\n");
-                        }
+                        //TODO TBD there is no equivalent in new parser
+                        //foreach (string statstring in ThisStat.StatementParts)
+                        //{
+                        //    File.AppendAllText(dpr_fileLoc + @"printproc.txt", "   " + statstring + "\n");
+                        //}
                         foreach (int lfloat in localFloats)
                         {
                             File.AppendAllText(dpr_fileLoc + @"printproc.txt", " local : " + lfloat.ToString() + "\n");

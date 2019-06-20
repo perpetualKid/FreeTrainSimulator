@@ -238,7 +238,7 @@ namespace Orts.Formats.Msts
                         File.AppendAllText(din_fileLoc + @"sigscr.txt", "Reading file : " + fullName + "\n\n");
 #endif
                         Parser parser = new Parser(stream);
-                        foreach(Script script in parser)
+                        foreach (Script script in parser)
                         {
                             #region DEBUG
 #if DEBUG_PRINT_IN
@@ -808,7 +808,7 @@ namespace Orts.Formats.Msts
                         }
                         else
                         {
-                            Trace.TraceWarning($"Invalid Assignment operation target in line {statementBlock.LineNumber} - could not find {statement.Tokens[0].Token} as local or external float");
+                            Trace.TraceWarning($"Invalid target for assignment operation in line {statementBlock.LineNumber} - could not find {statement.Tokens[0].Token} as local or external float");
                         }
                         // Assignment term
                         statement.Tokens.RemoveRange(0, 2);
@@ -860,7 +860,7 @@ namespace Orts.Formats.Msts
                                     new SCRStatTerm(externalFunctionsResult, statementBlock.Tokens[1] as Enclosure, level, operatorString, negated, localFloats, orSignalTypes, orNormalSubtypes));
                                 statementBlock.Tokens.RemoveAt(0);
                             }
-                            else 
+                            else
                             {
                                 StatementTerms.Add(
                                     new SCRStatTerm(statementBlock.Tokens[0], level, operatorString, statementBlock.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes));
@@ -886,7 +886,7 @@ namespace Orts.Formats.Msts
 
                 public SCRTermOperator TermOperator { get; private set; }
 
-                public bool Negated { get; private set; } 
+                public bool Negated { get; private set; }
 
                 public int TermNumber { get; private set; }
 

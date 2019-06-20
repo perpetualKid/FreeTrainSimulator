@@ -122,6 +122,7 @@ namespace Orts.Simulation.RollingStocks
         public bool HasFreightAnim = false;
         public bool HasPassengerCapacity = false;
         public bool HasInsideView = false;
+        public float CarHeightAboveGroundM;
 
         public float MaxHandbrakeForceN;
         public float MaxBrakeForceN = 89e3f;
@@ -133,6 +134,7 @@ namespace Orts.Simulation.RollingStocks
         public float CarHeatVolumeM3;     // Volume of car for heating purposes
         public float CarHeatPipeAreaM2;  // Area of surface of car pipe
         public float CarOutsideTempC;   // Ambient temperature outside of car
+        public float InitialCarOutsideTempC;
 
         // Used to calculate wheel sliding for locked brake
         public bool BrakeSkid = false;
@@ -167,7 +169,6 @@ namespace Orts.Simulation.RollingStocks
         public float _PrevSpeedMpS;
         public float AbsSpeedMpS; // Math.Abs(SpeedMps) expression is repeated many times in the subclasses, maybe this deserves a class variable
         public float CouplerSlackM;  // extra distance between cars (calculated based on relative speeds)
-        public float CouplerDampingSpeedMpS; // Dampening applied to coupler
         public int HUDCouplerForceIndication = 0; // Flag to indicate whether coupler is 1 - pulling, 2 - pushing or 0 - neither
         public bool HUDCouplerRigidIndication = false; // flag to indicate whether coupler is rigid or flexible. fasle indicates that coupler is flexible, true indicates that coupler is rigid
         public float CouplerSlack2M;  // slack calculated using draft gear force
@@ -177,6 +178,7 @@ namespace Orts.Simulation.RollingStocks
         public bool WheelSkid;  // True if wagon wheels lock up.
         public float _AccelerationMpSS;
         protected IIRFilter AccelerationFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, 1.0f, 0.1f);
+        public float HUDMaximumCouplerForceN;
 
         public float WheelBearingTemperatureDegC = 40.0f;
         public string DisplayWheelBearingTemperatureStatus;
@@ -190,6 +192,7 @@ namespace Orts.Simulation.RollingStocks
         public bool WheelBearingHot = false;
         public bool HotBoxActivated = false;
         public bool HotBoxHasBeenInitialized = false;
+        public bool HotBoxSoundActivated = false;
         public float HotBoxDelayS;
         public float ActivityHotBoxDurationS;
         public float ActivityElapsedDurationS;
@@ -200,6 +203,7 @@ namespace Orts.Simulation.RollingStocks
         Interpolator OutsideAutumnTempbyLatitudeC;
         Interpolator OutsideSpringTempbyLatitudeC;
         Interpolator OutsideSummerTempbyLatitudeC;
+        public bool AmbientTemperatureInitialised;
 
         // Input values to allow the temperature for different values of latitude to be calculated
         static float[] WorldLatitudeDeg = new float[]
@@ -495,8 +499,6 @@ namespace Orts.Simulation.RollingStocks
             // get route speed limit
             RouteSpeedMpS = (float)Simulator.TRK.Tr_RouteFile.SpeedLimit;
 
-            InitializeTrainTemperatures();
-
             // if no values are in TRK file, calculate default values.
             // Single track Tunnels
 
@@ -584,6 +586,33 @@ namespace Orts.Simulation.RollingStocks
         // called when it's time to update the MotiveForce and FrictionForce
         public virtual void Update(float elapsedClockSeconds)
         {
+
+            // Initialise ambient temperatures on first initial loop, then ignore
+            if (!AmbientTemperatureInitialised)
+            {
+                InitializeCarTemperatures();
+                AmbientTemperatureInitialised = true;
+            }
+
+            // Update temperature variation for height of car above sea level
+            // Typically in clear conditions there is a 9.8 DegC variation for every 1000m (1km) rise, in snow/rain there is approx 5.5 DegC variation for every 1000m (1km) rise
+            float TemperatureHeightVariationDegC = 0;
+            const float DryLapseTemperatureC = 9.8f;
+            const float WetLapseTemperatureC = 5.5f;
+
+            if (Simulator.WeatherType == WeatherType.Rain || Simulator.WeatherType == WeatherType.Snow) // Apply snow/rain height variation
+            {
+                TemperatureHeightVariationDegC = Me.ToKiloM(CarHeightAboveGroundM) * WetLapseTemperatureC;
+            }
+            else  // Apply dry height variation
+            {
+                TemperatureHeightVariationDegC = Me.ToKiloM(CarHeightAboveGroundM) * DryLapseTemperatureC;
+            }
+
+            TemperatureHeightVariationDegC = MathHelper.Clamp(TemperatureHeightVariationDegC, 0.00f, 30.0f);
+
+            CarOutsideTempC = InitialCarOutsideTempC - TemperatureHeightVariationDegC;
+
             // gravity force, M32 is up component of forward vector
             GravityForceN = MassKG * GravitationalAccelerationMpS2 * WorldPosition.XNAMatrix.M32;
             CurrentElevationPercent = 100f * WorldPosition.XNAMatrix.M32;
@@ -626,7 +655,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Initialise Train Temperatures
         /// <\summary>           
-        public void InitializeTrainTemperatures()
+        public void InitializeCarTemperatures()
         {
             OutsideWinterTempbyLatitudeC = WorldWinterLatitudetoTemperatureC();
             OutsideAutumnTempbyLatitudeC = WorldAutumnLatitudetoTemperatureC();
@@ -639,35 +668,43 @@ namespace Orts.Simulation.RollingStocks
 
             new Orts.Common.WorldLatLon().ConvertWTC(WorldPosition.TileX, WorldPosition.TileZ, WorldPosition.Location, ref latitude, ref longitude);
             
+            
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
-                      
 
             // Sets outside temperature dependent upon the season
             if (Simulator.Season == SeasonType.Winter)
             {
                 // Winter temps
-                CarOutsideTempC = OutsideWinterTempbyLatitudeC[LatitudeDeg];
+                InitialCarOutsideTempC = OutsideWinterTempbyLatitudeC[LatitudeDeg];
             }
             else if (Simulator.Season == SeasonType.Autumn)
             {
                 // Autumn temps
-                CarOutsideTempC = OutsideAutumnTempbyLatitudeC[LatitudeDeg];
+                InitialCarOutsideTempC = OutsideAutumnTempbyLatitudeC[LatitudeDeg];
             }
             else if (Simulator.Season == SeasonType.Spring)
             {
                 // Spring temps
-                CarOutsideTempC = OutsideSpringTempbyLatitudeC[LatitudeDeg];
+                InitialCarOutsideTempC = OutsideSpringTempbyLatitudeC[LatitudeDeg];
             }
             else
             {
                 // Summer temps
-                CarOutsideTempC = OutsideSummerTempbyLatitudeC[LatitudeDeg];
+                InitialCarOutsideTempC = OutsideSummerTempbyLatitudeC[LatitudeDeg];
+            }
+
+            // If weather is freezing. Snow will only be produced when temp is between 0 and 2 Deg C. Adjust temp as appropriate
+            const float SnowTemperatureC = 2;
+
+            if (Simulator.WeatherType == WeatherType.Snow && InitialCarOutsideTempC > SnowTemperatureC)
+            {
+                InitialCarOutsideTempC = 0;  // Weather snowing - freezing conditions. 
             }
 
             // Initialise wheel bearing temperature to ambient temperature
-            WheelBearingTemperatureDegC = CarOutsideTempC;
-            InitialWheelBearingRiseTemperatureDegC = CarOutsideTempC;
-            InitialWheelBearingDeclineTemperatureDegC = CarOutsideTempC;
+            WheelBearingTemperatureDegC = InitialCarOutsideTempC;
+            InitialWheelBearingRiseTemperatureDegC = InitialCarOutsideTempC;
+            InitialWheelBearingDeclineTemperatureDegC = InitialCarOutsideTempC;
         }
 
         #region Calculate Brake Skid
@@ -1611,32 +1648,42 @@ namespace Orts.Simulation.RollingStocks
             return 2e7f;
         }
 
-        public virtual float GetCouplerStiffness1NpM()
+        public virtual float GetCouplerTensionStiffness1N()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerStiffness2NpM()
+        public virtual float GetCouplerTensionStiffness2N()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerDamping1NMpS()
+        public virtual float GetCouplerCompressionStiffness1N()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerDamping2NMpS()
+        public virtual float GetCouplerCompressionStiffness2N()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerSlackAM()
+        public virtual float GetTensionCouplerSlackAM()
         {
             return 0;
         }
 
-        public virtual float GetCouplerSlackBM()
+        public virtual float GetTensionCouplerSlackBM()
+        {
+            return 0.1f;
+        }
+
+        public virtual float GetCouplerCompressionSlackAM()
+        {
+            return 0;
+        }
+
+        public virtual float GetCouplerCompressionSlackBM()
         {
             return 0.1f;
         }
@@ -1646,20 +1693,41 @@ namespace Orts.Simulation.RollingStocks
             return false;
         }
 
-        public virtual float GetMaximumCouplerSlack0M()
+        public virtual float GetMaximumSimpleCouplerSlack1M()
         {
-            return 0.005f;
+            return 0.012f;
         }
 
         public virtual float GetMaximumCouplerSlack1M()
         {
+            return 0.005f;
+        }
+
+        public virtual float GetMaximumCouplerSlack2M()
+        {
             return 0.012f;
         }
         
-        public virtual float GetMaximumCouplerSlack2M()
+        public virtual float GetMaximumCouplerSlack3M()
         {
-            return 0.12f;
+            return 0.13f;
         }
+
+        public virtual float GetMaximumCouplerCompressionSlack1M()
+        {
+            return 0.005f;
+        }
+
+        public virtual float GetMaximumCouplerCompressionSlack2M()
+        {
+            return 0.012f;
+        }
+
+        public virtual float GetMaximumCouplerCompressionSlack3M()
+        {
+            return 0.13f;
+        }
+
 
         public virtual float GetMaximumCouplerForceN()
         {

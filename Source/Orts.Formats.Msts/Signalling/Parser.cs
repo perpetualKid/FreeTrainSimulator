@@ -114,7 +114,7 @@ namespace Orts.Formats.Msts.Signalling
                             }
                             else
                             {
-                                if (token.Value != "#")
+                                if (token.Value != "#") //ignoring single # operator (rounding) which isn't used in OR 
                                     currentBlock = currentBlock.Add(new OperatorToken(token.Value, tokenizer.LineNumber), tokenizer.LineNumber);
                             }
                             continue;

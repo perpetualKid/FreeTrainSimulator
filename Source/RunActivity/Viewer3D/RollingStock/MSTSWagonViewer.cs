@@ -74,6 +74,7 @@ namespace Orts.Viewer3D.RollingStock
         List<ParticleEmitterViewer> TenderWaterOverflow = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WagonSmoke = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> HeatingSteamBoiler = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> BearingHotBox = new List<ParticleEmitterViewer>();
 
         // Create viewers for special steam effects on car
         List<ParticleEmitterViewer> WagonGenerator = new List<ParticleEmitterViewer>();
@@ -127,6 +128,15 @@ namespace Orts.Viewer3D.RollingStock
                 foreach (var drawer in WagonSmoke)
                 {
                     drawer.Initialize(steamTexture);
+                }
+
+                // Smoke for bearing hot box
+                if (emitter.Key.ToLowerInvariant() == "bearinghotboxfx")
+                   BearingHotBox.AddRange(emitter.Value);
+
+                foreach (var drawer in BearingHotBox)
+                {
+                   drawer.Initialize(steamTexture);
                 }
 
                 // Steam leak in heating hose 
@@ -507,6 +517,12 @@ namespace Orts.Viewer3D.RollingStock
                   drawer.SetOutput(car.WagonSmokeVelocityMpS, car.WagonSmokeVolumeM3pS, car.WagonSmokeDurationS, car.WagonSmokeSteadyColor);
             }
 
+            // Bearing Hot box smoke
+            foreach (var drawer in BearingHotBox)
+            {
+               drawer.SetOutput(car.BearingHotBoxSmokeVelocityMpS, car.BearingHotBoxSmokeVolumeM3pS, car.BearingHotBoxSmokeDurationS, car.BearingHotBoxSmokeSteadyColor);
+            }
+
             // Water spray for water sccop (uses steam effects currently)
             foreach (var drawer in WaterScoop)
             {
@@ -528,7 +544,7 @@ namespace Orts.Viewer3D.RollingStock
 
         private void UpdateAnimation(RenderFrame frame, ElapsedTime elapsedTime)
         {
-                        
+
             float distanceTravelledM = 0.0f; // Distance travelled by non-driven wheels
             float distanceTravelledDrivenM = 0.0f;  // Distance travelled by driven wheels
             float AnimationWheelRadiusM = 0.0f; // Radius of non driven wheels
@@ -632,7 +648,7 @@ namespace Orts.Viewer3D.RollingStock
             // It appears that only one MSTS type FA can be used per vehicle (to be confirmed?)
             // For coal load variation, C should be absent (set to 1 when read in WAG file) or >0 - sets FreightAnimFlag; and A > B
             // To disable coal load variation and insert a static (crew) shape on the tender breech, one of the conditions indicated above
-            if (FreightShape != null)
+            if (FreightShape != null && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
             {
                 // Define default position of shape
                 FreightShape.Location.XNAMatrix = Car.WorldPosition.XNAMatrix;
@@ -689,6 +705,9 @@ namespace Orts.Viewer3D.RollingStock
             {
                 foreach (var freightAnim in FreightAnimations.Animations)
                 {
+                    if (freightAnim.Animation is FreightAnimationStatic)
+                        if ((freightAnim.Animation as FreightAnimationStatic).Cab3DFreightAnim ^
+                            (Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab)) continue;
                     if (freightAnim.FreightShape != null && !((freightAnim.Animation is FreightAnimationContinuous) && (freightAnim.Animation as FreightAnimationContinuous).LoadPerCent == 0))
                     {
                         freightAnim.FreightShape.Location.XNAMatrix = Car.WorldPosition.XNAMatrix;
@@ -717,7 +736,8 @@ namespace Orts.Viewer3D.RollingStock
                 }
             }
 
-
+            // Get the current height above "sea level" for the relevant car
+            Car.CarHeightAboveGroundM = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
 
             // Control visibility of passenger cabin when inside it
             if (Viewer.Camera.AttachedCar == this.MSTSWagon
