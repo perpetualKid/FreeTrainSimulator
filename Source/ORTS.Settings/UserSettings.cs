@@ -102,8 +102,6 @@ namespace ORTS.Settings
         public bool DebriefActivityEval { get; set; }
         [Default(false)]
         public bool DebriefTTActivityEval { get; set; }
-        [Default(false)]
-        public bool FullScreen { get; set; }
         [Default("")]
         public string Multiplayer_User { get; set; }
         [Default("127.0.0.1")]
@@ -129,11 +127,11 @@ namespace ORTS.Settings
         [Default(21)]
         public int BrakePipeChargingRate { get; set; }
         [Default("")]
-        public String Language { get; set; }
+        public string Language { get; set; }
         [Default("Automatic")]
-        public String PressureUnit { get; set; }
+        public string PressureUnit { get; set; }
         [Default("Automatic")]
-        public String Units { get; set; }
+        public string Units { get; set; }
         [Default(false)]
         public bool DisableTCSScripts { get; set; }
 
@@ -148,6 +146,10 @@ namespace ORTS.Settings
         public int ExternalSoundPassThruPercent { get; set; } // higher = louder sound
 
         // Video settings:
+        [Default(true)]
+        public bool FullScreen { get; set; }
+        [Default(true)]
+        public bool NativeFullscreenResolution { get; set; }
         [Default(false)]
         public bool DynamicShadows { get; set; }
         [Default(false)]

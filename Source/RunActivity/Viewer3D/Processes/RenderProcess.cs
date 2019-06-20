@@ -30,6 +30,13 @@ namespace Orts.Viewer3D.Processes
     [CallOnThread("Render")]
     public class RenderProcess
     {
+        private enum ScreenMode
+        {
+            WindowedPresetResolution,
+            FullscreenPresetResolution,
+            FullscreenNativeResolution,
+        }
+
         public const int ShadowMapCountMaximum = 4;
         //public const int ShadowMapMipCount = 1;
 
@@ -42,12 +49,12 @@ namespace Orts.Viewer3D.Processes
 
         private readonly Game game;
         private readonly Form gameForm;
-        readonly System.Drawing.Size gameWindowSize;
+        private readonly System.Drawing.Size gameWindowSize;
         private readonly WatchdogToken watchdogToken;
-        readonly System.Drawing.Point gameFullScreenOrigin = new System.Drawing.Point(0, 0);
-        private System.Drawing.Point gameWindowOrigin = new System.Drawing.Point(0, 0);
-        private bool isFullScreen;
-        private bool toggleFullScreenRequested;
+        private System.Drawing.Point gameWindowOrigin;
+        private Screen currentScreen;
+        private ScreenMode currentScreenMode;
+        private bool toggleScreenRequested;
 
         public GraphicsDeviceManager GraphicsDeviceManager { get; private set; }
 
@@ -102,23 +109,37 @@ namespace Orts.Viewer3D.Processes
             GraphicsDeviceManager.SynchronizeWithVerticalRetrace = game.Settings.VerticalSync;
             GraphicsDeviceManager.PreferredBackBufferFormat = SurfaceFormat.Color;
             GraphicsDeviceManager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
-            GraphicsDeviceManager.IsFullScreen = game.Settings.FullScreen && !game.Settings.FastFullScreenAltTab;
+            GraphicsDeviceManager.IsFullScreen = true;
             GraphicsDeviceManager.PreferMultiSampling = game.Settings.EnableMultisampling;
             GraphicsDeviceManager.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(GDM_PreparingDeviceSettings);
+            GraphicsDeviceManager.ApplyChanges();
 
-            var screen = Screen.PrimaryScreen;
-            var wa = Screen.PrimaryScreen.WorkingArea;
-            gameForm.Location = new System.Drawing.Point((wa.Right - gameWindowSize.Width) / 2, (wa.Bottom - gameWindowSize.Height) / 2);
-            gameWindowOrigin = gameForm.Location;
+            currentScreen = Screen.PrimaryScreen;
+            gameWindowOrigin = new System.Drawing.Point((currentScreen.WorkingArea.Right - gameWindowSize.Width) / 2, (currentScreen.WorkingArea.Bottom - gameWindowSize.Height) / 2);
 
-            if (game.Settings.FullScreen)
-                ToggleFullScreen();
+            SynchronizeGraphicsDeviceManager(game.Settings.FullScreen ?
+                game.Settings.NativeFullscreenResolution ? ScreenMode.FullscreenNativeResolution : ScreenMode.FullscreenPresetResolution
+                : ScreenMode.WindowedPresetResolution);
 
-            SynchronizeGraphicsDeviceManager();
+            gameWindowOrigin = new System.Drawing.Point((currentScreen.WorkingArea.Right - gameWindowSize.Width) / 2, (currentScreen.WorkingArea.Bottom - gameWindowSize.Height) / 2);
 
             RenderPrimitive.SetGraphicsDevice(game.GraphicsDevice);
 
             UserInput.Initialize(game);
+            gameForm.LocationChanged += GameForm_LocationChanged;
+        }
+
+        private void GameForm_LocationChanged(object sender, EventArgs e)
+        {
+            Screen newScreen = Screen.FromControl(gameForm);
+            (newScreen, currentScreen) = (currentScreen, newScreen);
+            if (newScreen.DeviceName != currentScreen.DeviceName)
+            {
+                if (currentScreenMode != ScreenMode.WindowedPresetResolution)
+                    gameWindowOrigin = new System.Drawing.Point(currentScreen.Bounds.Left + (currentScreen.WorkingArea.Width - gameWindowSize.Width) / 2, 
+                        currentScreen.Bounds.Top + (currentScreen.WorkingArea.Height - gameWindowSize.Height) / 2);
+                SynchronizeGraphicsDeviceManager(currentScreenMode);
+            }
         }
 
         void GDM_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
@@ -246,10 +267,10 @@ namespace Orts.Viewer3D.Processes
 
             Cursor.Current = ActualCursor;
 
-            if (toggleFullScreenRequested)
+            if (toggleScreenRequested)
             {
-                SynchronizeGraphicsDeviceManager();
-                toggleFullScreenRequested = false;
+                SynchronizeGraphicsDeviceManager(currentScreenMode.Next());
+                toggleScreenRequested = false;
                 Viewer.DefaultViewport = GraphicsDevice.Viewport;
             }
 
@@ -264,39 +285,54 @@ namespace Orts.Viewer3D.Processes
                 SwapFrames(ref CurrentFrame, ref NextFrame);
                 game.UpdaterProcess.StartUpdate(NextFrame, gameTime.TotalGameTime.TotalSeconds);
             }
-        }
-
-        void SynchronizeGraphicsDeviceManager()
-        {
-            var screen = game.Settings.FastFullScreenAltTab ? Screen.FromControl(gameForm) : Screen.PrimaryScreen;
-            if (isFullScreen)
-            {
-                GraphicsDeviceManager.PreferredBackBufferWidth = screen.Bounds.Width;
-                GraphicsDeviceManager.PreferredBackBufferHeight = screen.Bounds.Height;
-            }
             else
             {
-                GraphicsDeviceManager.PreferredBackBufferWidth = gameWindowSize.Width;
-                GraphicsDeviceManager.PreferredBackBufferHeight = gameWindowSize.Height;
+                SynchronizeGraphicsDeviceManager(currentScreenMode);
+                Viewer.DefaultViewport = GraphicsDevice.Viewport;
+
             }
-            if (game.Settings.FastFullScreenAltTab)
+        }
+
+        void SynchronizeGraphicsDeviceManager(ScreenMode targetMode)
+        {
+            gameForm.LocationChanged -= GameForm_LocationChanged;
+            switch (targetMode)
             {
-                gameForm.FormBorderStyle = isFullScreen ? FormBorderStyle.None : FormBorderStyle.FixedSingle;
-                if (isFullScreen)
-                {
-                    gameWindowOrigin = gameForm.Location;
-                    gameForm.Location = gameFullScreenOrigin;
-                }
-                else
-                {
-                    gameForm.Location = gameWindowOrigin;
-                }
-                GraphicsDeviceManager.ApplyChanges();
+                case ScreenMode.WindowedPresetResolution:
+                    if (GraphicsDeviceManager.IsFullScreen)
+                        GraphicsDeviceManager.ToggleFullScreen();
+                    if (targetMode != currentScreenMode)
+                        gameForm.Location = gameWindowOrigin;
+                    gameForm.FormBorderStyle = FormBorderStyle.FixedSingle;
+                    GraphicsDeviceManager.PreferredBackBufferWidth = gameWindowSize.Width;
+                    GraphicsDeviceManager.PreferredBackBufferHeight = gameWindowSize.Height;
+                    GraphicsDeviceManager.ApplyChanges();
+                    break;
+                case ScreenMode.FullscreenPresetResolution:
+                    gameForm.FormBorderStyle = FormBorderStyle.FixedSingle;
+                    GraphicsDeviceManager.PreferredBackBufferWidth = gameWindowSize.Width;
+                    GraphicsDeviceManager.PreferredBackBufferHeight = gameWindowSize.Height;
+                    GraphicsDeviceManager.ApplyChanges();
+                    if (!GraphicsDeviceManager.IsFullScreen)
+                        GraphicsDeviceManager.ToggleFullScreen();
+                    break;
+                case ScreenMode.FullscreenNativeResolution:
+                    if (GraphicsDeviceManager.IsFullScreen)
+                        GraphicsDeviceManager.ToggleFullScreen();
+                    GraphicsDeviceManager.PreferredBackBufferWidth = currentScreen.Bounds.Width;
+                    GraphicsDeviceManager.PreferredBackBufferHeight = currentScreen.Bounds.Height;
+                    GraphicsDeviceManager.ApplyChanges();
+                    gameForm.FormBorderStyle = game.Settings.FastFullScreenAltTab ? FormBorderStyle.None : FormBorderStyle.FixedSingle;
+                    if (targetMode != currentScreenMode)
+                        gameWindowOrigin = gameForm.Location;
+                    gameForm.Location = currentScreen.Bounds.Location;
+                    GraphicsDeviceManager.ApplyChanges();
+                    if (!game.Settings.FastFullScreenAltTab)
+                        GraphicsDeviceManager.ToggleFullScreen();
+                    break;
             }
-            else if (GraphicsDeviceManager.IsFullScreen != isFullScreen)
-            {
-                GraphicsDeviceManager.ToggleFullScreen();
-            }
+            currentScreenMode = targetMode;
+            gameForm.LocationChanged += GameForm_LocationChanged;
         }
 
         internal void BeginDraw()
@@ -380,8 +416,7 @@ namespace Orts.Viewer3D.Processes
         [CallOnThread("Updater")]
         public void ToggleFullScreen()
         {
-            isFullScreen = !isFullScreen;
-            toggleFullScreenRequested = true;
+            toggleScreenRequested = true;
         }
 
         [CallOnThread("Render")]
