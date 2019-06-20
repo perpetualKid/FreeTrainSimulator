@@ -169,7 +169,6 @@ namespace Orts.Simulation.RollingStocks
         public float _PrevSpeedMpS;
         public float AbsSpeedMpS; // Math.Abs(SpeedMps) expression is repeated many times in the subclasses, maybe this deserves a class variable
         public float CouplerSlackM;  // extra distance between cars (calculated based on relative speeds)
-        public float CouplerDampingSpeedMpS; // Dampening applied to coupler
         public int HUDCouplerForceIndication = 0; // Flag to indicate whether coupler is 1 - pulling, 2 - pushing or 0 - neither
         public bool HUDCouplerRigidIndication = false; // flag to indicate whether coupler is rigid or flexible. fasle indicates that coupler is flexible, true indicates that coupler is rigid
         public float CouplerSlack2M;  // slack calculated using draft gear force
@@ -179,6 +178,7 @@ namespace Orts.Simulation.RollingStocks
         public bool WheelSkid;  // True if wagon wheels lock up.
         public float _AccelerationMpSS;
         protected IIRFilter AccelerationFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, 1.0f, 0.1f);
+        public float HUDMaximumCouplerForceN;
 
         public float WheelBearingTemperatureDegC = 40.0f;
         public string DisplayWheelBearingTemperatureStatus;
@@ -1648,32 +1648,42 @@ namespace Orts.Simulation.RollingStocks
             return 2e7f;
         }
 
-        public virtual float GetCouplerStiffness1NpM()
+        public virtual float GetCouplerTensionStiffness1N()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerStiffness2NpM()
+        public virtual float GetCouplerTensionStiffness2N()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerDamping1NMpS()
+        public virtual float GetCouplerCompressionStiffness1N()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerDamping2NMpS()
+        public virtual float GetCouplerCompressionStiffness2N()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerSlackAM()
+        public virtual float GetTensionCouplerSlackAM()
         {
             return 0;
         }
 
-        public virtual float GetCouplerSlackBM()
+        public virtual float GetTensionCouplerSlackBM()
+        {
+            return 0.1f;
+        }
+
+        public virtual float GetCouplerCompressionSlackAM()
+        {
+            return 0;
+        }
+
+        public virtual float GetCouplerCompressionSlackBM()
         {
             return 0.1f;
         }
@@ -1683,20 +1693,41 @@ namespace Orts.Simulation.RollingStocks
             return false;
         }
 
-        public virtual float GetMaximumCouplerSlack0M()
+        public virtual float GetMaximumSimpleCouplerSlack1M()
         {
-            return 0.005f;
+            return 0.012f;
         }
 
         public virtual float GetMaximumCouplerSlack1M()
         {
+            return 0.005f;
+        }
+
+        public virtual float GetMaximumCouplerSlack2M()
+        {
             return 0.012f;
         }
         
-        public virtual float GetMaximumCouplerSlack2M()
+        public virtual float GetMaximumCouplerSlack3M()
         {
-            return 0.12f;
+            return 0.13f;
         }
+
+        public virtual float GetMaximumCouplerCompressionSlack1M()
+        {
+            return 0.005f;
+        }
+
+        public virtual float GetMaximumCouplerCompressionSlack2M()
+        {
+            return 0.012f;
+        }
+
+        public virtual float GetMaximumCouplerCompressionSlack3M()
+        {
+            return 0.13f;
+        }
+
 
         public virtual float GetMaximumCouplerForceN()
         {
