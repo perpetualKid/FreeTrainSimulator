@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
             this.buttonOK = new System.Windows.Forms.Button();
             this.numericBrakePipeChargingRate = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -60,6 +60,8 @@
             this.numericSoundDetailLevel = new System.Windows.Forms.NumericUpDown();
             this.checkMSTSBINSound = new System.Windows.Forms.CheckBox();
             this.tabPageVideo = new System.Windows.Forms.TabPage();
+            this.radioButtonWindow = new System.Windows.Forms.RadioButton();
+            this.radioButtonFullScreen = new System.Windows.Forms.RadioButton();
             this.checkBoxFullScreenNativeResolution = new System.Windows.Forms.CheckBox();
             this.lblMSAACount = new System.Windows.Forms.Label();
             this.label28 = new System.Windows.Forms.Label();
@@ -205,9 +207,7 @@
             this.ElevationText = new System.Windows.Forms.Label();
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.groupBoxScreenMode = new System.Windows.Forms.GroupBox();
-            this.radioButtonFullScreen = new System.Windows.Forms.RadioButton();
-            this.radioButtonWindow = new System.Windows.Forms.RadioButton();
+            this.panel1 = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -253,7 +253,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).BeginInit();
-            this.groupBoxScreenMode.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // buttonOK
@@ -609,7 +609,7 @@
             // 
             // tabPageVideo
             // 
-            this.tabPageVideo.Controls.Add(this.groupBoxScreenMode);
+            this.tabPageVideo.Controls.Add(this.panel1);
             this.tabPageVideo.Controls.Add(this.checkBoxFullScreenNativeResolution);
             this.tabPageVideo.Controls.Add(this.lblMSAACount);
             this.tabPageVideo.Controls.Add(this.label28);
@@ -647,10 +647,32 @@
             this.tabPageVideo.Text = "Video";
             this.tabPageVideo.UseVisualStyleBackColor = true;
             // 
+            // radioButtonWindow
+            // 
+            this.radioButtonWindow.AutoSize = true;
+            this.radioButtonWindow.Location = new System.Drawing.Point(159, 3);
+            this.radioButtonWindow.Name = "radioButtonWindow";
+            this.radioButtonWindow.Size = new System.Drawing.Size(64, 17);
+            this.radioButtonWindow.TabIndex = 1;
+            this.radioButtonWindow.Text = "Window";
+            this.radioButtonWindow.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonFullScreen
+            // 
+            this.radioButtonFullScreen.AutoSize = true;
+            this.radioButtonFullScreen.Checked = true;
+            this.radioButtonFullScreen.Location = new System.Drawing.Point(20, 3);
+            this.radioButtonFullScreen.Name = "radioButtonFullScreen";
+            this.radioButtonFullScreen.Size = new System.Drawing.Size(75, 17);
+            this.radioButtonFullScreen.TabIndex = 0;
+            this.radioButtonFullScreen.TabStop = true;
+            this.radioButtonFullScreen.Text = "FullScreen";
+            this.radioButtonFullScreen.UseVisualStyleBackColor = true;
+            // 
             // checkBoxFullScreenNativeResolution
             // 
             this.checkBoxFullScreenNativeResolution.AutoSize = true;
-            this.checkBoxFullScreenNativeResolution.Location = new System.Drawing.Point(338, 325);
+            this.checkBoxFullScreenNativeResolution.Location = new System.Drawing.Point(315, 56);
             this.checkBoxFullScreenNativeResolution.Name = "checkBoxFullScreenNativeResolution";
             this.checkBoxFullScreenNativeResolution.Size = new System.Drawing.Size(223, 17);
             this.checkBoxFullScreenNativeResolution.TabIndex = 29;
@@ -660,10 +682,10 @@
             // 
             // lblMSAACount
             // 
-            this.lblMSAACount.Location = new System.Drawing.Point(447, 102);
+            this.lblMSAACount.Location = new System.Drawing.Point(459, 154);
             this.lblMSAACount.Margin = new System.Windows.Forms.Padding(3);
             this.lblMSAACount.Name = "lblMSAACount";
-            this.lblMSAACount.Size = new System.Drawing.Size(141, 13);
+            this.lblMSAACount.Size = new System.Drawing.Size(129, 13);
             this.lblMSAACount.TabIndex = 28;
             this.lblMSAACount.Text = "0x";
             this.lblMSAACount.TextAlign = System.Drawing.ContentAlignment.TopRight;
@@ -671,7 +693,7 @@
             // label28
             // 
             this.label28.AutoSize = true;
-            this.label28.Location = new System.Drawing.Point(304, 102);
+            this.label28.Location = new System.Drawing.Point(312, 154);
             this.label28.Margin = new System.Windows.Forms.Padding(3);
             this.label28.Name = "label28";
             this.label28.Size = new System.Drawing.Size(141, 13);
@@ -683,7 +705,7 @@
             this.trackbarMultiSampling.AutoSize = false;
             this.trackbarMultiSampling.BackColor = System.Drawing.SystemColors.Window;
             this.trackbarMultiSampling.LargeChange = 2;
-            this.trackbarMultiSampling.Location = new System.Drawing.Point(307, 121);
+            this.trackbarMultiSampling.Location = new System.Drawing.Point(315, 173);
             this.trackbarMultiSampling.Maximum = 5;
             this.trackbarMultiSampling.Name = "trackbarMultiSampling";
             this.trackbarMultiSampling.Size = new System.Drawing.Size(281, 45);
@@ -703,7 +725,7 @@
             // checkDoubleWire
             // 
             this.checkDoubleWire.AutoSize = true;
-            this.checkDoubleWire.Location = new System.Drawing.Point(307, 29);
+            this.checkDoubleWire.Location = new System.Drawing.Point(6, 121);
             this.checkDoubleWire.Name = "checkDoubleWire";
             this.checkDoubleWire.Size = new System.Drawing.Size(135, 17);
             this.checkDoubleWire.TabIndex = 23;
@@ -713,7 +735,7 @@
             // label15
             // 
             this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(6, 352);
+            this.label15.Location = new System.Drawing.Point(3, 325);
             this.label15.Margin = new System.Windows.Forms.Padding(3);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(138, 13);
@@ -722,17 +744,18 @@
             // 
             // labelDayAmbientLight
             // 
-            this.labelDayAmbientLight.Location = new System.Drawing.Point(6, 352);
+            this.labelDayAmbientLight.Location = new System.Drawing.Point(147, 325);
             this.labelDayAmbientLight.Margin = new System.Windows.Forms.Padding(3);
             this.labelDayAmbientLight.Name = "labelDayAmbientLight";
-            this.labelDayAmbientLight.Size = new System.Drawing.Size(292, 13);
+            this.labelDayAmbientLight.Size = new System.Drawing.Size(148, 13);
             this.labelDayAmbientLight.TabIndex = 22;
+            this.labelDayAmbientLight.Text = "100%";
             this.labelDayAmbientLight.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // checkModelInstancing
             // 
             this.checkModelInstancing.AutoSize = true;
-            this.checkModelInstancing.Location = new System.Drawing.Point(6, 98);
+            this.checkModelInstancing.Location = new System.Drawing.Point(6, 75);
             this.checkModelInstancing.Name = "checkModelInstancing";
             this.checkModelInstancing.Size = new System.Drawing.Size(106, 17);
             this.checkModelInstancing.TabIndex = 3;
@@ -744,7 +767,7 @@
             this.trackDayAmbientLight.AutoSize = false;
             this.trackDayAmbientLight.BackColor = System.Drawing.SystemColors.Window;
             this.trackDayAmbientLight.LargeChange = 4;
-            this.trackDayAmbientLight.Location = new System.Drawing.Point(6, 371);
+            this.trackDayAmbientLight.Location = new System.Drawing.Point(6, 343);
             this.trackDayAmbientLight.Margin = new System.Windows.Forms.Padding(6, 3, 6, 3);
             this.trackDayAmbientLight.Maximum = 30;
             this.trackDayAmbientLight.Minimum = 15;
@@ -760,7 +783,7 @@
             // checkVerticalSync
             // 
             this.checkVerticalSync.AutoSize = true;
-            this.checkVerticalSync.Location = new System.Drawing.Point(6, 121);
+            this.checkVerticalSync.Location = new System.Drawing.Point(315, 131);
             this.checkVerticalSync.Name = "checkVerticalSync";
             this.checkVerticalSync.Size = new System.Drawing.Size(86, 17);
             this.checkVerticalSync.TabIndex = 5;
@@ -809,11 +832,11 @@
             // checkFastFullScreenAltTab
             // 
             this.checkFastFullScreenAltTab.AutoSize = true;
-            this.checkFastFullScreenAltTab.Location = new System.Drawing.Point(6, 52);
+            this.checkFastFullScreenAltTab.Location = new System.Drawing.Point(315, 108);
             this.checkFastFullScreenAltTab.Name = "checkFastFullScreenAltTab";
-            this.checkFastFullScreenAltTab.Size = new System.Drawing.Size(129, 17);
+            this.checkFastFullScreenAltTab.Size = new System.Drawing.Size(134, 17);
             this.checkFastFullScreenAltTab.TabIndex = 1;
-            this.checkFastFullScreenAltTab.Text = "Fast full-screen alt-tab";
+            this.checkFastFullScreenAltTab.Text = "Fast Fullscreen Alt-Tab";
             this.checkFastFullScreenAltTab.UseVisualStyleBackColor = true;
             // 
             // checkDistantMountains
@@ -971,7 +994,7 @@
             "1920x1080",
             "1920x1200",
             "2560x1440"});
-            this.comboWindowSize.Location = new System.Drawing.Point(6, 325);
+            this.comboWindowSize.Location = new System.Drawing.Point(315, 16);
             this.comboWindowSize.Name = "comboWindowSize";
             this.comboWindowSize.Size = new System.Drawing.Size(121, 21);
             this.comboWindowSize.TabIndex = 18;
@@ -979,7 +1002,7 @@
             // checkWindowGlass
             // 
             this.checkWindowGlass.AutoSize = true;
-            this.checkWindowGlass.Location = new System.Drawing.Point(6, 75);
+            this.checkWindowGlass.Location = new System.Drawing.Point(6, 52);
             this.checkWindowGlass.Name = "checkWindowGlass";
             this.checkWindowGlass.Size = new System.Drawing.Size(151, 17);
             this.checkWindowGlass.TabIndex = 2;
@@ -988,12 +1011,12 @@
             // 
             // label3
             // 
-            this.label3.Location = new System.Drawing.Point(133, 320);
+            this.label3.Location = new System.Drawing.Point(442, 7);
             this.label3.Margin = new System.Windows.Forms.Padding(3);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(199, 26);
+            this.label3.Size = new System.Drawing.Size(154, 43);
             this.label3.TabIndex = 19;
-            this.label3.Text = "Window size or FullScreen resolution (type WIDTHxHEIGHT for custom size)";
+            this.label3.Text = "Window size or FullScreen resolution (type WIDTH x HEIGHT for custom size)";
             // 
             // checkDynamicShadows
             // 
@@ -1008,7 +1031,7 @@
             // checkWire
             // 
             this.checkWire.AutoSize = true;
-            this.checkWire.Location = new System.Drawing.Point(307, 6);
+            this.checkWire.Location = new System.Drawing.Point(6, 98);
             this.checkWire.Name = "checkWire";
             this.checkWire.Size = new System.Drawing.Size(95, 17);
             this.checkWire.TabIndex = 4;
@@ -1782,27 +1805,27 @@
             this.dataGridViewContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dataGridViewContent.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dataGridViewContent.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle13.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle13.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle13.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle13.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle13.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle13.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle13.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle13;
             this.dataGridViewContent.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dataGridViewContent.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.nameDataGridViewTextBoxColumn,
             this.pathDataGridViewTextBoxColumn});
             this.dataGridViewContent.DataSource = this.bindingSourceContent;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle14.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle14.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle14.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle14.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle14.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle14.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle14.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle14;
             this.dataGridViewContent.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewContent.Location = new System.Drawing.Point(0, 0);
             this.dataGridViewContent.MultiSelect = false;
@@ -2483,37 +2506,14 @@
             this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
             this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
-            // groupBoxScreenMode
+            // panel1
             // 
-            this.groupBoxScreenMode.Controls.Add(this.radioButtonWindow);
-            this.groupBoxScreenMode.Controls.Add(this.radioButtonFullScreen);
-            this.groupBoxScreenMode.Location = new System.Drawing.Point(338, 275);
-            this.groupBoxScreenMode.Name = "groupBoxScreenMode";
-            this.groupBoxScreenMode.Size = new System.Drawing.Size(235, 51);
-            this.groupBoxScreenMode.TabIndex = 31;
-            this.groupBoxScreenMode.TabStop = false;
-            // 
-            // radioButtonFullScreen
-            // 
-            this.radioButtonFullScreen.AutoSize = true;
-            this.radioButtonFullScreen.Checked = true;
-            this.radioButtonFullScreen.Location = new System.Drawing.Point(6, 19);
-            this.radioButtonFullScreen.Name = "radioButtonFullScreen";
-            this.radioButtonFullScreen.Size = new System.Drawing.Size(75, 17);
-            this.radioButtonFullScreen.TabIndex = 0;
-            this.radioButtonFullScreen.TabStop = true;
-            this.radioButtonFullScreen.Text = "FullScreen";
-            this.radioButtonFullScreen.UseVisualStyleBackColor = true;
-            // 
-            // radioButtonWindow
-            // 
-            this.radioButtonWindow.AutoSize = true;
-            this.radioButtonWindow.Location = new System.Drawing.Point(112, 19);
-            this.radioButtonWindow.Name = "radioButtonWindow";
-            this.radioButtonWindow.Size = new System.Drawing.Size(64, 17);
-            this.radioButtonWindow.TabIndex = 1;
-            this.radioButtonWindow.Text = "Window";
-            this.radioButtonWindow.UseVisualStyleBackColor = true;
+            this.panel1.Controls.Add(this.radioButtonWindow);
+            this.panel1.Controls.Add(this.radioButtonFullScreen);
+            this.panel1.Location = new System.Drawing.Point(315, 79);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(282, 23);
+            this.panel1.TabIndex = 32;
             // 
             // OptionsForm
             // 
@@ -2589,8 +2589,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).EndInit();
-            this.groupBoxScreenMode.ResumeLayout(false);
-            this.groupBoxScreenMode.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -2771,8 +2771,8 @@
         private System.Windows.Forms.TrackBar trackbarMultiSampling;
         private System.Windows.Forms.Label lblMSAACount;
         private System.Windows.Forms.CheckBox checkBoxFullScreenNativeResolution;
-        private System.Windows.Forms.GroupBox groupBoxScreenMode;
         private System.Windows.Forms.RadioButton radioButtonWindow;
         private System.Windows.Forms.RadioButton radioButtonFullScreen;
+        private System.Windows.Forms.Panel panel1;
     }
 }
