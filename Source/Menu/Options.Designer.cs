@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.buttonOK = new System.Windows.Forms.Button();
             this.numericBrakePipeChargingRate = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -60,7 +60,9 @@
             this.numericSoundDetailLevel = new System.Windows.Forms.NumericUpDown();
             this.checkMSTSBINSound = new System.Windows.Forms.CheckBox();
             this.tabPageVideo = new System.Windows.Forms.TabPage();
-            this.checkEnableMultisampling = new System.Windows.Forms.CheckBox();
+            this.lblMSAACount = new System.Windows.Forms.Label();
+            this.label28 = new System.Windows.Forms.Label();
+            this.trackbarMultiSampling = new System.Windows.Forms.TrackBar();
             this.checkShadowAllShapes = new System.Windows.Forms.CheckBox();
             this.checkDoubleWire = new System.Windows.Forms.CheckBox();
             this.label15 = new System.Windows.Forms.Label();
@@ -108,6 +110,7 @@
             this.buttonCheckKeys = new System.Windows.Forms.Button();
             this.panelKeys = new System.Windows.Forms.Panel();
             this.tabPageRailDriver = new System.Windows.Forms.TabPage();
+            this.btnRDSettingsExport = new System.Windows.Forms.Button();
             this.btnCheck = new System.Windows.Forms.Button();
             this.btnRDReset = new System.Windows.Forms.Button();
             this.btnStartRDCalibration = new System.Windows.Forms.Button();
@@ -201,7 +204,6 @@
             this.ElevationText = new System.Windows.Forms.Label();
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.btnRDSettingsExport = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -210,6 +212,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSoundVolumePercent)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSoundDetailLevel)).BeginInit();
             this.tabPageVideo.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackbarMultiSampling)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackDayAmbientLight)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericDistantMountainsViewingDistance)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericViewingDistance)).BeginInit();
@@ -601,7 +604,9 @@
             // 
             // tabPageVideo
             // 
-            this.tabPageVideo.Controls.Add(this.checkEnableMultisampling);
+            this.tabPageVideo.Controls.Add(this.lblMSAACount);
+            this.tabPageVideo.Controls.Add(this.label28);
+            this.tabPageVideo.Controls.Add(this.trackbarMultiSampling);
             this.tabPageVideo.Controls.Add(this.checkShadowAllShapes);
             this.tabPageVideo.Controls.Add(this.checkDoubleWire);
             this.tabPageVideo.Controls.Add(this.label15);
@@ -635,17 +640,37 @@
             this.tabPageVideo.Text = "Video";
             this.tabPageVideo.UseVisualStyleBackColor = true;
             // 
-            // checkEnableMultisampling
+            // lblMSAACount
             // 
-            this.checkEnableMultisampling.AutoSize = true;
-            this.checkEnableMultisampling.Checked = true;
-            this.checkEnableMultisampling.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkEnableMultisampling.Location = new System.Drawing.Point(6, 144);
-            this.checkEnableMultisampling.Name = "checkEnableMultisampling";
-            this.checkEnableMultisampling.Size = new System.Drawing.Size(124, 17);
-            this.checkEnableMultisampling.TabIndex = 25;
-            this.checkEnableMultisampling.Text = "Enable multisampling";
-            this.checkEnableMultisampling.UseVisualStyleBackColor = true;
+            this.lblMSAACount.Location = new System.Drawing.Point(447, 102);
+            this.lblMSAACount.Margin = new System.Windows.Forms.Padding(3);
+            this.lblMSAACount.Name = "lblMSAACount";
+            this.lblMSAACount.Size = new System.Drawing.Size(141, 13);
+            this.lblMSAACount.TabIndex = 28;
+            this.lblMSAACount.Text = "0x";
+            this.lblMSAACount.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(304, 102);
+            this.label28.Margin = new System.Windows.Forms.Padding(3);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(141, 13);
+            this.label28.TabIndex = 27;
+            this.label28.Text = "MultiSampling (Anti-Aliasing):";
+            // 
+            // trackbarMultiSampling
+            // 
+            this.trackbarMultiSampling.AutoSize = false;
+            this.trackbarMultiSampling.BackColor = System.Drawing.SystemColors.Window;
+            this.trackbarMultiSampling.LargeChange = 2;
+            this.trackbarMultiSampling.Location = new System.Drawing.Point(307, 121);
+            this.trackbarMultiSampling.Maximum = 5;
+            this.trackbarMultiSampling.Name = "trackbarMultiSampling";
+            this.trackbarMultiSampling.Size = new System.Drawing.Size(281, 45);
+            this.trackbarMultiSampling.TabIndex = 26;
+            this.trackbarMultiSampling.Scroll += new System.EventHandler(this.TrackbarMultiSampling_Scroll);
             // 
             // checkShadowAllShapes
             // 
@@ -1239,6 +1264,19 @@
             this.tabPageRailDriver.Text = "RailDriver";
             this.tabPageRailDriver.UseVisualStyleBackColor = true;
             // 
+            // btnRDSettingsExport
+            // 
+            this.btnRDSettingsExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRDSettingsExport.Location = new System.Drawing.Point(521, 373);
+            this.btnRDSettingsExport.Name = "btnRDSettingsExport";
+            this.btnRDSettingsExport.Size = new System.Drawing.Size(75, 23);
+            this.btnRDSettingsExport.TabIndex = 5;
+            this.btnRDSettingsExport.Text = "Export";
+            this.toolTip1.SetToolTip(this.btnRDSettingsExport, "Generate a listing of your keyboard assignments.  \r\nThe output is placed on your " +
+        "desktop.");
+            this.btnRDSettingsExport.UseVisualStyleBackColor = true;
+            this.btnRDSettingsExport.Click += new System.EventHandler(this.BtnRDSettingsExport_Click);
+            // 
             // btnCheck
             // 
             this.btnCheck.Location = new System.Drawing.Point(247, 372);
@@ -1727,27 +1765,27 @@
             this.dataGridViewContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dataGridViewContent.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dataGridViewContent.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dataGridViewContent.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dataGridViewContent.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.nameDataGridViewTextBoxColumn,
             this.pathDataGridViewTextBoxColumn});
             this.dataGridViewContent.DataSource = this.bindingSourceContent;
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridViewContent.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewContent.Location = new System.Drawing.Point(0, 0);
             this.dataGridViewContent.MultiSelect = false;
@@ -2428,19 +2466,6 @@
             this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
             this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
-            // btnRDSettingsExport
-            // 
-            this.btnRDSettingsExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRDSettingsExport.Location = new System.Drawing.Point(521, 373);
-            this.btnRDSettingsExport.Name = "btnRDSettingsExport";
-            this.btnRDSettingsExport.Size = new System.Drawing.Size(75, 23);
-            this.btnRDSettingsExport.TabIndex = 5;
-            this.btnRDSettingsExport.Text = "Export";
-            this.toolTip1.SetToolTip(this.btnRDSettingsExport, "Generate a listing of your keyboard assignments.  \r\nThe output is placed on your " +
-        "desktop.");
-            this.btnRDSettingsExport.UseVisualStyleBackColor = true;
-            this.btnRDSettingsExport.Click += new System.EventHandler(this.BtnRDSettingsExport_Click);
-            // 
             // OptionsForm
             // 
             this.AcceptButton = this.buttonOK;
@@ -2469,6 +2494,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSoundDetailLevel)).EndInit();
             this.tabPageVideo.ResumeLayout(false);
             this.tabPageVideo.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackbarMultiSampling)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackDayAmbientLight)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericDistantMountainsViewingDistance)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericViewingDistance)).EndInit();
@@ -2675,7 +2701,6 @@
         private System.Windows.Forms.NumericUpDown numericActWeatherRandomizationLevel;
         private System.Windows.Forms.Label label26;
         private System.Windows.Forms.CheckBox checkShadowAllShapes;
-        private System.Windows.Forms.CheckBox checkEnableMultisampling;
         private System.Windows.Forms.TabPage tabPageRailDriver;
         private System.Windows.Forms.Panel panelRDSettings;
         private System.Windows.Forms.Button btnShowRDLegend;
@@ -2691,5 +2716,8 @@
         private System.Windows.Forms.CheckBox checkFullRangeThrottle;
         private System.Windows.Forms.Button btnCheck;
         private System.Windows.Forms.Button btnRDSettingsExport;
+        private System.Windows.Forms.Label label28;
+        private System.Windows.Forms.TrackBar trackbarMultiSampling;
+        private System.Windows.Forms.Label lblMSAACount;
     }
 }

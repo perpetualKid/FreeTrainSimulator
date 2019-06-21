@@ -166,6 +166,8 @@ namespace ORTS.Settings
         public bool VerticalSync { get; set; }
         [Default(true)]
         public bool EnableMultisampling { get; set; }
+        [Default(4)]
+        public int MultisamplingCount { get; set; }
         [Default(0)]
         public int Cab2DStretch { get; set; }
         [Default(2000)]

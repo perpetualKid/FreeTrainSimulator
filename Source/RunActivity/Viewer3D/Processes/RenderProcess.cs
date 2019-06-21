@@ -110,18 +110,18 @@ namespace Orts.Viewer3D.Processes
             GraphicsDeviceManager.PreferredBackBufferFormat = SurfaceFormat.Color;
             GraphicsDeviceManager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
             GraphicsDeviceManager.IsFullScreen = true;
-            GraphicsDeviceManager.PreferMultiSampling = game.Settings.EnableMultisampling;
+            GraphicsDeviceManager.PreferMultiSampling = game.Settings.MultisamplingCount > 0;
             GraphicsDeviceManager.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(GDM_PreparingDeviceSettings);
-            GraphicsDeviceManager.ApplyChanges();
 
             currentScreen = Screen.PrimaryScreen;
             gameWindowOrigin = new System.Drawing.Point((currentScreen.WorkingArea.Right - gameWindowSize.Width) / 2, (currentScreen.WorkingArea.Bottom - gameWindowSize.Height) / 2);
-
+            System.Drawing.Point tempGameWindowOrigin = gameWindowOrigin;
             SynchronizeGraphicsDeviceManager(game.Settings.FullScreen ?
                 game.Settings.NativeFullscreenResolution ? ScreenMode.FullscreenNativeResolution : ScreenMode.FullscreenPresetResolution
                 : ScreenMode.WindowedPresetResolution);
 
-            gameWindowOrigin = new System.Drawing.Point((currentScreen.WorkingArea.Right - gameWindowSize.Width) / 2, (currentScreen.WorkingArea.Bottom - gameWindowSize.Height) / 2);
+            //restore gameWindowOrigin which will be overriden when game started in Fullscreen ()
+            gameWindowOrigin = tempGameWindowOrigin;
 
             RenderPrimitive.SetGraphicsDevice(game.GraphicsDevice);
 
@@ -131,6 +131,7 @@ namespace Orts.Viewer3D.Processes
 
         private void GameForm_LocationChanged(object sender, EventArgs e)
         {
+            // if (fullscreen) gameWindow is moved to different screen we may need to refit for different screen reolution
             Screen newScreen = Screen.FromControl(gameForm);
             (newScreen, currentScreen) = (currentScreen, newScreen);
             if (newScreen.DeviceName != currentScreen.DeviceName)
@@ -144,28 +145,18 @@ namespace Orts.Viewer3D.Processes
 
         void GDM_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
         {
-            // This enables NVIDIA PerfHud to be run on Open Rails.
-            foreach (var adapter in GraphicsAdapter.Adapters)
-            {
-                // FIXME: MonoGame fails with the following:
-                /*if (adapter.Description.Contains("PerfHUD"))
-                {
-                    GraphicsAdapter.UseReferenceDevice = true;
-                    break;
-                }*/
-                e.GraphicsDeviceInformation.GraphicsProfile = GraphicsProfile.HiDef;
-            }
+            e.GraphicsDeviceInformation.GraphicsProfile = GraphicsProfile.HiDef;
             // This stops ResolveBackBuffer() clearing the back buffer.
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
-            if (game.Settings.EnableMultisampling == false) e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
+            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = game.Settings.MultisamplingCount;
         }
 
         internal void Start()
         {
             game.WatchdogProcess.Register(watchdogToken);
 
-            DisplaySize = new Point(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            DisplaySize = GraphicsDevice.Viewport.Bounds.Size;
 
             if (game.Settings.ShaderModel == 0)
             {
@@ -209,12 +200,12 @@ namespace Orts.Viewer3D.Processes
 
         void InitializeShadowMapLocations()
         {
-            var ratio = (float)DisplaySize.X / DisplaySize.Y;
-            var fov = MathHelper.ToRadians(game.Settings.ViewingFOV);
-            var n = (float)0.5;
-            var f = (float)game.Settings.ShadowMapDistance;
+            float ratio = (float)DisplaySize.X / DisplaySize.Y;
+            float fov = MathHelper.ToRadians(game.Settings.ViewingFOV);
+            float n = 0.5f;
+            float f = game.Settings.ShadowMapDistance;
             if (f == 0)
-                f = game.Settings.ViewingDistance / 2;
+                f = game.Settings.ViewingDistance / 2f;
 
             var m = (float)ShadowMapCount;
             var LastC = n;
@@ -345,6 +336,7 @@ namespace Orts.Viewer3D.Processes
 
             // Sort-of hack to allow the NVIDIA PerfHud to display correctly.
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+
             CurrentFrame.IsScreenChanged = (DisplaySize.X != GraphicsDevice.Viewport.Width) || (DisplaySize.Y != GraphicsDevice.Viewport.Height);
             if (CurrentFrame.IsScreenChanged)
             {

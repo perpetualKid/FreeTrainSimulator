@@ -163,7 +163,8 @@ namespace ORTS
             checkModelInstancing.Checked = Settings.ModelInstancing;
             checkWire.Checked = Settings.Wire;
             checkVerticalSync.Checked = Settings.VerticalSync;
-            checkEnableMultisampling.Checked = Settings.EnableMultisampling;
+            trackbarMultiSampling.Value = (int)Math.Log(Settings.MultisamplingCount, 2);
+            TrackbarMultiSampling_Scroll(this, null);
             numericCab2DStretch.Value = Settings.Cab2DStretch;
             numericViewingDistance.Value = Settings.ViewingDistance;
             checkDistantMountains.Checked = Settings.DistantMountains;
@@ -417,7 +418,7 @@ namespace ORTS
             Settings.ModelInstancing = checkModelInstancing.Checked;
             Settings.Wire = checkWire.Checked;
             Settings.VerticalSync = checkVerticalSync.Checked;
-            Settings.EnableMultisampling = checkEnableMultisampling.Checked;
+            Settings.MultisamplingCount = 1 << trackbarMultiSampling.Value;
             Settings.Cab2DStretch = (int)numericCab2DStretch.Value;
             Settings.ViewingDistance = (int)numericViewingDistance.Value;
             Settings.DistantMountains = checkDistantMountains.Checked;
@@ -551,6 +552,11 @@ namespace ORTS
         private void TrackDayAmbientLight_ValueChanged(object sender, EventArgs e)
         {
             labelDayAmbientLight.Text = catalog.GetStringFmt("{0}%", trackDayAmbientLight.Value * 5);
+        }
+
+        private void TrackbarMultiSampling_Scroll(object sender, EventArgs e)
+        {
+            lblMSAACount.Text = trackbarMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetStringFmt($"{1 << trackbarMultiSampling.Value}x");
         }
 
         private void TrackLODBias_ValueChanged(object sender, EventArgs e)
