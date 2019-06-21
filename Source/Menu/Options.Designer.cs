@@ -60,6 +60,7 @@
             this.numericSoundDetailLevel = new System.Windows.Forms.NumericUpDown();
             this.checkMSTSBINSound = new System.Windows.Forms.CheckBox();
             this.tabPageVideo = new System.Windows.Forms.TabPage();
+            this.checkBoxFullScreenNativeResolution = new System.Windows.Forms.CheckBox();
             this.lblMSAACount = new System.Windows.Forms.Label();
             this.label28 = new System.Windows.Forms.Label();
             this.trackbarMultiSampling = new System.Windows.Forms.TrackBar();
@@ -204,6 +205,9 @@
             this.ElevationText = new System.Windows.Forms.Label();
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.groupBoxScreenMode = new System.Windows.Forms.GroupBox();
+            this.radioButtonFullScreen = new System.Windows.Forms.RadioButton();
+            this.radioButtonWindow = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -249,6 +253,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).BeginInit();
+            this.groupBoxScreenMode.SuspendLayout();
             this.SuspendLayout();
             // 
             // buttonOK
@@ -604,6 +609,8 @@
             // 
             // tabPageVideo
             // 
+            this.tabPageVideo.Controls.Add(this.groupBoxScreenMode);
+            this.tabPageVideo.Controls.Add(this.checkBoxFullScreenNativeResolution);
             this.tabPageVideo.Controls.Add(this.lblMSAACount);
             this.tabPageVideo.Controls.Add(this.label28);
             this.tabPageVideo.Controls.Add(this.trackbarMultiSampling);
@@ -639,6 +646,17 @@
             this.tabPageVideo.TabIndex = 4;
             this.tabPageVideo.Text = "Video";
             this.tabPageVideo.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxFullScreenNativeResolution
+            // 
+            this.checkBoxFullScreenNativeResolution.AutoSize = true;
+            this.checkBoxFullScreenNativeResolution.Location = new System.Drawing.Point(338, 325);
+            this.checkBoxFullScreenNativeResolution.Name = "checkBoxFullScreenNativeResolution";
+            this.checkBoxFullScreenNativeResolution.Size = new System.Drawing.Size(223, 17);
+            this.checkBoxFullScreenNativeResolution.TabIndex = 29;
+            this.checkBoxFullScreenNativeResolution.Text = "Use native screen resolution for fullscreen";
+            this.checkBoxFullScreenNativeResolution.UseVisualStyleBackColor = true;
+            this.checkBoxFullScreenNativeResolution.CheckedChanged += new System.EventHandler(this.CheckBoxFullScreenNativeResolution_CheckedChanged);
             // 
             // lblMSAACount
             // 
@@ -970,13 +988,12 @@
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(133, 328);
+            this.label3.Location = new System.Drawing.Point(133, 320);
             this.label3.Margin = new System.Windows.Forms.Padding(3);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(255, 13);
+            this.label3.Size = new System.Drawing.Size(199, 26);
             this.label3.TabIndex = 19;
-            this.label3.Text = "Window size (type WIDTHxHEIGHT for custom size)";
+            this.label3.Text = "Window size or FullScreen resolution (type WIDTHxHEIGHT for custom size)";
             // 
             // checkDynamicShadows
             // 
@@ -2466,6 +2483,38 @@
             this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
             this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
+            // groupBoxScreenMode
+            // 
+            this.groupBoxScreenMode.Controls.Add(this.radioButtonWindow);
+            this.groupBoxScreenMode.Controls.Add(this.radioButtonFullScreen);
+            this.groupBoxScreenMode.Location = new System.Drawing.Point(338, 275);
+            this.groupBoxScreenMode.Name = "groupBoxScreenMode";
+            this.groupBoxScreenMode.Size = new System.Drawing.Size(235, 51);
+            this.groupBoxScreenMode.TabIndex = 31;
+            this.groupBoxScreenMode.TabStop = false;
+            // 
+            // radioButtonFullScreen
+            // 
+            this.radioButtonFullScreen.AutoSize = true;
+            this.radioButtonFullScreen.Checked = true;
+            this.radioButtonFullScreen.Location = new System.Drawing.Point(6, 19);
+            this.radioButtonFullScreen.Name = "radioButtonFullScreen";
+            this.radioButtonFullScreen.Size = new System.Drawing.Size(75, 17);
+            this.radioButtonFullScreen.TabIndex = 0;
+            this.radioButtonFullScreen.TabStop = true;
+            this.radioButtonFullScreen.Text = "FullScreen";
+            this.radioButtonFullScreen.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonWindow
+            // 
+            this.radioButtonWindow.AutoSize = true;
+            this.radioButtonWindow.Location = new System.Drawing.Point(112, 19);
+            this.radioButtonWindow.Name = "radioButtonWindow";
+            this.radioButtonWindow.Size = new System.Drawing.Size(64, 17);
+            this.radioButtonWindow.TabIndex = 1;
+            this.radioButtonWindow.Text = "Window";
+            this.radioButtonWindow.UseVisualStyleBackColor = true;
+            // 
             // OptionsForm
             // 
             this.AcceptButton = this.buttonOK;
@@ -2540,6 +2589,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).EndInit();
+            this.groupBoxScreenMode.ResumeLayout(false);
+            this.groupBoxScreenMode.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -2719,5 +2770,9 @@
         private System.Windows.Forms.Label label28;
         private System.Windows.Forms.TrackBar trackbarMultiSampling;
         private System.Windows.Forms.Label lblMSAACount;
+        private System.Windows.Forms.CheckBox checkBoxFullScreenNativeResolution;
+        private System.Windows.Forms.GroupBox groupBoxScreenMode;
+        private System.Windows.Forms.RadioButton radioButtonWindow;
+        private System.Windows.Forms.RadioButton radioButtonFullScreen;
     }
 }

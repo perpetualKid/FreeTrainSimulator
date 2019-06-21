@@ -177,6 +177,9 @@ namespace ORTS
             trackDayAmbientLight.Value = Settings.DayAmbientLight;
             TrackDayAmbientLight_ValueChanged(null, null);
             checkDoubleWire.Checked = Settings.DoubleWire;
+            checkBoxFullScreenNativeResolution.Checked = Settings.NativeFullscreenResolution;
+            radioButtonFullScreen.Checked = Settings.FullScreen;
+            radioButtonWindow.Checked = !radioButtonFullScreen.Checked;
 
             // Simulation tab
             checkUseAdvancedAdhesion.Checked = Settings.UseAdvancedAdhesion;
@@ -428,6 +431,8 @@ namespace ORTS
             Settings.WindowSize = comboWindowSize.Text;
             Settings.DayAmbientLight = (int)trackDayAmbientLight.Value;
             Settings.DoubleWire = checkDoubleWire.Checked;
+            Settings.NativeFullscreenResolution = checkBoxFullScreenNativeResolution.Checked;
+            Settings.FullScreen = radioButtonFullScreen.Checked;
 
             // Simulation tab
             Settings.UseAdvancedAdhesion = checkUseAdvancedAdhesion.Checked;
@@ -557,6 +562,11 @@ namespace ORTS
         private void TrackbarMultiSampling_Scroll(object sender, EventArgs e)
         {
             lblMSAACount.Text = trackbarMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetStringFmt($"{1 << trackbarMultiSampling.Value}x");
+        }
+
+        private void CheckBoxFullScreenNativeResolution_CheckedChanged(object sender, EventArgs e)
+        {
+            comboWindowSize.Enabled = !checkBoxFullScreenNativeResolution.Checked;
         }
 
         private void TrackLODBias_ValueChanged(object sender, EventArgs e)
@@ -690,6 +700,5 @@ namespace ORTS
             numericPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
         }
-
     }
 }
