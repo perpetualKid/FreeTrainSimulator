@@ -165,10 +165,9 @@ namespace Orts.Viewer3D
                 MaxAnisotropy = 16,
             };
             shader = Viewer.MaterialManager.SceneryShader;
-            string term = Viewer.Settings.ShaderModel > 2 ? "TransferPS3" : "TransferPS2";
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
-                if (shader.Techniques[i].Name == term)
+                if (shader.Techniques[i].Name == "TransferPS")
                 {
                     techniqueIndex = i;
                     break;

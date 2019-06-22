@@ -810,40 +810,19 @@ namespace Orts.Viewer3D
                 shaderTechniqueLookup = new int[8];
                 for (int i = 0; i < shader.Techniques.Count; i++)
                 {
-                    if (Viewer.Settings.ShaderModel > 2)
+                    switch (shader.Techniques[i].Name)
                     {
-                        switch (shader.Techniques[i].Name)
-                        {
-                            case "ImagePS3":
-                                shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderImage >> 4] = i; break;         //[0]
-                            case "DarkShadePS3":
-                                shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderDarkShade >> 4] = i; break;     //[1]   
-                            case "HalfBrightPS3":
-                                shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderHalfBright >> 4] = i; break;    //[2]
-                            case "FullBrightPS3":
-                                shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderFullBright >> 4] = i; break;    //[3]
-                            case "VegetationPS3":
-                                shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderVegetation >> 4] = i;           //[4]
-                                shaderTechniqueLookup[(int)(SceneryMaterialOptions.ShaderVegetation | SceneryMaterialOptions.ShaderFullBright) >> 4] = i; break;    //[7]
-                        }
-                    }
-                    else
-                    {
-                        switch (shader.Techniques[i].Name)
-                        {
-                            case "ImagePS2":
-                                shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderImage >> 4] = i; break;         //[0]
-                            case "DarkShadePS2":
-                                shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderDarkShade >> 4] = i; break;     //[1]   
-                            case "HalfBrightPS2":
-                                shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderHalfBright >> 4] = i; break;    //[2]
-                            case "FullBrightPS2":
-                                shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderFullBright >> 4] = i; break;    //[3]
-                            case "VegetationPS2":
-                                shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderVegetation >> 4] = i;           //[4]
-                                shaderTechniqueLookup[(int)(SceneryMaterialOptions.ShaderVegetation | SceneryMaterialOptions.ShaderFullBright) >> 4] = i; break;    //[7]
-                        }
-
+                        case "ImagePS":
+                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderImage >> 4] = i; break;         //[0]
+                        case "DarkShadePS":
+                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderDarkShade >> 4] = i; break;     //[1]   
+                        case "HalfBrightPS":
+                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderHalfBright >> 4] = i; break;    //[2]
+                        case "FullBrightPS":
+                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderFullBright >> 4] = i; break;    //[3]
+                        case "VegetationPS":
+                            shaderTechniqueLookup[(int)SceneryMaterialOptions.ShaderVegetation >> 4] = i;           //[4]
+                            shaderTechniqueLookup[(int)(SceneryMaterialOptions.ShaderVegetation | SceneryMaterialOptions.ShaderFullBright) >> 4] = i; break;    //[7]
                     }
                 }
             }

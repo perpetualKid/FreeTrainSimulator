@@ -173,10 +173,9 @@ namespace Orts.Viewer3D
         {
             waterTexture = Viewer.TextureManager.Get(waterTexturePath, true);
             shader = Viewer.MaterialManager.SceneryShader;
-            string term = Viewer.Settings.ShaderModel > 2 ? "ImagePS3" : "ImagePS2";
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
-                if (shader.Techniques[i].Name == term)
+                if (shader.Techniques[i].Name == "ImagePS")
                 {
                     techniqueIndex = i;
                     break;

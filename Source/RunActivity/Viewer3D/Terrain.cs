@@ -517,10 +517,9 @@ namespace Orts.Viewer3D
             var converted = textures.Length > 2 && Int32.TryParse(textures[2], out OverlayScale);
             OverlayScale = OverlayScale != 0 && converted ?  OverlayScale : 32;
             shader = Viewer.MaterialManager.SceneryShader;
-            string term = Viewer.Settings.ShaderModel > 2 ? "TerrainPS3" : "TerrainPS2";
             for (int i = 0; i < shader.Techniques.Count; i++)
             {
-                if (shader.Techniques[i].Name == term)
+                if (shader.Techniques[i].Name == "TerrainPS")
                 {
                     techniqueIndex = i;
                     break;
