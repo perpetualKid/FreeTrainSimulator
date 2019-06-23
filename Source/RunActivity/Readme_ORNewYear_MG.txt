@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.26
-June 20th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.27
+June 23rd, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -25,7 +25,7 @@ Moreover it includes some features not (yet) available in the Open Rails officia
 - removal of on screen notification of camera change
 - dynamic management of trough refill (by steamer_ctn)
 - activity specific options setting (by steamer_ctn)
-- UPDATED: second phase of advanced coupler forces management (by steamer_ctn)
+- second phase of advanced coupler forces management (by steamer_ctn)
 - when car is ( cted through the F9 window, the car's brake line in the extended brake HUD is highlighted in yellow (by mbm_or)
 - removed bug in OR MG concerning display of ETCS gauge (by dennisat)
 - removed OR-MG specific bug not displaying some icons in TrackViewer (by dennisat)
@@ -33,7 +33,9 @@ Moreover it includes some features not (yet) available in the Open Rails officia
 - animation of bell (now bell animation FPS can be tuned via .sd file)
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
 - second phase of wheel bearing management (by steamer_ctn)
-- NEW: added flag Cab3DFreightAnim to define 3dCab specific static freight animations
+- added flag Cab3DFreightAnim to define 3dCab specific static freight animations
+- NEW: fixed bug about locos not moving introduced with advanced couplers feature (by steamer_ctn)
+- NEW: fixed bug of AI trains not appearing on single track section paths
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
