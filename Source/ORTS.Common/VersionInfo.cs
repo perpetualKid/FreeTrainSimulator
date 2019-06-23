@@ -28,7 +28,7 @@ namespace ORTS.Common
     /// </summary>
     public static class VersionInfo
     {
-        static readonly string ApplicationPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+        private static readonly string applicationPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
         // GetRevision() must come before GetVersion()
         /// <summary>Revision number, e.g. Release: "1648",       experimental: "1649",   local: ""</summary>
         public static readonly string Revision = GetRevision("Revision.txt");
@@ -43,9 +43,9 @@ namespace ORTS.Common
         {
             try
             {
-                using (var f = new StreamReader(Path.Combine(ApplicationPath, fileName)))
+                using (StreamReader reader = new StreamReader(Path.Combine(applicationPath, fileName)))
                 {
-                    var revision = f.ReadLine().Trim();
+                    string revision = reader.ReadLine().Trim();
                     if (revision.StartsWith("$Revision:") && revision.EndsWith("$") && !revision.Contains(" 000 "))
                         return revision.Substring(10, revision.Length - 11).Trim();
                 }
@@ -53,32 +53,32 @@ namespace ORTS.Common
             catch
             {
             }
-            return "";
+            return string.Empty;
         }
 
         static string GetVersion(string fileName)
         {
             try
             {
-                using (var f = new StreamReader(Path.Combine(ApplicationPath, fileName)))
+                using (StreamReader reader = new StreamReader(Path.Combine(applicationPath, fileName)))
                 {
-                    var version = f.ReadLine().Trim();
-                    if (!String.IsNullOrEmpty(Revision))
+                    var version = reader.ReadLine().Trim();
+                    if (!string.IsNullOrEmpty(Revision))
                         return version + Revision;
                 }
             }
             catch
             {
             }
-            return "";
+            return string.Empty;
         }
 
         static string GetBuild(params string[] fileNames)
         {
             var builds = new Dictionary<TimeSpan, string>();
-            foreach (var fileName in fileNames)
+            foreach (string fileName in fileNames)
             {
-                var version = FileVersionInfo.GetVersionInfo(Path.Combine(ApplicationPath, fileName));
+                var version = FileVersionInfo.GetVersionInfo(Path.Combine(applicationPath, fileName));
                 TimeSpan ts = new TimeSpan(version.ProductBuildPart, 0, 0, version.ProductPrivatePart * 2);
                 if (!builds.ContainsKey(ts))
                     builds.Add(ts, version.ProductVersion);
@@ -87,9 +87,9 @@ namespace ORTS.Common
             {
                 var datetime = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 var timespan = builds.Keys.OrderBy(ts => ts).Last();
-                return String.Format("{0} ({1:u})", builds[timespan], datetime + timespan);
+                return $"{builds[timespan]} ({datetime + timespan:u})";
             }
-            return "";
+            return string.Empty;
         }
 
         static string GetVersionOrBuild()
@@ -107,7 +107,7 @@ namespace ORTS.Common
         public static bool? GetValidity(string version, string build, int youngestFailedToResume)
         {
             int revision = GetRevisionFromVersion(version);
-            int.TryParse(VersionInfo.Revision, out int programRevision);
+            int.TryParse(Revision, out int programRevision);
             //MessageBox.Show(String.Format("VersionInfo.Build = {0}, build = {1}, version = {2}, youngestFailedToResume = {3}", VersionInfo.Build, build, Version, youngestFailedToResume));
             if (revision != 0)  // compiled remotely by Open Rails
             {
@@ -127,7 +127,7 @@ namespace ORTS.Common
             }
             else  // compiled locally
             {
-                if (build.EndsWith(VersionInfo.Build))
+                if (build.EndsWith(Build))
                 {
                     return true;
                 }

@@ -118,4 +118,19 @@ namespace ORTS.Common
                 return Direction.Forward;
         }
     }
+
+    public enum TrackMonitorSignalAspect
+    {
+        None,
+        Clear_2,
+        Clear_1,
+        Approach_3,
+        Approach_2,
+        Approach_1,
+        Restricted,
+        StopAndProceed,
+        Stop,
+        Permission,
+    }
+
 }
