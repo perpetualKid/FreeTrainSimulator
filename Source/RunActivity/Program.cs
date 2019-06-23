@@ -19,7 +19,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Orts.Common;
 using Orts.Simulation;
 using Orts.Viewer3D;
@@ -30,11 +29,6 @@ using ORTS.Settings;
 
 namespace Orts
 {
-    static class NativeMethods
-    {
-        [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern bool SetDllDirectory(string pathName);
-    }
 
     static class Program
     {

@@ -55,7 +55,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// <summary>
         /// Integrator used for axle dynamic solving
         /// </summary>
-        public Integrator AxleRevolutionsInt = new Integrator(0.0f, IntegratorMethods.RungeKutta4);
+        public Integrator AxleRevolutionsInt = new Integrator(0.0f, IntegratorMethod.RungeKutta4);
 
         public MovingAverage FilterMovingAverage = new MovingAverage(10);
 

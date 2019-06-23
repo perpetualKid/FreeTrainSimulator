@@ -235,28 +235,5 @@ namespace ORTS.Common
                 return defaultValue;
             }
         }
-
-        static class NativeStructs
-        {
-            [StructLayout(LayoutKind.Sequential, Size = 64)]
-            public class MemoryStatusExtended
-            {
-                public uint Size;
-                public uint MemoryLoad;
-                public ulong TotalPhysical;
-                public ulong AvailablePhysical;
-                public ulong TotalPageFile;
-                public ulong AvailablePageFile;
-                public ulong TotalVirtual;
-                public ulong AvailableVirtual;
-                public ulong AvailableExtendedVirtual;
-            }
-        }
-
-        static class NativeMethods
-        {
-            [DllImport("kernel32.dll", SetLastError = true)]
-            public static extern bool GlobalMemoryStatusEx([In, Out] NativeStructs.MemoryStatusExtended buffer);
-        }
     }
 }

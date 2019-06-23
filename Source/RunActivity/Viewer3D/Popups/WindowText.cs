@@ -586,49 +586,4 @@ namespace Orts.Viewer3D.Popups
         }
     }
 
-    static class NativeStructs
-    {
-        [DebuggerDisplay("{First} + {Second} = {Amount}")]
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct KerningPair
-        {
-            public char First;
-            public char Second;
-            public int Amount;
-        }
-
-        [DebuggerDisplay("{A} + {B} + {C}")]
-        [StructLayout(LayoutKind.Sequential)]
-        public struct AbcFloatWidth
-        {
-            public float A;
-            public float B;
-            public float C;
-        }
-    }
-
-    static class NativeMethods
-    {
-        [DllImport("gdi32.dll", SetLastError = true)]
-        public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
-
-        [DllImport("gdi32.dll", SetLastError = true)]
-        public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hObject);
-
-        [DllImport("gdi32.dll", SetLastError = true)]
-        public static extern bool DeleteDC(IntPtr hdc);
-
-        [Flags]
-        public enum GgiFlags : uint
-        {
-            None = 0,
-            MarkNonexistingGlyphs = 1,
-        }
-
-        [DllImport("gdi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern uint GetGlyphIndices(IntPtr hdc, string text, int textLength, [Out] short[] indices, GgiFlags flags);
-
-        [DllImport("gdi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern bool GetCharABCWidthsFloat(IntPtr hdc, uint firstChar, uint lastChar, out NativeStructs.AbcFloatWidth abcFloatWidths);
-    }
 }

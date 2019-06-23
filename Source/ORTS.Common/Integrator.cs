@@ -23,7 +23,7 @@ using System.Text;
 
 namespace ORTS.Common
 {
-    public enum IntegratorMethods
+    public enum IntegratorMethod
     {
         EulerBackward = 0,
         EulerBackMod = 1,
@@ -33,36 +33,33 @@ namespace ORTS.Common
         NewtonRhapson = 5,
         AdamsMoulton = 6
     }
+
     /// <summary>
     /// Integrator class covers discrete integrator methods
     /// Some forward method needs to be implemented
     /// </summary>
     public class Integrator
     {
-        float integralValue;
-        float[] previousValues = new float[100];
-        float[] previousStep = new float[100];
-        float initialCondition;
+        private float[] previousValues = new float[100];
+        private float[] previousStep = new float[100];
 
-        float derivation;
+        private float derivation;
+        private float prevDerivation;
 
-        float prevDerivation;
+        private float max;
+        private float min;
+        private float oldTime;
 
-        public IntegratorMethods Method;
-
-        float max;
-        float min;
-        bool isLimited;
-        float oldTime;
+        public IntegratorMethod Method { get; set; }
 
         /// <summary>
         /// Initial condition acts as a Value at the beginning of the integration
         /// </summary>
-        public float InitialCondition { set { initialCondition = value; } get { return initialCondition; } }
+        public float InitialCondition { set; get; }
         /// <summary>
         /// Integrated value
         /// </summary>
-        public float Value { get { return integralValue; } }
+        public float Value { get; private set; }
         /// <summary>
         /// Upper limit of the Value. Cannot be smaller than Min. Max is considered only if IsLimited is true
         /// </summary>
@@ -71,7 +68,7 @@ namespace ORTS.Common
             set
             {
                 if (max <= min)
-                    throw new NotSupportedException("Maximum must be greater than minimum");
+                    throw new InvalidOperationException("Maximum must be greater than minimum");
                 max = value;
 
             }
@@ -85,7 +82,7 @@ namespace ORTS.Common
             set
             {
                 if (max <= min)
-                    throw new NotSupportedException("Minimum must be smaller than maximum");
+                    throw new InvalidOperationException("Minimum must be smaller than maximum");
                 min = value;
             }
             get { return min; }
@@ -93,16 +90,16 @@ namespace ORTS.Common
         /// <summary>
         /// Determines limitting according to Max and Min values
         /// </summary>
-        public bool IsLimited { set { isLimited = value; } get { return isLimited; } }
+        public bool IsLimited { set; get; }
 
         /// <summary>
         /// Minimal step of integration
         /// </summary>
         public float MinStep { set; get; }
         public bool IsStepDividing { set; get; }
-        int numOfSubstepsPS = 1;
-        int waitBeforeSpeedingUp;
-        public int NumOfSubstepsPS { get { return numOfSubstepsPS; } }
+
+        private int waitBeforeSpeedingUp;
+        public int NumOfSubstepsPS { get; private set; } = 1;
 
         /// <summary>
         /// Max count of substeps when timespan dividing
@@ -111,54 +108,32 @@ namespace ORTS.Common
 
         public float Error { set; get; }
 
-        public Integrator()
+        public Integrator() : this(0f)
         {
-            Method = IntegratorMethods.EulerBackward;
-            MinStep = 0.001f;
-            max = 1000.0f;
-            min = -1000.0f;
-            isLimited = false;
-            integralValue = 0.0f;
-            initialCondition = 0.0f;
-            MaxSubsteps = 300;
-            for (int i = 0; i < previousValues.Length; i++)
-                previousValues[i] = 0.0f;
-            oldTime = 0.0f;
-            Error = 0.001f;
         }
+
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="initCondition">Initial condition of integration</param>
-        public Integrator(float initCondition)
+        public Integrator(float initCondition): this(initCondition, IntegratorMethod.EulerBackward)
         {
-            Method = IntegratorMethods.EulerBackward;
-            MinStep = 0.001f;
-            max = 1000.0f;
-            min = -1000.0f;
-            isLimited = false;
-            initialCondition = initCondition;
-            integralValue = initialCondition;
-            MaxSubsteps = 300;
-            for (int i = 0; i < previousValues.Length; i++)
-                previousValues[i] = initCondition;
-            oldTime = 0.0f;
-            Error = 0.001f;
         }
+
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="initCondition">Initial condition of integration</param>
         /// <param name="method">Method of integration</param>
-        public Integrator(float initCondition, IntegratorMethods method)
+        public Integrator(float initCondition, IntegratorMethod method)
         {
             Method = method;
             MinStep = 0.001f;
             max = 1000.0f;
             min = -1000.0f;
-            isLimited = false;
-            initialCondition = initCondition;
-            integralValue = initialCondition;
+            IsLimited = false;
+            InitialCondition = initCondition;
+            Value = InitialCondition;
             MaxSubsteps = 300;
             for (int i = 0; i < previousValues.Length; i++)
                 previousValues[i] = initCondition;
@@ -166,28 +141,30 @@ namespace ORTS.Common
             Error = 0.001f;
         }
 
-        public Integrator(Integrator copy)
+        public Integrator(Integrator source)
         {
-            Method = copy.Method;
-            MinStep = copy.MinStep;
-            max = copy.max;
-            min = copy.min;
-            isLimited = copy.isLimited;
-            integralValue = copy.integralValue;
-            initialCondition = copy.initialCondition;
-            MaxSubsteps = copy.MaxSubsteps;
+            Method = source.Method;
+            MinStep = source.MinStep;
+            max = source.max;
+            min = source.min;
+            IsLimited = source.IsLimited;
+            Value = source.Value;
+            InitialCondition = source.InitialCondition;
+            MaxSubsteps = source.MaxSubsteps;
             for (int i = 0; i < previousValues.Length; i++)
-                previousValues[i] = initialCondition;
+                previousValues[i] = InitialCondition;
             oldTime = 0.0f;
-            Error = copy.Error;
+            Error = source.Error;
         }
+
         /// <summary>
         /// Resets the Value to its InitialCondition
         /// </summary>
         public void Reset()
         {
-            integralValue = initialCondition;
+            Value = InitialCondition;
         }
+
         /// <summary>
         /// Integrates given value with given time span
         /// </summary>
@@ -205,14 +182,14 @@ namespace ORTS.Common
             //Skip when timeSpan is less then zero
             if (timeSpan <= 0.0f)
             {
-                return integralValue;
+                return Value;
             }
 
             //if (timeSpan > MinStep)
             if (Math.Abs(prevDerivation) > Error)
             {
                 //count = 2 * Convert.ToInt32(Math.Round((timeSpan) / MinStep, 0));
-                count = ++numOfSubstepsPS;
+                count = ++NumOfSubstepsPS;
                 if (count > MaxSubsteps)
                     count = MaxSubsteps;
                 waitBeforeSpeedingUp = 100;
@@ -225,26 +202,21 @@ namespace ORTS.Common
             {
                 if (--waitBeforeSpeedingUp <= 0)    //wait for a while before speeding up the integration
                 {
-                    count = --numOfSubstepsPS;
+                    count = --NumOfSubstepsPS;
                     if (count < 1)
                         count = 1;
 
                     waitBeforeSpeedingUp = 10;      //not so fast ;)
                 }
                 else
-                    count = numOfSubstepsPS;
+                    count = NumOfSubstepsPS;
                 //IsStepDividing = false;
             }
 
-            timeSpan = timeSpan / (float)count;
-            IsStepDividing = true;
-            numOfSubstepsPS = count;
+            timeSpan = timeSpan / count;
+            NumOfSubstepsPS = count;
 
-            if (count > 1)
-                IsStepDividing = true;
-            else
-                IsStepDividing = false;
-
+            IsStepDividing = count > 1;
 
             #region SOLVERS
             //while ((step += timeSpan) <= end)
@@ -252,38 +224,36 @@ namespace ORTS.Common
             {
                 switch (Method)
                 {
-                    case IntegratorMethods.EulerBackward:
-                        integralValue += (derivation = timeSpan * value);
+                    case IntegratorMethod.EulerBackward:
+                        Value += (derivation = timeSpan * value);
                         break;
-                    case IntegratorMethods.EulerBackMod:
-                        integralValue += (derivation = timeSpan / 2.0f * (previousValues[0] + value));
+                    case IntegratorMethod.EulerBackMod:
+                        Value += (derivation = timeSpan / 2.0f * (previousValues[0] + value));
                         previousValues[0] = value;
                         break;
-                    case IntegratorMethods.EulerForward:
+                    case IntegratorMethod.EulerForward:
                         throw new NotImplementedException("Not implemented yet!");
 
-                    case IntegratorMethods.RungeKutta2:
-                        //throw new NotImplementedException("Not implemented yet!");
-                        k1 = integralValue + timeSpan / 2 * value;
-                        k2 = 2 * (k1 - integralValue) / timeSpan;
-                        integralValue += (derivation = timeSpan * k2);
+                    case IntegratorMethod.RungeKutta2:
+                        k1 = Value + timeSpan / 2 * value;
+                        k2 = 2 * (k1 - Value) / timeSpan;
+                        Value += (derivation = timeSpan * k2);
                         break;
-                    case IntegratorMethods.RungeKutta4:
-                        //throw new NotImplementedException("Not implemented yet!");
+                    case IntegratorMethod.RungeKutta4:
                         k1 = timeSpan * value;
                         k2 = k1 + timeSpan / 2.0f * value;
                         k3 = k1 + timeSpan / 2.0f * k2;
                         k4 = timeSpan * k3;
-                        integralValue += (derivation = (k1 + 2.0f * k2 + 2.0f * k3 + k4) / 6.0f);
+                        Value += (derivation = (k1 + 2.0f * k2 + 2.0f * k3 + k4) / 6.0f);
                         break;
-                    case IntegratorMethods.NewtonRhapson:
+                    case IntegratorMethod.NewtonRhapson:
                         throw new NotImplementedException("Not implemented yet!");
 
-                    case IntegratorMethods.AdamsMoulton:
+                    case IntegratorMethod.AdamsMoulton:
                         //prediction
-                        float predicted = integralValue + timeSpan / 24.0f * (55.0f * previousValues[0] - 59.0f * previousValues[1] + 37.0f * previousValues[2] - 9.0f * previousValues[3]);
+                        float predicted = Value + timeSpan / 24.0f * (55.0f * previousValues[0] - 59.0f * previousValues[1] + 37.0f * previousValues[2] - 9.0f * previousValues[3]);
                         //correction
-                        integralValue = integralValue + timeSpan / 24.0f * (9.0f * predicted + 19.0f * previousValues[0] - 5.0f * previousValues[1] + previousValues[2]);
+                        Value = Value + timeSpan / 24.0f * (9.0f * predicted + 19.0f * previousValues[0] - 5.0f * previousValues[1] + previousValues[2]);
                         for (int i = previousStep.Length - 1; i > 0; i--)
                         {
                             previousStep[i] = previousStep[i - 1];
@@ -306,13 +276,14 @@ namespace ORTS.Common
             prevDerivation = derivation;
 
             //Limit if enabled
-            if (isLimited)
+            if (IsLimited)
             {
-                return (integralValue <= min) ? (integralValue = min) : ((integralValue >= max) ? (integralValue = max) : integralValue);
+                return (Value <= min) ? (Value = min) : ((Value >= max) ? (Value = max) : Value);
             }
             else
-                return integralValue;
+                return Value;
         }
+
         /// <summary>
         /// Integrates given value in time. TimeSpan (integration step) is computed internally.
         /// </summary>
@@ -323,26 +294,26 @@ namespace ORTS.Common
         {
             float timeSpan = clockSeconds - oldTime;
             oldTime = clockSeconds;
-            integralValue += timeSpan * value;
-            if (isLimited)
+            Value += timeSpan * value;
+            if (IsLimited)
             {
-                return (integralValue <= min) ? min : ((integralValue >= max) ? max : integralValue);
+                return (Value <= min) ? min : ((Value >= max) ? max : Value);
             }
             else
-                return integralValue;
+                return Value;
         }
 
         public void Save(BinaryWriter outf)
         {
-            outf.Write(integralValue);
+            outf.Write(Value);
         }
 
         public void Restore(BinaryReader inf)
         {
-            integralValue = inf.ReadSingle();
+            Value = inf.ReadSingle();
 
             for (int i = 0; i < 4; i++)
-                previousValues[i] = integralValue;
+                previousValues[i] = Value;
         }
 
     }
