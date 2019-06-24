@@ -28,6 +28,7 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Viewer3D.Processes;
 using ORTS.Common;
+using ORTS.Common.Native;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -2034,26 +2035,7 @@ namespace Orts.Viewer3D.Popups
             TableAddLine(table, name);
         }
 
-#region Native code
-        [StructLayout(LayoutKind.Sequential, Size = 64)]
-        public class MEMORYSTATUSEX
-        {
-            public uint Size;
-            public uint MemoryLoad;
-            public ulong TotalPhysical;
-            public ulong AvailablePhysical;
-            public ulong TotalPageFile;
-            public ulong AvailablePageFile;
-            public ulong TotalVirtual;
-            public ulong AvailableVirtual;
-            public ulong AvailableExtendedVirtual;
-        }
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX buffer);
-
         readonly ulong ProcessVirtualAddressLimit;
-#endregion
 
         public uint GetWorkingSetSize()
         {
@@ -2064,8 +2046,8 @@ namespace Orts.Viewer3D.Popups
 
         public ulong GetVirtualAddressLimit()
         {
-            var buffer = new MEMORYSTATUSEX { Size = 64 };
-            GlobalMemoryStatusEx(buffer);
+            var buffer = new NativeStructs.MEMORYSTATUSEX { Size = 64 };
+            NativeMethods.GlobalMemoryStatusEx(buffer);
             return Math.Min(buffer.TotalVirtual, buffer.TotalPhysical);
         }
     }

@@ -18,7 +18,7 @@
 
 namespace Orts.Common
 {
-    public interface EventHandler
+    public interface IEventHandler
     {
         void HandleEvent(Event evt);
         void HandleEvent(Event evt, object viewer);

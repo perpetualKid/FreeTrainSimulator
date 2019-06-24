@@ -527,7 +527,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             var buffer = new String('\0', 256);
 
-            var length = ORTS.Common.NativeMethods.GetPrivateProfileString(sectionName, keyName, null, buffer, buffer.Length, ParametersFileName);
+            var length = ORTS.Common.Native.NativeMethods.GetPrivateProfileString(sectionName, keyName, null, buffer, buffer.Length, ParametersFileName);
             if (length > 0)
             {
                 buffer.Trim();

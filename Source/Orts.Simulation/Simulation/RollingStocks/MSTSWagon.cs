@@ -2815,7 +2815,7 @@ namespace Orts.Simulation.RollingStocks
         }
 
         // sound sources and viewers can register themselves to get direct notification of an event
-        public List<Orts.Common.EventHandler> EventHandlers = new List<Orts.Common.EventHandler>();
+        public List<Orts.Common.IEventHandler> EventHandlers = new List<Orts.Common.IEventHandler>();
 
         public MSTSCoupling Coupler
         {

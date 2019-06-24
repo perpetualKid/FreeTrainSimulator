@@ -26,6 +26,7 @@ using Orts.Simulation;
 using Orts.Viewer3D.Debugging;
 using ORTS.Common;
 using ORTS.Common.Msts;
+using ORTS.Common.Native;
 using ORTS.Common.Xna;
 using ORTS.Settings;
 using System;
@@ -1225,8 +1226,8 @@ namespace Orts.Viewer3D.Processes
 
         long GetProcessBytesLoaded()
         {
-            NativeMathods.IO_COUNTERS counters;
-            if (NativeMathods.GetProcessIoCounters(Process.GetCurrentProcess().Handle, out counters))
+            NativeStructs.IO_COUNTERS counters;
+            if (NativeMethods.GetProcessIoCounters(Process.GetCurrentProcess().Handle, out counters))
                 return (long)counters.ReadTransferCount;
 
             return 0;
@@ -1478,23 +1479,6 @@ namespace Orts.Viewer3D.Processes
                 loadingPercent = Parameters["LoadingPercent"];
                 loadingTexture = Parameters["LoadingTexture"];
             }
-        }
-
-        static class NativeMathods
-        {
-            [DllImport("kernel32.dll", SetLastError = true)]
-            public static extern bool GetProcessIoCounters(IntPtr hProcess, out IO_COUNTERS lpIoCounters);
-
-            [StructLayout(LayoutKind.Sequential)]
-            public struct IO_COUNTERS
-            {
-                public UInt64 ReadOperationCount;
-                public UInt64 WriteOperationCount;
-                public UInt64 OtherOperationCount;
-                public UInt64 ReadTransferCount;
-                public UInt64 WriteTransferCount;
-                public UInt64 OtherTransferCount;
-            };
         }
     }
 

@@ -24,6 +24,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using Microsoft.Xna.Framework.Graphics;
+using ORTS.Common.Native;
 
 namespace ORTS.Common
 {

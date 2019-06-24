@@ -21,6 +21,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Microsoft.Win32;
+using ORTS.Common.Native;
 
 namespace ORTS.Common
 {

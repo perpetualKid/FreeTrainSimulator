@@ -31,6 +31,7 @@ using GNU.Gettext;
 using GNU.Gettext.WinForms;
 using Orts.Formats.OR;
 using ORTS.Common;
+using ORTS.Common.Native;
 using ORTS.Menu;
 using ORTS.Settings;
 using ORTS.Updater;
@@ -1579,22 +1580,17 @@ namespace ORTS
             //TO DO: Debrief Eval TTActivity
         }
     }
-    internal static class Win32
-    {
-        /// <summary>
-        /// Lock or relase the window for updating.
-        /// </summary>
-        [DllImport("user32")]
-        public static extern int LockWindowUpdate(IntPtr hwnd);
 
+    internal static class ControlExtension
+    {
         public static void Suspend(this Control control)
         {
-            LockWindowUpdate(control.Handle);
+            NativeMethods.LockWindowUpdate(control.Handle);
         }
 
         public static void Resume(this Control control)
         {
-            LockWindowUpdate(IntPtr.Zero);
+            NativeMethods.LockWindowUpdate(IntPtr.Zero);
         }
     }
 }

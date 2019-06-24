@@ -59,7 +59,9 @@
   <ItemGroup>
     <Compile Include="AEDefinitions.cs" />
     <Compile Include="AlmostEqual.cs" />
-    <Compile Include="NativeMethods.cs" />
+    <Compile Include="Native\GDI32.cs" />
+    <Compile Include="Native\Kernel32.cs" />
+    <Compile Include="Native\User32.cs" />
     <Compile Include="Threading\CancellationToken.cs" />
     <Compile Include="Threading\CancellationTokenSource.cs" />
     <Compile Include="Conversions.cs" />

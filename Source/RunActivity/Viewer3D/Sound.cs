@@ -1533,7 +1533,7 @@ namespace Orts.Viewer3D
     /// <summary>
     /// Play this sound when a discrete TrainCar event occurs in the simulator
     /// </summary>
-    public class ORTSDiscreteTrigger: ORTSTrigger, Orts.Common.EventHandler
+    public class ORTSDiscreteTrigger: ORTSTrigger, Orts.Common.IEventHandler
     {
         /// <summary>
         /// Event this trigger listens to

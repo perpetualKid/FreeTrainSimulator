@@ -1,9 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Runtime.CompilerServices;
+using Microsoft.Xna.Framework;
 
 namespace ORTS.Common.Xna
 {
     public static class MatrixExtension
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Multiply(in Matrix matrix1, in Matrix matrix2, out Matrix result)
         {
             result.M11 = matrix1.M11 * matrix2.M11 + matrix1.M12 * matrix2.M21 + matrix1.M13 * matrix2.M31 + matrix1.M14 * matrix2.M41;

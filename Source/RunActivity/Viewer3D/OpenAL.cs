@@ -440,19 +440,19 @@ namespace Orts.Viewer3D
             try
             {
                 StringBuilder result = new StringBuilder(255);
-                if (ORTS.Common.NativeMethods.GetPrivateProfileString("General", "sources", string.Empty, result, 255, configFile) > 0)
+                if (ORTS.Common.Native.NativeMethods.GetPrivateProfileString("General", "sources", string.Empty, result, 255, configFile) > 0)
                 {
                     if (int.TryParse(result.ToString(), out int sources))
                     {
                         if (sources < 1024)
                         {
-                            ORTS.Common.NativeMethods.WritePrivateProfileString("General", "sources", "1024", configFile);
+                            ORTS.Common.Native.NativeMethods.WritePrivateProfileString("General", "sources", "1024", configFile);
                         }
                     }
                 }
                 else
                 {
-                    ORTS.Common.NativeMethods.WritePrivateProfileString("General", "sources", "1024", configFile);
+                    ORTS.Common.Native.NativeMethods.WritePrivateProfileString("General", "sources", "1024", configFile);
                 }
             }
             catch(Exception ex)
