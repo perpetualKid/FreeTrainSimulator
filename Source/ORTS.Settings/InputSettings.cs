@@ -28,6 +28,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using ORTS.Common;
 using ORTS.Common.Input;
+using ORTS.Common.Native;
 
 namespace ORTS.Settings
 {
@@ -119,23 +120,6 @@ namespace ORTS.Settings
             foreach (var command in EnumExtension.GetValues<UserCommand>())
                 Reset(command.ToString());
         }
-
-#region External APIs
-        enum MapVirtualKeyType
-        {
-            VirtualToCharacter = 2,
-            VirtualToScan = 0,
-            VirtualToScanEx = 4,
-            ScanToVirtual = 1,
-            ScanToVirtualEx = 3,
-        }
-
-        [DllImport("user32.dll")]
-        static extern int MapVirtualKey(int code, MapVirtualKeyType type);
-
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        static extern int GetKeyNameText(int scanCode, [Out] string name, int nameLength);
-#endregion
 
         // Keyboard scancodes are basically constant; some keyboards have extra buttons (e.g. UK ones tend to have an
         // extra button next to Left Shift) or move one or two around (e.g. UK ones tend to move 0x2B down one row)
@@ -568,14 +552,14 @@ namespace ORTS.Settings
                 sc = 0xE100 | (scanCode & 0x7F);
             else if (scanCode >= 0x0080)
                 sc = 0xE000 | (scanCode & 0x7F);
-            return (Keys)MapVirtualKey(sc, MapVirtualKeyType.ScanToVirtualEx);
+            return (Keys)NativeMethods.MapVirtualKey(sc, NativeMethods.MapVirtualKeyType.ScanToVirtualEx);
         }
 
         public static string GetScanCodeKeyName(int scanCode)
         {
             var xnaName = Enum.GetName(typeof(Keys), GetScanCodeKeys(scanCode));
             var keyName = new String('\0', 32);
-            var keyNameLength = GetKeyNameText(scanCode << 16, keyName, keyName.Length);
+            var keyNameLength = NativeMethods.GetKeyNameText(scanCode << 16, keyName, keyName.Length);
             keyName = keyName.Substring(0, keyNameLength);
 
             if (keyName.Length > 0)
