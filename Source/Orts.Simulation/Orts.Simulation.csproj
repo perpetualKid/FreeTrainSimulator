@@ -37,7 +37,6 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
-
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GNU.Gettext">
@@ -50,8 +49,8 @@
     <Compile Include="Common\Commands.cs" />
     <Compile Include="Common\ErrorLogger.cs" />
     <Compile Include="Common\Events.cs" />
-    <Compile Include="Common\Math.cs" />
-    <Compile Include="Common\ORTSPaths.cs" />
+    <Compile Include="Common\OrtsMath.cs" />
+    <Compile Include="Common\OrtsPaths.cs" />
     <Compile Include="Common\Scripting\BrakeController.cs" />
     <Compile Include="Common\Scripting\Common.cs" />
     <Compile Include="Common\Scripting\PowerSupply\AbstractPowerSupply.cs" />

@@ -420,7 +420,7 @@ namespace Orts.Viewer3D
             if (previousCamera != null)
             {
                 float h, a, b;
-                ORTSMath.MatrixToAngles(previousCamera.XnaView, out h, out a, out b);
+                OrtsMath.MatrixToAngles(ref previousCamera.XnaView, out h, out a, out b);
                 RotationXRadians = -b;
                 RotationYRadians = -h;
             }
@@ -2123,7 +2123,7 @@ namespace Orts.Viewer3D
 
         public override void HandleUserInput(ElapsedTime elapsedTime)
         {
-            RotationYRadians = -ORTSMath.MatrixToYAngle(XnaView);
+            RotationYRadians = -OrtsMath.MatrixToYAngle(ref XnaView);
             var speed = GetSpeed(elapsedTime);
 
             if (UserInput.IsDown(UserCommand.CameraPanUp))

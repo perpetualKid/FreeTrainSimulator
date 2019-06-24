@@ -87,7 +87,7 @@ namespace Orts.Viewer3D
         void LoadGeometry(GraphicsDevice graphicsDevice, Tile tile, out int primitiveCount, out IndexBuffer indexBuffer, out VertexBuffer vertexBuffer)
         {
             primitiveCount = 0;
-            var waterLevels = new ORTSMath.Matrix2x2(tile.WaterNW, tile.WaterNE, tile.WaterSW, tile.WaterSE);
+            var waterLevels = new OrtsMath.Matrix2x2(tile.WaterNW, tile.WaterNE, tile.WaterSW, tile.WaterSE);
 
             var indexData = new List<short>(16 * 16 * 2 * 3);
             for (var z = 0; z < tile.PatchCount; ++z)
@@ -143,7 +143,7 @@ namespace Orts.Viewer3D
                     var e = (a - 0.5f) * 2048 * Size;
                     var n = (b - 0.5f) * 2048 * Size;
 
-                    var y = ORTSMath.Interpolate2D(a, b, in waterLevels);
+                    var y = OrtsMath.Interpolate2D(a, b, in waterLevels);
 
                     vertexData.Add(new VertexPositionNormalTexture(new Vector3(e, y, n), Vector3.UnitY, new Vector2(U, V)));
                 }

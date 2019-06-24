@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 
@@ -44,7 +46,7 @@ namespace Orts.Common
         /// </summary>
         static string badBranch = "";
         static string badPath = "";
-        static readonly System.Collections.Generic.Dictionary<string, System.Collections.Specialized.StringDictionary> filesFound = new System.Collections.Generic.Dictionary<string, System.Collections.Specialized.StringDictionary>();
+        static readonly Dictionary<string, StringDictionary> filesFound = new Dictionary<string, StringDictionary>();
 
         /// <summary>
         /// Search an array of paths for a file. Paths must be in search sequence.
@@ -57,8 +59,7 @@ namespace Orts.Common
         {
             if (string.IsNullOrEmpty(fileRelative)) return string.Empty;
 
-            System.Collections.Specialized.StringDictionary existingFiles;
-            if (filesFound.TryGetValue(fileRelative, out existingFiles))
+            if (filesFound.TryGetValue(fileRelative, out StringDictionary existingFiles))
             {
                 foreach (string path in paths)
                 {
@@ -74,7 +75,7 @@ namespace Orts.Common
                     if (null != existingFiles)
                         existingFiles.Add(path, fullPath);
                     else
-                        filesFound.Add(fileRelative, new System.Collections.Specialized.StringDictionary
+                        filesFound.Add(fileRelative, new StringDictionary
                                 {
                                     { path, fullPath }
                                 });
