@@ -1065,8 +1065,8 @@ namespace Orts.Simulation.RollingStocks
             SaturatedSpeedFactorSpeedDropFtpMintoX = SteamTable.SaturatedSpeedFactorSpeedDropFtpMintoX();
             SuperheatedSpeedFactorSpeedDropFtpMintoX = SteamTable.SuperheatedSpeedFactorSpeedDropFtpMintoX();
 
-            CutoffInitialPressureDropRatioUpper = SteamTable.CutoffInitialPressureUpper();
-            CutoffInitialPressureDropRatioLower = SteamTable.CutoffInitialPressureLower();
+            CutoffInitialPressureDropRatioUpper = SteamTable.CutOffInitialPressureUpper();
+            CutoffInitialPressureDropRatioLower = SteamTable.CutOffInitialPressureLower();
 
             // Assign default steam table values if cylinder event is not in ENG file
             if (CylinderExhausttoCutoff == null)

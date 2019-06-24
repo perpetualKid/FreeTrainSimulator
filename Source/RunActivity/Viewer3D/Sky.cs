@@ -42,10 +42,9 @@ namespace Orts.Viewer3D
     {
         Viewer Viewer;
         Material Material;
-
+        private bool initialized;
         // Classes reqiring instantiation
         public SkyPrimitive Primitive;
-        WorldLatLon worldLoc; // Access to latitude and longitude calcs (MSTS routes only)
         SunMoonPos skyVectors;
 
         int seasonType; //still need to remember it as MP now can change it.
@@ -102,17 +101,16 @@ namespace Orts.Viewer3D
             Vector3 ViewerXNAPosition = new Vector3(Viewer.Camera.Location.X, Viewer.Camera.Location.Y - 100, -Viewer.Camera.Location.Z);
             Matrix XNASkyWorldLocation = Matrix.CreateTranslation(ViewerXNAPosition);
 
-            if (worldLoc == null)
+            if (!initialized)
             {
                 // First time around, initialize the following items:
-                worldLoc = new WorldLatLon();
                 oldClockTime = Viewer.Simulator.ClockTime % 86400;
                 while (oldClockTime < 0) oldClockTime += 86400;
                 step1 = step2 = (int)(oldClockTime / 1200);
                 step2 = step2 < maxSteps - 1 ? step2 + 1 : 0; // limit to max. steps in case activity starts near midnight
 
                 // Get the current latitude and longitude coordinates
-                worldLoc.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, ref latitude, ref longitude);
+                WorldLatLon.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, ref latitude, ref longitude);
                 if (seasonType != (int)Viewer.Simulator.Season)
                 {
                     seasonType = (int)Viewer.Simulator.Season;
@@ -132,6 +130,7 @@ namespace Orts.Viewer3D
                 moonPhase = Viewer.Random.Next(8);
                 if (moonPhase == 6 && date.ordinalDate > 45 && date.ordinalDate < 330)
                     moonPhase = 3; // Moon dog only occurs in winter
+                initialized = true;
             }
 
 
@@ -181,9 +180,8 @@ namespace Orts.Viewer3D
 
         public void LoadPrep()
         {
-            worldLoc = new WorldLatLon();
             // Get the current latitude and longitude coordinates
-            worldLoc.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, ref latitude, ref longitude);
+            WorldLatLon.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, ref latitude, ref longitude);
             seasonType = (int)Viewer.Simulator.Season;
             date.ordinalDate = latitude >= 0 ? 82 + seasonType * 91 : (82 + (seasonType + 2) * 91) % 365;
             date.month = 1 + date.ordinalDate / 30;
@@ -191,7 +189,6 @@ namespace Orts.Viewer3D
             date.year = 2017;
             float fractClockTime = (float)Viewer.Simulator.ClockTime / 86400;
             solarDirection = SunMoonPos.SolarAngle(latitude, longitude, fractClockTime, date);
-            worldLoc = null;
             latitude = 0;
             longitude = 0;
         }

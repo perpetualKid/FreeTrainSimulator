@@ -51,6 +51,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Event = Orts.Common.Event;
+using Orts.Common;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -666,7 +667,7 @@ namespace Orts.Simulation.RollingStocks
             double latitude = 0;
             double longitude = 0;
 
-            new Orts.Common.WorldLatLon().ConvertWTC(WorldPosition.TileX, WorldPosition.TileZ, WorldPosition.Location, ref latitude, ref longitude);
+            WorldLatLon.ConvertWTC(WorldPosition.TileX, WorldPosition.TileZ, WorldPosition.Location, ref latitude, ref longitude);
             
             
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);

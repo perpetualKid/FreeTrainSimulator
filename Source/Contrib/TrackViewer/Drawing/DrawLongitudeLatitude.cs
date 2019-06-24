@@ -26,7 +26,6 @@ namespace ORTS.TrackViewer.Drawing
     /// </summary>
     public class DrawLongitudeLatitude
     {
-        WorldLatLon worldLoc; // private field to prevent having the create the object over and over again.
         Vector2 lowerLeft;
 
         /// <summary>
@@ -36,7 +35,6 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="yLowerLeft">Lower left y-value where to print the location in pixels</param>
         public DrawLongitudeLatitude(int xLowerLeft, int yLowerLeft)
         {
-            worldLoc = new WorldLatLon();
             lowerLeft = new Vector2(xLowerLeft, yLowerLeft);
 
         }
@@ -51,7 +49,7 @@ namespace ORTS.TrackViewer.Drawing
             
             double latitude = 1f;
             double longitude = 1f;
-            worldLoc.ConvertWTC(mstsLocation.TileX, mstsLocation.TileZ, mstsLocation.Location, ref latitude, ref longitude);
+            WorldLatLon.ConvertWTC(mstsLocation.TileX, mstsLocation.TileZ, mstsLocation.Location, ref latitude, ref longitude);
             string latitudeDegrees = MathHelper.ToDegrees((float)latitude).ToString("F5", System.Globalization.CultureInfo.CurrentCulture);
             string longitudeDegrees = MathHelper.ToDegrees((float)longitude).ToString("F5", System.Globalization.CultureInfo.CurrentCulture);
             string locationText = String.Format(System.Globalization.CultureInfo.CurrentCulture, 

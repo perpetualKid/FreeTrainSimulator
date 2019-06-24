@@ -49,10 +49,9 @@ namespace Orts.Viewer3D
 
         Viewer MSTSSkyViewer;
         Material MSTSSkyMaterial;
-
+        bool initialized;
         // Classes reqiring instantiation
         public MSTSSkyMesh MSTSSkyMesh;
-        WorldLatLon mstsskyworldLoc; // Access to latitude and longitude calcs (MSTS routes only)
         SunMoonPos MSTSSkyVectors;
 
         int mstsskyseasonType; //still need to remember it as MP now can change it.
@@ -133,16 +132,15 @@ namespace Orts.Viewer3D
             Vector3 ViewerXNAPosition = new Vector3(MSTSSkyViewer.Camera.Location.X, MSTSSkyViewer.Camera.Location.Y - 100, -MSTSSkyViewer.Camera.Location.Z);
             Matrix XNASkyWorldLocation = Matrix.CreateTranslation(ViewerXNAPosition);
 
-            if (mstsskyworldLoc == null)
+            if (!initialized)
             {
                 // First time around, initialize the following items:
-                mstsskyworldLoc = new WorldLatLon();
                 mstsskyoldClockTime = MSTSSkyViewer.Simulator.ClockTime % 86400;
                 while (mstsskyoldClockTime < 0) mstsskyoldClockTime += 86400;
                 step1 = step2 = (int)(mstsskyoldClockTime / 1200);
                 step2 = step2 < maxSteps - 1 ? step2 + 1 : 0; // limit to max. steps in case activity starts near midnight
                 // Get the current latitude and longitude coordinates
-                mstsskyworldLoc.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, ref mstsskylatitude, ref mstsskylongitude);
+                WorldLatLon.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, ref mstsskylatitude, ref mstsskylongitude);
                 // Fill in the sun- and moon-position lookup tables
                 for (int i = 0; i < maxSteps; i++)
                 {
@@ -156,6 +154,7 @@ namespace Orts.Viewer3D
                 // Overcast factor: 0.0=almost no clouds; 0.1=wispy clouds; 1.0=total overcast
                 //mstsskyovercastFactor = MSTSSkyViewer.World.WeatherControl.overcastFactor;
                 mstsskyfogDistance = MSTSSkyViewer.Simulator.Weather.FogDistance;
+                initialized = true;
             }
 
             if (Orts.MultiPlayer.MPManager.IsClient() && Orts.MultiPlayer.MPManager.Instance().weatherChanged)
@@ -275,12 +274,10 @@ namespace Orts.Viewer3D
                 date.year = 2010;
             }
 
-            mstsskyworldLoc = new WorldLatLon();
             // Get the current latitude and longitude coordinates
-            mstsskyworldLoc.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, ref mstsskylatitude, ref mstsskylongitude);
+            WorldLatLon.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, ref mstsskylatitude, ref mstsskylongitude);
             float fractClockTime = (float)MSTSSkyViewer.Simulator.ClockTime / 86400;
             mstsskysolarDirection = SunMoonPos.SolarAngle(mstsskylatitude, mstsskylongitude, fractClockTime, date);
-            mstsskyworldLoc = null;
             mstsskylatitude = 0;
             mstsskylongitude = 0;
 

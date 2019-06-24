@@ -66,7 +66,7 @@ namespace Orts.Viewer3D.Popups
             {
                 double latitude = 0;
                 double longitude = 0;
-                new WorldLatLon().ConvertWTC(camera.TileX, camera.TileZ, camera.Location, ref latitude, ref longitude);
+                WorldLatLon.ConvertWTC(camera.TileX, camera.TileZ, camera.Location, ref latitude, ref longitude);
                 Latitude.Text = MathHelper.ToDegrees((float)latitude).ToString("F6");
                 Longitude.Text = MathHelper.ToDegrees((float)longitude).ToString("F6");
             }

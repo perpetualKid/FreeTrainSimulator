@@ -308,7 +308,7 @@ namespace Orts.Viewer3D
             double latitude = 0;
             double longitude = 0;
             var location = Viewer.PlayerLocomotive.Train.FrontTDBTraveller;
-            new Orts.Common.WorldLatLon().ConvertWTC(location.TileX, location.TileZ, location.Location, ref latitude, ref longitude);
+            WorldLatLon.ConvertWTC(location.TileX, location.TileZ, location.Location, ref latitude, ref longitude);
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
             float LongitudeDeg = MathHelper.ToDegrees((float)longitude);
 
