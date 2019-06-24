@@ -28,7 +28,7 @@ namespace ORTS.Common.Native
         private static extern int MapVirtualKeyNative(int code, MapVirtualKeyType type);
 
         public static int GetKeyNameText(int scanCode, [Out] string name, int length)
-        { return GetKeyNameText(scanCode, name, length); }
+        { return GetKeyNameTextNative(scanCode, name, length); }
         [DllImport("user32.dll", EntryPoint = "GetKeyNameText", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern int GetKeyNameTextNative(int scanCode, [Out] string name, int length);
 
