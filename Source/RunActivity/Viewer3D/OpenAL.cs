@@ -402,7 +402,7 @@ namespace Orts.Viewer3D
                 return "Out Of Memory";
             else if (error == AL_NO_ERROR)
                 return "No Error";
-            
+
             return "";
         }
 
@@ -455,7 +455,7 @@ namespace Orts.Viewer3D
                     ORTS.Common.NativeMethods.WritePrivateProfileString("General", "sources", "1024", configFile);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Trace.TraceError("Couldn't check or set OpenAL max sound sources in %AppData%\\Roaming\\alsoft.ini: ", ex.Message);
             }
@@ -465,26 +465,26 @@ namespace Orts.Viewer3D
     /// <summary>
     /// WAVEFILEHEADER binary structure
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct WAVEFILEHEADER
     {
-        [FieldOffset(0), MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
         public char[] szRIFF;
-        [FieldOffset(4), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint ulRIFFSize;
-        [FieldOffset(8), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint padding;
     }
 
     /// <summary>
     /// RIFFCHUNK binary structure
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     public struct RIFFCHUNK
     {
-        [FieldOffset(0), MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
         public char[] szChunkName;
-        [FieldOffset(4), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint ulChunkSize;
     }
 
@@ -519,14 +519,14 @@ namespace Orts.Viewer3D
     /// CUECHUNK binary structure
     /// Describes the CUE chunk list of a wave file
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct CUECHUNK
     {
-        [FieldOffset(0), MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
         public char[] szChunkName;
-        [FieldOffset(4), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint ulChunkSize;
-        [FieldOffset(8), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint ulNumCuePts;
     }
 
@@ -550,30 +550,30 @@ namespace Orts.Viewer3D
     /// SMPLCHUNK binary structure
     /// Describes the SMPL chunk list of a wave file
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct SMPLCHUNK
     {
-        [FieldOffset(0), MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
         public char[] ChunkName;
-        [FieldOffset(4), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint ChunkSize;
-        [FieldOffset(8), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint Manufacturer;
-        [FieldOffset(12), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint Product;
-        [FieldOffset(16), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint SmplPeriod;
-        [FieldOffset(20), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint MIDIUnityNote;
-        [FieldOffset(24), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint MIDIPitchFraction;
-        [FieldOffset(28), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint SMPTEFormat;
-        [FieldOffset(32), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint SMPTEOffset;
-        [FieldOffset(36), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint NumSmplLoops;
-        [FieldOffset(40), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.U4)]
         public uint SamplerData;
     }
 

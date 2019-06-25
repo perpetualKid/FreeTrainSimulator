@@ -133,7 +133,8 @@ namespace ORTS
                 "GNU.Gettext.WinForms.dll",
                 "ICSharpCode.SharpZipLib.dll",
                 "Ionic.Zip.dll",
-                "PIEHidDotNet.dll",
+                "PIEHid32Net.dll",
+                "PIEHid64Net.dll",
                 @"Native/X86/OpenAL32.dll",
                 @"Native/X64/OpenAL32.dll",
                 // Programs:
