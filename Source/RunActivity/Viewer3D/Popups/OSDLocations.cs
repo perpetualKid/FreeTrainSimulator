@@ -128,7 +128,7 @@ namespace Orts.Viewer3D.Popups
             else if (State == DisplayState.Auto) State = DisplayState.All;
         }
 
-        public override void PrepareFrame(RenderFrame frame, ORTS.Common.ElapsedTime elapsedTime, bool updateFull)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, bool updateFull)
         {
             if (updateFull)
             {

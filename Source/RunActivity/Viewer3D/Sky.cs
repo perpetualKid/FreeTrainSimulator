@@ -95,7 +95,7 @@ namespace Orts.Viewer3D
             windDirection = 4.7f; // radians (approx 270 deg, i.e. westerly)
         }
 
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Adjust dome position so the bottom edge is not visible
             Vector3 ViewerXNAPosition = new Vector3(Viewer.Camera.Location.X, Viewer.Camera.Location.Y - 100, -Viewer.Camera.Location.Z);

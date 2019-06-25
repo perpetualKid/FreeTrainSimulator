@@ -144,7 +144,7 @@ namespace Orts.Viewer3D
             SharedShape = Viewer.ShapeManager.Get(path);
         }
 
-        public virtual void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public virtual void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             SharedShape.PrepareFrame(frame, Location, Flags);
         }
@@ -230,7 +230,7 @@ namespace Orts.Viewer3D
             return matricies;
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var dTileX = Location.TileX - Viewer.Camera.TileX;
             var dTileZ = Location.TileZ - Viewer.Camera.TileZ;
@@ -280,7 +280,7 @@ namespace Orts.Viewer3D
         {
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             SharedShape.PrepareFrame(frame, Location, XNAMatrices, Flags);
         }
@@ -404,7 +404,7 @@ namespace Orts.Viewer3D
         {
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // if the shape has animations
             if (SharedShape.Animations != null && SharedShape.Animations.Count > 0 && SharedShape.Animations[0].FrameCount > 1)
@@ -436,7 +436,7 @@ namespace Orts.Viewer3D
             MainRoute = TS.MainRoute;
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // ie, with 2 frames of animation, the key will advance from 0 to 1
             if (TrJunctionNode.SelectedRoute == MainRoute)
@@ -614,7 +614,7 @@ namespace Orts.Viewer3D
             return 1.0f;
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Offset relative to the camera-tile origin
             int dTileX = this.Location.TileX - Viewer.Camera.TileX;
@@ -719,7 +719,7 @@ namespace Orts.Viewer3D
             base.Unload();
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (CrossingObj.visible != true)
                 return;
@@ -783,7 +783,7 @@ namespace Orts.Viewer3D
             base.Unload();
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (Hazzard == null) return;
             Vector2 CurrentRange;
@@ -961,7 +961,7 @@ namespace Orts.Viewer3D
             base.Unload();
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
 
             // 0 can be used as a setting for instant animation.
@@ -1062,7 +1062,7 @@ namespace Orts.Viewer3D
             Turntable.ReInitTrainPositions(absAnimationMatrix);
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (Turntable.GoToTarget)
             {
@@ -1157,7 +1157,7 @@ namespace Orts.Viewer3D
             Transfertable.ReInitTrainPositions(absAnimationMatrix);
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (Transfertable.GoToTarget)
             {

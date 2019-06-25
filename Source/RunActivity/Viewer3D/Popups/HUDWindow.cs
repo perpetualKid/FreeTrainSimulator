@@ -220,7 +220,7 @@ namespace Orts.Viewer3D.Popups
 
         int[] lastGCCounts = new int[3];
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime, bool updateFull)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, bool updateFull)
         {
             base.PrepareFrame(frame, elapsedTime, updateFull);
 #if SHOW_PHYSICS_GRAPHS
@@ -276,7 +276,7 @@ namespace Orts.Viewer3D.Popups
             }
         }
 
-        public override void PrepareFrame(ElapsedTime elapsedTime, bool updateFull)
+        public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
         {
             base.PrepareFrame(elapsedTime, updateFull);
 

@@ -90,7 +90,7 @@ namespace Orts.Viewer3D
                 DataLoggerStop();
         }
 
-        public void HandleUserInput(ElapsedTime elapsedTime)
+        public void HandleUserInput(in ElapsedTime elapsedTime)
         {
             if (UserInput.IsPressed(UserCommand.DebugLogger))
             {
@@ -196,7 +196,7 @@ namespace Orts.Viewer3D
         }
 #endif
 
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             FrameNumber++;
 

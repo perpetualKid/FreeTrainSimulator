@@ -117,7 +117,7 @@ namespace Orts.Viewer3D
         /// <summary>
         /// Used to update information affecting the SkyMesh
         /// </summary>
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (mstsskyseasonType != (int)MSTSSkyViewer.Simulator.Season)
             {

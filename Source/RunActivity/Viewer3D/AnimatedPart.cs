@@ -135,7 +135,7 @@ namespace Orts.Viewer3D
         /// <summary>
         /// Updates an animated part that toggles between two states (e.g. pantograph, doors, mirrors).
         /// </summary>
-        public void UpdateState(bool state, ElapsedTime elapsedTime)
+        public void UpdateState(bool state, in ElapsedTime elapsedTime)
         {
             SetFrameClamp(AnimationKey + (state ? 1 : -1) * elapsedTime.ClockSeconds);
         }
@@ -156,7 +156,7 @@ namespace Orts.Viewer3D
         /// <summary>
         /// Updates an animated part that loops only when enabled (e.g. wipers).
         /// </summary>
-        public void UpdateLoop(bool running, ElapsedTime elapsedTime, float frameRateMultiplier = 1.5f)
+        public void UpdateLoop(bool running, in ElapsedTime elapsedTime, float frameRateMultiplier = 1.5f)
         {
             if (PoseableShape.SharedShape.Animations == null || PoseableShape.SharedShape.Animations.Count == 0 || FrameCount == 0)
                 return;

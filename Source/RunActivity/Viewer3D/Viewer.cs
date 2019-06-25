@@ -837,7 +837,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        void HandleUserInput(ElapsedTime elapsedTime)
+        void HandleUserInput(in ElapsedTime elapsedTime)
         {
             var train = Program.Viewer.PlayerLocomotive.Train;//DebriefEval
 

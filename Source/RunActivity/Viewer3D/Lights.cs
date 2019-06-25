@@ -135,7 +135,7 @@ namespace Orts.Viewer3D
             ActiveLightCone = newLightCone;
         }
 
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (UpdateState())
             {
@@ -449,7 +449,7 @@ namespace Orts.Viewer3D
 #endif
         }
 
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (StateCount > 1)
             {

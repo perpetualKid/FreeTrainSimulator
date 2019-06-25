@@ -36,7 +36,7 @@ namespace Orts.Viewer3D.RollingStock
 
         }
 
-        public abstract void HandleUserInput(ElapsedTime elapsedTime);
+        public abstract void HandleUserInput(in ElapsedTime elapsedTime);
 
         public abstract void InitializeUserInputCommands();
 
@@ -45,7 +45,7 @@ namespace Orts.Viewer3D.RollingStock
         /// elapsedTime is time since last frame
         /// Executes in the UpdaterThread
         /// </summary>
-        public abstract void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime);
+        public abstract void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime);
 
         [CallOnThread("Loader")]
         public virtual void Unload() { }

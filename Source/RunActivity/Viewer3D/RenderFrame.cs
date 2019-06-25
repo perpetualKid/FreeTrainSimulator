@@ -348,7 +348,7 @@ namespace Orts.Viewer3D
 
         static bool LockShadows;
         [CallOnThread("Updater")]
-        public void PrepareFrame(ElapsedTime elapsedTime)
+        public void PrepareFrame(in ElapsedTime elapsedTime)
         {
             if (UserInput.IsPressed(UserCommand.DebugLockShadows))
                 LockShadows = !LockShadows;

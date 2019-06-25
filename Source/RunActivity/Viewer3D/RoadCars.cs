@@ -89,7 +89,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void Update(ElapsedTime elapsedTime)
+        public void Update(in ElapsedTime elapsedTime)
         {
             var cars = Cars;
             foreach (var car in cars)
@@ -241,7 +241,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void Update(ElapsedTime elapsedTime)
+        public void Update(in ElapsedTime elapsedTime)
         {
             var crossings = Spawner.Crossings;
 
@@ -355,7 +355,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             foreach (var car in Cars.Values)
                 car.PrepareFrame(frame, elapsedTime);
@@ -388,7 +388,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             CarShape.Location.TileX = Car.TileX;
             CarShape.Location.TileZ = Car.TileZ;

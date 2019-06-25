@@ -152,7 +152,7 @@ namespace Orts.Viewer3D
         /// A camera can use this method to respond to user input.
         /// </summary>
         /// <param name="elapsedTime"></param>
-        public virtual void HandleUserInput(ElapsedTime elapsedTime)
+        public virtual void HandleUserInput(in ElapsedTime elapsedTime)
         {
         }
 
@@ -160,7 +160,7 @@ namespace Orts.Viewer3D
         /// A camera can use this method to update any calculated data that may have changed.
         /// </summary>
         /// <param name="elapsedTime"></param>
-        public virtual void Update(ElapsedTime elapsedTime)
+        public virtual void Update(in ElapsedTime elapsedTime)
         {
         }
 
@@ -191,7 +191,7 @@ namespace Orts.Viewer3D
         /// </summary>
         /// <param name="frame"></param>
         /// <param name="elapsedTime"></param>
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             xnaView = GetCameraView();
             frame.SetCamera(this);
@@ -252,7 +252,7 @@ namespace Orts.Viewer3D
             return true;
         }
 
-        protected static float GetSpeed(ElapsedTime elapsedTime)
+        protected static float GetSpeed(in ElapsedTime elapsedTime)
         {
             var speed = 5 * elapsedTime.RealSeconds;
             if (UserInput.IsDown(UserCommand.CameraMoveFast))
@@ -487,7 +487,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        protected void UpdateRotation(ElapsedTime elapsedTime)
+        protected void UpdateRotation(in ElapsedTime elapsedTime)
         {
             var replayRemainingS = EndTime - Viewer.Simulator.ClockTime;
             if (replayRemainingS > 0)
@@ -620,7 +620,7 @@ namespace Orts.Viewer3D
             // Intentionally do nothing at all.
         }
 
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             if (UserInput.IsDown(UserCommand.CameraZoomIn) || UserInput.IsDown(UserCommand.CameraZoomOut))
             {
@@ -697,7 +697,7 @@ namespace Orts.Viewer3D
                 new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
         }
 
-        public override void Update(ElapsedTime elapsedTime)
+        public override void Update(in ElapsedTime elapsedTime)
         {
             UpdateRotation(elapsedTime);
 
@@ -938,7 +938,7 @@ namespace Orts.Viewer3D
             return Matrix.CreateLookAt(XnaLocation(cameraLocation), lookAtPosition, up);
         }
 
-        public override void Update(ElapsedTime elapsedTime)
+        public override void Update(in ElapsedTime elapsedTime)
         {
             if (attachedCar != null)
             {
@@ -1095,7 +1095,7 @@ namespace Orts.Viewer3D
             return BrowseMode ? false : attachedCar.Flipped;
         }
 
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             MoveCar();
 
@@ -1169,7 +1169,7 @@ namespace Orts.Viewer3D
                 new ToggleBrowseForwardsCommand(Viewer.Log);
         }
 
-        public override void Update(ElapsedTime elapsedTime)
+        public override void Update(in ElapsedTime elapsedTime)
         {
             var replayRemainingS = EndTime - Viewer.Simulator.ClockTime;
             if (replayRemainingS > 0)
@@ -1250,7 +1250,7 @@ namespace Orts.Viewer3D
             UpdateListener();
         }
 
-        protected void UpdateTrainBrowsing(ElapsedTime elapsedTime)
+        protected void UpdateTrainBrowsing(in ElapsedTime elapsedTime)
         {
             var trainCars = GetCameraCars();
             if (BrowseBackwards)
@@ -1481,7 +1481,7 @@ namespace Orts.Viewer3D
         {
         }
 
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             MoveCar();
 
@@ -1592,7 +1592,7 @@ namespace Orts.Viewer3D
             SetCameraCar(attachedCar);
         }
 
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             MoveCar();
 
@@ -1735,7 +1735,7 @@ namespace Orts.Viewer3D
             RotationYRadians = viewPoint.RotationYRadians;
         }
 
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             base.HandleUserInput(elapsedTime);
             if (UserInput.IsPressed(UserCommand.CameraChangePassengerViewPoint))
@@ -2033,7 +2033,7 @@ namespace Orts.Viewer3D
             RotationYRadians = MathHelper.ToRadians(viewpoints[sideLocation].StartDirection.Y) - RotationRatioHorizontal * (-Viewer.CabXOffsetPixels + Viewer.CabExceedsDisplayHorizontally / 2); ;
         }
 
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             var speedFactor = 500;  // Gives a fairly smart response.
             var speed = speedFactor * elapsedTime.RealSeconds; // Independent of framerate
@@ -2121,7 +2121,7 @@ namespace Orts.Viewer3D
             base.OnActivate(sameCamera);
         }
 
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             RotationYRadians = -OrtsMath.MatrixToYAngle(ref XnaView);
             var speed = GetSpeed(elapsedTime);
@@ -2159,7 +2159,7 @@ namespace Orts.Viewer3D
                 attachedCar = trainCars.Last();
         }
 
-        public override void Update(ElapsedTime elapsedTime)
+        public override void Update(in ElapsedTime elapsedTime)
         {
             bool trainForwards;
             var train = PrepUpdate(out trainForwards);
@@ -2292,7 +2292,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void Update(ElapsedTime elapsedTime)
+        public override void Update(in ElapsedTime elapsedTime)
         {
             bool trainForwards;
             var train = PrepUpdate(out trainForwards);

@@ -65,7 +65,7 @@ namespace Orts.Viewer3D.Popups
             }
         }
 
-        public override void PrepareFrame(ElapsedTime elapsedTime, bool updateFull)
+        public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
         {
             base.PrepareFrame(elapsedTime, updateFull);
 

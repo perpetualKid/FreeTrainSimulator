@@ -468,7 +468,7 @@ namespace Orts.Viewer3D.RollingStock
             UserInputCommands.Add(UserCommand.ControlMirror, new Action[] { Noop, () => new ToggleMirrorsCommand(Viewer.Log) });
         }
 
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             foreach (var command in UserInputCommands.Keys)
                 if (UserInput.IsPressed(command)) UserInputCommands[command][1]();
@@ -480,7 +480,7 @@ namespace Orts.Viewer3D.RollingStock
         /// elapsedTime is time since last frame
         /// Executes in the UpdaterThread
         /// </summary>
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             Pantograph1.UpdateState(MSTSWagon.Pantographs[1].CommandUp, elapsedTime);
             Pantograph2.UpdateState(MSTSWagon.Pantographs[2].CommandUp, elapsedTime);
@@ -542,7 +542,7 @@ namespace Orts.Viewer3D.RollingStock
         }
 
 
-        private void UpdateAnimation(RenderFrame frame, ElapsedTime elapsedTime)
+        private void UpdateAnimation(RenderFrame frame, in ElapsedTime elapsedTime)
         {
 
             float distanceTravelledM = 0.0f; // Distance travelled by non-driven wheels

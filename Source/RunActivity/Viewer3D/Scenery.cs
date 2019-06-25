@@ -187,7 +187,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void Update(ElapsedTime elapsedTime)
+        public void Update(in ElapsedTime elapsedTime)
         {
             var worldFiles = WorldFiles;
             foreach (var worldFile in worldFiles)
@@ -598,14 +598,14 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void Update(ElapsedTime elapsedTime)
+        public void Update(in ElapsedTime elapsedTime)
         {
             foreach (var spawner in carSpawners)
                 spawner.Update(elapsedTime);
         }
 
         [CallOnThread("Updater")]
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             foreach (var shape in sceneryObjects)
                 shape.PrepareFrame(frame, elapsedTime);

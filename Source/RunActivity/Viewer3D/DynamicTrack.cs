@@ -157,7 +157,7 @@ namespace Orts.Viewer3D
         /// PrepareFrame adds any object mesh in-FOV to the RenderItemCollection. 
         /// and marks the last LOD that is in-range.
         /// </summary>
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Offset relative to the camera-tile origin
             int dTileX = worldPosition.TileX - Viewer.Camera.TileX;

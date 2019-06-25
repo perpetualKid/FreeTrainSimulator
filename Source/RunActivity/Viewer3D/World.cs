@@ -116,7 +116,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void Update(ElapsedTime elapsedTime)
+        public void Update(in ElapsedTime elapsedTime)
         {
             if (PerformanceTune && Viewer.RenderProcess.IsActive)
             {
@@ -183,7 +183,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (Viewer.Settings.UseMSTSEnv)
                 MSTSSky.PrepareFrame(frame, elapsedTime);

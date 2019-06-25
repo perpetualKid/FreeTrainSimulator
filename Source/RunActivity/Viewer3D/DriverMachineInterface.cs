@@ -539,7 +539,7 @@ namespace Orts.Viewer3D
             );
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             base.PrepareFrame(frame, elapsedTime);
             CircularSpeedGauge.PrepareFrame();

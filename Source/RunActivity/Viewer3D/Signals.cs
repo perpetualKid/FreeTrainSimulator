@@ -146,7 +146,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Locate relative to the camera
             var dTileX = Location.TileX - Viewer.Camera.TileX;
@@ -305,7 +305,7 @@ namespace Orts.Viewer3D
                 }
             }
 
-            public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime, Matrix xnaTileTranslation)
+            public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, Matrix xnaTileTranslation)
             {
                 var initialise = DisplayState == -1;
                 if (DisplayState != SignalHead.draw_state)

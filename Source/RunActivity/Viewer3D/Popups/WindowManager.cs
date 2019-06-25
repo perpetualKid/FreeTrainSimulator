@@ -198,7 +198,7 @@ namespace Orts.Viewer3D.Popups
 
         double LastPrepareRealTime;
         [CallOnThread("Updater")]
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var updateFull = false;
             if (Viewer.RealTime - LastPrepareRealTime >= 0.25)
@@ -281,7 +281,7 @@ namespace Orts.Viewer3D.Popups
 
 		double LastUpdateRealTime;
 		[CallOnThread("Updater")]
-        public void HandleUserInput(ElapsedTime elapsedTime)
+        public void HandleUserInput(in ElapsedTime elapsedTime)
         {
 			if (UserInput.IsMouseLeftButtonPressed)
 			{

@@ -18,21 +18,16 @@
 
 namespace ORTS.Common
 {
-    public class ElapsedTime
+    public readonly struct ElapsedTime
     {
         public readonly float ClockSeconds;
         public readonly float RealSeconds;
 
         public static ElapsedTime Zero = new ElapsedTime();
 
-        public static ElapsedTime operator +(ElapsedTime a, ElapsedTime b)
+        public static ElapsedTime operator +(in ElapsedTime a, in ElapsedTime b)
         {
             return new ElapsedTime(a.ClockSeconds + b.ClockSeconds, a.RealSeconds + b.RealSeconds);
-        }
-
-        public ElapsedTime()
-            : this(0, 0)
-        {
         }
 
         public ElapsedTime(float clockSeconds, float realSeconds)

@@ -204,7 +204,7 @@ namespace Orts.Viewer3D
             }
         }
 
-        private void UpdateWind(ElapsedTime elapsedTime)
+        private void UpdateWind(in ElapsedTime elapsedTime)
         {
             WindUpdateTimer += elapsedTime.ClockSeconds;
 
@@ -326,7 +326,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public virtual void Update(ElapsedTime elapsedTime)
+        public virtual void Update(in ElapsedTime elapsedTime)
         {
             Time += elapsedTime.ClockSeconds;
 
@@ -665,7 +665,7 @@ namespace Orts.Viewer3D
                 weatherControl.weatherChangeOn = wChangeOn;
             }
 
-            public void WeatherChange_Update(ElapsedTime elapsedTime, WeatherControl weatherControl)
+            public void WeatherChange_Update(in ElapsedTime elapsedTime, WeatherControl weatherControl)
             {
                 var wChangeOn = false;
                 if (ORTSOvercast >= 0)
@@ -763,7 +763,7 @@ namespace Orts.Viewer3D
                 weatherControl.weatherChangeOn = wChangeOn;
             }
 
-            public void WeatherChange_NextRandomization(ElapsedTime elapsedTime, WeatherControl weatherControl) // start next randomization
+            public void WeatherChange_NextRandomization(in ElapsedTime elapsedTime, WeatherControl weatherControl) // start next randomization
             {
                 // define how much time transition will last
                 var weatherChangeTimer = (4 - weatherControl.Viewer.Settings.ActWeatherRandomizationLevel) * 600 +
@@ -983,7 +983,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public override void Update(ElapsedTime elapsedTime)
+        public override void Update(in ElapsedTime elapsedTime)
         {
             // not client and weather auto mode
             Time += elapsedTime.ClockSeconds;
@@ -1355,7 +1355,7 @@ namespace Orts.Viewer3D
 
         }
 
-        void CalculatePrecipitation(WeatherSettingPrecipitation lastWeatherPrecipitation, ElapsedTime elapsedTime)
+        void CalculatePrecipitation(WeatherSettingPrecipitation lastWeatherPrecipitation, in ElapsedTime elapsedTime)
         {
             if (AWPrecipitationActualPPSPM2 < AWPrecipitationRequiredPPSPM2)
             {
@@ -1383,7 +1383,7 @@ namespace Orts.Viewer3D
                 (reqVisibility - AWLastVisibility));
         }
 
-        void StopPrecipitationSpell(WeatherSettingPrecipitation lastWeatherPrecipitation, ElapsedTime elapsedTime)
+        void StopPrecipitationSpell(WeatherSettingPrecipitation lastWeatherPrecipitation, in ElapsedTime elapsedTime)
         {
             AWPrecipitationActualPPSPM2 = Math.Max(PrecipitationViewer.MinIntensityPPSPM2, AWPrecipitationActualPPSPM2 - AWPrecipitationEndRate * elapsedTime.RealSeconds);
             AWActualVisibility = AWLastVisibility +
@@ -1391,7 +1391,7 @@ namespace Orts.Viewer3D
             AWOvercastCloudcover = CalculateOvercast(lastWeatherPrecipitation.Overcast, 0, lastWeatherPrecipitation.OvercastDispersion, elapsedTime);
         }
 
-        float CalculateOvercast(float requiredOvercast, float overcastVariation, float overcastRateOfChange, ElapsedTime elapsedTime)
+        float CalculateOvercast(float requiredOvercast, float overcastVariation, float overcastRateOfChange, in ElapsedTime elapsedTime)
         {
             float requiredOvercastFactor = requiredOvercast / 100f;
             if (overcastRateOfChange == 0)

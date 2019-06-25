@@ -50,7 +50,7 @@ namespace Orts.Viewer3D
             return rv;
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var dTileX = Location.TileX - Viewer.Camera.TileX;
             var dTileZ = Location.TileZ - Viewer.Camera.TileZ;

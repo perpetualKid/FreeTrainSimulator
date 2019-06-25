@@ -184,7 +184,7 @@ namespace Orts.Viewer3D.RollingStock
         /// A keyboard or mouse click has occurred. Read the UserInput
         /// structure to determine what was pressed.
         /// </summary>
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             if (UserInput.IsPressed(UserCommand.CameraToggleShowCab))
                 Locomotive.ShowCab = !Locomotive.ShowCab;
@@ -249,7 +249,7 @@ namespace Orts.Viewer3D.RollingStock
         /// We are about to display a video frame.  Calculate positions for 
         /// animated objects, and add their primitives to the RenderFrame list.
         /// </summary>
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab)
             {
@@ -1241,7 +1241,7 @@ namespace Orts.Viewer3D.RollingStock
             #endregion
         }
 
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (!_Locomotive.ShowCab)
                 return;
@@ -1394,7 +1394,7 @@ namespace Orts.Viewer3D.RollingStock
         }
 
         [CallOnThread("Updater")]
-        public virtual void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public virtual void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             frame.AddPrimitive(CabShaderControlView, this, RenderPrimitiveGroup.Cab, ref Matrix);
         }
@@ -1437,7 +1437,7 @@ namespace Orts.Viewer3D.RollingStock
             Origin = new Vector2((float)Texture.Width / 2, ControlDial.Center / Scale);
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var dark = Viewer.MaterialManager.sunDirection.Y <= -0.085f || Viewer.Camera.IsUnderground;
 
@@ -1524,7 +1524,7 @@ namespace Orts.Viewer3D.RollingStock
 
         public CVCGauge GetGauge() { return Gauge; }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (!(Gauge is CVCFirebox))
             {
@@ -1698,7 +1698,7 @@ namespace Orts.Viewer3D.RollingStock
             }
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var index = GetDrawIndex();
 
@@ -2083,7 +2083,7 @@ namespace Orts.Viewer3D.RollingStock
             Format2 = "{0:0" + new String('0', digital.LeadingZeros) + (digital.AccuracySwitch > 0 ? "." + new String('0', (int)(digital.Accuracy + 1)) : "") + "}";
         }
 
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var digital = Control as CVCDigital;
 
@@ -2424,7 +2424,7 @@ namespace Orts.Viewer3D.RollingStock
         /// A keyboard or mouse click has occurred. Read the UserInput
         /// structure to determine what was pressed.
         /// </summary>
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             bool KeyPressed = false;
             if (UserInput.IsDown(UserCommand.CameraPanDown)) KeyPressed = true;
@@ -2441,7 +2441,7 @@ namespace Orts.Viewer3D.RollingStock
         /// We are about to display a video frame.  Calculate positions for 
         /// animated objects, and add their primitives to the RenderFrame list.
         /// </summary>
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             float elapsedClockSeconds = elapsedTime.ClockSeconds;
 
@@ -2737,7 +2737,7 @@ namespace Orts.Viewer3D.RollingStock
             return 1.0f;
         }
 
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             UpdateDigit();
             Matrix mx = TrainCarShape.Location.XNAMatrix;
@@ -2953,7 +2953,7 @@ namespace Orts.Viewer3D.RollingStock
             return 1.0f;
         }
 
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             UpdateDigit();
             Matrix mx = TrainCarShape.Location.XNAMatrix;
@@ -2994,7 +2994,7 @@ namespace Orts.Viewer3D.RollingStock
         /// <summary>
         /// Transition the part toward the specified state. 
         /// </summary>
-        public void Update(MSTSLocomotiveViewer locoViewer, ElapsedTime elapsedTime)
+        public void Update(MSTSLocomotiveViewer locoViewer, in ElapsedTime elapsedTime)
         {
             if (!locoViewer._has3DCabRenderer) return;
 
@@ -3080,7 +3080,7 @@ namespace Orts.Viewer3D.RollingStock
         /// <summary>
         /// Transition the part toward the specified state. 
         /// </summary>
-        public void Update(MSTSLocomotiveViewer locoViewer, ElapsedTime elapsedTime)
+        public void Update(MSTSLocomotiveViewer locoViewer, in ElapsedTime elapsedTime)
         {
             if (MatrixIndexes.Count == 0 || !locoViewer._has3DCabRenderer) return;
 

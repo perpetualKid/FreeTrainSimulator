@@ -52,7 +52,7 @@ namespace Orts.Viewer3D.Popups
 			return vbox;
 		}
 
-        public override void PrepareFrame(ElapsedTime elapsedTime, bool updateFull)
+        public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
         {
             base.PrepareFrame(elapsedTime, updateFull);
 

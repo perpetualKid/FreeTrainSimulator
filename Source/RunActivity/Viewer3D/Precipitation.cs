@@ -60,7 +60,7 @@ namespace Orts.Viewer3D
             Reset();
         }
 
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var gameTime = (float)Viewer.Simulator.GameTime;
             Pricipitation.DynamicUpdate(WeatherControl, Weather, Viewer, ref Wind);
@@ -85,7 +85,7 @@ namespace Orts.Viewer3D
             var gameTime = (float)Viewer.Simulator.GameTime;
             Pricipitation.Initialize(Viewer.Simulator.WeatherType, Wind);
             // Camera is null during first initialisation.
-            if (Viewer.Camera != null) Pricipitation.Update(gameTime, null, Weather.PricipitationIntensityPPSPM2, Viewer);
+            if (Viewer.Camera != null) Pricipitation.Update(gameTime, ElapsedTime.Zero, Weather.PricipitationIntensityPPSPM2, Viewer);
         }
 
         [CallOnThread("Loader")]
@@ -303,7 +303,7 @@ namespace Orts.Viewer3D
             ParticleDirection = wind;
         }
 
-        public void Update(float currentTime, ElapsedTime elapsedTime, float particlesPerSecondPerM2, Viewer viewer)
+        public void Update(float currentTime, in ElapsedTime elapsedTime, float particlesPerSecondPerM2, Viewer viewer)
         {
             var tiles = viewer.Tiles;
             var scenery = viewer.World.Scenery;

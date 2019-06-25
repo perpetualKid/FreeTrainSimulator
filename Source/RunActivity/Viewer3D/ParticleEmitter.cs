@@ -124,7 +124,7 @@ namespace Orts.Viewer3D
 #endif
         }
 
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var gameTime = (float)Viewer.Simulator.GameTime;
             Emitter.Update(gameTime, elapsedTime);
@@ -317,7 +317,7 @@ namespace Orts.Viewer3D
             return (MaxParticles - nextFree) + FirstRetiredParticle;
         }
 
-        public void Update(float currentTime, ElapsedTime elapsedTime)
+        public void Update(float currentTime, in ElapsedTime elapsedTime)
         {
             windDisplacementX = viewer.Simulator.Weather.WindSpeedMpS.X * 0.25f;
             windDisplacementZ = viewer.Simulator.Weather.WindSpeedMpS.Y * 0.25f;

@@ -84,7 +84,7 @@ namespace Orts.Viewer3D.Popups
             Visible = false;
         }
 
-        public override void PrepareFrame(ElapsedTime elapsedTime, bool updateFull)
+        public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
         {
             if (updateFull)
             {

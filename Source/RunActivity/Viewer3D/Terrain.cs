@@ -107,7 +107,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var tiles = TerrainTiles;
             foreach (var tile in tiles)
@@ -161,7 +161,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (WaterTile != null)
                 WaterTile.PrepareFrame(frame);

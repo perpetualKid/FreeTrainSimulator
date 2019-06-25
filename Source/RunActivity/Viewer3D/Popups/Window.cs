@@ -221,7 +221,7 @@ namespace Orts.Viewer3D.Popups
         }
 
         [CallOnThread("Updater")]
-        public virtual void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime, bool updateFull)
+        public virtual void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, bool updateFull)
         {
             if (Visible)
                 PrepareFrame(elapsedTime, updateFull);
@@ -275,7 +275,7 @@ namespace Orts.Viewer3D.Popups
         }
 
         [CallOnThread("Updater")]
-        public virtual void PrepareFrame(ElapsedTime elapsedTime, bool updateFull)
+        public virtual void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
         {
         }
 

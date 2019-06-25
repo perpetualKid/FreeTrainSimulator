@@ -50,7 +50,7 @@ namespace Orts.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if ((Primitive as ForestPrimitive).PrimitiveCount > 0)
             {

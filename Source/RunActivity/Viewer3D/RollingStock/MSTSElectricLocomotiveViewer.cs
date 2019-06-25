@@ -40,7 +40,7 @@ namespace Orts.Viewer3D.RollingStock
         /// A keyboard or mouse click has occured. Read the UserInput
         /// structure to determine what was pressed.
         /// </summary>
-        public override void HandleUserInput(ElapsedTime elapsedTime)
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
             base.HandleUserInput(elapsedTime);
         }
@@ -63,7 +63,7 @@ namespace Orts.Viewer3D.RollingStock
         /// We are about to display a video frame.  Calculate positions for 
         /// animated objects, and add their primitives to the RenderFrame list.
         /// </summary>
-        public override void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
 
             base.PrepareFrame(frame, elapsedTime);
