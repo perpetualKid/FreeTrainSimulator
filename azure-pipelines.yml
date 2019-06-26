@@ -43,7 +43,8 @@ steps:
     script: '$Revision = git describe --first-parent --always;
     $Revision = "$(Build.BuildId)-$Revision";
     Write-Host "##vso[task.setvariable variable=outputFile]$Revision";
-    Set-Content "./Program/Revision.txt" "`$Revision: 1.3.1-$Revision `$";'
+    Set-Content "./Program/Revision.txt" "`$Revision: 1.3.1-$Revision `$";
+    git log --pretty=format:"%h|%ad|%an|%s" --date=short -100 | ConvertFrom-Csv -Delimiter "|" -Header "Commit", "Date", "Author", "Message" | ConvertTo-Json | Out-File $(Build.ArtifactStagingDirectory)/history.json'
 
 - task: ArchiveFiles@2
   inputs:
@@ -60,3 +61,11 @@ steps:
     StorageAccountRM: 'ultimaterails'
     ContainerName: 'ci-builds'
     BlobPrefix: 'ci'
+
+- task: AzureFileCopy@3
+  inputs:
+    SourcePath: '$(Build.ArtifactStagingDirectory)/history.json'
+    ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+    Destination: 'AzureBlob'
+    StorageAccountRM: 'ultimaterails'
+    ContainerName: 'ci-builds'
