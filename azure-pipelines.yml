@@ -44,6 +44,6 @@ steps:
     SourcePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
     ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
     Destination: 'AzureBlob'
-    StorageAccountRM: 'freerails'
+    StorageAccountRM: 'ultimaterails'
     ContainerName: 'ci-builds'
     BlobPrefix: 'ci'
