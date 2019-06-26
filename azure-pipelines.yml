@@ -15,9 +15,9 @@ pool:
 
 variables:
   solution: '**/*.sln'
-  #solution: '**/ORTS.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  outputFile: '$(Build.BuildId)'
 
 steps:
 - task: NuGetToolInstaller@0
@@ -40,19 +40,20 @@ steps:
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: '$revision = git describe --first-parent --always;
-      Set-Content "./Program/Revision.txt" "`$Revision 1.3.1-$Build.BuildId-$revision `$";'
-    errorActionPreference: 'silentlyContinue'
+    script: '$Revision = git describe --first-parent --always;
+    Write-Host "##vso[task.setvariable variable=outputFile]$(Build.BuildId)-$Revision";
+    Set-Content "./Program/Revision.txt" "`$Revision 1.3.1-$env:outputFile `$";'
 
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: './Program/'
     includeRootFolder: true 
+    archiveFile: "$(Build.ArtifactStagingDirectory)/$(outputFile).zip"  
     verbose: true # Optional
 
 - task: AzureFileCopy@3
   inputs:
-    SourcePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    SourcePath: '$(Build.ArtifactStagingDirectory)/$(outputFile).zip'
     ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
     Destination: 'AzureBlob'
     StorageAccountRM: 'ultimaterails'
