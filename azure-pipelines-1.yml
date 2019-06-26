@@ -34,9 +34,9 @@ steps:
     targetType: 'inline'
     script: '# Write your powershell commands here.
       
-      Write-Host "Hello World"
-      Write-Host "$(Build.BuildId)"'
-      
+      Write-Host "Hello World";
+      Write-Host "$(Build.BuildId)";'
+
 - task: AzureFileCopy@3
   inputs:
     SourcePath: '$(Build.ArtifactStagingDirectory)/.zip'
