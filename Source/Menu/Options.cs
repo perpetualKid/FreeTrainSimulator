@@ -277,12 +277,14 @@ namespace ORTS
                 { "stable", catalog.GetString("Stable (recommended)") },
                 { "testing", catalog.GetString("Testing") },
                 { "unstable", catalog.GetString("Unstable") },
+                { "ultimate", catalog.GetString("Ultimate") },
                 { "", catalog.GetString("None") },
             };
             var updateChannelDescriptions = new Dictionary<string, string> {
                 { "stable", catalog.GetString("Infrequent updates to official, hand-picked versions. Recommended for most users.") },
                 { "testing", catalog.GetString("Weekly updates which may contain noticable defects. For project supporters.") },
                 { "unstable", catalog.GetString("Daily updates which may contain serious defects. For developers only.") },
+                { "ultimate", catalog.GetString("Continous integration updates which may contain serious defects. For developers only.") },
                 { "", catalog.GetString("No updates.") },
             };
             var spacing = labelUpdateChannel.Margin.Size;

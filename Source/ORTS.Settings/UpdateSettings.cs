@@ -38,7 +38,7 @@ namespace ORTS.Settings
         public string Channel { get; set; }
         [Default("")]
         public string URL { get; set; }
-        public TimeSpan TTL { get; set; }
+        public int TTL { get; set; }
         [Default("")]
         public string ChangeLogLink { get; set; }
 
@@ -69,7 +69,7 @@ namespace ORTS.Settings
             var property = GetType().GetProperty(name);
 
             if (name == "TTL")
-                return TimeSpan.FromDays(1);
+                return TimeSpan.FromDays(1).TotalSeconds;
 
             if (property.GetCustomAttributes(typeof(DefaultAttribute), false).Length > 0)
                 return (property.GetCustomAttributes(typeof(DefaultAttribute), false)[0] as DefaultAttribute).Value;

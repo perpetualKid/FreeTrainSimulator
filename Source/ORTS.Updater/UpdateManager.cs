@@ -66,28 +66,12 @@ namespace ORTS.Updater
         private string FileSettings { get { return Path.Combine(basePath, "OpenRails.ini"); } }
         private string FileUpdater { get { return Path.Combine(basePath, "Updater.exe"); } }
 
-
         public string ChannelName { get; set; }
         public string ChangeLogLink { get { return channel?.ChangeLogLink; } }
         public Update LastUpdate { get; private set; }
         public Exception LastCheckError { get; private set; }
         public Exception LastUpdateError { get; private set; }
         public bool UpdaterNeedsElevation { get; private set; }
-
-        public static string GetMainExecutable(string pathName, string productName)
-        {
-            foreach (string file in Directory.GetFiles(pathName, "*.exe"))
-            {
-                try
-                {
-                    var versionInfo = FileVersionInfo.GetVersionInfo(file);
-                    if (versionInfo.FileDescription == productName)
-                        return file;
-                }
-                catch { }
-            }
-            return null;
-        }
 
         public static async Task<string> GetMainExecutableAsync(string pathName, string productName)
         {
@@ -194,8 +178,18 @@ namespace ORTS.Updater
                     Encoding = Encoding.UTF8,
                 };
                 client.Headers[HttpRequestHeader.UserAgent] = GetUserAgent();
-                Uri updateUri = new Uri(channel.URL + (forceUpdate ? channel.URL.Contains('?') ? "&force=true" : "?force=true" : string.Empty));
-                string updateData = await client.DownloadStringTaskAsync(updateUri);
+                UriBuilder uriBuilder = new UriBuilder(channel.URL);
+                if (!uriBuilder.Uri.IsFile)
+                {
+                    if (!uriBuilder.Path.EndsWith("/"))
+                        uriBuilder.Path += "/";
+                    uriBuilder.Path += "version.json";
+                }
+                if (forceUpdate)
+                {
+                    uriBuilder.Query = (uriBuilder.Query?.Length > 1 ? uriBuilder.Query.Substring(1) + "&" : string.Empty) + "force=true";
+                }                
+                string updateData = await client.DownloadStringTaskAsync(uriBuilder.Uri);
                 LastUpdate = JsonConvert.DeserializeObject<Update>(updateData);
                 LastCheckError = null;
 
@@ -248,22 +242,20 @@ namespace ORTS.Updater
 
         public Task RunUpdateProcess()
         {
-            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
             if (LastUpdate == null)
                 throw new InvalidOperationException("Cannot get update when no LatestUpdate exists.");
             try
             {
                 Task updateTask = RunProcess(new ProcessStartInfo(FileUpdater, $"{ChannelCommandLine}{ChannelName} " +
                     $"{WaitProcessIdCommandLine}{Process.GetCurrentProcess().Id} {RelaunchCommandLine}1 {ElevationCommandLine}{(UpdaterNeedsElevation ? "1" : "0")}"));
-                tcs.TrySetResult(null);
                 Environment.Exit(0);
+                return Task.CompletedTask;
             }
             catch (Exception error)
             {
                 LastUpdateError = error;
-                tcs.TrySetException(error);
+                return Task.FromException(error);
             }
-            return tcs.Task;
         }
 
         public async Task ApplyUpdateAsync()
@@ -310,22 +302,22 @@ namespace ORTS.Updater
             ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progressPercentage, null));
         }
 
-        string GetUserAgent()
+        private string GetUserAgent()
         {
-            return String.Format("{0}/{1}", productName, productVersion);
+            return $"{productName}/{productVersion}";
         }
 
         void ResetCachedUpdate()
         {
             updateState.LastCheck = DateTime.UtcNow;
-            // So what we're doing here is rounding up the DateTime (LastCheck) to the next TimeSpan (TTL) period. For
+            // So what we're doing here is rounding up the DateTime (LastCheck) to the next TTL period. For
             // example, if the TTL was 1 hour, we'd round up the the start of the next hour. Similarly, if the TTL was
             // 1 day, we'd round up to midnight (the start of the next day). The purpose of this is to avoid 2 * TTL 
             // checking which might well occur if you always launch Open Rails around the same time of day each day -
             // if they launch it at 6:00PM on Monday, then 5:30PM on Tuesday, they won't get an update chech on
             // Tuesday. With the time rounding, they should get one check/day if the TTL is 1 day and they open it
             // every day. (This is why BaseDateTimeMidnightLocal uses the local midnight!)
-            updateState.NextCheck = channel.TTL.TotalMinutes > 1 ? BaseDateTimeMidnightLocal.AddSeconds(Math.Ceiling((updateState.LastCheck - BaseDateTimeMidnightLocal).TotalSeconds / channel.TTL.TotalSeconds) * channel.TTL.TotalSeconds) : updateState.LastCheck + TimeSpan.FromMinutes(1);
+            updateState.NextCheck = channel.TTL > 86400 ? BaseDateTimeMidnightLocal.AddSeconds(Math.Ceiling((updateState.LastCheck - BaseDateTimeMidnightLocal).TotalSeconds / channel.TTL) * channel.TTL) : updateState.LastCheck + TimeSpan.FromMinutes(1);
             updateState.Update = string.Empty;
             updateState.Save();
         }
@@ -339,20 +331,15 @@ namespace ORTS.Updater
 
         private Task<bool> CheckUpdateWrites()
         {
-            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-
             try
             {
                 Directory.CreateDirectory(PathUpdateTest)?.Delete(true);
-                tcs.TrySetResult(true);
-
+                return Task.FromResult(true);
             }
             catch
             {
-                tcs.TrySetResult(true);
-
+                return Task.FromResult(false);
             }
-            return tcs.Task;
         }
 
         private async Task CleanDirectoriesAsync()
@@ -370,7 +357,6 @@ namespace ORTS.Updater
 
         private Task CleanDirectory(string path)
         {
-            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
             //// Clean up as much as we can here, but any in-use files will fail. Don't worry about them. This is
             //// called before the update begins so we'll always start from a clean slate.
             //// Scan the files in any order.
@@ -389,8 +375,7 @@ namespace ORTS.Updater
                              });
             try { Directory.Delete(path); }
             catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
-            tcs.TrySetResult(null);
-            return tcs.Task;
+            return Task.CompletedTask;
         }
 
         private async Task DownloadUpdateAsync(int progressMin, int progressLength)
@@ -416,8 +401,6 @@ namespace ORTS.Updater
 
         private Task ExtractUpdate(int progressMin, int progressLength)
         {
-            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
-
             using (FileStream fileStream = new FileStream(FileUpdateStage, FileMode.Open, FileAccess.Read))
             {
                 using (ZipArchive zipFile = new ZipArchive(fileStream))
@@ -459,8 +442,7 @@ namespace ORTS.Updater
             }
             File.Delete(FileUpdateStage);
             TriggerApplyProgressChanged(progressMin + progressLength);
-            tcs.TrySetResult(null);
-            return tcs.Task;
+            return Task.CompletedTask;
         }
 
         private async Task<bool> UpdateIsReadyAync()
@@ -525,12 +507,9 @@ namespace ORTS.Updater
         private static Task MoveDirectoryFiles(string sourceDirName, string destDirName, bool recursive, 
             string[] excludedFolders = null, string[] excludedFiles = null)
         {
-            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
-
             if (null != excludedFolders && excludedFolders.Contains(sourceDirName))
             {
-                tcs.TrySetResult(null);
-                return tcs.Task;
+                return Task.CompletedTask;
             }
 
             // Get the subdirectories for the specified directory.
@@ -564,8 +543,7 @@ namespace ORTS.Updater
 
             try { source.Delete(); }
             catch (Exception ex) { Trace.TraceWarning($"{sourceDirName} :: {ex.Message}"); };
-            tcs.TrySetResult(null);
-            return tcs.Task;
+            return Task.CompletedTask;
         }
 
         public static Task RunProcess(ProcessStartInfo processStartInfo)
