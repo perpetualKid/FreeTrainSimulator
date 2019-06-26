@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -132,22 +133,26 @@ namespace ORTS.Menu
                 var directory = System.IO.Path.Combine(route.Path, "ACTIVITIES");
                 if (Directory.Exists(directory))
                 {
-                    Parallel.ForEach(Directory.GetFiles(directory, "*.act"),
-                        new ParallelOptions() { CancellationToken = token},
-                        (activityFile, state) =>
-                        {
-                           try
-                           {
-                               Activity activity = GetActivity(activityFile, folder, route);
-                               if (null != activityFile)
-                               {
-                                   addItem.Wait(token);
-                                   activities.Add(activity);
-                               }
-                           }
-                           catch { }
-                           finally { addItem.Release(); }
-                       });
+                    try
+                    {
+                        Parallel.ForEach(Directory.GetFiles(directory, "*.act"),
+                            new ParallelOptions() { CancellationToken = token },
+                            (activityFile, state) =>
+                            {
+                                try
+                                {
+                                    Activity activity = GetActivity(activityFile, folder, route);
+                                    if (null != activityFile)
+                                    {
+                                        addItem.Wait(token);
+                                        activities.Add(activity);
+                                    }
+                                }
+                                catch { }
+                                finally { addItem.Release(); }
+                            });
+                    }
+                    catch (OperationCanceledException) { }
                     if (token.IsCancellationRequested)
                         return Task.FromCanceled<List<Activity>>(token);
                 }

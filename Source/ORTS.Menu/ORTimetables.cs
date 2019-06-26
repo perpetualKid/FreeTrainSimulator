@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -98,24 +99,28 @@ namespace ORTS.Menu
 
                 if (Directory.Exists(path))
                 {
-                    Parallel.ForEach(extensions, 
-                        new ParallelOptions() { CancellationToken = token},
-                        (extension, state) =>
+                    try
                     {
-                        Parallel.ForEach(Directory.GetFiles(path, extension),
-                            new ParallelOptions() { CancellationToken = token},
-                            (timetableFile, innerState) =>
+                        Parallel.ForEach(extensions,
+                            new ParallelOptions() { CancellationToken = token },
+                            (extension, state) =>
                         {
-                            try
+                            Parallel.ForEach(Directory.GetFiles(path, extension),
+                                new ParallelOptions() { CancellationToken = token },
+                                (timetableFile, innerState) =>
                             {
-                                TimetableInfo timetableInfo = new TimetableInfo(timetableFile);
-                                addItem.Wait(token);
-                                result.Add(timetableInfo);
-                            }
-                            catch { }
-                            finally { addItem.Release(); }
+                                try
+                                {
+                                    TimetableInfo timetableInfo = new TimetableInfo(timetableFile);
+                                    addItem.Wait(token);
+                                    result.Add(timetableInfo);
+                                }
+                                catch { }
+                                finally { addItem.Release(); }
+                            });
                         });
-                    });
+                    }
+                    catch (OperationCanceledException) { }
                     if (token.IsCancellationRequested)
                         return Task.FromCanceled<List<TimetableInfo>>(token);
                 }

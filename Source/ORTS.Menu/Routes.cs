@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -71,19 +72,23 @@ namespace ORTS.Menu
             string directory = System.IO.Path.Combine(folder.Path, "ROUTES");
             if (Directory.Exists(directory))
             {
-                Parallel.ForEach(Directory.GetDirectories(directory),
-                    new ParallelOptions() { CancellationToken = token},
-                    (routeDirectory, state) =>
+                try
                 {
-                    try
+                    Parallel.ForEach(Directory.GetDirectories(directory),
+                        new ParallelOptions() { CancellationToken = token },
+                        (routeDirectory, state) =>
                     {
-                        Route route = new Route(routeDirectory);
-                        addItem.Wait(token);
-                        routes.Add(route);
-                    }
-                    catch { }
-                    finally { addItem.Release(); }
-                });
+                        try
+                        {
+                            Route route = new Route(routeDirectory);
+                            addItem.Wait(token);
+                            routes.Add(route);
+                        }
+                        catch { }
+                        finally { addItem.Release(); }
+                    });
+                }
+                catch (OperationCanceledException) { }
                 if (token.IsCancellationRequested)
                     return Task.FromCanceled<List<Route>>(token);
             }

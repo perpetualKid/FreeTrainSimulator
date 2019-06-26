@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -93,22 +94,26 @@ namespace ORTS.Menu
             string directory = System.IO.Path.Combine(folder.Path, "TRAINS", "CONSISTS");
             if (Directory.Exists(directory))
             {
-                Parallel.ForEach(Directory.GetFiles(directory, "*.con"),
-                    new ParallelOptions() { CancellationToken = token},
-                    (consistFile, state) =>
+                try
                 {
-                    try
+                    Parallel.ForEach(Directory.GetFiles(directory, "*.con"),
+                        new ParallelOptions() { CancellationToken = token },
+                        (consistFile, state) =>
                     {
-                        Consist consist = GetConsist(consistFile, folder, false);
-                        if (null != consist)
+                        try
                         {
-                            addItem.Wait(token);
-                            consists.Add(consist);
+                            Consist consist = GetConsist(consistFile, folder, false);
+                            if (null != consist)
+                            {
+                                addItem.Wait(token);
+                                consists.Add(consist);
+                            }
                         }
-                    }
-                    catch { }
-                    finally { addItem.Release(); }
-                });
+                        catch { }
+                        finally { addItem.Release(); }
+                    });
+                }
+                catch (OperationCanceledException) { }
                 if (token.IsCancellationRequested)
                     return Task.FromCanceled<List<Consist>>(token);
             }

@@ -95,16 +95,18 @@ namespace ORTS.Menu
             string directory = System.IO.Path.Combine(route.Path, "PATHS");
             if (Directory.Exists(directory))
             {
-                Parallel.ForEach(Directory.GetFiles(directory, "*.pat"),
-                    new ParallelOptions() { CancellationToken = token},
-                    (file, state) =>
+                try
                 {
-                    try
+                    Parallel.ForEach(Directory.GetFiles(directory, "*.pat"),
+                        new ParallelOptions() { CancellationToken = token },
+                        (file, state) =>
                     {
-                        Path path = new Path(file);
-
-                        if (includeNonPlayerPaths || path.IsPlayerPath)
+                        try
                         {
+                            Path path = new Path(file);
+
+                            if (includeNonPlayerPaths || path.IsPlayerPath)
+                            {
                             // Suppress the 7 broken paths shipped with MSTS
                             //
                             // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
@@ -114,22 +116,24 @@ namespace ORTS.Menu
                             // The message then confuses users new to ORTS who have just installed it along with MSTS,
                             // see https://bugs.launchpad.net/or/+bug/1345172 and https://bugs.launchpad.net/or/+bug/128547
                             if (!file.EndsWith(@"ROUTES\USA1\PATHS\aftstrm(traffic03).pat", StringComparison.OrdinalIgnoreCase)
-                                && !file.EndsWith(@"ROUTES\USA1\PATHS\aftstrmtraffic01.pat", StringComparison.OrdinalIgnoreCase)
-                                && !file.EndsWith(@"ROUTES\USA1\PATHS\aiphwne2.pat", StringComparison.OrdinalIgnoreCase)
-                                && !file.EndsWith(@"ROUTES\USA1\PATHS\aiwnphex.pat", StringComparison.OrdinalIgnoreCase)
-                                && !file.EndsWith(@"ROUTES\USA1\PATHS\blizzard(traffic).pat", StringComparison.OrdinalIgnoreCase)
-                                && !file.EndsWith(@"ROUTES\USA2\PATHS\longhale.pat", StringComparison.OrdinalIgnoreCase)
-                                && !file.EndsWith(@"ROUTES\USA2\PATHS\long-haul west (blizzard).pat", StringComparison.OrdinalIgnoreCase)
-                                )
-                            {
-                                addItem.Wait(token);
-                                paths.Add(path);
+                                    && !file.EndsWith(@"ROUTES\USA1\PATHS\aftstrmtraffic01.pat", StringComparison.OrdinalIgnoreCase)
+                                    && !file.EndsWith(@"ROUTES\USA1\PATHS\aiphwne2.pat", StringComparison.OrdinalIgnoreCase)
+                                    && !file.EndsWith(@"ROUTES\USA1\PATHS\aiwnphex.pat", StringComparison.OrdinalIgnoreCase)
+                                    && !file.EndsWith(@"ROUTES\USA1\PATHS\blizzard(traffic).pat", StringComparison.OrdinalIgnoreCase)
+                                    && !file.EndsWith(@"ROUTES\USA2\PATHS\longhale.pat", StringComparison.OrdinalIgnoreCase)
+                                    && !file.EndsWith(@"ROUTES\USA2\PATHS\long-haul west (blizzard).pat", StringComparison.OrdinalIgnoreCase)
+                                    )
+                                {
+                                    addItem.Wait(token);
+                                    paths.Add(path);
+                                }
                             }
                         }
-                    }
-                    catch { }
-                    finally { addItem.Release(); }
-                });
+                        catch { }
+                        finally { addItem.Release(); }
+                    });
+                }
+                catch (OperationCanceledException) { }
                 if (token.IsCancellationRequested)
                     return Task.FromCanceled<List<Path>>(token);
             }
