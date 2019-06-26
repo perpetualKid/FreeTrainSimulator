@@ -1,0 +1,28 @@
+trigger:
+  batch: 
+    'true'
+  branches:
+    include:
+    - DevOps
+
+pool:
+  vmImage: 'VS2017-Win2016'
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: '$rev = git describe --first-parent --always 
+      Set-Content "./Program/Revision.txt" "1.3.1-$Build.BuildId-$rev"'
+    errorActionPreference: 'silentlyContinue'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: './Program/'
+    includeRootFolder: true 
+    verbose: true # Optional
