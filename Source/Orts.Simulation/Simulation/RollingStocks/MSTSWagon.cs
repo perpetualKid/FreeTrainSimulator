@@ -1770,7 +1770,7 @@ namespace Orts.Simulation.RollingStocks
                             StartFrictionLowLoad = LowGrad * WheelBearingTemperatureDegC + LowIntersect;
                             StartFrictionHighLoad = HighGrad * WheelBearingTemperatureDegC + HighIntersect;
                         }
-                        
+
                          if (Kg.ToTUS(MassKG) < 10.0)
                         {
                             StaticFrictionFactorLb = StartFrictionLowLoad;  // Starting friction for a < 10 ton(US) car with standard roller bearings
@@ -1917,13 +1917,20 @@ namespace Orts.Simulation.RollingStocks
                     // Starting friction is decayed using an exponential vs speed function (similar to Newtons law of cooling), an arbitary decay rate of decreasing resistance to 
                     // 2 x the Davis value at 5mph by the time the train reaches a speed of 
                     float FrictionDN = Friction5N * ForceDecayFactor;
-                    float ExpValue = (float) Math.Log((FrictionDN - Friction5N) / (Friction0N - Friction5N)) / speedDecay;
+                    float FrictionVariationN = (FrictionDN - Friction5N) / (Friction0N - Friction5N);
+
+                    // Log function in ExpValue must never be less then zero, otherwise Na value will occur
+                    if (FrictionVariationN <= 0)
+                    {
+                        FrictionVariationN = 0.0001f;
+                    }
+
+                    float ExpValue = (float) Math.Log(FrictionVariationN) / speedDecay;
                     float DecayValue = AbsSpeedMpS * ExpValue;
                     FrictionLowSpeedN = Friction5N + ( Friction0N - Friction5N) * (float)Math.Exp(DecayValue);
 
                     FrictionForceN = FrictionLowSpeedN; // At low speed use this value
-                    FrictionForceN = MathHelper.Clamp(FrictionForceN, Friction5N, Friction0N); // Clamp FrictionForce to between resistance between 0 and 5 mph
-                    
+                    FrictionForceN = MathHelper.Clamp(FrictionForceN, Friction5N, Friction0N); // Clamp FrictionForce to a value of resistance between 0 and 5 mph
                 }
                 else
                 {
