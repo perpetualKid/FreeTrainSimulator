@@ -29,11 +29,20 @@ steps:
     includeRootFolder: true 
     verbose: true # Optional
 
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: '# Write your powershell commands here.
+      
+      Write-Host "Hello World"
+      Write-Host "$(Build.BuildId)"'
+      
 - task: AzureFileCopy@3
   inputs:
-    SourcePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    SourcePath: '$(Build.ArtifactStagingDirectory)/.zip'
     ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
     Destination: 'AzureBlob'
     StorageAccountRM: 'ultimaterails'
     ContainerName: 'ci-builds'
     BlobPrefix: 'ci'
+
