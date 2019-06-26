@@ -3,7 +3,7 @@ trigger:
     'true'
   branches:
     include:
-    - DevOps
+    - azure-pipelines
 
 pool:
   vmImage: 'VS2017-Win2016'
