@@ -36,13 +36,14 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: '$rev = git describe --first-parent --always
-      Set-Content ''./Program/Revision.txt'' "1.3.1-$Env:BUILD_BUILDNUMBER-$rev"
-      # Use the environment variables input below to pass secret variables to this script.'
+    script: '$rev = git describe --first-parent --always 
+      Set-Content "./Program/Revision.txt" "1.3.1-$Build.BuildId-$rev"'
     errorActionPreference: 'silentlyContinue'
+
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: './Program/'
