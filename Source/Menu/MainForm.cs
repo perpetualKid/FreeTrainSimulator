@@ -772,7 +772,7 @@ namespace ORTS
             folders.Clear();
             ShowFolderList();
 
-            folders = (await Task.Run (() => Folder.GetFolders(settings))).OrderBy(f => f.Name).ToList();
+            folders = (await Task.Run (() => Folder.GetFolders(settings)))?.OrderBy(f => f.Name).ToList() ?? new List<Folder>();
 
             ShowFolderList();
             if (folders.Count > 0)
@@ -832,7 +832,7 @@ namespace ORTS
             ShowHeadToList();
 
             Folder selectedFolder = SelectedFolder;
-            routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token)))?.OrderBy(r => r.Name).ToList();
+            routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token)))?.OrderBy(r => r.Name).ToList() ?? new List<Route>();
             ShowRouteList();
         }
 
@@ -876,7 +876,7 @@ namespace ORTS
 
             Folder selectedFolder = SelectedFolder;
             Route selectedRoute = SelectedRoute;
-            activities = (await Task.Run(() => Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token))).OrderBy(a => a.Name).ToList();
+            activities = (await Task.Run(() => Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token))).OrderBy(a => a.Name).ToList() ?? new List<Activity>();
             ShowActivityList();
         }
 
@@ -917,7 +917,7 @@ namespace ORTS
             ShowConsistList();
 
             Folder selectedFolder = SelectedFolder;
-            consists = (await Task.Run(() => Consist.GetConsists(selectedFolder, ctsConsistLoading.Token)))?.OrderBy(c => c.Name).ToList();
+            consists = (await Task.Run(() => Consist.GetConsists(selectedFolder, ctsConsistLoading.Token)))?.OrderBy(c => c.Name).ToList() ?? new List<Consist>();
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowLocomotiveList();
         }
@@ -999,7 +999,7 @@ namespace ORTS
             ShowHeadToList();
 
             var selectedRoute = SelectedRoute;
-            paths = (await Task.Run(() => Path.GetPaths(selectedRoute, false, ctsPathLoading.Token)))?.OrderBy(a => a.ToString()).ToList();
+            paths = (await Task.Run(() => Path.GetPaths(selectedRoute, false, ctsPathLoading.Token)))?.OrderBy(a => a.ToString()).ToList() ?? new List<Path>();
 
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowStartAtList();
@@ -1141,7 +1141,7 @@ namespace ORTS
 
             var selectedFolder = SelectedFolder;
             var selectedRoute = SelectedRoute;
-            timetableSets = (await Task.Run(() => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token)))?.OrderBy(tt => tt.Description).ToList();
+            timetableSets = (await Task.Run(() => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token)))?.OrderBy(tt => tt.Description).ToList() ?? new List<TimetableInfo>();
             ShowTimetableSetList();
         }
 
