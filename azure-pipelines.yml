@@ -45,7 +45,7 @@ steps:
     Write-Host "##vso[task.setvariable variable=outputFile]$Revision";
     Set-Content "./Program/Revision.txt" "`$Revision: 1.3.1-$Revision `$";
     git log --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%dT%H:%MZ" -100 | ConvertFrom-Csv -Delimiter "|" -Header "Commit", "Date", "Author", "Message" | ConvertTo-Json | Out-File $(Build.ArtifactStagingDirectory)/history.json;
-    @{version="$Revision";date=(get-date).ToString("yyyy-MM-ddTHH:mmZ");url="ci-builds/$Revision.zip"}| ConvertTo-Json | Out-File $(Build.ArtifactStagingDirectory)/version.json'
+    @{version="$Revision";date=(get-date).ToString("yyyy-MM-ddTHH:mmZ");url="ci-builds/releases/$Revision.zip"}| ConvertTo-Json | Out-File $(Build.ArtifactStagingDirectory)/version.json'
 
 - task: ArchiveFiles@2
   inputs:
@@ -61,7 +61,7 @@ steps:
     Destination: 'AzureBlob'
     StorageAccountRM: 'ultimaterails'
     ContainerName: 'ci-builds'
-    BlobPrefix: 'ci'
+    BlobPrefix: 'releases'
 
 - task: AzureFileCopy@3
   inputs:
