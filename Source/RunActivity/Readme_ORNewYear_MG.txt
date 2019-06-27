@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.27
-June 23rd, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.28
+June 27th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -34,8 +34,8 @@ Moreover it includes some features not (yet) available in the Open Rails officia
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
 - second phase of wheel bearing management (by steamer_ctn)
 - added flag Cab3DFreightAnim to define 3dCab specific static freight animations
-- NEW: fixed bug about locos not moving introduced with advanced couplers feature (by steamer_ctn)
-- NEW: fixed bug of AI trains not appearing on single track section paths
+- fixed bug of AI trains not appearing on single track section paths
+- NEW: fixed bug about transfers changing appearance with viewing direction (by dennisat)
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
