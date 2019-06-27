@@ -401,7 +401,7 @@ namespace ORTS.Settings
             CustomDefaultValues["LoggingPath"] = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             CustomDefaultValues["ScreenshotPath"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), Application.ProductName);
             CustomDefaultValues["Multiplayer_User"] = Environment.UserName;
-            Load(options);
+            LoadSettings(options);
             Folders = new FolderSettings(options);
             Input = new InputSettings(options);
             RailDriver = new RailDriverSettings(options);
@@ -421,14 +421,9 @@ namespace ORTS.Settings
             throw new InvalidDataException(String.Format("UserSetting {0} has no default value.", property.Name));
         }
 
-        PropertyInfo GetProperty(string name)
+        protected override PropertyInfo[] GetProperties()
         {
-            return GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-        }
-
-        PropertyInfo[] GetProperties()
-        {
-            return GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy).Where(pi => !new string[]{"Folders", "Input", "RailDriver"}.Contains(pi.Name)).ToArray();
+            return base.GetProperties().Where(pi => !new string[] { "Folders", "Input", "RailDriver" }.Contains(pi.Name)).ToArray();
         }
 
         protected override object GetValue(string name)
@@ -444,7 +439,7 @@ namespace ORTS.Settings
         protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
         {
             foreach (var property in GetProperties())
-                Load(allowUserSettings, optionsDictionary, property.Name, property.PropertyType);
+                LoadSetting(allowUserSettings, optionsDictionary, property.Name, property.PropertyType);
         }
 
         public override void Save()

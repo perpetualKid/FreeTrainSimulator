@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 namespace ORTS.Common
 {
@@ -42,6 +43,7 @@ namespace ORTS.Common
 
         /// <summary>The store of the settings</summary>
         protected SettingsStore SettingStore { get; private set; }
+
         /// <summary>Translates name of a setting to its source</summary>
         protected readonly Dictionary<string, Source> Sources = new Dictionary<string, Source>();
 
@@ -100,23 +102,78 @@ namespace ORTS.Common
         /// Load settings from the options
         /// </summary>
         /// <param name="options">???</param>
-		protected void Load(IEnumerable<string> options)
+		protected void LoadSettings(IEnumerable<string> options)
 		{
 			// This special command-line option prevents the registry values from being used.
-			var allowUserSettings = !options.Contains("skip-user-settings", StringComparer.OrdinalIgnoreCase);
+			bool allowUserSettings = !options.Contains("skip-user-settings", StringComparer.OrdinalIgnoreCase);
 
 			// Pull apart the command-line options so we can find them by setting name.
 			var optionsDictionary = new Dictionary<string, string>();
-			foreach (var option in options)
+			foreach (string option in options)
 			{
-				var k = option.Split(new[] { '=', ':' }, 2)[0].ToLowerInvariant();
-				var v = option.Contains('=') || option.Contains(':') ? option.Split(new[] { '=', ':' }, 2)[1].ToLowerInvariant() : "yes";
+                var kvp = option.Split(new[] { '=', ':' }, 2);
+
+                string k = kvp[0].ToLowerInvariant();
+				string v = kvp.Length > 1 ? kvp[1].ToLowerInvariant() : "yes";
 				optionsDictionary[k] = v;
 			}
 
 			Load(allowUserSettings, optionsDictionary);
 		}
 
+        protected void LoadSetting(bool allowUserSettings, Dictionary<string, string> optionsDictionary, string name)
+        {
+            // Get the default value.
+            dynamic defValue = GetDefaultValue(name);
+
+            Type type = defValue.GetType();
+            // Read in the user setting, if it exists.
+            dynamic userValue = allowUserSettings ? SettingStore.GetUserValue(name, type) : null;
+
+            // Read in the command-line option, if it exists into optValue.
+            optionsDictionary.TryGetValue(name.ToLowerInvariant(), out string optValueString);
+            dynamic optValue = null;
+
+            if (!string.IsNullOrEmpty(optValueString))
+            {
+                switch (defValue)
+                {
+                    case bool b:
+                        optValue = new[] { "true", "yes", "on", "1" }.Contains(optValueString.ToLowerInvariant().Trim());
+                        break;
+                    case int i:
+                        if (int.TryParse(optValueString, out i))
+                            optValue = i;
+                        break;
+                    case string[] sA:
+                        optValue = optValueString.Split(',').Select(content => content.Trim()).ToArray();
+                        break;
+                    case int[] iA:
+                        optValue = optValueString.Split(',').Select(content => int.Parse(content.Trim())).ToArray();
+                        break;
+                }
+            }
+
+            // We now have defValue, regValue, optValue containing the default, persisted and override values
+            // for the setting. regValue and optValue are null if they are not found/specified.
+            var value = optValue ?? userValue ?? defValue;
+            try
+            {
+                // int[] values must have the same number of items as default value.
+                if ((type == typeof(int[])) && (value?.Length != defValue?.Length))
+                    throw new ArgumentException();
+
+                SetValue(name, value);
+                Sources.Add(name, value.Equals(defValue) ? Source.Default : optValue != null ? Source.CommandLine : userValue != null ? Source.User : Source.Default);
+            }
+            catch (ArgumentException)
+            {
+                Trace.TraceWarning($"Unable to load {name} value from type {value.GetType().FullName}");
+                value = defValue;
+                Sources.Add(name, Source.Default);
+            }
+
+        }
         /// <summary>
         /// Load a single value from the store, once type of the setting is known
         /// </summary>
@@ -124,7 +181,7 @@ namespace ORTS.Common
         /// <param name="optionsDictionary">???</param>
         /// <param name="name">name of the setting</param>
         /// <param name="type">type of the setting</param>
-		protected void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary, string name, Type type)
+		protected void LoadSetting(bool allowUserSettings, Dictionary<string, string> optionsDictionary, string name, Type type)
 		{
 			// Get the default value.
 			var defValue = GetDefaultValue(name);
@@ -156,7 +213,7 @@ namespace ORTS.Common
 
 			// We now have defValue, regValue, optValue containing the default, persisted and override values
 			// for the setting. regValue and optValue are null if they are not found/specified.
-			var value = optValue != null ? optValue : userValue != null ? userValue : defValue;
+			var value = optValue ?? userValue ?? defValue;
 			try
 			{
 				// int[] values must have the same number of items as default value.
@@ -175,6 +232,27 @@ namespace ORTS.Common
 		}
 
         /// <summary>
+        /// Save a setting to the store
+        /// </summary>
+        /// <param name="name">name of the setting</param>
+        protected void SaveSetting(string name)
+        {
+            dynamic defValue = GetDefaultValue(name);
+            dynamic value = GetValue(name);
+
+            if (defValue == value
+                || (value is string[] && string.Join(",", (string[])defValue) == string.Join(",", (string[])value))
+                || (value is int[] && string.Join(",", ((int[])defValue).Select(v => v.ToString()).ToArray()) == string.Join(",", ((int[])value).Select(v => v.ToString()).ToArray())))
+            {
+                SettingStore.DeleteUserValue(name);
+            }
+            else
+            {
+                SettingStore.SetUserValue(name, value);
+            }
+        }
+
+        /// <summary>
         /// Save a setting to the store, if name and especially type are known
         /// </summary>
         /// <param name="name">name of the setting</param>
@@ -185,8 +263,8 @@ namespace ORTS.Common
 			var value = GetValue(name);
 
 			if (defValue.Equals(value)
-				|| (type == typeof(string[]) && String.Join(",", (string[])defValue) == String.Join(",", (string[])value))
-				|| (type == typeof(int[]) && String.Join(",", ((int[])defValue).Select(v => v.ToString()).ToArray()) == String.Join(",", ((int[])value).Select(v => v.ToString()).ToArray())))
+				|| (type == typeof(string[]) && string.Join(",", (string[])defValue) == string.Join(",", (string[])value))
+				|| (type == typeof(int[]) && string.Join(",", ((int[])defValue).Select(v => v.ToString()).ToArray()) == string.Join(",", ((int[])value).Select(v => v.ToString()).ToArray())))
 			{
 				SettingStore.DeleteUserValue(name);
 			}
@@ -233,5 +311,16 @@ namespace ORTS.Common
             SetValue(name, GetDefaultValue(name));
             SettingStore.DeleteUserValue(name);
         }
-	}
+
+        protected virtual PropertyInfo GetProperty(string name)
+        {
+            return GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+        }
+
+        protected virtual PropertyInfo[] GetProperties()
+        {
+            return GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy).ToArray();
+        }
+
+    }
 }

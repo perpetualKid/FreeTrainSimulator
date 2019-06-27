@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Windows.Forms;
 using ORTS.Common;
 
@@ -38,7 +37,7 @@ namespace ORTS.Settings
         public string Channel { get; set; }
         [Default("")]
         public string URL { get; set; }
-        public int TTL { get; set; }
+        public TimeSpan TTL { get; set; }
         [Default("")]
         public string ChangeLogLink { get; set; }
 
@@ -47,13 +46,13 @@ namespace ORTS.Settings
         public UpdateSettings()
             : base(SettingsStore.GetSettingStore(SettingsFilePath, null, "Settings"))
         {
-            Load(new string[0]);
+            LoadSettings(new string[0]);
         }
 
         public UpdateSettings(string channel)
             : base(SettingsStore.GetSettingStore(SettingsFilePath, null, channel + "Settings"))
         {
-            Load(new string[0]);
+            LoadSettings(new string[0]);
         }
 
         public string[] GetChannels()
@@ -66,25 +65,17 @@ namespace ORTS.Settings
 
         public override object GetDefaultValue(string name)
         {
+
+            if (name == nameof(TTL))
+                return TimeSpan.FromDays(1);
+
             var property = GetType().GetProperty(name);
 
-            if (name == "TTL")
-                return TimeSpan.FromDays(1).TotalSeconds;
+            var attributes = property.GetCustomAttributes(typeof(DefaultAttribute), false);
+            if (attributes.Length > 0)
+                return (attributes[0] as DefaultAttribute)?.Value;
 
-            if (property.GetCustomAttributes(typeof(DefaultAttribute), false).Length > 0)
-                return (property.GetCustomAttributes(typeof(DefaultAttribute), false)[0] as DefaultAttribute).Value;
-
-            throw new InvalidDataException(String.Format("UserSetting {0} has no default value.", property.Name));
-        }
-
-        PropertyInfo GetProperty(string name)
-        {
-            return GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-        }
-
-        PropertyInfo[] GetProperties()
-        {
-            return GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy).ToArray();
+            throw new InvalidDataException($"UserSetting {property.Name} has no default value.");
         }
 
         protected override object GetValue(string name)
@@ -100,21 +91,21 @@ namespace ORTS.Settings
         protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
         {
             foreach (var property in GetProperties())
-                Load(allowUserSettings, optionsDictionary, property.Name, property.PropertyType);
+                LoadSetting(allowUserSettings, optionsDictionary, property.Name);
         }
 
         public override void Save()
         {
             foreach (var property in GetProperties())
                 if (property.GetCustomAttributes(typeof(DoNotSaveAttribute), false).Length == 0)
-                    Save(property.Name, property.PropertyType);
+                    SaveSetting(property.Name);
         }
 
         public override void Save(string name)
         {
             var property = GetProperty(name);
             if (property.GetCustomAttributes(typeof(DoNotSaveAttribute), false).Length == 0)
-                Save(property.Name, property.PropertyType);
+                SaveSetting(property.Name);
         }
 
         public override void Reset()

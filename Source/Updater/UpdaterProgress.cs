@@ -178,7 +178,7 @@ namespace Updater
         {
             if (shouldRelaunchApplication)
             {
-                launcherPath = await UpdateManager.GetMainExecutableAsync(basePath, Application.ProductName);
+                launcherPath = Path.Combine(basePath, UpdateManager.LauncherExecutable);
                 await RunProcess(launcherPath).ConfigureAwait(false);
             }
         }

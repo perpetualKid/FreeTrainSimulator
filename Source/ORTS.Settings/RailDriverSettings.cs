@@ -123,7 +123,7 @@ namespace ORTS.Settings
         {
             CalibrationSettings = new byte[DefaultCalibrationSettings.Length];
 
-            Load(options);
+            LoadSettings(options);
         }
 
         public override object GetDefaultValue(string name)
@@ -189,9 +189,9 @@ namespace ORTS.Settings
         protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
         {
             foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
-                Load(allowUserSettings, optionsDictionary, setting.ToString(), typeof(byte));
+                LoadSetting(allowUserSettings, optionsDictionary, setting.ToString(), typeof(byte));
             foreach (var command in EnumExtension.GetValues<UserCommand>())
-                Load(allowUserSettings, optionsDictionary, command.ToString(), typeof(byte));
+                LoadSetting(allowUserSettings, optionsDictionary, command.ToString(), typeof(byte));
         }
 
         protected override void SetValue(string name, object value)

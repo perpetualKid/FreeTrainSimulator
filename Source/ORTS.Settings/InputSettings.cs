@@ -70,7 +70,7 @@ namespace ORTS.Settings
         : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "Keys"))
         {
             InitializeCommands(Commands);
-            Load(options);
+            LoadSettings(options);
         }
 
         UserCommand GetCommand(string name)
@@ -101,7 +101,7 @@ namespace ORTS.Settings
         protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
         {
             foreach (var command in EnumExtension.GetValues<UserCommand>())
-                Load(allowUserSettings, optionsDictionary, command.ToString(), typeof(string));
+                LoadSetting(allowUserSettings, optionsDictionary, command.ToString(), typeof(string));
         }
 
         public override void Save()

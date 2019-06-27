@@ -832,7 +832,7 @@ namespace ORTS
             ShowHeadToList();
 
             Folder selectedFolder = SelectedFolder;
-            routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token))).OrderBy(r => r.Name).ToList();
+            routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token)))?.OrderBy(r => r.Name).ToList();
             ShowRouteList();
         }
 
@@ -917,7 +917,7 @@ namespace ORTS
             ShowConsistList();
 
             Folder selectedFolder = SelectedFolder;
-            consists = (await Task.Run(() => Consist.GetConsists(selectedFolder, ctsConsistLoading.Token))).OrderBy(c => c.Name).ToList();
+            consists = (await Task.Run(() => Consist.GetConsists(selectedFolder, ctsConsistLoading.Token)))?.OrderBy(c => c.Name).ToList();
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowLocomotiveList();
         }
@@ -999,7 +999,7 @@ namespace ORTS
             ShowHeadToList();
 
             var selectedRoute = SelectedRoute;
-            paths = (await Task.Run(() => Path.GetPaths(selectedRoute, false, ctsPathLoading.Token))).OrderBy(a => a.ToString()).ToList();
+            paths = (await Task.Run(() => Path.GetPaths(selectedRoute, false, ctsPathLoading.Token)))?.OrderBy(a => a.ToString()).ToList();
 
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowStartAtList();
@@ -1141,7 +1141,7 @@ namespace ORTS
 
             var selectedFolder = SelectedFolder;
             var selectedRoute = SelectedRoute;
-            timetableSets = (await Task.Run(() => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token))).OrderBy(tt => tt.Description).ToList();
+            timetableSets = (await Task.Run(() => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token)))?.OrderBy(tt => tt.Description).ToList();
             ShowTimetableSetList();
         }
 

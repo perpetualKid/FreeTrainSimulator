@@ -32,7 +32,7 @@ namespace ORTS.Settings
             : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "Folders"))
         {
             Folders = new Dictionary<string, string>();
-            Load(options);
+            LoadSettings(options);
         }
 
         public override object GetDefaultValue(string name)
@@ -56,7 +56,7 @@ namespace ORTS.Settings
         protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
         {
             foreach (var name in SettingStore.GetUserNames())
-                Load(allowUserSettings, optionsDictionary, name, typeof(string));
+                LoadSetting(allowUserSettings, optionsDictionary, name, typeof(string));
         }
 
         public override void Save()

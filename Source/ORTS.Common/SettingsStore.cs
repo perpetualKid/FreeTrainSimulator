@@ -201,7 +201,7 @@ namespace ORTS.Common
 
                 // Expected TimeSpan-stored-as-long conversion.
                 if (expectedType == typeof(TimeSpan) && (userValue is long))
-                    return TimeSpan.FromTicks((long)userValue);
+                    return TimeSpan.FromSeconds((long)userValue);
 
                 // Expected int[]-stored-as-string conversion.
                 if (expectedType == typeof(int[]) && (userValue is string))
@@ -264,7 +264,7 @@ namespace ORTS.Common
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, TimeSpan value)
         {
-            Key.SetValue(name, value.Ticks, RegistryValueKind.QWord);
+            Key.SetValue(name, value.TotalSeconds, RegistryValueKind.QWord);
         }
 
         /// <summary>
@@ -413,7 +413,7 @@ namespace ORTS.Common
                         userValue = DateTime.FromBinary(long.Parse(Uri.UnescapeDataString(value[1]), CultureInfo.InvariantCulture));
                         break;
                     case "TimeSpan":
-                        userValue = TimeSpan.FromTicks(long.Parse(Uri.UnescapeDataString(value[1]), CultureInfo.InvariantCulture));
+                        userValue = TimeSpan.FromSeconds(long.Parse(Uri.UnescapeDataString(value[1]), CultureInfo.InvariantCulture));
                         break;
                     case "string":
                         userValue = Uri.UnescapeDataString(value[1]);
@@ -486,7 +486,7 @@ namespace ORTS.Common
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, TimeSpan value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "TimeSpan:" + Uri.EscapeDataString(value.Ticks.ToString(CultureInfo.InvariantCulture)), FilePath);
+            NativeMethods.WritePrivateProfileString(Section, name, "TimeSpan:" + Uri.EscapeDataString(value.TotalSeconds.ToString(CultureInfo.InvariantCulture)), FilePath);
         }
 
         /// <summary>

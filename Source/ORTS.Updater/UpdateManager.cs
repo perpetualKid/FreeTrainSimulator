@@ -45,8 +45,6 @@ namespace ORTS.Updater
         public const string RelaunchCommandLine = "/RELAUNCH=";
         public const string ElevationCommandLine = "/ELEVATE=";
 
-        const string TemporaryDirectoryName = "Open Rails Updater Temporary Files";
-
         public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
 
         private readonly string basePath;
@@ -73,22 +71,7 @@ namespace ORTS.Updater
         public Exception LastUpdateError { get; private set; }
         public bool UpdaterNeedsElevation { get; private set; }
 
-        public static async Task<string> GetMainExecutableAsync(string pathName, string productName)
-        {
-            TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
-
-            await Task.WhenAny(tcs.Task, Task.WhenAll(from file in Directory.GetFiles(pathName, "*.exe")
-                                                      select Task.Run(() =>
-                                                      {
-                                                          try
-                                                          {
-                                                              if (FileVersionInfo.GetVersionInfo(file).FileDescription == productName)
-                                                                  tcs.TrySetResult(file);
-                                                          }
-                                                          catch (Exception ex) { Trace.TraceWarning(ex.Message, file); };
-                                                      })));
-            return tcs.Task.Result;
-        }
+        public const string LauncherExecutable = "openrails.exe";
 
         public UpdateManager(string basePath, string productName, string productVersion)
         {
@@ -179,11 +162,14 @@ namespace ORTS.Updater
                 };
                 client.Headers[HttpRequestHeader.UserAgent] = GetUserAgent();
                 UriBuilder uriBuilder = new UriBuilder(channel.URL);
-                if (!uriBuilder.Uri.IsFile)
+                if (channel.URL.ToLower().Contains("ultimate"))
                 {
-                    if (!uriBuilder.Path.EndsWith("/"))
-                        uriBuilder.Path += "/";
-                    uriBuilder.Path += "version.json";
+                    if (!uriBuilder.Uri.IsFile)
+                    {
+                        if (!uriBuilder.Path.EndsWith("/"))
+                            uriBuilder.Path += "/";
+                        uriBuilder.Path += "version.json";
+                    }
                 }
                 if (forceUpdate)
                 {
@@ -317,7 +303,7 @@ namespace ORTS.Updater
             // if they launch it at 6:00PM on Monday, then 5:30PM on Tuesday, they won't get an update chech on
             // Tuesday. With the time rounding, they should get one check/day if the TTL is 1 day and they open it
             // every day. (This is why BaseDateTimeMidnightLocal uses the local midnight!)
-            updateState.NextCheck = channel.TTL > 86400 ? BaseDateTimeMidnightLocal.AddSeconds(Math.Ceiling((updateState.LastCheck - BaseDateTimeMidnightLocal).TotalSeconds / channel.TTL) * channel.TTL) : updateState.LastCheck + TimeSpan.FromMinutes(1);
+            updateState.NextCheck = channel.TTL.TotalDays > 1 ? BaseDateTimeMidnightLocal.AddSeconds(Math.Ceiling((updateState.LastCheck - BaseDateTimeMidnightLocal).TotalSeconds / channel.TTL.TotalSeconds) * channel.TTL.TotalSeconds) : updateState.LastCheck + TimeSpan.FromMinutes(1);
             updateState.Update = string.Empty;
             updateState.Save();
         }
@@ -448,15 +434,19 @@ namespace ORTS.Updater
         private async Task<bool> UpdateIsReadyAync()
         {
             // The staging directory must exist, contain OpenRails.exe (be ready) and NOT contain the update zip.
-            return Directory.Exists(PathUpdateStage)
-                && File.Exists(await GetMainExecutableAsync(PathUpdateStage, productName))
-                && !File.Exists(FileUpdateStage);
+            if (Directory.Exists(Path.Combine(PathUpdateStage, "Program")) && !File.Exists(Path.Combine(PathUpdateStage, LauncherExecutable)))
+            {
+                //looks like the archive contains the root folder as well, so we move everything one level up
+                await MoveDirectoryFiles(Path.Combine(PathUpdateStage, "Program"), PathUpdateStage, true);
+            }
+
+            return await Task.FromResult(Directory.Exists(PathUpdateStage)
+                && File.Exists(Path.Combine(PathUpdateStage, LauncherExecutable))
+                && !File.Exists(FileUpdateStage));
         }
 
         private Task VerifyUpdateAsync()
         {
-            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
-
             IEnumerable<string> files = Directory.GetFiles(PathUpdateStage, "*", SearchOption.AllDirectories).Where(s =>
                     s.ToUpper().EndsWith(".EXE") ||
                     s.ToUpper().EndsWith(".CPL") ||
@@ -472,15 +462,13 @@ namespace ORTS.Updater
             }
             catch (Exception ex) when (ex is CryptographicException || ex is Win32Exception)
             {
-                tcs.TrySetResult(null);
                 // No signature on the updater, so we can't verify the update. :(
-                return tcs.Task;
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                tcs.TrySetException(ex);
                 // No signature on the updater, so we can't verify the update. :(
-                return tcs.Task;
+                return Task.FromException(ex);
             }
 
             Parallel.ForEach(files, (file) => 
@@ -491,9 +479,7 @@ namespace ORTS.Updater
                         + FormatCertificateSubjectList(expectedSubjects) + "\n\nAnd new subjects:\n\n"
                         + FormatCertificateSubjectList(certificates) + "\n");
             });
-
-            tcs.TrySetResult(null);
-            return tcs.Task;
+            return Task.CompletedTask;
         }
 
         private async Task CopyUpdateFileAsync()
