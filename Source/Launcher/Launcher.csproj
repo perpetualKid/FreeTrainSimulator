@@ -7,7 +7,7 @@
     <ProjectGuid>{7027354D-7C20-4514-BCEB-177CD7D58952}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ORTS</RootNamespace>
+    <RootNamespace>Launcher</RootNamespace>
     <AssemblyName>OpenRails</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
