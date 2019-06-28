@@ -68,16 +68,9 @@ steps:
 
 - task: AzureFileCopy@3
   inputs:
-    SourcePath: '$(Build.ArtifactStagingDirectory)/history.json'
+    SourcePath: '$(Build.ArtifactStagingDirectory)'
     ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
     Destination: 'AzureBlob'
     StorageAccountRM: 'ultimaterails'
     ContainerName: 'ci-builds'
-
-- task: AzureFileCopy@3
-  inputs:
-    SourcePath: '$(Build.ArtifactStagingDirectory)/version.json'
-    ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
-    Destination: 'AzureBlob'
-    StorageAccountRM: 'ultimaterails'
-    ContainerName: 'ci-builds'
+    additionalArgumentsForBlobCopy: '/Pattern:*.json'
