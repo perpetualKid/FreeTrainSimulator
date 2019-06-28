@@ -23,7 +23,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 
 using ORTS.TrackViewer.Drawing;
-using ORTS.Menu;
+using Orts.Menu.Entities;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -71,7 +71,7 @@ namespace ORTS.TrackViewer.Editing
             modifiedPaths = new List<PathEditor>();
 
             // Loop through all available paths and fix each of them
-            foreach (ORTS.Menu.Path path in Paths)
+            foreach (Path path in Paths)
             {
                 callback(TrackViewer.catalog.GetString("Processing .pat file ") + path.FilePath);
                 string pathName = ORTS.TrackViewer.UserInterface.MenuControl.MakePathMenyEntryName(path);

@@ -53,13 +53,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
+using Orts.Menu.Entities;
 using ORTS.Common;
 using ORTS.Common.Msts;
-using ORTS.Menu;
 using ORTS.Settings;
 using Path = System.IO.Path;
 
@@ -74,7 +75,7 @@ namespace ORTS
         private readonly TimetableInfo timeTable;
         private List<SavePoint> savePoints = new List<SavePoint>();
 
-        private System.Threading.CancellationTokenSource ctsLoader;
+        private CancellationTokenSource ctsLoader;
 
         public class SavePoint
         {

@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Menu.Entities;
 using ORTS.Common;
 using System;
 using System.Collections.Generic;
@@ -92,9 +93,9 @@ namespace ORTS
                         case MainForm.UserAction.SingleplayerNewGame:
                         case MainForm.UserAction.MultiplayerClient:
                         case MainForm.UserAction.MultiplayerServer:
-                            if (MainForm.SelectedActivity is ORTS.Menu.DefaultExploreActivity)
+                            if (MainForm.SelectedActivity is DefaultExploreActivity)
                             {
-                                var exploreActivity = MainForm.SelectedActivity as ORTS.Menu.DefaultExploreActivity;
+                                var exploreActivity = MainForm.SelectedActivity as DefaultExploreActivity;
                                 parameters.Add(string.Format("-explorer \"{0}\" \"{1}\" {2} {3} {4}",
                                     exploreActivity.Path.FilePath,
                                     exploreActivity.Consist.FilePath,
@@ -102,9 +103,9 @@ namespace ORTS
                                     (int)exploreActivity.Season,
                                     (int)exploreActivity.Weather));
                             }
-                            else if (MainForm.SelectedActivity is ORTS.Menu.ExploreThroughActivity)
+                            else if (MainForm.SelectedActivity is ExploreThroughActivity)
                             {
-                                var exploreActivity = MainForm.SelectedActivity as ORTS.Menu.ExploreThroughActivity;
+                                var exploreActivity = MainForm.SelectedActivity as ExploreThroughActivity;
                                 parameters.Add(string.Format("-exploreactivity \"{0}\" \"{1}\" {2} {3} {4}",
                                     exploreActivity.Path.FilePath,
                                     exploreActivity.Consist.FilePath,

@@ -29,15 +29,14 @@ using MessageBox = System.Windows.Forms.MessageBox;
 using System.Windows.Forms;
 using System.Reflection;
 using GNU.Gettext;
-using ORTS.Menu;
 using ORTS.Common;
-using Orts.Common;
 using ORTS.TrackViewer.Drawing;
 using ORTS.TrackViewer.Drawing.Labels;
 using ORTS.TrackViewer.UserInterface;
 using ORTS.TrackViewer.Editing;
 using ORTS.TrackViewer.Editing.Charts;
 using ORTS.Common.Msts;
+using Orts.Menu.Entities;
 
 namespace ORTS.TrackViewer
 {
@@ -748,7 +747,7 @@ namespace ORTS.TrackViewer
                 return;
             }
 
-            foreach (ORTS.Menu.Route route in this.Routes)
+            foreach (Route route in this.Routes)
             {
                 //MessageBox.Show(route.Path);
 

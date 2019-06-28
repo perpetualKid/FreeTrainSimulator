@@ -243,9 +243,9 @@
       <Project>{DA94D876-7D35-46C3-AECE-AFACE72C686C}</Project>
       <Name>ORTS.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ORTS.Menu\ORTS.Menu.csproj">
-      <Project>{1C5B0B41-2FE9-41C9-8B21-CCDCBEB3DDA5}</Project>
-      <Name>ORTS.Menu</Name>
+    <ProjectReference Include="..\..\Orts.Menu.Entities\Orts.Menu.Entities.csproj">
+      <Project>{1c5b0b41-2fe9-41c9-8b21-ccdcbeb3dda5}</Project>
+      <Name>Orts.Menu.Entities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Orts.Parsers.Msts\Orts.Parsers.Msts.csproj">
       <Project>{8a84696c-3559-49b8-b27f-bb6932d8a1c6}</Project>

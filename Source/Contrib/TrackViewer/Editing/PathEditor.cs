@@ -27,6 +27,7 @@ using Orts.Formats.Msts;
 using ORTS.Common;
 using System.Windows.Controls;
 using System.Windows;
+using Orts.Menu.Entities;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -179,7 +180,7 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="routeData">The route information that contains track data base and track section data</param>
         /// <param name="drawTrackDB">The drawn tracks to know about where the mouse is</param>
         /// <param name="path">Path to the .pat file</param>
-        public PathEditor(RouteData routeData, DrawTrackDB drawTrackDB, ORTS.Menu.Path path)
+        public PathEditor(RouteData routeData, DrawTrackDB drawTrackDB, Path path)
             :this(routeData, drawTrackDB)
         {
             FileName = path.FilePath.Split('\\').Last();
@@ -743,7 +744,7 @@ namespace ORTS.TrackViewer.Editing
         /// Then try to reconnect the tail. This will then extend the current path with the loaded path
         /// </summary>
         /// <param name="path">The path that needs to be loaded to act as an extension</param>
-        public void ExtendWithPath(ORTS.Menu.Path path)
+        public void ExtendWithPath(Path path)
         {
             //If everything works as expected, up to three steps are taken that can all be 'Undo'ne:
             // * Remove End

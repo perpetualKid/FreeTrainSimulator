@@ -30,12 +30,12 @@ using System.Windows.Forms;
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
 using Orts.Formats.OR;
+using Orts.Menu.Entities;
 using ORTS.Common;
 using ORTS.Common.Native;
-using ORTS.Menu;
 using ORTS.Settings;
 using ORTS.Updater;
-using Path = ORTS.Menu.Path;
+using Path = Orts.Menu.Entities.Path;
 
 namespace ORTS
 {
@@ -70,9 +70,9 @@ namespace ORTS
         private CancellationTokenSource ctsPathLoading;
         private CancellationTokenSource ctsTimeTableLoading;
 
-        private readonly ResourceManager Resources = new ResourceManager("ORTS.Properties.Resources", typeof(MainForm).Assembly);
-        private UpdateManager UpdateManager;
-        private readonly Image ElevationIcon;
+        private readonly ResourceManager resources = new ResourceManager("ORTS.Properties.Resources", typeof(MainForm).Assembly);
+        private UpdateManager updateManager;
+        private readonly Image elevationIcon;
 
         internal string RunActivityProgram
         {
@@ -120,13 +120,13 @@ namespace ORTS
             Font = SystemFonts.MessageBoxFont;
 
             // Set title to show revision or build info.
-            Text = String.Format(VersionInfo.Version.Length > 0 ? "{0} {1}" : "{0} build {2}", Application.ProductName, VersionInfo.Version, VersionInfo.Build);
+            Text = VersionInfo.Version.Length > 0 ? $"{Application.ProductName} {VersionInfo.Version}" : $"{Application.ProductName} build {VersionInfo.Build}";
 #if DEBUG
             Text += " (debug)";
 #endif
             panelModeTimetable.Location = panelModeActivity.Location;
             UpdateEnabled();
-            ElevationIcon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize).ToBitmap();
+            elevationIcon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize).ToBitmap();
         }
 
         private async void MainForm_Shown(object sender, EventArgs e)
@@ -200,7 +200,7 @@ namespace ORTS
         {
             await Task.Run(() =>
             {
-                UpdateManager = new UpdateManager(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
+                updateManager = new UpdateManager(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
             });
             await CheckForUpdateAsync();
         }
@@ -243,7 +243,7 @@ namespace ORTS
                             toolIsConsole = GetImageSubsystem(reader) == ImageSubsystem.WindowsConsole;
                         }
                         if (toolIsConsole)
-                            Process.Start("cmd", "/k \"" + toolPath + "\"");
+                            Process.Start("cmd", $"/k \"{toolPath}\"");
                         else
                             Process.Start(toolPath);
                     })
@@ -331,32 +331,33 @@ namespace ORTS
 
         private async Task CheckForUpdateAsync()
         {
-            if (string.IsNullOrEmpty(UpdateManager.ChannelName))
+            if (string.IsNullOrEmpty(updateManager.ChannelName))
             {
                 linkLabelChangeLog.Visible = false;
                 linkLabelUpdate.Visible = false;
                 return;
             }
             // This is known directly from the chosen channel so doesn't need to wait for the update check itself.
-            linkLabelChangeLog.Visible = !string.IsNullOrEmpty(UpdateManager.ChangeLogLink);
+            linkLabelChangeLog.Visible = !string.IsNullOrEmpty(updateManager.ChangeLogLink);
 
-            await Task.Run(() => UpdateManager.CheckForUpdateAsync());
+//            await Task.Run(() => UpdateManager.CheckForUpdateAsync());
+            await updateManager.CheckForUpdateAsync();
 
-            if (UpdateManager.LastCheckError != null)
+            if (updateManager.LastCheckError != null)
                 linkLabelUpdate.Text = catalog.GetString("Update check failed");
-            else if (UpdateManager.LastUpdate != null && UpdateManager.LastUpdate.Version != VersionInfo.Version)
-                linkLabelUpdate.Text = catalog.GetStringFmt("Update to {0}", UpdateManager.LastUpdate.Version);
+            else if (updateManager.LastUpdate != null && updateManager.LastUpdate.Version != VersionInfo.Version)
+                linkLabelUpdate.Text = catalog.GetStringFmt("Update to {0}", updateManager.LastUpdate.Version);
             else
                 linkLabelUpdate.Text = "";
             linkLabelUpdate.Enabled = true;
             linkLabelUpdate.Visible = linkLabelUpdate.Text.Length > 0;
             // Update link's elevation icon and size/position.
-            if (UpdateManager.LastCheckError == null && UpdateManager.LastUpdate?.Version != VersionInfo.Version && UpdateManager.UpdaterNeedsElevation)
-                linkLabelUpdate.Image = ElevationIcon;
+            if (updateManager.LastCheckError == null && updateManager.LastUpdate?.Version != VersionInfo.Version && updateManager.UpdaterNeedsElevation)
+                linkLabelUpdate.Image = elevationIcon;
             else
                 linkLabelUpdate.Image = null;
             linkLabelUpdate.AutoSize = true;
-            linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - ElevationIcon.Width;
+            linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - elevationIcon.Width;
             linkLabelUpdate.AutoSize = false;
             linkLabelUpdate.Width = panelDetails.Right - linkLabelUpdate.Left;
         }
@@ -556,23 +557,23 @@ namespace ORTS
         #region Misc. buttons and options
         private async void LinkLabelUpdate_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            if (UpdateManager.LastCheckError != null)
+            if (updateManager.LastCheckError != null)
             {
-                MessageBox.Show(catalog.GetStringFmt("The update check failed due to an error:\n\n{0}", UpdateManager.LastCheckError), Application.ProductName);
+                MessageBox.Show(catalog.GetStringFmt("The update check failed due to an error:\n\n{0}", updateManager.LastCheckError), Application.ProductName);
                 return;
             }
 
-            await UpdateManager.RunUpdateProcess();
+            await updateManager.RunUpdateProcess();
 
-            if (UpdateManager.LastUpdateError != null)
+            if (updateManager.LastUpdateError != null)
             {
-                MessageBox.Show(catalog.GetStringFmt("The update failed due to an error:\n\n{0}", UpdateManager.LastUpdateError), Application.ProductName);
+                MessageBox.Show(catalog.GetStringFmt("The update failed due to an error:\n\n{0}", updateManager.LastUpdateError), Application.ProductName);
             }
         }
 
         private void LinkLabelChangeLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start(UpdateManager.ChangeLogLink);
+            Process.Start(updateManager.ChangeLogLink);
         }
 
         private void ButtonTools_Click(object sender, EventArgs e)
@@ -597,7 +598,7 @@ namespace ORTS
         {
             SaveOptions();
 
-            using (var form = new OptionsForm(settings, UpdateManager, false))
+            using (var form = new OptionsForm(settings, updateManager, false))
             {
                 switch (form.ShowDialog(this))
                 {
@@ -782,7 +783,7 @@ namespace ORTS
 
             if (!initialized && folders.Count == 0)
             {
-                using (var form = new OptionsForm(settings, UpdateManager, true))
+                using (var form = new OptionsForm(settings, updateManager, true))
                 {
                     switch (form.ShowDialog(this))
                     {
@@ -1398,13 +1399,13 @@ namespace ORTS
             expanderControl.Enabled = descriptionControl.Height > summaryControl.Height;
             if (expanderControl.Enabled)
             {
-                expanderControl.BackgroundImage = (Image)Resources.GetObject("ExpanderClosed");
+                expanderControl.BackgroundImage = (Image)resources.GetObject("ExpanderClosed");
                 expanderControl.Tag = Details.Count;
                 expanderControl.Click += new EventHandler(ExpanderControl_Click);
             }
             else
             {
-                expanderControl.BackgroundImage = (Image)Resources.GetObject("ExpanderClosedDisabled");
+                expanderControl.BackgroundImage = (Image)resources.GetObject("ExpanderClosedDisabled");
             }
             Details.Add(new Detail(titleControl, expanderControl, summaryControl, descriptionControl));
         }
@@ -1421,7 +1422,7 @@ namespace ORTS
                 this.Suspend();
                 var index = (int)(sender as Control).Tag;
                 Details[index].Expanded = !Details[index].Expanded;
-                Details[index].Expander.BackgroundImage = (Image)Resources.GetObject(Details[index].Expanded ? "ExpanderOpen" : "ExpanderClosed");
+                Details[index].Expander.BackgroundImage = (Image)resources.GetObject(Details[index].Expanded ? "ExpanderOpen" : "ExpanderClosed");
                 FlowDetails();
             }
             finally

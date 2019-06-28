@@ -26,10 +26,10 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
-//using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-
+using Orts.Menu.Entities;
 using ORTS.TrackViewer.Drawing; // for colors
+
 namespace ORTS.TrackViewer.UserInterface
 {
     /// <summary>
@@ -346,7 +346,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             menuSelectRoute.Items.Clear();
             if (trackViewer.Routes == null) return;
-            foreach (ORTS.Menu.Route route in trackViewer.Routes)
+            foreach (Route route in trackViewer.Routes)
             {
                 MenuItem menuItem = new MenuItem
                 {
@@ -367,7 +367,7 @@ namespace ORTS.TrackViewer.UserInterface
         private void MenuSelectRoute_Click(object sender, RoutedEventArgs e)
         {
             MenuItem selectedMenuItem = sender as MenuItem;
-            foreach (ORTS.Menu.Route route in trackViewer.Routes)
+            foreach (Route route in trackViewer.Routes)
             {
                 if (route.Name == (string)selectedMenuItem.Header)
                 {
@@ -396,7 +396,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             if (trackViewer.Paths == null) return;
             List<string> paths = new List<string>();
-            foreach (ORTS.Menu.Path path in trackViewer.Paths)
+            foreach (Path path in trackViewer.Paths)
             {
                 paths.Add(MakePathMenyEntryName(path));
             }
@@ -503,7 +503,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             string selectedPath = menuSelectPathCombobox.SelectedItem as string;
             if (selectedPath == null) return;
-            foreach (ORTS.Menu.Path path in trackViewer.Paths)
+            foreach (Path path in trackViewer.Paths)
             {
                 if (MakePathMenyEntryName(path) == selectedPath)
                 {
@@ -527,7 +527,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             string selectedPath = menuExtendPathCombobox.SelectedItem as string;
             if (selectedPath == null) return;
-            foreach (ORTS.Menu.Path path in trackViewer.Paths)
+            foreach (Path path in trackViewer.Paths)
             {
                 if (MakePathMenyEntryName(path) == selectedPath)
                 {
@@ -545,7 +545,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         /// <param name="path">The path containing name and filepath</param>
         /// <returns>string that can be used to defined menu header</returns>
-        public static string MakePathMenyEntryName(ORTS.Menu.Path path)
+        public static string MakePathMenyEntryName(Path path)
         {
             string[] pathArr = path.FilePath.Split('\\');
             string fileName = pathArr.Last();

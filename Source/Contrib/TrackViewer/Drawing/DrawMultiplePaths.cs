@@ -22,7 +22,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts;
-using ORTS.Menu;
+using Orts.Menu.Entities;
 using ORTS.TrackViewer.Editing;
 
 namespace ORTS.TrackViewer.Drawing

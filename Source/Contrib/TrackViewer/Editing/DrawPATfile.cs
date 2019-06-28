@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 
 using Orts.Formats.Msts;
+using Orts.Menu.Entities;
 using ORTS.Common;
 using ORTS.TrackViewer.Drawing;
 
@@ -60,7 +61,7 @@ namespace ORTS.TrackViewer.Editing
         /// Constructor
         /// </summary>
         /// <param name="path">Contains the information (mainly filepath) needed for loading the .pat file</param>
-        public DrawPATfile (ORTS.Menu.Path path)
+        public DrawPATfile (Path path)
         {
             FileName = path.FilePath.Split('\\').Last();
             patFile = new PathFile(path.FilePath);

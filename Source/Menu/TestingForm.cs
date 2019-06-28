@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
-using ORTS.Menu;
+using Orts.Menu.Entities;
 using ORTS.Settings;
 using Path = System.IO.Path;
 
@@ -126,9 +126,9 @@ namespace ORTS
             testBindingSource.DataSource = await Task.Run(() =>
             {
                 return new SortableBindingList<TestActivity>((from f in Folder.GetFolders(settings).Result
-                                                              from r in Route.GetRoutes(f, System.Threading.CancellationToken.None).Result
-                                                              from a in Activity.GetActivities(f, r, System.Threading.CancellationToken.None).Result
-                                                              where !(a is ORTS.Menu.ExploreActivity)
+                                                              from r in Route.GetRoutes(f, CancellationToken.None).Result
+                                                              from a in Activity.GetActivities(f, r, CancellationToken.None).Result
+                                                              where !(a is ExploreActivity)
                                                               orderby a.Name
                                                               select new TestActivity(f, r, a)).ToList());
             });

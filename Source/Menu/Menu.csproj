@@ -183,9 +183,9 @@
       <Project>{0d8d312b-2c02-4b77-a795-566394a9db95}</Project>
       <Name>Orts.Formats.OR</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ORTS.Menu\ORTS.Menu.csproj">
-      <Project>{1C5B0B41-2FE9-41C9-8B21-CCDCBEB3DDA5}</Project>
-      <Name>ORTS.Menu</Name>
+    <ProjectReference Include="..\Orts.Menu.Entities\Orts.Menu.Entities.csproj">
+      <Project>{1c5b0b41-2fe9-41c9-8b21-ccdcbeb3dda5}</Project>
+      <Name>Orts.Menu.Entities</Name>
     </ProjectReference>
     <ProjectReference Include="..\ORTS.Settings\ORTS.Settings.csproj">
       <Project>{67F84996-8769-4FD8-819B-464AF269037B}</Project>
