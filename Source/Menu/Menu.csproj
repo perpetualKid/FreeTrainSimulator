@@ -187,9 +187,9 @@
       <Project>{1c5b0b41-2fe9-41c9-8b21-ccdcbeb3dda5}</Project>
       <Name>Orts.Menu.Entities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ORTS.Settings\ORTS.Settings.csproj">
+    <ProjectReference Include="..\ORTS.Settings\Orts.Settings.csproj">
       <Project>{67F84996-8769-4FD8-819B-464AF269037B}</Project>
-      <Name>ORTS.Settings</Name>
+      <Name>Orts.Settings</Name>
     </ProjectReference>
     <ProjectReference Include="..\ORTS.Updater\ORTS.Updater.csproj">
       <Project>{88108A94-0389-43FF-A75C-C55BD202FC8D}</Project>

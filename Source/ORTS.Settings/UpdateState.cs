@@ -22,7 +22,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace ORTS.Settings
+namespace Orts.Settings
 {
     public class UpdateState : SettingsBase
     {

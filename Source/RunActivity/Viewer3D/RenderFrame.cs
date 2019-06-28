@@ -30,7 +30,7 @@ using Orts.Viewer3D.Processes;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Common.Xna;
-using ORTS.Settings;
+using Orts.Settings;
 using Game = Orts.Viewer3D.Processes.Game;
 
 namespace Orts.Viewer3D

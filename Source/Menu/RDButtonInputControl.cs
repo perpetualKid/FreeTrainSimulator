@@ -19,7 +19,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using Orts.Common.Input;
-using ORTS.Settings;
+using Orts.Settings;
 
 namespace ORTS
 {

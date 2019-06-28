@@ -31,7 +31,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using ORTS.Settings;
+using Orts.Settings;
 
 namespace ORTS.Updater
 {

@@ -65,7 +65,7 @@ using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Common;
 using ORTS.Scripting.Api;
-using ORTS.Settings;
+using Orts.Settings;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 /// This module ...
 /// 
 /// Author: Stéfan Paitoni
@@ -22,24 +25,11 @@
 
 
 using ActivityEditor.Engine;
-using ActivityEditor.Preference;
 using LibAE;
-using LibAE.Formats;
+using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
-using Orts.Parsers.Msts;
-using ORTS;
-using Orts.Common;
-using ORTS.Settings;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Windows.Forms;
-using System.Xml.Serialization;
+using Orts.Settings;
 
 namespace ActivityEditor
 {

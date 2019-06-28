@@ -53,9 +53,9 @@
       <Project>{DA94D876-7D35-46C3-AECE-AFACE72C686C}</Project>
       <Name>Orts.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ORTS.Settings\ORTS.Settings.csproj">
+    <ProjectReference Include="..\ORTS.Settings\Orts.Settings.csproj">
       <Project>{67F84996-8769-4FD8-819B-464AF269037B}</Project>
-      <Name>ORTS.Settings</Name>
+      <Name>Orts.Settings</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

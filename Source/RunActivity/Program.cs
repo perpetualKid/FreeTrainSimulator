@@ -25,7 +25,7 @@ using Orts.Simulation;
 using Orts.Viewer3D;
 using Orts.Viewer3D.Debugging;
 using Orts.Viewer3D.Processes;
-using ORTS.Settings;
+using Orts.Settings;
 
 namespace Orts
 {

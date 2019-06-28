@@ -8,7 +8,7 @@ using GNU.Gettext;
 using Orts.Common;
 using Orts.Common.Input;
 
-namespace ORTS.Settings
+namespace Orts.Settings
 {
     public enum RailDriverCalibrationSetting
     {

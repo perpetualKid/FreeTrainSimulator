@@ -41,7 +41,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Viewer3D.Popups;
 using Orts.Viewer3D.Processes;
 using Orts.Viewer3D.RollingStock;
-using ORTS.Settings;
+using Orts.Settings;
 using Event = Orts.Common.Event;
 
 namespace Orts.Viewer3D

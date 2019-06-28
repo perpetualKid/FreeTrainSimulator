@@ -80,9 +80,9 @@
       <Project>{da94d876-7d35-46c3-aece-aface72c686c}</Project>
       <Name>Orts.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\ORTS.Settings\ORTS.Settings.csproj">
+    <ProjectReference Include="..\..\..\ORTS.Settings\Orts.Settings.csproj">
       <Project>{67F84996-8769-4FD8-819B-464AF269037B}</Project>
-      <Name>ORTS.Settings</Name>
+      <Name>Orts.Settings</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

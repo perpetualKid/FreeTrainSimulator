@@ -22,7 +22,7 @@ using System.Linq;
 using System.Text;
 using Orts.Common;
 
-namespace ORTS.Settings
+namespace Orts.Settings
 {
     public class FolderSettings : SettingsBase
     {

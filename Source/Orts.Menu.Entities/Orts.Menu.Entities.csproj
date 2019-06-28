@@ -66,9 +66,9 @@
       <Project>{0d8d312b-2c02-4b77-a795-566394a9db95}</Project>
       <Name>Orts.Formats.OR</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ORTS.Settings\ORTS.Settings.csproj">
+    <ProjectReference Include="..\ORTS.Settings\Orts.Settings.csproj">
       <Project>{67F84996-8769-4FD8-819B-464AF269037B}</Project>
-      <Name>ORTS.Settings</Name>
+      <Name>Orts.Settings</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

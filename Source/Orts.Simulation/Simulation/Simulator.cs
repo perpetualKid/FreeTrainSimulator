@@ -34,7 +34,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
-using ORTS.Settings;
+using Orts.Settings;
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation

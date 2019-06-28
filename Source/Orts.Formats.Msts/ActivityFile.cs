@@ -610,7 +610,7 @@ namespace Orts.Formats.Msts
         }
 
         // Override User settings with activity creator settings if present in INCLUDE file
-        public void OverrideUserSettings(ORTS.Settings.UserSettings setting)
+        public void OverrideUserSettings(Orts.Settings.UserSettings setting)
         {
             if (IsActivityOverride)
             {

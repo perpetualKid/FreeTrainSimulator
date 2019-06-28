@@ -251,9 +251,9 @@
       <Project>{8a84696c-3559-49b8-b27f-bb6932d8a1c6}</Project>
       <Name>Orts.Parsers.Msts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ORTS.Settings\ORTS.Settings.csproj">
+    <ProjectReference Include="..\..\ORTS.Settings\Orts.Settings.csproj">
       <Project>{67F84996-8769-4FD8-819B-464AF269037B}</Project>
-      <Name>ORTS.Settings</Name>
+      <Name>Orts.Settings</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj">
       <Project>{333c4378-d82e-4b47-b561-6ba923b8fdfd}</Project>

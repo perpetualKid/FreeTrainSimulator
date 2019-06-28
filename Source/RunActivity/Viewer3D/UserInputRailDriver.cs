@@ -19,7 +19,7 @@ using System;
 using Orts.Viewer3D.Processes;
 using Orts.Common;
 using Orts.Common.Input;
-using ORTS.Settings;
+using Orts.Settings;
 
 namespace Orts.Viewer3D
 {

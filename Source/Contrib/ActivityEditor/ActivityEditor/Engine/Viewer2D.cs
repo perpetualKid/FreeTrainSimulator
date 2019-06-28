@@ -14,6 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
+using System.Reflection;
+using System.Windows.Forms;
 /// This module ...
 /// 
 /// Author: Stéfan Paitoni
@@ -24,25 +31,10 @@
 using ActivityEditor.Activity;
 using LibAE;
 using LibAE.Formats;
-using Microsoft.Xna.Framework;
+using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
-using Orts.Parsers.Msts;
-using ORTS;
-using Orts.Common;
 using Color = System.Drawing.Color;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Windows.Forms;
-using System.Xml.Serialization;
 
 namespace ActivityEditor.Engine
 {

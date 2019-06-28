@@ -7,8 +7,8 @@
     <ProjectGuid>{67F84996-8769-4FD8-819B-464AF269037B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ORTS.Settings</RootNamespace>
-    <AssemblyName>ORTS.Settings</AssemblyName>
+    <RootNamespace>Orts.Settings</RootNamespace>
+    <AssemblyName>Orts.Settings</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

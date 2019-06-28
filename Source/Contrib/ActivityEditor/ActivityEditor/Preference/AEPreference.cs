@@ -21,15 +21,12 @@
 /// 
 
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
-using ORTS;
-using ORTS.Settings;
-using LibAE.Formats;
 using Orts.Formats.OR;
+using Orts.Settings;
 
 namespace ActivityEditor.Preference
 {

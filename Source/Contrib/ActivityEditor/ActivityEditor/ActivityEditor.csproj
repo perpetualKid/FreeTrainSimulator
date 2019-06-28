@@ -387,9 +387,9 @@
       <Project>{da94d876-7d35-46c3-aece-aface72c686c}</Project>
       <Name>Orts.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\ORTS.Settings\ORTS.Settings.csproj">
+    <ProjectReference Include="..\..\..\ORTS.Settings\Orts.Settings.csproj">
       <Project>{67f84996-8769-4fd8-819b-464af269037b}</Project>
-      <Name>ORTS.Settings</Name>
+      <Name>Orts.Settings</Name>
     </ProjectReference>
     <ProjectReference Include="..\LibAE\LibAE.csproj">
       <Project>{b79691a7-bf8c-40b4-ade0-5f30f2730414}</Project>

@@ -18,7 +18,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using ORTS.Settings;
+using Orts.Settings;
 
 namespace Orts.Menu.Entities
 {

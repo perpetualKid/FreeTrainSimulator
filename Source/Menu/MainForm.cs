@@ -33,7 +33,7 @@ using Orts.Formats.OR;
 using Orts.Menu.Entities;
 using Orts.Common;
 using Orts.Common.Native;
-using ORTS.Settings;
+using Orts.Settings;
 using ORTS.Updater;
 using Path = Orts.Menu.Entities.Path;
 

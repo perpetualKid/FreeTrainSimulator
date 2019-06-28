@@ -51,7 +51,7 @@ using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
-using ORTS.Settings;
+using Orts.Settings;
 using Event = Orts.Common.Event;
 using Events = Orts.Common.Events;
 

@@ -25,7 +25,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using Orts.Common;
-using ORTS.Settings;
+using Orts.Settings;
 
 namespace Orts.Viewer3D.Processes
 {

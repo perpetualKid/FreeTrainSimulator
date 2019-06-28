@@ -146,7 +146,7 @@ namespace ORTS.TrackViewer.UserInterface
             //if (ComposingMessage == true) return false;
             //if (RDState != null && RDState.IsPressed(command))
             //    return true;
-            ORTS.Settings.UserCommandInput setting = TVInputSettings.Commands[(int)command];
+            Orts.Settings.UserCommandInput setting = TVInputSettings.Commands[(int)command];
             return setting.IsKeyDown(KeyboardState) && !setting.IsKeyDown(LastKeyboardState);
         }
 
@@ -159,7 +159,7 @@ namespace ORTS.TrackViewer.UserInterface
             //if (ComposingMessage == true) return false;
             //if (RDState != null && RDState.IsReleased(command))
             //    return true;
-            ORTS.Settings.UserCommandInput setting = TVInputSettings.Commands[(int)command];
+            Orts.Settings.UserCommandInput setting = TVInputSettings.Commands[(int)command];
             return !setting.IsKeyDown(KeyboardState) && setting.IsKeyDown(LastKeyboardState);
         }
 
@@ -172,7 +172,7 @@ namespace ORTS.TrackViewer.UserInterface
             //if (ComposingMessage == true) return false;
             //if (RDState != null && RDState.IsDown(command))
             //    return true;
-            ORTS.Settings.UserCommandInput setting = TVInputSettings.Commands[(int)command];
+            Orts.Settings.UserCommandInput setting = TVInputSettings.Commands[(int)command];
             return setting.IsKeyDown(KeyboardState);
         }
 

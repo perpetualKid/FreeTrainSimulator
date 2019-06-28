@@ -29,7 +29,7 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Common;
 using Orts.Common.Input;
-using ORTS.Settings;
+using Orts.Settings;
 
 namespace Orts.Viewer3D.Popups
 {

@@ -32,7 +32,7 @@ using System.Windows;
 using System.Linq;      //DEBUG_INPUT only
 using Microsoft.Xna.Framework.Input;
 using Orts.Common.Input;
-using ORTS.Settings;
+using Orts.Settings;
 using Game = Orts.Viewer3D.Processes.Game;
 using Orts.Common;
 

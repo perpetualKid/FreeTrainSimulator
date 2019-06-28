@@ -22,7 +22,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Orts.Common;
 
-namespace ORTS.Settings
+namespace Orts.Settings
 {
     public class UpdateSettings : SettingsBase
     {

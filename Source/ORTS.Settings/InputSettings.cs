@@ -30,7 +30,7 @@ using Orts.Common;
 using Orts.Common.Input;
 using Orts.Common.Native;
 
-namespace ORTS.Settings
+namespace Orts.Settings
 {
     /// <summary>
     /// Loads, stores and manages keyboard input settings for all available <see cref="UserCommands"/>.

@@ -28,7 +28,7 @@ using System.Windows.Forms;
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
 using Orts.Menu.Entities;
-using ORTS.Settings;
+using Orts.Settings;
 using Path = System.IO.Path;
 
 namespace ORTS

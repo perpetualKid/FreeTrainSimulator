@@ -23,7 +23,7 @@ using System.Reflection;
 using System.Windows.Forms;
 using Orts.Common;
 
-namespace ORTS.Settings
+namespace Orts.Settings
 {
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class DefaultAttribute : Attribute

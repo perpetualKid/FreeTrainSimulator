@@ -23,7 +23,7 @@ using System.IO.Compression;
 using System.Windows.Forms;
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
-using ORTS.Settings;
+using Orts.Settings;
 
 namespace ORTS
 {

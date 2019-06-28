@@ -23,7 +23,7 @@
 using System;
 using Orts.Common;
 using Orts.Common.Input;
-using ORTS.Settings;
+using Orts.Settings;
 
 namespace ORTS.TrackViewer.UserInterface
 {

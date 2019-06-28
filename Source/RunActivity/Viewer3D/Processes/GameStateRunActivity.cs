@@ -36,7 +36,7 @@ using Orts.Common.Xna;
 using Orts.MultiPlayer;
 using Orts.Simulation;
 using Orts.Viewer3D.Debugging;
-using ORTS.Settings;
+using Orts.Settings;
 
 namespace Orts.Viewer3D.Processes
 {
