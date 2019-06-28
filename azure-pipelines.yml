@@ -41,7 +41,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: '$Revision = git describe --first-parent --always;
-    $version=Get-Content "./Program/Version.txt";
+    $version=Get-Content "./Program/Version.txt" -First 1;
     $Revision = "$Version-$(Build.BuildId)-$Revision";
     Write-Host "##vso[task.setvariable variable=outputFile]$Revision";
     Set-Content "./Program/Revision.txt" "`$Revision: $Revision `$";
