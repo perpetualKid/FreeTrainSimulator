@@ -771,9 +771,11 @@ namespace ORTS
         {
             folders.Clear();
             ShowFolderList();
-
-            folders = (await Task.Run (() => Folder.GetFolders(settings)))?.OrderBy(f => f.Name).ToList() ?? new List<Folder>();
-
+            try
+            {
+                folders = (await Task.Run(() => Folder.GetFolders(settings)))?.OrderBy(f => f.Name).ToList() ?? new List<Folder>();
+            }
+            catch (TaskCanceledException) { }
             ShowFolderList();
             if (folders.Count > 0)
                 comboBoxFolder.Focus();
@@ -917,7 +919,11 @@ namespace ORTS
             ShowConsistList();
 
             Folder selectedFolder = SelectedFolder;
-            consists = (await Task.Run(() => Consist.GetConsists(selectedFolder, ctsConsistLoading.Token)))?.OrderBy(c => c.Name).ToList() ?? new List<Consist>();
+            try
+            {
+                consists = (await Task.Run(() => Consist.GetConsists(selectedFolder, ctsConsistLoading.Token))).OrderBy(c => c.Name).ToList();
+            }
+            catch (TaskCanceledException) { }
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowLocomotiveList();
         }
@@ -999,7 +1005,11 @@ namespace ORTS
             ShowHeadToList();
 
             var selectedRoute = SelectedRoute;
-            paths = (await Task.Run(() => Path.GetPaths(selectedRoute, false, ctsPathLoading.Token)))?.OrderBy(a => a.ToString()).ToList() ?? new List<Path>();
+            try
+            {
+                paths = (await Task.Run(() => Path.GetPaths(selectedRoute, false, ctsPathLoading.Token))).OrderBy(a => a.ToString()).ToList();
+            }
+            catch (TaskCanceledException) { }
 
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowStartAtList();
@@ -1141,7 +1151,11 @@ namespace ORTS
 
             var selectedFolder = SelectedFolder;
             var selectedRoute = SelectedRoute;
-            timetableSets = (await Task.Run(() => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token)))?.OrderBy(tt => tt.Description).ToList() ?? new List<TimetableInfo>();
+            try
+            {
+                timetableSets = (await Task.Run(() => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token))).OrderBy(tt => tt.Description).ToList();
+            }
+            catch (TaskCanceledException) { }
             ShowTimetableSetList();
         }
 
