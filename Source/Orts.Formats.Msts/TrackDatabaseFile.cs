@@ -21,7 +21,7 @@ using System.IO;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using Orts.Parsers.Msts;
-using ORTS.Common;
+using Orts.Common;
 using Microsoft.Xna.Framework;
 
 namespace Orts.Formats.Msts
@@ -1121,16 +1121,16 @@ namespace Orts.Formats.Msts
 
             if (!isStart) { IsLimit = true; IsResume = true; }//end zone
             float speed = routeFile.TempRestrictedSpeed;
-            if (speed < 0) speed = ORTS.Common.MpS.FromKpH(25); //todo. Value is not used. Should it be used below instead of TempRestrictedSpeed? And if so, is the +0.01 then still needed?
+            if (speed < 0) speed = Orts.Common.MpS.FromKpH(25); //todo. Value is not used. Should it be used below instead of TempRestrictedSpeed? And if so, is the +0.01 then still needed?
             if (routeFile.MilepostUnitsMetric == true)
             {
                 this.IsMPH = false;
-                SpeedInd = (int)(ORTS.Common.MpS.ToKpH(routeFile.TempRestrictedSpeed) + 0.1f); 
+                SpeedInd = (int)(Orts.Common.MpS.ToKpH(routeFile.TempRestrictedSpeed) + 0.1f); 
             }
             else
             {
                 this.IsMPH = true;
-                SpeedInd = (int)(ORTS.Common.MpS.ToMpH(routeFile.TempRestrictedSpeed) + 0.1f);
+                SpeedInd = (int)(Orts.Common.MpS.ToMpH(routeFile.TempRestrictedSpeed) + 0.1f);
             }
 
             Angle = 0;

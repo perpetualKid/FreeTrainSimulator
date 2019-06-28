@@ -20,7 +20,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Simulation.Timetables;
-using ORTS.Common;
+using Orts.Common;
 using System;
 using System.Linq;
 using System.Collections.Generic;

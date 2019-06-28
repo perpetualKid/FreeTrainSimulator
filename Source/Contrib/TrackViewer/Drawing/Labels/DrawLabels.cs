@@ -23,7 +23,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Newtonsoft.Json;
 
-using ORTS.Common;
+using Orts.Common;
 
 namespace ORTS.TrackViewer.Drawing.Labels
 {

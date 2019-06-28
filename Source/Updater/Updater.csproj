@@ -41,7 +41,6 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
-
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GNU.Gettext, Version=1.1.5151.39896, Culture=neutral, processorArchitecture=MSIL">
@@ -71,9 +70,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ORTS.Common\ORTS.Common.csproj">
+    <ProjectReference Include="..\ORTS.Common\Orts.Common.csproj">
       <Project>{da94d876-7d35-46c3-aece-aface72c686c}</Project>
-      <Name>ORTS.Common</Name>
+      <Name>Orts.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\ORTS.Settings\ORTS.Settings.csproj">
       <Project>{67f84996-8769-4fd8-819b-464af269037b}</Project>

@@ -17,16 +17,14 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
 using Orts.Common;
-using Orts.Simulation;
+using Orts.Common.Input;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using ORTS.Common;
-using ORTS.Common.Input;
-using System;
 
 namespace Orts.Viewer3D.RollingStock
 {

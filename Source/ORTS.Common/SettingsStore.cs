@@ -21,9 +21,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Microsoft.Win32;
-using ORTS.Common.Native;
+using Orts.Common.Native;
 
-namespace ORTS.Common
+namespace Orts.Common
 {
     /// <summary>
     /// Base class for all means of persisting settings from the user/game.

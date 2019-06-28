@@ -49,9 +49,9 @@
       <Project>{570709fa-0c8a-4b1d-ba2d-d9455afd9b5c}</Project>
       <Name>Orts.Formats.Msts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ORTS.Common\ORTS.Common.csproj">
+    <ProjectReference Include="..\..\ORTS.Common\Orts.Common.csproj">
       <Project>{da94d876-7d35-46c3-aece-aface72c686c}</Project>
-      <Name>ORTS.Common</Name>
+      <Name>Orts.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

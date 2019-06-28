@@ -21,9 +21,8 @@ using System;
 using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Orts.Common;
+using Orts.Common.Input;
 using Orts.Viewer3D.Processes;
-using ORTS.Common;
-using ORTS.Common.Input;
 
 namespace Orts.Viewer3D.Popups
 {

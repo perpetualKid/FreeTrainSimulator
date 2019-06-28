@@ -21,7 +21,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Orts.Formats.Msts;
-using ORTS.Common.Msts;
+using Orts.Common.Msts;
 
 namespace Orts.Menu.Entities
 {

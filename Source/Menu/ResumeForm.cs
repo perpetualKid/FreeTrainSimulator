@@ -59,8 +59,8 @@ using System.Windows.Forms;
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
 using Orts.Menu.Entities;
-using ORTS.Common;
-using ORTS.Common.Msts;
+using Orts.Common;
+using Orts.Common.Msts;
 using ORTS.Settings;
 using Path = System.IO.Path;
 

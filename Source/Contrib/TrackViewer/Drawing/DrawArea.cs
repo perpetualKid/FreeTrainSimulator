@@ -33,7 +33,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using ORTS.Common;
+using Orts.Common;
 using ORTS.TrackViewer.Properties;
 
 namespace ORTS.TrackViewer.Drawing

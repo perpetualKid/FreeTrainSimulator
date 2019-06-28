@@ -17,7 +17,7 @@
 
 using System;
 
-namespace ORTS.Common
+namespace Orts.Common
 {
     public static class AlmostEqualE
     {

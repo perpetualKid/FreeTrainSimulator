@@ -16,7 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 
-namespace ORTS.Common
+namespace Orts.Common
 {
     /// <summary>
     /// List of items that can be shown through the Editor.  These items can be searchable, modifiable, movable, ...

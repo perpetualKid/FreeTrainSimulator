@@ -16,8 +16,8 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using Orts.MultiPlayer;
-using ORTS.Common;
-using ORTS.Common.Input;
+using Orts.Common;
+using Orts.Common.Input;
 
 namespace Orts.Viewer3D
 {

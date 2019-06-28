@@ -383,9 +383,9 @@
       <Project>{8a84696c-3559-49b8-b27f-bb6932d8a1c6}</Project>
       <Name>Orts.Parsers.Msts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\ORTS.Common\ORTS.Common.csproj">
+    <ProjectReference Include="..\..\..\ORTS.Common\Orts.Common.csproj">
       <Project>{da94d876-7d35-46c3-aece-aface72c686c}</Project>
-      <Name>ORTS.Common</Name>
+      <Name>Orts.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\ORTS.Settings\ORTS.Settings.csproj">
       <Project>{67f84996-8769-4fd8-819b-464af269037b}</Project>

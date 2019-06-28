@@ -30,7 +30,7 @@ using System.Windows.Shapes;
 using System.Windows.Forms.Integration;
 
 using Orts.Formats.Msts;
-using ORTS.Common;
+using Orts.Common;
 using ORTS.TrackViewer.Properties;
 using ORTS.TrackViewer.Editing;
 

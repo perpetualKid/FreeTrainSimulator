@@ -20,7 +20,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Processes;
-using ORTS.Common;
+using Orts.Common;
 using System;
 using System.Diagnostics;
 using System.Windows.Forms;

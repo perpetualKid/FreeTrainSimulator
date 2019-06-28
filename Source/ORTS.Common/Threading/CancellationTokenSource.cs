@@ -17,7 +17,7 @@
 
 using System;
 
-namespace ORTS.Common.Threading
+namespace Orts.Common.Threading
 {
     public class CancellationTokenSource
     {

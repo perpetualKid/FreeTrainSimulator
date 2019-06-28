@@ -17,13 +17,10 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Globalization;
 using GNU.Gettext;
 
-namespace ORTS.Common
+namespace Orts.Common
 {
     // Classes are provided for converting into and out of these internal units.
     // OR will use metric units (m, kg, s, A, 'C) for internal properties and calculations, preferably from SI (m/s, not km/hr).
@@ -520,7 +517,7 @@ namespace ORTS.Common
     /// </summary>
     public static class FormatStrings
     {
-        public static GettextResourceManager Catalog = new GettextResourceManager("ORTS.Common");
+        public static GettextResourceManager Catalog = new GettextResourceManager("Orts.Common");
         public static string m = Catalog.GetString("m");
         public static string km = Catalog.GetString("km");
         public static string mm = Catalog.GetString("mm");

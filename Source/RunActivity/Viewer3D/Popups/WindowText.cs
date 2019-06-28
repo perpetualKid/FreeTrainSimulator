@@ -21,8 +21,8 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ORTS.Common;
-using ORTS.Common.Native;
+using Orts.Common;
+using Orts.Common.Native;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

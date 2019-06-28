@@ -23,13 +23,13 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Viewer3D.Processes;
-using ORTS.Common;
+using Orts.Common;
 using System;
 using System.IO;
 using Microsoft.Xna.Framework.Content.Pipeline;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
 using Microsoft.Xna.Framework.Content.Pipeline.Processors;
-using ORTS.Common.Xna;
+using Orts.Common.Xna;
 
 namespace Orts.Viewer3D
 {

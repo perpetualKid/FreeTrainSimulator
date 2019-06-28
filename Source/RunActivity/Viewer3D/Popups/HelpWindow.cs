@@ -27,8 +27,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using ORTS.Common;
-using ORTS.Common.Input;
+using Orts.Common;
+using Orts.Common.Input;
 using ORTS.Settings;
 
 namespace Orts.Viewer3D.Popups

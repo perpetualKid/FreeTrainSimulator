@@ -23,7 +23,6 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
-using ORTS.Common;
 
 namespace Orts.Viewer3D
 {

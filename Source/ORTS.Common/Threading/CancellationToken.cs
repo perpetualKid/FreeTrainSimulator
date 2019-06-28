@@ -16,7 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 
-namespace ORTS.Common.Threading
+namespace Orts.Common.Threading
 {
     public struct CancellationToken
     {

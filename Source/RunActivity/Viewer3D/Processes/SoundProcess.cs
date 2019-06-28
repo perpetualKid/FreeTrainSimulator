@@ -20,13 +20,12 @@
 // Define this to log each change of the sound sources.
 //#define DEBUG_SOURCE_SOURCES
 
-using Orts.Common;
-using Orts.Processes;
-using ORTS.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Orts.Common;
+using Orts.Processes;
 
 namespace Orts.Viewer3D.Processes
 {

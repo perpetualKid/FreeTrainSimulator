@@ -18,27 +18,25 @@
 // Define this to include extra data on loading performance and progress indications.
 //#define DEBUG_LOADING
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Common;
-using Orts.MultiPlayer;
-using Orts.Simulation;
-using Orts.Viewer3D.Debugging;
-using ORTS.Common;
-using ORTS.Common.Msts;
-using ORTS.Common.Native;
-using ORTS.Common.Xna;
-using ORTS.Settings;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Orts.Common;
+using Orts.Common.Msts;
+using Orts.Common.Native;
+using Orts.Common.Xna;
+using Orts.MultiPlayer;
+using Orts.Simulation;
+using Orts.Viewer3D.Debugging;
+using ORTS.Settings;
 
 namespace Orts.Viewer3D.Processes
 {

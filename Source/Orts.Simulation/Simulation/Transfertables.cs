@@ -18,7 +18,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Parsers.Msts;
-using ORTS.Common;
+using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -28,7 +28,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using ORTS.Common.Xna;
+using Orts.Common.Xna;
 
 namespace Orts.Simulation
 {

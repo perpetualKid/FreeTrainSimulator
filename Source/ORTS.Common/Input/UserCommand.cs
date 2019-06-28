@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace ORTS.Common.Input
+namespace Orts.Common.Input
 {
     /// <summary>
     /// Specifies game commands.

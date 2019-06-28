@@ -60,7 +60,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Formats.Msts;
 using Orts.Viewer3D;
-using ORTS.Common;
+using Orts.Common;
 
 namespace ORTS.TrackViewer.Drawing
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ORTS.Common.Input
+namespace Orts.Common.Input
 {
     public enum RailDriverDisplaySign : byte
     {

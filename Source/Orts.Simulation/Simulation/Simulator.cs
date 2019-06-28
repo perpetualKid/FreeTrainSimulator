@@ -15,10 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using GNU.Gettext;
 using Microsoft.Xna.Framework;
 using Orts.Common;
+using Orts.Common.Msts;
 using Orts.Common.Scripting;
+using Orts.Common.Threading;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
 using Orts.MultiPlayer;
@@ -28,14 +34,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
-using ORTS.Common;
-using ORTS.Common.Msts;
-using ORTS.Common.Threading;
 using ORTS.Settings;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation

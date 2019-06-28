@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace ORTS.Common.Native
+namespace Orts.Common.Native
 {
     /// <summary>
     /// P/Invoke for Kernel32.dll

@@ -22,7 +22,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.Xna.Framework;
 using Orts.Parsers.Msts;
-using ORTS.Common;
+using Orts.Common;
 
 namespace Orts.Formats.Msts
 {

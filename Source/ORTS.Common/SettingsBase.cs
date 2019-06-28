@@ -21,7 +21,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-namespace ORTS.Common
+namespace Orts.Common
 {
     /// <summary>
     /// Base class for supporting settings (either from user, commandline, default, ...)

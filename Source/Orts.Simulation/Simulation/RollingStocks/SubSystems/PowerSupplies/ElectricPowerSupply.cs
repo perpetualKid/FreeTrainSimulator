@@ -16,7 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using Orts.Parsers.Msts;
-using ORTS.Common;
+using Orts.Common;
 using ORTS.Scripting.Api;
 using System.IO;
 

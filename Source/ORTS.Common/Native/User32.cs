@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace ORTS.Common.Native
+namespace Orts.Common.Native
 {
     public partial class NativeMethods
     {

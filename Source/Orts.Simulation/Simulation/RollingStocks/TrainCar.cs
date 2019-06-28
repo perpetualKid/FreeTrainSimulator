@@ -33,25 +33,23 @@
 // Debug Brake Slide Calculations
 //#define DEBUG_BRAKE_SLIDE
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using Microsoft.Xna.Framework;
+using Orts.Common;
 using Orts.Formats.Msts;
+using Orts.Parsers.Msts;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
-using ORTS.Common;
 using ORTS.Scripting.Api;
-using ORTS.Settings;
-using System;
-using Orts.Parsers.Msts;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using Event = Orts.Common.Event;
-using Orts.Common;
 
 namespace Orts.Simulation.RollingStocks
 {

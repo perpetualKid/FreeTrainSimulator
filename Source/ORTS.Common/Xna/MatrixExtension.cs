@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 
-namespace ORTS.Common.Xna
+namespace Orts.Common.Xna
 {
     public static class MatrixExtension
     {

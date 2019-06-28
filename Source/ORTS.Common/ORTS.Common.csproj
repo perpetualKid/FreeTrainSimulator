@@ -7,8 +7,8 @@
     <ProjectGuid>{DA94D876-7D35-46C3-AECE-AFACE72C686C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ORTS.Common</RootNamespace>
-    <AssemblyName>ORTS.Common</AssemblyName>
+    <RootNamespace>Orts.Common</RootNamespace>
+    <AssemblyName>Orts.Common</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

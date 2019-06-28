@@ -21,7 +21,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Formats.Msts;
 using Orts.Viewer3D.Common;
-using ORTS.Common;
+using Orts.Common;
 using System;
 using System.Collections.Generic;
 

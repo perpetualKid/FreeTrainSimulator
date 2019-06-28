@@ -31,10 +31,10 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Linq;      //DEBUG_INPUT only
 using Microsoft.Xna.Framework.Input;
-using ORTS.Common.Input;
+using Orts.Common.Input;
 using ORTS.Settings;
 using Game = Orts.Viewer3D.Processes.Game;
-using ORTS.Common;
+using Orts.Common;
 
 namespace Orts.Viewer3D
 {

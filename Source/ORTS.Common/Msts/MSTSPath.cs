@@ -18,9 +18,8 @@
 using System.IO;
 using Microsoft.Win32;
 
-namespace ORTS.Common.Msts
+namespace Orts.Common.Msts
 {
-    // TODO: Replace this with a full-on ORTS.Content.ContentManager.
     /// <summary>
     /// Utility functions to access the various directories in an MSTS install.
     /// </summary>

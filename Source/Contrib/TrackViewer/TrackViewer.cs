@@ -29,13 +29,13 @@ using MessageBox = System.Windows.Forms.MessageBox;
 using System.Windows.Forms;
 using System.Reflection;
 using GNU.Gettext;
-using ORTS.Common;
+using Orts.Common;
 using ORTS.TrackViewer.Drawing;
 using ORTS.TrackViewer.Drawing.Labels;
 using ORTS.TrackViewer.UserInterface;
 using ORTS.TrackViewer.Editing;
 using ORTS.TrackViewer.Editing.Charts;
-using ORTS.Common.Msts;
+using Orts.Common.Msts;
 using Orts.Menu.Entities;
 
 namespace ORTS.TrackViewer

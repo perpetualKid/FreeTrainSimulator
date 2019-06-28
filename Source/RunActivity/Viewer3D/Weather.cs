@@ -24,12 +24,11 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
+using Orts.Common.Input;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
 using Orts.MultiPlayer;
 using Orts.Simulation;
-using ORTS.Common;
-using ORTS.Common.Input;
 using Events = Orts.Common.Events;
 
 namespace Orts.Viewer3D

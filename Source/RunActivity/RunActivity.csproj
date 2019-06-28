@@ -333,9 +333,9 @@
       <Project>{8A84696C-3559-49B8-B27F-BB6932D8A1C6}</Project>
       <Name>Orts.Parsers.Msts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ORTS.Common\ORTS.Common.csproj">
+    <ProjectReference Include="..\ORTS.Common\Orts.Common.csproj">
       <Project>{DA94D876-7D35-46C3-AECE-AFACE72C686C}</Project>
-      <Name>ORTS.Common</Name>
+      <Name>Orts.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\Orts.Parsers.OR\Orts.Parsers.OR.csproj">
       <Project>{1cc3bd5c-06c5-4784-b067-f93945a7ca2c}</Project>
@@ -390,10 +390,10 @@
   </Target>
   -->
   <PropertyGroup>
-  <PostBuildEventDependsOn>
+    <PostBuildEventDependsOn>
     $(PostBuildEventDependsOn);
     PostBuildMacros;
-  </PostBuildEventDependsOn>    
+  </PostBuildEventDependsOn>
     <PreBuildEvent>
     </PreBuildEvent>
     <PostBuildEvent>echo $Revision: -@(VersionNumber) $&gt;Revision.txt
@@ -401,11 +401,11 @@ date /t&gt;&gt;Revision.txt
 time /t&gt;&gt;Revision.txt</PostBuildEvent>
   </PropertyGroup>
   <Target Name="PostBuildMacros">
-  <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
-    <Output TaskParameter="Assemblies" ItemName="Targets" />
-  </GetAssemblyIdentity>
-  <ItemGroup>
-    <VersionNumber Include="@(Targets->'%(Version)')"/>
-  </ItemGroup>
-</Target>
+    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+      <Output TaskParameter="Assemblies" ItemName="Targets" />
+    </GetAssemblyIdentity>
+    <ItemGroup>
+      <VersionNumber Include="@(Targets->'%(Version)')" />
+    </ItemGroup>
+  </Target>
 </Project>

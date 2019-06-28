@@ -22,7 +22,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
-namespace ORTS.Common
+namespace Orts.Common
 {
     public static class EnumExtension
     {

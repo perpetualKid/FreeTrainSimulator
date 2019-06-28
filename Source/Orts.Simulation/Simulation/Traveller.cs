@@ -18,7 +18,7 @@
 using Microsoft.Xna.Framework;
 using Orts.Formats.Msts;
 using Orts.Simulation.AIs;
-using ORTS.Common;
+using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

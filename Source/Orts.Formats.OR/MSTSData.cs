@@ -34,7 +34,7 @@ namespace Orts.Formats.OR
         {
             MstsPath = mstsPath;
             RoutePath = Route;
-            TRK = new RouteFile(ORTS.Common.Msts.MstsPath.GetTRKFileName(RoutePath));
+            TRK = new RouteFile(Orts.Common.Msts.MstsPath.GetTRKFileName(RoutePath));
             string routePath = Path.Combine(Route, TRK.Tr_RouteFile.FileName);
             TDB = new TrackDatabaseFile(RoutePath + @"\" + TRK.Tr_RouteFile.FileName + ".tdb");
 

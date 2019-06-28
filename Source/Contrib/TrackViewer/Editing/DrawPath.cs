@@ -23,7 +23,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Formats.Msts;
-using ORTS.Common;
+using Orts.Common;
 using ORTS.TrackViewer.Drawing;
 
 namespace ORTS.TrackViewer.Editing

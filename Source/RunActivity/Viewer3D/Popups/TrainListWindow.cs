@@ -22,8 +22,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
-using ORTS.Common;
-using ORTS.Common.Input;
+using Orts.Common;
+using Orts.Common.Input;
 
 namespace Orts.Viewer3D.Popups
 {

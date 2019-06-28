@@ -18,7 +18,7 @@
 using Microsoft.Xna.Framework;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
-using ORTS.Common;
+using Orts.Common;
 using System.Collections.Generic;
 
 namespace Orts.Viewer3D.RollingStock.SubSystems

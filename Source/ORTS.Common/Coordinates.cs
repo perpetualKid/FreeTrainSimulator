@@ -43,7 +43,7 @@ using System;
 using System.IO;
 using Microsoft.Xna.Framework;
 
-namespace ORTS.Common
+namespace Orts.Common
 {
     /// <summary>
     /// Represents the position and orientation of an object within a tile in XNA coordinates.

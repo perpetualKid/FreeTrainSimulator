@@ -21,7 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
-using ORTS.Common;
+using Orts.Common;
 
 namespace ORTS.Settings
 {

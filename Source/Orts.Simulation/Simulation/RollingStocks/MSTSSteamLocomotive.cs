@@ -66,18 +66,17 @@
  *  LocomotiveViewer - provides basic animation for running gear, wipers, etc
  * 
  */
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Parsers.Msts;
 using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
-using ORTS.Common;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
+using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.RollingStocks

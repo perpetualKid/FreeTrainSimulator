@@ -17,7 +17,7 @@
 
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
-//using ORTS.Common;
+//using Orts.Common;
 using ORTS.Settings;
 using ORTS.Updater;
 using System;
@@ -122,7 +122,7 @@ namespace Updater
             await Task.WhenAll(waitList).ConfigureAwait(false);
 
             // Update manager is needed early to apply any updates before we show UI.
-            UpdateManager updateManager = new UpdateManager(basePath, Application.ProductName, ORTS.Common.VersionInfo.VersionOrBuild);
+            UpdateManager updateManager = new UpdateManager(basePath, Application.ProductName, Orts.Common.VersionInfo.VersionOrBuild);
             updateManager.ProgressChanged += (object sender, ProgressChangedEventArgs e) =>
             {
                 Invoke((Action)(() =>
@@ -142,7 +142,7 @@ namespace Updater
                 {
                     Invoke((Action)(() =>
                     {
-                        MessageBox.Show("Error: " + updateManager.LastCheckError, Application.ProductName + " " + ORTS.Common.VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Error: " + updateManager.LastCheckError, Application.ProductName + " " + Orts.Common.VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }));
                 }
                 Application.Exit();
@@ -156,7 +156,7 @@ namespace Updater
                 {
                     Invoke((Action)(() =>
                     {
-                        MessageBox.Show("Error: " + updateManager.LastUpdateError, Application.ProductName + " " + ORTS.Common.VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Error: " + updateManager.LastUpdateError, Application.ProductName + " " + Orts.Common.VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }));
                 }
                 Application.Exit();

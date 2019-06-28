@@ -23,8 +23,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Orts.Parsers.OR;
-using ORTS.Common;
-using ORTS.Common.Threading;
+using Orts.Common;
+using Orts.Common.Threading;
 
 namespace Orts.Simulation.Timetables
 {

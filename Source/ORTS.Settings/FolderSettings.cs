@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using ORTS.Common;
+using Orts.Common;
 
 namespace ORTS.Settings
 {

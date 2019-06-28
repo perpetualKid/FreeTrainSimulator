@@ -21,7 +21,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace ORTS.Common
+namespace Orts.Common
 {
     /// <summary>
     /// Static class which provides version and build information about the whole game.
@@ -35,7 +35,7 @@ namespace ORTS.Common
         /// <summary>Full version number, e.g. Release: "0.9.0.1648", experimental: "X.1649", local: ""</summary>
         public static readonly string Version = GetVersion("Version.txt");
         /// <summary>Full build number, e.g. "0.0.5223.24629 (2014-04-20 13:40:58Z)"</summary>
-        public static readonly string Build = GetBuild("ORTS.Common.dll", "OpenRails.exe", "Menu.exe", "RunActivity.exe");
+        public static readonly string Build = GetBuild("Orts.Common.dll", "OpenRails.exe", "Menu.exe", "RunActivity.exe");
         /// <summary>Version, but if "", returns Build</summary>
         public static readonly string VersionOrBuild = GetVersionOrBuild();
 

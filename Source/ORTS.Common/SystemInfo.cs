@@ -15,18 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using Microsoft.Xna.Framework.Graphics;
-using ORTS.Common.Native;
+using Microsoft.Win32;
+using Orts.Common.Native;
 
-namespace ORTS.Common
+namespace Orts.Common
 {
     public static class SystemInfo
     {

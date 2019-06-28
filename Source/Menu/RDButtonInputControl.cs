@@ -18,7 +18,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using ORTS.Common.Input;
+using Orts.Common.Input;
 using ORTS.Settings;
 
 namespace ORTS

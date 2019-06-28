@@ -15,9 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.CSharp;
-using Orts.Simulation;
-using ORTS.Common;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -26,6 +23,8 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.CSharp;
+using Orts.Simulation;
 
 namespace Orts.Common.Scripting
 {

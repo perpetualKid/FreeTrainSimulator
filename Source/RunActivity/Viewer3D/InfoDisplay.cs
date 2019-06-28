@@ -35,8 +35,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Orts.Simulation.RollingStocks;
-using ORTS.Common;
-using ORTS.Common.Input;
+using Orts.Common;
+using Orts.Common.Input;
 using ORTS.Settings;
 
 namespace Orts.Viewer3D

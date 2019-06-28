@@ -29,12 +29,12 @@ using Orts.Formats.Msts;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Viewer3D.Processes;
-using ORTS.Common;
+using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using ORTS.Common.Xna;
+using Orts.Common.Xna;
 
 namespace Orts.Viewer3D
 {

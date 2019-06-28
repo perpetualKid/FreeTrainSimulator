@@ -22,11 +22,10 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
+using Orts.Common.Input;
+using Orts.Common.Xna;
 using Orts.Viewer3D.Common;
 using Orts.Viewer3D.Processes;
-using ORTS.Common;
-using ORTS.Common.Input;
-using ORTS.Common.Xna;
 
 namespace Orts.Viewer3D
 {
