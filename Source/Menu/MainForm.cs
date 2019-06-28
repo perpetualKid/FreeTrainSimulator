@@ -773,7 +773,7 @@ namespace ORTS
             ShowFolderList();
             try
             {
-                folders = (await Task.Run(() => Folder.GetFolders(settings)))?.OrderBy(f => f.Name).ToList() ?? new List<Folder>();
+                folders = (await Task.Run(() => Folder.GetFolders(settings))).OrderBy(f => f.Name).ToList();
             }
             catch (TaskCanceledException) { }
             ShowFolderList();
@@ -834,7 +834,11 @@ namespace ORTS
             ShowHeadToList();
 
             Folder selectedFolder = SelectedFolder;
-            routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token)))?.OrderBy(r => r.Name).ToList() ?? new List<Route>();
+            try
+            {
+                routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token))).OrderBy(r => r.Name).ToList();
+            }
+            catch (TaskCanceledException) { }
             ShowRouteList();
         }
 
@@ -878,7 +882,11 @@ namespace ORTS
 
             Folder selectedFolder = SelectedFolder;
             Route selectedRoute = SelectedRoute;
-            activities = (await Task.Run(() => Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token))).OrderBy(a => a.Name).ToList() ?? new List<Activity>();
+            try
+            {
+                activities = (await Task.Run(() => Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token))).OrderBy(a => a.Name).ToList();
+            }
+            catch (TaskCanceledException) { }
             ShowActivityList();
         }
 
@@ -1010,7 +1018,6 @@ namespace ORTS
                 paths = (await Task.Run(() => Path.GetPaths(selectedRoute, false, ctsPathLoading.Token))).OrderBy(a => a.ToString()).ToList();
             }
             catch (TaskCanceledException) { }
-
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowStartAtList();
         }
