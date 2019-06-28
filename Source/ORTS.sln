@@ -22,7 +22,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orts.Common", "ORTS.Common\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orts.Settings", "ORTS.Settings\Orts.Settings.csproj", "{67F84996-8769-4FD8-819B-464AF269037B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ORTS.Updater", "ORTS.Updater\ORTS.Updater.csproj", "{88108A94-0389-43FF-A75C-C55BD202FC8D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orts.Updater", "ORTS.Updater\Orts.Updater.csproj", "{88108A94-0389-43FF-A75C-C55BD202FC8D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActivityEditor", "Contrib\ActivityEditor\ActivityEditor\ActivityEditor.csproj", "{306C904F-BE41-4B39-A0C4-51068B7F205E}"
 EndProject

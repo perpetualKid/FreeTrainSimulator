@@ -33,7 +33,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Orts.Settings;
 
-namespace ORTS.Updater
+namespace Orts.Updater
 {
     public class UpdateManager
     {

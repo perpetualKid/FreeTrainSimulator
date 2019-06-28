@@ -7,8 +7,8 @@
     <ProjectGuid>{88108A94-0389-43FF-A75C-C55BD202FC8D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ORTS.Updater</RootNamespace>
-    <AssemblyName>ORTS.Updater</AssemblyName>
+    <RootNamespace>Orts.Updater</RootNamespace>
+    <AssemblyName>Orts.Updater</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

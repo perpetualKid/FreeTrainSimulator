@@ -19,7 +19,7 @@ using GNU.Gettext;
 using GNU.Gettext.WinForms;
 //using Orts.Common;
 using Orts.Settings;
-using ORTS.Updater;
+using Orts.Updater;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

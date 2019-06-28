@@ -34,7 +34,7 @@ using Orts.Menu.Entities;
 using Orts.Common;
 using Orts.Common.Native;
 using Orts.Settings;
-using ORTS.Updater;
+using Orts.Updater;
 using Path = Orts.Menu.Entities.Path;
 
 namespace ORTS

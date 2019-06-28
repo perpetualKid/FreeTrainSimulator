@@ -20,7 +20,7 @@ using GNU.Gettext.WinForms;
 using Orts.Common;
 using Orts.Common.Msts;
 using Orts.Settings;
-using ORTS.Updater;
+using Orts.Updater;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
