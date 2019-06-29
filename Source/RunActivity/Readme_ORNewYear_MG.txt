@@ -37,7 +37,7 @@ Moreover it includes some features not (yet) available in the Open Rails officia
 - fixed bug of AI trains not appearing on single track section paths
 - fixed bug about transfers changing appearance with viewing direction (by dennisat)
 - NEW: fixed bug about signal script parser hanging (by perpetualKid)
-- NEW: 3D cab and passenger camera reset with Ctrl-8
+- NEW: 3D cab and passenger camera reset with Ctrl-8 (by dennisat)
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
