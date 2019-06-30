@@ -6,5 +6,5 @@
     cause the file to be unrecognizable by the program.
 -->
 <GenericObjectDataSource DisplayName="OptionsForm+ContentFolder" Version="1.0" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
-   <TypeInfo>ORTS.OptionsForm+ContentFolder, Menu, Version=0.0.5531.36860, Culture=neutral, PublicKeyToken=null</TypeInfo>
+   <TypeInfo>Orts.Menu.OptionsForm+ContentFolder, Menu, Version=0.0.5531.36860, Culture=neutral, PublicKeyToken=null</TypeInfo>
 </GenericObjectDataSource>

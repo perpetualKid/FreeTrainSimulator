@@ -21,8 +21,8 @@ using System.Text;
 using System.Windows.Media.Imaging;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.Viewer3D.Popups;
-using Orts.Viewer3D;
+using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.ActivityRunner.Viewer3D;
 
 namespace ORTS.TrackViewer.Drawing
 {

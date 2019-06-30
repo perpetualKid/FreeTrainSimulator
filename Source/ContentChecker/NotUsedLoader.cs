@@ -21,7 +21,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-using Orts.Viewer3D;
+using Orts.ActivityRunner.Viewer3D;
 
 namespace ContentChecker
 {

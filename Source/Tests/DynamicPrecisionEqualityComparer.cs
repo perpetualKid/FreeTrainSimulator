@@ -18,7 +18,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Tests
+namespace Orts.Tests
 {
     public class DynamicPrecisionEqualityComparer : IEqualityComparer<double>
     {

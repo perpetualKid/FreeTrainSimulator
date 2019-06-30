@@ -31,7 +31,7 @@ using Orts.Menu.Entities;
 using Orts.Settings;
 using Path = System.IO.Path;
 
-namespace ORTS
+namespace Orts.Menu
 {
     public partial class TestingForm : Form
     {

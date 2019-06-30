@@ -33,7 +33,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Launcher
+namespace Orts.Launcher
 {
     internal struct DependencyHint
     {
@@ -135,7 +135,7 @@ namespace Launcher
                 @"Native/X64/OpenAL32.dll",
                 // Programs:
                 "Menu.exe",
-                "RunActivity.exe",
+                "ActivityRunner.exe",
             })
             {
                 if (!File.Exists(Path.Combine(path, file)))

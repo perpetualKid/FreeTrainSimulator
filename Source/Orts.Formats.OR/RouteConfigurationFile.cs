@@ -342,7 +342,7 @@ namespace Orts.Formats.OR
             return item;
         }
 
-        //  Used only in RunActivity
+        //  Used only in ActivityRunner
         public StationItem SearchByLocation(WorldLocation location)
         {
             MSTSCoord place = new MSTSCoord(location);

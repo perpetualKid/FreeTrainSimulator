@@ -1,6 +1,6 @@
 ﻿// #define INCLUDE_TIMETABLE_INPUT
 
-namespace ORTS
+namespace Orts.Menu
 {
     partial class MainForm
     {

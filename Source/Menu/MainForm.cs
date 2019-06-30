@@ -37,7 +37,7 @@ using Orts.Settings;
 using Orts.Updater;
 using Path = Orts.Menu.Entities.Path;
 
-namespace ORTS
+namespace Orts.Menu
 {
     public partial class MainForm : Form
     {
@@ -70,7 +70,7 @@ namespace ORTS
         private CancellationTokenSource ctsPathLoading;
         private CancellationTokenSource ctsTimeTableLoading;
 
-        private readonly ResourceManager resources = new ResourceManager("ORTS.Properties.Resources", typeof(MainForm).Assembly);
+        private readonly ResourceManager resources = new ResourceManager("Orts.Menu.Properties.Resources", typeof(MainForm).Assembly);
         private UpdateManager updateManager;
         private readonly Image elevationIcon;
 
@@ -78,7 +78,7 @@ namespace ORTS
         {
             get
             {
-                return System.IO.Path.Combine(Application.StartupPath, "RunActivity.exe"); ;
+                return System.IO.Path.Combine(Application.StartupPath, "ActivityRunner.exe"); ;
             }
         }
         
@@ -213,7 +213,7 @@ namespace ORTS
             var coreExecutables = new[] {
                     "OpenRails.exe",
                     "Menu.exe",
-                    "RunActivity.exe",
+                    "ActivityRunner.exe",
                     "RunActivityLAA.exe",
                     "Updater.exe",
                 };

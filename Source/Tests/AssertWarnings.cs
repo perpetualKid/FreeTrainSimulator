@@ -23,7 +23,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Xunit;
 
-namespace Tests
+namespace Orts.Tests
 {
     /// <summary>
     /// This class can be used to test for Trace.TraceWarning() calls.

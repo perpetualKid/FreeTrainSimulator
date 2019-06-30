@@ -7,7 +7,7 @@
     <ProjectGuid>{5EA53243-5C52-4F9C-A730-C35F6C68FB74}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ORTS</RootNamespace>
+    <RootNamespace>Orts.Menu</RootNamespace>
     <AssemblyName>Menu</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

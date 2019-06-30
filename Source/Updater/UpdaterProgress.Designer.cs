@@ -1,4 +1,4 @@
-﻿namespace Updater
+﻿namespace Orts.Updater
 {
     partial class UpdaterProgress
     {

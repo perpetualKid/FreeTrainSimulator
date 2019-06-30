@@ -10,7 +10,7 @@ using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings;
 
-namespace ORTS
+namespace Orts.Menu
 {
     public partial class OptionsForm : Form
     {

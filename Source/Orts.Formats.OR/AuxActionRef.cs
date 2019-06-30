@@ -101,7 +101,7 @@ namespace Orts.Formats.OR
     //================================================================================================//
     /// <summary>
     /// ActionContainer
-    /// class to manage the available Actions for Editor and RunActivity
+    /// class to manage the available Actions for Editor and ActivityRunner
     /// </summary>
 
     public class ActionContainer
@@ -252,7 +252,7 @@ namespace Orts.Formats.OR
     //================================================================================================//
     /// <summary>
     /// AuxActionRef
-    /// The main class to define Auxiliary Action through the editor and used by RunActivity
+    /// The main class to define Auxiliary Action through the editor and used by ActivityRunner
     /// </summary>
 
     public class AuxActionRef

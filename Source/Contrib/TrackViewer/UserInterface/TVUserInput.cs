@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-// This file is part of ORTS TrackViewer. But it is mainly a copy of RunActivity\Viewer3D\UserInput.cs
+// This file is part of ORTS TrackViewer. But it is mainly a copy of ActivityRunner\Viewer3D\UserInput.cs
 // modified for the limited 2D functionality needed here.
 
 // This checks all keys for conflicts.

@@ -1,4 +1,4 @@
-﻿namespace ORTS
+﻿namespace Orts.Menu
 {
     partial class OptionsForm
     {
@@ -1856,7 +1856,7 @@
             // 
             // bindingSourceContent
             // 
-            this.bindingSourceContent.DataSource = typeof(ORTS.OptionsForm.ContentFolder);
+            this.bindingSourceContent.DataSource = typeof(Orts.Menu.OptionsForm.ContentFolder);
             // 
             // tabPageUpdater
             // 

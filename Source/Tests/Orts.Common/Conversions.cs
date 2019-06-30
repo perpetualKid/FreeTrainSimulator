@@ -20,7 +20,7 @@ using System;
 using System.Collections.Generic;
 using Xunit;
 
-namespace Tests.Orts.Common
+namespace Orts.Tests.Orts.Common
 {
     public static class Conversions
     {

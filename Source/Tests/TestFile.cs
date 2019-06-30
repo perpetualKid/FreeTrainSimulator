@@ -21,7 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Tests
+namespace Orts.Tests
 {
     public class TestFile : IDisposable
     {

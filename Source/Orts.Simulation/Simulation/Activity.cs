@@ -1134,7 +1134,7 @@ namespace Orts.Simulation
     /// <summary>
     /// This class adds attributes around the event objects parsed from the ACT file.
     /// Note: Can't add attributes to the event objects directly as ACTFile.cs is not just used by 
-    /// RunActivity.exe but also by Menu.exe and MenuWPF.exe and these executables lack most of the ORTS classes.
+    /// ActivityRunner.exe but also by Menu.exe and these executables lack most of the ORTS classes.
     /// </summary>
     public abstract class EventWrapper
     {

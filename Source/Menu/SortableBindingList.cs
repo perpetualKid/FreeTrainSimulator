@@ -19,7 +19,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace ORTS
+namespace Orts.Menu
 {
     public class SortableBindingList<T> : BindingList<T>
     {

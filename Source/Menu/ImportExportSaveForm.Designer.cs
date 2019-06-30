@@ -1,4 +1,5 @@
-﻿namespace ORTS {
+﻿namespace Orts.Menu
+{
     partial class ImportExportSaveForm {
         /// <summary>
         /// Required designer variable.

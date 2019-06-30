@@ -18,7 +18,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace Updater
+namespace Orts.Updater
 {
     static class Program
     {

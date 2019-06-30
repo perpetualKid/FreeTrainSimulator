@@ -235,6 +235,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ActivityRunner\ActivityRunner.csproj">
+      <Project>{9be44f64-417d-4aa6-af4d-2a6a0cbc814d}</Project>
+      <Name>ActivityRunner</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj">
       <Project>{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}</Project>
       <Name>Orts.Formats.Msts</Name>
@@ -258,10 +262,6 @@
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj">
       <Project>{333c4378-d82e-4b47-b561-6ba923b8fdfd}</Project>
       <Name>Orts.Simulation</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\RunActivity\RunActivity.csproj">
-      <Project>{9BE44F64-417D-4AA6-AF4D-2A6A0CBC814D}</Project>
-      <Name>RunActivity</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

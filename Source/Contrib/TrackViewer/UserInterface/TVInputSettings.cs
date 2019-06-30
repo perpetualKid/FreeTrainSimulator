@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 //
-// Based on RunActivity\ORTS\InputSettings.cs
+// Based on ActivityRunner\ORTS\InputSettings.cs
 // But we copy some of the code because we need different commands here
 //
 // Here all possible key commands are defined (enumerated) as well as linked to a specific key or key combination.

@@ -29,17 +29,17 @@ If the player is not running an activity but exploring a route, the filename tak
 <route folder name> <date> <time>.save. E.g.
     USA2 2012-03-20 22.07.36.save
 
-The RunActivity program takes switches; one of these is -resume
+The ActivityRunner program takes switches; one of these is -resume
 The -resume switch can now take a SavePoint file name as a parameter. E.g.
-    RunActivity.exe -resume "yard_two 2012-03-20 22.07.36"
+    ActivityRunner.exe -resume "yard_two 2012-03-20 22.07.36"
 or
-    RunActivity.exe -resume "yard_two 2012-03-20 22.07.36.save"
+    ActivityRunner.exe -resume "yard_two 2012-03-20 22.07.36.save"
 
-If no parameter is provided, then RunActivity uses the most recent SavePoint.
+If no parameter is provided, then ActivityRunner uses the most recent SavePoint.
 
 New versions of Open Rails may be incompatible with Savepoints made by older versions. A mechanism is provided
 here to reject Savepoints which are definitely incompatible and warn of Savepoints that may be incompatible. A SavePoint that
-is marked as "may be incompatible" may not be resumed successfully by the RunActivity which will
+is marked as "may be incompatible" may not be resumed successfully by the ActivityRunner which will
 stop and issue an error message.
 
 Some problems remain (see comments in the code):
@@ -64,7 +64,7 @@ using Orts.Common.Msts;
 using Orts.Settings;
 using Path = System.IO.Path;
 
-namespace ORTS
+namespace Orts.Menu
 {
     public partial class ResumeForm : Form
     {

@@ -1,4 +1,4 @@
-﻿namespace ORTS {
+﻿namespace Orts.Menu {
     partial class TestingForm {
         /// <summary>
         /// Required designer variable.
@@ -250,7 +250,7 @@
             // 
             // testBindingSource
             // 
-            this.testBindingSource.DataSource = typeof(ORTS.TestingForm.TestActivity);
+            this.testBindingSource.DataSource = typeof(Orts.Menu.TestingForm.TestActivity);
             // 
             // buttonDetails
             // 

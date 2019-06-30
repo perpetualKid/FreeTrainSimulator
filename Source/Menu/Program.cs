@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 
-namespace ORTS
+namespace Orts.Menu
 {
     internal static class Program
     {

@@ -23,7 +23,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace Tests.Orts.Parsers.OR
+namespace Orts.Tests.Orts.Parsers.OR
 {
     public class TimetableReaderTests
     {

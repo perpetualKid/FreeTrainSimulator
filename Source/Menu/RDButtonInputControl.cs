@@ -21,7 +21,7 @@ using System.Windows.Forms;
 using Orts.Common.Input;
 using Orts.Settings;
 
-namespace ORTS
+namespace Orts.Menu
 {
     /// <summary>
     /// A control for viewing and altering keyboard input settings, in combination with <see cref="KeyInputEditControl"/>.

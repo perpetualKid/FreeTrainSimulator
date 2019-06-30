@@ -7,7 +7,7 @@
     <ProjectGuid>{9C6D17E1-DC48-4B96-B9DA-A9B41F685327}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Updater</RootNamespace>
+    <RootNamespace>Orts.Updater</RootNamespace>
     <AssemblyName>Updater</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
