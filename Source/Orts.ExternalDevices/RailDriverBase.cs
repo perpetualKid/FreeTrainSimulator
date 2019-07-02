@@ -17,14 +17,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
-using Microsoft.Win32;
-using Orts.Parsers.Msts;
-using Orts.Simulation.RollingStocks;
-using ORTS.Common;
-using ORTS.Common.Input;
-using PIEHid32Net;
-using PIEHid64Net;
 
 namespace Orts.ExternalDevices
 {

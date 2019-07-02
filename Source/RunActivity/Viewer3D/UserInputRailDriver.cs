@@ -24,7 +24,6 @@ using Orts.Simulation.RollingStocks;
 using ORTS.Common;
 using ORTS.Common.Input;
 using Orts.ExternalDevices;
-using Orts.Viewer3D;
 
 namespace Orts.Viewer3D
 {
