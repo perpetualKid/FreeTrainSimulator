@@ -75,12 +75,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdPartyLibs\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="PIEHid32Net">
-      <HintPath>..\3rdPartyLibs\PIEHid32Net.dll</HintPath>
-    </Reference>
-    <Reference Include="PIEHid64Net">
-      <HintPath>..\3rdPartyLibs\PIEHid64Net.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -346,6 +340,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Orts.ExternalDevices\Orts.ExternalDevices.csproj">
+      <Project>{0da86c52-ffb5-4cd6-a2c0-08f1610e6399}</Project>
+      <Name>Orts.ExternalDevices</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj">
       <Project>{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}</Project>
       <Name>Orts.Formats.Msts</Name>
