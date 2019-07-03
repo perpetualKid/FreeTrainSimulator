@@ -27,29 +27,32 @@ namespace Orts.Parsers.Msts
     /// </summary>
     public class Interpolator
     {
-        float[] X;  // must be in increasing order
-        float[] Y;
-        float[] Y2;
-        int Size;       // number of values populated
-        int PrevIndex;  // used to speed up repeated evaluations with similar x values
+        private float[] xArray;  // must be in increasing order
+        private float[] yArray;
+        private float[] y2Array;
+        private int size;       // number of values populated
+        private int prevIndex;  // used to speed up repeated evaluations with similar x values
+
         public Interpolator(int n)
         {
-            X = new float[n];
-            Y = new float[n];
+            xArray = new float[n];
+            yArray = new float[n];
         }
         public Interpolator(float[] x, float[] y)
         {
-            X = x;
-            Y = y;
-            Size = X.Length;
+            xArray = x;
+            yArray = y;
+            size = xArray.Length;
         }
+
         public Interpolator(Interpolator other)
         {
-            X = other.X;
-            Y = other.Y;
-            Y2= other.Y2;
-            Size = other.Size;
+            xArray = other.xArray;
+            yArray = other.yArray;
+            y2Array= other.y2Array;
+            size = other.size;
         }
+
         public Interpolator(STFReader stf)
         {
             List<float> list = new List<float>();
@@ -61,173 +64,179 @@ namespace Orts.Parsers.Msts
             int n = list.Count/2;
             if (n < 2)
                 STFException.TraceWarning(stf, "Interpolator must have at least two value pairs.");
-            X = new float[n];
-            Y = new float[n];
-            Size = n;
+            xArray = new float[n];
+            yArray = new float[n];
+            size = n;
             for (int i = 0; i < n; i++)
             {
-                X[i] = list[2*i];
-                Y[i] = list[2*i+1];
-                if (i > 0 && X[i - 1] >= X[i])
+                xArray[i] = list[2*i];
+                yArray[i] = list[2*i+1];
+                if (i > 0 && xArray[i - 1] >= xArray[i])
                     STFException.TraceWarning(stf, "Interpolator x values must be increasing.");
             }
         }
+
         public float this[float x]
         {
             get
             {
-                if (x < X[PrevIndex] || x > X[PrevIndex + 1])
+                if (x < xArray[prevIndex] || x > xArray[prevIndex + 1])
                 {
-                    if (x < X[1])
-                        PrevIndex= 0;
-                    else if (x > X[Size-2])
-                        PrevIndex= Size-2;
+                    if (x < xArray[1])
+                        prevIndex = 0;
+                    else if (x > xArray[size - 2])
+                        prevIndex = size - 2;
                     else
                     {
-                        int i= 0;
-                        int j= Size-1;
-                        while (j-i > 1)
+                        int i = 0;
+                        int j = size - 1;
+                        while (j - i > 1)
                         {
-                            int k= (i+j)/2;
-                            if (X[k] > x)
-                                j= k;
+                            int k = (i + j) / 2;
+                            if (xArray[k] > x)
+                                j = k;
                             else
-                                i= k;
+                                i = k;
                         }
-                        PrevIndex= i;
+                        prevIndex = i;
                     }
                 }
-                float d= X[PrevIndex+1] - X[PrevIndex];
-                float a= (X[PrevIndex+1]-x)/d;
-                float b= (x-X[PrevIndex])/d;
-                float y= a*Y[PrevIndex] + b*Y[PrevIndex+1];
-                if (Y2 != null && a>=0 && b>=0)
-                    y+= ((a*a*a-a)*Y2[PrevIndex] + (b*b*b-b)*Y2[PrevIndex+1])*d*d/6;
+                float d = xArray[prevIndex + 1] - xArray[prevIndex];
+                float a = (xArray[prevIndex + 1] - x) / d;
+                float b = (x - xArray[prevIndex]) / d;
+                float y = a * yArray[prevIndex] + b * yArray[prevIndex + 1];
+                if (y2Array != null && a >= 0 && b >= 0)
+                    y += ((a * a * a - a) * y2Array[prevIndex] + (b * b * b - b) * y2Array[prevIndex + 1]) * d * d / 6;
                 return y;
             }
             set
             {
-                X[Size] = x;
-                Y[Size] = value;
-                Size++;
+                xArray[size] = x;
+                yArray[size] = value;
+                size++;
             }
         }
-        public float MinX() { return X[0]; }
-        public float MaxX() { return X[Size-1]; }
-        public float MaxY()
-        {
-            float x;
-            return MaxY(out x);
-        }
+
+        public float MinX() { return xArray[0]; }
+
+        public float MaxX() { return xArray[size-1]; }
+
+        public float MaxY() { return MaxY(out float x); }
+
         public float MaxY(out float x)
         {
             int maxi= 0;
-            for (int i=1; i<Size; i++)
-                if (Y[maxi] < Y[i])
-                    maxi= i;
-            x = X[maxi];
-            return Y[maxi];
+            for (int i = 1; i < size; i++)
+                if (yArray[maxi] < yArray[i])
+                    maxi = i;
+            x = xArray[maxi];
+            return yArray[maxi];
         }
+
         public bool HasNegativeValue()
         {
-            for (int i = 1; i < Size; i++)
+            for (int i = 1; i < size; i++)
             {
-                if (Y[i] < 0)
+                if (yArray[i] < 0)
                     return true;
             }
             return false;
         }
+
         public void ScaleX(float factor)
         {
-            for (int i = 0; i < Size; i++)
-                X[i] *= factor;
+            for (int i = 0; i < size; i++)
+                xArray[i] *= factor;
         }
+
         public void ScaleY(float factor)
         {
-            for (int i = 0; i < Size; i++)
-                Y[i] *= factor;
-            if (Y2 != null)
+            for (int i = 0; i < size; i++)
+                yArray[i] *= factor;
+            if (y2Array != null)
             {
-                for (int i = 0; i < Size; i++)
-                    Y2[i]*= factor;
+                for (int i = 0; i < size; i++)
+                    y2Array[i]*= factor;
             }
         }
+
         public void ComputeSpline()
         {
             ComputeSpline(null,null);
         }
+
         public void ComputeSpline(float? yp1, float? yp2)
         {
-            Y2= new float[Size];
-            float[] u= new float[Size];
+            y2Array = new float[size];
+            float[] u= new float[size];
             if (yp1 == null)
             {
-                Y2[0]= 0;
+                y2Array[0]= 0;
                 u[0]= 0;
             }
             else
             {
-                Y2[0]= -.5f;
-                float d= X[1]-X[0];
-                u[0]= 3/d * ((Y[1]-Y[0])/d-yp1.Value);
+                y2Array[0]= -.5f;
+                float d= xArray[1]-xArray[0];
+                u[0]= 3/d * ((yArray[1]-yArray[0])/d-yp1.Value);
             }
-            for (int i=1; i<Size-1; i++)
+            for (int i=1; i<size-1; i++)
             {
-                float sig= (X[i]-X[i-1]) / (X[i+1]-X[i-1]);
-                float p= sig*Y2[i-1] + 2;
-                Y2[i]= (sig-1)/p;
-                u[i]= (6*((Y[i+1]-Y[i])/(X[i+1]-X[i]) -
-                    (Y[i]-Y[i-1])/(X[i]-X[i-1])) / (X[i+1]-X[i-1]) -
+                float sig= (xArray[i]-xArray[i-1]) / (xArray[i+1]-xArray[i-1]);
+                float p= sig*y2Array[i-1] + 2;
+                y2Array[i]= (sig-1)/p;
+                u[i]= (6*((yArray[i+1]-yArray[i])/(xArray[i+1]-xArray[i]) -
+                    (yArray[i]-yArray[i-1])/(xArray[i]-xArray[i-1])) / (xArray[i+1]-xArray[i-1]) -
                     sig*u[i-1]) / p;
             }
             if (yp2 == null)
             {
-                Y2[Size-1]= 0;
+                y2Array[size-1]= 0;
             }
             else
             {
-                float d= X[Size-1]-X[Size-2];
-                Y2[Size-1]= (3/d *(yp2.Value-(Y[Size-1]-Y[Size-2])/d)- .5f*u[Size-2])/(.5f*Y2[Size-2]+1);
+                float d= xArray[size-1]-xArray[size-2];
+                y2Array[size-1]= (3/d *(yp2.Value-(yArray[size-1]-yArray[size-2])/d)- .5f*u[size-2])/(.5f*y2Array[size-2]+1);
             }
-            for (int i=Size-2; i>=0; i--)
-                Y2[i]= Y2[i]*Y2[i+1] + u[i];
+            for (int i=size-2; i>=0; i--)
+                y2Array[i]= y2Array[i]*y2Array[i+1] + u[i];
         }
         
         // restore game state
         public Interpolator(BinaryReader inf)
         {
-            Size = inf.ReadInt32();
-            X = new float[Size];
-            Y = new float[Size];
-            for (int i = 0; i < Size; i++)
+            size = inf.ReadInt32();
+            xArray = new float[size];
+            yArray = new float[size];
+            for (int i = 0; i < size; i++)
             {
-                X[i] = inf.ReadSingle();
-                Y[i] = inf.ReadSingle();
+                xArray[i] = inf.ReadSingle();
+                yArray[i] = inf.ReadSingle();
             }
             if (inf.ReadBoolean())
             {
-                Y2 = new float[Size];
-                for (int i = 0; i < Size; i++)
-                    Y2[i] = inf.ReadSingle();
+                y2Array = new float[size];
+                for (int i = 0; i < size; i++)
+                    y2Array[i] = inf.ReadSingle();
             }
         }
 
         // save game state
         public void Save(BinaryWriter outf)
         {
-            outf.Write(Size);
-            for (int i = 0; i < Size; i++)
+            outf.Write(size);
+            for (int i = 0; i < size; i++)
             {
-                outf.Write(X[i]);
-                outf.Write(Y[i]);
+                outf.Write(xArray[i]);
+                outf.Write(yArray[i]);
             }
-            outf.Write(Y2 != null);
-            if (Y2 != null)
-                for (int i = 0; i < Size; i++)
-                    outf.Write(Y2[i]);
+            outf.Write(y2Array != null);
+            if (y2Array != null)
+                for (int i = 0; i < size; i++)
+                    outf.Write(y2Array[i]);
         }
 
-        public void test(string label, int n)
+        public void Test(string label, int n)
         {
             float dx = (MaxX() - MinX()) / (n-1);
             for (int i = 0; i < n; i++)
@@ -240,34 +249,37 @@ namespace Orts.Parsers.Msts
 
         public int GetSize()
         {
-            if (X.Length == Y.Length)
-                return Size;
+            if (xArray.Length == yArray.Length)
+                return size;
             else
                 return -1;
         }
     }
+
     /// <summary>
     /// two dimensional Interpolated table lookup - for use in Diesel
     /// </summary>
     public class InterpolatorDiesel2D
     {
-        float[] X;  // must be in increasing order
-        Interpolator[] Y;
-        int Size;       // number of values populated
-        int PrevIndex;  // used to speed up repeated evaluations with similar x values
-        bool HasNegativeValues; // set when negative Y values present (e.g. in old triphase locos)
+        private float[] xArray;  // must be in increasing order
+        private Interpolator[] yArray;
+        private int size;       // number of values populated
+        private int prevIndex;  // used to speed up repeated evaluations with similar x values
+        private bool hasNegativeValues; // set when negative Y values present (e.g. in old triphase locos)
+
         public InterpolatorDiesel2D(int n)
         {
-            X = new float[n];
-            Y = new Interpolator[n];
+            xArray = new float[n];
+            yArray = new Interpolator[n];
         }
+
         public InterpolatorDiesel2D(InterpolatorDiesel2D other)
         {
-            X = other.X;
-            Size = other.Size;
-            Y = new Interpolator[Size];
-            for (int i = 0; i < Size; i++)
-                Y[i] = new Interpolator(other.Y[i]);
+            xArray = other.xArray;
+            size = other.size;
+            yArray = new Interpolator[size];
+            for (int i = 0; i < size; i++)
+                yArray[i] = new Interpolator(other.yArray[i]);
         }
         public InterpolatorDiesel2D(STFReader stf, bool tab)
         {
@@ -395,14 +407,14 @@ namespace Orts.Parsers.Msts
                 STFException.TraceWarning(stf, "Interpolator must have at least two x values.");
                 errorFound = true;
             }
-            X = new float[n];
-            Y = new Interpolator[n];
-            Size = n;
+            xArray = new float[n];
+            yArray = new Interpolator[n];
+            size = n;
             for (int i = 0; i < n; i++)
             {
-                X[i] = xlist[i];
-                Y[i] = ilist[i];
-                if (i > 0 && X[i - 1] >= X[i])
+                xArray[i] = xlist[i];
+                yArray[i] = ilist[i];
+                if (i > 0 && xArray[i - 1] >= xArray[i])
                     STFException.TraceWarning(stf, "Interpolator x values must be increasing.");
             }
             //stf.SkipRestOfBlock();
@@ -414,70 +426,75 @@ namespace Orts.Parsers.Msts
 
         public float Get(float x, float y)
         {
-            if (x < X[PrevIndex] || x > X[PrevIndex + 1])
+            if (x < xArray[prevIndex] || x > xArray[prevIndex + 1])
             {
-                if (x < X[1])
-                    PrevIndex = 0;
-                else if (x > X[Size - 2])
-                    PrevIndex = Size - 2;
+                if (x < xArray[1])
+                    prevIndex = 0;
+                else if (x > xArray[size - 2])
+                    prevIndex = size - 2;
                 else
                 {
                     int i = 0;
-                    int j = Size - 1;
+                    int j = size - 1;
                     while (j - i > 1)
                     {
                         int k = (i + j) / 2;
-                        if (X[k] > x)
+                        if (xArray[k] > x)
                             j = k;
                         else
                             i = k;
                     }
-                    PrevIndex = i;
+                    prevIndex = i;
                 }
             }
-            float d = X[PrevIndex + 1] - X[PrevIndex];
-            float a = (X[PrevIndex + 1] - x) / d;
-            float b = (x - X[PrevIndex]) / d;
+            float d = xArray[prevIndex + 1] - xArray[prevIndex];
+            float a = (xArray[prevIndex + 1] - x) / d;
+            float b = (x - xArray[prevIndex]) / d;
             float z = 0;
             if (a != 0)
-                z += a * Y[PrevIndex][y];
+                z += a * yArray[prevIndex][y];
             if (b != 0)
-                z += b * Y[PrevIndex + 1][y];
+                z += b * yArray[prevIndex + 1][y];
             return z;
         }
 
         public void HasNegativeValue()
         {
-            for (int i = 0; i < Size; i++)
+            for (int i = 0; i < size; i++)
             {
-                var size = Y[i].GetSize();
+                var size = yArray[i].GetSize();
                 for (int j = 0; j < size; j++)
                 {
-                    if (Y[i].HasNegativeValue())
+                    if (yArray[i].HasNegativeValue())
                     {
-                        HasNegativeValues = true;
+                        hasNegativeValues = true;
                         return;
                     }
                 }
             }
         }
+
         public Interpolator this[float x]
         {
             set
             {
-                X[Size] = x;
-                Y[Size] = value;
-                Size++;
+                xArray[size] = x;
+                yArray[size] = value;
+                size++;
             }
         }
-        public float MinX() { return X[0]; }
-        public float MaxX() { return X[Size - 1]; }
+
+        public float MinX() { return xArray[0]; }
+
+        public float MaxX() { return xArray[size - 1]; }
+
         public void ScaleX(float factor)
         {
-            for (int i = 0; i < Size; i++)
-                X[i] *= factor;
+            for (int i = 0; i < size; i++)
+                xArray[i] *= factor;
         }
-        public bool AcceptsNegativeValues() { return HasNegativeValues; }
+
+        public bool AcceptsNegativeValues() { return hasNegativeValues; }
     }
 
      /// <summary>
@@ -485,29 +502,33 @@ namespace Orts.Parsers.Msts
      /// </summary>
     public class Interpolator2D
     {
-        float[] X;  // must be in increasing order
-        Interpolator[] Y;
-        int Size = 0;       // number of values populated
-        int PrevIndex = 0;  // used to speed up repeated evaluations with similar x values
+        private float[] xArray;  // must be in increasing order
+        private Interpolator[] yArray;
+        int size;       // number of values populated
+        int prevIndex;  // used to speed up repeated evaluations with similar x values
+
         public Interpolator2D(int n)
         {
-            X = new float[n];
-            Y = new Interpolator[n];
+            xArray = new float[n];
+            yArray = new Interpolator[n];
         }
+
         public Interpolator2D(float[] x, Interpolator[] y)
         {
-            X = x;
-            Y = y;
-            Size = X.Length;
+            xArray = x;
+            yArray = y;
+            size = xArray.Length;
         }
+
         public Interpolator2D(Interpolator2D other)
         {
-            X = other.X;
-            Size = other.Size;
-            Y = new Interpolator[Size];
-            for (int i = 0; i < Size; i++)
-                Y[i] = new Interpolator(other.Y[i]);
+            xArray = other.xArray;
+            size = other.size;
+            yArray = new Interpolator[size];
+            for (int i = 0; i < size; i++)
+                yArray[i] = new Interpolator(other.yArray[i]);
         }
+
         public Interpolator2D(STFReader stf)
         {
             List<float> xlist = new List<float>();
@@ -522,65 +543,67 @@ namespace Orts.Parsers.Msts
             int n = xlist.Count;
             if (n < 2)
                 STFException.TraceWarning(stf, "Interpolator must have at least two x values.");
-            X = new float[n];
-            Y = new Interpolator[n];
-            Size = n;
+            xArray = new float[n];
+            yArray = new Interpolator[n];
+            size = n;
             for (int i = 0; i < n; i++)
             {
-                X[i] = xlist[i];
-                Y[i] = ilist[i];
-                if (i > 0 && X[i - 1] >= X[i])
+                xArray[i] = xlist[i];
+                yArray[i] = ilist[i];
+                if (i > 0 && xArray[i - 1] >= xArray[i])
                     STFException.TraceWarning(stf, " Interpolator x values must be increasing.");
             }
         }
         public float Get(float x, float y)
         {
-            if (x < X[PrevIndex] || x > X[PrevIndex + 1])
+            if (x < xArray[prevIndex] || x > xArray[prevIndex + 1])
             {
-                if (x < X[1])
-                    PrevIndex = 0;
-                else if (x > X[Size - 2])
-                    PrevIndex = Size - 2;
+                if (x < xArray[1])
+                    prevIndex = 0;
+                else if (x > xArray[size - 2])
+                    prevIndex = size - 2;
                 else
                 {
                     int i = 0;
-                    int j = Size - 1;
+                    int j = size - 1;
                     while (j - i > 1)
                     {
                         int k = (i + j) / 2;
-                        if (X[k] > x)
+                        if (xArray[k] > x)
                             j = k;
                         else
                             i = k;
                     }
-                    PrevIndex = i;
+                    prevIndex = i;
                 }
             }
-            float d = X[PrevIndex + 1] - X[PrevIndex];
-            float a = (X[PrevIndex + 1] - x) / d;
-            float b = (x - X[PrevIndex]) / d;
+            float d = xArray[prevIndex + 1] - xArray[prevIndex];
+            float a = (xArray[prevIndex + 1] - x) / d;
+            float b = (x - xArray[prevIndex]) / d;
             float z = 0;
             if (a != 0)
-                z += a * Y[PrevIndex][y];
+                z += a * yArray[prevIndex][y];
             if (b != 0)
-                z += b * Y[PrevIndex + 1][y];
+                z += b * yArray[prevIndex + 1][y];
             return z;
         }
         public Interpolator this[float x]
         {
             set
             {
-                X[Size] = x;
-                Y[Size] = value;
-                Size++;
+                xArray[size] = x;
+                yArray[size] = value;
+                size++;
             }
         }
-        public float MinX() { return X[0]; }
-        public float MaxX() { return X[Size - 1]; }
+        public float MinX() { return xArray[0]; }
+
+        public float MaxX() { return xArray[size - 1]; }
+
         public void ScaleX(float factor)
         {
-            for (int i = 0; i < Size; i++)
-                X[i] *= factor;
+            for (int i = 0; i < size; i++)
+                xArray[i] *= factor;
         }
     }
 
