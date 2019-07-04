@@ -39,7 +39,7 @@ namespace Orts.ExternalDevices
                     instance = new RailDriver32();
                 }
             }
-            return instance;
+            return instance.WriteBufferSize == 0 ? null : instance;
         }
 
         public abstract int WriteBufferSize { get; }
