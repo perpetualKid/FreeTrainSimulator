@@ -329,8 +329,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
             for (var i = 0; i < numToEmit; i++)
             {
-                var temp = new WorldLocation(worldLocation.TileX, worldLocation.TileZ, worldLocation.Location.X + (float)((Viewer.Random.NextDouble() - 0.5) * ParticleBoxWidthM), 0, worldLocation.Location.Z + (float)((Viewer.Random.NextDouble() - 0.5) * ParticleBoxLengthM));
-                temp.Location.Y = Heights.GetHeight(temp, tiles, scenery);
+                WorldLocation temp = new WorldLocation(worldLocation.TileX, worldLocation.TileZ, 
+                    worldLocation.Location.X + (float)((Viewer.Random.NextDouble() - 0.5) * ParticleBoxWidthM), 
+                    0, 
+                    worldLocation.Location.Z + (float)((Viewer.Random.NextDouble() - 0.5) * ParticleBoxLengthM));
+                temp = new WorldLocation(temp.TileX, temp.TileZ, temp.Location.X, Heights.GetHeight(temp, tiles, scenery), temp.Location.Z);
                 var position = new WorldPosition(temp);
 
                 var time = MathHelper.Lerp(TimeParticlesLastEmitted, currentTime, (float)i / numToEmit);
@@ -424,27 +427,27 @@ namespace Orts.ActivityRunner.Viewer3D
                 Divisions = (int)Math.Round(2048f / blockSize);
             }
 
-            public float GetHeight(WorldLocation location, TileManager tiles, SceneryDrawer scenery)
+            public float GetHeight(in WorldLocation location, TileManager tiles, SceneryDrawer scenery)
             {
-                location.Normalize();
+                WorldLocation temp = location.Normalize();
 
                 // First, ensure we have the tile in question cached.
-                var tile = Tiles.FirstOrDefault(t => t.TileX == location.TileX && t.TileZ == location.TileZ);
+                var tile = Tiles.FirstOrDefault(t => t.TileX == temp.TileX && t.TileZ == temp.TileZ);
                 if (tile == null)
-                    Tiles.Add(tile = new Tile(location.TileX, location.TileZ, Divisions));
+                    Tiles.Add(tile = new Tile(temp.TileX, temp.TileZ, Divisions));
 
                 // Remove excess entries.
                 if (Tiles.Count > TileCount)
                     Tiles.RemoveAt(0);
 
                 // Now calculate division to query.
-                var x = (int)((location.Location.X + 1024) / BlockSize);
-                var z = (int)((location.Location.Z + 1024) / BlockSize);
+                var x = (int)((temp.Location.X + 1024) / BlockSize);
+                var z = (int)((temp.Location.Z + 1024) / BlockSize);
 
                 // If we don't have it cached, load it.
                 if (tile.Height[x, z] == float.MinValue)
                 {
-                    var position = new WorldLocation(location.TileX, location.TileZ, (x + 0.5f) * BlockSize - 1024, 0, (z + 0.5f) * BlockSize - 1024);
+                    var position = new WorldLocation(temp.TileX, temp.TileZ, (x + 0.5f) * BlockSize - 1024, 0, (z + 0.5f) * BlockSize - 1024);
                     tile.Height[x, z] = Math.Max(tiles.GetElevation(position), scenery.GetBoundingBoxTop(position, BlockSize));
                     tile.Used++;
                 }

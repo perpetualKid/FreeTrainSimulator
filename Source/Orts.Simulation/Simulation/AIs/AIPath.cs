@@ -393,12 +393,7 @@ namespace Orts.Simulation.AIs
             NextSidingTVNIndex = inf.ReadInt32();
             JunctionIndex = inf.ReadInt32();
             IsFacingPoint = inf.ReadBoolean();
-            Location = new WorldLocation();
-            Location.TileX = inf.ReadInt32();
-            Location.TileZ = inf.ReadInt32();
-            Location.Location.X = inf.ReadSingle();
-            Location.Location.Y = inf.ReadSingle();
-            Location.Location.Z = inf.ReadSingle();
+            Location = WorldLocation.Restore(inf);
         }
 
         // save game state
@@ -499,7 +494,7 @@ namespace Orts.Simulation.AIs
         /// <param name="trackDB">track database containing the trackNodes</param>
         /// <param name="wantJunctionNode">true if a junctionNode is wanted, false for a endNode</param>
         /// <returns>tracknode index of the closes node</returns>
-        public static int FindJunctionOrEndIndex(WorldLocation location, TrackDB trackDB, bool wantJunctionNode)
+        public static int FindJunctionOrEndIndex(in WorldLocation location, TrackDB trackDB, bool wantJunctionNode)
         {
             int bestIndex = -1;
             float bestDistance2 = 1e10f;

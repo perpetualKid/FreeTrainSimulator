@@ -77,11 +77,11 @@ namespace Orts.Common
         /// <summary>
         /// Copy constructor using a MSTS-coordinates world-location 
         /// </summary>
-        public WorldPosition(WorldLocation copy)
+        public WorldPosition(in WorldLocation source)
         {
-            TileX = copy.TileX;
-            TileZ = copy.TileZ;
-            Location = copy.Location;
+            TileX = source.TileX;
+            TileZ = source.TileZ;
+            Location = source.Location;
         }
 
         /// <summary>
@@ -91,12 +91,8 @@ namespace Orts.Common
         {
             get
             {
-                WorldLocation worldLocation = new WorldLocation();
-                worldLocation.TileX = TileX;
-                worldLocation.TileZ = TileZ;
-                worldLocation.Location = XNAMatrix.Translation;
-                worldLocation.Location.Z *= -1;  // convert to MSTS coordinates
-                return worldLocation;
+                XNAMatrix.Translation.Deconstruct(out float x, out float y, out float z);
+                return new WorldLocation(TileX, TileZ, x, y, -z);
             }
         }
 
@@ -158,60 +154,57 @@ namespace Orts.Common
     /// <summary>
     /// Represents the position of an object within a tile in MSTS coordinates.
     /// </summary>
-    public struct WorldLocation
+    public readonly struct WorldLocation
     {
         /// <summary>
         /// Returns a WorldLocation representing no location at all.
         /// </summary>
-		public static WorldLocation None = new WorldLocation();
+		public static readonly WorldLocation None = new WorldLocation();
 
         /// <summary>The x-value of the tile</summary>
-        public int TileX;
+        public readonly int TileX;
         /// <summary>The z-value of the tile</summary>
-        public int TileZ;
+        public readonly int TileZ;
         /// <summary>The vector to the location within a tile, relative to center of tile in MSTS coordinates</summary>
-        public Vector3 Location;
-
-        /// <summary>
-        /// Constructor from another location
-        /// </summary>
-        /// <param name="worldLocation">the other location to use as initialization</param>
-        public WorldLocation(WorldLocation worldLocation)
-        {
-            TileX = worldLocation.TileX;
-            TileZ = worldLocation.TileZ;
-            Location = worldLocation.Location;
-        }
+        public readonly Vector3 Location;
 
         /// <summary>
         /// Constructor using values for tileX, tileZ, x, y, and z.
         /// </summary>
-        public WorldLocation(int tileX, int tileZ, float x, float y, float z)
+        public WorldLocation(int tileX, int tileZ, float x, float y, float z, bool normalize = false): 
+            this(tileX, tileZ, new Vector3(x, y, z), normalize)
         {
-            TileX = tileX;
-            TileZ = tileZ;
-            Location = new Vector3(x, y, z);
         }
 
         /// <summary>
         /// Constructor using values for tileX and tileZ, and a vector for x, y, z
         /// </summary>
-        public WorldLocation(int tileX, int tileZ, Vector3 location)
+        public WorldLocation(int tileX, int tileZ, Vector3 location, bool normalize = false)
         {
             TileX = tileX;
             TileZ = tileZ;
             Location = location;
+            if (normalize)
+            {
+                this = Normalize();
+            }
+
         }
 
         /// <summary>
         /// Ensure tile coordinates are within tile boundaries
         /// </summary>
-        public void Normalize()
+        public WorldLocation Normalize()
         {
-            while (Location.X >= 1024) { Location.X -= 2048; TileX++; }
-            while (Location.X < -1024) { Location.X += 2048; TileX--; }
-            while (Location.Z >= 1024) { Location.Z -= 2048; TileZ++; }
-            while (Location.Z < -1024) { Location.Z += 2048; TileZ--; }
+            int xTileDistance = (int)Math.Ceiling((double)((int)(Location.X / 1024) / 2));
+            int zTileDistance = (int)Math.Ceiling((double)((int)(Location.Z / 1024) / 2));
+
+            return new WorldLocation(TileX + xTileDistance, TileZ + zTileDistance, new Vector3(Location.X - (xTileDistance * 2048), Location.Y, Location.Z - (zTileDistance * 2048)));
+
+            //while (Location.X >= 1024) { Location.X -= 2048; TileX++; }
+            //while (Location.X < -1024) { Location.X += 2048; TileX--; }
+            //while (Location.Z >= 1024) { Location.Z -= 2048; TileZ++; }
+            //while (Location.Z < -1024) { Location.Z += 2048; TileZ--; }
         }
 
         /// <summary>
@@ -219,12 +212,26 @@ namespace Orts.Common
         /// </summary>
         /// <param name="tileX">The x-value of the tile to normalize to</param>
         /// <param name="tileZ">The x-value of the tile to normalize to</param>
-        public void NormalizeTo(int tileX, int tileZ)
+        public WorldLocation NormalizeTo(int tileX, int tileZ)
         {
-            while (TileX < tileX) { Location.X -= 2048; TileX++; }
-            while (TileX > tileX) { Location.X += 2048; TileX--; }
-            while (TileZ < tileZ) { Location.Z -= 2048; TileZ++; }
-            while (TileZ > tileZ) { Location.Z += 2048; TileZ--; }
+            int xDiff = TileX - tileX;
+            int zDiff = TileZ - tileZ;
+            return new WorldLocation(TileX - xDiff, TileZ - zDiff, new Vector3(Location.X + (xDiff * 2048), Location.Y, Location.Z + (zDiff * 2048)));
+
+            //while (TileX < tileX) { Location.X -= 2048; TileX++; }
+            //while (TileX > tileX) { Location.X += 2048; TileX--; }
+            //while (TileZ < tileZ) { Location.Z -= 2048; TileZ++; }
+            //while (TileZ > tileZ) { Location.Z += 2048; TileZ--; }
+        }
+
+        public WorldLocation SetElevation(float elevation)
+        {
+            return new WorldLocation(TileX, TileZ, Location.X, elevation, Location.Z);
+        }
+
+        public WorldLocation ChangeElevation(float delta)
+        {
+            return new WorldLocation(TileX, TileZ, Location.X, Location.Y + delta, Location.Z);
         }
 
         /// <summary>
@@ -233,7 +240,7 @@ namespace Orts.Common
         /// <param name="location1">first location</param>
         /// <param name="location2">second location</param>
         /// <param name="distance">distance defining the boundary between 'within' and 'outside'</param>
-        public static bool Within(WorldLocation location1, WorldLocation location2, float distance)
+        public static bool Within(in WorldLocation location1, in WorldLocation location2, float distance)
         {
             return GetDistanceSquared(location1, location2) < distance * distance;
         }
@@ -241,11 +248,11 @@ namespace Orts.Common
         /// <summary>
         /// Get squared distance between two world locations (in meters)
         /// </summary>
-        public static float GetDistanceSquared(WorldLocation location1, WorldLocation location2)
+        public static float GetDistanceSquared(in WorldLocation location1, in WorldLocation location2)
         {
-            var dx = location1.Location.X - location2.Location.X;
-            var dy = location1.Location.Y - location2.Location.Y;
-            var dz = location1.Location.Z - location2.Location.Z;
+            float dx = location1.Location.X - location2.Location.X;
+            float dy = location1.Location.Y - location2.Location.Y;
+            float dz = location1.Location.Z - location2.Location.Z;
             dx += 2048 * (location1.TileX - location2.TileX);
             dz += 2048 * (location1.TileZ - location2.TileZ);
             return dx * dx + dy * dy + dz * dz;
@@ -254,17 +261,19 @@ namespace Orts.Common
         /// <summary>
         /// Get a (3D) vector pointing from <paramref name="locationFrom"/> to <paramref name="locationTo"/>
         /// </summary>
-        public static Vector3 GetDistance(WorldLocation locationFrom, WorldLocation locationTo)
+        public static Vector3 GetDistance(in WorldLocation locationFrom, in WorldLocation locationTo)
         {
-            return new Vector3(locationTo.Location.X - locationFrom.Location.X + (locationTo.TileX - locationFrom.TileX) * 2048, locationTo.Location.Y - locationFrom.Location.Y, locationTo.Location.Z - locationFrom.Location.Z + (locationTo.TileZ - locationFrom.TileZ) * 2048);
+            return new Vector3(locationTo.Location.X - locationFrom.Location.X + (locationTo.TileX - locationFrom.TileX) * 2048, 
+                locationTo.Location.Y - locationFrom.Location.Y, locationTo.Location.Z - locationFrom.Location.Z + (locationTo.TileZ - locationFrom.TileZ) * 2048);
         }
 
         /// <summary>
         /// Get a (2D) vector pointing from <paramref name="locationFrom"/> to <paramref name="locationTo"/>, so neglecting height (y) information
         /// </summary>
-        public static Vector2 GetDistance2D(WorldLocation locationFrom, WorldLocation locationTo)
+        public static Vector2 GetDistance2D(in WorldLocation locationFrom, in WorldLocation locationTo)
         {
-            return new Vector2(locationTo.Location.X - locationFrom.Location.X + (locationTo.TileX - locationFrom.TileX) * 2048, locationTo.Location.Z - locationFrom.Location.Z + (locationTo.TileZ - locationFrom.TileZ) * 2048);
+            return new Vector2(locationTo.Location.X - locationFrom.Location.X + (locationTo.TileX - locationFrom.TileX) * 2048, 
+                locationTo.Location.Z - locationFrom.Location.Z + (locationTo.TileZ - locationFrom.TileZ) * 2048);
         }
 
         /// <summary>
@@ -272,52 +281,50 @@ namespace Orts.Common
         /// </summary>
         public override string ToString()
         {
-            return String.Format(System.Globalization.CultureInfo.InvariantCulture,
-                "{{TileX:{0} TileZ:{1} X:{2} Y:{3} Z:{4}}}", TileX, TileZ, Location.X, Location.Y, Location.Z);
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                $"{{TileX:{TileX} TileZ:{TileZ} X:{Location.X} Y:{Location.Y} Z:{Location.Z}}}");
         }
 
         /// <summary>
         /// Save the object to binary format
         /// </summary>
         /// <param name="outf">output file</param>
-        public void Save(BinaryWriter outf)
+        public static void Save(in WorldLocation instance, BinaryWriter outf)
         {
-            outf.Write(TileX);
-            outf.Write(TileZ);
-            outf.Write(Location.X);
-            outf.Write(Location.Y);
-            outf.Write(Location.Z);
+            outf.Write(instance.TileX);
+            outf.Write(instance.TileZ);
+            outf.Write(instance.Location.X);
+            outf.Write(instance.Location.Y);
+            outf.Write(instance.Location.Z);
         }
 
         /// <summary>
         /// Restore the object from binary format
         /// </summary>
         /// <param name="inf">input file</param>
-        public void Restore(BinaryReader inf)
+        public static WorldLocation Restore(BinaryReader inf)
         {
-            TileX = inf.ReadInt32();
-            TileZ = inf.ReadInt32();
-            Location.X = inf.ReadSingle();
-            Location.Y = inf.ReadSingle();
-            Location.Z = inf.ReadSingle();
+            int tileX = inf.ReadInt32();
+            int tileZ = inf.ReadInt32();
+            float x = inf.ReadSingle();
+            float y = inf.ReadSingle();
+            float z = inf.ReadSingle();
+            return new WorldLocation(tileX, tileZ, x, y, z);
         }
 
-        public static bool operator ==(WorldLocation a, WorldLocation b)
+        public static bool operator ==(in WorldLocation a, in WorldLocation b)
         {
             return a.TileX == b.TileX && a.TileZ == b.TileZ && a.Location == b.Location;
         }
 
-        public static bool operator !=(WorldLocation a, WorldLocation b)
+        public static bool operator !=(in WorldLocation a, in WorldLocation b)
         {
             return a.TileX != b.TileX || a.TileZ != b.TileZ || a.Location != b.Location;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj == null || GetType() != obj.GetType())
-                return false;
-            var other = (WorldLocation)obj;
-            return this == other;
+            return (obj is WorldLocation other && this == other);
         }
 
         public override int GetHashCode()

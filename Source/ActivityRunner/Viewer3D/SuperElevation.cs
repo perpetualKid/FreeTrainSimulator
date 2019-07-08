@@ -128,11 +128,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (tss == null || tss.SectionCurve == null)
                 return 0;
-            location.TileX = ts.TileX;
-            location.TileZ = ts.TileZ;
-            location.Location.X = ts.X;
-            location.Location.Y = ts.Y;
-            location.Location.Z = ts.Z;
+            location = new WorldLocation(ts.TileX, ts.TileZ, ts.X, ts.Y, ts.Z);
             directionVector.X = ts.AX;
             directionVector.Y = ts.AY;
             directionVector.Z = ts.AZ;
@@ -176,11 +172,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var tss = viewer.Simulator.TSectionDat.TrackSections.Get(ts.SectionIndex);
                 if (tss == null || tss.SectionCurve == null || ts.WFNameX != TileX || ts.WFNameZ != TileZ)
                     continue;
-                location.TileX = ts.TileX;
-                location.TileZ = ts.TileZ;
-                location.Location.X = ts.X;
-                location.Location.Y = ts.Y;
-                location.Location.Z = ts.Z;
+                location = new WorldLocation(ts.TileX, ts.TileZ, ts.X, ts.Y, ts.Z);
                 directionVector.X = ts.AX;
                 directionVector.Y = ts.AY;
                 directionVector.Z = ts.AZ;

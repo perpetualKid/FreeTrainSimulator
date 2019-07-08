@@ -106,14 +106,14 @@ namespace Orts.ActivityRunner.Viewer3D
         [CallOnThread("Updater")]
         protected internal virtual void Save(BinaryWriter output)
         {
-            cameraLocation.Save(output);
+            WorldLocation.Save(cameraLocation, output);
             output.Write(FieldOfView);
         }
 
         [CallOnThread("Render")]
         protected internal virtual void Restore(BinaryReader input)
         {
-            cameraLocation.Restore(input);
+            cameraLocation = WorldLocation.Restore(input);
             FieldOfView = input.ReadSingle();
         }
 
@@ -282,7 +282,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         /// <param name="worldLocation"></param>
         /// <returns></returns>
-        public Vector3 XnaLocation(WorldLocation worldLocation)
+        public Vector3 XnaLocation(in WorldLocation worldLocation)
         {
             var xnaVector = worldLocation.Location;
             xnaVector.X += 2048 * (worldLocation.TileX - cameraLocation.TileX);
@@ -315,21 +315,17 @@ namespace Orts.ActivityRunner.Viewer3D
         /// which would lead to imprecise absolute world coordinates, thus stuttering.
         /// </summary>
         public static Point SoundBaseTile = new Point(0, 0);
-        /// <summary>
-        /// CameraWorldLocation normalized to SoundBaseTile
-        /// </summary>
-        WorldLocation ListenerLocation;
+
         /// <summary>
         /// Set OpenAL listener position based on CameraWorldLocation normalized to SoundBaseTile
         /// </summary>
         public void UpdateListener()
         {
-            ListenerLocation = new WorldLocation(CameraWorldLocation);
-            ListenerLocation.NormalizeTo(SoundBaseTile.X, SoundBaseTile.Y);
+            Vector3 listenerLocation = CameraWorldLocation.NormalizeTo(SoundBaseTile.X, SoundBaseTile.Y).Location;
             float[] cameraPosition = new float[] {
-                        ListenerLocation.Location.X,
-                        ListenerLocation.Location.Y,
-                        ListenerLocation.Location.Z};
+                        listenerLocation.X,
+                        listenerLocation.Y,
+                        listenerLocation.Z};
 
             float[] cameraVelocity = new float[] { 0, 0, 0 };
 
@@ -374,13 +370,13 @@ namespace Orts.ActivityRunner.Viewer3D
         protected internal override void Save(BinaryWriter outf)
         {
             base.Save(outf);
-            targetLocation.Save(outf);
+            WorldLocation.Save(targetLocation, outf);
         }
 
         protected internal override void Restore(BinaryReader inf)
         {
             base.Restore(inf);
-            targetLocation.Restore(inf);
+            targetLocation = WorldLocation.Restore(inf);
         }
 
         protected override Matrix GetCameraView()
@@ -418,8 +414,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (previousCamera != null)
             {
-                float h, a, b;
-                OrtsMath.MatrixToAngles(ref previousCamera.XnaView, out h, out a, out b);
+                OrtsMath.MatrixToAngles(ref previousCamera.XnaView, out float h, out float a, out float b);
                 RotationXRadians = -b;
                 RotationYRadians = -h;
             }
@@ -570,8 +565,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             movement = Vector3.Transform(movement, Matrix.CreateRotationX(RotationXRadians));
             movement = Vector3.Transform(movement, Matrix.CreateRotationY(RotationYRadians));
-            cameraLocation.Location += movement;
-            cameraLocation.Normalize();
+            cameraLocation = new WorldLocation(cameraLocation.TileX, cameraLocation.TileZ, cameraLocation.Location + movement, true);
         }
 
         /// <summary>
@@ -609,7 +603,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
         }
 
-        public void SetLocation(WorldLocation location)
+        public void SetLocation(in WorldLocation location)
         {
             cameraLocation = location;
         }
@@ -628,7 +622,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     axisZSpeedBoost = 1;
                 else
                 {
-                    cameraLocation.Location.Y = MathHelper.Min(cameraLocation.Location.Y, elevation + maxCameraHeight);
+                    cameraLocation = cameraLocation.SetElevation(MathHelper.Min(cameraLocation.Location.Y, elevation + maxCameraHeight));
                     float cameraRelativeHeight = cameraLocation.Location.Y - elevation;
                     axisZSpeedBoost = ((cameraRelativeHeight / maxCameraHeight) * 50) + 1;
                 }
@@ -884,23 +878,10 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (worldPosition != null)
             {
-                cameraLocation.TileX = worldPosition.TileX;
-                cameraLocation.TileZ = worldPosition.TileZ;
-                if (IsCameraFlipped())
-                {
-                    cameraLocation.Location.X = -attachedLocation.X;
-                    cameraLocation.Location.Y = attachedLocation.Y;
-                    cameraLocation.Location.Z = -attachedLocation.Z;
-                }
-                else
-                {
-                    cameraLocation.Location.X = attachedLocation.X;
-                    cameraLocation.Location.Y = attachedLocation.Y;
-                    cameraLocation.Location.Z = attachedLocation.Z;
-                }
-                cameraLocation.Location.Z *= -1;
-                cameraLocation.Location = Vector3.Transform(cameraLocation.Location, worldPosition.XNAMatrix);
-                cameraLocation.Location.Z *= -1;
+                Vector3 source = IsCameraFlipped() ? new Vector3(-attachedLocation.X, attachedLocation.Y, attachedLocation.Z) :
+                    new Vector3(attachedLocation.X, attachedLocation.Y, -attachedLocation.Z);
+                Vector3.Transform(source, worldPosition.XNAMatrix).Deconstruct(out float x, out float y, out float z);
+                cameraLocation = new WorldLocation(worldPosition.TileX, worldPosition.TileZ, x, y, -z);
             }
         }
 
@@ -941,23 +922,10 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (attachedCar != null)
             {
-                cameraLocation.TileX = attachedCar.WorldPosition.TileX;
-                cameraLocation.TileZ = attachedCar.WorldPosition.TileZ;
-                if (IsCameraFlipped())
-                {
-                    cameraLocation.Location.X = -attachedLocation.X;
-                    cameraLocation.Location.Y = attachedLocation.Y;
-                    cameraLocation.Location.Z = -attachedLocation.Z;
-                }
-                else
-                {
-                    cameraLocation.Location.X = attachedLocation.X;
-                    cameraLocation.Location.Y = attachedLocation.Y;
-                    cameraLocation.Location.Z = attachedLocation.Z;
-                }
-                cameraLocation.Location.Z *= -1;
-                cameraLocation.Location = Vector3.Transform(cameraLocation.Location, attachedCar.WorldPosition.XNAMatrix);
-                cameraLocation.Location.Z *= -1;
+                Vector3 source = IsCameraFlipped() ? new Vector3(-attachedLocation.X, attachedLocation.Y, attachedLocation.Z) : 
+                    new Vector3(attachedLocation.X, attachedLocation.Y, -attachedLocation.Z);
+                Vector3.Transform(source, attachedCar.WorldPosition.XNAMatrix).Deconstruct(out float x, out float y, out float z);
+                cameraLocation = new WorldLocation(attachedCar.WorldPosition.TileX, attachedCar.WorldPosition.TileZ, x, y, -z);
             }
             UpdateRotation(elapsedTime);
             UpdateListener();
@@ -1840,8 +1808,10 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Viewer.SelectedTrain != null && Viewer.SelectedTrain.IsActualPlayerTrain &&
             Viewer.PlayerLocomotive != null && Viewer.PlayerLocomotive.CabViewpoints != null)
             {
-                List<TrainCar> l = new List<TrainCar>();
-                l.Add(Viewer.PlayerLocomotive);
+                List<TrainCar> l = new List<TrainCar>
+                {
+                    Viewer.PlayerLocomotive
+                };
                 return l;
             }
             else return base.GetCameraCars();
@@ -2204,13 +2174,6 @@ namespace Orts.ActivityRunner.Viewer3D
         protected const float CameraAltitude = 2;
         // Height above the coordinate center of target.
         protected const float TargetAltitude = TerrainAltitudeMargin;
-        const int MaximumSpecialPointDistance = 300;
-        const float PlatformOffsetM = 3.3f;
-        public bool SpecialPoints = false;
-        protected bool SpecialPointFound = false;
-        const float CheckIntervalM = 50f; // every 50 meters it is checked wheter there is a near special point
-        protected float DistanceRunM = 0f; // distance run since last check interval
-        protected bool FirstUpdateLoop = true; // first update loop
 
         protected TrainCar attachedCar;
         public override TrainCar AttachedCar { get { return attachedCar; } }
@@ -2243,7 +2206,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void Reset()
         {
             base.Reset();
-            cameraLocation.Location.Y -= CameraAltitudeOffset;
+            cameraLocation  = cameraLocation.ChangeElevation(-CameraAltitudeOffset);
             CameraAltitudeOffset = 0;
         }
 
@@ -2251,8 +2214,8 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (sameCamera)
             {
-                cameraLocation.TileX = 0;
-                cameraLocation.TileZ = 0;
+                cameraLocation = new WorldLocation(0, 0, cameraLocation.Location);
+
             }
             if (attachedCar == null || attachedCar.Train != Viewer.SelectedTrain)
             {
@@ -2272,15 +2235,15 @@ namespace Orts.ActivityRunner.Viewer3D
             if (UserInput.IsDown(UserCommand.CameraPanUp))
             {
                 CameraAltitudeOffset += speed;
-                cameraLocation.Location.Y += speed;
+                cameraLocation = cameraLocation.ChangeElevation(speed);
             }
             if (UserInput.IsDown(UserCommand.CameraPanDown))
             {
                 CameraAltitudeOffset -= speed;
-                cameraLocation.Location.Y -= speed;
+                cameraLocation = cameraLocation.ChangeElevation(-speed);
                 if (CameraAltitudeOffset < 0)
                 {
-                    cameraLocation.Location.Y -= CameraAltitudeOffset;
+                    cameraLocation = cameraLocation.ChangeElevation(-CameraAltitudeOffset);
                     CameraAltitudeOffset = 0;
                 }
             }
@@ -2304,11 +2267,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Update(in ElapsedTime elapsedTime)
         {
-            bool trainForwards;
-            var train = PrepUpdate(out trainForwards);
+            var train = PrepUpdate(out bool trainForwards);
 
             // Train is close enough if the last car we used is part of the same train and still close enough.
-            var trainClose = (LastCheckCar != null) && (LastCheckCar.Train == train) && (WorldLocation.GetDistance2D(LastCheckCar.WorldPosition.WorldLocation, cameraLocation).Length() < MaximumDistance);
+            var trainClose = (LastCheckCar?.Train == train) && (WorldLocation.GetDistance2D(LastCheckCar.WorldPosition.WorldLocation, cameraLocation).Length() < MaximumDistance);
 
             // Otherwise, let's check out every car and remember which is the first one close enough for next time.
             if (!trainClose)
@@ -2328,20 +2290,14 @@ namespace Orts.ActivityRunner.Viewer3D
             if (!trainClose || (TrackCameraLocation == WorldLocation.None))
             {
                 var tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
-                var newLocation = GoToNewLocation(ref tdb, train, trainForwards);
-                newLocation.Normalize();
+                var newLocation = GoToNewLocation(ref tdb, train, trainForwards).Normalize();
 
                 var newLocationElevation = Viewer.Tiles.GetElevation(newLocation);
 
-                cameraLocation = newLocation;
-
-                cameraLocation.Location.Y = Math.Max(tdb.Y, newLocationElevation) + CameraAltitude + CameraAltitudeOffset;
-
+                cameraLocation = newLocation.SetElevation(Math.Max(tdb.Y, newLocationElevation) + CameraAltitude + CameraAltitudeOffset);
             }
 
-
-
-            targetLocation.Location.Y += TargetAltitude;
+            targetLocation = targetLocation.ChangeElevation(TargetAltitude);
 
             UpdateListener();
 
@@ -2369,34 +2325,32 @@ namespace Orts.ActivityRunner.Viewer3D
         protected WorldLocation GoToNewLocation(ref Traveller tdb, Train train, bool trainForwards)
         {
             tdb.Move(MaximumDistance * 0.75f);
-            var newLocation = tdb.WorldLocation;
-            TrackCameraLocation = new WorldLocation(newLocation);
-            var directionForward = WorldLocation.GetDistance((trainForwards ? train.FirstCar : train.LastCar).WorldPosition.WorldLocation, newLocation);
+            TrackCameraLocation = tdb.WorldLocation;
+            var directionForward = WorldLocation.GetDistance((trainForwards ? train.FirstCar : train.LastCar).WorldPosition.WorldLocation, TrackCameraLocation);
             if (Viewer.Random.Next(2) == 0)
             {
-                newLocation.Location.X += -directionForward.Z / SidewaysScale; // Use swapped -X and Z to move to the left of the track.
-                newLocation.Location.Z += directionForward.X / SidewaysScale;
+                // Use swapped -X and Z to move to the left of the track.
+                return new WorldLocation(TrackCameraLocation.TileX, TrackCameraLocation.TileZ,
+                    TrackCameraLocation.Location.X - (directionForward.Z / SidewaysScale), TrackCameraLocation.Location.Y, TrackCameraLocation.Location.Z + (directionForward.X / SidewaysScale));
             }
             else
             {
-                newLocation.Location.X += directionForward.Z / SidewaysScale; // Use swapped X and -Z to move to the right of the track.
-                newLocation.Location.Z += -directionForward.X / SidewaysScale;
+                // Use swapped X and -Z to move to the right of the track.
+                return new WorldLocation(TrackCameraLocation.TileX, TrackCameraLocation.TileZ,
+                    TrackCameraLocation.Location.X + (directionForward.Z / SidewaysScale), TrackCameraLocation.Location.Y, TrackCameraLocation.Location.Z - (directionForward.X / SidewaysScale));
             }
-            return newLocation;
         }
 
         protected virtual void PanRight(float speed)
         {
-            var movement = new Vector3(0, 0, 0);
-            movement.X += speed;
+            Vector3 movement = new Vector3(speed, 0, 0);
             XRadians += movement.X;
             MoveCamera(movement);
         }
 
         protected override void ZoomIn(float speed)
         {
-            var movement = new Vector3(0, 0, 0);
-            movement.Z += speed;
+            Vector3 movement = new Vector3(0, 0, speed);
             ZRadians += movement.Z;
             MoveCamera(movement);
         }
@@ -2437,8 +2391,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Update(in ElapsedTime elapsedTime)
         {
-            bool trainForwards;
-            var train = PrepUpdate(out trainForwards);
+            var train = PrepUpdate(out bool trainForwards);
 
             if (RoadCarFound)
             {
@@ -2447,8 +2400,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     var traveller = new Traveller(NearRoadCar.FrontTraveller);
                     traveller.Move(-2.5f - 0.15f * NearRoadCar.Length - NearRoadCar.Speed * 0.5f);
-                    cameraLocation = TrackCameraLocation = new WorldLocation(traveller.WorldLocation);
-                    cameraLocation.Location.Y += 1.8f;
+                    TrackCameraLocation = traveller.WorldLocation;
+                    cameraLocation = traveller.WorldLocation.ChangeElevation(+1.8f);
                 }
                 else NearRoadCar = null;
             }
@@ -2512,7 +2465,6 @@ namespace Orts.ActivityRunner.Viewer3D
                     tdb = trainForwards ? new Traveller(train.RearTDBTraveller) : new Traveller(train.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
                 else
                     tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
-                var newLocation = WorldLocation.None;
 
                 int tcSectionIndex;
                 int routeIndex;
@@ -2565,21 +2517,20 @@ namespace Orts.ActivityRunner.Viewer3D
                                     if (FirstUpdateLoop && Math.Abs(train.SpeedMpS) <= 0.2f) distanceToViewingPoint =
                                             Math.Min(distanceToViewingPoint, train.Length * 0.95f);
                                     tdb.Move(distanceToViewingPoint);
-                                    newLocation = tdb.WorldLocation;
                                     // shortTrav is used to state directions, to correctly identify in which direction (left or right) to move
                                     //the camera from center of track to the platform at its side
                                     Traveller shortTrav;
-                                    PlatformItem platformItem = Viewer.Simulator.TDB.TrackDB.TrItemTable[thisPlatform.PlatformFrontUiD] as PlatformItem;
-                                    if (platformItem == null) continue;
+                                    if (!(Viewer.Simulator.TDB.TrackDB.TrItemTable[thisPlatform.PlatformFrontUiD] is PlatformItem platformItem)) 
+                                        continue;
                                     shortTrav = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.TDB.TrackDB.TrackNodes, platformItem.TileX,
                                         platformItem.TileZ, platformItem.X, platformItem.Z, Traveller.TravellerDirection.Forward);
-                                    var distanceToViewingPoint1 = shortTrav.DistanceTo(newLocation.TileX, newLocation.TileZ,
-                                        newLocation.Location.X, newLocation.Location.Y, newLocation.Location.Z, thisPlatform.Length);
+                                    var distanceToViewingPoint1 = shortTrav.DistanceTo(tdb.WorldLocation.TileX, tdb.WorldLocation.TileZ,
+                                        tdb.WorldLocation.Location.X, tdb.WorldLocation.Location.Y, tdb.WorldLocation.Location.Z, thisPlatform.Length);
                                     if (distanceToViewingPoint1 == -1) //try other direction
                                     {
                                         shortTrav.ReverseDirection();
-                                        distanceToViewingPoint1 = shortTrav.DistanceTo(newLocation.TileX, newLocation.TileZ,
-                                        newLocation.Location.X, newLocation.Location.Y, newLocation.Location.Z, thisPlatform.Length);
+                                        distanceToViewingPoint1 = shortTrav.DistanceTo(tdb.WorldLocation.TileX, tdb.WorldLocation.TileZ,
+                                        tdb.WorldLocation.Location.X, tdb.WorldLocation.Location.Y, tdb.WorldLocation.Location.Z, thisPlatform.Length);
                                         if (distanceToViewingPoint1 == -1) continue;
                                     }
                                     platformFound = true;
@@ -2587,12 +2538,13 @@ namespace Orts.ActivityRunner.Viewer3D
                                     trainClose = false;
                                     LastCheckCar = FirstUpdateLoop ^ trainForwards ? train.Cars.First() : train.Cars.Last();
                                     shortTrav.Move(distanceToViewingPoint1);
-                                    // moving newLocation to platform at side of track
-                                    newLocation.Location.X += (PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Cos(shortTrav.RotY) *
+                                    // moving location to platform at side of track
+                                    float deltaX = (PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Cos(shortTrav.RotY) *
                                         (thisPlatform.PlatformSide[1] ? 1 : -1);
-                                    newLocation.Location.Z += -(PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Sin(shortTrav.RotY) *
+                                    float deltaZ = -(PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Sin(shortTrav.RotY) *
                                         (thisPlatform.PlatformSide[1] ? 1 : -1);
-                                    TrackCameraLocation = new WorldLocation(newLocation);
+                                    TrackCameraLocation = new WorldLocation(tdb.WorldLocation.TileX, tdb.WorldLocation.TileZ, 
+                                        tdb.WorldLocation.Location.X + deltaX, tdb.WorldLocation.Location.Y, tdb.WorldLocation.Location.Z + deltaZ);
                                     break;
                                 }
                             }
@@ -2658,7 +2610,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         NearRoadCar.CarriesCamera = true;
                         var traveller = new Traveller(NearRoadCar.FrontTraveller);
                         traveller.Move(-2.5f - 0.15f * NearRoadCar.Length);
-                        TrackCameraLocation = newLocation = new WorldLocation(traveller.WorldLocation);
+                        TrackCameraLocation = traveller.WorldLocation;
                     }
                 }
 
@@ -2673,52 +2625,42 @@ namespace Orts.ActivityRunner.Viewer3D
                         SpecialPointFound = true;
                         trainClose = false;
                         LastCheckCar = trainForwards ? train.Cars.First() : train.Cars.Last();
-                        newLocation = newLevelCrossingItem.Location;
-                        TrackCameraLocation = new WorldLocation(newLocation);
+                        TrackCameraLocation = newLevelCrossingItem.Location;
                         Traveller roadTraveller;
                         // decide randomly at which side of the level crossing the camera will be located
-                        if (Viewer.Random.Next(2) == 0)
-                        {
-                            roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex],
-                                newLocation.TileX, newLocation.TileZ, newLocation.Location.X, newLocation.Location.Z, Traveller.TravellerDirection.Forward);
-                        }
-                        else
-                        {
-                            roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex],
-                                newLocation.TileX, newLocation.TileZ, newLocation.Location.X, newLocation.Location.Z, Traveller.TravellerDirection.Backward);
-                        }
+                        roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex],
+                            TrackCameraLocation.TileX, TrackCameraLocation.TileZ, TrackCameraLocation.Location.X, TrackCameraLocation.Location.Z, Viewer.Random.Next(2) == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
                         roadTraveller.Move(12.5f);
                         tdb.Move(FrontDist);
-                        newLocation = roadTraveller.WorldLocation;
+                        TrackCameraLocation = roadTraveller.WorldLocation;
                     }
                 }
+
                 if (!SpecialPointFound && !trainClose)
                 {
                     tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward); // return to standard
-                    newLocation = GoToNewLocation(ref tdb, train, trainForwards);
+                    TrackCameraLocation = GoToNewLocation(ref tdb, train, trainForwards);
                  }
 
-                if (newLocation != WorldLocation.None && !trainClose)
+                if (TrackCameraLocation != WorldLocation.None && !trainClose)
                 {
-                    newLocation.Normalize();
-                    cameraLocation = newLocation;
+                    TrackCameraLocation = TrackCameraLocation.Normalize();
+                    cameraLocation = TrackCameraLocation;
                     if (!RoadCarFound)
                     {
-                        var newLocationElevation = Viewer.Tiles.GetElevation(newLocation);
-                        cameraLocation.Location.Y = newLocationElevation;
-                        TrackCameraLocation = new WorldLocation(cameraLocation);
-                        cameraLocation.Location.Y = Math.Max(tdb.Y, newLocationElevation) + CameraAltitude + CameraAltitudeOffset + (platformFound ? 0.35f : 0.0f);
+                        TrackCameraLocation = TrackCameraLocation.SetElevation(Viewer.Tiles.GetElevation(TrackCameraLocation));
+                        cameraLocation = TrackCameraLocation.SetElevation(Math.Max(tdb.Y, TrackCameraLocation.Location.Y) + CameraAltitude + CameraAltitudeOffset + (platformFound ? 0.35f : 0.0f));
                     }
                     else
                     {
-                        TrackCameraLocation = new WorldLocation(cameraLocation);
-                        cameraLocation.Location.Y += 1.8f;
+                        TrackCameraLocation = cameraLocation;
+                        cameraLocation = cameraLocation.ChangeElevation(1.8f);
                     }
                     DistanceRunM = 0f;
                 }
             }
 
-            targetLocation.Location.Y += TargetAltitude;
+            targetLocation = targetLocation.ChangeElevation(TargetAltitude);
             FirstUpdateLoop = false;
             UpdateListener();
         }

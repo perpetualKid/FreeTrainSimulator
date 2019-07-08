@@ -318,15 +318,14 @@ namespace ORTS.TrackViewer.Drawing.Labels
 
             //We have three locations. Where the original/reference label. Where the dragging starts, and where the mouse now is
             //The new location is then 'original' + 'current' - 'start'.
-            draggingStartLocation.NormalizeTo(drawArea.MouseLocation.TileX, drawArea.MouseLocation.TileZ);
+            draggingStartLocation = draggingStartLocation.NormalizeTo(drawArea.MouseLocation.TileX, drawArea.MouseLocation.TileZ);
             WorldLocation shiftedLocation = new WorldLocation(
                 draggingLabelToReplace.WorldLocation.TileX      + drawArea.MouseLocation.TileX      - draggingStartLocation.TileX,
                 draggingLabelToReplace.WorldLocation.TileZ      + drawArea.MouseLocation.TileZ      - draggingStartLocation.TileZ,
                 draggingLabelToReplace.WorldLocation.Location.X + drawArea.MouseLocation.Location.X - draggingStartLocation.Location.X,
                 0,
-                draggingLabelToReplace.WorldLocation.Location.Z + drawArea.MouseLocation.Location.Z - draggingStartLocation.Location.Z
-                );
-            shiftedLocation.Normalize();
+                draggingLabelToReplace.WorldLocation.Location.Z + drawArea.MouseLocation.Location.Z - draggingStartLocation.Location.Z, 
+                true);
             draggingLabel = new StorableLabel(shiftedLocation, draggingLabelToReplace.LabelText);
         }
 

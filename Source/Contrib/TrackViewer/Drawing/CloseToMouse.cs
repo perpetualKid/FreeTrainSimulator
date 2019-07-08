@@ -69,7 +69,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="location2">second location</param>
         /// <returns>Distance squared</returns>
         /// <remarks>Very similar to WordlLocation.GetDistanceSquared</remarks>
-        public static float GetGroundDistanceSquared(WorldLocation location1, WorldLocation location2)
+        public static float GetGroundDistanceSquared(in WorldLocation location1, in WorldLocation location2)
         {
             float dx = location1.Location.X - location2.Location.X;
             float dz = location1.Location.Z - location2.Location.Z;
@@ -142,7 +142,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="mouseLocation">Current mouse location</param>
         /// <param name="junctionOrEndNode">the trackNode that will be stored when it is indeed the closest</param>
         /// <param name="description">The type of item (needed for later printing in statusbar)</param>
-        public void CheckMouseDistance(WorldLocation location, WorldLocation mouseLocation, TrackNode junctionOrEndNode, string description)
+        public void CheckMouseDistance(in WorldLocation location, in WorldLocation mouseLocation, TrackNode junctionOrEndNode, string description)
         {
             float distanceSquared = CloseToMouse.GetGroundDistanceSquared(location, mouseLocation);
             if (distanceSquared < ClosestDistanceSquared)
@@ -208,7 +208,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="location">Location to check</param>
         /// <param name="mouseLocation">Current mouse location</param>
         /// <param name="trItem">The track Item that will be stored when it is indeed the closest</param>
-        public void CheckMouseDistance(WorldLocation location, WorldLocation mouseLocation, DrawableTrackItem trItem)
+        public void CheckMouseDistance(in WorldLocation location, in WorldLocation mouseLocation, DrawableTrackItem trItem)
         {
             float distanceSquared = CloseToMouse.GetGroundDistanceSquared(location, mouseLocation);
 
@@ -313,7 +313,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="vectorSection">the vectorSection that will be stored when indeed it is closest to the mouse location</param>
         /// <param name="tvsi">Current index of the trackvectorsection</param>
         /// <param name="pixelsPerMeter"></param>
-        public void CheckMouseDistance(WorldLocation location, WorldLocation mouseLocation, 
+        public void CheckMouseDistance(in WorldLocation location, in WorldLocation mouseLocation, 
             TrackNode trackNode, TrVectorSection vectorSection, int tvsi, double pixelsPerMeter)
         {
             storedMouseLocation = mouseLocation;

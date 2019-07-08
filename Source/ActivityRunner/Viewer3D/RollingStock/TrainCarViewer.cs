@@ -58,7 +58,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
 
         public float[] Velocity = new float[] { 0, 0, 0 };
-        WorldLocation SoundLocation;
 
         public void UpdateSoundPosition()
         {
@@ -81,13 +80,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             else
                 Velocity = new float[] { 0, 0, 0 };
 
+            float[] soundLocation = new float[3];
             // TODO This entire block of code (down to TODO END) should be inside the SoundProcess, not here.
-            SoundLocation = new WorldLocation(Car.WorldPosition.WorldLocation);
-            SoundLocation.NormalizeTo(Camera.SoundBaseTile.X, Camera.SoundBaseTile.Y);
-            float[] position = new float[] {
-                SoundLocation.Location.X,
-                SoundLocation.Location.Y,
-                SoundLocation.Location.Z};
+            Car.WorldPosition.WorldLocation.NormalizeTo(Camera.SoundBaseTile.X, Camera.SoundBaseTile.Y).Location.Deconstruct(out soundLocation[0], out soundLocation[1], out soundLocation[2]);
 
             // make a copy of SoundSourceIDs, but check that it didn't change during the copy; if it changed, try again up to 5 times.
             var sSIDsFinalCount = -1;
@@ -108,7 +103,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 Viewer.Simulator.updaterWorking = true;
                 if (OpenAL.alIsSource(soundSourceID))
                 {
-                    OpenAL.alSourcefv(soundSourceID, OpenAL.AL_POSITION, position);
+                    OpenAL.alSourcefv(soundSourceID, OpenAL.AL_POSITION, soundLocation);
                     OpenAL.alSourcefv(soundSourceID, OpenAL.AL_VELOCITY, Velocity);
                 }
                 Viewer.Simulator.updaterWorking = false;

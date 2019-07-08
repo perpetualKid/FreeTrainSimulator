@@ -66,7 +66,7 @@ namespace Orts.Formats.OR
         float trackNodeLength;
         float trackNodeOffset;
 
-        public WorldLocation WorldLocation { get { if (!locationSet) SetLocation(); return new WorldLocation(location); } }
+        public WorldLocation WorldLocation { get { if (!locationSet) SetLocation(); return location; } }
         public int TileX { get { if (!locationSet) SetLocation(); return location.TileX; } }
         public int TileZ { get { if (!locationSet) SetLocation(); return location.TileZ; } }
         public Vector3 Location { get { if (!locationSet) SetLocation(); return location.Location; } }
@@ -159,7 +159,7 @@ namespace Orts.Formats.OR
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="loc">Starting world location</param>
-        public void place(WorldLocation loc)
+        public void place(in WorldLocation loc)
         {
             place (loc.TileX, loc.TileZ, loc.Location.X, loc.Location.Z);
         }
@@ -438,7 +438,7 @@ namespace Orts.Formats.OR
         /// <param name="TSectionDat">Database with track sections</param>
         /// <param name="TrackNodes">List of available tracknodes</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        static TrackNodeCandidate TryTrackNode(int tni, WorldLocation loc, TrackSectionsFile TSectionDat, TrackNode[] TrackNodes)
+        static TrackNodeCandidate TryTrackNode(int tni, in WorldLocation loc, TrackSectionsFile TSectionDat, TrackNode[] TrackNodes)
         {
             TrackNode trackNode = TrackNodes[tni];
             if (trackNode == null || trackNode.TrVectorNode == null)
@@ -466,7 +466,7 @@ namespace Orts.Formats.OR
         /// <param name="TSectionDat">Database with track sections</param></param>
         /// <param name="trackNode">The parent trackNode of the vector section</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        static TrackNodeCandidate TryTrackVectorSection(int tvsi, WorldLocation loc, TrackSectionsFile TSectionDat, TrackNode trackNode)
+        static TrackNodeCandidate TryTrackVectorSection(int tvsi, in WorldLocation loc, TrackSectionsFile TSectionDat, TrackNode trackNode)
         {
             TrVectorSection trackVectorSection = trackNode.TrVectorNode.TrVectorSections[tvsi];
             if (trackVectorSection == null)
@@ -488,7 +488,7 @@ namespace Orts.Formats.OR
         /// <param name="TSectionDat">Database with track sections</param>
         /// <param name="trackVectorSection">The parent track vector section</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        static TrackNodeCandidate TryTrackSection(uint tsi, WorldLocation loc, TrackSectionsFile TSectionDat, TrVectorSection trackVectorSection)
+        static TrackNodeCandidate TryTrackSection(uint tsi, in WorldLocation loc, TrackSectionsFile TSectionDat, TrVectorSection trackVectorSection)
         {
             TrackSection trackSection = TSectionDat.TrackSections.Get(tsi);
             if (trackSection == null)
@@ -516,7 +516,7 @@ namespace Orts.Formats.OR
         /// <param name="trackVectorSection">The trackvector section that is parent of the tracksection</param>
         /// <param name="trackSection">the specific tracksection we want to try</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        static TrackNodeCandidate TryTrackSectionCurved(WorldLocation loc, TrVectorSection trackVectorSection, TrackSection trackSection)
+        static TrackNodeCandidate TryTrackSectionCurved(in WorldLocation loc, TrVectorSection trackVectorSection, TrackSection trackSection)
         {// TODO: Add y component.
             var l = loc.Location;
             // We're working relative to the track section, so offset as needed.
@@ -566,7 +566,7 @@ namespace Orts.Formats.OR
         /// <param name="trackVectorSection">The trackvector section that is parent of the tracksection</param>
         /// <param name="trackSection">the specific tracksection we want to try</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        static TrackNodeCandidate TryTrackSectionStraight(WorldLocation loc, TrVectorSection trackVectorSection, TrackSection trackSection)
+        static TrackNodeCandidate TryTrackSectionStraight(in WorldLocation loc, TrVectorSection trackVectorSection, TrackSection trackSection)
         { // TODO: Add y component.
             float x = loc.Location.X;
             float z = loc.Location.Z;
@@ -604,7 +604,7 @@ namespace Orts.Formats.OR
         /// <param name="traveller">The traveller that needs to be placed</param>
         /// <param name="location">The location where it needs to be placed</param>
         /// <returns>boolean showing whether the traveller can be placed on the section at given location</returns>
-        private static bool InitTrackSectionSucceeded(AETraveller traveller, WorldLocation location)
+        private static bool InitTrackSectionSucceeded(AETraveller traveller, in WorldLocation location)
         {
             TrackNodeCandidate candidate = (traveller.IsTrackCurved)
                 ? TryTrackSectionCurved(location, traveller.trackVectorSection, traveller.trackSection)
@@ -619,11 +619,7 @@ namespace Orts.Formats.OR
         void Copy(AETraveller copy)
         {
             locationSet = copy.locationSet;
-            location.TileX = copy.location.TileX;
-            location.TileZ = copy.location.TileZ;
-            location.Location.X = copy.location.Location.X;
-            location.Location.Y = copy.location.Location.Y;
-            location.Location.Z = copy.location.Location.Z;
+            location = copy.location;
             direction = copy.direction;
             directionVector = copy.directionVector;
             trackOffset = copy.trackOffset;
@@ -653,7 +649,7 @@ namespace Orts.Formats.OR
         /// </summary>
         /// <param name="location">Target world location</param>
         /// <returns>f the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(WorldLocation location)
+        public float DistanceTo(in WorldLocation location)
         {
             return DistanceTo(location.TileX, location.TileZ,
                 location.Location.X, location.Location.Y, location.Location.Z);
@@ -993,11 +989,7 @@ namespace Orts.Formats.OR
                 to = pin.Direction > 0 ? -trackOffset : GetLength(ts) + trackOffset;
             }
 
-            location.TileX = tvs.TileX;
-            location.TileZ = tvs.TileZ;
-            location.Location.X = tvs.X;
-            location.Location.Y = tvs.Y;
-            location.Location.Z = tvs.Z;
+            location = new WorldLocation(tvs.TileX, tvs.TileZ, tvs.X, tvs.Y, tvs.Z);
             directionVector.X = tvs.AX;
             directionVector.Y = tvs.AY;
             directionVector.Z = tvs.AZ;
@@ -1010,21 +1002,16 @@ namespace Orts.Formats.OR
                 var vectorCurveStartToCenter = Vector3.Left * ts.SectionCurve.Radius * sign;
                 var curveRotation = Matrix.CreateRotationY(to * sign);
                 var XNAMatrix = Matrix.CreateFromYawPitchRoll(-tvs.AY, -tvs.AX, tvs.AZ);
-                Vector3 dummy;
-                var displacement = MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, XNAMatrix, out dummy);
-                location.Location.X += displacement.X;
-                location.Location.Y += displacement.Y;
-                location.Location.Z -= displacement.Z;
+                var displacement = MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, XNAMatrix, out Vector3 vP);
+                displacement.Z *= -1;
+                location = new WorldLocation(location.TileX, location.TileZ, location.Location + displacement);
                 directionVector.Y -= to * sign;
             }
             else
             {
                 var XNAMatrix = Matrix.CreateFromYawPitchRoll(tvs.AY, tvs.AX, tvs.AZ);
-                Vector3 dummy;
-                var displacement = MSTSInterpolateAlongStraight(Vector3.Zero, Vector3.UnitZ, to, XNAMatrix, out dummy);
-                location.Location.X += displacement.X;
-                location.Location.Y += displacement.Y;
-                location.Location.Z += displacement.Z;
+                var displacement = MSTSInterpolateAlongStraight(Vector3.Zero, Vector3.UnitZ, to, XNAMatrix, out Vector3 vP);
+                location = new WorldLocation(location.TileX, location.TileZ, location.Location + displacement);
             }
 
             if (direction == TravellerDirection.Backward)
@@ -1036,7 +1023,7 @@ namespace Orts.Formats.OR
             directionVector.Y = MathHelper.WrapAngle(directionVector.Y);
 
             if (trackVectorSection != null)
-                location.NormalizeTo(trackVectorSection.TileX, trackVectorSection.TileZ);
+                location = location.NormalizeTo(trackVectorSection.TileX, trackVectorSection.TileZ);
         }
 
         /// <summary>

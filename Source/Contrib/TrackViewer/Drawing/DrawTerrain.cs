@@ -455,7 +455,7 @@ namespace ORTS.TrackViewer.Drawing
 
         }
 
-        private void UpdateStatusInformation(WorldLocation location)
+        private void UpdateStatusInformation(in WorldLocation location)
         {
             this.StatusInformation = "unknown";
             foreach (int zoomSize in GetZoomSizesToShow(true))
@@ -540,10 +540,9 @@ namespace ORTS.TrackViewer.Drawing
         /// This means that we take the (cornerIndexX,0,cornerIndexZ) vector between the location and some (center of) a reference tile.
         /// </summary>
         /// <param name="location">Source World location</param>
-        public Vector3 VertexPosition(WorldLocation location)
+        public Vector3 VertexPosition(in WorldLocation location)
         {
-            WorldLocation normalizedLocation = new WorldLocation(location);
-            normalizedLocation.NormalizeTo(referenceTileX, referenceTileZ);
+            WorldLocation normalizedLocation = location.NormalizeTo(referenceTileX, referenceTileZ);
             return new Vector3(normalizedLocation.Location.X, 0, normalizedLocation.Location.Z);
         }
 
@@ -849,11 +848,10 @@ namespace ORTS.TrackViewer.Drawing
             newVertices[textureName].Add(new VertexPositionTexture(locationTranslator.VertexPosition(location), new Vector2(U, V)));
         }
 
-        public string GetStatusInformation(WorldLocation location)
+        public string GetStatusInformation(in WorldLocation location)
         {
             // first make sure we normalize to the snapped tile
-            WorldLocation snappedLocation = new WorldLocation(location);
-            snappedLocation.NormalizeTo(this.snappedTileX, this.snappedTileZ);
+            WorldLocation snappedLocation = location.NormalizeTo(snappedTileX, snappedTileZ);
 
             float totalSize = 2048 * this.TileSize;
             int patchIndexX = (int)((snappedLocation.Location.X + 1024) / totalSize * this.textureNames.GetLength(0));

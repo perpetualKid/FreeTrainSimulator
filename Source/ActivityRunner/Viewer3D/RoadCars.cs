@@ -200,19 +200,19 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             get
             {
-                var wl = FrontTraveller.WorldLocation;
-                wl.Location.Y += Math.Max(Spawner.GetRoadHeightAdjust(Travelled - Length * 0.25f), 0) + VisualHeightAdjustment;
-                return wl.Location;
+                return new Vector3(FrontTraveller.WorldLocation.Location.X, 
+                    FrontTraveller.WorldLocation.Location.Y + Math.Max(Spawner.GetRoadHeightAdjust(Travelled - Length * 0.25f), 0) + VisualHeightAdjustment, 
+                    FrontTraveller.WorldLocation.Location.Z);
             }
         }
         public Vector3 RearLocation
         {
             get
             {
-                var wl = RearTraveller.WorldLocation;
-                wl.NormalizeTo(TileX, TileZ);
-                wl.Location.Y += Math.Max(Spawner.GetRoadHeightAdjust(Travelled + Length * 0.25f), 0) + VisualHeightAdjustment;
-                return wl.Location;
+                WorldLocation location = RearTraveller.WorldLocation.NormalizeTo(TileX, TileZ);
+                return new Vector3(location.Location.X,
+                    location.Location.Y + Math.Max(Spawner.GetRoadHeightAdjust(Travelled + Length * 0.25f), 0) + VisualHeightAdjustment,
+                    location.Location.Z);
             }
         }
 

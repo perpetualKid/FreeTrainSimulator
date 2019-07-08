@@ -550,7 +550,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="location">Worldlocation of the item, that gives us the tile indexes</param>
         /// <param name="ArrayOfListsToAddTo">To which list we have to add the item</param>
         /// <param name="item">The item we want to add to the list, at the correct index</param>
-        void AddLocationToAvailableList<T>(WorldLocation location, List<T>[][] ArrayOfListsToAddTo, T item)
+        void AddLocationToAvailableList<T>(in WorldLocation location, List<T>[][] ArrayOfListsToAddTo, T item)
         {
             //possibly the location is out of the allowed region (e.g. because possibly undefined).
             if (location.TileX < MinTileX || location.TileX > MaxTileX || location.TileZ < MinTileZ || location.TileZ > MaxTileZ) return;
@@ -638,22 +638,20 @@ namespace ORTS.TrackViewer.Drawing
                 deltaX += 2048 * (endLocation.TileX - endLocation.TileX); 
                 deltaZ += 2048 * (endLocation.TileZ - endLocation.TileZ);
 
-                WorldLocation begin2Location = new WorldLocation(midLocation);
-                begin2Location.Location.X -= deltaX / 2;
-                begin2Location.Location.Z -= deltaZ / 2;
+                WorldLocation begin2Location = new WorldLocation(midLocation.TileX, midLocation.TileZ, 
+                    midLocation.Location.X - deltaX / 2, midLocation.Location.Y, midLocation.Location.Z - deltaZ / 2);
 
-                WorldLocation end2Location = new WorldLocation(midLocation);
-                end2Location.Location.X += deltaX / 2;
-                end2Location.Location.Z += deltaZ / 2;
+                WorldLocation end2Location = new WorldLocation(midLocation.TileX, midLocation.TileZ,
+                    midLocation.Location.X + deltaX / 2, midLocation.Location.Y, midLocation.Location.Z + deltaZ / 2);
 
                 boxList.Add(begin2Location);
                 boxList.Add(end2Location);
             }
 
             //normalize all locations so that they are on their native tile.
-            foreach (WorldLocation boxCornerLocation in boxList)
+            for(int i = 0; i< boxList.Count; i++)
             {
-                boxCornerLocation.Normalize();
+                boxList[i] = boxList[i].Normalize();
             }
 
             //find Max/Min of tiles
@@ -1197,12 +1195,11 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="location2">Location of second point</param>
         /// <returns>middle of both points</returns>
         /// <remarks>Should perhaps be in the WorldLocation class itself</remarks>
-        static WorldLocation MiddleLocation(WorldLocation location1, WorldLocation location2)
+        static WorldLocation MiddleLocation(in WorldLocation location1, in WorldLocation location2)
         {
             int tileX = location1.TileX;
             int tileZ = location1.TileZ;
-            WorldLocation location2Normalized = new WorldLocation(location2);
-            location2Normalized.NormalizeTo(tileX, tileZ);
+            WorldLocation location2Normalized = location2.NormalizeTo(tileX, tileZ);
             Vector3 middleVector = (location1.Location + location2Normalized.Location) / 2;
             return new WorldLocation(tileX, tileZ, middleVector);
         }
@@ -1250,8 +1247,8 @@ namespace ORTS.TrackViewer.Drawing
             {
                 // note, angle is 90 degrees off, and different sign. 
                 // So Delta X = cos(90-A)=sin(A); Delta Y,Z = sin(90-A) = cos(A)    
-                location.Location.X += sinA * distanceAlongSection;
-                location.Location.Z += cosA * distanceAlongSection;
+                location = new WorldLocation(location.TileX, location.TileZ,
+                    location.Location.X + sinA * distanceAlongSection, location.Location.Y, location.Location.Z + cosA * distanceAlongSection);
             }
             else
             {
@@ -1261,8 +1258,8 @@ namespace ORTS.TrackViewer.Drawing
                 float sinArotated = (float)Math.Sin(tvs.AY + sign * angleRadians);
                 float deltaX = sign * trackSection.SectionCurve.Radius * (cosA - cosArotated);
                 float deltaZ = sign * trackSection.SectionCurve.Radius * (sinA - sinArotated);
-                location.Location.X -= deltaX;
-                location.Location.Z += deltaZ;
+                location = new WorldLocation(location.TileX, location.TileZ,
+                    location.Location.X - deltaX, location.Location.Y, location.Location.Z + deltaZ);
             }
             return location;
         }

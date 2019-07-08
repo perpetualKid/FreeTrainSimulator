@@ -17,7 +17,6 @@
 using System;
 using Microsoft.Xna.Framework;
 using Orts.Common;
-using Orts.Common;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -43,7 +42,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Draw (print) the values of longitude and latitude
         /// </summary>
         /// <param name="mstsLocation">MSTS Location which to translate to real world coordinates</param>
-        public void Draw(WorldLocation mstsLocation)
+        public void Draw(in WorldLocation mstsLocation)
         {
             if (!Properties.Settings.Default.showLonLat) return;
             

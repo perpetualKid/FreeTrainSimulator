@@ -223,7 +223,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="point">Point to check</param>
         /// <returns>Boolean describing describing whether the point is out</returns>
-        public bool OutOfArea(WorldLocation point)
+        public bool OutOfArea(in WorldLocation point)
         {
             Vector2 areaVector = GetAreaVector(point);
             float leeway = (StrictChecking) ? 0 : AreaW;
@@ -414,7 +414,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Shift the window to have the given world location at its center
         /// </summary>
         /// <param name="location">New worldLocation at center of area</param>
-        public void ShiftToLocation(WorldLocation location)
+        public void ShiftToLocation(in WorldLocation location)
         {
             if (location == WorldLocation.None) return;
             // Basic equation areaX = scale * (worldX - offsetX)
@@ -444,7 +444,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="location">location in World coordinates (including tiles)</param>
         /// <returns>location on the drawing area in a 2d vector (in pixels)</returns>
-        private Vector2 GetAreaVector(WorldLocation location)
+        private Vector2 GetAreaVector(in WorldLocation location)
         {
             double x = location.TileX * 2048 + location.Location.X;
             double y = location.TileZ * 2048 + location.Location.Z;
@@ -457,7 +457,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="location">location in World coordinates (including tiles)</param>
         /// <returns>location on the parent window in a 2d vector (in pixels)</returns>
-        private Vector2 GetWindowVector(WorldLocation location)
+        private Vector2 GetWindowVector(in WorldLocation location)
         {
             Vector2 windowVector = GetAreaVector(location);
             windowVector.X += AreaOffsetX;
@@ -492,9 +492,7 @@ namespace ORTS.TrackViewer.Drawing
             x -= (tileX * 2048);
             int tileZ = (int)z / 2048;
             z -= tileZ * 2048;
-            WorldLocation location = new WorldLocation(tileX, tileZ, (float)x, 0, (float)z);
-            location.Normalize();
-            return location;
+            return new WorldLocation(tileX, tileZ, (float)x, 0, (float)z, true);
         }
         #endregion
 
@@ -506,7 +504,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="color"> Color of the line</param>
         /// <param name="point1"> WorldLocation of the first point of the line</param>
         /// <param name="point2"> WorldLocation of to the last point of the line</param>
-        public void DrawLine(float width, Color color, WorldLocation point1, WorldLocation point2)
+        public void DrawLine(float width, Color color, in WorldLocation point1, in WorldLocation point2)
         {
             if (OutOfArea(point1) && OutOfArea(point2)) return;
             BasicShapes.DrawLine(GetWindowSize(width), color, GetWindowVector(point1), GetWindowVector(point2));
@@ -519,7 +517,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="color"> Color of the line</param>
         /// <param name="point1"> WorldLocation of the first point of the line</param>
         /// <param name="point2"> WorldLocation of to the last point of the line</param>
-        public void DrawDashedLine(float width, Color color, WorldLocation point1, WorldLocation point2)
+        public void DrawDashedLine(float width, Color color, in WorldLocation point1, in WorldLocation point2)
         {
             if (OutOfArea(point1) && OutOfArea(point2)) return;
             BasicShapes.DrawDashedLine(GetWindowSize(width), color, GetWindowVector(point1), GetWindowVector(point2));
@@ -532,7 +530,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="color"> Color of the line</param>
         /// <param name="point1"> WorldLocation of the first point of the line</param>
         /// <param name="point2"> WorldLocation of to the last point of the line</param>
-        public void DrawLineAlways(float width, Color color, WorldLocation point1, WorldLocation point2)
+        public void DrawLineAlways(float width, Color color, in WorldLocation point1, in WorldLocation point2)
         {
             BasicShapes.DrawLine(GetWindowSize(width), color, GetWindowVector(point1), GetWindowVector(point2));
         }
@@ -547,7 +545,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="length"> length of the line to draw in meters (also when shifted by offset)</param>
         /// <param name="angle"> Angle (in rad east of North)</param>
         /// <param name="lengthOffset">Instead of starting to draw at the given point, only start to draw a distance offset further along the line</param>
-        public void DrawLine(float width, Color color, WorldLocation point, float length, float angle, float lengthOffset)
+        public void DrawLine(float width, Color color, in WorldLocation point, float length, float angle, float lengthOffset)
         {
             WorldLocation beginPoint;
             float sinAngle = (float)Math.Sin(angle);
@@ -558,13 +556,11 @@ namespace ORTS.TrackViewer.Drawing
             }
             else
             {
-                beginPoint = new WorldLocation(point);
-                beginPoint.Location.X += lengthOffset * sinAngle;
-                beginPoint.Location.Z += lengthOffset * cosAngle;
+                beginPoint = new WorldLocation(point.TileX, point.TileZ, 
+                    point.Location.X + lengthOffset * sinAngle, point.Location.Y, point.Location.Z + lengthOffset * cosAngle);
             }
-            WorldLocation endPoint = new WorldLocation(beginPoint); //location of end-point
-            endPoint.Location.X += length * sinAngle;
-            endPoint.Location.Z += length * cosAngle;
+            WorldLocation endPoint = new WorldLocation(beginPoint.TileX, beginPoint.TileZ,
+                beginPoint.Location.X + length * sinAngle, beginPoint.Location.Y, beginPoint.Location.Z + length * cosAngle); //location of end-point
             if (OutOfArea(beginPoint) && OutOfArea(endPoint)) return;
             // definition of rotation in ORTS is angle right of North
             // rotation in the window/draw area is angle right/south of right-horizontal
@@ -585,7 +581,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="angle">Angle (in degrees east of North) of the first part of the arc</param>
         /// <param name="arcDegrees">Number of degrees in the arc (360 would be full circle)</param>
         /// <param name="arcDegreesOffset">Offset of the number of degrees (meaning, do not draw the first arcDegreesOffset degrees</param>
-        public void DrawArc(float width, Color color, WorldLocation point, float radius, float angle, float arcDegrees, float arcDegreesOffset)
+        public void DrawArc(float width, Color color, in WorldLocation point, float radius, float angle, float arcDegrees, float arcDegreesOffset)
         {
             WorldLocation beginPoint; // (possibly approximate) location of begin-point
             if (arcDegreesOffset == 0)
@@ -594,17 +590,15 @@ namespace ORTS.TrackViewer.Drawing
             }
             else
             {
-                beginPoint = new WorldLocation(point);
                 float arcRadOffset = arcDegreesOffset * MathHelper.Pi / 180;
                 float lengthOffset = radius * arcRadOffset;
-                beginPoint.Location.X += lengthOffset * (float)Math.Sin(angle + arcRadOffset / 2);
-                beginPoint.Location.Z += lengthOffset * (float)Math.Cos(angle + arcRadOffset / 2);
+                beginPoint = new WorldLocation(point.TileX, point.TileZ, 
+                    point.Location.X + lengthOffset * (float)Math.Sin(angle + arcRadOffset / 2), point.Location.Y, point.Location.Z + lengthOffset * (float)Math.Cos(angle + arcRadOffset / 2));
             }
-            WorldLocation endPoint = new WorldLocation(beginPoint); //approximate location of end-point
             float arcRad = arcDegrees * MathHelper.Pi / 180;
             float length = radius * arcRad;
-            endPoint.Location.X += length * (float)Math.Sin(angle + arcRad / 2);
-            endPoint.Location.Z += length * (float)Math.Cos(angle + arcRad / 2);
+            WorldLocation endPoint = new WorldLocation(beginPoint.TileX, beginPoint.TileZ, 
+                beginPoint.Location.X + length * (float)Math.Sin(angle + arcRad / 2), beginPoint.Location.Y, beginPoint.Location.Z + length * (float)Math.Cos(angle + arcRad / 2)); //approximate location of end-point
             if (OutOfArea(beginPoint) && OutOfArea(endPoint)) return;
             // for the 90 degree offset, see DrawLine
             BasicShapes.DrawArc(GetWindowSize(width), color, GetWindowVector(point),
@@ -616,7 +610,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="color">Color of the line</param>
         /// <param name="point">Worldlocation through which to draw the line</param>
-        private void DrawLineVertical(Color color, WorldLocation point)
+        private void DrawLineVertical(Color color, in WorldLocation point)
         {
             Vector2 middle = GetWindowVector(point);
             Vector2 top = GetWindowVector(0, 0);
@@ -631,7 +625,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="color">Color of the line</param>
         /// <param name="point">Worldlocation through which to draw the line</param>
-        private void DrawLineHorizontal(Color color, WorldLocation point)
+        private void DrawLineHorizontal(Color color, in WorldLocation point)
         {
             Vector2 middle = GetWindowVector(point);
             Vector2 left = GetWindowVector(0, 0);
@@ -708,7 +702,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="location">The world location acting as the starting point of the drawing</param>
         /// <param name="message">The message to print</param>
-        public void DrawExpandingString(WorldLocation location, string message)
+        public void DrawExpandingString(in WorldLocation location, string message)
         {
             // We offset the top-left corner to make sure the text is not on the marker.
             int offsetXY = 2 + (int)GetWindowSize(2f);
@@ -722,7 +716,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="message">The message to print</param>
         /// <param name="offsetX">The offset in X-direction of the top-left location in pixels</param>
         /// <param name="offsetY">The offset in Y-direction of the top-left location in pixels</param>
-        public void DrawExpandingString(WorldLocation location, string message, int offsetX, int offsetY)
+        public void DrawExpandingString(in WorldLocation location, string message, int offsetX, int offsetY)
         {
             if (OutOfArea(location)) return;
             Vector2 textOffset = new Vector2(offsetX, offsetY);
@@ -738,7 +732,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="textureName">Name identifying the texture</param>
         /// <param name="size">Size of the texture in world-meters</param>
         /// <param name="minPixelSize">Minimum size in pixels, to make sure you always see something</param>
-        public void DrawTexture(WorldLocation location, string textureName, float size, int minPixelSize)
+        public void DrawTexture(in WorldLocation location, string textureName, float size, int minPixelSize)
         {
             DrawTexture(location, textureName, size, minPixelSize, Color.White, 0);
         }
@@ -751,7 +745,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="size">Size of the texture in world-meters</param>
         /// <param name="minPixelSize">Minimum size in pixels, to make sure you always see something</param>
         /// <param name="color">Color you want the simple texture to have</param>
-        public void DrawTexture(WorldLocation location, string textureName, float size, int minPixelSize, Color color)
+        public void DrawTexture(in WorldLocation location, string textureName, float size, int minPixelSize, Color color)
         {
             DrawTexture(location, textureName, size, minPixelSize, color, 0);
         }
@@ -765,7 +759,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="size">Size of the texture in world-meters</param>
         /// <param name="minPixelSize">Minimum size in pixels, to make sure you always see something</param>
         /// <param name="color">Color you want the simple texture to have</param>
-        public void DrawTexture(WorldLocation location, string textureName, float size, int minPixelSize, Color color, float angle)
+        public void DrawTexture(in WorldLocation location, string textureName, float size, int minPixelSize, Color color, float angle)
         {
             if (OutOfArea(location)) return;
             float pixelSize = (float)Math.Max(GetWindowSize(size), minPixelSize);
@@ -780,7 +774,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="angle">Rotation angle for the texture</param>
         /// <param name="size">Size of the texture in world-meters</param>
         ///<param name="flip">Whether the texture needs to be flipped (vertically)</param>
-        public void DrawTexture(WorldLocation location, string textureName, float size,  float angle, bool flip)
+        public void DrawTexture(in WorldLocation location, string textureName, float size,  float angle, bool flip)
         {
             if (OutOfArea(location)) return;
             float pixelSize = GetWindowSize(size);
@@ -796,7 +790,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="minPixelSize">Minimum size in pixels, to make sure you always see something</param>
         /// <param name="maxPixelSize">Maximum size in pixels, to make sure icons are not becoming too big</param>
         /// <param name="color">Color you want the simple texture to have</param>
-        public void DrawTexture(WorldLocation location, string textureName, float size, int minPixelSize, int maxPixelSize, Color color)
+        public void DrawTexture(in WorldLocation location, string textureName, float size, int minPixelSize, int maxPixelSize, Color color)
         {
             DrawTexture(location, textureName, size, minPixelSize, maxPixelSize, color, 0);
         }
@@ -811,7 +805,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="minPixelSize">Minimum size in pixels, to make sure you always see something</param>
         /// <param name="maxPixelSize">Maximum size in pixels, to make sure icons are not becoming too big</param>
         /// <param name="color">Color you want the simple texture to have</param>
-        public void DrawTexture(WorldLocation location, string textureName, float size, int minPixelSize, int maxPixelSize, Color color, float angle)
+        public void DrawTexture(in WorldLocation location, string textureName, float size, int minPixelSize, int maxPixelSize, Color color, float angle)
         {
             if (OutOfArea(location)) return;
             float pixelSize = (float)Math.Min(Math.Max(GetWindowSize(size), minPixelSize), maxPixelSize);
