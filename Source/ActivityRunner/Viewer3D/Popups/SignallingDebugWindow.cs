@@ -374,12 +374,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
     [CallOnThread("Updater")]
     public abstract class DispatcherPrimitive
     {
-        protected static Vector3 Normalize(WorldLocation location, Orts.ActivityRunner.Viewer3D.Camera camera)
+        protected static Vector3 Normalize(in WorldLocation location, Camera camera)
         {
             return new Vector3(location.Location.X + (location.TileX - camera.TileX) * 2048, location.Location.Y, -location.Location.Z - (location.TileZ - camera.TileZ) * 2048);
         }
 
-        protected static Vector3 Project3D(Vector3 position, Viewport viewport, Orts.ActivityRunner.Viewer3D.Camera camera)
+        protected static Vector3 Project3D(Vector3 position, Viewport viewport, Camera camera)
         {
             return viewport.Project(position, camera.XnaProjection, camera.XnaView, Matrix.Identity);
         }
@@ -408,7 +408,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         float Angle;
         float Length;
 
-        public DispatcherLineSegment(WorldLocation start, WorldLocation end, Color color, float width)
+        public DispatcherLineSegment(in WorldLocation start, in WorldLocation end, Color color, float width)
         {
             Start = start;
             End = end;
@@ -455,7 +455,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         Vector2 Position2D;
         Point Position2DText;
 
-        public DispatcherLabel(WorldLocation position, Color color, string text, WindowTextFont font)
+        public DispatcherLabel(in WorldLocation position, Color color, string text, WindowTextFont font)
         {
             Position = position;
             Color = color;

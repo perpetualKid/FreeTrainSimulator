@@ -168,7 +168,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         /// <param name="location">MSTS coordinates</param>
         /// <returns>Elevation at the given coordinates</returns>
-        public float GetElevation(WorldLocation location)
+        public float GetElevation(in WorldLocation location)
         {
             return GetElevation(location.TileX, location.TileZ, location.Location.X, location.Location.Z);
         }

@@ -256,7 +256,7 @@ namespace Orts.Simulation.AIs
         }
 
         //public bool CheckGenActions(System.Type typeSource, float rearDist, float frontDist, WorldLocation location, uint trackNodeIndex)
-        public bool CheckGenActions(System.Type typeSource, WorldLocation location, params object[] list)
+        public bool CheckGenActions(System.Type typeSource, in WorldLocation location, params object[] list)
         {
             if (ThisTrain is AITrain)
             {
@@ -285,7 +285,7 @@ namespace Orts.Simulation.AIs
             return false;
         }
 
-        public void RemoveGenActions(System.Type typeSource, WorldLocation location)
+        public void RemoveGenActions(System.Type typeSource, in WorldLocation location)
         {
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "Remove GenAction for train " + ThisTrain.Number + "\n");
@@ -683,7 +683,7 @@ namespace Orts.Simulation.AIs
         /// The specific datas are used to fire the Action.
         /// </summary>
 
-        public AIAuxActionsRef(float requiredSpeedMps, WorldLocation location)
+        public AIAuxActionsRef(float requiredSpeedMps, in WorldLocation location)
         {
         }
 
@@ -761,7 +761,7 @@ namespace Orts.Simulation.AIs
             return (distancesM);
         }
 
-        public virtual float[] GetActivationDistances(Train thisTrain, WorldLocation location)
+        public virtual float[] GetActivationDistances(Train thisTrain, in WorldLocation location)
         {
             float[] distancesM = new float[2];
             distancesM[1] = float.MaxValue;
@@ -800,18 +800,18 @@ namespace Orts.Simulation.AIs
         // Restore
         //
 
-        public void Register(int trainNumber, WorldLocation location)
+        public void Register(int trainNumber, in WorldLocation location)
         {
             AskingTrain.Add(new KeyValuePair<int, WorldLocation>(trainNumber, location));
         }
 
         //public bool CheckGenActions(System.Type typeSource, float rearDist, float frontDist, WorldLocation location, uint trackNodeIndex)
-        public virtual AIActionItem CheckGenActions(WorldLocation location, AITrain thisTrain, params object[] list)
+        public virtual AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
         {
             return null;
         }
 
-        public bool HasAction(int trainNumber, WorldLocation location)
+        public bool HasAction(int trainNumber, in WorldLocation location)
         {
             foreach (var info in AskingTrain)
             {
@@ -831,7 +831,7 @@ namespace Orts.Simulation.AIs
             return true;
         }
 
-        public void RemoveReference(int trainNumber, WorldLocation location)
+        public void RemoveReference(int trainNumber, in WorldLocation location)
         {
             //var info = default (KeyValuePair<int, WorldLocation>);
             foreach (var info in AskingTrain)
@@ -932,7 +932,7 @@ namespace Orts.Simulation.AIs
             return (AIActionItem)info;
         }
 
-        public override AIActionItem CheckGenActions(WorldLocation location, AITrain thisTrain, params object[] list)
+        public override AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
         {
             AIActionItem newAction = null;
             int SpeedMps = (int)thisTrain.SpeedMpS;
@@ -1124,7 +1124,7 @@ namespace Orts.Simulation.AIs
         }
 
         //public bool CheckGenActions(System.Type typeSource, float rearDist, float frontDist, WorldLocation location, uint trackNodeIndex)
-        public override AIActionItem CheckGenActions(WorldLocation location, AITrain thisTrain, params object[] list)
+        public override AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
         {
             AIActionItem newAction = null;
             float rearDist = (float)list[0];
@@ -1193,7 +1193,7 @@ namespace Orts.Simulation.AIs
         }
 
         //  SPA:    We use this fonction and not the one from Train in order to leave control to the AuxAction
-        public override float[] GetActivationDistances(Train thisTrain, WorldLocation location)
+        public override float[] GetActivationDistances(Train thisTrain, in WorldLocation location)
         {
             float[] distancesM = new float[2];
             distancesM[0] = this.RequiredDistance;   // 
@@ -1271,7 +1271,7 @@ namespace Orts.Simulation.AIs
             return (AIActionItem)info;
         }
 
-        public override AIActionItem CheckGenActions(WorldLocation location, AITrain thisTrain, params object[] list)
+        public override AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
         {
             AIActionItem newAction = null;
             int SpeedMps = (int)thisTrain.SpeedMpS;
@@ -1334,7 +1334,7 @@ namespace Orts.Simulation.AIs
         }
 
         //  SPA:    We use this fonction and not the one from Train in order to leave control to the AuxAction
-        public override float[] GetActivationDistances(Train thisTrain, WorldLocation location)
+        public override float[] GetActivationDistances(Train thisTrain, in WorldLocation location)
         {
             float[] distancesM = new float[2];
             distancesM[0] = 0f;   //  Dès 100m

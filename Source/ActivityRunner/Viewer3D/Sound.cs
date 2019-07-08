@@ -548,7 +548,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="worldLocation"></param>
         /// <param name="eventSource"></param>
         /// <param name="smsFilePath"></param>
-        public SoundSource(Viewer viewer, WorldLocation worldLocation, Events.Source eventSource, string smsFilePath)
+        public SoundSource(Viewer viewer, in WorldLocation worldLocation, Events.Source eventSource, string smsFilePath)
         {
             IsEnvSound = true;
             Initialize(viewer, worldLocation, eventSource, smsFilePath);
@@ -562,7 +562,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="eventSource"></param>
         /// <param name="smsFilePath"></param>
         /// <param name="slowRolloff"></param>
-        public SoundSource(Viewer viewer, WorldLocation worldLocation, Events.Source eventSource, string smsFilePath, bool slowRolloff)
+        public SoundSource(Viewer viewer, in WorldLocation worldLocation, Events.Source eventSource, string smsFilePath, bool slowRolloff)
         {
             IsEnvSound = true;
             SlowRolloff = slowRolloff;
@@ -601,7 +601,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="eventSource"></param>
         /// <param name="smsFilePath"></param>
         /// <param name="slowRolloff"></param>
-        public SoundSource(Viewer viewer, WorldLocation worldLocation, Events.Source eventSource, string wavFilePath, bool slowRolloff, ORTSActSoundFileTypes ORTSActSoundFileType, bool preCompiled)
+        public SoundSource(Viewer viewer, in WorldLocation worldLocation, Events.Source eventSource, string wavFilePath, bool slowRolloff, ORTSActSoundFileTypes ORTSActSoundFileType, bool preCompiled)
         {
             IsEnvSound = true;
             SlowRolloff = slowRolloff;

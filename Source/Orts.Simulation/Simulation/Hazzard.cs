@@ -143,7 +143,7 @@ namespace Orts.Simulation
 			state = State.Idle1;
         }
 
-		public void Update(WorldLocation playerLocation, int approachDist, int scaredDist)
+		public void Update(in WorldLocation playerLocation, int approachDist, int scaredDist)
 		{
 			if (state == State.Idle1)
 			{

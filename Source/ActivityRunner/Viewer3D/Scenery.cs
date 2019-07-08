@@ -162,7 +162,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         [CallOnThread("Updater")]
-        public float GetBoundingBoxTop(WorldLocation location, float blockSize)
+        public float GetBoundingBoxTop(in WorldLocation location, float blockSize)
         {
             return GetBoundingBoxTop(location.TileX, location.TileZ, location.Location.X, location.Location.Z, blockSize);
         }
@@ -314,7 +314,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 // Get the position of the scenery object into ORTS coordinate space.
                 WorldPosition worldMatrix;
-                if (worldObject.Matrix3x3 != null && worldObject.Position != null)
+                if (worldObject.Matrix3x3.IsSet && worldObject.Position != null)
                     worldMatrix = WorldPositionFromMSTSLocation(WFile.TileX, WFile.TileZ, worldObject.Position, worldObject.Matrix3x3);
                 else if (worldObject.QDirection != null && worldObject.Position != null)
                     worldMatrix = WorldPositionFromMSTSLocation(WFile.TileX, WFile.TileZ, worldObject.Position, worldObject.QDirection);
@@ -637,21 +637,21 @@ namespace Orts.ActivityRunner.Viewer3D
         /// MSTS WFiles represent some location with a position, 3x3 matrix and tile coordinates
         /// This converts it to the ORTS WorldPosition representation
         /// </summary>
-        static WorldPosition WorldPositionFromMSTSLocation(int tileX, int tileZ, STFPositionItem MSTSPosition, Matrix3x3 MSTSMatrix)
+        static WorldPosition WorldPositionFromMSTSLocation(int tileX, int tileZ, STFPositionItem MSTSPosition, in Matrix3x3 mstsMatrix)
         {
             var XNAPosition = new Vector3((float)MSTSPosition.X, (float)MSTSPosition.Y, -(float)MSTSPosition.Z);
             var XNAMatrix = Matrix.Identity;
-            XNAMatrix.M11 = MSTSMatrix.AX;
-            XNAMatrix.M12 = MSTSMatrix.AY;
-            XNAMatrix.M13 = -MSTSMatrix.AZ;
+            XNAMatrix.M11 = mstsMatrix.AX;
+            XNAMatrix.M12 = mstsMatrix.AY;
+            XNAMatrix.M13 = -mstsMatrix.AZ;
             XNAMatrix.M14 = 0;
-            XNAMatrix.M21 = MSTSMatrix.BX;
-            XNAMatrix.M22 = MSTSMatrix.BY;
-            XNAMatrix.M23 = -MSTSMatrix.BZ;
+            XNAMatrix.M21 = mstsMatrix.BX;
+            XNAMatrix.M22 = mstsMatrix.BY;
+            XNAMatrix.M23 = -mstsMatrix.BZ;
             XNAMatrix.M24 = 0;
-            XNAMatrix.M31 = -MSTSMatrix.CX;
-            XNAMatrix.M32 = -MSTSMatrix.CY;
-            XNAMatrix.M33 = MSTSMatrix.CZ;
+            XNAMatrix.M31 = -mstsMatrix.CX;
+            XNAMatrix.M32 = -mstsMatrix.CY;
+            XNAMatrix.M33 = mstsMatrix.CZ;
             XNAMatrix.M34 = 0;
             XNAMatrix.M41 = 0;
             XNAMatrix.M42 = 0;
@@ -694,7 +694,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    public struct BoundingBox
+    public readonly struct BoundingBox
     {
         public readonly Matrix Transform;
         public readonly Vector3 Size;

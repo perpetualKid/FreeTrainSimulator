@@ -120,7 +120,7 @@ namespace Orts.Formats.OR
         {
         }
 
-        public MSTSCoord(WorldLocation location): this(location.TileX, location.TileZ, location.Location.X, location.Location.Z, true)
+        public MSTSCoord(in WorldLocation location): this(location.TileX, location.TileZ, location.Location.X, location.Location.Z, true)
         {
         }
 

@@ -336,7 +336,7 @@ namespace Orts.Formats.OR
         [JsonProperty("RequiredDistance")]
         public float RequiredDistance;
 
-        public AuxActionWP(bool isGeneric, WorldLocation? location, int endSignalIndex, int delay = 2, float requiredDistance = 0) :   //, float requiredSpeedMpS) :
+        public AuxActionWP(bool isGeneric, in WorldLocation? location, int endSignalIndex, int delay = 2, float requiredDistance = 0) :   //, float requiredSpeedMpS) :
             base(AUX_ACTION.WAITING_POINT, isGeneric)                             //, location, requiredSpeedMpS, endSignalIndex, delay, requiredDistance)
         {
             EndSignalIndex = endSignalIndex;

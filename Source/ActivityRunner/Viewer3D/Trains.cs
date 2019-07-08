@@ -162,7 +162,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return carViewer;
         }
 
-        static float ApproximateDistance(WorldLocation a, WorldLocation b)
+        static float ApproximateDistance(in WorldLocation a, in WorldLocation b)
         {
             var dx = a.Location.X - b.Location.X;
             var dz = a.Location.Z - b.Location.Z;

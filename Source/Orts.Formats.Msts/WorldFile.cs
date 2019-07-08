@@ -1172,9 +1172,11 @@ namespace Orts.Formats.Msts
         }
     }
 
-    public class Matrix3x3
+    public readonly struct Matrix3x3
     {
         public readonly float AX, AY, AZ, BX, BY, BZ, CX, CY, CZ;
+
+        public readonly bool IsSet;
 
         public Matrix3x3(SBR block)
         {
@@ -1189,6 +1191,7 @@ namespace Orts.Formats.Msts
             CY = block.ReadFloat();
             CZ = block.ReadFloat();
             block.VerifyEndOfBlock();
+            IsSet = true;
         }
     }
 
