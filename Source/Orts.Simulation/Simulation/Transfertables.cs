@@ -58,13 +58,13 @@ namespace Orts.Simulation
         {
             signalRef = Simulator.Signals;
             string animation;
-            WorldPosition.XNAMatrix.M44 = 100000000; //WorlPosition not yet defined, will be loaded when loading related tile
+            Matrix position = Matrix.Identity;
+            position.M44 = 100000000; //WorlPosition not yet defined, will be loaded when loading related tile;
             stf.MustMatch("(");
-              stf.ParseBlock(new[] {
-                new STFReader.TokenProcessor("wfile", ()=>{
+            stf.ParseBlock(new[] {
+                new STFReader.TokenProcessor("wfile", () => {
                     WFile = stf.ReadStringBlock(null);
-                    WorldPosition.TileX = int.Parse(WFile.Substring(1, 7));
-                    WorldPosition.TileZ = int.Parse(WFile.Substring(8, 7));                
+                    WorldPosition = new WorldPosition(int.Parse(WFile.Substring(1, 7)), int.Parse(WFile.Substring(8, 7)), position);
                 }),
                 new STFReader.TokenProcessor("uid", ()=>{ UID = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("animation", ()=>{ animation = stf.ReadStringBlock(null);
@@ -265,7 +265,7 @@ namespace Orts.Simulation
                     foreach (TrainCar trainCar in train.Cars)
                     {
                         var relativeCarPosition = Matrix.Identity;
-                        trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ);
+                        trainCar.WorldPosition = trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ);
                         relativeCarPosition = Matrix.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
                         RelativeCarPositions.Add(relativeCarPosition);
                     }
@@ -290,16 +290,12 @@ namespace Orts.Simulation
              Continuous = true;
         }
 
-        public void ComputeCenter(WorldPosition worldPosition)
+        public void ComputeCenter(in WorldPosition worldPosition)
         {
             Vector3 movingCenterOffset = CenterOffset;
             movingCenterOffset.X = XPos;
-            Vector3 originCoordinates;
-            Vector3.Transform(ref movingCenterOffset, ref worldPosition.XNAMatrix, out originCoordinates);
-            WorldPosition = new WorldPosition(worldPosition);
-            WorldPosition.XNAMatrix.M41 = originCoordinates.X;
-            WorldPosition.XNAMatrix.M42 = originCoordinates.Y;
-            WorldPosition.XNAMatrix.M43 = originCoordinates.Z;
+            VectorExtension.Transform(movingCenterOffset, worldPosition.XNAMatrix, out Vector3 originCoordinates);
+            WorldPosition = worldPosition.SetTranslation(originCoordinates.X, originCoordinates.Y, originCoordinates.Z);
         }
 
         public void TransferTrain(Matrix animationXNAMatrix)
@@ -312,7 +308,8 @@ namespace Orts.Simulation
                 var iRelativeCarPositions = 0;
                 foreach (TrainCar traincar in TrainsOnMovingTable[0].Train.Cars)
                 {
-                    traincar.WorldPosition.XNAMatrix = Matrix.Multiply(RelativeCarPositions[iRelativeCarPositions], AnimationXNAMatrix);
+                    traincar.WorldPosition = new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ, 
+                        Matrix.Multiply(RelativeCarPositions[iRelativeCarPositions], AnimationXNAMatrix));
                     iRelativeCarPositions++;
                 }
             }
@@ -407,7 +404,7 @@ namespace Orts.Simulation
         /// PerformUpdateActions: actions to be performed at every animation step
         /// </summary>
         /// 
-        public void PerformUpdateActions ( Matrix absAnimationMatrix, WorldPosition worldPosition )
+        public void PerformUpdateActions(Matrix absAnimationMatrix, in WorldPosition worldPosition)
         {
             TransferTrain(absAnimationMatrix);
             if (GoToTarget && TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].Train.ControlMode == Train.TRAIN_CONTROL.TURNTABLE)

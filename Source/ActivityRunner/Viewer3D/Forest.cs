@@ -24,6 +24,8 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Common;
 using System;
 using System.Collections.Generic;
+using Orts.Common.Xna;
+using System.Collections;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -38,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public float MaximumCenterlineOffset = 0.0f;
         public bool CheckRoadsToo = false;
 
-        public ForestViewer(Viewer viewer, ForestObj forest, WorldPosition position)
+        public ForestViewer(Viewer viewer, ForestObj forest, in WorldPosition position)
         {
             Viewer = viewer;
             Position = position;
@@ -80,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public readonly float ObjectRadius;
 
-        public ForestPrimitive(Viewer viewer, ForestObj forest, WorldPosition position, float maximumCenterlineOffset, bool checkRoadsToo)
+        public ForestPrimitive(Viewer viewer, ForestObj forest, in WorldPosition position, float maximumCenterlineOffset, bool checkRoadsToo)
         {
             Viewer = viewer;
             MaximumCenterlineOffset = maximumCenterlineOffset;
@@ -97,7 +99,7 @@ namespace Orts.ActivityRunner.Viewer3D
             PrimitiveCount = trees.Count / 3;
         }
 
-        private List<VertexPositionNormalTexture> CalculateTrees(TileManager tiles, ForestObj forest, WorldPosition position, out float objectRadius)
+        private List<VertexPositionNormalTexture> CalculateTrees(TileManager tiles, ForestObj forest, in WorldPosition position, out float objectRadius)
         {
             // To get consistent tree placement between sessions, derive the seed from the location.
             var random = new Random((int)(1000.0 * (position.Location.X + position.Location.Z + position.Location.Y)));
@@ -110,80 +112,75 @@ namespace Orts.ActivityRunner.Viewer3D
                 var addList = FindTracksAndRoadsClose(position.TileX, position.TileZ);
                 FindTracksAndRoadsMoreClose(ref sections, addList, forest, position, InvForestXNAMatrix);
 
+                System.Collections.Specialized.BitVector32 includedTiles = new System.Collections.Specialized.BitVector32();
 
-                // Check for cross-tile forests
-
-                List<Vector3> forestVertices = new List<Vector3>();
-                var forestVertex = new Vector3(-forest.forestArea.X / 2, 0, -forest.forestArea.Z / 2);
-                Vector3.Transform(ref forestVertex, ref position.XNAMatrix, out forestVertex);
-                forestVertices.Add(forestVertex);
-                forestVertex = new Vector3(forest.forestArea.X / 2, 0, -forest.forestArea.Z / 2);
-                Vector3.Transform(ref forestVertex, ref position.XNAMatrix, out forestVertex);
-                forestVertices.Add(forestVertex);
-                forestVertex = new Vector3(-forest.forestArea.X / 2, 0, forest.forestArea.Z / 2);
-                Vector3.Transform(ref forestVertex, ref position.XNAMatrix, out forestVertex);
-                forestVertices.Add(forestVertex);
-                forestVertex = new Vector3(forest.forestArea.X / 2, 0, forest.forestArea.Z / 2);
-                Vector3.Transform(ref forestVertex, ref position.XNAMatrix, out forestVertex);
-                forestVertices.Add(forestVertex);
-                bool[] considerTile = new bool [4] {false, false, false, false};
-                foreach (var fVertex in forestVertices)
+                void UpdateIncludedTiles(in Vector3 vertex)
                 {
-                    if (fVertex.X > 1024) considerTile[0] = true;
-                    if (fVertex.X < -1024) considerTile[1] = true;
-                    if (fVertex.Z > 1024) considerTile[3] = true;
-                    if (fVertex.Z < -1024) considerTile[2] = true;
+                    if (vertex.X > 1024) includedTiles[0] = true;
+                    if (vertex.X < -1024) includedTiles[1] = true;
+                    if (vertex.Z > 1024) includedTiles[3] = true;
+                    if (vertex.Z < -1024) includedTiles[2] = true;
                 }
 
+                // Check for cross-tile forests
+                VectorExtension.Transform(new Vector3(-forest.forestArea.X / 2, 0, -forest.forestArea.Z / 2), position.XNAMatrix, out Vector3 forestVertex);
+                UpdateIncludedTiles(forestVertex);
+                VectorExtension.Transform(new Vector3(forest.forestArea.X / 2, 0, -forest.forestArea.Z / 2), position.XNAMatrix, out forestVertex);
+                UpdateIncludedTiles(forestVertex);
+                VectorExtension.Transform(new Vector3(-forest.forestArea.X / 2, 0, forest.forestArea.Z / 2), position.XNAMatrix, out forestVertex);
+                UpdateIncludedTiles(forestVertex);
+                VectorExtension.Transform(new Vector3(forest.forestArea.X / 2, 0, forest.forestArea.Z / 2), position.XNAMatrix, out forestVertex);
+                UpdateIncludedTiles(forestVertex);
+
                 // add sections in nearby tiles for cross-tile forests
-                if (considerTile[0])
+                if (includedTiles[0])
                 {
                     addList = FindTracksAndRoadsClose(position.TileX + 1, position.TileZ);
                     FindTracksAndRoadsMoreClose(ref sections, addList, forest, position, InvForestXNAMatrix);
                 }
-                if (considerTile[1])
+                if (includedTiles[1])
                 {
                     addList = FindTracksAndRoadsClose(position.TileX - 1, position.TileZ);
                     FindTracksAndRoadsMoreClose(ref sections, addList, forest, position, InvForestXNAMatrix);
                 }
-                if (considerTile[2])
+                if (includedTiles[2])
                 {
                     addList = FindTracksAndRoadsClose(position.TileX, position.TileZ + 1);
                     FindTracksAndRoadsMoreClose(ref sections, addList, forest, position, InvForestXNAMatrix);
                 }
-                if (considerTile[3])
+                if (includedTiles[3])
                 {
                     addList = FindTracksAndRoadsClose(position.TileX, position.TileZ - 1);
                     FindTracksAndRoadsMoreClose(ref sections, addList, forest, position, InvForestXNAMatrix);
                 }
-                if (considerTile[0] && considerTile[2])
+                if (includedTiles[0] && includedTiles[2])
                 {
                     addList = FindTracksAndRoadsClose(position.TileX + 1, position.TileZ +1);
                     FindTracksAndRoadsMoreClose(ref sections, addList, forest, position, InvForestXNAMatrix);
                 }
-                if (considerTile[0] && considerTile[3])
+                if (includedTiles[0] && includedTiles[3])
                 {
                     addList = FindTracksAndRoadsClose(position.TileX + 1, position.TileZ -1);
                     FindTracksAndRoadsMoreClose(ref sections, addList, forest, position, InvForestXNAMatrix);
                 }
-                if (considerTile[1] && considerTile[2])
+                if (includedTiles[1] && includedTiles[2])
                 {
                     addList = FindTracksAndRoadsClose(position.TileX-1, position.TileZ + 1);
                     FindTracksAndRoadsMoreClose(ref sections, addList, forest, position, InvForestXNAMatrix);
                 }
-                if (considerTile[1] && considerTile[3])
+                if (includedTiles[1] && includedTiles[3])
                 {
                     addList = FindTracksAndRoadsClose(position.TileX-1, position.TileZ - 1);
                     FindTracksAndRoadsMoreClose(ref sections, addList, forest, position, InvForestXNAMatrix);
                 }
             }
 
-
             var trees = new List<VertexPositionNormalTexture>(forest.Population * 6);
             for (var i = 0; i < forest.Population; i++)
             {
-                var xnaTreePosition = new Vector3((0.5f - (float)random.NextDouble()) * forest.forestArea.X, 0, (0.5f - (float)random.NextDouble()) * forest.forestArea.Z);
-                Vector3.Transform(ref xnaTreePosition, ref position.XNAMatrix, out xnaTreePosition);
+                VectorExtension.Transform(
+                    new Vector3((0.5f - (float)random.NextDouble()) * forest.forestArea.X, 0, (0.5f - (float)random.NextDouble()) * forest.forestArea.Z), 
+                    position.XNAMatrix, out Vector3 xnaTreePosition);
 
                 bool onTrack = false;
                 var scale = MathHelper.Lerp(forest.scaleRange.Minimum, forest.scaleRange.Maximum, (float)random.NextDouble());
@@ -291,7 +288,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // don't consider track sections outside the forest boundaries
-        public void FindTracksAndRoadsMoreClose(ref List<TrVectorSection> sections, List<TrVectorSection> allSections, ForestObj forest, WorldPosition position, Matrix invForestXNAMatrix)
+        public void FindTracksAndRoadsMoreClose(ref List<TrVectorSection> sections, List<TrVectorSection> allSections, ForestObj forest, in WorldPosition position, Matrix invForestXNAMatrix)
         {
             if (allSections != null && allSections.Count > 0)
             {

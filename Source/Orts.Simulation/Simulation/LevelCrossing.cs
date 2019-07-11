@@ -67,7 +67,7 @@ namespace Orts.Simulation
         /// <param name="warningTime">Time that gates should be closed prior to a train arriving (seconds).</param>
         /// <param name="minimumDistance">Minimum distance from the gates that a train is allowed to stop and have the gates open (meters).</param>
         /// <returns>The level crossing object comprising of the specified track and road items plus warning and distance configuration.</returns>
-        public LevelCrossing CreateLevelCrossing(WorldPosition position, IEnumerable<int> trackIDs, IEnumerable<int> roadIDs, float warningTime, float minimumDistance)
+        public LevelCrossing CreateLevelCrossing(in WorldPosition position, IEnumerable<int> trackIDs, IEnumerable<int> roadIDs, float warningTime, float minimumDistance)
         {
             var trackItems = trackIDs.Select(id => TrackCrossingItems[id]).ToArray();
             var roadItems = roadIDs.Select(id => RoadCrossingItems[id]).ToArray();

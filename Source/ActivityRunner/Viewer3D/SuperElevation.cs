@@ -25,6 +25,7 @@ using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Orts.Common.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -40,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="TileX">TileX coordinates.</param>
         /// <param name="TileZ">TileZ coordinates.</param>
         /// <param name="shapeFilePath">Path to the shape file.</param>
-        public static bool DecomposeStaticSuperElevation(Viewer viewer, List<DynamicTrackViewer> trackList, TrackObj trackObj, WorldPosition worldMatrixInput, int TileX, int TileZ, string shapeFilePath)
+        public static bool DecomposeStaticSuperElevation(Viewer viewer, List<DynamicTrackViewer> trackList, TrackObj trackObj, in WorldPosition worldMatrixInput, int TileX, int TileZ, string shapeFilePath)
         {
             TrackShape shape = null;
             try
@@ -121,32 +122,25 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (ts == null) return 0;
 
-            WorldLocation location = new WorldLocation();
             Vector3 directionVector = new Vector3();
 
             var tss = viewer.Simulator.TSectionDat.TrackSections.Get(ts.SectionIndex);
 
             if (tss == null || tss.SectionCurve == null)
                 return 0;
-            location = new WorldLocation(ts.TileX, ts.TileZ, ts.X, ts.Y, ts.Z);
+            WorldLocation location = new WorldLocation(ts.TileX, ts.TileZ, ts.X, ts.Y, ts.Z);
             directionVector.X = ts.AX;
             directionVector.Y = ts.AY;
             directionVector.Z = ts.AZ;
             Vector3 trackLoc = new Vector3(ts.X, ts.Y, -ts.Z);
-            WorldPosition root = new WorldPosition(); root.TileX = ts.TileX; root.TileZ = ts.TileZ;
-            root.XNAMatrix = Matrix.CreateFromYawPitchRoll(-ts.AY, -ts.AX, ts.AZ);// CreateRotationX(-ts.AY) * Matrix.CreateRotationY(-ts.AX) * Matrix.CreateRotationZ(ts.AZ);
-
-            root.XNAMatrix.Translation = Vector3.Zero;
-            root.XNAMatrix.Translation += Vector3.Transform(trackLoc, Matrix.Identity);
+            WorldPosition root = new WorldPosition(ts.TileX, ts.TileZ, Matrix.CreateFromYawPitchRoll(-ts.AY, -ts.AX, ts.AZ)).SetTranslation(Vector3.Transform(trackLoc, Matrix.Identity));
 
             var sign = -Math.Sign(tss.SectionCurve.Angle); var to = Math.Abs(tss.SectionCurve.Angle * 0.0174f);
             var vectorCurveStartToCenter = Vector3.Left * tss.SectionCurve.Radius * sign;
             var curveRotation = Matrix.CreateRotationY(to * sign);
-            Vector3 dummy;
-            var displacement = Traveller.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out dummy);
+            var displacement = Traveller.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
 
-            WorldPosition nextRoot = new WorldPosition(root);
-            nextRoot.XNAMatrix.Translation = displacement;
+            WorldPosition nextRoot = root.SetTranslation(displacement);
 
             sv = ev = mv = 0f; dir = 1f;
             sv = ts.StartElev; ev = ts.EndElev; mv = ts.MaxElev;
@@ -177,20 +171,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 directionVector.Y = ts.AY;
                 directionVector.Z = ts.AZ;
                 Vector3 trackLoc = new Vector3(ts.X, ts.Y, -ts.Z);
-                WorldPosition root = new WorldPosition(); root.TileX = ts.TileX; root.TileZ = ts.TileZ;
-                root.XNAMatrix = Matrix.CreateFromYawPitchRoll(-ts.AY, -ts.AX, ts.AZ);// CreateRotationX(-ts.AY) * Matrix.CreateRotationY(-ts.AX) * Matrix.CreateRotationZ(ts.AZ);
-
-                root.XNAMatrix.Translation = Vector3.Zero;
-                root.XNAMatrix.Translation += Vector3.Transform(trackLoc, Matrix.Identity);
+                WorldPosition root = new WorldPosition(ts.TileX, ts.TileZ, Matrix.CreateFromYawPitchRoll(-ts.AY, -ts.AX, ts.AZ)).SetTranslation(Vector3.Transform(trackLoc, Matrix.Identity));
 
                 var sign = -Math.Sign(tss.SectionCurve.Angle); var to = Math.Abs(tss.SectionCurve.Angle * 0.0174f);
                 var vectorCurveStartToCenter = Vector3.Left * tss.SectionCurve.Radius * sign;
                 var curveRotation = Matrix.CreateRotationY(to * sign);
-                Vector3 dummy;
-                var displacement = Traveller.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out dummy);
+                var displacement = Traveller.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
 
-                WorldPosition nextRoot = new WorldPosition(root);
-                nextRoot.XNAMatrix.Translation = displacement;
+                WorldPosition nextRoot = root.SetTranslation(displacement);
 
                 dir = 1f;
                 sv = ts.StartElev; ev = ts.EndElev; mv = ts.MaxElev;
@@ -260,8 +248,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="dTrackList">DynamicTrackViewer list.</param>
         /// <param name="dTrackObj">Dynamic track section to decompose.</param>
         /// <param name="worldMatrixInput">Position matrix.</param>
-        public static void DecomposeConvertedDynamicSuperElevation(Viewer viewer, List<DynamicTrackViewer> dTrackList, TrackObj dTrackObj,
-            WorldPosition worldMatrixInput)
+        public static void DecomposeConvertedDynamicSuperElevation(Viewer viewer, List<DynamicTrackViewer> dTrackList, TrackObj dTrackObj, in WorldPosition worldMatrixInput)
         {
             // The following vectors represent local positioning relative to root of original (5-part) section:
             Vector3 localV = Vector3.Zero; // Local position (in x-z plane)
@@ -269,13 +256,11 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 displacement;  // Local displacement (from y=0 plane)
             Vector3 heading = Vector3.Forward; // Local heading (unit vector)
 
-            WorldPosition worldMatrix = new WorldPosition(worldMatrixInput); // Make a copy so it will not be messed
+            WorldPosition nextRoot = worldMatrixInput; // Will become initial root
 
-            WorldPosition nextRoot = new WorldPosition(worldMatrix); // Will become initial root
-
-            WorldPosition wcopy = new WorldPosition(nextRoot);
-            Vector3 sectionOrigin = worldMatrix.XNAMatrix.Translation; // Save root position
-            worldMatrix.XNAMatrix.Translation = Vector3.Zero; // worldMatrix now rotation-only
+            WorldPosition wcopy = nextRoot;
+            Vector3 sectionOrigin = worldMatrixInput.XNAMatrix.Translation; // Save root position
+            WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
 
             TrackPath path;
 
@@ -288,7 +273,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return; //cannot find the path for the dynamic track
             }
 
-            nextRoot = new WorldPosition(wcopy); // Will become initial root
+            nextRoot = wcopy; // Will become initial root
             sectionOrigin = nextRoot.XNAMatrix.Translation;
 
             heading = Vector3.Forward; // Local heading (unit vector)
@@ -299,7 +284,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Matrix trackRot = Matrix.CreateRotationY(0);
 
             //heading = Vector3.Transform(heading, trackRot); // Heading change
-            nextRoot.XNAMatrix = trackRot * nextRoot.XNAMatrix;
+            nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
             uint[] sections = path.TrackSections;
 
             int count = -1;
@@ -309,8 +294,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 float length, radius;
                 uint sid = path.TrackSections[i];
                 TrackSection section = viewer.Simulator.TSectionDat.TrackSections[sid];
-                WorldPosition root = new WorldPosition(nextRoot);
-                nextRoot.XNAMatrix.Translation = Vector3.Zero;
+                WorldPosition root = nextRoot;
+                nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
                 if (section.SectionCurve == null)
                 {
@@ -334,12 +319,12 @@ namespace Orts.ActivityRunner.Viewer3D
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot.XNAMatrix = trackRot * rot * nextRoot.XNAMatrix; // Store heading change
+                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(MatrixExtension.Multiply(trackRot, rot), nextRoot.XNAMatrix)); // Store heading change
 
                 }
-                nextRoot.XNAMatrix.Translation = sectionOrigin + displacement;
-                root.XNAMatrix.Translation += Vector3.Transform(trackLoc, worldMatrix.XNAMatrix);
-                nextRoot.XNAMatrix.Translation += Vector3.Transform(trackLoc, worldMatrix.XNAMatrix);
+                nextRoot = nextRoot.SetTranslation(sectionOrigin + displacement);
+                root = root.SetTranslation(root.XNAMatrix.Translation + Vector3.Transform(trackLoc, worldMatrix.XNAMatrix));
+                nextRoot = nextRoot.SetTranslation(nextRoot.XNAMatrix.Translation + Vector3.Transform(trackLoc, worldMatrix.XNAMatrix));
                 sv = ev = mv = 0f; dir = 1f;
                 //if (section.SectionCurve != null) FindSectionValue(shape, root, nextRoot, viewer.Simulator, section, TileX, TileZ, dTrackObj.UID);
 
@@ -356,8 +341,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="dTrackList">DynamicTrackViewer list.</param>
         /// <param name="dTrackObj">Dynamic track section to decompose.</param>
         /// <param name="worldMatrixInput">Position matrix.</param>
-        public static void DecomposeDynamicSuperElevation(Viewer viewer, List<DynamicTrackViewer> dTrackList, DyntrackObj dTrackObj,
-            WorldPosition worldMatrixInput)
+        public static void DecomposeDynamicSuperElevation(Viewer viewer, List<DynamicTrackViewer> dTrackList, DyntrackObj dTrackObj, in WorldPosition worldMatrixInput)
         {
             // DYNAMIC TRACK
             // =============
@@ -378,11 +362,9 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 displacement;  // Local displacement (from y=0 plane)
             Vector3 heading = Vector3.Forward; // Local heading (unit vector)
 
-            WorldPosition worldMatrix = new WorldPosition(worldMatrixInput); // Make a copy so it will not be messed
-
-            WorldPosition nextRoot = new WorldPosition(worldMatrix); // Will become initial root
-            Vector3 sectionOrigin = worldMatrix.XNAMatrix.Translation; // Save root position
-            worldMatrix.XNAMatrix.Translation = Vector3.Zero; // worldMatrix now rotation-only
+            WorldPosition nextRoot = worldMatrixInput; // Will become initial root
+            Vector3 sectionOrigin = worldMatrixInput.XNAMatrix.Translation; // Save root position
+            WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
 
             // Iterate through all subsections
             int count = -1;
@@ -400,13 +382,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Create a new WorldPosition for this subsection, initialized to nextRoot,
                 // which is the WorldPosition for the end of the last subsection.
                 // In other words, beginning of present subsection is end of previous subsection.
-                WorldPosition root = new WorldPosition(nextRoot);
+                WorldPosition root = nextRoot;
 
                 // Now we need to compute the position of the end (nextRoot) of this subsection,
                 // which will become root for the next subsection.
 
                 // Clear nextRoot's translation vector so that nextRoot matrix contains rotation only
-                nextRoot.XNAMatrix.Translation = Vector3.Zero;
+                nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
                 // Straight or curved subsection?
                 if (subsection.trackSections[0].isCurved == 0) // Straight section
@@ -429,11 +411,11 @@ namespace Orts.ActivityRunner.Viewer3D
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot.XNAMatrix = rot * nextRoot.XNAMatrix; // Store heading change
+                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix)); // Store heading change
                 }
 
                 // Update nextRoot with new translation component
-                nextRoot.XNAMatrix.Translation = sectionOrigin + displacement;
+                nextRoot = nextRoot.SetTranslation(sectionOrigin + displacement);
 
                 sv = ev = mv = 0f;
                 //                if (section.SectionCurve != null) FindSectionValue(shape, root, nextRoot, viewer.Simulator, section, TileX, TileZ, dTrackObj.UID);
@@ -445,8 +427,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        public static bool UseSuperElevationDyn(Viewer viewer, List<DynamicTrackViewer> dTrackList, DyntrackObj dTrackObj,
-    WorldPosition worldMatrixInput)
+        public static bool UseSuperElevationDyn(Viewer viewer, List<DynamicTrackViewer> dTrackList, DyntrackObj dTrackObj, in WorldPosition worldMatrixInput)
         {
             bool withCurves = false;
             for (int iTkSection = 0; iTkSection < dTrackObj.trackSections.Count; iTkSection++)
@@ -476,7 +457,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class SuperElevationViewer : DynamicTrackViewer
     {
-        public SuperElevationViewer(Viewer viewer, WorldPosition position, WorldPosition endPosition, float radius, float angle,
+        public SuperElevationViewer(Viewer viewer, in WorldPosition position, WorldPosition endPosition, float radius, float angle,
             float s, float e, float m, float dir)//values for start, end and max elevation
             : base(viewer, position, endPosition)
         {
@@ -488,8 +469,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public class SuperElevationPrimitive : DynamicTrackPrimitive
     {
         float StartElev, MaxElev, EndElv;
-        public SuperElevationPrimitive(Viewer viewer, WorldPosition worldPosition,
-        WorldPosition endPosition, float radius, float angle, float s, float e, float m, float dir)
+        public SuperElevationPrimitive(Viewer viewer, in WorldPosition worldPosition, in WorldPosition endPosition, 
+            float radius, float angle, float s, float e, float m, float dir)
             : base()
         {
             StartElev = s; EndElv = e; MaxElev = m;
@@ -558,7 +539,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="worldPosition">WorldPosition.</param>
         /// <param name="iLOD">Index of LOD mesh to be generated from profile.</param>
         /// <param name="iLODItem">Index of LOD mesh to be generated from profile.</param>
-        public new ShapePrimitive BuildPrimitive(Viewer viewer, WorldPosition worldPosition, int iLOD, int iLODItem)
+        public new ShapePrimitive BuildPrimitive(Viewer viewer, in WorldPosition worldPosition, int iLOD, int iLODItem)
         {
             // Call for track section to initialize itself
             if (!DTrackData.IsCurved) LinearGen();
@@ -620,7 +601,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             for (uint i = 0; i < NumSections; i++)
             {
-                currentRotation = determineRotation(DTrackData.Length);
+                currentRotation = DetermineRotation(DTrackData.Length);
                 elevated = currentRotation - prevRotation;
                 prevRotation = currentRotation;
                 if (DTrackData.Length > 0) elevated *= -1;
@@ -775,7 +756,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public float prevRotation;
         public float currentRotation;
-        public float determineRotation(float Angle)
+        public float DetermineRotation(float Angle)
         {
             float desiredZ = 1f;
             float to = (offSet + 1f) / NumSections;

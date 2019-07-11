@@ -49,6 +49,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Orts.Common;
+using Orts.Common.Xna;
 using Orts.Formats.Msts;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -625,46 +626,23 @@ namespace Orts.ActivityRunner.Viewer3D
             var XNAMatrix = Matrix.CreateFromQuaternion(XNAQuaternion);
             XNAMatrix *= Matrix.CreateTranslation(XNAPosition);
 
-            var worldMatrix = new WorldPosition();
-            worldMatrix.TileX = tileX;
-            worldMatrix.TileZ = tileZ;
-            worldMatrix.XNAMatrix = XNAMatrix;
-
-            return worldMatrix;
+            return new WorldPosition(tileX, tileZ, XNAMatrix);
         }
 
         /// <summary>
         /// MSTS WFiles represent some location with a position, 3x3 matrix and tile coordinates
         /// This converts it to the ORTS WorldPosition representation
         /// </summary>
-        static WorldPosition WorldPositionFromMSTSLocation(int tileX, int tileZ, STFPositionItem MSTSPosition, in Matrix3x3 mstsMatrix)
+        static WorldPosition WorldPositionFromMSTSLocation(int tileX, int tileZ, STFPositionItem mstsPosition, in Matrix3x3 mstsMatrix)
         {
-            var XNAPosition = new Vector3((float)MSTSPosition.X, (float)MSTSPosition.Y, -(float)MSTSPosition.Z);
-            var XNAMatrix = Matrix.Identity;
-            XNAMatrix.M11 = mstsMatrix.AX;
-            XNAMatrix.M12 = mstsMatrix.AY;
-            XNAMatrix.M13 = -mstsMatrix.AZ;
-            XNAMatrix.M14 = 0;
-            XNAMatrix.M21 = mstsMatrix.BX;
-            XNAMatrix.M22 = mstsMatrix.BY;
-            XNAMatrix.M23 = -mstsMatrix.BZ;
-            XNAMatrix.M24 = 0;
-            XNAMatrix.M31 = -mstsMatrix.CX;
-            XNAMatrix.M32 = -mstsMatrix.CY;
-            XNAMatrix.M33 = mstsMatrix.CZ;
-            XNAMatrix.M34 = 0;
-            XNAMatrix.M41 = 0;
-            XNAMatrix.M42 = 0;
-            XNAMatrix.M43 = 0;
-            XNAMatrix.M44 = 1;
-            XNAMatrix *= Matrix.CreateTranslation(XNAPosition);
+            Vector3 xnaPosition = new Vector3(mstsPosition.X, mstsPosition.Y, -mstsPosition.Z);
+            Matrix xnaMatrix = new Matrix (
+                mstsMatrix.AX, mstsMatrix.AY, -mstsMatrix.AZ, 0, 
+                mstsMatrix.BX, mstsMatrix.BY, -mstsMatrix.BZ, 0,
+                -mstsMatrix.CX, -mstsMatrix.CY, mstsMatrix.CZ, 0,
+                0, 0, 0, 1);
 
-            var worldMatrix = new WorldPosition();
-            worldMatrix.TileX = tileX;
-            worldMatrix.TileZ = tileZ;
-            worldMatrix.XNAMatrix = XNAMatrix;
-
-            return worldMatrix;
+            return new WorldPosition(tileX, tileZ, MatrixExtension.Multiply(xnaMatrix, Matrix.CreateTranslation(xnaPosition)));
         }
 
         /// <summary>

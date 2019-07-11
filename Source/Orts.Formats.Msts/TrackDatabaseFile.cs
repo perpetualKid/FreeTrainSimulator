@@ -1107,7 +1107,7 @@ namespace Orts.Formats.Msts
         /// 
         public WorldPosition WorldPosition;
 
-        public TempSpeedPostItem(Tr_RouteFile routeFile, Position position,  bool isStart, WorldPosition worldPosition, bool isWarning)
+        public TempSpeedPostItem(Tr_RouteFile routeFile, Position position,  bool isStart, in WorldPosition worldPosition, bool isWarning)
         {
             // TrItemId needs to be set later
             ItemType = trItemType.trSPEEDPOST;

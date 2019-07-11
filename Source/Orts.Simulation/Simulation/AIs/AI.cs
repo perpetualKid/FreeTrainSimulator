@@ -984,7 +984,11 @@ namespace Orts.Simulation.AIs
                 thisTrain.SetInitialTrainRoute(tempRoute);
                 thisTrain.CalculatePositionOfCars();
                 for (int i = 0; i < thisTrain.Cars.Count; i++)
-                    thisTrain.Cars[i].WorldPosition.XNAMatrix.M42 -= 1000;
+                {
+                    Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
+                    position.Y -= 1000;
+                    thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
+                }
                 thisTrain.ResetInitialTrainRoute(tempRoute);
                 validPosition = thisTrain.PostInit();
             }
@@ -1166,7 +1170,11 @@ namespace Orts.Simulation.AIs
                     thisTrain.SetInitialTrainRoute(tempRoute);
                     thisTrain.CalculatePositionOfCars();
                     for (int i = 0; i < thisTrain.Cars.Count; i++)
-                        thisTrain.Cars[i].WorldPosition.XNAMatrix.M42 -= 1000;
+                    {
+                        Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
+                        position.Y -= 1000;
+                        thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
+                    }
                     thisTrain.ResetInitialTrainRoute(tempRoute);
 
                     // set train route and position so proper position in pool can be calculated
@@ -1188,7 +1196,11 @@ namespace Orts.Simulation.AIs
                     thisTrain.SetInitialTrainRoute(tempRoute);
                     thisTrain.CalculatePositionOfCars();
                     for (int i = 0; i < thisTrain.Cars.Count; i++)
-                        thisTrain.Cars[i].WorldPosition.XNAMatrix.M42 -= 1000;
+                    {
+                        Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
+                        position.Y -= 1000;
+                        thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
+                    }
                     thisTrain.ResetInitialTrainRoute(tempRoute);
 
                     validPosition = thisTrain.PostInit(false); // post init train but do not activate

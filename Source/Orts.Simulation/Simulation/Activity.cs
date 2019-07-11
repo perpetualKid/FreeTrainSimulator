@@ -29,6 +29,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Event = Orts.Common.Event;
+using Orts.Common.Xna;
 
 namespace Orts.Simulation
 {
@@ -521,10 +522,10 @@ namespace Orts.Simulation
 
             for (int idxZone = 0; idxZone < zones.ActivityRestrictedSpeedZoneList.Count; idxZone++)
             {
-                var worldPosition1 = new WorldPosition();
+                var worldPosition1 = WorldPosition.None;
                 newSpeedPostItems[0] = new TempSpeedPostItem(routeFile,
                     zones.ActivityRestrictedSpeedZoneList[idxZone].StartPosition, true, worldPosition1, false);
-                var worldPosition2 = new WorldPosition();
+                var worldPosition2 = WorldPosition.None;
                 newSpeedPostItems[1] = new TempSpeedPostItem(routeFile,
                     zones.ActivityRestrictedSpeedZoneList[idxZone].EndPosition, false, worldPosition2, false);
 
@@ -547,7 +548,7 @@ namespace Orts.Simulation
                 else if (startOffset != null && endOffset != null && startOffset <= endOffset)
                     distanceOfWarningPost = (float)Math.Max(-MaxDistanceOfWarningPost, -(double)startOffset);
                 traveller.Move(distanceOfWarningPost);
-                var worldPosition3 = new WorldPosition();
+                var worldPosition3 = WorldPosition.None;
                 var speedWarningPostItem = new TempSpeedPostItem(routeFile,
                     zones.ActivityRestrictedSpeedZoneList[idxZone].StartPosition, false, worldPosition3, true);
                 SpeedPostPosition(speedWarningPostItem, ref traveller);
@@ -596,14 +597,7 @@ namespace Orts.Simulation
         {
             restrSpeedPost.Y = traveller.Y;
             restrSpeedPost.Angle = -traveller.RotY + (float)Math.PI / 2;
-            restrSpeedPost.WorldPosition.XNAMatrix = Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0);
-            restrSpeedPost.WorldPosition.XNAMatrix.M41 = traveller.X;
-            restrSpeedPost.WorldPosition.XNAMatrix.M42 = traveller.Y;
-            restrSpeedPost.WorldPosition.XNAMatrix.M43 = traveller.Z;
-            restrSpeedPost.WorldPosition.TileX = traveller.TileX;
-            restrSpeedPost.WorldPosition.TileZ = traveller.TileZ;
-            //                    restrSpeedPost.WorldPosition.Normalize();
-            restrSpeedPost.WorldPosition.XNAMatrix.M43 *= -1;
+            restrSpeedPost.WorldPosition = new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z));
         }
 
         /// <summary>
@@ -614,10 +608,11 @@ namespace Orts.Simulation
         static void FlipRestrSpeedPost(TempSpeedPostItem restrSpeedPost)
         {
             restrSpeedPost.Angle += (float)Math.PI;
-            restrSpeedPost.WorldPosition.XNAMatrix.M11 *= -1;
-            restrSpeedPost.WorldPosition.XNAMatrix.M13 *= -1;
-            restrSpeedPost.WorldPosition.XNAMatrix.M31 *= -1;
-            restrSpeedPost.WorldPosition.XNAMatrix.M33 *= -1;
+            restrSpeedPost.WorldPosition = new WorldPosition(restrSpeedPost.WorldPosition.TileX, restrSpeedPost.WorldPosition.TileZ, new Matrix(
+                -restrSpeedPost.WorldPosition.XNAMatrix.M11, restrSpeedPost.WorldPosition.XNAMatrix.M12, -restrSpeedPost.WorldPosition.XNAMatrix.M13, restrSpeedPost.WorldPosition.XNAMatrix.M14,
+                restrSpeedPost.WorldPosition.XNAMatrix.M21, restrSpeedPost.WorldPosition.XNAMatrix.M22, restrSpeedPost.WorldPosition.XNAMatrix.M23, restrSpeedPost.WorldPosition.XNAMatrix.M24,
+                -restrSpeedPost.WorldPosition.XNAMatrix.M31, restrSpeedPost.WorldPosition.XNAMatrix.M32, -restrSpeedPost.WorldPosition.XNAMatrix.M33, restrSpeedPost.WorldPosition.XNAMatrix.M34,
+                restrSpeedPost.WorldPosition.XNAMatrix.M41, restrSpeedPost.WorldPosition.XNAMatrix.M42, restrSpeedPost.WorldPosition.XNAMatrix.M43, restrSpeedPost.WorldPosition.XNAMatrix.M44));
         }
 
         /// <summary>
@@ -628,11 +623,11 @@ namespace Orts.Simulation
         static void ComputeTablePosition(TempSpeedPostItem restrSpeedPost)
         {
             var speedPostTablePosition = new Vector3(2.2f, 0, 0);
-            Vector3.Transform(ref speedPostTablePosition, ref restrSpeedPost.WorldPosition.XNAMatrix, out speedPostTablePosition);
-            restrSpeedPost.WorldPosition.XNAMatrix.Translation = speedPostTablePosition;
-            restrSpeedPost.WorldPosition.XNAMatrix.M43 *= -1;
-            restrSpeedPost.WorldPosition.Normalize();
-            restrSpeedPost.WorldPosition.XNAMatrix.M43 *= -1;
+            speedPostTablePosition = Vector3.Transform(speedPostTablePosition, restrSpeedPost.WorldPosition.XNAMatrix);
+            
+            restrSpeedPost.WorldPosition = restrSpeedPost.WorldPosition.SetMstsTranslation(speedPostTablePosition).Normalize();
+
+            restrSpeedPost.WorldPosition = restrSpeedPost.WorldPosition.SetMstsTranslation(restrSpeedPost.WorldPosition.XNAMatrix.Translation);
         }
 
 

@@ -54,7 +54,7 @@ namespace Orts.ActivityRunner.Viewer3D
         int InputCycle;
 #endif
 
-        public ParticleEmitterViewer(Viewer viewer, ParticleEmitterData data, WorldPosition worldPosition)
+        public ParticleEmitterViewer(Viewer viewer, ParticleEmitterData data, in WorldPosition worldPosition)
         {
             Viewer = viewer;
             EmissionHoleM2 = (MathHelper.Pi * ((data.NozzleWidth / 2f) * (data.NozzleWidth / 2f)));
@@ -212,7 +212,7 @@ namespace Orts.ActivityRunner.Viewer3D
         static float windDisplacementX;
         static float windDisplacementZ;
 
-        public ParticleEmitterPrimitive(Viewer viewer, ParticleEmitterData data, WorldPosition worldPosition)
+        public ParticleEmitterPrimitive(Viewer viewer, ParticleEmitterData data, in WorldPosition worldPosition)
         {
             this.viewer = viewer;
 
@@ -230,7 +230,7 @@ namespace Orts.ActivityRunner.Viewer3D
             ParticleColor = Color.White;
 
             WorldPosition = worldPosition;
-            LastWorldPosition = new WorldPosition(worldPosition);
+            LastWorldPosition = worldPosition;
 
             TimeParticlesLastEmitted = (float)viewer.Simulator.GameTime;
 
@@ -325,9 +325,7 @@ namespace Orts.ActivityRunner.Viewer3D
             velocity.Z += (WorldPosition.TileZ - LastWorldPosition.TileZ) * 2048;
             velocity.Z *= -1;
             velocity /= elapsedTime.ClockSeconds;
-            LastWorldPosition.Location = WorldPosition.Location;
-            LastWorldPosition.TileX = WorldPosition.TileX;
-            LastWorldPosition.TileZ = WorldPosition.TileZ;
+            LastWorldPosition = LastWorldPosition.SetLocation(WorldPosition.Location);
 
             RetireActiveParticles(currentTime);
             FreeRetiredParticles();

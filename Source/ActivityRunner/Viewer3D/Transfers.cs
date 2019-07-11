@@ -33,7 +33,7 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly TransferPrimitive Primitive;
         readonly float Radius;
 
-        public TransferShape(Viewer viewer, TransferObj transfer, WorldPosition position)
+        public TransferShape(Viewer viewer, TransferObj transfer, in WorldPosition position)
             : base(viewer, null, RemoveRotation(position), ShapeFlags.AutoZBias)
         {
             Material = viewer.MaterialManager.Load("Transfer", Helpers.GetTransferTextureFile(viewer.Simulator, transfer.FileName));
@@ -41,13 +41,9 @@ namespace Orts.ActivityRunner.Viewer3D
             Radius = (float)Math.Sqrt(transfer.Width * transfer.Width + transfer.Height * transfer.Height) / 2;
         }
 
-        static WorldPosition RemoveRotation(WorldPosition position)
+        static WorldPosition RemoveRotation(in WorldPosition position)
         {
-            var rv = new WorldPosition(position);
-            var translation = rv.XNAMatrix.Translation;
-            rv.XNAMatrix = Matrix.Identity;
-            rv.XNAMatrix.Translation = translation;
-            return rv;
+            return new WorldPosition(position.TileX, position.TileZ, Matrix.Identity).SetTranslation(position.XNAMatrix.Translation);
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
@@ -73,7 +69,7 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly int VertexCount;
         readonly int PrimitiveCount;
 
-        public TransferPrimitive(Viewer viewer, float width, float height, WorldPosition position)
+        public TransferPrimitive(Viewer viewer, float width, float height, in WorldPosition position)
         {
             var center = position.Location;
             var radius = (float)Math.Sqrt(width * width + height * height) / 2;

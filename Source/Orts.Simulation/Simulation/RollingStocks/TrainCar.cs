@@ -40,6 +40,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Orts.Common;
+using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Parsers.Msts;
 using Orts.Simulation.AIs;
@@ -162,7 +163,7 @@ namespace Orts.Simulation.RollingStocks
         public string CarID = "AI"; //CarID = "0 - UID" if player train, "ActivityID - UID" if loose consist, "AI" if AI train
 
         // status of the traincar - set by the train physics after it calls TrainCar.Update()
-        public WorldPosition WorldPosition = new WorldPosition();  // current position of the car
+        public WorldPosition WorldPosition = WorldPosition.None;  // current position of the car
         public float DistanceM;  // running total of distance travelled - always positive, updated by train physics
         public float _SpeedMpS; // meters per second; updated by train physics, relative to direction of car  50mph = 22MpS
         public float _PrevSpeedMpS;
@@ -2115,9 +2116,7 @@ namespace Orts.Simulation.RollingStocks
             m.M41 = p0.A[0];
             m.M42 = p0.A[1] + 0.275f;
             m.M43 = -p0.A[2];
-            WorldPosition.XNAMatrix = m;
-            WorldPosition.TileX = tileX;
-            WorldPosition.TileZ = tileZ;
+            WorldPosition = new WorldPosition(tileX, tileZ, m);
             
             UpdatedTraveler(traveler, elapsedTimeS, distance, speed);
 
@@ -2191,7 +2190,7 @@ namespace Orts.Simulation.RollingStocks
                 prevElev = z;
             }
 
-            WorldPosition.XNAMatrix = Matrix.CreateRotationZ(z) * WorldPosition.XNAMatrix;
+            WorldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(Matrix.CreateRotationZ(z), WorldPosition.XNAMatrix));
         }
         #endregion
 
@@ -2329,7 +2328,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 var rotation = Matrix.CreateFromYawPitchRoll(VibrationRotationRad.Y, VibrationRotationRad.X, VibrationRotationRad.Z + TiltingZRot);
                 var translation = Matrix.CreateTranslation(VibrationTranslationM.X, VibrationTranslationM.Y, 0);
-                WorldPosition.XNAMatrix = rotation * translation * WorldPosition.XNAMatrix;
+                WorldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(MatrixExtension.Multiply(rotation, translation), WorldPosition.XNAMatrix));
                 VibrationInverseMatrix = Matrix.Invert(rotation * translation);
             }
         }

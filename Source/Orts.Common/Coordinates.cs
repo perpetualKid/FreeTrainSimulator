@@ -41,28 +41,23 @@
 
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
+using Orts.Common.Xna;
 
 namespace Orts.Common
 {
     /// <summary>
     /// Represents the position and orientation of an object within a tile in XNA coordinates.
     /// </summary>
-    public class WorldPosition
+    public readonly struct WorldPosition
     {
         /// <summary>The x-value of the tile</summary>
-        public int TileX { get; set; }
+        public readonly int TileX;
         /// <summary>The z-value of the tile</summary>
-        public int TileZ { get; set; }
+        public readonly int TileZ;
         /// <summary>The position within a tile (relative to the center of tile)</summary>
-        public Matrix XNAMatrix = Matrix.Identity;
-
-        /// <summary>
-        /// Default empty constructor
-        /// </summary>
-        public WorldPosition()
-        {
-        }
+        public readonly Matrix XNAMatrix;
 
         /// <summary>
         /// Copy constructor using another world position
@@ -74,6 +69,15 @@ namespace Orts.Common
             XNAMatrix = copy.XNAMatrix;
         }
 
+        public WorldPosition(int tileX, int tileZ, Matrix xnaMatrix)
+        {
+            TileX = tileX;
+            TileZ = tileZ;
+            XNAMatrix = xnaMatrix;
+        }
+
+        public static readonly WorldPosition None = new WorldPosition(0, 0, Matrix.Identity);
+
         /// <summary>
         /// Copy constructor using a MSTS-coordinates world-location 
         /// </summary>
@@ -81,7 +85,23 @@ namespace Orts.Common
         {
             TileX = source.TileX;
             TileZ = source.TileZ;
-            Location = source.Location;
+            source.Location.Deconstruct(out float x, out float y, out float z);
+            XNAMatrix = MatrixExtension.SetTranslation(Matrix.Identity, x, y, -z);
+        }
+
+        public WorldPosition SetTranslation(Vector3 translation)
+        {
+            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, translation));
+        }
+
+        public WorldPosition SetTranslation(float x, float y, float z)
+        {
+            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, x, y, z));
+        }
+
+        public WorldPosition SetMstsTranslation(Vector3 translation)
+        {
+            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, translation.X, translation.Y, - translation.Z));
         }
 
         /// <summary>
@@ -89,11 +109,8 @@ namespace Orts.Common
         /// </summary>
         public WorldLocation WorldLocation
         {
-            get
-            {
-                XNAMatrix.Translation.Deconstruct(out float x, out float y, out float z);
-                return new WorldLocation(TileX, TileZ, x, y, -z);
-            }
+            // "inlined" XnaMatrix.Translation() Decomposition
+            get { return new WorldLocation(TileX, TileZ, XNAMatrix.M41, XNAMatrix.M42, -XNAMatrix.M43); }
         }
 
         /// <summary>
@@ -103,28 +120,45 @@ namespace Orts.Common
         {
             get
             {
-                Vector3 location = XNAMatrix.Translation;
-                location.Z *= -1;  // convert to MSTS coordinates
-                return location;
+                // "inlined" XnaMatrix.Translation() Decomposition
+                return new Vector3(XNAMatrix.M41, XNAMatrix.M42, -XNAMatrix.M43);
             }
-            set
-            {
-                value.Z *= -1;
-                XNAMatrix.Translation = value;
-            }
+        }
+
+        public WorldPosition SetLocation(Vector3 location)
+        {
+            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, location.X, location.Y, -location.Z));
+        }
+
+        public WorldPosition SetLocation(float x, float y, float z)
+        {
+            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, x, y, -z));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Vector3 XnaLocation()
+        {
+            // "inlined" XnaMatrix.Translation() Decomposition
+            return new Vector3(XNAMatrix.M41, XNAMatrix.M42, XNAMatrix.M43);
         }
 
         /// <summary>
         /// Ensure tile coordinates are within tile boundaries
         /// </summary>
-        public void Normalize()
+        public WorldPosition Normalize()
         {
-            var TileLocation = XNAMatrix.Translation;
-            while (TileLocation.X > 1024) { TileLocation.X -= 2048; TileX++; }
-            while (TileLocation.X < -1024) { TileLocation.X += 2048; TileX--; }
-            while (TileLocation.Z > 1024) { TileLocation.Z -= 2048; TileZ++; }
-            while (TileLocation.Z < -1024) { TileLocation.Z += 2048; TileZ--; }
-            XNAMatrix.Translation = TileLocation;
+            //var TileLocation = XNAMatrix.Translation;
+            //while (TileLocation.X > 1024) { TileLocation.X -= 2048; TileX++; }
+            //while (TileLocation.X < -1024) { TileLocation.X += 2048; TileX--; }
+            //while (TileLocation.Z > 1024) { TileLocation.Z -= 2048; TileZ++; }
+            //while (TileLocation.Z < -1024) { TileLocation.Z += 2048; TileZ--; }
+            //XNAMatrix.Translation = TileLocation;
+
+            Vector3 location = XnaLocation();
+            int xTileDistance = (int)Math.Ceiling((double)((int)(location.X / 1024) / 2));
+            int zTileDistance = (int)Math.Ceiling((double)((int)(location.Z / 1024) / 2));
+            return new WorldPosition(TileX + xTileDistance, TileZ + zTileDistance,
+                MatrixExtension.SetTranslation(XNAMatrix, location.X - (xTileDistance * 2048), location.Y, location.Z - (zTileDistance * 2048)));
         }
 
         /// <summary>
@@ -132,14 +166,20 @@ namespace Orts.Common
         /// </summary>
         /// <param name="tileX">The x-value of the tile to normalize to</param>
         /// <param name="tileZ">The x-value of the tile to normalize to</param>
-        public void NormalizeTo(int tileX, int tileZ)
+        public WorldPosition NormalizeTo(int tileX, int tileZ)
         {
-            Vector3 TileLocation = XNAMatrix.Translation;
-            while (TileX < tileX) { TileLocation.X -= 2048; TileX++; }
-            while (TileX > tileX) { TileLocation.X += 2048; TileX--; }
-            while (TileZ < tileZ) { TileLocation.Z += 2048; TileZ++; }
-            while (TileZ > tileZ) { TileLocation.Z -= 2048; TileZ--; }
-            XNAMatrix.Translation = TileLocation;
+            //Vector3 TileLocation = XNAMatrix.Translation;
+            //while (TileX < tileX) { TileLocation.X -= 2048; TileX++; }
+            //while (TileX > tileX) { TileLocation.X += 2048; TileX--; }
+            //while (TileZ < tileZ) { TileLocation.Z += 2048; TileZ++; }
+            //while (TileZ > tileZ) { TileLocation.Z -= 2048; TileZ--; }
+            //XNAMatrix.Translation = TileLocation;
+
+            Vector3 location = XnaLocation();
+            int xDiff = TileX - tileX;
+            int zDiff = TileZ - tileZ;
+            return new WorldPosition(TileX - xDiff, TileZ - zDiff, 
+                MatrixExtension.SetTranslation(XNAMatrix, location.X + (xDiff * 2048), location.Y, location.Z + (zDiff * 2048)));
         }
 
         /// <summary>

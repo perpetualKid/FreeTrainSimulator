@@ -182,7 +182,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 
                 car.HasFreightAnim = true;
-                FreightShape = new AnimatedShape(viewer, wagonFolderSlash + car.FreightShapeFileName + '\0' + wagonFolderSlash, new WorldPosition(car.WorldPosition), ShapeFlags.ShadowCaster);
+                FreightShape = new AnimatedShape(viewer, wagonFolderSlash + car.FreightShapeFileName + '\0' + wagonFolderSlash, car.WorldPosition, ShapeFlags.ShadowCaster);
 
                 // Reproducing MSTS "bug" of not allowing tender animation in case both minLevel and maxLevel are 0 or maxLevel <  minLevel 
                 // Applies to both a standard tender locomotive or a tank locomotive (where coal load is on same "wagon" as the locomotive -  for the coal load on a tender or tank locomotive - in operation it will raise or lower with caol usage
@@ -650,9 +650,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (FreightShape != null && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
             {
                 // Define default position of shape
-                FreightShape.Location.XNAMatrix = Car.WorldPosition.XNAMatrix;
-                FreightShape.Location.TileX = Car.WorldPosition.TileX;
-                FreightShape.Location.TileZ = Car.WorldPosition.TileZ;
+                FreightShape.Location = Car.WorldPosition;
 
                     bool SteamAnimShape = false;
                     float FuelControllerLevel = 0.0f;
@@ -685,16 +683,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     // Set height of FAs - if relevant conditions met, use default position co-ords defined above
                     if (FreightShape.XNAMatrices.Length > 0)
                     {
-                        // For tender coal load animation 
-                        if (MSTSWagon.FreightAnimFlag > 0 && MSTSWagon.FreightAnimMaxLevelM > MSTSWagon.FreightAnimMinLevelM && SteamAnimShape)
-                        {
-                            FreightShape.XNAMatrices[0].M42 = MSTSWagon.FreightAnimMinLevelM + FuelControllerLevel * (MSTSWagon.FreightAnimMaxLevelM - MSTSWagon.FreightAnimMinLevelM);
-                        }
-                        // reproducing MSTS strange behavior; used to display loco crew when attached to tender
-                        else if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender) 
-                        {
-                            FreightShape.Location.XNAMatrix.M42 += MSTSWagon.FreightAnimMaxLevelM;
-                        }
+                    // For tender coal load animation 
+                    if (MSTSWagon.FreightAnimFlag > 0 && MSTSWagon.FreightAnimMaxLevelM > MSTSWagon.FreightAnimMinLevelM && SteamAnimShape)
+                    {
+                        FreightShape.XNAMatrices[0].M42 = MSTSWagon.FreightAnimMinLevelM + FuelControllerLevel * (MSTSWagon.FreightAnimMaxLevelM - MSTSWagon.FreightAnimMinLevelM);
+                    }
+                    // reproducing MSTS strange behavior; used to display loco crew when attached to tender
+                    else if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender)
+                    {
+                        Matrix freightLocation = FreightShape.Location.XNAMatrix;
+                        freightLocation.M42 += MSTSWagon.FreightAnimMaxLevelM;
+                        FreightShape.Location = new WorldPosition(FreightShape.Location.TileX, FreightShape.Location.TileZ, freightLocation);
+                    }
                     }
                 // Display Animation Shape                    
                 FreightShape.PrepareFrame(frame, elapsedTime);
@@ -709,8 +709,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             (Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab)) continue;
                     if (freightAnim.FreightShape != null && !((freightAnim.Animation is FreightAnimationContinuous) && (freightAnim.Animation as FreightAnimationContinuous).LoadPerCent == 0))
                     {
-                        freightAnim.FreightShape.Location.XNAMatrix = Car.WorldPosition.XNAMatrix;
-                        freightAnim.FreightShape.Location.TileX = Car.WorldPosition.TileX; freightAnim.FreightShape.Location.TileZ = Car.WorldPosition.TileZ;
+                        freightAnim.FreightShape.Location = Car.WorldPosition;
                         if (freightAnim.FreightShape.XNAMatrices.Length > 0)
                         {
                             if (freightAnim.Animation is FreightAnimationContinuous)

@@ -53,7 +53,7 @@ namespace Orts.ActivityRunner.Viewer3D
         float LastSpawnedTime;
         float NextSpawnTime;
 
-        public RoadCarSpawner(Viewer viewer, WorldPosition position, CarSpawnerObj carSpawnerObj)
+        public RoadCarSpawner(Viewer viewer, in WorldPosition position, CarSpawnerObj carSpawnerObj)
         {
             Debug.Assert(TrackMergeDistance >= 2 * (RampLength + TrackHalfWidth), "TrackMergeDistance is less than 2 * (RampLength + TrackHalfWidth); vertical inconsistencies will occur at close, but not merged, tracks.");
             Viewer = viewer;
@@ -390,8 +390,6 @@ namespace Orts.ActivityRunner.Viewer3D
         [CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            CarShape.Location.TileX = Car.TileX;
-            CarShape.Location.TileZ = Car.TileZ;
             // TODO: Add 0.1f to Y to put wheels above road. Matching MSTS?
             var front = Car.FrontLocation;
             var rear = Car.RearLocation;
@@ -407,7 +405,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     else frontY = rearY;
                 }
             }
-            CarShape.Location.XNAMatrix = Simulator.XNAMatrixFromMSTSCoordinates(front.X, frontY, front.Z, rear.X, rearY, rear.Z);
+            CarShape.Location = new WorldPosition(Car.TileX, Car.TileZ, Simulator.XNAMatrixFromMSTSCoordinates(front.X, frontY, front.Z, rear.X, rearY, rear.Z));
             CarShape.PrepareFrame(frame, elapsedTime);
         }
 

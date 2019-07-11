@@ -28,6 +28,7 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
@@ -416,8 +417,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                     (uint)intake.Type == pickup.PickupType)
                                  || ((uint)intake.Type == pickup.PickupType && (uint)intake.Type > (uint)MSTSWagon.PickupType.FreightSand && (wagon.WagonType == TrainCar.WagonTypes.Tender || wagon is MSTSLocomotive)))
                                 {
-                                    var intakePosition = new Vector3(0, 0, -intake.OffsetM);
-                                    Vector3.Transform(ref intakePosition, ref car.WorldPosition.XNAMatrix, out intakePosition);
+                                    VectorExtension.Transform(new Vector3(0, 0, -intake.OffsetM), car.WorldPosition.XNAMatrix, out Vector3 intakePosition);
 
                                     var intakeLocation = new WorldLocation(
                                         car.WorldPosition.TileX, car.WorldPosition.TileZ,
@@ -464,8 +464,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// <returns></returns>
         float GetDistanceToM(WagonAndMatchingPickup match)
         {
-            var intakePosition = new Vector3(0, 0, -match.IntakePoint.OffsetM);
-            Vector3.Transform(ref intakePosition, ref match.Wagon.WorldPosition.XNAMatrix, out intakePosition);
+            VectorExtension.Transform(new Vector3(0, 0, -match.IntakePoint.OffsetM), match.Wagon.WorldPosition.XNAMatrix, out Vector3 intakePosition);
 
             var intakeLocation = new WorldLocation(
                 match.Wagon.WorldPosition.TileX, match.Wagon.WorldPosition.TileZ,

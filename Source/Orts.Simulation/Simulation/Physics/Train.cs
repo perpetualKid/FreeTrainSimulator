@@ -73,6 +73,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Event = Orts.Common.Event;
+using Orts.Common.Xna;
 
 namespace Orts.Simulation.Physics
 {
@@ -3876,17 +3877,14 @@ namespace Orts.Simulation.Physics
                     }
 
                     // note the railcar sits 0.275meters above the track database path  TODO - is this always consistent?
-                    car.WorldPosition.XNAMatrix = Matrix.Identity;
-                    if (!car.Flipped)
+                    Matrix flipMatrix = Matrix.Identity;
+                    if(!car.Flipped)
                     {
                         //  Rotate matrix 180' around Y axis.
-                        car.WorldPosition.XNAMatrix.M11 = -1;
-                        car.WorldPosition.XNAMatrix.M33 = -1;
+                        flipMatrix.M11 = -1;
+                        flipMatrix.M33 = -1;
                     }
-                    car.WorldPosition.XNAMatrix *= Simulator.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z);
-                    car.WorldPosition.TileX = traveller.TileX;
-                    car.WorldPosition.TileZ = traveller.TileZ;
-
+                    car.WorldPosition = new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.Multiply(flipMatrix, Simulator.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z)));
                     traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);
                 }
                 if (i < Cars.Count - 1)
@@ -3998,16 +3996,15 @@ namespace Orts.Simulation.Physics
 
 
                     // note the railcar sits 0.275meters above the track database path  TODO - is this always consistent?
-                    car.WorldPosition.XNAMatrix = Matrix.Identity;
+                    Matrix flipMatrix = Matrix.Identity;
                     if (car.Flipped)
                     {
                         //  Rotate matrix 180' around Y axis.
-                        car.WorldPosition.XNAMatrix.M11 = -1;
-                        car.WorldPosition.XNAMatrix.M33 = -1;
+                        flipMatrix.M11 = -1;
+                        flipMatrix.M33 = -1;
                     }
-                    car.WorldPosition.XNAMatrix *= Simulator.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z);
-                    car.WorldPosition.TileX = traveller.TileX;
-                    car.WorldPosition.TileZ = traveller.TileZ;
+                    car.WorldPosition = new WorldPosition(traveller.TileX, traveller.TileZ, 
+                        MatrixExtension.Multiply(flipMatrix, Simulator.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z)));
 
                     traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);  // Move to the front of the car 
 

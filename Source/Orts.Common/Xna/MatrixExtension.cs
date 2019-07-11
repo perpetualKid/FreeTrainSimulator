@@ -25,5 +25,29 @@ namespace Orts.Common.Xna
             result.M43 = matrix1.M41 * matrix2.M13 + matrix1.M42 * matrix2.M23 + matrix1.M43 * matrix2.M33 + matrix1.M44 * matrix2.M43;
             result.M44 = matrix1.M41 * matrix2.M14 + matrix1.M42 * matrix2.M24 + matrix1.M43 * matrix2.M34 + matrix1.M44 * matrix2.M44;
         }
+
+        public static Matrix Multiply(in Matrix matrix1, in Matrix matrix2)
+        {
+            Multiply(matrix1, matrix2, out Matrix result);
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Matrix SetTranslation(in Matrix matrix, in Vector3 position)
+        {
+            return new Matrix(matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+                matrix.M21, matrix.M22, matrix.M23, matrix.M24,
+                matrix.M31, matrix.M32, matrix.M33, matrix.M34,
+                position.X, position.Y, position.Z, matrix.M44);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Matrix SetTranslation(in Matrix matrix, float x, float y, float z)
+        {
+            return new Matrix(matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+                matrix.M21, matrix.M22, matrix.M23, matrix.M24,
+                matrix.M31, matrix.M32, matrix.M33, matrix.M34,
+                x, y, z, matrix.M44);
+        }
     }
 }

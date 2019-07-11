@@ -46,7 +46,7 @@ namespace Orts.Simulation
                     .ToDictionary(_ => _.Key, _ => _.Value);
         }
 
-        public FuelPickupItem CreateFuelStation(WorldPosition position, IEnumerable<int> trackIDs)
+        public FuelPickupItem CreateFuelStation(in WorldPosition position, IEnumerable<int> trackIDs)
         {
             var trackItems = trackIDs.Select(id => FuelPickupItems[id]).ToArray();
             return new FuelPickupItem(trackItems);

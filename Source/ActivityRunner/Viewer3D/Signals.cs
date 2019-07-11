@@ -44,7 +44,7 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly bool[] SubObjVisible;
         readonly List<SignalShapeHead> Heads = new List<SignalShapeHead>();
 
-        public SignalShape(Viewer viewer, SignalObj mstsSignal, string path, WorldPosition position, ShapeFlags flags)
+        public SignalShape(Viewer viewer, SignalObj mstsSignal, string path, in WorldPosition position, ShapeFlags flags)
             : base(viewer, path, position, flags)
         {
 #if DEBUG_SIGNAL_SHAPES

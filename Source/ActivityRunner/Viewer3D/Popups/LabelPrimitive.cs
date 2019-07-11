@@ -34,7 +34,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private readonly float offsetY;
 
-        public LabelPrimitive(Label3DMaterial material, Color color, Color outline, float offsetY, WorldPosition position, string text)
+        public LabelPrimitive(Label3DMaterial material, Color color, Color outline, float offsetY, in WorldPosition position, string text)
         {
             this.material = material;
             this.color = color;

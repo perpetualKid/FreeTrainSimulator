@@ -31,6 +31,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Xml;
 using System.Xml.Schema;
+using Orts.Common.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -43,7 +44,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="trackList">DynamicTrackViewer list.</param>
         /// <param name="trackObj">Dynamic track section to decompose.</param>
         /// <param name="worldMatrix">Position matrix.</param>
-        public static void Decompose(Viewer viewer, List<DynamicTrackViewer> trackList, DyntrackObj trackObj, WorldPosition worldMatrix)
+        public static void Decompose(Viewer viewer, List<DynamicTrackViewer> trackList, DyntrackObj trackObj, in WorldPosition worldMatrix)
         {
             // DYNAMIC TRACK
             // =============
@@ -64,9 +65,9 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 displacement;  // Local displacement (from y=0 plane)
             Vector3 heading = Vector3.Forward; // Local heading (unit vector)
 
-            WorldPosition nextRoot = new WorldPosition(worldMatrix); // Will become initial root
+            WorldPosition nextRoot = worldMatrix; // Will become initial root
             Vector3 sectionOrigin = worldMatrix.XNAMatrix.Translation; // Save root position
-            worldMatrix.XNAMatrix.Translation = Vector3.Zero; // worldMatrix now rotation-only
+            WorldPosition root = worldMatrix.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
 
             // Iterate through all subsections
             for (int iTkSection = 0; iTkSection < trackObj.trackSections.Count; iTkSection++)
@@ -82,13 +83,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Create a new WorldPosition for this subsection, initialized to nextRoot,
                 // which is the WorldPosition for the end of the last subsection.
                 // In other words, beginning of present subsection is end of previous subsection.
-                WorldPosition root = new WorldPosition(nextRoot);
+                WorldPosition current = nextRoot;
 
                 // Now we need to compute the position of the end (nextRoot) of this subsection,
-                // which will become root for the next subsection.
+                // which will become current for the next subsection.
 
                 // Clear nextRoot's translation vector so that nextRoot matrix contains rotation only
-                nextRoot.XNAMatrix.Translation = Vector3.Zero;
+                nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
                 // Straight or curved subsection?
                 if (subsection.trackSections[0].isCurved == 0) // Straight section
@@ -96,13 +97,13 @@ namespace Orts.ActivityRunner.Viewer3D
                     // Rotate Vector3.Forward to orient the displacement vector
                     localProjectedV = localV + length * heading;
                     displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length,
-                                                            worldMatrix.XNAMatrix, out localProjectedV);
+                                                            root.XNAMatrix, out localProjectedV);
                 }
                 else // Curved section
                 {   // Both heading and translation change 
                     // nextRoot is found by moving from Point-of-Curve (PC) to
                     // center (O)to Point-of-Tangent (PT).
-                    float radius = subsection.trackSections[0].param2*Math.Sign(-subsection.trackSections[0].param1); // meters
+                    float radius = subsection.trackSections[0].param2 * Math.Sign(-subsection.trackSections[0].param1); // meters
                     Vector3 left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
                     Matrix rot = Matrix.CreateRotationY(-length); // Heading change (rotation about O)
                     // Shared method returns displacement from present world position and, by reference,
@@ -111,14 +112,14 @@ namespace Orts.ActivityRunner.Viewer3D
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot.XNAMatrix = rot * nextRoot.XNAMatrix; // Store heading change
+                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix));// Store heading change
                 }
 
                 // Update nextRoot with new translation component
-                nextRoot.XNAMatrix.Translation = sectionOrigin + displacement;
+                nextRoot = nextRoot.SetTranslation(sectionOrigin + displacement);
 
                 // Create a new DynamicTrackViewer for the subsection
-                trackList.Add(new DynamicTrackViewer(viewer, subsection, root, nextRoot));
+                trackList.Add(new DynamicTrackViewer(viewer, subsection, current, nextRoot));
                 localV = localProjectedV; // Next subsection
             }
         }
@@ -130,7 +131,7 @@ namespace Orts.ActivityRunner.Viewer3D
         WorldPosition worldPosition;
         public DynamicTrackPrimitive Primitive;
 
-        public DynamicTrackViewer(Viewer viewer, DyntrackObj dtrack, WorldPosition position, WorldPosition endPosition)
+        public DynamicTrackViewer(Viewer viewer, DyntrackObj dtrack, in WorldPosition position, in WorldPosition endPosition)
         {
             Viewer = viewer;
             worldPosition = position;
@@ -147,7 +148,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Primitive = new DynamicTrackPrimitive(Viewer, dtrack, worldPosition, endPosition);
         }
 
-        public DynamicTrackViewer(Viewer viewer, WorldPosition position, WorldPosition endPosition)
+        public DynamicTrackViewer(Viewer viewer, in WorldPosition position, in WorldPosition endPosition)
         {
             Viewer = viewer;
             worldPosition = position;
@@ -996,8 +997,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Constructor.
         /// </summary>
-        public DynamicTrackPrimitive(Viewer viewer, DyntrackObj track, WorldPosition worldPosition,
-                                WorldPosition endPosition)
+        public DynamicTrackPrimitive(Viewer viewer, DyntrackObj track, in WorldPosition worldPosition, in WorldPosition endPosition)
         {
             // DynamicTrackPrimitive is responsible for creating a mesh for a section with a single subsection.
             // It also must update worldPosition to reflect the end of this subsection, subsequently to
@@ -1067,7 +1067,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="worldPosition">WorldPosition.</param>
         /// <param name="lodIndex">Index of LOD mesh to be generated from profile.</param>
         /// <param name="lodItemIndex">Index of LOD mesh following LODs[iLOD]</param>
-        public ShapePrimitive BuildPrimitive(Viewer viewer, WorldPosition worldPosition, int lodIndex, int lodItemIndex)
+        public ShapePrimitive BuildPrimitive(Viewer viewer, in WorldPosition worldPosition, int lodIndex, int lodItemIndex)
         {
             // Call for track section to initialize itself
             if (!DTrackData.IsCurved) LinearGen();

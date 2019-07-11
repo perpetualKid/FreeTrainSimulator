@@ -128,7 +128,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public class StaticShape
     {
         public readonly Viewer Viewer;
-        public readonly WorldPosition Location;
+        public WorldPosition Location;
         public readonly ShapeFlags Flags;
         public readonly SharedShape SharedShape;
 
@@ -136,7 +136,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Construct and initialize the class
         /// This constructor is for objects described by a MSTS shape file
         /// </summary>
-        public StaticShape(Viewer viewer, string path, WorldPosition position, ShapeFlags flags)
+        public StaticShape(Viewer viewer, string path, in WorldPosition position, ShapeFlags flags)
         {
             Viewer = viewer;
             Location = position;
@@ -204,13 +204,14 @@ namespace Orts.ActivityRunner.Viewer3D
             var tileZ = shapes.Min(s => s.Location.TileZ);
             Debug.Assert(tileX == shapes.Max(s => s.Location.TileX));
             Debug.Assert(tileZ == shapes.Max(s => s.Location.TileZ));
+
             var minX = shapes.Min(s => s.Location.Location.X);
             var maxX = shapes.Max(s => s.Location.Location.X);
             var minY = shapes.Min(s => s.Location.Location.Y);
             var maxY = shapes.Max(s => s.Location.Location.Y);
             var minZ = shapes.Min(s => s.Location.Location.Z);
             var maxZ = shapes.Max(s => s.Location.Location.Z);
-            return new WorldPosition() { TileX = tileX, TileZ = tileZ, Location = new Vector3((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2) };
+            return new WorldPosition(tileX, tileZ, Matrix.Identity).SetLocation((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
         }
 
         Matrix[] GetMatricies(List<StaticShape> shapes, ShapePrimitive shapePrimitive)
@@ -244,7 +245,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class StaticTrackShape : StaticShape
     {
-        public StaticTrackShape(Viewer viewer, string path, WorldPosition position)
+        public StaticTrackShape(Viewer viewer, string path, in WorldPosition position)
             : base(viewer, path, position, ShapeFlags.AutoZBias)
         {
         }
@@ -262,7 +263,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public readonly int[] Hierarchy;
 
-        public PoseableShape(Viewer viewer, string path, WorldPosition initialPosition, ShapeFlags flags)
+        public PoseableShape(Viewer viewer, string path, in WorldPosition initialPosition, ShapeFlags flags)
             : base(viewer, path, initialPosition, flags)
         {
             XNAMatrices = new Matrix[SharedShape.Matrices.Length];
@@ -275,7 +276,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Hierarchy = new int[0];
         }
 
-        public PoseableShape(Viewer viewer, string path, WorldPosition initialPosition)
+        public PoseableShape(Viewer viewer, string path, in WorldPosition initialPosition)
             : this(viewer, path, initialPosition, ShapeFlags.None)
         {
         }
@@ -393,13 +394,13 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Construct and initialize the class
         /// </summary>
-        public AnimatedShape(Viewer viewer, string path, WorldPosition initialPosition, ShapeFlags flags, float frameRateDivisor = 1.0f)
+        public AnimatedShape(Viewer viewer, string path, in WorldPosition initialPosition, ShapeFlags flags, float frameRateDivisor = 1.0f)
             : base(viewer, path, initialPosition, flags)
         {
             FrameRateMultiplier = 1 / frameRateDivisor;
         }
 
-        public AnimatedShape(Viewer viewer, string path, WorldPosition initialPosition)
+        public AnimatedShape(Viewer viewer, string path, in WorldPosition initialPosition)
             : this(viewer, path, initialPosition, ShapeFlags.None)
         {
         }
@@ -428,7 +429,7 @@ namespace Orts.ActivityRunner.Viewer3D
         TrJunctionNode TrJunctionNode;  // has data on current aligment for the switch
         uint MainRoute;                  // 0 or 1 - which route is considered the main route
 
-        public SwitchTrackShape(Viewer viewer, string path, WorldPosition position, TrJunctionNode trj)
+        public SwitchTrackShape(Viewer viewer, string path, in WorldPosition position, TrJunctionNode trj)
             : base(viewer, path, position, ShapeFlags.AutoZBias)
         {
             TrJunctionNode = trj;
@@ -468,7 +469,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected float AnimationKey;  // tracks position of points as they move left and right
         ShapePrimitive shapePrimitive;
-        public SpeedPostShape(Viewer viewer, string path, WorldPosition position, SpeedPostObj spo)
+        public SpeedPostShape(Viewer viewer, string path, in WorldPosition position, SpeedPostObj spo)
             : base(viewer, path, position)
         {
 
@@ -654,7 +655,7 @@ namespace Orts.ActivityRunner.Viewer3D
         bool Opening = true;
         float AnimationKey;
 
-        public LevelCrossingShape(Viewer viewer, string path, WorldPosition position, ShapeFlags shapeFlags, LevelCrossingObj crossingObj)
+        public LevelCrossingShape(Viewer viewer, string path, in WorldPosition position, ShapeFlags shapeFlags, LevelCrossingObj crossingObj)
             : base(viewer, path, position, shapeFlags)
         {
             CrossingObj = crossingObj;
@@ -761,7 +762,7 @@ namespace Orts.ActivityRunner.Viewer3D
         float AnimationKey;
         float DelayHazAnimation;
 
-        public static HazzardShape CreateHazzard(Viewer viewer, string path, WorldPosition position, ShapeFlags shapeFlags, HazardObj hObj)
+        public static HazzardShape CreateHazzard(Viewer viewer, string path, in WorldPosition position, ShapeFlags shapeFlags, HazardObj hObj)
         {
             var h = viewer.Simulator.HazzardManager.AddHazzardIntoGame(hObj.itemId, hObj.FileName);
             if (h == null) return null;
@@ -769,7 +770,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         }
 
-        public HazzardShape(Viewer viewer, string path, WorldPosition position, ShapeFlags shapeFlags, HazardObj hObj, Hazzard h)
+        public HazzardShape(Viewer viewer, string path, in WorldPosition position, ShapeFlags shapeFlags, HazardObj hObj, Hazzard h)
             : base(viewer, path, position, shapeFlags)
         {
             HazardObj = hObj;
@@ -807,7 +808,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         var m = Hazzard.HazFile.Tr_HazardFile.Speed * elapsedTime.ClockSeconds;
                         Moved += m;
                         this.HazardObj.Position.Move(this.HazardObj.QDirection, m);
-                        Location.Location = new Vector3(this.HazardObj.Position.X, this.HazardObj.Position.Y, this.HazardObj.Position.Z);
+                        Location.SetLocation(HazardObj.Position.X, HazardObj.Position.Y, HazardObj.Position.Z);
                     }
                     else { Moved = 0; Hazzard.state = Hazzard.State.Idle1; }
                     break;
@@ -864,7 +865,7 @@ namespace Orts.ActivityRunner.Viewer3D
         protected float AnimationKey;
 
 
-        public FuelPickupItemShape(Viewer viewer, string path, WorldPosition position, ShapeFlags shapeFlags, PickupObj fuelpickupitemObj)
+        public FuelPickupItemShape(Viewer viewer, string path, in WorldPosition position, ShapeFlags shapeFlags, PickupObj fuelpickupitemObj)
             : base(viewer, path, position, shapeFlags)
         {
             FuelPickupItemObj = fuelpickupitemObj;
@@ -1019,7 +1020,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Construct and initialize the class
         /// </summary>
-        public TurntableShape(Viewer viewer, string path, WorldPosition initialPosition, ShapeFlags flags, Turntable turntable, double startingY)
+        public TurntableShape(Viewer viewer, string path, in WorldPosition initialPosition, ShapeFlags flags, Turntable turntable, double startingY)
             : base(viewer, path, initialPosition, flags)
         {
             Turntable = turntable;
@@ -1115,7 +1116,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Construct and initialize the class
         /// </summary>
-        public TransfertableShape(Viewer viewer, string path, WorldPosition initialPosition, ShapeFlags flags, Transfertable transfertable)
+        public TransfertableShape(Viewer viewer, string path, in WorldPosition initialPosition, ShapeFlags flags, Transfertable transfertable)
             : base(viewer, path, initialPosition, flags)
         {
             Transfertable = transfertable;
@@ -1892,17 +1893,17 @@ namespace Orts.ActivityRunner.Viewer3D
             return XNAMatrix;
         }
 
-        public void PrepareFrame(RenderFrame frame, WorldPosition location, ShapeFlags flags)
+        public void PrepareFrame(RenderFrame frame, in WorldPosition location, ShapeFlags flags)
         {
             PrepareFrame(frame, location, Matrices, null, flags);
         }
 
-        public void PrepareFrame(RenderFrame frame, WorldPosition location, Matrix[] animatedXNAMatrices, ShapeFlags flags)
+        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, ShapeFlags flags)
         {
             PrepareFrame(frame, location, animatedXNAMatrices, null, flags);
         }
 
-        public void PrepareFrame(RenderFrame frame, WorldPosition location, Matrix[] animatedXNAMatrices, bool[] subObjVisible, ShapeFlags flags)
+        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, bool[] subObjVisible, ShapeFlags flags)
         {
             var lodBias = ((float)Viewer.Settings.LODBias / 100 + 1);
 
@@ -2021,7 +2022,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Construct and initialize the class.
         /// This constructor is for the labels of track items in TDB and W Files such as sidings and platforms.
         /// </summary>
-        public TrItemLabel(Viewer viewer, WorldPosition position, TrObject trObj)
+        public TrItemLabel(Viewer viewer, in WorldPosition position, TrObject trObj)
         {
             Location = position;
             var i = 0;

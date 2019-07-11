@@ -775,7 +775,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override TrainCar AttachedCar { get { return attachedCar; } }
         public bool tiltingLand;
         protected Vector3 attachedLocation;
-        protected WorldPosition LookedAtPosition = new WorldPosition();
+        protected WorldPosition LookedAtPosition = WorldPosition.None;
 
         protected AttachedCamera(Viewer viewer)
             : base(viewer)
@@ -874,15 +874,12 @@ namespace Orts.ActivityRunner.Viewer3D
             SetCameraCar(trainCars.Last());
         }
 
-        public void UpdateLocation(WorldPosition worldPosition)
+        public void UpdateLocation(in WorldPosition worldPosition)
         {
-            if (worldPosition != null)
-            {
-                Vector3 source = IsCameraFlipped() ? new Vector3(-attachedLocation.X, attachedLocation.Y, attachedLocation.Z) :
-                    new Vector3(attachedLocation.X, attachedLocation.Y, -attachedLocation.Z);
-                Vector3.Transform(source, worldPosition.XNAMatrix).Deconstruct(out float x, out float y, out float z);
-                cameraLocation = new WorldLocation(worldPosition.TileX, worldPosition.TileZ, x, y, -z);
-            }
+            Vector3 source = IsCameraFlipped() ? new Vector3(-attachedLocation.X, attachedLocation.Y, attachedLocation.Z) :
+                new Vector3(attachedLocation.X, attachedLocation.Y, -attachedLocation.Z);
+            Vector3.Transform(source, worldPosition.XNAMatrix).Deconstruct(out float x, out float y, out float z);
+            cameraLocation = new WorldLocation(worldPosition.TileX, worldPosition.TileZ, x, y, -z);
         }
 
         protected override Matrix GetCameraView()
@@ -1200,18 +1197,13 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 UpdateTrainBrowsing(elapsedTime);
                 attachedLocation.Z += BrowseDistance * (Front ? 1 : -1);
-                LookedAtPosition.XNAMatrix = Matrix.CreateFromYawPitchRoll(-browsedTraveller.RotY, 0, 0);
-                LookedAtPosition.XNAMatrix.M41 = browsedTraveller.X;
-                LookedAtPosition.XNAMatrix.M42 = browsedTraveller.Y;
-                LookedAtPosition.XNAMatrix.M43 = browsedTraveller.Z;
-                LookedAtPosition.TileX = browsedTraveller.TileX;
-                LookedAtPosition.TileZ = browsedTraveller.TileZ;
-                LookedAtPosition.XNAMatrix.M43 *= -1;
+                LookedAtPosition = new WorldPosition(browsedTraveller.TileX, browsedTraveller.TileZ, 
+                    Matrix.CreateFromYawPitchRoll(-browsedTraveller.RotY, 0, 0)).SetTranslation(browsedTraveller.X, browsedTraveller.Y, -browsedTraveller.Z);
             }
             else if (attachedCar != null)
             {
                 attachedLocation.Z += attachedCar.CarLengthM / 2.0f * (Front ? 1 : -1);
-                LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
+                LookedAtPosition = attachedCar.WorldPosition;
             }
             UpdateLocation(LookedAtPosition);
             UpdateListener();

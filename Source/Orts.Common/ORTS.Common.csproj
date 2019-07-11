@@ -83,6 +83,7 @@
     <Compile Include="Input\UserCommand.cs" />
     <Compile Include="VersionInfo.cs" />
     <Compile Include="Xna\MatrixExtension.cs" />
+    <Compile Include="Xna\VectorExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX">
