@@ -1,4 +1,4 @@
-﻿namespace ORTS.ContentManager
+﻿namespace Orts.ContentManager
 {
     partial class ContentManagerGUI
     {
@@ -33,7 +33,7 @@
             this.treeViewContent = new System.Windows.Forms.TreeView();
             this.richTextBoxContent = new System.Windows.Forms.RichTextBox();
             this.splitContainer = new System.Windows.Forms.SplitContainer();
-            this.searchBox = new ORTS.ContentManager.CueTextBox();
+            this.searchBox = new Orts.ContentManager.CueTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();

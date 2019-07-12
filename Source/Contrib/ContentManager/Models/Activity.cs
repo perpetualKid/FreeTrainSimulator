@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace ORTS.ContentManager.Models
+namespace Orts.ContentManager.Models
 {
     public class Activity
     {

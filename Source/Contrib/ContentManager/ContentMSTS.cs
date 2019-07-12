@@ -19,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace ORTS.ContentManager
+namespace Orts.ContentManager
 {
     [Serializable]
     public class ContentMSTSCollection : Content

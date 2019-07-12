@@ -19,7 +19,7 @@ using Orts.Settings;
 using System;
 using System.Collections.Generic;
 
-namespace ORTS.ContentManager
+namespace Orts.ContentManager
 {
     [Serializable]
     public class ContentManager : Content

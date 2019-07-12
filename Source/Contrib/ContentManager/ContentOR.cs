@@ -18,7 +18,7 @@
 using System;
 using System.IO;
 
-namespace ORTS.ContentManager
+namespace Orts.ContentManager
 {
     [Serializable]
     public class ContentORTimetableActivity : Content

@@ -15,11 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Settings;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -28,19 +26,21 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Orts.Settings;
+using static Orts.Common.Native.NativeMethods;
 
-namespace ORTS.ContentManager
+namespace Orts.ContentManager
 {
     public partial class ContentManagerGUI : Form
     {
-        readonly UserSettings Settings;
-        readonly ContentManager ContentManager;
+        private readonly UserSettings settings;
+        private readonly ContentManager contentManager;
 
-        readonly Regex ContentBold = new Regex("(?:^|\t)([\\w ]+:)\t", RegexOptions.Multiline);
-        readonly Regex ContentLink = new Regex("\u0001(.*?)\u0002(.*?)\u0001");
+        private static readonly Regex contentBold = new Regex("(?:^|\t)([\\w ]+:)\t", RegexOptions.Multiline);
+        private static readonly Regex contentLink = new Regex("\u0001(.*?)\u0002(.*?)\u0001");
 
-        Content PendingSelection;
-        List<string> PendingSelections = new List<string>();
+        private Content pendingSelection;
+        private List<string> pendingSelections = new List<string>();
 
         private CancellationTokenSource ctsSearching;
         private CancellationTokenSource ctsExpanding;
@@ -48,12 +48,17 @@ namespace ORTS.ContentManager
 
         private ConcurrentBag<SearchResult> searchResultsList = new ConcurrentBag<SearchResult>();
         private ConcurrentDictionary<string, string> searchResultDuplicates;
-        private static Native.CharFormat2 rtfLink = new Native.CharFormat2
+        private static CharFormat2 rtfLink = new CharFormat2
         {
-            Size = Marshal.SizeOf(typeof(Native.CharFormat2)),
-            Mask = Native.CfmLink,
-            Effects = Native.CfmLink,
+            Size = Marshal.SizeOf(typeof(CharFormat2)),
+            Mask = CfmLink,
+            Effects = CfmLink,
         };
+
+        private const int WmUser = 0x0400;
+        private const int EmSetCharFormat = WmUser + 68;
+        private const int ScfSelection = 0x0001;
+        private const int CfmLink = 0x00000020;
 
         public ContentManagerGUI()
         {
@@ -64,11 +69,11 @@ namespace ORTS.ContentManager
             // Message Box font to allow for user-customizations, though.
             Font = SystemFonts.MessageBoxFont;
 
-            Settings = new UserSettings(new string[0]);
-            ContentManager = new ContentManager(Settings.Folders);
+            settings = new UserSettings(new string[0]);
+            contentManager = new ContentManager(settings.Folders);
 
             // Start off the tree with the Content Manager itself at the root and expand to show packages.
-            treeViewContent.Nodes.Add(CreateContentNode(ContentManager));
+            treeViewContent.Nodes.Add(CreateContentNode(contentManager));
             treeViewContent.Nodes[0].Expand();
 
             var width = richTextBoxContent.Font.Height;
@@ -78,26 +83,23 @@ namespace ORTS.ContentManager
 
         private Task<IEnumerable<TreeNode>> ExpandTreeView(Content content, CancellationToken token)
         {
-            TaskCompletionSource<IEnumerable<TreeNode>> tcs = new TaskCompletionSource<IEnumerable<TreeNode>>();
 
             // Get all the different possible types of content from this content item.
             var childNodes = contentTypes.SelectMany(ct => content.Get(ct).Select(c => CreateContentNode(c)));
 
             if (token.IsCancellationRequested)
             {
-                tcs.SetCanceled();
-                return tcs.Task;
+                return Task.FromCanceled<IEnumerable<TreeNode>>(token);
             }
-            var linkChildren = ContentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => CreateContentNode(content, linkMatch.Groups[1].Value, (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value)));
+            var linkChildren = contentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => CreateContentNode(content, linkMatch.Groups[1].Value, (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value)));
             Debug.Assert(!childNodes.Any() || !linkChildren.Any(), "Content item should not return items from Get(ContentType) and Get(string, ContentType)");
             childNodes = childNodes.Concat(linkChildren);
 
             if (token.IsCancellationRequested)
             {
-                tcs.SetCanceled();
+                return Task.FromCanceled<IEnumerable<TreeNode>>(token);
             }
-            tcs.TrySetResult(childNodes);
-            return tcs.Task;
+            return Task.FromResult(childNodes);
         }
 
         private async void TreeViewContent_BeforeExpand(object sender, TreeViewCancelEventArgs e)
@@ -144,22 +146,22 @@ namespace ORTS.ContentManager
 
         private void CheckForPendingActions(TreeNode startNode)
         {
-            if (PendingSelection != null)
+            if (pendingSelection != null)
             {
-                var pendingSelectionNode = startNode.Nodes.OfType<TreeNode>().FirstOrDefault(node => (Content)node.Tag == PendingSelection);
+                var pendingSelectionNode = startNode.Nodes.OfType<TreeNode>().FirstOrDefault(node => (Content)node.Tag == pendingSelection);
                 if (pendingSelectionNode != null)
                 {
                     treeViewContent.SelectedNode = pendingSelectionNode;
                     treeViewContent.Focus();
                 }
-                PendingSelection = null;
+                pendingSelection = null;
             }
-            if (PendingSelections.Count > 0)
+            if (pendingSelections.Count > 0)
             {
-                var pendingSelectionNode = startNode.Nodes.OfType<TreeNode>().FirstOrDefault(node => ((Content)node.Tag).Name == PendingSelections[0]);
+                var pendingSelectionNode = startNode.Nodes.OfType<TreeNode>().FirstOrDefault(node => ((Content)node.Tag).Name == pendingSelections[0]);
                 if (pendingSelectionNode != null)
                 {
-                    PendingSelections.RemoveAt(0);
+                    pendingSelections.RemoveAt(0);
                     treeViewContent.SelectedNode = pendingSelectionNode;
                     treeViewContent.SelectedNode.Expand();
                 }
@@ -189,21 +191,21 @@ namespace ORTS.ContentManager
             Trace.TraceInformation("Updating richTextBoxContent with content {0}", e.Node.Tag as Content);
             richTextBoxContent.Text = ContentInfo.GetText(e.Node.Tag as Content);
             var boldFont = new Font(richTextBoxContent.Font, FontStyle.Bold);
-            var boldMatch = ContentBold.Match(richTextBoxContent.Text);
+            var boldMatch = contentBold.Match(richTextBoxContent.Text);
             while (boldMatch.Success)
             {
                 richTextBoxContent.Select(boldMatch.Groups[1].Index, boldMatch.Groups[1].Length);
                 richTextBoxContent.SelectionFont = boldFont;
-                boldMatch = ContentBold.Match(richTextBoxContent.Text, boldMatch.Groups[1].Index + boldMatch.Groups[1].Length);
+                boldMatch = contentBold.Match(richTextBoxContent.Text, boldMatch.Groups[1].Index + boldMatch.Groups[1].Length);
             }
-            var linkMatch = ContentLink.Match(richTextBoxContent.Text);
+            var linkMatch = contentLink.Match(richTextBoxContent.Text);
             while (linkMatch.Success)
             {
                 richTextBoxContent.Select(linkMatch.Index, linkMatch.Length);
                 richTextBoxContent.SelectedRtf = String.Format(@"{{\rtf{{{0}{{\v{{\u1.{0}\u1.{1}}}\v0}}}}}}", linkMatch.Groups[1].Value, linkMatch.Groups[2].Value);
                 richTextBoxContent.Select(linkMatch.Index, linkMatch.Groups[1].Value.Length * 2 + linkMatch.Groups[2].Value.Length + 2);
-                Native.SendMessage(richTextBoxContent.Handle, Native.EmSetCharFormat, Native.ScfSelection, ref rtfLink);
-                linkMatch = ContentLink.Match(richTextBoxContent.Text);
+                SendMessage(richTextBoxContent.Handle, EmSetCharFormat, ScfSelection, ref rtfLink);
+                linkMatch = contentLink.Match(richTextBoxContent.Text);
             }
             richTextBoxContent.Select(0, 0);
             richTextBoxContent.SelectionFont = richTextBoxContent.Font;
@@ -215,16 +217,16 @@ namespace ORTS.ContentManager
             var link = e.LinkText.Split('\u0001');
             if (content != null && link.Length == 3)
             {
-                PendingSelection = content.Get(link[1], (ContentType)Enum.Parse(typeof(ContentType), link[2]));
+                pendingSelection = content.Get(link[1], (ContentType)Enum.Parse(typeof(ContentType), link[2]));
                 if (treeViewContent.SelectedNode.IsExpanded)
                 {
-                    var pendingSelectionNode = treeViewContent.SelectedNode.Nodes.Cast<TreeNode>().FirstOrDefault(node => (Content)node.Tag == PendingSelection);
+                    var pendingSelectionNode = treeViewContent.SelectedNode.Nodes.Cast<TreeNode>().FirstOrDefault(node => (Content)node.Tag == pendingSelection);
                     if (pendingSelectionNode != null)
                     {
                         treeViewContent.SelectedNode = pendingSelectionNode;
                         treeViewContent.Focus();
                     }
-                    PendingSelection = null;
+                    pendingSelection = null;
                 }
                 else
                 {
@@ -241,7 +243,7 @@ namespace ORTS.ContentManager
             try
             {
                 if (string.IsNullOrEmpty(path))
-                    path = ContentManager.Name;
+                    path = contentManager.Name;
 
                 if (content.Name.ToLowerInvariant().Contains(searchString))
                 {
@@ -255,7 +257,7 @@ namespace ORTS.ContentManager
                      await SearchContent(child, path + " / " + child.Name, searchString, token);
                 });
 
-                Parallel.ForEach(ContentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => content.Get(linkMatch.Groups[1].Value,
+                Parallel.ForEach(contentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => content.Get(linkMatch.Groups[1].Value,
                     (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value))).Where(linkContent => linkContent != null),
                     new ParallelOptions() { CancellationToken = token },
                     async (child) =>
@@ -296,7 +298,7 @@ namespace ORTS.ContentManager
 
             try
             {
-                await Task.Run(() => SearchContent(ContentManager, string.Empty, searchBox.Text, ctsSearching.Token));
+                await Task.Run(() => SearchContent(contentManager, string.Empty, searchBox.Text, ctsSearching.Token));
             }
             catch (Exception ex)
             {
@@ -335,8 +337,8 @@ namespace ORTS.ContentManager
             if (!(searchResults.SelectedItem is SearchResult result))
                 return;
 
-            PendingSelections.Clear();
-            PendingSelections.AddRange(result.Path);
+            pendingSelections.Clear();
+            pendingSelections.AddRange(result.Path);
             treeViewContent.Focus();
             treeViewContent.CollapseAll();
             treeViewContent.SelectedNode = treeViewContent.Nodes[0];
@@ -359,42 +361,6 @@ namespace ORTS.ContentManager
                 ctsSearching.Cancel();
             if (null != ctsExpanding && !ctsExpanding.IsCancellationRequested)
                 ctsExpanding.Cancel();
-        }
-    }
-
-    sealed class Native
-    {
-        public const int WmUser = 0x0400;
-        public const int EmSetCharFormat = WmUser + 68;
-        public const int ScfSelection = 0x0001;
-        public const int CfmLink = 0x00000020;
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr SendMessage(IntPtr window, int msg, int wParam, ref CharFormat2 lParam);
-
-        public struct CharFormat2
-        {
-            public int Size;
-            public int Mask;
-            public int Effects;
-            public int Height;
-            public int Offset;
-            public int TextColor;
-            public byte CharSet;
-            public byte PitchAndFamily;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-            public string FaceName;
-            public short Weight;
-            public short Spacing;
-            public int BackColor;
-            public int Lcid;
-            public int Reserved;
-            public short Style;
-            public short Kerning;
-            public byte UnderlineType;
-            public byte Animation;
-            public byte RevAuthor;
-            public byte Reserved1;
         }
     }
 

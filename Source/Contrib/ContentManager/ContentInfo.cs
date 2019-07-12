@@ -23,10 +23,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orts.Formats.Msts;
-using ORTS.ContentManager.Models;
-using Path = ORTS.ContentManager.Models.Path;
+using Orts.ContentManager.Models;
+using Path = Orts.ContentManager.Models.Path;
 
-namespace ORTS.ContentManager
+namespace Orts.ContentManager
 {
     public static class ContentInfo
     {

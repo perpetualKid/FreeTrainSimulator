@@ -59,16 +59,6 @@ namespace Orts.Common
         /// <summary>The position within a tile (relative to the center of tile)</summary>
         public readonly Matrix XNAMatrix;
 
-        /// <summary>
-        /// Copy constructor using another world position
-        /// </summary>
-        public WorldPosition(WorldPosition copy)
-        {
-            TileX = copy.TileX;
-            TileZ = copy.TileZ;
-            XNAMatrix = copy.XNAMatrix;
-        }
-
         public WorldPosition(int tileX, int tileZ, Matrix xnaMatrix)
         {
             TileX = tileX;

@@ -20,10 +20,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
-namespace ORTS.ContentManager
+namespace Orts.ContentManager
 {
     // Root
     //   Collection

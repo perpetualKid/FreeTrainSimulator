@@ -16,16 +16,13 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using static Orts.Common.Native.NativeMethods;
 
-namespace ORTS.ContentManager
+namespace Orts.ContentManager
 {
     public class CueTextBox : TextBox
     {
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, string lp);
-
         private const int EM_SETCUEBANNER = 0x1501;
 
         private string cueText;
@@ -46,7 +43,7 @@ namespace ORTS.ContentManager
         {
             if (IsHandleCreated && !string.IsNullOrEmpty(cueText))
             {
-                SendMessage(this.Handle, EM_SETCUEBANNER, (IntPtr)Convert.ToSingle(ShowCueWhenFocused), cueText);
+                SendMessage(Handle, EM_SETCUEBANNER, Convert.ToInt32(ShowCueWhenFocused), cueText);
             }
         }
 

@@ -7,7 +7,7 @@
     <ProjectGuid>{E3E04859-2734-46EA-99B6-8A9721E85D3F}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ORTS.ContentManager</RootNamespace>
+    <RootNamespace>Orts.ContentManager</RootNamespace>
     <AssemblyName>Contrib.ContentManager</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

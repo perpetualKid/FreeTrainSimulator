@@ -23,7 +23,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace ORTS.ContentManager.Models
+namespace Orts.ContentManager.Models
 {
     public class Service
     {

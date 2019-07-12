@@ -22,7 +22,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace ORTS.ContentManager.Models
+namespace Orts.ContentManager.Models
 {
     public class Path
     {
