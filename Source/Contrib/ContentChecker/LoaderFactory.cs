@@ -28,7 +28,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 
-namespace ContentChecker
+namespace Orts.ContentChecker
 {
     static class LoaderFactory
     {

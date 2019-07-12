@@ -24,7 +24,7 @@ using Path = System.IO.Path;
 
 using Orts.Formats.Msts;
 
-namespace ContentChecker
+namespace Orts.ContentChecker
 {
     /// <summary>
     /// Loader class for the tsection.dat file in a Route folder

@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace DataCollector
+namespace Orts.DataCollector
 {
     class Program
     {

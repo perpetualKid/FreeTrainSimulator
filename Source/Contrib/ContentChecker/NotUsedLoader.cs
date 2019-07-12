@@ -23,7 +23,7 @@ using System.Text;
 
 using Orts.ActivityRunner.Viewer3D;
 
-namespace ContentChecker
+namespace Orts.ContentChecker
 {
     /// <summary>
     /// Loader class for all files that are not recognized.

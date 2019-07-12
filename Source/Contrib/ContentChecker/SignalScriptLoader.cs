@@ -25,7 +25,7 @@ using System.IO;
 using Orts.Formats.Msts;
 using Orts.Simulation.Signalling;
 
-namespace ContentChecker
+namespace Orts.ContentChecker
 {
     /// <summary>
     /// Loader class for .eng files

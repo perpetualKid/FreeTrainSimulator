@@ -22,7 +22,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace DataValidator
+namespace Orts.DataValidator
 {
     class Program
     {

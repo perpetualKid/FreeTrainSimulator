@@ -45,7 +45,7 @@ using System.Text;
 using Microsoft.Xna.Framework.Graphics;
 using System.Windows.Forms;
 
-namespace ContentChecker
+namespace Orts.ContentChecker
 {
     /// <summary>
     /// Different levels of related additional files are recognized. This describes these various levels

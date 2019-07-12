@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{2C4EBEBF-71E9-4336-B4DF-288E8BD399A7}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>DataValidator</RootNamespace>
+    <RootNamespace>Orts.DataValidator</RootNamespace>
     <AssemblyName>Contrib.DataValidator</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

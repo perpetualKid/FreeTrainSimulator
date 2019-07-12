@@ -23,7 +23,7 @@ using System.IO;
 
 using Orts.Formats.Msts;
 
-namespace ContentChecker
+namespace Orts.ContentChecker
 {
     /// <summary>
     /// Loader class for .s files

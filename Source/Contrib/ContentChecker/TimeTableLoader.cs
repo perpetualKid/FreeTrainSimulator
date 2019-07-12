@@ -24,7 +24,7 @@ using System.IO;
 using Orts.Formats.OR;
 using Orts.Parsers.OR;
 
-namespace ContentChecker
+namespace Orts.ContentChecker
 {
     /// <summary>
     /// Loader class for .s files

@@ -24,7 +24,7 @@ using System.IO;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
 
-namespace ContentChecker
+namespace Orts.ContentChecker
 {
     /// <summary>
     /// Loader class for .pat files

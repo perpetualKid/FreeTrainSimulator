@@ -23,7 +23,7 @@ using System.Linq;
 using Orts.Common;
 using Orts.Parsers.Msts;
 
-namespace ContentChecker
+namespace Orts.ContentChecker
 {
     class Program
     {

@@ -21,7 +21,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace DataValidator
+namespace Orts.DataValidator
 {
     abstract class Validator
     {
