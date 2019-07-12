@@ -1,4 +1,4 @@
-﻿namespace ActivityEditor.Preference
+﻿namespace Orts.ActivityEditor.Preference
 {
     partial class Options
     {
@@ -177,7 +177,7 @@
             0,
             0,
             0});
-            this.snapCircle.ValueChanged += new System.EventHandler(this.snapCircle_ValueChanged);
+            this.snapCircle.ValueChanged += new System.EventHandler(this.SnapCircle_ValueChanged);
             // 
             // PlSiLabel
             // 
@@ -219,7 +219,7 @@
             this.checkBox1.TabIndex = 13;
             this.checkBox1.Text = "Show all Signal";
             this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.CheckBox1_CheckedChanged);
             // 
             // label5
             // 
@@ -323,7 +323,7 @@
             this.browseMSTSPath.TabIndex = 2;
             this.browseMSTSPath.Text = "Browse";
             this.browseMSTSPath.UseVisualStyleBackColor = true;
-            this.browseMSTSPath.Click += new System.EventHandler(this.browseMSTSPath_Click);
+            this.browseMSTSPath.Click += new System.EventHandler(this.BrowseMSTSPath_Click);
             // 
             // MSTSPath
             // 
@@ -367,7 +367,7 @@
             this.snapTrack.TabIndex = 15;
             this.snapTrack.Text = "Show Snap Track Info";
             this.snapTrack.UseVisualStyleBackColor = true;
-            this.snapTrack.CheckedChanged += new System.EventHandler(this.snapTrack_CheckedChanged);
+            this.snapTrack.CheckedChanged += new System.EventHandler(this.SnapTrack_CheckedChanged);
             // 
             // SnapInfo
             // 
@@ -389,7 +389,7 @@
             this.snapLine.TabIndex = 14;
             this.snapLine.Text = "Show Snap Line";
             this.snapLine.UseVisualStyleBackColor = true;
-            this.snapLine.CheckedChanged += new System.EventHandler(this.snapLine_CheckedChanged);
+            this.snapLine.CheckedChanged += new System.EventHandler(this.SnapLine_CheckedChanged);
             // 
             // showRuler
             // 
@@ -400,7 +400,7 @@
             this.showRuler.TabIndex = 14;
             this.showRuler.Text = "Show Ruler";
             this.showRuler.UseVisualStyleBackColor = true;
-            this.showRuler.CheckedChanged += new System.EventHandler(this.showRuler_CheckedChanged);
+            this.showRuler.CheckedChanged += new System.EventHandler(this.ShowRuler_CheckedChanged);
             // 
             // trackInfo
             // 
@@ -411,7 +411,7 @@
             this.trackInfo.TabIndex = 14;
             this.trackInfo.Text = "Show Track Info";
             this.trackInfo.UseVisualStyleBackColor = true;
-            this.trackInfo.CheckedChanged += new System.EventHandler(this.trackInfo_changed);
+            this.trackInfo.CheckedChanged += new System.EventHandler(this.TrackInfo_changed);
             // 
             // showTiles
             // 
@@ -422,7 +422,7 @@
             this.showTiles.TabIndex = 14;
             this.showTiles.Text = "Show Tiles";
             this.showTiles.UseVisualStyleBackColor = true;
-            this.showTiles.CheckedChanged += new System.EventHandler(this.showTiles_CheckedChanged);
+            this.showTiles.CheckedChanged += new System.EventHandler(this.ShowTiles_CheckedChanged);
             // 
             // label6
             // 
@@ -518,7 +518,7 @@
             this.OptionOK.TabIndex = 1;
             this.OptionOK.Text = "OK";
             this.OptionOK.UseVisualStyleBackColor = true;
-            this.OptionOK.Click += new System.EventHandler(this.optionOK_click);
+            this.OptionOK.Click += new System.EventHandler(this.OptionOK_click);
             // 
             // Options
             // 

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Windows.Forms;
-//using LibAE;
+﻿using System.Windows.Forms;
 
-
-namespace AEWizard
+namespace Orts.ActivityEditor.Wizard
 {
     public class SinglePage : UserControl
     {

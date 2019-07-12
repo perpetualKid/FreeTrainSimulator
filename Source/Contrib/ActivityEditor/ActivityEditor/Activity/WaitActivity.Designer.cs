@@ -1,4 +1,4 @@
-﻿namespace ActivityEditor.Activity
+﻿namespace Orts.ActivityEditor.Activity
 {
     partial class WaitActivity
     {

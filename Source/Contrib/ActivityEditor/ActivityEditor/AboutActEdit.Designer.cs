@@ -1,4 +1,4 @@
-﻿namespace ActivityEditor
+﻿namespace Orts.ActivityEditor
 {
     partial class AboutActEdit
     {

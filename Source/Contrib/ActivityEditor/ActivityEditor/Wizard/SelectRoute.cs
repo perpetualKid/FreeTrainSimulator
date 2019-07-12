@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
-using System.Collections.Generic;
+using Orts.ActivityEditor.Base.Formats;
 
-using LibAE;
-using Orts.Formats.OR;
-
-namespace AEWizard
+namespace Orts.ActivityEditor.Wizard
 {
     public class SelectRoute : SinglePage
     {
@@ -15,16 +12,16 @@ namespace AEWizard
         private TextBox textBox1;
 
         public String RoutePath;
-        public RouteInfo routeInfo { get; set; }
+        public RouteInfo RouteInfo { get; set; }
 
         public SelectRoute()
         {
             InitializeComponent();
         }
 
-        public void completePage()
+        public void CompletePage()
         {
-            this.routePathCB.DataSource = routeInfo.routePaths;
+            this.routePathCB.DataSource = RouteInfo.routePaths;
         }
 
         private void InitializeComponent()
@@ -166,7 +163,7 @@ namespace AEWizard
             // Finish the wizard
             if (routePathCB.Text.Length <= 0)
                 return false;
-            routeInfo.route = routePathCB.Text;
+            RouteInfo.route = routePathCB.Text;
             return true;
         }
         

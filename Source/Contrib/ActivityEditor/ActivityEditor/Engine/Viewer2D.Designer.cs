@@ -1,8 +1,6 @@
-﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace ActivityEditor.Engine
+namespace Orts.ActivityEditor.Engine
 {
     class SelectablePictureBox : PictureBox
     {
@@ -15,7 +13,7 @@ namespace ActivityEditor.Engine
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            if (!parent.actParent.askFocus())
+            if (!parent.actParent.AskFocus())
                 return;
             this.Focus();
             base.OnMouseDown(e);
@@ -46,10 +44,27 @@ namespace ActivityEditor.Engine
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
-            }
+                components?.Dispose();
+                redPen?.Dispose();
+                greenPen?.Dispose();
+                orangePen?.Dispose();
+                darkGrayPen?.Dispose();
+                bluePen?.Dispose();
+                StationIcon?.Dispose();
+                TagIcon?.Dispose();
+                SignalIco?.Dispose();
+                ShuntIco?.Dispose();
+                OtherSigIco?.Dispose();
+                RepeatIco?.Dispose();
+                SpeedIco?.Dispose();
+                StationConnector?.Dispose();
+                Ruler?.Dispose();
+                sidingFont?.Dispose();
+                stationFont?.Dispose();
+                sidingBrush?.Dispose();
+    }
             base.Dispose(disposing);
         }
 
@@ -81,11 +96,11 @@ namespace ActivityEditor.Engine
             this.routeDrawing.ImageLocation = null;
             this.routeDrawing.Name = "routeDrawing";
             this.routeDrawing.TabStop = false;
-            this.routeDrawing.MouseMove += new System.Windows.Forms.MouseEventHandler(this.routeDrawingMouseMove);
-            this.routeDrawing.Click += new System.EventHandler(this.routeDrawing_Click);
-            this.routeDrawing.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.routeDrawing_MouseDoubleClick);
-            this.routeDrawing.MouseDown += new System.Windows.Forms.MouseEventHandler(this.routeDrawingMouseDown);
-            this.routeDrawing.MouseUp += new System.Windows.Forms.MouseEventHandler(this.routeDrawingMouseUp);
+            this.routeDrawing.MouseMove += new System.Windows.Forms.MouseEventHandler(this.RouteDrawingMouseMove);
+            this.routeDrawing.Click += new System.EventHandler(this.RouteDrawing_Click);
+            this.routeDrawing.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.RouteDrawing_MouseDoubleClick);
+            this.routeDrawing.MouseDown += new System.Windows.Forms.MouseEventHandler(this.RouteDrawingMouseDown);
+            this.routeDrawing.MouseUp += new System.Windows.Forms.MouseEventHandler(this.RouteDrawingMouseUp);
             this.routeDrawing.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Viewer2D_KeyDown);
             
             // 
@@ -120,7 +135,7 @@ namespace ActivityEditor.Engine
             this.Controls.Add(this.routeDrawing);
             this.Font = null;
             this.Name = "Viewer2D";
-            this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.routeDrawingMouseWheel);
+            this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.RouteDrawingMouseWheel);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.CloseViewer);
             this.Resize += new System.EventHandler(this.Viewer2D_Resize);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Viewer2D_KeyDown);

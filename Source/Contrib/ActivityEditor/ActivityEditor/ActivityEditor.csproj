@@ -7,7 +7,7 @@
     <ProjectGuid>{306C904F-BE41-4B39-A0C4-51068B7F205E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ActivityEditor</RootNamespace>
+    <RootNamespace>Orts.ActivityEditor</RootNamespace>
     <AssemblyName>Contrib.ActivityEditor</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -76,12 +76,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="AboutActEdit.resx">
       <DependentUpon>AboutActEdit.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ActionProperties\ControlStartProperties.resx">
       <DependentUpon>ControlStartProperties.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ActionProperties\ControlStoppedProperties.resx">
       <DependentUpon>ControlStoppedProperties.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ActionProperties\HornProperties.resx">
       <DependentUpon>HornProperties.cs</DependentUpon>
@@ -156,31 +159,30 @@
     <Compile Include="Preference\Options.Designer.cs">
       <DependentUpon>Options.cs</DependentUpon>
     </Compile>
-    <Compile Include="Route Metadata\BufferInterface.cs">
+    <Compile Include="RouteData\BufferInterface.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Route Metadata\BufferInterface.Designer.cs">
+    <Compile Include="RouteData\BufferInterface.Designer.cs">
       <DependentUpon>BufferInterface.cs</DependentUpon>
     </Compile>
-    <Compile Include="Route Metadata\ConnectorInterface.cs">
+    <Compile Include="RouteData\ConnectorInterface.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Route Metadata\ConnectorInterface.Designer.cs">
+    <Compile Include="RouteData\ConnectorInterface.Designer.cs">
       <DependentUpon>ConnectorInterface.cs</DependentUpon>
     </Compile>
-    <Compile Include="Route Metadata\StationDisplay.cs">
+    <Compile Include="RouteData\StationDisplay.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Route Metadata\StationDisplay.Designer.cs">
+    <Compile Include="RouteData\StationDisplay.Designer.cs">
       <DependentUpon>StationDisplay.cs</DependentUpon>
     </Compile>
-    <Compile Include="Route Metadata\TrackSegmentInterface.cs">
+    <Compile Include="RouteData\TrackSegmentInterface.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Route Metadata\TrackSegmentInterface.Designer.cs">
+    <Compile Include="RouteData\TrackSegmentInterface.Designer.cs">
       <DependentUpon>TrackSegmentInterface.cs</DependentUpon>
     </Compile>
-    <Compile Include="Settings.cs" />
     <Compile Include="Wizard\ActivityDescr.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -236,6 +238,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Engine\Viewer2D.en.resx">
       <DependentUpon>Viewer2D.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Engine\Viewer2D.fr.resx">
       <DependentUpon>Viewer2D.cs</DependentUpon>
@@ -336,16 +339,16 @@
     </EmbeddedResource>
     <EmbeddedResource Include="icon\Stop.ico" />
     <EmbeddedResource Include="icon\Wait.ico" />
-    <EmbeddedResource Include="Route Metadata\BufferInterface.resx">
+    <EmbeddedResource Include="RouteData\BufferInterface.resx">
       <DependentUpon>BufferInterface.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Route Metadata\ConnectorInterface.resx">
+    <EmbeddedResource Include="RouteData\ConnectorInterface.resx">
       <DependentUpon>ConnectorInterface.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Route Metadata\StationDisplay.resx">
+    <EmbeddedResource Include="RouteData\StationDisplay.resx">
       <DependentUpon>StationDisplay.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Route Metadata\TrackSegmentInterface.resx">
+    <EmbeddedResource Include="RouteData\TrackSegmentInterface.resx">
       <DependentUpon>TrackSegmentInterface.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Wizard\ActivityDescr.resx">
@@ -391,9 +394,9 @@
       <Project>{67f84996-8769-4fd8-819b-464af269037b}</Project>
       <Name>Orts.Settings</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LibAE\LibAE.csproj">
+    <ProjectReference Include="..\ActivityEditor.Base\ActivityEditor.Base.csproj">
       <Project>{b79691a7-bf8c-40b4-ade0-5f30f2730414}</Project>
-      <Name>LibAE</Name>
+      <Name>ActivityEditor.Base</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -20,19 +20,12 @@
 /// Updates : 
 /// 
 
-using System;
-using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-using AEWizard;
-using LibAE;
-using LibAE.Formats;
-using System.Xml.Serialization;
+using Orts.ActivityEditor.Base.Formats;
 using Orts.Formats.OR;
 
-namespace ActivityEditor.Engine
+namespace Orts.ActivityEditor.Engine
 {
     public class AEActivity
     {
@@ -52,7 +45,7 @@ namespace ActivityEditor.Engine
         {
         }
 
-        public string getActivityName()
+        public string GetActivityName()
         {
             return activityInfo.ActivityName;
         }
@@ -118,7 +111,7 @@ namespace ActivityEditor.Engine
                         if (activityInfo.FileName == null || activityInfo.FileName.Length > 0)
                             if (!SaveAs(activityInfo))
                             {
-                                activityInfo.saveActivity();
+                                activityInfo.SaveActivity();
                             }
                         break;
                     }
@@ -132,14 +125,16 @@ namespace ActivityEditor.Engine
         public bool SaveAs(ActivityInfo activity)
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ActEditor));
-            this.SaveActivity = new System.Windows.Forms.SaveFileDialog();
-            this.SaveActivity.InitialDirectory = activity.RoutePath;
-            this.SaveActivity.DefaultExt = "act.json";
+            this.SaveActivity = new SaveFileDialog
+            {
+                InitialDirectory = activity.RoutePath,
+                DefaultExt = "act.json"
+            };
             resources.ApplyResources(this.SaveActivity, "SaveActivity");
 
             if (this.SaveActivity.ShowDialog() == DialogResult.OK)
             {
-                activity.saveActivity(this.SaveActivity.FileName);
+                activity.SaveActivity(this.SaveActivity.FileName);
                 return true;
             }
             return false;
@@ -150,7 +145,7 @@ namespace ActivityEditor.Engine
             activityInfo.AddActItem(item);
         }
 
-        public List<GlobalItem> getActItem()
+        public List<GlobalItem> GetActItem()
         {
             return activityInfo.ActItem;
         }

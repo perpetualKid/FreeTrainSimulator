@@ -22,22 +22,15 @@
 
 
 using System;
-using System.IO;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
+using System.IO;
 using System.Windows.Forms;
-using AEWizard;
-using ActivityEditor.Engine;
-using LibAE;
-using LibAE.Formats;
+using Orts.ActivityEditor.Base.Formats;
+using Orts.ActivityEditor.Wizard;
 using Orts.Common;
-using Orts.Formats.OR;
 
-namespace ActivityEditor
+namespace Orts.ActivityEditor.Engine
 {
     public enum ToolClicked
     {
@@ -69,7 +62,7 @@ namespace ActivityEditor
         //public List<AEActivity> aeActivity;
         //public AEActivity selectedActivity;
         private bool focusOnViewer = false;
-        private ToolClicked ToolClicked = ToolClicked.NO_TOOL;
+        private ToolClicked ToolClicked;
         public Image ToolToUse = null;
         public Cursor CursorToUse = Cursors.Default;
         // private WorldPosition worldPos;
@@ -105,7 +98,7 @@ namespace ActivityEditor
 
         private void CheckCurrentStatus()
         {
-            if (!Program.aePreference.CheckPrefValidity())
+            if (!Program.AePreference.CheckPrefValidity())
             {
                 DisplayStatusMessage("Please, Configure your Path!");
                 return;
@@ -113,17 +106,17 @@ namespace ActivityEditor
 
             DisplayStatusMessage("Create New Activity");
         }
-        private void pictureBox1_Click(object sender, EventArgs e)
+        private void PictureBox1_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        private void NewToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            updateNewMenuItems();
+            UpdateNewMenuItems();
         }
 
-        private void quitToolStripMenuItem_Click(object sender, EventArgs e)
+        private void QuitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("Really Quit?", "Exit", MessageBoxButtons.OKCancel) == DialogResult.OK)
             {
@@ -131,12 +124,12 @@ namespace ActivityEditor
             }
         }
 
-        private void loadToolStripMenuItem_Click(object sender, EventArgs e)
+        private void LoadToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenActivity.InitialDirectory = Program.aePreference.AEPath;
+            OpenActivity.InitialDirectory = Program.AePreference.AEPath;
             if (OpenActivity.ShowDialog() == DialogResult.OK)
             {
-                ActivityInfo activityInfo = ActivityInfo.loadActivity(OpenActivity.FileName);
+                ActivityInfo activityInfo = ActivityInfo.LoadActivity(OpenActivity.FileName);
                 if (activityInfo == null)
                     return;
                 this.Cursor = Cursors.AppStarting;
@@ -145,7 +138,7 @@ namespace ActivityEditor
                 Viewer2D newViewer = new Viewer2D(this, activityInfo);
                 viewer2ds.Add(newViewer);
                 focusOnViewer = true;
-                setFocus(newViewer);
+                SetFocus(newViewer);
                 this.Cursor = Cursors.Default;
                 this.Refresh();
 
@@ -153,24 +146,24 @@ namespace ActivityEditor
             }
         }
 
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.selectedViewer.Save();
             //this.selectedActivity.activityInfo.saveXml();
             DisplayStatusMessage("Save Activity Info Status");
         }
 
-        private void activityToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ActivityToolStripMenuItem_Click(object sender, EventArgs e)
         {   //  Try to create a new activity Object with wizard
             ActivityInfo activityInfo = new ActivityInfo();
-            activityInfo.config(Program.aePreference.RoutePaths);
+            activityInfo.Config(Program.AePreference.RoutePaths);
             WizardForm wiz = new WizardForm(activityInfo);
             if (wiz.ShowDialog() == DialogResult.OK)
             {
                 Viewer2D newViewer = new Viewer2D(this, activityInfo);
                 viewer2ds.Add(newViewer);
                 focusOnViewer = true;
-                setFocus(newViewer);
+                SetFocus(newViewer);
                 this.Cursor = Cursors.AppStarting;
                 this.Refresh();
 
@@ -180,25 +173,25 @@ namespace ActivityEditor
             }
         }
 
-        private void trafficToolStripMenuItem_Click(object sender, EventArgs e)
+        private void TrafficToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //  For Generic Traffic definition
         }
 
-        private void aboutActivityEditorToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AboutActivityEditorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AboutActEdit aae = new AboutActEdit();
             aae.ShowDialog();
         }
 
-        private void preferenceToolStripMenuItem_Click(object sender, EventArgs e)
+        private void PreferenceToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Preference.Options optionWindow = new Preference.Options();
             optionWindow.ShowDialog();
         }
-        private void updateNewMenuItems()
+        private void UpdateNewMenuItems()
         {
-            if (Program.aePreference.classFilled == true)
+            if (Program.AePreference.Loaded == true)
             {
                 this.activityToolStripMenuItem.Enabled = true;
                 this.trafficToolStripMenuItem.Enabled = true;
@@ -214,7 +207,7 @@ namespace ActivityEditor
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void Button1_Click(object sender, EventArgs e)
         {
             if (selectedViewer == null)
             {
@@ -223,11 +216,11 @@ namespace ActivityEditor
             }
             DisplayStatusMessage("Type In Activity Descr");
             SimpleTextEd simpleTextEd = new SimpleTextEd();
-            simpleTextEd.aEditer.Text = selectedViewer.getDescr();
+            simpleTextEd.aEditer.Text = selectedViewer.Descr;
             simpleTextEd.ShowDialog();
             if (simpleTextEd.aEditer.TextLength > 0)
             {
-                selectedViewer.setDescr(simpleTextEd.aEditer.Text);
+                selectedViewer.Descr = simpleTextEd.aEditer.Text;
                 DisplayStatusMessage("Act Description Updated");
             }
         }
@@ -240,7 +233,7 @@ namespace ActivityEditor
 #endif
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void Button2_Click(object sender, EventArgs e)
         {
             if (selectedViewer == null)
                 return;
@@ -274,7 +267,7 @@ namespace ActivityEditor
         {
             DisplayStatusMessage("Please, Place Start Activity");
             ToolClicked = ToolClicked.START;
-            ToolToUse = global::ActivityEditor.Properties.Resources.Activity_start;
+            ToolToUse = global::Orts.ActivityEditor.Properties.Resources.Activity_start;
 
         }
 
@@ -282,7 +275,7 @@ namespace ActivityEditor
         {
             DisplayStatusMessage("Please, Place Stop Activity");
             ToolClicked = ToolClicked.STOP;
-            ToolToUse = global::ActivityEditor.Properties.Resources.Activity_stop;
+            ToolToUse = global::Orts.ActivityEditor.Properties.Resources.Activity_stop;
 
         }
 
@@ -290,7 +283,7 @@ namespace ActivityEditor
         {
             DisplayStatusMessage("Please, Place Wait Point Activity");
             ToolClicked = ToolClicked.WAIT;
-            ToolToUse = global::ActivityEditor.Properties.Resources.Activity_wait;
+            ToolToUse = global::Orts.ActivityEditor.Properties.Resources.Activity_wait;
 
         }
 
@@ -298,7 +291,7 @@ namespace ActivityEditor
         {
             DisplayStatusMessage("Please, Place Action Point Activity");
             ToolClicked = ToolClicked.ACTION;
-            ToolToUse = global::ActivityEditor.Properties.Resources.Action;
+            ToolToUse = global::Orts.ActivityEditor.Properties.Resources.Action;
 
         }
 
@@ -306,7 +299,7 @@ namespace ActivityEditor
         {
             DisplayStatusMessage("Please, Place Evaluation Point Activity");
             ToolClicked = ToolClicked.CHECK;
-            ToolToUse = global::ActivityEditor.Properties.Resources.Activity_check;
+            ToolToUse = global::Orts.ActivityEditor.Properties.Resources.Activity_check;
 
         }
         #endregion
@@ -338,12 +331,12 @@ namespace ActivityEditor
             selectedViewer.SetToolClicked(ToolClicked.AREA);
         }
 
-        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.selectedViewer.Save();
         }
 
-        public void setFocus(Viewer2D viewer)
+        public void SetFocus(Viewer2D viewer)
         {
             if (viewer == null || !focusOnViewer)
                 return;
@@ -372,14 +365,14 @@ namespace ActivityEditor
             }
         }
 
-        private void routeData_Enter(object sender, EventArgs e)
+        private void RouteData_Enter(object sender, EventArgs e)
         {
             focusOnViewer = false;
             selectedViewer = null;
             this.Focus();
         }
 
-        public bool askFocus()
+        public bool AskFocus()
         {
             focusOnViewer = true;
             return focusOnViewer;
@@ -387,7 +380,7 @@ namespace ActivityEditor
         private void UpdateRouteCfg(object sender, EventArgs e)
         {
             RouteInfo routeInfo = new RouteInfo();
-            routeInfo.config(Program.aePreference.RoutePaths);
+            routeInfo.Config(Program.AePreference.RoutePaths);
             WizardForm wiz = new WizardForm(routeInfo);
             if (wiz.ShowDialog() == DialogResult.OK)
             {
@@ -397,7 +390,7 @@ namespace ActivityEditor
                 Viewer2D newViewer = new Viewer2D(this, routeInfo.route);
                 viewer2ds.Add(newViewer);
                 focusOnViewer = true;
-                setFocus(newViewer);
+                SetFocus(newViewer);
 
                 this.Cursor = Cursors.Default;
                 this.Refresh();
@@ -497,13 +490,13 @@ namespace ActivityEditor
             }
         }
 
-        private void editMetaSegment(object sender, EventArgs e)
+        private void EditMetaSegment(object sender, EventArgs e)
         {
             DisplayStatusMessage("Edit Metadata for Segment");
             selectedViewer.SetToolClicked(ToolClicked.METASEGMENT);
         }
 
-        private void routeData_Leave(object sender, EventArgs e)
+        private void RouteData_Leave(object sender, EventArgs e)
         {
             DisplayStatusMessage("lose");
         }

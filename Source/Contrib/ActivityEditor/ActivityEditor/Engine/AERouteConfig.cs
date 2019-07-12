@@ -27,34 +27,34 @@ using System.Windows.Forms;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
 
-namespace ActivityEditor.Engine
+namespace Orts.ActivityEditor.Engine
 {
     public class AERouteConfig
     {
         public System.Windows.Forms.TableLayoutPanel MainPanel;
         public System.Windows.Forms.Label label;
 
-        public ORRouteConfig orRouteConfig { get { return Viewer.Simulator.orRouteConfig; } protected set { } }
+        public ORRouteConfig ORRouteConfig { get { return Viewer.Simulator.orRouteConfig; } protected set { } }
         public System.Windows.Forms.TableLayoutPanel RoutePanel;
 
         public System.Windows.Forms.FlowLayoutPanel TagPanel;
         public System.Windows.Forms.FlowLayoutPanel StationPanel;
         //  MSTS data
-        public TrackNode[] nodes { get { return simulator.nodes; } set { } }
+        public TrackNode[] Nodes { get { return Simulator.Nodes; } set { } }
         AEConfig Parent;
                 
         public TrackSectionsFile TSectionDat { get { return Viewer.Simulator.TSectionDat; } protected set { } }
         public Viewer2D Viewer { get { return Parent.Viewer; } protected set { } }
-        public PseudoSim simulator { get { return Viewer.Simulator; } protected set { } }
+        public PseudoSim Simulator { get { return Viewer.Simulator; } protected set { } }
 
         public AERouteConfig(AEConfig parent)
         {
             Parent = parent;
         }
 
-        public string getRouteName()
+        public string GetRouteName()
         {
-            return orRouteConfig.RouteName;
+            return ORRouteConfig.RouteName;
         }
 
         public void LoadPanels(string ident, GroupBox routeData)
@@ -62,7 +62,7 @@ namespace ActivityEditor.Engine
             // 
             // groupBox2
             // 
-            string name = getRouteName();
+            string name = GetRouteName();
             MainPanel = new System.Windows.Forms.TableLayoutPanel();
             routeData.Text = ident;
             // 
@@ -101,36 +101,40 @@ namespace ActivityEditor.Engine
             //label.TextAlign = System.Drawing.ContentAlignment.TopCenter;
 
 
-            TagPanel = new System.Windows.Forms.FlowLayoutPanel();
-            TagPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Left
-                | System.Windows.Forms.AnchorStyles.Top));
-            TagPanel.AutoScroll = true;
-            TagPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            TagPanel.Location = new System.Drawing.Point(0, 4);
-            TagPanel.Name = "Tag Panel";
-            //TagPanel.Size = new System.Drawing.Size(MainPanel.Width - 20, (groupBox.Height/2) - 20);
-            TagPanel.Height = (routeData.Height / 2) - 20;
-            TagPanel.Width = MainPanel.Width - 15;
-            //TagPanel.TabIndex = 2;
-            TagPanel.FlowDirection = FlowDirection.TopDown;
-            TagPanel.WrapContents = false;
-            TagPanel.Visible = true;
+            TagPanel = new System.Windows.Forms.FlowLayoutPanel
+            {
+                Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Left
+                | System.Windows.Forms.AnchorStyles.Top)),
+                AutoScroll = true,
+                BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle,
+                Location = new System.Drawing.Point(0, 4),
+                Name = "Tag Panel",
+                //TagPanel.Size = new System.Drawing.Size(MainPanel.Width - 20, (groupBox.Height/2) - 20);
+                Height = (routeData.Height / 2) - 20,
+                Width = MainPanel.Width - 15,
+                //TagPanel.TabIndex = 2;
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false,
+                Visible = true
+            };
 
 
-            StationPanel = new System.Windows.Forms.FlowLayoutPanel();
-            StationPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Left
-                | System.Windows.Forms.AnchorStyles.Top));
-            StationPanel.AutoScroll = true;
-            StationPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            //StationPanel.Location = new System.Drawing.Point(3, 170);
-            StationPanel.Name = "Station Panel";
-            //StationPanel.Size = new System.Drawing.Size(MainPanel.Width - 20, (groupBox.Height / 2) - 20);
-            StationPanel.Height = (routeData.Height / 2) - 20;
-            StationPanel.Width = MainPanel.Width - 15;
-            //StationPanel.TabIndex = 2;
-            StationPanel.FlowDirection = FlowDirection.TopDown;
-            StationPanel.WrapContents = false;
-            StationPanel.Visible = true;
+            StationPanel = new System.Windows.Forms.FlowLayoutPanel
+            {
+                Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Left
+                | System.Windows.Forms.AnchorStyles.Top)),
+                AutoScroll = true,
+                BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle,
+                //StationPanel.Location = new System.Drawing.Point(3, 170);
+                Name = "Station Panel",
+                //StationPanel.Size = new System.Drawing.Size(MainPanel.Width - 20, (groupBox.Height / 2) - 20);
+                Height = (routeData.Height / 2) - 20,
+                Width = MainPanel.Width - 15,
+                //StationPanel.TabIndex = 2;
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false,
+                Visible = true
+            };
 
             MainPanel.Controls.Add(TagPanel);
             MainPanel.Controls.Add(StationPanel);
@@ -167,7 +171,7 @@ namespace ActivityEditor.Engine
 
         public void SaveRoute()
         {
-            orRouteConfig.SaveConfig();
+            ORRouteConfig.SaveConfig();
         }
 
         public void CloseRoute()
@@ -175,14 +179,14 @@ namespace ActivityEditor.Engine
             SaveRoute();
         }
 
-        private GlobalItem findItemFromMouse(int x, int y, int range)
+        private GlobalItem FindItemFromMouse(int x, int y, int range)
         {
             if (range < 5) range = 5;
             double closest = float.NaN;
-            if (orRouteConfig == null)
+            if (ORRouteConfig == null)
                 return null;
             GlobalItem closestItem = null;
-            foreach (var item in orRouteConfig.AllItems)
+            foreach (var item in ORRouteConfig.AllItems)
             {
                 if (item.Location2D.X < x - range || item.Location2D.X > x + range
                    || item.Location2D.Y < y - range || item.Location2D.Y > y + range) continue;
@@ -273,9 +277,9 @@ namespace ActivityEditor.Engine
             return null;
         }
 
-        public dVector getVectorNextNode(int nodeIdx, TrPin fromPin)
+        public dVector GetVectorNextNode(int nodeIdx, TrPin fromPin)
         {
-            TrackNode toNext = nodes[fromPin.Link];
+            TrackNode toNext = Nodes[fromPin.Link];
             if (nodeIdx > fromPin.Link && toNext.TrJunctionNode == null)
                 return null;
             dVector nextVector;

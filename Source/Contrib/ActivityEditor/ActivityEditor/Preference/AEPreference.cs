@@ -25,25 +25,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using Orts.ActivityEditor.Engine;
 using Orts.Formats.OR;
 using Orts.Settings;
 
-namespace ActivityEditor.Preference
+namespace Orts.ActivityEditor.Preference
 {
     [Serializable()]
     public class AEPreference
     {
         [XmlIgnore]
-        public bool classFilled
-        {
-            get
-            {
-                if (RoutePaths != null && RoutePaths.Count > 0 && MSTSPath.Length > 0)
-                    return true;
-                else
-                    return false;
-            }
-        }
+        public bool Loaded => (RoutePaths?.Count > 0 && MSTSPath.Length > 0);
         [XmlIgnore]
         public UserSettings settings;
         [XmlIgnore]
@@ -137,30 +129,10 @@ namespace ActivityEditor.Preference
 
         ~AEPreference()
         {
-            saveXml();
+            SaveXml();
         }
 
-        public void setSnapCircle(int diam)
-        {
-            SnapCircle = diam;
-        }
-
-        public int getSnapCircle()
-        {
-            return SnapCircle;
-        }
-
-        public void setPlSiZoom(float size)
-        {
-            PlSiZoom = size;
-        }
-
-        public float getPlSiZoom()
-        {
-            return PlSiZoom;
-        }
-
-        public bool saveXml()
+        public bool SaveXml()
         {
             XmlSerializer xs = new XmlSerializer(typeof(AEPreference));
             string completeFileName = Path.Combine(AEPath, "ActivityEditor.pref.xml");
@@ -172,7 +144,7 @@ namespace ActivityEditor.Preference
             return true;
         }
 
-        static public AEPreference loadXml()
+        static public AEPreference LoadXml()
         {
             AEPreference p;
             try

@@ -25,12 +25,12 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using ActivityEditor.Route_Metadata;
-using LibAE.Formats;
+using Orts.ActivityEditor.Base.Formats;
+using Orts.ActivityEditor.RouteData;
 using Orts.Common;
 using Orts.Formats.OR;
 
-namespace ActivityEditor.Engine
+namespace Orts.ActivityEditor.Engine
 {
     /// <summary>
     /// Used to manage the right side panel on the main windows.
@@ -45,13 +45,13 @@ namespace ActivityEditor.Engine
         public List<StationWidgetInfo> stationWidgetInfo;
         public List<GroupBox> tagGBList;
         public List<TagWidgetInfo> tagWidgetInfo;
-        private TypeEditor typeConfig;
+        private readonly TypeEditor typeConfig;
         // Properties
         
-        public AERouteConfig aeRouteConfig { get; set; }
+        public AERouteConfig AERouteConfig { get; set; }
         public Viewer2D Viewer { get; set; }
-        public PseudoSim simulator { get { return Viewer.Simulator; } protected set { } }
-        public MSTSItems aeItems { get { return simulator.mstsItems; } protected set { } }
+        public PseudoSim Simulator { get { return Viewer.Simulator; } protected set { } }
+        public MSTSItems AEItems { get { return Simulator.MstsItems; } protected set { } }
         Random rnd = new Random();
 
         // Methods
@@ -61,7 +61,7 @@ namespace ActivityEditor.Engine
             AEConfigPanel = panel.activityOverview;
             typeConfig = type;
             Viewer = viewer;
-            aeRouteConfig = new AERouteConfig(this);
+            AERouteConfig = new AERouteConfig(this);
             if (typeConfig == TypeEditor.ACTIVITY)
             {
                 aeActivity = new AEActivity();
@@ -75,32 +75,32 @@ namespace ActivityEditor.Engine
 
         public void AddORItem(GlobalItem item)
         {
-            aeRouteConfig.orRouteConfig.AddItem(item);
+            AERouteConfig.ORRouteConfig.AddItem(item);
         }
 
-        public StationAreaItem AddPointArea(StationItem itemToUpdate, MSTSCoord coord)
+        public StationAreaItem AddPointArea(StationItem itemToUpdate, in MSTSCoord coord)
         {
             PointF tf = new PointF(0f, 0f);
-            return itemToUpdate.AddPointArea(coord, Viewer.snapSize, Viewer.Simulator.mstsDataConfig.TileBase);
+            return itemToUpdate.AddPointArea(coord, Viewer.SnapSize, Viewer.Simulator.MstsDataConfig.TileBase);
         }
 
         public void AddStationInfo(StationWidgetInfo info)
         {
             stationWidgetInfo.Add(info);
-            stationGBList.Add(info.getStation());
-            aeRouteConfig.AddStationPanel(stationGBList.ToArray());
+            stationGBList.Add(info.GetStation());
+            AERouteConfig.AddStationPanel(stationGBList.ToArray());
         }
 
         public void AddTagWidgetInfo(TagWidgetInfo info)
         {
             tagWidgetInfo.Add(info);
-            tagGBList.Add(info.getTag());
-            aeRouteConfig.AddTagPanel(tagGBList.ToArray());
+            tagGBList.Add(info.GetTag());
+            AERouteConfig.AddTagPanel(tagGBList.ToArray());
         }
 
         public void Close(TypeEditor viewerMode)
         {
-            aeRouteConfig.CloseRoute();
+            AERouteConfig.CloseRoute();
             routeData.Visible = false;
             if (viewerMode == TypeEditor.ACTIVITY)
             {
@@ -144,8 +144,10 @@ namespace ActivityEditor.Engine
             }
             else if (item.IsEditable() && (typeof(TrackSegment) == item.GetType()))
             {
-                List<string> destination = new List<string>();
-                destination.Add("All");
+                List<string> destination = new List<string>
+                {
+                    "All"
+                };
                 ((TrackSegment)item).Configured = true;
                 TrackSegmentInterface interface2 = new TrackSegmentInterface(((TrackSegment)item), destination);
                 interface2.ShowDialog();
@@ -155,16 +157,16 @@ namespace ActivityEditor.Engine
             return edited;
         }
 
-        public List<GlobalItem> getActItem()
+        public List<GlobalItem> GetActItem()
         {
             if (typeConfig == TypeEditor.ACTIVITY)
             {
-                return aeActivity.getActItem();
+                return aeActivity.GetActItem();
             }
             return new List<GlobalItem>(0);
         }
 
-        public string getActivityDescr()
+        public string GetActivityDescr()
         {
             if (typeConfig == TypeEditor.ACTIVITY)
             {
@@ -173,7 +175,7 @@ namespace ActivityEditor.Engine
             return "";
         }
 
-        public string getActivityName()
+        public string GetActivityName()
         {
             if (typeConfig == TypeEditor.ACTIVITY)
             {
@@ -182,17 +184,17 @@ namespace ActivityEditor.Engine
             return "";
         }
 
-        public List<GlobalItem> getORWidget()
+        public List<GlobalItem> GetORWidget()
         {
-            return aeRouteConfig.orRouteConfig.AllItems;
+            return AERouteConfig.ORRouteConfig.AllItems;
         }
 
-        public List<StationWidgetInfo> getStationWidgets()
+        public List<StationWidgetInfo> GetStationWidgets()
         {
             return stationWidgetInfo;
         }
 
-        public List<TagWidgetInfo> getTagWidgets()
+        public List<TagWidgetInfo> GetTagWidgets()
         {
             return tagWidgetInfo;
         }
@@ -208,7 +210,7 @@ namespace ActivityEditor.Engine
             {
                 aeActivity.LoadPanels(AEConfigPanel);
             }
-            aeRouteConfig.LoadPanels("RoutePanel", routeData);
+            AERouteConfig.LoadPanels("RoutePanel", routeData);
         }
 
         public void LoadRoute()
@@ -220,7 +222,7 @@ namespace ActivityEditor.Engine
             
             Viewer.actParent.SuspendLayout();
             //System.Drawing.Point current = activityAe.GetPanelPosition();
-            foreach (var item in getORWidget())
+            foreach (var item in GetORWidget())
             {
                 if (typeof(TagItem) == item.GetType() || item.typeItem == (int)TypeItem.TAG_ITEM)
                 {
@@ -233,7 +235,7 @@ namespace ActivityEditor.Engine
                 }
             }
 
-            foreach (var item in getORWidget())
+            foreach (var item in GetORWidget())
             {
                 if (typeof(StationItem) == item.GetType() || item.typeItem == (int)TypeItem.STATION_AREA_ITEM)
                 {
@@ -252,13 +254,13 @@ namespace ActivityEditor.Engine
             if (cntStr < stationWidgetInfo.Count)
             {
                 stationWidgetInfo.RemoveAt(cntStr);
-                Point stationPanelPosition = aeRouteConfig.GetStationPanelPosition();
+                Point stationPanelPosition = AERouteConfig.GetStationPanelPosition();
                 stationWidgetInfo.TrimExcess();
                 stationGBList.RemoveAt(cntStr);
                 stationGBList.TrimExcess();
-                GlobalItem item = aeRouteConfig.orRouteConfig.Index(cntStr);
-                aeRouteConfig.orRouteConfig.RemoveItem(item);
-                aeRouteConfig.AddStationPanel(stationGBList.ToArray());
+                GlobalItem item = AERouteConfig.ORRouteConfig.Index(cntStr);
+                AERouteConfig.ORRouteConfig.RemoveItem(item);
+                AERouteConfig.AddStationPanel(stationGBList.ToArray());
             }
         }
 
@@ -267,28 +269,28 @@ namespace ActivityEditor.Engine
             if (cntStr < tagWidgetInfo.Count)
             {
                 tagWidgetInfo.RemoveAt(cntStr);
-                Point tagPanelPosition = aeRouteConfig.GetTagPanelPosition();
+                Point tagPanelPosition = AERouteConfig.GetTagPanelPosition();
                 tagWidgetInfo.TrimExcess();
                 tagGBList.RemoveAt(cntStr);
                 tagGBList.TrimExcess();
-                GlobalItem item = aeRouteConfig.orRouteConfig.Index(cntStr);
-                aeRouteConfig.orRouteConfig.RemoveItem(item);
-                aeRouteConfig.AddTagPanel(tagGBList.ToArray());
+                GlobalItem item = AERouteConfig.ORRouteConfig.Index(cntStr);
+                AERouteConfig.ORRouteConfig.RemoveItem(item);
+                AERouteConfig.AddTagPanel(tagGBList.ToArray());
             }
         }
 
         public void Save()
         {
             aeActivity.Save();
-            aeRouteConfig.SaveRoute();
+            AERouteConfig.SaveRoute();
         }
 
-        public void setActivityDescr(string info)
+        public void SetActivityDescr(string info)
         {
             aeActivity.activityInfo.ActivityDescr = info;
         }
 
-        public void setActivityName(string info)
+        public void SetActivityName(string info)
         {
             aeActivity.activityInfo.ActivityName = info;
         }
@@ -315,13 +317,13 @@ namespace ActivityEditor.Engine
             routeData.Visible = false;
         }
 
-        public GlobalItem UpdateItem(GlobalItem item, MSTSCoord coord, bool controlKey, bool forceConnector)
+        public GlobalItem UpdateItem(GlobalItem item, in MSTSCoord coord, bool controlKey, bool forceConnector)
         {
             PointF closest = new PointF(0f, 0f);
             StationItem parent = null;
             StationAreaItem item3 = null;
             PointF tf2 = new PointF(0f, 0f);
-            double snapSize = Viewer.snapSize;
+            double snapSize = Viewer.SnapSize;
             double num2 = -1.0;
             double positiveInfinity = double.PositiveInfinity;
             PointF tf3 = coord.ConvertToPointF();
@@ -360,7 +362,7 @@ namespace ActivityEditor.Engine
             }
             TrackSegment segment = null;
             int associateNodeIdx = 0;
-            foreach (TrackSegment segment2 in aeItems.getSegments())
+            foreach (TrackSegment segment2 in AEItems.getSegments())
             {
                 segment2.unsetSnap();
                 num2 = DrawUtility.FindDistanceToSegment(coord.ConvertToPointF(), segment2, out closest);
@@ -384,7 +386,7 @@ namespace ActivityEditor.Engine
             return parent;
         }
 
-        public TagWidgetInfo findTagWidget(Predicate<TagWidgetInfo> predicate)
+        public TagWidgetInfo FindTagWidget(Predicate<TagWidgetInfo> predicate)
         {
             return tagWidgetInfo.Find(predicate);
         }

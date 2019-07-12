@@ -24,35 +24,35 @@ using System.Threading;
 /// 
 
 
-using ActivityEditor.Engine;
-using LibAE;
+using Orts.ActivityEditor.Base;
+using Orts.ActivityEditor.Base.Formats;
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
 using Orts.Settings;
 
-namespace ActivityEditor
+namespace Orts.ActivityEditor.Engine
 {
     public class PseudoSim
     {
         public bool Paused = true;
         readonly Thread Thread;
         readonly ProcessState State;
-        public MSTSDataConfig mstsDataConfig { get; set; }
+        public MSTSDataConfig MstsDataConfig { get; set; }
         public ORRouteConfig orRouteConfig;
         public AreaRoute areaRoute;
 
         //public MSTSData mstsData;
-        public TrackDatabaseFile TDB { get { return mstsDataConfig.TDB; } protected set { } }
-        public RouteFile TRK { get { return mstsDataConfig.TRK; } protected set { } }
-        public TrackSectionsFile TSectionDat { get { return mstsDataConfig.TSectionDat; } protected set { } }
-        public AESignals Signals { get { return mstsDataConfig.Signals; } protected set { } }
-        public SignalConfigurationFile SIGCFG { get { return mstsDataConfig.SIGCFG; } protected set { } }
-        public string RoutePath { get { return mstsDataConfig.RoutePath; } protected set { } }
-        public string mstsPath { get { return mstsDataConfig.MstsPath; } protected set { } }
-        public AETraveller traveller { get { return orRouteConfig.traveller; } protected set { } }
-        public TrackNode[] nodes { get; set; }
-        public MSTSItems mstsItems { get; set; }
+        public TrackDatabaseFile TDB { get { return MstsDataConfig.TDB; } protected set { } }
+        public RouteFile TRK { get { return MstsDataConfig.TRK; } protected set { } }
+        public TrackSectionsFile TSectionDat { get { return MstsDataConfig.TSectionDat; } protected set { } }
+        public AESignals Signals { get { return MstsDataConfig.Signals; } protected set { } }
+        public SignalConfigurationFile SIGCFG { get { return MstsDataConfig.SIGCFG; } protected set { } }
+        public string RoutePath { get { return MstsDataConfig.RoutePath; } protected set { } }
+        public string MstsPath { get { return MstsDataConfig.MstsPath; } protected set { } }
+        public AETraveller Traveller { get { return orRouteConfig.traveller; } protected set { } }
+        public TrackNode[] Nodes { get; set; }
+        public MSTSItems MstsItems { get; set; }
 
         public readonly UserSettings Settings;
 
@@ -62,7 +62,7 @@ namespace ActivityEditor
             State = new ProcessState("Updater");
             Thread = new Thread(UpdaterThread);
             Thread.Start();
-            mstsItems = new MSTSItems();
+            MstsItems = new MSTSItems();
             areaRoute = new AreaRoute();
         }
 
@@ -84,13 +84,13 @@ namespace ActivityEditor
         public void LoadRoute(string routePath, TypeEditor interfaceType)
         {
             Program.actEditor.DisplayStatusMessage("Simulator Loading...");
-            mstsDataConfig = new MSTSDataConfig(Program.aePreference.MSTSPath, routePath, interfaceType);
+            MstsDataConfig = new MSTSDataConfig(Program.AePreference.MSTSPath, routePath, interfaceType);
             Program.actEditor.DisplayStatusMessage("Load route Metadata ...");
 
             orRouteConfig = ORRouteConfig.LoadConfig(TRK.Tr_RouteFile.FileName, routePath, interfaceType);
             //AESignals = new AESignals(this);
             orRouteConfig.SetTraveller(TSectionDat, TDB);
-            orRouteConfig.SetTileBase(mstsDataConfig.TileBase);
+            orRouteConfig.SetTileBase(MstsDataConfig.TileBase);
             orRouteConfig.ReduceItems();
 
             LoadItemsFromMSTS();
@@ -118,20 +118,20 @@ namespace ActivityEditor
             {
                 if (item.GetType() == typeof(AEBufferItem))
                 {
-                    mstsItems.buffers.Add((AEBufferItem)item);
+                    MstsItems.buffers.Add((AEBufferItem)item);
                 }
             }
             Program.actEditor.DisplayStatusMessage("Start loading Track Nodes ...");
 #if SHOW_STOPWATCH
             stopWatch.Start();
 #endif
-            nodes = TDB.TrackDB.TrackNodes;
-            for (int nodeIdx = 0; nodeIdx < nodes.Length; nodeIdx++)
+            Nodes = TDB.TrackDB.TrackNodes;
+            for (int nodeIdx = 0; nodeIdx < Nodes.Length; nodeIdx++)
             {
-                if (nodes[nodeIdx] != null)
+                if (Nodes[nodeIdx] != null)
                 {
 
-                    TrackNode currNode = nodes[nodeIdx];
+                    TrackNode currNode = Nodes[nodeIdx];
 
                     AEBufferItem foundBuffer;
                     if (currNode.TrEndNode)
@@ -141,7 +141,7 @@ namespace ActivityEditor
                         if (null == foundBuffer)
                         {
                             foundBuffer = new AEBufferItem((TrackNode)currNode);
-                            mstsItems.buffers.Add(foundBuffer);
+                            MstsItems.buffers.Add(foundBuffer);
                         }
                         else
                         {
@@ -171,14 +171,14 @@ namespace ActivityEditor
 
                             TrPin pin = currNode.TrPins[1];
                             {
-                                TrackNode connectedNode = nodes[pin.Link];
+                                TrackNode connectedNode = Nodes[pin.Link];
                                 int direction = DrawUtility.getDirection(currNode, connectedNode);
                                 if (A == connectedNode.getMSTSCoord(direction))
                                     continue;
                                 AESegment aeSegment = new AESegment(A, connectedNode.getMSTSCoord(direction));
                                 TrackSegment lineSeg = new TrackSegment(aeSegment, currNode, currNode.TrVectorNode.TrVectorSections.Length - 1, direction, TSectionDat);
-                                addTrItems(lineSeg, currNode);
-                                mstsItems.AddSegment(lineSeg);
+                                AddTrItems(lineSeg, currNode);
+                                MstsItems.AddSegment(lineSeg);
                             }
 #if SHOW_STOPWATCH
                             ts = stopWatch.Elapsed;
@@ -196,17 +196,17 @@ namespace ActivityEditor
                         {
                             TrVectorSection s;
                             s = currNode.TrVectorNode.TrVectorSections[0];
-                            areaRoute.manageTiles(s.TileX, s.TileZ);
+                            areaRoute.ManageTiles(s.TileX, s.TileZ);
                             foreach (TrPin pin in currNode.TrPins)
                             {
-                                TrackNode connectedNode = nodes[pin.Link];
+                                TrackNode connectedNode = Nodes[pin.Link];
                                 int direction = DrawUtility.getDirection(currNode, connectedNode);
                                 if (MSTSCoord.Near(currNode.getMSTSCoord(direction), connectedNode.getMSTSCoord(direction)))
                                     continue;
                                 AESegment aeSegment = new AESegment(currNode.getMSTSCoord(direction), connectedNode.getMSTSCoord(direction));
                                 TrackSegment lineSeg = new TrackSegment(aeSegment, currNode, 0, direction, TSectionDat);
-                                addTrItems(lineSeg, currNode);
-                                mstsItems.AddSegment(lineSeg);
+                                AddTrItems(lineSeg, currNode);
+                                MstsItems.AddSegment(lineSeg);
                             }
 #if SHOW_STOPWATCH
                             ts = stopWatch.Elapsed;
@@ -225,8 +225,8 @@ namespace ActivityEditor
                     else if (currNode.TrJunctionNode != null)
                     {
                         //Program.actEditor.DisplayStatusMessage("Init data for display...  Load Junction Nodes: " + currNode.Index);
-                        mstsItems.switches.Add(new AEJunctionItem(currNode));
-                        areaRoute.manageTiles(currNode.UiD.TileX, currNode.UiD.TileZ);
+                        MstsItems.switches.Add(new AEJunctionItem(currNode));
+                        areaRoute.ManageTiles(currNode.UiD.TileX, currNode.UiD.TileZ);
 #if SHOW_STOPWATCH
                         ts = stopWatch.Elapsed;
                         stopWatch.Reset();
@@ -269,7 +269,7 @@ namespace ActivityEditor
                             AESignalObject s = Signals.SignalObjects[si.SigObj];
                             if (s.isSignal) // && s.isSignalNormal())
                             {
-                                mstsItems.AddSignal(new AESignalItem(si, s, TDB));
+                                MstsItems.AddSignal(new AESignalItem(si, s, TDB));
                             }
                         }
                     }
@@ -292,7 +292,7 @@ namespace ActivityEditor
 
         public void AddSegments(TrackNode node)
         {
-            List<KeyValuePair<int, int>> listTrItems = distributeTrItem(node);
+            List<KeyValuePair<int, int>> listTrItems = DistributeTrItem(node);
             TrVectorSection[] items = node.TrVectorNode.TrVectorSections;
             for (int idx = 0; idx < items.Length - 1; idx++)
             {
@@ -310,19 +310,19 @@ namespace ActivityEditor
                     foreach (var val in idxTrItem)
                     {
                         var item = TDB.TrackDB.TrItemTable[val.Value];
-                        addTrItem(lineSeg, item);
+                        AddTrItem(lineSeg, item);
                     }
                 }
                 //Program.actEditor.DisplayStatusMessage("Init data for display...  Load Vector Nodes: " + node.Index + "." + idx + ".");
-                mstsItems.AddSegment(lineSeg);
+                MstsItems.AddSegment(lineSeg);
 
                 //lineSeg = new TrackSegment(node, i, TSectionDat);
-                areaRoute.manageTiles(item1.TileX, item1.TileZ);
+                areaRoute.ManageTiles(item1.TileX, item1.TileZ);
             }
-            areaRoute.manageTiles(items[items.Length - 1].TileX, items[items.Length - 1].TileZ);
+            areaRoute.ManageTiles(items[items.Length - 1].TileX, items[items.Length - 1].TileZ);
         }
 
-        protected void addTrItems(TrackSegment lineSeg, TrackNode currNode)
+        protected void AddTrItems(TrackSegment lineSeg, TrackNode currNode)
         {
             if (currNode != null && currNode.TrVectorNode != null && currNode.TrVectorNode.TrItemRefs != null)
             {
@@ -330,32 +330,32 @@ namespace ActivityEditor
                 {
                     var item = TDB.TrackDB.TrItemTable[currNode.TrVectorNode.TrItemRefs[cnt]];
 
-                    addTrItem(lineSeg, item);
+                    AddTrItem(lineSeg, item);
                 }
             }
         }
 
-        protected void addTrItem(TrackSegment lineSeg, TrItem item)
+        protected void AddTrItem(TrackSegment lineSeg, TrItem item)
         {
-            AETraveller travel = new AETraveller(traveller);
+            AETraveller travel = new AETraveller(Traveller);
             if (item.ItemType == TrItem.trItemType.trSIDING || item.ItemType == TrItem.trItemType.trPLATFORM)
             {
-                SideItem siding = mstsItems.AddSiding(lineSeg, item, travel);
+                SideItem siding = MstsItems.AddSiding(lineSeg, item, travel);
                 orRouteConfig.AddItem((GlobalItem)siding);
             }
             else if (item.ItemType == TrItem.trItemType.trCROSSOVER)
             {
-                AECrossOver crossOver = mstsItems.AddCrossOver(lineSeg, item, travel);
+                AECrossOver crossOver = MstsItems.AddCrossOver(lineSeg, item, travel);
                 orRouteConfig.AddItem((GlobalItem)crossOver);
             }
         }
 
-        protected List<KeyValuePair<int, int>> distributeTrItem(TrackNode node)
+        protected List<KeyValuePair<int, int>> DistributeTrItem(TrackNode node)
         {
             List<KeyValuePair<int, int>> TrItemBySectionId = new List<KeyValuePair<int, int>>();
             if (node != null && node.TrVectorNode != null && node.TrVectorNode.TrItemRefs != null)
             {
-                AETraveller travel = new AETraveller(traveller);
+                AETraveller travel = new AETraveller(Traveller);
                 travel.place(node);
                 for (int cnt = 0; cnt < node.TrVectorNode.TrItemRefs.Length; cnt++)
                 {
@@ -376,7 +376,7 @@ namespace ActivityEditor
             foreach (var item in stationItem)
             {
                 Program.actEditor.DisplayStatusMessage("Completing station ...");
-                ((StationItem)item).Complete(orRouteConfig, mstsItems, mstsDataConfig.TileBase);
+                ((StationItem)item).Complete(orRouteConfig, MstsItems, MstsDataConfig.TileBase);
             }
             return;
 #if false

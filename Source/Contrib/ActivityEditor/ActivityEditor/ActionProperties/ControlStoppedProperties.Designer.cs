@@ -1,4 +1,4 @@
-﻿namespace ActivityEditor.ActionProperties
+﻿namespace Orts.ActivityEditor.ActionProperties
 {
     partial class ControlStoppedProperties
     {

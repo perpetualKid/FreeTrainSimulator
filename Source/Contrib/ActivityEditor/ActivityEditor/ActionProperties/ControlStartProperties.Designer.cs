@@ -1,4 +1,4 @@
-﻿namespace ActivityEditor.ActionProperties
+﻿namespace Orts.ActivityEditor.ActionProperties
 {
     partial class ControlStartProperties
     {
@@ -54,7 +54,7 @@
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(87, 20);
             this.textBox2.TabIndex = 5;
-            this.textBox2.Validated += new System.EventHandler(this.textBox2_TextChanged);
+            this.textBox2.Validated += new System.EventHandler(this.TextBox2_TextChanged);
             // 
             // textBox1
             // 
@@ -62,7 +62,7 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(87, 20);
             this.textBox1.TabIndex = 6;
-            this.textBox1.Validated += new System.EventHandler(this.textBox1_TextChanged);
+            this.textBox1.Validated += new System.EventHandler(this.TextBox1_TextChanged);
             // 
             // label1
             // 

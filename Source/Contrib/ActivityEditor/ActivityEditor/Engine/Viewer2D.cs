@@ -21,6 +21,7 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using Orts.ActivityEditor.Activity;
 /// This module ...
 /// 
 /// Author: Stéfan Paitoni
@@ -28,15 +29,14 @@ using System.Windows.Forms;
 /// 
 
 
-using ActivityEditor.Activity;
-using LibAE;
-using LibAE.Formats;
+using Orts.ActivityEditor.Base;
+using Orts.ActivityEditor.Base.Formats;
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
 using Color = System.Drawing.Color;
 
-namespace ActivityEditor.Engine
+namespace Orts.ActivityEditor.Engine
 {
     public partial class Viewer2D : Form
     {
@@ -69,12 +69,12 @@ namespace ActivityEditor.Engine
         public ActEditor actParent;
         public AEConfig aeConfig;
         public PseudoSim Simulator;
-        public MSTSItems aeItems { get { return Simulator.mstsItems; } protected set { } }
+        public MSTSItems AEItems { get { return Simulator.MstsItems; } protected set { } }
         Random rnd = new Random();
 
         private int IM_Width = 720;
         private int IM_Height = 720;
-        public AreaRoute areaRoute { get { return Simulator.areaRoute; } protected set { } }
+        public AreaRoute AreaRoute { get { return Simulator.areaRoute; } protected set { } }
 
         //  To define the biggest draughtboard for the route
         List<TilesInfo> tilesList = new List<TilesInfo>();
@@ -93,7 +93,7 @@ namespace ActivityEditor.Engine
         private float previousScale = 0;
         private float currentRules = 0;
         private float origRules = 0;
-        public double snapSize { get; set; }
+        public double SnapSize { get; set; }
 
         //  Keep the distance between the map origin and the visible section
         private PointF RouteScreenOrig = new PointF(0,0);
@@ -134,11 +134,11 @@ namespace ActivityEditor.Engine
         {
             ViewerMode = TypeEditor.ROUTECONFIG;
             Program.actEditor.DisplayStatusMessage("Load Route for update: please wait");
-            loadIcon();
+            LoadIcon();
             ActivityPath = routePath;
 
             //  Simulator retains all datas from MSTS, Route Metadata and Activity.
-            Simulator = new PseudoSim(Program.aePreference.settings);
+            Simulator = new PseudoSim(Program.AePreference.settings);
             Simulator.Start();
 
             //  Now, load all MSTS config, all OR config and Synchronize both
@@ -160,8 +160,10 @@ namespace ActivityEditor.Engine
 
             SetStyle(ControlStyles.ResizeRedraw, true);
             // initialise the timer used to handle user input
-            ActivityTimer = new Timer();
-            ActivityTimer.Interval = 50;
+            ActivityTimer = new Timer
+            {
+                Interval = 50
+            };
             ActivityTimer.Tick += new System.EventHandler(ActivityTimer_Tick);
             ActivityTimer.Start();
             InitData();
@@ -179,11 +181,11 @@ namespace ActivityEditor.Engine
         {
             ViewerMode = TypeEditor.ACTIVITY;
             Program.actEditor.DisplayStatusMessage("Load Route and Activity for update: please wait");
-            loadIcon();
+            LoadIcon();
             MdiParent = parent;
             actParent = parent;
 
-            Simulator = new PseudoSim(Program.aePreference.settings);
+            Simulator = new PseudoSim(Program.AePreference.settings);
             Simulator.Start();
             Simulator.LoadRoute(activityInfo.RoutePath, ViewerMode);
 
@@ -199,8 +201,10 @@ namespace ActivityEditor.Engine
 
             SetStyle(ControlStyles.ResizeRedraw, true);
             // initialise the timer used to handle user input
-            ActivityTimer = new Timer();
-            ActivityTimer.Interval = 50;
+            ActivityTimer = new Timer
+            {
+                Interval = 50
+            };
             ActivityTimer.Tick += new System.EventHandler(ActivityTimer_Tick);
             ActivityTimer.Start();
             InitData();
@@ -219,11 +223,11 @@ namespace ActivityEditor.Engine
             }
             Program.actEditor.DisplayStatusMessage("Init data for display...");
             //aeConfig.aeRouteConfig.InitORData(Simulator);
-            tilesList = areaRoute.tilesList;
+            tilesList = AreaRoute.TilesList;
             
 
-            sizeX = (Math.Abs(areaRoute.tileMaxX - areaRoute.tileMinX) + 1) * 2048f;
-            sizeZ = (Math.Abs(areaRoute.tileMaxZ - areaRoute.tileMinZ) + 1) * 2048f;
+            sizeX = (Math.Abs(AreaRoute.TileMaxX - AreaRoute.TileMinX) + 1) * 2048f;
+            sizeZ = (Math.Abs(AreaRoute.TileMaxZ - AreaRoute.TileMinZ) + 1) * 2048f;
 
             ViewWindow = new RectangleF(0, 0, sizeX, sizeZ);
             routePicture = routeDrawing.Size;
@@ -265,12 +269,12 @@ namespace ActivityEditor.Engine
             GenerateView();
         }
 
-        public List<TilesInfo> getTileList()
+        public List<TilesInfo> GetTileList()
         {
             return tilesList;
         }
 
-        public float getUsedScale()
+        public float GetUsedScale()
         {
             return usedScale;
         }
@@ -284,7 +288,7 @@ namespace ActivityEditor.Engine
         float oldWidth = 0;
         float oldHeight = 0;
 
-        public void needRedim()
+        public void NeedRedim()
         {
             if (oldHeight != this.routeDrawing.Height || oldWidth != this.routeDrawing.Width)
             {
@@ -318,7 +322,7 @@ namespace ActivityEditor.Engine
         {
 
             if (routeDrawing.Image == null) InitImage();
-            needRedim();
+            NeedRedim();
             //this.routeDrawing.Select();
             using (Graphics g = Graphics.FromImage(routeDrawing.Image))
             {
@@ -332,9 +336,9 @@ namespace ActivityEditor.Engine
                 usedScale = (float)Math.Round((double)usedScale, 2, MidpointRounding.AwayFromZero);
                 if (usedScale == 0)
                     usedScale = 0.1f;
-                if (Program.aePreference.ShowRuler)
-                    showRules(g, usedScale);
-                snapSize = (double)(Program.aePreference.getSnapCircle() * usedScale);
+                if (Program.AePreference.ShowRuler)
+                    ShowRules(g, usedScale);
+                SnapSize = (double)(Program.AePreference.SnapCircle * usedScale);
                 
                 PointF[] points = new PointF[3];
                 Pen p = darkGrayPen;
@@ -354,7 +358,7 @@ namespace ActivityEditor.Engine
                 #region showItem
 
                 pen = bluePen;
-                if (Program.aePreference.ShowTiles)
+                if (Program.AePreference.ShowTiles)
                 {   //  X,Y tile are on center of tile
                     foreach (var tile in tilesList)
                     {
@@ -366,16 +370,16 @@ namespace ActivityEditor.Engine
                         g.DrawString(" " + tile.TileX + "," + tile.TileZ, sidingFont, sidingBrush, scaledA.X, scaledA.Y);
                     }
                 }
-                if (Program.aePreference.ShowTrackInfo && Program.aePreference.PlSiZoom >= usedScale)
+                if (Program.AePreference.ShowTrackInfo && Program.AePreference.PlSiZoom >= usedScale)
                 {
-                    foreach (var buffer in Simulator.mstsItems.getBuffers())
+                    foreach (var buffer in Simulator.MstsItems.getBuffers())
                     {
                         buffer.SynchroLocation();
                         scaledA.X = decal.Width + (((float)buffer.Location.X - subX) / usedScale);
                         scaledA.Y = decal.Height - (((float)buffer.Location.Y - subY) / usedScale);
                         g.DrawRectangle(pen, (int)scaledA.X, (int)scaledA.Y, 5, 5);
                         g.DrawString((string)buffer.associateNode.Index.ToString(), sidingFont, sidingBrush, scaledA.X - 20, scaledA.Y);
-                        if (Program.aePreference.ShowPlSiLabel && buffer.IsVisible())
+                        if (Program.AePreference.ShowPlSiLabel && buffer.IsVisible())
                         {
                             System.Drawing.Drawing2D.Matrix matrixSA = new System.Drawing.Drawing2D.Matrix();
                             matrixSA.RotateAt((float)0.0f, new System.Drawing.Point((int)scaledA.X, (int)scaledA.Y), MatrixOrder.Append);
@@ -384,7 +388,7 @@ namespace ActivityEditor.Engine
                         }
 
                     }
-                     foreach (var junction in aeItems.getSwitches())
+                     foreach (var junction in AEItems.getSwitches())
                     {
                         junction.SynchroLocation();
                         scaledA.X = decal.Width + (((float)junction.Location.X - subX) / usedScale);
@@ -394,7 +398,7 @@ namespace ActivityEditor.Engine
                     }
                 }
 
-                foreach (var line in aeItems.getSegments())
+                foreach (var line in AEItems.getSegments())
                 //foreach (var line in shape.getTrItems())
                 {
                     scaledA.X = decal.Width + (((float)line.getStart().X - subX) / usedScale);
@@ -415,12 +419,12 @@ namespace ActivityEditor.Engine
                         points[2] = scaledB;
                         if (line.isSnap())
                         {
-                            if (Program.aePreference.ShowSnapLine && Program.aePreference.PlSiZoom >= usedScale)
+                            if (Program.AePreference.ShowSnapLine && Program.AePreference.PlSiZoom >= usedScale)
                             {
                                 g.DrawRectangle(pen, (int)scaledA.X, (int)scaledA.Y, 5, 5);
                                 g.DrawRectangle(pen, (int)scaledB.X, (int)scaledB.Y, 5, 5);
                                 g.DrawRectangle(pen, (int)scaledC.X, (int)scaledC.Y, 5, 5);
-                                if (Program.aePreference.ShowSnapInfo)
+                                if (Program.AePreference.ShowSnapInfo)
                                 {
                                     g.DrawRectangle(pen, (int)centerCurve.X, (int)centerCurve.Y, 5, 5);
                                     g.DrawLine(pen, centerCurve, scaledA);
@@ -455,11 +459,11 @@ namespace ActivityEditor.Engine
                     {
                         if (line.isSnap())
                         {
-                            if (Program.aePreference.ShowSnapLine && Program.aePreference.PlSiZoom >= usedScale)
+                            if (Program.AePreference.ShowSnapLine && Program.AePreference.PlSiZoom >= usedScale)
                             {
                                 g.DrawRectangle(pen, (int)scaledA.X, (int)scaledA.Y, 5, 5);
                                 g.DrawRectangle(pen, (int)scaledB.X, (int)scaledB.Y, 5, 5);
-                                if (Program.aePreference.ShowSnapInfo)
+                                if (Program.AePreference.ShowSnapInfo)
                                 {
                                     if (line.GetDecal())
                                     {
@@ -480,7 +484,7 @@ namespace ActivityEditor.Engine
                     }
                 }
 
-                foreach (var item in aeConfig.getTagWidgets())
+                foreach (var item in aeConfig.GetTagWidgets())
                 {
                     var tag = item.tagWidget;
                     scaledA.X = decal.Width + (tag.Location.X - subX) / usedScale;
@@ -504,7 +508,7 @@ namespace ActivityEditor.Engine
                         item.TagName.SelectAll();
                     }
                 }
-                foreach (var item in aeConfig.getStationWidgets())
+                foreach (var item in aeConfig.GetStationWidgets())
                 {
                     System.Drawing.Drawing2D.Matrix myMatrix = new System.Drawing.Drawing2D.Matrix();
                     var station = item.stationWidget;
@@ -594,7 +598,7 @@ namespace ActivityEditor.Engine
                                         g.DrawEllipse(Pens.Red, X - 4, Y - 4, 8, 8);
                                     }
                                     if (SAWidget.getStationConnector().getLabel().Length > 0 && 
-                                        Program.aePreference.ShowPlSiLabel && Program.aePreference.PlSiZoom >= usedScale &&
+                                        Program.AePreference.ShowPlSiLabel && Program.AePreference.PlSiZoom >= usedScale &&
                                         SAWidget.IsVisible())
                                         g.DrawString(SAWidget.getStationConnector().getLabel(), stationFont, sidingBrush, new System.Drawing.Point(X+15, Y+10));
                                 }
@@ -622,7 +626,7 @@ namespace ActivityEditor.Engine
                     }
                 }
 
-                foreach (var item in aeConfig.getActItem())
+                foreach (var item in aeConfig.GetActItem())
                 {
                     if (item is PathEventItem)
                     {
@@ -632,14 +636,14 @@ namespace ActivityEditor.Engine
                         if ((scaledA.X < 0) || (scaledA.X > IM_Width) || (scaledA.Y > IM_Height) || (scaledA.Y < 0))
                             continue;
 
-                        if (((PathEventItem)item).nameVisible)
+                        if (((PathEventItem)item).NameVisible)
                         {
-                            g.DrawString(((PathEventItem)item).nameEvent, sidingFont, sidingBrush, scaledA);
+                            g.DrawString(((PathEventItem)item).NameEvent, sidingFont, sidingBrush, scaledA);
                         }
                         else
                         {
                             System.Drawing.Rectangle rect = new System.Drawing.Rectangle((int)scaledA.X, (int)scaledA.Y, 16, 16);
-                            g.DrawIcon(((PathEventItem)item).getIcon(), rect);
+                            g.DrawIcon(((PathEventItem)item).GetIcon(), rect);
                         }
                     }
                 }
@@ -647,7 +651,7 @@ namespace ActivityEditor.Engine
 
                 #region showCursor
 
-                if (findItemFromMouse(CurrentMousePosition) != null)
+                if (FindItemFromMouse(CurrentMousePosition) != null)
                 {
                     pen = r;
                 }
@@ -657,11 +661,11 @@ namespace ActivityEditor.Engine
                 }
 
                 this.Cursor = CursorToUse;
-                if (Program.aePreference.ShowSnapCircle && (ToolClicked == ToolClicked.NO_TOOL))
+                if (Program.AePreference.ShowSnapCircle && (ToolClicked == ToolClicked.NO_TOOL))
                 {
-                    PointF point = convertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
+                    PointF point = ConvertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
                     MSTSCoord coord = new MSTSCoord(point);
-                    int sizeEllipse = (int)(Program.aePreference.getSnapCircle() / usedScale);
+                    int sizeEllipse = (int)(Program.AePreference.SnapCircle / usedScale);
                     g.DrawEllipse(pen, (int)(CurrentMousePosition.X - (sizeEllipse / 2)),
                                         (int)(CurrentMousePosition.Y - sizeEllipse / 2),
                                         (int)(sizeEllipse),
@@ -692,11 +696,11 @@ namespace ActivityEditor.Engine
                 var widthDraw = 12f * p.Width;
                 if (widthDraw > 20)
                     widthDraw = 20;//not to make it too large
-                if (usedScale < Program.aePreference.getPlSiZoom())
+                if (usedScale < Program.AePreference.PlSiZoom)
                 {
 #if !DRAW_ALL
 #region drawSignal
-                    foreach (var s in aeItems.getSignals())
+                    foreach (var s in AEItems.getSignals())
                     {
                         s.SynchroLocation();
                         if (float.IsNaN(s.Location.X) || float.IsNaN(s.Location.Y))
@@ -747,7 +751,7 @@ namespace ActivityEditor.Engine
                                 g.Transform = myMatrix;
                             }
 
-                            if (Program.aePreference.ShowAllSignal)
+                            if (Program.AePreference.ShowAllSignal)
                             {
                                 switch (s.SigFonction)
                                 {
@@ -784,7 +788,7 @@ namespace ActivityEditor.Engine
                     }
 #endregion
 #region crossOver
-                    foreach (AECrossOver crossOver in aeItems.getCrossOver())
+                    foreach (AECrossOver crossOver in AEItems.getCrossOver())
                     {
                         System.Drawing.Drawing2D.Matrix matrixSA = new System.Drawing.Drawing2D.Matrix();
                         if (float.IsNaN(crossOver.Location.X) || float.IsNaN(crossOver.Location.Y))
@@ -797,7 +801,7 @@ namespace ActivityEditor.Engine
                         double tempo = 0;
 
                         g.DrawRectangle(pen, (int)x, (int)y, 5, 5);
-                        if (Program.aePreference.ShowPlSiLabel && crossOver.IsVisible())
+                        if (Program.AePreference.ShowPlSiLabel && crossOver.IsVisible())
                         {
                             matrixSA.RotateAt((float)tempo, new System.Drawing.Point((int)x, (int)y), MatrixOrder.Append);
                             g.Transform = matrixSA;
@@ -807,7 +811,7 @@ namespace ActivityEditor.Engine
                     #endregion
 
 #region drawSiding
-                    foreach (SideItem siding in aeItems.getSidings())
+                    foreach (SideItem siding in AEItems.getSidings())
                     {
                         System.Drawing.Drawing2D.Matrix matrixSA = new System.Drawing.Drawing2D.Matrix();
                         if (float.IsNaN(siding.Location.X) || float.IsNaN(siding.Location.Y))
@@ -829,7 +833,7 @@ namespace ActivityEditor.Engine
                         {
                             g.DrawEllipse(Pens.Blue, x - 1, y - 1, 3, 3);
                             //g.DrawEllipse(Pens.Blue, x2 - 1, y2 - 1, 3, 3);
-                            if (Program.aePreference.ShowPlSiLabel && siding.IsVisible())
+                            if (Program.AePreference.ShowPlSiLabel && siding.IsVisible())
                             {
                                 matrixSA.RotateAt((float)tempo, new System.Drawing.Point((int)x, (int)y), MatrixOrder.Append);
                                 g.Transform = matrixSA;
@@ -840,7 +844,7 @@ namespace ActivityEditor.Engine
                         {
                             g.DrawEllipse(Pens.Brown, x - 1, y - 1, 3, 3);
                             //g.DrawEllipse(Pens.Brown, x2 - 1, y2 - 1, 3, 3);
-                            if (Program.aePreference.ShowPlSiLabel && siding.IsVisible())
+                            if (Program.AePreference.ShowPlSiLabel && siding.IsVisible())
                             {
                                 matrixSA.RotateAt((float)tempo, new System.Drawing.Point((int)x, (int)y), MatrixOrder.Append);
                                 g.Transform = matrixSA;
@@ -856,7 +860,7 @@ namespace ActivityEditor.Engine
             routeDrawing.Invalidate();
         }
 
-        void showRules(Graphics g, float usedScale)
+        void ShowRules(Graphics g, float usedScale)
         {
             PointF scaledA = new PointF(0, 0);
             PointF scaledB = new PointF(0, 0);
@@ -907,7 +911,7 @@ namespace ActivityEditor.Engine
         #region MouseEvent
 
         private bool zoomed  = false;
-        private void routeDrawingMouseDown(object sender, MouseEventArgs e)
+        private void RouteDrawingMouseDown(object sender, MouseEventArgs e)
         {
             bool shiftKey = false;
             if (e.Button == MouseButtons.Left)
@@ -925,7 +929,7 @@ namespace ActivityEditor.Engine
 
             if (LeftClick == true && RightClick == false)
             {
-                PointF point = convertScreen2ViewCoord(e.X, e.Y);
+                PointF point = ConvertScreen2ViewCoord(e.X, e.Y);
                 MSTSCoord coord = new MSTSCoord(point);
 
                 LeftMouseDown(sender, e, shiftKey);
@@ -946,7 +950,7 @@ namespace ActivityEditor.Engine
                 itemToUpdate != null &&
                 (itemToUpdate.GetType() == typeof(StationItem)))
             {
-                PointF point = convertScreen2ViewCoord(e.X, e.Y);
+                PointF point = ConvertScreen2ViewCoord(e.X, e.Y);
                 MSTSCoord coord = new MSTSCoord(point);
                 StationAreaItem info = aeConfig.AddPointArea((StationItem)itemToUpdate, coord);
                 if (info != null)
@@ -963,7 +967,7 @@ namespace ActivityEditor.Engine
             }
             else
             {
-                var item = findItemFromEvent(e);
+                var item = FindItemFromEvent(e);
                 if (ToolClicked == ToolClicked.NO_TOOL &&
                     item != null && item.IsMovable())
                 {
@@ -1004,7 +1008,7 @@ namespace ActivityEditor.Engine
         private void RightMouseDown(object sender, MouseEventArgs e, bool shiftKey)
         {
             //this.routeDrawing.Focus();
-            var item = findItemFromEvent(e);
+            var item = FindItemFromEvent(e);
             itemToEdit = null;
             if (ToolClicked == ToolClicked.NO_TOOL &&
                 item != null && item.IsEditable())
@@ -1016,16 +1020,16 @@ namespace ActivityEditor.Engine
                 Zooming = true;
                 refZoomPoint.X = e.X;
                 refZoomPoint.Y = e.Y;
-                PointF point = convertScreen2ViewCoord(refZoomPoint.X, refZoomPoint.Y);
+                PointF point = ConvertScreen2ViewCoord(refZoomPoint.X, refZoomPoint.Y);
                 coordZoomPoint = new MSTSCoord(point);
                 refZoomPoint.Y = routeDrawing.Height - e.Y;
                 ToolClicked = ToolClicked.ZOOM;
-                System.Drawing.Point refCoord = convertViewCoord2Screen(coordZoomPoint);
+                System.Drawing.Point refCoord = ConvertViewCoord2Screen(coordZoomPoint);
             }
         }
 
 
-        private void routeDrawingMouseMove(object sender, MouseEventArgs e)
+        private void RouteDrawingMouseMove(object sender, MouseEventArgs e)
         {
             bool controlKey = false;
             Program.actEditor.DisplayStatusMessage((string)("Mouse move: " + e.X + "," + e.Y));
@@ -1039,7 +1043,7 @@ namespace ActivityEditor.Engine
                 itemToUpdate != null &&
                 (itemToUpdate.GetType() == typeof(StationAreaItem)))
             {
-                PointF point = convertScreen2ViewCoord(e.X, e.Y);
+                PointF point = ConvertScreen2ViewCoord(e.X, e.Y);
                 MSTSCoord coord = new MSTSCoord(point);
                 aeConfig.UpdateItem (itemToUpdate, coord, controlKey, false);
                 //((StationAreaWidget)itemToUpdate).UpdatePointArea(aeConfig.getSegments(), );
@@ -1055,9 +1059,9 @@ namespace ActivityEditor.Engine
                 {
                     if (e.X < 10 || e.Y < 10 || e.X > routePicture.Width - 10 || e.Y > routePicture.Height - 10)
                     {
-                        dragWindow(e, -1);
+                        DragWindow(e, -1);
                     }
-                    PointF point = convertScreen2ViewCoord (e.X, e.Y);
+                    PointF point = ConvertScreen2ViewCoord (e.X, e.Y);
                     MSTSCoord coord = new MSTSCoord(point);
                     aeConfig.UpdateItem(itemToUpdate, coord, controlKey, false);
                     //itemToUpdate.configCoord(coord, aeConfig.getSegments(), controlKey);
@@ -1078,7 +1082,7 @@ namespace ActivityEditor.Engine
             }
             if (Dragging && !Zooming)
             {
-                dragWindow(e, 1);
+                DragWindow(e, 1);
                 /*
                 SizeF diff = new SizeF(LastCursorPosition.X - e.X, e.Y - LastCursorPosition.Y);
                 diff.Width *= usedScale;
@@ -1114,7 +1118,7 @@ namespace ActivityEditor.Engine
             GenerateView();
         }
 
-        private void dragWindow(MouseEventArgs e, int sens)
+        private void DragWindow(MouseEventArgs e, int sens)
         {
             int eX = e.X;
             int eY = e.Y;
@@ -1148,21 +1152,21 @@ namespace ActivityEditor.Engine
             GenerateView();
         }
 
-        private void routeDrawingMouseUp(object sender, MouseEventArgs e)
+        private void RouteDrawingMouseUp(object sender, MouseEventArgs e)
         {
             if ((ToolClicked == ToolClicked.AREA_ADD ||
                 ToolClicked == ToolClicked.MOVE) &&
                 itemToUpdate != null && itemToUpdate.GetType() == typeof(StationAreaItem))
             {
-                PointF point = convertScreen2ViewCoord(e.X, e.Y);
+                PointF point = ConvertScreen2ViewCoord(e.X, e.Y);
                 MSTSCoord coord = new MSTSCoord(point);
                 stationItem = (StationItem)aeConfig.UpdateItem(itemToUpdate, coord, false, true);
                 itemToUpdate = stationItem;
                 if (stationItem != null && !(ToolClicked == ToolClicked.AREA_ADD))
                 {
-                    stationItem.Complete(aeConfig.aeRouteConfig.orRouteConfig,
-                        aeConfig.aeItems,
-                        Simulator.mstsDataConfig.TileBase);
+                    stationItem.Complete(aeConfig.AERouteConfig.ORRouteConfig,
+                        aeConfig.AEItems,
+                        Simulator.MstsDataConfig.TileBase);
                 }
             }
             else if (ToolClicked == ToolClicked.AREA &&
@@ -1210,9 +1214,9 @@ namespace ActivityEditor.Engine
                 GlobalItem edited = aeConfig.EditItem(itemToEdit);
                 if (edited != null && edited.GetType() == typeof(StationItem))
                 {
-                    ((StationItem)edited).Complete(aeConfig.aeRouteConfig.orRouteConfig,
-                        aeConfig.aeItems,
-                        Simulator.mstsDataConfig.TileBase);
+                    ((StationItem)edited).Complete(aeConfig.AERouteConfig.ORRouteConfig,
+                        aeConfig.AEItems,
+                        Simulator.MstsDataConfig.TileBase);
                 }
             }
             zoomed = false;
@@ -1228,14 +1232,14 @@ namespace ActivityEditor.Engine
             }
         }
 
-        void routeDrawing_MouseDoubleClick(object sender, System.Windows.Forms.MouseEventArgs e)
+        void RouteDrawing_MouseDoubleClick(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
             }
         }
 
-        private void routeDrawingMouseWheel(object sender, MouseEventArgs e)
+        private void RouteDrawingMouseWheel(object sender, MouseEventArgs e)
         {
         }
 
@@ -1273,7 +1277,7 @@ namespace ActivityEditor.Engine
 
         }
 
-        public void routeDrawing_PreviewKeyDown(object sender, KeyEventArgs e)
+        public void RouteDrawing_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
@@ -1302,7 +1306,7 @@ namespace ActivityEditor.Engine
 
         private void CenterAndZoomWindow ()
         {
-            PointF point = convertScreen2ViewCoord(ViewWindow.Width / 2f, ViewWindow.Height / 2f);
+            PointF point = ConvertScreen2ViewCoord(ViewWindow.Width / 2f, ViewWindow.Height / 2f);
             MSTSCoord coord = new MSTSCoord(point);
 
             ZoomViewWindow();
@@ -1331,7 +1335,7 @@ namespace ActivityEditor.Engine
         //  whatever is the zoomFactor
         private void RealignViewWindow(in MSTSCoord coord, System.Drawing.Point refPoint)
         {
-            System.Drawing.Point refCoord = convertViewCoord2Screen(coord);
+            System.Drawing.Point refCoord = ConvertViewCoord2Screen(coord);
             System.Drawing.Point current = refPoint;
             if (current == refCoord)
             {
@@ -1370,13 +1374,13 @@ namespace ActivityEditor.Engine
             int cnt = rnd.Next(999999);
             ActEditor tmp = Program.actEditor;
             tmp.SuspendLayout();
-            PointF point = convertScreen2ViewCoord(lastContextMenuPos.X, lastContextMenuPos.Y);
+            PointF point = ConvertScreen2ViewCoord(lastContextMenuPos.X, lastContextMenuPos.Y);
             MSTSCoord coord = new MSTSCoord(point);
             TagItem tag = new TagItem(ViewerMode);
             tag.ConfigCoord(coord);
             tag.setNameTag(cnt);
             aeConfig.AddORItem(tag);
-            System.Drawing.Point current = aeConfig.aeRouteConfig.GetTagPanelPosition();
+            System.Drawing.Point current = aeConfig.AERouteConfig.GetTagPanelPosition();
 
             if (typeof(ActEditor) == ParentForm.GetType())
             {
@@ -1392,13 +1396,13 @@ namespace ActivityEditor.Engine
             int cnt = rnd.Next(999999);
             ActEditor tmp = Program.actEditor;
             tmp.SuspendLayout();
-            PointF point = convertScreen2ViewCoord(lastContextMenuPos.X, lastContextMenuPos.Y);
+            PointF point = ConvertScreen2ViewCoord(lastContextMenuPos.X, lastContextMenuPos.Y);
             MSTSCoord coord = new MSTSCoord(point);
-            StationItem station = new StationItem(ViewerMode, Simulator.traveller);
+            StationItem station = new StationItem(ViewerMode, Simulator.Traveller);
             station.ConfigCoord(coord);
             station.setNameStation(cnt);
             aeConfig.AddORItem(station);
-            System.Drawing.Point current = aeConfig.aeRouteConfig.GetStationPanelPosition();
+            System.Drawing.Point current = aeConfig.AERouteConfig.GetStationPanelPosition();
 
             if (typeof(ActEditor) == ParentForm.GetType())
             {
@@ -1443,14 +1447,14 @@ namespace ActivityEditor.Engine
 
             ActEditor tmp = Program.actEditor;
             tmp.SuspendLayout();
-            PointF point = convertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
+            PointF point = ConvertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
             dist = DrawUtility.FindDistanceToSegment(point, segment, out closest);
             MSTSCoord coord = new MSTSCoord(closest);
             StartActivity newStart = new StartActivity(aeConfig);
             newStart.ShowDialog();
             ActStartItem actStart = new ActStartItem(ViewerMode);
             actStart.ConfigCoord(coord);
-            actStart.setNameStart(cnt);
+            actStart.SetNameStart(cnt);
             aeConfig.AddORItem(actStart);
             aeConfig.AddActItem(actStart);
             tmp.ResumeLayout(false);
@@ -1464,7 +1468,7 @@ namespace ActivityEditor.Engine
             PointF closest = new PointF(0, 0);
             ActEditor tmp = Program.actEditor;
             tmp.SuspendLayout();
-            PointF point = convertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
+            PointF point = ConvertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
             dist = DrawUtility.FindDistanceToSegment(point, segment, out closest);
             MSTSCoord coord = new MSTSCoord(closest);
             tmp.ResumeLayout(false);
@@ -1479,7 +1483,7 @@ namespace ActivityEditor.Engine
 
             ActEditor tmp = Program.actEditor;
             tmp.SuspendLayout();
-            PointF point = convertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
+            PointF point = ConvertScreen2ViewCoord(CurrentMousePosition.X, CurrentMousePosition.Y);
             dist = DrawUtility.FindDistanceToSegment(point, segment, out closest);
             MSTSCoord coord = new MSTSCoord(closest);
             WaitActivity newWait = new WaitActivity();
@@ -1487,7 +1491,7 @@ namespace ActivityEditor.Engine
             newWait.ShowDialog();
             ActWaitItem actWait = new ActWaitItem(ViewerMode);
             actWait.ConfigCoord(coord);
-            actWait.setNameWait(cnt);
+            actWait.SetNameWait(cnt);
             aeConfig.AddORItem(actWait);
             aeConfig.AddActItem(actWait);
             tmp.ResumeLayout(false);
@@ -1513,7 +1517,7 @@ namespace ActivityEditor.Engine
                     AddStationArea();
                     break;
                 case (int)ToolClicked.START:
-                    item = findSegmentFromMouse(CurrentMousePosition);
+                    item = FindSegmentFromMouse(CurrentMousePosition);
                     if (item != null &&
                         item.GetType () == typeof (TrackSegment) &&
                         ((TrackSegment)item).isSnap ())
@@ -1522,7 +1526,7 @@ namespace ActivityEditor.Engine
                     }
                     break;
                 case (int)ToolClicked.STOP:
-                    item = findSegmentFromMouse(CurrentMousePosition);
+                    item = FindSegmentFromMouse(CurrentMousePosition);
                     if (item != null &&
                         item.GetType () == typeof (TrackSegment) &&
                         ((TrackSegment)item).isSnap ())
@@ -1532,7 +1536,7 @@ namespace ActivityEditor.Engine
 
                     break;
                 case (int)ToolClicked.WAIT:
-                    item = findSegmentFromMouse(CurrentMousePosition);
+                    item = FindSegmentFromMouse(CurrentMousePosition);
                     if (item != null &&
                         item.GetType () == typeof (TrackSegment) &&
                         ((TrackSegment)item).isSnap())
@@ -1617,10 +1621,10 @@ namespace ActivityEditor.Engine
 
         //  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         #region utility
-        public PointF convertScreen2ViewCoord(float x, float y)
+        public PointF ConvertScreen2ViewCoord(float x, float y)
         {
             PointF val = new PointF(0, 0);
-            float scale = (float)getUsedScale();   //   
+            float scale = (float)GetUsedScale();   //   
             x = x * scale;
             y = (routeDrawing.Height - y) * scale;
             float tempX = x - Distant2Origin.Width;
@@ -1631,16 +1635,18 @@ namespace ActivityEditor.Engine
             return val;
         }
 
-        public System.Drawing.Point convertViewCoord2Screen(in MSTSCoord coord)
+        public System.Drawing.Point ConvertViewCoord2Screen(in MSTSCoord coord)
         {
-            return System.Drawing.Point.Truncate((PointF)convertViewCoord2ScreenF(coord));
+            return System.Drawing.Point.Truncate((PointF)ConvertViewCoord2ScreenF(coord));
         }
 
-        public PointF convertViewCoord2ScreenF(in MSTSCoord coord)
+        public PointF ConvertViewCoord2ScreenF(in MSTSCoord coord)
         {
-            PointF val = new PointF(0, 0);
-            val.X = (((coord.TileX * 2048f) + coord.X));    // - areaRoute.getMinX());
-            val.Y = (((coord.TileY * 2048f) + coord.Y));    // - areaRoute.getMinY());
+            PointF val = new PointF(0, 0)
+            {
+                X = (((coord.TileX * 2048f) + coord.X)),    // - areaRoute.getMinX());
+                Y = (((coord.TileY * 2048f) + coord.Y))    // - areaRoute.getMinY());
+            };
             val.X += Distant2Origin.Width;
             val.Y += Distant2Origin.Height;
             val.X /= usedScale;
@@ -1672,7 +1678,7 @@ namespace ActivityEditor.Engine
         {
         }
 
-        private void routeDrawing_Click(object sender, EventArgs e)
+        private void RouteDrawing_Click(object sender, EventArgs e)
         {
             /*
             this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.routeDrawingMouseWheel);
@@ -1700,7 +1706,7 @@ namespace ActivityEditor.Engine
             }
         }
 
-        private void refreshButton_Click(object sender, EventArgs e)
+        private void RefreshButton_Click(object sender, EventArgs e)
         {
             GenerateView();
         }
@@ -1724,7 +1730,7 @@ namespace ActivityEditor.Engine
         void CancelOperation()
         {
             if (itemToUpdate != null)
-                itemToUpdate.Complete(aeConfig.aeRouteConfig.orRouteConfig, aeConfig.aeItems, Simulator.mstsDataConfig.TileBase);
+                itemToUpdate.Complete(aeConfig.AERouteConfig.ORRouteConfig, aeConfig.AEItems, Simulator.MstsDataConfig.TileBase);
             itemToUpdate = null;
             Dragging = false;
             Zooming = false;
@@ -1733,96 +1739,88 @@ namespace ActivityEditor.Engine
             zoomed = false;
         }
 
-        public string getDescr()
-        {
-            return aeConfig.getActivityDescr();
-        }
+        public string Descr { get => aeConfig.GetActivityDescr(); set => aeConfig.SetActivityDescr(value); }
 
-        public void setDescr(string info)
-        {
-            aeConfig.setActivityDescr(info);
-        }
-
-        protected void loadIcon()
+        protected void LoadIcon()
         {
             Stream st;
             Assembly a = Assembly.GetExecutingAssembly();
             string[] resName = a.GetManifestResourceNames();
-            st = a.GetManifestResourceStream("ActivityEditor.icon.tag.ico");
+            st = a.GetManifestResourceStream("Orts.ActivityEditor.icon.tag.ico");
             TagIcon = new System.Drawing.Icon(st);
-            st = a.GetManifestResourceStream("ActivityEditor.icon.SignalBox.ico");
+            st = a.GetManifestResourceStream("Orts.ActivityEditor.icon.SignalBox.ico");
             StationIcon = new System.Drawing.Icon(st);
-            st = a.GetManifestResourceStream("ActivityEditor.icon.signal.ico");
+            st = a.GetManifestResourceStream("Orts.ActivityEditor.icon.signal.ico");
             SignalIco = new System.Drawing.Icon(st);
-            st = a.GetManifestResourceStream("ActivityEditor.icon.signalShunt.ico");
+            st = a.GetManifestResourceStream("Orts.ActivityEditor.icon.signalShunt.ico");
             ShuntIco = new System.Drawing.Icon(st);
-            st = a.GetManifestResourceStream("ActivityEditor.icon.signalOther.ico");
+            st = a.GetManifestResourceStream("Orts.ActivityEditor.icon.signalOther.ico");
             OtherSigIco = new System.Drawing.Icon(st);
-            st = a.GetManifestResourceStream("ActivityEditor.icon.speedLimit.ico");
+            st = a.GetManifestResourceStream("Orts.ActivityEditor.icon.speedLimit.ico");
             SpeedIco = new System.Drawing.Icon(st);
-            st = a.GetManifestResourceStream("ActivityEditor.icon.signalRepeat.ico");
+            st = a.GetManifestResourceStream("Orts.ActivityEditor.icon.signalRepeat.ico");
             RepeatIco = new System.Drawing.Icon(st);
-            st = a.GetManifestResourceStream("ActivityEditor.icon.StationConnector.ico");
+            st = a.GetManifestResourceStream("Orts.ActivityEditor.icon.StationConnector.ico");
             StationConnector = new System.Drawing.Icon(st);
 
-            st = a.GetManifestResourceStream("ActivityEditor.icon.Ruler.png");
+            st = a.GetManifestResourceStream("Orts.ActivityEditor.icon.Ruler.png");
             Ruler = Image.FromStream(st);
 
         }
 
-        private GlobalItem findItemFromEvent(MouseEventArgs e)
+        private GlobalItem FindItemFromEvent(MouseEventArgs e)
         {
-            PointF pt = convertScreen2ViewCoord(e.X, e.Y);
-            GlobalItem item = findItemFromCoord(pt);
+            PointF pt = ConvertScreen2ViewCoord(e.X, e.Y);
+            GlobalItem item = FindItemFromCoord(pt);
             return item;
         }
 
-        private GlobalItem findSegmentFromMouse(System.Drawing.Point CurrentMousePosition)
+        private GlobalItem FindSegmentFromMouse(System.Drawing.Point CurrentMousePosition)
         {
             GlobalItem item = null;
-            if (aeItems != null)
+            if (AEItems != null)
             {
-                PointF pt = convertScreen2ViewCoord((float)CurrentMousePosition.X, (float)CurrentMousePosition.Y);
-                item = aeItems.findSegmentFromMouse(pt, (double)(Program.aePreference.getSnapCircle()/2));
+                PointF pt = ConvertScreen2ViewCoord((float)CurrentMousePosition.X, (float)CurrentMousePosition.Y);
+                item = AEItems.findSegmentFromMouse(pt, (double)(Program.AePreference.SnapCircle/2));
                 // sideItem = aeItems.findSegmentFromMouse(pt, snapSize);
             }
             return item;
         }
 
-        private GlobalItem findSegmentFromCoord(PointF pt)
+        private GlobalItem FindSegmentFromCoord(PointF pt)
         {
             GlobalItem item = null;
-            if (aeItems != null)
+            if (AEItems != null)
             {
-                item = aeItems.findSegmentFromMouse(pt, snapSize);
+                item = AEItems.findSegmentFromMouse(pt, SnapSize);
             }
             return item;
         }
 
-        public GlobalItem findItemFromMouse(PointF point)
+        public GlobalItem FindItemFromMouse(PointF point)
         {
-            if (Simulator.orRouteConfig == null || aeItems == null)
+            if (Simulator.orRouteConfig == null || AEItems == null)
             {
                 return null;
             }
-            findSegmentFromMouse(CurrentMousePosition);
-            PointF pt = convertScreen2ViewCoord((float)point.X, (float)point.Y);
+            FindSegmentFromMouse(CurrentMousePosition);
+            PointF pt = ConvertScreen2ViewCoord((float)point.X, (float)point.Y);
             //PointF tf2 = new PointF(0f, 0f);
             //GlobalItem componentItem = Simulator.orRouteConfig.findMetadataItem(pt, snapSize, aeItems);
-            GlobalItem item = Simulator.orRouteConfig.FindMetadataItem(pt, (double)(Program.aePreference.getSnapCircle()/2), aeItems);
+            GlobalItem item = Simulator.orRouteConfig.FindMetadataItem(pt, (double)(Program.AePreference.SnapCircle/2), AEItems);
             return item;
         }
 
-        public GlobalItem findItemFromCoord(PointF pt)
+        public GlobalItem FindItemFromCoord(PointF pt)
         {
             GlobalItem item;
             GlobalItem segmentItem;
-            if (Simulator.orRouteConfig == null || aeItems == null)
+            if (Simulator.orRouteConfig == null || AEItems == null)
             {
                 return null;
             }
-            segmentItem = findSegmentFromMouse(CurrentMousePosition);
-            item = Simulator.orRouteConfig.FindMetadataItem(pt, (double)(Program.aePreference.getSnapCircle() / 2), aeItems);
+            segmentItem = FindSegmentFromMouse(CurrentMousePosition);
+            item = Simulator.orRouteConfig.FindMetadataItem(pt, (double)(Program.AePreference.SnapCircle / 2), AEItems);
             if (item == null && segmentItem != null && segmentItem.IsEditable())
             {
                 return segmentItem;
@@ -1836,8 +1834,8 @@ namespace ActivityEditor.Engine
             if ((Last.X == e.X) && (Last.Y == e.Y))
             {
                 Predicate<GlobalItem> match = null;
-                PointF pt = convertScreen2ViewCoord(e.X, e.Y);
-                GlobalItem item = findItemFromCoord(pt);
+                PointF pt = ConvertScreen2ViewCoord(e.X, e.Y);
+                GlobalItem item = FindItemFromCoord(pt);
                 if ((item != null) && (item.GetType() == typeof(TagItem)))
                 {
                     Predicate<TagWidgetInfo> predicate = null;
@@ -1852,7 +1850,7 @@ namespace ActivityEditor.Engine
                         {
                             predicate = place => place.TagName.Name == info.nameTag;
                         }
-                        TagWidgetInfo infoTag = aeConfig.findTagWidget(predicate);
+                        TagWidgetInfo infoTag = aeConfig.FindTagWidget(predicate);
                     }
                 }
             }
@@ -1865,12 +1863,12 @@ namespace ActivityEditor.Engine
             this.Cursor = Cursors.Default;
             if (info == ToolClicked.AREA_ADD)
             {   //  To prevent bad setting
-                ToolToUse = global::ActivityEditor.Properties.Resources._64;
+                ToolToUse = global::Orts.ActivityEditor.Properties.Resources._64;
                 CursorToUse = reduit;
             }
             else if (info == ToolClicked.AREA)
             {
-                ToolToUse = global::ActivityEditor.Properties.Resources._32;
+                ToolToUse = global::Orts.ActivityEditor.Properties.Resources._32;
                 CursorToUse = reduit;
             }
             else if (info == ToolClicked.DRAG)
@@ -1885,27 +1883,27 @@ namespace ActivityEditor.Engine
             }
             else if (info == ToolClicked.MOVE)
             {
-                ToolToUse = global::ActivityEditor.Properties.Resources.object_move;
+                ToolToUse = global::Orts.ActivityEditor.Properties.Resources.object_move;
                 CursorToUse = Cursors.Default;
             }
             else if (info == ToolClicked.ROTATE)
             {
-                ToolToUse = global::ActivityEditor.Properties.Resources.object_rotate;
+                ToolToUse = global::Orts.ActivityEditor.Properties.Resources.object_rotate;
                 CursorToUse = reduit;
             }
             else if (info == ToolClicked.TAG)
             {
-                ToolToUse = global::ActivityEditor.Properties.Resources.tag;
+                ToolToUse = global::Orts.ActivityEditor.Properties.Resources.tag;
                 CursorToUse = reduit;
             }
             else if (info == ToolClicked.METASEGMENT)
             {
-                ToolToUse = global::ActivityEditor.Properties.Resources.metasegment;
+                ToolToUse = global::Orts.ActivityEditor.Properties.Resources.metasegment;
                 CursorToUse = reduit;
             }
             else if (info == ToolClicked.STATION)
             {
-                ToolToUse = global::ActivityEditor.Properties.Resources.SignalBox;
+                ToolToUse = global::Orts.ActivityEditor.Properties.Resources.SignalBox;
                 CursorToUse = reduit;
             }
             else
@@ -2068,10 +2066,7 @@ namespace ActivityEditor.Engine
             tagWidget = tag;
         }
 
-        public System.Windows.Forms.GroupBox getTag()
-        {
-            return OneTagGB;
-        }
+        public GroupBox GetTag() => OneTagGB;
 
     }
 
@@ -2155,7 +2150,7 @@ namespace ActivityEditor.Engine
 
             stationWidget = station;
         }
-        public System.Windows.Forms.GroupBox getStation()
+        public GroupBox GetStation()
         {
             return OneStationGB;
         }

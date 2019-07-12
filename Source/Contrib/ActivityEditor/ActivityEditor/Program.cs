@@ -26,11 +26,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using ActivityEditor.Internat;
-using ActivityEditor.Preference;
+using Orts.ActivityEditor.Engine;
+using Orts.ActivityEditor.Internat;
+using Orts.ActivityEditor.Preference;
 using Orts.Settings;
 
-namespace ActivityEditor
+namespace Orts.ActivityEditor
 {
     static class Program
     {
@@ -39,7 +40,7 @@ namespace ActivityEditor
         public static string RegistryKey;     // ie @"SOFTWARE\OpenRails\ActivityEditor"
         public static string UserDataFolder;  // ie @"F:\Users\Wayne\AppData\Roaming\Open Rails"
         public static ActEditor actEditor;
-        public static AEPreference aePreference { get; set; }
+        public static AEPreference AePreference { get; set; }
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -94,16 +95,16 @@ namespace ActivityEditor
                 Console.WriteLine("Season     = {0}", args[3]);
                 Console.WriteLine("Weather    = {0}", args[4]);
             }
-            aePreference = AEPreference.loadXml();
-            aePreference.CompleteSettings(settings);
+            AePreference = AEPreference.LoadXml();
+            AePreference.CompleteSettings(settings);
             Arguments = args;
             //  PseudoSim va gérer l'ensemble du système
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             actEditor = new ActEditor();
-            aePreference.ActEditor = actEditor;
+            AePreference.ActEditor = actEditor;
             Application.Run(actEditor);
-            Program.aePreference.orConfig.SaveConfig();
+            Program.AePreference.orConfig.SaveConfig();
 
 
             //Simulator = new PseudoSim(settings);

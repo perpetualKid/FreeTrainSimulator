@@ -21,20 +21,20 @@ using System.Reflection;
 using System.Resources;
 using Orts.Settings;
 
-namespace ActivityEditor.Internat
+namespace Orts.ActivityEditor.Internat
 {
     public class IntalMngr
     {
         private ResourceManager resMan;
-        private CultureInfo EnglishCulture;
-        private CultureInfo FrenchCulture;
+        private readonly CultureInfo EnglishCulture;
+        private readonly CultureInfo FrenchCulture;
 
         public IntalMngr(UserSettings settings)
         {
             EnglishCulture = new CultureInfo("en");
             FrenchCulture = new CultureInfo("fr-FR");
             CultureInfo.DefaultThreadCurrentUICulture = EnglishCulture;
-            resMan = new ResourceManager("ActivityEditor.ActEditor", Assembly.GetExecutingAssembly());
+            resMan = new ResourceManager("Orts.ActivityEditor.Engine.ActEditor", Assembly.GetExecutingAssembly());
         }
 
         public string GetString(string name)

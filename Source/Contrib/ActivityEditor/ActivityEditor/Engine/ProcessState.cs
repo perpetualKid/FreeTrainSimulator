@@ -25,7 +25,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace ActivityEditor.Engine
+namespace Orts.ActivityEditor.Engine
 {
     public class ProcessState
     {

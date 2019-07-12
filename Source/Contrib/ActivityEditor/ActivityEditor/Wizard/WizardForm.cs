@@ -7,16 +7,11 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-
-using System.IO;
 using System.Drawing;
 using System.Windows.Forms;
-using LibAE;
-using LibAE.Formats;
-using Orts.Formats.OR;
+using Orts.ActivityEditor.Base.Formats;
 
-namespace AEWizard
+namespace Orts.ActivityEditor.Wizard
 {
     /// <summary>
     /// Used to identify the various buttons that may appear within a wizard
@@ -51,8 +46,8 @@ namespace AEWizard
     /// </summary>
     public class WizardForm : Form
 	{
-        ActivityInfo activityInfo;
-        RouteInfo routeInfo;
+        private readonly ActivityInfo activityInfo;
+        private readonly RouteInfo routeInfo;
         // ==================================================================
         // Public Constants
         // ==================================================================
@@ -137,12 +132,16 @@ namespace AEWizard
 			// Required for Windows Form Designer support
 			InitializeComponent();
             activityInfo = activity;
-            wiz1 = new ActivityDescr();
-            wiz1.activityInfo = activity;
-            wiz1.completePage();
-            wiz2 = new TrainInfo();
-            wiz2.activityInfo = activity;
-            wiz2.completePage();
+            wiz1 = new ActivityDescr
+            {
+                ActivityInfo = activity
+            };
+            wiz1.CompletePage();
+            wiz2 = new TrainInfo
+            {
+                ActivityInfo = activity
+            };
+            wiz2.CompletePage();
             Controls.AddRange(new Control[] 
             {
                 wiz1, wiz2
@@ -154,9 +153,11 @@ namespace AEWizard
         {
             InitializeComponent();
             routeInfo = info;
-            wiz3 = new SelectRoute();
-            wiz3.routeInfo = info;
-            wiz3.completePage();
+            wiz3 = new SelectRoute
+            {
+                RouteInfo = info
+            };
+            wiz3.CompletePage();
             Controls.AddRange(new Control[]
             {
                 wiz3
@@ -395,17 +396,16 @@ namespace AEWizard
         {
             // Invoke base class implementation
             base.OnControlAdded( e );
-            
+
             // Set default properties for all WizardPage instances added to
             // this form
-            SinglePage page = e.Control as SinglePage;
-            if( page != null )
+            if (e.Control is SinglePage page)
             {
                 page.Visible = false;
-                page.Location = new Point( 0, 0 );
-                page.Size = new Size( Width, m_separator.Location.Y );
-                m_pages.Add( page );
-                if( m_selectedIndex == -1 )
+                page.Location = new Point(0, 0);
+                page.Size = new Size(Width, m_separator.Location.Y);
+                m_pages.Add(page);
+                if (m_selectedIndex == -1)
                     m_selectedIndex = 0;
             }
         }

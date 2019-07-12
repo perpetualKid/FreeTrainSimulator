@@ -1,10 +1,8 @@
-﻿using System;
+﻿using System.Linq;
 using System.Windows.Forms;
-using System.Linq;
-using LibAE;
-using LibAE.Formats;
+using Orts.ActivityEditor.Base.Formats;
 
-namespace AEWizard
+namespace Orts.ActivityEditor.Wizard
 {
     public partial class TrainInfo : SinglePage
     {
@@ -15,16 +13,16 @@ namespace AEWizard
         private Label label2;
         private TextBox TrainInfoTB1;
 
-        public ActivityInfo activityInfo { get; set; }
+        public ActivityInfo ActivityInfo { get; set; }
 
         public TrainInfo()
         {
             InitializeComponent();
         }
 
-        public void completePage()
+        public void CompletePage()
         {
-            this.trainConsistCB.DataSource = activityInfo.trainConsists.Select(o => o.consistName).ToList();
+            this.trainConsistCB.DataSource = ActivityInfo.TrainConsists.Select(o => o.consistName).ToList();
         }
                 // ==================================================================
         // Protected Properties

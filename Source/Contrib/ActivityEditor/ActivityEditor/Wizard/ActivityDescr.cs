@@ -1,14 +1,13 @@
 using System;
 using System.Windows.Forms;
-using LibAE;
-using LibAE.Formats;
+using Orts.ActivityEditor.Base.Formats;
 
-namespace AEWizard
+namespace Orts.ActivityEditor.Wizard
 {
-	/// <summary>
-	/// Represents a single page within a wizard dialog.
-	/// </summary>
-	public class ActivityDescr : SinglePage
+    /// <summary>
+    /// Represents a single page within a wizard dialog.
+    /// </summary>
+    public class ActivityDescr : SinglePage
     {
         private Panel panel1;
         private TextBox textBox1;
@@ -20,7 +19,7 @@ namespace AEWizard
         private ComboBox routePathCB;
 
         public String RoutePath;
-        public ActivityInfo activityInfo { get; set; }
+        public ActivityInfo ActivityInfo { get; set; }
        // ==================================================================
         // Public Constructors
         // ==================================================================
@@ -36,9 +35,9 @@ namespace AEWizard
             
 		}
 
-        public void completePage()
+        public void CompletePage()
         {
-            this.routePathCB.DataSource = activityInfo.routePaths;
+            this.routePathCB.DataSource = ActivityInfo.RoutePaths;
         }
 
         // ==================================================================
@@ -261,9 +260,9 @@ namespace AEWizard
             // Move to the default next page in the wizard
             if (routePathCB.Text.Length <= 0)
                 return WizardForm.NoPageChange;
-            activityInfo.RoutePath = routePathCB.Text;
-            activityInfo.ActivityName = activityNameCB.Text;
-            activityInfo.ActivityDescr = ActivityDescrCB.Text;
+            ActivityInfo.RoutePath = routePathCB.Text;
+            ActivityInfo.ActivityName = activityNameCB.Text;
+            ActivityInfo.ActivityDescr = ActivityDescrCB.Text;
 
             return WizardForm.NextPage;
         }
