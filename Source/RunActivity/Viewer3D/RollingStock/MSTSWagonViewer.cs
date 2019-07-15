@@ -71,6 +71,7 @@ namespace Orts.Viewer3D.RollingStock
         // Create viewers for special steam/smoke effects on car
         List<ParticleEmitterViewer> HeatingHose = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WaterScoop = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> WaterScoopReverse = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> TenderWaterOverflow = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WagonSmoke = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> HeatingSteamBoiler = new List<ParticleEmitterViewer>();
@@ -151,11 +152,21 @@ namespace Orts.Viewer3D.RollingStock
 
 
                 // Water spray for when water scoop is in use (use steam effects for the time being)
-
+                // Forward motion
                 if (emitter.Key.ToLowerInvariant() == "waterscoopfx")
                     WaterScoop.AddRange(emitter.Value);
-
+                
                 foreach (var drawer in WaterScoop)
+                {
+                    drawer.Initialize(steamTexture);
+                }
+                
+                // Reverse motion
+                
+                if (emitter.Key.ToLowerInvariant() == "waterscoopreversefx")
+                    WaterScoopReverse.AddRange(emitter.Value);
+                
+                foreach (var drawer in WaterScoopReverse)
                 {
                     drawer.Initialize(steamTexture);
                 }
@@ -523,10 +534,21 @@ namespace Orts.Viewer3D.RollingStock
                drawer.SetOutput(car.BearingHotBoxSmokeVelocityMpS, car.BearingHotBoxSmokeVolumeM3pS, car.BearingHotBoxSmokeDurationS, car.BearingHotBoxSmokeSteadyColor);
             }
 
-            // Water spray for water sccop (uses steam effects currently)
-            foreach (var drawer in WaterScoop)
+            // Water spray for water sccop (uses steam effects currently) - Forward direction
+            if (car.Direction == Direction.Forward)
             {
-                drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+                foreach (var drawer in WaterScoop)
+                {
+                    drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+                }
+            }
+            // If travelling in reverse turn on rearward facing effect
+            else if (car.Direction == Direction.Reverse)
+            {
+                foreach (var drawer in WaterScoopReverse)
+                {
+                    drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+                }
             }
 
             // Water overflow from tender (uses steam effects currently)

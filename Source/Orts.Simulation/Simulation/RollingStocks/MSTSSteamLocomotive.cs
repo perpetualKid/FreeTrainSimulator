@@ -936,7 +936,6 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(FireMassKG);
             outf.Write(FlueTempK);
             outf.Write(SteamGearPosition);
-            outf.Write(ScoopIsBroken);
             ControllerFactory.Save(CutoffController, outf);
             ControllerFactory.Save(Injector1Controller, outf);
             ControllerFactory.Save(Injector2Controller, outf);
@@ -1000,7 +999,6 @@ namespace Orts.Simulation.RollingStocks
             FireMassKG = inf.ReadSingle();
             FlueTempK = inf.ReadSingle();
             SteamGearPosition = inf.ReadSingle();
-            ScoopIsBroken = inf.ReadBoolean();
             ControllerFactory.Restore(CutoffController, inf);
             ControllerFactory.Restore(Injector1Controller, inf);
             ControllerFactory.Restore(Injector2Controller, inf);
