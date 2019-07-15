@@ -808,7 +808,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         var m = Hazzard.HazFile.Tr_HazardFile.Speed * elapsedTime.ClockSeconds;
                         Moved += m;
                         this.HazardObj.Position.Move(this.HazardObj.QDirection, m);
-                        Location.SetLocation(HazardObj.Position.X, HazardObj.Position.Y, HazardObj.Position.Z);
+                        Location = Location.SetLocation(HazardObj.Position.X, HazardObj.Position.Y, HazardObj.Position.Z);
                     }
                     else { Moved = 0; Hazzard.state = Hazzard.State.Idle1; }
                     break;

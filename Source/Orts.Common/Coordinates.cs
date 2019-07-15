@@ -311,8 +311,7 @@ namespace Orts.Common
         /// </summary>
         public override string ToString()
         {
-            return string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                $"{{TileX:{TileX} TileZ:{TileZ} X:{Location.X} Y:{Location.Y} Z:{Location.Z}}}");
+            return $"{{TileX:{TileX} TileZ:{TileZ} X:{Location.X} Y:{Location.Y} Z:{Location.Z}}}";
         }
 
         /// <summary>
