@@ -737,6 +737,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // Get the current height above "sea level" for the relevant car
             Car.CarHeightAboveGroundM = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
 
+            //TODO - quick fix to keep the shape in sync with car position
+            TrainCarShape.Location = Car.WorldPosition;
+
             // Control visibility of passenger cabin when inside it
             if (Viewer.Camera.AttachedCar == this.MSTSWagon
                  && //( Viewer.ViewPoint == Viewer.ViewPoints.Cab ||  // TODO, restore when we complete cab views - 
