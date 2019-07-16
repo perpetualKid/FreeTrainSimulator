@@ -1004,7 +1004,7 @@ namespace Orts.ActivityRunner.Viewer3D
     public class RoadCarShape : AnimatedShape
     {
         public RoadCarShape(Viewer viewer, string path)
-            : base(viewer, path, new WorldPosition())
+            : base(viewer, path, WorldPosition.None)
         {
         }
     }
