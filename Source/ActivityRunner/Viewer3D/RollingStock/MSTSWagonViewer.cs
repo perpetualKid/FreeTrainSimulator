@@ -739,6 +739,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             //TODO - quick fix to keep the shape in sync with car position
             TrainCarShape.Location = Car.WorldPosition;
+            if (null !=InteriorShape)
+                InteriorShape.Location = Car.WorldPosition;
 
             // Control visibility of passenger cabin when inside it
             if (Viewer.Camera.AttachedCar == this.MSTSWagon
