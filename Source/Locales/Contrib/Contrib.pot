@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2018-10-10 21:29:21+0100\n"
-"PO-Revision-Date: 2018-10-10 21:29:22+0100\n"
+"POT-Creation-Date: 2019-07-17 06:08:56+0200\n"
+"PO-Revision-Date: 2019-07-17 06:08:59+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -11,27 +11,27 @@ msgstr ""
 "X-Generator: MonoDevelop Gettext addin\n"
 
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.cs:17
+#: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.cs:13
 #: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.Designer.cs:89
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:555
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:556
 #: ../../Contrib/ActivityEditor/ActivityEditor/Preference/Options.Designer.cs:287
 msgid "Activity Editor"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.cs:18
+#: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.cs:14
 msgid "0.1"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.cs:19
+#: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.cs:15
 #: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.Designer.cs:136
 msgid "Copyright by Open Rails project"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.cs:20
+#: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.cs:16
 msgid "OR"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.cs:21
+#: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.cs:17
 #: ../../Contrib/ActivityEditor/ActivityEditor/AboutActEdit.Designer.cs:125
 msgid ""
 "Tool intended for the creation of activities for the Open simulator Rail."
@@ -56,9 +56,9 @@ msgstr ""
 #: ../../Contrib/ActivityEditor/ActivityEditor/Activity/StartActivity.Designer.cs:390
 #: ../../Contrib/ActivityEditor/ActivityEditor/Activity/WaitActivity.Designer.cs:56
 #: ../../Contrib/ActivityEditor/ActivityEditor/Preference/Options.Designer.cs:519
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/BufferInterface.Designer.cs:110
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/ConnectorInterface.Designer.cs:48
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/TrackSegmentInterface.Designer.cs:42
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/BufferInterface.Designer.cs:110
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/ConnectorInterface.Designer.cs:48
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/TrackSegmentInterface.Designer.cs:42
 #: ../../Contrib/TrackViewer/Drawing/Labels/EditLabel.xaml:13
 msgid "OK"
 msgstr ""
@@ -112,8 +112,7 @@ msgstr ""
 #: ../../Contrib/ActivityEditor/ActivityEditor/Activity/StartActivity.Designer.cs:100
 #: ../../Contrib/ActivityEditor/ActivityEditor/Activity/StartActivity.Designer.cs:111
 #: ../../Contrib/ActivityEditor/ActivityEditor/Activity/StartActivity.Designer.cs:339
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/ActivityDescr.cs:92
-#: ../../Contrib/ActivityEditor/AEWizard/ActivityDescr.cs:92
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/ActivityDescr.cs:91
 msgid "Activity Description"
 msgstr ""
 
@@ -126,15 +125,15 @@ msgstr ""
 #: ../../Contrib/ActivityEditor/ActivityEditor/Activity/StartActivity.Designer.cs:257
 #: ../../Contrib/ActivityEditor/ActivityEditor/Activity/StartActivity.Designer.cs:359
 #: ../../Contrib/ActivityEditor/ActivityEditor/Preference/Options.Designer.cs:295
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/BufferInterface.Designer.cs:82
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/ConnectorInterface.Designer.cs:76
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/BufferInterface.Designer.cs:82
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/ConnectorInterface.Designer.cs:76
 msgid "Remove"
 msgstr ""
 
 #: ../../Contrib/ActivityEditor/ActivityEditor/Activity/StartActivity.Designer.cs:140
 #: ../../Contrib/ActivityEditor/ActivityEditor/Activity/StartActivity.Designer.cs:273
 #: ../../Contrib/ActivityEditor/ActivityEditor/Activity/StartActivity.Designer.cs:368
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:199
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:200
 msgid "Edit"
 msgstr ""
 
@@ -191,194 +190,194 @@ msgstr ""
 msgid "WaitActivity"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.cs:530
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.cs:523
 msgid "NoMoreAct"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:106
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:107
 msgid "menuStrip1"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:119
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/SimpleTextEd.Designer.cs:62
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:120
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/SimpleTextEd.Designer.cs:56
 msgid "File"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:128
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:129
 msgid "New"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:135
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:292
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.Designer.cs:117
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:136
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:293
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.Designer.cs:132
 msgid "Activity"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:143
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:144
 msgid "Traffic"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:154
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/SimpleTextEd.Designer.cs:68
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:155
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/SimpleTextEd.Designer.cs:62
 msgid "Save"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:161
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:162
 msgid "Metadata"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:169
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:170
 msgid "Save As"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:176
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:177
 msgid "Load Activity"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:184
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:185
 msgid "Load Metada"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:192
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:83
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:193
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:83
 msgid "Quit"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:208
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:209
 msgid "Tools"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:214
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:215
 #: ../../Contrib/ActivityEditor/ActivityEditor/Preference/Options.Designer.cs:532
 msgid "Options"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:221
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:222
 msgid "Import"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:229
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:230
 msgid "Help"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:235
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:236
 msgid "About Activity Editor"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:246
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:247
 msgid "statusStrip1"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:252
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:253
 msgid "Status"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:302
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2025
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2127
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:303
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2016
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2115
 msgid "v"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:312
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:313
 msgid "Edit Description"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:370
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:371
 msgid "Add Station Area"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:380
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:273
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:381
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:273
 msgid "Station Configuration"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:389
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:390
 msgid "Add Tag"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:399
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:400
 msgid "Add Station"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:409
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:410
 msgid "Edit MetaSegment"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:431
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:432
 msgid "Move"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:441
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:442
 msgid "Rotate"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:468
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:469
 msgid "Activity Start"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:478
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:479
 msgid "Activity Stop"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:488
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:489
 msgid "Waiting Point"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:498
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:499
 msgid "Action Point"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:508
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:509
 msgid "Action Check"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:518
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:519
 msgid "toolStripButton10"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:136
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:137
 msgid "Click to start new Activity Description (not ready)"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:144
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:145
 msgid "Click to create new Traffic description (not ready)"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:177
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:178
 msgid "Click to load an existing OR Activity (not ready)"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:185
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/ActEditor.Designer.cs:186
 msgid "Click to Edit Metadata for a specified route"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/SimpleTextEd.Designer.cs:85
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/SimpleTextEd.Designer.cs:79
 msgid "Form1"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:163
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:156
 msgid "Route MetaData"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2003
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2092
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:1994
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2080
 msgid "Display"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2014
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2116
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2005
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2104
 msgid "x"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2040
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2031
 msgid "Tag"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2106
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.cs:2094
 msgid "Station"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.Designer.cs:107
+#: ../../Contrib/ActivityEditor/ActivityEditor/Engine/Viewer2D.Designer.cs:122
 msgid "Center view"
 msgstr ""
 
@@ -479,214 +478,188 @@ msgstr ""
 msgid "Configuration for Generic Auxiliary Actions"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/BufferInterface.cs:34
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/ConnectorInterface.cs:58
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/TrackSegmentInterface.cs:29
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/BufferInterface.cs:27
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/ConnectorInterface.cs:51
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/TrackSegmentInterface.cs:23
 msgid "Please, give a name"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/BufferInterface.Designer.cs:56
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/ConnectorInterface.Designer.cs:104
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/BufferInterface.Designer.cs:56
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/ConnectorInterface.Designer.cs:104
 msgid "TC Section : "
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/BufferInterface.Designer.cs:73
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/BufferInterface.Designer.cs:73
 msgid "Buffer Label : "
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/BufferInterface.Designer.cs:93
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/BufferInterface.Designer.cs:93
 msgid "Buffer Direction : "
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/BufferInterface.Designer.cs:128
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/BufferInterface.Designer.cs:128
 msgid "BufferInterface"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/ConnectorInterface.cs:49
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/ConnectorInterface.cs:42
 msgid "Not yet implemented"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/ConnectorInterface.Designer.cs:67
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/ConnectorInterface.Designer.cs:67
 msgid "Connection Direction : "
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/ConnectorInterface.Designer.cs:87
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/ConnectorInterface.Designer.cs:87
 msgid "Connection Label : "
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/ConnectorInterface.Designer.cs:130
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/ConnectorInterface.Designer.cs:130
 msgid "Station Route Interface"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.cs:39
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.cs:32
 msgid "Please Load Paths:"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.cs:43
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.cs:36
 msgid "List of Paths seems OK:"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.cs:120
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.cs:113
 msgid "###"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.cs:162
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.cs:155
 msgid "Loaded:"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:94
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:94
 msgid "Station :"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:163
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:163
 msgid "From"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:174
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:174
 msgid " To "
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:185
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:185
 msgid "Max. Platform Length"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:196
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:196
 msgid "Max. Siding Length"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:207
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:207
 msgid "Number of Platform"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:218
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:218
 msgid "Number of Siding"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:229
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:229
 msgid "Max. Passing Length"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:248
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:248
 msgid "Load Paths"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/StationDisplay.Designer.cs:260
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/StationDisplay.Designer.cs:260
 msgid "label7"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/TrackSegmentInterface.Designer.cs:60
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/TrackSegmentInterface.Designer.cs:60
 msgid "Segment Label : "
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Route%20Metadata/TrackSegmentInterface.Designer.cs:71
+#: ../../Contrib/ActivityEditor/ActivityEditor/RouteData/TrackSegmentInterface.Designer.cs:71
 msgid "TrackSegmentInterface"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/ActivityDescr.cs:108
-#: ../../Contrib/ActivityEditor/AEWizard/ActivityDescr.cs:108
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/ActivityDescr.cs:107
 msgid "Activity Name"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/ActivityDescr.cs:124
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/SelectRoute.cs:69
-#: ../../Contrib/ActivityEditor/AEWizard/ActivityDescr.cs:124
-#: ../../Contrib/ActivityEditor/AEWizard/SelectRoute.cs:69
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/ActivityDescr.cs:123
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/SelectRoute.cs:66
 msgid "Route Path"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/ActivityDescr.cs:141
-#: ../../Contrib/ActivityEditor/AEWizard/ActivityDescr.cs:141
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/ActivityDescr.cs:140
 msgid "Activity Editor: Create new activity"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/SelectRoute.cs:48
-#: ../../Contrib/ActivityEditor/AEWizard/SelectRoute.cs:48
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/SelectRoute.cs:45
 msgid "Route Configuration: Select Route"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/TrainInfo.cs:175
-#: ../../Contrib/ActivityEditor/AEWizard/TrainInfo.cs:139
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/TrainInfo.cs:173
 msgid "Activity Editor: Specify Train Info"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/TrainInfo.cs:194
-#: ../../Contrib/ActivityEditor/AEWizard/TrainInfo.cs:158
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/TrainInfo.cs:192
 msgid "Select Train Consist"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/TrainInfo.cs:211
-#: ../../Contrib/ActivityEditor/AEWizard/TrainInfo.cs:175
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/TrainInfo.cs:209
 msgid "Train Name (Opt.)"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/WizardForm.cs:192
-#: ../../Contrib/ActivityEditor/AEWizard/WizardForm.cs:192
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/WizardForm.cs:193
 msgid "< &Back"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/WizardForm.cs:201
-#: ../../Contrib/ActivityEditor/AEWizard/WizardForm.cs:201
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/WizardForm.cs:202
 msgid "&Next >"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/WizardForm.cs:211
-#: ../../Contrib/ActivityEditor/AEWizard/WizardForm.cs:211
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/WizardForm.cs:212
 #: ../../Contrib/TrackViewer/Drawing/Labels/EditLabel.xaml:12
 #: ../../Contrib/TrackViewer/UserInterface/SearchControl.xaml:12
 msgid "Cancel"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/WizardForm.cs:220
-#: ../../Contrib/ActivityEditor/AEWizard/WizardForm.cs:220
+#: ../../Contrib/ActivityEditor/ActivityEditor/Wizard/WizardForm.cs:221
 msgid "&Finish"
 msgstr ""
 
-#: ../../Contrib/ActivityEditor/AEWizard/ExteriorWizardPage.cs:72
-msgid "Welcome to the Sample Setup Wizard"
-msgstr ""
-
-#: ../../Contrib/ActivityEditor/AEWizard/InteriorWizardPage.cs:105
-msgid "Sample Header Title"
-msgstr ""
-
-#: ../../Contrib/ActivityEditor/AEWizard/InteriorWizardPage.cs:114
-msgid ""
-"Sample header subtitle will help a user complete a certain task in the Sample "
-"wizard by clarifying the task in some way."
-msgstr ""
-
-#: ../../Contrib/ContentManager/ContentManagerGUI.cs:92
+#: ../../Contrib/ContentManager/ContentManagerGUI.cs:111
 msgid "Loading..."
 msgstr ""
 
-#: ../../Contrib/ContentManager/ContentManagerGUI.Designer.cs:115
+#: ../../Contrib/ContentManager/ContentManagerGUI.Designer.cs:117
 msgid "Open Rails Content Manager"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:626
+#: ../../Contrib/TrackViewer/TrackViewer.cs:627
 msgid ""
 "The path you are working on has un-saved changes.\n"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:628
+#: ../../Contrib/TrackViewer/TrackViewer.cs:629
 msgid "Do you really want to Quit?"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:731
+#: ../../Contrib/TrackViewer/TrackViewer.cs:733
 #, csharp-format
 msgid ""
 "Route cannot be loaded.\n"
 "Extension {0} is not supported"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:738
+#: ../../Contrib/TrackViewer/TrackViewer.cs:740
 #, csharp-format
 msgid ""
 "Route cannot be loaded.\n"
 "{0} does not exist"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:744
+#: ../../Contrib/TrackViewer/TrackViewer.cs:746
 #, csharp-format
 msgid ""
 "Route cannot be loaded.\n"
@@ -694,178 +667,178 @@ msgid ""
 "install folder but does not contain expected files"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:769
+#: ../../Contrib/TrackViewer/TrackViewer.cs:771
 #, csharp-format
 msgid ""
 "Route cannot be loaded.\n"
 "{0} somehow could not be translated into a loadable route"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:810
+#: ../../Contrib/TrackViewer/TrackViewer.cs:812
 msgid ""
 "Directory is not a valid install directory.\n"
 "The install directory needs to contain ROUTES, GLOBAL, ..."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:884
+#: ../../Contrib/TrackViewer/TrackViewer.cs:886
 msgid "Loading route..."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:909
+#: ../../Contrib/TrackViewer/TrackViewer.cs:911
 msgid "Route cannot be loaded. Sorry"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:980
+#: ../../Contrib/TrackViewer/TrackViewer.cs:982
 msgid "Loading .pat file ..."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:983
+#: ../../Contrib/TrackViewer/TrackViewer.cs:985
 msgid "Processing .pat file ..."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:1011
+#: ../../Contrib/TrackViewer/TrackViewer.cs:1013
 msgid "Path has been modified. Loading a new path will discard changes."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:1012
-#: ../../Contrib/TrackViewer/TrackViewer.cs:1093
+#: ../../Contrib/TrackViewer/TrackViewer.cs:1014
+#: ../../Contrib/TrackViewer/TrackViewer.cs:1095
 #: ../../Contrib/TrackViewer/Editing/SavePatFile.cs:99
 msgid "Do you want to continue?"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:1013
-#: ../../Contrib/TrackViewer/TrackViewer.cs:1094
+#: ../../Contrib/TrackViewer/TrackViewer.cs:1015
+#: ../../Contrib/TrackViewer/TrackViewer.cs:1096
 #: ../../Contrib/TrackViewer/Editing/SavePatFile.cs:85
 #: ../../Contrib/TrackViewer/Editing/SavePatFile.cs:102
 msgid "Trackviewer Path Editor"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:1090
+#: ../../Contrib/TrackViewer/TrackViewer.cs:1092
 msgid ""
 "This will open every single .pat file for this route, (try to) fix all broken "
 "nodes, and save the modified path. "
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:1091
+#: ../../Contrib/TrackViewer/TrackViewer.cs:1093
 msgid "Potentially it will therefore change all .pat files on disc."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/TrackViewer.cs:1092
+#: ../../Contrib/TrackViewer/TrackViewer.cs:1094
 msgid ""
 "This can be useful when a route has been changed and you want all paths to be "
 "corrected."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:81
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:80
 msgid "Select broken path color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:87
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:86
 msgid "Select path color (main)"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:99
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:98
 msgid "Select path color (siding)"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:139
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:138
 msgid "Select color for multi-colored straight tracks"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:140
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:139
 msgid "Select color for multi-colored curved tracks"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:141
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:140
 msgid "Select color for mono-colored tracks"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:142
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:141
 msgid "Select color for tracks on terrain"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:144
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:143
 msgid "Select color for multi-colored straight roads"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:145
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:144
 msgid "Select color for multi-colored curved roads"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:146
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:145
 msgid "Select color for mono-colored roads"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:147
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:146
 msgid "Select color for roads on terrain"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:155
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:154
 msgid "Select background color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:170
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:169
 msgid "Select text color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:182
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:181
 msgid "Select item text color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:187
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:186
 msgid "Select junction color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:192
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:191
 msgid "Select endnode color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:197
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:196
 msgid "Select siding color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:202
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:201
 msgid "Select crossing color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:207
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:206
 msgid "Select road crossing color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:212
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:211
 msgid "Select speedpost color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:291
+#: ../../Contrib/TrackViewer/Drawing/DrawColors.cs:290
 msgid "Select other-paths color"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawTerrain.cs:633
+#: ../../Contrib/TrackViewer/Drawing/DrawTerrain.cs:632
 #, csharp-format
 msgid "Loading terrain ace-files {0}-{1} (scaled down with a factor {2})"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawTerrain.cs:659
+#: ../../Contrib/TrackViewer/Drawing/DrawTerrain.cs:658
 msgid "Rescaling previously loaded ace-files"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawTrackDB.cs:61
+#: ../../Contrib/TrackViewer/Drawing/DrawTrackDB.cs:62
 msgid "Loading trackfile .trk ..."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawTrackDB.cs:65
+#: ../../Contrib/TrackViewer/Drawing/DrawTrackDB.cs:66
 msgid "Loading track database .tdb ..."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawTrackDB.cs:69
+#: ../../Contrib/TrackViewer/Drawing/DrawTrackDB.cs:70
 msgid "Loading tsection.dat ..."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawTrackDB.cs:83
+#: ../../Contrib/TrackViewer/Drawing/DrawTrackDB.cs:84
 msgid "Loading road track database .rdb ..."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Drawing/DrawTrackDB.cs:269
+#: ../../Contrib/TrackViewer/Drawing/DrawTrackDB.cs:270
 msgid "Finding the angles to draw signals, endnodes, ..."
 msgstr ""
 
@@ -982,31 +955,31 @@ msgstr ""
 msgid "Draw path until next broken point"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:760
+#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:761
 msgid ""
 "The selected path contains no or only 1 node. The current path was not "
 "extended."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:800
+#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:801
 msgid "The selected path has been added as tail and then reconnected."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:804
+#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:805
 msgid ""
 "The selected path has been added as tail. It was not possible to reconnect "
 "automatically."
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:847
+#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:848
 msgid "Reversing broken paths is not supported"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:852
+#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:853
 msgid "Reversing a path without start node is not supported"
 msgstr ""
 
-#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:857
+#: ../../Contrib/TrackViewer/Editing/PathEditor.cs:858
 msgid "Reversing a path without end node is not supported"
 msgstr ""
 

@@ -1,0 +1,2888 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: ActivityRunner\n"
+"POT-Creation-Date: 2015-04-08 11:02:18+0200\n"
+"PO-Revision-Date: 2015-04-08 11:25+0100\n"
+"Last-Translator: Zepder <admin@tog-sim.dk>\n"
+"Language-Team: \n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.4\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:217
+#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/MSTS/AirSinglePipe.cs:55
+msgid "Release"
+msgstr "Frigiv"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:218
+msgid "Quick Release"
+msgstr "Frigiv Hurtigt"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:220
+msgid "Neutral"
+msgstr "Frigear"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:221
+#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/MSTS/AirSinglePipe.cs:54
+msgid "Apply"
+msgstr "Anvend"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:222
+msgid "EPApply"
+msgstr "EPAnvend"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:223
+#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/MSTS/AirSinglePipe.cs:56
+msgid "Emergency"
+msgstr "Nødsituation"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:224
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:227
+#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/MSTS/AirSinglePipe.cs:53
+msgid "Lap"
+msgstr "Omgang"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:225
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:226
+msgid "Service"
+msgstr "Service"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:228
+msgid "Suppression"
+msgstr "Suppression"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:229
+msgid "Cont. Service"
+msgstr "Kont. Service"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:230
+msgid "Full Service"
+msgstr "Fuld Service"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:231
+msgid "Overcharge"
+msgstr "Overbelastning"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:232
+msgid "Emergency Braking Push Button"
+msgstr "Nødbremse Tryk Knap"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:233
+msgid "TCS Emergency Braking"
+msgstr "TCS Nødbremse"
+
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:234
+msgid "TCS Full Service Braking"
+msgstr "TCS Fuld Service"
+
+#. Context: Brake Controller
+#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:219
+msgctxt "Brake Controller"
+msgid "Running"
+msgstr "Kører"
+
+#. Context: PowerSupply
+#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:79
+msgctxt "PowerSupply"
+msgid "Off"
+msgstr "Fra"
+
+#. Context: PowerSupply
+#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:80
+msgctxt "PowerSupply"
+msgid "On ongoing"
+msgstr "Starter op"
+
+#. Context: PowerSupply
+#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:81
+msgctxt "PowerSupply"
+msgid "On"
+msgstr "Til"
+
+#. Context: Pantograph
+#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:86
+msgctxt "Pantograph"
+msgid "Down"
+msgstr "Ned"
+
+#. Context: Pantograph
+#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:87
+msgctxt "Pantograph"
+msgid "Lowering"
+msgstr "Sænker"
+
+#. Context: Pantograph
+#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:88
+msgctxt "Pantograph"
+msgid "Raising"
+msgstr "Hæver"
+
+#. Context: Pantograph
+#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:89
+msgctxt "Pantograph"
+msgid "Up"
+msgstr "Op"
+
+#. Context: CircuitBraker
+#: ../../ActivityRunner/Common/Scripting/PowerSupply/CircuitBreaker.cs:79
+msgctxt "CircuitBraker"
+msgid "Open"
+msgstr "Åben"
+
+#. Context: CircuitBraker
+#: ../../ActivityRunner/Common/Scripting/PowerSupply/CircuitBreaker.cs:80
+msgctxt "CircuitBraker"
+msgid "Closing"
+msgstr "Lukker"
+
+#. Context: CircuitBraker
+#: ../../ActivityRunner/Common/Scripting/PowerSupply/CircuitBreaker.cs:81
+msgctxt "CircuitBraker"
+msgid "Closed"
+msgstr "Lukket"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.cs:2041
+msgid "Switching Request Sent to the Server"
+msgstr "Sporskifte skift-anmodning sendt til serveren"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.cs:177
+msgid "View Self"
+msgstr "Se dig selv"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.cs:549
+msgid "MSG to Server"
+msgstr "Besked til server"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.cs:553
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:227
+msgid "MSG to All"
+msgstr "Besked til Alle"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:93
+msgid "View Train"
+msgstr "Vis tog"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:138
+msgid "m"
+msgstr "m"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:159
+msgid "Remove"
+msgstr "Fjern"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:174
+msgid "Auto Switch"
+msgstr "Auto Sporskifte"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:189
+msgid "Show Avatars"
+msgstr "Vis Avatarer"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:215
+msgid "MSG to Selected"
+msgstr "Besked til Valgte"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:238
+#: ../../ActivityRunner/Debugging/MessageViewer.Designer.cs:88
+msgid "Compose MSG"
+msgstr "Skriv Besked"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:251
+msgid "Res"
+msgstr "Res"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:261
+msgid "Reply to Selected"
+msgstr "Besvar til Valgte"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:276
+msgid "Draw Path"
+msgstr "Tegn Rute"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:326
+msgid "Pick Signals"
+msgstr "Vælg Signaler"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:340
+msgid "Pick Switches"
+msgstr "Vælg Sporskifter"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:354
+msgid "Can Join"
+msgstr "Kan Deltage"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:378
+msgid "Assist"
+msgstr "Assister"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:390
+msgid "Normal"
+msgstr "Normal"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:403
+msgid "Follow"
+msgstr "Følg"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:418
+msgid "Penalty"
+msgstr "Straf"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:433
+msgid "Prefer Green"
+msgstr "Foretræk Grøn"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:447
+msgid "See in Game"
+msgstr "Se i Spil"
+
+#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:486
+msgid "DispatchViewer"
+msgstr "DispatchViewer"
+
+#: ../../ActivityRunner/Debugging/MessageViewer.Designer.cs:46
+msgid "Clear All"
+msgstr "Ryd All"
+
+#: ../../ActivityRunner/Debugging/MessageViewer.Designer.cs:57
+msgid "Reply Selected"
+msgstr "Besvar Valgte"
+
+#: ../../ActivityRunner/Debugging/MessageViewer.Designer.cs:102
+msgid "MessageViewer"
+msgstr "BeskedFremviser"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.cs:176
+#: ../../ActivityRunner/Debugging/SoundDebugForm.cs:206
+#: ../../ActivityRunner/Debugging/SoundDebugForm.cs:207
+#: ../../ActivityRunner/Debugging/SoundDebugForm.cs:208
+msgid "-"
+msgstr "-"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.cs:205
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:189
+msgid "0"
+msgstr "0"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:136
+msgid "Active sounds"
+msgstr "Aktive lyde"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:147
+msgid "Inactive sounds"
+msgstr "Inaktive lyde"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:179
+msgid "Sound cache"
+msgstr "Lyd cache"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:202
+msgid "Selected sound"
+msgstr "Valgt lyd"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:214
+msgid "3D"
+msgstr "3D"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:282
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:393
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:669
+msgid "Speed"
+msgstr "Hastighed"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:310
+msgid "Variable 2"
+msgstr "Variabel 2"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:329
+msgid "Variable 3"
+msgstr "Variabel 3"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:339
+msgid "Variable 1"
+msgstr "Variabel 1"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:349
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:675
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:677
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:71
+msgid "Distance"
+msgstr "Afstand"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:359
+msgid "Volume"
+msgstr "Lydstyrke"
+
+#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:370
+msgid "Sound Debug"
+msgstr "SoundDebug"
+
+#: ../../ActivityRunner/MultiPlayer/ClientComm.cs:116
+#: ../../ActivityRunner/MultiPlayer/ClientComm.cs:128
+msgid "Connection to the server is lost, will play as single mode"
+msgstr "Forbindelsen til serveren er gået tabt, fortsætter som singleplayer"
+
+#: ../../ActivityRunner/MultiPlayer/ClientComm.cs:145
+msgid "Alt-E to gain control of your train"
+msgstr "Alt-E for at få kontrol over dit tog"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:647
+msgid "Dispatcher does not allow hand throw at this time"
+msgstr "Speditøren tillader ikke at give sorteper videre nu"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:691
+msgid "main route"
+msgstr "hoved rute"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:691
+msgid "side route"
+msgstr "side rute"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:1465
+msgid "You are the new dispatcher. Enjoy!"
+msgstr "Du er den nye speditør. God fornøjelse!"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:1595
+msgid "Name conflicted with people in the game, will play in single mode"
+msgstr "Navn konflikter med folk i spillet, fortsætter som singleplayer"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:1670
+#: ../../ActivityRunner/MultiPlayer/MPManager.cs:130
+msgid "You gained back the control of your train"
+msgstr "Du fik igen kontrol over dit tog"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:1885
+msgid "Server quits, will play as single mode"
+msgstr "Serveren lukkes, fortsætter som singleplayer"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:2166
+#: ../../ActivityRunner/MultiPlayer/Message.cs:2412
+msgid "Trains uncoupled, gain back control by Alt-E"
+msgstr "Tog frakoblet, få kontrollen tilbage med Alt-E"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:2550
+#: ../../ActivityRunner/MultiPlayer/Message.cs:2658
+msgid "Trains coupled, hit \\ then Shift-? to release brakes"
+msgstr "Tog sammenkoblet, tryk \\ derefter Shift-? for at frigøre bremserne"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:3102
+msgid "You are an assistant now, will be able to handle switches and signals."
+msgstr ""
+"Du er en assistent nu, som vil være i stand til at håndtere sporskiftere og "
+"signaler."
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:3108
+msgid "You are no longer an assistant."
+msgstr "Du er ikke længere en assistent"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:690
+#, csharp-format
+msgid "Switched, current route is {0}"
+msgstr "Skiftet, aktuelle rute er {0}"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:1472
+#, csharp-format
+msgid "New dispatcher is {0}"
+msgstr "Ny speditør er {0}"
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:1896
+#: ../../ActivityRunner/MultiPlayer/OnlinePlayer.cs:148
+#, csharp-format
+msgid "{0} quit."
+msgstr "{0} afslut."
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:1968
+#, csharp-format
+msgid "{0} lost."
+msgstr "{0} tabt."
+
+#: ../../ActivityRunner/MultiPlayer/Message.cs:2988
+#, csharp-format
+msgid " From {0}: {1}"
+msgstr " Fra {0}: {1}"
+
+#: ../../ActivityRunner/MultiPlayer/MPManager.cs:749
+msgid "Missing car, have substituted with other one."
+msgstr "Mangler vogn, er erstattet med en anden."
+
+#: ../../ActivityRunner/MultiPlayer/MPManager.cs:388
+#, csharp-format
+msgid "Cannot decouple: train has {0} player, need to completely stop."
+msgid_plural "Cannot decouple: train has {0} players, need to completely stop."
+msgstr[0] "Kan ikke frakoble: toget har {0} spiller, nødt til helt at stoppe."
+msgstr[1] "Kan ikke frakoble: toget har {0} spillere, nødt til helt at stoppe."
+
+#: ../../ActivityRunner/Physics/Train.cs:1454
+msgid "Coupler broken!"
+msgstr "Kobling brudt!"
+
+#: ../../ActivityRunner/Physics/Train.cs:1457
+msgid "Coupler overloaded!"
+msgstr "Kobling overbelastet!"
+
+#: ../../ActivityRunner/Physics/Train.cs:4583
+#: ../../ActivityRunner/Physics/Train.cs:4588
+msgid "Other train is blocking path"
+msgstr "Et andet tog blokerer ruten"
+
+#: ../../ActivityRunner/Physics/Train.cs:5465
+msgid "Stopped due to errors in route setting"
+msgstr "Stoppet pga. fejl i rute-indstillinger"
+
+#: ../../ActivityRunner/Physics/Train.cs:6127
+#: ../../ActivityRunner/Physics/Train.cs:7205
+msgid "No signal in train's path"
+msgstr "Ingen signaler på togets rute"
+
+#: ../../ActivityRunner/Physics/Train.cs:6135
+msgid "Next signal already allocated to other train"
+msgstr "Næste signal er allerede tildelt et andet tog"
+
+#: ../../ActivityRunner/Physics/Train.cs:6196
+msgid "Request to clear signal cannot be processed"
+msgstr "Anmodning om rydning af signal kan ikke udføres"
+
+#: ../../ActivityRunner/Physics/Train.cs:6302
+#: ../../ActivityRunner/Physics/Train.cs:7325
+msgid "No switch found"
+msgstr "Ingen sporskifter fundet"
+
+#: ../../ActivityRunner/Physics/Train.cs:7559
+msgid "You cannot enter manual mode when autopiloted"
+msgstr "Du kan ikke skifte til manuel tilstand i autopilot tilstand"
+
+#: ../../ActivityRunner/Physics/Train.cs:7571
+msgid "Train is not back on original route"
+msgstr "Toget befinder sig ikke på den oprindelige rute"
+
+#: ../../ActivityRunner/Physics/Train.cs:7580
+msgid ""
+"Original route is reverse from present direction, stop train before switching"
+msgstr ""
+"Oprindelige rute er vendt fra nuværende retning, stop toget før du skifter"
+
+#: ../../ActivityRunner/Physics/Train.cs:7593
+msgid "Cannot change to Manual Mode while in Explorer Mode"
+msgstr "Kan ikke skifte til manuel tilstand i Udforsk Rute-tilstand"
+
+#: ../../ActivityRunner/Physics/Train.cs:7688
+msgid "Reversal required and rear of train not on required route"
+msgstr "Vending påkrævet, og bagsiden af toget er ikke på ruten"
+
+#: ../../ActivityRunner/Physics/Train.cs:7886
+msgid "Cannot clear signal behind train while in AUTO mode"
+msgstr "Kan ikke rydde signalet bag toget i AUTO-tilstand"
+
+#: ../../ActivityRunner/Physics/Train.cs:8135
+#, csharp-format
+msgid "Allowed speed raised to {0}"
+msgstr "Tilladt hastighed hævet til {0}"
+
+#: ../../ActivityRunner/Physics/Train.cs:8177
+#, csharp-format
+msgid "Train stopped due to problems with other train: train {0} , reason: {1}"
+msgstr "Toget stoppet pga. problemer med et andet tog: tog {0} , årsag: {1}"
+
+#: ../../ActivityRunner/Processes/GameStateRunActivity.cs:1080
+#, csharp-format
+msgid "Activity Save file '*.save' not found in folder {0}"
+msgstr "Gemt spil '*.save' ikke fundet i mappen {0}"
+
+#: ../../ActivityRunner/RollingStock/MSTSDieselLocomotive.cs:817
+msgid "Engine"
+msgstr "Motor"
+
+#: ../../ActivityRunner/RollingStock/MSTSDieselLocomotive.cs:821
+#: ../../ActivityRunner/RollingStock/MSTSDieselLocomotive.cs:833
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3002
+msgid "Gear"
+msgstr "Gearkasse"
+
+#: ../../ActivityRunner/RollingStock/MSTSDieselLocomotive.cs:834
+msgid "Fuel"
+msgstr "Brændstof"
+
+#. Context: Gear
+#: ../../ActivityRunner/RollingStock/MSTSDieselLocomotive.cs:822
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3003
+msgctxt "Gear"
+msgid "N"
+msgstr "N"
+
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:221
+msgid "No power line!"
+msgstr "Ingen køreledninger!"
+
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:223
+msgid "Power line condition overridden."
+msgstr "Kørelednings-krav tilsidesat."
+
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:317
+msgid "Pantographs"
+msgstr "Strømaftagere"
+
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:331
+msgid "Circuit breaker"
+msgstr "Strømafbryder"
+
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:332
+msgid "TCS"
+msgstr "TCS"
+
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:332
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:333
+msgid "OK"
+msgstr "OK"
+
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:332
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:333
+msgid "NOT OK"
+msgstr "IKKE OK"
+
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:333
+msgid "Driver"
+msgstr "Fører"
+
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:334
+msgid "Auxiliary power"
+msgstr "Ekstra effekt"
+
+#. Context: PowerSupply
+#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:322
+msgctxt "PowerSupply"
+msgid "Power"
+msgstr "Effekt"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:1366
+msgid "Tender coal supply is empty. Your loco will fail."
+msgstr "Kulvognen er tom. Dit lokomotiv vil fejle."
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:1380
+msgid "Tender water supply is empty. Your loco will fail."
+msgstr "Kulvognens vandforsyning er tom. Dit lokomotiv vil fejle."
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:1437
+msgid "Fire has dropped too far. Your loco will fail."
+msgstr "Ilden er gået ud. Dit lokomotiv vil fejle."
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:1494
+msgid ""
+"FireMass is getting low. Your fireman will shovel faster, but don't wear him "
+"out."
+msgstr ""
+"Fyrkassens niveau er lav: Din fyrbøder må skovle hurtigere, men slid ham "
+"ikke op."
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:1507
+msgid "FireMass is back within limits. Your fireman will shovel as per normal."
+msgstr ""
+"Fyrkassens niveau er inden for grænsen. Din fyrbøder kan skovle som normalt."
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:2637
+msgid "Water level dropped too far. Plug has fused and loco has failed."
+msgstr ""
+"Vand niveau er for lavt. Smelteproppen er smeltet og lokomotivet har fejlet."
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:2644
+msgid "Boiler overfull and priming."
+msgstr "Kedlen overfyldt, medriven af vand i cylinderen. (priming)."
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:2650
+msgid "Boiler no longer priming."
+msgstr "Ingen medriven af vand til cylinderne (no priming)."
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3000
+msgid "Fixed gear"
+msgstr "Fast gear"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3005
+msgid "Steam usage"
+msgstr "Damp forbrug"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3006
+msgid "Boiler pressure"
+msgstr "Kedel tryk"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3007
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3011
+msgid "Boiler water level"
+msgstr "Kedel vandniveau"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3007
+msgid "(safe range)"
+msgstr "(sikkert område)"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3011
+msgid "(absolute)"
+msgstr "(absolut)"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3013
+msgid "Fire mass"
+msgstr "Fyring"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3015
+msgid "Fire ratio"
+msgstr "Ildforhold"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3018
+msgid "Fuel levels"
+msgstr "Brændstofniveau"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3018
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:328
+msgid "coal"
+msgstr "kul"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3018
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:327
+msgid "water"
+msgstr "vand"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3032
+msgid "Compound locomotive"
+msgstr "Togsæt"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3038
+msgid "Fixed Geared locomotive"
+msgstr "Fastgear lokomotiv"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3042
+msgid "Selectable Geared locomotive"
+msgstr "Lokomotiv med manuel gear"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3046
+msgid "Unknown Geared locomotive"
+msgstr "Lokomotiv med ukendt gear"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3051
+msgid "Simple locomotive"
+msgstr "Simpelt lokomotiv"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3055
+msgid "Not defined (assumed simple)"
+msgstr "Ukendt (måske simpelt)"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3060
+msgid "Superheater"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3064
+msgid "Saturated"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3068
+msgid "Not defined (assumed saturated)"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3072
+msgid "Key Inputs"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3074
+msgid "Locomotive Type:"
+msgstr "Lokomotiv Type:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3078
+msgid "Input:"
+msgstr "Input:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3079
+msgid "Evap"
+msgstr "Fordampning"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3080
+msgid "Grate"
+msgstr "Rist"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3081
+msgid "Boiler"
+msgstr "Kedlen"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3082
+msgid "SuperHr"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3083
+msgid "FuelCal"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3091
+msgid "Adj:"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3092
+msgid "CylEff"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3093
+msgid "CylExh"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3094
+msgid "PortOpen"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3100
+msgid "Steam Production"
+msgstr "Damp Produktion"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3105
+msgid "Boiler:"
+msgstr "Kedel:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3107
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:638
+msgid "Mass"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3108
+msgid "MaxOutp"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3109
+msgid "BoilerEff"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3117
+msgid "Heat:"
+msgstr "Varme:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3118
+msgid "In"
+msgstr "Ind"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3119
+msgid "Out"
+msgstr "Ud"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3120
+msgid "Stored"
+msgstr "Lagret"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3121
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3275
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:670
+msgid "Max"
+msgstr "Max"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3128
+msgid "Temp:"
+msgstr "Temp:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3129
+msgid "Flue"
+msgstr "Aftræk"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3130
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3292
+msgid "Water"
+msgstr "Vand"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3131
+msgid "MaxSupH"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3132
+msgid "CurSupH"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3133
+msgid "SupFact"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3141
+msgid "Steam Usage"
+msgstr "Damp Forbrug"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3146
+msgid "Usage:"
+msgstr "Forbrug:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3147
+msgid "Cyl"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3148
+#: ../../ActivityRunner/Simulator/Confirmation.cs:156
+msgid "Blower"
+msgstr "Blæser"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3149
+msgid "Radiation"
+msgstr "Stråling"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3150
+msgid "Comprsr"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3151
+msgid "SafetyV"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3152
+msgid "CylCock"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3153
+msgid "Genertr"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3154
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3303
+msgid "Stoker"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3155
+msgid "MaxSafe"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3174
+msgid "PressHP:"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3175
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3197
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3222
+msgid "Chest"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3177
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3199
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3223
+msgid "Initial"
+msgstr "Initialiser"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3179
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3201
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3224
+msgid "Cutoff"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3181
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3203
+msgid "Rel"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3183
+msgid "RelR"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3185
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3205
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3225
+#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/BrakeSystem.cs:82
+#: ../../ActivityRunner/Simulator/Confirmation.cs:174
+msgid "Exhaust"
+msgstr "Udstødning"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3187
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3207
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3226
+msgid "Back"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3189
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3209
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3227
+msgid "PreComp"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3191
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3213
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3229
+msgid "MEP"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3196
+msgid "PressLP:"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3211
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3228
+msgid "PreAdm"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3221
+msgid "Press:"
+msgstr "Tryk:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3241
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3299
+msgid "Status:"
+msgstr "Status:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3242
+msgid "Safety"
+msgstr "Sikkert"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3243
+#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/MSTS/AirSinglePipe.cs:129
+msgid "Open"
+msgstr "Åben"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3243
+msgid "Closed"
+msgstr "Lukket"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3244
+msgid "Plug"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3245
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3247
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3249
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3306
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3307
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3308
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3309
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3310
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3311
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3368
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:485
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:506
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:786
+msgid "Yes"
+msgstr "Ja"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3245
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3247
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3249
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3306
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3307
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3308
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3309
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3310
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3311
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3368
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:485
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:506
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:786
+msgid "No"
+msgstr "Nej"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3246
+msgid "Prime"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3248
+msgid "BoilHeat"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3250
+msgid "Comp"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3251
+msgid "On"
+msgstr "Til"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3251
+msgid "Off"
+msgstr "Fra"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3255
+msgid "Fireman"
+msgstr "Fyrbøder"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3257
+msgid "Fire:"
+msgstr "Fyring:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3258
+msgid "Ideal"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3259
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:85
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:87
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:73
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:75
+msgid "Actual"
+msgstr "Aktuel"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3260
+msgid "MaxFireR"
+msgstr "MaxFyring"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3261
+msgid "FeedRate"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3262
+msgid "BurnRate"
+msgstr "Fyringsgrad"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3263
+msgid "Combust"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3274
+msgid "Injector:"
+msgstr "Indsprøjtning:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3276
+msgid "Inj1"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3277
+msgid "Temp1"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3278
+msgid "Inj2"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3279
+msgid "Temp2"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3290
+msgid "Tender:"
+msgstr "Kulvogn:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3291
+msgid "Coal"
+msgstr "Kul"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3300
+msgid "CoalOut"
+msgstr "KulUd"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3301
+msgid "WaterOut"
+msgstr "VandUd"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3302
+msgid "FireOut"
+msgstr "Fyring"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3304
+msgid "Boost"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3305
+msgid "BstReset"
+msgstr "Nulstil"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3313
+msgid "Performance"
+msgstr "Ydeevne"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3315
+msgid "Power:"
+msgstr "Effekt:"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3316
+msgid "MaxInd"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3317
+msgid "Ind"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3318
+msgid "Drawbar"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3324
+msgid "Force:"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3325
+msgid "TheorTE"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3326
+msgid "StartTE"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3327
+msgid "TE"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3328
+msgid "Draw"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3329
+msgid "CritSpTE"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3330
+msgid "CritSpeed"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3339
+msgid "Move:"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3340
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3355
+msgid "Piston"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3341
+msgid "SpdFact"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3342
+msgid "DrvWhl"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3343
+msgid "MF-Gear"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3352
+msgid "Experimental"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3352
+msgid "Slip Monitor"
+msgstr "Slip Monitor"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3354
+msgid "Slip:"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3356
+msgid "Tang(c)"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3357
+msgid "Tang(t)"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3358
+msgid "Static"
+msgstr "Statisk"
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3359
+msgid "Coeff"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3360
+msgid "Slip"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3361
+msgid "WheelM"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3362
+msgid "FoA"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3425
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3472
+msgid "Gears can't be changed unless throttle is at zero."
+msgstr "Gear kan ikke ændres, medmindre gashåndtaget er på nul."
+
+#. Context: HUD
+#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3106
+#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:298
+msgctxt "HUD"
+msgid "Power"
+msgstr "Effekt"
+
+#: ../../ActivityRunner/RollingStock/TrainCar.cs:579
+msgid ""
+"You are traveling too fast for this curve. Slow down, your freight may be "
+"damaged and your train may derail."
+msgstr ""
+"Du kører for hurtigt i denne kurve. Sæt farten ned, dit gods kan tage skade "
+"og dit tog kan blive afsporet."
+
+#: ../../ActivityRunner/RollingStock/TrainCar.cs:583
+msgid ""
+"You are travelling too fast for this curve. Slow down, your passengers are "
+"feeling uncomfortable and your train may derail."
+msgstr ""
+"Du kører for hurtigt for denne kurve. Sæt farten ned, dine passagerer føler "
+"sig utilpas og dit tog kan blive afsporet."
+
+#: ../../ActivityRunner/RollingStock/TrainCar.cs:616
+msgid "Your train has overturned."
+msgstr "Dit tog er væltet."
+
+#: ../../ActivityRunner/RollingStock/TrainCar.cs:795
+msgid "(flipped)"
+msgstr "(vendt)"
+
+#: ../../ActivityRunner/RollingStock/TrainCar.cs:797
+msgid "MU'd"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/TrainCar.cs:797
+msgid "Single"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/BrakeSystem.cs:83
+#: ../../ActivityRunner/Simulator/Confirmation.cs:174
+msgid "High Pressure"
+msgstr "Højt Tryk"
+
+#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/BrakeSystem.cs:84
+#: ../../ActivityRunner/Simulator/Confirmation.cs:174
+msgid "Low Pressure"
+msgstr "Lavt Tryk"
+
+#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/BrakeSystem.cs:85
+#: ../../ActivityRunner/Simulator/Confirmation.cs:174
+msgid "Slow Direct"
+msgstr "Langsom"
+
+#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:294
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:119
+msgid "Status"
+msgstr "Status"
+
+#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:302
+msgid "Load"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:309
+msgid "Flow"
+msgstr ""
+
+#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:317
+msgid "Oil"
+msgstr "Olie"
+
+#. Context: Engine
+#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:392
+msgctxt "Engine"
+msgid "Stopped"
+msgstr "Stoppet"
+
+#. Context: Engine
+#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:393
+msgctxt "Engine"
+msgid "Starting"
+msgstr "Starter"
+
+#. Context: Engine
+#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:394
+msgctxt "Engine"
+msgid "Running"
+msgstr "Kører"
+
+#. Context: Engine
+#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:395
+msgctxt "Engine"
+msgid "Stopping"
+msgstr "Stopper"
+
+#: ../../ActivityRunner/Simulator/Activity.cs:877
+#: ../../ActivityRunner/Timetable/TTTrain.cs:5655
+msgid "Passenger boarding completed. Waiting for signal ahead to clear."
+msgstr "Ombordstigning fuldført. Afvent klart signal."
+
+#: ../../ActivityRunner/Simulator/Activity.cs:882
+#: ../../ActivityRunner/Timetable/TTTrain.cs:5660
+msgid "Passenger boarding completed. You may depart now."
+msgstr "Ombordstigning fuldført. Du er nu klar til afgang."
+
+#: ../../ActivityRunner/Simulator/Activity.cs:866
+#: ../../ActivityRunner/Timetable/TTTrain.cs:5667
+#, csharp-format
+msgid "Passenger boarding completes in {0:D2}:{1:D2}"
+msgstr "Ombordstigning fuldført om {0:D2}:{1:D2}"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:26
+msgid "None"
+msgstr "Ingen"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:27
+msgid "Information"
+msgstr "Information"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:28
+msgid "Warning"
+msgstr "Advarsel"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:29
+msgid "Error"
+msgstr "Fejl"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:30
+msgid "MSG"
+msgstr "MSG"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:138
+msgid "<none>"
+msgstr "<ingen>"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:140
+#: ../../ActivityRunner/Simulator/Confirmation.cs:152
+msgid "reverse"
+msgstr "baglæns"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:140
+#: ../../ActivityRunner/Simulator/Confirmation.cs:152
+msgid "neutral"
+msgstr "frigear"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:140
+#: ../../ActivityRunner/Simulator/Confirmation.cs:152
+msgid "forward"
+msgstr "Fremad"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:140
+#: ../../ActivityRunner/Simulator/Confirmation.cs:152
+msgid "locked. Close throttle, stop train then re-try."
+msgstr "låst. Tag gassen af, stop toget og forsøg igen."
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:141
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:127
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:396
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:548
+msgid "Throttle"
+msgstr "Gashåndtag"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:141
+#: ../../ActivityRunner/Simulator/Confirmation.cs:153
+#: ../../ActivityRunner/Simulator/Confirmation.cs:154
+#: ../../ActivityRunner/Simulator/Confirmation.cs:155
+#: ../../ActivityRunner/Simulator/Confirmation.cs:157
+#: ../../ActivityRunner/Simulator/Confirmation.cs:158
+#: ../../ActivityRunner/Simulator/Confirmation.cs:162
+#: ../../ActivityRunner/Simulator/Confirmation.cs:163
+#: ../../ActivityRunner/Simulator/Confirmation.cs:187
+#: ../../ActivityRunner/Simulator/Confirmation.cs:188
+msgid "close"
+msgstr "luk"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:141
+#: ../../ActivityRunner/Simulator/Confirmation.cs:153
+#: ../../ActivityRunner/Simulator/Confirmation.cs:154
+#: ../../ActivityRunner/Simulator/Confirmation.cs:155
+#: ../../ActivityRunner/Simulator/Confirmation.cs:157
+#: ../../ActivityRunner/Simulator/Confirmation.cs:158
+#: ../../ActivityRunner/Simulator/Confirmation.cs:162
+#: ../../ActivityRunner/Simulator/Confirmation.cs:163
+#: ../../ActivityRunner/Simulator/Confirmation.cs:187
+#: ../../ActivityRunner/Simulator/Confirmation.cs:188
+msgid "open"
+msgstr "åbn"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:141
+msgid "locked. Release dynamic brake then re-try."
+msgstr "låst. Frigiv den dynamiske bremse og forsøg igen."
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:142
+msgid "Wheel-slip"
+msgstr "Hjulspin"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:142
+msgid "over"
+msgstr "ovre"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:142
+msgid "occurring. Tractive power greatly reduced."
+msgstr "opstår. Trækkraften stærkt reduceret."
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:142
+msgid "warning"
+msgstr "advarsel"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:144
+msgid "Power"
+msgstr "Strøm"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:144
+#: ../../ActivityRunner/Simulator/Confirmation.cs:148
+#: ../../ActivityRunner/Simulator/Confirmation.cs:149
+#: ../../ActivityRunner/Simulator/Confirmation.cs:154
+#: ../../ActivityRunner/Simulator/Confirmation.cs:155
+#: ../../ActivityRunner/Simulator/Confirmation.cs:160
+#: ../../ActivityRunner/Simulator/Confirmation.cs:169
+#: ../../ActivityRunner/Simulator/Confirmation.cs:174
+#: ../../ActivityRunner/Simulator/Confirmation.cs:177
+#: ../../ActivityRunner/Simulator/Confirmation.cs:179
+#: ../../ActivityRunner/Simulator/Confirmation.cs:180
+#: ../../ActivityRunner/Simulator/Confirmation.cs:181
+#: ../../ActivityRunner/Simulator/Confirmation.cs:182
+#: ../../ActivityRunner/Simulator/Confirmation.cs:183
+#: ../../ActivityRunner/Simulator/Confirmation.cs:184
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:553
+msgid "off"
+msgstr "fra"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:144
+#: ../../ActivityRunner/Simulator/Confirmation.cs:148
+#: ../../ActivityRunner/Simulator/Confirmation.cs:149
+#: ../../ActivityRunner/Simulator/Confirmation.cs:154
+#: ../../ActivityRunner/Simulator/Confirmation.cs:155
+#: ../../ActivityRunner/Simulator/Confirmation.cs:160
+#: ../../ActivityRunner/Simulator/Confirmation.cs:174
+#: ../../ActivityRunner/Simulator/Confirmation.cs:177
+#: ../../ActivityRunner/Simulator/Confirmation.cs:183
+#: ../../ActivityRunner/Simulator/Confirmation.cs:184
+msgid "on"
+msgstr "til"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:145
+msgid "Pantograph 1"
+msgstr "Strømaftager 1"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:145
+#: ../../ActivityRunner/Simulator/Confirmation.cs:146
+msgid "lower"
+msgstr "sænk"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:145
+#: ../../ActivityRunner/Simulator/Confirmation.cs:146
+msgid "raise"
+msgstr "hæv"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:146
+msgid "Pantograph 2"
+msgstr "Strømaftager 2"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:148
+msgid "Player Diesel Power"
+msgstr "Fører Diesel-motor"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:148
+msgid "locked. Close throttle then re-try."
+msgstr "låst. Tag gassen af og forsøg igen."
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:149
+msgid "Helper Diesel Power"
+msgstr "Hjælper Diesel-motor"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:150
+msgid "Diesel Tank"
+msgstr "Diesel Tank"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:150
+msgid "re-fueled"
+msgstr "tanket"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:150
+msgid "level"
+msgstr "niveau"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:153
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:396
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:548
+msgid "Regulator"
+msgstr "Regulator"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:154
+msgid "Injector 1"
+msgstr "Indsprøjtning 1"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:155
+msgid "Injector 2"
+msgstr "Indsprøjtning 2"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:156
+#: ../../ActivityRunner/Simulator/Confirmation.cs:159
+#: ../../ActivityRunner/Simulator/Confirmation.cs:169
+#: ../../ActivityRunner/Simulator/Confirmation.cs:194
+msgid "decrease"
+msgstr "reducer"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:156
+#: ../../ActivityRunner/Simulator/Confirmation.cs:159
+#: ../../ActivityRunner/Simulator/Confirmation.cs:169
+#: ../../ActivityRunner/Simulator/Confirmation.cs:194
+msgid "increase"
+msgstr "øg"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:157
+msgid "Damper"
+msgstr "spjæld"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:158
+msgid "Firebox Door"
+msgstr "Fyrkasse-låge"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:159
+msgid "Firing Rate"
+msgstr "Fyringsgrad"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:160
+msgid "Manual Firing"
+msgstr "Håndfyring"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:161
+msgid "Fire"
+msgstr "Fyring"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:161
+msgid "add shovel-full"
+msgstr "Skovlen fyldt"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:162
+msgid "Cylinder Cocks"
+msgstr "Cylinder Porte"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:163
+msgid "Cylinder Compound"
+msgstr ""
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:164
+#: ../../ActivityRunner/Simulator/Confirmation.cs:165
+msgid "Tender"
+msgstr "Kulvogn"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:164
+msgid "Coal re-filled"
+msgstr "Kul fyldt op"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:164
+msgid "Coal level"
+msgstr "Kul niveau"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:165
+msgid "Water re-filled"
+msgstr "Vand fyldt op"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:165
+msgid "Water level"
+msgstr "Vand niveau"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:167
+msgid "Train Brake"
+msgstr "Togbremse"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:167
+#: ../../ActivityRunner/Simulator/Confirmation.cs:168
+#: ../../ActivityRunner/Simulator/Confirmation.cs:170
+msgid "release"
+msgstr "løsner"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:167
+#: ../../ActivityRunner/Simulator/Confirmation.cs:168
+#: ../../ActivityRunner/Simulator/Confirmation.cs:170
+msgid "apply"
+msgstr "anvend"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:168
+msgid "Engine Brake"
+msgstr "Lokomotivbremse"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:169
+msgid "Dynamic Brake"
+msgstr "Dynamisk Bremse"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:169
+msgid "setup"
+msgstr "setup"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:170
+msgid "Emergency Brake"
+msgstr "Nødbremse"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:171
+msgid "Bail Off"
+msgstr "Nulstil Bremser"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:171
+msgid "disengage"
+msgstr "frigør"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:171
+msgid "engage"
+msgstr "brug"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:172
+msgid "Brakes"
+msgstr "Bremser"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:172
+msgid "initialize"
+msgstr "Initialiser"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:172
+msgid "cannot initialize. Stop train then re-try."
+msgstr "Kan ikke initialisere. Stop toget og forsøg igen."
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:173
+msgid "Handbrake"
+msgstr "Håndbremse"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:173
+msgid "none"
+msgstr "Ingen"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:173
+msgid "full"
+msgstr "Fuld"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:174
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:399
+msgid "Retainers"
+msgstr "Retainer"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:175
+msgid "Brake Hose"
+msgstr "Bremseslange"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:175
+msgid "disconnect"
+msgstr "frakobl"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:175
+msgid "connect"
+msgstr "tilkobl"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:177
+msgid "Sander"
+msgstr "Sandspreder"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:178
+msgid "Alerter"
+msgstr "Alarm"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:178
+msgid "acknowledge"
+msgstr "godkend"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:179
+msgid "Horn"
+msgstr "Horn"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:180
+msgid "Whistle"
+msgstr "Fløjte"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:180
+msgid "blow"
+msgstr "blæs"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:181
+msgid "Bell"
+msgstr "Klokke"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:181
+msgid "ring"
+msgstr "ring"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:182
+msgid "Headlight"
+msgstr "Lys"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:182
+msgid "dim"
+msgstr "normal"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:182
+msgid "bright"
+msgstr "fjernlys"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:183
+msgid "Cab Light"
+msgstr "Kabinelys"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:184
+msgid "Wipers"
+msgstr "Vinduesviskere"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:185
+#: ../../ActivityRunner/Viewer3D/Cameras.cs:1505
+msgid "Cab"
+msgstr "Førerhus"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:185
+msgid "changing is not available"
+msgstr "skift er ikke muligt"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:185
+msgid ""
+"changing disabled. Close throttle, set reverser to neutral, stop train then "
+"re-try."
+msgstr ""
+"skift deaktiveret. Tag gassen af, sæt retningsgiver til frigear, stop toget "
+"og forsøg igen."
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:187
+msgid "Doors Left"
+msgstr "Venstre Døre"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:188
+msgid "Doors Right"
+msgstr "Højre Døre"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:189
+msgid "Mirror"
+msgstr "Spejl"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:189
+msgid "retract"
+msgstr "ind"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:189
+msgid "extend"
+msgstr "ud"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:191
+msgid "Switch Ahead"
+msgstr "Sporskifte Forude"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:191
+#: ../../ActivityRunner/Simulator/Confirmation.cs:192
+msgid "locked. Use Control+M to change signals to manual mode then re-try."
+msgstr ""
+"låst. Brug Control+M for at skifte signaler til manuel tilstand og forsøg så "
+"igen."
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:192
+msgid "Switch Behind"
+msgstr "Sporskifte Bagude"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:194
+msgid "Simulation Speed"
+msgstr "Simulerings-hastighed"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:194
+msgid "reset"
+msgstr "nulstil"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:195
+msgid "Uncouple After"
+msgstr "Frakobl efter"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:196
+msgid "Activity"
+msgstr "Aktivitet"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:196
+msgid "quit"
+msgstr "afslut"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:196
+msgid "resume"
+msgstr "genoptag"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:197
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:391
+msgid "Replay"
+msgstr "genspil"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:197
+msgid "Overriding camera replay. Press Escape to resume camera replay."
+msgstr ""
+"Tilsidesætter kamera-afspilning. Tryk på Escape for at genoptage kamera-"
+"afspilning."
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:198
+msgid "Gearbox"
+msgstr "Gearkasse"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:198
+msgid "down"
+msgstr "ned"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:198
+msgid "up"
+msgstr "op"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:198
+msgid "locked. Use shaft before changing gear."
+msgstr "låst. Brug akslen, før du skifter gear. "
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:199
+msgid "Signal mode"
+msgstr "Signal tilstand"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:199
+msgid "manual"
+msgstr "manuel"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:199
+msgid "auto"
+msgstr "auto"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:199
+msgid "locked. Stop train, then re-try."
+msgstr "låst. Stop toget og forsøg igen."
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:208
+#: ../../ActivityRunner/Simulator/Confirmation.cs:217
+#: ../../ActivityRunner/Simulator/Confirmation.cs:255
+#, csharp-format
+msgid "{0} {1}"
+msgstr "{0} {1}"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:212
+#, csharp-format
+msgid "{0}"
+msgstr "{0}"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:222
+#, csharp-format
+msgid "{0} to {1:0}%"
+msgstr "{0} til {1:0}%"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:227
+#, csharp-format
+msgid "{0} {1:0}% {2}"
+msgstr "{0} {1:0}% {2}"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:232
+#, csharp-format
+msgid "{0:0}% {1}"
+msgstr "{0:0}% {1}"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:237
+#, csharp-format
+msgid "{0:0}%"
+msgstr "{0:0}%"
+
+#: ../../ActivityRunner/Simulator/Confirmation.cs:245
+#: ../../ActivityRunner/Simulator/Confirmation.cs:250
+#, csharp-format
+msgid "{0} {1:0}%"
+msgstr "{0} {1:0}%"
+
+#. Context: NonSteam
+#: ../../ActivityRunner/Simulator/Confirmation.cs:140
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:547
+msgctxt "NonSteam"
+msgid "Reverser"
+msgstr "Retningsgiver"
+
+#. Context: Steam
+#: ../../ActivityRunner/Simulator/Confirmation.cs:152
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:547
+msgctxt "Steam"
+msgid "Reverser"
+msgstr "Retningsgiver"
+
+#. Context: Alerter
+#: ../../ActivityRunner/Simulator/Confirmation.cs:178
+msgctxt "Alerter"
+msgid "sound"
+msgstr "lyd"
+
+#. Context: Horn
+#: ../../ActivityRunner/Simulator/Confirmation.cs:179
+msgctxt "Horn"
+msgid "sound"
+msgstr "lyd"
+
+#. Context: Cab
+#: ../../ActivityRunner/Simulator/Confirmation.cs:185
+msgctxt "Cab"
+msgid "change"
+msgstr "skift"
+
+#. Context: Switch
+#: ../../ActivityRunner/Simulator/Confirmation.cs:191
+#: ../../ActivityRunner/Simulator/Confirmation.cs:192
+msgctxt "Switch"
+msgid "change"
+msgstr "skift"
+
+#: ../../ActivityRunner/Timetable/TTTrain.cs:5597
+msgid "Held for connecting train : "
+msgstr "Venter på at forbinde tog :"
+
+#: ../../ActivityRunner/Viewer3D/Cameras.cs:589
+msgid "Free"
+msgstr "Frit"
+
+#: ../../ActivityRunner/Viewer3D/Cameras.cs:980
+msgid "Outside Front"
+msgstr "Udenfor For"
+
+#: ../../ActivityRunner/Viewer3D/Cameras.cs:980
+msgid "Outside Rear"
+msgstr "Udenfor Bag"
+
+#: ../../ActivityRunner/Viewer3D/Cameras.cs:1236
+msgid "Brakeman"
+msgstr "Bremsemand"
+
+#: ../../ActivityRunner/Viewer3D/Cameras.cs:1391
+msgid "Passenger"
+msgstr "Passager"
+
+#: ../../ActivityRunner/Viewer3D/Cameras.cs:1461
+msgid "Head out"
+msgstr "Hovedet ud"
+
+#: ../../ActivityRunner/Viewer3D/Cameras.cs:1685
+msgid "Trackside"
+msgstr "Langs sporet"
+
+#: ../../ActivityRunner/Viewer3D/Cameras.cs:1837
+msgid "3D Cab"
+msgstr "3D Førerhus"
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:587
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:705
+msgid "Cab view not available"
+msgstr "Førerhus ikke tilgængelig"
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:649
+msgid "In MP, use Alt-F4 to quit directly"
+msgstr "I MP, brug Alt-F4 for at afslutte direkte."
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:716
+msgid "3D Cab view not available"
+msgstr "3D førerhus ikke tilgængelig"
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:743
+msgid "Will not ratate cab and land"
+msgstr "Vil ikke rotere førerhus og jorden"
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:851
+msgid "Switched to player control"
+msgstr "Skiftet til spiller-kontrol"
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:856
+msgid "You can't switch from manual to autopilot mode"
+msgstr "Du kan ikke skifte fra manuel til autopilot"
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:860
+msgid "Switched to autopilot"
+msgstr "Skiftet til autopilot"
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:1201
+msgid "Game saved"
+msgstr "Spillet er gemt"
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:734
+#, csharp-format
+msgid "Vibrating at level {0}"
+msgstr "Vibration på niveau {0}"
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:742
+#, csharp-format
+msgid "Rotating cab {0}/4, rotating land {1}/4"
+msgstr "Roterer førerhus {0}/4, roterer jorden {1}/4"
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:869
+#, csharp-format
+msgid "Keyboard map list saved to '{0}'."
+msgstr "Tastatur list gemt til '{0}'."
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:873
+#, csharp-format
+msgid "Keyboard map image saved to '{0}'."
+msgstr "Tastatur billede gemt til '{0}'."
+
+#: ../../ActivityRunner/Viewer3D/Viewer.cs:771
+#, csharp-format
+msgid "{0} viewpoint stored. Use Shift+8 to restore viewpoints."
+msgid_plural "{0} viewpoints stored. Use Shift+8 to restore viewpoints."
+msgstr[0] "{0} synspunkt gemt. Brug Shift +8 for at genskabe synspunkter."
+msgstr[1] "{0} synspunkter gemt. Brug Shift +8 for at genskabe synspunkter."
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:41
+msgid "Activity Events"
+msgstr "Aktivitets Opgaver"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:154
+msgid "without success"
+msgstr "uden succes"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:219
+msgid "Resume"
+msgstr "Genoptag"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:219
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:249
+msgid "Pause"
+msgstr "Pause"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:220
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:241
+msgid "Resume and close box"
+msgstr "Genoptag spillet og luk vinduet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:220
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:232
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:250
+msgid "Close box"
+msgstr "Luk vindue"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:221
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:233
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:251
+msgid "Quit activity"
+msgstr "Afslut aktiviteten"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:222
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:243
+msgid "Status: Activity paused"
+msgstr "Status: Aktivitet på pause"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:222
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:234
+msgid "Status: Activity resumed"
+msgstr "Status: Aktivitet genoptaget"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:242
+msgid "End Activity"
+msgstr "Afslut Aktivitet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:252
+msgid "Status: Activity running"
+msgstr "Status: Aktivitet kører"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:153
+#, csharp-format
+msgid ""
+"This activity has ended {0}.\n"
+"For a detailed evaluation, see the Help Window (F1)."
+msgstr ""
+"Denne aktivitet er slut {0}.\n"
+"For en detaljeret vurdering, se Hjælpevinduet (F1)."
+
+#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:258
+#, csharp-format
+msgid "Event: {0}"
+msgstr "Opgave: {0}"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:37
+msgid "Car Operation Menu"
+msgstr "Vognsammensætning Menu"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:47
+msgid "Toggle Handbrake"
+msgstr "Håndbremse til/fra"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:49
+msgid "Toggle Power"
+msgstr "Motor til/fra"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:51
+msgid "Toggle MU Connection"
+msgstr "MU Forbindelse til/fra"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:53
+msgid "Toggle Brake Hose Connection"
+msgstr "Bremseslange Forbindelse til/fra"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:55
+msgid "Open/Close Front Angle Cock"
+msgstr "Åbn/luk Vinkelhanen Foran"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:57
+msgid "Open/Close Rear Angle Cock"
+msgstr "Åbn/luk Vinkelhanen bagved"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:59
+msgid "Open/Close Bleed Off Valve"
+msgstr "Åbn/luk Udluftningsventilen"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:61
+msgid "Close window"
+msgstr "Luk vindue"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:89
+msgid "Handbrake set"
+msgstr "Håndbremse til"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:91
+msgid "Handbrake off"
+msgstr "Håndbremse fra"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:105
+msgid "Power OFF command sent"
+msgstr "Kommando 'Sluk Motor' er blevet sendt"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:107
+msgid "Power ON command sent"
+msgstr "Kommando 'Start Motor' er blevet sendt"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:110
+msgid "No power command for this type of car!"
+msgstr "Ingen start/stop af motor for denne vogn!"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:126
+msgid "MU signal connected"
+msgstr "MU signal forbundet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:128
+msgid "MU signal disconnected"
+msgstr "MU signal frakoblet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:131
+msgid "No MU command for this type of car!"
+msgstr "Ingen MU kommando for denne vogn!"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:140
+msgid "Front brake hose connected"
+msgstr "Bremseslangen foran forbundet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:142
+msgid "Front brake hose disconnected"
+msgstr "Bremseslangen foran frakoblet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:149
+msgid "Front angle cock opened"
+msgstr "Vinkelhanen foran åbnet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:151
+msgid "Front angle cock closed"
+msgstr "Vinkelhanen foran lukket"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:158
+msgid "Rear angle cock opened"
+msgstr "Vinkelhanen bagved åbnet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:160
+msgid "Rear angle cock closed"
+msgstr "Vinkelhanen bagved lukket"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:170
+msgid "Bleed off valve opened"
+msgstr "Udluftningsventilen åbnet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:172
+msgid "Bleed off valve closed"
+msgstr "Udluftningsventilen lukket"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CompassWindow.cs:34
+msgid "Compass"
+msgstr "Kompas"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CompassWindow.cs:45
+msgid "Lat:"
+msgstr "lat:"
+
+#: ../../ActivityRunner/Viewer3D/Popups/CompassWindow.cs:48
+msgid "Lon:"
+msgstr "lon:"
+
+#: ../../ActivityRunner/Viewer3D/Popups/ComposeMessage.cs:31
+msgid "Compose Message (e.g.   receiver1, receiver2: message body)"
+msgstr "Skriv besked (fx. modtager1, modtager2: besked)"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:39
+msgid "Help"
+msgstr "Hjælp"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:41
+msgid "Key Commands"
+msgstr "Tastaturbindinger"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:67
+msgid "Briefing"
+msgstr "Information"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:78
+msgid "Timetable"
+msgstr "Tidsplan"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:83
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:70
+msgid "Station"
+msgstr "Station"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:84
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:72
+msgid "Arrive"
+msgstr "Ankomst"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:86
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:74
+msgid "Depart"
+msgstr "Afgang"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:102
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:104
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:203
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:279
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:282
+msgid "(missed)"
+msgstr "(ej til tiden)"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:111
+msgid "Work Orders"
+msgstr "Arbejdsopgaver"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:116
+msgid "Task"
+msgstr "Opgaver"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:117
+msgid "Car(s)"
+msgstr "Vogn(e)"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:118
+msgid "Location"
+msgstr "Sted"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:139
+msgid "Assemble Train"
+msgstr "Sammensæt Tog"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:143
+msgid "At Location"
+msgstr "Ved Stedet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:147
+msgid "Drop Off"
+msgstr "Aflever"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:151
+msgid "Pick Up"
+msgstr "Afhent"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:240
+msgid "Done"
+msgstr "Færdig"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:253
+msgid "Procedures"
+msgstr "Procedurer"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:128
+msgid "Power In/Out"
+msgstr "Effekt ind/ud"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:132
+msgid "Motive force"
+msgstr "Motorkraft"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:134
+msgid "Num of substeps"
+msgstr "Antal undertrin"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:137
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:788
+msgid "Memory"
+msgstr "Hukommelse"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:138
+msgid "GCs"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:139
+msgid "Frame time"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:140
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:802
+msgid "Render process"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:141
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:803
+msgid "Updater process"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:142
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:804
+msgid "Loader process"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:143
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:805
+msgid "Sound process"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:382
+msgid "Version"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:386
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:388
+msgid "Time"
+msgstr "Tid"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:394
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:639
+msgid "Gradient"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:395
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:546
+msgid "Direction"
+msgstr "Retning"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:397
+msgid "Train brake"
+msgstr "Togbremse"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:401
+msgid "Engine brake"
+msgstr "Lokomotivbremse"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:403
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:549
+msgid "Dynamic brake"
+msgstr "Dynamisk Bremse"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:417
+msgid "FPS"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:421
+msgid "Autopilot"
+msgstr "Autopilot"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:424
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:606
+msgid "Wheel slip"
+msgstr "Hjulspin"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:426
+msgid "Wheel slip warning"
+msgstr "Hjulspin afvarsel"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:432
+msgid "Sander blocked"
+msgstr "Sandspreder blokeret"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:434
+msgid "Sander on"
+msgstr "Sandspreder til"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:442
+msgid "Left"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:444
+msgid "Right"
+msgstr "Højre"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:447
+msgid "Doors open"
+msgstr "Døre åbnet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:453
+msgid "MULTI-PLAYER INFORMATION"
+msgstr "MULTI-PLAYER INFORMATION"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:457
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:673
+msgid "Mode"
+msgstr "Tilstand"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:458
+msgid "Dispatcher"
+msgstr "Dispatcher"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:459
+msgid "Helper"
+msgstr "Hjælper"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:460
+msgid "Client"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:468
+msgid "CONSIST INFORMATION"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:475
+msgid "Player"
+msgstr "Spiller"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:476
+msgid "Tilted"
+msgstr "Vippet"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:477
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:497
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:569
+msgid "Type"
+msgstr "Type"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:478
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:498
+msgid "Length"
+msgstr "Længde"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:479
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:499
+msgid "Weight"
+msgstr "Vægt"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:480
+msgid "Control Mode"
+msgstr "Kontrol Mode"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:481
+msgid "Out of Control"
+msgstr "Ude af kontrol"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:482
+msgid "Cab Aspect"
+msgstr "Førehus Forehold"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:484
+msgid "R"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:484
+msgid "F"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:486
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:507
+msgid "Freight"
+msgstr "Gods"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:486
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:507
+msgid "Pass"
+msgstr "Passager"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:495
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:568
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:629
+msgid "Car"
+msgstr "Vogn"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:496
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:658
+msgid "Flipped"
+msgstr "Vendt"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:500
+msgid "Drv/Cabs"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:501
+msgid "Wheels"
+msgstr "Hjul"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:540
+msgid "LOCOMOTIVE INFORMATION"
+msgstr "LOKOMOTIV INFORMATION"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:562
+msgid "BRAKE INFORMATION"
+msgstr "BREMSE INFORMATION"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:565
+msgid "Main reservoir"
+msgstr "Hovedbeholder"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:570
+msgid "BrkCyl"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:571
+msgid "BrkPipe"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:572
+msgid "AuxRes"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:573
+msgid "ErgRes"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:574
+msgid "MRPipe"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:575
+msgid "RetValve"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:576
+msgid "TripleValve"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:578
+msgid "Handbrk"
+msgstr "Håndbremse"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:579
+msgid "Conn"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:580
+msgid "AnglCock"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:581
+msgid "BleedOff"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:597
+msgid "FORCE INFORMATION"
+msgstr "KRAFT INFORMATION"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:607
+msgid "Conditions"
+msgstr "Betingelser"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:608
+msgid "Axle drive force"
+msgstr "Aksel drivkraft"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:609
+msgid "Axle brake force"
+msgstr "Aksel bremsekraft"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:610
+msgid "Number of substeps"
+msgstr "Antal undertrin"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:612
+msgid "Solver"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:613
+msgid "Stability correction"
+msgstr "Stabilitet korrektion"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:614
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:621
+msgid "Axle out force"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:620
+msgid "(Advanced adhesion model disabled)"
+msgstr "(Avanceret friktionsmodel deaktiveret)"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:630
+msgid "Total"
+msgstr "Total"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:631
+msgid "Motive"
+msgstr "Motorkraft"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:632
+msgid "Brake"
+msgstr "Bremser"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:633
+msgid "Friction"
+msgstr "Friktion"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:634
+msgid "Gravity"
+msgstr "Tyngdekraft"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:635
+msgid "Curve"
+msgstr "Kurve"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:636
+msgid "Tunnel"
+msgstr "Tunnel"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:637
+msgid "Coupler"
+msgstr "Kobling"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:665
+msgid "DISPATCHER INFORMATION"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:667
+msgid "Train"
+msgstr "Tog"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:668
+msgid "Travelled"
+msgstr "Rejst"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:671
+msgid "AI mode"
+msgstr "AI tilstand"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:672
+msgid "AI data"
+msgstr "AI data"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:674
+msgid "Auth"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:676
+msgid "Signal"
+msgstr "Signal"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:678
+msgid "Consist"
+msgstr "Consist"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:679
+msgid "Path"
+msgstr "Sti"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:780
+msgid "DEBUG INFORMATION"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:786
+msgid "Logging enabled"
+msgstr "Logning aktiveret"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:787
+msgid "Build"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:791
+msgid "Adapter"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:796
+msgid "Shadow maps"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:798
+msgid "Shadow primitives"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:801
+msgid "Render primitives"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:802
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:803
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:804
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:805
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:806
+msgid "wait"
+msgstr "vent"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:806
+msgid "Total process"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:807
+msgid "Camera"
+msgstr "Kamera"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:611
+#, csharp-format
+msgid "filtered by {0:F0}"
+msgstr "filtreret af {0:F0}"
+
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:789
+#, csharp-format
+msgid "{0} logical processor"
+msgid_plural "{0} logical processors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:53
+msgid "Next Station"
+msgstr "Næste Station"
+
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:224
+msgid "No more stations."
+msgstr "Ikke flere stationer"
+
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:359
+msgid "Activity completed."
+msgstr "Aktivitet fuldført."
+
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:123
+#, csharp-format
+msgid "Current Delay: {0} minute"
+msgid_plural "Current Delay: {0} minutes"
+msgstr[0] "Aktuel Forsinkelse: {0} minut"
+msgstr[1] "Aktuel Forsinkelse: {0} minutter"
+
+#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:163
+msgid "Train not active."
+msgstr "Toget inaktiv."
+
+#: ../../ActivityRunner/Viewer3D/Popups/NoticeWindow.cs:104
+#, csharp-format
+msgid "Camera: {0}"
+msgstr "Kamera: {0}"
+
+#: ../../ActivityRunner/Viewer3D/Popups/NoticeWindow.cs:109
+#, csharp-format
+msgid "FOV: {0:F0}°"
+msgstr "FOV: {0:F0}°"
+
+#: ../../ActivityRunner/Viewer3D/Popups/NoticeWindow.cs:120
+#, csharp-format
+msgid "Odometer {0}"
+msgstr "Kilometertæller {0}"
+
+#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:32
+msgid "Pause Menu"
+msgstr "Pause Menu"
+
+#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:46
+#, csharp-format
+msgid "Quit {1} ({0})"
+msgstr "Afslut {1} ({0})"
+
+#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:51
+#, csharp-format
+msgid "Save your game ({0})"
+msgstr "Gem dit spil ({0})"
+
+#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:59
+#, csharp-format
+msgid "Continue playing ({0})"
+msgstr "Fortsæt spillet ({0})"
+
+#: ../../ActivityRunner/Viewer3D/Popups/SwitchWindow.cs:47
+msgid "Switch"
+msgstr "Skift"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:70
+msgid "Track Monitor"
+msgstr "Spor Monitor"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:74
+msgid "Auto Signal"
+msgstr "Auto Signal"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:75
+msgid "Node"
+msgstr "Node"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:76
+msgid "Manual"
+msgstr "Manuel"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:77
+msgid "Explorer"
+msgstr "Udforsk"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:78
+msgid "OutOfControl : "
+msgstr "UdeAfKontrol:"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:79
+msgid "Inactive"
+msgstr "Inaktiv"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:80
+msgid "Unknown"
+msgstr "Ukendt"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:89
+msgid "Speed:"
+msgstr "Hastighed:"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:94
+msgid "Projected:"
+msgstr "Forventet:"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:99
+msgid "Limit:"
+msgstr "Begrænsning:"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:110
+msgid " Dist      Speed   Aspect"
+msgstr " Dist     Hastighed"
+
+#: ../../ActivityRunner/Viewer3D/Popups/TrainOperationsWindow.cs:36
+msgid "Train Operations"
+msgstr "Tog Sammensætning"
+
+#: ../../ActivityRunner/Viewer3D/Popups/WindowText.cs:153
+msgid ""
+"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 \",.-+|!$%&/"
+"()=?;:'_[]"
+msgstr ""
+
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:329
+msgid "diesel oil"
+msgstr "dieselolie"
+
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:330
+msgid "wood"
+msgstr "træ"
+
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:446
+msgid "Refill: No suitable pick-up point anywhere, so refilling immediately."
+msgstr ""
+"Påfyldning: Ingen passende afhentningspunkt nogen steder, så påfyld straks"
+
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:454
+#, csharp-format
+msgid "Refill: Distance to {0} supply is {1}."
+msgstr "Påfyldning: Afstand til {0}-forsyning er {1}."
+
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:462
+#, csharp-format
+msgid "Refill: Loco must be stationary to refill {0}."
+msgstr "Påfyldning: Lokomotivet skal holde stille ved påfyldning af {0}."
+
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:468
+#, csharp-format
+msgid "Refill: Loco speed must exceed {0}."
+msgstr "Påfyldning: Lokomotivets hastighed skal være højere end {0}"
+
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:475
+#, csharp-format
+msgid "Refill: Loco speed must not exceed {0}."
+msgstr "Påfyldning: Lokomotivets hastighed må ikke overstige {0}."
+
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:482
+#, csharp-format
+msgid "Refill: {0} supply now replenished."
+msgstr "Påfyldning: {0} genopfyldes."
+
+#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:455
+#, csharp-format
+msgid "{0} meter"
+msgid_plural "{0} meters"
+msgstr[0] "{0} meter"
+msgstr[1] "{0} meter"
+
+#~ msgid "Odometer"
+#~ msgstr "Kilometertæller"
+
+#~ msgctxt "Odometer"
+#~ msgid "reset"
+#~ msgstr "nulstil"
+
+#~ msgctxt "Odometer"
+#~ msgid "counting down"
+#~ msgstr "tæller ned"
+
+#~ msgctxt "Odometer"
+#~ msgid "counting up"
+#~ msgstr "tæller op"
+
+#~ msgid "Current SMS"
+#~ msgstr "Nuværende Besked"
+
+#~ msgid ""
+#~ "Total number of sound \r\n"
+#~ "files in cache:"
+#~ msgstr ""
+#~ "Samlet antal af lyd-\r\n"
+#~ "filer i cache:"
+
+#~ msgid "Restoring from a save made by an older version {0}\n"
+#~ msgstr "Gendannelse fra et gemt spil foretaget på en ældre version {0}\n"
+
+#~ msgid ""
+#~ "You are exceeding the maximum recommended speed. Continued operation at "
+#~ "this speed may cause damage."
+#~ msgstr ""
+#~ "Du overskrider den maksimalt anbefalede hastighed. Fortsat kørsel ved "
+#~ "denne hastighed kan forårsage skade."
+
+#~ msgid "successfully"
+#~ msgstr "med succes"
+
+#~ msgid "GenericObjectViewerForm"
+#~ msgstr "GenericObjectViewerForm"
+
+#~ msgid "Location labels"
+#~ msgstr "Sted etiketter"
+
+#~ msgid "sidings"
+#~ msgstr "sidespor"
+
+#~ msgid "stations"
+#~ msgstr "stationer"
+
+#~ msgid "stations and sidings"
+#~ msgstr "stationer og sidespor"
+
+#~ msgctxt "Labels"
+#~ msgid "none"
+#~ msgstr "ingen"
