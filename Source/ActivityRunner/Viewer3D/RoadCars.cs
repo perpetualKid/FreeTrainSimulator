@@ -384,7 +384,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public RoadCarPrimitive(Viewer viewer, RoadCar car)
         {
             Car = car;
-            CarShape = new RoadCarShape(viewer, viewer.Simulator.CarSpawnerLists[Car.CarSpawnerListIdx].shapeNames[car.Type]);
+            CarShape = new RoadCarShape(viewer.Simulator.CarSpawnerLists[Car.CarSpawnerListIdx].shapeNames[car.Type]);
         }
 
         [CallOnThread("Updater")]

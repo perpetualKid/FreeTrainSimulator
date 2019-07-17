@@ -52,18 +52,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         string UserName;
         string Code;
 
-        static Viewer Viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
+        private static Viewer Viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
         static ORTraceListener ORTraceListener { get { return Program.ORTraceListener; } set { Program.ORTraceListener = value; } }
         static string logFileName { get { return Program.logFileName; } set { Program.logFileName = value; } }
-
-        struct savedValues
-        {
-            public string pathName;
-            public float initialTileX;
-            public float initialTileZ;
-            public string[] args;
-            public string acttype;
-        }
 
         static DispatchViewer DebugViewer { get { return Program.DebugViewer; } set { Program.DebugViewer = value; } }
         static SoundDebugForm SoundDebugForm { get { return Program.SoundDebugForm; } set { Program.SoundDebugForm = value; } }
@@ -429,10 +420,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     versionOrBuild = GetValidSaveVersionOrBuild(settings, saveFile, inf);
                     saveRevision = VersionInfo.GetRevisionFromVersion(versionOrBuild);
 
-                    var values = GetSavedValues(inf);
-                    Acttype = values.acttype;
-                    InitSimulator(settings, values.args, "Resume", values.acttype);
-                    Simulator.Restore(inf, values.pathName, values.initialTileX, values.initialTileZ, Game.LoaderProcess.CancellationToken);
+                    var (PathName, InitialTileX, InitialTileZ, Args, ActivityType) = GetSavedValues(inf);
+                    Acttype = ActivityType;
+                    InitSimulator(settings, Args, "Resume", ActivityType);
+                    Simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(Simulator, Game);
                     if (Client != null || Server != null)
                         if (Acttype == "activity") Simulator.GetPathAndConsist();
@@ -528,9 +519,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 inf.ReadString();    // Revision
                 inf.ReadString();    // Build
-                savedValues values = GetSavedValues(inf);
-                Acttype = values.acttype;
-                InitSimulator(settings, values.args, "Replay", values.acttype);
+                var (PathName, InitialTileX, InitialTileZ, Args, ActivityType) = GetSavedValues(inf);
+                Acttype = ActivityType;
+                InitSimulator(settings, Args, "Replay", ActivityType);
                 Simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(Simulator, Game);
             }
@@ -598,8 +589,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 {
                     inf.ReadString();    // Revision
                     inf.ReadString();    // Build
-                    savedValues values = GetSavedValues(inf);
-                    InitSimulator(settings, values.args, "Replay");
+                    var (_, _, _, Args, _) = GetSavedValues(inf);
+                    InitSimulator(settings, Args, "Replay");
                 }
                 Simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(Simulator, Game);
@@ -611,9 +602,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 {
                     GetValidSaveVersionOrBuild(settings, saveFile, inf);
 
-                    var values = GetSavedValues(inf);
-                    InitSimulator(settings, values.args, "Resume", values.acttype);
-                    Simulator.Restore(inf, values.pathName, values.initialTileX, values.initialTileZ, Game.LoaderProcess.CancellationToken);
+                    var (PathName, InitialTileX, InitialTileZ, Args, ActivityType) = GetSavedValues(inf);
+                    InitSimulator(settings, Args, "Resume", ActivityType);
+                    Simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(Simulator, Game);
                     Viewer.Restore(inf);
                 }
@@ -1195,31 +1186,33 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return file.FullName;
         }
 
-        savedValues GetSavedValues(BinaryReader inf)
+        private (string PathName, float InitialTileX, float InitialTileZ, string[] Args, string ActivityType) GetSavedValues(BinaryReader inf)
         {
-            savedValues values = default(savedValues);
+            (string PathName, float InitialTileX, float InitialTileZ, string[] Args, string ActivityType) result;
+
             // Skip the heading data used in Menu.exe
             // Done so even if not elegant to be compatible with existing save files
-            var routeNameOrMultipl = inf.ReadString();
-            if (routeNameOrMultipl == "$Multipl$")
+            if (inf.ReadString() == "$Multipl$")
                 inf.ReadString();    // Route name
-            values.pathName = inf.ReadString();    // Path name
+            result.PathName = inf.ReadString();    // Path name
+                                                   //skip
             inf.ReadInt32();     // Time elapsed in game (secs)
             inf.ReadInt64();     // Date and time in real world
             inf.ReadSingle();    // Current location of player train TileX
             inf.ReadSingle();    // Current location of player train TileZ
 
             // Read initial position and pass to Simulator so it can be written out if another save is made.
-            values.initialTileX = inf.ReadSingle();  // Initial location of player train TileX
-            values.initialTileZ = inf.ReadSingle();  // Initial location of player train TileZ
+            result.InitialTileX = inf.ReadSingle();  // Initial location of player train TileX
+            result.InitialTileZ = inf.ReadSingle();  // Initial location of player train TileZ
 
             // Read in the real data...
             var savedArgs = new string[inf.ReadInt32()];
             for (var i = 0; i < savedArgs.Length; i++)
                 savedArgs[i] = inf.ReadString();
-            values.acttype = inf.ReadString();
-            values.args = savedArgs;
-            return values;
+            result.Args = savedArgs;
+            result.ActivityType = inf.ReadString();
+
+            return result;
         }
 
         long GetProcessBytesLoaded()

@@ -44,8 +44,8 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly bool[] SubObjVisible;
         readonly List<SignalShapeHead> Heads = new List<SignalShapeHead>();
 
-        public SignalShape(Viewer viewer, SignalObj mstsSignal, string path, in WorldPosition position, ShapeFlags flags)
-            : base(viewer, path, position, flags)
+        public SignalShape(SignalObj mstsSignal, string path, in WorldPosition position, ShapeFlags flags)
+            : base(path, position, flags)
         {
 #if DEBUG_SIGNAL_SHAPES
             Console.WriteLine("{0} signal {1}:", Location.ToString(), mstsSignal.UID);
@@ -149,8 +149,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Locate relative to the camera
-            var dTileX = Location.TileX - Viewer.Camera.TileX;
-            var dTileZ = Location.TileZ - Viewer.Camera.TileZ;
+            var dTileX = Location.TileX - viewer.Camera.TileX;
+            var dTileZ = Location.TileZ - viewer.Camera.TileZ;
             var xnaTileTranslation = Matrix.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
             MatrixExtension.Multiply(in Location.XNAMatrix, in xnaTileTranslation, out Matrix xnaTileTranslationResult);
 

@@ -33,8 +33,8 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly TransferPrimitive Primitive;
         readonly float Radius;
 
-        public TransferShape(Viewer viewer, TransferObj transfer, in WorldPosition position)
-            : base(viewer, null, RemoveRotation(position), ShapeFlags.AutoZBias)
+        public TransferShape(TransferObj transfer, in WorldPosition position)
+            : base(null, RemoveRotation(position), ShapeFlags.AutoZBias)
         {
             Material = viewer.MaterialManager.Load("Transfer", Helpers.GetTransferTextureFile(viewer.Simulator, transfer.FileName));
             Primitive = new TransferPrimitive(viewer, transfer.Width, transfer.Height, position);
@@ -48,8 +48,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            var dTileX = Location.TileX - Viewer.Camera.TileX;
-            var dTileZ = Location.TileZ - Viewer.Camera.TileZ;
+            var dTileX = Location.TileX - viewer.Camera.TileX;
+            var dTileZ = Location.TileZ - viewer.Camera.TileZ;
             var mstsLocation = Location.Location + new Vector3(dTileX * 2048, 0, dTileZ * 2048);
             var xnaMatrix = Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
             frame.AddAutoPrimitive(mstsLocation, Radius, float.MaxValue, Material, Primitive, RenderPrimitiveGroup.World, ref xnaMatrix, Flags);
