@@ -535,7 +535,7 @@ namespace Orts.Viewer3D.RollingStock
             }
 
             // Water spray for water sccop (uses steam effects currently) - Forward direction
-            if (car.Direction == Direction.Forward)
+            if (car.Train == null || car.Direction == Direction.Forward)
             {
                 foreach (var drawer in WaterScoop)
                 {
