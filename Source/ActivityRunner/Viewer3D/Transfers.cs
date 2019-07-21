@@ -17,13 +17,14 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Formats.Msts;
-using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Orts.ActivityRunner.Viewer3D.Common;
+using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common;
+using Orts.Formats.Msts;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -42,15 +43,15 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         static WorldPosition RemoveRotation(in WorldPosition position)
-        {
-            return new WorldPosition(position.TileX, position.TileZ, Matrix.Identity).SetTranslation(position.XNAMatrix.Translation);
+        {           
+            return new WorldPosition(position.TileX, position.TileZ, Matrix.CreateTranslation(position.XNAMatrix.Translation));
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            var dTileX = Location.TileX - viewer.Camera.TileX;
-            var dTileZ = Location.TileZ - viewer.Camera.TileZ;
-            var mstsLocation = Location.Location + new Vector3(dTileX * 2048, 0, dTileZ * 2048);
+            var dTileX = WorldPosition.TileX - viewer.Camera.TileX;
+            var dTileZ = WorldPosition.TileZ - viewer.Camera.TileZ;
+            var mstsLocation = WorldPosition.Location + new Vector3(dTileX * 2048, 0, dTileZ * 2048);
             var xnaMatrix = Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
             frame.AddAutoPrimitive(mstsLocation, Radius, float.MaxValue, Material, Primitive, RenderPrimitiveGroup.World, ref xnaMatrix, Flags);
         }

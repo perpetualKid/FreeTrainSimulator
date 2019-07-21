@@ -91,7 +91,7 @@ namespace Orts.Simulation.RollingStocks
         public float RotationYRadians;
     }
 
-    public abstract class TrainCar
+    public abstract class TrainCar: IWorldPosition
     {
         public readonly Simulator Simulator;
         public readonly string WagFilePath;
@@ -1632,6 +1632,8 @@ namespace Orts.Simulation.RollingStocks
                 return (loco.CabView3D.ViewPointList.Count > i);
             }
         }
+
+        ref readonly WorldPosition IWorldPosition.WorldPosition => ref WorldPosition;
 
         public virtual bool GetCabFlipped()
         {

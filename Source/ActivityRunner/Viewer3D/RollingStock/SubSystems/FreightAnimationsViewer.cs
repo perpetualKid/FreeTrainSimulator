@@ -20,6 +20,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Common;
 using System.Collections.Generic;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 {
@@ -45,7 +46,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         public FreightAnimationViewer(Viewer viewer, MSTSWagon wagon, string wagonFolderSlash, FreightAnimation animation)
         {
             Animation = animation;
-            FreightShape = new AnimatedShape(wagonFolderSlash + animation.ShapeFileName + '\0' + wagonFolderSlash, wagon.WorldPosition, ShapeFlags.ShadowCaster);
+            FreightShape = new AnimatedShape(wagonFolderSlash + animation.ShapeFileName + '\0' + wagonFolderSlash, wagon, ShapeFlags.ShadowCaster);
             if (FreightShape.SharedShape.LodControls.Length > 0)
             {
                 foreach (var lodControl in FreightShape.SharedShape.LodControls)

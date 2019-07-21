@@ -20,6 +20,7 @@ using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

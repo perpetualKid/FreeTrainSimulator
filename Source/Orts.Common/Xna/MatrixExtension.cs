@@ -35,10 +35,7 @@ namespace Orts.Common.Xna
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Matrix SetTranslation(in Matrix matrix, in Vector3 position)
         {
-            return new Matrix(matrix.M11, matrix.M12, matrix.M13, matrix.M14,
-                matrix.M21, matrix.M22, matrix.M23, matrix.M24,
-                matrix.M31, matrix.M32, matrix.M33, matrix.M34,
-                position.X, position.Y, position.Z, matrix.M44);
+            return SetTranslation(matrix, position.X, position.Y, position.Z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -48,6 +45,27 @@ namespace Orts.Common.Xna
                 matrix.M21, matrix.M22, matrix.M23, matrix.M24,
                 matrix.M31, matrix.M32, matrix.M33, matrix.M34,
                 x, y, z, matrix.M44);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Matrix ChangeTranslation(in Matrix matrix, in Vector3 positionDelta)
+        {
+            return ChangeTranslation(matrix, positionDelta.X, positionDelta.Y, positionDelta.Z);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Matrix ChangeTranslation(in Matrix matrix, float xDelta, float yDelta, float zDelta)
+        {
+            return new Matrix(matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+                matrix.M21, matrix.M22, matrix.M23, matrix.M24,
+                matrix.M31, matrix.M32, matrix.M33, matrix.M34,
+                matrix.M41 + xDelta, matrix.M42 + yDelta, matrix.M43 + zDelta, matrix.M44);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Matrix RemoveTranslation(in Matrix matrix)
+        {
+            return SetTranslation(matrix, Vector3.Zero);
         }
     }
 }

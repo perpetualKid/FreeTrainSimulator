@@ -32,6 +32,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Schema;
 using Orts.Common.Xna;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -67,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             WorldPosition nextRoot = worldMatrix; // Will become initial root
             Vector3 sectionOrigin = worldMatrix.XNAMatrix.Translation; // Save root position
-            WorldPosition root = worldMatrix.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
+            Matrix root = MatrixExtension.RemoveTranslation(worldMatrix.XNAMatrix); // worldMatrix now rotation-only
 
             // Iterate through all subsections
             for (int iTkSection = 0; iTkSection < trackObj.trackSections.Count; iTkSection++)
@@ -96,8 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {   // Heading stays the same; translation changes in the direction oriented
                     // Rotate Vector3.Forward to orient the displacement vector
                     localProjectedV = localV + length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length,
-                                                            root.XNAMatrix, out localProjectedV);
+                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length, root, out localProjectedV);
                 }
                 else // Curved section
                 {   // Both heading and translation change 
@@ -108,8 +108,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Matrix rot = Matrix.CreateRotationY(-length); // Heading change (rotation about O)
                     // Shared method returns displacement from present world position and, by reference,
                     // local position in x-z plane of end of this section
-                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
-                                            worldMatrix.XNAMatrix, out localProjectedV);
+                    displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot, root, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
                     nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix));// Store heading change

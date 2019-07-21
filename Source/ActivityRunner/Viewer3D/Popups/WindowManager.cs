@@ -21,6 +21,7 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using System;
 using System.Collections.Generic;

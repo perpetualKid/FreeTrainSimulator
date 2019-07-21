@@ -47,6 +47,11 @@ using Orts.Common.Xna;
 
 namespace Orts.Common
 {
+    public interface IWorldPosition
+    {
+        ref readonly WorldPosition WorldPosition { get; }
+    }
+
     /// <summary>
     /// Represents the position and orientation of an object within a tile in XNA coordinates.
     /// </summary>
@@ -108,11 +113,8 @@ namespace Orts.Common
         /// </summary>
         public Vector3 Location
         {
-            get
-            {
-                // "inlined" XnaMatrix.Translation() Decomposition
-                return new Vector3(XNAMatrix.M41, XNAMatrix.M42, -XNAMatrix.M43);
-            }
+            // "inlined" XnaMatrix.Translation() Decomposition
+            get { return new Vector3(XNAMatrix.M41, XNAMatrix.M42, -XNAMatrix.M43); }
         }
 
         public WorldPosition SetLocation(Vector3 location)

@@ -22,6 +22,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Simulation;
 using Orts.Common;
 using System.Collections.Generic;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -155,7 +156,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 if (labels.ContainsKey(platform))
                                     newLabels[platform] = labels[platform];
                                 else
-                                    newLabels[platform] = new LabelPrimitive(Owner.Label3DMaterial, Color.Yellow, Color.Black, 0, platform.Location, platform.ItemName);
+                                    newLabels[platform] = new LabelPrimitive(Owner.Label3DMaterial, Color.Yellow, Color.Black, 0, new FixedWorldPositionSource(platform.Location), platform.ItemName);
                                 // Change color with distance.
                                 var ratio = (MathHelper.Clamp(distance, MinimumDistance, MaximumDistancePlatform) - MinimumDistance) / (MaximumDistancePlatform - MinimumDistance);
                                 newLabels[platform].UpdateAlphaBlendRatio(ratio);
@@ -177,7 +178,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 if (labels.ContainsKey(siding))
                                     newLabels[siding] = labels[siding];
                                 else
-                                    newLabels[siding] = new LabelPrimitive(Owner.Label3DMaterial, Color.Orange, Color.Black, 0, siding.Location, siding.ItemName);
+                                    newLabels[siding] = new LabelPrimitive(Owner.Label3DMaterial, Color.Orange, Color.Black, 0, new FixedWorldPositionSource(siding.Location), siding.ItemName);
                                 // Change color with distance.
                                 var ratio = (MathHelper.Clamp(distance, MinimumDistance, MaximumDistanceSiding) - MinimumDistance) / (MaximumDistanceSiding - MinimumDistance);
                                 newLabels[siding].UpdateAlphaBlendRatio(ratio);

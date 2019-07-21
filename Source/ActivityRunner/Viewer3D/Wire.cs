@@ -34,6 +34,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Orts.Common.Xna;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

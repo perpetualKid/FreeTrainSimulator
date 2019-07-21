@@ -31,6 +31,7 @@ using Orts.Common.Input;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock
 {
@@ -96,7 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 from effect in MSTSWagon.EffectData
                 select new KeyValuePair<string, List<ParticleEmitterViewer>>(effect.Key, new List<ParticleEmitterViewer>(
                     from data in effect.Value
-                    select new ParticleEmitterViewer(viewer, data, car.WorldPosition)))).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                    select new ParticleEmitterViewer(viewer, data, car)))).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             // Initaialise particle viewers for special steam effects
             foreach (var emitter in ParticleDrawers)
@@ -174,15 +175,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             var wagonFolderSlash = Path.GetDirectoryName(car.WagFilePath) + @"\";
 
             TrainCarShape = car.MainShapeFileName != string.Empty
-                ? new PoseableShape(wagonFolderSlash + car.MainShapeFileName + '\0' + wagonFolderSlash, car.WorldPosition, ShapeFlags.ShadowCaster)
-                : new PoseableShape(null, car.WorldPosition);
+                ? new PoseableShape(wagonFolderSlash + car.MainShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster)
+                : new PoseableShape(null, car);
 
             // This insection initialises the MSTS style freight animation - can either be for a coal load, which will adjust with usage, or a static animation, such as additional shape.
             if (car.FreightShapeFileName != null)
             {
                 
                 car.HasFreightAnim = true;
-                FreightShape = new AnimatedShape(wagonFolderSlash + car.FreightShapeFileName + '\0' + wagonFolderSlash, car.WorldPosition, ShapeFlags.ShadowCaster);
+                FreightShape = new AnimatedShape(wagonFolderSlash + car.FreightShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
 
                 // Reproducing MSTS "bug" of not allowing tender animation in case both minLevel and maxLevel are 0 or maxLevel <  minLevel 
                 // Applies to both a standard tender locomotive or a tank locomotive (where coal load is on same "wagon" as the locomotive -  for the coal load on a tender or tank locomotive - in operation it will raise or lower with caol usage
@@ -203,7 +204,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
 
             if (car.InteriorShapeFileName != null)
-                InteriorShape = new AnimatedShape(wagonFolderSlash + car.InteriorShapeFileName + '\0' + wagonFolderSlash, car.WorldPosition, ShapeFlags.Interior, 30.0f);
+                InteriorShape = new AnimatedShape(wagonFolderSlash + car.InteriorShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.Interior, 30.0f);
 
             RunningGear = new AnimatedPart(TrainCarShape);
             Pantograph1 = new AnimatedPart(TrainCarShape);
@@ -649,8 +650,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // To disable coal load variation and insert a static (crew) shape on the tender breech, one of the conditions indicated above
             if (FreightShape != null && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
             {
-                // Define default position of shape
-                FreightShape.Location = Car.WorldPosition;
+                //// Define default position of shape
+                //FreightShape.Location = Car.WorldPosition;
 
                     bool SteamAnimShape = false;
                     float FuelControllerLevel = 0.0f;
@@ -691,9 +692,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     // reproducing MSTS strange behavior; used to display loco crew when attached to tender
                     else if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender)
                     {
-                        Matrix freightLocation = FreightShape.Location.XNAMatrix;
-                        freightLocation.M42 += MSTSWagon.FreightAnimMaxLevelM;
-                        FreightShape.Location = new WorldPosition(FreightShape.Location.TileX, FreightShape.Location.TileZ, freightLocation);
+                        //TODO
+                        //Matrix freightLocation = FreightShape.WorldPosition.XNAMatrix;
+                        //freightLocation.M42 += MSTSWagon.FreightAnimMaxLevelM;
+                        //FreightShape.Location = new WorldPosition(FreightShape.WorldPosition.TileX, FreightShape.WorldPosition.TileZ, freightLocation);
                     }
                     }
                 // Display Animation Shape                    
@@ -709,7 +711,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             (Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab)) continue;
                     if (freightAnim.FreightShape != null && !((freightAnim.Animation is FreightAnimationContinuous) && (freightAnim.Animation as FreightAnimationContinuous).LoadPerCent == 0))
                     {
-                        freightAnim.FreightShape.Location = Car.WorldPosition;
+                        //freightAnim.FreightShape.Location = Car.WorldPosition;
                         if (freightAnim.FreightShape.XNAMatrices.Length > 0)
                         {
                             if (freightAnim.Animation is FreightAnimationContinuous)
@@ -736,11 +738,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             // Get the current height above "sea level" for the relevant car
             Car.CarHeightAboveGroundM = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
-
-            //TODO - quick fix to keep the shape in sync with car position
-            TrainCarShape.Location = Car.WorldPosition;
-            if (null !=InteriorShape)
-                InteriorShape.Location = Car.WorldPosition;
 
             // Control visibility of passenger cabin when inside it
             if (Viewer.Camera.AttachedCar == this.MSTSWagon

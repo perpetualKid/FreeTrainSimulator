@@ -54,11 +54,11 @@ namespace Orts.ActivityRunner.Viewer3D
         int InputCycle;
 #endif
 
-        public ParticleEmitterViewer(Viewer viewer, ParticleEmitterData data, in WorldPosition worldPosition)
+        public ParticleEmitterViewer(Viewer viewer, ParticleEmitterData data, IWorldPosition positionSource)
         {
             Viewer = viewer;
             EmissionHoleM2 = (MathHelper.Pi * ((data.NozzleWidth / 2f) * (data.NozzleWidth / 2f)));
-            Emitter = new ParticleEmitterPrimitive(viewer, data, worldPosition);
+            Emitter = new ParticleEmitterPrimitive(viewer, data, positionSource);
 #if DEBUG_EMITTER_INPUT
             EmitterID = ++EmitterIDIndex;
             InputCycle = Viewer.Random.Next(InputCycleLimit);
@@ -191,8 +191,10 @@ namespace Orts.ActivityRunner.Viewer3D
         internal float ParticleDuration;
         internal Color ParticleColor;
 
-        internal WorldPosition WorldPosition;
-        internal WorldPosition LastWorldPosition;
+        //internal WorldPosition WorldPosition;
+        //internal WorldPosition LastWorldPosition;
+        private WorldPosition previousPosition;
+        private readonly IWorldPosition positionSource;
 
         // Particle buffer goes like this:
         //   +--active>-----new>--+
@@ -212,7 +214,7 @@ namespace Orts.ActivityRunner.Viewer3D
         static float windDisplacementX;
         static float windDisplacementZ;
 
-        public ParticleEmitterPrimitive(Viewer viewer, ParticleEmitterData data, in WorldPosition worldPosition)
+        public ParticleEmitterPrimitive(Viewer viewer, ParticleEmitterData data, IWorldPosition positionSource)
         {
             this.viewer = viewer;
 
@@ -229,8 +231,10 @@ namespace Orts.ActivityRunner.Viewer3D
             ParticleDuration = 3;
             ParticleColor = Color.White;
 
-            WorldPosition = worldPosition;
-            LastWorldPosition = worldPosition;
+            //WorldPosition = worldPosition.;
+            //LastWorldPosition = worldPosition;
+            this.positionSource = positionSource;
+            previousPosition = positionSource.WorldPosition;
 
             TimeParticlesLastEmitted = (float)viewer.Simulator.GameTime;
 
@@ -320,12 +324,20 @@ namespace Orts.ActivityRunner.Viewer3D
             windDisplacementX = viewer.Simulator.Weather.WindSpeedMpS.X * 0.25f;
             windDisplacementZ = viewer.Simulator.Weather.WindSpeedMpS.Y * 0.25f;
 
-            var velocity = WorldPosition.Location - LastWorldPosition.Location;
-            velocity.X += (WorldPosition.TileX - LastWorldPosition.TileX) * 2048;
-            velocity.Z += (WorldPosition.TileZ - LastWorldPosition.TileZ) * 2048;
+            //var velocity = WorldPosition.Location - LastWorldPosition.Location;
+            //velocity.X += (WorldPosition.TileX - LastWorldPosition.TileX) * 2048;
+            //velocity.Z += (WorldPosition.TileZ - LastWorldPosition.TileZ) * 2048;
+            //velocity.Z *= -1;
+            //velocity /= elapsedTime.ClockSeconds;
+            //LastWorldPosition = LastWorldPosition.SetLocation(WorldPosition.Location);
+
+            var velocity = positionSource.WorldPosition.Location - previousPosition.Location;
+            velocity.X += (positionSource.WorldPosition.TileX - previousPosition.TileX) * 2048;
+            velocity.Z += (positionSource.WorldPosition.TileZ - previousPosition.TileZ) * 2048;
             velocity.Z *= -1;
             velocity /= elapsedTime.ClockSeconds;
-            LastWorldPosition = LastWorldPosition.SetLocation(WorldPosition.Location);
+
+            previousPosition = positionSource.WorldPosition;
 
             RetireActiveParticles(currentTime);
             FreeRetiredParticles();
@@ -339,10 +351,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (numToEmit > 0)
             {
-                var rotation = WorldPosition.XNAMatrix;
+                var rotation = positionSource.WorldPosition.XNAMatrix;
                 rotation.Translation = Vector3.Zero;
 
-                var position = Vector3.Transform(EmitterData.XNALocation, rotation) + WorldPosition.XNAMatrix.Translation;
+                var position = Vector3.Transform(EmitterData.XNALocation, rotation) + positionSource.WorldPosition.XNAMatrix.Translation;
                 var globalInitialVelocity = Vector3.Transform(XNAInitialVelocity, rotation) + velocity;
                 // TODO: This should only be rotated about the Y axis and not get fully rotated.
                 var globalTargetVelocity = Vector3.Transform(XNATargetVelocity, rotation);
@@ -381,7 +393,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         Vertices[vertex + j].StartPosition_StartTime = new Vector4(position, time);
                         Vertices[vertex + j].InitialVelocity_EndTime = new Vector4(initialVelocity, time + duration);
                         Vertices[vertex + j].TargetVelocity_TargetTime = new Vector4(targetVelocity, ParticleEmitterViewer.DecelerationTime);
-                        Vertices[vertex + j].TileXY_Vertex_ID = new Vector4(WorldPosition.TileX, WorldPosition.TileZ, j, texture);
+                        Vertices[vertex + j].TileXY_Vertex_ID = new Vector4(positionSource.WorldPosition.TileX, positionSource.WorldPosition.TileZ, j, texture);
                         Vertices[vertex + j].Color_Random = color_Random;
                     }
 

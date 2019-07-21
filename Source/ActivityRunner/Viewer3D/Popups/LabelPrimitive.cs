@@ -27,20 +27,20 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
     {
         private readonly Label3DMaterial material;
 
-        private readonly WorldPosition position;
+        private readonly IWorldPosition positionSource;
         private readonly string text;
         private Color color;
         private Color outline;
 
         private readonly float offsetY;
 
-        public LabelPrimitive(Label3DMaterial material, Color color, Color outline, float offsetY, in WorldPosition position, string text)
+        public LabelPrimitive(Label3DMaterial material, Color color, Color outline, float offsetY, IWorldPosition positionSource, string text)
         {
             this.material = material;
             this.color = color;
             this.outline = outline;
             this.offsetY = offsetY;
-            this.position = position;
+            this.positionSource = positionSource;
             this.text = text;
         }
 
@@ -52,10 +52,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public override void Draw()
         {
             Camera camera = material.CurrentCamera;
-            var lineLocation3D = position.XNAMatrix.Translation;
-            lineLocation3D.X += (position.TileX - camera.TileX) * 2048;
+            var lineLocation3D = positionSource.WorldPosition.XNAMatrix.Translation;
+            lineLocation3D.X += (positionSource.WorldPosition.TileX - camera.TileX) * 2048;
             lineLocation3D.Y += offsetY;
-            lineLocation3D.Z += (camera.TileZ - position.TileZ) * 2048;
+            lineLocation3D.Z += (camera.TileZ - positionSource.WorldPosition.TileZ) * 2048;
 
             var lineLocation2DStart = graphicsDevice.Viewport.Project(lineLocation3D, camera.XnaProjection, camera.XnaView, Matrix.Identity);
             if (lineLocation2DStart.Z > 1 || lineLocation2DStart.Z < 0)

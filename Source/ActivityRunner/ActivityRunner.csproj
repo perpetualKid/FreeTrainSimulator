@@ -157,6 +157,13 @@
     <Compile Include="Viewer3D\Scenery.cs" />
     <Compile Include="Viewer3D\Shaders.cs" />
     <Compile Include="Viewer3D\Shapes.cs" />
+    <Compile Include="Viewer3D\Shapes\BaseShape.cs" />
+    <Compile Include="Viewer3D\Shapes\DynamicShapes.cs" />
+    <Compile Include="Viewer3D\Shapes\FixedWorldPositionSource.cs" />
+    <Compile Include="Viewer3D\Shapes\SharedShape.cs" />
+    <Compile Include="Viewer3D\Shapes\SharedShapeManager.cs" />
+    <Compile Include="Viewer3D\Shapes\StaticShapes.cs" />
+    <Compile Include="Viewer3D\Shapes\TrainTableShapes.cs" />
     <Compile Include="Viewer3D\Signals.cs" />
     <Compile Include="Viewer3D\Sky.cs" />
     <Compile Include="Viewer3D\Sound.cs" />

@@ -48,9 +48,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -240,7 +242,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         public readonly int TileX, TileZ;
-        public List<StaticShape> sceneryObjects = new List<StaticShape>();
+        public List<BaseShape> sceneryObjects = new List<BaseShape>();
         public List<DynamicTrackViewer> dTrackList = new List<DynamicTrackViewer>();
         public List<ForestViewer> forestList = new List<ForestViewer>();
         public List<RoadCarSpawner> carSpawners = new List<RoadCarSpawner>();
@@ -371,7 +373,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         if (trJunctionNode != null)
                         {
                             if (viewer.Simulator.UseSuperElevation > 0) SuperElevationManager.DecomposeStaticSuperElevation(viewer, dTrackList, trackObj, worldMatrix, TileX, TileZ, shapeFilePath);
-                            sceneryObjects.Add(new SwitchTrackShape(shapeFilePath, worldMatrix, trJunctionNode));
+                            sceneryObjects.Add(new SwitchTrackShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), trJunctionNode));
                         }
                         else
                         {
@@ -397,13 +399,13 @@ namespace Orts.ActivityRunner.Viewer3D
                                             var turntable = movingTable as Simulation.Turntable;
                                             turntable.ComputeCenter(worldMatrix);
                                             var startingY = Math.Asin(-2 * (worldObject.QDirection.A * worldObject.QDirection.C - worldObject.QDirection.B * worldObject.QDirection.D));
-                                            sceneryObjects.Add(new TurntableShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, turntable, startingY));
+                                            sceneryObjects.Add(new TurntableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, turntable, startingY));
                                         }
                                         else
                                         {
                                             var transfertable = movingTable as Simulation.Transfertable;
                                             transfertable.ComputeCenter(worldMatrix);
-                                            sceneryObjects.Add(new TransfertableShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, transfertable));
+                                            sceneryObjects.Add(new TransfertableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, transfertable));
                                         }
                                         break;
                                     }
@@ -438,7 +440,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(SignalObj))
                     {
-                        sceneryObjects.Add(new SignalShape((SignalObj)worldObject, shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
+                        sceneryObjects.Add(new SignalShape((SignalObj)worldObject, shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
                     }
                     else if (worldObject.GetType() == typeof(TransferObj))
                     {
@@ -446,16 +448,16 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(LevelCrossingObj))
                     {
-                        sceneryObjects.Add(new LevelCrossingShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (LevelCrossingObj)worldObject));
+                        sceneryObjects.Add(new LevelCrossingShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (LevelCrossingObj)worldObject));
                     }
                     else if (worldObject.GetType() == typeof(HazardObj))
                     {
-                        var h = HazzardShape.CreateHazzard(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (HazardObj)worldObject);
+                        var h = HazardShape.CreateHazzard(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (HazardObj)worldObject);
                         if (h != null) sceneryObjects.Add(h);
                     }
                     else if (worldObject.GetType() == typeof(SpeedPostObj))
                     {
-                        sceneryObjects.Add(new SpeedPostShape(shapeFilePath, worldMatrix, (SpeedPostObj)worldObject));
+                        sceneryObjects.Add(new SpeedPostShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), (SpeedPostObj)worldObject));
                     }
                     else if (worldObject.GetType() == typeof(CarSpawnerObj))
                     {
@@ -478,16 +480,16 @@ namespace Orts.ActivityRunner.Viewer3D
                     else if (worldObject.GetType() == typeof(StaticObj))
                     {
                         if (animated)
-                            sceneryObjects.Add(new AnimatedShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
+                            sceneryObjects.Add(new AnimatedShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
                         else
-                            sceneryObjects.Add(new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));                     
+                            sceneryObjects.Add(new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
                     }
                     else if (worldObject.GetType() == typeof(PickupObj))
                     {
                         if (animated)
-                            sceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (PickupObj)worldObject));
+                            sceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (PickupObj)worldObject));
                         else
-                            sceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (PickupObj)worldObject));
+                            sceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (PickupObj)worldObject));
                         PickupList.Add((PickupObj)worldObject);
                     }
                     else // It's some other type of object - not one of the above.
@@ -528,7 +530,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 // Instancing collapsed multiple copies of the same model in to a single set of data (the normal model
                 // data, plus a list of position information for each copy) and then draws them in a single batch.
-                var instances = new Dictionary<string, List<StaticShape>>();
+                var instances = new Dictionary<string, List<BaseShape>>();
                 foreach (var shape in sceneryObjects)
                 {
                     // Only allow StaticShape and StaticTrackShape instances for now.
@@ -541,7 +543,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         continue;
 
                     if (path != null && !instances.ContainsKey(path))
-                        instances.Add(path, new List<StaticShape>());
+                        instances.Add(path, new List<BaseShape>());
 
                     if (path != null)
                         instances[path].Add(shape);

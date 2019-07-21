@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Common.Xna;
@@ -2324,7 +2325,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (car.CabView3D != null)
             {
                 var shapePath = car.CabView3D.ShapeFilePath;
-                TrainCarShape = new PoseableShape(shapePath + '\0' + Path.GetDirectoryName(shapePath), car.WorldPosition, ShapeFlags.ShadowCaster | ShapeFlags.Interior);
+                TrainCarShape = new PoseableShape(shapePath + '\0' + Path.GetDirectoryName(shapePath), car, ShapeFlags.ShadowCaster | ShapeFlags.Interior);
                 locoViewer.ThreeDimentionCabRenderer = new CabRenderer(viewer, car, car.CabView3D.CVFFile);
             }
             else locoViewer.ThreeDimentionCabRenderer = locoViewer._CabRenderer;
@@ -2738,11 +2739,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             UpdateDigit();
-            Matrix mx = TrainCarShape.Location.XNAMatrix;
-            mx.M41 += (TrainCarShape.Location.TileX - Viewer.Camera.TileX) * 2048;
-            mx.M43 += (-TrainCarShape.Location.TileZ + Viewer.Camera.TileZ) * 2048;
-            Matrix m = XNAMatrix * mx;
 
+            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
+                (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
+                0,
+                (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
+            MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
             // TODO: Make this use AddAutoPrimitive instead.
             frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.World, ref m, ShapeFlags.None);
         }
@@ -2954,10 +2956,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             UpdateDigit();
-            Matrix mx = TrainCarShape.Location.XNAMatrix;
-            mx.M41 += (TrainCarShape.Location.TileX - Viewer.Camera.TileX) * 2048;
-            mx.M43 += (-TrainCarShape.Location.TileZ + Viewer.Camera.TileZ) * 2048;
-            Matrix m = XNAMatrix * mx;
+            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
+                (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
+                0,
+                (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
+            MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
 
             // TODO: Make this use AddAutoPrimitive instead.
             frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.World, ref m, ShapeFlags.None);

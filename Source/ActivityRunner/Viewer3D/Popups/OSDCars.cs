@@ -80,7 +80,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 newLabels[car] = labels[car];
                             else
                                 newLabels[car] = new LabelPrimitive(Owner.Label3DMaterial, Color.Blue, Color.White, car.CarHeightM, 
-                                    car.WorldPosition, (State == DisplayState.Cars || car.Train == null ? car.CarID : car.Train.Name));
+                                    car, (State == DisplayState.Cars || car.Train == null ? car.CarID : car.Train.Name));
                             // Change color with distance.
                             var ratio = (MathHelper.Clamp(distance, MinimumDistance, MaximumDistance) - MinimumDistance) / (MaximumDistance - MinimumDistance);
                             newLabels[car].UpdateAlphaBlendRatio(ratio);

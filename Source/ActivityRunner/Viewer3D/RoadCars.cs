@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -179,7 +180,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     // TODO: Move to simulator!
-    public class RoadCar
+    public class RoadCar : IWorldPosition
     {
         public const float VisualHeightAdjustment = 0.1f;
         const float AccelerationFactor = 5;
@@ -196,12 +197,15 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public int TileX { get { return FrontTraveller.TileX; } }
         public int TileZ { get { return FrontTraveller.TileZ; } }
+
+        private WorldPosition position;
+
         public Vector3 FrontLocation
         {
             get
             {
-                return new Vector3(FrontTraveller.WorldLocation.Location.X, 
-                    FrontTraveller.WorldLocation.Location.Y + Math.Max(Spawner.GetRoadHeightAdjust(Travelled - Length * 0.25f), 0) + VisualHeightAdjustment, 
+                return new Vector3(FrontTraveller.WorldLocation.Location.X,
+                    FrontTraveller.WorldLocation.Location.Y + Math.Max(Spawner.GetRoadHeightAdjust(Travelled - Length * 0.25f), 0) + VisualHeightAdjustment,
                     FrontTraveller.WorldLocation.Location.Z);
             }
         }
@@ -213,6 +217,30 @@ namespace Orts.ActivityRunner.Viewer3D
                 return new Vector3(location.Location.X,
                     location.Location.Y + Math.Max(Spawner.GetRoadHeightAdjust(Travelled + Length * 0.25f), 0) + VisualHeightAdjustment,
                     location.Location.Z);
+            }
+        }
+
+        public ref readonly WorldPosition WorldPosition
+        {
+            get
+            {
+                // TODO: Add 0.1f to Y to put wheels above road. Matching MSTS?
+                var front = FrontLocation;
+                var rear = RearLocation;
+                var frontY = front.Y;
+                var rearY = rear.Y;
+                if (IgnoreXRotation)
+                {
+                    frontY = frontY - VisualHeightAdjustment;
+                    rearY = rearY - VisualHeightAdjustment;
+                    if (Math.Abs(frontY - rearY) > 0.01f)
+                    {
+                        if (frontY > rearY) rearY = frontY;
+                        else frontY = rearY;
+                    }
+                }
+                position = new WorldPosition(TileX, TileZ, Simulator.XNAMatrixFromMSTSCoordinates(front.X, frontY, front.Z, rear.X, rearY, rear.Z));
+                return ref position;
             }
         }
 
@@ -384,28 +412,28 @@ namespace Orts.ActivityRunner.Viewer3D
         public RoadCarPrimitive(Viewer viewer, RoadCar car)
         {
             Car = car;
-            CarShape = new RoadCarShape(viewer.Simulator.CarSpawnerLists[Car.CarSpawnerListIdx].shapeNames[car.Type]);
+            CarShape = new RoadCarShape(viewer.Simulator.CarSpawnerLists[Car.CarSpawnerListIdx].shapeNames[car.Type], car);
         }
 
         [CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            // TODO: Add 0.1f to Y to put wheels above road. Matching MSTS?
-            var front = Car.FrontLocation;
-            var rear = Car.RearLocation;
-            var frontY = front.Y;
-            var rearY = rear.Y;
-            if (Car.IgnoreXRotation)
-            {
-                frontY = frontY - RoadCar.VisualHeightAdjustment;
-                rearY = rearY - RoadCar.VisualHeightAdjustment;
-                if (Math.Abs(frontY - rearY) > 0.01f)
-                {
-                    if (frontY > rearY) rearY = frontY;
-                    else frontY = rearY;
-                }
-            }
-            CarShape.Location = new WorldPosition(Car.TileX, Car.TileZ, Simulator.XNAMatrixFromMSTSCoordinates(front.X, frontY, front.Z, rear.X, rearY, rear.Z));
+            //// TODO: Add 0.1f to Y to put wheels above road. Matching MSTS?
+            //var front = Car.FrontLocation;
+            //var rear = Car.RearLocation;
+            //var frontY = front.Y;
+            //var rearY = rear.Y;
+            //if (Car.IgnoreXRotation)
+            //{
+            //    frontY = frontY - RoadCar.VisualHeightAdjustment;
+            //    rearY = rearY - RoadCar.VisualHeightAdjustment;
+            //    if (Math.Abs(frontY - rearY) > 0.01f)
+            //    {
+            //        if (frontY > rearY) rearY = frontY;
+            //        else frontY = rearY;
+            //    }
+            //}
+            //CarShape.Location = new WorldPosition(Car.TileX, Car.TileZ, Simulator.XNAMatrixFromMSTSCoordinates(front.X, frontY, front.Z, rear.X, rearY, rear.Z));
             CarShape.PrepareFrame(frame, elapsedTime);
         }
 

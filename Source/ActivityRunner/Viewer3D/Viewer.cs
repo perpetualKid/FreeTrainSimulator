@@ -43,6 +43,7 @@ using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Settings;
 using Event = Orts.Common.Event;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -1399,8 +1400,8 @@ namespace Orts.ActivityRunner.Viewer3D
                                     hi = trainCarShape.Hierarchy[hi];
                                     startingPoint = result;
                                 }
-                                MatrixExtension.Multiply(in startingPoint, in trainCarShape.Location.XNAMatrix, out Matrix matrix);
-                                var matrixWorldLocation = new WorldLocation(trainCarShape.Location.WorldLocation.TileX, trainCarShape.Location.WorldLocation.TileZ, 
+                                MatrixExtension.Multiply(in startingPoint, in trainCarShape.WorldPosition.XNAMatrix, out Matrix matrix);
+                                var matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ, 
                                 matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
                                 Vector3 xnaCenter = Camera.XnaLocation(matrixWorldLocation);
                                 float d = OrtsMath.LineSegmentDistanceSq(xnaCenter, NearPoint, FarPoint);
@@ -1459,8 +1460,8 @@ namespace Orts.ActivityRunner.Viewer3D
                                     hi = trainCarShape.Hierarchy[hi];
                                     startingPoint = result;
                                 }
-                                MatrixExtension.Multiply(in startingPoint, in trainCarShape.Location.XNAMatrix, out Matrix matrix);
-                                var matrixWorldLocation = new WorldLocation(trainCarShape.Location.WorldLocation.TileX, trainCarShape.Location.WorldLocation.TileZ, 
+                                MatrixExtension.Multiply(in startingPoint, in trainCarShape.WorldPosition.XNAMatrix, out Matrix matrix);
+                                var matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ, 
                                     matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
                                 Vector3 xnaCenter = Camera.XnaLocation(matrixWorldLocation);
                                 float d = OrtsMath.LineSegmentDistanceSq(xnaCenter, NearPoint, FarPoint);

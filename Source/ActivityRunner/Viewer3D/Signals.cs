@@ -33,6 +33,7 @@ using System.Diagnostics;
 using System.IO;
 using Event = Orts.Common.Event;
 using Events = Orts.Common.Events;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -44,8 +45,8 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly bool[] SubObjVisible;
         readonly List<SignalShapeHead> Heads = new List<SignalShapeHead>();
 
-        public SignalShape(SignalObj mstsSignal, string path, in WorldPosition position, ShapeFlags flags)
-            : base(path, position, flags)
+        public SignalShape(SignalObj mstsSignal, string path, IWorldPosition positionSource, ShapeFlags flags)
+            : base(path, positionSource, flags)
         {
 #if DEBUG_SIGNAL_SHAPES
             Console.WriteLine("{0} signal {1}:", Location.ToString(), mstsSignal.UID);
@@ -54,7 +55,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var signalShape = Path.GetFileName(path).ToUpper();
             if (!viewer.SIGCFG.SignalShapes.ContainsKey(signalShape))
             {
-                Trace.TraceWarning("{0} signal {1} has invalid shape {2}.", Location.ToString(), mstsSignal.UID, signalShape);
+                Trace.TraceWarning("{0} signal {1} has invalid shape {2}.", WorldPosition.ToString(), mstsSignal.UID, signalShape);
                 return;
             }
             var mstsSignalShape = viewer.SIGCFG.SignalShapes[signalShape];
@@ -107,7 +108,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (mstsSignal.SignalUnits == null)
             {
-                Trace.TraceWarning("{0} signal {1} has no SignalUnits.", Location.ToString(), mstsSignal.UID);
+                Trace.TraceWarning("{0} signal {1} has no SignalUnits.", WorldPosition.ToString(), mstsSignal.UID);
                 return;
             }
 
@@ -120,14 +121,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 var signalAndHead = viewer.Simulator.Signals.FindByTrItem(mstsSignal.SignalUnits.Units[i].TrItem);
                 if (!signalAndHead.HasValue)
                 {
-                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid TrItem {3}", Location.ToString(), mstsSignal.UID, i, mstsSignal.SignalUnits.Units[i].TrItem);
+                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid TrItem {3}", WorldPosition.ToString(), mstsSignal.UID, i, mstsSignal.SignalUnits.Units[i].TrItem);
                     continue;
                 }
                 // Get the signal sub-object for this unit (head).
                 var mstsSignalSubObj = mstsSignalShape.SignalSubObjs[mstsSignal.SignalUnits.Units[i].SubObj];
                 if (mstsSignalSubObj.SignalSubType != 1) // SIGNAL_HEAD
                 {
-                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", Location.ToString(), mstsSignal.UID, i, mstsSignal.SignalUnits.Units[i].SubObj);
+                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", WorldPosition.ToString(), mstsSignal.UID, i, mstsSignal.SignalUnits.Units[i].SubObj);
                     continue;
                 }
                 var mstsSignalItem = (SignalItem)(viewer.Simulator.TDB.TrackDB.TrItemTable[mstsSignal.SignalUnits.Units[i].TrItem]);
@@ -149,15 +150,15 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Locate relative to the camera
-            var dTileX = Location.TileX - viewer.Camera.TileX;
-            var dTileZ = Location.TileZ - viewer.Camera.TileZ;
+            var dTileX = WorldPosition.TileX - viewer.Camera.TileX;
+            var dTileZ = WorldPosition.TileZ - viewer.Camera.TileZ;
             var xnaTileTranslation = Matrix.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
-            MatrixExtension.Multiply(in Location.XNAMatrix, in xnaTileTranslation, out Matrix xnaTileTranslationResult);
+            MatrixExtension.Multiply(in WorldPosition.XNAMatrix, in xnaTileTranslation, out Matrix xnaTileTranslationResult);
 
             foreach (var head in Heads)
                 head.PrepareFrame(frame, elapsedTime, xnaTileTranslationResult);
 
-            SharedShape.PrepareFrame(frame, Location, XNAMatrices, SubObjVisible, Flags);
+            SharedShape.PrepareFrame(frame, WorldPosition, XNAMatrices, SubObjVisible, Flags);
         }
 
         public override void Unload()
@@ -281,7 +282,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         var soundPath = Viewer.Simulator.RoutePath + @"\\sound\\" + Viewer.Simulator.TRK.Tr_RouteFile.DefaultSignalSMS;
                         try
                         {
-                            Sound = new SoundSource(Viewer, SignalShape.Location.WorldLocation, Events.Source.MSTSSignal, soundPath);
+                            Sound = new SoundSource(Viewer, SignalShape.WorldPosition.WorldLocation, Events.Source.MSTSSignal, soundPath);
                             Viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                         }
                         catch (Exception error)
