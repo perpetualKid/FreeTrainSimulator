@@ -32,10 +32,10 @@ namespace Orts.Common.Native
         [DllImport("user32.dll", EntryPoint = "GetKeyNameText", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern int GetKeyNameTextNative(int scanCode, [Out] string name, int length);
 
-        public static IntPtr SendMessage(IntPtr hwnd, int msg, int wParam, ref CharFormat2 lParam)
+        public static IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr wParam, ref CharFormat2 lParam)
         { return SendMessageNative(hwnd, msg, wParam, ref lParam); }
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern IntPtr SendMessageNative(IntPtr hwnd, int msg, int wParam, ref CharFormat2 lParam);
+        private static extern IntPtr SendMessageNative(IntPtr hwnd, int msg, IntPtr wParam, ref CharFormat2 lParam);
 
         [StructLayout(LayoutKind.Sequential, Pack = 4, CharSet = System.Runtime.InteropServices.CharSet.Auto)]
         public struct CharFormat2
