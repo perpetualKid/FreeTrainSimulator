@@ -63,10 +63,10 @@ namespace Orts.Common.Native
             public byte Reserved1;
         }
 
-        public static IntPtr SendMessage(IntPtr hwnd, int msg, int wParam, string lParam)
+        public static IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr wParam, string lParam)
         { return SendMessageNative(hwnd, msg, wParam, lParam); }
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern IntPtr SendMessageNative(IntPtr hWnd, int msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)]string lParam);
+        private static extern IntPtr SendMessageNative(IntPtr hWnd, int msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)]string lParam);
 
 
     }

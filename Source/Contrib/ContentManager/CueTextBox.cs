@@ -43,7 +43,7 @@ namespace Orts.ContentManager
         {
             if (IsHandleCreated && !string.IsNullOrEmpty(cueText))
             {
-                SendMessage(Handle, EM_SETCUEBANNER, Convert.ToInt32(ShowCueWhenFocused), cueText);
+                SendMessage(Handle, EM_SETCUEBANNER, (IntPtr)Convert.ToInt32(ShowCueWhenFocused), cueText);
             }
         }
 
