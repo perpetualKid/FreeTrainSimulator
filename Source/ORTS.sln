@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentChecker", "Contrib\C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActivityEditor.Base", "Contrib\ActivityEditor\ActivityEditor.Base\ActivityEditor.Base.csproj", "{B79691A7-BF8C-40B4-ADE0-5F30F2730414}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Orts.Common", "UnitTests\Tests.Orts.Common\Tests.Orts.Common.csproj", "{401939A5-9CFD-42DA-8F47-766AE68F2CE5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -145,6 +147,10 @@ Global
 		{B79691A7-BF8C-40B4-ADE0-5F30F2730414}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B79691A7-BF8C-40B4-ADE0-5F30F2730414}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B79691A7-BF8C-40B4-ADE0-5F30F2730414}.Release|Any CPU.Build.0 = Release|Any CPU
+		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{401939A5-9CFD-42DA-8F47-766AE68F2CE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -159,6 +165,7 @@ Global
 		{2C4EBEBF-71E9-4336-B4DF-288E8BD399A7} = {1A54D0F8-1A42-43D2-A366-B1542EB3C4CE}
 		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8} = {1A54D0F8-1A42-43D2-A366-B1542EB3C4CE}
 		{B79691A7-BF8C-40B4-ADE0-5F30F2730414} = {1A54D0F8-1A42-43D2-A366-B1542EB3C4CE}
+		{401939A5-9CFD-42DA-8F47-766AE68F2CE5} = {C42BE9F9-199A-4AAA-ACF6-C0E4A32263A8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C78EAEEC-B64D-44BB-AA6C-C0177ECC2802}

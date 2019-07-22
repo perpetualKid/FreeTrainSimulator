@@ -60,8 +60,8 @@ namespace Orts.Common
         /// Only Butterworth  filter 1st order is implemented. If other filters ever needed/implemented, the fixed length arrays may need replacements
         /// </summary>
         private readonly int numberCoefficients;
-        private double[] aCoef;
-        private double[] bCoef;
+        private readonly double[] aCoef;
+        private readonly double[] bCoef;
 
         private double samplingPeriod_s;
         private double cuttoffFreqRadpS;
@@ -398,51 +398,5 @@ namespace Orts.Common
             return (2 * Math.PI * hz);
         }
 
-    }
-
-    public class MovingAverage
-    {
-        public MovingAverage()
-        {
-            Buffer = new Queue<float>(100);
-            Size = 10;
-        }
-        public MovingAverage(int size)
-        {
-            Buffer = new Queue<float>(100);
-            Size = size;
-        }
-
-        Queue<float> Buffer;
-
-        int size;
-        public int Size
-        {
-            get { if (Buffer != null) return Buffer.Count; else return 0; }
-            set { if (value > 0) size = value; else size = 1; Initialize(); }
-        }
-
-        public void Initialize(float value)
-        {
-            Buffer.Clear();
-            for (int i = 0; i < size; i++)
-            {
-                Buffer.Enqueue(value);
-            }
-        }
-        public void Initialize()
-        {
-            Initialize(0f);
-        }
-
-        public float Update(float value)
-        {
-            if ((!float.IsNaN(value)) || (!float.IsNaN(value)))
-            {
-                Buffer.Enqueue(value);
-                Buffer.Dequeue();
-            }
-            return Buffer.Average();
-        }
     }
 }

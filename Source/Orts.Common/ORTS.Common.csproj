@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="AEDefinitions.cs" />
     <Compile Include="AlmostEqual.cs" />
+    <Compile Include="Calc\MovingAverage.cs" />
     <Compile Include="Native\GDI32.cs" />
     <Compile Include="Native\Kernel32.cs" />
     <Compile Include="Native\User32.cs" />
@@ -104,6 +105,6 @@
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-  <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
-</PropertyGroup>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
 </Project>

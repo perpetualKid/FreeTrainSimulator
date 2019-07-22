@@ -388,7 +388,7 @@ namespace Orts.Simulation.RollingStocks
             LocomotiveAxle.DampingNs = MassKG / 1000.0f;
             LocomotiveAxle.FrictionN = MassKG / 100.0f;
             LocomotiveAxle.StabilityCorrection = true;
-            LocomotiveAxle.FilterMovingAverage.Size = Simulator.Settings.AdhesionMovingAverageFilterSize;
+            LocomotiveAxle.FilterMovingAverage = new Common.Calc.MovingAverage(Simulator.Settings.AdhesionMovingAverageFilterSize);
             CurrentFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, IIRFilter.HzToRad(0.5f), 0.001f);
             AdhesionFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, IIRFilter.HzToRad(1f), 0.001f);
 
