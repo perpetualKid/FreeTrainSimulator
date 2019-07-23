@@ -603,11 +603,11 @@ namespace Orts.Simulation.RollingStocks
 
             if (Simulator.WeatherType == WeatherType.Rain || Simulator.WeatherType == WeatherType.Snow) // Apply snow/rain height variation
             {
-                TemperatureHeightVariationDegC = Me.ToKiloM(CarHeightAboveGroundM) * WetLapseTemperatureC;
+                TemperatureHeightVariationDegC = Size.Length.ToKM(CarHeightAboveGroundM) * WetLapseTemperatureC;
             }
             else  // Apply dry height variation
             {
-                TemperatureHeightVariationDegC = Me.ToKiloM(CarHeightAboveGroundM) * DryLapseTemperatureC;
+                TemperatureHeightVariationDegC = Size.Length.ToKM(CarHeightAboveGroundM) * DryLapseTemperatureC;
             }
 
             TemperatureHeightVariationDegC = MathHelper.Clamp(TemperatureHeightVariationDegC, 0.00f, 30.0f);
@@ -926,17 +926,17 @@ namespace Orts.Simulation.RollingStocks
                 
                 // ++++++++++++++++++++++++
                 // Calculate steam pipe surface area
-                float CompartmentSteamPipeRadiusM = Me.FromIn(2.0f) / 2.0f;  // Assume the steam pipes in the compartments have diameter of 2" (50mm)
-                float DoorSteamPipeRadiusM = Me.FromIn(1.75f) / 2.0f;        // Assume the steam pipes in the doors have diameter of 1.75" (50mm)
+                float CompartmentSteamPipeRadiusM = Size.Length.FromIn(2.0f) / 2.0f;  // Assume the steam pipes in the compartments have diameter of 2" (50mm)
+                float DoorSteamPipeRadiusM = Size.Length.FromIn(1.75f) / 2.0f;        // Assume the steam pipes in the doors have diameter of 1.75" (50mm)
 
                 // Assume door pipes are 3' 4" (ie 3.3') long, and that there are doors at both ends of the car, ie x 2
-                float CarDoorLengthM = 2.0f * Me.FromFt(3.3f);
+                float CarDoorLengthM = 2.0f * Size.Length.FromFt(3.3f);
                 float CarDoorVolumeM3 = CarWidthM * CarDoorLengthM * (CarHeightM - BogieHeightM);
 
                 float CarDoorPipeAreaM2 = 2.0f * MathHelper.Pi * DoorSteamPipeRadiusM * CarDoorLengthM;
 
                 // Use rule of thumb - 1" of 2" steam heat pipe for every 3.5 cu ft of volume in car compartment (second class)
-                float CarCompartmentPipeLengthM = Me.FromIn((CarHeatVolumeM3 - CarDoorVolumeM3) / (Me3.FromFt3(3.5f)));
+                float CarCompartmentPipeLengthM = Size.Length.FromIn((CarHeatVolumeM3 - CarDoorVolumeM3) / (Size.Volume.FromFt3(3.5f)));
                 float CarCompartmentPipeAreaM2 = 2.0f * MathHelper.Pi * CompartmentSteamPipeRadiusM * CarCompartmentPipeLengthM;
 
                 CarHeatPipeAreaM2 = CarCompartmentPipeAreaM2 + CarDoorPipeAreaM2;
@@ -1134,7 +1134,7 @@ namespace Orts.Simulation.RollingStocks
 
                 if (CurrentCurveRadius > 0)  // only check curve speed if it is a curve
                 {
-                    float SpeedToleranceMpS =  Me.FromMi(Frequency.Periodic.FromHours(2.5f));  // Set bandwidth tolerance for resetting notifications
+                    float SpeedToleranceMpS =  Size.Length.FromMi(Frequency.Periodic.FromHours(2.5f));  // Set bandwidth tolerance for resetting notifications
                     
                     // If super elevation set in Route (TRK) file
                     if (Simulator.TRK.Tr_RouteFile.SuperElevationHgtpRadiusM != null)

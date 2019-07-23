@@ -30,6 +30,7 @@ using System.Text;
 using System.IO;
 using Orts.Parsers.Msts;
 using Orts.Common;
+using Orts.Common.Calc;
 
 namespace Orts.Formats.Msts
 {
@@ -1024,10 +1025,10 @@ namespace Orts.Formats.Msts
         public ApproachControlLimits(STFReader stf)
         {
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("positionmiles", ()=>{ ApproachControlPositionM = Me.FromMi(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
+                new STFReader.TokenProcessor("positionmiles", ()=>{ ApproachControlPositionM = Size.Length.FromMi(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
                 new STFReader.TokenProcessor("positionkm", ()=>{ ApproachControlPositionM = (stf.ReadFloatBlock(STFReader.UNITS.None, 0) * 1000); }),
                 new STFReader.TokenProcessor("positionm", ()=>{ ApproachControlPositionM = stf.ReadFloatBlock(STFReader.UNITS.None, 0); }),
-                new STFReader.TokenProcessor("positionyd", ()=>{ ApproachControlPositionM = Me.FromYd(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
+                new STFReader.TokenProcessor("positionyd", ()=>{ ApproachControlPositionM = Size.Length.FromYd(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
                 new STFReader.TokenProcessor("speedmph", ()=>{ ApproachControlSpeedMpS = MpS.FromMpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
                 new STFReader.TokenProcessor("speedkph", ()=>{ ApproachControlSpeedMpS = MpS.FromKpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
                 });

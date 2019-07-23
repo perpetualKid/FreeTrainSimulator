@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Parsers.Msts;
 using ORTS.Scripting.Api;
 
@@ -39,9 +40,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         // defaults based on information in http://www.lmsca.org.uk/lms-coaches/LMSRAVB.pdf
         public int NumBrakeCylinders = 2;
         // brake cylinder volume with piston in applied position
-        float BrakeCylVolM3 = Me3.FromIn3((float)((18 / 2) * (18 / 2) * 4.5 * Math.PI));
+        float BrakeCylVolM3 = Size.Volume.FromIn3((float)((18 / 2) * (18 / 2) * 4.5 * Math.PI));
         // vacuum reservior volume with piston in released position
-        public float VacResVolM3 = Me3.FromIn3((float)((24 / 2) * (24 / 2) * 16 * Math.PI));
+        public float VacResVolM3 = Size.Volume.FromIn3((float)((24 / 2) * (24 / 2) * 16 * Math.PI));
         // volume units need to be consistent but otherwise don't matter, defaults are cubic inches
         bool HasDirectAdmissionValue = false;
         float DirectAdmissionValve = 0.0f;
@@ -173,10 +174,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     }
                     break;
                 // OpenRails specific parameters
-                case "wagon(brakepipevolume": BrakePipeVolumeM3 = Me3.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
-                case "wagon(ortsauxilaryrescapacity": VacResVolM3 = Me3.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
+                case "wagon(brakepipevolume": BrakePipeVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
+                case "wagon(ortsauxilaryrescapacity": VacResVolM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
                 case "wagon(ortsbrakecylindersize": float BrakeCylSizeM = stf.ReadFloatBlock(STFReader.UNITS.Distance, null);
-                    BrakeCylVolM3 = Me3.FromIn3((float)((Me.ToIn(BrakeCylSizeM) / 2) * (Me.ToIn(BrakeCylSizeM) / 2) * 4.5 * Math.PI)); // Calculate brake cylinder volume based upon size of BC, 4.5" of piston travel
+                    BrakeCylVolM3 = Size.Volume.FromIn3((float)((Size.Length.ToIn(BrakeCylSizeM) / 2) * (Size.Length.ToIn(BrakeCylSizeM) / 2) * 4.5 * Math.PI)); // Calculate brake cylinder volume based upon size of BC, 4.5" of piston travel
                     break;
                 case "wagon(ortsnumberbrakecylinders": NumBrakeCylinders = stf.ReadIntBlock(null); break;
             }
@@ -477,7 +478,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             // If nSteps is small and BrakeServiceTimeFactorS is small then instability will be introduced, and BP will fluctuate to different values
             int nSteps;
             float nStepsFraction;
-            nStepsFraction = (Me3.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3);
+            nStepsFraction = (Size.Volume.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3);
             float nStepsWhole = (elapsedClockSeconds * nStepsFraction) / brakePipeTimeFactorS + 1;
             nSteps = (int)( nStepsWhole);
             float TrainPipeTimeVariationS = elapsedClockSeconds / nSteps;
@@ -490,15 +491,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 // The reference brake system is assumed to be 200ft^3, as ejector specifications suggest that a standard ejector can evacuate a brake system to 21InHg in about 60 seconds
                 // BrakePipeChargingRatePSIorInHgpS - trains of less then 200ft^3 will have higher charging rates, ie less time to charge BP
                 // BrakeServiceTimeFactorS / BrakeEmergencyTimeFactorS  - trains of less then 200ft^3 will have lower factors, ie less time to discharge BP
-                AdjLargeEjectorChargingRateInHgpS = (Me3.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3) * LargeEjectorChargingRateInHgpS;
-                AdjSmallEjectorChargingRateInHgpS = (Me3.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3) * SmallEjectorChargingRateInHgpS;
-                AdjVacuumPumpChargingRateInHgpS = (Me3.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3) * lead.VacuumPumpChargingRateInHgpS;
-                AdjHighSExhausterChargingRateInHgpS = (Me3.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3) * lead.ExhausterHighSBPChargingRatePSIorInHgpS;
-                AdjLowSExhausterChargingRateInHgpS = (Me3.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3) * lead.ExhausterLowSBPChargingRatePSIorInHgpS;
-                AdjTrainPipeLeakLossPSI = (train.TotalTrainBrakeSystemVolumeM3 / Me3.FromFt3(200.0f)) * lead.TrainBrakePipeLeakPSIorInHgpS;
-                AdjBrakeServiceTimeFactorS = (train.TotalTrainBrakeSystemVolumeM3 / Me3.FromFt3(200.0f)) * lead.BrakeServiceTimeFactorS;
-                AdjBrakeEmergencyTimeFactorS = (train.TotalTrainBrakeSystemVolumeM3 / Me3.FromFt3(200.0f)) * lead.BrakeEmergencyTimeFactorS;
-                TempbrakePipeTimeMultFactor = train.TotalTrainBrakeSystemVolumeM3 / Me3.FromFt3(200.0f);
+                AdjLargeEjectorChargingRateInHgpS = (Size.Volume.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3) * LargeEjectorChargingRateInHgpS;
+                AdjSmallEjectorChargingRateInHgpS = (Size.Volume.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3) * SmallEjectorChargingRateInHgpS;
+                AdjVacuumPumpChargingRateInHgpS = (Size.Volume.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3) * lead.VacuumPumpChargingRateInHgpS;
+                AdjHighSExhausterChargingRateInHgpS = (Size.Volume.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3) * lead.ExhausterHighSBPChargingRatePSIorInHgpS;
+                AdjLowSExhausterChargingRateInHgpS = (Size.Volume.FromFt3(200.0f) / train.TotalTrainBrakeSystemVolumeM3) * lead.ExhausterLowSBPChargingRatePSIorInHgpS;
+                AdjTrainPipeLeakLossPSI = (train.TotalTrainBrakeSystemVolumeM3 / Size.Volume.FromFt3(200.0f)) * lead.TrainBrakePipeLeakPSIorInHgpS;
+                AdjBrakeServiceTimeFactorS = (train.TotalTrainBrakeSystemVolumeM3 / Size.Volume.FromFt3(200.0f)) * lead.BrakeServiceTimeFactorS;
+                AdjBrakeEmergencyTimeFactorS = (train.TotalTrainBrakeSystemVolumeM3 / Size.Volume.FromFt3(200.0f)) * lead.BrakeEmergencyTimeFactorS;
+                TempbrakePipeTimeMultFactor = train.TotalTrainBrakeSystemVolumeM3 / Size.Volume.FromFt3(200.0f);
                 AdjbrakePipeTimeFactorS = TempbrakePipeTimeMultFactor * brakePipeTimeFactorS;
                 AdjBrakePipeDischargeTimeFactor = TempbrakePipeTimeMultFactor * lead.BrakePipeDischargeTimeFactor;
 

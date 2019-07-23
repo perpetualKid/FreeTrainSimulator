@@ -17,21 +17,16 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
-
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-
 using Newtonsoft.Json;
-
 using Orts.Common;
-
 using ORTS.TrackViewer.Drawing;
-
+using static Orts.Common.Calc.Size;
 
 namespace ORTS.TrackViewer.Editing.Charts
 {
@@ -633,7 +628,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         {
             if (Properties.Settings.Default.useMilesNotMeters)
             {
-                niceScale = new NiceScaling(zoomedMinY, zoomedMaxY, Me.FromFt(1.0f), "ft");
+                niceScale = new NiceScaling(zoomedMinY, zoomedMaxY, Length.FromFt(1.0f), "ft");
             }
             else
             {
@@ -924,11 +919,11 @@ namespace ORTS.TrackViewer.Editing.Charts
 
             if (Properties.Settings.Default.useMilesNotMeters)
             {
-                niceScale = new NiceScaling(this.zoomedMinX, this.zoomedMaxX, Me.FromMi(1.0f), "M", minNumberOfTicks, true);
+                niceScale = new NiceScaling(this.zoomedMinX, this.zoomedMaxX, Length.FromMi(1.0f), "M", minNumberOfTicks, true);
             }
             else
             {
-                niceScale = new NiceScaling(this.zoomedMinX, this.zoomedMaxX, Me.FromKiloM(1.0f), "km", minNumberOfTicks, true);
+                niceScale = new NiceScaling(this.zoomedMinX, this.zoomedMaxX, Length.FromKM(1.0f), "km", minNumberOfTicks, true);
             }
 
             foreach (decimal niceValue in niceScale.NiceValues)

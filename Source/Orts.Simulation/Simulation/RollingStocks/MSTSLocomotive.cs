@@ -240,7 +240,7 @@ namespace Orts.Simulation.RollingStocks
 
         public bool EngineBrakeFitted = false;
         public bool VacuumExhausterIsOn = false;
-        public float VacuumBrakesMainResVolumeM3 = Me3.FromFt3(200.0f); // Main vacuum reservoir volume
+        public float VacuumBrakesMainResVolumeM3 = Size.Volume.FromFt3(200.0f); // Main vacuum reservoir volume
         public float VacuumBrakesMainResMaxVacuumPSIAorInHg = Vac.ToPress(23);
         public float VacuumBrakesExhausterRestartVacuumPSIAorInHg = Vac.ToPress(21);
         public float VacuumBrakesMainResChargingRatePSIAorInHgpS = Bar.ToPSI(Bar.FromInHg(0.2f));
@@ -753,14 +753,14 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(awsmonitor":
                 case "engine(overspeedmonitor": VigilanceMonitor = true; TrainControlSystem.Parse(lowercasetoken, stf); break;
                 case "engine(enginecontrollers(combined_control": ParseCombData(lowercasetoken, stf); break;
-                case "engine(airbrakesmainresvolume": MainResVolumeM3 = Me3.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
+                case "engine(airbrakesmainresvolume": MainResVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
                 case "engine(airbrakesmainmaxairpressure": MainResPressurePSI = MaxMainResPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break;
                 case "engine(airbrakescompressorrestartpressure": CompressorRestartPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break;
-                case "engine(airbrakesaircompressorpowerrating": CompressorChargingRateM3pS = Me3.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
+                case "engine(airbrakesaircompressorpowerrating": CompressorChargingRateM3pS = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
                 case "engine(trainpipeleakrate": TrainBrakePipeLeakPSIorInHgpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null); break;
                 case "engine(vacuumbrakesvacuumpumpresistance": VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.UNITS.Force, null); break;
 
-                case "engine(ortsvacuumbrakesmainresvolume": VacuumBrakesMainResVolumeM3 = Me3.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
+                case "engine(ortsvacuumbrakesmainresvolume": VacuumBrakesMainResVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
                 case "engine(ortsvacuumbrakesmainresmaxvacuum": VacuumBrakesMainResMaxVacuumPSIAorInHg = OneAtmospherePSI - stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
                 case "engine(ortsvacuumbrakesexhausterrestartvacuum": VacuumBrakesExhausterRestartVacuumPSIAorInHg = OneAtmospherePSI - stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
                 case "engine(ortsvacuumbrakesmainreschargingrate": VacuumBrakesMainResChargingRatePSIAorInHgpS = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break;
@@ -1133,7 +1133,7 @@ namespace Orts.Simulation.RollingStocks
             
             // Calculate minimum speed to pickup water
             const float Aconst = 2;
-            WaterScoopMinSpeedMpS = Me.FromFt((float)Math.Sqrt(Aconst * GravitationalAccelerationFtpSpS * Me.ToFt(WaterScoopFillElevationM)));
+            WaterScoopMinSpeedMpS = Size.Length.FromFt((float)Math.Sqrt(Aconst * GravitationalAccelerationFtpSpS * Size.Length.ToFt(WaterScoopFillElevationM)));
 
             // Initialise Brake Pipe Charging Rate
             if (BrakePipeChargingRatePSIorInHgpS == 0) // Check to see if BrakePipeChargingRate has been set in the ENG file.
@@ -2262,11 +2262,11 @@ namespace Orts.Simulation.RollingStocks
                 const float Aconst = 2;
                 const float Bconst = 2.15f;
                 float Avalue = ((float)Math.Pow(MpS.ToMpH(absSpeedMpS), 2) * Bconst);
-                float Bvalue = Aconst * GravitationalAccelerationFtpSpS * Me.ToFt(WaterScoopFillElevationM);
+                float Bvalue = Aconst * GravitationalAccelerationFtpSpS * Size.Length.ToFt(WaterScoopFillElevationM);
 
                 if (Avalue > Bvalue)
                 {
-                    WaterScoopVelocityMpS = Me.FromFt((float)Math.Sqrt(Avalue - Bvalue));
+                    WaterScoopVelocityMpS = Size.Length.FromFt((float)Math.Sqrt(Avalue - Bvalue));
                 }
                 else
                 {
@@ -2275,7 +2275,7 @@ namespace Orts.Simulation.RollingStocks
 
                 // calculate volume of water scooped per period
                 const float CuFttoGalUK = 6.22884f; // imperial gallons of water in a cubic foot of water
-                WaterScoopedQuantityLpS = L.FromGUK(Me2.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Me.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK);
+                WaterScoopedQuantityLpS = L.FromGUK(Size.Area.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Size.Length.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK);
                 WaterScoopInputAmountL = WaterScoopedQuantityLpS * elapsedClockSeconds; // Calculate current input quantity
 
                 // Max sure that water level can't exceed maximum tender water level. Assume that water will be vented out of tender if maximum value exceeded. 
@@ -2482,7 +2482,7 @@ namespace Orts.Simulation.RollingStocks
 
           // Calculate air consumption and change in main air reservoir pressure
                 float ActualAirConsumptionFt3pS = Frequency.Periodic.FromMinutes(TrackSanderAirComsumptionFt3pM) * elapsedClockSeconds;
-                float SanderPressureDiffPSI = ActualAirConsumptionFt3pS / Me3.ToFt3(MainResVolumeM3) ;
+                float SanderPressureDiffPSI = ActualAirConsumptionFt3pS / Size.Volume.ToFt3(MainResVolumeM3) ;
                 MainResPressurePSI -= SanderPressureDiffPSI;
                 MainResPressurePSI = MathHelper.Clamp(MainResPressurePSI, 0.001f, MaxMainResPressurePSI);
             }

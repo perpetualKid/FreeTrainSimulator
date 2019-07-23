@@ -61,4 +61,49 @@ namespace Tests.Orts.Common.Calc
             }
         }
     }
+
+    [TestClass]
+    public class SizeConversionTests
+    {
+        [TestMethod]
+        public void SizeRoundTripTest()
+        {
+            for (float i = 0; i < 30; i += 0.1f)
+            {
+                Assert.AreEqual(i, Size.Length.FromMi(Size.Length.ToMi(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Length.FromKM(Size.Length.ToKM(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Length.FromYd(Size.Length.ToYd(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Length.FromFt(Size.Length.ToFt(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Length.FromIn(Size.Length.ToIn(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+
+                Assert.AreEqual(i, Size.Area.FromFt2(Size.Area.ToFt2(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Area.FromIn2(Size.Area.ToIn2(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+
+                Assert.AreEqual(i, Size.Volume.FromFt3(Size.Volume.ToFt3(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Volume.FromIn3(Size.Volume.ToIn3(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+
+                Assert.AreEqual(i, Size.Length.ToM(Size.Length.FromM(i, true), true), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Length.ToM(Size.Length.FromM(i, false), false), EqualityPrecisionDelta.FloatPrecisionDelta);
+
+            }
+        }
+
+        [TestMethod]
+        public void RelatedConversionsTest()
+        {
+            {
+                Assert.AreEqual(1.44f, Size.Area.FromFt2((float)Math.Pow(Size.Length.ToFt(1.2f), 2)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(1.44f, Size.Area.ToFt2((float)Math.Pow(Size.Length.FromFt(1.2f), 2)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(1.44f, Size.Area.FromIn2((float)Math.Pow(Size.Length.ToIn(1.2f), 2)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(1.44f, Size.Area.ToIn2((float)Math.Pow(Size.Length.FromIn(1.2f), 2)), EqualityPrecisionDelta.FloatPrecisionDelta);
+
+
+                //Assert.AreEqual(1.728f, Me3.FromFt3((float)Math.Pow(Size.Length.ToFt(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                //Assert.AreEqual(1.728f, Me3.ToFt3((float)Math.Pow(Size.Length.FromFt(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                //Assert.AreEqual(1.728f, Me3.FromIn3((float)Math.Pow(Size.Length.ToIn(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                //Assert.AreEqual(1.728f, Me3.ToIn3((float)Math.Pow(Size.Length.FromIn(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
+
+            }
+        }
+    }
 }

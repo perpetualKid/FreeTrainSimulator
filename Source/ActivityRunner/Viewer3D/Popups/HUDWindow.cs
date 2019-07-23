@@ -1245,16 +1245,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         status.AppendFormat("\n{0}\t{1:N2} mph\t{2}\t{3:N2} mph\n",
                         Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
-                        Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(Frequency.Periodic.ToHours(train.WindResultantSpeedMpS)));
+                        Viewer.Catalog.GetString("ResSpeed:"), Size.Length.ToMi(Frequency.Periodic.ToHours(train.WindResultantSpeedMpS)));
                     }
                     else
                     {
                         status.AppendFormat("\n{0}\t{1:N2} mph\t{2}\t\t{3:N2} Deg\t{4}\t\t{5:N2} Deg\t{6}\t{7:N2} mph\t{8}\t{9:N2} mph\n",
-                        Viewer.Catalog.GetString("Wind Speed:"), Me.ToMi(Frequency.Periodic.ToHours(train.PhysicsWindSpeedMpS)),
+                        Viewer.Catalog.GetString("Wind Speed:"), Size.Length.ToMi(Frequency.Periodic.ToHours(train.PhysicsWindSpeedMpS)),
                         Viewer.Catalog.GetString("Wind Direction:"), train.PhysicsWindDirectionDeg,
                         Viewer.Catalog.GetString("Train Direction:"), train.PhysicsTrainLocoDirectionDeg,
                         Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
-                        Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(Frequency.Periodic.ToHours(train.WindResultantSpeedMpS))
+                        Viewer.Catalog.GetString("ResSpeed:"), Size.Length.ToMi(Frequency.Periodic.ToHours(train.WindResultantSpeedMpS))
 
                         //Add new header + data here, if required.
 

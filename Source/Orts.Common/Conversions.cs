@@ -60,77 +60,38 @@ namespace Orts.Common
     /// <summary>
     /// Distance conversions from and to metres
     /// </summary>
-    public static class Me {   // Not M to avoid conflict with MSTSMath.M, but note that MSTSMath.M will be gone in future.
+    internal static class Me {   // Not M to avoid conflict with MSTSMath.M, but note that MSTSMath.M will be gone in future.
         /// <summary>Convert (statute or land) miles to metres</summary>
-        public static float FromMi(float miles)  { return miles  * 1609.344f; }
+        internal static float FromMi(float miles)  { return miles  * 1609.344f; }
         /// <summary>Convert metres to (statute or land) miles</summary>
-        public static float ToMi(float metres)   { return metres * (1.0f / 1609.344f); }
+        internal static float ToMi(float metres)   { return metres * (1.0f / 1609.344f); }
         /// <summary>Convert kilometres to metres</summary>
-        public static float FromKiloM(float miles) { return miles * 1000f; }
+        internal static float FromKiloM(float miles) { return miles * 1000f; }
         /// <summary>Convert metres to kilometres</summary>
-        public static float ToKiloM(float metres) { return metres * (1.0f / 1000f); }
-        /// <summary>Convert yards to metres</summary>
-        public static float FromYd(float yards)  { return yards  * 0.9144f; }
+        internal static float ToKiloM(float metres) { return metres * (1.0f / 1000f); }
         /// <summary>Convert metres to yards</summary>
-        public static float ToYd(float metres)   { return metres * (1.0f / 0.9144f); }
-        /// <summary>Convert feet to metres</summary>
-        public static float FromFt(float feet)   { return feet   * 0.3048f; }
+        internal static float ToYd(float metres)   { return metres * (1.0f / 0.9144f); }
         /// <summary>Convert metres to feet</summary>
-        public static float ToFt(float metres)   { return metres *(1.0f/ 0.3048f); }
-        /// <summary>Convert inches to metres</summary>
-        public static float FromIn(float inches) { return inches * 0.0254f; }
-        /// <summary>Convert metres to inches</summary>
-        public static float ToIn(float metres)   { return metres * (1.0f / 0.0254f); }
-
-        /// <summary>
-        /// Convert from metres into kilometres or miles, depending on the flag isMetric
-        /// </summary>
-        /// <param name="distance">distance in metres</param>
-        /// <param name="isMetric">if true convert to kilometres, if false convert to miles</param>
-        public static float FromM(float distance, bool isMetric)
-        {
-            return isMetric ? ToKiloM(distance) : ToMi(distance);
-        }
-        /// <summary>
-        /// Convert to metres from kilometres or miles, depending on the flag isMetric
-        /// </summary>
-        /// <param name="distance">distance to be converted to metres</param>
-        /// <param name="isMetric">if true convert from kilometres, if false convert from miles</param>
-        public static float ToM(float distance, bool isMetric)
-        {
-            return isMetric ? FromKiloM(distance) : FromMi(distance);
-        }
+        internal static float ToFt(float metres)   { return metres *(1.0f/ 0.3048f); }
     }
 
 
     /// <summary>
     /// Area conversions from and to m^2
     /// </summary>
-    public static class Me2
+    internal static class Me2
     {
-        /// <summary>Convert from feet squared to metres squared</summary>
-        public static float FromFt2(float feet2) { return feet2   * 0.092903f; }
         /// <summary>Convert from metres squared to feet squared</summary>
         public static float ToFt2(float metres2) { return metres2 * (1.0f / 0.092903f); }
-        /// <summary>Convert from inches squared to metres squared</summary>
-        public static float FromIn2(float feet2) { return feet2   * (1.0f / 1550.0031f); }
-        /// <summary>Convert from metres squared to inches squared</summary>
-        public static float ToIn2(float metres2) { return metres2 * 1550.0031f; }
     }
 
     /// <summary>
     /// Volume conversions from and to m^3
     /// </summary>
-    public static class Me3
+    internal static class Me3
     {
-        /// <summary>Convert from cubic feet to cubic metres</summary>
-        public static float FromFt3(float feet3) { return feet3   * (1.0f / 35.3146665722f); }
         /// <summary>Convert from cubic metres to cubic feet</summary>
         public static float ToFt3(float metres3) { return metres3 * 35.3146665722f; }
-        /// <summary>Convert from cubic inches to cubic metres</summary>
-        public static float FromIn3(float inches3) { return inches3 * (1.0f / 61023.7441f); }
-        /// <summary>Convert from cubic metres to cubic inches</summary>
-        public static float ToIn3(float metres3)   { return metres3 * 61023.7441f; }
     }
 
     /// <summary>

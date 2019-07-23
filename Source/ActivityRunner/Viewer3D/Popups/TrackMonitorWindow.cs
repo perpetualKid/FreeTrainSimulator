@@ -23,6 +23,7 @@ using Orts.Simulation.Physics;
 using Orts.Common;
 using System;
 using System.Collections.Generic;
+using Orts.Common.Calc;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -587,7 +588,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         // draw fixed distance markers
         float drawDistanceMarkers(SpriteBatch spriteBatch, Point offset, float maxDistance, float distanceFactor, int zeroPoint, int numberOfMarkers, bool forward)
         {
-            var maxDistanceD = Me.FromM(maxDistance, metric); // in displayed units
+            var maxDistanceD = Size.Length.FromM(maxDistance, metric); // in displayed units
             var markerIntervalD = maxDistanceD / numberOfMarkers;
 
             var roundingValue = roundingValues[0];
@@ -600,7 +601,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
 
             markerIntervalD = Convert.ToInt32(markerIntervalD / roundingValue) * roundingValue;
-            var markerIntervalM = Me.ToM(markerIntervalD, metric);  // from display back to metre
+            var markerIntervalM = Size.Length.ToM(markerIntervalD, metric);  // from display back to metre
 
             for (var ipos = 1; ipos <= numberOfMarkers; ipos++)
             {

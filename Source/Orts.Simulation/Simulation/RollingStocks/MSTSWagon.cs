@@ -790,19 +790,19 @@ namespace Orts.Simulation.RollingStocks
                 switch (WagonType)
                 {
                     case WagonTypes.Freight:
-                        UnbalancedSuperElevationM = Me.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
+                        UnbalancedSuperElevationM = Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
                         break;
                     case WagonTypes.Passenger:
-                        UnbalancedSuperElevationM = Me.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
+                        UnbalancedSuperElevationM = Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
                         break;
                     case WagonTypes.Engine:
-                        UnbalancedSuperElevationM = Me.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
+                        UnbalancedSuperElevationM = Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
                         break;
                     case WagonTypes.Tender:
-                        UnbalancedSuperElevationM = Me.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
+                        UnbalancedSuperElevationM = Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
                         break;
                     default:
-                        UnbalancedSuperElevationM = Me.FromIn(0.01f);  // if no value in wag file or is outside of bounds then set to a default value
+                        UnbalancedSuperElevationM = Size.Length.FromIn(0.01f);  // if no value in wag file or is outside of bounds then set to a default value
                         break;
                 }
             }
@@ -2303,10 +2303,10 @@ namespace Orts.Simulation.RollingStocks
                 float A = Train.PhysicsWindSpeedMpS / AbsSpeedMpS;
                 float C = (float)Math.Sqrt((1 + (A * A) + 2.0f * A * Math.Cos(ResultantWindComponentRad)));
                 float WindConstant = 8.25f;
-                float TrainSpeedMpH = Me.ToMi(Frequency.Periodic.ToHours(AbsSpeedMpS));
-                float WindSpeedMpH = Me.ToMi(Frequency.Periodic.ToHours(Train.PhysicsWindSpeedMpS));
+                float TrainSpeedMpH = Size.Length.ToMi(Frequency.Periodic.ToHours(AbsSpeedMpS));
+                float WindSpeedMpH = Size.Length.ToMi(Frequency.Periodic.ToHours(Train.PhysicsWindSpeedMpS));
 
-                float WagonFrontalAreaFt2 = Me2.ToFt2(WagonFrontalAreaM2);
+                float WagonFrontalAreaFt2 = Size.Area.ToFt2(WagonFrontalAreaM2);
 
                 LateralWindForceN = N.FromLbf(WindConstant * A * (float)Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C);
 

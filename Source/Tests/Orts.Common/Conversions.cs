@@ -36,17 +36,6 @@ namespace Orts.Tests.Orts.Common
         [Fact]
         public static void InverseRelations()
         {
-            Assert.Equal(1.2f, Me.FromMi(Me.ToMi(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, Me.FromKiloM(Me.ToKiloM(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, Me.FromYd(Me.ToYd(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, Me.FromFt(Me.ToFt(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, Me.FromIn(Me.ToIn(1.2f)), RequestedAccuracy);
-
-            Assert.Equal(1.2f, Me2.FromFt2(Me2.ToFt2(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, Me2.FromIn2(Me2.ToIn2(1.2f)), RequestedAccuracy);
-
-            Assert.Equal(1.2f, Me3.FromFt3(Me3.ToFt3(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, Me3.FromIn3(Me3.ToIn3(1.2f)), RequestedAccuracy);
 
             Assert.Equal(1.2f, MpS.FromMpH(MpS.ToMpH(1.2f)), RequestedAccuracy);
             Assert.Equal(1.2f, MpS.FromKpH(MpS.ToKpH(1.2f)), RequestedAccuracy);
@@ -88,15 +77,15 @@ namespace Orts.Tests.Orts.Common
         [Fact]
         public static void RelatedConversions()
         {
-            Assert.Equal(1.44f, Me2.FromFt2((float)Math.Pow(Me.ToFt(1.2f), 2)), RequestedAccuracy);
-            Assert.Equal(1.44f, Me2.ToFt2((float)Math.Pow(Me.FromFt(1.2f), 2)), RequestedAccuracy);
-            Assert.Equal(1.44f, Me2.FromIn2((float)Math.Pow(Me.ToIn(1.2f), 2)), RequestedAccuracy);
-            Assert.Equal(1.44f, Me2.ToIn2((float)Math.Pow(Me.FromIn(1.2f), 2)), RequestedAccuracy);
+//            Assert.Equal(1.44f, Me2.FromFt2((float)Math.Pow(Me.ToFt(1.2f), 2)), RequestedAccuracy);
+//            Assert.Equal(1.44f, Me2.ToFt2((float)Math.Pow(Me.FromFt(1.2f), 2)), RequestedAccuracy);
+//            Assert.Equal(1.44f, Me2.FromIn2((float)Math.Pow(Me.ToIn(1.2f), 2)), RequestedAccuracy);
+//            Assert.Equal(1.44f, Me2.ToIn2((float)Math.Pow(Me.FromIn(1.2f), 2)), RequestedAccuracy);
 
-            Assert.Equal(1.728f, Me3.FromFt3((float)Math.Pow(Me.ToFt(1.2f), 3)), RequestedAccuracy);
-            Assert.Equal(1.728f, Me3.ToFt3((float)Math.Pow(Me.FromFt(1.2f), 3)), RequestedAccuracy);
-            Assert.Equal(1.728f, Me3.FromIn3((float)Math.Pow(Me.ToIn(1.2f), 3)), RequestedAccuracy);
-            Assert.Equal(1.728f, Me3.ToIn3((float)Math.Pow(Me.FromIn(1.2f), 3)), RequestedAccuracy);
+//            Assert.Equal(1.728f, Me3.FromFt3((float)Math.Pow(Me.ToFt(1.2f), 3)), RequestedAccuracy);
+//            Assert.Equal(1.728f, Me3.ToFt3((float)Math.Pow(Me.FromFt(1.2f), 3)), RequestedAccuracy);
+//            Assert.Equal(1.728f, Me3.FromIn3((float)Math.Pow(Me.ToIn(1.2f), 3)), RequestedAccuracy);
+//            Assert.Equal(1.728f, Me3.ToIn3((float)Math.Pow(Me.FromIn(1.2f), 3)), RequestedAccuracy);
 
             Assert.Equal(1.2f, KPa.FromBar(Bar.FromKPa(1.2f)), RequestedAccuracy);
             Assert.Equal(1.2f, KPa.ToBar(Bar.ToKPa(1.2f)), RequestedAccuracy);

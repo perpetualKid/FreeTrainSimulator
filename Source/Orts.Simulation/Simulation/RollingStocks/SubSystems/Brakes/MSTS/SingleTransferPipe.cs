@@ -20,6 +20,7 @@ using Orts.Common;
 using Orts.Parsers.Msts;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
@@ -39,7 +40,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             switch (lowercasetoken)
             {
                 // OpenRails specific parameters
-                case "wagon(brakepipevolume": BrakePipeVolumeM3 = Me3.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
+                case "wagon(brakepipevolume": BrakePipeVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
             }
         }
 
