@@ -297,10 +297,10 @@ namespace Orts.Simulation.RollingStocks
         public float BrakePipeChargingRatePSIorInHgpS;
         public InterpolatorDiesel2D TractiveForceCurves;
         public InterpolatorDiesel2D DynamicBrakeForceCurves;
-        public float DynamicBrakeSpeed1MpS = MpS.FromKpH(5);
-        public float DynamicBrakeSpeed2MpS = MpS.FromKpH(30);
-        public float DynamicBrakeSpeed3MpS = MpS.FromKpH(999);
-        public float DynamicBrakeSpeed4MpS = MpS.FromKpH(999);
+        public float DynamicBrakeSpeed1MpS = Speed.MeterPerSecond.FromKpH(5);
+        public float DynamicBrakeSpeed2MpS = Speed.MeterPerSecond.FromKpH(30);
+        public float DynamicBrakeSpeed3MpS = Speed.MeterPerSecond.FromKpH(999);
+        public float DynamicBrakeSpeed4MpS = Speed.MeterPerSecond.FromKpH(999);
         public float DynamicBrakeRatioAtSpeed4 = 0;
         public float MaxDynamicBrakeForceN;
         public float DynamicBrakeMaxCurrentA;
@@ -2261,7 +2261,7 @@ namespace Orts.Simulation.RollingStocks
                 // Calculate water velocity
                 const float Aconst = 2;
                 const float Bconst = 2.15f;
-                float Avalue = ((float)Math.Pow(MpS.ToMpH(absSpeedMpS), 2) * Bconst);
+                float Avalue = ((float)Math.Pow(Speed.MeterPerSecond.ToMpH(absSpeedMpS), 2) * Bconst);
                 float Bvalue = Aconst * GravitationalAccelerationFtpSpS * Size.Length.ToFt(WaterScoopFillElevationM);
 
                 if (Avalue > Bvalue)
@@ -2335,7 +2335,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public virtual void UpdateFrictionCoefficient(float elapsedClockSeconds)
         {
-            float BaseuMax = (Curtius_KnifflerA / (MpS.ToKpH(AbsSpeedMpS) + Curtius_KnifflerB) + Curtius_KnifflerC); // Base Curtius - Kniffler equation - u = 0.33, all other values are scaled off this formula
+            float BaseuMax = (Curtius_KnifflerA / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + Curtius_KnifflerB) + Curtius_KnifflerC); // Base Curtius - Kniffler equation - u = 0.33, all other values are scaled off this formula
 
             //Set the friction coeff due to weather
             if (Simulator.WeatherType == WeatherType.Rain || Simulator.WeatherType == WeatherType.Snow)
@@ -4123,14 +4123,14 @@ namespace Orts.Simulation.RollingStocks
                     {
                         // Displays current allowable speed
                         bool metric = cvc.Units == CABViewControlUnits.KM_PER_HOUR;
-                        data = MpS.FromMpS(TrainControlSystem.CurrentSpeedLimitMpS, metric);
+                        data = Speed.MeterPerSecond.FromMpS(TrainControlSystem.CurrentSpeedLimitMpS, metric);
                         break;
                     }
                 case CABViewControlTypes.SPEEDLIM_DISPLAY:
                     {
                         // Displays allowable speed shown on next signal
                         bool metric = cvc.Units == CABViewControlUnits.KM_PER_HOUR;
-                        data = MpS.FromMpS(TrainControlSystem.NextSpeedLimitMpS, metric);
+                        data = Speed.MeterPerSecond.FromMpS(TrainControlSystem.NextSpeedLimitMpS, metric);
                         break;
                     }
                 case CABViewControlTypes.GEARS_DISPLAY:

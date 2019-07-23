@@ -41,6 +41,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Event = Orts.Common.Event;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.Timetables
 {
@@ -498,7 +499,7 @@ namespace Orts.Simulation.Timetables
                             if (!speeddef)
                             {
                                 RowInfo[iRow] = rowType.speedInfo;
-                                actSpeedConv = MpS.FromMpH(1.0f);
+                                actSpeedConv = Speed.MeterPerSecond.FromMpH(1.0f);
                             }
                             break;
                         case "#speedkph":
@@ -515,7 +516,7 @@ namespace Orts.Simulation.Timetables
                             if (!speeddef)
                             {
                                 RowInfo[iRow] = rowType.speedInfo;
-                                actSpeedConv = MpS.FromKpH(1.0f);
+                                actSpeedConv = Speed.MeterPerSecond.FromKpH(1.0f);
                             }
                             break;
 

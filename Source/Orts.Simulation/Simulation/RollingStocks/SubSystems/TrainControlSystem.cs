@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Parsers.Msts;
 using Orts.Simulation.Physics;
 using ORTS.Scripting.Api;
@@ -952,7 +953,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         void UpdateSpeedControl()
         {
-            var interventionSpeedMpS = CurrentSpeedLimitMpS + MpS.FromKpH(5.0f); // Default margin : 5 km/h
+            var interventionSpeedMpS = CurrentSpeedLimitMpS + Speed.MeterPerSecond.FromKpH(5.0f); // Default margin : 5 km/h
             
             if (OverspeedMonitor.TriggerOnTrackOverspeed)
             {

@@ -42,6 +42,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Event = Orts.Common.Event;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.Signalling
 {
@@ -12602,7 +12603,7 @@ namespace Orts.Simulation.Signalling
             var sigasp_values = Enum.GetValues(typeof(MstsSignalAspect));
             speed_info = new ObjectSpeedInfo[sigasp_values.Length];
 
-            float speedMpS = MpS.ToMpS(speedItem.SpeedInd, !speedItem.IsMPH);
+            float speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.SpeedInd, !speedItem.IsMPH);
             if (speedItem.IsResume)
                 speedMpS = 999f;
 

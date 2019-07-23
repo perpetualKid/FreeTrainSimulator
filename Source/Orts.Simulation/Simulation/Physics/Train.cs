@@ -2370,13 +2370,13 @@ namespace Orts.Simulation.Physics
                 bool moveForward = (Math.Sign(SpeedMpS) >= 0);
                 if (DatalogTSContents[1] == 1)
                 {
-                    stringBuild.Append(MpS.FromMpS(Math.Abs(SpeedMpS), Simulator.MilepostUnitsMetric).ToString("0000.0"));
+                    stringBuild.Append(Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), Simulator.MilepostUnitsMetric).ToString("0000.0"));
                     stringBuild.Append(Separator);
                 }
 
                 if (DatalogTSContents[2] == 1)
                 {
-                    stringBuild.Append(MpS.FromMpS(AllowedMaxSpeedMpS, Simulator.MilepostUnitsMetric).ToString("0000.0"));
+                    stringBuild.Append(Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, Simulator.MilepostUnitsMetric).ToString("0000.0"));
                     stringBuild.Append(Separator);
                 }
 

@@ -171,4 +171,29 @@ namespace Tests.Orts.Common.Calc
             Assert.AreEqual(Temperature.Kelvin.ToC(300), Temperature.Celsius.FromK(300), EqualityPrecisionDelta.FloatPrecisionDelta * 10);
         }
     }
+
+    [TestClass]
+    public class SpeedTests
+    {
+        [TestMethod]
+        public void SpeedRoundTripTest()
+        {
+            for (float i = 0; i < 30; i += 0.1f)
+            {
+                Assert.AreEqual(i, Speed.MeterPerSecond.FromMpH(Speed.MeterPerSecond.ToMpH(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Speed.MeterPerSecond.FromKpH(Speed.MeterPerSecond.ToKpH(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+            }
+        }
+
+        [TestMethod]
+        public void RelatedConversionsTest()
+        {
+            Assert.AreEqual(1.2f, Speed.MeterPerSecond.FromMpS(Speed.MeterPerSecond.FromKpH(1.2f), true), EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(1.2f, Speed.MeterPerSecond.FromMpS(Speed.MeterPerSecond.FromMpH(1.2f), false), EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(1.2f, Speed.MeterPerSecond.ToMpS(Speed.MeterPerSecond.ToKpH(1.2f), true), EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(1.2f, Speed.MeterPerSecond.ToMpS(Speed.MeterPerSecond.ToMpH(1.2f), false), EqualityPrecisionDelta.FloatPrecisionDelta);
+
+
+        }
+    }
 }

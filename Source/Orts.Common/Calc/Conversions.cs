@@ -301,4 +301,46 @@ namespace Orts.Common.Calc
         }
     }
 
+    /// <summary>
+    /// Speed conversions 
+    /// </summary>
+    public static class Speed
+    {
+        /// <summary>
+        /// Speed conversions from and to metres/sec
+        /// </summary>
+        public static class MeterPerSecond
+        {
+            /// <summary>Convert miles/hour to metres/second</summary>
+            public static float FromMpH(float milesPerHour) { return milesPerHour * (1.0f / 2.23693629f); }
+            /// <summary>Convert metres/second to miles/hour</summary>
+            public static float ToMpH(float metersPerSecond) { return metersPerSecond * 2.23693629f; }
+            /// <summary>Convert kilometre/hour to metres/second</summary>
+            public static float FromKpH(float kilometersPerHour) { return kilometersPerHour * (1.0f / 3.600f); }
+            /// <summary>Convert metres/second to kilometres/hour</summary>
+            public static float ToKpH(float metersPerSecond) { return metersPerSecond * 3.600f; }
+
+            /// <summary>
+            /// Convert from metres/second to kilometres/hour or miles/hour, depending on value of isMetric
+            /// </summary>
+            /// <param name="speed">speed in metres/second</param>
+            /// <param name="isMetric">true to convert to kilometre/hour, false to convert to miles/hour</param>
+            public static float FromMpS(float speed, bool isMetric)
+            {
+                return isMetric ? ToKpH(speed) : ToMpH(speed);
+            }
+
+            /// <summary>
+            /// Convert to metres/second from kilometres/hour or miles/hour, depending on value of isMetric
+            /// </summary>
+            /// <param name="speed">speed to be converted to metres/second</param>
+            /// <param name="isMetric">true to convert from kilometre/hour, false to convert from miles/hour</param>
+            public static float ToMpS(float speed, bool isMetric)
+            {
+                return isMetric ? FromKpH(speed) : FromMpH(speed);
+            }
+        }
+
+    }
+
 }

@@ -988,8 +988,8 @@ namespace Orts.Formats.Msts
             }
             DrawStateName = stf.ReadString().ToLowerInvariant();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("speedmph", ()=>{ SpeedMpS = MpS.FromMpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
-                new STFReader.TokenProcessor("speedkph", ()=>{ SpeedMpS = MpS.FromKpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
+                new STFReader.TokenProcessor("speedmph", ()=>{ SpeedMpS = Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
+                new STFReader.TokenProcessor("speedkph", ()=>{ SpeedMpS = Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
                 new STFReader.TokenProcessor("signalflags", ()=>{
                     stf.MustMatch("(");
                     while (!stf.EndOfBlock())
@@ -1029,8 +1029,8 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("positionkm", ()=>{ ApproachControlPositionM = (stf.ReadFloatBlock(STFReader.UNITS.None, 0) * 1000); }),
                 new STFReader.TokenProcessor("positionm", ()=>{ ApproachControlPositionM = stf.ReadFloatBlock(STFReader.UNITS.None, 0); }),
                 new STFReader.TokenProcessor("positionyd", ()=>{ ApproachControlPositionM = Size.Length.FromYd(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
-                new STFReader.TokenProcessor("speedmph", ()=>{ ApproachControlSpeedMpS = MpS.FromMpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
-                new STFReader.TokenProcessor("speedkph", ()=>{ ApproachControlSpeedMpS = MpS.FromKpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
+                new STFReader.TokenProcessor("speedmph", ()=>{ ApproachControlSpeedMpS = Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
+                new STFReader.TokenProcessor("speedkph", ()=>{ ApproachControlSpeedMpS = Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
                 });
         }
     }

@@ -46,8 +46,6 @@ namespace Orts.Common
         internal static float FromMi(float miles)  { return miles  * 1609.344f; }
         /// <summary>Convert metres to (statute or land) miles</summary>
         internal static float ToMi(float metres)   { return metres * (1.0f / 1609.344f); }
-        /// <summary>Convert kilometres to metres</summary>
-        internal static float FromKiloM(float miles) { return miles * 1000f; }
         /// <summary>Convert metres to kilometres</summary>
         internal static float ToKiloM(float metres) { return metres * (1.0f / 1000f); }
         /// <summary>Convert metres to yards</summary>
@@ -78,7 +76,7 @@ namespace Orts.Common
     /// <summary>
     /// Speed conversions from and to metres/sec
     /// </summary>
-	public static class MpS
+	internal static class MpS
     {
         /// <summary>Convert miles/hour to metres/second</summary>
         public static float FromMpH(float milesPerHour)     { return milesPerHour   * (1.0f / 2.23693629f); }

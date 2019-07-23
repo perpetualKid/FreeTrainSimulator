@@ -31,9 +31,6 @@ namespace Orts.Tests.Orts.Common
         public static void InverseRelations()
         {
 
-            Assert.Equal(1.2f, MpS.FromMpH(MpS.ToMpH(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, MpS.FromKpH(MpS.ToKpH(1.2f)), RequestedAccuracy);
-
             Assert.Equal(1.2f, KgpS.FromLbpH(KgpS.ToLbpH(1.2f)), RequestedAccuracy);
 
             Assert.Equal(1.2f, W.FromKW(W.ToKW(1.2f)), RequestedAccuracy);
@@ -87,11 +84,6 @@ namespace Orts.Tests.Orts.Common
         [Fact]
         public static void MultiUnitConversions()
         {
-            Assert.Equal(1.2f, MpS.FromMpS(MpS.FromKpH(1.2f), true), RequestedAccuracy);
-            Assert.Equal(1.2f, MpS.FromMpS(MpS.FromMpH(1.2f), false), RequestedAccuracy);
-            Assert.Equal(1.2f, MpS.ToMpS(MpS.ToKpH(1.2f), true), RequestedAccuracy);
-            Assert.Equal(1.2f, MpS.ToMpS(MpS.ToMpH(1.2f), false), RequestedAccuracy);
-
             Assert.Equal(1.2f, KPa.FromKPa(1.2f, PressureUnit.KPa), RequestedAccuracy);
             Assert.Equal(1.2f, KPa.FromBar(KPa.FromKPa(1.2f, PressureUnit.Bar)), RequestedAccuracy);
             Assert.Equal(1.2f, KPa.FromInHg(KPa.FromKPa(1.2f, PressureUnit.InHg)), RequestedAccuracy);

@@ -26,6 +26,7 @@ using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
 using System;
 using System.Collections.Generic;
+using Orts.Common.Calc;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -158,14 +159,14 @@ namespace Orts.ActivityRunner.Viewer3D
             UnitMetric = unitMetric;
             if (unitMetric)
             {
-                SpeedFromMpS = MpS.ToKpH;
+                SpeedFromMpS = Speed.MeterPerSecond.ToKpH;
                 MidSpeed = MidSpeedKMpH;
                 Unit = UnitVisible ? UnitMetricString : "";
                 StandardScales = StandardScalesKMpH;
             }
             else
             {
-                SpeedFromMpS = MpS.ToMpH;
+                SpeedFromMpS = Speed.MeterPerSecond.ToMpH;
                 MidSpeed = MidSpeedMpH;
                 Unit = UnitImperialString;
                 StandardScales = StandardScalesMpH;
@@ -466,10 +467,10 @@ namespace Orts.ActivityRunner.Viewer3D
             CircularSpeedGauge = new CircularSpeedGauge(
                 width,
                 height,
-                owner.Viewer.MilepostUnitsMetric ? (int)MpS.ToKpH(maxSpeedMpS) : (int)MpS.ToMpH(maxSpeedMpS),
+                (int)Speed.MeterPerSecond.FromMpS(maxSpeedMpS, owner.Viewer.MilepostUnitsMetric),
                 owner.Viewer.MilepostUnitsMetric,
                 true,
-                (int)MpS.ToKpH(maxSpeedMpS) == 240 || (int)MpS.ToKpH(maxSpeedMpS) == 260,
+                (int)Speed.MeterPerSecond.ToKpH(maxSpeedMpS) == 240 || (int)Speed.MeterPerSecond.ToKpH(maxSpeedMpS) == 260,
                 0,
                 (MSTSLocomotive)owner.Viewer.PlayerLocomotive,
                 owner.Viewer,

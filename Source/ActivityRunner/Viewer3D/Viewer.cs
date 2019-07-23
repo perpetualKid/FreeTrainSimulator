@@ -44,6 +44,7 @@ using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Settings;
 using Event = Orts.Common.Event;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common.Calc;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -721,7 +722,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 MPManager.Instance().Update(Simulator.GameTime);
             }
 
-            UserInput.Raildriver.ShowSpeed(MpS.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
+            UserInput.Raildriver.ShowSpeed(Speed.MeterPerSecond.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
 
             // This has to be done also for stopped trains
             var cars = World.Trains.Cars;

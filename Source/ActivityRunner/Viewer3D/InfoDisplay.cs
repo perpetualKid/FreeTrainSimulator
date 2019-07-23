@@ -116,12 +116,12 @@ namespace Orts.ActivityRunner.Viewer3D
         void RecordSteamPerformance()
         {
            MSTSSteamLocomotive steamloco = (MSTSSteamLocomotive)Viewer.PlayerLocomotive;
-                        float SteamspeedMpH = MpS.ToMpH(steamloco.SpeedMpS);
+                        float SteamspeedMpH = Speed.MeterPerSecond.ToMpH(steamloco.SpeedMpS);
                         if (SteamspeedMpH >= previousLoggedSteamSpeedMpH + 5) // Add a new record every time speed increases by 5 mph
                         {
                             previousLoggedSteamSpeedMpH = (float)(int)SteamspeedMpH; // Keep speed records close to whole numbers
 
-                            Logger.Data(MpS.FromMpS(Viewer.PlayerLocomotive.SpeedMpS, false).ToString("F0"));
+                            Logger.Data(Speed.MeterPerSecond.FromMpS(Viewer.PlayerLocomotive.SpeedMpS, false).ToString("F0"));
                             Logger.Data(Time.Second.ToM(steamloco.SteamPerformanceTimeS).ToString("F1"));
                             Logger.Data(Viewer.PlayerLocomotive.ThrottlePercent.ToString("F0"));
                             Logger.Data(Viewer.PlayerTrain.MUReverserPercent.ToString("F0"));
@@ -183,7 +183,7 @@ namespace Orts.ActivityRunner.Viewer3D
         void RecordSteamPowerCurve()
         {
             MSTSSteamLocomotive loco = (MSTSSteamLocomotive)Viewer.PlayerLocomotive;
-            float speedMpH = MpS.ToMpH(loco.SpeedMpS);
+            float speedMpH = Speed.MeterPerSecond.ToMpH(loco.SpeedMpS);
             if (speedMpH >= previousLoggedSpeedMpH + 1) // Add a new record every time speed increases by 1 mph
             {
                 previousLoggedSpeedMpH = (float)(int)speedMpH; // Keep speed records close to whole numbers
@@ -267,10 +267,10 @@ namespace Orts.ActivityRunner.Viewer3D
                                 Logger.Data(Viewer.PlayerLocomotive.SpeedMpS.ToString("F1"));
                                 break;
                             case "mph":
-                                Logger.Data(MpS.FromMpS(Viewer.PlayerLocomotive.SpeedMpS, false).ToString("F1"));
+                                Logger.Data(Speed.MeterPerSecond.FromMpS(Viewer.PlayerLocomotive.SpeedMpS, false).ToString("F1"));
                                 break;
                             case "kmph":
-                                Logger.Data(MpS.FromMpS(Viewer.PlayerLocomotive.SpeedMpS, true).ToString("F1"));
+                                Logger.Data(Speed.MeterPerSecond.FromMpS(Viewer.PlayerLocomotive.SpeedMpS, true).ToString("F1"));
                                 break;
                             default:
                                 Logger.Data(FormatStrings.FormatSpeed(Viewer.PlayerLocomotive.SpeedMpS, Viewer.MilepostUnitsMetric));

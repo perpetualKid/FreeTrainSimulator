@@ -1729,9 +1729,9 @@ namespace Orts.Simulation.RollingStocks
             {
                 // Davis formulas only apply above about 5mph, so different treatment required for low speed < 5mph.
                 // Speed fluctuations may occur on individual cars as the advanced couplers create backward and forward movement, so train speed is to be checked as well to confirm speed > 5mph
-                if (AbsSpeedMpS > MpS.FromMpH(5) && Train.SpeedMpS > MpS.FromMpH(5))     // if speed above 5 mph then turn off low speed calculations
+                if (AbsSpeedMpS > Speed.MeterPerSecond.FromMpH(5) && Train.SpeedMpS > Speed.MeterPerSecond.FromMpH(5))     // if speed above 5 mph then turn off low speed calculations
                     IsLowSpeed = false;
-                if (AbsSpeedMpS == 0.0 && AbsSpeedMpS <= MpS.FromMpH(5))
+                if (AbsSpeedMpS == 0.0 && AbsSpeedMpS <= Speed.MeterPerSecond.FromMpH(5))
                     IsLowSpeed = true;
 
                 if (IsLowSpeed)
@@ -1909,8 +1909,8 @@ namespace Orts.Simulation.RollingStocks
 
                     // Calculation of resistance @ low speeds
                     // Wind resistance is not included at low speeds, as it does not have a significant enough impact
-                    float speed5 = MpS.FromMpH(5); // 5 mph
-                    float speedDecay = MpS.FromMpH(2.5f);  // Speed at which decay point is reached - 2.5 mph
+                    float speed5 = Speed.MeterPerSecond.FromMpH(5); // 5 mph
+                    float speedDecay = Speed.MeterPerSecond.FromMpH(2.5f);  // Speed at which decay point is reached - 2.5 mph
                     const float ForceDecayFactor = 2.5f; // Multiplier to determine what fraction of force to decay to - ie 2.5 x normal friction at 5mph
                     Friction5N = DavisAN * WheelBearingTemperatureResistanceFactor + speed5 * (DavisBNSpM + speed5 * DavisCNSSpMM); // Calculate friction @ 5 mph
                     Friction0N = Force.Newton.FromLbf(Mass.Kilogram.ToTonsUS(MassKG) * StaticFrictionFactorLb); // Static friction is journal or roller bearing friction x factor
@@ -3113,7 +3113,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else
             {
-                frictionfraction = BrakeShoeFrictionFactor[MpS.ToKpH(AbsSpeedMpS)];
+                frictionfraction = BrakeShoeFrictionFactor[Speed.MeterPerSecond.ToKpH(AbsSpeedMpS)];
             }
             
             return frictionfraction;

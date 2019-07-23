@@ -28,6 +28,7 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
@@ -538,7 +539,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
             if (loco.SpeedMpS > match.Pickup.SpeedRange.MaxMpS)
             {
-                var speedLimitMpH = MpS.ToMpH(match.Pickup.SpeedRange.MaxMpS);
+                var speedLimitMpH = Speed.MeterPerSecond.ToMpH(match.Pickup.SpeedRange.MaxMpS);
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: Loco speed must not exceed {0}.",
                     FormatStrings.FormatSpeedLimit(match.Pickup.SpeedRange.MaxMpS, Viewer.MilepostUnitsMetric)));
                 return;
