@@ -43,6 +43,7 @@ using System;
 using System.IO;
 using System.Text;
 using Event = Orts.Common.Event;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -709,7 +710,7 @@ namespace Orts.Simulation.RollingStocks
                         HeatingSteamBoilerDurationS = 1.0f * SteamHeatController.CurrentValue;
 
                         // Calculate fuel usage for steam heat boiler
-                        float FuelUsageL = SteamHeatController.CurrentValue * pS.FrompH(SteamHeatBoilerFuelUsageLpH) * elapsedClockSeconds;
+                        float FuelUsageL = SteamHeatController.CurrentValue * Frequency.Periodic.FromHours(SteamHeatBoilerFuelUsageLpH) * elapsedClockSeconds;
                         CurrentSteamHeatFuelCapacityL -= FuelUsageL; // Reduce Tank capacity as fuel used.
                         MassKG -= FuelUsageL * 0.85f; // Reduce locomotive weight as Steam heat boiler uses fuel.
 

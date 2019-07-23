@@ -406,28 +406,6 @@ namespace Orts.Common
     }
 
     /// <summary>
-    /// Current conversions from and to Amps
-    /// </summary>
-    public static class A
-    {
-    }
-
-    /// <summary>
-    /// Frequency conversions from and to Hz (revolutions/sec)
-    /// </summary>
-    public static class pS
-    {
-        /// <summary>Convert from per Minute to per Second</summary>
-        public static float FrompM(float revPerMinute) { return revPerMinute * (1.0f / 60f); }
-        /// <summary>Convert from per Second to per Minute</summary>
-        public static float TopM(float revPerSecond) { return revPerSecond * 60f; }
-        /// <summary>Convert from per Hour to per Second</summary>
-        public static float FrompH(float revPerHour) { return revPerHour * (1.0f / 3600f); }
-        /// <summary>Convert from per Second to per Hour</summary>
-        public static float TopH(float revPerSecond) { return revPerSecond * 3600f; }
-    }
-
-    /// <summary>
     /// Temperature conversions from and to Celsius
     /// </summary>
     public static class C

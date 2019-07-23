@@ -9,23 +9,34 @@ namespace Tests.Orts.Common.Calc
     public class FrequencyConversionTests
     {
         [TestMethod]
-        public void EqualityTest()
+        public void AngularEqualityTest()
         {
-            Assert.AreEqual(0, Frequency.HzToRad(0));
-            Assert.AreEqual(2 * Math.PI, Frequency.HzToRad(1));
-            Assert.AreEqual(3 * Math.PI, Frequency.HzToRad(1.5));
+            Assert.AreEqual(0, Frequency.Angular.HzToRad(0));
+            Assert.AreEqual(2 * Math.PI, Frequency.Angular.HzToRad(1));
+            Assert.AreEqual(3 * Math.PI, Frequency.Angular.HzToRad(1.5));
 
-            Assert.AreEqual(0, Frequency.RadToHz(0));
-            Assert.AreEqual(1, Frequency.RadToHz(2 * Math.PI));
-            Assert.AreEqual(1.5, Frequency.RadToHz(3 * Math.PI));
+            Assert.AreEqual(0, Frequency.Angular.RadToHz(0));
+            Assert.AreEqual(1, Frequency.Angular.RadToHz(2 * Math.PI));
+            Assert.AreEqual(1.5, Frequency.Angular.RadToHz(3 * Math.PI));
+
         }
 
         [TestMethod]
-        public void RoundTripTest()
+        public void PeriodicRoundTripTest()
+        {
+            for (float i = 0; i < 30; i += .1f)
+            {
+                Assert.AreEqual(i, Frequency.Periodic.FromMinutes(Frequency.Periodic.ToMinutes(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Frequency.Periodic.FromHours(Frequency.Periodic.ToHours(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+            }
+        }
+
+        [TestMethod]
+        public void AngularRoundTripTest()
         {
             for (float i=0; i < 30;  i += .1f)
             {
-                Assert.AreEqual(i, Frequency.RadToHz(Frequency.HzToRad(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Frequency.Angular.RadToHz(Frequency.Angular.HzToRad(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
             }
         }
     }

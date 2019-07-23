@@ -81,9 +81,6 @@ namespace Orts.Tests.Orts.Common
             Assert.Equal(1.2f, L.FromGUK(L.ToGUK(1.2f)), RequestedAccuracy);
             Assert.Equal(1.2f, L.FromGUS(L.ToGUS(1.2f)), RequestedAccuracy);
 
-            Assert.Equal(1.2f, pS.FrompM(pS.TopM(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, pS.FrompH(pS.TopH(1.2f)), RequestedAccuracy);
-
             Assert.Equal(1.2f, C.FromF(C.ToF(1.2f)), RequestedAccuracy);
             Assert.Equal(12f, C.FromK(C.ToK(12f)), RequestedAccuracy); // we loose accuracy because of the large 273.15
         }

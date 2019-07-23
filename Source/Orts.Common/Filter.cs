@@ -258,7 +258,7 @@ namespace Orts.Common
                 case FilterTypes.Butterworth:
                     if (samplingPeriod != samplingPeriod_s)
                     {
-                        if ((1 / (samplingPeriod) < Frequency.RadToHz(cuttoffFreqRadpS)))
+                        if ((1 / (samplingPeriod) < Frequency.Angular.RadToHz(cuttoffFreqRadpS)))
                         {
                             //Reset();
                             return sample;

@@ -390,8 +390,8 @@ namespace Orts.Simulation.RollingStocks
             LocomotiveAxle.FrictionN = MassKG / 100.0f;
             LocomotiveAxle.StabilityCorrection = true;
             LocomotiveAxle.FilterMovingAverage = new Common.Calc.MovingAverage(Simulator.Settings.AdhesionMovingAverageFilterSize);
-            CurrentFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, Frequency.HzToRad(0.5f), 0.001f);
-            AdhesionFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, Frequency.HzToRad(1f), 0.001f);
+            CurrentFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, Frequency.Angular.HzToRad(0.5f), 0.001f);
+            AdhesionFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, Frequency.Angular.HzToRad(1f), 0.001f);
 
             TrainBrakeController = new ScriptedBrakeController(this);
             EngineBrakeController = new ScriptedBrakeController(this);
@@ -2471,7 +2471,7 @@ namespace Orts.Simulation.RollingStocks
                 if (TrackSandBoxCapacityFt3 > 0.0) // if sand still in sandbox then sanding is available
                 {
                     // Calculate consumption of sand, and drop in sand box level
-                    float ActualSandConsumptionFt3pS = pS.FrompH(TrackSanderSandConsumptionFt3pH) * elapsedClockSeconds;
+                    float ActualSandConsumptionFt3pS = Frequency.Periodic.FromHours(TrackSanderSandConsumptionFt3pH) * elapsedClockSeconds;
                     TrackSandBoxCapacityFt3 -= ActualSandConsumptionFt3pS;
                     TrackSandBoxCapacityFt3 = MathHelper.Clamp(TrackSandBoxCapacityFt3, 0.0f, MaxTrackSandBoxCapacityFt3);
                     if (TrackSandBoxCapacityFt3 == 0.0)
@@ -2481,7 +2481,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
           // Calculate air consumption and change in main air reservoir pressure
-                float ActualAirConsumptionFt3pS = pS.FrompM(TrackSanderAirComsumptionFt3pM) * elapsedClockSeconds;
+                float ActualAirConsumptionFt3pS = Frequency.Periodic.FromMinutes(TrackSanderAirComsumptionFt3pM) * elapsedClockSeconds;
                 float SanderPressureDiffPSI = ActualAirConsumptionFt3pS / Me3.ToFt3(MainResVolumeM3) ;
                 MainResPressurePSI -= SanderPressureDiffPSI;
                 MainResPressurePSI = MathHelper.Clamp(MainResPressurePSI, 0.001f, MaxMainResPressurePSI);

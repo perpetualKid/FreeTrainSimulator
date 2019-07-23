@@ -23,6 +23,7 @@ using System.IO;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Parsers.Msts;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 
@@ -312,7 +313,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("00Flow"));
             foreach (var eng in DEList)
-                result.AppendFormat("\t{0}/{1}", FormatStrings.FormatFuelVolume(pS.TopH(eng.DieselFlowLps), Locomotive.IsMetric, Locomotive.IsUK), FormatStrings.h);
+                result.AppendFormat("\t{0}/{1}", FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(eng.DieselFlowLps), Locomotive.IsMetric, Locomotive.IsUK), FormatStrings.h);
 
             //result.Append("\t");
             foreach (var eng in DEList)

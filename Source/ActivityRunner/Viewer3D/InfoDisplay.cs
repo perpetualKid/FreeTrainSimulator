@@ -145,9 +145,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
                             Logger.Data(steamloco.CurrentSuperheatTempF.ToString("F0"));
 
-                            Logger.Data(pS.TopH(steamloco.CylinderSteamUsageLBpS).ToString("F0"));
-                            Logger.Data(pS.TopH(steamloco.WaterConsumptionLbpS).ToString("F0"));
-                            Logger.Data(Kg.ToLb(pS.TopH(steamloco.FuelBurnRateSmoothedKGpS)).ToString("F0"));
+                            Logger.Data(Frequency.Periodic.ToHours(steamloco.CylinderSteamUsageLBpS).ToString("F0"));
+                            Logger.Data(Frequency.Periodic.ToHours(steamloco.WaterConsumptionLbpS).ToString("F0"));
+                            Logger.Data(Kg.ToLb(Frequency.Periodic.ToHours(steamloco.FuelBurnRateSmoothedKGpS)).ToString("F0"));
 
 
                             Logger.Data(steamloco.SuperheaterSteamUsageFactor.ToString("F2"));

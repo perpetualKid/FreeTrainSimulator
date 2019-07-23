@@ -917,7 +917,7 @@ namespace Orts.Simulation.RollingStocks
                 // Infiltration Heat loss, per degree of temp change
                 float SpecificHeatCapacityJpKgpK = 1000.0f;   // a value of cp = 1.0 kJ/kg.K (equal to kJ/kg.oC) - is normally accurate enough
                 float AirDensityKgpM3 = 1.2041f;   // Varies with temp and pressure
-                float NumAirShiftspSec = pS.FrompH(0.5f);      // Rule of thumb 0.5 air shifts / hr
+                float NumAirShiftspSec = Frequency.Periodic.FromHours(0.5f);      // Rule of thumb 0.5 air shifts / hr
 
                 CarHeatVolumeM3 = CarWidthM * (CarLengthM - CarCouplingPipeM) * (CarHeightM - BogieHeightM);
                 float HeatLossInfiltrationWpT = SpecificHeatCapacityJpKgpK * AirDensityKgpM3 * NumAirShiftspSec * CarHeatVolumeM3 * (CarriageHeatTempC - CarOutsideTempC);
@@ -1134,7 +1134,7 @@ namespace Orts.Simulation.RollingStocks
 
                 if (CurrentCurveRadius > 0)  // only check curve speed if it is a curve
                 {
-                    float SpeedToleranceMpS =  Me.FromMi( pS.FrompH(2.5f));  // Set bandwidth tolerance for resetting notifications
+                    float SpeedToleranceMpS =  Me.FromMi(Frequency.Periodic.FromHours(2.5f));  // Set bandwidth tolerance for resetting notifications
                     
                     // If super elevation set in Route (TRK) file
                     if (Simulator.TRK.Tr_RouteFile.SuperElevationHgtpRadiusM != null)

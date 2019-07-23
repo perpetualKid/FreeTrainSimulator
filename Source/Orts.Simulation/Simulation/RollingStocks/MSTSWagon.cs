@@ -2303,8 +2303,8 @@ namespace Orts.Simulation.RollingStocks
                 float A = Train.PhysicsWindSpeedMpS / AbsSpeedMpS;
                 float C = (float)Math.Sqrt((1 + (A * A) + 2.0f * A * Math.Cos(ResultantWindComponentRad)));
                 float WindConstant = 8.25f;
-                float TrainSpeedMpH = Me.ToMi(pS.TopH(AbsSpeedMpS));
-                float WindSpeedMpH = Me.ToMi(pS.TopH(Train.PhysicsWindSpeedMpS));
+                float TrainSpeedMpH = Me.ToMi(Frequency.Periodic.ToHours(AbsSpeedMpS));
+                float WindSpeedMpH = Me.ToMi(Frequency.Periodic.ToHours(Train.PhysicsWindSpeedMpS));
 
                 float WagonFrontalAreaFt2 = Me2.ToFt2(WagonFrontalAreaM2);
 
