@@ -128,14 +128,25 @@ namespace Tests.Orts.Common.Calc
     }
 
     [TestClass]
-    public class ForceTests
+    public class DynamicsTests
     {
         [TestMethod]
         public void ForceRoundTripTest()
         {
             for (float i = 0; i < 30; i += 0.1f)
             {
-                Assert.AreEqual(i, Force.Newton.FromLbf(Force.Newton.ToLbf(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Dynamics.Force.FromLbf(Dynamics.Force.ToLbf(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+            }
+        }
+
+        [TestMethod]
+        public void PowerRoundTripTest()
+        {
+            for (float i = 0; i < 30; i += 0.1f)
+            {
+                Assert.AreEqual(i, Dynamics.Power.FromKW(Dynamics.Power.ToKW(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Dynamics.Power.FromHp(Dynamics.Power.ToHp(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Dynamics.Power.FromBTUpS(Dynamics.Power.ToBTUpS(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
             }
         }
     }

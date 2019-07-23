@@ -33,10 +33,6 @@ namespace Orts.Tests.Orts.Common
 
             Assert.Equal(1.2f, KgpS.FromLbpH(KgpS.ToLbpH(1.2f)), RequestedAccuracy);
 
-            Assert.Equal(1.2f, W.FromKW(W.ToKW(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, W.FromHp(W.ToHp(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, W.FromBTUpS(W.ToBTUpS(1.2f)), RequestedAccuracy);
-
             Assert.Equal(1.2f, KPa.FromPSI(KPa.ToPSI(1.2f)), RequestedAccuracy);
             Assert.Equal(1.2f, KPa.FromInHg(KPa.ToInHg(1.2f)), RequestedAccuracy);
             Assert.Equal(1.2f, KPa.FromBar(KPa.ToBar(1.2f)), RequestedAccuracy);

@@ -1913,7 +1913,7 @@ namespace Orts.Simulation.RollingStocks
                     float speedDecay = Speed.MeterPerSecond.FromMpH(2.5f);  // Speed at which decay point is reached - 2.5 mph
                     const float ForceDecayFactor = 2.5f; // Multiplier to determine what fraction of force to decay to - ie 2.5 x normal friction at 5mph
                     Friction5N = DavisAN * WheelBearingTemperatureResistanceFactor + speed5 * (DavisBNSpM + speed5 * DavisCNSSpMM); // Calculate friction @ 5 mph
-                    Friction0N = Force.Newton.FromLbf(Mass.Kilogram.ToTonsUS(MassKG) * StaticFrictionFactorLb); // Static friction is journal or roller bearing friction x factor
+                    Friction0N = Dynamics.Force.FromLbf(Mass.Kilogram.ToTonsUS(MassKG) * StaticFrictionFactorLb); // Static friction is journal or roller bearing friction x factor
 
                     // Starting friction is decayed using an exponential vs speed function (similar to Newtons law of cooling), an arbitary decay rate of decreasing resistance to 
                     // 2 x the Davis value at 5mph by the time the train reaches a speed of 
@@ -2308,9 +2308,9 @@ namespace Orts.Simulation.RollingStocks
 
                 float WagonFrontalAreaFt2 = Size.Area.ToFt2(WagonFrontalAreaM2);
 
-                LateralWindForceN = Force.Newton.FromLbf(WindConstant * A * (float)Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C);
+                LateralWindForceN = Dynamics.Force.FromLbf(WindConstant * A * (float)Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C);
 
-                float LateralWindResistanceForceN = Force.Newton.FromLbf(WindConstant * A * (float)Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C * Train.WagonCoefficientFriction);
+                float LateralWindResistanceForceN = Dynamics.Force.FromLbf(WindConstant * A * (float)Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C * Train.WagonCoefficientFriction);
 
                 // if this car is a locomotive, but not the lead one then recalculate the resistance with lower C value as drag will not be as high on trailing locomotives
                 if (WagonType == WagonTypes.Engine && Train.LeadLocomotive != this)

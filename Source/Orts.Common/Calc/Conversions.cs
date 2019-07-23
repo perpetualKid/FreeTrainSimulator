@@ -228,26 +228,13 @@ namespace Orts.Common.Calc
             /// <summary>Convert from metrix tonnes to kilogram</summary>
             public static float FromTonnes(float tonnes) { return tonnes * 1000.0f; }
         }
-
-
     }
 
     /// <summary>
-    /// Force conversions
+    /// Energy related conversions like Power, Force, Resistance, Stiffness
     /// </summary>
-    public static class Force
+    public static class Dynamics
     {
-        /// <summary>
-        /// Force conversions from and to Newtons
-        /// </summary>
-        public static class Newton
-        {
-            /// <summary>Convert from pound-force to Newtons</summary>
-            public static float FromLbf(float lbf) { return lbf * (1.0f / 0.224808943871f); }
-            /// <summary>Convert from Newtons to Pound-force</summary>
-            public static float ToLbf(float newton) { return newton * 0.224808943871f; }
-        }
-
         /// <summary>
         /// Stiffness conversions from and to Newtons/metre
         /// </summary>
@@ -260,6 +247,40 @@ namespace Orts.Common.Calc
         /// </summary>
         public static class Resistance
         {
+        }
+
+        /// <summary>
+        /// Power conversions from and to Watts
+        /// </summary>
+        public static class Power
+        {
+            /// <summary>Convert from kiloWatts to Watts</summary>
+            public static float FromKW(float kiloWatts) { return kiloWatts * 1000f; }
+            /// <summary>Convert from Watts to kileWatts</summary>
+            public static float ToKW(float watts) { return watts * (1.0f / 1000f); }
+            /// <summary>Convert from HorsePower to Watts</summary>
+            public static float FromHp(float horsePowers) { return horsePowers * 745.699872f; }
+            /// <summary>Convert from Watts to HorsePower</summary>
+            public static float ToHp(float watts) { return watts * (1.0f / 745.699872f); }
+            /// <summary>Convert from BoilerHorsePower to Watts</summary>
+            public static float FromBhp(float horsePowers) { return horsePowers * 9809.5f; }
+            /// <summary>Convert from Watts to BoilerHorsePower</summary>
+            public static float ToBhp(float watts) { return watts * (1.0f / 9809.5f); }
+            /// <summary>Convert from British Thermal Unit (BTU) per second to watts</summary>
+            public static float FromBTUpS(float btuPerSecond) { return btuPerSecond * 1055.05585f; }
+            /// <summary>Convert from Watts to British Thermal Unit (BTU) per second</summary>
+            public static float ToBTUpS(float watts) { return watts * (1.0f / 1055.05585f); }
+        }
+
+        /// <summary>
+        /// Force conversions from and to Newtons
+        /// </summary>
+        public static class Force
+        {
+            /// <summary>Convert from pound-force to Newtons</summary>
+            public static float FromLbf(float lbf) { return lbf * (1.0f / 0.224808943871f); }
+            /// <summary>Convert from Newtons to Pound-force</summary>
+            public static float ToLbf(float newton) { return newton * 0.224808943871f; }
         }
 
     }

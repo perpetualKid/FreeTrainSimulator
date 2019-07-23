@@ -96,16 +96,6 @@ namespace Orts.Common
         {
             return isMetric ? ToKpH(speed) : ToMpH(speed);
         }
-
-        /// <summary>
-        /// Convert to metres/second from kilometres/hour or miles/hour, depending on value of isMetric
-        /// </summary>
-        /// <param name="speed">speed to be converted to metres/second</param>
-        /// <param name="isMetric">true to convert from kilometre/hour, false to convert from miles/hour</param>
-        public static float ToMpS(float speed, bool isMetric)
-        {
-            return isMetric ? FromKpH(speed) : FromMpH(speed);
-        }
     }
 
     /// <summary>
@@ -148,7 +138,7 @@ namespace Orts.Common
     /// <summary>
     /// Power conversions from and to Watts
     /// </summary>
-    public static class W
+    internal static class W
     {
         /// <summary>Convert from kiloWatts to Watts</summary>
         public static float FromKW(float kiloWatts) { return kiloWatts * 1000f; }
