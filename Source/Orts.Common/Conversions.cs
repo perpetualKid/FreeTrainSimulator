@@ -147,7 +147,7 @@ namespace Orts.Common
     /// <summary>
     /// Force conversions from and to Newtons
     /// </summary>
-    public static class N
+    internal static class N
     {
         /// <summary>Convert from pound-force to Newtons</summary>
         public static float FromLbf(float lbf)  { return lbf    * (1.0f / 0.224808943871f); }
@@ -189,19 +189,6 @@ namespace Orts.Common
         public static float ToBTUpS(float watts)          { return watts        * (1.0f / 1055.05585f); }
     }
 
-    /// <summary>
-    /// Stiffness conversions from and to Newtons/metre
-    /// </summary>
-    public static class NpM
-    {
-    }
-
-    /// <summary>
-    /// Resistance conversions from and to Newtons/metre/sec
-    /// </summary>
-    public static class NpMpS
-    {
-    }
 
     /// <summary>
     /// Pressure conversions from and to kilopascals
@@ -333,14 +320,10 @@ namespace Orts.Common
     /// <summary>
     /// Liquid volume conversions from and to Litres
     /// </summary>
-    public static class L
+    internal static class L
     {
-        /// <summary>Convert from UK Gallons to litres</summary>
-        public static float FromGUK(float gallonUK) { return gallonUK * 4.54609f; }
         /// <summary>Convert from litres to UK Gallons</summary>
         public static float ToGUK(float litre) { return litre * (1.0f / 4.54609f); }
-        /// <summary>Convert from US Gallons to litres</summary>
-        public static float FromGUS(float gallonUS) { return gallonUS * 3.78541f; }
         /// <summary>Convert from litres to US Gallons</summary>
         public static float ToGUS(float litre) { return litre * (1.0f / 3.78541f); }
     }
@@ -361,20 +344,12 @@ namespace Orts.Common
     /// <summary>
     /// Temperature conversions from and to Celsius
     /// </summary>
-    public static class C
+    internal static class C
     {
-        /// <summary>Convert from degrees Fahrenheit to degrees Celcius</summary>
-        public static float FromF(float fahrenheit) { return (fahrenheit - 32f) * (100f / 180f); }
         /// <summary>Convert from degrees Celcius to degrees Fahrenheit</summary>
         public static float ToF(float celcius) { return celcius * (180f / 100f) + 32f; }
-        /// <summary>Convert temperature difference from degrees Fahrenheit to degrees Celcius</summary>
-        public static float FromDeltaF(float fahrenheit) { return fahrenheit * (100f / 180f); }
         /// <summary>Convert temperature difference from degrees Celcius to degrees Fahrenheit</summary>
         public static float ToDeltaF(float celcius) { return celcius * (180f / 100f); }
-        /// <summary>Convert from Kelving to degrees Celcius</summary>
-        public static float FromK(float kelvin) { return kelvin - 273.15f; }
-        /// <summary>Convert from degress Celcius to Kelvin</summary>
-        public static float ToK(float celcius) { return celcius + 273.15f; }
     }
 
     /// <summary>

@@ -1207,8 +1207,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         TableAddLine(table, Viewer.Catalog.GetString("(Advanced adhesion model)"));
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Loco Adhesion"), "{0:F0}%", mstsLocomotive.LocomotiveCoefficientFrictionHUD * 100.0f);
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Wag Adhesion"), "{0:F0}%", mstsLocomotive.WagonCoefficientFrictionHUD * 100.0f);
-                        TableAddLabelValue(table, Viewer.Catalog.GetString("Tang. Force"), "{0:F0}", FormatStrings.FormatForce(N.FromLbf(mstsLocomotive.SteamTangentialWheelForce), mstsLocomotive.IsMetric));
-                        TableAddLabelValue(table, Viewer.Catalog.GetString("Static Force"), "{0:F0}", FormatStrings.FormatForce(N.FromLbf(mstsLocomotive.SteamStaticWheelForce), mstsLocomotive.IsMetric));
+                        TableAddLabelValue(table, Viewer.Catalog.GetString("Tang. Force"), "{0:F0}", FormatStrings.FormatForce(Force.Newton.FromLbf(mstsLocomotive.SteamTangentialWheelForce), mstsLocomotive.IsMetric));
+                        TableAddLabelValue(table, Viewer.Catalog.GetString("Static Force"), "{0:F0}", FormatStrings.FormatForce(Force.Newton.FromLbf(mstsLocomotive.SteamStaticWheelForce), mstsLocomotive.IsMetric));
                         //  TableAddLabelValue(table, Viewer.Catalog.GetString("Axle brake force"), "{0}", FormatStrings.FormatForce(mstsLocomotive.LocomotiveAxle.BrakeForceN, mstsLocomotive.IsMetric));
                     }
                     else  // Advanced adhesion non steam locomotives HUD display

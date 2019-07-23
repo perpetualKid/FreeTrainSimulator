@@ -2275,13 +2275,13 @@ namespace Orts.Simulation.RollingStocks
 
                 // calculate volume of water scooped per period
                 const float CuFttoGalUK = 6.22884f; // imperial gallons of water in a cubic foot of water
-                WaterScoopedQuantityLpS = L.FromGUK(Size.Area.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Size.Length.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK);
+                WaterScoopedQuantityLpS = Size.LiquidVolume.FromGallonUK(Size.Area.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Size.Length.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK);
                 WaterScoopInputAmountL = WaterScoopedQuantityLpS * elapsedClockSeconds; // Calculate current input quantity
 
                 // Max sure that water level can't exceed maximum tender water level. Assume that water will be vented out of tender if maximum value exceeded. 
                 // If filling from water trough this will be done with force
                 const float NominalExtraWaterVolumeFactor = 1.0001f;
-                CombinedTenderWaterVolumeUKG += L.ToGUK(WaterScoopInputAmountL); // add the amouunt of water added by scoop
+                CombinedTenderWaterVolumeUKG += Size.LiquidVolume.ToGallonUK(WaterScoopInputAmountL); // add the amouunt of water added by scoop
                 WaterScoopTotalWaterL += WaterScoopInputAmountL;
 
                 CombinedTenderWaterVolumeUKG = MathHelper.Clamp(CombinedTenderWaterVolumeUKG, 0.0f, MaxTotalCombinedWaterVolumeUKG * NominalExtraWaterVolumeFactor);

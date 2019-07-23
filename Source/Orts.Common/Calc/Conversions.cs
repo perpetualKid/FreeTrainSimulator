@@ -184,6 +184,21 @@ namespace Orts.Common.Calc
             public static float ToIn3(float qubicMetres) { return qubicMetres * 61023.7441f; }
 
         }
+
+        /// <summary>
+        /// Liquid volume conversions from and to Litres
+        /// </summary>
+        public static class LiquidVolume
+        {
+            /// <summary>Convert from UK Gallons to litres</summary>
+            public static float FromGallonUK(float gallonUK) { return gallonUK * 4.54609f; }
+            /// <summary>Convert from litres to UK Gallons</summary>
+            public static float ToGallonUK(float litre) { return litre * (1.0f / 4.54609f); }
+            /// <summary>Convert from US Gallons to litres</summary>
+            public static float FromGallonUS(float gallonUS) { return gallonUS * 3.78541f; }
+            /// <summary>Convert from litres to US Gallons</summary>
+            public static float ToGallonUS(float litre) { return litre * (1.0f / 3.78541f); }
+        }
     }
 
     /// <summary>
@@ -216,4 +231,74 @@ namespace Orts.Common.Calc
 
 
     }
+
+    /// <summary>
+    /// Force conversions
+    /// </summary>
+    public static class Force
+    {
+        /// <summary>
+        /// Force conversions from and to Newtons
+        /// </summary>
+        public static class Newton
+        {
+            /// <summary>Convert from pound-force to Newtons</summary>
+            public static float FromLbf(float lbf) { return lbf * (1.0f / 0.224808943871f); }
+            /// <summary>Convert from Newtons to Pound-force</summary>
+            public static float ToLbf(float newton) { return newton * 0.224808943871f; }
+        }
+
+        /// <summary>
+        /// Stiffness conversions from and to Newtons/metre
+        /// </summary>
+        public static class Stiffness
+        {
+        }
+
+        /// <summary>
+        /// Resistance conversions from and to Newtons/metre/sec
+        /// </summary>
+        public static class Resistance
+        {
+        }
+
+    }
+
+    /// <summary>
+    /// Temperature conversions
+    /// </summary>
+    public static class Temperature
+    {
+        /// <summary>
+        /// Temperature conversions from and to Celsius
+        /// </summary>
+        public static class Celsius
+        {
+            /// <summary>Convert from degrees Fahrenheit to degrees Celcius</summary>
+            public static float FromF(float fahrenheit) { return (fahrenheit - 32f) * (100f / 180f); }
+            /// <summary>Convert from degrees Celcius to degrees Fahrenheit</summary>
+            public static float ToF(float celcius) { return celcius * (180f / 100f) + 32f; }
+            /// <summary>Convert from Kelvin to degrees Celcius</summary>
+            public static float FromK(float kelvin) { return kelvin - 273.15f; }
+            /// <summary>Convert from degress Celcius to Kelvin</summary>
+            public static float ToK(float celcius) { return celcius + 273.15f; }
+        }
+
+        /// <summary>
+        /// Temperature conversions from and to Kelvin
+        /// </summary>
+        public static class Kelvin
+        {
+            /// <summary>Convert from degrees Fahrenheit to degrees Celcius</summary>
+            public static float FromF(float fahrenheit) { return (fahrenheit - 32f) * (100f / 180f) + 273.15f; }
+            /// <summary>Convert from degrees Celcius to degrees Fahrenheit</summary>
+            public static float ToF(float kelvin) { return (kelvin - 273.15f) * (180f / 100f) + 32f; }
+            /// <summary>Convert from Celcisu degress to Kelvin</summary>
+            public static float FromC(float celcius) { return celcius + 273.15f; }
+            /// <summary>Convert from Kelvin to degress Celcius</summary>
+            public static float ToC(float kelvin) { return kelvin - 273.15f; }
+
+        }
+    }
+
 }

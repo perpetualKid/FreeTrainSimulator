@@ -125,13 +125,13 @@ namespace Orts.ActivityRunner.Viewer3D
                             Logger.Data(Time.Second.ToM(steamloco.SteamPerformanceTimeS).ToString("F1"));
                             Logger.Data(Viewer.PlayerLocomotive.ThrottlePercent.ToString("F0"));
                             Logger.Data(Viewer.PlayerTrain.MUReverserPercent.ToString("F0"));
-                            Logger.Data(N.ToLbf(Viewer.PlayerLocomotive.MotiveForceN).ToString("F0"));
+                            Logger.Data(Force.Newton.ToLbf(Viewer.PlayerLocomotive.MotiveForceN).ToString("F0"));
                             Logger.Data(steamloco.IndicatedHorsePowerHP.ToString("F0"));
                             Logger.Data(steamloco.DrawBarPullLbsF.ToString("F0"));
                             Logger.Data(steamloco.DrawbarHorsePowerHP.ToString("F0"));
-                            Logger.Data(N.ToLbf(steamloco.LocomotiveCouplerForceN).ToString("F0"));
-                            Logger.Data(N.ToLbf(steamloco.LocoTenderFrictionForceN).ToString("F0"));
-                            Logger.Data(N.ToLbf(steamloco.TotalFrictionForceN).ToString("F0"));
+                            Logger.Data(Force.Newton.ToLbf(steamloco.LocomotiveCouplerForceN).ToString("F0"));
+                            Logger.Data(Force.Newton.ToLbf(steamloco.LocoTenderFrictionForceN).ToString("F0"));
+                            Logger.Data(Force.Newton.ToLbf(steamloco.TotalFrictionForceN).ToString("F0"));
                             Logger.Data(Mass.Kilogram.ToTonsUK(steamloco.TrainLoadKg).ToString("F0"));
                             Logger.Data(steamloco.BoilerPressurePSI.ToString("F0"));
                             Logger.Data(steamloco.LogSteamChestPressurePSI.ToString("F0"));

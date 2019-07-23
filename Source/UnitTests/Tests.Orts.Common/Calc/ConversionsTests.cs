@@ -34,7 +34,7 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void AngularRoundTripTest()
         {
-            for (float i=0; i < 30;  i += .1f)
+            for (float i = 0; i < 30; i += .1f)
             {
                 Assert.AreEqual(i, Frequency.Angular.RadToHz(Frequency.Angular.HzToRad(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
             }
@@ -85,6 +85,9 @@ namespace Tests.Orts.Common.Calc
                 Assert.AreEqual(i, Size.Length.ToM(Size.Length.FromM(i, true), true), EqualityPrecisionDelta.FloatPrecisionDelta);
                 Assert.AreEqual(i, Size.Length.ToM(Size.Length.FromM(i, false), false), EqualityPrecisionDelta.FloatPrecisionDelta);
 
+                Assert.AreEqual(i, Size.LiquidVolume.FromGallonUK(Size.LiquidVolume.ToGallonUK(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.LiquidVolume.FromGallonUS(Size.LiquidVolume.ToGallonUS(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+
             }
         }
 
@@ -98,10 +101,10 @@ namespace Tests.Orts.Common.Calc
                 Assert.AreEqual(1.44f, Size.Area.ToIn2((float)Math.Pow(Size.Length.FromIn(1.2f), 2)), EqualityPrecisionDelta.FloatPrecisionDelta);
 
 
-                //Assert.AreEqual(1.728f, Me3.FromFt3((float)Math.Pow(Size.Length.ToFt(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                //Assert.AreEqual(1.728f, Me3.ToFt3((float)Math.Pow(Size.Length.FromFt(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                //Assert.AreEqual(1.728f, Me3.FromIn3((float)Math.Pow(Size.Length.ToIn(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                //Assert.AreEqual(1.728f, Me3.ToIn3((float)Math.Pow(Size.Length.FromIn(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(1.728f, Size.Volume.FromFt3((float)Math.Pow(Size.Length.ToFt(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(1.728f, Size.Volume.ToFt3((float)Math.Pow(Size.Length.FromFt(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(1.728f, Size.Volume.FromIn3((float)Math.Pow(Size.Length.ToIn(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(1.728f, Size.Volume.ToIn3((float)Math.Pow(Size.Length.FromIn(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
 
             }
         }
@@ -121,6 +124,51 @@ namespace Tests.Orts.Common.Calc
                 Assert.AreEqual(i, Mass.Kilogram.FromTonnes(Mass.Kilogram.ToTonnes(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
             }
 
+        }
+    }
+
+    [TestClass]
+    public class ForceTests
+    {
+        [TestMethod]
+        public void ForceRoundTripTest()
+        {
+            for (float i = 0; i < 30; i += 0.1f)
+            {
+                Assert.AreEqual(i, Force.Newton.FromLbf(Force.Newton.ToLbf(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+            }
+        }
+    }
+
+    [TestClass]
+    public class TemperatureTests
+    {
+        [TestMethod]
+        public void ConversionValuesTest()
+        {
+            Assert.AreEqual(0, Temperature.Celsius.FromF(32f), EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(-20, Temperature.Celsius.FromF(-4f), EqualityPrecisionDelta.FloatPrecisionDelta);
+        }
+
+        [TestMethod]
+        public void TemperatureRoundTripTest()
+        {
+            for (float i = 0; i < 30; i += 0.1f)
+            {
+                Assert.AreEqual(i, Temperature.Celsius.FromF(Temperature.Celsius.ToF(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i * 5, Temperature.Celsius.FromK(Temperature.Celsius.ToK(i * 5)), EqualityPrecisionDelta.FloatPrecisionDelta * 10); // we loose accuracy because of the large 273.15
+
+                Assert.AreEqual(i, Temperature.Kelvin.FromF(Temperature.Kelvin.ToF(i)), EqualityPrecisionDelta.FloatPrecisionDelta * 10);
+                Assert.AreEqual(i * 5, Temperature.Kelvin.FromC(Temperature.Kelvin.ToC(i * 5)), EqualityPrecisionDelta.FloatPrecisionDelta * 10); // we loose accuracy because of the large 273.15
+            }
+        }
+
+        [TestMethod]
+        public void RelatedConversionsTest()
+        {
+            Assert.AreEqual(Temperature.Kelvin.FromC(0), Temperature.Celsius.ToK(0));
+            Assert.AreEqual(Temperature.Celsius.FromF(0), Temperature.Kelvin.ToC(Temperature.Kelvin.FromF(0)), EqualityPrecisionDelta.FloatPrecisionDelta * 10);
+            Assert.AreEqual(Temperature.Kelvin.ToC(300), Temperature.Celsius.FromK(300), EqualityPrecisionDelta.FloatPrecisionDelta * 10);
         }
     }
 }

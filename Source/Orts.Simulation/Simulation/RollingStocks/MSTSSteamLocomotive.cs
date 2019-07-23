@@ -1322,7 +1322,7 @@ namespace Orts.Simulation.RollingStocks
                 // Scale FIREBOX control to show FireMassKG as fraction of MaxFireMassKG.
                 MaxFireMassKG = 2 * IdealFireMassKG;
 
-            float baseTempK = C.ToK(C.FromF(PressureToTemperaturePSItoF[MaxBoilerPressurePSI]));
+            float baseTempK = Temperature.Kelvin.FromF(PressureToTemperaturePSItoF[MaxBoilerPressurePSI]);
             if (EvaporationAreaM2 == 0)        // If evaporation Area is not in ENG file then synthesize a value
             {
                 float MinEvaporationAreaM2 = 100.0f;
@@ -1719,7 +1719,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     // Hot Start - set so that FlueTemp is at maximum, boilerpressure slightly below max
                     BoilerPressurePSI = MaxBoilerPressurePSI - 5.0f;
-                    baseStartTempK = C.ToK(C.FromF(PressureToTemperaturePSItoF[BoilerPressurePSI]));
+                    baseStartTempK = Temperature.Kelvin.FromF(PressureToTemperaturePSItoF[BoilerPressurePSI]);
                     BoilerStartkW = Mass.Kilogram.FromLb((BoilerPressurePSI / MaxBoilerPressurePSI) * TheoreticalMaxSteamOutputLBpS) * W.ToKW(W.FromBTUpS(SteamHeatPSItoBTUpLB[BoilerPressurePSI])); // Given pressure is slightly less then max, this figure should be slightly less, ie reduce TheoreticalMaxSteamOutputLBpS, for the time being assume a ratio of bp to MaxBP
                     FlueTempK = (BoilerStartkW / (W.ToKW(BoilerHeatTransferCoeffWpM2K) * EvaporationAreaM2 * HeatMaterialThicknessFactor)) + baseStartTempK;
                     BoilerMassLB = WaterFraction * BoilerVolumeFT3 * WaterDensityPSItoLBpFT3[BoilerPressurePSI] + (1 - WaterFraction) * BoilerVolumeFT3 * SteamDensityPSItoLBpFT3[BoilerPressurePSI];
@@ -1730,14 +1730,14 @@ namespace Orts.Simulation.RollingStocks
                 {
                     // Cold Start - as per current
                     BoilerPressurePSI = MaxBoilerPressurePSI * 0.66f; // Allow for cold start - start at 66% of max boiler pressure - check pressure value given heat in boiler????
-                    baseStartTempK = C.ToK(C.FromF(PressureToTemperaturePSItoF[BoilerPressurePSI]));
+                    baseStartTempK = Temperature.Kelvin.FromF(PressureToTemperaturePSItoF[BoilerPressurePSI]);
                     BoilerStartkW = Mass.Kilogram.FromLb((BoilerPressurePSI / MaxBoilerPressurePSI) * TheoreticalMaxSteamOutputLBpS) * W.ToKW(W.FromBTUpS(SteamHeatPSItoBTUpLB[BoilerPressurePSI]));
                     FlueTempK = (BoilerStartkW / (W.ToKW(BoilerHeatTransferCoeffWpM2K) * EvaporationAreaM2 * HeatMaterialThicknessFactor)) + baseStartTempK;
                     BoilerMassLB = WaterFraction * BoilerVolumeFT3 * WaterDensityPSItoLBpFT3[BoilerPressurePSI] + (1 - WaterFraction) * BoilerVolumeFT3 * SteamDensityPSItoLBpFT3[BoilerPressurePSI];
                     BoilerHeatBTU = WaterFraction * BoilerVolumeFT3 * WaterDensityPSItoLBpFT3[BoilerPressurePSI] * WaterHeatPSItoBTUpLB[BoilerPressurePSI] + (1 - WaterFraction) * BoilerVolumeFT3 * SteamDensityPSItoLBpFT3[BoilerPressurePSI] * SteamHeatPSItoBTUpLB[BoilerPressurePSI];
                 }
 
-                WaterTempNewK = C.ToK(C.FromF(PressureToTemperaturePSItoF[BoilerPressurePSI])); // Initialise new boiler pressure
+                WaterTempNewK = Temperature.Kelvin.FromF(PressureToTemperaturePSItoF[BoilerPressurePSI]); // Initialise new boiler pressure
                 FireMassKG = IdealFireMassKG;
 
                 BoilerSteamHeatBTUpLB = SteamHeatPSItoBTUpLB[BoilerPressurePSI];
@@ -2863,7 +2863,7 @@ namespace Orts.Simulation.RollingStocks
                 BoilerHeatOutBTUpS += BlowerSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by blower
                 TotalSteamUsageLBpS += BlowerSteamUsageLBpS;
             }
-            BoilerWaterTempK = C.ToK(C.FromF(PressureToTemperaturePSItoF[BoilerPressurePSI]));
+            BoilerWaterTempK = Temperature.Kelvin.FromF(PressureToTemperaturePSItoF[BoilerPressurePSI]);
 
             if (FlueTempK < BoilerWaterTempK)
             {
@@ -4380,13 +4380,13 @@ namespace Orts.Simulation.RollingStocks
             MaxPowerW = W.FromHp(MaxIndicatedHorsePowerHP);
 
             // Set maximum force for the locomotive
-            MaxForceN = N.FromLbf(MaxTractiveEffortLbf * CylinderEfficiencyRate);
+            MaxForceN = Force.Newton.FromLbf(MaxTractiveEffortLbf * CylinderEfficiencyRate);
 
             // Set Max Velocity of locomotive
             MaxSpeedMpS = Size.Length.FromMi(Frequency.Periodic.FromHours(MaxLocoSpeedMpH)); // Note this is not the true max velocity of the locomotive, but  the speed at which max HP is reached
 
             // Set "current" motive force based upon the throttle, cylinders, steam pressure, etc. Also reduce motive force by water scoop drag if applicable	
-            MotiveForceN = (Direction == Direction.Forward ? 1 : -1) * N.FromLbf(TractiveEffortLbsF) - WaterScoopDragForceN;
+            MotiveForceN = (Direction == Direction.Forward ? 1 : -1) * Force.Newton.FromLbf(TractiveEffortLbsF) - WaterScoopDragForceN;
 
             // On starting allow maximum motive force to be used
             if (absSpeedMpS < 1.0f && cutoff > 0.70f && throttle > 0.98f)
@@ -4401,7 +4401,7 @@ namespace Orts.Simulation.RollingStocks
 
                 if (IndicatedHorsePowerHP >= MaxIndicatedHorsePowerHP)
                 {
-                    MotiveForceN = N.FromLbf((MaxIndicatedHorsePowerHP * 375.0f) / Frequency.Periodic.ToHours(Size.Length.ToMi(SpeedMpS)));
+                    MotiveForceN = Force.Newton.FromLbf((MaxIndicatedHorsePowerHP * 375.0f) / Frequency.Periodic.ToHours(Size.Length.ToMi(SpeedMpS)));
                     IndicatedHorsePowerHP = MaxIndicatedHorsePowerHP; // Set IHP to maximum value
                     IsCritTELimit = true; // Flag if limiting TE
                 }
@@ -4410,7 +4410,7 @@ namespace Orts.Simulation.RollingStocks
                     IsCritTELimit = false; // Reset flag if limiting TE
                 }
 
-            DrawBarPullLbsF = N.ToLbf(Math.Abs(MotiveForceN) - LocoTenderFrictionForceN); // Locomotive drawbar pull is equal to motive force of locomotive (+ tender) - friction forces of locomotive (+ tender)
+            DrawBarPullLbsF = Force.Newton.ToLbf(Math.Abs(MotiveForceN) - LocoTenderFrictionForceN); // Locomotive drawbar pull is equal to motive force of locomotive (+ tender) - friction forces of locomotive (+ tender)
             DrawBarPullLbsF = MathHelper.Clamp(DrawBarPullLbsF, 0, DrawBarPullLbsF); // clamp value so it doesn't go negative
 
             DrawbarHorsePowerHP = (DrawBarPullLbsF * MpS.ToMpH(absSpeedMpS)) / 375.0f;  // TE in this instance is a maximum, and not at the wheel???
@@ -4773,7 +4773,7 @@ namespace Orts.Simulation.RollingStocks
                     float TotalMomentInertia = TotalWheelMomentofInertia + RodMomentInertia;
                     
                     // angular acceleration = (sum of forces * wheel radius) / moment of inertia
-                    float AngAccRadpS2 = (N.FromLbf(SteamTangentialWheelForce - SteamStaticWheelForce) * DriverWheelRadiusM) / TotalMomentInertia;
+                    float AngAccRadpS2 = (Force.Newton.FromLbf(SteamTangentialWheelForce - SteamStaticWheelForce) * DriverWheelRadiusM) / TotalMomentInertia;
                     // tangential acceleration = angular acceleration * wheel radius
                     // tangential speed = angular acceleration * time
                     PrevFrictionWheelSpeedMpS = FrictionWheelSpeedMpS; // Save current value of wheelspeed
@@ -5493,7 +5493,7 @@ namespace Orts.Simulation.RollingStocks
                 if (this.IsLeadLocomotive())
                 {
                     Train.CarSteamHeatOn = true; // turn on steam effects on wagons
-                    Train.TrainCurrentSteamHeatPipeTempC = C.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]);
+                    Train.TrainCurrentSteamHeatPipeTempC = Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]);
 
                     if (IsSteamHeatFirstTime)
                         {
@@ -5735,13 +5735,13 @@ namespace Orts.Simulation.RollingStocks
             status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\n",
                 Simulator.Catalog.GetString("Temp:"),
                 Simulator.Catalog.GetString("Flue"),
-                FormatStrings.FormatTemperature(C.FromK(FlueTempK), IsMetric, false),
+                FormatStrings.FormatTemperature(Temperature.Celsius.FromK(FlueTempK), IsMetric, false),
                 Simulator.Catalog.GetString("Water"),
-                FormatStrings.FormatTemperature(C.FromK(BoilerWaterTempK), IsMetric, false),
+                FormatStrings.FormatTemperature(Temperature.Celsius.FromK(BoilerWaterTempK), IsMetric, false),
                 Simulator.Catalog.GetString("MaxSupH"),
-                FormatStrings.FormatTemperature(C.FromF(MaxSuperheatRefTempF), IsMetric, false),
+                FormatStrings.FormatTemperature(Temperature.Celsius.FromF(MaxSuperheatRefTempF), IsMetric, false),
                 Simulator.Catalog.GetString("CurSupH"),
-                FormatStrings.FormatTemperature(C.FromF(CurrentSuperheatTempF), IsMetric, false));
+                FormatStrings.FormatTemperature(Temperature.Celsius.FromF(CurrentSuperheatTempF), IsMetric, false));
 
             status.AppendFormat("\n\t\t === {0} === \t\t{1}/{2}\n",
                 Simulator.Catalog.GetString("Steam Usage"),
@@ -6038,12 +6038,12 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Catalog.GetString("Temp1"),
                 Simulator.Catalog.GetString("Inj2"),
                 Simulator.Catalog.GetString("Temp2"),
-                FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(L.FromGUK(MaxInjectorFlowRateLBpS / WaterLBpUKG)), IsMetric, IsUK),
+                FormatStrings.FormatFuelVolume(Frequency.Periodic.ToHours(Size.LiquidVolume.FromGallonUK(MaxInjectorFlowRateLBpS / WaterLBpUKG)), IsMetric, IsUK),
                 InjectorSize,
-                FormatStrings.FormatFuelVolume(Injector1Fraction * Frequency.Periodic.ToHours(L.FromGUK(InjectorFlowRateLBpS / WaterLBpUKG)), IsMetric, IsUK),
-                FormatStrings.FormatTemperature(C.FromF(Injector1WaterDelTempF), IsMetric, false),
-                FormatStrings.FormatFuelVolume(Injector2Fraction * Frequency.Periodic.ToHours(L.FromGUK(InjectorFlowRateLBpS / WaterLBpUKG)), IsMetric, IsUK),
-                FormatStrings.FormatTemperature(C.FromF(Injector2WaterDelTempF), IsMetric, false),
+                FormatStrings.FormatFuelVolume(Injector1Fraction * Frequency.Periodic.ToHours(Size.LiquidVolume.FromGallonUK(InjectorFlowRateLBpS / WaterLBpUKG)), IsMetric, IsUK),
+                FormatStrings.FormatTemperature(Temperature.Celsius.FromF(Injector1WaterDelTempF), IsMetric, false),
+                FormatStrings.FormatFuelVolume(Injector2Fraction * Frequency.Periodic.ToHours(Size.LiquidVolume.FromGallonUK(InjectorFlowRateLBpS / WaterLBpUKG)), IsMetric, IsUK),
+                FormatStrings.FormatTemperature(Temperature.Celsius.FromF(Injector2WaterDelTempF), IsMetric, false),
                 FormatStrings.h,
                 FormatStrings.mm);
 
@@ -6055,12 +6055,12 @@ namespace Orts.Simulation.RollingStocks
                     FormatStrings.FormatMass(TenderCoalMassKG, IsMetric),
                     TenderCoalMassKG / MaxTenderCoalMassKG * 100,
                     Simulator.Catalog.GetString("Water(C)"),
-                    FormatStrings.FormatFuelVolume(L.FromGUK(CombinedTenderWaterVolumeUKG), IsMetric, IsUK),
+                    FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CombinedTenderWaterVolumeUKG), IsMetric, IsUK),
                     CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG * 100,
                     Simulator.Catalog.GetString("Water(T)"),
-                    FormatStrings.FormatFuelVolume(L.FromGUK(CurrentLocoTenderWaterVolumeUKG), IsMetric, IsUK),
+                    FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CurrentLocoTenderWaterVolumeUKG), IsMetric, IsUK),
                     Simulator.Catalog.GetString("Water(A)"),
-                    FormatStrings.FormatFuelVolume(L.FromGUK(CurrentAuxTenderWaterVolumeUKG), IsMetric, IsUK),
+                    FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CurrentAuxTenderWaterVolumeUKG), IsMetric, IsUK),
                     Simulator.Catalog.GetString("Steam"),
                     FormatStrings.FormatMass(Mass.Kilogram.FromLb(CumulativeCylinderSteamConsumptionLbs), IsMetric),
                     Simulator.Catalog.GetString("TotSteam"),
@@ -6075,7 +6075,7 @@ namespace Orts.Simulation.RollingStocks
                     FormatStrings.FormatMass(TenderCoalMassKG, IsMetric),
                     TenderCoalMassKG / MaxTenderCoalMassKG * 100,
                     Simulator.Catalog.GetString("Water"),
-                    FormatStrings.FormatFuelVolume(L.FromGUK(CombinedTenderWaterVolumeUKG), IsMetric, IsUK),
+                    FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(CombinedTenderWaterVolumeUKG), IsMetric, IsUK),
                     CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG * 100,
                     Simulator.Catalog.GetString("Steam"),
                     FormatStrings.FormatMass(Mass.Kilogram.FromLb(CumulativeCylinderSteamConsumptionLbs), IsMetric),
@@ -6121,13 +6121,13 @@ namespace Orts.Simulation.RollingStocks
             status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\n",
                      Simulator.Catalog.GetString("Force:"),
                      Simulator.Catalog.GetString("TheorTE"),
-                     FormatStrings.FormatForce(N.FromLbf(MaxTractiveEffortLbf), IsMetric),
+                     FormatStrings.FormatForce(Force.Newton.FromLbf(MaxTractiveEffortLbf), IsMetric),
                      Simulator.Catalog.GetString("StartTE"),
                      FormatStrings.FormatForce(absStartTractiveEffortN, IsMetric),
                      Simulator.Catalog.GetString("TE"),
-                     FormatStrings.FormatForce(N.FromLbf(DisplayTractiveEffortLbsF), IsMetric),
+                     FormatStrings.FormatForce(Force.Newton.FromLbf(DisplayTractiveEffortLbsF), IsMetric),
                      Simulator.Catalog.GetString("Draw"),
-                     FormatStrings.FormatForce(N.FromLbf(DrawBarPullLbsF), IsMetric),
+                     FormatStrings.FormatForce(Force.Newton.FromLbf(DrawBarPullLbsF), IsMetric),
                      Simulator.Catalog.GetString("CritSpeed"),
                      FormatStrings.FormatSpeedDisplay(MpS.FromMpH(MaxLocoSpeedMpH), IsMetric),
                      Simulator.Catalog.GetString("SpdLmt"),
@@ -6157,13 +6157,13 @@ namespace Orts.Simulation.RollingStocks
                     Simulator.Catalog.GetString("MForceN"),
                     FormatStrings.FormatForce(MotiveForceN, IsMetric),
                     Simulator.Catalog.GetString("Piston"),
-                    FormatStrings.FormatForce(N.FromLbf(StartPistonForceLeftLbf), IsMetric),
+                    FormatStrings.FormatForce(Force.Newton.FromLbf(StartPistonForceLeftLbf), IsMetric),
                     Simulator.Catalog.GetString("Tang(c)"),
-                    FormatStrings.FormatForce(N.FromLbf(StartTangentialCrankWheelForceLbf), IsMetric),
+                    FormatStrings.FormatForce(Force.Newton.FromLbf(StartTangentialCrankWheelForceLbf), IsMetric),
                     Simulator.Catalog.GetString("Tang(t)"),
-                    FormatStrings.FormatForce(N.FromLbf(SteamTangentialWheelForce), IsMetric),
+                    FormatStrings.FormatForce(Force.Newton.FromLbf(SteamTangentialWheelForce), IsMetric),
                     Simulator.Catalog.GetString("Static"),
-                    FormatStrings.FormatForce(N.FromLbf(SteamStaticWheelForce), IsMetric),
+                    FormatStrings.FormatForce(Force.Newton.FromLbf(SteamStaticWheelForce), IsMetric),
                     Simulator.Catalog.GetString("Coeff"),
                     Train.LocomotiveCoefficientFriction,
                     Simulator.Catalog.GetString("Slip"),
@@ -6236,11 +6236,11 @@ namespace Orts.Simulation.RollingStocks
                     Simulator.Catalog.GetString("CyPressR"),
                     FormatStrings.FormatPressure(CrankRightCylinderPressure, PressureUnit.PSI, MainPressureUnit, true),
                     Simulator.Catalog.GetString("Tang(c)"),
-                    FormatStrings.FormatForce(N.FromLbf(StartTangentialCrankWheelForceLbf), IsMetric),
+                    FormatStrings.FormatForce(Force.Newton.FromLbf(StartTangentialCrankWheelForceLbf), IsMetric),
                     Simulator.Catalog.GetString("Tang(t)"),
-                    FormatStrings.FormatForce(N.FromLbf(StartTangentialWheelTreadForceLbf), IsMetric),
+                    FormatStrings.FormatForce(Force.Newton.FromLbf(StartTangentialWheelTreadForceLbf), IsMetric),
                     Simulator.Catalog.GetString("Static"),
-                    FormatStrings.FormatForce(N.FromLbf(StartStaticWheelFrictionForceLbf), IsMetric)
+                    FormatStrings.FormatForce(Force.Newton.FromLbf(StartStaticWheelFrictionForceLbf), IsMetric)
                 );
 
                 status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\n",
@@ -6250,11 +6250,11 @@ namespace Orts.Simulation.RollingStocks
                   Simulator.Catalog.GetString("CyPressR"),
                   FormatStrings.FormatPressure(CrankRightCylinderPressure, PressureUnit.PSI, MainPressureUnit, true),
                   Simulator.Catalog.GetString("Tang(c)"),
-                  FormatStrings.FormatForce(N.FromLbf(SpeedTotalTangCrankWheelForceLbf), IsMetric),
+                  FormatStrings.FormatForce(Force.Newton.FromLbf(SpeedTotalTangCrankWheelForceLbf), IsMetric),
                   Simulator.Catalog.GetString("Tang(t)"),
-                  FormatStrings.FormatForce(N.FromLbf(SpeedTangentialWheelTreadForceLbf), IsMetric),
+                  FormatStrings.FormatForce(Force.Newton.FromLbf(SpeedTangentialWheelTreadForceLbf), IsMetric),
                   Simulator.Catalog.GetString("Static"),
-                  FormatStrings.FormatForce(N.FromLbf(SpeedStaticWheelFrictionForceLbf), IsMetric)
+                  FormatStrings.FormatForce(Force.Newton.FromLbf(SpeedStaticWheelFrictionForceLbf), IsMetric)
                 );
 
                 status.AppendFormat("{0}\t{1}\t{2}\n",

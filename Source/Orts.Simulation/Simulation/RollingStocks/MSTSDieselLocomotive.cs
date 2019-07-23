@@ -516,7 +516,7 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 case CABViewControlTypes.FUEL_GAUGE:
                     if (cvc.Units == CABViewControlUnits.GALLONS)
-                        data = L.ToGUS(DieselLevelL);
+                        data = Size.LiquidVolume.ToGallonUS(DieselLevelL);
                     else
                         data = DieselLevelL;
                     break;
@@ -726,7 +726,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     else
                     {
-                        Train.TrainCurrentSteamHeatPipeTempC = C.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]);
+                        Train.TrainCurrentSteamHeatPipeTempC = Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]);
                         Train.CarSteamHeatOn = true; // turn on steam effects on wagons
                     }
                 }
