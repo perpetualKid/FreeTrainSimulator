@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Orts.Common.Calc;
 
 namespace Orts.Common
 {
@@ -257,7 +258,7 @@ namespace Orts.Common
                 case FilterTypes.Butterworth:
                     if (samplingPeriod != samplingPeriod_s)
                     {
-                        if ((1 / (samplingPeriod) < RadToHz(cuttoffFreqRadpS)))
+                        if ((1 / (samplingPeriod) < Frequency.RadToHz(cuttoffFreqRadpS)))
                         {
                             //Reset();
                             return sample;
@@ -377,26 +378,5 @@ namespace Orts.Common
             bCoef[1] = (w_cd_p * Ts_p - 2.0) / (2.0 + w_cd_p * Ts_p);
 
         }
-
-        /// <summary>
-        /// Frequency conversion from rad/s to Hz
-        /// </summary>
-        /// <param name="rad">Frequency in radians per second</param>
-        /// <returns>Frequency in Hertz</returns>
-        public static double RadToHz(double rad)
-        {
-            return (rad / (2 * Math.PI));
-        }
-
-        /// <summary>
-        /// Frequenc conversion from Hz to rad/s
-        /// </summary>
-        /// <param name="hz">Frequenc in Hertz</param>
-        /// <returns>Frequency in radians per second</returns>
-        public static double HzToRad(double hz)
-        {
-            return (2 * Math.PI * hz);
-        }
-
     }
 }

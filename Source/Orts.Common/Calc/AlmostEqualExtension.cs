@@ -17,9 +17,9 @@
 
 using System;
 
-namespace Orts.Common
+namespace Orts.Common.Calc
 {
-    public static class AlmostEqualE
+    public static class AlmostEqualExtension
     {
         /// <summary>
         /// Returns true when the floating point value is *close to* the given value,
@@ -31,7 +31,7 @@ namespace Orts.Common
         /// <returns></returns>
         public static bool AlmostEqual(this ref float thisValue, float value, float tolerance)
         {
-            return (Math.Abs(thisValue - value) <= tolerance);
+            return Math.Round((Math.Abs(thisValue - value)), 4) <= tolerance;       //added rounding to overcome float imprecision. Using max fractional 4 digits 
         }
     }
 }

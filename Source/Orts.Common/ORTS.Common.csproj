@@ -59,7 +59,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AEDefinitions.cs" />
-    <Compile Include="AlmostEqual.cs" />
+    <Compile Include="Calc\AlmostEqualExtension.cs" />
+    <Compile Include="Calc\Conversions.cs" />
     <Compile Include="Calc\MovingAverage.cs" />
     <Compile Include="Native\GDI32.cs" />
     <Compile Include="Native\Kernel32.cs" />

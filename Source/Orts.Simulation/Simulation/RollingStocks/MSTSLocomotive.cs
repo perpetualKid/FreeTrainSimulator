@@ -51,6 +51,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.MultiPlayer;
 using Orts.Parsers.Msts;
@@ -389,8 +390,8 @@ namespace Orts.Simulation.RollingStocks
             LocomotiveAxle.FrictionN = MassKG / 100.0f;
             LocomotiveAxle.StabilityCorrection = true;
             LocomotiveAxle.FilterMovingAverage = new Common.Calc.MovingAverage(Simulator.Settings.AdhesionMovingAverageFilterSize);
-            CurrentFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, IIRFilter.HzToRad(0.5f), 0.001f);
-            AdhesionFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, IIRFilter.HzToRad(1f), 0.001f);
+            CurrentFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, Frequency.HzToRad(0.5f), 0.001f);
+            AdhesionFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, Frequency.HzToRad(1f), 0.001f);
 
             TrainBrakeController = new ScriptedBrakeController(this);
             EngineBrakeController = new ScriptedBrakeController(this);

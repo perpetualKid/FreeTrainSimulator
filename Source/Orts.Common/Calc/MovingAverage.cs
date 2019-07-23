@@ -23,7 +23,7 @@ namespace Orts.Common.Calc
 
         public int Size
         {
-            get { return buffer?.Count ?? 0;}
+            get { return buffer.Count;}
         }
 
         public void Initialize(float value)

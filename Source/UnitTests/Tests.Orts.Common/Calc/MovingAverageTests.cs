@@ -37,7 +37,7 @@ namespace Tests.Orts.Common.Calc
         {
             int size = 5;
             MovingAverage instance = new MovingAverage(size);
-            Assert.AreEqual(instance.Size, size);
+            Assert.AreEqual(size, instance.Size);
         }
 
         [TestMethod]

@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Orts.Common.Xna;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common.Calc;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

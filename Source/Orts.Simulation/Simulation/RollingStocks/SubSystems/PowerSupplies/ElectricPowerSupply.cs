@@ -19,6 +19,7 @@ using Orts.Parsers.Msts;
 using Orts.Common;
 using ORTS.Scripting.Api;
 using System.IO;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
@@ -196,8 +197,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override void Initialize()
         {
-            PantographFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, IIRFilter.HzToRad(0.7f), 0.001f);
-            VoltageFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, IIRFilter.HzToRad(0.7f), 0.001f);
+            PantographFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, Frequency.HzToRad(0.7f), 0.001f);
+            VoltageFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, Frequency.HzToRad(0.7f), 0.001f);
             
             PowerOnTimer = new Timer(this);
             PowerOnTimer.Setup(PowerOnDelayS());
