@@ -27,6 +27,27 @@ namespace Orts.Common.Calc
         {
             return (2 * Math.PI * hz);
         }
+    }
+
+    /// <summary>
+    /// Time conversions
+    /// </summary>
+    public static class Time
+    {
+        /// <summary>
+        /// Time conversions from and to Seconds
+        /// </summary>
+        public static class Second
+        {
+            /// <summary>Convert from minutes to seconds</summary>
+            public static float FromM(float minutes) { return minutes * 60f; }
+            /// <summary>Convert from seconds to minutes</summary>
+            public static float ToM(float seconds) { return seconds * (1.0f / 60f); }
+            /// <summary>Convert from hours to seconds</summary>
+            public static float FromH(float hours) { return hours * 3600f; }
+            /// <summary>Convert from seconds to hours</summary>
+            public static float ToH(float seconds) { return seconds * (1.0f / 3600f); }
+        }
 
     }
 }

@@ -38,6 +38,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings;
+using Orts.Common.Calc;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -121,7 +122,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             previousLoggedSteamSpeedMpH = (float)(int)SteamspeedMpH; // Keep speed records close to whole numbers
 
                             Logger.Data(MpS.FromMpS(Viewer.PlayerLocomotive.SpeedMpS, false).ToString("F0"));
-                            Logger.Data(S.ToM(steamloco.SteamPerformanceTimeS).ToString("F1"));
+                            Logger.Data(Time.Second.ToM(steamloco.SteamPerformanceTimeS).ToString("F1"));
                             Logger.Data(Viewer.PlayerLocomotive.ThrottlePercent.ToString("F0"));
                             Logger.Data(Viewer.PlayerTrain.MUReverserPercent.ToString("F0"));
                             Logger.Data(N.ToLbf(Viewer.PlayerLocomotive.MotiveForceN).ToString("F0"));

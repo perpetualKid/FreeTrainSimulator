@@ -428,21 +428,6 @@ namespace Orts.Common
     }
 
     /// <summary>
-    /// Time conversions from and to Seconds
-    /// </summary>
-    public static class S
-    {
-        /// <summary>Convert from minutes to seconds</summary>
-        public static float FromM(float minutes) { return minutes * 60f; }
-        /// <summary>Convert from seconds to minutes</summary>
-        public static float ToM(float seconds) { return seconds * (1.0f / 60f); }
-        /// <summary>Convert from hours to seconds</summary>
-        public static float FromH(float hours) { return hours * 3600f; }
-        /// <summary>Convert from seconds to hours</summary>
-        public static float ToH(float seconds) { return seconds * (1.0f / 3600f); }
-    }
-
-    /// <summary>
     /// Temperature conversions from and to Celsius
     /// </summary>
     public static class C

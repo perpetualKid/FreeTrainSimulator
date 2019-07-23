@@ -51,6 +51,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Event = Orts.Common.Event;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -2066,7 +2067,7 @@ namespace Orts.Simulation.RollingStocks
                                    Train.HotBoxSetOnTrain = true;
                                    HotBoxStartTimeS = PerCentRandom * RawHotBoxTimeRandomS;
 
-                                   Trace.TraceInformation("Hotbox Bearing Activated on CarID {0}. Hotbox to start from {1:F1} minutes into activity", CarID, S.ToM(HotBoxStartTimeS));
+                                   Trace.TraceInformation("Hotbox Bearing Activated on CarID {0}. Hotbox to start from {1:F1} minutes into activity", CarID, Time.Second.ToM(HotBoxStartTimeS));
                               }
                          }
                      }

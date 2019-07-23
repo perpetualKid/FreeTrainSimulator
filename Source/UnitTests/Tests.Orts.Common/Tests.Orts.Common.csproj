@@ -54,6 +54,7 @@
     <Compile Include="Calc\MovingAverageTests.cs" />
     <Compile Include="Calc\AlmostEqualTests.cs" />
     <Compile Include="Calc\ConversionsTests.cs" />
+    <Compile Include="EqualityPrecisionDelta.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

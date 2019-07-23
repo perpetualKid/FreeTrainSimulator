@@ -84,9 +84,6 @@ namespace Orts.Tests.Orts.Common
             Assert.Equal(1.2f, pS.FrompM(pS.TopM(1.2f)), RequestedAccuracy);
             Assert.Equal(1.2f, pS.FrompH(pS.TopH(1.2f)), RequestedAccuracy);
 
-            Assert.Equal(1.2f, S.FromM(S.ToM(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, S.FromH(S.ToH(1.2f)), RequestedAccuracy);
-
             Assert.Equal(1.2f, C.FromF(C.ToF(1.2f)), RequestedAccuracy);
             Assert.Equal(12f, C.FromK(C.ToK(12f)), RequestedAccuracy); // we loose accuracy because of the large 273.15
         }
@@ -124,10 +121,10 @@ namespace Orts.Tests.Orts.Common
             Assert.Equal(1.2f, BarpS.ToPSIpS(Bar.FromPSI(1.2f)), RequestedAccuracy);
             Assert.Equal(1.2f, Bar.ToPSI(BarpS.FromPSIpS(1.2f)), RequestedAccuracy);
 
-            Assert.Equal(1.2f, pS.FrompM(S.FromM(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, pS.TopM(S.ToM(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, pS.FrompH(S.FromH(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, pS.TopH(S.ToH(1.2f)), RequestedAccuracy);
+            //Assert.Equal(1.2f, pS.FrompM(S.FromM(1.2f)), RequestedAccuracy);
+            //Assert.Equal(1.2f, pS.TopM(S.ToM(1.2f)), RequestedAccuracy);
+            //Assert.Equal(1.2f, pS.FrompH(S.FromH(1.2f)), RequestedAccuracy);
+            //Assert.Equal(1.2f, pS.TopH(S.ToH(1.2f)), RequestedAccuracy);
         }
 
         [Fact]
