@@ -43,6 +43,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Orts.Common.Threading;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.AIs
 {
@@ -918,7 +919,7 @@ namespace Orts.Simulation.AIs
                         var mstsSteamLocomotive = car as MSTSSteamLocomotive;
                         if (Simulator.Activity != null && mstsSteamLocomotive != null)
                         {
-                            mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (Orts.Common.Kg.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0f) * Simulator.Activity.Tr_Activity.Tr_Activity_Header.FuelWater / 100.0f;
+                            mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0f) * Simulator.Activity.Tr_Activity.Tr_Activity_Header.FuelWater / 100.0f;
                             mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * Simulator.Activity.Tr_Activity.Tr_Activity_Header.FuelCoal / 100.0f;
                         }
                         if (train.InitialSpeed != 0)

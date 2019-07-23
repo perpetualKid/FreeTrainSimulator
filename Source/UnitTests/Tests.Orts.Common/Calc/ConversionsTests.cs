@@ -106,4 +106,21 @@ namespace Tests.Orts.Common.Calc
             }
         }
     }
+
+    [TestClass]
+    public class MassTests
+    {
+        [TestMethod]
+        public void MassRoundTripTest()
+        {
+            for (float i = 0; i < 30; i += 0.1f)
+            {
+                Assert.AreEqual(i, Mass.Kilogram.FromLb(Mass.Kilogram.ToLb(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Mass.Kilogram.FromTonsUS(Mass.Kilogram.ToTonsUS(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Mass.Kilogram.FromTonsUK(Mass.Kilogram.ToTonsUK(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Mass.Kilogram.FromTonnes(Mass.Kilogram.ToTonnes(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+            }
+
+        }
+    }
 }

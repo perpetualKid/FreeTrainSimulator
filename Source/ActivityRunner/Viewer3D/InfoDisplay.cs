@@ -132,7 +132,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             Logger.Data(N.ToLbf(steamloco.LocomotiveCouplerForceN).ToString("F0"));
                             Logger.Data(N.ToLbf(steamloco.LocoTenderFrictionForceN).ToString("F0"));
                             Logger.Data(N.ToLbf(steamloco.TotalFrictionForceN).ToString("F0"));
-                            Logger.Data(Kg.ToTUK(steamloco.TrainLoadKg).ToString("F0"));
+                            Logger.Data(Mass.Kilogram.ToTonsUK(steamloco.TrainLoadKg).ToString("F0"));
                             Logger.Data(steamloco.BoilerPressurePSI.ToString("F0"));
                             Logger.Data(steamloco.LogSteamChestPressurePSI.ToString("F0"));
                             Logger.Data(steamloco.LogInitialPressurePSI.ToString("F0"));
@@ -147,7 +147,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                             Logger.Data(Frequency.Periodic.ToHours(steamloco.CylinderSteamUsageLBpS).ToString("F0"));
                             Logger.Data(Frequency.Periodic.ToHours(steamloco.WaterConsumptionLbpS).ToString("F0"));
-                            Logger.Data(Kg.ToLb(Frequency.Periodic.ToHours(steamloco.FuelBurnRateSmoothedKGpS)).ToString("F0"));
+                            Logger.Data(Mass.Kilogram.ToLb(Frequency.Periodic.ToHours(steamloco.FuelBurnRateSmoothedKGpS)).ToString("F0"));
 
 
                             Logger.Data(steamloco.SuperheaterSteamUsageFactor.ToString("F2"));

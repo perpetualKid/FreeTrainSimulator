@@ -1019,9 +1019,9 @@ namespace Orts.Simulation.RollingStocks
                         float TempTunnel1 = (float)Math.Sqrt(TunnelBComponent + (TunnelCComponent * (TunnelLengthM - TrainLengthTunnelM) / TrainLengthTunnelM));
                         float TempTunnel2 = (1.0f - (1.0f / (1.0f + TempTunnel1))) * (1.0f - (1.0f / (1.0f + TempTunnel1)));
 
-                        float UnitAerodynamicDrag = ((TunnelAComponent * TrainLengthTunnelM) / Kg.ToTonne(TrainMassTunnelKg)) * TempTunnel2;
+                        float UnitAerodynamicDrag = ((TunnelAComponent * TrainLengthTunnelM) / Mass.Kilogram.ToTonnes(TrainMassTunnelKg)) * TempTunnel2;
 
-                        TunnelForceN = UnitAerodynamicDrag * Kg.ToTonne(MassKG) * AbsSpeedMpS * AbsSpeedMpS;
+                        TunnelForceN = UnitAerodynamicDrag * Mass.Kilogram.ToTonnes(MassKG) * AbsSpeedMpS * AbsSpeedMpS;
                     }
                     else
                     {

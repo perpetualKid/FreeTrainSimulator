@@ -132,24 +132,16 @@ namespace Orts.Common
     /// <summary>
     /// Mass conversions from and to Kilograms
     /// </summary>
-    public static class Kg
+    internal static class Kg
     {
-        /// <summary>Convert from pounds (lb) to kilograms</summary>
-        public static float FromLb(float lb)     { return lb * (1.0f / 2.20462f); }
         /// <summary>Convert from kilograms to pounds (lb)</summary>
         public static float ToLb(float kg)       { return kg * 2.20462f; }
-        /// <summary>Convert from US Tons to kilograms</summary>
-        public static float FromTUS(float tonsUS) { return tonsUS * 907.1847f; }
         /// <summary>Convert from kilograms to US Tons</summary>
         public static float ToTUS(float kg)       { return kg     * (1.0f / 907.1847f); }
-        /// <summary>Convert from UK Tons to kilograms</summary>
-        public static float FromTUK(float tonsUK) { return tonsUK * 1016.047f; }
         /// <summary>Convert from kilograms to UK Tons</summary>
         public static float ToTUK(float kg)       { return kg     * (1.0f / 1016.047f); }
         /// <summary>Convert from kilogram to metric tonnes</summary>
         public static float ToTonne(float kg)      { return kg    * (1.0f / 1000.0f); }
-        /// <summary>Convert from metrix tonnes to kilogram</summary>
-        public static float FromTonne(float tonne) { return tonne * 1000.0f; }
     }
 
     /// <summary>

@@ -23,6 +23,7 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Orts.Parsers.Msts;
 using Orts.Common;
+using Orts.Common.Calc;
 
 namespace Orts.Formats.Msts
 {
@@ -395,8 +396,8 @@ namespace Orts.Formats.Msts
             internal PickupCapacityItem(SBR block)
             {
                 block.VerifyID(TokenID.PickupCapacity);
-                QuantityAvailableKG = Kg.FromLb(block.ReadFloat());
-                FeedRateKGpS = Kg.FromLb(block.ReadFloat());
+                QuantityAvailableKG = Mass.Kilogram.FromLb(block.ReadFloat());
+                FeedRateKGpS = Mass.Kilogram.FromLb(block.ReadFloat());
                 block.VerifyEndOfBlock();
             }
         }

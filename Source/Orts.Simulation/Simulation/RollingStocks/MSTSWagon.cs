@@ -1511,7 +1511,7 @@ namespace Orts.Simulation.RollingStocks
                         // If = 0, then locomotive must be a tank type locomotive. A tank locomotive has the fuel (coal and water) onboard.
                         // Thus the loco weight changes as boiler level goes up and down, and coal mass varies with the fire mass. Also onboard fuel (coal and water ) will vary as used.
                         {
-                            MassKG = LoadEmptyMassKg + Kg.FromLb(SteamLocomotiveIdentification.BoilerMassLB) + SteamLocomotiveIdentification.FireMassKG + SteamLocomotiveIdentification.TenderCoalMassKG + Kg.FromLb(SteamLocomotiveIdentification.CombinedTenderWaterVolumeUKG * WaterLBpUKG);
+                            MassKG = LoadEmptyMassKg + Mass.Kilogram.FromLb(SteamLocomotiveIdentification.BoilerMassLB) + SteamLocomotiveIdentification.FireMassKG + SteamLocomotiveIdentification.TenderCoalMassKG + Mass.Kilogram.FromLb(SteamLocomotiveIdentification.CombinedTenderWaterVolumeUKG * WaterLBpUKG);
                             MassKG = MathHelper.Clamp(MassKG, LoadEmptyMassKg, LoadFullMassKg); // Clamp Mass to between the empty and full wagon values   
                             // Adjust drive wheel weight
                             SteamLocomotiveIdentification.DrvWheelWeightKg = (MassKG / InitialMassKG) * SteamLocomotiveIdentification.InitialDrvWheelWeightKg;
@@ -1520,7 +1520,7 @@ namespace Orts.Simulation.RollingStocks
                         // This is a tender locomotive. A tender locomotive does not have any fuel onboard.
                         // Thus the loco weight only changes as boiler level goes up and down, and coal mass varies in the fire
                         {
-                            MassKG = LoadEmptyMassKg + Kg.FromLb(SteamLocomotiveIdentification.BoilerMassLB) + SteamLocomotiveIdentification.FireMassKG;
+                            MassKG = LoadEmptyMassKg + Mass.Kilogram.FromLb(SteamLocomotiveIdentification.BoilerMassLB) + SteamLocomotiveIdentification.FireMassKG;
                             MassKG = MathHelper.Clamp(MassKG, LoadEmptyMassKg, LoadFullMassKg); // Clamp Mass to between the empty and full wagon values        
                         // Adjust drive wheel weight
                             SteamLocomotiveIdentification.DrvWheelWeightKg = (MassKG / InitialMassKG) * SteamLocomotiveIdentification.InitialDrvWheelWeightKg;
@@ -1772,17 +1772,17 @@ namespace Orts.Simulation.RollingStocks
                             StartFrictionHighLoad = HighGrad * WheelBearingTemperatureDegC + HighIntersect;
                         }
 
-                         if (Kg.ToTUS(MassKG) < 10.0)
+                         if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
                         {
                             StaticFrictionFactorLb = StartFrictionLowLoad;  // Starting friction for a < 10 ton(US) car with standard roller bearings
                         }
-                        else if (Kg.ToTUS(MassKG) > 100.0)
+                        else if (Mass.Kilogram.ToTonsUS(MassKG) > 100.0)
                         {
                             StaticFrictionFactorLb = StartFrictionHighLoad;  // Starting friction for a > 100 ton(US) car with standard roller bearings
                         }
                         else
                         {
-                            StaticFrictionFactorLb = (((Kg.ToTUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoad - StartFrictionLowLoad)) + StartFrictionLowLoad;
+                            StaticFrictionFactorLb = (((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoad - StartFrictionLowLoad)) + StartFrictionLowLoad;
                         }
                     }
                     else if (IsLowTorqueRollerBearing)
@@ -1815,17 +1815,17 @@ namespace Orts.Simulation.RollingStocks
                             StartFrictionHighLoad = HighGrad * WheelBearingTemperatureDegC + HighIntersect;
                         }
 
-                        if (Kg.ToTUS(MassKG) < 10.0)
+                        if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
                         {
                             StaticFrictionFactorLb = StartFrictionLowLoad;  // Starting friction for a < 10 ton(US) car with Low troque bearings
                         }
-                        else if (Kg.ToTUS(MassKG) > 100.0)
+                        else if (Mass.Kilogram.ToTonsUS(MassKG) > 100.0)
                         {
                             StaticFrictionFactorLb = StartFrictionHighLoad;  // Starting friction for a > 100 ton(US) car with low torque bearings
                         }
                         else
                         {
-                            StaticFrictionFactorLb = (((Kg.ToTUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoad - StartFrictionLowLoad)) + StartFrictionLowLoad;
+                            StaticFrictionFactorLb = (((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoad - StartFrictionLowLoad)) + StartFrictionLowLoad;
                         }
                     }
                     else  // default to friction (solid - journal) bearing
@@ -1858,17 +1858,17 @@ namespace Orts.Simulation.RollingStocks
                             StartFrictionHighLoad = HighGrad * WheelBearingTemperatureDegC + HighIntersect;
                         }
 
-                        if (Kg.ToTUS(MassKG) < 10.0)
+                        if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
                         {
                             StaticFrictionFactorLb = StartFrictionLowLoad;  // Starting friction for a < 10 ton(US) car with friction (journal) bearings
                         }
-                        else if (Kg.ToTUS(MassKG) > 100.0)
+                        else if (Mass.Kilogram.ToTonsUS(MassKG) > 100.0)
                         {
                             StaticFrictionFactorLb = StartFrictionHighLoad;  // Starting friction for a > 100 ton(US) car with friction (journal) bearings
                         }
                         else
                         {
-                            StaticFrictionFactorLb = (((Kg.ToTUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoad - StartFrictionLowLoad)) + StartFrictionLowLoad;
+                            StaticFrictionFactorLb = (((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoad - StartFrictionLowLoad)) + StartFrictionLowLoad;
                         }
                     }
 
@@ -1913,7 +1913,7 @@ namespace Orts.Simulation.RollingStocks
                     float speedDecay = MpS.FromMpH(2.5f);  // Speed at which decay point is reached - 2.5 mph
                     const float ForceDecayFactor = 2.5f; // Multiplier to determine what fraction of force to decay to - ie 2.5 x normal friction at 5mph
                     Friction5N = DavisAN * WheelBearingTemperatureResistanceFactor + speed5 * (DavisBNSpM + speed5 * DavisCNSSpMM); // Calculate friction @ 5 mph
-                    Friction0N = N.FromLbf(Kg.ToTUS(MassKG) * StaticFrictionFactorLb); // Static friction is journal or roller bearing friction x factor
+                    Friction0N = N.FromLbf(Mass.Kilogram.ToTonsUS(MassKG) * StaticFrictionFactorLb); // Static friction is journal or roller bearing friction x factor
 
                     // Starting friction is decayed using an exponential vs speed function (similar to Newtons law of cooling), an arbitary decay rate of decreasing resistance to 
                     // 2 x the Davis value at 5mph by the time the train reaches a speed of 
@@ -2018,7 +2018,7 @@ namespace Orts.Simulation.RollingStocks
 
                 Trace.TraceInformation("========================== Debug Friction in MSTSWagon.cs ==========================================");
                 Trace.TraceInformation("Stationary - CarID {0} Force0N {1} Force5N {2} Speed {3} Factor {4}", CarID, Friction0N, Friction5N, AbsSpeedMpS, StaticFrictionFactorLb);
-                Trace.TraceInformation("Stationary - Mass {0} Mass (US-tons) {1}", MassKG, Kg.ToTUS(MassKG));
+                Trace.TraceInformation("Stationary - Mass {0} Mass (US-tons) {1}", MassKG, Mass.Kilogram.ToTUS(MassKG));
                 Trace.TraceInformation("Stationary - Weather Type (1 for Snow) {0}", (int)Simulator.WeatherType);
                 Trace.TraceInformation("Stationary - Force0 lbf {0} Force5 lbf {1}", N.ToLbf(Friction0N), N.ToLbf(Friction5N));
 
@@ -2091,18 +2091,18 @@ namespace Orts.Simulation.RollingStocks
              float HotBoxKConstLowLoad = -0.001469013410990472f;  // Time = 1200s, amb = -9.4. init = 120.0C, final = 12.8C
              
              // Aligns to wagon weights used in friction calculations, ie < 10 tonsUS, and > 100 tonsUS either the low or high value used rspectively. In between these two values KConst scaled.
-             if (MassKG < Kg.FromTUS(10)) // Lightly loaded wagon
+             if (MassKG < Mass.Kilogram.FromTonsUS(10)) // Lightly loaded wagon
              {
                   HotBoxKConst = -0.001469013410990472f;
              }
-             else if (MassKG > Kg.FromTUS(100)) // Heavily loaded wagon
+             else if (MassKG > Mass.Kilogram.FromTonsUS(100)) // Heavily loaded wagon
              {
                   HotBoxKConst = -0.002938026821980944f;
              }
              else
              {
                   // Scaled between light and heavy loads
-                  var HotBoxScaleFactor = (MassKG - Kg.FromTUS(10)) / (Kg.FromTUS(100) - Kg.FromTUS(10));
+                  var HotBoxScaleFactor = (MassKG - Mass.Kilogram.FromTonsUS(10)) / (Mass.Kilogram.FromTonsUS(100) - Mass.Kilogram.FromTonsUS(10));
                   HotBoxKConst = HotBoxKConstLowLoad - ((float)Math.Abs(HotBoxKConstHighLoad - HotBoxKConstLowLoad)) * HotBoxScaleFactor;
              }
              
@@ -2380,7 +2380,7 @@ namespace Orts.Simulation.RollingStocks
                         Trace.TraceInformation("Tender @ position {0} does not have a locomotive associated with. Check that it is preceeded by a steam locomotive.", CarID);
                     }
 
-                    MassKG = FreightAnimations.WagonEmptyWeight + TendersSteamLocomotive.TenderCoalMassKG + Kg.FromLb( (TendersSteamLocomotive.CurrentLocoTenderWaterVolumeUKG * WaterLBpUKG));
+                    MassKG = FreightAnimations.WagonEmptyWeight + TendersSteamLocomotive.TenderCoalMassKG + Mass.Kilogram.FromLb( (TendersSteamLocomotive.CurrentLocoTenderWaterVolumeUKG * WaterLBpUKG));
                     MassKG = MathHelper.Clamp(MassKG, LoadEmptyMassKg, LoadFullMassKg); // Clamp Mass to between the empty and full wagon values   
 
                     // Update wagon parameters sensitive to wagon mass change
@@ -2413,7 +2413,7 @@ namespace Orts.Simulation.RollingStocks
                     // Find the associated steam locomotive for this tender
                     if (AuxTendersSteamLocomotive == null) FindAuxTendersSteamLocomotive();
 
-                    MassKG = FreightAnimations.WagonEmptyWeight + Kg.FromLb((AuxTendersSteamLocomotive.CurrentAuxTenderWaterVolumeUKG * WaterLBpUKG));
+                    MassKG = FreightAnimations.WagonEmptyWeight + Mass.Kilogram.FromLb((AuxTendersSteamLocomotive.CurrentAuxTenderWaterVolumeUKG * WaterLBpUKG));
                     MassKG = MathHelper.Clamp(MassKG, LoadEmptyMassKg, LoadFullMassKg); // Clamp Mass to between the empty and full wagon values   
 
                     // Update wagon parameters sensitive to wagon mass change

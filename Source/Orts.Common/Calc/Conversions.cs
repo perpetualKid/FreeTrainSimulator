@@ -185,4 +185,35 @@ namespace Orts.Common.Calc
 
         }
     }
+
+    /// <summary>
+    /// Mass conversions
+    /// </summary>
+    public static class Mass
+    {
+        /// <summary>
+        /// Mass conversions from and to Kilograms
+        /// </summary>
+        public static class Kilogram
+        {
+            /// <summary>Convert from pounds (lb) to kilograms</summary>
+            public static float FromLb(float lb) { return lb * (1.0f / 2.20462f); }
+            /// <summary>Convert from kilograms to pounds (lb)</summary>
+            public static float ToLb(float kg) { return kg * 2.20462f; }
+            /// <summary>Convert from US Tons to kilograms</summary>
+            public static float FromTonsUS(float tonsUS) { return tonsUS * 907.1847f; }
+            /// <summary>Convert from kilograms to US Tons</summary>
+            public static float ToTonsUS(float kg) { return kg * (1.0f / 907.1847f); }
+            /// <summary>Convert from UK Tons to kilograms</summary>
+            public static float FromTonsUK(float tonsUK) { return tonsUK * 1016.047f; }
+            /// <summary>Convert from kilograms to UK Tons</summary>
+            public static float ToTonsUK(float kg) { return kg * (1.0f / 1016.047f); }
+            /// <summary>Convert from kilogram to metric tonnes</summary>
+            public static float ToTonnes(float kg) { return kg * (1.0f / 1000.0f); }
+            /// <summary>Convert from metrix tonnes to kilogram</summary>
+            public static float FromTonnes(float tonnes) { return tonnes * 1000.0f; }
+        }
+
+
+    }
 }

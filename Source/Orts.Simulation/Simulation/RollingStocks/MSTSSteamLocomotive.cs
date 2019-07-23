@@ -1270,7 +1270,7 @@ namespace Orts.Simulation.RollingStocks
             // ******************  Test Boiler Type ********************* 
 
 
-            MaxTotalCombinedWaterVolumeUKG = (Kg.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG); // Initialise loco with tender water only - will be updated as appropriate
+            MaxTotalCombinedWaterVolumeUKG = (Mass.Kilogram.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG); // Initialise loco with tender water only - will be updated as appropriate
 
             if (RestoredCombinedTenderWaterVolumeUKG > 1.0)// Check to see if this is a restored game -(assumed so if Restored >0), then set water controller values based upon saved values
              {
@@ -1316,7 +1316,7 @@ namespace Orts.Simulation.RollingStocks
 
             // Calculate the maximum fuel burn rate based upon grate area and limit
             float GrateLimitLBpFt2add = GrateLimitLBpFt2 * 1.10f;     // Alow burn rate to slightly exceed grate limit (by 10%)
-            MaxFuelBurnGrateKGpS = Frequency.Periodic.FromHours(Kg.FromLb(Size.Area.ToFt2(GrateAreaM2) * GrateLimitLBpFt2add));
+            MaxFuelBurnGrateKGpS = Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(Size.Area.ToFt2(GrateAreaM2) * GrateLimitLBpFt2add));
 
             if (MaxFireMassKG == 0) // If not specified, assume twice as much as ideal. 
                 // Scale FIREBOX control to show FireMassKG as fraction of MaxFireMassKG.
@@ -1356,7 +1356,7 @@ namespace Orts.Simulation.RollingStocks
             MaxBoilerSafetyPressHeatBTU = MaxWaterFraction * BoilerVolumeFT3 * WaterDensityPSItoLBpFT3[MaxBoilerHeatSafetyPressurePSI] * WaterHeatPSItoBTUpLB[MaxBoilerHeatSafetyPressurePSI] + (1 - MaxWaterFraction) * BoilerVolumeFT3 * SteamDensityPSItoLBpFT3[MaxBoilerHeatSafetyPressurePSI] * SteamHeatPSItoBTUpLB[MaxBoilerHeatSafetyPressurePSI];  // calculate the maximum possible heat in the boiler, assuming safety valve and a small margin
             MaxBoilerHeatBTU = MaxWaterFraction * BoilerVolumeFT3 * WaterDensityPSItoLBpFT3[MaxBoilerPressurePSI] * WaterHeatPSItoBTUpLB[MaxBoilerPressurePSI] + (1 - MaxWaterFraction) * BoilerVolumeFT3 * SteamDensityPSItoLBpFT3[MaxBoilerPressurePSI] * SteamHeatPSItoBTUpLB[MaxBoilerPressurePSI];  // calculate the maximum possible heat in the boiler
 
-            MaxBoilerKW = Kg.FromLb(TheoreticalMaxSteamOutputLBpS) * W.ToKW(W.FromBTUpS(SteamHeatPSItoBTUpLB[MaxBoilerPressurePSI]));
+            MaxBoilerKW = Mass.Kilogram.FromLb(TheoreticalMaxSteamOutputLBpS) * W.ToKW(W.FromBTUpS(SteamHeatPSItoBTUpLB[MaxBoilerPressurePSI]));
             MaxFlueTempK = (MaxBoilerKW / (W.ToKW(BoilerHeatTransferCoeffWpM2K) * EvaporationAreaM2 * HeatMaterialThicknessFactor)) + baseTempK;
 
             MaxBoilerOutputLBpH = Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS);
@@ -1678,14 +1678,14 @@ namespace Orts.Simulation.RollingStocks
             if (DrvWheelWeightKg == 0) // if DrvWheelWeightKg not in ENG file.
             {
                 const float FactorofAdhesion = 4.2f; // Assume a typical factor of adhesion
-                DrvWheelWeightKg = Kg.FromLb(FactorofAdhesion * MaxTractiveEffortLbf); // calculate Drive wheel weight if not in ENG file
+                DrvWheelWeightKg = Mass.Kilogram.FromLb(FactorofAdhesion * MaxTractiveEffortLbf); // calculate Drive wheel weight if not in ENG file
                 DrvWheelWeightKg = MathHelper.Clamp(DrvWheelWeightKg, 0.1f, MassKG); // Make sure adhesive weight does not exceed the weight of the locomotive
                 InitialDrvWheelWeightKg = DrvWheelWeightKg; // Initialise the Initial Drive wheel weight the same as starting value
             }
 
             // Calculate factor of adhesion for display purposes
 
-            CalculatedFactorofAdhesion = Kg.ToLb(DrvWheelWeightKg) / MaxTractiveEffortLbf;
+            CalculatedFactorofAdhesion = Mass.Kilogram.ToLb(DrvWheelWeightKg) / MaxTractiveEffortLbf;
 
             // Calculate "critical" power of locomotive to determine limit of max IHP
             MaxCriticalSpeedTractiveEffortLbf = (MaxTractiveEffortLbf * CylinderEfficiencyRate) * MaxSpeedFactor;
@@ -1705,11 +1705,11 @@ namespace Orts.Simulation.RollingStocks
             CylinderSweptVolumeFT3pFT = ((CylinderPistonAreaFt2 * Size.Length.ToFt(CylinderStrokeM)) - CylinderPistonShaftFt3);
             LPCylinderSweptVolumeFT3pFT = ((LPCylinderPistonAreaFt2 * Size.Length.ToFt(LPCylinderStrokeM)) - CylinderPistonShaftFt3);
 
-            MaxCombustionRateKgpS = Frequency.Periodic.FromHours(Kg.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS)]));
+            MaxCombustionRateKgpS = Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS)]));
 
             // Calculate the maximum boiler heat input based on the steam generation rate
 
-            MaxBoilerHeatInBTUpS = W.ToBTUpS(W.FromKW(MaxCombustionRateKgpS * FuelCalorificKJpKG * BoilerEfficiencyGrateAreaLBpFT2toX[Frequency.Periodic.ToHours(Kg.ToLb(MaxCombustionRateKgpS)) / GrateAreaM2]));
+            MaxBoilerHeatInBTUpS = W.ToBTUpS(W.FromKW(MaxCombustionRateKgpS * FuelCalorificKJpKG * BoilerEfficiencyGrateAreaLBpFT2toX[Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(MaxCombustionRateKgpS)) / GrateAreaM2]));
 
             // Initialise Locomotive in a Hot or Cold Start Condition
 
@@ -1720,7 +1720,7 @@ namespace Orts.Simulation.RollingStocks
                     // Hot Start - set so that FlueTemp is at maximum, boilerpressure slightly below max
                     BoilerPressurePSI = MaxBoilerPressurePSI - 5.0f;
                     baseStartTempK = C.ToK(C.FromF(PressureToTemperaturePSItoF[BoilerPressurePSI]));
-                    BoilerStartkW = Kg.FromLb((BoilerPressurePSI / MaxBoilerPressurePSI) * TheoreticalMaxSteamOutputLBpS) * W.ToKW(W.FromBTUpS(SteamHeatPSItoBTUpLB[BoilerPressurePSI])); // Given pressure is slightly less then max, this figure should be slightly less, ie reduce TheoreticalMaxSteamOutputLBpS, for the time being assume a ratio of bp to MaxBP
+                    BoilerStartkW = Mass.Kilogram.FromLb((BoilerPressurePSI / MaxBoilerPressurePSI) * TheoreticalMaxSteamOutputLBpS) * W.ToKW(W.FromBTUpS(SteamHeatPSItoBTUpLB[BoilerPressurePSI])); // Given pressure is slightly less then max, this figure should be slightly less, ie reduce TheoreticalMaxSteamOutputLBpS, for the time being assume a ratio of bp to MaxBP
                     FlueTempK = (BoilerStartkW / (W.ToKW(BoilerHeatTransferCoeffWpM2K) * EvaporationAreaM2 * HeatMaterialThicknessFactor)) + baseStartTempK;
                     BoilerMassLB = WaterFraction * BoilerVolumeFT3 * WaterDensityPSItoLBpFT3[BoilerPressurePSI] + (1 - WaterFraction) * BoilerVolumeFT3 * SteamDensityPSItoLBpFT3[BoilerPressurePSI];
                     BoilerHeatBTU = WaterFraction * BoilerVolumeFT3 * WaterDensityPSItoLBpFT3[BoilerPressurePSI] * WaterHeatPSItoBTUpLB[BoilerPressurePSI] + (1 - WaterFraction) * BoilerVolumeFT3 * SteamDensityPSItoLBpFT3[BoilerPressurePSI] * SteamHeatPSItoBTUpLB[BoilerPressurePSI];
@@ -1731,7 +1731,7 @@ namespace Orts.Simulation.RollingStocks
                     // Cold Start - as per current
                     BoilerPressurePSI = MaxBoilerPressurePSI * 0.66f; // Allow for cold start - start at 66% of max boiler pressure - check pressure value given heat in boiler????
                     baseStartTempK = C.ToK(C.FromF(PressureToTemperaturePSItoF[BoilerPressurePSI]));
-                    BoilerStartkW = Kg.FromLb((BoilerPressurePSI / MaxBoilerPressurePSI) * TheoreticalMaxSteamOutputLBpS) * W.ToKW(W.FromBTUpS(SteamHeatPSItoBTUpLB[BoilerPressurePSI]));
+                    BoilerStartkW = Mass.Kilogram.FromLb((BoilerPressurePSI / MaxBoilerPressurePSI) * TheoreticalMaxSteamOutputLBpS) * W.ToKW(W.FromBTUpS(SteamHeatPSItoBTUpLB[BoilerPressurePSI]));
                     FlueTempK = (BoilerStartkW / (W.ToKW(BoilerHeatTransferCoeffWpM2K) * EvaporationAreaM2 * HeatMaterialThicknessFactor)) + baseStartTempK;
                     BoilerMassLB = WaterFraction * BoilerVolumeFT3 * WaterDensityPSItoLBpFT3[BoilerPressurePSI] + (1 - WaterFraction) * BoilerVolumeFT3 * SteamDensityPSItoLBpFT3[BoilerPressurePSI];
                     BoilerHeatBTU = WaterFraction * BoilerVolumeFT3 * WaterDensityPSItoLBpFT3[BoilerPressurePSI] * WaterHeatPSItoBTUpLB[BoilerPressurePSI] + (1 - WaterFraction) * BoilerVolumeFT3 * SteamDensityPSItoLBpFT3[BoilerPressurePSI] * SteamHeatPSItoBTUpLB[BoilerPressurePSI];
@@ -1757,7 +1757,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (Stoker == 1.0f)
                 {
-                    MaxFiringRateKGpS = Frequency.Periodic.FromHours(Kg.FromLb(14400.0f)); // Assume mecxhanical stocker can feed at a rate of 14,400 lb/hr
+                    MaxFiringRateKGpS = Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(14400.0f)); // Assume mecxhanical stocker can feed at a rate of 14,400 lb/hr
                         
                 }
                 else
@@ -1789,7 +1789,7 @@ namespace Orts.Simulation.RollingStocks
                 Trace.TraceInformation("Steam Locomotive Type - {0}", SteamLocoType);
 
                 Trace.TraceInformation("**************** General ****************");
-                Trace.TraceInformation("WheelRadius {0:N2} ft, NumWheels {1}, DriveWheelWeight {2:N1} t-uk", Size.Length.ToFt(DriverWheelRadiusM),  LocoNumDrvWheels, Kg.ToTUK(DrvWheelWeightKg));
+                Trace.TraceInformation("WheelRadius {0:N2} ft, NumWheels {1}, DriveWheelWeight {2:N1} t-uk", Size.Length.ToFt(DriverWheelRadiusM),  LocoNumDrvWheels, Mass.Kilogram.ToTonsUK(DrvWheelWeightKg));
 
                 Trace.TraceInformation("**************** Boiler ****************");
                 Trace.TraceInformation("Boiler Volume {0:N1} cu ft, Evap Area {1:N1} sq ft, Superheat Area {2:N1} sq ft, Max Superheat Temp {3:N1} F, Max Boiler Pressure {4:N1} psi", BoilerVolumeFT3, Size.Area.ToFt2(EvaporationAreaM2), Size.Area.ToFt2(SuperheatAreaM2), MaxSuperheatRefTempF, MaxBoilerPressurePSI);
@@ -1801,7 +1801,7 @@ namespace Orts.Simulation.RollingStocks
                 
                 Trace.TraceInformation("**************** Fire ****************");
                 Trace.TraceInformation("Grate - Area {0:N1} sq ft, Limit {1:N1} lb/sq ft", Size.Area.ToFt2(GrateAreaM2), GrateLimitLBpFt2);
-                Trace.TraceInformation("Fuel - Calorific {0} btu/lb, Max Firing Rate {1} lbs/h Max Coal Load {2} lbs", KJpKg.ToBTUpLb(FuelCalorificKJpKG), Kg.ToLb(Frequency.Periodic.ToHours(MaxFiringRateKGpS)), Kg.ToLb(MaxTenderCoalMassKG));
+                Trace.TraceInformation("Fuel - Calorific {0} btu/lb, Max Firing Rate {1} lbs/h Max Coal Load {2} lbs", KJpKg.ToBTUpLb(FuelCalorificKJpKG), Mass.Kilogram.ToLb(Frequency.Periodic.ToHours(MaxFiringRateKGpS)), Mass.Kilogram.ToLb(MaxTenderCoalMassKG));
 
                 Trace.TraceInformation("========================================================================================================================================================");
 
@@ -1997,7 +1997,7 @@ namespace Orts.Simulation.RollingStocks
             // Safety Valves Steam Effects
 
             SafetyValvesSteamVelocityMpS = (float)Math.Sqrt(KPa.FromPSI(MaxBoilerPressurePSI) * 1000 * 2 / WaterDensityAt100DegC1BarKGpM3);
-            //SafetyValvesSteamVolumeM3pS = SafetyIsOn ? Kg.FromLb(SafetyValveUsageLBpS) * SteamVaporSpecVolumeAt100DegC1BarM3pKG : 0;
+            //SafetyValvesSteamVolumeM3pS = SafetyIsOn ? Mass.Kilogram.FromLb(SafetyValveUsageLBpS) * SteamVaporSpecVolumeAt100DegC1BarM3pKG : 0;
             SafetyValvesSteamVolumeM3pS = SafetyIsOn ? 5.0f : 0;
             SafetyValvesParticleDurationS = 3.0f;
             SafetyValvesParticleDurationS = MathHelper.Clamp(SafetyValvesParticleDurationS / (absSpeedMpS / 4.0f), 0.1f, 3.0f);
@@ -2024,7 +2024,7 @@ namespace Orts.Simulation.RollingStocks
             SmokeColorFireMass = (1.0f / SmokeColorFireMass) * (1.0f / SmokeColorFireMass) * (1.0f / SmokeColorFireMass); // Inverse the firemass value, then cube it to make it a bit more significant
 
             StackSteamVelocityMpS.Update(elapsedClockSeconds, (float)Math.Sqrt(KPa.FromPSI(Pressure_c_AtmPSI) * 1000 * 2 / WaterDensityAt100DegC1BarKGpM3));
-            StackSteamVolumeM3pS = Kg.FromLb(CylinderSteamUsageLBpS + BlowerSteamUsageLBpS + RadiationSteamLossLBpS + CompSteamUsageLBpS + GeneratorSteamUsageLBpS) * SteamVaporSpecVolumeAt100DegC1BarM3pKG;
+            StackSteamVolumeM3pS = Mass.Kilogram.FromLb(CylinderSteamUsageLBpS + BlowerSteamUsageLBpS + RadiationSteamLossLBpS + CompSteamUsageLBpS + GeneratorSteamUsageLBpS) * SteamVaporSpecVolumeAt100DegC1BarM3pKG;
             float SmokeColorUnits = (RadiationSteamLossLBpS + CalculatedCarHeaterSteamUsageLBpS + BlowerBurnEffect + (SmokeColorDamper * SmokeColorFireMass)) / PreviousTotalSteamUsageLBpS - 0.2f;
             SmokeColor.Update(elapsedClockSeconds, MathHelper.Clamp(SmokeColorUnits, 0.25f, 1));
             
@@ -2180,7 +2180,7 @@ namespace Orts.Simulation.RollingStocks
 
             if (HasTenderCoupled) // If a tender is coupled then coal is available
             {
-                TenderCoalMassKG -= elapsedClockSeconds * Frequency.Periodic.FromHours(Kg.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TempCylinderSteamUsageLbpS)])); // Current Tender coal mass determined by burn rate.
+                TenderCoalMassKG -= elapsedClockSeconds * Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TempCylinderSteamUsageLbpS)])); // Current Tender coal mass determined by burn rate.
                 TenderCoalMassKG = MathHelper.Clamp(TenderCoalMassKG, 0, MaxTenderCoalMassKG); // Clamp value so that it doesn't go out of bounds
             }
             else // if no tender coupled then check whether a tender is required
@@ -2191,7 +2191,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else  // Tender is not required (ie tank locomotive) - therefore coal will be carried on the locomotive
                 {
-                    TenderCoalMassKG -= elapsedClockSeconds * Frequency.Periodic.FromHours(Kg.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TempCylinderSteamUsageLbpS)])); // Current Tender coal mass determined by burn rate.
+                    TenderCoalMassKG -= elapsedClockSeconds * Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TempCylinderSteamUsageLbpS)])); // Current Tender coal mass determined by burn rate.
                     TenderCoalMassKG = MathHelper.Clamp(TenderCoalMassKG, 0, MaxTenderCoalMassKG); // Clamp value so that it doesn't go out of bounds
                 }
             }
@@ -2219,24 +2219,24 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (SteamIsAuxTenderCoupled == false)
                 {
-                    CurrentAuxTenderWaterVolumeUKG = (Kg.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG);  // Adjust water volume due to aux tender being connected
+                    CurrentAuxTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG);  // Adjust water volume due to aux tender being connected
                     SteamIsAuxTenderCoupled = true;
                     // If water levels are different in the tender compared to the aux tender, then equalise them
-                    MaxTotalCombinedWaterVolumeUKG = (Kg.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG) + (Kg.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG);
+                    MaxTotalCombinedWaterVolumeUKG = (Mass.Kilogram.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG) + (Mass.Kilogram.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG);
                     float CurrentTotalWaterVolumeUKG = CurrentAuxTenderWaterVolumeUKG + CombinedTenderWaterVolumeUKG;
                     float CurrentTotalWaterPercent = CurrentTotalWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG;
                     // Calculate new water volumes in both the tender and aux tender
-                    CurrentAuxTenderWaterVolumeUKG = (Kg.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG) * CurrentTotalWaterPercent;
-                    CurrentLocoTenderWaterVolumeUKG = (Kg.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG) * CurrentTotalWaterPercent;
+                    CurrentAuxTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG) * CurrentTotalWaterPercent;
+                    CurrentLocoTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG) * CurrentTotalWaterPercent;
                 }
             }
             else
             {
                 if (SteamIsAuxTenderCoupled == true)  // When aux tender uncoupled adjust water in tender to remaining percentage.
                 {
-                    MaxTotalCombinedWaterVolumeUKG = Kg.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG;
+                    MaxTotalCombinedWaterVolumeUKG = Mass.Kilogram.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG;
                     CombinedTenderWaterVolumeUKG = CurrentLocoTenderWaterVolumeUKG;  // Adjust water volume due to aux tender being uncoupled, adjust remaining tender water to whatever % value should be in tender
-                    CombinedTenderWaterVolumeUKG = MathHelper.Clamp(CombinedTenderWaterVolumeUKG, 0, (Kg.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG)); // Clamp value so that it doesn't go out of bounds
+                    CombinedTenderWaterVolumeUKG = MathHelper.Clamp(CombinedTenderWaterVolumeUKG, 0, (Mass.Kilogram.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG)); // Clamp value so that it doesn't go out of bounds
                     CurrentAuxTenderWaterVolumeUKG = 0.0f;
                     SteamIsAuxTenderCoupled = false;
                 }
@@ -2245,8 +2245,8 @@ namespace Orts.Simulation.RollingStocks
             // If refilling, as determined by increasing tender water level, then adjust aux tender water level at the same rate as the tender
             if (CombinedTenderWaterVolumeUKG > PreviousTenderWaterVolumeUKG)
             {
-                CurrentAuxTenderWaterVolumeUKG = (Kg.ToLb(Train.MaxAuxTenderWaterMassKG * WaterController.CurrentValue) / WaterLBpUKG);  // Adjust water volume due to aux tender being connected
-                CurrentAuxTenderWaterVolumeUKG = MathHelper.Clamp(CurrentAuxTenderWaterVolumeUKG, 0, (Kg.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG)); // Clamp value so that it doesn't go out of bounds
+                CurrentAuxTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(Train.MaxAuxTenderWaterMassKG * WaterController.CurrentValue) / WaterLBpUKG);  // Adjust water volume due to aux tender being connected
+                CurrentAuxTenderWaterVolumeUKG = MathHelper.Clamp(CurrentAuxTenderWaterVolumeUKG, 0, (Mass.Kilogram.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG)); // Clamp value so that it doesn't go out of bounds
             }
 
             if (HasTenderCoupled) // If a tender is coupled then water is available
@@ -2268,8 +2268,8 @@ namespace Orts.Simulation.RollingStocks
             TenderWaterPercent = CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG;  // Calculate the current % of water in tender
             RestoredMaxTotalCombinedWaterVolumeUKG = MaxTotalCombinedWaterVolumeUKG;
             RestoredCombinedTenderWaterVolumeUKG = CombinedTenderWaterVolumeUKG;
-            CurrentAuxTenderWaterVolumeUKG = (Kg.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG) * TenderWaterPercent; // Adjust water level in aux tender
-            CurrentLocoTenderWaterVolumeUKG = (Kg.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG) * TenderWaterPercent; // Adjust water level in locomotive tender
+            CurrentAuxTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG) * TenderWaterPercent; // Adjust water level in aux tender
+            CurrentLocoTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG) * TenderWaterPercent; // Adjust water level in locomotive tender
             PrevCombinedTenderWaterVolumeUKG = CombinedTenderWaterVolumeUKG;   // Store value for next iteration
             PreviousTenderWaterVolumeUKG = CombinedTenderWaterVolumeUKG;     // Store value for next iteration
             WaterConsumptionLbpS = InjectorBoilerInputLB / elapsedClockSeconds; // water consumption
@@ -2282,7 +2282,7 @@ namespace Orts.Simulation.RollingStocks
             Trace.TraceInformation("============================================= Aux Tender (MSTSSTeamLocomotive.cs) =========================================================");
          //   Trace.TraceInformation("Water Level Is set by act {0}", Simulator.WaterInitialIsSet);
             Trace.TraceInformation("Combined Tender Water {0} Max Combined {1}", CombinedTenderWaterVolumeUKG, MaxTotalCombinedWaterVolumeUKG);
-            Trace.TraceInformation("Tender Water {0} Max Tender Water {1}  Max Aux Tender {2}", CurrentLocoTenderWaterVolumeUKG, (Kg.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG), (Kg.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG));
+            Trace.TraceInformation("Tender Water {0} Max Tender Water {1}  Max Aux Tender {2}", CurrentLocoTenderWaterVolumeUKG, (Mass.Kilogram.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG), (Mass.Kilogram.ToLb(Train.MaxAuxTenderWaterMassKG) / WaterLBpUKG));
             Trace.TraceInformation(" Water Percent {0} AuxTenderCoupled {1} SteamAuxTenderCoupled {2}", TenderWaterPercent, Train.IsAuxTenderCoupled, SteamIsAuxTenderCoupled);
             Trace.TraceInformation("Water Controller Current Value {0} Previous Value {1}", WaterController.CurrentValue, PreviousTenderWaterVolumeUKG);
 #endif
@@ -2333,7 +2333,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 // Manual Firing - a small burning effect is maintained by the Radiation Steam Loss. The Blower is designed to be used when stationary, or if required when regulator is closed
                 // The exhaust steam from the cylinders drives the draught through the firebox, the damper is used to reduce (or increase) the draft as required.
-                BurnRateRawKGpS = Frequency.Periodic.FromHours(Kg.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours((RadiationSteamLossLBpS + CalculatedCarHeaterSteamUsageLBpS) + BlowerBurnEffect + DamperBurnEffect)]));
+                BurnRateRawKGpS = Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours((RadiationSteamLossLBpS + CalculatedCarHeaterSteamUsageLBpS) + BlowerBurnEffect + DamperBurnEffect)]));
             }
             else // ***********  AI Fireman *****************
             {
@@ -2408,7 +2408,7 @@ namespace Orts.Simulation.RollingStocks
                     {
                         SetFireOn = false; // Disable FireOn if bolierpressure and boilerheat back to "normal"
                     }
-                    BurnRateRawKGpS = 0.9f * Frequency.Periodic.FromHours(Kg.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS)])); // AI fire on goes to approx 100% of fire needed to maintain full boiler steam generation
+                    BurnRateRawKGpS = 0.9f * Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS)])); // AI fire on goes to approx 100% of fire needed to maintain full boiler steam generation
                 }
             }
 
@@ -2536,7 +2536,7 @@ namespace Orts.Simulation.RollingStocks
             // Calculate update to firemass as a result of adding fuel to the fire
             FireMassKG += elapsedClockSeconds * (FuelFeedRateKGpS - FuelBurnRateSmoothedKGpS);
             FireMassKG = MathHelper.Clamp(FireMassKG, 0, MaxFireMassKG);
-            GrateCombustionRateLBpFt2 = Frequency.Periodic.ToHours(Kg.ToLb(FuelBurnRateSmoothedKGpS) / Size.Area.ToFt2(GrateAreaM2)); //coal burnt per sq ft grate area per hour
+            GrateCombustionRateLBpFt2 = Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(FuelBurnRateSmoothedKGpS) / Size.Area.ToFt2(GrateAreaM2)); //coal burnt per sq ft grate area per hour
             // Time Fuel Boost reset timer if all time has been used up on boost timer
             if (FuelBoostOnTimerS >= TimeFuelBoostOnS)
             {
@@ -2887,7 +2887,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 // Steam Output (kg/h) = ( Boiler Rating (kW) * 3600 s/h ) / Energy added kJ/kg, Energy added = energy (at Boiler Pressure - Feedwater energy)
                 // Allow a small increase if superheater is installed
-                EvaporationLBpS = Kg.ToLb(BoilerKW / W.ToKW(W.FromBTUpS(BoilerSteamHeatBTUpLB)));  // convert kW,  1kW = 0.94781712 BTU/s - fudge factor required - 1.1
+                EvaporationLBpS = Mass.Kilogram.ToLb(BoilerKW / W.ToKW(W.FromBTUpS(BoilerSteamHeatBTUpLB)));  // convert kW,  1kW = 0.94781712 BTU/s - fudge factor required - 1.1
             }
 
             if (!FiringIsManual)
@@ -2981,8 +2981,8 @@ namespace Orts.Simulation.RollingStocks
                 IsGrateLimit = false;
             }
 
-            BoilerHeatInBTUpS = W.ToBTUpS(W.FromKW(FireHeatTxfKW) * BoilerEfficiencyGrateAreaLBpFT2toX[(Frequency.Periodic.ToHours(Kg.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2))]);
-            BoilerHeatBTU += elapsedClockSeconds * W.ToBTUpS(W.FromKW(FireHeatTxfKW) * BoilerEfficiencyGrateAreaLBpFT2toX[(Frequency.Periodic.ToHours(Kg.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2))]);
+            BoilerHeatInBTUpS = W.ToBTUpS(W.FromKW(FireHeatTxfKW) * BoilerEfficiencyGrateAreaLBpFT2toX[(Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2))]);
+            BoilerHeatBTU += elapsedClockSeconds * W.ToBTUpS(W.FromKW(FireHeatTxfKW) * BoilerEfficiencyGrateAreaLBpFT2toX[(Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2))]);
 
             // Basic steam radiation losses 
             RadiationSteamLossLBpS = Frequency.Periodic.FromMinutes((absSpeedMpS == 0.0f) ?
@@ -4650,7 +4650,7 @@ namespace Orts.Simulation.RollingStocks
             SpeedVerticalThrustForceRight = SpeedTangentialCrankWheelForceRightLbf * SpeedVerticalThrustFactorRight;
 
             // Calculate Excess Balance
-            float ExcessBalanceWeightLb = (ConnectingRodWeightLb + ReciprocatingWeightLb) - ConnectingRodBalanceWeightLb -(Kg.ToLb(MassKG) / ExcessBalanceFactor);
+            float ExcessBalanceWeightLb = (ConnectingRodWeightLb + ReciprocatingWeightLb) - ConnectingRodBalanceWeightLb -(Mass.Kilogram.ToLb(MassKG) / ExcessBalanceFactor);
             ExcessBalanceForceLeft = -1.603f * ExcessBalanceWeightLb * Size.Length.ToIn(CylinderStrokeM) * (float)Math.Sin(SpeedCrankAngleLeft) * ((MpS.ToMpH(absSpeedMpS) * MpS.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
             ExcessBalanceForceMiddle = -1.603f * ExcessBalanceWeightLb * Size.Length.ToIn(CylinderStrokeM) * (float)Math.Sin(SpeedCrankAngleMiddle) * ((MpS.ToMpH(absSpeedMpS) * MpS.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
             ExcessBalanceForceRight = -1.603f * ExcessBalanceWeightLb * Size.Length.ToIn(CylinderStrokeM) * (float)Math.Sin(SpeedCrankAngleRight) * ((MpS.ToMpH(absSpeedMpS) * MpS.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
@@ -4660,9 +4660,9 @@ namespace Orts.Simulation.RollingStocks
                 ExcessBalanceForceMiddle = 0.0f;
             }
 
-        //    SpeedStaticWheelFrictionForceLbf = (Kg.ToLb(DrvWheelWeightKg) + (SpeedVerticalThrustForceLeft + ExcessBalanceForceLeft) + (SpeedVerticalThrustForceMiddle + ExcessBalanceForceMiddle) + (SpeedVerticalThrustForceRight + ExcessBalanceForceRight)) * Train.LocomotiveCoefficientFriction;
+        //    SpeedStaticWheelFrictionForceLbf = (Mass.Kilogram.ToLb(DrvWheelWeightKg) + (SpeedVerticalThrustForceLeft + ExcessBalanceForceLeft) + (SpeedVerticalThrustForceMiddle + ExcessBalanceForceMiddle) + (SpeedVerticalThrustForceRight + ExcessBalanceForceRight)) * Train.LocomotiveCoefficientFriction;
 
-            SpeedStaticWheelFrictionForceLbf = (Kg.ToLb(DrvWheelWeightKg) + (SpeedVerticalThrustForceLeft + ExcessBalanceForceLeft) + (SpeedVerticalThrustForceMiddle + ExcessBalanceForceMiddle) + (SpeedVerticalThrustForceRight + ExcessBalanceForceRight)) * 0.33f;
+            SpeedStaticWheelFrictionForceLbf = (Mass.Kilogram.ToLb(DrvWheelWeightKg) + (SpeedVerticalThrustForceLeft + ExcessBalanceForceLeft) + (SpeedVerticalThrustForceMiddle + ExcessBalanceForceMiddle) + (SpeedVerticalThrustForceRight + ExcessBalanceForceRight)) * 0.33f;
             // Calculate internal resistance - IR = 3.8 * diameter of cylinder^2 * stroke * dia of drivers (all in inches)
             float InternalResistance = 3.8f * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (Size.Length.ToIn(DrvWheelDiaM));
 
@@ -4679,17 +4679,17 @@ namespace Orts.Simulation.RollingStocks
             // Dry, wght per wheel > 10,000lbs   == 0.35
             // Dry, wght per wheel < 10,000lbs   == 0.25
 
-            SteamDrvWheelWeightLbs = Kg.ToLb(DrvWheelWeightKg / LocoNumDrvWheels); // Calculate the weight per axle (used in MSTSLocomotive for friction calculatons)
+            SteamDrvWheelWeightLbs = Mass.Kilogram.ToLb(DrvWheelWeightKg / LocoNumDrvWheels); // Calculate the weight per axle (used in MSTSLocomotive for friction calculatons)
 
             // Static Friction Force - adhesive factor increased by vertical thrust when travelling forward, and reduced by vertical thrust when travelling backwards
 
             if (Direction == Direction.Forward)
             {
-                StartStaticWheelFrictionForceLbf = (Kg.ToLb(DrvWheelWeightKg) + StartVerticalThrustForceLeft + StartVerticalThrustForceRight + StartVerticalThrustForceMiddle) * Train.LocomotiveCoefficientFriction;
+                StartStaticWheelFrictionForceLbf = (Mass.Kilogram.ToLb(DrvWheelWeightKg) + StartVerticalThrustForceLeft + StartVerticalThrustForceRight + StartVerticalThrustForceMiddle) * Train.LocomotiveCoefficientFriction;
             }
             else
             {
-                StartStaticWheelFrictionForceLbf = (Kg.ToLb(DrvWheelWeightKg) - StartVerticalThrustForceLeft - StartVerticalThrustForceMiddle - StartVerticalThrustForceRight) * Train.LocomotiveCoefficientFriction;
+                StartStaticWheelFrictionForceLbf = (Mass.Kilogram.ToLb(DrvWheelWeightKg) - StartVerticalThrustForceLeft - StartVerticalThrustForceMiddle - StartVerticalThrustForceRight) * Train.LocomotiveCoefficientFriction;
             }
 
             // Transition between Starting slip calculations, and slip at speed. Incremental values applied between 1 and 10mph.
@@ -4749,8 +4749,8 @@ namespace Orts.Simulation.RollingStocks
                     // Generic wheel assumptions are - 80 inch drive wheels ( 2.032 metre), a pair of drive wheels weighs approx 6,000lbs, axle weighs 1,000 lbs, and has a diameter of 8 inches.
                     // Moment of Inertia (Wheel and axle) = (Mass x Radius) / 2.0
                     float WheelRadiusAssumptM = Size.Length.FromIn(80.0f / 2.0f);
-                    float WheelWeightKG = Kg.FromLb(6000.0f);
-                    float AxleWeighKG = Kg.FromLb(1000.0f);
+                    float WheelWeightKG = Mass.Kilogram.FromLb(6000.0f);
+                    float AxleWeighKG = Mass.Kilogram.FromLb(1000.0f);
                     float AxleRadiusM = Size.Length.FromIn(8.0f / 2.0f);
                     float WheelMomentInertia = (WheelWeightKG * WheelRadiusAssumptM * WheelRadiusAssumptM) / 2.0f;
                     float AxleMomentInertia = (WheelWeightKG * AxleRadiusM * AxleRadiusM) / 2.0f;
@@ -4765,7 +4765,7 @@ namespace Orts.Simulation.RollingStocks
                     // the inertia of the coupling rods can also be added
                     // Assume rods weigh approx 1500 lbs
                     // // MoI = rod weight x stroke radius (ie stroke / 2)
-                    float RodWeightKG = Kg.FromLb(1500.0f);
+                    float RodWeightKG = Mass.Kilogram.FromLb(1500.0f);
                     // ???? For both compound and simple??????
                     float RodStrokeM = CylinderStrokeM / 2.0f;
                     float RodMomentInertia = RodWeightKG * RodStrokeM * RodStrokeM;
@@ -4827,7 +4827,7 @@ namespace Orts.Simulation.RollingStocks
 
                 Trace.TraceInformation("==== Adhesive Force ====");
 
-                Trace.TraceInformation("ExcessBalance {0} Adhesive Wt {1}, Loco Friction {2}", ExcessBalanceWeightLb, Kg.ToLb(DrvWheelWeightKg), Train.LocomotiveCoefficientFriction);
+                Trace.TraceInformation("ExcessBalance {0} Adhesive Wt {1}, Loco Friction {2}", ExcessBalanceWeightLb, Mass.Kilogram.ToLb(DrvWheelWeightKg), Train.LocomotiveCoefficientFriction);
 
                 Trace.TraceInformation("Vert Thrust (speed): Left {0} Middle {1} Right {2}", SpeedVerticalThrustForceLeft, SpeedVerticalThrustForceMiddle, SpeedVerticalThrustForceRight);
 
@@ -5528,7 +5528,7 @@ namespace Orts.Simulation.RollingStocks
                             }
                             else
                             {
-                                CalculatedCarHeaterSteamUsageLBpS = Kg.ToLb(W.ToKW(Train.TrainSteamPipeHeatW) / (SteamHeatPSItoBTUpLB[CurrentSteamHeatPressurePSI] * ConvertBtupLbtoKjpKg));
+                                CalculatedCarHeaterSteamUsageLBpS = Mass.Kilogram.ToLb(W.ToKW(Train.TrainSteamPipeHeatW) / (SteamHeatPSItoBTUpLB[CurrentSteamHeatPressurePSI] * ConvertBtupLbtoKjpKg));
                             }
 
                             // Calculate impact of steam heat usage on locomotive
@@ -5615,7 +5615,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                 case CABViewControlTypes.FUEL_GAUGE:
                     if (cvc.Units == CABViewControlUnits.LBS)
-                        data = Kg.ToLb(TenderCoalMassKG);
+                        data = Mass.Kilogram.ToLb(TenderCoalMassKG);
                     else
                         data = TenderCoalMassKG;
                      break;
@@ -5652,7 +5652,7 @@ namespace Orts.Simulation.RollingStocks
             else if (IsSelectGeared)
                 status.AppendFormat("{0} = {2} ({1:F2})\n", Simulator.Catalog.GetString("Gear"),
                     SteamGearRatio, SteamGearPosition == 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : SteamGearPosition.ToString());
-            status.AppendFormat("{0}{2} = {1}/{3}{2}\n", Simulator.Catalog.GetString("Steam usage"), FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(PreviousTotalSteamUsageLBpS)), MainPressureUnit != PressureUnit.PSI), steamusagesafety, FormatStrings.h);
+            status.AppendFormat("{0}{2} = {1}/{3}{2}\n", Simulator.Catalog.GetString("Steam usage"), FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), MainPressureUnit != PressureUnit.PSI), steamusagesafety, FormatStrings.h);
             status.AppendFormat("{0}{2} = {1}{2}\n", Simulator.Catalog.GetString("Boiler pressure"), FormatStrings.FormatPressure(BoilerPressurePSI, PressureUnit.PSI, MainPressureUnit, true), boilerPressureSafety);
             status.AppendFormat("{0}{2} = {1:F0}% {3}{2}\n", Simulator.Catalog.GetString("Boiler water glass"), 100 * waterGlassPercent, boilerWaterSafety, FiringIsManual ? Simulator.Catalog.GetString("(safe range)") : "");
 
@@ -5701,7 +5701,7 @@ namespace Orts.Simulation.RollingStocks
 
             status.AppendFormat("\n\t\t === {0} === \t\t{1}/{2}\n",
                 Simulator.Catalog.GetString("Steam Production"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(EvaporationLBpS)), IsMetric),
+                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(EvaporationLBpS)), IsMetric),
                 FormatStrings.h);
 
             status.AppendFormat("{0}\t{1}\t{5}\t{2}\t{6}\t{3}\t{7}/{8}\t\t{4}\t{9:N2}\n",
@@ -5711,10 +5711,10 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Catalog.GetString("MaxOutp"),
                 Simulator.Catalog.GetString("BoilerEff"),
                 FormatStrings.FormatPower(W.FromKW(BoilerKW), IsMetric, true, false),
-                FormatStrings.FormatMass(Kg.FromLb(BoilerMassLB), IsMetric),
-                FormatStrings.FormatMass(Kg.FromLb(MaxBoilerOutputLBpH), IsMetric),
+                FormatStrings.FormatMass(Mass.Kilogram.FromLb(BoilerMassLB), IsMetric),
+                FormatStrings.FormatMass(Mass.Kilogram.FromLb(MaxBoilerOutputLBpH), IsMetric),
                 FormatStrings.h,
-                BoilerEfficiencyGrateAreaLBpFT2toX[(Frequency.Periodic.ToHours(Kg.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2))]);
+                BoilerEfficiencyGrateAreaLBpFT2toX[(Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2))]);
 
             status.AppendFormat("{0}\t{1}\t{2}\t\t{3}\t{4}\t\t{5}\t{6}\t\t{7}\t{8}\t\t{9}\t{10}\t\t{11}\t{12}\n",
                 Simulator.Catalog.GetString("Heat:"),
@@ -5745,7 +5745,7 @@ namespace Orts.Simulation.RollingStocks
 
             status.AppendFormat("\n\t\t === {0} === \t\t{1}/{2}\n",
                 Simulator.Catalog.GetString("Steam Usage"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(PreviousTotalSteamUsageLBpS)), IsMetric),
+                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), IsMetric),
                 FormatStrings.h);
 
             if (!(BrakeSystem is Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS.VacuumSinglePipe))
@@ -5762,15 +5762,15 @@ namespace Orts.Simulation.RollingStocks
                     Simulator.Catalog.GetString("Genertr"),
                     Simulator.Catalog.GetString("Stoker"),
                     Simulator.Catalog.GetString("MaxSafe"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(CylinderSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(BlowerSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(RadiationSteamLossLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(CompSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(SafetyValveUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(CylCockSteamUsageDisplayLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(GeneratorSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(StokerSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(MaxSafetyValveDischargeLbspS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylinderSteamUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowerSteamUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(RadiationSteamLossLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CompSteamUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(SafetyValveUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylCockSteamUsageDisplayLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(GeneratorSteamUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(StokerSteamUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(MaxSafetyValveDischargeLbspS)), IsMetric),
                     NumSafetyValves,
                     SafetyValveSizeIn,
                     FormatStrings.h);
@@ -5789,15 +5789,15 @@ namespace Orts.Simulation.RollingStocks
                     Simulator.Catalog.GetString("Genertr"),
                     Simulator.Catalog.GetString("Stoker"),
                     Simulator.Catalog.GetString("MaxSafe"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(CylinderSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(BlowerSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(RadiationSteamLossLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(EjectorTotalSteamConsumptionLbpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(SafetyValveUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(CylCockSteamUsageDisplayLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(GeneratorSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(StokerSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(MaxSafetyValveDischargeLbspS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylinderSteamUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowerSteamUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(RadiationSteamLossLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(EjectorTotalSteamConsumptionLbpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(SafetyValveUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylCockSteamUsageDisplayLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(GeneratorSteamUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(StokerSteamUsageLBpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(MaxSafetyValveDischargeLbspS)), IsMetric),
                     NumSafetyValves,
                     SafetyValveSizeIn,
                     FormatStrings.h);
@@ -5917,9 +5917,9 @@ namespace Orts.Simulation.RollingStocks
                 "CompVol",
                 CylinderAdmissionSteamVolumeFt3,
                 "RawSt",
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(RawCalculatedCylinderSteamUsageLBpS)), IsMetric),
+                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(RawCalculatedCylinderSteamUsageLBpS)), IsMetric),
                 "CalcSt",
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(CalculatedCylinderSteamUsageLBpS)), IsMetric),
+                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CalculatedCylinderSteamUsageLBpS)), IsMetric),
                 "ClrWt",
                 CylinderAdmissionSteamWeightLbs,
                 "CutWt",
@@ -5949,7 +5949,7 @@ namespace Orts.Simulation.RollingStocks
                    Simulator.Catalog.GetString("OutTemp"),
                    FormatStrings.FormatTemperature(Train.TrainOutsideTempC, IsMetric, false),
                    Simulator.Catalog.GetString("StUse"),
-                   FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(CalculatedCarHeaterSteamUsageLBpS)), IsMetric),
+                   FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CalculatedCarHeaterSteamUsageLBpS)), IsMetric),
                    FormatStrings.h,
                    Simulator.Catalog.GetString("NetHt"),
                    Train.DisplayTrainNetSteamHeatLossWpTime);
@@ -5986,11 +5986,11 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Catalog.GetString("BurnRate"),
                 FormatStrings.FormatMass(Frequency.Periodic.ToHours(FuelBurnRateSmoothedKGpS), IsMetric),
                 Simulator.Catalog.GetString("Combust"),
-                FormatStrings.FormatMass(Kg.FromLb(GrateCombustionRateLBpFt2), IsMetric),
+                FormatStrings.FormatMass(Mass.Kilogram.FromLb(GrateCombustionRateLBpFt2), IsMetric),
                 FormatStrings.h,
                 IsMetric ? FormatStrings.m2 : FormatStrings.ft2,
                 Simulator.Catalog.GetString("GrLimit"),
-                FormatStrings.FormatMass(Kg.FromLb(GrateLimitLBpFt2), IsMetric),
+                FormatStrings.FormatMass(Mass.Kilogram.FromLb(GrateLimitLBpFt2), IsMetric),
                 FormatStrings.h,
                 IsMetric ? FormatStrings.m2 : FormatStrings.ft2,
                 Simulator.Catalog.GetString("MaxBurn"),
@@ -6013,7 +6013,7 @@ namespace Orts.Simulation.RollingStocks
                 "FireHeat",
                 FireHeatTxfKW,
                 "RawBurn",
-                Frequency.Periodic.ToHours(Kg.ToLb( BurnRateRawKGpS)),
+                Frequency.Periodic.ToHours(Mass.Kilogram.ToLb( BurnRateRawKGpS)),
                 "RawHeat",
                 BoilerHeatBTU,
                 "SuperSet",
@@ -6021,7 +6021,7 @@ namespace Orts.Simulation.RollingStocks
                 "GratLmt",
                 GrateLimitLBpFt2,
                 "MaxFuel",
-                Frequency.Periodic.ToHours(Kg.ToLb( MaxFuelBurnGrateKGpS)),
+                Frequency.Periodic.ToHours(Mass.Kilogram.ToLb( MaxFuelBurnGrateKGpS)),
                 "BstReset",
                 FuelBoostReset ? "Yes" : "No",
                 "ShAny",
@@ -6062,9 +6062,9 @@ namespace Orts.Simulation.RollingStocks
                     Simulator.Catalog.GetString("Water(A)"),
                     FormatStrings.FormatFuelVolume(L.FromGUK(CurrentAuxTenderWaterVolumeUKG), IsMetric, IsUK),
                     Simulator.Catalog.GetString("Steam"),
-                    FormatStrings.FormatMass(Kg.FromLb(CumulativeCylinderSteamConsumptionLbs), IsMetric),
+                    FormatStrings.FormatMass(Mass.Kilogram.FromLb(CumulativeCylinderSteamConsumptionLbs), IsMetric),
                     Simulator.Catalog.GetString("TotSteam"),
-                    FormatStrings.FormatMass(Kg.FromLb(CummulativeTotalSteamConsumptionLbs), IsMetric)
+                    FormatStrings.FormatMass(Mass.Kilogram.FromLb(CummulativeTotalSteamConsumptionLbs), IsMetric)
                     );
             }
             else
@@ -6078,9 +6078,9 @@ namespace Orts.Simulation.RollingStocks
                     FormatStrings.FormatFuelVolume(L.FromGUK(CombinedTenderWaterVolumeUKG), IsMetric, IsUK),
                     CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG * 100,
                     Simulator.Catalog.GetString("Steam"),
-                    FormatStrings.FormatMass(Kg.FromLb(CumulativeCylinderSteamConsumptionLbs), IsMetric),
+                    FormatStrings.FormatMass(Mass.Kilogram.FromLb(CumulativeCylinderSteamConsumptionLbs), IsMetric),
                     Simulator.Catalog.GetString("TotSteam"),
-                    FormatStrings.FormatMass(Kg.FromLb(CummulativeTotalSteamConsumptionLbs), IsMetric)
+                    FormatStrings.FormatMass(Mass.Kilogram.FromLb(CummulativeTotalSteamConsumptionLbs), IsMetric)
                     );
             }
 
@@ -6169,7 +6169,7 @@ namespace Orts.Simulation.RollingStocks
                     Simulator.Catalog.GetString("Slip"),
                     IsLocoSlip ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                     Simulator.Catalog.GetString("WheelM"),
-                    FormatStrings.FormatMass(Kg.FromLb(SteamDrvWheelWeightLbs), IsMetric),
+                    FormatStrings.FormatMass(Mass.Kilogram.FromLb(SteamDrvWheelWeightLbs), IsMetric),
                     Simulator.Catalog.GetString("FoA"),
                     CalculatedFactorofAdhesion);
 
@@ -6287,13 +6287,13 @@ namespace Orts.Simulation.RollingStocks
 
                 status.AppendFormat("\n\t\t\t === {0} === \t\t{1}/{2}\n",
                 Simulator.Catalog.GetString("Ejector / Vacuum Pump"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(EjectorTotalSteamConsumptionLbpS)), IsMetric),
+                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(EjectorTotalSteamConsumptionLbpS)), IsMetric),
                 FormatStrings.h);
 
                 status.AppendFormat("{0}\t{1}\t{2:N2}/{3}\t{4}\t{5:N2}\t{6}\t{7}",
                 Simulator.Catalog.GetString("Large:"),
                 Simulator.Catalog.GetString("StCons"),
-                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(TempEjectorLargeSteamConsumptionLbpS)), IsMetric),
+                FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(TempEjectorLargeSteamConsumptionLbpS)), IsMetric),
                 FormatStrings.h,
                 Simulator.Catalog.GetString("Rate"),
                 LargeEjectorBrakePipeChargingRatePSIorInHgpS,
@@ -6309,7 +6309,7 @@ namespace Orts.Simulation.RollingStocks
                     Simulator.Catalog.GetString("Press"),
                     FormatStrings.FormatPressure(SteamEjectorSmallPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
                     Simulator.Catalog.GetString("StCons"),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Kg.FromLb(TempEjectorSmallSteamConsumptionLbpS)), IsMetric),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(TempEjectorSmallSteamConsumptionLbpS)), IsMetric),
                     FormatStrings.h,
                     Simulator.Catalog.GetString("Rate"),
                     // FormatStrings.FormatPressure(SmallEjectorBrakePipeChargingRatePSIorInHgpS, PressureUnit.InHg, MainPressureUnit, true),

@@ -40,11 +40,6 @@ namespace Orts.Tests.Orts.Common
             Assert.Equal(1.2f, MpS.FromMpH(MpS.ToMpH(1.2f)), RequestedAccuracy);
             Assert.Equal(1.2f, MpS.FromKpH(MpS.ToKpH(1.2f)), RequestedAccuracy);
 
-            Assert.Equal(1.2f, Kg.FromLb(Kg.ToLb(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, Kg.FromTUS(Kg.ToTUS(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, Kg.FromTUK(Kg.ToTUK(1.2f)), RequestedAccuracy);
-            Assert.Equal(1.2f, Kg.FromTonne(Kg.ToTonne(1.2f)), RequestedAccuracy);
-
             Assert.Equal(1.2f, N.FromLbf(N.ToLbf(1.2f)), RequestedAccuracy);
 
             Assert.Equal(1.2f, KgpS.FromLbpH(KgpS.ToLbpH(1.2f)), RequestedAccuracy);
