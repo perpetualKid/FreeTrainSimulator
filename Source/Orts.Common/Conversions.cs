@@ -39,25 +39,6 @@ namespace Orts.Common
     // Note: this class has unit tests
 
     /// <summary>
-    /// Enumerate the various units of pressure that are used
-    /// </summary>
-    public enum PressureUnit
-    {
-        /// <summary>non-defined unit</summary>
-        None,
-        /// <summary>kiloPascal</summary>
-        KPa,
-        /// <summary>bar</summary>
-        Bar,
-        /// <summary>Pounds Per Square Inch</summary>
-        PSI,
-        /// <summary>Inches Mercury</summary>
-        InHg,
-        /// <summary>Mass-force per square centimetres</summary>
-        KgfpCm2
-    }
-
-    /// <summary>
     /// Distance conversions from and to metres
     /// </summary>
     internal static class Me {   // Not M to avoid conflict with MSTSMath.M, but note that MSTSMath.M will be gone in future.
