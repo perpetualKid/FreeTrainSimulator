@@ -47,13 +47,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public abstract void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime);
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public virtual void Unload() { }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal virtual void LoadForPlayer() { }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal abstract void Mark();
 
 

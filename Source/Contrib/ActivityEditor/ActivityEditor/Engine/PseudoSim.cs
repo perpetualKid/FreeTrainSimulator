@@ -421,7 +421,7 @@ namespace Orts.ActivityEditor.Engine
             return orRouteConfig;
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         void UpdaterThread()    // float elapsedClockSeconds
         {
         }

@@ -87,7 +87,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Viewer.Camera != null) Pricipitation.Update(gameTime, ElapsedTime.Zero, Weather.PricipitationIntensityPPSPM2, Viewer);
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal void Mark()
         {
             Material.Mark();
@@ -560,7 +560,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class PrecipitationShader : Shader
     {
         internal readonly EffectParameter worldViewProjection;

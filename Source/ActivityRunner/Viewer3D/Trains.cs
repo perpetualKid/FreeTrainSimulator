@@ -53,7 +53,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 e.Loaded = true;
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Load()
         {
             var cancellation = Viewer.LoaderProcess.CancellationToken;
@@ -95,7 +95,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 cars[PlayerCar].LoadForPlayer();
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal void Mark()
         {
             var cars = Cars;
@@ -108,7 +108,7 @@ namespace Orts.ActivityRunner.Viewer3D
             CABTextureManager.Mark(Viewer);
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public TrainCarViewer GetViewer(TrainCar car)
         {
             var cars = Cars;
@@ -122,7 +122,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return newCars[car];
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void LoadPrep()
         {
             var visibleCars = new List<TrainCar>();
@@ -136,7 +136,7 @@ namespace Orts.ActivityRunner.Viewer3D
             PlayerCar = Viewer.Simulator.PlayerLocomotive;
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var cars = Cars;

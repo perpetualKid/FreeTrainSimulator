@@ -28,7 +28,7 @@ using Orts.Simulation;
 
 namespace Orts.Common.Scripting
 {
-    [CallOnThread("Loader")]
+    //[CallOnThread("Loader")]
     public class ScriptManager
     {
         readonly Simulator Simulator;
@@ -49,7 +49,7 @@ namespace Orts.Common.Scripting
             return cp;
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal ScriptManager(Simulator simulator)
         {
             Simulator = simulator;
@@ -128,7 +128,7 @@ namespace Orts.Common.Scripting
         }
         */
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public string GetStatus()
         {
             return String.Format("{0:F0} scripts", Scripts.Keys.Count);

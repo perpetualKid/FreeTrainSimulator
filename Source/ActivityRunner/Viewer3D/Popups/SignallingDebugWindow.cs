@@ -31,7 +31,7 @@ using System.Linq;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
-    [CallOnThread("Updater")]
+    //[CallOnThread("Updater")]
     public class SignallingDebugWindow : LayeredWindow
     {
 
@@ -371,7 +371,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
     }
 
-    [CallOnThread("Updater")]
+    //[CallOnThread("Updater")]
     public abstract class DispatcherPrimitive
     {
         protected static Vector3 Normalize(in WorldLocation location, Camera camera)
@@ -391,11 +391,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public abstract void PrepareFrame(List<Rectangle> labels, Viewport viewport, Camera camera);
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public abstract void Draw(SpriteBatch spriteBatch);
     }
 
-    [CallOnThread("Updater")]
+    //[CallOnThread("Updater")]
     public class DispatcherLineSegment : DispatcherPrimitive
     {
         WorldLocation Start;
@@ -438,7 +438,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
     }
 
-    [CallOnThread("Updater")]
+    //[CallOnThread("Updater")]
     public class DispatcherLabel : DispatcherPrimitive
     {
         const int TextOffsetX = 2;

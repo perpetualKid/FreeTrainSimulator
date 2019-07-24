@@ -32,7 +32,7 @@ using System.Threading;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    [CallOnThread("Loader")]
+    //[CallOnThread("Loader")]
     public class SharedTextureManager
     {
         readonly Viewer Viewer;
@@ -40,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D
         Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>();
         Dictionary<string, bool> TextureMarks;
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         internal SharedTextureManager(Viewer viewer, GraphicsDevice graphicsDevice)
         {
             Viewer = viewer;
@@ -194,14 +194,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 Textures.Remove(path);
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public string GetStatus()
         {
             return Viewer.Catalog.GetPluralStringFmt("{0:F0} texture", "{0:F0} textures", Textures.Keys.Count);
         }
     }
 
-    [CallOnThread("Loader")]
+    //[CallOnThread("Loader")]
     public class SharedMaterialManager
     {
         readonly Viewer Viewer;
@@ -223,7 +223,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public static Texture2D DefaultSnowTexture;
         public static Texture2D DefaultDMSnowTexture;
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public SharedMaterialManager(Viewer viewer)
         {
             Viewer = viewer;
@@ -459,7 +459,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public string GetStatus()
         {
             return Viewer.Catalog.GetPluralStringFmt("{0:F0} material", "{0:F0} materials", Materials.Keys.Count);
@@ -596,7 +596,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public Camera CurrentCamera { get { return Viewer.Camera; } }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public virtual void Mark()
         {
             Viewer.MaterialManager.Mark(this);

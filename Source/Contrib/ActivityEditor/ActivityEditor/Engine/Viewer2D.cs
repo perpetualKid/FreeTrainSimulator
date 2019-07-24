@@ -263,7 +263,7 @@ namespace Orts.ActivityEditor.Engine
             routeDrawing.Image = new Bitmap(routeDrawing.Width, routeDrawing.Height);
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         void ActivityTimer_Tick(object sender, EventArgs e)
         {
             GenerateView();

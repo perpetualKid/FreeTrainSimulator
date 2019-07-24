@@ -27,7 +27,7 @@ using System.Windows.Forms;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class RenderProcess
     {
         private enum ScreenMode
@@ -333,7 +333,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             game.State.BeginRender(CurrentFrame);
         }
 
-        [ThreadName("Render")]
         internal void Draw()
         {
             if (Debugger.IsAttached)
@@ -391,14 +390,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             frame2 = temp;
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void ToggleFullScreen()
         {
             toggleScreenRequested = true;
         }
 
-        [CallOnThread("Render")]
-        [CallOnThread("Updater")]
+        //[CallOnThread("Render")]
+        //[CallOnThread("Updater")]
         public void ComputeFPS(float elapsedRealTime)
         {
             if (elapsedRealTime < 0.001)

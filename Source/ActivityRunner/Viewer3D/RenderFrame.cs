@@ -348,7 +348,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         static bool LockShadows;
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void PrepareFrame(in ElapsedTime elapsedTime)
         {
             if (UserInput.IsPressed(UserCommand.DebugLockShadows))
@@ -416,7 +416,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="group"></param>
         /// <param name="xnaMatrix"></param>
         /// <param name="flags"></param>
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void AddAutoPrimitive(Vector3 mstsLocation, float objectRadius, float objectViewingDistance, Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags)
         {
             if (float.IsPositiveInfinity(objectViewingDistance) || (camera != null && camera.InRange(mstsLocation, objectRadius, objectViewingDistance)))
@@ -431,7 +431,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         AddShadowPrimitive(shadowMapIndex, material, primitive, ref xnaMatrix, flags);
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix)
         {
             AddPrimitive(material, primitive, group, ref xnaMatrix, ShapeFlags.None);
@@ -441,7 +441,7 @@ namespace Orts.ActivityRunner.Viewer3D
         static readonly bool[] PrimitiveBlended = new bool[] { true };
         static readonly bool[] PrimitiveNotBlended = new bool[] { false };
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags)
         {
             var getBlending = material.GetBlending();
@@ -464,7 +464,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 primitive.ZBias = 1;
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         void AddShadowPrimitive(int shadowMapIndex, Material material, RenderPrimitive primitive, ref Matrix xnaMatrix, ShapeFlags flags)
         {
             if (material is SceneryMaterial)
@@ -477,7 +477,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Debug.Fail("Only scenery, forest and terrain materials allowed in shadow map.");
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void Sort()
         {
             //System.Threading.Tasks.Parallel.For(0, renderItems.Length, (i) =>
@@ -539,7 +539,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return RenderPrimitive.SequenceForOpaque[(int)group];
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public void Draw()
         {
 #if DEBUG_RENDER_STATE

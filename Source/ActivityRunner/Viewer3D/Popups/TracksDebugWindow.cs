@@ -27,7 +27,7 @@ using System.Linq;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
-    [CallOnThread("Updater")]
+    //[CallOnThread("Updater")]
     public class TracksDebugWindow : LayeredWindow
     {
         const float DisplayDistance = 1000;

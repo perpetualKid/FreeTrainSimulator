@@ -84,7 +84,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 DataLoggerStart(Viewer.Settings);
         }
 
-        [ThreadName("Render")]
         internal void Terminate()
         {
             if (Viewer.Settings.DataLogger)
