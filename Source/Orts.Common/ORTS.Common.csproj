@@ -67,7 +67,7 @@
     <Compile Include="Native\User32.cs" />
     <Compile Include="Threading\CancellationToken.cs" />
     <Compile Include="Threading\CancellationTokenSource.cs" />
-    <Compile Include="Conversions.cs" />
+    <Compile Include="FormatStrings.cs" />
     <Compile Include="Coordinates.cs" />
     <Compile Include="DataLogger.cs" />
     <Compile Include="ElapsedTime.cs" />
