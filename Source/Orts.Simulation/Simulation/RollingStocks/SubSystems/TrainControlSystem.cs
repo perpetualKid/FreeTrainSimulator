@@ -260,10 +260,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             Script.CircuitBreakerClosingOrder = () => CircuitBreakerClosingOrder;
             Script.CircuitBreakerOpeningOrder = () => CircuitBreakerOpeningOrder;
             Script.TractionAuthorization = () => TractionAuthorization;
-            Script.BrakePipePressureBar = () => Locomotive.BrakeSystem != null ? Bar.FromPSI(Locomotive.BrakeSystem.BrakeLine1PressurePSI) : float.MaxValue;
-            Script.LocomotiveBrakeCylinderPressureBar = () => Locomotive.BrakeSystem != null ? Bar.FromPSI(Locomotive.BrakeSystem.GetCylPressurePSI()) : float.MaxValue;
+            Script.BrakePipePressureBar = () => Locomotive.BrakeSystem != null ? Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.BrakeLine1PressurePSI) : float.MaxValue;
+            Script.LocomotiveBrakeCylinderPressureBar = () => Locomotive.BrakeSystem != null ? Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.GetCylPressurePSI()) : float.MaxValue;
             Script.DoesBrakeCutPower = () => Locomotive.DoesBrakeCutPower;
-            Script.BrakeCutsPowerAtBrakeCylinderPressureBar = () => Bar.FromPSI(Locomotive.BrakeCutsPowerAtBrakeCylinderPressurePSI);
+            Script.BrakeCutsPowerAtBrakeCylinderPressureBar = () => Pressure.Atmospheric.FromPSI(Locomotive.BrakeCutsPowerAtBrakeCylinderPressurePSI);
 
             // TrainControlSystem functions
             Script.SpeedCurve = (arg1, arg2, arg3, arg4, arg5) => SpeedCurve(arg1, arg2, arg3, arg4, arg5);

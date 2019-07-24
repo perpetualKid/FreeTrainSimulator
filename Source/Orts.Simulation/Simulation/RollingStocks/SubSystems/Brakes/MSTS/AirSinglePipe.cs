@@ -119,27 +119,27 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         }
 
         // Get the brake BC & BP for EOT conditions
-        public override string GetStatus(Dictionary<BrakeSystemComponent, PressureUnit> units)
+        public override string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
             string s = string.Format(
                 " BC {0}",
-                FormatStrings.FormatPressure(CylPressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.BrakeCylinder], true));
-                s += string.Format(" BP {0}", FormatStrings.FormatPressure(BrakeLine1PressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.BrakePipe], true));
+                FormatStrings.FormatPressure(CylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true));
+                s += string.Format(" BP {0}", FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true));
             return s;
         }
 
         // Get Brake information for train
-        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, PressureUnit> units)
+        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
-            string s = string.Format(" EQ {0}", FormatStrings.FormatPressure(Car.Train.EqualReservoirPressurePSIorInHg, PressureUnit.PSI, units[BrakeSystemComponent.EqualizingReservoir], true));
+            string s = string.Format(" EQ {0}", FormatStrings.FormatPressure(Car.Train.EqualReservoirPressurePSIorInHg, Pressure.Unit.PSI, units[BrakeSystemComponent.EqualizingReservoir], true));
             s += string.Format(
                 " BC {0}",
-                FormatStrings.FormatPressure(Car.Train.HUDWagonBrakeCylinderPSI, PressureUnit.PSI, units[BrakeSystemComponent.BrakeCylinder], true)
+                FormatStrings.FormatPressure(Car.Train.HUDWagonBrakeCylinderPSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true)
             );
 
             s += string.Format(
                 " BP {0}",                
-                FormatStrings.FormatPressure(BrakeLine1PressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.BrakePipe], true)
+                FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true)
             );
             if (lastCarBrakeSystem != null && lastCarBrakeSystem != this)
                 s += " EOT " + lastCarBrakeSystem.GetStatus(units);
@@ -148,15 +148,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return s;
         }
 
-        public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, PressureUnit> units)
+        public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
             return new string[] {
                 DebugType,
-                FormatStrings.FormatPressure(CylPressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.BrakeCylinder], true),
-                FormatStrings.FormatPressure(BrakeLine1PressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.BrakePipe], true),
-                FormatStrings.FormatPressure(AuxResPressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.AuxiliaryReservoir], true),
-                (Car as MSTSWagon).EmergencyReservoirPresent ? FormatStrings.FormatPressure(EmergResPressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.EmergencyReservoir], true) : string.Empty,
-                TwoPipes ? FormatStrings.FormatPressure(BrakeLine2PressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.MainPipe], true) : string.Empty,
+                FormatStrings.FormatPressure(CylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true),
+                FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true),
+                FormatStrings.FormatPressure(AuxResPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.AuxiliaryReservoir], true),
+                (Car as MSTSWagon).EmergencyReservoirPresent ? FormatStrings.FormatPressure(EmergResPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.EmergencyReservoir], true) : string.Empty,
+                TwoPipes ? FormatStrings.FormatPressure(BrakeLine2PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.MainPipe], true) : string.Empty,
                 (Car as MSTSWagon).RetainerPositions == 0 ? string.Empty : RetainerDebugState,
                 Simulator.Catalog.GetString(TripleValveState.GetDescription()),
                 string.Empty, // Spacer because the state above needs 2 columns.

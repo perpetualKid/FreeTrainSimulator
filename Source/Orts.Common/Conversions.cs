@@ -19,6 +19,7 @@
 using System;
 using System.Globalization;
 using GNU.Gettext;
+using static Orts.Common.Calc.Pressure;
 
 namespace Orts.Common
 {
@@ -125,35 +126,16 @@ namespace Orts.Common
     }
 
     /// <summary>
-    /// Mass rate conversions from and to Kg/s
-    /// </summary>
-    public static class KgpS
-    {
-        /// <summary>Convert from pound/hour to kilograms/second</summary>
-        public static float FromLbpH(float poundsPerHour)    { return poundsPerHour      * (1.0f / 7936.64144f); }
-        /// <summary>Convert from kilograms/second to pounds/hour</summary>
-        public static float ToLbpH(float kilogramsPerSecond) { return kilogramsPerSecond * 7936.64144f; }
-    }
-
-    /// <summary>
     /// Power conversions from and to Watts
     /// </summary>
     internal static class W
     {
-        /// <summary>Convert from kiloWatts to Watts</summary>
-        public static float FromKW(float kiloWatts) { return kiloWatts * 1000f; }
         /// <summary>Convert from Watts to kileWatts</summary>
         public static float ToKW(float watts)       { return watts     * (1.0f / 1000f); }
-        /// <summary>Convert from HorsePower to Watts</summary>
-        public static float FromHp(float horsePowers) { return horsePowers * 745.699872f; }
         /// <summary>Convert from Watts to HorsePower</summary>
         public static float ToHp(float watts)         { return watts       * (1.0f / 745.699872f); }
-        /// <summary>Convert from BoilerHorsePower to Watts</summary>
-        public static float FromBhp(float horsePowers) { return horsePowers * 9809.5f; }
         /// <summary>Convert from Watts to BoilerHorsePower</summary>
         public static float ToBhp(float watts) { return watts * (1.0f / 9809.5f); }
-        /// <summary>Convert from British Thermal Unit (BTU) per second to watts</summary>
-        public static float FromBTUpS(float btuPerSecond) { return btuPerSecond * 1055.05585f; }
         /// <summary>Convert from Watts to British Thermal Unit (BTU) per second</summary>
         public static float ToBTUpS(float watts)          { return watts        * (1.0f / 1055.05585f); }
     }
@@ -162,7 +144,7 @@ namespace Orts.Common
     /// <summary>
     /// Pressure conversions from and to kilopascals
     /// </summary>
-    public static class KPa
+    internal static class KPa
     {
         /// <summary>Convert from Pounds per Square Inch to kiloPascal</summary>
         public static float FromPSI(float psi) { return psi * 6.89475729f; }
@@ -186,19 +168,19 @@ namespace Orts.Common
         /// </summary>
         /// <param name="pressure">pressure to convert from</param>
         /// <param name="outputUnit">Unit to convert To</param>
-        public static float FromKPa(float pressure, PressureUnit outputUnit)
+        public static float FromKPa(float pressure, Unit outputUnit)
         {
             switch (outputUnit)
             {
-                case PressureUnit.KPa:
+                case Unit.KPa:
                     return pressure;
-                case PressureUnit.Bar:
+                case Unit.Bar:
                     return ToBar(pressure);
-                case PressureUnit.InHg:
+                case Unit.InHg:
                     return ToInHg(pressure);
-                case PressureUnit.KgfpCm2:
+                case Unit.KgfpCm2:
                     return ToKgfpCm2(pressure);
-                case PressureUnit.PSI:
+                case Unit.PSI:
                     return ToPSI(pressure);
                 default:
                     throw new ArgumentOutOfRangeException("Pressure unit not recognized");
@@ -210,19 +192,19 @@ namespace Orts.Common
         /// </summary>
         /// <param name="pressure">pressure to convert from</param>
         /// <param name="inputUnit">Unit to convert from</param>
-        public static float ToKPa(float pressure, PressureUnit inputUnit)
+        public static float ToKPa(float pressure, Unit inputUnit)
         {
             switch (inputUnit)
             {
-                case PressureUnit.KPa:
+                case Unit.KPa:
                     return pressure;
-                case PressureUnit.Bar:
+                case Unit.Bar:
                     return FromBar(pressure);
-                case PressureUnit.InHg:
+                case Unit.InHg:
                     return FromInHg(pressure);
-                case PressureUnit.KgfpCm2:
+                case Unit.KgfpCm2:
                     return FromKgfpCm2(pressure);
-                case PressureUnit.PSI:
+                case Unit.PSI:
                     return FromPSI(pressure);
                 default:
                     throw new ArgumentOutOfRangeException("Pressure unit not recognized");
@@ -233,12 +215,8 @@ namespace Orts.Common
     /// <summary>
     /// Pressure conversions from and to bar
     /// </summary>
-    public static class Bar
+    internal static class Bar
     {
-        /// <summary>Convert from kiloPascal to Bar</summary>
-        public static float FromKPa(float kiloPascal) { return kiloPascal * (1.0f / 100.0f); }
-        /// <summary>Convert from bar to kiloPascal</summary>
-        public static float ToKPa(float bar) { return bar * 100.0f; }
         /// <summary>Convert from Pounds per Square Inch to Bar</summary>
         public static float FromPSI(float poundsPerSquareInch) { return poundsPerSquareInch * (1.0f / 14.5037738f); }
         /// <summary>Convert from Bar to Pounds per Square Inch</summary>
@@ -247,30 +225,13 @@ namespace Orts.Common
         public static float FromInHg(float inchesMercury) { return inchesMercury * 0.03386389f; }
         /// <summary>Convert from bar to Inches Mercury</summary>
         public static float ToInHg(float bar) { return bar * (1.0f / 0.03386389f); }
-        /// <summary>Convert from mass-force per square metres to bar</summary>
-        public static float FromKgfpCm2(float f) { return f * (1.0f / 1.0197f); }
-        /// <summary>Convert from bar to mass-force per square metres</summary>
-        public static float ToKgfpCm2(float bar) { return bar * 1.0197f; }
-    }
-
-    /// <summary>
-    /// Pressure rate conversions from and to bar/s
-    /// </summary>
-    public static class BarpS
-    {
-        /// <summary>Convert from Pounds per square Inch per second to bar per second</summary>
-        public static float FromPSIpS(float psi) { return psi * (1.0f / 14.5037738f); }
-        /// <summary>Convert from</summary>
-        public static float ToPSIpS(float bar) { return bar * 14.5037738f; }
     }
 
     /// <summary>
     /// Energy density conversions from and to kJ/Kg
     /// </summary>
-    public static class KJpKg
+    internal static class KJpKg
     {
-        /// <summary>Convert from Britisch Thermal Units per Pound to kiloJoule per kilogram</summary>
-        public static float FromBTUpLb(float btuPerPound) { return btuPerPound * 2.326f; }
         /// <summary>Convert from kiloJoule per kilogram to Britisch Thermal Units per Pound</summary>
         public static float ToBTUpLb(float kJPerkg) { return kJPerkg * (1.0f / 2.326f); }
     }
@@ -278,10 +239,8 @@ namespace Orts.Common
     /// <summary>
     /// Energy density conversions from and to kJ/m^3
     /// </summary>
-    public static class KJpM3
+    internal static class KJpM3
     {
-        /// <summary>Convert from Britisch Thermal Units per ft^3 to kiloJoule per m^3</summary>
-        public static float FromBTUpFt3(float btuPerFt3) { return btuPerFt3 * (1f / 37.3f); }
         /// <summary>Convert from kiloJoule per m^3 to Britisch Thermal Units per ft^3</summary>
         public static float ToBTUpFt3(float kJPerM3) { return kJPerM3 * 37.3f; }
     }
@@ -297,18 +256,6 @@ namespace Orts.Common
         public static float ToGUS(float litre) { return litre * (1.0f / 3.78541f); }
     }
 
-
-    /// <summary>
-    /// convert vacuum values to psia for vacuum brakes
-    /// </summary>
-    public static class Vac
-    {
-        readonly static float OneAtmospherePSI = Bar.ToPSI(1);
-        /// <summary>vacuum in inhg to pressure in psia</summary>
-        public static float ToPress(float vac) { return OneAtmospherePSI - Bar.ToPSI(Bar.FromInHg(vac)); }
-        /// <summary>convert pressure in psia to vacuum in inhg</summary>
-        public static float FromPress(float press) { return Bar.ToInHg(Bar.FromPSI(OneAtmospherePSI - press)); }
-    }
 
     /// <summary>
     /// Temperature conversions from and to Celsius
@@ -614,9 +561,9 @@ namespace Orts.Common
         /// <summary>
         /// Formatted localized pressure string
         /// </summary>
-        public static string FormatPressure(float pressure, PressureUnit inputUnit, PressureUnit outputUnit, bool unitDisplayed)
+        public static string FormatPressure(float pressure, Unit inputUnit, Unit outputUnit, bool unitDisplayed)
         {
-            if (inputUnit == PressureUnit.None || outputUnit == PressureUnit.None)
+            if (inputUnit == Unit.None || outputUnit == Unit.None)
                 return string.Empty;
 
             float pressureKPa = KPa.ToKPa(pressure, inputUnit);
@@ -626,27 +573,27 @@ namespace Orts.Common
             string format = "";
             switch (outputUnit)
             {
-                case PressureUnit.KPa:
+                case Unit.KPa:
                     unit = kpa;
                     format = "{0:F0}";
                     break;
 
-                case PressureUnit.Bar:
+                case Unit.Bar:
                     unit = bar;
                     format = "{0:F1}";
                     break;
 
-                case PressureUnit.PSI:
+                case Unit.PSI:
                     unit = psi;
                     format = "{0:F0}";
                     break;
 
-                case PressureUnit.InHg:
+                case Unit.InHg:
                     unit = inhg;
                     format = "{0:F0}";
                     break;
 
-                case PressureUnit.KgfpCm2:
+                case Unit.KgfpCm2:
                     unit = kgfpcm2;
                     format = "{0:F1}";
                     break;

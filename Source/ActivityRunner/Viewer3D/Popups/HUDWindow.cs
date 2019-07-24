@@ -902,7 +902,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
                     Viewer.Catalog.GetString("PlayerLoco"),
                     Viewer.Catalog.GetString("Main reservoir"),
-                    FormatStrings.FormatPressure(Vac.FromPress((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumMainResVacuumPSIAorInHg), PressureUnit.InHg, PressureUnit.InHg, true),
+                    FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumMainResVacuumPSIAorInHg), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
                     Viewer.Catalog.GetString("Exhauster"),
                     (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumExhausterIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
                 }
@@ -917,7 +917,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     Viewer.Catalog.GetString("Small Ejector"),
                     (Viewer.PlayerLocomotive as MSTSLocomotive).SmallSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
                     Viewer.Catalog.GetString("Pressure"),
-                    FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
+                    FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, Pressure.Unit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
                     Viewer.Catalog.GetString("Vacuum Pump"),
                     (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpOperating ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")
                     ));
@@ -942,7 +942,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     Viewer.Catalog.GetString("Small Ejector"),
                     (Viewer.PlayerLocomotive as MSTSLocomotive).SmallSteamEjectorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
                     Viewer.Catalog.GetString("Pressure"),
-                    FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true)));
+                    FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).SteamEjectorSmallPressurePSI, Pressure.Unit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true)));
                 }
 
                 // Lines to show brake system volumes
@@ -961,7 +961,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
                     Viewer.Catalog.GetString("PlayerLoco"),
                     Viewer.Catalog.GetString("Main reservoir"),
-                    FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
+                    FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI, Pressure.Unit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
                     Viewer.Catalog.GetString("Compressor"),
                     (Viewer.PlayerLocomotive as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
             }
@@ -976,7 +976,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         Viewer.Catalog.GetString("Loco"),
                         car.CarID,
                         Viewer.Catalog.GetString("Main reservoir"),
-                        FormatStrings.FormatPressure((car as MSTSLocomotive).MainResPressurePSI, PressureUnit.PSI, (car as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
+                        FormatStrings.FormatPressure((car as MSTSLocomotive).MainResPressurePSI, Pressure.Unit.PSI, (car as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
                         Viewer.Catalog.GetString("Compressor"),
                         (car as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
                 }

@@ -1462,7 +1462,7 @@ namespace Orts.Simulation.RollingStocks
                 // Firing Rate = (Max Evap / BE) x (Steam Btu/lb @ pressure / Fuel Calorific)
 
                 float BoilerEfficiencyBurnRate = (BoilerEfficiencyGrateAreaLBpFT2toX[0.0f] / 2.0f);
-                MaxFiringRateLbpH = (Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS) / BoilerEfficiencyBurnRate) * (SteamHeatPSItoBTUpLB[MaxBoilerPressurePSI] / KJpKg.ToBTUpLb(FuelCalorificKJpKG));
+                MaxFiringRateLbpH = (Frequency.Periodic.ToHours(TheoreticalMaxSteamOutputLBpS) / BoilerEfficiencyBurnRate) * (SteamHeatPSItoBTUpLB[MaxBoilerPressurePSI] / Energy.Density.Mass.ToBTUpLb(FuelCalorificKJpKG));
 
                 // Create a new default burnrate curve locomotive based upon default information
                 float[] TempSteamOutputRate = new float[]
@@ -1801,7 +1801,7 @@ namespace Orts.Simulation.RollingStocks
                 
                 Trace.TraceInformation("**************** Fire ****************");
                 Trace.TraceInformation("Grate - Area {0:N1} sq ft, Limit {1:N1} lb/sq ft", Size.Area.ToFt2(GrateAreaM2), GrateLimitLBpFt2);
-                Trace.TraceInformation("Fuel - Calorific {0} btu/lb, Max Firing Rate {1} lbs/h Max Coal Load {2} lbs", KJpKg.ToBTUpLb(FuelCalorificKJpKG), Mass.Kilogram.ToLb(Frequency.Periodic.ToHours(MaxFiringRateKGpS)), Mass.Kilogram.ToLb(MaxTenderCoalMassKG));
+                Trace.TraceInformation("Fuel - Calorific {0} btu/lb, Max Firing Rate {1} lbs/h Max Coal Load {2} lbs", Energy.Density.Mass.ToBTUpLb(FuelCalorificKJpKG), Mass.Kilogram.ToLb(Frequency.Periodic.ToHours(MaxFiringRateKGpS)), Mass.Kilogram.ToLb(MaxTenderCoalMassKG));
 
                 Trace.TraceInformation("========================================================================================================================================================");
 
@@ -1996,7 +1996,7 @@ namespace Orts.Simulation.RollingStocks
 
             // Safety Valves Steam Effects
 
-            SafetyValvesSteamVelocityMpS = (float)Math.Sqrt(KPa.FromPSI(MaxBoilerPressurePSI) * 1000 * 2 / WaterDensityAt100DegC1BarKGpM3);
+            SafetyValvesSteamVelocityMpS = (float)Math.Sqrt(Pressure.Standard.FromPSI(MaxBoilerPressurePSI) * 1000 * 2 / WaterDensityAt100DegC1BarKGpM3);
             //SafetyValvesSteamVolumeM3pS = SafetyIsOn ? Mass.Kilogram.FromLb(SafetyValveUsageLBpS) * SteamVaporSpecVolumeAt100DegC1BarM3pKG : 0;
             SafetyValvesSteamVolumeM3pS = SafetyIsOn ? 5.0f : 0;
             SafetyValvesParticleDurationS = 3.0f;
@@ -2023,7 +2023,7 @@ namespace Orts.Simulation.RollingStocks
             float SmokeColorFireMass = (FireMassKG / IdealFireMassKG); // As firemass exceeds the ideal mass the fire becomes 'blocked', when firemass is < ideal then fire burns more freely.
             SmokeColorFireMass = (1.0f / SmokeColorFireMass) * (1.0f / SmokeColorFireMass) * (1.0f / SmokeColorFireMass); // Inverse the firemass value, then cube it to make it a bit more significant
 
-            StackSteamVelocityMpS.Update(elapsedClockSeconds, (float)Math.Sqrt(KPa.FromPSI(Pressure_c_AtmPSI) * 1000 * 2 / WaterDensityAt100DegC1BarKGpM3));
+            StackSteamVelocityMpS.Update(elapsedClockSeconds, (float)Math.Sqrt(Pressure.Standard.FromPSI(Pressure_c_AtmPSI) * 1000 * 2 / WaterDensityAt100DegC1BarKGpM3));
             StackSteamVolumeM3pS = Mass.Kilogram.FromLb(CylinderSteamUsageLBpS + BlowerSteamUsageLBpS + RadiationSteamLossLBpS + CompSteamUsageLBpS + GeneratorSteamUsageLBpS) * SteamVaporSpecVolumeAt100DegC1BarM3pKG;
             float SmokeColorUnits = (RadiationSteamLossLBpS + CalculatedCarHeaterSteamUsageLBpS + BlowerBurnEffect + (SmokeColorDamper * SmokeColorFireMass)) / PreviousTotalSteamUsageLBpS - 0.2f;
             SmokeColor.Update(elapsedClockSeconds, MathHelper.Clamp(SmokeColorUnits, 0.25f, 1));
@@ -5652,8 +5652,8 @@ namespace Orts.Simulation.RollingStocks
             else if (IsSelectGeared)
                 status.AppendFormat("{0} = {2} ({1:F2})\n", Simulator.Catalog.GetString("Gear"),
                     SteamGearRatio, SteamGearPosition == 0 ? Simulator.Catalog.GetParticularString("Gear", "N") : SteamGearPosition.ToString());
-            status.AppendFormat("{0}{2} = {1}/{3}{2}\n", Simulator.Catalog.GetString("Steam usage"), FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), MainPressureUnit != PressureUnit.PSI), steamusagesafety, FormatStrings.h);
-            status.AppendFormat("{0}{2} = {1}{2}\n", Simulator.Catalog.GetString("Boiler pressure"), FormatStrings.FormatPressure(BoilerPressurePSI, PressureUnit.PSI, MainPressureUnit, true), boilerPressureSafety);
+            status.AppendFormat("{0}{2} = {1}/{3}{2}\n", Simulator.Catalog.GetString("Steam usage"), FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(PreviousTotalSteamUsageLBpS)), MainPressureUnit != Pressure.Unit.PSI), steamusagesafety, FormatStrings.h);
+            status.AppendFormat("{0}{2} = {1}{2}\n", Simulator.Catalog.GetString("Boiler pressure"), FormatStrings.FormatPressure(BoilerPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true), boilerPressureSafety);
             status.AppendFormat("{0}{2} = {1:F0}% {3}{2}\n", Simulator.Catalog.GetString("Boiler water glass"), 100 * waterGlassPercent, boilerWaterSafety, FiringIsManual ? Simulator.Catalog.GetString("(safe range)") : "");
 
             if (FiringIsManual)
@@ -5846,32 +5846,32 @@ namespace Orts.Simulation.RollingStocks
                 status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\n",
                 Simulator.Catalog.GetString("PressHP:"),
                 Simulator.Catalog.GetString("Chest"),
-                FormatStrings.FormatPressure(LogSteamChestPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                FormatStrings.FormatPressure(LogSteamChestPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("Initial"),
-                FormatStrings.FormatPressure(LogInitialPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                FormatStrings.FormatPressure(LogInitialPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("Cutoff"),
-                FormatStrings.FormatPressure(LogCutoffPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                FormatStrings.FormatPressure(LogCutoffPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("Rel"),
-                FormatStrings.FormatPressure(LogReleasePressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                FormatStrings.FormatPressure(LogReleasePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("Back"),
-                FormatStrings.FormatPressure(LogBackPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                FormatStrings.FormatPressure(LogBackPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("MEP"),
-                FormatStrings.FormatPressure(HPCylinderMEPPSI, PressureUnit.PSI, MainPressureUnit, true)
+                FormatStrings.FormatPressure(HPCylinderMEPPSI, Pressure.Unit.PSI, MainPressureUnit, true)
                 );
 
                 // Display steam indicator pressures in LP cylinder
                 status.AppendFormat("{0}\t\t\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\n",
                 Simulator.Catalog.GetString("PressLP:"),
                 Simulator.Catalog.GetString("Initial"),
-                FormatStrings.FormatPressure(LogLPInitialPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                FormatStrings.FormatPressure(LogLPInitialPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("Cutoff"),
-                FormatStrings.FormatPressure(LogLPCutoffPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                FormatStrings.FormatPressure(LogLPCutoffPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("Rel"),
-                FormatStrings.FormatPressure(LogLPReleasePressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                FormatStrings.FormatPressure(LogLPReleasePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("Back"),
-                FormatStrings.FormatPressure(LogLPBackPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                FormatStrings.FormatPressure(LogLPBackPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("MEP"),
-                FormatStrings.FormatPressure(LPCylinderMEPPSI, PressureUnit.PSI, MainPressureUnit, true)
+                FormatStrings.FormatPressure(LPCylinderMEPPSI, Pressure.Unit.PSI, MainPressureUnit, true)
                 );
 
             }
@@ -5881,17 +5881,17 @@ namespace Orts.Simulation.RollingStocks
                 status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\n",
                 Simulator.Catalog.GetString("Press:"),
                     Simulator.Catalog.GetString("Chest"),
-                    FormatStrings.FormatPressure(LogSteamChestPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                    FormatStrings.FormatPressure(LogSteamChestPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                     Simulator.Catalog.GetString("Initial"),
-                    FormatStrings.FormatPressure(LogInitialPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                    FormatStrings.FormatPressure(LogInitialPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                     Simulator.Catalog.GetString("Cutoff"),
-                    FormatStrings.FormatPressure(LogCutoffPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                    FormatStrings.FormatPressure(LogCutoffPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                     Simulator.Catalog.GetString("Rel"),
-                    FormatStrings.FormatPressure(LogReleasePressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                    FormatStrings.FormatPressure(LogReleasePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                     Simulator.Catalog.GetString("Back"),
-                    FormatStrings.FormatPressure(LogBackPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                    FormatStrings.FormatPressure(LogBackPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                     Simulator.Catalog.GetString("MEP"),
-                    FormatStrings.FormatPressure(MeanEffectivePressurePSI, PressureUnit.PSI, MainPressureUnit, true)
+                    FormatStrings.FormatPressure(MeanEffectivePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true)
                     );
             }
 
@@ -5941,7 +5941,7 @@ namespace Orts.Simulation.RollingStocks
                 status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}/{11}\t{12}\t{13:N0}\n",
                    Simulator.Catalog.GetString("StHeat:"),
                    Simulator.Catalog.GetString("Press"),
-                   FormatStrings.FormatPressure(CurrentSteamHeatPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                   FormatStrings.FormatPressure(CurrentSteamHeatPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                    Simulator.Catalog.GetString("TrTemp"),
                    FormatStrings.FormatTemperature(Train.TrainCurrentCarriageHeatTempC, IsMetric, false),
                    Simulator.Catalog.GetString("StTemp"),
@@ -6232,9 +6232,9 @@ namespace Orts.Simulation.RollingStocks
                 status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\n",
                     Simulator.Catalog.GetString("Start:"),
                     Simulator.Catalog.GetString("CyPressL"),
-                    FormatStrings.FormatPressure(CrankLeftCylinderPressure, PressureUnit.PSI, MainPressureUnit, true),
+                    FormatStrings.FormatPressure(CrankLeftCylinderPressure, Pressure.Unit.PSI, MainPressureUnit, true),
                     Simulator.Catalog.GetString("CyPressR"),
-                    FormatStrings.FormatPressure(CrankRightCylinderPressure, PressureUnit.PSI, MainPressureUnit, true),
+                    FormatStrings.FormatPressure(CrankRightCylinderPressure, Pressure.Unit.PSI, MainPressureUnit, true),
                     Simulator.Catalog.GetString("Tang(c)"),
                     FormatStrings.FormatForce(Dynamics.Force.FromLbf(StartTangentialCrankWheelForceLbf), IsMetric),
                     Simulator.Catalog.GetString("Tang(t)"),
@@ -6246,9 +6246,9 @@ namespace Orts.Simulation.RollingStocks
                 status.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\n",
                   Simulator.Catalog.GetString("Speed:"),
                   Simulator.Catalog.GetString("CyPressL"),
-                  FormatStrings.FormatPressure(CrankLeftCylinderPressure, PressureUnit.PSI, MainPressureUnit, true),
+                  FormatStrings.FormatPressure(CrankLeftCylinderPressure, Pressure.Unit.PSI, MainPressureUnit, true),
                   Simulator.Catalog.GetString("CyPressR"),
-                  FormatStrings.FormatPressure(CrankRightCylinderPressure, PressureUnit.PSI, MainPressureUnit, true),
+                  FormatStrings.FormatPressure(CrankRightCylinderPressure, Pressure.Unit.PSI, MainPressureUnit, true),
                   Simulator.Catalog.GetString("Tang(c)"),
                   FormatStrings.FormatForce(Dynamics.Force.FromLbf(SpeedTotalTangCrankWheelForceLbf), IsMetric),
                   Simulator.Catalog.GetString("Tang(t)"),
@@ -6297,7 +6297,7 @@ namespace Orts.Simulation.RollingStocks
                 FormatStrings.h,
                 Simulator.Catalog.GetString("Rate"),
                 LargeEjectorBrakePipeChargingRatePSIorInHgpS,
-                //                FormatStrings.FormatPressure(BrakePipeChargingRatePSIorInHgpS, PressureUnit.InHg, MainPressureUnit, true),
+                //                FormatStrings.FormatPressure(BrakePipeChargingRatePSIorInHgpS, Pressure.Unit.InHg, MainPressureUnit, true),
                 Simulator.Catalog.GetString("Lg Ej"),
                 LargeSteamEjectorIsOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")
                 );
@@ -6307,12 +6307,12 @@ namespace Orts.Simulation.RollingStocks
                     status.AppendFormat("\t{0}\t{1}\t{2:N2}\t{3}\t{4:N2}/{5}\t{6}\t{7:N2}\t{8}\t{9}",
                     Simulator.Catalog.GetString("Small:"),
                     Simulator.Catalog.GetString("Press"),
-                    FormatStrings.FormatPressure(SteamEjectorSmallPressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                    FormatStrings.FormatPressure(SteamEjectorSmallPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                     Simulator.Catalog.GetString("StCons"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(TempEjectorSmallSteamConsumptionLbpS)), IsMetric),
                     FormatStrings.h,
                     Simulator.Catalog.GetString("Rate"),
-                    // FormatStrings.FormatPressure(SmallEjectorBrakePipeChargingRatePSIorInHgpS, PressureUnit.InHg, MainPressureUnit, true),
+                    // FormatStrings.FormatPressure(SmallEjectorBrakePipeChargingRatePSIorInHgpS, Pressure.Unit.InHg, MainPressureUnit, true),
                     SmallEjectorBrakePipeChargingRatePSIorInHgpS,
                     Simulator.Catalog.GetString("Sm Ej"),
                     SmallSteamEjectorIsOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")

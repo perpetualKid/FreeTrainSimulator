@@ -321,7 +321,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Oil"));
             foreach (var eng in DEList)
-                result.AppendFormat("\t{0}", FormatStrings.FormatPressure(eng.DieselOilPressurePSI, PressureUnit.PSI, Locomotive.MainPressureUnit, true));
+                result.AppendFormat("\t{0}", FormatStrings.FormatPressure(eng.DieselOilPressurePSI, Pressure.Unit.PSI, Locomotive.MainPressureUnit, true));
 
             return result.ToString();
         }

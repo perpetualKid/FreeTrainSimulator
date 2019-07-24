@@ -22,6 +22,7 @@ using ORTS.Scripting.Api;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {
@@ -287,17 +288,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 Script.MainReservoirPressureBar = () =>
                 {
                     if (Locomotive.Train != null)
-                        return Bar.FromPSI(Locomotive.Train.BrakeLine2PressurePSI);
+                        return Pressure.Atmospheric.FromPSI(Locomotive.Train.BrakeLine2PressurePSI);
                     else
                         return float.MaxValue;
                 };
-                Script.MaxPressureBar = () => Bar.FromPSI(MaxPressurePSI);
-                Script.ReleaseRateBarpS = () => BarpS.FromPSIpS(ReleaseRatePSIpS);
-                Script.QuickReleaseRateBarpS = () => BarpS.FromPSIpS(QuickReleaseRatePSIpS);
-                Script.ApplyRateBarpS = () => BarpS.FromPSIpS(ApplyRatePSIpS);
-                Script.EmergencyRateBarpS = () => BarpS.FromPSIpS(EmergencyRatePSIpS);
-                Script.FullServReductionBar = () => Bar.FromPSI(FullServReductionPSI);
-                Script.MinReductionBar = () => Bar.FromPSI(MinReductionPSI);
+                Script.MaxPressureBar = () => Pressure.Atmospheric.FromPSI(MaxPressurePSI);
+                Script.ReleaseRateBarpS = () => Rate.Pressure.FromPSIpS(ReleaseRatePSIpS);
+                Script.QuickReleaseRateBarpS = () => Rate.Pressure.FromPSIpS(QuickReleaseRatePSIpS);
+                Script.ApplyRateBarpS = () => Rate.Pressure.FromPSIpS(ApplyRatePSIpS);
+                Script.EmergencyRateBarpS = () => Rate.Pressure.FromPSIpS(EmergencyRatePSIpS);
+                Script.FullServReductionBar = () => Pressure.Atmospheric.FromPSI(FullServReductionPSI);
+                Script.MinReductionBar = () => Pressure.Atmospheric.FromPSI(MinReductionPSI);
                 Script.CurrentValue = () => CurrentValue;
                 Script.MinimumValue = () => MinimumValue;
                 Script.MaximumValue = () => MaximumValue;
@@ -329,10 +330,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             if (Script != null)
             {
-                // Conversion is needed until the pressures of the brake system are converted to bar.
-                float pressureBar = Bar.FromPSI(pressurePSI);
+                // Conversion is needed until the pressures of the brake system are converted to Pressure.Atmospheric.
+                float pressureBar = Pressure.Atmospheric.FromPSI(pressurePSI);
                 Script.UpdatePressure(ref pressureBar, elapsedClockSeconds, ref epControllerState);
-                pressurePSI = Bar.ToPSI(pressureBar);
+                pressurePSI = Pressure.Atmospheric.ToPSI(pressureBar);
             }
         }
 
@@ -340,10 +341,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             if (Script != null)
             {
-                // Conversion is needed until the pressures of the brake system are converted to bar.
-                float pressureBar = Bar.FromPSI(pressurePSI);
+                // Conversion is needed until the pressures of the brake system are converted to Pressure.Atmospheric.
+                float pressureBar = Pressure.Atmospheric.FromPSI(pressurePSI);
                 Script.UpdateEngineBrakePressure(ref pressureBar, elapsedClockSeconds);
-                pressurePSI = Bar.ToPSI(pressureBar);
+                pressurePSI = Pressure.Atmospheric.ToPSI(pressureBar);
             }
         }
 

@@ -364,4 +364,203 @@ namespace Orts.Common.Calc
 
     }
 
+    /// <summary>
+    /// Rate changes conversions
+    /// </summary>
+    public static class Rate
+    {
+        /// <summary>
+        /// Flow rate conversions
+        /// </summary>
+        public static class Flow
+        {
+            /// <summary>
+            /// Mass rate conversions from and to Kg/s
+            /// </summary>
+            public static class Mass
+            {
+                /// <summary>Convert from pound/hour to kilograms/second</summary>
+                public static float FromLbpH(float poundsPerHour) { return poundsPerHour * (1.0f / 7936.64144f); }
+                /// <summary>Convert from kilograms/second to pounds/hour</summary>
+                public static float ToLbpH(float kilogramsPerSecond) { return kilogramsPerSecond * 7936.64144f; }
+            }
+        }
+
+        /// <summary>
+        /// Pressure rate conversions from and to bar/s
+        /// </summary>
+        public static class Pressure
+        {
+            /// <summary>Convert from Pounds per square Inch per second to bar per second</summary>
+            public static float FromPSIpS(float psi) { return psi * (1.0f / 14.5037738f); }
+            /// <summary>Convert from</summary>
+            public static float ToPSIpS(float bar) { return bar * 14.5037738f; }
+        }
+    }
+
+    /// <summary>
+    /// Energy conversions
+    /// </summary>
+    public static class Energy
+    {
+        /// <summary>
+        /// Energy density conversions
+        /// </summary>
+        public static class Density
+        {
+            /// <summary>
+            /// Energy density conversions from and to kJ/Kg
+            /// </summary>
+            public static class Mass
+            {
+                /// <summary>Convert from Britisch Thermal Units per Pound to kiloJoule per kilogram</summary>
+                public static float FromBTUpLb(float btuPerPound) { return btuPerPound * 2.326f; }
+                /// <summary>Convert from kiloJoule per kilogram to Britisch Thermal Units per Pound</summary>
+                public static float ToBTUpLb(float kJPerkg) { return kJPerkg * (1.0f / 2.326f); }
+            }
+
+            /// <summary>
+            /// Energy density conversions from and to kJ/m^3
+            /// </summary>
+            public static class Volume
+            {
+                /// <summary>Convert from Britisch Thermal Units per ft^3 to kiloJoule per m^3</summary>
+                public static float FromBTUpFt3(float btuPerFt3) { return btuPerFt3 * (1f / 37.3f); }
+                /// <summary>Convert from kiloJoule per m^3 to Britisch Thermal Units per ft^3</summary>
+                public static float ToBTUpFt3(float kJPerM3) { return kJPerM3 * 37.3f; }
+            }
+
+        }
+    }
+
+    /// <summary>
+    /// Pressure conversion
+    /// </summary>
+    public static class Pressure
+    {
+        /// <summary>
+        /// Various units of pressure that are used
+        /// </summary>
+        public enum Unit
+        {
+            /// <summary>non-defined unit</summary>
+            None,
+            /// <summary>kiloPascal</summary>
+            KPa,
+            /// <summary>bar</summary>
+            Bar,
+            /// <summary>Pounds Per Square Inch</summary>
+            PSI,
+            /// <summary>Inches Mercury</summary>
+            InHg,
+            /// <summary>Mass-force per square centimetres</summary>
+            KgfpCm2
+        }
+
+        /// <summary>
+        /// convert vacuum values to psia for vacuum brakes
+        /// </summary>
+        public static class Vacuum
+        {
+            readonly static float OneAtmospherePSI = Bar.ToPSI(1);
+            /// <summary>vacuum in inhg to pressure in psia</summary>
+            public static float ToPressure(float vacuum) { return OneAtmospherePSI - Bar.ToPSI(Bar.FromInHg(vacuum)); }
+            /// <summary>convert pressure in psia to vacuum in inhg</summary>
+            public static float FromPressure(float pressure) { return Bar.ToInHg(Bar.FromPSI(OneAtmospherePSI - pressure)); }
+        }
+
+        /// <summary>
+        /// Pressure conversions from and to bar
+        /// </summary>
+        public static class Atmospheric
+        {
+            /// <summary>Convert from kiloPascal to Bar</summary>
+            public static float FromKPa(float kiloPascal) { return kiloPascal * (1.0f / 100.0f); }
+            /// <summary>Convert from bar to kiloPascal</summary>
+            public static float ToKPa(float bar) { return bar * 100.0f; }
+            /// <summary>Convert from Pounds per Square Inch to Bar</summary>
+            public static float FromPSI(float poundsPerSquareInch) { return poundsPerSquareInch * (1.0f / 14.5037738f); }
+            /// <summary>Convert from Bar to Pounds per Square Inch</summary>
+            public static float ToPSI(float bar) { return bar * 14.5037738f; }
+            /// <summary>Convert from Inches Mercury to bar</summary>
+            public static float FromInHg(float inchesMercury) { return inchesMercury * 0.03386389f; }
+            /// <summary>Convert from bar to Inches Mercury</summary>
+            public static float ToInHg(float bar) { return bar * (1.0f / 0.03386389f); }
+            /// <summary>Convert from mass-force per square metres to bar</summary>
+            public static float FromKgfpCm2(float f) { return f * (1.0f / 1.0197f); }
+            /// <summary>Convert from bar to mass-force per square metres</summary>
+            public static float ToKgfpCm2(float bar) { return bar * 1.0197f; }
+        }
+
+        /// <summary>
+        /// Pressure conversions from and to kilopascals
+        /// </summary>
+        public static class Standard
+        {
+            /// <summary>Convert from Pounds per Square Inch to kiloPascal</summary>
+            public static float FromPSI(float psi) { return psi * 6.89475729f; }
+            /// <summary>Convert from kiloPascal to Pounds per Square Inch</summary>
+            public static float ToPSI(float kiloPascal) { return kiloPascal * (1.0f / 6.89475729f); }
+            /// <summary>Convert from Inches Mercury to kiloPascal</summary>
+            public static float FromInHg(float inchesMercury) { return inchesMercury * 3.386389f; }
+            /// <summary>Convert from kiloPascal to Inches Mercury</summary>
+            public static float ToInHg(float kiloPascal) { return kiloPascal * (1.0f / 3.386389f); }
+            /// <summary>Convert from Bar to kiloPascal</summary>
+            public static float FromBar(float bar) { return bar * 100.0f; }
+            /// <summary>Convert from kiloPascal to Bar</summary>
+            public static float ToBar(float kiloPascal) { return kiloPascal * (1.0f / 100.0f); }
+            /// <summary>Convert from mass-force per square metres to kiloPascal</summary>
+            public static float FromKgfpCm2(float f) { return f * 98.068059f; }
+            /// <summary>Convert from kiloPascal to mass-force per square centimetres</summary>
+            public static float ToKgfpCm2(float kiloPascal) { return kiloPascal * (1.0f / 98.068059f); }
+
+            /// <summary>
+            /// Convert from KPa to any pressure unit
+            /// </summary>
+            /// <param name="pressure">pressure to convert from</param>
+            /// <param name="outputUnit">Unit to convert To</param>
+            public static float FromKPa(float pressure, Unit outputUnit)
+            {
+                switch (outputUnit)
+                {
+                    case Unit.KPa:
+                        return pressure;
+                    case Unit.Bar:
+                        return ToBar(pressure);
+                    case Unit.InHg:
+                        return ToInHg(pressure);
+                    case Unit.KgfpCm2:
+                        return ToKgfpCm2(pressure);
+                    case Unit.PSI:
+                        return ToPSI(pressure);
+                    default:
+                        throw new ArgumentOutOfRangeException("Pressure unit not recognized");
+                }
+            }
+
+            /// <summary>
+            /// Convert from any pressure unit to KPa
+            /// </summary>
+            /// <param name="pressure">pressure to convert from</param>
+            /// <param name="inputUnit">Unit to convert from</param>
+            public static float ToKPa(float pressure, Unit inputUnit)
+            {
+                switch (inputUnit)
+                {
+                    case Unit.KPa:
+                        return pressure;
+                    case Unit.Bar:
+                        return FromBar(pressure);
+                    case Unit.InHg:
+                        return FromInHg(pressure);
+                    case Unit.KgfpCm2:
+                        return FromKgfpCm2(pressure);
+                    case Unit.PSI:
+                        return FromPSI(pressure);
+                    default:
+                        throw new ArgumentOutOfRangeException("Pressure unit not recognized");
+                }
+            }
+        }
+    }
 }

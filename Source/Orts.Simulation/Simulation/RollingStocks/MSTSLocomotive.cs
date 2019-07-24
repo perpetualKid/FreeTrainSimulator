@@ -216,7 +216,7 @@ namespace Orts.Simulation.RollingStocks
         public float TrackSanderSandConsumptionFt3pH = 1.01f;
 
         // Vacuum Braking parameters
-        readonly static float OneAtmospherePSI = Bar.ToPSI(1);
+        readonly static float OneAtmospherePSI = Pressure.Atmospheric.ToPSI(1);
         public bool SmallSteamEjectorIsOn = false;
         public bool LargeSteamEjectorIsOn = false;
         public bool VacuumPumpOperating = false;
@@ -241,26 +241,26 @@ namespace Orts.Simulation.RollingStocks
         public bool EngineBrakeFitted = false;
         public bool VacuumExhausterIsOn = false;
         public float VacuumBrakesMainResVolumeM3 = Size.Volume.FromFt3(200.0f); // Main vacuum reservoir volume
-        public float VacuumBrakesMainResMaxVacuumPSIAorInHg = Vac.ToPress(23);
-        public float VacuumBrakesExhausterRestartVacuumPSIAorInHg = Vac.ToPress(21);
-        public float VacuumBrakesMainResChargingRatePSIAorInHgpS = Bar.ToPSI(Bar.FromInHg(0.2f));
-        public float VacuumMainResVacuumPSIAorInHg = Vac.ToPress(23); // Vacuum currently in Main Reservoir
+        public float VacuumBrakesMainResMaxVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(23);
+        public float VacuumBrakesExhausterRestartVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(21);
+        public float VacuumBrakesMainResChargingRatePSIAorInHgpS = Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(0.2f));
+        public float VacuumMainResVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(23); // Vacuum currently in Main Reservoir
 
 
         // Set values for display in HUD
         public float WagonCoefficientFrictionHUD;
         public float LocomotiveCoefficientFrictionHUD;
 
-        public PressureUnit MainPressureUnit = PressureUnit.None;
-        public Dictionary<BrakeSystemComponent, PressureUnit> BrakeSystemPressureUnits = new Dictionary<BrakeSystemComponent, PressureUnit>
+        public Pressure.Unit MainPressureUnit = Pressure.Unit.None;
+        public Dictionary<BrakeSystemComponent, Pressure.Unit> BrakeSystemPressureUnits = new Dictionary<BrakeSystemComponent, Pressure.Unit>
         {
-            { BrakeSystemComponent.MainReservoir, PressureUnit.None },
-            { BrakeSystemComponent.EqualizingReservoir, PressureUnit.None },
-            { BrakeSystemComponent.AuxiliaryReservoir, PressureUnit.None },
-            { BrakeSystemComponent.EmergencyReservoir, PressureUnit.None },
-            { BrakeSystemComponent.MainPipe, PressureUnit.None },
-            { BrakeSystemComponent.BrakePipe, PressureUnit.None },
-            { BrakeSystemComponent.BrakeCylinder, PressureUnit.None }
+            { BrakeSystemComponent.MainReservoir, Pressure.Unit.None },
+            { BrakeSystemComponent.EqualizingReservoir, Pressure.Unit.None },
+            { BrakeSystemComponent.AuxiliaryReservoir, Pressure.Unit.None },
+            { BrakeSystemComponent.EmergencyReservoir, Pressure.Unit.None },
+            { BrakeSystemComponent.MainPipe, Pressure.Unit.None },
+            { BrakeSystemComponent.BrakePipe, Pressure.Unit.None },
+            { BrakeSystemComponent.BrakeCylinder, Pressure.Unit.None }
         };
 
         protected float OdometerResetPositionM = 0;
@@ -515,13 +515,13 @@ namespace Orts.Simulation.RollingStocks
                             { CABViewControlTypes.BRAKE_PIPE, BrakeSystemComponent.BrakePipe }
                         };
 
-                        Dictionary<CABViewControlUnits, PressureUnit> pressureUnits = new Dictionary<CABViewControlUnits, PressureUnit>
+                        Dictionary<CABViewControlUnits, Pressure.Unit> pressureUnits = new Dictionary<CABViewControlUnits, Pressure.Unit>
                         {
-                            { CABViewControlUnits.KILOPASCALS, PressureUnit.KPa },
-                            { CABViewControlUnits.BAR, PressureUnit.Bar },
-                            { CABViewControlUnits.PSI, PressureUnit.PSI },
-                            { CABViewControlUnits.INCHES_OF_MERCURY, PressureUnit.InHg },
-                            { CABViewControlUnits.KGS_PER_SQUARE_CM, PressureUnit.KgfpCm2 }
+                            { CABViewControlUnits.KILOPASCALS, Pressure.Unit.KPa },
+                            { CABViewControlUnits.BAR, Pressure.Unit.Bar },
+                            { CABViewControlUnits.PSI, Pressure.Unit.PSI },
+                            { CABViewControlUnits.INCHES_OF_MERCURY, Pressure.Unit.InHg },
+                            { CABViewControlUnits.KGS_PER_SQUARE_CM, Pressure.Unit.KgfpCm2 }
                        };
 
                         CabViewControls cvcList = CabViewList[0].CVFFile.CabViewControls;
@@ -530,7 +530,7 @@ namespace Orts.Simulation.RollingStocks
                             if (brakeSystemComponents.ContainsKey(cvc.ControlType) && pressureUnits.ContainsKey(cvc.Units))
                             {
                                 BrakeSystemComponent component = brakeSystemComponents[cvc.ControlType];
-                                PressureUnit unit = pressureUnits[cvc.Units];
+                                Pressure.Unit unit = pressureUnits[cvc.Units];
 
                                 BrakeSystemPressureUnits[component] = unit;
                             }
@@ -544,9 +544,9 @@ namespace Orts.Simulation.RollingStocks
 
                     foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
                     {
-                        if (BrakeSystemPressureUnits[component] == PressureUnit.None)
+                        if (BrakeSystemPressureUnits[component] == Pressure.Unit.None)
                         {
-                            BrakeSystemPressureUnits[component] = (MilepostUnitsMetric ? PressureUnit.Bar : PressureUnit.PSI);
+                            BrakeSystemPressureUnits[component] = (MilepostUnitsMetric ? Pressure.Unit.Bar : Pressure.Unit.PSI);
                         }
                     }
                     break;
@@ -554,28 +554,28 @@ namespace Orts.Simulation.RollingStocks
                 case "bar":
                     foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
                     {
-                        BrakeSystemPressureUnits[component] = PressureUnit.Bar;
+                        BrakeSystemPressureUnits[component] = Pressure.Unit.Bar;
                     }
                     break;
 
                 case "PSI":
                     foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
                     {
-                        BrakeSystemPressureUnits[component] = PressureUnit.PSI;
+                        BrakeSystemPressureUnits[component] = Pressure.Unit.PSI;
                     }
                     break;
 
                 case "inHg":
                     foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
                     {
-                        BrakeSystemPressureUnits[component] = PressureUnit.InHg;
+                        BrakeSystemPressureUnits[component] = Pressure.Unit.InHg;
                     }
                     break;
 
                 case "kgf/cm^2":
                     foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
                     {
-                        BrakeSystemPressureUnits[component] = PressureUnit.KgfpCm2;
+                        BrakeSystemPressureUnits[component] = Pressure.Unit.KgfpCm2;
                     }
                     break;
             }
@@ -1213,7 +1213,7 @@ namespace Orts.Simulation.RollingStocks
             // This is only done for vacuum brakes as the UoM can be confusing - it defaults to psi, and if no units are entered then a InHG value can be incorrectly converted.
             if ((BrakeSystem is VacuumSinglePipe) && TrainBrakeController.MaxPressurePSI > 12.5)
             {
-                Trace.TraceInformation("TrainBrakeController.MaxPressurePSI being read as {0} Inhg, - defaulted to value of 21 InHg", Bar.ToInHg(Bar.FromPSI(TrainBrakeController.MaxPressurePSI)));
+                Trace.TraceInformation("TrainBrakeController.MaxPressurePSI being read as {0} Inhg, - defaulted to value of 21 InHg", Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(TrainBrakeController.MaxPressurePSI)));
             }
 
             // Initialise Brake Time Factor
@@ -1300,7 +1300,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 if (MainResChargingRatePSIpS <= 0)
                 {
-                    MainResChargingRatePSIpS = Math.Max(0.5f, (CompressorChargingRateM3pS * Bar.ToPSI(1)) / MainResVolumeM3);
+                    MainResChargingRatePSIpS = Math.Max(0.5f, (CompressorChargingRateM3pS * Pressure.Atmospheric.ToPSI(1)) / MainResVolumeM3);
                 }
             }
             else if (MainResChargingRatePSIpS <= 0) MainResChargingRatePSIpS = 0.4f;
@@ -3142,11 +3142,11 @@ namespace Orts.Simulation.RollingStocks
             {
                 if ((BrakeSystem is VacuumSinglePipe))
                 {
-                    return string.Format("{0} BC {1}", EngineBrakeController.GetStatus(), FormatStrings.FormatPressure(Vac.FromPress(Train.HUDLocomotiveBrakeCylinderPSI), PressureUnit.InHg, PressureUnit.InHg, true));
+                    return string.Format("{0} BC {1}", EngineBrakeController.GetStatus(), FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(Train.HUDLocomotiveBrakeCylinderPSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true));
                 }
                 else
                 {
-                    return string.Format("{0} BC {1} {2}", EngineBrakeController.GetStatus(), FormatStrings.FormatPressure(Train.HUDLocomotiveBrakeCylinderPSI, PressureUnit.PSI, MainPressureUnit, true), BailOff ? " BailOff" : "");
+                    return string.Format("{0} BC {1} {2}", EngineBrakeController.GetStatus(), FormatStrings.FormatPressure(Train.HUDLocomotiveBrakeCylinderPSI, Pressure.Unit.PSI, MainPressureUnit, true), BailOff ? " BailOff" : "");
                 }
                     
                 // Fraction not found so display BC                
@@ -4237,13 +4237,13 @@ namespace Orts.Simulation.RollingStocks
         protected static float ConvertFromPSI(CabViewControl cvc, float data)
         {
             if (cvc.Units == CABViewControlUnits.BAR)
-                data = Bar.FromPSI(data);
+                data = Pressure.Atmospheric.FromPSI(data);
             else if (cvc.Units == CABViewControlUnits.KILOPASCALS)
-                data = KPa.FromPSI(data);
+                data = Pressure.Standard.FromPSI(data);
             else if (cvc.Units == CABViewControlUnits.KGS_PER_SQUARE_CM)
                 data *= 70.307e-3f;
             else if (cvc.Units == CABViewControlUnits.INCHES_OF_MERCURY)
-                data = Vac.FromPress(data);
+                data = Pressure.Vacuum.FromPressure(data);
             return data;
         }
 

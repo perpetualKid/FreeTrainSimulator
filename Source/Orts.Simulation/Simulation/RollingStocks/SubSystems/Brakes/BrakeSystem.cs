@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using Orts.Common;
+using Orts.Common.Calc;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -64,9 +65,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 
         public abstract void AISetPercent(float percent);
 
-        public abstract string GetStatus(Dictionary<BrakeSystemComponent, PressureUnit> units);
-        public abstract string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, PressureUnit> units);
-        public abstract string[] GetDebugStatus(Dictionary<BrakeSystemComponent, PressureUnit> units);
+        public abstract string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units);
+        public abstract string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units);
+        public abstract string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units);
         public abstract float GetCylPressurePSI();
         public abstract float GetCylVolumeM3();
         public abstract float GetVacResPressurePSI();

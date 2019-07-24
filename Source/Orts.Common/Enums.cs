@@ -132,24 +132,4 @@ namespace Orts.Common
         Stop,
         Permission,
     }
-
-    /// <summary>
-    /// Enumerate the various units of pressure that are used
-    /// </summary>
-    public enum PressureUnit
-    {
-        /// <summary>non-defined unit</summary>
-        None,
-        /// <summary>kiloPascal</summary>
-        KPa,
-        /// <summary>bar</summary>
-        Bar,
-        /// <summary>Pounds Per Square Inch</summary>
-        PSI,
-        /// <summary>Inches Mercury</summary>
-        InHg,
-        /// <summary>Mass-force per square centimetres</summary>
-        KgfpCm2
-    }
-
 }

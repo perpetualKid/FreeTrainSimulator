@@ -27,7 +27,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
     public class SingleTransferPipe : AirSinglePipe
     {
 
-        readonly static float OneAtmospherePSI = Bar.ToPSI(1);
+        readonly static float OneAtmospherePSI = Pressure.Atmospheric.ToPSI(1);
 
         public SingleTransferPipe(TrainCar car)
             : base(car)
@@ -68,25 +68,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             BrakePipeVolumeM3 = thiscopy.BrakePipeVolumeM3;
         }
 
-        public override string GetStatus(Dictionary<BrakeSystemComponent, PressureUnit> units)
+        public override string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
             // display differently depending upon whether vacuum or air braked system
             if (Car.CarBrakeSystemType == "vacuum_piped")
             {
-                return string.Format(" BP {0}", FormatStrings.FormatPressure(Vac.FromPress(BrakeLine1PressurePSI), PressureUnit.InHg, PressureUnit.InHg, false));
+                return string.Format(" BP {0}", FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false));
             }
             else  // air braked by default
             {
-                return string.Format("BP {0}", FormatStrings.FormatPressure(BrakeLine1PressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.BrakePipe], true));
+                return string.Format("BP {0}", FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true));
             }
         }
 
-        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, PressureUnit> units)
+        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
             // display differently depending upon whether vacuum or air braked system
             if (Car.CarBrakeSystemType == "vacuum_piped")
             {
-                string s = string.Format(" V {0}", FormatStrings.FormatPressure(Car.Train.EqualReservoirPressurePSIorInHg, PressureUnit.InHg, PressureUnit.InHg, true));
+                string s = string.Format(" V {0}", FormatStrings.FormatPressure(Car.Train.EqualReservoirPressurePSIorInHg, Pressure.Unit.InHg, Pressure.Unit.InHg, true));
                 if (lastCarBrakeSystem != null && lastCarBrakeSystem != this)
                     s += " EOT " + lastCarBrakeSystem.GetStatus(units);
                 if (HandbrakePercent > 0)
@@ -95,7 +95,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
             else // air braked by default
             {
-                var s = string.Format("BP {0}", FormatStrings.FormatPressure(BrakeLine1PressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.BrakePipe], false));
+                var s = string.Format("BP {0}", FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], false));
                 if (lastCarBrakeSystem != null && lastCarBrakeSystem != this)
                     s += " EOT " + lastCarBrakeSystem.GetStatus(units);
                 if (HandbrakePercent > 0)
@@ -106,7 +106,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         }
 
         // This overides the information for each individual wagon in the extended HUD  
-       public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, PressureUnit> units)
+       public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
             // display differently depending upon whether vacuum or air braked system
             if (Car.CarBrakeSystemType == "vacuum_piped")
@@ -115,7 +115,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 return new string[] {
                 DebugType,
                 string.Empty,
-                FormatStrings.FormatPressure(Vac.FromPress(BrakeLine1PressurePSI), PressureUnit.InHg, PressureUnit.InHg, true),
+                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
                 string.Empty,
                 string.Empty, // Spacer because the state above needs 2 columns.
                 HandbrakePercent > 0 ? string.Format("{0:F0}%", HandbrakePercent) : string.Empty,
@@ -129,7 +129,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return new string[] {
                 DebugType,
                 string.Empty,
-                FormatStrings.FormatPressure(BrakeLine1PressurePSI, PressureUnit.PSI, units[BrakeSystemComponent.BrakePipe], true),
+                FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true),
                 string.Empty,
                 string.Empty,
                 string.Empty,
