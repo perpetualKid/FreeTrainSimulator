@@ -1060,42 +1060,11 @@ namespace Orts.Formats.OR
             }
         }
 
-        public MstsBlockState blockState
-        {
-            get
-            {
-                MstsBlockState lstate = MstsBlockState.JN_OBSTRUCTED;
-                switch (internalBlockState)
-                {
-                    case InternalBlockstate.Reserved:
-                    case InternalBlockstate.Reservable:
-                        lstate = MstsBlockState.CLEAR;
-                        break;
-                    case InternalBlockstate.OccupiedSameDirection:
-                        lstate = MstsBlockState.OCCUPIED;
-                        break;
-                    default:
-                        lstate = MstsBlockState.JN_OBSTRUCTED;
-                        break;
-                }
-
-                return (lstate);
-            }
-        }
-
         public int trItem
         {
             get
             {
                 return trackNodes[trackNode].TrVectorNode.TrItemRefs[trRefIndex];
-            }
-        }
-
-        public int revDir                //  Needed because signal faces train!
-        {
-            get
-            {
-                return direction == 0 ? 1 : 0;
             }
         }
 
@@ -1503,34 +1472,6 @@ namespace Orts.Formats.OR
 
         //================================================================================================//
         //
-        // route_set : check if required route is set
-        //
-
-        public bool route_set(int req_mainnode, uint req_jnnode)
-        {
-            return false;
-        }
-
-        public bool isSignalHead(SignalItem signalItem)
-        {
-            // Tritem for this signal
-            SignalItem thisSignalItem = (SignalItem)trItems[this.trItem];
-            // Same Tile
-            if (signalItem.TileX == thisSignalItem.TileX && signalItem.TileZ == thisSignalItem.TileZ)
-            {
-                // Same position
-                if ((Math.Abs(signalItem.X - thisSignalItem.X) < 0.01) &&
-                    (Math.Abs(signalItem.Y - thisSignalItem.Y) < 0.01) &&
-                    (Math.Abs(signalItem.Z - thisSignalItem.Z) < 0.01))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }//isSignalHead
-
-        //================================================================================================//
-        //
         // AddHead : Adds a head to this signal.
         //
 
@@ -1583,53 +1524,6 @@ namespace Orts.Formats.OR
             }
         }//SetSignalType
 
-        //================================================================================================//
-        //
-        // TranslateTMAspect : Gets the display aspect for the track monitor.
-        //
-
-        public TrackMonitorSignalAspect TranslateTMAspect(MstsSignalAspect SigState)
-        {
-            switch (SigState)
-            {
-                case MstsSignalAspect.STOP:
-                    if (hasPermission == Permission.Granted)
-                        return TrackMonitorSignalAspect.Permission;
-                    else
-                        return TrackMonitorSignalAspect.Stop;
-                case MstsSignalAspect.STOP_AND_PROCEED:
-                    return TrackMonitorSignalAspect.StopAndProceed;
-                case MstsSignalAspect.RESTRICTING:
-                    return TrackMonitorSignalAspect.Restricted;
-                case MstsSignalAspect.APPROACH_1:
-                    return TrackMonitorSignalAspect.Approach_1;
-                case MstsSignalAspect.APPROACH_2:
-                    return TrackMonitorSignalAspect.Approach_2;
-                case MstsSignalAspect.APPROACH_3:
-                    return TrackMonitorSignalAspect.Approach_3;
-                case MstsSignalAspect.CLEAR_1:
-                    return TrackMonitorSignalAspect.Clear_1;
-                case MstsSignalAspect.CLEAR_2:
-                    return TrackMonitorSignalAspect.Clear_2;
-                default:
-                    return TrackMonitorSignalAspect.None;
-            }
-        } // GetMonitorAspect
-
-        //================================================================================================//
-        //
-        // Reset HOLD state for dispatcher control
-        //
-        // Parameter : none
-        //
-        // Returned : void
-        //
-
-        public void clearHoldSignalDispatcher()
-        {
-            holdState = HoldState.None;
-        }
-
     }  // AESignalObject
 
 
@@ -1661,17 +1555,6 @@ namespace Orts.Formats.OR
                     return (MstsSignalFunction)signalType.FnType;
                 else
                     return MstsSignalFunction.UNKNOWN;
-            }
-        }
-
-        public String SignalTypeName
-        {
-            get
-            {
-                if (signalType != null)
-                    return signalType.Name;
-                else
-                    return "";
             }
         }
 

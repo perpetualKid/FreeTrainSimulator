@@ -39,9 +39,6 @@ namespace Orts.Simulation.AIs
     {
         public TrackDB TrackDB;
         public TrackSectionsFile TSectionDat;
-#if ACTIVITY_EDITOR
-        public ORRouteConfig orRouteConfig { get; protected set; }
-#endif
         public AIPathNode FirstNode;    // path starting node
         //public AIPathNode LastVisitedNode; not used anymore
         public List<AIPathNode> Nodes = new List<AIPathNode>();
@@ -52,19 +49,12 @@ namespace Orts.Simulation.AIs
         /// First creates all the nodes and then links them together into a main list
         /// with optional parallel siding list.
         /// </summary>
-#if ACTIVITY_EDITOR
-        public AIPath(TrackDatabaseFile TDB, TrackSectionsFile tsectiondat, string filePath, bool isTimetableMode, ORRouteConfig orRouteConf)
-#else
-        public AIPath(TDBFile TDB, TSectionDatFile tsectiondat, string filePath)
-#endif
+        public AIPath(TrackDatabaseFile TDB, TrackSectionsFile tsectiondat, string filePath, bool isTimetableMode)
         {
             PathFile patFile = new PathFile(filePath);
             pathName = patFile.Name;
             TrackDB = TDB.TrackDB;
             TSectionDat = tsectiondat;
-#if ACTIVITY_EDITOR
-            orRouteConfig = orRouteConf;
-#endif
             bool fatalerror = false;
             if (patFile.TrPathNodes.Count <= 0)
             {

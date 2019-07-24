@@ -73,7 +73,6 @@
     <Compile Include="ElapsedTime.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Filter.cs" />
-    <Compile Include="FxCopAttributes.cs" />
     <Compile Include="Input\RailDriverBase.cs" />
     <Compile Include="Integrator.cs" />
     <Compile Include="Msts\MstsPath.cs" />

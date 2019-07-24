@@ -34,22 +34,11 @@ namespace Orts.Formats.OR
         public double angleTot { get; protected set; }
         public double startAngle { get; protected set; }
 
-        public AESegment()
-        {
-        }
-
         public AESegment(PointF start, PointF end)
         {
             startPoint = start;
             endPoint = end;
             step = 0;
-            lengthSegment = 0;
-        }
-
-        public AESegment(MSTSCoord start, MSTSCoord end)
-        {
-            startPoint = start.ConvertToPointF();
-            endPoint = end.ConvertToPointF();
             lengthSegment = 0;
         }
 
@@ -88,70 +77,6 @@ namespace Orts.Formats.OR
                 startAngle = track.associateSegment.startAngle;
                 lengthSegment = 0;
             }
-        }
-
-        public AESegment(TrVectorSection item1, TrVectorSection item2)
-        {
-            MSTSCoord A = new MSTSCoord(item1);
-            MSTSCoord B = new MSTSCoord(item2);
-            startPoint = A.ConvertToPointF();
-            endPoint = B.ConvertToPointF();
-        }
-
-        public Vector2 getStartPoint()
-        {
-            MSTSCoord info = new MSTSCoord(startPoint);
-            return info.ConvertVector2();
-        }
-
-        public Vector2 getEndPoint()
-        {
-            MSTSCoord info = new MSTSCoord(endPoint);
-            return info.ConvertVector2();
-        }
-
-        public void update(bool isCurv, AESectionCurve curve)
-        {
-            if (isCurv)
-            {
-                radius = curve.Radius;
-                center = curve.Centre.ConvertToPointF();
-                step = curve.step;
-                angleTot = curve.angleTot;
-                startAngle = curve.startAngle;
-                isCurved = isCurv;
-                lengthSegment = curve != null ? curve.Radius * Math.Abs(MathHelper.ToRadians(curve.Angle)) : 0;
-
-            }
-        }
-
-        public bool PointOnSegment(PointF toCheck)
-        {
-            PointF closest;
-            double dist;
-            if (!isCurved)
-            {
-                dist = DrawUtility.FindDistanceToSegment(toCheck, this, out closest);
-            }
-            else
-            {
-                dist = DrawUtility.FindDistanceToCurve(toCheck, this, out closest);
-            }
-            if (Math.Round(dist, 2) != 0.0)
-                return false;
-            return true;
-        }
-
-        public MSTSCoord getStart()
-        {
-            MSTSCoord point = new MSTSCoord(startPoint);
-            return point;
-        }
-
-        public MSTSCoord getEnd()
-        {
-            MSTSCoord point = new MSTSCoord(startPoint);
-            return point;
         }
     }
 }

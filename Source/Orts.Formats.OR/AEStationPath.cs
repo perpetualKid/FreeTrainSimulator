@@ -87,13 +87,6 @@ namespace Orts.Formats.OR
             parentFunct = f;
         }
 
-        public void Clear()
-        {
-            // DefinedPath.Clear(); //  Do not clear this one
-            StepInPaths.Clear();
-            UndefinedPath.Clear();
-        }
-
         public void Add(string inLabel, List<StationPath> paths)
         {
             if (paths == null)
@@ -106,24 +99,6 @@ namespace Orts.Formats.OR
                 else
                     UndefinedPath.Add(inLabel).Add(outLabel).Add(path);
             }
-        }
-
-        public void Modify(string inLabel, StationPath path)
-        {
-            try
-            {
-                if (path == null)
-                    return;
-                string outLabel = path.outLabel;
-            }
-            catch
-            {
-            }
-        }
-
-        public void Reload()
-        {
-            parentFunct();
         }
     }
 
@@ -161,7 +136,6 @@ namespace Orts.Formats.OR
 
         public List<StationPath> explore(AETraveller myTravel, List<TrackSegment> listConnector, MSTSItems aeItems, StationItem parent)
         {
-            List<AEJunctionItem> insideJunction = new List<AEJunctionItem>();
             Stopwatch stopWatch = new Stopwatch();
             TimeSpan ts;
             string elapsedTime;
@@ -189,11 +163,6 @@ namespace Orts.Formats.OR
 
                 if (node2.TrJunctionNode != null)
                 {
-                    AEJunctionItem junction = (AEJunctionItem)paths[pathChecked].ComponentItem[paths[pathChecked].ComponentItem.Count-1];
-                    if (!insideJunction.Contains(junction))
-                    {
-                        insideJunction.Add(junction);
-                    }
                     if (node2.TrPins[0].Link == lastCommonTrack)
                     {
                         paths[pathChecked].jctnIdx = paths[pathChecked].ComponentItem.Count - 1;
@@ -210,7 +179,6 @@ namespace Orts.Formats.OR
                     AEBufferItem buffer = (AEBufferItem)paths[pathChecked].ComponentItem[paths[pathChecked].ComponentItem.Count-1];
                     if (!buffer.Configured || buffer.DirBuffer == AllowedDir.OUT)
                     {
-                        //AEJunctionItem junction = (AEJunctionItem)paths[pathChecked].ComponentItem[paths[pathChecked].jctnIdx];
                         paths.RemoveAt(pathChecked);
                     }
                     else
@@ -391,24 +359,6 @@ namespace Orts.Formats.OR
                 LastCommonTrack = original.LastCommonTrack;
                 directionJunction = 1;
             }
-        }
-
-        public StationPath(GlobalItem startNode, AETraveller travel)
-        {
-            ComponentItem = new List<GlobalItem>();
-            SidesItem = new List<SideItem>();
-            ComponentItem.Add(startNode);
-            complete = false;
-            jctnIdx = -1;
-            traveller = new AETraveller(travel);
-            Siding = 0;
-            Platform = 0;
-            PassingYard = 0;
-            NbrPlatform = 0;
-            NbrSiding = 0;
-            LastCommonTrack = 0;
-            directionJunction = 0;
-            PathName = "";
         }
 
         public StationPath(AETraveller travel)

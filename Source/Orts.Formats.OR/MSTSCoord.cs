@@ -231,11 +231,6 @@ namespace Orts.Formats.OR
             return new PointF((TileX * 2048f + X), (TileY * 2048f + Y));
         }
 
-        public dVector ConvertVector()
-        {
-            return new dVector((TileX * 2048f) + X, (TileY * 2048f) + Y);
-        }
-
         public Vector2 ConvertVector2()
         {
             return new Vector2((float)((TileX * 2048f) + X), (float)((TileY * 2048f) + Y));

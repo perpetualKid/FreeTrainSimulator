@@ -1223,7 +1223,7 @@ namespace Orts.Simulation.Timetables
                 {
                     try
                     {
-                        outPath = new AIPath(simulator.TDB, simulator.TSectionDat, formedpathFilefull, true, simulator.orRouteConfig);
+                        outPath = new AIPath(simulator.TDB, simulator.TSectionDat, formedpathFilefull, true);
                         validPath = outPath.Nodes != null;
 
                         if (validPath)

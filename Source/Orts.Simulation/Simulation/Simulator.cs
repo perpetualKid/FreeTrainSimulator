@@ -1129,11 +1129,7 @@ namespace Orts.Simulation
             //PathName = patFile.Name;
             // This is the position of the back end of the train in the database.
             //PATTraveller patTraveller = new PATTraveller(patFileName);
-#if ACTIVITY_EDITOR
-            AIPath aiPath = new AIPath(TDB, TSectionDat, patFileName, TimetableMode, orRouteConfig);
-#else
-            AIPath aiPath = new AIPath(TDB, TSectionDat, patFileName);
-#endif
+            AIPath aiPath = new AIPath(TDB, TSectionDat, patFileName, TimetableMode);
             PathName = aiPath.pathName;
 
             if (aiPath.Nodes == null)
