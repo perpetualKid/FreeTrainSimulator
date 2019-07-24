@@ -71,6 +71,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         // Create viewers for special steam/smoke effects on car
         List<ParticleEmitterViewer> HeatingHose = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WaterScoop = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> WaterScoopReverse = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> TenderWaterOverflow = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WagonSmoke = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> HeatingSteamBoiler = new List<ParticleEmitterViewer>();
@@ -151,11 +152,21 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
 
                 // Water spray for when water scoop is in use (use steam effects for the time being)
-
+                // Forward motion
                 if (emitter.Key.ToLowerInvariant() == "waterscoopfx")
                     WaterScoop.AddRange(emitter.Value);
-
+                
                 foreach (var drawer in WaterScoop)
+                {
+                    drawer.Initialize(steamTexture);
+                }
+                
+                // Reverse motion
+                
+                if (emitter.Key.ToLowerInvariant() == "waterscoopreversefx")
+                    WaterScoopReverse.AddRange(emitter.Value);
+                
+                foreach (var drawer in WaterScoopReverse)
                 {
                     drawer.Initialize(steamTexture);
                 }
@@ -523,10 +534,21 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                drawer.SetOutput(car.BearingHotBoxSmokeVelocityMpS, car.BearingHotBoxSmokeVolumeM3pS, car.BearingHotBoxSmokeDurationS, car.BearingHotBoxSmokeSteadyColor);
             }
 
-            // Water spray for water sccop (uses steam effects currently)
-            foreach (var drawer in WaterScoop)
+            // Water spray for water sccop (uses steam effects currently) - Forward direction
+            if (car.Train == null || car.Direction == Direction.Forward)
             {
-                drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+                foreach (var drawer in WaterScoop)
+                {
+                    drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+                }
+            }
+            // If travelling in reverse turn on rearward facing effect
+            else if (car.Direction == Direction.Reverse)
+            {
+                foreach (var drawer in WaterScoopReverse)
+                {
+                    drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+                }
             }
 
             // Water overflow from tender (uses steam effects currently)
@@ -707,8 +729,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 foreach (var freightAnim in FreightAnimations.Animations)
                 {
                     if (freightAnim.Animation is FreightAnimationStatic)
-                        if ((freightAnim.Animation as FreightAnimationStatic).Cab3DFreightAnim ^
-                            (Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab)) continue;
+                    {
+                        var animation = freightAnim.Animation as FreightAnimationStatic;
+                        if (!((animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Cab3D] &&
+                            Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab) ||
+                            (animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Cab2D] &&
+                            Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.Cab) ||
+                            (animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Outside] && (Viewer.Camera.AttachedCar != this.MSTSWagon ||
+                            (Viewer.Camera.Style != Camera.Styles.ThreeDimCab && Viewer.Camera.Style != Camera.Styles.Cab))))) continue;
+                    }
                     if (freightAnim.FreightShape != null && !((freightAnim.Animation is FreightAnimationContinuous) && (freightAnim.Animation as FreightAnimationContinuous).LoadPerCent == 0))
                     {
                         //freightAnim.FreightShape.Location = Car.WorldPosition;

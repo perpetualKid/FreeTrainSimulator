@@ -988,6 +988,8 @@ namespace Orts.Simulation.RollingStocks
             ControllerFactory.Save(SteamHeatController, outf);
             outf.Write(AcceptMUSignals);
             outf.Write(PowerReduction);
+            outf.Write(ScoopIsBroken);
+            outf.Write(IsWaterScoopDown);
 
             base.Save(outf);
         }
@@ -1021,6 +1023,9 @@ namespace Orts.Simulation.RollingStocks
             ControllerFactory.Restore(SteamHeatController, inf);
             AcceptMUSignals = inf.ReadBoolean();
             PowerReduction = inf.ReadSingle();
+            ScoopIsBroken = inf.ReadBoolean();
+            IsWaterScoopDown = inf.ReadBoolean();
+
             AdhesionFilter.Reset(0.5f);
 
             base.Restore(inf);
