@@ -43,6 +43,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Event = Orts.Common.Event;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.Timetables
 {
@@ -3393,7 +3394,7 @@ namespace Orts.Simulation.Timetables
 
                     if (deptime >= 0)
                     {
-                        actualdepart = CompareTimes.LatestTime(actualdepart, deptime);
+                        actualdepart = Time.Compare.Latest(actualdepart, deptime);
                         thisStation.ActualDepart = actualdepart;
                     }
                 }
@@ -10053,7 +10054,7 @@ namespace Orts.Simulation.Timetables
                         int actualDepart = StationStops[0].ActualDepart;
                         if (helddepart >= 0)
                         {
-                            actualDepart = CompareTimes.LatestTime(helddepart, actualDepart);
+                            actualDepart = Time.Compare.Latest(helddepart, actualDepart);
                             StationStops[0].ActualDepart = actualDepart;
                         }
 
@@ -10379,7 +10380,7 @@ namespace Orts.Simulation.Timetables
                     int allowedDepart = (connectionInfo.Value + reqHoldTime) % (24 * 3600);
                     if (helddepart.HasValue)
                     {
-                        helddepart = CompareTimes.LatestTime(helddepart.Value, allowedDepart);
+                        helddepart = Time.Compare.Latest(helddepart.Value, allowedDepart);
                     }
                     else
                     {

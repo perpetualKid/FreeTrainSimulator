@@ -15093,7 +15093,7 @@ namespace Orts.Simulation.Physics
             int hour = (delay / 100) % 100;
             int minute = delay % 100;
             int waitUntil = 60 * (minute + 60 * hour);
-            int latest = CompareTimes.LatestTime(waitUntil, correctedTime);
+            int latest = Time.Compare.Latest(waitUntil, correctedTime);
             if (latest == waitUntil && waitUntil >= correctedTime) delay = waitUntil - correctedTime;
             else if (latest == correctedTime) delay = 1; // put 1 second delay if waitUntil is already over
             else delay = waitUntil - correctedTime + 3600 * 24; // we are over midnight here
@@ -19418,7 +19418,7 @@ namespace Orts.Simulation.Physics
                 int correctedTime = ActualArrival + stopTime;
                 if (validSched)
                 {
-                    ActualDepart = CompareTimes.LatestTime(DepartTime, correctedTime);
+                    ActualDepart = Time.Compare.Latest(DepartTime, correctedTime);
                 }
                 else
                 {

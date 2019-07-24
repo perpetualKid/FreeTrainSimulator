@@ -85,6 +85,56 @@ namespace Orts.Common.Calc
             /// <summary>Convert from seconds to hours</summary>
             public static float ToH(float seconds) { return seconds * (1.0f / 3600f); }
         }
+
+        /// <summary>
+        /// Compare daytimes (given in seconds) taking into account times after midnight
+        /// (morning comes after night comes after evening, but morning is before afternoon, which is before evening)
+        /// </summary>
+        public static class Compare
+        {
+            private const int eightHundredHours = 8 * 3600;
+            private const int sixteenHundredHours = 16 * 3600;
+
+            /// <summary>
+            /// Return the latest time of the two input times, keeping in mind that night/morning is after evening/night
+            /// </summary>
+            public static int Latest(int timeOfDay1, int timeOfDay2)
+            {
+                if (timeOfDay1 > sixteenHundredHours && timeOfDay2 < eightHundredHours)
+                {
+                    return (timeOfDay2);
+                }
+                else if (timeOfDay1 < eightHundredHours && timeOfDay2 > sixteenHundredHours)
+                {
+                    return (timeOfDay1);
+                }
+                else if (timeOfDay1 > timeOfDay2)
+                {
+                    return (timeOfDay1);
+                }
+                return (timeOfDay2);
+            }
+
+            /// <summary>
+            /// Return the Earliest time of the two input times, keeping in mind that night/morning is after evening/night
+            /// </summary>
+            public static int Earliest(int timeOfDay1, int timetimeOfDay2)
+            {
+                if (timeOfDay1 > sixteenHundredHours && timetimeOfDay2 < eightHundredHours)
+                {
+                    return (timeOfDay1);
+                }
+                else if (timeOfDay1 < eightHundredHours && timetimeOfDay2 > sixteenHundredHours)
+                {
+                    return (timetimeOfDay2);
+                }
+                else if (timeOfDay1 > timetimeOfDay2)
+                {
+                    return (timetimeOfDay2);
+                }
+                return (timeOfDay1);
+            }
+        }
     }
 
     /// <summary>

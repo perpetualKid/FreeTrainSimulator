@@ -69,6 +69,64 @@ namespace Tests.Orts.Common.Calc
                 Assert.AreEqual(i, Time.Second.FromH(Time.Second.ToH(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
             }
         }
+
+        [TestMethod]
+        public void CompareTimeTest()
+        {
+            int time4 = 4 * 3600;
+            int time7 = 7 * 3600;
+            int time8 = 8 * 3600;
+            int time12 = 12 * 3600;
+            int time15 = 15 * 3600;
+            int time16 = 16 * 3600;
+            int time20 = 20 * 3600;
+
+            // Simple cases
+            Assert.AreEqual(time7, Time.Compare.Latest(time4, time7));
+            Assert.AreEqual(time12, Time.Compare.Latest(time4, time12));
+            Assert.AreEqual(time15, Time.Compare.Latest(time4, time15));
+            Assert.AreEqual(time4, Time.Compare.Latest(time4, time20));
+
+            Assert.AreEqual(time12, Time.Compare.Latest(time7, time12));
+            Assert.AreEqual(time15, Time.Compare.Latest(time7, time15));
+            Assert.AreEqual(time7, Time.Compare.Latest(time7, time20));
+
+            Assert.AreEqual(time15, Time.Compare.Latest(time12, time15));
+            Assert.AreEqual(time20, Time.Compare.Latest(time12, time20));
+
+            Assert.AreEqual(time20, Time.Compare.Latest(time15, time20));
+
+            Assert.AreEqual(time4, Time.Compare.Earliest(time4, time7));
+            Assert.AreEqual(time4, Time.Compare.Earliest(time4, time12));
+            Assert.AreEqual(time4, Time.Compare.Earliest(time4, time15));
+            Assert.AreEqual(time20, Time.Compare.Earliest(time4, time20));
+
+            Assert.AreEqual(time7, Time.Compare.Earliest(time7, time12));
+            Assert.AreEqual(time7, Time.Compare.Earliest(time7, time15));
+            Assert.AreEqual(time20, Time.Compare.Earliest(time7, time20));
+
+            Assert.AreEqual(time12, Time.Compare.Earliest(time12, time15));
+            Assert.AreEqual(time12, Time.Compare.Earliest(time12, time20));
+
+            Assert.AreEqual(time15, Time.Compare.Earliest(time15, time20));
+
+            // Boundary cases
+            Assert.AreEqual(time4, Time.Compare.Earliest(time8, time4));
+            Assert.AreEqual(time8, Time.Compare.Earliest(time8, time12));
+            Assert.AreEqual(time8, Time.Compare.Earliest(time8, time20));
+
+            Assert.AreEqual(time8, Time.Compare.Latest(time8, time4));
+            Assert.AreEqual(time12, Time.Compare.Latest(time8, time12));
+            Assert.AreEqual(time20, Time.Compare.Latest(time8, time20));
+
+            Assert.AreEqual(time4, Time.Compare.Earliest(time16, time4));
+            Assert.AreEqual(time12, Time.Compare.Earliest(time16, time12));
+            Assert.AreEqual(time16, Time.Compare.Earliest(time16, time20));
+
+            Assert.AreEqual(time16, Time.Compare.Latest(time16, time4));
+            Assert.AreEqual(time16, Time.Compare.Latest(time16, time12));
+            Assert.AreEqual(time20, Time.Compare.Latest(time16, time20));
+        }
     }
 
     [TestClass]

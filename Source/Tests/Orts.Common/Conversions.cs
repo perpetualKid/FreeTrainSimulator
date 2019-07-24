@@ -25,66 +25,6 @@ namespace Orts.Tests.Orts.Common
 {
     public static class Conversions
     {
-        static readonly IEqualityComparer<double> RequestedAccuracy = DynamicPrecisionEqualityComparer.Float;
-
-        [Fact]
-        public static void CompareTime()
-        {
-            var time4 = 4 * 3600;
-            var time7 = 7 * 3600;
-            var time8 = 8 * 3600;
-            var time12 = 12 * 3600;
-            var time15 = 15 * 3600;
-            var time16 = 16 * 3600;
-            var time20 = 20 * 3600;
-
-            // Simple cases
-            Assert.Equal(time7, CompareTimes.LatestTime(time4, time7));
-            Assert.Equal(time12, CompareTimes.LatestTime(time4, time12));
-            Assert.Equal(time15, CompareTimes.LatestTime(time4, time15));
-            Assert.Equal(time4, CompareTimes.LatestTime(time4, time20));
-
-            Assert.Equal(time12, CompareTimes.LatestTime(time7, time12));
-            Assert.Equal(time15, CompareTimes.LatestTime(time7, time15));
-            Assert.Equal(time7, CompareTimes.LatestTime(time7, time20));
-
-            Assert.Equal(time15, CompareTimes.LatestTime(time12, time15));
-            Assert.Equal(time20, CompareTimes.LatestTime(time12, time20));
-
-            Assert.Equal(time20, CompareTimes.LatestTime(time15, time20));
-
-            Assert.Equal(time4, CompareTimes.EarliestTime(time4, time7));
-            Assert.Equal(time4, CompareTimes.EarliestTime(time4, time12));
-            Assert.Equal(time4, CompareTimes.EarliestTime(time4, time15));
-            Assert.Equal(time20, CompareTimes.EarliestTime(time4, time20));
-
-            Assert.Equal(time7, CompareTimes.EarliestTime(time7, time12));
-            Assert.Equal(time7, CompareTimes.EarliestTime(time7, time15));
-            Assert.Equal(time20, CompareTimes.EarliestTime(time7, time20));
-
-            Assert.Equal(time12, CompareTimes.EarliestTime(time12, time15));
-            Assert.Equal(time12, CompareTimes.EarliestTime(time12, time20));
-
-            Assert.Equal(time15, CompareTimes.EarliestTime(time15, time20));
-
-            // Boundary cases
-            Assert.Equal(time4, CompareTimes.EarliestTime(time8, time4));
-            Assert.Equal(time8, CompareTimes.EarliestTime(time8, time12));
-            Assert.Equal(time8, CompareTimes.EarliestTime(time8, time20));
-
-            Assert.Equal(time8, CompareTimes.LatestTime(time8, time4));
-            Assert.Equal(time12, CompareTimes.LatestTime(time8, time12));
-            Assert.Equal(time20, CompareTimes.LatestTime(time8, time20));
-
-            Assert.Equal(time4, CompareTimes.EarliestTime(time16, time4));
-            Assert.Equal(time12, CompareTimes.EarliestTime(time16, time12));
-            Assert.Equal(time16, CompareTimes.EarliestTime(time16, time20));
-
-            Assert.Equal(time16, CompareTimes.LatestTime(time16, time4));
-            Assert.Equal(time16, CompareTimes.LatestTime(time16, time12));
-            Assert.Equal(time20, CompareTimes.LatestTime(time16, time20));
-        }
-
         [Fact]
         public static void FormattedStrings()
         {

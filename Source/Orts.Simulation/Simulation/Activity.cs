@@ -30,6 +30,7 @@ using System.Linq;
 using System.Text;
 using Event = Orts.Common.Event;
 using Orts.Common.Xna;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation
 {
@@ -912,7 +913,7 @@ namespace Orts.Simulation
                             double sinceActArriveS = (new DateTime().Add(TimeSpan.FromSeconds(Simulator.ClockTime))
                                                     - ActArrive).Value.TotalSeconds;
                             BoardingEndS -= sinceActArriveS;
-                            BoardingEndS = CompareTimes.LatestTime((int)SchDepart.TimeOfDay.TotalSeconds, (int)BoardingEndS);
+                            BoardingEndS = Time.Compare.Latest((int)SchDepart.TimeOfDay.TotalSeconds, (int)BoardingEndS);
 
                         }
                     }

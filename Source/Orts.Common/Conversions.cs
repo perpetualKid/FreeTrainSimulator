@@ -272,7 +272,7 @@ namespace Orts.Common
     /// Class to compare times taking into account times after midnight
     /// (morning comes after night comes after evening, but morning is before afternoon, which is before evening)
     /// </summary>
-    public static class CompareTimes
+    internal static class CompareTimes
     {
         static int eightHundredHours = 8 * 3600;
         static int sixteenHundredHours = 16 * 3600;
