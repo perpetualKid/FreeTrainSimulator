@@ -38,105 +38,15 @@ namespace Orts.Formats.OR
         public MSTSCoord Coord;
         [JsonProperty("NodeIDX")]
         public int associateNodeIdx { get; protected set; }
-        [JsonProperty("SectionIDX")]
-        public int associateSectionIdx { get; protected set; }
-        [JsonProperty("inStationArea")]
-        public bool inStationArea { get; set; }
-
-        [JsonIgnore]
-        private bool movable;
-        [JsonIgnore]
-        private bool rotable;
-        [JsonIgnore]
-        private bool editable;
-        [JsonIgnore]
-        private bool lineSnap;
-        [JsonIgnore]
-        private bool actEdit;
-        [JsonIgnore]
-        public bool visible;
-        [JsonIgnore]
-        public bool asMetadata { get; protected set; }  //  If true, the sideItem will be in the routeMetadata json file
-        [JsonIgnore]
-        public TrackNode associateNode { get; protected set; }  // Never save this information, it comes from MSTS
 
         /// <summary>
         /// The default constructor
         /// </summary>
         public GlobalItem()
         {
-            movable = false;
-            rotable = false;
-            editable = false;
-            lineSnap = false;
-            actEdit = false;
-            visible = false;
-            asMetadata = false;
             typeItem = (int)TypeItem.GLOBAL_ITEM;
             Location = new PointF(float.NegativeInfinity, float.NegativeInfinity);
             Location2D = new PointF(float.NegativeInfinity, float.NegativeInfinity);
-            Coord = new MSTSCoord();
-        }
-
-        public virtual void alignEdition(TypeEditor interfaceType, GlobalItem ownParent) { }
-
-        public virtual void ConfigCoord(in MSTSCoord coord)
-        {
-            Coord = coord; // new MSTSCoord(coord);
-            Location.X = coord.TileX * 2048f + coord.X;
-            Location.Y = coord.TileY * 2048f + coord.Y;
-        }
-
-        public virtual void Update(in MSTSCoord coord)
-        {
-        }
-
-        public virtual void SynchroLocation()
-        {
-        }
-
-        public virtual double FindItem(PointF point, double snap, double actualDist, MSTSItems aeItems)
-        {
-            double usedSnap = snap;
-            visible = false;
-            //snap =  1.0;// / snap;
-            if ((((this.Location.X < (point.X - usedSnap)) || (Location.X > (point.X + usedSnap))) || (Location.Y < (point.Y - usedSnap))) || (this.Location.Y > (point.Y + usedSnap)))
-            {
-                return double.PositiveInfinity;
-            }
-            double dist = Math.Sqrt(Math.Pow((double)(Location.X - point.X), 2.0) + Math.Pow((double)(Location.Y - point.Y), 2.0));
-            if (!(dist < usedSnap && actualDist == 0.0) && dist > actualDist)
-            {
-                return double.PositiveInfinity;
-            }
-            visible = true;
-            return dist;
-        }
-
-        public virtual void Edit() { }
-
-        public virtual void SetAngle(float angle) { }
-
-        public bool IsVisible() { return visible; }
-        public bool IsMovable() { return movable; }
-        public bool IsRotable() { return rotable; }
-        public bool IsEditable() { return editable; }
-        protected void setMovable() { movable = true; }
-        protected void setRotable() { rotable = true; }
-        protected void setEditable() { editable = true; }
-        protected void setLineSnap() { lineSnap = true; }
-
-        public void Unreduce(MSTSBase tileBase)
-        {
-            Coord = Coord.Unreduce(tileBase);
-        }
-
-        public void Reduce(MSTSBase tileBase)
-        {
-            Coord = Coord.Reduce(tileBase);
-            Location.X = Coord.TileX * 2048f + Coord.X;
-            Location.Y = Coord.TileY * 2048f + Coord.Y;
-
         }
     }
 }

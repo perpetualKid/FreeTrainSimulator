@@ -36,13 +36,10 @@ namespace Orts.Formats.OR
         public string FileName;
         [JsonProperty("RoutePath")]
         public string RoutePath { get; protected set; }
-        [JsonProperty("GlobalItem")]
-        public List<GlobalItem> routeItems;    //  Only the items linked to the route Metadata
         [JsonProperty("RouteName")]
         public string RouteName { get; protected set; }
         [JsonProperty("GenAuxAction")]
         public ActionContainer ActionContainer = new ActionContainer();
-
 
         [JsonIgnore]
         public List<GlobalItem> AllItems { get; protected set; }       //  All the items, include the activity items, exclude the MSTS Item, not saved
@@ -50,10 +47,6 @@ namespace Orts.Formats.OR
         public bool toSave = false;
         [JsonIgnore]
         public AETraveller traveller { get; protected set; }
-        [JsonIgnore]
-        public int a;
-        [JsonIgnore]
-        private System.Object lockThis = new System.Object();
 
         /// <summary>
         /// The class constructor, but, don't use it.  Prefer to use the static method 'LoadConfig' wich return this object
@@ -61,57 +54,17 @@ namespace Orts.Formats.OR
         public ORRouteConfig()
         {
             AllItems = new List<GlobalItem>();
-            routeItems = new List<GlobalItem>();
             RouteName = "";
         }
 
-        /// <summary>
-        /// Use this function to add a new item into the 'AllItems' list.
-        /// </summary>
-        /// <param name="item"></param>
-        public void AddItem(GlobalItem item)
-        {
-            if (item == null)
-                return;
-            //if (!(sideItem is PathEventItem) && !(sideItem is SideStartItem))
-            if (item.asMetadata)
-            {
-                if (routeItems.IndexOf(item) < 0)
-                    routeItems.Add(item);
-            }
-            if (AllItems.IndexOf(item) < 0)
-                AllItems.Add(item);
-            toSave = true;
-            if (item.GetType() == typeof(StationItem))
-            {
-                foreach (StationAreaItem SAItem in ((StationItem)item).stationArea)
-                {
-                    AllItems.Add(SAItem);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Used to remove a connector item from the 'AllItem' list. 
-        /// </summary>
-        /// <param name="item"></param>
-        public void RemoveConnectorItem(GlobalItem item)
-        {
-            if (item.GetType() == typeof(StationAreaItem))
-            {
-                AllItems.Remove(item);
-                routeItems.Remove(item);
-            }
-        }
-
-        static public ORRouteConfig LoadConfig(string fileName, string path, TypeEditor interfaceType)
+        static public ORRouteConfig LoadConfig(string fileName, string path)
         {
             string completeFileName = Path.Combine(path, fileName);
-            ORRouteConfig loaded = DeserializeJSON(completeFileName, interfaceType);
+            ORRouteConfig loaded = DeserializeJSON(completeFileName);
             return loaded;
         }
 
-        static public ORRouteConfig DeserializeJSON(string fileName, TypeEditor interfaceType)
+        static public ORRouteConfig DeserializeJSON(string fileName)
         {
             ORRouteConfig p;
 
@@ -168,14 +121,6 @@ namespace Orts.Formats.OR
         {
             TrackNode[] TrackNodes = TDB.TrackDB.TrackNodes;
             traveller = new AETraveller(TSectionDat, TDB);
-            foreach (var item in routeItems)
-            {
-                if (item.GetType() == typeof(StationItem))
-                {
-                    ((StationItem)item).setTraveller(traveller);
-                }
-            }
-
         }
 
         /// <summary>

@@ -36,19 +36,4 @@ namespace Orts.Common
         SIDING_END = 10,
         CROSS_OVER = 11
     };
-
-    public enum TypeSiding
-    {
-        SIDING_START = 0,
-        SIDING_END = 1,
-        PLATFORM_START = 2,
-        PLATFORM_END = 3
-    };
-    public enum TypeEditor
-    {
-        ACTIVITY = 1,
-        ROUTECONFIG = 2,
-        TRAFFIC = 3,
-        NONE = 0
-    };
 }

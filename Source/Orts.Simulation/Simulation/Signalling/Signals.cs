@@ -1624,8 +1624,10 @@ namespace Orts.Simulation.Signalling
             // Create dummy element as first to keep indexes equal
             //
 
-            TrackCircuitList = new List<TrackCircuitSection>();
-            TrackCircuitList.Add(new TrackCircuitSection(0, this));
+            TrackCircuitList = new List<TrackCircuitSection>
+            {
+                new TrackCircuitSection(0, this)
+            };
 
             //
             // Create new default elements from existing base

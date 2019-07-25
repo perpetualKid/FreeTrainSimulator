@@ -312,7 +312,7 @@ namespace Orts.Simulation
 
 #if ACTIVITY_EDITOR
             //  Where we try to load OR's specific data description (Station, connectors, etc...)
-            orRouteConfig = ORRouteConfig.LoadConfig(TRK.Tr_RouteFile.FileName, RoutePath, TypeEditor.NONE);
+            orRouteConfig = ORRouteConfig.LoadConfig(TRK.Tr_RouteFile.FileName, RoutePath);
             orRouteConfig.SetTraveller(TSectionDat, TDB);
 #endif
 

@@ -67,10 +67,6 @@ namespace Orts.Formats.OR
         float trackNodeOffset;
 
         public WorldLocation WorldLocation { get { if (!locationSet) SetLocation(); return location; } }
-        public int TileX { get { if (!locationSet) SetLocation(); return location.TileX; } }
-        public int TileZ { get { if (!locationSet) SetLocation(); return location.TileZ; } }
-        public float X { get { if (!locationSet) SetLocation(); return location.Location.X; } }
-        public float Z { get { if (!locationSet) SetLocation(); return location.Location.Z; } }
         public TravellerDirection Direction
         {
             get
@@ -105,10 +101,6 @@ namespace Orts.Formats.OR
         /// </summary>
         public int TrackVectorSectionIndex { get; private set; }
         /// <summary>
-        /// Returns the length of the current track node in meters.
-        /// </summary>
-        public float TrackNodeLength { get { if (!lengthSet) SetLength(); return trackNodeLength; } }
-        /// <summary>
         /// Returns whether this traveller is currently on a (section of) track node (opposed to junction, end of line).
         /// </summary>
         public bool IsTrack { get { return trackNode.TrVectorNode != null; } }
@@ -131,8 +123,6 @@ namespace Orts.Formats.OR
 
         public int JunctionExitPinIndex { get; private set; }
 
-        public PointF getCoordinate() { return (new PointF(((TileX * 2048f) + X), ((TileZ * 2048f) + Z))); }
-
         public AETraveller(TrackSectionsFile tSectionDat, TrackDatabaseFile tdb)
         {
             TrackNode[] trackNodes = tdb.TrackDB.TrackNodes;
@@ -141,41 +131,6 @@ namespace Orts.Formats.OR
             TSectionDat = tSectionDat;
             TrackNodes = trackNodes;
             TrItems = tdb.TrackDB.TrItemTable;
-        }
-
-        /// <summary>
-        /// Creates a traveller starting at a specific location, facing with the track node.
-        /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        public void place(int tileX, int tileZ, float x, float z)
-        {
-            List<TrackNodeCandidate> candidates = new List<TrackNodeCandidate>();
-            WorldLocation loc = new WorldLocation(tileX, tileZ, x, 0, z);
-
-            // first find all tracknodes that are close enough
-            for (var tni = 0; tni < TrackNodes.Length; tni++)
-            {
-                TrackNodeCandidate candidate = TryTrackNode(tni, loc, TSectionDat, TrackNodes);
-                if (candidate != null)
-                {
-                    candidates.Add(candidate);
-                }
-            }
-
-            if (candidates.Count == 0)
-            {
-                throw new InvalidDataException(String.Format("{0} could not be found in the track database.", new WorldLocation(tileX, tileZ, x, 0, z)));
-            }
-
-            // find the best one.
-            TrackNodeCandidate bestCandidate = candidates.OrderBy(cand => cand.distanceToTrack).First();
-
-            InitFromCandidate(bestCandidate);
         }
 
         /// <summary>
@@ -199,46 +154,6 @@ namespace Orts.Formats.OR
         }
 
         /// <summary>
-        /// Place the traveller starting at a specific location within a specified track node, facing with the track node.
-        /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="startTrackNode">Starting track node.</param>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        public void place(int stnId, int tileX, int tileZ, float x, float z)
-        {
-            if (stnId < 0 || stnId >= TrackNodes.Count()) throw new ArgumentNullException("startTrackNode");
-            var startTrackNodeIndex = stnId;
-            if (startTrackNodeIndex == -1) throw new ArgumentException("Track node is not in track nodes array.", "startTrackNode");
-            TrackNode startTrackNode = TrackNodes[stnId];
-            if (startTrackNode == null) throw new ArgumentNullException("startTrackNode");
-            if (!InitTrackNode(startTrackNodeIndex, tileX, tileZ, x, z))
-            {
-                if (startTrackNode.TrVectorNode == null) throw new ArgumentException("Track node is not a vector node.", "startTrackNode");
-                if (startTrackNode.TrVectorNode.TrVectorSections == null) throw new ArgumentException("Track node has no vector section data.", "startTrackNode");
-                if (startTrackNode.TrVectorNode.TrVectorSections.Length == 0) throw new ArgumentException("Track node has no vector sections.", "startTrackNode");
-                var tvs = startTrackNode.TrVectorNode.TrVectorSections[0];
-                if (!InitTrackNode(startTrackNodeIndex, tvs.TileX, tvs.TileZ, tvs.X, tvs.Z))
-                    throw new InvalidDataException(String.Format("Track node {0} could not be found in the track database.", startTrackNode.UiD));
-
-                // Figure out which end of the track node is closest and use that.
-                var target = new WorldLocation(tileX, tileZ, x, 0, z);
-                var startDistance = WorldLocation.GetDistance2D(WorldLocation, target).Length();
-                Direction = TravellerDirection.Backward;
-                NextTrackVectorSection(startTrackNode.TrVectorNode.TrVectorSections.Length - 1);
-                var endDistance = WorldLocation.GetDistance2D(WorldLocation, target).Length();
-                if (startDistance < endDistance)
-                {
-                    Direction = TravellerDirection.Forward;
-                    NextTrackVectorSection(0);
-                }
-            }
-        }
-
-        /// <summary>
         /// Creates a copy of another traveller, starting in the same location and with the same direction.
         /// </summary>
         /// <param name="copy">The other traveller to copy.</param>
@@ -249,18 +164,6 @@ namespace Orts.Formats.OR
             TrackNodes = copy.TrackNodes;
             TrItems = copy.TrItems;
             Copy(copy);
-        }
-
-        /// <summary>
-        /// Creates a copy of another traveller, starting in the same location but with the specified change of direction.
-        /// </summary>
-        /// <param name="copy">The other traveller to copy.</param>
-        /// <param name="reversed">Specifies whether to go the same direction as the <paramref name="copy"/> (Forward) or flip direction (Backward).</param>
-        public AETraveller(AETraveller copy, TravellerDirection reversed)
-            : this(copy)
-        {
-            if (reversed == TravellerDirection.Backward)
-                Direction = Direction == TravellerDirection.Forward ? TravellerDirection.Backward : TravellerDirection.Forward;
         }
 
         /// <summary>
@@ -489,17 +392,6 @@ namespace Orts.Formats.OR
         }
 
         /// <summary>
-        /// Switched the direction of the traveller.
-        /// </summary>
-        /// <remarks>
-        /// To set a known direction, use <see cref="Direction"/>.
-        /// </remarks>
-        public void ReverseDirection()
-        {
-            Direction = Direction == TravellerDirection.Forward ? TravellerDirection.Backward : TravellerDirection.Forward;
-        }
-
-        /// <summary>
         /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
         /// </summary>
         /// <param name="tileX">Target tile coordinate.</param>
@@ -570,33 +462,6 @@ namespace Orts.Formats.OR
         public float DistanceTo(GlobalItem item, float distMax = float.MaxValue)
         {
             return DistanceTo((int)item.Coord.TileX, (int)item.Coord.TileY, item.Coord.X, 0.0f, item.Coord.Y, distMax);
-        }
-
-        /// <summary>
-        /// Move AETraveller to the next OR Item or the given location
-        /// </summary>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        /// <returns>If an item is found, the found GlobalItem otherwise null.</returns>
-
-        public TrItem MoveToNextItem(List<GlobalItem> AllItems, int tileX, int tileZ, float x, float z)
-        {
-            TrItem foundItem = null;
-            return foundItem;
-        }
-
-        public TrVectorSection GetCurrentSection()
-        {
-            if (TrackNodes[TrackNodeIndex].TrVectorNode != null)
-                return TrackNodes[TrackNodeIndex].TrVectorNode.TrVectorSections[TrackVectorSectionIndex];
-            else return null;
-        }
-
-        public TrackNode GetCurrentNode()
-        {
-            return TrackNodes[TrackNodeIndex];
         }
 
        /// <summary>
@@ -740,100 +605,12 @@ namespace Orts.Formats.OR
                 location = location.NormalizeTo(trackVectorSection.TileX, trackVectorSection.TileZ);
         }
 
-        void SetLength()
-        {
-            if (lengthSet)
-                return;
-            lengthSet = true;
-            trackNodeLength = 0;
-            trackNodeOffset = 0;
-            if (trackNode == null || trackNode.TrVectorNode == null || trackNode.TrVectorNode.TrVectorSections == null)
-                return;
-            var tvs = trackNode.TrVectorNode.TrVectorSections;
-            for (var i = 0; i < tvs.Length; i++)
-            {
-                var ts = TSectionDat.TrackSections.Get(tvs[i].SectionIndex);
-                if (ts == null)
-                    continue; // This is bad and we'll have potentially bogus data in the Traveller when the code reads the length!
-                var length = GetLength(ts);
-                trackNodeLength += length;
-                if (i < TrackVectorSectionIndex)
-                    trackNodeOffset += length;
-                if (i == TrackVectorSectionIndex)
-                    trackNodeOffset += trackOffset * (ts.SectionCurve != null ? ts.SectionCurve.Radius : 1);
-            }
-            if (Direction == TravellerDirection.Backward)
-                trackNodeOffset = trackNodeLength - trackNodeOffset;
-        }
-
         static float GetLength(TrackSection trackSection)
         {
             if (trackSection == null)
                 return 0;
 
             return trackSection.SectionCurve != null ? trackSection.SectionCurve.Radius * Math.Abs(MathHelper.ToRadians(trackSection.SectionCurve.Angle)) : trackSection.SectionSize != null ? trackSection.SectionSize.Length : 0;
-        }
-
-        /// <summary>
-        /// Finds the nearest End node in the direction this traveller is facing.
-        /// </summary>
-        /// <returns>The <see cref="TrJunctionNode"/> of the found junction, or <c>null</c> if none was found.</returns>
-        public TrackNode EndNodeAhead()
-        {
-            var traveller = new AETraveller(this, direction);
-            while (traveller.NextSection())
-                if (traveller.IsEnd)
-                    return traveller.trackNode;
-            return null;
-        }
-
-        /// <summary>
-        /// Move the traveller along the track by the specified distance, or until the end of the track is reached.
-        /// </summary>
-        /// <param name="distanceToGo">The distance to travel along the track. Positive values travel in the direction of the traveller and negative values in the opposite direction.</param>
-        /// <returns>The remaining distance if the traveller reached the end of the track.</returns>
-        public float Move(float distanceToGo)
-        {
-            // TODO - must remove the trig from these calculations
-            if (float.IsNaN(distanceToGo)) distanceToGo = 0f;
-            var distanceSign = Math.Sign(distanceToGo);
-            distanceToGo = Math.Abs(distanceToGo);
-            if (distanceSign < 0)
-                ReverseDirection();
-            do
-            {
-                distanceToGo = MoveInTrackSection(distanceToGo);
-                if (distanceToGo < 0.001)
-                    break;
-            }
-            while (NextSection());
-            if (distanceSign < 0)
-                ReverseDirection();
-            return distanceSign * distanceToGo;
-        }
-
-
-        float MoveInTrackSection(float distanceToGo)
-        {
-            if (IsJunction)
-                return distanceToGo;
-            if (!IsTrack)
-                return MoveInTrackSectionInfinite(distanceToGo);
-            if (IsTrackCurved)
-                return MoveInTrackSectionCurved(distanceToGo);
-            return MoveInTrackSectionStraight(distanceToGo);
-        }
-
-        float MoveInTrackSectionInfinite(float distanceToGo)
-        {
-            var scale = Direction == TravellerDirection.Forward ? 1 : -1;
-            var distance = distanceToGo;
-            if (Direction == TravellerDirection.Backward && distance > trackOffset)
-                distance = trackOffset;
-            trackOffset += scale * distance;
-            trackNodeOffset += distance;
-            locationSet = false;
-            return distanceToGo - distance;
         }
 
         float MoveInTrackSectionCurved(float distanceToGo)
