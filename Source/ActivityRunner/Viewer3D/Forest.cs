@@ -30,7 +30,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    [CallOnThread("Loader")]
+    //[CallOnThread("Loader")]
     public class ForestViewer
     {
         readonly Viewer Viewer;
@@ -52,7 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Primitive = new ForestPrimitive(Viewer, forest, position, MaximumCenterlineOffset, CheckRoadsToo);
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if ((Primitive as ForestPrimitive).PrimitiveCount > 0)
@@ -65,14 +65,14 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal void Mark()
         {
             Material.Mark();
         }
     }
 
-    [CallOnThread("Loader")]
+    //[CallOnThread("Loader")]
     public class ForestPrimitive : RenderPrimitive
     {
         readonly Viewer Viewer;
@@ -401,14 +401,14 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class ForestMaterial : Material
     {
         readonly Texture2D treeTexture;
         private readonly SceneryShader shader;
         private readonly int techniqueIndex;
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public ForestMaterial(Viewer viewer, string treeTexturePath)
             : base(viewer, treeTexturePath)
         {

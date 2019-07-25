@@ -142,7 +142,7 @@ namespace Orts.ActivityRunner.Viewer3D
 #endif
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal void Mark()
         {
             if (Material != null) // stops error messages if a special effect entry is not a defined OR parameter

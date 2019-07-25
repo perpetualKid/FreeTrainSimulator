@@ -317,7 +317,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             //result.Append("\t");
             foreach (var eng in DEList)
-                result.AppendFormat("\t{0}", FormatStrings.FormatTemperature(eng.DieselTemperatureDeg, Locomotive.IsMetric, false));
+                result.AppendFormat("\t{0}", FormatStrings.FormatTemperature(eng.DieselTemperatureDeg, Locomotive.IsMetric));
 
             //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Oil"));
             foreach (var eng in DEList)

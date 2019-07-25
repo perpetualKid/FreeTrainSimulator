@@ -282,7 +282,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal void Mark()
         {
             MSTSSkyMaterial.Mark();

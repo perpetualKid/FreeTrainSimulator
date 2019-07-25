@@ -160,11 +160,7 @@ namespace Orts.MultiPlayer
             {
                 try
                 {
-#if ACTIVITY_EDITOR
-                    AIPath aiPath = new AIPath(MPManager.Simulator.TDB, MPManager.Simulator.TSectionDat, p.path, MPManager.Simulator.TimetableMode, MPManager.Simulator.orRouteConfig);
-#else
-                    AIPath aiPath = new AIPath(MPManager.Simulator.TDB, MPManager.Simulator.TSectionDat, p.path);
-#endif
+                    AIPath aiPath = new AIPath(MPManager.Simulator.TDB, MPManager.Simulator.TSectionDat, p.path, MPManager.Simulator.TimetableMode);
                 }
                 catch (Exception) { MPManager.BroadCast((new MSGMessage(player.user, "Warning", "Server does not have path file provided, signals may always be red for you.")).ToString()); }
             }

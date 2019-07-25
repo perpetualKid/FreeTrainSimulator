@@ -154,9 +154,7 @@ namespace Orts.Simulation
         public Confirmer Confirmer;                 // Set by the Viewer
         public Event SoundNotify = Event.None;
         public ScriptManager ScriptManager;
-#if ACTIVITY_EDITOR
-        public ORRouteConfig orRouteConfig;
-#endif
+
         public bool IsAutopilotMode = false;
 
         public bool soundProcessWorking = false;
@@ -309,12 +307,6 @@ namespace Orts.Simulation
                 TSectionDat.AddRouteTSectionDatFile(RoutePath + @"\TSECTION.DAT");
 
             SuperElevation = new SuperElevation(this);
-
-#if ACTIVITY_EDITOR
-            //  Where we try to load OR's specific data description (Station, connectors, etc...)
-            orRouteConfig = ORRouteConfig.LoadConfig(TRK.Tr_RouteFile.FileName, RoutePath, TypeEditor.NONE);
-            orRouteConfig.SetTraveller(TSectionDat, TDB);
-#endif
 
             Trace.Write(" ACT");
 
@@ -650,7 +642,7 @@ namespace Orts.Simulation
         /// elapsedClockSeconds represents the time since the last call to Simulator.Update
         /// Executes in the UpdaterProcess thread.
         /// </summary>
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void Update(float elapsedClockSeconds)
         {
             // Advance the times.
@@ -1129,11 +1121,7 @@ namespace Orts.Simulation
             //PathName = patFile.Name;
             // This is the position of the back end of the train in the database.
             //PATTraveller patTraveller = new PATTraveller(patFileName);
-#if ACTIVITY_EDITOR
-            AIPath aiPath = new AIPath(TDB, TSectionDat, patFileName, TimetableMode, orRouteConfig);
-#else
-            AIPath aiPath = new AIPath(TDB, TSectionDat, patFileName);
-#endif
+            AIPath aiPath = new AIPath(TDB, TSectionDat, patFileName, TimetableMode);
             PathName = aiPath.pathName;
 
             if (aiPath.Nodes == null)

@@ -95,7 +95,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             State.WaitTillFinished();
         }
 
-        [ThreadName("Loader")]
         void LoaderThread()
         {
             Profiler.SetThread();
@@ -120,14 +119,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         internal void StartLoad()
         {
             Debug.Assert(State.Finished);
             State.SignalStart();
         }
 
-        [ThreadName("Loader")]
         bool DoLoad()
         {
             if (Debugger.IsAttached)
@@ -152,7 +150,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return true;
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Load()
         {
             Profiler.Start();

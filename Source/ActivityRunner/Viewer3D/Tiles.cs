@@ -62,7 +62,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="tileX">MSTS TileX coordinate of the tile, or of a logical tile inside a larger physical tile</param>
         /// <param name="tileZ">MSTS TileZ coordinate of the tile, or of a logical tile inside a larger physical tile</param>
         /// <param name="visible">Flag indicating whether the tile being loaded should be considered "key" to the user experience, and thus whether issues loading it should be shown.</param>
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Load(int tileX, int tileZ, bool visible)
         {
             if (Thread.CurrentThread.Name != "Loader Process")
@@ -110,7 +110,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="tileZ">MSTS TileZ coordinate of the tile, or of a logical tile inside a larger physical tile</param>
         /// <param name="visible">Flag indicating whether the tile being loaded should be considered "key" to the user experience, and thus whether issues loading it should be shown.</param>
         /// <returns>The <c>Tile</c> covering the specified coordinates, if one exists and is loaded. It may be a single tile or quad tile.</returns>
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public Tile LoadAndGetTile(int tileX, int tileZ, bool visible)
         {
             Load(tileX, tileZ, visible);
@@ -126,7 +126,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="z">MSTS Z coordinate within tile</param>
         /// <param name="visible">Flag indicating whether the tile being loaded should be considered "key" to the user experience, and thus whether issues loading it should be shown.</param>
         /// <returns>Elevation at the given coordinates</returns>
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public float LoadAndGetElevation(int tileX, int tileZ, float x, float z, bool visible)
         {
             // Normalize the coordinates to the right tile.

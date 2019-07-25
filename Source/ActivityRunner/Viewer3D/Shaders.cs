@@ -113,7 +113,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class SceneryShader : Shader
     {
         readonly EffectParameter world;
@@ -302,7 +302,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class ShadowMapShader : Shader
     {
         readonly EffectParameter worldViewProjection;
@@ -344,7 +344,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class SkyShader : Shader
     {
         readonly EffectParameter worldViewProjection;
@@ -510,7 +510,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class ParticleEmitterShader : Shader
     {
         EffectParameter emitSize;
@@ -572,7 +572,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class LightGlowShader : Shader
     {
         readonly EffectParameter worldViewProjection;
@@ -600,7 +600,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class LightConeShader : Shader
     {
         EffectParameter worldViewProjection;
@@ -624,7 +624,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class PopupWindowShader : Shader
     {
         readonly EffectParameter world;
@@ -666,7 +666,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class CabShader : Shader
     {
         readonly EffectParameter nightColorModifier;
@@ -717,7 +717,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class DriverMachineInterfaceShader : Shader
     {
         readonly EffectParameter limitAngle;
@@ -746,7 +746,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class DebugShader : Shader
     {
         readonly EffectParameter worldViewProjection;

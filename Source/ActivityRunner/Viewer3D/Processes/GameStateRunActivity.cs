@@ -311,7 +311,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// <summary>
         /// Save the current game state for later resume.
         /// </summary>
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public static void Save()
         {
             if (MPManager.IsMultiPlayer() && !MPManager.IsServer()) return; //no save for multiplayer sessions yet

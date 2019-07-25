@@ -296,7 +296,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Console.Write("  HEAD type={0,-8} lights={1,-2} sem={2}", SignalTypeData.Type, SignalTypeData.Lights.Count, SignalTypeData.Semaphore);
 #endif
             }
-            [CallOnThread("Loader")]
+            //[CallOnThread("Loader")]
             public void Unload()
             {
                 if (Sound != null)
@@ -399,7 +399,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            [CallOnThread("Loader")]
+            //[CallOnThread("Loader")]
             internal void Mark()
             {
                 SignalTypeData.Material.Mark();

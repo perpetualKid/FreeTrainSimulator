@@ -512,11 +512,11 @@ namespace Orts.Common.Calc
         /// </summary>
         public static class Vacuum
         {
-            readonly static float OneAtmospherePSI = Bar.ToPSI(1);
+            readonly static float OneAtmospherePSI = Atmospheric.ToPSI(1);
             /// <summary>vacuum in inhg to pressure in psia</summary>
-            public static float ToPressure(float vacuum) { return OneAtmospherePSI - Bar.ToPSI(Bar.FromInHg(vacuum)); }
+            public static float ToPressure(float vacuum) { return OneAtmospherePSI - Atmospheric.ToPSI(Atmospheric.FromInHg(vacuum)); }
             /// <summary>convert pressure in psia to vacuum in inhg</summary>
-            public static float FromPressure(float pressure) { return Bar.ToInHg(Bar.FromPSI(OneAtmospherePSI - pressure)); }
+            public static float FromPressure(float pressure) { return Atmospheric.ToInHg(Atmospheric.FromPSI(OneAtmospherePSI - pressure)); }
         }
 
         /// <summary>

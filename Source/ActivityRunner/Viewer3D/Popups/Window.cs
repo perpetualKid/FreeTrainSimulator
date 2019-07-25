@@ -220,7 +220,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return content;
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public virtual void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, bool updateFull)
         {
             if (Visible)
@@ -274,12 +274,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, 0, 0, 20);
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public virtual void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
         {
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public virtual void Draw(SpriteBatch spriteBatch)
         {
             WindowLayout.Draw(spriteBatch, Location.Location);

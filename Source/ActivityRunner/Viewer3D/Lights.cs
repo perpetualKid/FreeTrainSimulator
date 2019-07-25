@@ -185,7 +185,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Mark()
         {
             LightGlowMaterial.Mark();

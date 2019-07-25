@@ -820,7 +820,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     public class RoadCarShape : AnimatedShape
     {
         public RoadCarShape(string path, IWorldPosition positionSource)
-            : base(path, positionSource)
+            : base(path, positionSource, ShapeFlags.ShadowCaster)
         {
         }
     }

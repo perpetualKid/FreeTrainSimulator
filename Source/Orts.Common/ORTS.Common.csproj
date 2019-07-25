@@ -58,7 +58,6 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AEDefinitions.cs" />
     <Compile Include="Calc\AlmostEqualExtension.cs" />
     <Compile Include="Calc\Conversions.cs" />
     <Compile Include="Calc\MovingAverage.cs" />
@@ -67,13 +66,12 @@
     <Compile Include="Native\User32.cs" />
     <Compile Include="Threading\CancellationToken.cs" />
     <Compile Include="Threading\CancellationTokenSource.cs" />
-    <Compile Include="Conversions.cs" />
+    <Compile Include="FormatStrings.cs" />
     <Compile Include="Coordinates.cs" />
     <Compile Include="DataLogger.cs" />
     <Compile Include="ElapsedTime.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Filter.cs" />
-    <Compile Include="FxCopAttributes.cs" />
     <Compile Include="Input\RailDriverBase.cs" />
     <Compile Include="Integrator.cs" />
     <Compile Include="Msts\MstsPath.cs" />

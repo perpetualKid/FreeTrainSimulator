@@ -233,7 +233,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         /// <param name="simulator">The <see cref="Simulator"/> with which the viewer runs.</param>
         /// <param name="game">The <see cref="Game"/> with which the viewer runs.</param>
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public Viewer(Simulator simulator, Orts.ActivityRunner.Viewer3D.Processes.Game game)
         {
             Catalog = new GettextResourceManager("ActivityRunner");
@@ -313,7 +313,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Initialize();
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void Save(BinaryWriter outf, string fileStem)
         {
             outf.Write(Simulator.Trains.IndexOf(PlayerTrain));
@@ -337,7 +337,7 @@ namespace Orts.ActivityRunner.Viewer3D
             World.WeatherControl.SaveWeatherParameters(outf);
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public void Restore(BinaryReader inf)
         {
             Train playerTrain = Simulator.Trains[inf.ReadInt32()];
@@ -378,7 +378,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// to load any static graphics content, background
         /// processes haven't started yet.
         /// </summary>
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal void Initialize()
         {
             UpdateAdapterInformation(Game.GraphicsDevice.Adapter);
@@ -661,7 +661,7 @@ namespace Orts.ActivityRunner.Viewer3D
         uint adapterMemory;
         public uint AdapterMemory { get { return adapterMemory; } }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         internal void UpdateAdapterInformation(GraphicsAdapter graphicsAdapter)
         {
             adapterDescription = GraphicsAdapter.DefaultAdapter.Description;
@@ -684,14 +684,14 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Load()
         {
             World.Load();
             WindowManager.Load();
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void Update(RenderFrame frame, float elapsedRealTime)
         {
             RealTime += elapsedRealTime;
@@ -837,7 +837,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         void HandleUserInput(in ElapsedTime elapsedTime)
         {
             var train = Program.Viewer.PlayerLocomotive.Train;//DebriefEval
@@ -1610,13 +1610,13 @@ namespace Orts.ActivityRunner.Viewer3D
             return activeMovingTable;
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Mark()
         {
             WindowManager.Mark();
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         internal void Terminate()
         {
             InfoDisplay.Terminate();
@@ -1804,7 +1804,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         void SaveScreenshotToFile(GraphicsDevice graphicsDevice, string fileName, bool silent)
         {
             if (graphicsDevice.GraphicsProfile != GraphicsProfile.HiDef)

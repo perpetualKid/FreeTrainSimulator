@@ -57,7 +57,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             State.WaitTillFinished();
         }
 
-        [ThreadName("Updater")]
         void UpdaterThread()
         {
             Profiler.SetThread();
@@ -85,7 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         RenderFrame CurrentFrame;
         double TotalRealSeconds;
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         internal void StartUpdate(RenderFrame frame, double totalRealSeconds)
         {
             Debug.Assert(State.Finished);
@@ -94,7 +93,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             State.SignalStart();
         }
 
-        [ThreadName("Updater")]
         bool DoUpdate()
         {
             if (Debugger.IsAttached)
@@ -118,7 +116,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return true;
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void Update()
         {
             Profiler.Start();

@@ -47,27 +47,14 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AEItems.cs" />
-    <Compile Include="AESegment.cs" />
-    <Compile Include="AESignals.cs" />
-    <Compile Include="AEStationPath.cs" />
-    <Compile Include="AETraveller.cs" />
     <Compile Include="AuxActionRef.cs" />
-    <Compile Include="DrawUtility.cs" />
     <Compile Include="ExtCarSpawnerFile.cs" />
-    <Compile Include="GlobalItem.cs" />
-    <Compile Include="MSTSCoord.cs" />
-    <Compile Include="MSTSData.cs" />
     <Compile Include="WeatherFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RouteConfigurationFile.cs" />
-    <Compile Include="RouteItems.cs" />
     <Compile Include="TimetableFile.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TimetableGroupFile.cs" />
-    <Compile Include="TrackCircuitElement.cs" />
-    <Compile Include="TrackNodeAE.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ORTS.Common\Orts.Common.csproj">

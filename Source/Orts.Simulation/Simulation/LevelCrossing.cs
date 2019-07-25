@@ -80,14 +80,14 @@ namespace Orts.Simulation
             return new LevelCrossing(trackItems.Union(roadItems), warningTime, minimumDistance);
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void Update(float elapsedClockSeconds)
         {
             foreach (var train in Simulator.Trains)
                 UpdateCrossings(train, elapsedClockSeconds);
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         void UpdateCrossings(Train train, float elapsedTime)
         {
             var speedMpS = train.SpeedMpS;
@@ -353,7 +353,7 @@ namespace Orts.Simulation
 
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void AddTrain(Train train)
         {
             if(train.TrainType == Train.TRAINTYPE.STATIC)
@@ -379,7 +379,7 @@ namespace Orts.Simulation
             }
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void RemoveTrain(Train train)
         {
             var trains = Trains;

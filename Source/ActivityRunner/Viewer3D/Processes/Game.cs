@@ -32,7 +32,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
     /// <summary>
     /// Provides the foundation for running the game.
     /// </summary>
-    [CallOnThread("Render")]
+    //[CallOnThread("Render")]
     public class Game : Microsoft.Xna.Framework.Game
     {
         /// <summary>
@@ -94,7 +94,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             States = new Stack<GameState>();
         }
 
-        [ThreadName("Render")]
         protected override void BeginRun()
         {
             // At this point, GraphicsDevice is initialized and set up.
@@ -108,7 +107,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             base.BeginRun();
         }
 
-        [ThreadName("Render")]
         protected override void Update(Microsoft.Xna.Framework.GameTime gameTime)
         {
             // The first Update() is called before the window is displayed, with a gameTime == 0. The second is called
@@ -120,7 +118,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             base.Update(gameTime);
         }
 
-        [ThreadName("Render")]
         protected override bool BeginDraw()
         {
             if (!base.BeginDraw())
@@ -129,21 +126,18 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return true;
         }
 
-        [ThreadName("Render")]
         protected override void Draw(Microsoft.Xna.Framework.GameTime gameTime)
         {
             RenderProcess.Draw();
             base.Draw(gameTime);
         }
 
-        [ThreadName("Render")]
         protected override void EndDraw()
         {
             RenderProcess.EndDraw();
             base.EndDraw();
         }
 
-        [ThreadName("Render")]
         protected override void EndRun()
         {
             base.EndRun();
@@ -154,14 +148,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             SoundProcess.Stop();
         }
 
-        [ThreadName("Render")]
         void Game_Exiting(object sender, EventArgs e)
         {
             while (State != null)
                 PopState();
         }
 
-        [CallOnThread("Loader")]
         internal void PushState(GameState state)
         {
             state.Game = this;
@@ -169,7 +161,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Trace.TraceInformation("Game.PushState({0})  {1}", state.GetType().Name, String.Join(" | ", States.Select(s => s.GetType().Name).ToArray()));
         }
 
-        [CallOnThread("Loader")]
         internal void PopState()
         {
             State.Dispose();
@@ -177,7 +168,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Trace.TraceInformation("Game.PopState()  {0}", String.Join(" | ", States.Select(s => s.GetType().Name).ToArray()));
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal void ReplaceState(GameState state)
         {
             if (State != null)
@@ -193,10 +184,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// <summary>
         /// Updates the calling thread's <see cref="Thread.CurrentUICulture"/> to match the <see cref="Game"/>'s <see cref="Settings"/>.
         /// </summary>
-        [CallOnThread("Render")]
-        [CallOnThread("Updater")]
-        [CallOnThread("Loader")]
-        [CallOnThread("Watchdog")]
+        //[CallOnThread("Render")]
+        //[CallOnThread("Updater")]
+        //[CallOnThread("Loader")]
+        //[CallOnThread("Watchdog")]
         public void SetThreadLanguage()
         {
             if (Settings.Language.Length > 0)
@@ -213,10 +204,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// Reports an <see cref="Exception"/> to the log file and/or user, exiting the game in the process.
         /// </summary>
         /// <param name="error">The <see cref="Exception"/> to report.</param>
-        [CallOnThread("Render")]
-        [CallOnThread("Updater")]
-        [CallOnThread("Loader")]
-        [CallOnThread("Sound")]
+        //[CallOnThread("Render")]
+        //[CallOnThread("Updater")]
+        //[CallOnThread("Loader")]
+        //[CallOnThread("Sound")]
         public void ProcessReportError(Exception error)
         {
             // Turn off the watchdog since we're going down.

@@ -57,7 +57,7 @@ namespace Orts.ActivityRunner.Viewer3D
             VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(DummyVertexBuffer) };
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame)
         {
             var dTileX = TileX - Viewer.Camera.TileX;
@@ -151,7 +151,7 @@ namespace Orts.ActivityRunner.Viewer3D
             vertexBuffer.SetData(vertexData.ToArray());
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         internal static void Mark()
         {
             if (WaterLayers == null) return;

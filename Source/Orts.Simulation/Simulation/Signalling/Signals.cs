@@ -151,11 +151,7 @@ namespace Orts.Simulation.Signalling
             //
             // Create trackcircuit database
             //
-#if ACTIVITY_EDITOR
-            CreateTrackCircuits(trackDB.TrItemTable, trackDB.TrackNodes, tsectiondat, simulator.orRouteConfig);
-#else
             CreateTrackCircuits(trackDB.TrItemTable, trackDB.TrackNodes, tsectiondat);
-#endif
 
             //
             // Process platform information
@@ -1613,19 +1609,17 @@ namespace Orts.Simulation.Signalling
         /// Create Track Circuits
         /// <summary>
 
-#if ACTIVITY_EDITOR
-        private void CreateTrackCircuits(TrItem[] TrItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat, ORRouteConfig orRouteConfig)
-#else
-        private void CreateTrackCircuits(TrItem[] TrItems, TrackNode[] trackNodes, TSectionDatFile tsectiondat)
-#endif
+        private void CreateTrackCircuits(TrItem[] TrItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat)
         {
 
             //
             // Create dummy element as first to keep indexes equal
             //
 
-            TrackCircuitList = new List<TrackCircuitSection>();
-            TrackCircuitList.Add(new TrackCircuitSection(0, this));
+            TrackCircuitList = new List<TrackCircuitSection>
+            {
+                new TrackCircuitSection(0, this)
+            };
 
             //
             // Create new default elements from existing base
@@ -1655,17 +1649,6 @@ namespace Orts.Simulation.Signalling
             foundMileposts = -1;
             MilepostList = null;
 
-#if ACTIVITY_EDITOR
-            //
-            //  Loop through original default elements to complete the track items with the OR ones
-            //
-
-            for (int iNode = 1; iNode < originalNodes; iNode++)
-            {
-                List<TrackCircuitElement> elements = orRouteConfig.GetORItemForNode(iNode, trackNodes, tsectiondat);
-                TrackCircuitList[iNode].CircuitItems.TrackCircuitElements = elements;
-            }
-#endif
             //
             // loop through original default elements
             // split on crossover items
@@ -1691,20 +1674,6 @@ namespace Orts.Simulation.Signalling
                 nextNode = SplitNodesSignals(iNode, nextNode);
             }
 
-#if ACTIVITY_EDITOR
-            //
-            // loop through original default elements
-            // split on OR Elements
-            //
-
-            originalNodes = TrackCircuitList.Count;
-            nextNode = originalNodes;
-
-            for (int iNode = 1; iNode < originalNodes; iNode++)
-            {
-                nextNode = SplitNodesElements(iNode, nextNode);
-            }
-#endif
             //
             // loop through all items
             // perform link test
@@ -2370,49 +2339,6 @@ namespace Orts.Simulation.Signalling
             return (nextNode);
         }
 
-#if ACTIVITY_EDITOR
-        //================================================================================================//
-        /// <summary>
-        /// Split on OR Elements
-        /// </summary>
-
-        private int SplitNodesElements(int thisNode, int nextNode)
-        {
-            int thisIndex = thisNode;
-            int newIndex = -1;
-            List<int> addIndex = new List<int>();
-
-            //
-            // in direction 0, check original item only
-            // keep list of added items
-            //
-
-            TrackCircuitSection thisSection = TrackCircuitList[thisIndex];
-
-            newIndex = -1;
-            if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal)
-            {
-                addIndex.Add(thisNode);
-
-                List<TrackCircuitElement> elements =
-                         thisSection.CircuitItems.TrackCircuitElements;
-
-                for (int idx = 0; idx < elements.Count; idx++)
-                {
-                    newIndex = nextNode;
-                    nextNode++;
-
-                    splitSection(thisIndex, newIndex, thisSection.Length - elements[idx].ElementLocation);
-                    TrackCircuitSection newSection = TrackCircuitList[newIndex];
-                    newSection.EndSignals[0] = null;
-                    thisSection = TrackCircuitList[thisIndex];
-                    addIndex.Add(newIndex);
-                }
-            }
-
-            return (nextNode);
-        }
-#endif
         //================================================================================================//
         /// <summary>
         /// Get cross-over section index
@@ -2644,24 +2570,6 @@ namespace Orts.Simulation.Signalling
                     replSection.CircuitItems.TrackCircuitMileposts.Add(thisMilepost);
                 }
             }
-
-#if ACTIVITY_EDITOR
-            //  copy TrackCircuitElements 
-
-            foreach (TrackCircuitElement element in orgSection.CircuitItems.TrackCircuitElements)
-            {
-                if (element.ElementLocation > replSection.Length)
-                {
-                    element.ElementLocation -= replSection.Length;
-                    newSection.CircuitItems.TrackCircuitElements.Add(element);
-                }
-                else
-                {
-                    element.ElementLocation -= newSection.Length;
-                    replSection.CircuitItems.TrackCircuitElements.Add(element);
-                }
-            }
-#endif
             // update list
 
             TrackCircuitList.RemoveAt(orgSectionIndex);
@@ -7590,11 +7498,6 @@ namespace Orts.Simulation.Signalling
         // List of speedposts (per direction) //
         public List<TrackCircuitMilepost> TrackCircuitMileposts = new List<TrackCircuitMilepost>();
         // List of mileposts //
-
-#if ACTIVITY_EDITOR
-        // List of all Element coming from OR configuration in a generic form.
-        public List<TrackCircuitElement> TrackCircuitElements = new List<TrackCircuitElement>();
-#endif
 
         //================================================================================================//
         /// <summary>

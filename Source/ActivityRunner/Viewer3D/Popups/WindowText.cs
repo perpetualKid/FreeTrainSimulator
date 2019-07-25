@@ -123,7 +123,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return fonts[key];
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Load(GraphicsDevice graphicsDevice)
         {
             var fonts = Fonts;
@@ -189,31 +189,31 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
 #if WINDOWTEXT_SPRITEBATCH
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public void Draw(SpriteBatch spriteBatch, Point offset, string text, Color color)
         {
             Draw(spriteBatch, offset, 0, 0, text, LabelAlignment.Left, color, Color.Black);
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public void Draw(SpriteBatch spriteBatch, Point offset, string text, Color color, Color outline)
         {
             Draw(spriteBatch, offset, 0, 0, text, LabelAlignment.Left, color, outline);
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public void Draw(SpriteBatch spriteBatch, Rectangle position, Point offset, string text, LabelAlignment align, Color color)
         {
             Draw(spriteBatch, position, offset, text, align, color, Color.Black);
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public void Draw(SpriteBatch spriteBatch, Rectangle position, Point offset, string text, LabelAlignment align, Color color, float rotation)
         {
             Draw(spriteBatch, position, offset, text, align, color, Color.Black, rotation);
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public void Draw(SpriteBatch spriteBatch, Rectangle position, Point offset, string text, LabelAlignment align, Color color, Color outline)
         {
             offset.X += position.Location.X;
@@ -221,7 +221,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Draw(spriteBatch, offset, 0, position.Width, text, align, color, outline);
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public void Draw(SpriteBatch spriteBatch, Rectangle position, Point offset, string text, LabelAlignment align, Color color, Color outline, float rotation)
         {
             offset.X += position.Location.X;
@@ -229,7 +229,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Draw(spriteBatch, offset, rotation, position.Width, text, align, color, outline);
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         void Draw(SpriteBatch spriteBatch, Point position, float rotation, int width, string text, LabelAlignment align, Color color, Color outline)
         {
             EnsureCharacterData(text);
@@ -297,7 +297,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 #else
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public DrawData PrepareFrame(GraphicsDevice graphicsDevice, float width, float height, string text, LabelAlignment align)
         {
             // We'll crash creating 0-byte buffers below and there's nothing to be done with an empty string anyway.
@@ -351,7 +351,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return new DrawData(Characters, vertexBuffer, vertexData.Length, indexBuffer, text.Length * 2);
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public void Draw(GraphicsDevice graphicsDevice, DrawData data)
         {
             if (data != null)
@@ -369,7 +369,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 #endif
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Load(GraphicsDevice graphicsDevice)
         {
             Characters.Load(graphicsDevice);
@@ -528,7 +528,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 return buffer;
             }
 
-            [CallOnThread("Loader")]
+            //[CallOnThread("Loader")]
             public void Load(GraphicsDevice graphicsDevice)
             {
                 if (Texture != null || Characters.Length == 0)

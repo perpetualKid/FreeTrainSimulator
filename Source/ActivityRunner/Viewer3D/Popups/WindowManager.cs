@@ -160,21 +160,21 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void Save(BinaryWriter outf)
         {
             foreach (var window in Windows)
                 window.Save(outf);
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public void Restore(BinaryReader inf)
         {
             foreach (var window in Windows)
                 window.Restore(inf);
         }
 
-		[CallOnThread("Updater")]
+		//[CallOnThread("Updater")]
 		public void ScreenChanged()
 		{
 			var oldScreenSize = ScreenSize;
@@ -198,7 +198,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 		}
 
         double LastPrepareRealTime;
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var updateFull = false;
@@ -214,7 +214,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             frame.AddPrimitive(WindowManagerMaterial, this, RenderPrimitiveGroup.Overlay, ref Identity);
         }
 
-        [CallOnThread("Render")]
+        //[CallOnThread("Render")]
         public override void Draw()
 		{
 			// Nothing visible? Nothing more to do!
@@ -281,7 +281,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 		public Window MouseActiveWindow { get { return mouseActiveWindow; } }
 
 		double LastUpdateRealTime;
-		[CallOnThread("Updater")]
+		//[CallOnThread("Updater")]
         public void HandleUserInput(in ElapsedTime elapsedTime)
         {
 			if (UserInput.IsMouseLeftButtonPressed)
@@ -337,7 +337,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Console.WriteLine();
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Mark()
         {
             WindowManagerMaterial.Mark();
@@ -347,7 +347,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 window.Mark();
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Load()
         {
             TextManager.Load(Viewer.RenderProcess.GraphicsDevice);

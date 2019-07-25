@@ -98,7 +98,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        [ThreadName("Watchdog")]
         void WatchdogThread()
         {
             Profiler.SetThread();

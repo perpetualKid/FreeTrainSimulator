@@ -42,7 +42,6 @@ namespace Orts.ActivityRunner
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        [ThreadName("Render")]
         static void Main(string[] args)
         {
             var options = args.Where(a => a.StartsWith("-") || a.StartsWith("/")).Select(a => a.Substring(1));

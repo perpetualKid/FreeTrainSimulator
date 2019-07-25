@@ -324,7 +324,7 @@ namespace Orts.ActivityRunner.Viewer3D
             } 
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public virtual void Update(in ElapsedTime elapsedTime)
         {
             Time += elapsedTime.ClockSeconds;
@@ -981,7 +981,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        [CallOnThread("Updater")]
+        //[CallOnThread("Updater")]
         public override void Update(in ElapsedTime elapsedTime)
         {
             // not client and weather auto mode

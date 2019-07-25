@@ -847,11 +847,7 @@ namespace Orts.Simulation.AIs
 
             // Patch Placingproblem - JeroenP
             // 
-#if ACTIVITY_EDITOR
-            AIPath aiPath = new AIPath(Simulator.TDB, Simulator.TSectionDat, pathFileName, isTimetableMode, Simulator.orRouteConfig);
-#else
-            AIPath aiPath = new AIPath(Simulator.TDB, Simulator.TSectionDat, pathFileName);
-#endif
+            AIPath aiPath = new AIPath(Simulator.TDB, Simulator.TSectionDat, pathFileName, isTimetableMode);
             // End patch
 
             if (aiPath.Nodes == null)

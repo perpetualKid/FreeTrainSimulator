@@ -100,7 +100,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public virtual void Mark()
         {
             Material.Mark();
@@ -204,7 +204,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public virtual void Mark()
         {
             Material.Mark();

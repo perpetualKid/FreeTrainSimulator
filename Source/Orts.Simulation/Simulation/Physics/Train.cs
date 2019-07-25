@@ -550,7 +550,7 @@ namespace Orts.Simulation.Physics
 
             routedForward = new TrainRouted(this, 0);
             routedBackward = new TrainRouted(this, 1);
-            AuxActionsContain = new AuxActionsContainer(this, Simulator.orRouteConfig);
+            AuxActionsContain = new AuxActionsContainer(this);
         }
 
         //================================================================================================//
@@ -565,7 +565,7 @@ namespace Orts.Simulation.Physics
             Number = number;
             routedForward = new TrainRouted(this, 0);
             routedBackward = new TrainRouted(this, 1);
-            AuxActionsContain = new AuxActionsContainer(this, null);
+            AuxActionsContain = new AuxActionsContainer(this);
         }
 
         //================================================================================================//
@@ -583,7 +583,7 @@ namespace Orts.Simulation.Physics
             SignalObjectItems = new List<ObjectItemInfo>();
             signalRef = simulator.Signals;
 
-            AuxActionsContain = new AuxActionsContainer(this, Simulator.orRouteConfig);
+            AuxActionsContain = new AuxActionsContainer(this);
             if (orgTrain.TrafficService != null)
             {
                 TrafficService = new Traffic_Service_Definition();

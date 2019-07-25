@@ -213,7 +213,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Mark()
         {
             foreach (LOD lod in Primitive.TrProfile.LODs)
@@ -738,7 +738,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (CutoffRadius == 0) throw new Exception("missing CutoffRadius");
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Mark()
         {
             foreach (LODItem lodItem in LODItems)
@@ -818,7 +818,7 @@ namespace Orts.ActivityRunner.Viewer3D
             lod.LODMaterial = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, (Helpers.TextureFlags)lod.ESD_Alternative_Texture, lod.TexName), (int)options, lod.MipMapLevelOfDetailBias);
         }
 
-        [CallOnThread("Loader")]
+        //[CallOnThread("Loader")]
         public void Mark()
         {
             LODMaterial.Mark();
