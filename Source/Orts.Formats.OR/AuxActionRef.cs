@@ -131,16 +131,6 @@ namespace Orts.Formats.OR
             LoadAvailableActions();
         }
 
-        public List<AuxActionRef> GetGenAuxActions()
-        {
-            List<AuxActionRef> listAction = new List<AuxActionRef>();
-            foreach (var action in GenAuxActions)
-            {
-                listAction.Add(action.Value);
-            }
-            return listAction;
-        }
-
         public int GetCountAvailableAction()
         {
             return ActionFactory<AuxActionRef>.Count();
@@ -151,34 +141,6 @@ namespace Orts.Formats.OR
             return ActionFactory<AuxActionRef>.GetShortDescr(cnt);
         }
 
-        public string GetLongDescr(int cnt)
-        {
-            return ActionFactory<AuxActionRef>.GetLongDescr(cnt);
-        }
-
-        public bool AddGenAction(string name)
-        {
-            string keyShort = ActionFactory<AuxActionRef>.GetKey(name);
-            if (keyShort == null)
-                return false;
-            KeyValuePair<string, AuxActionRef>? record = HasGenAction(keyShort);
-            if (record != null)
-                return false;
-            AuxActionRef action = ActionFactory<AuxActionRef>.Create(keyShort);
-            record = new KeyValuePair<string, AuxActionRef>(keyShort, action);
-            GenAuxActions.Add((KeyValuePair<string, AuxActionRef>)record);
-            UsedActions.Add(name);
-            return true;
-        }
-
-        public string GetComment(string name)
-        {
-            string keyShort = ActionFactory<AuxActionRef>.GetKey(name);
-            if (keyShort == null)
-                return "No Comment";
-            return ActionFactory<AuxActionRef>.GetLongDescr(keyShort);
-
-        }
         public bool RemoveGenAction(string name)
         {
             string keyShort = ActionFactory<AuxActionRef>.GetKey(name);
@@ -204,19 +166,6 @@ namespace Orts.Formats.OR
             return null;
         }
 
-        public AuxActionRef GetAction(int indx)
-        {
-            string shortDescr = ActionFactory<AuxActionRef>.GetShortDescr(indx);
-            string keyShort = ActionFactory<AuxActionRef>.GetKey(shortDescr);
-            KeyValuePair<string, AuxActionRef>? actionPair = HasGenAction(keyShort);
-            if (actionPair != null)
-            {
-                KeyValuePair<string, AuxActionRef> info = (KeyValuePair<string, AuxActionRef>)actionPair;
-                return (AuxActionRef)info.Value;
-            }
-            return null;
-        }
-
         public void LoadAvailableActions()
         {
             if (GetCountAvailableAction() > 0)
@@ -227,28 +176,8 @@ namespace Orts.Formats.OR
                 }
             }
         }
-
-        public bool RemoveGenAction(int indx)
-        {
-            string shortDescr = UsedActions[indx];
-            if (RemoveGenAction(shortDescr))
-            {
-                UsedActions.RemoveAt(indx);
-                return true;
-            }
-            return false;
-        }
     }
 
-    public class ActionParameter
-    {
-        protected List<KeyValuePair<string, object>> Parameters;
-
-        public ActionParameter()
-        {
-            Parameters = new List<KeyValuePair<string, object>>();
-        }
-    }
     //================================================================================================//
     /// <summary>
     /// AuxActionRef
@@ -261,18 +190,7 @@ namespace Orts.Formats.OR
         public bool IsGeneric { get; set; }
         [JsonProperty("ActionType")]
         public AUX_ACTION ActionType;
-        //[JsonProperty("Location")]
-        //WorldLocation? Location;
-        //[JsonProperty("RequiredSpeed")]
-        //public float RequiredSpeedMpS;
-        //[JsonProperty("EndSignalIndex")]
-        //public int EndSignalIndex { get; protected set; }
-        //[JsonProperty("Delay")]
-        //public int Delay;
-        //[JsonProperty("RequiredDistance")]
-        //public float RequiredDistance;
-        //[JsonProperty("Param")]
-        //public List<Object> Parameter;
+
         
 
         public enum AUX_ACTION

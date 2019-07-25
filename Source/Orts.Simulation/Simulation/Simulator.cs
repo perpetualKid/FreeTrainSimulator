@@ -154,9 +154,7 @@ namespace Orts.Simulation
         public Confirmer Confirmer;                 // Set by the Viewer
         public Event SoundNotify = Event.None;
         public ScriptManager ScriptManager;
-#if ACTIVITY_EDITOR
-        public ORRouteConfig orRouteConfig;
-#endif
+
         public bool IsAutopilotMode = false;
 
         public bool soundProcessWorking = false;
@@ -309,12 +307,6 @@ namespace Orts.Simulation
                 TSectionDat.AddRouteTSectionDatFile(RoutePath + @"\TSECTION.DAT");
 
             SuperElevation = new SuperElevation(this);
-
-#if ACTIVITY_EDITOR
-            //  Where we try to load OR's specific data description (Station, connectors, etc...)
-            orRouteConfig = ORRouteConfig.LoadConfig(TRK.Tr_RouteFile.FileName, RoutePath);
-            orRouteConfig.SetTraveller(TSectionDat, TDB);
-#endif
 
             Trace.Write(" ACT");
 

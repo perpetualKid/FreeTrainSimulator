@@ -52,12 +52,12 @@ namespace Orts.Simulation.AIs
 
        Train ThisTrain;
 
-        public AuxActionsContainer(Train thisTrain, ORRouteConfig orRouteConfig)
+        public AuxActionsContainer(Train thisTrain)
         {
 
-            if (thisTrain is AITrain && orRouteConfig != null)
+            if (thisTrain is AITrain)
             {
-                SetGenAuxActions((AITrain)thisTrain, orRouteConfig);
+                SetGenAuxActions((AITrain)thisTrain);
             }
             else
             {
@@ -76,9 +76,9 @@ namespace Orts.Simulation.AIs
             //    GenAuxActions = SetGenAuxActions((AITrain)thisTrain, null);
             //}
             ThisTrain = thisTrain;
-            if (thisTrain is AITrain && thisTrain.Simulator.orRouteConfig != null)
+            if (thisTrain is AITrain)
             {
-                SetGenAuxActions((AITrain)thisTrain, thisTrain.Simulator.orRouteConfig);
+                SetGenAuxActions((AITrain)thisTrain);
             }
 
             int cntAuxActionSpec = inf.ReadInt32();
@@ -177,43 +177,8 @@ namespace Orts.Simulation.AIs
             }
 
 #endif
-        protected List<KeyValuePair<string, AuxActionRef>> ConvertActions(Train thisTrain, ActionContainer actionContainer)
+        protected void SetGenAuxActions(AITrain thisTrain)  //  Add here the new Generic Action
         {
-            List<KeyValuePair<string, AuxActionRef>> converted = new List<KeyValuePair<string, AuxActionRef>>();
-            foreach (var action in actionContainer.GenAuxActions)
-            {
-                if (action.Value.GetType() ==  typeof(AuxActionHorn))
-                {
-                    AIActionHornRef horn = new AIActionHornRef(thisTrain, (AuxActionHorn)action.Value, 0);
-                    List<KeyValuePair<System.Type, AuxActionRef>> listInfo = horn.GetCallFunction();
-                    foreach (var function in listInfo)
-                        GenFunctions.Add(function);
-                    KeyValuePair<string, AuxActionRef> info = new KeyValuePair<string, AuxActionRef>(action.Key, horn);
-                    converted.Add(info);
-                }
-                else if (action.Value.GetType() == typeof(AuxControlStart))
-                {
-                    AIActionControlStartRef controlStart = new AIActionControlStartRef(thisTrain, (AuxControlStart)action.Value, 0);
-                    List<KeyValuePair<System.Type, AuxActionRef>> listInfo = controlStart.GetCallFunction();
-                    foreach (var function in listInfo)
-                        GenFunctions.Add(function);
-                    KeyValuePair<string, AuxActionRef> info = new KeyValuePair<string, AuxActionRef>(action.Key, controlStart);
-                    converted.Add(info);
-                    //  If we use the ControllStart, then we must allow Generic WP to be created.
-                    AIActionWPRef wp = new AIActionWPRef(thisTrain, (AuxControlStart)action.Value, 0);
-                    listInfo = wp.GetCallFunction();
-                    foreach (var function in listInfo)
-                        GenFunctions.Add(function);
-                    info = new KeyValuePair<string, AuxActionRef>(action.Key, controlStart);
-                    converted.Add(info);
-                }
-            }
-            return converted;
-        }
-
-        protected List<KeyValuePair<string, AuxActionRef>> SetGenAuxActions(AITrain thisTrain, ORRouteConfig orRouteConfig)  //  Add here the new Generic Action
-         {
-            List<KeyValuePair<string, AuxActionRef>> loaded = null;
 #if WITH_GEN_ACTION
             //AIActionSignalRef actionSignal = new AIActionSignalRef(thisTrain, 0f, 0f, 0, 0, 0, 0);
             //actionSignal.SetDelay(10);
@@ -233,15 +198,6 @@ namespace Orts.Simulation.AIs
             GenAuxActions.Add(actionSteam);
             GenFunctions.Add(actionSteam.GetCallFunction());
 #endif
-            if (orRouteConfig == null)
-            {
-                loaded = new List<KeyValuePair<string, AuxActionRef>>();
-                return loaded;
-            }
-            else
-            {
-                loaded = ConvertActions(thisTrain, orRouteConfig.ActionContainer);
-            }
             if (!thisTrain.Simulator.TimetableMode && thisTrain.Simulator.Activity.Tr_Activity.Tr_Activity_File.ORTSAIHornAtCrossings > 0 && SpecAuxActions.Count == 0)
             {
                 AuxActionHorn auxActionHorn = new AuxActionHorn(true);
@@ -250,9 +206,6 @@ namespace Orts.Simulation.AIs
                 foreach (var function in listInfo)
                     GenFunctions.Add(function);
             }
-
-            //loaded = orRouteConfig.getGenAuxAction();
-            return loaded;
         }
 
         //public bool CheckGenActions(System.Type typeSource, float rearDist, float frontDist, WorldLocation location, uint trackNodeIndex)
