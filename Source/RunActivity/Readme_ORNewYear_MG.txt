@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.30
-July 19th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.31
+July 25th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -13,7 +13,7 @@ you would return to a non-MG OR version.
 
 RELEASE NOTES
 This unofficial version is based on the Monogame XNA emulation software (release 3.7.1).
-It has been derived from the official Open Rails revision X1.3.1-71, by modifying anything needed to access the Monogame software.
+It has been derived from the official Open Rails revision X1.3.1-72, by modifying anything needed to access the Monogame software.
 The Monogame modification are in sync with the ones of perpetualKid.
 Moreover it includes some features not (yet) available in the Open Rails official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
@@ -23,20 +23,17 @@ Moreover it includes some features not (yet) available in the Open Rails officia
 - increase of remote horn sound volume level
 - enable/disable on screen control confirmations with Ctrl-Alt-F10
 - removal of on screen notification of camera change
-- UPDATED: dynamic management of trough refill (by steamer_ctn)
+- dynamic management of trough refill (by steamer_ctn)
 - activity specific options setting (by steamer_ctn)
 - second phase of advanced coupler forces management (by steamer_ctn)
 - when car is ( cted through the F9 window, the car's brake line in the extended brake HUD is highlighted in yellow (by mbm_or)
 - removed bug in OR MG concerning display of ETCS gauge (by dennisat)
 - removed OR-MG specific bug not displaying some icons in TrackViewer (by dennisat)
 - improved distance management in roadcar camera
-- animation of bell (now bell animation FPS can be tuned via .sd file)
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
 - second phase of wheel bearing management (by steamer_ctn)
-- UPDATED: replaced flag Cab3DFreightAnim with parameter Visibility to define visibility properties of static freight animations
-- fixed bug of AI trains not appearing on single track section paths
-- fixed bug about transfers changing appearance with viewing direction (by dennisat)
-- fixed bug about signal script parser hanging (by perpetualKid)
+- fixed OR-MG specific bug about transfers changing appearance with viewing direction (by dennisat)
+- NEW: separating motive force from dynamic force (by steamer_ctn)
 
 
 CREDITS
