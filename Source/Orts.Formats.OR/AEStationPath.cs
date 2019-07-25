@@ -79,14 +79,6 @@ namespace Orts.Formats.OR
         public delegate void GetPaths();
         GetPaths parentFunct;
 
-        public StationPathsHelper(GetPaths f)
-        {
-            DefinedPath = new OriginPoint();
-            StepInPaths = new OriginPoint();
-            UndefinedPath = new OriginPoint();
-            parentFunct = f;
-        }
-
         public void Add(string inLabel, List<StationPath> paths)
         {
             if (paths == null)

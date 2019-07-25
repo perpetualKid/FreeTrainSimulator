@@ -24,6 +24,7 @@ namespace Orts.Formats.OR
         protected TypeItem info;
         public float ElementLocation;
         public GlobalItem refItem;
+
         public TrackCircuitElement(GlobalItem item, float position)
         {
             refItem = item;
@@ -37,15 +38,6 @@ namespace Orts.Formats.OR
             : base (item, position)
         {
             info = TypeItem.STATION_CONNECTOR;
-        }
-    }
-
-    public class TrackCircuitElementPlatform : TrackCircuitElement
-    {
-        public TrackCircuitElementPlatform(GlobalItem item, float position)
-            : base(item, position)
-        {
-            info = TypeItem.SIDING_START;
         }
     }
 }

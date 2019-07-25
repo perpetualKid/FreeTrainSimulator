@@ -69,9 +69,7 @@ namespace Orts.Formats.OR
         public WorldLocation WorldLocation { get { if (!locationSet) SetLocation(); return location; } }
         public int TileX { get { if (!locationSet) SetLocation(); return location.TileX; } }
         public int TileZ { get { if (!locationSet) SetLocation(); return location.TileZ; } }
-        public Vector3 Location { get { if (!locationSet) SetLocation(); return location.Location; } }
         public float X { get { if (!locationSet) SetLocation(); return location.Location.X; } }
-        public float Y { get { if (!locationSet) SetLocation(); return location.Location.Y; } }
         public float Z { get { if (!locationSet) SetLocation(); return location.Location.Z; } }
         public TravellerDirection Direction
         {
@@ -198,44 +196,6 @@ namespace Orts.Formats.OR
             var tvs = startTrackNode.TrVectorNode.TrVectorSections[0];
             if (!InitTrackNode(startTrackNodeIndex, tvs.TileX, tvs.TileZ, tvs.X, tvs.Z))
                 throw new InvalidDataException(String.Format("Track node {0} could not be found in the track database.", startTrackNode.UiD));
-        }
-
-        /// <summary>
-        /// Creates a traveller starting at a specific location within a specified track node, facing with the track node.
-        /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="startTrackNode">Starting track node.</param>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        void place(TrackNode startTrackNode, int tileX, int tileZ, float x, float z)
-        {
-            if (startTrackNode == null) throw new ArgumentNullException("startTrackNode");
-            var startTrackNodeIndex = Array.IndexOf(TrackNodes, startTrackNode);
-            if (startTrackNodeIndex == -1) throw new ArgumentException("Track node is not in track nodes array.", "startTrackNode");
-            if (!InitTrackNode(startTrackNodeIndex, tileX, tileZ, x, z))
-            {
-                if (startTrackNode.TrVectorNode == null) throw new ArgumentException("Track node is not a vector node.", "startTrackNode");
-                if (startTrackNode.TrVectorNode.TrVectorSections == null) throw new ArgumentException("Track node has no vector section data.", "startTrackNode");
-                if (startTrackNode.TrVectorNode.TrVectorSections.Length == 0) throw new ArgumentException("Track node has no vector sections.", "startTrackNode");
-                var tvs = startTrackNode.TrVectorNode.TrVectorSections[0];
-                if (!InitTrackNode(startTrackNodeIndex, tvs.TileX, tvs.TileZ, tvs.X, tvs.Z))
-                    throw new InvalidDataException(String.Format("Track node {0} could not be found in the track database.", startTrackNode.UiD));
-
-                // Figure out which end of the track node is closest and use that.
-                var target = new WorldLocation(tileX, tileZ, x, 0, z);
-                var startDistance = WorldLocation.GetDistance2D(WorldLocation, target).Length();
-                Direction = TravellerDirection.Backward;
-                NextTrackVectorSection(startTrackNode.TrVectorNode.TrVectorSections.Length - 1);
-                var endDistance = WorldLocation.GetDistance2D(WorldLocation, target).Length();
-                if (startDistance < endDistance)
-                {
-                    Direction = TravellerDirection.Forward;
-                    NextTrackVectorSection(0);
-                }
-            }
         }
 
         /// <summary>
@@ -540,31 +500,6 @@ namespace Orts.Formats.OR
         }
 
         /// <summary>
-        /// Returns the distance from the traveller's current lcation, in its current direction, to the location specified
-        /// </summary>
-        /// <param name="location">Target world location</param>
-        /// <returns>f the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(in WorldLocation location)
-        {
-            return DistanceTo(location.TileX, location.TileZ,
-                location.Location.X, location.Location.Y, location.Location.Z);
-        }
-
-        /// <summary>
-        /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
-        /// </summary>
-        /// <param name="tileX">Target tile coordinate.</param>
-        /// <param name="tileZ">Target tile coordinate.</param>
-        /// <param name="x">Target coordinate.</param>
-        /// <param name="y">Target coordinate.</param>
-        /// <param name="z">Target coordinate.</param>
-        /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(int tileX, int tileZ, float x, float y, float z)
-        {
-            return DistanceTo(new AETraveller(this), null, tileX, tileZ, x, y, z, float.MaxValue);
-        }
-
-        /// <summary>
         /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
         /// </summary>
         /// <param name="tileX">Target tile coordinate.</param>
@@ -632,47 +567,9 @@ namespace Orts.Formats.OR
         // DistanceTo : Returns the distance from this AEtraveller to the given sideItem. 
         //
 
-        public float DistanceTo(TrItem item)
-        {
-            return DistanceTo(item.TileX, item.TileZ, item.X, item.Y, item.Z);
-        }
-
         public float DistanceTo(GlobalItem item, float distMax = float.MaxValue)
         {
             return DistanceTo((int)item.Coord.TileX, (int)item.Coord.TileY, item.Coord.X, 0.0f, item.Coord.Y, distMax);
-        }
-
-        /// <summary>
-        /// Move AETraveller to given TrItem
-        /// </summary>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        public void MoveTo(TrItem item)
-        {
-            List<TrackNodeCandidate> candidates = new List<TrackNodeCandidate>();
-            WorldLocation loc = new WorldLocation(item.TileX, item.TileZ, item.X, item.Y, item.Z);
-
-            // first find all tracknodes that are close enough
-            for (var tni = 0; tni < TrackNodes.Length; tni++)
-            {
-                TrackNodeCandidate candidate = TryTrackNode(tni, loc, TSectionDat, TrackNodes);
-                if (candidate != null)
-                {
-                    candidates.Add(candidate);
-                }
-            }
-
-            if (candidates.Count == 0)
-            {
-                throw new InvalidDataException(String.Format("{0} could not be found in the track database.", new WorldLocation(item.TileX, item.TileZ, item.X, item.Y, item.Z)));
-            }
-
-            // find the best one.
-            TrackNodeCandidate bestCandidate = candidates.OrderBy(cand => cand.distanceToTrack).First();
-
-            InitFromCandidate(bestCandidate);
         }
 
         /// <summary>
@@ -687,32 +584,6 @@ namespace Orts.Formats.OR
         public TrItem MoveToNextItem(List<GlobalItem> AllItems, int tileX, int tileZ, float x, float z)
         {
             TrItem foundItem = null;
-#if false
-            WorldLocation loc = new WorldLocation(tileX, tileZ, x, 0, z);
-            float distFound = float.MaxValue;
-            float distMax = DistanceTo(loc);
-            TrackNode currentNode = GetCurrentNode();
-            foreach (var trItemRef in currentNode.TrVectorNode.TrItemRefs)
-            {
-                TrItem trItem = TrItems[trItemRef];
-                if (trItem.ItemType == TrItem.trItemType.aeCONNECTOR)
-                {
-                    float dist = DistanceTo(trItem, distMax);
-                    if (dist < distFound && dist >= 0.1)
-                    {
-                        foundItem = trItem;
-                    }
-                }
-            }
-            if (foundItem != null)
-            {
-                MoveTo(foundItem);
-            }
-            else
-            {
-                Move(distMax + 0.1f);
-            }
-#endif
             return foundItem;
         }
 
@@ -1099,30 +970,6 @@ namespace Orts.Formats.OR
             this.lon = lon;
             this.distanceToTrack = distanceToTrack;
             this.isCurved = isCurved;
-        }
-    }
-
-
-    public abstract class TravellerInitializationException : Exception
-    {
-        public readonly int TileX;
-        public readonly int TileZ;
-        public readonly float X;
-        public readonly float Y;
-        public readonly float Z;
-        public readonly TrVectorSection TVS;
-        public readonly float ErrorLimit;
-
-        protected TravellerInitializationException(Exception innerException, int tileX, int tileZ, float x, float y, float z, TrVectorSection tvs, float errorLimit, string format, params object[] args)
-            : base(String.Format(format, args), innerException)
-        {
-            TileX = tileX;
-            TileZ = tileZ;
-            X = x;
-            Y = y;
-            Z = z;
-            TVS = tvs;
-            ErrorLimit = errorLimit;
         }
     }
 }

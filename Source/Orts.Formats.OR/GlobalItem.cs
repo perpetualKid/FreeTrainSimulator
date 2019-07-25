@@ -113,8 +113,6 @@ namespace Orts.Formats.OR
             return dist;
         }
 
-        public virtual void Complete(ORRouteConfig orRouteConfig, MSTSItems aeItems, MSTSBase tileBase) { }
-
         public virtual void Edit() { }
 
         public virtual void SetAngle(float angle) { }
@@ -123,14 +121,10 @@ namespace Orts.Formats.OR
         public bool IsMovable() { return movable; }
         public bool IsRotable() { return rotable; }
         public bool IsEditable() { return editable; }
-        public bool IsLineSnap() { return lineSnap; }
-        public bool IsActEditable() { return actEdit; }
         protected void setMovable() { movable = true; }
         protected void setRotable() { rotable = true; }
         protected void setEditable() { editable = true; }
         protected void setLineSnap() { lineSnap = true; }
-        protected void setActEdit() { actEdit = true; }
-        protected void unsetEditable() { editable = false; }
 
         public void Unreduce(MSTSBase tileBase)
         {

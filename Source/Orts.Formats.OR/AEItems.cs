@@ -32,7 +32,6 @@ namespace Orts.Formats.OR
     public class MSTSItems
     {
         public List<AEJunctionItem> switches;
-        public List<SideItem> sidings;
         public List<AEBufferItem> buffers;
         public List<TrackSegment> segments;
 
@@ -101,38 +100,6 @@ namespace Orts.Formats.OR
         }
     }
 
-    #region TagItem
-
-    /// <summary>
-    /// Used to represent a tag, a mark with a name and used to facilitate navigation in the viewer 
-    /// </summary>
-    public class TagItem : GlobalItem
-    {
-        [JsonProperty("nameTag")]
-        public string nameTag { get; set; }
-        [JsonProperty("nameVisible")]
-        public bool nameVisible;
-
-        public override void alignEdition(TypeEditor interfaceType, GlobalItem ownParent)
-        { 
-            setMovable();
-            asMetadata = true;
-        }
-
-        public override void ConfigCoord (in MSTSCoord coord)
-        {
-            base.ConfigCoord(in coord);
-            typeItem = (int)TypeItem.TAG_ITEM;
-            nameVisible = false;
-        }
-
-        public override void Update(in MSTSCoord coord)
-        {
-            base.ConfigCoord(in coord);
-        }
-    }
-    #endregion
-
     #region StationItem
 
     public class StationItem : GlobalItem
@@ -150,8 +117,6 @@ namespace Orts.Formats.OR
         [JsonProperty("configuredBuffer")]
         public List<AEBufferItem> insideBuffers;
 
-        [JsonIgnore]
-        private List<TrackSegment> segmentsInStation;
         [JsonIgnore]
         public AETraveller traveller { get; protected set; }
         [JsonIgnore]
@@ -185,59 +150,6 @@ namespace Orts.Formats.OR
             icoAngle = angle;
         }
 
-
-        public void AddBuffers(ORRouteConfig orRouteConfig, List<AEBufferItem> buffers)
-        {
-            List<System.Drawing.PointF> polyPoints = getPolyPoints();
-            if (insideBuffers.Count > 0)
-            {
-                insideBuffers.Clear();
-            }
-            foreach (AEBufferItem buffer in buffers)
-            {
-                if (DrawUtility.PointInPolygon(buffer.Location, polyPoints)) // && buffer.Configured && buffer.DirBuffer != AllowedDir.NONE)
-                {
-                    insideBuffers.Add(buffer);
-                    buffer.alignEdition(TypeEditor.ROUTECONFIG, this);
-                    orRouteConfig.AddItem(buffer);
-                }
-            }
-        }
-
-        public override void Complete(ORRouteConfig orRouteConfig, MSTSItems aeItems, MSTSBase tileBase)
-        {
-            if (stationArea.Count > 0)
-            {
-                AddBuffers(orRouteConfig, aeItems.buffers);
-                checkForNewConnector(orRouteConfig, aeItems, tileBase);
-                areaCompleted = true;
-                searchForPaths(orRouteConfig, aeItems, tileBase);
-                GetPaths();
-            }
-        }
-        public void GetPaths()
-        {
-            List<StationPath> paths = null;
-            for (int i = 0; i < this.stationArea.Count; i++)
-            {
-                StationAreaItem item = this.stationArea[i];
-                if (item.IsInterface() && item.stationConnector.getLineSegment() != null &&
-                    (item.stationConnector.getDirConnector() == AllowedDir.IN ||
-                    item.stationConnector.getDirConnector() == AllowedDir.InOut))
-                {
-                    paths = item.stationConnector.stationPaths.getPaths();
-                    StationPathsHelper.Add(item.stationConnector.getLabel(), paths);
-                }
-            }
-            foreach (AEBufferItem buffer in insideBuffers)
-            {
-                if (buffer.stationPaths == null)
-                    continue;
-                paths = buffer.stationPaths.getPaths();
-                StationPathsHelper.Add(buffer.NameBuffer, paths);
-            }
-        }
-
         public List<System.Drawing.PointF> getPolyPoints() //  Or Polygone, it's the same
         {
             List<System.Drawing.PointF> polyPoints = new List<System.Drawing.PointF>();
@@ -249,33 +161,6 @@ namespace Orts.Formats.OR
                 polyPoints.Add(new System.Drawing.PointF(X, Y));
             }
             return polyPoints;
-        }
-
-        public List<AESegment> getPolySegment()
-        {
-            StationAreaItem item;
-            StationAreaItem item2;
-            PointF tf;
-            PointF tf2;
-            if (this.stationArea.Count <= 0)
-            {
-                return null;
-            }
-            List<AESegment> list = new List<AESegment>();
-            for (int i = 0; i < (this.stationArea.Count - 1); i++)
-            {
-                item = this.stationArea[i];
-                item2 = this.stationArea[i + 1];
-                tf = new PointF((item.Coord.TileX * 2048f) + item.Coord.X, (item.Coord.TileY * 2048f) + item.Coord.Y);
-                tf2 = new PointF((item2.Coord.TileX * 2048f) + item2.Coord.X, (item2.Coord.TileY * 2048f) + item2.Coord.Y);
-                list.Add(new AESegment(tf, tf2));
-            }
-            item = this.stationArea[0];
-            item2 = this.stationArea[this.stationArea.Count - 1];
-            tf = new PointF((item.Coord.TileX * 2048f) + item.Coord.X, (item.Coord.TileY * 2048f) + item.Coord.Y);
-            tf2 = new PointF((item2.Coord.TileX * 2048f) + item2.Coord.X, (item2.Coord.TileY * 2048f) + item2.Coord.Y);
-            list.Add(new AESegment(tf2, tf));
-            return list;
         }
 
         public override double FindItem(PointF point, double snap, double actualDist, MSTSItems aeItems)
@@ -326,11 +211,6 @@ namespace Orts.Formats.OR
             return iconDist;
         }
 
-        public double FindItemExact(PointF point, double actualDist, MSTSItems aeItems)
-        {
-            return FindItem(point, 0.0, actualDist, aeItems);
-        }
-
         public void highlightTrackFromArea(MSTSItems aeItems)
         {
             foreach (StationAreaItem item in stationArea)
@@ -343,162 +223,11 @@ namespace Orts.Formats.OR
             }
         }
 
-        public void searchForPaths(ORRouteConfig orRouteConfig, MSTSItems aeItems, MSTSBase tileBase)
-        {
-            List<StationPath> paths = null;
-            //StationPathsHelper.Clear();
-            
-            for (int i = 0; i < this.stationArea.Count; i++)
-            {
-                double positiveInfinity = double.PositiveInfinity;
-                StationAreaItem item = this.stationArea[i];
-                if (item.IsInterface() && item.stationConnector.getLineSegment() != null &&
-                    (item.stationConnector.getDirConnector() == AllowedDir.IN ||
-                    item.stationConnector.getDirConnector() == AllowedDir.InOut))
-                {
-                    TrackSegment segment = item.stationConnector.getLineSegment();
-                    AETraveller myTravel = new AETraveller(this.traveller);
-                    myTravel.place(segment.associateNodeIdx, (int)item.Coord.TileX, (int)item.Coord.TileY, item.Coord.X, item.Coord.Y);
-                    myTravel.Move(1.0f);
-                    PointF position = myTravel.getCoordinate();
-                    if (FindItemExact(position, positiveInfinity, aeItems) == 0.0)
-                    {
-                        paths = item.stationConnector.searchPaths(myTravel, getListConnector(), aeItems, this);
-                    }
-                    else
-                    {
-                        myTravel.ReverseDirection();
-                        myTravel.Move(2.0f);
-                        position = myTravel.getCoordinate();
-                        if (this.FindItemExact(position, positiveInfinity, aeItems) == 0.0)
-                        {
-                            paths = item.stationConnector.searchPaths(myTravel, getListConnector(), aeItems, this);
-                        }
-                    }
-                    //StationPathsHelper.Add(item.stationConnector.getLabel(), paths);
-                }
-            }
-            foreach (AEBufferItem buffer in insideBuffers)
-            {
-                AETraveller myTravel = new AETraveller(this.traveller);
-                myTravel.place((int)buffer.Coord.TileX, (int)buffer.Coord.TileY, buffer.Coord.X, buffer.Coord.Y);
-                if (myTravel.EndNodeAhead() != null)
-                    myTravel.ReverseDirection();
-                paths = buffer.searchPaths(myTravel, getListConnector(), aeItems, this);
-                //StationPathsHelper.Add(buffer.NameBuffer, paths);
-            }
-        }
-
-        public void checkForNewConnector(ORRouteConfig orRouteConfig, MSTSItems mstsItems, MSTSBase tileBase)
-        {
-            //  First, we remove all un configured connectors
-            //foreach (StationAreaItem SAWidget in stationArea)
-            for (int cnt = 0; cnt < stationArea.Count; cnt++)
-            {
-                var SAItem = stationArea[cnt];
-                if (SAItem.IsInterface() && !SAItem.getStationConnector().isConfigured())
-                {
-                    removeConnector(orRouteConfig, SAItem);
-                    cnt--;
-                }
-            }
-            //  Next, we search for new connectors and add them
-            foreach (var item in stationArea)
-            {
-                if (!item.IsInterface())
-                    continue;
-                TrackSegment trackSegment = mstsItems.GetTrackSegment(item.associateNodeIdx, item.associateSectionIdx);
-                item.DefineAsInterface(trackSegment);
-            }
-            foreach (var segment in mstsItems.segments)
-            {
-                int num = 0;
-                List<System.Drawing.PointF> pointsIntersect = new List<System.Drawing.PointF>();
-                
-                List<AESegment> polySegments = getPolySegment();
-                if (segment.associateNodeIdx == 344)
-                    num = 0;
-                for (int cntPointSegment = 0; cntPointSegment < polySegments.Count; cntPointSegment++)
-                {
-                    PointF pointIntersect = DrawUtility.FindIntersection(polySegments[cntPointSegment], new AESegment (segment));
-                    if (!pointIntersect.IsEmpty)
-                    {
-                        StationAreaItem newPoint = new StationAreaItem(TypeEditor.ROUTECONFIG, this);
-                        MSTSCoord coord = new MSTSCoord(pointIntersect);
-                        newPoint.ConfigCoord(coord);
-                        num++;
-                        //newPoint.toggleSelected();
-                        stationArea.Insert(num, newPoint);
-                        newPoint.DefineAsInterface(segment);
-                        newPoint.setAngle(getPolyPoints());
-                        orRouteConfig.AddItem(newPoint);
-                    }
-                    num++;
-                }
-            }
-        }
-
-        public void removeConnector(ORRouteConfig orRouteConfig, StationAreaItem connector)
-        {
-            stationArea.Remove(connector);
-            orRouteConfig.RemoveConnectorItem(connector);
-
-        }
-
         public void setTraveller(AETraveller travel)
         {
             this.traveller = travel;
         }
 
-        private List<TrackSegment> getListConnector()
-        {
-            List<TrackSegment> list = new List<TrackSegment>();
-            for (int i = 0; i < this.stationArea.Count; i++)
-            {
-                StationAreaItem item = this.stationArea[i];
-                if (item.IsInterface() && item.stationConnector != null && item.stationConnector.getLineSegment() != null)
-                {
-                    list.Add(item.stationConnector.getLineSegment());
-                }
-            }
-            return list;
-        }
-
-        public bool IsInStation(in MSTSCoord place)
-        {
-            double iconDist = double.PositiveInfinity;
-            List<System.Drawing.PointF> poly = getPolyPoints();
-            int i, j = poly.Count - 1;
-            bool oddNodes = false;
-            PointF placeNormalized = place.ConvertToPointF();
-
-            visible = false;
-            if (!((Location.X < placeNormalized.X) || (Location.X > placeNormalized.X)
-                || (Location.Y < placeNormalized.Y) || (Location.Y > placeNormalized.Y)))
-            {
-                visible = true;
-                iconDist = (Math.Sqrt(Math.Pow((Location.X - placeNormalized.X), 2) + Math.Pow((Location.Y - placeNormalized.Y), 2)));
-            }
-            //File.AppendAllText(@"F:\temp\AE.txt", "FindItem: pointX: " + point.X +
-            //    " pointY: " + point.Y + "\n");
-            for (i = 0; i < poly.Count; i++)
-            {
-                if ((poly[i].Y < placeNormalized.Y && poly[j].Y >= placeNormalized.Y ||
-                    poly[j].Y < placeNormalized.Y && poly[i].Y >= placeNormalized.Y)
-                && (poly[i].X <= placeNormalized.X || poly[j].X <= placeNormalized.X))
-                {
-                    oddNodes ^= (poly[i].X + (placeNormalized.Y - poly[i].Y) / (poly[j].Y - poly[i].Y) * (poly[j].X - poly[i].X) < placeNormalized.X);
-                    //File.AppendAllText(@"F:\temp\AE.txt", "oddNodes ^=\n");
-                }
-                j = i;
-            }
-
-            if (oddNodes)
-            {
-                return true;
-            }
-            return false;
-        }
     }
     #endregion
 
