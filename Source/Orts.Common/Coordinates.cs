@@ -188,6 +188,7 @@ namespace Orts.Common
     /// </summary>
     public readonly struct WorldLocation
     {
+        public const int TileSize = 2048;
         /// <summary>
         /// Returns a WorldLocation representing no location at all.
         /// </summary>
@@ -228,10 +229,10 @@ namespace Orts.Common
         /// </summary>
         public WorldLocation Normalize()
         {
-            int xTileDistance = (int)Math.Ceiling((double)((int)(Location.X / 1024) / 2));
-            int zTileDistance = (int)Math.Ceiling((double)((int)(Location.Z / 1024) / 2));
+            int xTileDistance = (int)Math.Ceiling((double)((int)(Location.X / 1024) / 2.0));
+            int zTileDistance = (int)Math.Ceiling((double)((int)(Location.Z / 1024) / 2.0));
 
-            return new WorldLocation(TileX + xTileDistance, TileZ + zTileDistance, new Vector3(Location.X - (xTileDistance * 2048), Location.Y, Location.Z - (zTileDistance * 2048)));
+            return new WorldLocation(TileX + xTileDistance, TileZ + zTileDistance, new Vector3(Location.X - (xTileDistance * TileSize), Location.Y, Location.Z - (zTileDistance * TileSize)));
 
             //while (Location.X >= 1024) { Location.X -= 2048; TileX++; }
             //while (Location.X < -1024) { Location.X += 2048; TileX--; }
@@ -248,7 +249,7 @@ namespace Orts.Common
         {
             int xDiff = TileX - tileX;
             int zDiff = TileZ - tileZ;
-            return new WorldLocation(TileX - xDiff, TileZ - zDiff, new Vector3(Location.X + (xDiff * 2048), Location.Y, Location.Z + (zDiff * 2048)));
+            return new WorldLocation(tileX, tileZ, new Vector3(Location.X + (xDiff * TileSize), Location.Y, Location.Z + (zDiff * TileSize)));
 
             //while (TileX < tileX) { Location.X -= 2048; TileX++; }
             //while (TileX > tileX) { Location.X += 2048; TileX--; }
@@ -256,25 +257,32 @@ namespace Orts.Common
             //while (TileZ > tileZ) { Location.Z += 2048; TileZ--; }
         }
 
+        /// <summary>
+        /// Helper method to set the elevation only to specified value
+        /// </summary>
+        /// <param name="elevation"></param>
+        /// <returns></returns>
         public WorldLocation SetElevation(float elevation)
         {
             return new WorldLocation(TileX, TileZ, Location.X, elevation, Location.Z);
         }
 
+        /// <summary>
+        /// Helper method to change (update) the elevation only by specifed delta
+        /// </summary>
+        /// <param name="delta"></param>
+        /// <returns></returns>
         public WorldLocation ChangeElevation(float delta)
         {
             return new WorldLocation(TileX, TileZ, Location.X, Location.Y + delta, Location.Z);
         }
 
         /// <summary>
-        /// Check whether location1 and location2 are within given distance from each other
+        /// Check whether location1 and location2 are within given distance (in meters) from each other in 3D
         /// </summary>
-        /// <param name="location1">first location</param>
-        /// <param name="location2">second location</param>
-        /// <param name="distance">distance defining the boundary between 'within' and 'outside'</param>
         public static bool Within(in WorldLocation location1, in WorldLocation location2, float distance)
         {
-            return GetDistanceSquared(location1, location2) < distance * distance;
+            return GetDistanceSquared(location1, location2) <= distance * distance;
         }
 
         /// <summary>
@@ -285,27 +293,29 @@ namespace Orts.Common
             float dx = location1.Location.X - location2.Location.X;
             float dy = location1.Location.Y - location2.Location.Y;
             float dz = location1.Location.Z - location2.Location.Z;
-            dx += 2048 * (location1.TileX - location2.TileX);
-            dz += 2048 * (location1.TileZ - location2.TileZ);
+            dx += TileSize * (location1.TileX - location2.TileX);
+            dz += TileSize * (location1.TileZ - location2.TileZ);
             return dx * dx + dy * dy + dz * dz;
         }
 
         /// <summary>
-        /// Get a (3D) vector pointing from <paramref name="locationFrom"/> to <paramref name="locationTo"/>
+        /// Get a (3D) vector pointing locationFrom to locationTo
         /// </summary>
         public static Vector3 GetDistance(in WorldLocation locationFrom, in WorldLocation locationTo)
         {
-            return new Vector3(locationTo.Location.X - locationFrom.Location.X + (locationTo.TileX - locationFrom.TileX) * 2048, 
-                locationTo.Location.Y - locationFrom.Location.Y, locationTo.Location.Z - locationFrom.Location.Z + (locationTo.TileZ - locationFrom.TileZ) * 2048);
+            return new Vector3(
+                locationTo.Location.X - locationFrom.Location.X + (locationTo.TileX - locationFrom.TileX) * TileSize, 
+                locationTo.Location.Y - locationFrom.Location.Y, 
+                locationTo.Location.Z - locationFrom.Location.Z + (locationTo.TileZ - locationFrom.TileZ) * TileSize);
         }
 
         /// <summary>
-        /// Get a (2D) vector pointing from <paramref name="locationFrom"/> to <paramref name="locationTo"/>, so neglecting height (y) information
+        /// Get a (2D) vector pointing from locationFrom to locationTo, neglecting elevation (y) information
         /// </summary>
         public static Vector2 GetDistance2D(in WorldLocation locationFrom, in WorldLocation locationTo)
         {
-            return new Vector2(locationTo.Location.X - locationFrom.Location.X + (locationTo.TileX - locationFrom.TileX) * 2048, 
-                locationTo.Location.Z - locationFrom.Location.Z + (locationTo.TileZ - locationFrom.TileZ) * 2048);
+            return new Vector2(locationTo.Location.X - locationFrom.Location.X + (locationTo.TileX - locationFrom.TileX) * TileSize, 
+                locationTo.Location.Z - locationFrom.Location.Z + (locationTo.TileZ - locationFrom.TileZ) * TileSize);
         }
 
         /// <summary>
