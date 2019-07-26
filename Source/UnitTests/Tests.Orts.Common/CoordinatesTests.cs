@@ -2,6 +2,7 @@
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orts.Common;
+using Orts.Common.Xna;
 
 namespace Tests.Orts.Common
 {
@@ -70,10 +71,10 @@ namespace Tests.Orts.Common
             WorldLocation location1 = new WorldLocation();
             WorldLocation location2 = new WorldLocation(1, 1, Microsoft.Xna.Framework.Vector3.One);
 
-            Assert.IsTrue(Equals(location1, WorldLocation.None));
+            Assert.IsTrue(location1.Equals(WorldLocation.None));
             Assert.IsTrue(location1 != location2);
 
-            Assert.IsFalse(Equals(new object(), WorldLocation.None));
+            Assert.IsFalse(Equals(WorldLocation.None.Equals(new object())));
         }
 
         [TestMethod]
@@ -94,5 +95,58 @@ namespace Tests.Orts.Common
 
             Assert.IsTrue(WorldLocation.Equals(location1, location2));
         }
+
+        [TestMethod]
+        public void WorldPositionCtorTest()
+        {
+            Assert.AreEqual(WorldPosition.None, new WorldPosition(0, 0, Microsoft.Xna.Framework.Matrix.Identity));
+            WorldLocation location = new WorldLocation(3, 4, 5, 6, 7);
+            WorldPosition position = new WorldPosition(location);
+            Assert.AreEqual(location.Location, position.Location);
+            Assert.AreEqual(location, position.WorldLocation);
+
+            Assert.AreEqual("{TileX:3 TileZ:4 X:5 Y:6 Z:7}", position.ToString());
+        }
+
+        [TestMethod]
+        public void WorldPositionTranslationTest()
+        {
+            WorldLocation location = new WorldLocation(3, 4, 5, 6, 7);
+            WorldPosition position = new WorldPosition(location);
+            Assert.AreEqual(position.SetTranslation(Microsoft.Xna.Framework.Vector3.One), position.SetTranslation(1, 1, 1));
+            Assert.AreEqual(position.SetMstsTranslation(Microsoft.Xna.Framework.Vector3.One), position.SetMstsTranslation(1, 1, 1));
+        }
+
+        [TestMethod]
+        public void WorldPositionNormalizeTest()
+        {
+            WorldPosition position = new WorldPosition(new WorldLocation(0, 0, 3834, 0, -4118)).Normalize();
+
+            Assert.AreEqual(2, position.TileX);
+            Assert.AreEqual(-262, position.Location.X);
+            Assert.AreEqual(2, position.TileZ);
+            Assert.AreEqual(-22, position.Location.Z);
+
+            position = new WorldPosition(0, 0, MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix .Identity, 3834, 0, -4118)).Normalize();
+
+            Assert.AreEqual(2, position.TileX);
+            Assert.AreEqual(-262, position.Location.X);
+            Assert.AreEqual(-2, position.TileZ);
+            Assert.AreEqual(22, position.Location.Z);
+            Assert.AreEqual(-22, position.XNAMatrix.M43);
+        }
+
+        [TestMethod]
+        public void WorldPositionNormalizeToTest()
+        {
+            WorldPosition position = new WorldPosition(-1, 1, MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix.Identity, 3834, 0, -4118)).NormalizeTo(4, 4);
+
+            Assert.AreEqual(4, position.TileX);
+            Assert.AreEqual(-6406, position.Location.X);
+            Assert.AreEqual(4, position.TileZ);
+            Assert.AreEqual(10262, position.Location.Z);
+            Assert.AreEqual(-10262, position.XNAMatrix.M43);
+        }
+
     }
 }

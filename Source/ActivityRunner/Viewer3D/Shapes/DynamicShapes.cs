@@ -666,7 +666,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 AnimateMatrix(i, animationKey);
 
             //SharedShape.PrepareFrame(frame, WorldPosition, XNAMatrices, Flags);
-            SharedShape.PrepareFrame(frame, WorldPosition.SetLocation(hazardObject.Position.X, hazardObject.Position.Y, hazardObject.Position.Z), XNAMatrices, Flags);
+            SharedShape.PrepareFrame(frame, WorldPosition.SetMstsTranslation(hazardObject.Position.X, hazardObject.Position.Y, hazardObject.Position.Z), XNAMatrices, Flags);
         }
     }
 

@@ -57,6 +57,8 @@ namespace Orts.Common
     /// </summary>
     public readonly struct WorldPosition
     {
+        public const int TileSize = 2048;
+
         /// <summary>The x-value of the tile</summary>
         public readonly int TileX;
         /// <summary>The z-value of the tile</summary>
@@ -71,7 +73,12 @@ namespace Orts.Common
             XNAMatrix = xnaMatrix;
         }
 
-        public static readonly WorldPosition None = new WorldPosition(0, 0, Matrix.Identity);
+        private static readonly WorldPosition none = new WorldPosition(0, 0, Matrix.Identity);
+
+        /// <summary>
+        /// Returns a WorldPosition representing no Position at all.
+        /// </summary>
+        public static ref readonly WorldPosition None => ref none;
 
         /// <summary>
         /// Copy constructor using a MSTS-coordinates world-location 
@@ -96,7 +103,12 @@ namespace Orts.Common
 
         public WorldPosition SetMstsTranslation(Vector3 translation)
         {
-            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, translation.X, translation.Y, - translation.Z));
+            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, translation.X, translation.Y, -translation.Z));
+        }
+
+        public WorldPosition SetMstsTranslation(float x, float y, float z)
+        {
+            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, x, y, -z));
         }
 
         /// <summary>
@@ -115,16 +127,6 @@ namespace Orts.Common
         {
             // "inlined" XnaMatrix.Translation() Decomposition
             get { return new Vector3(XNAMatrix.M41, XNAMatrix.M42, -XNAMatrix.M43); }
-        }
-
-        public WorldPosition SetLocation(Vector3 location)
-        {
-            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, location.X, location.Y, -location.Z));
-        }
-
-        public WorldPosition SetLocation(float x, float y, float z)
-        {
-            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, x, y, -z));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -147,10 +149,11 @@ namespace Orts.Common
             //XNAMatrix.Translation = TileLocation;
 
             Vector3 location = XnaLocation();
-            int xTileDistance = (int)Math.Ceiling((double)((int)(location.X / 1024) / 2));
-            int zTileDistance = (int)Math.Ceiling((double)((int)(location.Z / 1024) / 2));
+            int xTileDistance = (int)Math.Ceiling((int)(location.X / 1024) / 2.0);
+            int zTileDistance = (int)Math.Ceiling((int)(location.Z / 1024) / 2.0);
             return new WorldPosition(TileX + xTileDistance, TileZ + zTileDistance,
-                MatrixExtension.SetTranslation(XNAMatrix, location.X - (xTileDistance * 2048), location.Y, location.Z - (zTileDistance * 2048)));
+                MatrixExtension.SetTranslation(XNAMatrix, location.X - (xTileDistance * TileSize), 
+                location.Y, location.Z - (zTileDistance * TileSize)));
         }
 
         /// <summary>
@@ -170,8 +173,9 @@ namespace Orts.Common
             Vector3 location = XnaLocation();
             int xDiff = TileX - tileX;
             int zDiff = TileZ - tileZ;
-            return new WorldPosition(TileX - xDiff, TileZ - zDiff, 
-                MatrixExtension.SetTranslation(XNAMatrix, location.X + (xDiff * 2048), location.Y, location.Z + (zDiff * 2048)));
+            return new WorldPosition(tileX, tileZ, 
+                MatrixExtension.SetTranslation(XNAMatrix, location.X + (xDiff * TileSize), 
+                location.Y, location.Z + (zDiff * TileSize)));
         }
 
         /// <summary>
@@ -189,10 +193,12 @@ namespace Orts.Common
     public readonly struct WorldLocation
     {
         public const int TileSize = 2048;
+		private static readonly WorldLocation none = new WorldLocation();
+
         /// <summary>
         /// Returns a WorldLocation representing no location at all.
         /// </summary>
-		public static readonly WorldLocation None = new WorldLocation();
+        public static ref readonly WorldLocation None => ref none;
 
         /// <summary>The x-value of the tile</summary>
         public readonly int TileX;
@@ -229,8 +235,8 @@ namespace Orts.Common
         /// </summary>
         public WorldLocation Normalize()
         {
-            int xTileDistance = (int)Math.Ceiling((double)((int)(Location.X / 1024) / 2.0));
-            int zTileDistance = (int)Math.Ceiling((double)((int)(Location.Z / 1024) / 2.0));
+            int xTileDistance = (int)Math.Ceiling((int)(Location.X / 1024) / 2.0);
+            int zTileDistance = (int)Math.Ceiling((int)(Location.Z / 1024) / 2.0);
 
             return new WorldLocation(TileX + xTileDistance, TileZ + zTileDistance, new Vector3(Location.X - (xTileDistance * TileSize), Location.Y, Location.Z - (zTileDistance * TileSize)));
 
