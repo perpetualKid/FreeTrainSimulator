@@ -44,8 +44,8 @@ namespace Orts.Simulation.AIs
 
     public class AuxActionsContainer
     {
-        public List<AuxActionRef> SpecAuxActions;          // Actions To Do during activity, like WP with specific location
-        protected List<KeyValuePair<System.Type, AuxActionRef>> GenFunctions;
+        public List<AuxActionRef> SpecAuxActions = new List<AuxActionRef>();          // Actions To Do during activity, like WP with specific location
+        protected List<KeyValuePair<System.Type, AuxActionRef>> GenFunctions = new List<KeyValuePair<Type, AuxActionRef>>();
 
         public Train.DistanceTravelledActions genRequiredActions = new Train.DistanceTravelledActions(); // distance travelled Generic action list for AITrain
         public Train.DistanceTravelledActions specRequiredActions = new Train.DistanceTravelledActions();
