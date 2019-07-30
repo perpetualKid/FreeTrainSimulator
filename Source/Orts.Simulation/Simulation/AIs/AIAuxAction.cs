@@ -21,19 +21,16 @@
  * 
  */
 
-using Newtonsoft.Json;
-using Orts.Formats.Msts;
-using Orts.Formats.OR;
-using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
-using Orts.Simulation.RollingStocks.SubSystems.Controllers;
-using Orts.Simulation.Signalling;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Event = Orts.Common.Event;
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.OR;
+using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
+using Orts.Simulation.Signalling;
 
 namespace Orts.Simulation.AIs
 {
@@ -45,8 +42,11 @@ namespace Orts.Simulation.AIs
     /// Used to manage all the action ref object.
     /// </summary>
 
-    public class AuxActionsContainer : ActionContainer
+    public class AuxActionsContainer
     {
+        public List<AuxActionRef> SpecAuxActions;          // Actions To Do during activity, like WP with specific location
+        protected List<KeyValuePair<System.Type, AuxActionRef>> GenFunctions;
+
         public Train.DistanceTravelledActions genRequiredActions = new Train.DistanceTravelledActions(); // distance travelled Generic action list for AITrain
         public Train.DistanceTravelledActions specRequiredActions = new Train.DistanceTravelledActions();
 
@@ -59,22 +59,11 @@ namespace Orts.Simulation.AIs
             {
                 SetGenAuxActions((AITrain)thisTrain);
             }
-            else
-            {
-                GenAuxActions = new List<KeyValuePair<string, AuxActionRef>>();
-            }
             ThisTrain = thisTrain;
         }
 
         public AuxActionsContainer(Train thisTrain, BinaryReader inf, string routePath)
         {
-            //SpecAuxActions = new List<AuxActionRef>();
-            ////GenAuxActions = new List<AuxActionRef>();
-            //GenFunctions = new List<KeyValuePair<System.Type, AuxActionRef>>();
-            //if (thisTrain is AITrain)
-            //{
-            //    GenAuxActions = SetGenAuxActions((AITrain)thisTrain, null);
-            //}
             ThisTrain = thisTrain;
             if (thisTrain is AITrain)
             {
@@ -179,25 +168,6 @@ namespace Orts.Simulation.AIs
 #endif
         protected void SetGenAuxActions(AITrain thisTrain)  //  Add here the new Generic Action
         {
-#if WITH_GEN_ACTION
-            //AIActionSignalRef actionSignal = new AIActionSignalRef(thisTrain, 0f, 0f, 0, 0, 0, 0);
-            //actionSignal.SetDelay(10);
-            //actionSignal.IsGeneric = true;
-            //GenAuxActions.Add(actionSignal);
-            ////GenFunctions.Add(actionSignal.GetCallFunction());
-
-            AIActionHornRef actionHorn = new AIActionHornRef(thisTrain, 0f, 0f, 0, 0, 0, 0);
-            actionHorn.SetDelay(2);
-            actionHorn.IsGeneric = true;
-            GenAuxActions.Add(actionHorn);
-            GenFunctions.Add(actionHorn.GetCallFunction());
-
-            AIActionSteamRef actionSteam = new AIActionSteamRef(thisTrain, 0f, 0f, 0, 0, 0, 0);
-            actionSteam.SetDelay(2);
-            actionSteam.IsGeneric = true;
-            GenAuxActions.Add(actionSteam);
-            GenFunctions.Add(actionSteam.GetCallFunction());
-#endif
             if (!thisTrain.Simulator.TimetableMode && thisTrain.Simulator.Activity.Tr_Activity.Tr_Activity_File.ORTSAIHornAtCrossings > 0 && SpecAuxActions.Count == 0)
             {
                 AuxActionHorn auxActionHorn = new AuxActionHorn(true);
@@ -236,28 +206,6 @@ namespace Orts.Simulation.AIs
                 }
             }
             return false;
-        }
-
-        public void RemoveGenActions(System.Type typeSource, in WorldLocation location)
-        {
-#if WITH_PATH_DEBUG
-            File.AppendAllText(@"C:\temp\checkpath.txt", "Remove GenAction for train " + ThisTrain.Number + "\n");
-#endif
-            if ((ThisTrain is AITrain))
-            {
-                AITrain aiTrain = ThisTrain as AITrain;
-                foreach (var fonction in GenFunctions)
-                {
-                    if (typeSource == fonction.Key)   //  Caller object is a LevelCrossing
-                    {
-                        AIAuxActionsRef called = (AIAuxActionsRef)fonction.Value;
-                        if (called.HasAction(ThisTrain.Number, location))
-                        {
-                            called.RemoveReference(aiTrain.Number, location);
-                        }
-                    }
-                }
-            }
         }
 
         public void RemoveSpecReqAction(AuxActionItem thisAction)
@@ -542,67 +490,11 @@ namespace Orts.Simulation.AIs
             }
         }
 
-        public AuxActionRef GetGenericAuxAction(AuxActionRef.AUX_ACTION typeReq)
-        {
-            return GenAuxActions.GetGenericAuxAction(typeReq);
-        }
-
         public void Add(AuxActionRef action)
         {
             SpecAuxActions.Add(action);
         }
     }
-
-    public static class AIAuxActionRefList
-    {
-        public static AuxActionRef GetGenericAuxAction(this List<KeyValuePair<string, AuxActionRef>> list, AuxActionRef.AUX_ACTION typeReq)
-        {
-            foreach (var AuxAction in list)
-            {
-                AIAuxActionsRef thisAction = AuxAction.Value as AIAuxActionsRef;
-                if (thisAction.NextAction == typeReq)
-                    return thisAction;
-            }
-            return null;
-        }
-
-        public static List<AuxActionRef> GetValidActions(this List<KeyValuePair<string, AuxActionRef>> list, AITrain thisTrain, float presentSpeedMpS, bool reschedule)
-        {
-            List<AuxActionRef> listAction = new List<AuxActionRef>();
-            if (list == null)
-                return listAction;
-            var previousList = list;
-            bool getFirst = false;
-            try
-            {
-                foreach (var action in previousList)
-                {
-                    AIAuxActionsRef thisAction = action.Value as AIAuxActionsRef;
-                    float[] distancesM = thisAction.CalculateDistancesToNextAction(thisTrain, presentSpeedMpS, reschedule);
-                    if (!thisAction.IsGeneric && !getFirst)
-                    {
-                        if (distancesM[0] < 0f)
-                        {
-                            previousList.RemoveAt(0);
-                            continue;
-                        }
-                        listAction.Insert(0, thisAction);
-                        getFirst = true;
-                    }
-                    if (distancesM[0] == 0f || distancesM[0] == float.MaxValue)
-                    {
-                        listAction.Add(thisAction);
-                    }
-                }
-            }
-            catch
-            {
-            }
-
-            return listAction;
-        }
-    }
-
 
     #endregion
     #region AuxActionRef
@@ -714,7 +606,7 @@ namespace Orts.Simulation.AIs
             return (distancesM);
         }
 
-        public virtual float[] GetActivationDistances(Train thisTrain, in WorldLocation location)
+        public virtual float[] GetActivationDistances(Train thisTrain)
         {
             float[] distancesM = new float[2];
             distancesM[1] = float.MaxValue;
@@ -784,24 +676,6 @@ namespace Orts.Simulation.AIs
             return true;
         }
 
-        public void RemoveReference(int trainNumber, in WorldLocation location)
-        {
-            //var info = default (KeyValuePair<int, WorldLocation>);
-            foreach (var info in AskingTrain)
-            {
-                int number = (int)info.Key;
-                if (number == trainNumber)
-                {
-                    WorldLocation locationRegistered = info.Value;
-                    if (location == locationRegistered)
-                    {
-                        AskingTrain.Remove(info);
-                        break;
-                    }
-                }
-            }
-        }
-
         public void SetSignalObject(SignalObject signal)
         {
             SignalReferenced = signal;
@@ -841,14 +715,6 @@ namespace Orts.Simulation.AIs
                 " type Action: " + NextAction.ToString() +
                 " Delay: " + Delay + "\n");
 #endif
-        }
-
-        public AIActionWPRef(Train thisTrain, AuxControlStart myBase, int nop = 0)
-            : base(thisTrain, 0f, 0f, 0, 0, 0, 0, myBase.ActionType)
-        {
-            Delay = myBase.ActivationDelay;     //  Generic WP Delay will be the Control Start ActivationDelay
-            NextAction = AUX_ACTION.WAITING_POINT;
-            IsGeneric = myBase.IsGeneric;
         }
 
         public override void save(BinaryWriter outf, int cnt)
@@ -1071,7 +937,6 @@ namespace Orts.Simulation.AIs
                 info = new AuxActionHornItem(this, AIActionItem.AI_ACTION_TYPE.AUX_ACTION);
                 info.SetParam((float)list[0], (float)list[1], (float)list[2], (float)list[3]);
                 ((AuxActionHornItem)info).SetDelay(Delay);
-//                ((AuxActionHornItem)info).RequiredDistance = RequiredDistance;
             }
             return (AIActionItem)info;
         }
@@ -1085,7 +950,7 @@ namespace Orts.Simulation.AIs
             uint trackNodeIndex = (uint)list[2];
             float minDist = Math.Min(Math.Abs(rearDist), frontDist);
 
-            float[] distances = GetActivationDistances(thisTrain, location);
+            float[] distances = GetActivationDistances(thisTrain);
             
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "GenFunctions not yet defined for train:" + thisTrain.Number + 
@@ -1146,7 +1011,7 @@ namespace Orts.Simulation.AIs
         }
 
         //  SPA:    We use this fonction and not the one from Train in order to leave control to the AuxAction
-        public override float[] GetActivationDistances(Train thisTrain, in WorldLocation location)
+        public override float[] GetActivationDistances(Train thisTrain)
         {
             float[] distancesM = new float[2];
             distancesM[0] = this.RequiredDistance;   // 
@@ -1156,207 +1021,6 @@ namespace Orts.Simulation.AIs
 
     }
 
-    //================================================================================================//
-    /// <summary>
-    /// AIActionControlledStartRef
-    /// Used to start a steam engine when it is  an Train
-    /// </summary>
-
-    public class AIActionControlStartRef : AIAuxActionsRef
-    {
-        public int ActionDuration;
-
-        public AIActionControlStartRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir, AuxActionRef.AUX_ACTION actionType = AuxActionRef.AUX_ACTION.CONTROL_START, int duration = 10)
-            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir)
-        {
-            NextAction = AUX_ACTION.CONTROL_START;
-            ActionDuration = duration;
-        }
-
-        public AIActionControlStartRef(Train thisTrain, BinaryReader inf, AuxActionRef.AUX_ACTION actionType = AuxActionRef.AUX_ACTION.CONTROL_START)
-            : base(thisTrain, inf, actionType)
-        {
-            Delay = inf.ReadInt32();
-            NextAction = AUX_ACTION.CONTROL_START;
-#if WITH_PATH_DEBUG
-            File.AppendAllText(@"C:\temp\checkpath.txt", "\tRestore one WPAuxAction" +
-                "Position in file: " + inf.BaseStream.Position +
-                " type Action: " + NextAction.ToString() +
-                " Delay: " + Delay + "\n");
-#endif
-        }
-
-        public AIActionControlStartRef(Train thisTrain, AuxControlStart myBase, int nop = 0)
-            : base(thisTrain, 0f, 0f, 0, 0, 0, 0, myBase.ActionType)
-        {
-            Delay = myBase.ActivationDelay;
-            NextAction = AUX_ACTION.CONTROL_START;
-            IsGeneric = myBase.IsGeneric;
-            ActionDuration = myBase.ActionDuration;
-        }
-
-
-        public override void save(BinaryWriter outf, int cnt)
-        {
-#if WITH_PATH_DEBUG
-            File.AppendAllText(@"C:\temp\checkpath.txt", "\tSave one HornAuxAction, count :" + cnt +
-                "Position in file: " + outf.BaseStream.Position +
-                " type Action: " + NextAction.ToString() + 
-                " Delay: " + Delay + "\n");
-#endif
-            base.save(outf, cnt);
-            outf.Write(Delay);
-        }
-
-
-        public override AIActionItem Handler(params object[] list)
-        {
-            AIActionItem info = null;
-            if (!LinkedAuxAction || IsGeneric)
-            {
-                LinkedAuxAction = true;
-                info = new AuxActionControlStartItem(this, AIActionItem.AI_ACTION_TYPE.AUX_ACTION);
-                info.SetParam(1f, (float)list[0], 1f, 1f);
-                ((AuxActionControlStartItem)info).SetDelay((int)list[1]);
-                ((AuxActionControlStartItem)info).Duration = ActionDuration;
-                ((AuxActionControlStartItem)info).PreDelay = Delay;
-            }
-            return (AIActionItem)info;
-        }
-
-        public override AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
-        {
-            AIActionItem newAction = null;
-            int SpeedMps = (int)thisTrain.SpeedMpS;
-            TrainCar locomotive = thisTrain.FindLeadLocomotive();
-            if (!(locomotive is MSTSSteamLocomotive))
-            {
-                return null;
-            }
-            if (SpeedMps == 0 && (int)list[0] >= Delay)   //  We call the handler to generate an actionRef
-            {
-                newAction = Handler(thisTrain.SpeedMpS, (int)list[0]);
-                
-                Register(thisTrain.Number, location);
-#if WITH_PATH_DEBUG
-            File.AppendAllText(@"C:\temp\checkpath.txt", "Caller registered for\n");
-#endif
-            }
-            return newAction;
-        }
-
-        public override List<KeyValuePair<System.Type, AuxActionRef>> GetCallFunction()
-        {
-            List<KeyValuePair<System.Type, AuxActionRef>> listInfo = new List<KeyValuePair<System.Type, AuxActionRef>>();
-
-            System.Type managed = typeof(AuxActionWPItem);
-            KeyValuePair<System.Type, AuxActionRef> info = new KeyValuePair<System.Type, AuxActionRef>(managed, this);
-            listInfo.Add(info);
-            return listInfo;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// SetDelay
-        /// To fullfill the waiting delay.
-        /// </summary>
-
-        public void SetDelay(int delay)
-        {
-            Delay = delay;
-        }
-
-        //  Start horn whatever the speed.
-
-        public override float[] CalculateDistancesToNextAction(Train thisTrain, float presentSpeedMpS, bool reschedule)
-        {
-            int thisSectionIndex = thisTrain.PresentPosition[0].TCSectionIndex;
-            TrackCircuitSection thisSection = thisTrain.signalRef.TrackCircuitList[thisSectionIndex];
-            float leftInSectionM = thisSection.Length - thisTrain.PresentPosition[0].TCOffset;
-
-            // get action route index - if not found, return distances < 0
-
-            int actionIndex0 = thisTrain.PresentPosition[0].RouteListIndex;
-            int actionRouteIndex = thisTrain.ValidRoute[0].GetRouteIndex(TCSectionIndex, actionIndex0);
-            float activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelledM + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, thisTrain.AITrainDirectionForward, thisTrain.signalRef);
-            float[] distancesM = new float[2];
-            distancesM[1] = activateDistanceTravelledM;
-            distancesM[0] = activateDistanceTravelledM;
-
-            return (distancesM);
-        }
-
-        //  SPA:    We use this fonction and not the one from Train in order to leave control to the AuxAction
-        public override float[] GetActivationDistances(Train thisTrain, in WorldLocation location)
-        {
-            float[] distancesM = new float[2];
-            distancesM[0] = 0f;   //  Dès 100m
-            distancesM[1] = 0f;
-            return (distancesM);
-        }
-
-    }
-
-
-    //================================================================================================//
-    /// <summary>
-    /// AIActionSignalRef
-    /// A single Reference object used to add some delay before starting at a Signal
-    /// </summary>
-
-    public class AIActionSignalRef : AIAuxActionsRef
-    {
-        public AIActionSignalRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir)
-            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AUX_ACTION.CONTROL_START)
-        {
-            NextAction = AUX_ACTION.CONTROL_START;
-            IsGeneric = true;
-        }
-
-        public override AIActionItem Handler(params object[] list)
-        {
-            AIActionItem info = null;
-            if (!LinkedAuxAction || IsGeneric)
-            {
-                LinkedAuxAction = true;
-                info = new AuxActionSignalItem(this, AIActionItem.AI_ACTION_TYPE.AUX_ACTION);
-                info.SetParam((float)list[0], (float)list[1], (float)list[2], (float)list[3]);
-                ((AuxActionSignalItem)info).SetDelay(Delay);
-            }
-            return (AIActionItem)info;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// SetDelay
-        /// To fullfill the waiting delay.
-        /// </summary>
-
-        public void SetDelay(int delay)
-        {
-            Delay = delay;
-        }
-
-        //  Start horn whatever the speed.
-
-        public override float[] CalculateDistancesToNextAction(Train thisTrain, float presentSpeedMpS, bool reschedule)
-        {
-            float activateDistanceTravelledM = float.MaxValue;
-            float[] distancesM = new float[2];
-
-            if (presentSpeedMpS > 0f)
-            {
-            }
-            else
-            {
-                activateDistanceTravelledM = 0f;
-            }
-            distancesM[1] = activateDistanceTravelledM;
-            distancesM[0] = activateDistanceTravelledM;
-
-            return (distancesM);
-        }
-    }
     //================================================================================================//
     /// <summary>
     /// AIActSigDelegateRef
@@ -1539,15 +1203,6 @@ namespace Orts.Simulation.AIs
         public virtual bool CanRemove(Train thisTrain)
         {
             return true;
-        }
-
-        public virtual Boolean ProcessingStarted()
-        {
-            return false;
-        }
-
-        public void SetLinked(AIActionItem linked)
-        {
         }
 
         public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
@@ -1850,9 +1505,7 @@ namespace Orts.Simulation.AIs
 
     public class AuxActionHornItem : AuxActionItem
     {
-        [JsonProperty("Delay")]
         int Delay;
-        [JsonIgnore]
         public int ActualDepart;
         
 
@@ -1915,11 +1568,6 @@ namespace Orts.Simulation.AIs
                 aiTrain.EndProcessAction(actionValid, this, false);
             }
             return actionValid;
-        }
-
-        public override Boolean ProcessingStarted()
-        {
-            return Processing;
         }
 
         public override AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
@@ -2002,491 +1650,6 @@ namespace Orts.Simulation.AIs
             if (ActionRef.IsGeneric)
                 currentMvmtState = movementState;
 
-            return movementState;
-        }
-
-    }
-
-    //================================================================================================//
-    /// <summary>
-    /// AuxActionControlledStartItem
-    /// A specific class used at run time to manage the starting of a steam train
-    /// </summary>
-
-    public class AuxActionControlStartItem : AuxActionItem
-    {
-        public enum LOCAL_ACTION
-        {
-            NOT_STARTED,
-            INIT_DONE,
-            STEP1,
-            STEP2,
-            END
-        }
-
-        public int PreDelay;       //  PreDelay gives the time in second before the action must take effect
-        public int Delay;           //  Delay is the delay of the caller
-        public int Duration;    //  ActionDuration gives how long it takes
-        public int ActualDepart;
-        LOCAL_ACTION localStep = LOCAL_ACTION.NOT_STARTED;
-
-        //================================================================================================//
-        /// <summary>
-        /// AuxActionControlStartItem
-        /// The specific constructor for Controlled Start action
-        /// </summary>
-
-        public AuxActionControlStartItem(AuxActionRef thisItem, AI_ACTION_TYPE thisAction) :
-            base(thisItem, thisAction)
-        {
-            ActualDepart = 0;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// AsString
-        /// Used by debugging in HUDWindows.
-        /// </summary>
-
-        public override string AsString(AITrain thisTrain)
-        {
-            return " Steam(";
-        }
-
-        public override bool CanActivate(Train thisTrain, float SpeedMpS, bool reschedule)
-        {
-            if (ActionRef == null)
-                return false;
-            float[] distancesM = ((AIAuxActionsRef)ActionRef).CalculateDistancesToNextAction(thisTrain, SpeedMpS, reschedule);
-
-            if (RequiredDistance < thisTrain.DistanceTravelledM) // trigger point
-            {
-                return true;
-            }
-
-            RequiredDistance = distancesM[1];
-            ActivateDistanceM = distancesM[0];
-            return false;
-        }
-
-        public void SetDelay(int delay)
-        {
-            Delay = delay;
-        }
-
-        public override bool ValidAction(Train thisTrain)
-        {
-            bool actionValid = CanActivate(thisTrain, thisTrain.SpeedMpS, true);
-            if (!(thisTrain is AITrain))
-            {
-                AITrain aiTrain = thisTrain as AITrain;
-
-                if (!actionValid)
-                {
-                    aiTrain.requiredActions.InsertAction(this);
-                }
-                aiTrain.EndProcessAction(actionValid, this, false);
-            }
-            return actionValid;
-        }
-
-        public override Boolean ProcessingStarted()
-        {
-            return Processing;
-        }
-
-        public override AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
-        {
-#if WITH_PATH_DEBUG
-            File.AppendAllText(@"C:\temp\checkpath.txt", "AITRain " + thisTrain.Number + " is " + movementState.ToString() + " at " + presentTime + "\n");
-#endif
-            TrainCar locomotive = thisTrain.FindLeadLocomotive();
-            if (!(locomotive is MSTSSteamLocomotive))
-            {
-                return currentMvmtState;    //  Restore previous MovementState
-            }
-            Processing = true;
-            int correctedTime = presentTime;
-            ActualDepart = correctedTime + (Delay - PreDelay);
-            localStep = LOCAL_ACTION.INIT_DONE; //  NOT_STARTED -> INIT_DONE
-            return AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION;
-        }
-
-        public override AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
-        {
-            MSTSNotchController blowerControl;
-            float currentBlower = 0;
-            TrainCar locomotive = thisTrain.FindLeadLocomotive();
-            MSTSSteamLocomotive steamLocomotive = locomotive as MSTSSteamLocomotive;
-            blowerControl = steamLocomotive.BlowerController;
-            if (!Triggered && localStep == LOCAL_ACTION.INIT_DONE && ActualDepart < presentTime)
-            {
-                steamLocomotive.StartBlowerIncrease(100);
-                steamLocomotive.StartFiringRateIncrease(100.0f);
-                steamLocomotive.ToggleCylinderCocks();
-                Triggered = true;
-                localStep = LOCAL_ACTION.STEP1;
-                ActualDepart += Duration;
-                currentBlower = blowerControl.CurrentValue * 100;
-            }
-            else if (Triggered && localStep == LOCAL_ACTION.STEP1 && ActualDepart < presentTime)
-            {
-                steamLocomotive.StartBlowerDecrease(currentBlower);
-                steamLocomotive.StartFiringRateDecrease(0.0f);
-                localStep = LOCAL_ACTION.END;
-            }
-            else if (Triggered && localStep == LOCAL_ACTION.END)
-            {
-                thisTrain.AuxActionsContain.Remove(this);
-                if ((locomotive is MSTSSteamLocomotive))
-                {
-                    steamLocomotive.ToggleCylinderCocks();
-                }
-
-                if (Triggered)
-                {
-#if WITH_PATH_DEBUG
-                File.AppendAllText(@"C:\temp\checkpath.txt", "Stop Horn for AITRain " + thisTrain.Number + " : mvt state " + movementState.ToString() + " at " + presentTime + "\n");
-#endif
-                    locomotive = thisTrain.FindLeadLocomotive();
-                    ((MSTSLocomotive)locomotive).ManualHorn = false;
-                }
-                return currentMvmtState;    //  Restore previous MovementState
-            }
-            return movementState;
-        }
-
-        public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
-        {
-            AITrain.AI_MOVEMENT_STATE mvtState = movementState;
-            if (ActionRef.IsGeneric)
-                mvtState = currentMvmtState;
-            int correctedTime = presentTime;
-            switch (mvtState)
-            {
-                case AITrain.AI_MOVEMENT_STATE.INIT_ACTION:
-                    movementState = InitAction(thisTrain, presentTime, elapsedClockSeconds, mvtState);
-                    break;
-                case AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION:
-                    movementState = HandleAction(thisTrain, presentTime, elapsedClockSeconds, mvtState);
-                    break;
-                case AITrain.AI_MOVEMENT_STATE.BRAKING:
-                    float distanceToGoM = thisTrain.activityClearingDistanceM;
-                    distanceToGoM = ActivateDistanceM - thisTrain.PresentPosition[0].DistanceTravelledM;
-                    float NextStopDistanceM = distanceToGoM;
-                    if (distanceToGoM < 0f)
-                    {
-                        currentMvmtState = movementState;
-                        movementState = AITrain.AI_MOVEMENT_STATE.INIT_ACTION;
-                    }
-
-                    break;
-                case AITrain.AI_MOVEMENT_STATE.STOPPED:
-                    if (thisTrain is AITrain)
-                        movementState = ((AITrain)thisTrain).UpdateStoppedState(elapsedClockSeconds);
-                    break;
-                default:
-                    break;
-            }
-            if (ActionRef.IsGeneric)
-                currentMvmtState = movementState;
-
-            return movementState;
-        }
-
-    }
-
-    //================================================================================================//
-    /// <summary>
-    /// AuxActionControlStoppedItem
-    /// A specific class used at run time to manage the starting of a steam train
-    /// </summary>
-
-    public class AuxActionControlStoppedItem : AuxActionItem
-    {
-        public enum LOCAL_ACTION
-        {
-            NOT_STARTED,
-            INIT_DONE,
-            STEP1,
-            STEP2,
-            END
-        }
-
-        public int PreDelay;       //  PreDelay gives the time in second before the action must take effect
-        public int Delay;           //  Delay is the delay of the caller
-        public int Duration;    //  ActionDuration gives how long it takes
-        public int ActualDepart;
-        LOCAL_ACTION localStep = LOCAL_ACTION.NOT_STARTED;
-
-        //================================================================================================//
-        /// <summary>
-        /// AuxActionControlItem
-        /// The specific constructor for Control Stopped action
-        /// </summary>
-
-        public AuxActionControlStoppedItem(AuxActionRef thisItem, AI_ACTION_TYPE thisAction) :
-            base(thisItem, thisAction)
-        {
-            ActualDepart = 0;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// AsString
-        /// Used by debugging in HUDWindows.
-        /// </summary>
-
-        public override string AsString(AITrain thisTrain)
-        {
-            return " Steam(";
-        }
-
-        public override bool CanActivate(Train thisTrain, float SpeedMpS, bool reschedule)
-        {
-            if (ActionRef == null)
-                return false;
-            float[] distancesM = ((AIAuxActionsRef)ActionRef).CalculateDistancesToNextAction(thisTrain, SpeedMpS, reschedule);
-
-            if (RequiredDistance < thisTrain.DistanceTravelledM) // trigger point
-            {
-                return true;
-            }
-
-            RequiredDistance = distancesM[1];
-            ActivateDistanceM = distancesM[0];
-            return false;
-        }
-
-        public void SetDelay(int delay)
-        {
-            Delay = delay;
-        }
-
-        public override bool ValidAction(Train thisTrain)
-        {
-            bool actionValid = CanActivate(thisTrain, thisTrain.SpeedMpS, true);
-            if (!(thisTrain is AITrain))
-            {
-                AITrain aiTrain = thisTrain as AITrain;
-
-                if (!actionValid)
-                {
-                    aiTrain.requiredActions.InsertAction(this);
-                }
-                aiTrain.EndProcessAction(actionValid, this, false);
-            }
-            return actionValid;
-        }
-
-        public override Boolean ProcessingStarted()
-        {
-            return Processing;
-        }
-
-        public override AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
-        {
-#if WITH_PATH_DEBUG
-            File.AppendAllText(@"C:\temp\checkpath.txt", "AITRain " + thisTrain.Number + " is " + movementState.ToString() + " at " + presentTime + "\n");
-#endif
-            TrainCar locomotive = thisTrain.FindLeadLocomotive();
-            if (!(locomotive is MSTSSteamLocomotive))
-            {
-                return currentMvmtState;    //  Restore previous MovementState
-            }
-            Processing = true;
-            int correctedTime = presentTime;
-            ActualDepart = correctedTime + (Delay - PreDelay);
-            localStep = LOCAL_ACTION.INIT_DONE; //  NOT_STARTED -> INIT_DONE
-            return AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION;
-        }
-
-        public override AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
-        {
-            MSTSNotchController blowerControl;
-            float currentBlower = 0;
-            TrainCar locomotive = thisTrain.FindLeadLocomotive();
-            MSTSSteamLocomotive steamLocomotive = locomotive as MSTSSteamLocomotive;
-            blowerControl = steamLocomotive.BlowerController;
-            if (!Triggered && localStep == LOCAL_ACTION.INIT_DONE && ActualDepart < presentTime)
-            {
-                steamLocomotive.StartBlowerIncrease(100);
-                steamLocomotive.StartFiringRateIncrease(100.0f);
-                steamLocomotive.ToggleCylinderCocks();
-                Triggered = true;
-                localStep = LOCAL_ACTION.STEP1;
-                ActualDepart += Duration;
-                currentBlower = blowerControl.CurrentValue * 100;
-            }
-            else if (Triggered && localStep == LOCAL_ACTION.STEP1 && ActualDepart < presentTime)
-            {
-                steamLocomotive.StartBlowerDecrease(currentBlower);
-                steamLocomotive.StartFiringRateDecrease(0.0f);
-                localStep = LOCAL_ACTION.END;
-            }
-            else if (Triggered && localStep == LOCAL_ACTION.END)
-            {
-                thisTrain.AuxActionsContain.Remove(this);
-                if ((locomotive is MSTSSteamLocomotive))
-                {
-                    steamLocomotive.ToggleCylinderCocks();
-                }
-
-                if (Triggered)
-                {
-#if WITH_PATH_DEBUG
-                File.AppendAllText(@"C:\temp\checkpath.txt", "Stop Horn for AITRain " + thisTrain.Number + " : mvt state " + movementState.ToString() + " at " + presentTime + "\n");
-#endif
-                    locomotive = thisTrain.FindLeadLocomotive();
-                    ((MSTSLocomotive)locomotive).ManualHorn = false;
-                }
-                return currentMvmtState;    //  Restore previous MovementState
-            }
-            return movementState;
-        }
-
-        public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
-        {
-            AITrain.AI_MOVEMENT_STATE mvtState = movementState;
-            if (ActionRef.IsGeneric)
-                mvtState = currentMvmtState;
-            int correctedTime = presentTime;
-            switch (mvtState)
-            {
-                case AITrain.AI_MOVEMENT_STATE.INIT_ACTION:
-                    movementState = InitAction(thisTrain, presentTime, elapsedClockSeconds, mvtState);
-                    break;
-                case AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION:
-                    movementState = HandleAction(thisTrain, presentTime, elapsedClockSeconds, mvtState);
-                    break;
-                case AITrain.AI_MOVEMENT_STATE.BRAKING:
-                    float distanceToGoM = thisTrain.activityClearingDistanceM;
-                    distanceToGoM = ActivateDistanceM - thisTrain.PresentPosition[0].DistanceTravelledM;
-                    float NextStopDistanceM = distanceToGoM;
-                    if (distanceToGoM < 0f)
-                    {
-                        currentMvmtState = movementState;
-                        movementState = AITrain.AI_MOVEMENT_STATE.INIT_ACTION;
-                    }
-
-                    break;
-                case AITrain.AI_MOVEMENT_STATE.STOPPED:
-                    if (thisTrain is AITrain)
-                        movementState = ((AITrain)thisTrain).UpdateStoppedState(elapsedClockSeconds);
-                    break;
-                default:
-                    break;
-            }
-            if (ActionRef.IsGeneric)
-                currentMvmtState = movementState;
-
-            return movementState;
-        }
-
-    }
-
-    //================================================================================================//
-    /// <summary>
-    /// AuxActionSignalItem
-    /// A specific class used at run time to manage a Signal Action
-    /// </summary>
-
-    public class AuxActionSignalItem : AuxActionItem
-    {
-        int Delay;
-        public int ActualDepart;
-        bool HornTriggered = false;
-
-        //================================================================================================//
-        /// <summary>
-        /// AuxActionSignalItem
-        /// The specific constructor for Signal action
-        /// </summary>
-
-        public AuxActionSignalItem(AuxActionRef thisItem, AI_ACTION_TYPE thisAction) :
-            base(thisItem, thisAction)
-        {
-            ActualDepart = 0;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// AsString
-        /// Used by debugging in HUDWindows.
-        /// </summary>
-
-        public override string AsString(AITrain thisTrain)
-        {
-            return " SigH(";
-        }
-
-        public override bool CanActivate(Train thisTrain, float SpeedMpS, bool reschedule)
-        {
-            if (ActionRef == null)
-                return false;
-            float[] distancesM = ((AIAuxActionsRef)ActionRef).CalculateDistancesToNextAction(thisTrain, SpeedMpS, reschedule);
-
-            if (RequiredDistance < thisTrain.DistanceTravelledM) // trigger point
-            {
-                return true;
-            }
-
-            RequiredDistance = distancesM[1];
-            ActivateDistanceM = distancesM[0];
-            return false;
-        }
-
-        public void SetDelay(int delay)
-        {
-            Delay = delay;
-        }
-
-        public override bool ValidAction(Train thisTrain)
-        {
-            bool actionValid = CanActivate(thisTrain, thisTrain.SpeedMpS, true);
-            if (!(thisTrain is AITrain))
-            {
-                AITrain aiTrain = thisTrain as AITrain;
-                if (!actionValid)
-                {
-                    aiTrain.requiredActions.InsertAction(this);
-                }
-                aiTrain.EndProcessAction(actionValid, this, false);
-            }
-            return actionValid;
-        }
-
-        public override AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
-        {
-            int correctedTime = presentTime;
-            ActualDepart = correctedTime + Delay;
-            return AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION;
-        }
-
-        public override AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
-        {
-            if (ActualDepart >= presentTime)
-            {
-                if (!HornTriggered)
-                {
-                    TrainCar locomotive = thisTrain.FindLeadLocomotive();
-                    ((MSTSLocomotive)locomotive).ManualHorn = true;
-                    HornTriggered = true;
-                }
-                movementState = AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION;
-            }
-            else
-            {
-                if (!ActionRef.IsGeneric)
-                    thisTrain.AuxActionsContain.RemoveAt(0);
-                //thisTrain.ResetActions(true);
-                if (HornTriggered)
-                {
-                    TrainCar locomotive = thisTrain.FindLeadLocomotive();
-                    ((MSTSLocomotive)locomotive).ManualHorn = false;
-                }
-                return currentMvmtState;    //  Restore previous MovementState
-            }
             return movementState;
         }
 
