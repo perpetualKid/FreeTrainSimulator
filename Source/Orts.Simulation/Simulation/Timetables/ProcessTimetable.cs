@@ -1298,10 +1298,16 @@ namespace Orts.Simulation.Timetables
 
             public readonly TimetableInfo parentInfo;
 
-            public struct consistInfo
+            private readonly struct ConsistInfo
             {
-                public string consistFile;
-                public bool reversed;
+                public readonly string ConsistFile;
+                public readonly bool Reversed;
+
+                public ConsistInfo(string consistFile, bool reversed)
+                {
+                    ConsistFile = consistFile;
+                    Reversed = reversed;
+                }
             }
 
 
@@ -1387,7 +1393,7 @@ namespace Orts.Simulation.Timetables
                     return (false);
                 }
 
-                List<consistInfo> consistdetails = ProcessConsistInfo(consistdef);
+                List<ConsistInfo> consistdetails = ProcessConsistInfo(consistdef);
                 string trainsetDirectory = Path.Combine(trainsDirectory, "trainset");
 
                 // extract path
@@ -1413,7 +1419,7 @@ namespace Orts.Simulation.Timetables
                 if (validTrain)
                 {
                     string startString = fileStrings[startRow][columnIndex].ToLower().Trim();
-                    ExtractStartTime(startString, consistdetails[0].consistFile, ttInfo.simulator);
+                    ExtractStartTime(startString, consistdetails[0].ConsistFile, ttInfo.simulator);
                 }
 
                 // process dispose info
@@ -2174,9 +2180,9 @@ namespace Orts.Simulation.Timetables
             /// </summary>
             /// <param name="consistDef"></param>
             /// <returns></returns>
-            public List<consistInfo> ProcessConsistInfo(string consistDef)
+            private List<ConsistInfo> ProcessConsistInfo(string consistDef)
             {
-                List<consistInfo> consistDetails = new List<consistInfo>();
+                List<ConsistInfo> consistDetails = new List<ConsistInfo>();
                 string consistProc = String.Copy(consistDef).Trim();
 
                 while (!String.IsNullOrEmpty(consistProc))
@@ -2187,17 +2193,13 @@ namespace Orts.Simulation.Timetables
                         if (endIndex < 0)
                         {
                             Trace.TraceWarning("Incomplete consist definition : \">\" character missing : {0}", consistProc);
-                            consistInfo thisConsist = new consistInfo();
-                            thisConsist.consistFile = String.Copy(consistProc.Substring(1));
-                            thisConsist.reversed = false;
+                            ConsistInfo thisConsist = new ConsistInfo(consistProc.Substring(1), false);
                             consistDetails.Add(thisConsist);
                             consistProc = String.Empty;
                         }
                         else
                         {
-                            consistInfo thisConsist = new consistInfo();
-                            thisConsist.consistFile = String.Copy(consistProc.Substring(1, endIndex - 1));
-                            thisConsist.reversed = false;
+                            ConsistInfo thisConsist = new ConsistInfo(consistProc.Substring(1, endIndex - 1), false);
                             consistDetails.Add(thisConsist);
                             consistProc = consistProc.Substring(endIndex + 1).Trim();
                         }
@@ -2208,9 +2210,9 @@ namespace Orts.Simulation.Timetables
                         {
                             if (consistDetails.Count > 0)
                             {
-                                consistInfo thisConsist = consistDetails[consistDetails.Count - 1];
+                                ConsistInfo thisConsist = consistDetails[consistDetails.Count - 1];
                                 consistDetails.RemoveAt(consistDetails.Count - 1);
-                                thisConsist.reversed = true;
+                                thisConsist = new ConsistInfo(thisConsist.ConsistFile, true);
                                 consistDetails.Add(thisConsist);
                             }
                             else
@@ -2234,38 +2236,36 @@ namespace Orts.Simulation.Timetables
                         }
                         else if (plusIndex > 0)
                         {
-                            consistInfo thisConsist = new consistInfo();
-                            thisConsist.consistFile = String.Copy(consistProc.Substring(0, plusIndex).Trim());
+                            string consistFile = consistProc.Substring(0, plusIndex).Trim();
 
-                            int sepIndex = thisConsist.consistFile.IndexOf('$');
+                            int sepIndex = consistFile.IndexOf('$');
                             if (sepIndex > 0)
                             {
-                                consistProc = String.Concat(thisConsist.consistFile.Substring(sepIndex).Trim(), consistProc.Substring(plusIndex).Trim());
-                                thisConsist.consistFile = thisConsist.consistFile.Substring(0, sepIndex).Trim();
+                                consistProc = String.Concat(consistFile.Substring(sepIndex).Trim(), consistProc.Substring(plusIndex).Trim());
+                                consistFile.Substring(0, sepIndex).Trim();
                             }
                             else
                             {
                                 consistProc = consistProc.Substring(plusIndex + 1).Trim();
                             }
-                            thisConsist.reversed = false;
+                            ConsistInfo thisConsist = new ConsistInfo(consistFile, false);
                             consistDetails.Add(thisConsist);
                         }
                         else
                         {
-                            consistInfo thisConsist = new consistInfo();
-                            thisConsist.consistFile = String.Copy(consistProc);
+                            string consistFile = consistProc;
 
                             int sepIndex = consistProc.IndexOf('$');
                             if (sepIndex > 0)
                             {
-                                thisConsist.consistFile = consistProc.Substring(0, sepIndex).Trim();
+                                consistFile = consistProc.Substring(0, sepIndex).Trim();
                                 consistProc = consistProc.Substring(sepIndex).Trim();
                             }
                             else
                             {
                                 consistProc = String.Empty;
                             }
-                            thisConsist.reversed = false;
+                            ConsistInfo thisConsist = new ConsistInfo(consistFile, false);
                             consistDetails.Add(thisConsist);
                         }
                     }
@@ -2281,17 +2281,17 @@ namespace Orts.Simulation.Timetables
             /// <param name="consistFile">Defined consist file</param>
             /// <param name="trainsetDirectory">Consist directory</param>
             /// <param name="simulator">Simulator</param>
-            public bool BuildConsist(List<consistInfo> consistSets, string trainsetDirectory, string consistDirectory, Simulator simulator)
+            private bool BuildConsist(List<ConsistInfo> consistSets, string trainsetDirectory, string consistDirectory, Simulator simulator)
             {
                 TTTrain.IsTilting = true;
 
                 float? confMaxSpeed = null;
                 TTTrain.Length = 0.0f;
 
-                foreach (consistInfo consistDetails in consistSets)
+                foreach (ConsistInfo consistDetails in consistSets)
                 {
-                    bool consistReverse = consistDetails.reversed;
-                    string consistFile = Path.Combine(consistDirectory, consistDetails.consistFile);
+                    bool consistReverse = consistDetails.Reversed;
+                    string consistFile = Path.Combine(consistDirectory, consistDetails.ConsistFile);
 
                     string pathExtension = Path.GetExtension(consistFile);
                     if (String.IsNullOrEmpty(pathExtension))
@@ -2331,7 +2331,7 @@ namespace Orts.Simulation.Timetables
                         car.Train = TTTrain;
                         car.CarID = String.Concat(TTTrain.Number.ToString("0###"), "_", carId.ToString("0##"));
                         carId++;
-                        car.OrgConsist = String.Copy(consistDetails.consistFile).ToLower();
+                        car.OrgConsist = String.Copy(consistDetails.ConsistFile).ToLower();
                         car.SignalEvent(Event.Pantograph1Up);
                         TTTrain.Length += car.CarLengthM;
                     }
