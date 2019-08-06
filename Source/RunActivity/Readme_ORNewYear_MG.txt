@@ -12,7 +12,7 @@ INSTALLATION
 you would return to a non-MG OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails revision U2019.08.06-0736.
+This unofficial version has been derived from the official Open Rails revision U2019.08.06-1836.
 Such official revision is already based on Monogame.
 It includes some features not (yet) available in the Open Rails official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
