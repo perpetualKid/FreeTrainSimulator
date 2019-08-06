@@ -730,7 +730,7 @@ namespace ORTS
             this.labelTimetableWeatherFile.AutoSize = true;
             this.labelTimetableWeatherFile.Location = new System.Drawing.Point(5, 212);
             this.labelTimetableWeatherFile.Margin = new System.Windows.Forms.Padding(3);
-            this.labelTimetableWeatherFile.Name = "lableTimetableWeatherFile";
+            this.labelTimetableWeatherFile.Name = "labelTimetableWeatherFile";
             this.labelTimetableWeatherFile.Size = new System.Drawing.Size(70, 13);
             this.labelTimetableWeatherFile.TabIndex = 14;
             this.labelTimetableWeatherFile.Text = "Weather File:";
