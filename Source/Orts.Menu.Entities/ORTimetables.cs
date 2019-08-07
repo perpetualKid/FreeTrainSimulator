@@ -24,7 +24,7 @@ using Orts.Formats.OR;
 
 namespace Orts.Menu.Entities
 {
-    public class TimetableInfo: ContentBase
+    public class TimetableInfo : ContentBase
     {
         public List<TimetableFileLite> ORTTList { get; private set; } = new List<TimetableFileLite>();
         public string Description { get; private set; }
@@ -34,6 +34,7 @@ namespace Orts.Menu.Entities
         public int Day;
         public int Season;
         public int Weather;
+        public string WeatherFile;
 
         // note : file is read preliminary only, extracting description and train information
         // all other information is read only when activity is started
@@ -123,6 +124,62 @@ namespace Orts.Menu.Entities
                     catch (OperationCanceledException) { }
                     if (token.IsCancellationRequested)
                         return Task.FromCanceled<List<TimetableInfo>>(token);
+                }
+            }
+            return Task.FromResult(result);
+        }
+    }
+
+    public class WeatherFileInfo
+    {
+        public FileInfo FileDetails;
+
+        public WeatherFileInfo(string filename)
+        {
+            FileDetails = new FileInfo(filename);
+        }
+
+        public override string ToString()
+        {
+            return (FileDetails.Name);
+        }
+
+        public string GetFullName()
+        {
+            return (FileDetails.FullName);
+        }
+
+        // get weatherfiles
+        public static Task<List<WeatherFileInfo>> GetTimetableWeatherFiles(Folder folder, Route route, CancellationToken token)
+        {
+            SemaphoreSlim addItem = new SemaphoreSlim(1);
+            List<WeatherFileInfo> result = new List<WeatherFileInfo>();
+
+            if (route != null)
+            {
+                var directory = System.IO.Path.Combine(route.Path, "WeatherFiles");
+
+                if (Directory.Exists(directory))
+                {
+                    try
+                    {
+                        Parallel.ForEach(Directory.GetFiles(directory, "*.weather-or"),
+                            new ParallelOptions() { CancellationToken = token },
+                            (weatherFile, state) =>
+                            {
+                                try
+                                {
+                                    WeatherFileInfo weatherFileInfo = new WeatherFileInfo(weatherFile);
+                                    addItem.Wait(token);
+                                    result.Add(weatherFileInfo);
+                                }
+                                catch { }
+                                finally { addItem.Release(); }
+                            });
+                    }
+                    catch (OperationCanceledException) { }
+                    if (token.IsCancellationRequested)
+                        return Task.FromCanceled<List<WeatherFileInfo>>(token);
                 }
             }
             return Task.FromResult(result);

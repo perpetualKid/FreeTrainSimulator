@@ -33,7 +33,8 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Parsers.OR;
-using ORTS.Common;
+using Orts.Common;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.Timetables
 {
@@ -242,7 +243,7 @@ namespace Orts.Simulation.Timetables
                     case "#speedmph":
                         try
                         {
-                            AdditionalTurntableDetails.TurntableSpeedMpS = MpS.FromMpH(Convert.ToSingle(inputLine[1].Trim()));
+                            AdditionalTurntableDetails.TurntableSpeedMpS = Speed.MeterPerSecond.FromMpH(Convert.ToSingle(inputLine[1].Trim()));
                         }
                         catch
                         {
@@ -254,7 +255,7 @@ namespace Orts.Simulation.Timetables
                     case "#speedkph":
                         try
                         {
-                            AdditionalTurntableDetails.TurntableSpeedMpS = MpS.FromKpH(Convert.ToSingle(inputLine[1].Trim()));
+                            AdditionalTurntableDetails.TurntableSpeedMpS = Speed.MeterPerSecond.FromKpH(Convert.ToSingle(inputLine[1].Trim()));
                         }
                         catch
                         {

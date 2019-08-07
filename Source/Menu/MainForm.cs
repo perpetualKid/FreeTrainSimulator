@@ -63,14 +63,14 @@ namespace Orts.Menu
         private List<Consist> consists = new List<Consist>();
         private List<Path> paths = new List<Path>();
         private List<TimetableInfo> timetableSets = new List<TimetableInfo>();
-        private List<WeatherFileInfo> TimetableWeatherFileSet = new List<WeatherFileInfo>();
+        private List<WeatherFileInfo> timetableWeatherFileSet = new List<WeatherFileInfo>();
         private CancellationTokenSource ctsRouteLoading;
         private CancellationTokenSource ctsActivityLoading;
         private CancellationTokenSource ctsConsistLoading;
         private CancellationTokenSource ctsPathLoading;
         private CancellationTokenSource ctsTimeTableLoading;
 
-        Task<List<WeatherFileInfo>> TimetableWeatherFileLoader;
+        private readonly ResourceManager resources = new ResourceManager("Orts.Menu.Properties.Resources", typeof(MainForm).Assembly);
         private UpdateManager updateManager;
         private readonly Image elevationIcon;
 
@@ -319,8 +319,6 @@ namespace Orts.Menu
                 ctsPathLoading.Cancel();
             if (null != ctsTimeTableLoading && !ctsPathLoading.IsCancellationRequested)
                 ctsTimeTableLoading.Cancel();
-            if (TimetableWeatherFileLoader != null)
-                TimetableWeatherFileLoader.Cancel();
 
             // Remove any deleted saves
             if (Directory.Exists(UserSettings.DeletedSaveFolder))
@@ -1160,8 +1158,6 @@ namespace Orts.Menu
             {
                 if (ctsTimeTableLoading != null && !ctsTimeTableLoading.IsCancellationRequested)
                     ctsTimeTableLoading.Cancel();
-            if (TimetableWeatherFileLoader != null)
-                TimetableWeatherFileLoader.Cancel();
                 ctsTimeTableLoading = ResetCancellationTokenSource(ctsTimeTableLoading);
             }
 
@@ -1173,15 +1169,11 @@ namespace Orts.Menu
             try
             {
                 timetableSets = (await Task.Run(() => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token))).OrderBy(tt => tt.Description).ToList();
+                timetableWeatherFileSet = (await Task.Run(() => WeatherFileInfo.GetTimetableWeatherFiles(selectedFolder, selectedRoute, ctsTimeTableLoading.Token))).OrderBy(a => a.ToString()).ToList();
             }
             catch (TaskCanceledException) { }
             ShowTimetableSetList();
-
-            TimetableWeatherFileLoader = new Task<List<WeatherFileInfo>>(this, () => WeatherFileInfo.GetTimetableWeatherFiles(selectedFolder, selectedRoute).OrderBy(a => a.ToString()).ToList(), (timetableWeatherFileSet) =>
-            {
-                TimetableWeatherFileSet = timetableWeatherFileSet;
-                ShowTimetableWeatherSet();
-            });
+            ShowTimetableWeatherSet();
         }
 
         private void ShowTimetableSetList()
@@ -1210,10 +1202,10 @@ namespace Orts.Menu
             }
         }
 
-        void ShowTimetableWeatherSet()
+        private void ShowTimetableWeatherSet()
         {
             comboBoxTimetableWeatherFile.Items.Clear();
-            foreach (var weatherFile in TimetableWeatherFileSet)
+            foreach (var weatherFile in timetableWeatherFileSet)
             {
                 comboBoxTimetableWeatherFile.Items.Add(weatherFile);
                 UpdateEnabled();

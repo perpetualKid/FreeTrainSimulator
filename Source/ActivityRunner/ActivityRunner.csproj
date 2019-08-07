@@ -401,7 +401,7 @@
   </PostBuildEventDependsOn>
     <PreBuildEvent>
     </PreBuildEvent>
-    <PostBuildEvent>echo $Revision: -@(VersionNumber) $&gt;Revision.txt
+    <PostBuildEvent>echo $Revision: @(VersionNumber) $&gt;Revision.txt
 date /t&gt;&gt;Revision.txt
 time /t&gt;&gt;Revision.txt</PostBuildEvent>
   </PropertyGroup>
