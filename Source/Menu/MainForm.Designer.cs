@@ -83,6 +83,8 @@ namespace Orts.Menu
             this.comboBoxDifficulty = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
             this.panelModeTimetable = new System.Windows.Forms.Panel();
+            this.labelTimetableWeatherFile = new System.Windows.Forms.Label();
+            this.comboBoxTimetableWeatherFile = new System.Windows.Forms.ComboBox();
             this.label24 = new System.Windows.Forms.Label();
             this.comboBoxTimetableTrain = new System.Windows.Forms.ComboBox();
             this.label23 = new System.Windows.Forms.Label();
@@ -688,6 +690,8 @@ namespace Orts.Menu
             // 
             // panelModeTimetable
             // 
+            this.panelModeTimetable.Controls.Add(this.labelTimetableWeatherFile);
+            this.panelModeTimetable.Controls.Add(this.comboBoxTimetableWeatherFile);
             this.panelModeTimetable.Controls.Add(this.label24);
             this.panelModeTimetable.Controls.Add(this.comboBoxTimetableTrain);
             this.panelModeTimetable.Controls.Add(this.label23);
@@ -706,6 +710,27 @@ namespace Orts.Menu
             this.panelModeTimetable.Size = new System.Drawing.Size(287, 291);
             this.panelModeTimetable.TabIndex = 10;
             this.panelModeTimetable.Visible = false;
+            // 
+            // labelTimetableWeatherFile
+            // 
+            this.labelTimetableWeatherFile.AutoSize = true;
+            this.labelTimetableWeatherFile.Location = new System.Drawing.Point(5, 212);
+            this.labelTimetableWeatherFile.Margin = new System.Windows.Forms.Padding(3);
+            this.labelTimetableWeatherFile.Name = "labelTimetableWeatherFile";
+            this.labelTimetableWeatherFile.Size = new System.Drawing.Size(70, 13);
+            this.labelTimetableWeatherFile.TabIndex = 14;
+            this.labelTimetableWeatherFile.Text = "Weather File:";
+            this.labelTimetableWeatherFile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // comboBoxTimetableWeatherFile
+            // 
+            this.comboBoxTimetableWeatherFile.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxTimetableWeatherFile.FormattingEnabled = true;
+            this.comboBoxTimetableWeatherFile.Location = new System.Drawing.Point(91, 209);
+            this.comboBoxTimetableWeatherFile.Name = "comboBoxTimetableWeatherFile";
+            this.comboBoxTimetableWeatherFile.Size = new System.Drawing.Size(193, 21);
+            this.comboBoxTimetableWeatherFile.TabIndex = 13;
+            this.comboBoxTimetableWeatherFile.SelectedIndexChanged += new System.EventHandler(this.comboBoxTimetableWeatherFile_SelectedIndexChanged);
             // 
             // label24
             // 
@@ -1002,5 +1027,7 @@ namespace Orts.Menu
         private System.Windows.Forms.RadioButton radioButtonMPClient;
         private System.Windows.Forms.Button buttonStartMP;
         private System.Windows.Forms.CheckBox checkDebriefActivityEval;
+        private System.Windows.Forms.Label labelTimetableWeatherFile;
+        private System.Windows.Forms.ComboBox comboBoxTimetableWeatherFile;
     }
 }

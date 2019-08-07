@@ -38,7 +38,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         }
 
         public const int ShadowMapCountMaximum = 4;
-        //public const int ShadowMapMipCount = 1;
 
         public Point DisplaySize { get; private set; }
         public GraphicsDevice GraphicsDevice { get { return game.GraphicsDevice; } }
@@ -162,9 +161,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 game.Settings.ShadowMapDistance = game.Settings.ViewingDistance / 2;
 
             ShadowMapCount = game.Settings.ShadowMapCount;
-            if (!game.Settings.DynamicShadows)
-                ShadowMapCount = 0;
-            else if (ShadowMapCount < 0)
+            if (!game.Settings.DynamicShadows || ShadowMapCount < 0)
                 ShadowMapCount = 0;
             else if (ShadowMapCount > ShadowMapCountMaximum)
                 ShadowMapCount = ShadowMapCountMaximum;

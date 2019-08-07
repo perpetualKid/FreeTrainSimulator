@@ -46,8 +46,15 @@ namespace Orts.Common
                 using (StreamReader reader = new StreamReader(Path.Combine(applicationPath, fileName)))
                 {
                     string revision = reader.ReadLine().Trim();
-                    if (revision.StartsWith("$Revision:") && revision.EndsWith("$") && !revision.Contains(" 000 "))
-                        return revision.Substring(10, revision.Length - 11).Trim();
+                    if (revision.StartsWith("$Revision:") && revision.EndsWith("$"))
+                    {
+                        if (!revision.Contains(" 000 "))
+                            return revision.Substring(10, revision.Length - 11).Trim();
+                    }
+                    else
+                    {
+                        return revision;
+                    }
                 }
             }
             catch
@@ -64,7 +71,7 @@ namespace Orts.Common
                 {
                     var version = reader.ReadLine().Trim();
                     if (!string.IsNullOrEmpty(Revision))
-                        return version + Revision;
+                        return version + "-" + Revision;
                 }
             }
             catch

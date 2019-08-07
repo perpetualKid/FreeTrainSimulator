@@ -215,7 +215,7 @@ void _VSLightsAndShadows(in float4 InPosition, inout VERTEX_OUTPUT Out)
 VERTEX_OUTPUT VSGeneral(in VERTEX_INPUT In)
 {
 	VERTEX_OUTPUT Out = (VERTEX_OUTPUT)0;
-	
+
 	if (determinant(In.Instance) != 0) {
 		In.Position = mul(In.Position, transpose(In.Instance));
 		In.Normal = mul(In.Normal, (float3x3)transpose(In.Instance));
@@ -311,15 +311,18 @@ float3 _PSGetShadowEffect(in VERTEX_OUTPUT In)
 	if (depth < ShadowMapLimit.x) {
 		float3 pos0 = mul(In.Shadow, LightViewProjectionShadowProjection0).xyz;
 		rv = float3(tex2D(ShadowMap0, pos0.xy).xy, pos0.z);
-	} else {
+	}
+	else {
 		if (depth < ShadowMapLimit.y) {
 			float3 pos1 = mul(In.Shadow, LightViewProjectionShadowProjection1).xyz;
 			rv = float3(tex2D(ShadowMap1, pos1.xy).xy, pos1.z);
-		} else {
+		}
+		else {
 			if (depth < ShadowMapLimit.z) {
 				float3 pos2 = mul(In.Shadow, LightViewProjectionShadowProjection2).xyz;
 				rv = float3(tex2D(ShadowMap2, pos2.xy).xy, pos2.z);
-			} else {
+			}
+			else {
 				if (depth < ShadowMapLimit.w) {
 					float3 pos3 = mul(In.Shadow, LightViewProjectionShadowProjection3).xyz;
 					rv = float3(tex2D(ShadowMap3, pos3.xy).xy, pos3.z);
@@ -336,15 +339,18 @@ void _PSApplyShadowColor(inout float3 Color, in VERTEX_OUTPUT In)
 	if (depth < ShadowMapLimit.x) {
 		Color.rgb *= 0.9;
 		Color.r += 0.1;
-	} else {
+	}
+	else {
 		if (depth < ShadowMapLimit.y) {
 			Color.rgb *= 0.9;
 			Color.g += 0.1;
-		} else {
+		}
+		else {
 			if (depth < ShadowMapLimit.z) {
 				Color.rgb *= 0.9;
 				Color.b += 0.1;
-			} else {
+			}
+			else {
 				if (depth < ShadowMapLimit.w) {
 					Color.rgb *= 0.9;
 					Color.rg += 0.1;
@@ -452,8 +458,8 @@ float4 PSTransfer(in VERTEX_OUTPUT In) : COLOR0
 float4 PSVegetation(in VERTEX_OUTPUT In) : COLOR0
 {
 	float4 Color = tex2D(Image, In.TexCoords.xy);
-    // Alpha testing:
-    clip(Color.a - ReferenceAlpha);
+	// Alpha testing:
+	clip(Color.a - ReferenceAlpha);
 	// Ambient effect applies first; no shadow effect for vegetation; night-time textures cancel out all normal lighting.
 	float3 litColor = Color.rgb * VegetationAmbientModifier;
 	// No specular effect for vegetation.
@@ -498,8 +504,8 @@ float4 PSDarkShade(in VERTEX_OUTPUT In) : COLOR0
 	const float ShadowBrightness = 0.5;
 
 	float4 Color = tex2D(Image, In.TexCoords.xy);
-    // Alpha testing:
-    clip(Color.a - ReferenceAlpha);
+	// Alpha testing:
+	clip(Color.a - ReferenceAlpha);
 	// Fixed ambient and shadow effects at darkest level.
 	float3 litColor = Color.rgb * ShadowBrightness;
 	// No specular effect for dark shade.
@@ -520,8 +526,8 @@ float4 PSHalfBright(in VERTEX_OUTPUT In) : COLOR0
 	const float HalfShadowBrightness = 0.75;
 
 	float4 Color = tex2D(Image, In.TexCoords.xy);
-    // Alpha testing:
-    clip(Color.a - ReferenceAlpha);
+	// Alpha testing:
+	clip(Color.a - ReferenceAlpha);
 	// Fixed ambient and shadow effects at mid-dark level.
 	float3 litColor = Color.rgb * HalfShadowBrightness;
 	// No specular effect for half-bright.
@@ -540,8 +546,8 @@ float4 PSHalfBright(in VERTEX_OUTPUT In) : COLOR0
 float4 PSFullBright(in VERTEX_OUTPUT In) : COLOR0
 {
 	float4 Color = tex2D(Image, In.TexCoords.xy);
-    // Alpha testing:
-    clip(Color.a - ReferenceAlpha);
+	// Alpha testing:
+	clip(Color.a - ReferenceAlpha);
 	// Fixed ambient and shadow effects at brightest level.
 	float3 litColor = Color.rgb;
 	// No specular effect for full-bright.
@@ -558,8 +564,8 @@ float4 PSFullBright(in VERTEX_OUTPUT In) : COLOR0
 float4 PSSignalLight(in VERTEX_OUTPUT In) : COLOR0
 {
 	float4 Color = tex2D(Image, In.TexCoords.xy);
-    // Alpha testing:
-    clip(Color.a - ReferenceAlpha);
+	// Alpha testing:
+	clip(Color.a - ReferenceAlpha);
 	// No ambient and shadow effects for signal lights.
 	// Apply signal coloring effect.
 	float3 litColor = lerp(Color.rgb, In.Color.rgb, Color.r);
