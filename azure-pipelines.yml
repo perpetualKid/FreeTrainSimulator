@@ -46,7 +46,7 @@ steps:
     Set-Content "./Program/Revision.txt" "`$Revision: $Revision `$";
     (Get-Content "./Program/Version.txt" | select -skip 1 )| Set-Content "./Program/Version.txt";
     $Version=Get-Content "./Program/Version.txt" -First 1;
-    $Version="$Version$Revision";
+    $Version="$Version-$Revision";
     Write-Host "##vso[task.setvariable variable=outputFile]$Version";
     git log --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%dT%H:%MZ" -100 | ConvertFrom-Csv -Delimiter "|" -Header "Commit", "Date", "Author", "Message" | ConvertTo-Json | %{[Regex]::Replace($_, "\\u(?<Value>[a-zA-Z0-9]{4})", { param($m) ([char]([int]::Parse($m.Groups["Value"].Value,[System.Globalization.NumberStyles]::HexNumber))).ToString() } )} | Out-File $(Build.ArtifactStagingDirectory)/history.json;
 @{version="$Version";date=(get-date).ToString("yyyy-MM-ddTHH:mmZ");url="ci-builds/releases/$Version.zip"}| ConvertTo-Json | Out-File $(Build.ArtifactStagingDirectory)/version.json'
