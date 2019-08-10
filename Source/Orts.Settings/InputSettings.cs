@@ -21,7 +21,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using GNU.Gettext;
 using Microsoft.Xna.Framework;
@@ -29,6 +28,7 @@ using Microsoft.Xna.Framework.Input;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Common.Native;
+using Orts.Settings.Store;
 
 namespace Orts.Settings
 {

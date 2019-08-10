@@ -20,8 +20,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Orts.Settings.Store;
 
-namespace Orts.Common
+namespace Orts.Settings
 {
     /// <summary>
     /// Base class for supporting settings (either from user, commandline, default, ...)

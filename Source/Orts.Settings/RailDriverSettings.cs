@@ -7,6 +7,7 @@ using System.Text;
 using GNU.Gettext;
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Settings.Store;
 
 namespace Orts.Settings
 {

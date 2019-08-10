@@ -43,6 +43,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdPartyLibs\GNU.Gettext.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -52,6 +53,10 @@
     <Compile Include="InputSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RailDriverSettings.cs" />
+    <Compile Include="SettingsBase.cs" />
+    <Compile Include="Store\SettingsStore.cs" />
+    <Compile Include="Store\SettingsStoreLocalIni.cs" />
+    <Compile Include="Store\SettingsStoreRegistry.cs" />
     <Compile Include="UpdateSettings.cs" />
     <Compile Include="UpdateState.cs" />
     <Compile Include="UserSettings.cs" />
