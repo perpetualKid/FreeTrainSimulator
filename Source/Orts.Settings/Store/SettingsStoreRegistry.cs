@@ -10,7 +10,6 @@ namespace Orts.Settings.Store
     /// </summary>
     public sealed class SettingsStoreRegistry : SettingsStore
     {
-        private readonly string registryKey;
         private readonly RegistryKey key;
 
         internal SettingsStoreRegistry(string registryKey, string section)
@@ -20,10 +19,15 @@ namespace Orts.Settings.Store
             key = Registry.CurrentUser.CreateSubKey(registryKey);
         }
 
+        public override string[] GetSectionNames()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Return an array of all setting-names that are in the store
         /// </summary>
-        public override string[] GetUserNames()
+        public override string[] GetSettingNames()
         {
             return key.GetValueNames();
         }
@@ -34,7 +38,7 @@ namespace Orts.Settings.Store
         /// <param name="name">name of the setting</param>
         /// <param name="expectedType">Type that is expected</param>
         /// <returns>the value from the store, as a general object</returns>
-        public override object GetUserValue(string name, Type expectedType)
+        public override object GetSettingValue(string name, Type expectedType)
         {
             AssertGetUserValueType(expectedType);
 

@@ -129,7 +129,7 @@ namespace Orts.Settings
 
             Type type = defValue.GetType();
             // Read in the user setting, if it exists.
-            dynamic userValue = allowUserSettings ? SettingStore.GetUserValue(name, type) : null;
+            dynamic userValue = allowUserSettings ? SettingStore.GetSettingValue(name, type) : null;
 
             // Read in the command-line option, if it exists into optValue.
             optionsDictionary.TryGetValue(name.ToLowerInvariant(), out string optValueString);
@@ -188,7 +188,7 @@ namespace Orts.Settings
 			var defValue = GetDefaultValue(name);
 
 			// Read in the user setting, if it exists.
-			var userValue = allowUserSettings ? SettingStore.GetUserValue(name, type) : null;
+			var userValue = allowUserSettings ? SettingStore.GetSettingValue(name, type) : null;
 
 			// Read in the command-line option, if it exists into optValue.
 			var propertyNameLower = name.ToLowerInvariant();

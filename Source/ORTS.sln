@@ -47,7 +47,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActivityRunner", "ActivityR
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentChecker", "Contrib\ContentChecker\ContentChecker.csproj", "{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Orts.Common", "UnitTests\Tests.Orts.Common\Tests.Orts.Common.csproj", "{401939A5-9CFD-42DA-8F47-766AE68F2CE5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Orts", "UnitTests\Tests.Orts\Tests.Orts.csproj", "{401939A5-9CFD-42DA-8F47-766AE68F2CE5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

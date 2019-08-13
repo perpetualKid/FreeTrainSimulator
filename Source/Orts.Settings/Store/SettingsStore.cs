@@ -5,6 +5,13 @@ using System.Linq;
 
 namespace Orts.Settings.Store
 {
+    public enum StoreType
+    {
+        Ini,
+        Json,
+        Registry
+    }
+
     /// <summary>
     /// Base class for all means of persisting settings from the user/game.
     /// </summary>
@@ -41,17 +48,43 @@ namespace Orts.Settings.Store
         }
 
         /// <summary>
-        /// Return an array of all setting-names that are in the store
+        /// returns an array of all Section names that are in the store.
+        /// For flat file store (ini), this would be all sections
+        /// For hierarchical store (registry, json), this would be the root and all (first level) child
         /// </summary>
-        public abstract string[] GetUserNames();
+        public abstract string[] GetSectionNames();
 
         /// <summary>
-        /// Get the value of a user setting
+        /// Return an array of all setting-names that are in the store
+        /// </summary>
+        public abstract string[] GetSettingNames();
+
+        /// <summary>
+        /// Get the value of a setting
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public T GetSettingValue<T>(string name, T defaultValue)
+        {
+            dynamic result = GetSettingValue(name, typeof(T));
+            return result ?? defaultValue;
+        }
+
+        /// <summary>
+        /// Get the value of a setting
         /// </summary>
         /// <param name="name">name of the setting</param>
         /// <param name="expectedType">Type that is expected</param>
         /// <returns>the value from the store, as a general object</returns>
-        public abstract object GetUserValue(string name, Type expectedType);
+        public abstract object GetSettingValue(string name, Type expectedType);
+
+        public void SetSettingValue<T>(string name, T value)
+        {
+            AssertGetUserValueType(typeof(T));
+            SetUserValue(name, (dynamic)value);
+        }
 
         /// <summary>
         /// Set a boolean user setting
@@ -118,7 +151,7 @@ namespace Orts.Settings.Store
         /// <summary>
         /// Factory method to create a setting store (sub-class of SettingsStore)
         /// </summary>
-        /// <param name="filePath">File patht o a .init file, if you want to use a .ini file</param>
+        /// <param name="filePath">File path to an .init file, if you want to use a .ini file</param>
         /// <param name="registryKey">key to the 'windows' register, if you want to use a registry-based store</param>
         /// <param name="section">Name to distinguish between various 'section's used in underlying store.</param>
         /// <returns>The created SettingsStore</returns>
@@ -129,6 +162,27 @@ namespace Orts.Settings.Store
             if (!string.IsNullOrEmpty(registryKey))
                 return new SettingsStoreRegistry(registryKey, section);
             throw new ArgumentException("Neither 'filePath' nor 'registryKey' arguments are valid.");
+        }
+
+        public static SettingsStore GetSettingsStore(StoreType storeType, string location, string section)
+        {
+            if (string.IsNullOrWhiteSpace(location))
+                throw new ArgumentException("Argument need to point to a valid location (registry or file path)", nameof(location));
+            SettingsStore result = null;
+            switch (storeType)
+            {
+                case StoreType.Ini:
+                    result = new SettingsStoreLocalIni(location, section);
+                    break;
+                case StoreType.Json:
+                    break;
+                case StoreType.Registry:
+                    new SettingsStoreRegistry(location, section);
+                    break;
+            }
+            if (null == result)
+                throw new InvalidOperationException("Invalid setting store arguments");
+            return result;
         }
     }
 }

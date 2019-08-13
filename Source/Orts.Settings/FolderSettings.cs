@@ -51,13 +51,13 @@ namespace Orts.Settings
 
         protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
         {
-            foreach (var name in SettingStore.GetUserNames())
+            foreach (var name in SettingStore.GetSettingNames())
                 LoadSetting(allowUserSettings, optionsDictionary, name, typeof(string));
         }
 
         public override void Save()
         {
-            foreach (var name in SettingStore.GetUserNames())
+            foreach (var name in SettingStore.GetSettingNames())
                 if (!Folders.ContainsKey(name))
                     Reset(name);
             foreach (var name in Folders.Keys)

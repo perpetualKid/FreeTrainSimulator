@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using Orts.Common.Native;
 
 namespace Orts.Settings.Store
@@ -13,7 +12,6 @@ namespace Orts.Settings.Store
     public sealed class SettingsStoreLocalIni : SettingsStore
     {
         private const string defaultSection = "ORTS";
-
         private readonly string filePath;
 
         internal SettingsStoreLocalIni(string filePath, string section)
@@ -22,46 +20,35 @@ namespace Orts.Settings.Store
             this.filePath = filePath;
         }
 
+        private string GetSectionValues(string section, string name)
+        {
+            var buffer = new string('\0', 256);
+            while (true)
+            {
+                int length = NativeMethods.GetPrivateProfileString(section, name, null, buffer, buffer.Length, filePath);
+                if (length < buffer.Length - (name == null ? 2 : 1))    // if multiple values are requested (section names, value names, each one is ended by \0 in addtion the overall string is terminated by \0, hence will be double \0
+                {
+                    return buffer.Substring(0, length);
+                }
+                buffer = new string('\0', buffer.Length * 2);
+            }
+        }
+
         /// <summary>
         /// Returns an array of all sections within the store, including the one used by this instance.
         /// </summary>
         /// <returns></returns>
-        public string[] GetSectionNames()
+        public override string[] GetSectionNames()
         {
-            StringBuilder builder = new StringBuilder(255);
-            while (true)
-            {
-                var length = NativeMethods.GetPrivateProfileString(null, null, null, builder, builder.Length, filePath);
-                if (length < builder.Length - 2)
-                {
-                    builder.Length = length;
-                    break;
-                }
-                builder = new StringBuilder(builder.Length * 2);
-            }
-            if (builder.Length == 0)
-                return null;
-
-            return builder.ToString().Split('\0');
+            return GetSectionValues(null, null).Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         /// <summary>
         /// Return an array of all setting-names that are in the store
         /// </summary>
-        public override string[] GetUserNames()
+        public override string[] GetSettingNames()
         {
-            var buffer = new string('\0', 256);
-            while (true)
-            {
-                var length = NativeMethods.GetPrivateProfileSection(Section, buffer, buffer.Length, filePath);
-                if (length < buffer.Length - 2)
-                {
-                    buffer = buffer.Substring(0, length);
-                    break;
-                }
-                buffer = new string('\0', buffer.Length * 2);
-            }
-            return buffer.Split('\0').Where(s => s.Contains('=')).Select(s => s.Split('=')[0]).ToArray();
+            return GetSectionValues(Section, null).Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         /// <summary>
@@ -70,38 +57,28 @@ namespace Orts.Settings.Store
         /// <param name="name">name of the setting</param>
         /// <param name="expectedType">Type that is expected</param>
         /// <returns>the value from the store, as a general object</returns>
-        public override object GetUserValue(string name, Type expectedType)
+        public override object GetSettingValue(string name, Type expectedType)
         {
             AssertGetUserValueType(expectedType);
 
-            var buffer = new string('\0', 256);
-            while (true)
-            {
-                var length = NativeMethods.GetPrivateProfileString(Section, name, null, buffer, buffer.Length, filePath);
-                if (length < buffer.Length - 1)
-                {
-                    buffer = buffer.Substring(0, length);
-                    break;
-                }
-                buffer = new string('\0', buffer.Length * 2);
-            }
-            if (buffer.Length == 0)
+            string settingValue = GetSectionValues(Section, name);
+            if (string.IsNullOrEmpty(settingValue))
                 return null;
 
-            var value = buffer.Split(':');
+            var value = settingValue.Split(':');
             if (value.Length != 2)
             {
-                Trace.TraceWarning("Setting {0} contains invalid value {1}.", name, buffer);
+                Trace.TraceWarning("Setting {0} contains invalid value {1}.", name, settingValue);
                 return null;
             }
 
             try
             {
-                object userValue = null;
+                dynamic userValue = null;
                 switch (value[0])
                 {
                     case "bool":
-                        userValue = value[1].Equals("true", StringComparison.InvariantCultureIgnoreCase);
+                        userValue = bool.Parse(value[1]);
                         break;
                     case "int":
                         userValue = int.Parse(Uri.UnescapeDataString(value[1]), CultureInfo.InvariantCulture);
@@ -146,7 +123,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, bool value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "bool:" + (value ? "true" : "false"), filePath);
+            NativeMethods.WritePrivateProfileString(Section, name, "bool:" + value.ToString(), filePath);
         }
 
         /// <summary>
