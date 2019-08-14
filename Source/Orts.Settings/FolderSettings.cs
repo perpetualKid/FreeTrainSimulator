@@ -24,8 +24,15 @@ namespace Orts.Settings
     {
         public readonly Dictionary<string, string> Folders;
 
-        public FolderSettings(IEnumerable<string> options)
-            : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "Folders"))
+        //public FolderSettings(IEnumerable<string> options)
+        //    : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "Folders"))
+        //{
+        //    Folders = new Dictionary<string, string>();
+        //    LoadSettings(options);
+        //}
+
+        public FolderSettings(IEnumerable<string> options, SettingsStore store): 
+            base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Folders"))
         {
             Folders = new Dictionary<string, string>();
             LoadSettings(options);

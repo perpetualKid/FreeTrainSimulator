@@ -66,8 +66,15 @@ namespace Orts.Settings
         /// Initializes a new instances of the <see cref="InputSettings"/> class with the specified options.
         /// </summary>
         /// <param name="options">The list of one-time options to override persisted settings, if any.</param>
-        public InputSettings(IEnumerable<string> options)
-        : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "Keys"))
+        //public InputSettings(IEnumerable<string> options)
+        //: base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "Keys"))
+        //{
+        //    InitializeCommands(Commands);
+        //    LoadSettings(options);
+        //}
+
+        public InputSettings(IEnumerable<string> options, SettingsStore store) : 
+            base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Keys"))
         {
             InitializeCommands(Commands);
             LoadSettings(options);

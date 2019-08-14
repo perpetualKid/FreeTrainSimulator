@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Microsoft.Win32;
 
@@ -15,13 +17,16 @@ namespace Orts.Settings.Store
         internal SettingsStoreRegistry(string registryKey, string section)
             : base(section)
         {
-            registryKey = string.IsNullOrEmpty(section) ? registryKey : registryKey + @"\" + section;
-            key = Registry.CurrentUser.CreateSubKey(registryKey);
+            Location = Path.Combine(registryKey, Section);
+            key = Registry.CurrentUser.CreateSubKey(Location);
+            StoreType = StoreType.Registry;
         }
 
         public override string[] GetSectionNames()
         {
-            throw new NotImplementedException();
+            List<string> sections = new List<string>(key.GetSubKeyNames());
+            sections.Insert(0, Path.GetFileNameWithoutExtension(key.Name));
+            return sections.ToArray();
         }
 
         /// <summary>

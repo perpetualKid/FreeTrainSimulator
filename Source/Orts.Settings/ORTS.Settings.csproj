@@ -49,6 +49,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes.cs" />
     <Compile Include="FolderSettings.cs" />
     <Compile Include="InputSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -35,15 +36,18 @@ namespace Orts.Settings
 		protected enum Source
 		{
             /// <summary>Setting is a default setting</summary>
-			Default,
+			[Description("(default)")]
+            Default,
             /// <summary>Setting comes from the command line</summary>
+            [Description("(command-line)")]
             CommandLine,
             /// <summary>Setting comes from user (so stored between runs)</summary>
+            [Description("(user set)")]
             User,
 		}
 
         /// <summary>The store of the settings</summary>
-        protected SettingsStore SettingStore { get; private set; }
+        protected internal SettingsStore SettingStore { get; private set; }
 
         /// <summary>Translates name of a setting to its source</summary>
         protected readonly Dictionary<string, Source> Sources = new Dictionary<string, Source>();
@@ -102,7 +106,7 @@ namespace Orts.Settings
         /// <summary>
         /// Load settings from the options
         /// </summary>
-        /// <param name="options">???</param>
+        /// <param name="options">overrideable user options</param>
 		protected void LoadSettings(IEnumerable<string> options)
 		{
 			// This special command-line option prevents the registry values from being used.

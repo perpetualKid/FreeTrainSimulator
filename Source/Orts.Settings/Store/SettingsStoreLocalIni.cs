@@ -11,13 +11,11 @@ namespace Orts.Settings.Store
     /// </summary>
     public sealed class SettingsStoreLocalIni : SettingsStore
     {
-        private const string defaultSection = "ORTS";
-        private readonly string filePath;
-
         internal SettingsStoreLocalIni(string filePath, string section)
-            : base(string.IsNullOrEmpty(section) ? defaultSection : section)
+            : base(section)
         {
-            this.filePath = filePath;
+            Location = filePath;
+            StoreType = StoreType.Ini;
         }
 
         private string GetSectionValues(string section, string name)
@@ -25,7 +23,7 @@ namespace Orts.Settings.Store
             var buffer = new string('\0', 256);
             while (true)
             {
-                int length = NativeMethods.GetPrivateProfileString(section, name, null, buffer, buffer.Length, filePath);
+                int length = NativeMethods.GetPrivateProfileString(section, name, null, buffer, buffer.Length, Location);
                 if (length < buffer.Length - (name == null ? 2 : 1))    // if multiple values are requested (section names, value names, each one is ended by \0 in addtion the overall string is terminated by \0, hence will be double \0
                 {
                     return buffer.Substring(0, length);
@@ -123,7 +121,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, bool value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "bool:" + value.ToString(), filePath);
+            NativeMethods.WritePrivateProfileString(Section, name, "bool:" + value.ToString(), Location);
         }
 
         /// <summary>
@@ -133,7 +131,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, int value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "int:" + Uri.EscapeDataString(value.ToString(CultureInfo.InvariantCulture)), filePath);
+            NativeMethods.WritePrivateProfileString(Section, name, "int:" + Uri.EscapeDataString(value.ToString(CultureInfo.InvariantCulture)), Location);
         }
 
         /// <summary>
@@ -143,7 +141,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, byte value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "byte:" + Uri.EscapeDataString(value.ToString(CultureInfo.InvariantCulture)), filePath);
+            NativeMethods.WritePrivateProfileString(Section, name, "byte:" + Uri.EscapeDataString(value.ToString(CultureInfo.InvariantCulture)), Location);
         }
 
         /// <summary>
@@ -153,7 +151,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, DateTime value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "DateTime:" + Uri.EscapeDataString(value.ToBinary().ToString(CultureInfo.InvariantCulture)), filePath);
+            NativeMethods.WritePrivateProfileString(Section, name, "DateTime:" + Uri.EscapeDataString(value.ToBinary().ToString(CultureInfo.InvariantCulture)), Location);
         }
 
         /// <summary>
@@ -163,7 +161,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, TimeSpan value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "TimeSpan:" + Uri.EscapeDataString(value.TotalSeconds.ToString(CultureInfo.InvariantCulture)), filePath);
+            NativeMethods.WritePrivateProfileString(Section, name, "TimeSpan:" + Uri.EscapeDataString(value.TotalSeconds.ToString(CultureInfo.InvariantCulture)), Location);
         }
 
         /// <summary>
@@ -173,7 +171,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, string value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "string:" + Uri.EscapeDataString(value), filePath);
+            NativeMethods.WritePrivateProfileString(Section, name, "string:" + Uri.EscapeDataString(value), Location);
         }
 
         /// <summary>
@@ -183,7 +181,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, int[] value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "int[]:" + string.Join(",", ((int[])value).Select(v => Uri.EscapeDataString(v.ToString(CultureInfo.InvariantCulture))).ToArray()), filePath);
+            NativeMethods.WritePrivateProfileString(Section, name, "int[]:" + string.Join(",", ((int[])value).Select(v => Uri.EscapeDataString(v.ToString(CultureInfo.InvariantCulture))).ToArray()), Location);
         }
 
         /// <summary>
@@ -193,7 +191,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         public override void SetUserValue(string name, string[] value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "string[]:" + string.Join(",", value.Select(v => Uri.EscapeDataString(v)).ToArray()), filePath);
+            NativeMethods.WritePrivateProfileString(Section, name, "string[]:" + string.Join(",", value.Select(v => Uri.EscapeDataString(v)).ToArray()), Location);
         }
 
         /// <summary>
@@ -202,7 +200,7 @@ namespace Orts.Settings.Store
         /// <param name="name">name of the setting</param>
         public override void DeleteUserValue(string name)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, null, filePath);
+            NativeMethods.WritePrivateProfileString(Section, name, null, Location);
         }
     }
 }

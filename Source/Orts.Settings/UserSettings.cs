@@ -21,46 +21,44 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+using Orts.Common;
 using Orts.Settings.Store;
 
 namespace Orts.Settings
 {
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class DefaultAttribute : Attribute
-    {
-        public readonly object Value;
-        public DefaultAttribute(object value)
-        {
-            Value = value;
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class DoNotSaveAttribute : Attribute
-    {
-    }
 
     public class UserSettings : SettingsBase
     {
-        public static readonly string RegistryKey;        // ie @"SOFTWARE\OpenRails\ORTS"
-        public static readonly string SettingsFilePath;   // ie @"C:\Program Files\Open Rails\OpenRails.ini"
         public static readonly string UserDataFolder;     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
         public static readonly string DeletedSaveFolder;  // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Deleted Saves"
         public static readonly string SavePackFolder;     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Save Packs"
 
+        private static readonly StoreType SettingsStoreType;
+        private static readonly string Location;
+
+        public static UserSettings Instance { get; private set; }
+
         static UserSettings()
         {
-            // Only one of these is allowed; if the INI file exists, we use that, otherwise we use the registry.
-            RegistryKey = "SOFTWARE\\OpenRails\\ORTS";
-            SettingsFilePath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "OpenRails.ini");
-            if (File.Exists(SettingsFilePath))
-                RegistryKey = null;
+            //TODO: user settings (as any other runtime data) may not be saved in exe folder (which might be under \Program Files if installed via installer)
+            // default user settings are searched in order: Json, Ini, Registry
+            if (File.Exists(Location = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), EnumExtension.GetDescription(StoreType.Json))))
+            {
+                SettingsStoreType = StoreType.Json;
+            }
+            if (File.Exists(Location = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), EnumExtension.GetDescription(StoreType.Ini))))
+            {
+                SettingsStoreType = StoreType.Ini;
+            }
             else
-                SettingsFilePath = null;
+            {
+                SettingsStoreType = StoreType.Registry;
+                Location = EnumExtension.GetDescription(StoreType.Registry);
+            }
 
             UserDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Application.ProductName);
-            // TODO: If using INI file, move these to application directory as well.
-            if (!Directory.Exists(UserDataFolder)) Directory.CreateDirectory(UserDataFolder);
+
+            Directory.CreateDirectory(UserDataFolder);
             DeletedSaveFolder = Path.Combine(UserDataFolder, "Deleted Saves");
             SavePackFolder = Path.Combine(UserDataFolder, "Save Packs");
         }
@@ -391,21 +389,28 @@ namespace Orts.Settings
         #endregion
 
         public FolderSettings Folders { get; private set; }
+
         public InputSettings Input { get; private set; }
 
         public RailDriverSettings RailDriver { get; private set; }
 
-        public UserSettings(IEnumerable<string> options)
-            : base(SettingsStore.GetSettingStore(SettingsFilePath, RegistryKey, null))
+        public UserSettings(IEnumerable<string> options) : 
+            this(options, SettingsStore.GetSettingsStore(SettingsStoreType, Location, null))
+        {
+            if (null == Instance)
+                Instance = this;
+        }
+
+        public UserSettings(IEnumerable<string> options, SettingsStore store) :
+            base(store)
         {
             CustomDefaultValues["LoggingPath"] = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             CustomDefaultValues["ScreenshotPath"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), Application.ProductName);
             CustomDefaultValues["Multiplayer_User"] = Environment.UserName;
             LoadSettings(options);
-            Folders = new FolderSettings(options);
-            Input = new InputSettings(options);
-            RailDriver = new RailDriverSettings(options);
-
+            Folders = new FolderSettings(options, store);
+            Input = new InputSettings(options, store);
+            RailDriver = new RailDriverSettings(options, store);
         }
 
         public override object GetDefaultValue(string name)

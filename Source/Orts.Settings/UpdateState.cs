@@ -24,7 +24,7 @@ namespace Orts.Settings
 {
     public class UpdateState : SettingsBase
     {
-        #region User Settings
+        #region Update State (treated as Settings)
 
         // Please put all update settings in here as auto-properties. Public properties
         // of type 'string', 'int', 'bool', 'string[]' and 'int[]' are automatically loaded/saved.
@@ -36,7 +36,14 @@ namespace Orts.Settings
         #endregion
 
         public UpdateState()
-            : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "UpdateState"))
+            : base(SettingsStore.GetSettingsStore(UserSettings.Instance.SettingStore.StoreType, 
+                UserSettings.Instance.SettingStore.Location, "UpdateState"))
+        {
+            LoadSettings(new string[0]);
+        }
+
+        public UpdateState(SettingsStore store)
+            : base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "UpdateState"))
         {
             LoadSettings(new string[0]);
         }

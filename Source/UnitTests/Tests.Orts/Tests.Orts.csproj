@@ -89,7 +89,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Common\FormatStringsTests.cs" />
     <Compile Include="Common\CoordinatesTests.cs" />
+    <Compile Include="Settings\FolderSettingsTests.cs" />
     <Compile Include="Settings\Store\LocalIniStoreTests.cs" />
+    <Compile Include="Settings\Store\RegistryStoreTests.cs" />
     <Compile Include="Shared\TestFile.cs" />
   </ItemGroup>
   <ItemGroup>

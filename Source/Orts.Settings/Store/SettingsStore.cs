@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -7,8 +8,11 @@ namespace Orts.Settings.Store
 {
     public enum StoreType
     {
+        [Description("OpenRails.ini")]
         Ini,
+        [Description("OpenRails.json")]
         Json,
+        [Description("SOFTWARE\\OpenRails")]
         Registry
     }
 
@@ -17,6 +21,7 @@ namespace Orts.Settings.Store
     /// </summary>
     public abstract class SettingsStore
     {
+        protected const string sectionRoot = "ORTS";
         /// <summary>Name of a 'section', to distinguish various part within a underlying store</summary>
         protected string Section { get; private set; }
 
@@ -26,8 +31,12 @@ namespace Orts.Settings.Store
         /// <param name="section">Name of the 'section', to distinguish various part within a underlying store</param>
 		protected SettingsStore(string section)
         {
-            Section = section;
+            Section = section ?? sectionRoot;
         }
+
+        public StoreType StoreType { get; protected set; }
+
+        public string Location { get; protected set; }
 
         /// <summary>
         /// Assert that the type expected from the settings store is an allowed type.
@@ -151,38 +160,20 @@ namespace Orts.Settings.Store
         /// <summary>
         /// Factory method to create a setting store (sub-class of SettingsStore)
         /// </summary>
-        /// <param name="filePath">File path to an .init file, if you want to use a .ini file</param>
-        /// <param name="registryKey">key to the 'windows' register, if you want to use a registry-based store</param>
-        /// <param name="section">Name to distinguish between various 'section's used in underlying store.</param>
-        /// <returns>The created SettingsStore</returns>
-		public static SettingsStore GetSettingStore(string filePath, string registryKey, string section)
-        {
-            if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
-                return new SettingsStoreLocalIni(filePath, section);
-            if (!string.IsNullOrEmpty(registryKey))
-                return new SettingsStoreRegistry(registryKey, section);
-            throw new ArgumentException("Neither 'filePath' nor 'registryKey' arguments are valid.");
-        }
-
         public static SettingsStore GetSettingsStore(StoreType storeType, string location, string section)
         {
             if (string.IsNullOrWhiteSpace(location))
                 throw new ArgumentException("Argument need to point to a valid location (registry or file path)", nameof(location));
-            SettingsStore result = null;
             switch (storeType)
             {
                 case StoreType.Ini:
-                    result = new SettingsStoreLocalIni(location, section);
-                    break;
+                    return new SettingsStoreLocalIni(location, section);
                 case StoreType.Json:
                     break;
                 case StoreType.Registry:
-                    new SettingsStoreRegistry(location, section);
-                    break;
+                    return new SettingsStoreRegistry(location, section);
             }
-            if (null == result)
-                throw new InvalidOperationException("Invalid setting store arguments");
-            return result;
+            throw new InvalidOperationException("Invalid setting store arguments");
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Orts.Settings
 {
     public class UpdateSettings : SettingsBase
     {
-        public static readonly string SettingsFilePath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Updater.ini");
+        private static readonly string settingsFilePath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Updater.ini");
 
         #region User Settings
 
@@ -44,13 +44,13 @@ namespace Orts.Settings
         #endregion
 
         public UpdateSettings()
-            : base(SettingsStore.GetSettingStore(SettingsFilePath, null, "Settings"))
+            : base(SettingsStore.GetSettingsStore(StoreType.Ini, settingsFilePath, "Settings"))
         {
             LoadSettings(new string[0]);
         }
 
         public UpdateSettings(string channel)
-            : base(SettingsStore.GetSettingStore(SettingsFilePath, null, channel + "Settings"))
+            : base(SettingsStore.GetSettingsStore(StoreType.Ini, settingsFilePath, channel + "Settings"))
         {
             LoadSettings(new string[0]);
         }
