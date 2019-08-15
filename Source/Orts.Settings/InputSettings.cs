@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -105,21 +106,16 @@ namespace Orts.Settings
             Commands[(int)GetCommand(name)].PersistentDescriptor = (string)value;
         }
 
-        protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
+        protected override void Load(bool allowUserSettings, NameValueCollection options)
         {
             foreach (var command in EnumExtension.GetValues<UserCommand>())
-                LoadSetting(allowUserSettings, optionsDictionary, command.ToString(), typeof(string));
+                LoadSetting(allowUserSettings, options, command.ToString());
         }
 
         public override void Save()
         {
             foreach (var command in EnumExtension.GetValues<UserCommand>())
-                Save(command.ToString());
-        }
-
-        public override void Save(string name)
-        {
-            Save(name, typeof(string));
+                SaveSetting(command.ToString());
         }
 
         public override void Reset()

@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -88,10 +89,10 @@ namespace Orts.Settings
             GetProperty(name).SetValue(this, value, null);
         }
 
-        protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
+        protected override void Load(bool allowUserSettings, NameValueCollection options)
         {
             foreach (var property in GetProperties())
-                LoadSetting(allowUserSettings, optionsDictionary, property.Name);
+                LoadSetting(allowUserSettings, options, property.Name);
         }
 
         public override void Save()

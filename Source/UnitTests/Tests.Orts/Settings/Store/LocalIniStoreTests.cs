@@ -127,7 +127,7 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                Assert.IsNull(store.GetSettingValue("name1", typeof(bool)));
+                Assert.IsNull(store.GetSettingValue("name1", (string)null));
             }
         }
 
@@ -160,7 +160,7 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                Assert.IsTrue((bool)store.GetSettingValue("name", typeof(bool)));
+                Assert.IsTrue(store.GetSettingValue("name", false));
             }
         }
 
@@ -171,7 +171,7 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                Assert.AreEqual(7, (int)store.GetSettingValue("name", typeof(int)));
+                Assert.AreEqual(7, store.GetSettingValue("name", 0));
             }
         }
 
@@ -182,7 +182,7 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                Assert.AreEqual(TimeSpan.FromSeconds(1000), (TimeSpan)store.GetSettingValue("name", typeof(TimeSpan)));
+                Assert.AreEqual(TimeSpan.FromSeconds(1000), store.GetSettingValue("name", TimeSpan.Zero));
             }
         }
 
@@ -193,7 +193,7 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                CollectionAssert.AreEqual(new int[]{0, 1, 10, 100, 1000}, (int[])store.GetSettingValue("name", typeof(int[])));
+                CollectionAssert.AreEqual(new int[]{0, 1, 10, 100, 1000}, store.GetSettingValue("name", new int[0]));
             }
         }
 
@@ -215,7 +215,7 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                CollectionAssert.AreEqual(new string[] { "0", "1", "10", "100", "1000" }, (string[])store.GetSettingValue("name", typeof(string[])));
+                CollectionAssert.AreEqual(new string[] { "0", "1", "10", "100", "1000" }, store.GetSettingValue("name", new string[0]));
             }
         }
 

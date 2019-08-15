@@ -43,7 +43,7 @@ namespace Orts.Settings.Store
         /// <param name="name">name of the setting</param>
         /// <param name="expectedType">Type that is expected</param>
         /// <returns>the value from the store, as a general object</returns>
-        public override object GetSettingValue(string name, Type expectedType)
+        protected override object GetSettingValue(string name, Type expectedType)
         {
             AssertGetUserValueType(expectedType);
 
@@ -84,7 +84,7 @@ namespace Orts.Settings.Store
         /// </summary>
         /// <param name="name">name of the setting</param>
         /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, bool value)
+        protected override void SetSettingValue(string name, bool value)
         {
             key.SetValue(name, value ? 1 : 0, RegistryValueKind.DWord);
         }
@@ -94,7 +94,7 @@ namespace Orts.Settings.Store
         /// </summary>
         /// <param name="name">name of the setting</param>
         /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, int value)
+        protected override void SetSettingValue(string name, int value)
         {
             key.SetValue(name, value, RegistryValueKind.DWord);
         }
@@ -104,7 +104,7 @@ namespace Orts.Settings.Store
         /// </summary>
         /// <param name="name">name of the setting</param>
         /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, byte value)
+        protected override void SetSettingValue(string name, byte value)
         {
             key.SetValue(name, value, RegistryValueKind.DWord);
         }
@@ -114,7 +114,7 @@ namespace Orts.Settings.Store
         /// </summary>
         /// <param name="name">name of the setting</param>
         /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, DateTime value)
+        protected override void SetSettingValue(string name, DateTime value)
         {
             key.SetValue(name, value.ToBinary(), RegistryValueKind.QWord);
         }
@@ -124,7 +124,7 @@ namespace Orts.Settings.Store
         /// </summary>
         /// <param name="name">name of the setting</param>
         /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, TimeSpan value)
+        protected override void SetSettingValue(string name, TimeSpan value)
         {
             key.SetValue(name, value.TotalSeconds, RegistryValueKind.QWord);
         }
@@ -134,7 +134,7 @@ namespace Orts.Settings.Store
         /// </summary>
         /// <param name="name">name of the setting</param>
         /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, string value)
+        protected override void SetSettingValue(string name, string value)
         {
             key.SetValue(name, value, RegistryValueKind.String);
         }
@@ -144,7 +144,7 @@ namespace Orts.Settings.Store
         /// </summary>
         /// <param name="name">name of the setting</param>
         /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, int[] value)
+        protected override void SetSettingValue(string name, int[] value)
         {
             key.SetValue(name, string.Join(",", (value).Select(v => v.ToString()).ToArray()), RegistryValueKind.String);
         }
@@ -154,7 +154,7 @@ namespace Orts.Settings.Store
         /// </summary>
         /// <param name="name">name of the setting</param>
         /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, string[] value)
+        protected override void SetSettingValue(string name, string[] value)
         {
             key.SetValue(name, value, RegistryValueKind.MultiString);
         }

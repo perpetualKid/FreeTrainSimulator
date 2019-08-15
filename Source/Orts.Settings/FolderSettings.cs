@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using Orts.Settings.Store;
 
 namespace Orts.Settings
@@ -23,13 +24,6 @@ namespace Orts.Settings
     public class FolderSettings : SettingsBase
     {
         public readonly Dictionary<string, string> Folders;
-
-        //public FolderSettings(IEnumerable<string> options)
-        //    : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "Folders"))
-        //{
-        //    Folders = new Dictionary<string, string>();
-        //    LoadSettings(options);
-        //}
 
         public FolderSettings(IEnumerable<string> options, SettingsStore store): 
             base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Folders"))
@@ -40,7 +34,7 @@ namespace Orts.Settings
 
         public override object GetDefaultValue(string name)
         {
-            return "";
+            return string.Empty;
         }
 
         protected override object GetValue(string name)
@@ -56,10 +50,10 @@ namespace Orts.Settings
                 Folders.Remove(name);
         }
 
-        protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
+        protected override void Load(bool allowUserSettings, NameValueCollection options)
         {
             foreach (var name in SettingStore.GetSettingNames())
-                LoadSetting(allowUserSettings, optionsDictionary, name, typeof(string));
+                LoadSetting(allowUserSettings, options, name);
         }
 
         public override void Save()
@@ -68,12 +62,7 @@ namespace Orts.Settings
                 if (!Folders.ContainsKey(name))
                     Reset(name);
             foreach (var name in Folders.Keys)
-                Save(name);
-        }
-
-        public override void Save(string name)
-        {
-            Save(name, typeof(string));
+                SaveSetting(name);
         }
 
         public override void Reset()

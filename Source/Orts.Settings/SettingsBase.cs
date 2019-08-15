@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -30,27 +31,10 @@ namespace Orts.Settings
     /// </summary>
 	public abstract class SettingsBase
 	{
-        /// <summary>
-        /// Enumeration of the various sources for settings
-        /// </summary>
-		protected enum Source
-		{
-            /// <summary>Setting is a default setting</summary>
-			[Description("(default)")]
-            Default,
-            /// <summary>Setting comes from the command line</summary>
-            [Description("(command-line)")]
-            CommandLine,
-            /// <summary>Setting comes from user (so stored between runs)</summary>
-            [Description("(user set)")]
-            User,
-		}
-
         /// <summary>The store of the settings</summary>
         protected internal SettingsStore SettingStore { get; private set; }
 
-        /// <summary>Translates name of a setting to its source</summary>
-        protected readonly Dictionary<string, Source> Sources = new Dictionary<string, Source>();
+        protected readonly StringCollection optionalSettings = new StringCollection();
 
         /// <summary>
         /// Constructor
@@ -85,7 +69,7 @@ namespace Orts.Settings
         /// </summary>
         /// <param name="allowUserSettings">Are user settings allowed?</param>
         /// <param name="optionsDictionary">???</param>
-		protected abstract void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary);
+		protected abstract void Load(bool allowUserSettings, NameValueCollection options);
 
         /// <summary>
         /// Save all settings to the store
@@ -96,7 +80,10 @@ namespace Orts.Settings
         /// Save a setting to the store. Since type is not known, this is abstract.
         /// </summary>
         /// <param name="name">name of the setting</param>
-		public abstract void Save(string name);
+		public virtual void Save(string name)
+        {
+            SaveSetting(name);
+        }
 
         /// <summary>
         /// Reset all values to their default
@@ -109,34 +96,38 @@ namespace Orts.Settings
         /// <param name="options">overrideable user options</param>
 		protected void LoadSettings(IEnumerable<string> options)
 		{
-			// This special command-line option prevents the registry values from being used.
-			bool allowUserSettings = !options.Contains("skip-user-settings", StringComparer.OrdinalIgnoreCase);
+            NameValueCollection cmdOptions = new NameValueCollection();
+            bool allowUserSettings = true;
 
-			// Pull apart the command-line options so we can find them by setting name.
-			var optionsDictionary = new Dictionary<string, string>();
-			foreach (string option in options)
-			{
-                var kvp = option.Split(new[] { '=', ':' }, 2);
+            if (null != options)
+            {
+                // This special command-line option prevents the registry values from being used.
+                allowUserSettings = !options.Contains("skip-user-settings", StringComparer.OrdinalIgnoreCase);
 
-                string k = kvp[0].ToLowerInvariant();
-				string v = kvp.Length > 1 ? kvp[1].ToLowerInvariant() : "yes";
-				optionsDictionary[k] = v;
-			}
+                // Pull apart the command-line options so we can find them by setting name.
 
-			Load(allowUserSettings, optionsDictionary);
+                foreach (string option in options)
+                {
+                    var kvp = option.Split(new[] { '=', ':' }, 2);
+
+                    string k = kvp[0].ToLowerInvariant();
+                    string v = kvp.Length > 1 ? kvp[1].ToLowerInvariant() : "yes";
+                    cmdOptions[k] = v;
+                }
+            }
+			Load(allowUserSettings, cmdOptions);
 		}
 
-        protected void LoadSetting(bool allowUserSettings, Dictionary<string, string> optionsDictionary, string name)
+        protected void LoadSetting(bool allowUserSettings, NameValueCollection options, string name)
         {
             // Get the default value.
             dynamic defValue = GetDefaultValue(name);
 
-            Type type = defValue.GetType();
-            // Read in the user setting, if it exists.
-            dynamic userValue = allowUserSettings ? SettingStore.GetSettingValue(name, type) : null;
+            //// Read in the user setting, if it exists.
+            dynamic value = allowUserSettings ? SettingStore.GetSettingValue(name, defValue) : defValue;
 
             // Read in the command-line option, if it exists into optValue.
-            optionsDictionary.TryGetValue(name.ToLowerInvariant(), out string optValueString);
+            string optValueString = options[name.ToLowerInvariant()];
             dynamic optValue = null;
 
             if (!string.IsNullOrEmpty(optValueString))
@@ -159,82 +150,20 @@ namespace Orts.Settings
                 }
             }
 
-            // We now have defValue, regValue, optValue containing the default, persisted and override values
-            // for the setting. regValue and optValue are null if they are not found/specified.
-            var value = optValue ?? userValue ?? defValue;
-            try
+            if (null != optValue)
             {
-                // int[] values must have the same number of items as default value.
-                if ((type == typeof(int[])) && (value?.Length != defValue?.Length))
-                    throw new ArgumentException();
-
-                SetValue(name, value);
-                Sources.Add(name, value.Equals(defValue) ? Source.Default : optValue != null ? Source.CommandLine : userValue != null ? Source.User : Source.Default);
+                optionalSettings.Add(name.ToLowerInvariant());
+                value = optValue;
             }
-            catch (ArgumentException)
+
+            // int[] values must have the same number of items as default value.
+            if (value is int[] && (value?.Length != defValue?.Length))
             {
                 Trace.TraceWarning($"Unable to load {name} value from type {value.GetType().FullName}");
-                value = defValue;
-                Sources.Add(name, Source.Default);
             }
 
+            SetValue(name, value);
         }
-        /// <summary>
-        /// Load a single value from the store, once type of the setting is known
-        /// </summary>
-        /// <param name="allowUserSettings">Are user settings allowed for this setting?</param>
-        /// <param name="optionsDictionary">???</param>
-        /// <param name="name">name of the setting</param>
-        /// <param name="type">type of the setting</param>
-		protected void LoadSetting(bool allowUserSettings, Dictionary<string, string> optionsDictionary, string name, Type type)
-		{
-			// Get the default value.
-			var defValue = GetDefaultValue(name);
-
-			// Read in the user setting, if it exists.
-			var userValue = allowUserSettings ? SettingStore.GetSettingValue(name, type) : null;
-
-			// Read in the command-line option, if it exists into optValue.
-			var propertyNameLower = name.ToLowerInvariant();
-			var optValue = optionsDictionary.ContainsKey(propertyNameLower) ? (object)optionsDictionary[propertyNameLower] : null;
-
-            // Parse command-line options...
-
-			if ((optValue != null) && (type == typeof(bool)))
-                // Option for boolean types so true/yes/on/1 are all true; everything else is false.
-                optValue = new[] { "true", "yes", "on", "1" }.Contains(optValue);
-
-			else if ((optValue != null) && (type == typeof(int)))
-                // Option for int types.
-                optValue = int.Parse((string)optValue);
-
-			else if ((optValue != null) && (type == typeof(string[])))
-                // Option for string[] types.
-                optValue = ((string)optValue).Split(',').Select(s => s.Trim()).ToArray();
-
-			else if ((optValue != null) && (type == typeof(int[])))
-                // Option for int[] types.
-                optValue = ((string)optValue).Split(',').Select(s => int.Parse(s.Trim())).ToArray();
-
-			// We now have defValue, regValue, optValue containing the default, persisted and override values
-			// for the setting. regValue and optValue are null if they are not found/specified.
-			var value = optValue ?? userValue ?? defValue;
-			try
-			{
-				// int[] values must have the same number of items as default value.
-				if ((type == typeof(int[])) && (value != null) && ((int[])value).Length != ((int[])defValue).Length)
-					throw new ArgumentException();
-
-				SetValue(name, value);
-				Sources.Add(name, value.Equals(defValue) ? Source.Default : optValue != null ? Source.CommandLine : userValue != null ? Source.User : Source.Default);
-			}
-			catch (ArgumentException)
-			{
-				Trace.TraceWarning("Unable to load {0} value from type {1}", name, value.GetType().FullName);
-				value = defValue;
-				Sources.Add(name, Source.Default);
-			}
-		}
 
         /// <summary>
         /// Save a setting to the store
@@ -253,59 +182,9 @@ namespace Orts.Settings
             }
             else
             {
-                SettingStore.SetUserValue(name, value);
+                SettingStore.SetSettingValue(name, value);
             }
         }
-
-        /// <summary>
-        /// Save a setting to the store, if name and especially type are known
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="type">type of the setting</param>
-		protected void Save(string name, Type type)
-		{
-			var defValue = GetDefaultValue(name);
-			var value = GetValue(name);
-
-			if (defValue.Equals(value)
-				|| (type == typeof(string[]) && string.Join(",", (string[])defValue) == string.Join(",", (string[])value))
-				|| (type == typeof(int[]) && string.Join(",", ((int[])defValue).Select(v => v.ToString()).ToArray()) == string.Join(",", ((int[])value).Select(v => v.ToString()).ToArray())))
-			{
-				SettingStore.DeleteUserValue(name);
-			}
-			else if (type == typeof(string))
-			{
-				SettingStore.SetUserValue(name, (string)value);
-			}
-			else if (type == typeof(int))
-			{
-				SettingStore.SetUserValue(name, (int)value);
-			}
-            else if (type == typeof(byte))
-            {
-                SettingStore.SetUserValue(name, (byte)value);
-            }
-            else if (type == typeof(bool))
-            {
-                SettingStore.SetUserValue(name, (bool)value);
-            }
-            else if (type == typeof(DateTime))
-            {
-                SettingStore.SetUserValue(name, (DateTime)value);
-            }
-            else if (type == typeof(TimeSpan))
-            {
-                SettingStore.SetUserValue(name, (TimeSpan)value);
-            }
-            else if (type == typeof(string[]))
-			{
-				SettingStore.SetUserValue(name, (string[])value);
-			}
-			else if (type == typeof(int[]))
-			{
-				SettingStore.SetUserValue(name, (int[])value);
-			}
-		}
 
         /// <summary>
         /// Reset a single setting to its default

@@ -39,24 +39,6 @@ namespace Orts.Settings.Store
         public string Location { get; protected set; }
 
         /// <summary>
-        /// Assert that the type expected from the settings store is an allowed type.
-        /// </summary>
-        /// <param name="expectedType">Type that is expected</param>
-        protected static void AssertGetUserValueType(Type expectedType)
-        {
-            Debug.Assert(new[] {
-                typeof(bool),
-                typeof(int),
-                typeof(DateTime),
-                typeof(TimeSpan),
-                typeof(string),
-                typeof(int[]),
-                typeof(string[]),
-                typeof(byte),
-            }.Contains(expectedType), string.Format("GetUserValue called with unexpected type {0}.", expectedType.FullName));
-        }
-
-        /// <summary>
         /// returns an array of all Section names that are in the store.
         /// For flat file store (ini), this would be all sections
         /// For hierarchical store (registry, json), this would be the root and all (first level) child
@@ -71,10 +53,6 @@ namespace Orts.Settings.Store
         /// <summary>
         /// Get the value of a setting
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
         public T GetSettingValue<T>(string name, T defaultValue)
         {
             dynamic result = GetSettingValue(name, typeof(T));
@@ -82,80 +60,18 @@ namespace Orts.Settings.Store
         }
 
         /// <summary>
-        /// Get the value of a setting
+        /// Set a value of a user setting
         /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="expectedType">Type that is expected</param>
-        /// <returns>the value from the store, as a general object</returns>
-        public abstract object GetSettingValue(string name, Type expectedType);
-
         public void SetSettingValue<T>(string name, T value)
         {
             AssertGetUserValueType(typeof(T));
-            SetUserValue(name, (dynamic)value);
+            SetSettingValue(name, (dynamic)value);
         }
 
         /// <summary>
-        /// Set a boolean user setting
+        /// Delete a specific user setting
         /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public abstract void SetUserValue(string name, bool value);
-
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public abstract void SetUserValue(string name, int value);
-
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public abstract void SetUserValue(string name, byte value);
-
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public abstract void SetUserValue(string name, DateTime value);
-
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public abstract void SetUserValue(string name, TimeSpan value);
-
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public abstract void SetUserValue(string name, string value);
-
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public abstract void SetUserValue(string name, int[] value);
-
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public abstract void SetUserValue(string name, string[] value);
-
-        /// <summary>
-        /// Remove a user setting from the store
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-		public abstract void DeleteUserValue(string name);
+        public abstract void DeleteUserValue(string name);
 
         /// <summary>
         /// Factory method to create a setting store (sub-class of SettingsStore)
@@ -175,5 +91,43 @@ namespace Orts.Settings.Store
             }
             throw new InvalidOperationException("Invalid setting store arguments");
         }
+
+        #region proctected /implementation
+        protected abstract object GetSettingValue(string name, Type expectedType);
+
+        protected abstract void SetSettingValue(string name, bool value);
+
+        protected abstract void SetSettingValue(string name, int value);
+
+        protected abstract void SetSettingValue(string name, byte value);
+
+        protected abstract void SetSettingValue(string name, DateTime value);
+
+        protected abstract void SetSettingValue(string name, TimeSpan value);
+
+        protected abstract void SetSettingValue(string name, string value);
+
+        protected abstract void SetSettingValue(string name, int[] value);
+
+        protected abstract void SetSettingValue(string name, string[] value);
+
+        /// <summary>
+        /// Assert that the type expected from the settings store is an allowed type.
+        /// </summary>
+        /// <param name="expectedType">Type that is expected</param>
+        protected static void AssertGetUserValueType(Type expectedType)
+        {
+            Debug.Assert(new[] {
+                typeof(bool),
+                typeof(int),
+                typeof(DateTime),
+                typeof(TimeSpan),
+                typeof(string),
+                typeof(int[]),
+                typeof(string[]),
+                typeof(byte),
+            }.Contains(expectedType), string.Format("GetUserValue called with unexpected type {0}.", expectedType.FullName));
+        }
+        #endregion
     }
 }

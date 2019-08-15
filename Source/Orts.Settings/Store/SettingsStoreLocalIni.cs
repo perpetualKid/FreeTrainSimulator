@@ -55,7 +55,7 @@ namespace Orts.Settings.Store
         /// <param name="name">name of the setting</param>
         /// <param name="expectedType">Type that is expected</param>
         /// <returns>the value from the store, as a general object</returns>
-        public override object GetSettingValue(string name, Type expectedType)
+        protected override object GetSettingValue(string name, Type expectedType)
         {
             AssertGetUserValueType(expectedType);
 
@@ -114,82 +114,42 @@ namespace Orts.Settings.Store
             }
         }
 
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, bool value)
+        protected override void SetSettingValue(string name, bool value)
         {
             NativeMethods.WritePrivateProfileString(Section, name, "bool:" + value.ToString(), Location);
         }
 
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, int value)
+        protected override void SetSettingValue(string name, int value)
         {
             NativeMethods.WritePrivateProfileString(Section, name, "int:" + Uri.EscapeDataString(value.ToString(CultureInfo.InvariantCulture)), Location);
         }
 
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, byte value)
+        protected override void SetSettingValue(string name, byte value)
         {
             NativeMethods.WritePrivateProfileString(Section, name, "byte:" + Uri.EscapeDataString(value.ToString(CultureInfo.InvariantCulture)), Location);
         }
 
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, DateTime value)
+        protected override void SetSettingValue(string name, DateTime value)
         {
             NativeMethods.WritePrivateProfileString(Section, name, "DateTime:" + Uri.EscapeDataString(value.ToBinary().ToString(CultureInfo.InvariantCulture)), Location);
         }
 
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, TimeSpan value)
+        protected override void SetSettingValue(string name, TimeSpan value)
         {
             NativeMethods.WritePrivateProfileString(Section, name, "TimeSpan:" + Uri.EscapeDataString(value.TotalSeconds.ToString(CultureInfo.InvariantCulture)), Location);
         }
 
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, string value)
+        protected override void SetSettingValue(string name, string value)
         {
             NativeMethods.WritePrivateProfileString(Section, name, "string:" + Uri.EscapeDataString(value), Location);
         }
 
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, int[] value)
+        protected override void SetSettingValue(string name, int[] value)
         {
             NativeMethods.WritePrivateProfileString(Section, name, "int[]:" + string.Join(",", ((int[])value).Select(v => Uri.EscapeDataString(v.ToString(CultureInfo.InvariantCulture))).ToArray()), Location);
         }
 
-        /// <summary>
-        /// Set a value of a user setting
-        /// </summary>
-        /// <param name="name">name of the setting</param>
-        /// <param name="value">value of the setting</param>
-        public override void SetUserValue(string name, string[] value)
+        protected override void SetSettingValue(string name, string[] value)
         {
             NativeMethods.WritePrivateProfileString(Section, name, "string[]:" + string.Join(",", value.Select(v => Uri.EscapeDataString(v)).ToArray()), Location);
         }

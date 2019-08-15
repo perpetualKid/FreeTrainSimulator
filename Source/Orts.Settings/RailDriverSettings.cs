@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -168,17 +169,12 @@ namespace Orts.Settings
         {
             default0WhileSaving = true; //temporarily "disable" default calibration settings, so Calibration Settings are always getting written to SettingsStore
             foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
-                Save(setting.ToString());
+                SaveSetting(setting.ToString());
 
             foreach(UserCommand command in EnumExtension.GetValues<UserCommand>())
-                Save(command.ToString());
+                SaveSetting(command.ToString());
 
             default0WhileSaving = false;
-        }
-
-        public override void Save(string name)
-        {
-            Save(name, typeof(byte));
         }
 
         protected override object GetValue(string name)
@@ -195,12 +191,12 @@ namespace Orts.Settings
                 throw new ArgumentOutOfRangeException($"Enum parameter {nameof(name)} not within expected range of either {nameof(RailDriverCalibrationSetting)} or {nameof(UserCommands)}");
         }
 
-        protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
+        protected override void Load(bool allowUserSettings, NameValueCollection options)
         {
             foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
-                LoadSetting(allowUserSettings, optionsDictionary, setting.ToString(), typeof(byte));
+                LoadSetting(allowUserSettings, options, setting.ToString());
             foreach (var command in EnumExtension.GetValues<UserCommand>())
-                LoadSetting(allowUserSettings, optionsDictionary, command.ToString(), typeof(byte));
+                LoadSetting(allowUserSettings, options, command.ToString());
         }
 
         protected override void SetValue(string name, object value)
