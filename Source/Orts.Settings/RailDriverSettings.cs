@@ -118,18 +118,6 @@ namespace Orts.Settings
 
         }
 
-        /// <summary>
-        /// Initializes a new instances of the <see cref="InputSettings"/> class with the specified options.
-        /// </summary>
-        /// <param name="options">The list of one-time options to override persisted settings, if any.</param>
-        //public RailDriverSettings(IEnumerable<string> options)
-        //: base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "RailDriver"))
-        //{
-        //    CalibrationSettings = new byte[DefaultCalibrationSettings.Length];
-
-        //    LoadSettings(options);
-        //}
-
         public RailDriverSettings(IEnumerable<string> options, SettingsStore store) : 
             base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "RailDriver"))
         {

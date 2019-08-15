@@ -169,14 +169,27 @@ namespace Orts.Settings
         /// Save a setting to the store
         /// </summary>
         /// <param name="name">name of the setting</param>
-        protected void SaveSetting(string name)
+        protected void SaveSetting(string name, bool includeDefaults = false)
         {
-            dynamic defValue = GetDefaultValue(name);
+
+            //save the current value if
+            // - current is different from default
+            // - or SaveDefaults is true
+            // - and this is not overriden from optionalSettings
+
+            if (optionalSettings.Contains(name.ToLowerInvariant())) 
+                return;
+
+            dynamic defaultValue = GetDefaultValue(name);
             dynamic value = GetValue(name);
 
-            if (defValue == value
-                || (value is string[] && string.Join(",", (string[])defValue) == string.Join(",", (string[])value))
-                || (value is int[] && string.Join(",", ((int[])defValue).Select(v => v.ToString()).ToArray()) == string.Join(",", ((int[])value).Select(v => v.ToString()).ToArray())))
+            if (includeDefaults)
+            {
+                SettingStore.SetSettingValue(name, value);
+            }
+            else if (defaultValue == value ||
+                (value is int[] && (value as int[]).SequenceEqual(defaultValue as int[])) ||
+                (value is string[] && (value as string[]).SequenceEqual(defaultValue as string[])))
             {
                 SettingStore.DeleteUserValue(name);
             }
@@ -184,6 +197,17 @@ namespace Orts.Settings
             {
                 SettingStore.SetSettingValue(name, value);
             }
+
+            //if (defValue == value
+            //    || (value is string[] && string.Join(",", (string[])defValue) == string.Join(",", (string[])value))
+            //    || (value is int[] && string.Join(",", ((int[])defValue).Select(v => v.ToString()).ToArray()) == string.Join(",", ((int[])value).Select(v => v.ToString()).ToArray())))
+            //{
+            //    SettingStore.DeleteUserValue(name);
+            //}
+            //else
+            //{
+            //    SettingStore.SetSettingValue(name, value);
+            //}
         }
 
         /// <summary>

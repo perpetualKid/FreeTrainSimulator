@@ -458,7 +458,7 @@ namespace Orts.Menu
         #endregion
 
         #region Starting from
-        private void comboBoxStartAt_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxStartAt_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowHeadToList();
         }
@@ -509,8 +509,7 @@ namespace Orts.Menu
         #region Timetable Trains
         private void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var selectedTrain = comboBoxTimetableTrain.SelectedItem as TimetableFileLite.TrainInformation;
-            if (null != selectedTrain)
+            if (comboBoxTimetableTrain.SelectedItem is TimetableFileLite.TrainInformation selectedTrain)
             {
                 SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
                 SelectedTimetablePath = Path.GetPath(SelectedRoute, selectedTrain.Path, false);
@@ -535,7 +534,7 @@ namespace Orts.Menu
             UpdateTimetableSet();
         }
 
-        void comboBoxTimetableWeatherFile_SelectedIndexChanged(object sender, EventArgs e)
+        void ComboBoxTimetableWeatherFile_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableWeatherSet();
         }
@@ -641,7 +640,7 @@ namespace Orts.Menu
             OpenResumeForm(false);
         }
 
-        void buttonResumeMP_Click(object sender, EventArgs e)
+        void ButtonResumeMP_Click(object sender, EventArgs e)
         {
             OpenResumeForm(true);
         }
@@ -681,7 +680,7 @@ namespace Orts.Menu
             }
         }
 
-        void buttonStartMP_Click(object sender, EventArgs e)
+        void ButtonStartMP_Click(object sender, EventArgs e)
         {
             if (CheckUserName(textBoxMPUser.Text) == false) return;
             SaveOptions();
@@ -1491,7 +1490,7 @@ namespace Orts.Menu
 
         private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map)
         {
-            UpdateFromMenuSelection<T>(comboBox, index, map, default(T));
+            UpdateFromMenuSelection(comboBox, index, map, default);
         }
 
         private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map, T defaultValue)
