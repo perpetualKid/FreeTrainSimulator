@@ -29,10 +29,10 @@ namespace Orts.Settings
     {
         private static readonly string settingsFilePath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Updater.ini");
 
-        #region User Settings
+        #region Update Settings
 
         // Please put all update settings in here as auto-properties. Public properties
-        // of type 'string', 'int', 'bool', 'string[]' and 'int[]' are automatically loaded/saved.
+        // of type 'string', 'int', byte, 'bool', 'string[]' and 'int[]', TimeSpan and DateTime are automatically loaded/saved.
 
         [Default("")]
         public string Channel { get; set; }
@@ -59,23 +59,18 @@ namespace Orts.Settings
 
         public string[] GetChannels()
         {
-            // We are always a local INI settings store.
-            return (from name in (SettingStore as SettingsStoreLocalIni).GetSectionNames()
+            return (from name in SettingStore.GetSectionNames()
                     where name.EndsWith("Settings")
                     select name.Replace("Settings", "")).ToArray();
         }
 
         public override object GetDefaultValue(string name)
         {
-
-            if (name == nameof(TTL))
-                return TimeSpan.FromDays(1);
-
             var property = GetProperty(name);
 
             var attributes = property.GetCustomAttributes(typeof(DefaultAttribute), false);
             if (attributes.Length > 0)
-                return (attributes[0] as DefaultAttribute)?.Value;
+                return (name == nameof(TTL)) ? TimeSpan.FromSeconds((int)(attributes[0] as DefaultAttribute)?.Value) : (attributes[0] as DefaultAttribute)?.Value;
 
             throw new InvalidDataException($"UserSetting {property.Name} has no default value.");
         }
@@ -90,10 +85,10 @@ namespace Orts.Settings
             GetProperty(name).SetValue(this, value, null);
         }
 
-        protected override void Load(bool allowUserSettings, NameValueCollection options)
+        protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
         {
             foreach (var property in GetProperties())
-                LoadSetting(allowUserSettings, options, property.Name);
+                LoadSetting(allowUserSettings, optionalValues, property.Name);
             properties = null;
         }
 

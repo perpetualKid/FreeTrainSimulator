@@ -83,7 +83,7 @@ namespace Orts.Updater
             try
             {
                 updateSettings = new UpdateSettings();
-                updateState = new UpdateState();
+                updateState = new UpdateState(updateSettings);
                 channel = new UpdateSettings(ChannelName = updateSettings.Channel);
             }
             catch (ArgumentException)
@@ -297,13 +297,15 @@ namespace Orts.Updater
         {
             updateState.LastCheck = DateTime.UtcNow;
             // So what we're doing here is rounding up the DateTime (LastCheck) to the next TTL period. For
-            // example, if the TTL was 1 hour, we'd round up the the start of the next hour. Similarly, if the TTL was
+            // example, if the TTL was 1 hour, we'd round up to the start of the next hour. Similarly, if the TTL was
             // 1 day, we'd round up to midnight (the start of the next day). The purpose of this is to avoid 2 * TTL 
             // checking which might well occur if you always launch Open Rails around the same time of day each day -
-            // if they launch it at 6:00PM on Monday, then 5:30PM on Tuesday, they won't get an update chech on
+            // if they launch it at 6:00PM on Monday, then 5:30PM on Tuesday, they won't get an update check on
             // Tuesday. With the time rounding, they should get one check/day if the TTL is 1 day and they open it
             // every day. (This is why BaseDateTimeMidnightLocal uses the local midnight!)
-            updateState.NextCheck = channel.TTL.TotalDays > 1 ? BaseDateTimeMidnightLocal.AddSeconds(Math.Ceiling((updateState.LastCheck - BaseDateTimeMidnightLocal).TotalSeconds / channel.TTL.TotalSeconds) * channel.TTL.TotalSeconds) : updateState.LastCheck + TimeSpan.FromMinutes(1);
+            updateState.NextCheck = channel.TTL.TotalDays > 1 ? 
+                BaseDateTimeMidnightLocal.AddSeconds(Math.Ceiling((updateState.LastCheck - BaseDateTimeMidnightLocal).TotalSeconds / channel.TTL.TotalSeconds) * channel.TTL.TotalSeconds) : 
+                updateState.LastCheck + channel.TTL;
             updateState.Update = string.Empty;
             updateState.Save();
         }

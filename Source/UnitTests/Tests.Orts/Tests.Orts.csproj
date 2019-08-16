@@ -92,6 +92,7 @@
     <Compile Include="Settings\FolderSettingsTests.cs" />
     <Compile Include="Settings\Store\LocalIniStoreTests.cs" />
     <Compile Include="Settings\Store\RegistryStoreTests.cs" />
+    <Compile Include="Settings\UpdateSettingsTests.cs" />
     <Compile Include="Settings\UserSettingsTests.cs" />
     <Compile Include="Shared\TestFile.cs" />
   </ItemGroup>

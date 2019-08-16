@@ -51,10 +51,10 @@ namespace Orts.Settings
                 Folders.Remove(name);
         }
 
-        protected override void Load(bool allowUserSettings, NameValueCollection options)
+        protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
         {
             foreach (var name in SettingStore.GetSettingNames())
-                LoadSetting(allowUserSettings, options, name);
+                LoadSetting(allowUserSettings, optionalValues, name);
             properties = null;
         }
 

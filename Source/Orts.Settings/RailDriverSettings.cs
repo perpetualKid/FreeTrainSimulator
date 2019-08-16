@@ -182,12 +182,12 @@ namespace Orts.Settings
                 throw new ArgumentOutOfRangeException($"Enum parameter {nameof(name)} not within expected range of either {nameof(RailDriverCalibrationSetting)} or {nameof(UserCommands)}");
         }
 
-        protected override void Load(bool allowUserSettings, NameValueCollection options)
+        protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
         {
             foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
-                LoadSetting(allowUserSettings, options, setting.ToString());
+                LoadSetting(allowUserSettings, optionalValues, setting.ToString());
             foreach (var command in EnumExtension.GetValues<UserCommand>())
-                LoadSetting(allowUserSettings, options, command.ToString());
+                LoadSetting(allowUserSettings, optionalValues, command.ToString());
             properties = null;
         }
 

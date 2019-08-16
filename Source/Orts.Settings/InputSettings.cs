@@ -106,10 +106,10 @@ namespace Orts.Settings
             Commands[(int)GetCommand(name)].PersistentDescriptor = (string)value;
         }
 
-        protected override void Load(bool allowUserSettings, NameValueCollection options)
+        protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
         {
             foreach (var command in EnumExtension.GetValues<UserCommand>())
-                LoadSetting(allowUserSettings, options, command.ToString());
+                LoadSetting(allowUserSettings, optionalValues, command.ToString());
             properties = null;
         }
 

@@ -444,10 +444,10 @@ namespace Orts.Settings
             GetProperty(name).SetValue(this, value, null);
         }
 
-        protected override void Load(bool allowUserSettings, NameValueCollection options)
+        protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
         {
             foreach (var property in GetProperties())
-                LoadSetting(allowUserSettings, options, property.Name);
+                LoadSetting(allowUserSettings, optionalValues, property.Name);
             properties = null;
         }
 

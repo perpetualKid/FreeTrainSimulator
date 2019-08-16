@@ -73,7 +73,7 @@ namespace Orts.Settings
         /// </summary>
         /// <param name="allowUserSettings">Are user settings allowed?</param>
         /// <param name="optionsDictionary">???</param>
-		protected abstract void Load(bool allowUserSettings, NameValueCollection options);
+		protected abstract void Load(bool allowUserSettings, NameValueCollection optionalValues);
 
         /// <summary>
         /// Save all settings to the store

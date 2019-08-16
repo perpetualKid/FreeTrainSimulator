@@ -43,8 +43,13 @@ namespace Orts.Settings
             LoadSettings(new string[0]);
         }
 
-        public UpdateState(SettingsStore store)
-            : base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "UpdateState"))
+        public UpdateState(UpdateSettings parent): 
+            this (parent.SettingStore)
+        {
+        }
+
+        public UpdateState(SettingsStore store): 
+            base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "UpdateState"))
         {
             LoadSettings(new string[0]);
         }
@@ -72,10 +77,10 @@ namespace Orts.Settings
             GetProperty(name).SetValue(this, value, null);
         }
 
-        protected override void Load(bool allowUserSettings, NameValueCollection options)
+        protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
         {
             foreach (var property in GetProperties())
-                LoadSetting(allowUserSettings, options, property.Name);
+                LoadSetting(allowUserSettings, optionalValues, property.Name);
             properties = null;
         }
 
