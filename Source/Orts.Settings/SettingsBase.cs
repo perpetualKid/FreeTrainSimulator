@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -30,20 +29,25 @@ namespace Orts.Settings
     /// Base class for supporting settings (either from user, commandline, default, ...)
     /// </summary>
 	public abstract class SettingsBase
-	{
+    {
         /// <summary>The store of the settings</summary>
         protected internal SettingsStore SettingStore { get; private set; }
 
         protected readonly StringCollection optionalSettings = new StringCollection();
 
+        #region reflection cache
+        protected PropertyInfo[] properties;
+        protected List<string> doNotSaveProperties;
+        #endregion
+
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="settings">The store for the settings</param>
-		protected SettingsBase(SettingsStore settings)
-		{
-			SettingStore = settings;
-		}
+        protected SettingsBase(SettingsStore settings)
+        {
+            SettingStore = settings;
+        }
 
         /// <summary>
         /// Get the default value of a setting
@@ -95,7 +99,7 @@ namespace Orts.Settings
         /// </summary>
         /// <param name="options">overrideable user options</param>
 		protected void LoadSettings(IEnumerable<string> options)
-		{
+        {
             NameValueCollection cmdOptions = new NameValueCollection();
             bool allowUserSettings = true;
 
@@ -115,8 +119,8 @@ namespace Orts.Settings
                     cmdOptions[k] = v;
                 }
             }
-			Load(allowUserSettings, cmdOptions);
-		}
+            Load(allowUserSettings, cmdOptions);
+        }
 
         protected void LoadSetting(bool allowUserSettings, NameValueCollection options, string name)
         {
@@ -177,7 +181,7 @@ namespace Orts.Settings
             // - or SaveDefaults is true
             // - and this is not overriden from optionalSettings
 
-            if (optionalSettings.Contains(name.ToLowerInvariant())) 
+            if (optionalSettings.Contains(name.ToLowerInvariant()))
                 return;
 
             dynamic defaultValue = GetDefaultValue(name);
@@ -191,7 +195,7 @@ namespace Orts.Settings
                 (value is int[] && (value as int[]).SequenceEqual(defaultValue as int[])) ||
                 (value is string[] && (value as string[]).SequenceEqual(defaultValue as string[])))
             {
-                SettingStore.DeleteUserValue(name);
+                SettingStore.DeleteSetting(name);
             }
             else
             {
@@ -206,18 +210,31 @@ namespace Orts.Settings
         protected void Reset(string name)
         {
             SetValue(name, GetDefaultValue(name));
-            SettingStore.DeleteUserValue(name);
+            SettingStore.DeleteSetting(name);
         }
 
         protected virtual PropertyInfo GetProperty(string name)
         {
-            return GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+            return GetProperties().Where((p) => p.Name == name).SingleOrDefault();
         }
 
         protected virtual PropertyInfo[] GetProperties()
         {
-            return GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy).ToArray();
+            if (null == properties)
+                properties = GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+            return properties;
         }
 
+        protected bool AllowPropertySaving(string propertyName)
+        {
+            if (null == doNotSaveProperties)
+            {
+                doNotSaveProperties = GetProperties().
+                    Where(prop => Attribute.IsDefined(prop, typeof(DoNotSaveAttribute))).Select((p) => p.Name).ToList();
+                doNotSaveProperties.Sort();
+            }
+
+            return doNotSaveProperties.BinarySearch(propertyName) < 0;
+        }
     }
 }

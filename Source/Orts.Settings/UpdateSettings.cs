@@ -38,6 +38,7 @@ namespace Orts.Settings
         public string Channel { get; set; }
         [Default("")]
         public string URL { get; set; }
+        [Default(86400)]
         public TimeSpan TTL { get; set; }
         [Default("")]
         public string ChangeLogLink { get; set; }
@@ -70,7 +71,7 @@ namespace Orts.Settings
             if (name == nameof(TTL))
                 return TimeSpan.FromDays(1);
 
-            var property = GetType().GetProperty(name);
+            var property = GetProperty(name);
 
             var attributes = property.GetCustomAttributes(typeof(DefaultAttribute), false);
             if (attributes.Length > 0)
@@ -93,20 +94,20 @@ namespace Orts.Settings
         {
             foreach (var property in GetProperties())
                 LoadSetting(allowUserSettings, options, property.Name);
+            properties = null;
         }
 
         public override void Save()
         {
             foreach (var property in GetProperties())
-                if (property.GetCustomAttributes(typeof(DoNotSaveAttribute), false).Length == 0)
-                    SaveSetting(property.Name);
+                Save(property.Name);
+            properties = null;
         }
 
         public override void Save(string name)
         {
-            var property = GetProperty(name);
-            if (property.GetCustomAttributes(typeof(DoNotSaveAttribute), false).Length == 0)
-                SaveSetting(property.Name);
+            if (AllowPropertySaving(name))
+                SaveSetting(name);
         }
 
         public override void Reset()

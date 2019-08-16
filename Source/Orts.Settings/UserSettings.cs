@@ -416,7 +416,7 @@ namespace Orts.Settings
 
         public override object GetDefaultValue(string name)
         {
-            var property = GetType().GetProperty(name);
+            var property = GetProperty(name);
 
             if (CustomDefaultValues.ContainsKey(property.Name))
                 return CustomDefaultValues[property.Name];
@@ -429,7 +429,9 @@ namespace Orts.Settings
 
         protected override PropertyInfo[] GetProperties()
         {
-            return base.GetProperties().Where(pi => !new string[] { "Folders", "Input", "RailDriver" }.Contains(pi.Name)).ToArray();
+            if (properties == null)
+                properties = base.GetProperties().Where(pi => !new string[] { "Folders", "Input", "RailDriver" }.Contains(pi.Name)).ToArray();
+            return properties;
         }
 
         protected override object GetValue(string name)
@@ -446,24 +448,26 @@ namespace Orts.Settings
         {
             foreach (var property in GetProperties())
                 LoadSetting(allowUserSettings, options, property.Name);
+            properties = null;
         }
 
         public override void Save()
         {
             foreach (var property in GetProperties())
-                if (property.GetCustomAttributes(typeof(DoNotSaveAttribute), false).Length == 0)
-                    SaveSetting(property.Name);
+                Save(property.Name);
 
             Folders.Save();
             Input.Save();
             RailDriver.Save();
+            properties = null;
         }
 
         public override void Save(string name)
         {
-            var property = GetProperty(name);
-            if (property.GetCustomAttributes(typeof(DoNotSaveAttribute), false).Length == 0)
-                SaveSetting(property.Name);
+            if (AllowPropertySaving(name))
+            {
+                SaveSetting(name);
+            }
         }
 
         public override void Reset()
@@ -499,6 +503,8 @@ namespace Orts.Settings
 
                 Console.WriteLine("{0,-30} = {2,-14} {1}", property.Name, value, source);
             }
+
+            properties = null;
         }
     }
 }

@@ -163,7 +163,7 @@ namespace Orts.Settings.Store
         /// Remove a user setting from the store
         /// </summary>
         /// <param name="name">name of the setting</param>
-        public override void DeleteUserValue(string name)
+        public override void DeleteSetting(string name)
         {
             key.DeleteValue(name, false);
         }

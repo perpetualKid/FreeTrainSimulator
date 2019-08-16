@@ -110,12 +110,14 @@ namespace Orts.Settings
         {
             foreach (var command in EnumExtension.GetValues<UserCommand>())
                 LoadSetting(allowUserSettings, options, command.ToString());
+            properties = null;
         }
 
         public override void Save()
         {
             foreach (var command in EnumExtension.GetValues<UserCommand>())
                 SaveSetting(command.ToString());
+            properties = null;
         }
 
         public override void Reset()

@@ -54,6 +54,7 @@ namespace Orts.Settings
         {
             foreach (var name in SettingStore.GetSettingNames())
                 LoadSetting(allowUserSettings, options, name);
+            properties = null;
         }
 
         public override void Save()
@@ -63,6 +64,7 @@ namespace Orts.Settings
                     Reset(name);
             foreach (var name in Folders.Keys)
                 SaveSetting(name);
+            properties = null;
         }
 
         public override void Reset()

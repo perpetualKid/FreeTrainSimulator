@@ -165,6 +165,7 @@ namespace Orts.Settings
                 SaveSetting(command.ToString());
 
             default0WhileSaving = false;
+            properties = null;
         }
 
         protected override object GetValue(string name)
@@ -187,6 +188,7 @@ namespace Orts.Settings
                 LoadSetting(allowUserSettings, options, setting.ToString());
             foreach (var command in EnumExtension.GetValues<UserCommand>())
                 LoadSetting(allowUserSettings, options, command.ToString());
+            properties = null;
         }
 
         protected override void SetValue(string name, object value)

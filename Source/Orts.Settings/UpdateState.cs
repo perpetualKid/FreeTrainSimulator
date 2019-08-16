@@ -54,12 +54,12 @@ namespace Orts.Settings
             if (name == nameof(LastCheck) || name == nameof(NextCheck))
                 return DateTime.MinValue;
 
-            var property = GetType().GetProperty(name);
+            var property = GetProperty(name);
 
             if (property.GetCustomAttributes(typeof(DefaultAttribute), false).Length > 0)
                 return (property.GetCustomAttributes(typeof(DefaultAttribute), false)[0] as DefaultAttribute).Value;
 
-            throw new InvalidDataException(String.Format("UserSetting {0} has no default value.", property.Name));
+            throw new InvalidDataException(string.Format("UserSetting {0} has no default value.", property.Name));
         }
 
         protected override object GetValue(string name)
@@ -76,20 +76,20 @@ namespace Orts.Settings
         {
             foreach (var property in GetProperties())
                 LoadSetting(allowUserSettings, options, property.Name);
+            properties = null;
         }
 
         public override void Save()
         {
             foreach (var property in GetProperties())
-                if (property.GetCustomAttributes(typeof(DoNotSaveAttribute), false).Length == 0)
-                    SaveSetting(property.Name);
+                Save(property.Name);
+            properties = null;
         }
 
         public override void Save(string name)
         {
-            var property = GetProperty(name);
-            if (property.GetCustomAttributes(typeof(DoNotSaveAttribute), false).Length == 0)
-                SaveSetting(property.Name);
+            if (AllowPropertySaving(name))
+                SaveSetting(name);
         }
 
         public override void Reset()

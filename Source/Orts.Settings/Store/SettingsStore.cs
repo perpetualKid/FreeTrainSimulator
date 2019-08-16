@@ -71,7 +71,7 @@ namespace Orts.Settings.Store
         /// <summary>
         /// Delete a specific user setting
         /// </summary>
-        public abstract void DeleteUserValue(string name);
+        public abstract void DeleteSetting(string name);
 
         /// <summary>
         /// Factory method to create a setting store (sub-class of SettingsStore)

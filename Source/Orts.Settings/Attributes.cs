@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Orts.Settings
 {
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public sealed class DefaultAttribute : Attribute
     {
         public readonly object Value;
@@ -16,7 +16,7 @@ namespace Orts.Settings
         }
     }
 
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public sealed class DoNotSaveAttribute : Attribute
     {
     }
