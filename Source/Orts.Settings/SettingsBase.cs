@@ -197,17 +197,6 @@ namespace Orts.Settings
             {
                 SettingStore.SetSettingValue(name, value);
             }
-
-            //if (defValue == value
-            //    || (value is string[] && string.Join(",", (string[])defValue) == string.Join(",", (string[])value))
-            //    || (value is int[] && string.Join(",", ((int[])defValue).Select(v => v.ToString()).ToArray()) == string.Join(",", ((int[])value).Select(v => v.ToString()).ToArray())))
-            //{
-            //    SettingStore.DeleteUserValue(name);
-            //}
-            //else
-            //{
-            //    SettingStore.SetSettingValue(name, value);
-            //}
         }
 
         /// <summary>
