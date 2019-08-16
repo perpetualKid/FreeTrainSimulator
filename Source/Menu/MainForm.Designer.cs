@@ -300,7 +300,7 @@ namespace Orts.Menu
             this.buttonStartMP.Size = new System.Drawing.Size(75, 23);
             this.buttonStartMP.TabIndex = 7;
             this.buttonStartMP.Text = "Start MP";
-            this.buttonStartMP.Click += new System.EventHandler(this.buttonStartMP_Click);
+            this.buttonStartMP.Click += new System.EventHandler(this.ButtonStartMP_Click);
             // 
             // buttonResumeMP
             // 
@@ -310,7 +310,7 @@ namespace Orts.Menu
             this.buttonResumeMP.Size = new System.Drawing.Size(75, 23);
             this.buttonResumeMP.TabIndex = 6;
             this.buttonResumeMP.Text = "Resume MP";
-            this.buttonResumeMP.Click += new System.EventHandler(this.buttonResumeMP_Click);
+            this.buttonResumeMP.Click += new System.EventHandler(this.ButtonResumeMP_Click);
             // 
             // groupBox3
             // 
@@ -549,7 +549,7 @@ namespace Orts.Menu
             this.comboBoxStartAt.Name = "comboBoxStartAt";
             this.comboBoxStartAt.Size = new System.Drawing.Size(281, 21);
             this.comboBoxStartAt.TabIndex = 7;
-            this.comboBoxStartAt.SelectedIndexChanged += new System.EventHandler(this.comboBoxStartAt_SelectedIndexChanged);
+            this.comboBoxStartAt.SelectedIndexChanged += new System.EventHandler(this.ComboBoxStartAt_SelectedIndexChanged);
             // 
             // label7
             // 
@@ -730,7 +730,7 @@ namespace Orts.Menu
             this.comboBoxTimetableWeatherFile.Name = "comboBoxTimetableWeatherFile";
             this.comboBoxTimetableWeatherFile.Size = new System.Drawing.Size(193, 21);
             this.comboBoxTimetableWeatherFile.TabIndex = 13;
-            this.comboBoxTimetableWeatherFile.SelectedIndexChanged += new System.EventHandler(this.comboBoxTimetableWeatherFile_SelectedIndexChanged);
+            this.comboBoxTimetableWeatherFile.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableWeatherFile_SelectedIndexChanged);
             // 
             // label24
             // 

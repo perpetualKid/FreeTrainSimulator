@@ -17,16 +17,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using Orts.Common;
+using Orts.Settings.Store;
 
 namespace Orts.Settings
 {
     public class UpdateSettings : SettingsBase
     {
-        public static readonly string SettingsFilePath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Updater.ini");
+        private static readonly string settingsFilePath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Updater.ini");
 
         #region User Settings
 
@@ -44,13 +45,13 @@ namespace Orts.Settings
         #endregion
 
         public UpdateSettings()
-            : base(SettingsStore.GetSettingStore(SettingsFilePath, null, "Settings"))
+            : base(SettingsStore.GetSettingsStore(StoreType.Ini, settingsFilePath, "Settings"))
         {
             LoadSettings(new string[0]);
         }
 
         public UpdateSettings(string channel)
-            : base(SettingsStore.GetSettingStore(SettingsFilePath, null, channel + "Settings"))
+            : base(SettingsStore.GetSettingsStore(StoreType.Ini, settingsFilePath, channel + "Settings"))
         {
             LoadSettings(new string[0]);
         }
@@ -88,10 +89,10 @@ namespace Orts.Settings
             GetProperty(name).SetValue(this, value, null);
         }
 
-        protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
+        protected override void Load(bool allowUserSettings, NameValueCollection options)
         {
             foreach (var property in GetProperties())
-                LoadSetting(allowUserSettings, optionsDictionary, property.Name);
+                LoadSetting(allowUserSettings, options, property.Name);
         }
 
         public override void Save()

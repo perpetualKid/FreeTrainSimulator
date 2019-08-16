@@ -15,18 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
-using System.Linq;
-using System.Reflection;
+using Orts.Settings.Store;
 
 namespace Orts.Settings
 {
     public class UpdateState : SettingsBase
     {
-        #region User Settings
+        #region Update State (treated as Settings)
 
         // Please put all update settings in here as auto-properties. Public properties
         // of type 'string', 'int', 'bool', 'string[]' and 'int[]' are automatically loaded/saved.
@@ -38,7 +37,14 @@ namespace Orts.Settings
         #endregion
 
         public UpdateState()
-            : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "UpdateState"))
+            : base(SettingsStore.GetSettingsStore(UserSettings.Instance.SettingStore.StoreType, 
+                UserSettings.Instance.SettingStore.Location, "UpdateState"))
+        {
+            LoadSettings(new string[0]);
+        }
+
+        public UpdateState(SettingsStore store)
+            : base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "UpdateState"))
         {
             LoadSettings(new string[0]);
         }
@@ -66,10 +72,10 @@ namespace Orts.Settings
             GetProperty(name).SetValue(this, value, null);
         }
 
-        protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
+        protected override void Load(bool allowUserSettings, NameValueCollection options)
         {
             foreach (var property in GetProperties())
-                LoadSetting(allowUserSettings, optionsDictionary, property.Name);
+                LoadSetting(allowUserSettings, options, property.Name);
         }
 
         public override void Save()

@@ -17,11 +17,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using GNU.Gettext;
 using Microsoft.Xna.Framework;
@@ -29,6 +29,7 @@ using Microsoft.Xna.Framework.Input;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Common.Native;
+using Orts.Settings.Store;
 
 namespace Orts.Settings
 {
@@ -66,8 +67,15 @@ namespace Orts.Settings
         /// Initializes a new instances of the <see cref="InputSettings"/> class with the specified options.
         /// </summary>
         /// <param name="options">The list of one-time options to override persisted settings, if any.</param>
-        public InputSettings(IEnumerable<string> options)
-        : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "Keys"))
+        //public InputSettings(IEnumerable<string> options)
+        //: base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "Keys"))
+        //{
+        //    InitializeCommands(Commands);
+        //    LoadSettings(options);
+        //}
+
+        public InputSettings(IEnumerable<string> options, SettingsStore store) : 
+            base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Keys"))
         {
             InitializeCommands(Commands);
             LoadSettings(options);
@@ -98,21 +106,16 @@ namespace Orts.Settings
             Commands[(int)GetCommand(name)].PersistentDescriptor = (string)value;
         }
 
-        protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
+        protected override void Load(bool allowUserSettings, NameValueCollection options)
         {
             foreach (var command in EnumExtension.GetValues<UserCommand>())
-                LoadSetting(allowUserSettings, optionsDictionary, command.ToString(), typeof(string));
+                LoadSetting(allowUserSettings, options, command.ToString());
         }
 
         public override void Save()
         {
             foreach (var command in EnumExtension.GetValues<UserCommand>())
-                Save(command.ToString());
-        }
-
-        public override void Save(string name)
-        {
-            Save(name, typeof(string));
+                SaveSetting(command.ToString());
         }
 
         public override void Reset()
@@ -143,8 +146,7 @@ namespace Orts.Settings
             for (var y = 0; y < KeyboardLayout.Length; y++)
             {
                 var keyboardLine = KeyboardLayout[y];
-                if (drawRow != null)
-                    drawRow(new Rectangle(0, y, keyboardLine.Length, 1));
+                drawRow?.Invoke(new Rectangle(0, y, keyboardLine.Length, 1));
 
                 var x = keyboardLine.IndexOf('[');
                 while (x != -1)
@@ -159,8 +161,7 @@ namespace Orts.Settings
                     if ((keyName.Length > 1) && !new[] { 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40, 0x41, 0x42, 0x43, 0x44, 0x57, 0x58 }.Contains(keyScanCode))
                         keyName = "";
 
-                    if (drawKey != null)
-                        drawKey(new Rectangle(x, y, x2 - x + 1, 1), keyScanCode, keyName);
+                    drawKey?.Invoke(new Rectangle(x, y, x2 - x + 1, 1), keyScanCode, keyName);
 
                     x = keyboardLine.IndexOf('[', x2);
                 }
@@ -471,8 +472,7 @@ namespace Orts.Settings
             foreach (var command in EnumExtension.GetValues<UserCommand>())
             {
                 var input = Commands[(int)command];
-                var modInput = input as UserCommandModifiableKeyInput;
-                if (modInput != null)
+                if (input is UserCommandModifiableKeyInput modInput)
                 {
                     if (modInput.Shift && modInput.IgnoreShift)
                         errors.AppendLine(settingsCatalog.GetStringFmt("{0} requires and is modified by Shift", commonCatalog.GetString(command.GetDescription())));

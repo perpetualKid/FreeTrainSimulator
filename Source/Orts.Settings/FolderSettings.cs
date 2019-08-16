@@ -15,12 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using Orts.Common;
+using System.Collections.Specialized;
+using Orts.Settings.Store;
 
 namespace Orts.Settings
 {
@@ -28,8 +25,8 @@ namespace Orts.Settings
     {
         public readonly Dictionary<string, string> Folders;
 
-        public FolderSettings(IEnumerable<string> options)
-            : base(SettingsStore.GetSettingStore(UserSettings.SettingsFilePath, UserSettings.RegistryKey, "Folders"))
+        public FolderSettings(IEnumerable<string> options, SettingsStore store): 
+            base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Folders"))
         {
             Folders = new Dictionary<string, string>();
             LoadSettings(options);
@@ -37,7 +34,7 @@ namespace Orts.Settings
 
         public override object GetDefaultValue(string name)
         {
-            return "";
+            return string.Empty;
         }
 
         protected override object GetValue(string name)
@@ -53,24 +50,19 @@ namespace Orts.Settings
                 Folders.Remove(name);
         }
 
-        protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
+        protected override void Load(bool allowUserSettings, NameValueCollection options)
         {
-            foreach (var name in SettingStore.GetUserNames())
-                LoadSetting(allowUserSettings, optionsDictionary, name, typeof(string));
+            foreach (var name in SettingStore.GetSettingNames())
+                LoadSetting(allowUserSettings, options, name);
         }
 
         public override void Save()
         {
-            foreach (var name in SettingStore.GetUserNames())
+            foreach (var name in SettingStore.GetSettingNames())
                 if (!Folders.ContainsKey(name))
                     Reset(name);
             foreach (var name in Folders.Keys)
-                Save(name);
-        }
-
-        public override void Save(string name)
-        {
-            Save(name, typeof(string));
+                SaveSetting(name);
         }
 
         public override void Reset()

@@ -67,7 +67,7 @@ namespace Orts.Common
             throw new ArgumentOutOfRangeException("item");
         }
 
-        public static string EnumDescription<T>() where T: Enum
+        public static string EnumDescription<T>() where T : Enum
         {
             return EnumCache<T>.EnumDescription;
         }
@@ -82,7 +82,7 @@ namespace Orts.Common
             return EnumCache<T>.Values;
         }
 
-        public static int GetLength<T>() where T: Enum
+        public static int GetLength<T>() where T : Enum
         {
             return EnumCache<T>.Values.Count;
         }
@@ -93,7 +93,7 @@ namespace Orts.Common
         }
         public static T Previous<T>(this T item) where T : Enum
         {
-            return EnumCache<T>.Values[(EnumCache<T>.Values.IndexOf(item) -1 + EnumCache<T>.Values.Count) % EnumCache<T>.Values.Count];
+            return EnumCache<T>.Values[(EnumCache<T>.Values.IndexOf(item) - 1 + EnumCache<T>.Values.Count) % EnumCache<T>.Values.Count];
         }
     }
 
