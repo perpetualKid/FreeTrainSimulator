@@ -18,6 +18,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using Orts.Settings.Store;
+using System.Linq;
 
 namespace Orts.Settings
 {
@@ -44,9 +45,9 @@ namespace Orts.Settings
 
         protected override void SetValue(string name, object value)
         {
-            if ((string)value != "")
+            if (!string.IsNullOrWhiteSpace(value?.ToString()))
                 Folders[name] = (string)value;
-            else if (Folders.ContainsKey(name))
+            else if (name != null)
                 Folders.Remove(name);
         }
 
@@ -69,8 +70,8 @@ namespace Orts.Settings
 
         public override void Reset()
         {
-            foreach (var name in Folders.Keys)
-                Reset(name);
+            while (Folders.Count > 0)
+                Reset(Folders.Keys.First());
         }
     }
 }
