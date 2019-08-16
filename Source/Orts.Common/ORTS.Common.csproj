@@ -60,6 +60,7 @@
     <Compile Include="Calc\AlmostEqualExtension.cs" />
     <Compile Include="Calc\Conversions.cs" />
     <Compile Include="Calc\MovingAverage.cs" />
+    <Compile Include="Input\UserCommandInput.cs" />
     <Compile Include="Native\GDI32.cs" />
     <Compile Include="Native\Kernel32.cs" />
     <Compile Include="Native\User32.cs" />

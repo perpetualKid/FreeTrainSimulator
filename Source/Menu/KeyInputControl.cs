@@ -18,7 +18,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using Orts.Settings;
+using Orts.Common.Input;
 
 namespace Orts.Menu
 {

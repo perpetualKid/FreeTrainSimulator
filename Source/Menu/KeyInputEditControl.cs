@@ -20,7 +20,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using Orts.Settings;
+using Orts.Common.Input;
 using Xna = Microsoft.Xna.Framework.Input;
 
 namespace Orts.Menu
