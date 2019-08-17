@@ -35,14 +35,6 @@ namespace Orts.Settings
         public string Update { get; set; }
 
         #endregion
-
-        public UpdateState()
-            : base(SettingsStore.GetSettingsStore(UserSettings.Instance.SettingStore.StoreType, 
-                UserSettings.Instance.SettingStore.Location, "UpdateState"))
-        {
-            LoadSettings(new string[0]);
-        }
-
         public UpdateState(UpdateSettings parent): 
             this (parent.SettingStore)
         {

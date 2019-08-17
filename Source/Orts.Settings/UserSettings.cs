@@ -28,16 +28,16 @@ using Orts.Settings.Store;
 namespace Orts.Settings
 {
 
-    public partial class UserSettings : SettingsBase
+    public class UserSettings : SettingsBase
     {
-        public static readonly string UserDataFolder;     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
-        public static readonly string DeletedSaveFolder;  // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Deleted Saves"
-        public static readonly string SavePackFolder;     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Save Packs"
+        public static string UserDataFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails"
+        public static string DeletedSaveFolder { get; private set; }  // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Deleted Saves"
+        public static string SavePackFolder { get; private set; }     // ie @"C:\Users\Wayne\AppData\Roaming\Open Rails\Save Packs"
 
         private static readonly StoreType SettingsStoreType;
         private static readonly string Location;
 
-        public static UserSettings Instance { get; private set; }
+        private readonly Dictionary<string, object> customDefaultValues = new Dictionary<string, object>();
 
         static UserSettings()
         {
@@ -63,31 +63,6 @@ namespace Orts.Settings
             DeletedSaveFolder = Path.Combine(UserDataFolder, "Deleted Saves");
             SavePackFolder = Path.Combine(UserDataFolder, "Save Packs");
         }
-
-        readonly Dictionary<string, object> CustomDefaultValues = new Dictionary<string, object>();
-
-        #region Menu_Selection enum
-        public enum Menu_SelectionIndex
-        {
-            // Base items
-            Folder = 0,
-            Route = 1,
-            // Activity mode items
-            Activity = 2,
-            Locomotive = 3,
-            Consist = 4,
-            Path = 5,
-            Time = 6,
-            // Timetable mode items
-            TimetableSet = 2,
-            Timetable = 3,
-            Train = 4,
-            Day = 5,
-            // Shared items
-            Season = 7,
-            Weather = 8,
-        }
-        #endregion
 
         #region User Settings
 
@@ -398,16 +373,14 @@ namespace Orts.Settings
         public UserSettings(IEnumerable<string> options) : 
             this(options, SettingsStore.GetSettingsStore(SettingsStoreType, Location, null))
         {
-            if (null == Instance)
-                Instance = this;
         }
 
         public UserSettings(IEnumerable<string> options, SettingsStore store) :
             base(store)
         {
-            CustomDefaultValues["LoggingPath"] = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            CustomDefaultValues["ScreenshotPath"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), Application.ProductName);
-            CustomDefaultValues["Multiplayer_User"] = Environment.UserName;
+            customDefaultValues["LoggingPath"] = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            customDefaultValues["ScreenshotPath"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), Application.ProductName);
+            customDefaultValues["Multiplayer_User"] = Environment.UserName;
             LoadSettings(options);
             Folders = new FolderSettings(options, store);
             Input = new InputSettings(options, store);
@@ -418,8 +391,8 @@ namespace Orts.Settings
         {
             var property = GetProperty(name);
 
-            if (CustomDefaultValues.ContainsKey(property.Name))
-                return CustomDefaultValues[property.Name];
+            if (customDefaultValues.ContainsKey(property.Name))
+                return customDefaultValues[property.Name];
 
             if (property.GetCustomAttributes(typeof(DefaultAttribute), false).Length > 0)
                 return (property.GetCustomAttributes(typeof(DefaultAttribute), false)[0] as DefaultAttribute).Value;

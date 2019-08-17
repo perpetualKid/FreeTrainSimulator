@@ -816,7 +816,7 @@ namespace Orts.Menu
             {
                 comboBoxFolder.EndUpdate();
             }
-            UpdateFromMenuSelection<Folder>(comboBoxFolder, UserSettings.Menu_SelectionIndex.Folder, f => f.Path);
+            UpdateFromMenuSelection<Folder>(comboBoxFolder, Menu_SelectionIndex.Folder, f => f.Path);
             UpdateEnabled();
         }
         #endregion
@@ -861,10 +861,10 @@ namespace Orts.Menu
             {
                 comboBoxRoute.EndUpdate();
             }
-            UpdateFromMenuSelection<Route>(comboBoxRoute, UserSettings.Menu_SelectionIndex.Route, r => r.Path);
-            if (settings.Menu_Selection.Length > (int)UserSettings.Menu_SelectionIndex.Activity)
+            UpdateFromMenuSelection<Route>(comboBoxRoute, Menu_SelectionIndex.Route, r => r.Path);
+            if (settings.Menu_Selection.Length > (int)Menu_SelectionIndex.Activity)
             {
-                string path = settings.Menu_Selection[(int)UserSettings.Menu_SelectionIndex.Activity]; // Activity or Timetable
+                string path = settings.Menu_Selection[(int)Menu_SelectionIndex.Activity]; // Activity or Timetable
                 string extension = System.IO.Path.GetExtension(path).ToLower();
                 if (extension == ".act")
                     radioButtonModeActivity.Checked = true;
@@ -909,7 +909,7 @@ namespace Orts.Menu
             {
                 comboBoxActivity.EndUpdate();
             }
-            UpdateFromMenuSelection<Activity>(comboBoxActivity, UserSettings.Menu_SelectionIndex.Activity, a => a.FilePath);
+            UpdateFromMenuSelection<Activity>(comboBoxActivity, Menu_SelectionIndex.Activity, a => a.FilePath);
             UpdateEnabled();
         }
 
@@ -960,7 +960,7 @@ namespace Orts.Menu
                 {
                     comboBoxLocomotive.EndUpdate();
                 }
-                UpdateFromMenuSelection<Locomotive>(comboBoxLocomotive, UserSettings.Menu_SelectionIndex.Locomotive, l => l.FilePath);
+                UpdateFromMenuSelection<Locomotive>(comboBoxLocomotive, Menu_SelectionIndex.Locomotive, l => l.FilePath);
             }
             else
             {
@@ -999,7 +999,7 @@ namespace Orts.Menu
                 {
                     comboBoxConsist.EndUpdate();
                 }
-                UpdateFromMenuSelection<Consist>(comboBoxConsist, UserSettings.Menu_SelectionIndex.Consist, c => c.FilePath);
+                UpdateFromMenuSelection<Consist>(comboBoxConsist, Menu_SelectionIndex.Consist, c => c.FilePath);
             }
             UpdateEnabled();
         }
@@ -1044,9 +1044,9 @@ namespace Orts.Menu
                     comboBoxStartAt.EndUpdate();
                 }
                 // Because this list is unique names, we have to do some extra work to select it.
-                if (settings.Menu_Selection.Length >= (int)UserSettings.Menu_SelectionIndex.Path)
+                if (settings.Menu_Selection.Length >= (int)Menu_SelectionIndex.Path)
                 {
-                    string pathFilePath = settings.Menu_Selection[(int)UserSettings.Menu_SelectionIndex.Path];
+                    string pathFilePath = settings.Menu_Selection[(int)Menu_SelectionIndex.Path];
                     Path path = paths.FirstOrDefault(p => p.FilePath == pathFilePath);
                     if (path != null)
                         SelectComboBoxItem<string>(comboBoxStartAt, s => s == path.Start);
@@ -1091,7 +1091,7 @@ namespace Orts.Menu
                 {
                     comboBoxHeadTo.EndUpdate();
                 }
-                UpdateFromMenuSelection<Path>(comboBoxHeadTo, UserSettings.Menu_SelectionIndex.Path, c => c.FilePath);
+                UpdateFromMenuSelection<Path>(comboBoxHeadTo, Menu_SelectionIndex.Path, c => c.FilePath);
             }
             UpdateEnabled();
         }
@@ -1118,9 +1118,9 @@ namespace Orts.Menu
                     comboBoxDuration.EndUpdate();
                 }
 
-                UpdateFromMenuSelection(comboBoxStartTime, UserSettings.Menu_SelectionIndex.Time, "12:00");
-                UpdateFromMenuSelection(comboBoxStartSeason, UserSettings.Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, ""));
-                UpdateFromMenuSelection(comboBoxStartWeather, UserSettings.Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, ""));
+                UpdateFromMenuSelection(comboBoxStartTime, Menu_SelectionIndex.Time, "12:00");
+                UpdateFromMenuSelection(comboBoxStartSeason, Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, ""));
+                UpdateFromMenuSelection(comboBoxStartWeather, Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, ""));
                 comboBoxDifficulty.SelectedIndex = 3;
                 comboBoxDuration.SelectedIndex = 0;
             }
@@ -1187,7 +1187,7 @@ namespace Orts.Menu
             {
                 comboBoxTimetableSet.EndUpdate();
             }
-            UpdateFromMenuSelection<TimetableInfo>(comboBoxTimetableSet, UserSettings.Menu_SelectionIndex.TimetableSet, t => t.FileName);
+            UpdateFromMenuSelection<TimetableInfo>(comboBoxTimetableSet, Menu_SelectionIndex.TimetableSet, t => t.FileName);
             UpdateEnabled();
         }
 
@@ -1233,7 +1233,7 @@ namespace Orts.Menu
                 {
                     comboBoxTimetable.EndUpdate();
                 }
-                UpdateFromMenuSelection<TimetableFileLite>(comboBoxTimetable, UserSettings.Menu_SelectionIndex.Timetable, t => t.Description);
+                UpdateFromMenuSelection<TimetableFileLite>(comboBoxTimetable, Menu_SelectionIndex.Timetable, t => t.Description);
             }
             else
                 comboBoxTimetable.Items.Clear();
@@ -1260,7 +1260,7 @@ namespace Orts.Menu
                 {
                     comboBoxTimetableTrain.EndUpdate();
                 }
-                UpdateFromMenuSelection<TimetableFileLite.TrainInformation>(comboBoxTimetableTrain, UserSettings.Menu_SelectionIndex.Train, t => t.Column.ToString());
+                UpdateFromMenuSelection<TimetableFileLite.TrainInformation>(comboBoxTimetableTrain, Menu_SelectionIndex.Train, t => t.Column.ToString());
             }
             else
                 comboBoxTimetableTrain.Items.Clear();
@@ -1272,9 +1272,9 @@ namespace Orts.Menu
         #region Timetable environment
         private void ShowTimetableEnvironment()
         {
-            UpdateFromMenuSelection(comboBoxTimetableDay, UserSettings.Menu_SelectionIndex.Day, d => d.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
-            UpdateFromMenuSelection(comboBoxTimetableSeason, UserSettings.Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, string.Empty));
-            UpdateFromMenuSelection(comboBoxTimetableWeather, UserSettings.Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
+            UpdateFromMenuSelection(comboBoxTimetableDay, Menu_SelectionIndex.Day, d => d.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
+            UpdateFromMenuSelection(comboBoxTimetableSeason, Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, string.Empty));
+            UpdateFromMenuSelection(comboBoxTimetableWeather, Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
         }
         #endregion
 
@@ -1483,17 +1483,17 @@ namespace Orts.Menu
         #endregion
 
         #region Utility functions
-        private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, T defaultValue)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, Menu_SelectionIndex index, T defaultValue)
         {
             UpdateFromMenuSelection<T>(comboBox, index, _ => _.ToString(), defaultValue);
         }
 
-        private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, Menu_SelectionIndex index, Func<T, string> map)
         {
             UpdateFromMenuSelection(comboBox, index, map, default);
         }
 
-        private void UpdateFromMenuSelection<T>(ComboBox comboBox, UserSettings.Menu_SelectionIndex index, Func<T, string> map, T defaultValue)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, Menu_SelectionIndex index, Func<T, string> map, T defaultValue)
         {
             if (settings.Menu_Selection.Length > (int)index && settings.Menu_Selection[(int)index] != "")
             {

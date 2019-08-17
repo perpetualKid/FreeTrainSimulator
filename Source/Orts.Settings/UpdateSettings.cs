@@ -45,6 +45,12 @@ namespace Orts.Settings
 
         #endregion
 
+        public UpdateSettings(StoreType storeType, string location)
+            : base(SettingsStore.GetSettingsStore(storeType, location, "Settings"))
+        {
+            LoadSettings(new string[0]);
+        }
+
         public UpdateSettings()
             : base(SettingsStore.GetSettingsStore(StoreType.Ini, settingsFilePath, "Settings"))
         {

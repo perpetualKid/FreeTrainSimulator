@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -28,7 +27,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Orts.Common;
 using Orts.Common.Input;
-using Orts.Common.Native;
 using Orts.Settings.Store;
 
 namespace Orts.Settings
@@ -83,12 +81,14 @@ namespace Orts.Settings
 
         UserCommand GetCommand(string name)
         {
-            return (UserCommand)Enum.Parse(typeof(UserCommand), name);
+            if (!Enum.TryParse(name, out UserCommand result))            // (name, out (UserCommand)Enum.Parse(typeof(UserCommand), name);
+                throw new ArgumentOutOfRangeException();
+            return result;
         }
 
         UserCommand[] GetCommands()
         {
-            return (UserCommand[])Enum.GetValues(typeof(UserCommand));
+            return EnumExtension.GetValues<UserCommand>().ToArray();
         }
 
         public override object GetDefaultValue(string name)
@@ -108,21 +108,21 @@ namespace Orts.Settings
 
         protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
         {
-            foreach (var command in EnumExtension.GetValues<UserCommand>())
+            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
                 LoadSetting(allowUserSettings, optionalValues, command.ToString());
             properties = null;
         }
 
         public override void Save()
         {
-            foreach (var command in EnumExtension.GetValues<UserCommand>())
+            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
                 SaveSetting(command.ToString());
             properties = null;
         }
 
         public override void Reset()
         {
-            foreach (var command in EnumExtension.GetValues<UserCommand>())
+            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
                 Reset(command.ToString());
         }
 
