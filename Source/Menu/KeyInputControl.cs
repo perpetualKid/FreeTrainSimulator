@@ -62,15 +62,15 @@ namespace Orts.Menu
         {
             using (var editKey = new KeyInputEditControl(this))
             {
-                var originalPersistentDescriptor = UserInput.PersistentDescriptor;
+                int originalUniqueDescriptor = UserInput.UniqueDescriptor;
                 var result = editKey.ShowDialog(this);
                 GC.KeepAlive(editKey); // Required to ensure keyboard hook is not collected too early.
 
-                // Undo user's editing (Cancel) or reset to default (Ignore).
                 if (result == DialogResult.Cancel)
-                    UserInput.PersistentDescriptor = originalPersistentDescriptor;
+                    UserInput.UniqueDescriptor = originalUniqueDescriptor;
                 else if (result == DialogResult.Ignore)
-                    UserInput.PersistentDescriptor = DefaultInput.PersistentDescriptor;
+                    UserInput.UniqueDescriptor = DefaultInput.UniqueDescriptor;
+
             }
 
             // Ensure the modifiable inputs are kept in sync.

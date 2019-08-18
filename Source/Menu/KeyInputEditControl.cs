@@ -77,21 +77,20 @@ namespace Orts.Menu
 
             LiveInput = control.UserInput;
             IsModifier = LiveInput.IsModifier;
-            var parts = LiveInput.PersistentDescriptor.Split(',');
-            if (parts.Length >= 5)
-            {
-                ScanCode = int.Parse(parts[0]);
-                VirtualKey = (Xna.Keys)int.Parse(parts[1]);
-                Shift = parts[2] != "0";
-                Control = parts[3] != "0";
-                Alt = parts[4] != "0";
-            }
+
+            var input = UserCommandInput.DecomposeUniqueDescriptor(LiveInput.UniqueDescriptor);
+            Shift = input.Shift;
+            Control = input.Control;
+            Alt = input.Alt;
+            ScanCode = input.ScanCode;
+            VirtualKey = (Xna.Keys)input.VirtualKey;
+
             UpdateText();
         }
 
         private void UpdateText()
         {
-            LiveInput.PersistentDescriptor = PersistentDescriptor;
+            LiveInput.UniqueDescriptor = UserCommandInput.ComposeUniqueDescriptor(Shift, Control, Alt, ScanCode, VirtualKey);
             textBox.Text = LiveInput.ToString();
         }
 

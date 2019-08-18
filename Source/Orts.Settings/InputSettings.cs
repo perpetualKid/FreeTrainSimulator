@@ -93,17 +93,20 @@ namespace Orts.Settings
 
         public override object GetDefaultValue(string name)
         {
-            return DefaultCommands[(int)GetCommand(name)].PersistentDescriptor;
+//            return DefaultCommands[(int)GetCommand(name)].PersistentDescriptor;
+            return DefaultCommands[(int)GetCommand(name)].UniqueDescriptor;
         }
 
         protected override object GetValue(string name)
         {
-            return Commands[(int)GetCommand(name)].PersistentDescriptor;
+            //return Commands[(int)GetCommand(name)].PersistentDescriptor;
+            return Commands[(int)GetCommand(name)].UniqueDescriptor;
         }
 
         protected override void SetValue(string name, object value)
         {
-            Commands[(int)GetCommand(name)].PersistentDescriptor = (string)value;
+            //Commands[(int)GetCommand(name)].PersistentDescriptor = (string)value;
+            Commands[(int)GetCommand(name)].UniqueDescriptor = (int)value;
         }
 
         protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
@@ -505,7 +508,9 @@ namespace Orts.Settings
                         continue;
 
                     // Ignore problems when both inputs are on defaults. (This protects the user somewhat but leaves developers in the dark.)
-                    if (input1.PersistentDescriptor == InputSettings.DefaultCommands[(int)command1].PersistentDescriptor && input2.PersistentDescriptor == InputSettings.DefaultCommands[(int)command2].PersistentDescriptor)
+                    //if (input1.PersistentDescriptor == InputSettings.DefaultCommands[(int)command1].PersistentDescriptor && input2.PersistentDescriptor == InputSettings.DefaultCommands[(int)command2].PersistentDescriptor)
+                    if (input1.UniqueDescriptor == DefaultCommands[(int)command1].UniqueDescriptor &&
+                    input2.UniqueDescriptor == DefaultCommands[(int)command2].UniqueDescriptor)
                         continue;
 
                     var unique1 = input1.GetUniqueInputs();

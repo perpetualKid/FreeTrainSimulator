@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Input;
 using Orts.Common.Native;
 
@@ -49,7 +48,16 @@ namespace Orts.Common.Input
     /// </summary>
     public abstract class UserCommandInput
     {
-        public abstract string PersistentDescriptor { get; set; }
+        protected KeyModifiers modifiers;
+        protected int uniqueIdentifier;
+
+        protected UserCommandInput(int scanCode, Keys virtualKey, KeyModifiers modifiers)
+        {
+            uniqueIdentifier = ComposeUniqueDescriptor(modifiers, scanCode, virtualKey);
+            this.modifiers = modifiers;
+        }
+
+        public abstract int UniqueDescriptor { get; set; }
 
         public virtual bool IsModifier { get { return false; } }
 
@@ -59,7 +67,35 @@ namespace Orts.Common.Input
 
         public override string ToString()
         {
-            return "";
+            return string.Empty;
+        }
+
+        public static (bool Shift, bool Control, bool Alt, int ScanCode, int VirtualKey) DecomposeUniqueDescriptor(int uniqueDescriptor)
+        {
+            byte[] bytes = BitConverter.GetBytes(uniqueDescriptor);
+            return (((KeyModifiers)bytes[0] & KeyModifiers.Shift) != 0, 
+                ((KeyModifiers)bytes[0] & KeyModifiers.Control) != 0, 
+                ((KeyModifiers)bytes[0] & KeyModifiers.Alt) != 0, 
+                bytes[1], bytes[2]);
+        }
+
+        public static int ComposeUniqueDescriptor(bool shift, bool control, bool alt, int scanCode, Keys virtualKey)
+        {
+            KeyModifiers modifiers = KeyModifiers.None;
+            modifiers = shift ? modifiers | KeyModifiers.Shift : modifiers & ~KeyModifiers.Shift;
+            modifiers = control ? modifiers | KeyModifiers.Control : modifiers & ~KeyModifiers.Control;
+            modifiers = alt ? modifiers | KeyModifiers.Alt : modifiers & ~KeyModifiers.Alt;
+
+            return ComposeUniqueDescriptor(modifiers, scanCode, virtualKey);
+        }
+
+        public static int ComposeUniqueDescriptor(KeyModifiers modifiers, int scanCode, Keys virtualKey)
+        {
+            byte[] bytes = new byte[4];
+            bytes[0] = (byte)modifiers;
+            bytes[1] = (byte)scanCode;
+            bytes[2] = (byte)virtualKey;
+            return BitConverter.ToInt32(bytes, 0);
         }
     }
 
@@ -68,19 +104,12 @@ namespace Orts.Common.Input
     /// </summary>
     public class UserCommandModifierInput : UserCommandInput
     {
-        public bool Shift { get; private set; }
-        public bool Control { get; private set; }
-        public bool Alt { get; private set; }
+        public bool Shift { get => (modifiers & KeyModifiers.Shift) != 0; }
+        public bool Control { get => (modifiers & KeyModifiers.Control) != 0; }
+        public bool Alt { get => (modifiers & KeyModifiers.Alt) != 0; }
 
-        protected UserCommandModifierInput(bool shift, bool control, bool alt)
-        {
-            Shift = shift;
-            Control = control;
-            Alt = alt;
-        }
-
-        public UserCommandModifierInput(KeyModifiers modifiers)
-        : this((modifiers & KeyModifiers.Shift) != 0, (modifiers & KeyModifiers.Control) != 0, (modifiers & KeyModifiers.Alt) != 0)
+        public UserCommandModifierInput(KeyModifiers modifiers):
+            base(0, 0, modifiers)
         {
         }
 
@@ -91,21 +120,17 @@ namespace Orts.Common.Input
                 (!alt || keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt));
         }
 
-        public override string PersistentDescriptor
+        public override int UniqueDescriptor
         {
             get
             {
-                return String.Format("0,0,{0},{1},{2}", Shift ? 1 : 0, Control ? 1 : 0, Alt ? 1 : 0);
+                return uniqueIdentifier;
             }
             set
             {
-                var parts = value.Split(',');
-                if (parts.Length >= 5)
-                {
-                    Shift = parts[2] != "0";
-                    Control = parts[3] != "0";
-                    Alt = parts[4] != "0";
-                }
+                uniqueIdentifier = value;
+                byte[] bytes = BitConverter.GetBytes(value);
+                modifiers = (KeyModifiers)bytes[0];
             }
         }
 
@@ -144,18 +169,16 @@ namespace Orts.Common.Input
     {
         public int ScanCode { get; private set; }
         public Keys VirtualKey { get; private set; }
-        public bool Shift { get; private set; }
-        public bool Control { get; private set; }
-        public bool Alt { get; private set; }
+        public bool Shift { get => (modifiers & KeyModifiers.Shift) != 0; }
+        public bool Control { get => (modifiers & KeyModifiers.Control) != 0; }
+        public bool Alt { get => (modifiers & KeyModifiers.Alt) != 0; }
 
-        protected UserCommandKeyInput(int scanCode, Keys virtualKey, bool shift, bool control, bool alt)
+        protected UserCommandKeyInput(int scanCode, Keys virtualKey, KeyModifiers modifiers):
+            base(scanCode, virtualKey, modifiers)
         {
             Debug.Assert((scanCode >= 1 && scanCode <= 127) || (virtualKey != Keys.None), "Scan code for keyboard input is outside the allowed range of 1-127.");
             ScanCode = scanCode;
             VirtualKey = virtualKey;
-            Shift = shift;
-            Control = control;
-            Alt = alt;
         }
 
         public UserCommandKeyInput(int scancode)
@@ -169,12 +192,12 @@ namespace Orts.Common.Input
         }
 
         public UserCommandKeyInput(int scancode, KeyModifiers modifiers)
-        : this(scancode, Keys.None, (modifiers & KeyModifiers.Shift) != 0, (modifiers & KeyModifiers.Control) != 0, (modifiers & KeyModifiers.Alt) != 0)
+        : this(scancode, Keys.None, modifiers)
         {
         }
 
         public UserCommandKeyInput(Keys virtualKey, KeyModifiers modifiers)
-        : this(0, virtualKey, (modifiers & KeyModifiers.Shift) != 0, (modifiers & KeyModifiers.Control) != 0, (modifiers & KeyModifiers.Alt) != 0)
+        : this(0, virtualKey, modifiers)
         {
         }
 
@@ -198,23 +221,19 @@ namespace Orts.Common.Input
                 ((keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt)) == alt);
         }
 
-        public override string PersistentDescriptor
+        public override int UniqueDescriptor
         {
             get
             {
-                return String.Format("{0},{1},{2},{3},{4}", ScanCode, (int)VirtualKey, Shift ? 1 : 0, Control ? 1 : 0, Alt ? 1 : 0);
+                return uniqueIdentifier;
             }
             set
             {
-                var parts = value.Split(',');
-                if (parts.Length >= 5)
-                {
-                    ScanCode = int.Parse(parts[0]);
-                    VirtualKey = (Keys)int.Parse(parts[1]);
-                    Shift = parts[2] != "0";
-                    Control = parts[3] != "0";
-                    Alt = parts[4] != "0";
-                }
+                uniqueIdentifier = value;
+                byte[] bytes = BitConverter.GetBytes(value);
+                modifiers = (KeyModifiers)bytes[0];
+                ScanCode = bytes[1];
+                VirtualKey = (Keys)bytes[2];
             }
         }
 
@@ -255,14 +274,16 @@ namespace Orts.Common.Input
     /// </summary>
     public class UserCommandModifiableKeyInput : UserCommandKeyInput
     {
-        public bool IgnoreShift { get; private set; }
-        public bool IgnoreControl { get; private set; }
-        public bool IgnoreAlt { get; private set; }
+        private KeyModifiers ignoreModifiers;
 
-        UserCommandModifierInput[] Combine;
+        public bool IgnoreShift { get => (ignoreModifiers & KeyModifiers.Shift) != 0; }
+        public bool IgnoreControl { get => (ignoreModifiers & KeyModifiers.Control) != 0; }
+        public bool IgnoreAlt { get => (ignoreModifiers & KeyModifiers.Alt) != 0; }
+
+        private UserCommandModifierInput[] Combine;
 
         UserCommandModifiableKeyInput(int scanCode, Keys virtualKey, KeyModifiers modifiers, IEnumerable<UserCommandInput> combine)
-            : base(scanCode, virtualKey, (modifiers & KeyModifiers.Shift) != 0, (modifiers & KeyModifiers.Control) != 0, (modifiers & KeyModifiers.Alt) != 0)
+            : base(scanCode, virtualKey, modifiers)
         {
             Combine = combine.Cast<UserCommandModifierInput>().ToArray();
             SynchronizeCombine();
@@ -278,22 +299,17 @@ namespace Orts.Common.Input
         {
         }
 
-        public override string PersistentDescriptor
+        public override int UniqueDescriptor
         {
             get
             {
-                return String.Format("{0},{1},{2},{3}", base.PersistentDescriptor, IgnoreShift ? 1 : 0, IgnoreControl ? 1 : 0, IgnoreAlt ? 1 : 0);
+                return uniqueIdentifier;
             }
             set
             {
-                base.PersistentDescriptor = value;
-                var parts = value.Split(',');
-                if (parts.Length >= 8)
-                {
-                    IgnoreShift = parts[5] != "0";
-                    IgnoreControl = parts[6] != "0";
-                    IgnoreAlt = parts[7] != "0";
-                }
+                base.UniqueDescriptor = value;
+                byte[] bytes = BitConverter.GetBytes(value);
+                ignoreModifiers = (KeyModifiers)bytes[3];
             }
         }
 
@@ -340,9 +356,10 @@ namespace Orts.Common.Input
 
         public void SynchronizeCombine()
         {
-            IgnoreShift = Combine.Any(c => c.Shift);
-            IgnoreControl = Combine.Any(c => c.Control);
-            IgnoreAlt = Combine.Any(c => c.Alt);
+            ignoreModifiers = Combine.Any(c => c.Shift) ? ignoreModifiers | KeyModifiers.Shift : ignoreModifiers & ~KeyModifiers.Shift;
+            ignoreModifiers = Combine.Any(c => c.Control ) ? ignoreModifiers | KeyModifiers.Control : ignoreModifiers & ~KeyModifiers.Control;
+            ignoreModifiers = Combine.Any(c => c.Alt) ? ignoreModifiers | KeyModifiers.Alt : ignoreModifiers & ~KeyModifiers.Alt;
+            uniqueIdentifier |= ((byte)ignoreModifiers << 24);
         }
     }
 }
