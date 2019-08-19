@@ -32,6 +32,7 @@ namespace Orts.Common
             internal static readonly IList<T> Values;
             internal static readonly Dictionary<T, string> ValueToDescriptionMap;
             internal static string EnumDescription;
+            internal static IDictionary<string, T> NameValuePairs;
 
             static EnumCache()
             {
@@ -46,6 +47,9 @@ namespace Orts.Common
                 {
                     ValueToDescriptionMap[value] = GetDescription(value);
                 }
+
+                NameValuePairs = Names.Zip(Values, (k, v) => new { k, v })
+                              .ToDictionary(x => x.k, x => x.v);
             }
 
             private static string GetDescription(T value)
@@ -58,6 +62,9 @@ namespace Orts.Common
             }
         }
 
+        /// <summary>
+        /// returns the Description attribute for the particular enum value
+        /// </summary>
         public static string GetDescription<T>(this T item) where T : Enum
         {
             if (EnumCache<T>.ValueToDescriptionMap.TryGetValue(item, out string description))
@@ -67,30 +74,54 @@ namespace Orts.Common
             throw new ArgumentOutOfRangeException("item");
         }
 
+        /// <summary>
+        /// returns the Description attribute for the enum type
+        /// </summary>
         public static string EnumDescription<T>() where T : Enum
         {
             return EnumCache<T>.EnumDescription;
         }
 
+        /// <summary>
+        /// returns a static list of all names in this enum
+        /// </summary>
         public static IList<string> GetNames<T>() where T : Enum
         {
             return EnumCache<T>.Names;
         }
 
+        /// <summary>
+        /// returns a static list of all values in this enum
+        /// </summary>
         public static IList<T> GetValues<T>() where T : Enum
         {
             return EnumCache<T>.Values;
         }
 
+        /// <summary>
+        /// returns a number of elements in this enum
+        /// </summary>
         public static int GetLength<T>() where T : Enum
         {
             return EnumCache<T>.Values.Count;
         }
 
+        public static bool GetValue<T>(string name, out T result) where T: Enum
+        {
+            return EnumCache<T>.NameValuePairs.TryGetValue(name, out result);
+        }
+
+        /// <summary>
+        /// allows to enumerate forward over enum values
+        /// </summary>
         public static T Next<T>(this T item) where T : Enum
         {
             return EnumCache<T>.Values[(EnumCache<T>.Values.IndexOf(item) + 1) % EnumCache<T>.Values.Count];
         }
+
+        /// <summary>
+        /// allows to enumerate backward over enum values
+        /// </summary>
         public static T Previous<T>(this T item) where T : Enum
         {
             return EnumCache<T>.Values[(EnumCache<T>.Values.IndexOf(item) - 1 + EnumCache<T>.Values.Count) % EnumCache<T>.Values.Count];
