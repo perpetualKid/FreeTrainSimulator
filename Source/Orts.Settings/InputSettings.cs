@@ -63,7 +63,7 @@ namespace Orts.Settings
         }
 
         public InputSettings(IEnumerable<string> options, SettingsStore store) : 
-            base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Keys"))
+            base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Keyboard"))
         {
             InitializeCommands(Commands);
             LoadSettings(options);
