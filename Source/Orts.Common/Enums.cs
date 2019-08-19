@@ -106,6 +106,9 @@ namespace Orts.Common
             return EnumCache<T>.Values.Count;
         }
 
+        /// <summary>
+        /// Similar as Enum.TryParse, but based on statically cached dictionary
+        /// </summary>
         public static bool GetValue<T>(string name, out T result) where T: Enum
         {
             return EnumCache<T>.NameValuePairs.TryGetValue(name, out result);

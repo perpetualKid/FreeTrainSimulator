@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings;
+using Orts.Settings.Util;
 
 namespace Orts.Menu
 {

@@ -45,6 +45,7 @@ using Orts.Settings;
 using Event = Orts.Common.Event;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common.Calc;
+using Orts.Settings.Util;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -1227,7 +1228,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 MessagesWindow.AddMessage(Catalog.GetStringFmt("Keyboard map list saved to '{0}'.", textPath), 10);
 
                 var graphicPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.png");
-                Settings.Input.DumpToGraphic(graphicPath);
+                KeyboardMap.DumpToGraphic(Settings.Input, graphicPath);
                 MessagesWindow.AddMessage(Catalog.GetStringFmt("Keyboard map image saved to '{0}'.", graphicPath), 10);
             }
 

@@ -30,6 +30,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings;
+using Orts.Settings.Util;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -77,17 +78,18 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Tabs.Add(new TabData(Tab.KeyboardShortcuts, Viewer.Catalog.GetString("Key Commands"), (cl) =>
             {
                 var scrollbox = cl.AddLayoutScrollboxVertical(cl.RemainingWidth);
-                var keyWidth = scrollbox.RemainingWidth / InputSettings.KeyboardLayout[0].Length;
+                var keyWidth = scrollbox.RemainingWidth / KeyboardMap.MapWidth;
                 var keyHeight = 3 * keyWidth;
-                InputSettings.DrawKeyboardMap((rowBox) =>
+                KeyboardMap.DrawKeyboardMap((rowBox) =>
                 {
-                }, (keyBox, keyScanCode, keyName) =>
+                }, 
+                (keyBox, keyScanCode, keyName) =>
                 {
-                    var color = Owner.Viewer.Settings.Input.GetScanCodeColor(keyScanCode);
+                    var color = KeyboardMap.GetScanCodeColor(Owner.Viewer.Settings.Input, keyScanCode);
                     if (color == Color.Transparent)
                         color = Color.Black;
 
-                    InputSettings.Scale(ref keyBox, keyWidth, keyHeight);
+                    KeyboardMap.Scale(ref keyBox, keyWidth, keyHeight);
                     scrollbox.Add(new Key(keyBox.Left - scrollbox.CurrentLeft, keyBox.Top - scrollbox.CurrentTop, keyBox.Width - 1, keyBox.Height - 1, keyName, color));
                 });
                 foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
