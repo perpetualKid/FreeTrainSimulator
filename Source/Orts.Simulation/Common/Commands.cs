@@ -1239,7 +1239,6 @@ namespace Orts.Common
         }
     }
 
-
     [Serializable()]
     public sealed class ToggleCylinderCocksCommand : Command {
         public static MSTSSteamLocomotive Receiver { get; set; }

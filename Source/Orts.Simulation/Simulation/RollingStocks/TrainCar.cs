@@ -2437,7 +2437,6 @@ namespace Orts.Simulation.RollingStocks
             return isOverTrough;
         }
 
-
         /// <summary>
         /// Checks if traincar is over junction or crossover. Used to check if water scoop breaks
         /// </summary>
@@ -2464,15 +2463,15 @@ namespace Orts.Simulation.RollingStocks
                     foreach (var thisSection in copyOccupiedTrack)
                     {
 
-//                    Trace.TraceInformation(" Track Section - Index {0} Ciruit Type {1}", thisSectionIndex, thisSection.CircuitType);
+                        //                    Trace.TraceInformation(" Track Section - Index {0} Ciruit Type {1}", thisSectionIndex, thisSection.CircuitType);
 
-                    if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                        if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
                         {
 
-                        // train is on a switch; let's see if car is on a switch too
-                        WorldLocation switchLocation = TileLocation(Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD);
-                        var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
-                            if (distanceFromSwitch<CarLengthM* CarLengthM + Math.Min(SpeedMpS* 3, 150))
+                            // train is on a switch; let's see if car is on a switch too
+                            WorldLocation switchLocation = TileLocation(Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD);
+                            var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
+                            if (distanceFromSwitch < CarLengthM * CarLengthM + Math.Min(SpeedMpS * 3, 150))
                             {
                                 isOverJunction = true;
                                 return isOverJunction;

@@ -150,22 +150,21 @@ namespace Orts.Viewer3D.RollingStock
                     drawer.Initialize(steamTexture);
                 }
 
-
-                // Water spray for when water scoop is in use (use steam effects for the time being)
+                // Water spray for when water scoop is in use (use steam effects for the time being) 
                 // Forward motion
                 if (emitter.Key.ToLowerInvariant() == "waterscoopfx")
                     WaterScoop.AddRange(emitter.Value);
-                
+
                 foreach (var drawer in WaterScoop)
                 {
                     drawer.Initialize(steamTexture);
                 }
-                
+
                 // Reverse motion
-                
+
                 if (emitter.Key.ToLowerInvariant() == "waterscoopreversefx")
                     WaterScoopReverse.AddRange(emitter.Value);
-                
+
                 foreach (var drawer in WaterScoopReverse)
                 {
                     drawer.Initialize(steamTexture);
@@ -174,11 +173,11 @@ namespace Orts.Viewer3D.RollingStock
                 // Water overflow when tender is over full during water trough filling (use steam effects for the time being) 
 
                 if (emitter.Key.ToLowerInvariant() == "tenderwateroverflowfx")
-                   TenderWaterOverflow.AddRange(emitter.Value);
-                
+                    TenderWaterOverflow.AddRange(emitter.Value);
+
                 foreach (var drawer in TenderWaterOverflow)
                 {
-                   drawer.Initialize(steamTexture);
+                    drawer.Initialize(steamTexture);
                 }
 
             }
@@ -519,23 +518,17 @@ namespace Orts.Viewer3D.RollingStock
             // Exhaust for HEP/Electrical Generator
             foreach (var drawer in WagonGenerator)
             {
-               drawer.SetOutput(car.WagonGeneratorVolumeM3pS, car.WagonGeneratorDurationS, car.WagonGeneratorSteadyColor);
+                drawer.SetOutput(car.WagonGeneratorVolumeM3pS, car.WagonGeneratorDurationS, car.WagonGeneratorSteadyColor);
             }
 
             // Wagon fire smoke
             foreach (var drawer in WagonSmoke)
             {
-                  drawer.SetOutput(car.WagonSmokeVelocityMpS, car.WagonSmokeVolumeM3pS, car.WagonSmokeDurationS, car.WagonSmokeSteadyColor);
+                drawer.SetOutput(car.WagonSmokeVelocityMpS, car.WagonSmokeVolumeM3pS, car.WagonSmokeDurationS, car.WagonSmokeSteadyColor);
             }
 
-            // Bearing Hot box smoke
-            foreach (var drawer in BearingHotBox)
-            {
-               drawer.SetOutput(car.BearingHotBoxSmokeVelocityMpS, car.BearingHotBoxSmokeVolumeM3pS, car.BearingHotBoxSmokeDurationS, car.BearingHotBoxSmokeSteadyColor);
-            }
-
-            // Water spray for water sccop (uses steam effects currently) - Forward direction
-            if (car.Train == null || car.Direction == Direction.Forward)
+            // Water spray for water scoop (uses steam effects currently) - Forward direction
+            if (car.Direction == Direction.Forward)
             {
                 foreach (var drawer in WaterScoop)
                 {

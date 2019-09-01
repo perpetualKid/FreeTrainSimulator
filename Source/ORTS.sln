@@ -163,6 +163,10 @@ Global
 		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{316A8CAC-8BD4-4A64-A384-4A3C28C5D3D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Release|Mixed Platforms = Release|Mixed Platforms
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{9BE44F64-417D-4AA6-AF4D-2A6A0CBC814D}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{9BE44F64-417D-4AA6-AF4D-2A6A0CBC814D}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{9BE44F64-417D-4AA6-AF4D-2A6A0CBC814D}.Release|Mixed Platforms.ActiveCfg = Release|x86
@@ -268,7 +272,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {3A87E59E-F452-4A0A-B02A-90B0F0AAEFE1}
 		SolutionGuid = {CDB79CD0-E20D-487C-91A8-27BD4A9CE8A2}
 	EndGlobalSection
 EndGlobal

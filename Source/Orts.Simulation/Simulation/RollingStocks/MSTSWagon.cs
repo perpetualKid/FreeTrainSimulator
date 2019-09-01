@@ -2447,7 +2447,6 @@ namespace Orts.Simulation.RollingStocks
         // This section updates the special effects
         {
 
-            if (WagonType == WagonTypes.Tender || WagonType == WagonTypes.Engine)
             {
                 // Update Steam Leaks Information
                 if (Train.CarSteamHeatOn)
@@ -2465,109 +2464,108 @@ namespace Orts.Simulation.RollingStocks
                     HeatingHoseSteamVolumeM3pS = 0.0f;
                 }
 
-                // Update Water Scoop Spray Information when scoop is down and filling from trough
+            // Update Water Scoop Spray Information when scoop is down and filling from trough
 
-                bool ProcessWaterEffects = false; // Initialise test flag to see whether this wagon will have water sccop effects active
-                var LocomotiveIdentification = Simulator.PlayerLocomotive as MSTSLocomotive;
+            bool ProcessWaterEffects = false; // Initialise test flag to see whether this wagon will have water sccop effects active
+            var LocomotiveIdentification = Simulator.PlayerLocomotive as MSTSLocomotive;
 
-                if (WagonType == WagonTypes.Tender || WagonType == WagonTypes.Engine)
+            if (WagonType == WagonTypes.Tender || WagonType == WagonTypes.Engine)
+            {
+
+                if (WagonType == WagonTypes.Tender)
                 {
+                    // Find the associated steam locomotive for this tender
+                    if (TendersSteamLocomotive == null) FindTendersSteamLocomotive();
 
-                    if (WagonType == WagonTypes.Tender)
+                    if (TendersSteamLocomotive == LocomotiveIdentification && TendersSteamLocomotive.HasWaterScoop)
                     {
-                        // Find the associated steam locomotive for this tender
-                        if (TendersSteamLocomotive == null) FindTendersSteamLocomotive();
-
-                        if (TendersSteamLocomotive == LocomotiveIdentification && TendersSteamLocomotive.HasWaterScoop)
-                        {
-                            ProcessWaterEffects = true; // Set flag if this tender is attached to player locomotive
-                        }
-
-                    }
-                    else if (Simulator.PlayerLocomotive == this && LocomotiveIdentification.HasWaterScoop)
-                    {
-                        ProcessWaterEffects = true; // Allow water effects to be processed
-                    }
-                    else
-                    {
-                        ProcessWaterEffects = false; // Default off
+                        ProcessWaterEffects = true; // Set flag if this tender is attached to player locomotive
                     }
 
-                    // Tender Water overflow control
-                    if (LocomotiveIdentification.RefillingFromTrough && ProcessWaterEffects)
-                    {
-
-                        float SpeedRatio = AbsSpeedMpS / MpS.FromMpH(100); // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
-
-                        // Turn tender water overflow on if water level is greater then 100% nominally and minimum water scoop speed is reached
-                        if (LocomotiveIdentification.TenderWaterLevelFraction >= 0.9999 && AbsSpeedMpS > LocomotiveIdentification.WaterScoopMinSpeedMpS)
-                        {
-                            float InitialTenderWaterOverflowParticleDurationS = 1.25f;
-                            float InitialTenderWaterOverflowVelocityMpS = 50.0f;
-                            float InitialTenderWaterOverflowVolumeM3pS = 10.0f;
-
-                            // Turn tender water overflow on - changes due to speed of train
-                            TenderWaterOverflowParticleDurationS = InitialTenderWaterOverflowParticleDurationS * SpeedRatio;
-                            TenderWaterOverflowVelocityMpS = InitialTenderWaterOverflowVelocityMpS * SpeedRatio;
-                            TenderWaterOverflowVolumeM3pS = InitialTenderWaterOverflowVolumeM3pS * SpeedRatio;
-                        }
-                    }
-                    else
-                    {
-                        // Turn tender water overflow off 
-                        TenderWaterOverflowParticleDurationS = 0.0f;
-                        TenderWaterOverflowVelocityMpS = 0.0f;
-                        TenderWaterOverflowVolumeM3pS = 0.0f;
-                    }
-
-                    // Water scoop spray effects control - always on when scoop over trough, regardless of whether above minimum speed or not
-                    if (ProcessWaterEffects && LocomotiveIdentification.IsWaterScoopDown && IsOverTrough() && AbsSpeedMpS > 0.1)
-                    {
-                        float SpeedRatio = AbsSpeedMpS / MpS.FromMpH(100); // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
-
-                        float InitialWaterScoopParticleDurationS = 1.25f;
-                        float InitialWaterScoopWaterVelocityMpS = 50.0f;
-                        float InitialWaterScoopWaterVolumeM3pS = 10.0f;
-
-                        // Turn water scoop spray effects on
-                        if (AbsSpeedMpS <= MpS.FromMpH(10))
-                        {
-                            float SprayDecay = (MpS.FromMpH(25) / MpS.FromMpH(100)) / MpS.FromMpH(10); // Linear decay factor - based upon previous level starts @ a value @ 25mph
-                            SpeedRatio = (SprayDecay * AbsSpeedMpS) / MpS.FromMpH(100); // Decrease the water scoop spray effect to minimum level of visibility
-                            WaterScoopParticleDurationS = InitialWaterScoopParticleDurationS * SpeedRatio;
-                            WaterScoopWaterVelocityMpS = InitialWaterScoopWaterVelocityMpS * SpeedRatio;
-                            WaterScoopWaterVolumeM3pS = InitialWaterScoopWaterVolumeM3pS * SpeedRatio;
-
-                        }
-                        // Below 25mph effect does not vary, above 25mph effect varies according to speed
-                        else if (AbsSpeedMpS < MpS.FromMpH(25) && AbsSpeedMpS > MpS.FromMpH(10))
-                        {
-                            SpeedRatio = MpS.FromMpH(25) / MpS.FromMpH(100); // Hold the water scoop spray effect to a minimum level of visibility
-                            WaterScoopParticleDurationS = InitialWaterScoopParticleDurationS * SpeedRatio;
-                            WaterScoopWaterVelocityMpS = InitialWaterScoopWaterVelocityMpS * SpeedRatio;
-                            WaterScoopWaterVolumeM3pS = InitialWaterScoopWaterVolumeM3pS * SpeedRatio;
-                        }
-                        else
-                        {
-                            // Allow water sccop spray effect to vary with speed
-                            WaterScoopParticleDurationS = InitialWaterScoopParticleDurationS * SpeedRatio;
-                            WaterScoopWaterVelocityMpS = InitialWaterScoopWaterVelocityMpS * SpeedRatio;
-                            WaterScoopWaterVolumeM3pS = InitialWaterScoopWaterVolumeM3pS * SpeedRatio;
-                        }
-                    }
-                    else
-                    {
-                        // Turn water scoop spray effects off 
-                        WaterScoopParticleDurationS = 0.0f;
-                        WaterScoopWaterVelocityMpS = 0.0f;
-                        WaterScoopWaterVolumeM3pS = 0.0f;
-
-                    }
+                }
+                else if (Simulator.PlayerLocomotive == this && LocomotiveIdentification.HasWaterScoop)
+                {
+                    ProcessWaterEffects = true; // Allow water effects to be processed
+                }
+                else
+                {
+                    ProcessWaterEffects = false; // Default off
                 }
 
-                WagonSmokeDurationS = InitialWagonSmokeDurationS;
-                WagonSmokeVolumeM3pS = InitialWagonSmokeVolumeM3pS;
+                // Tender Water overflow control
+                if (LocomotiveIdentification.RefillingFromTrough && ProcessWaterEffects)
+                {
+                    float SpeedRatio = AbsSpeedMpS / MpS.FromMpH(100); // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
+
+                    // Turn tender water overflow on if water level is greater then 100% nominally and minimum water scoop speed is reached
+                    if (LocomotiveIdentification.TenderWaterLevelFraction >= 0.9999 && AbsSpeedMpS > LocomotiveIdentification.WaterScoopMinSpeedMpS)
+                    {
+                        float InitialTenderWaterOverflowParticleDurationS = 1.25f;
+                        float InitialTenderWaterOverflowVelocityMpS = 50.0f;
+                        float InitialTenderWaterOverflowVolumeM3pS = 10.0f;
+
+                        // Turn tender water overflow on - changes due to speed of train
+                        TenderWaterOverflowParticleDurationS = InitialTenderWaterOverflowParticleDurationS * SpeedRatio;
+                        TenderWaterOverflowVelocityMpS = InitialTenderWaterOverflowVelocityMpS * SpeedRatio;
+                        TenderWaterOverflowVolumeM3pS = InitialTenderWaterOverflowVolumeM3pS * SpeedRatio;
+                    }
+                }
+                else
+                {
+                    // Turn tender water overflow off 
+                    TenderWaterOverflowParticleDurationS = 0.0f;
+                    TenderWaterOverflowVelocityMpS = 0.0f;
+                    TenderWaterOverflowVolumeM3pS = 0.0f;
+                }
+
+                // Water scoop spray effects control - always on when scoop over trough, regardless of whether above minimum speed or not
+                if (ProcessWaterEffects && LocomotiveIdentification.IsWaterScoopDown && IsOverTrough() && AbsSpeedMpS > 0.1)
+                {
+                    float SpeedRatio = AbsSpeedMpS / MpS.FromMpH(100); // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
+
+                    float InitialWaterScoopParticleDurationS = 1.25f;
+                    float InitialWaterScoopWaterVelocityMpS = 50.0f;
+                    float InitialWaterScoopWaterVolumeM3pS = 10.0f;
+
+                    // Turn water scoop spray effects on
+                    if (AbsSpeedMpS <= MpS.FromMpH(10))
+                    {
+                        float SprayDecay = (MpS.FromMpH(25) / MpS.FromMpH(100)) / MpS.FromMpH(10); // Linear decay factor - based upon previous level starts @ a value @ 25mph
+                        SpeedRatio = (SprayDecay * AbsSpeedMpS) / MpS.FromMpH(100); // Decrease the water scoop spray effect to minimum level of visibility
+                        WaterScoopParticleDurationS = InitialWaterScoopParticleDurationS * SpeedRatio;
+                        WaterScoopWaterVelocityMpS = InitialWaterScoopWaterVelocityMpS * SpeedRatio;
+                        WaterScoopWaterVolumeM3pS = InitialWaterScoopWaterVolumeM3pS * SpeedRatio;
+
+                    }
+                    // Below 25mph effect does not vary, above 25mph effect varies according to speed
+                    else if (AbsSpeedMpS < MpS.FromMpH(25) && AbsSpeedMpS > MpS.FromMpH(10))
+                    {
+                        SpeedRatio = MpS.FromMpH(25) / MpS.FromMpH(100); // Hold the water scoop spray effect to a minimum level of visibility
+                        WaterScoopParticleDurationS = InitialWaterScoopParticleDurationS * SpeedRatio;
+                        WaterScoopWaterVelocityMpS = InitialWaterScoopWaterVelocityMpS * SpeedRatio;
+                        WaterScoopWaterVolumeM3pS = InitialWaterScoopWaterVolumeM3pS * SpeedRatio;
+                    }
+                    else
+                    {
+                        // Allow water sccop spray effect to vary with speed
+                        WaterScoopParticleDurationS = InitialWaterScoopParticleDurationS * SpeedRatio;
+                        WaterScoopWaterVelocityMpS = InitialWaterScoopWaterVelocityMpS * SpeedRatio;
+                        WaterScoopWaterVolumeM3pS = InitialWaterScoopWaterVolumeM3pS * SpeedRatio;
+                    }
+                }
+                else
+                {
+                    // Turn water scoop spray effects off 
+                    WaterScoopParticleDurationS = 0.0f;
+                    WaterScoopWaterVelocityMpS = 0.0f;
+                    WaterScoopWaterVolumeM3pS = 0.0f;
+
+                }
             }
+
+            WagonSmokeDurationS = InitialWagonSmokeDurationS;
+            WagonSmokeVolumeM3pS = InitialWagonSmokeVolumeM3pS;
+
         }
 
         public override void SignalEvent(Event evt)
@@ -2801,7 +2799,6 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public void FindAuxTendersSteamLocomotive()
         {
-             if (Train == null || Train.Cars == null || Train.Cars.Count == 1)
             {
                 AuxTendersSteamLocomotive = null;
                 return;

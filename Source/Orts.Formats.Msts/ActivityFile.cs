@@ -529,7 +529,6 @@ namespace Orts.Formats.Msts
         public int ORTSOptionsSuperElevationMinimumLength = -1;
         public int ORTSOptionsSuperElevationGauge = -1;
 
-
         public Tr_Activity_File(STFReader stf) {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {

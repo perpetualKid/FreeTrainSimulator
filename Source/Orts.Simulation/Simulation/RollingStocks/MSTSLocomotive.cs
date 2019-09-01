@@ -141,11 +141,8 @@ namespace Orts.Simulation.RollingStocks
         public string OnLineCabRadioURL;
 
         // Water trough filling
-        public bool WaterScoopDown;
         public bool HasWaterScoop = false; // indicates whether loco + tender have a water scoop or not
-                                           //        public float ScoopMinPickupSpeedMpS = 0.0f; // Minimum scoop pickup speed
         public float ScoopMaxPickupSpeedMpS = 200.0f; // Maximum scoop pickup speed - used in steam locomotive viewer
-                                                      //        public float ScoopResistanceN = 0.0f; // Scoop resistance
         public bool ScoopIsBroken = false; // becomes broken if activated where there is no trough
         public bool RefillingFromTrough = false; // refilling from through is ongoing
         public float WaterScoopFillElevationM; // height water has to be raised to fill tender
@@ -157,6 +154,7 @@ namespace Orts.Simulation.RollingStocks
         public float WaterScoopInputAmountL; // Water scooped in elapsed time
         public float WaterScoopMinSpeedMpS; // Minimum speed for water pickup
         public bool IsWaterScoopDown = false;
+        public bool WaterScoopDown;
         public const float GravitationalAccelerationFtpSpS = 32.26f;
         public float TenderWaterLevelFraction;
         public float WaterScoopTotalWaterL;
@@ -167,6 +165,15 @@ namespace Orts.Simulation.RollingStocks
         public bool IsWaterScoopPlayerLocomotive = false;
         public float MaxTotalCombinedWaterVolumeUKG;
         public MSTSNotchController WaterController = new MSTSNotchController(0, 1, 0.01f);
+        public float CombinedTenderWaterVolumeUKG          // Decreased by running injectors and increased by refilling
+        {
+            get { return WaterController.CurrentValue* MaxTotalCombinedWaterVolumeUKG; }
+            set { WaterController.CurrentValue = value / MaxTotalCombinedWaterVolumeUKG; }
+        }
+
+        public float IsTenderRequired = 1.0f;  // Flag indicates that a tender is required for operation of the locomotive. Typically tank locomotives do not require a tender. Assume by default that tender is required.
+
+        // Vacuum Reservoir and Exhauster Settings
 
         public float CombinedTenderWaterVolumeUKG          // Decreased by running injectors and increased by refilling
         {
@@ -1124,13 +1131,13 @@ public bool IsSteamInitial = true;        // To initialise steam heat
             if (WaterScoopFillElevationM == 0)
             {
                 WaterScoopFillElevationM = 2.7432f; // Set to default of 9 ft
-            }
-            
+            } 
+
             if (WaterScoopDepthM == 0)
             {
                 WaterScoopDepthM = 0.0889f; // Set to default of 3.5 ins
             }
-            
+
             if (WaterScoopWidthM == 0)
             {
                 WaterScoopWidthM = 0.3048f; // Set to default of 1 ft
@@ -2737,8 +2744,6 @@ public bool IsSteamInitial = true;        // To initialise steam heat
             }
         }
 
-
-
         #endregion
 
         /// <summary>
@@ -3709,7 +3714,7 @@ public bool IsSteamInitial = true;        // To initialise steam heat
                         break;
                     }
 
-                case CABViewControlTypes.ORTS_WATER_SCOOP:
+                 case CABViewControlTypes.ORTS_WATER_SCOOP:
                     data = WaterScoopDown ? 1 : 0;
                     break;
 
