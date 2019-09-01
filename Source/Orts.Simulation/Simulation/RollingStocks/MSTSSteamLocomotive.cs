@@ -6369,10 +6369,6 @@ namespace Orts.Simulation.RollingStocks
             }
 
             return status.ToString();
-            }
-        
-
-            return status.ToString();
         } 
 
 // Gear Box

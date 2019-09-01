@@ -175,19 +175,8 @@ namespace Orts.Simulation.RollingStocks
 
         // Vacuum Reservoir and Exhauster Settings
 
-        public float CombinedTenderWaterVolumeUKG          // Decreased by running injectors and increased by refilling
-        {
-            get { return WaterController.CurrentValue* MaxTotalCombinedWaterVolumeUKG;
-        }
-            set { WaterController.CurrentValue = value / MaxTotalCombinedWaterVolumeUKG; }
-        }
-
-        public float IsTenderRequired = 1.0f;  // Flag indicates that a tender is required for operation of the locomotive. Typically tank locomotives do not require a tender. Assume by default that tender is required.
-
-// Vacuum Reservoir and Exhauster Settings
-
-// Steam heating Flags
-public bool IsSteamInitial = true;        // To initialise steam heat
+        // Steam heating Flags
+        public bool IsSteamInitial = true;        // To initialise steam heat
         public bool IsSteamHeatFirstTime = true;  // Flag for first pass at steam heating.
         public bool IsSteamHeatFitted = false;    // Is steam heating fitted to locomotive
         public float CurrentSteamHeatPressurePSI = 0.0f;   // Current pressure in steam heat system

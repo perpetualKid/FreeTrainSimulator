@@ -2447,22 +2447,21 @@ namespace Orts.Simulation.RollingStocks
         // This section updates the special effects
         {
 
+            // Update Steam Leaks Information
+            if (Train.CarSteamHeatOn)
             {
-                // Update Steam Leaks Information
-                if (Train.CarSteamHeatOn)
-                {
-                    // Turn wagon steam leaks on 
-                    HeatingHoseParticleDurationS = 0.75f;
-                    HeatingHoseSteamVelocityMpS = 15.0f;
-                    HeatingHoseSteamVolumeM3pS = 4.0f;
-                }
-                else
-                {
-                    // Turn wagon steam leaks off 
-                    HeatingHoseParticleDurationS = 0.0f;
-                    HeatingHoseSteamVelocityMpS = 0.0f;
-                    HeatingHoseSteamVolumeM3pS = 0.0f;
-                }
+                // Turn wagon steam leaks on 
+                HeatingHoseParticleDurationS = 0.75f;
+                HeatingHoseSteamVelocityMpS = 15.0f;
+                HeatingHoseSteamVolumeM3pS = 4.0f;
+            }
+            else
+            {
+                // Turn wagon steam leaks off 
+                HeatingHoseParticleDurationS = 0.0f;
+                HeatingHoseSteamVelocityMpS = 0.0f;
+                HeatingHoseSteamVolumeM3pS = 0.0f;
+            }
 
             // Update Water Scoop Spray Information when scoop is down and filling from trough
 
@@ -2799,6 +2798,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public void FindAuxTendersSteamLocomotive()
         {
+            if (Train == null || Train.Cars == null || Train.Cars.Count == 1)
             {
                 AuxTendersSteamLocomotive = null;
                 return;
