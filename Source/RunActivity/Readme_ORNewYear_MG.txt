@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.32
-August 6th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.33
+September 3rd, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -12,15 +12,13 @@ INSTALLATION
 you would return to a non-MG OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails revision U2019.08.06-1836.
+This unofficial version has been derived from the official Open Rails revision U2019.08.29-0736.
 Such official revision is already based on Monogame.
 It includes some features not (yet) available in the Open Rails official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
 - checkbox in General Options tab to enable or disable watchdog
 - increase of remote horn sound volume level
-- dynamic management of trough refill (by steamer_ctn)
-- activity specific options setting (by steamer_ctn)
 - second phase of advanced coupler forces management (by steamer_ctn)
 - when car is ( cted through the F9 window, the car's brake line in the extended brake HUD is highlighted in yellow (by mbm_or)
 - improved distance management in roadcar camera
