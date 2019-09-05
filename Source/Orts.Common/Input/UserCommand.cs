@@ -182,6 +182,7 @@ namespace Orts.Common.Input
         [Description("Control Firing Rate Decrease")] ControlFiringRateDecrease,
         [Description("Control Fire Shovel Full")] ControlFireShovelFull,
         [Description("Control Cylinder Cocks")] ControlCylinderCocks,
+        [Description("Control Large Ejector")] ControlLargeEjector,
         [Description("Control Small Ejector Increase")] ControlSmallEjectorIncrease,
         [Description("Control Small Ejector Decrease")] ControlSmallEjectorDecrease,
         [Description("Control Cylinder Compound")] ControlCylinderCompound,

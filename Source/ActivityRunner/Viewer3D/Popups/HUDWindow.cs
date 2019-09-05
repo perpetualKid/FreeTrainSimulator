@@ -899,10 +899,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumBrakeEQFitted)
                 {
-                    TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
+                    TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}",
                     Viewer.Catalog.GetString("PlayerLoco"),
-                    Viewer.Catalog.GetString("Main reservoir"),
-                    FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumMainResVacuumPSIAorInHg), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
                     Viewer.Catalog.GetString("Exhauster"),
                     (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumExhausterIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
                 }

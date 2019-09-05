@@ -220,6 +220,7 @@ namespace Orts.Common
         FireShovelfull,
         CylinderCocks,
         CylinderCompound,
+        LargeEjector,
         SmallEjector,
         TenderCoal,
         TenderWater,
@@ -544,7 +545,9 @@ namespace Orts.Common
         [Description("TCS Full Service Braking")]
         TCSFullServ,        // TCS Full Service Braking
         [Description("Vac. Cont. Service")]
-        VacContServ         // VacuumContinuousServiceStart
+        VacContServ,         // VacuumContinuousServiceStart
+        [Description("Vac. Apply Cont.Service")]
+        VacApplyContServ    // TrainBrakesControllerVacuumApplyContinuousServiceStart
     }
 
 
