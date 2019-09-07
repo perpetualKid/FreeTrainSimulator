@@ -802,14 +802,14 @@ namespace Orts.Formats.Msts
                 if (ORTSOptionsAdhesionFactor > 0)
                 {
                     setting.AdhesionFactor = ORTSOptionsAdhesionFactor;
-                    setting.AdhesionFactor = MathHelper.Clamp(setting.AdhesionFactor, 10, 200);
+                    setting.AdhesionFactor = (int) MathHelper.Clamp(setting.AdhesionFactor, 10, 200);
                     Trace.Write("\nAdhesion Factor Correction       =   " + setting.AdhesionFactor.ToString());
                 }
 
                 if (ORTSOptionsAdhesionFactorChange > 0)
                 {
                     setting.AdhesionFactorChange = ORTSOptionsAdhesionFactorChange;
-                    setting.AdhesionFactorChange = MathHelper.Clamp(setting.AdhesionFactorChange, 0, 100);
+                    setting.AdhesionFactorChange = (int) MathHelper.Clamp(setting.AdhesionFactorChange, 0, 100);
                     Trace.Write("\nAdhesion Factor Change           =   " + setting.AdhesionFactorChange.ToString());
                 }
 
@@ -827,35 +827,35 @@ namespace Orts.Formats.Msts
                 if (ORTSOptionsActivityRandomization > 0)
                 {
                     setting.ActRandomizationLevel = ORTSOptionsActivityRandomization;
-                    setting.ActRandomizationLevel = MathHelper.Clamp(setting.ActRandomizationLevel, 0, 3);
+                    setting.ActRandomizationLevel = (int) MathHelper.Clamp(setting.ActRandomizationLevel, 0, 3);
                     Trace.Write("\nActivity Randomization           =   " + setting.ActRandomizationLevel.ToString() );
                 }
 
                 if (ORTSOptionsActivityWeatherRandomization > 0)
                 {
                     setting.ActWeatherRandomizationLevel = ORTSOptionsActivityWeatherRandomization;
-                    setting.ActWeatherRandomizationLevel = MathHelper.Clamp(setting.ActWeatherRandomizationLevel, 0, 3);
+                    setting.ActWeatherRandomizationLevel = (int) MathHelper.Clamp(setting.ActWeatherRandomizationLevel, 0, 3);
                     Trace.Write("\nActivity Weather Randomization   =   " + setting.ActWeatherRandomizationLevel.ToString());
                 }
 
                 if (ORTSOptionsSuperElevationLevel > 0)
                 {
                     setting.UseSuperElevation = ORTSOptionsSuperElevationLevel;
-                    setting.UseSuperElevation = MathHelper.Clamp(setting.UseSuperElevation, 0, 10);
+                    setting.UseSuperElevation = (int) MathHelper.Clamp(setting.UseSuperElevation, 0, 10);
                     Trace.Write("\nSuper elevation - level          =   " + setting.UseSuperElevation.ToString());
                 }
 
                 if (ORTSOptionsSuperElevationMinimumLength > 0)
                 {
                     setting.SuperElevationMinLen = ORTSOptionsSuperElevationMinimumLength;
-                    setting.SuperElevationMinLen = MathHelper.Clamp(setting.SuperElevationMinLen, 50, 1000000);
+                    setting.SuperElevationMinLen = (int) MathHelper.Clamp(setting.SuperElevationMinLen, 50, 1000000);
                     Trace.Write("\nSuper elevation - minimum length =   " + setting.SuperElevationMinLen.ToString());
                 }
 
                 if (ORTSOptionsSuperElevationGauge > 0)
                 {
                     setting.SuperElevationGauge = ORTSOptionsSuperElevationGauge;
-                    setting.SuperElevationGauge = MathHelper.Clamp(setting.SuperElevationGauge, 300, 2500);
+                    setting.SuperElevationGauge = (int) MathHelper.Clamp(setting.SuperElevationGauge, 300, 2500);
                     Trace.Write("\nSuper elevation - gauge          =   " + setting.SuperElevationGauge.ToString());
                 }
 

@@ -3779,7 +3779,7 @@ namespace Orts.Simulation.RollingStocks
                             data = Math.Abs(data);
                         }
                         if (DynamicBrakePercent > 0 && MaxDynamicBrakeForceN > 0)
-                        {         
+                        {
                             data = DynamicBrakeForceN / MaxDynamicBrakeForceN * DynamicBrakeMaxCurrentA;
                             data = -Math.Abs(data); // Ensure that dynamic force is seen as a "-ve force", changes colour on the load meter
                         }
