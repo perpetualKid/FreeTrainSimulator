@@ -44,6 +44,7 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly TrainCar Car;
         readonly Material LightGlowMaterial;
         readonly Material LightConeMaterial;
+        private IWorldPosition positionSource;
 
         public int TrainHeadlight;
         public bool CarIsReversed;
@@ -74,6 +75,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Viewer = viewer;
             Car = car;
+            positionSource = Car;
             LightGlowMaterial = viewer.MaterialManager.Load("LightGlow");
             LightConeMaterial = viewer.MaterialManager.Load("LightCone");
 
@@ -150,10 +152,10 @@ namespace Orts.ActivityRunner.Viewer3D
             foreach (var lightPrimitive in LightPrimitives)
                 lightPrimitive.PrepareFrame(frame, elapsedTime);
 
-            int dTileX = Car.WorldPosition.TileX - Viewer.Camera.TileX;
-            int dTileZ = Car.WorldPosition.TileZ - Viewer.Camera.TileZ;
+            int dTileX = positionSource.WorldPosition.TileX - Viewer.Camera.TileX;
+            int dTileZ = positionSource.WorldPosition.TileZ - Viewer.Camera.TileZ;
             Matrix xnaDTileTranslation = Matrix.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
-            xnaDTileTranslation = Car.WorldPosition.XNAMatrix * xnaDTileTranslation;
+            xnaDTileTranslation = positionSource.WorldPosition.XNAMatrix * xnaDTileTranslation;
 
             Vector3 mstsLocation = new Vector3(xnaDTileTranslation.Translation.X, xnaDTileTranslation.Translation.Y, -xnaDTileTranslation.Translation.Z);
 
@@ -177,7 +179,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 LightConePosition = Vector3.Transform(Vector3.Lerp(ActiveLightCone.Position1, ActiveLightCone.Position2, ActiveLightCone.Fade.Y), xnaDTileTranslation);
                 LightConeDirection = Vector3.Transform(Vector3.Lerp(ActiveLightCone.Direction1, ActiveLightCone.Direction2, ActiveLightCone.Fade.Y), Car.WorldPosition.XNAMatrix);
-                LightConeDirection -= Car.WorldPosition.XNAMatrix.Translation;
+                LightConeDirection -= positionSource.WorldPosition.XNAMatrix.Translation;
                 LightConeDirection.Normalize();
                 LightConeDistance = MathHelper.Lerp(ActiveLightCone.Distance1, ActiveLightCone.Distance2, ActiveLightCone.Fade.Y);
                 LightConeMinDotProduct = (float)Math.Cos(MathHelper.Lerp(ActiveLightCone.Angle1, ActiveLightCone.Angle2, ActiveLightCone.Fade.Y));
@@ -273,7 +275,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Console.WriteLine();
                 Console.WriteLine();
                 Console.WriteLine("LightViewer: {0} {1} {2:D}{3}:{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}{14}",
-                    Car.Train != null ? Car.Train.FrontTDBTraveller.WorldLocation : Car.WorldPosition.WorldLocation, Car.Train != null ? "train car" : "car", Car.Train != null ? Car.Train.Cars.IndexOf(Car) : 0, Car.Flipped ? " (flipped)" : "",
+                    Car.Train != null ? Car.Train.FrontTDBTraveller.WorldLocation : positionSource.WorldPosition.WorldLocation, Car.Train != null ? "train car" : "car", Car.Train != null ? Car.Train.Cars.IndexOf(Car) : 0, Car.Flipped ? " (flipped)" : "",
                     TrainHeadlight == 2 ? " HL=Bright" : TrainHeadlight == 1 ? " HL=Dim" : "",
                     CarIsReversed ? " Reversed" : "",
                     CarIsFirst ? " First" : "",
