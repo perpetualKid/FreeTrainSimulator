@@ -21,6 +21,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Processes;
 using Orts.Common;
+using Orts.Common.Calc;
 using System;
 using System.Diagnostics;
 using System.Windows.Forms;

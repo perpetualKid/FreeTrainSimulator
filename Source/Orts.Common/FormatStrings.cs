@@ -337,22 +337,6 @@ namespace Orts.Common
         {
             TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
 
-            //var hour = (int)(clockTimeSeconds / (60 * 60));
-            //clockTimeSeconds -= hour * 60 * 60;
-            //var minute = (int)(clockTimeSeconds / 60);
-            //clockTimeSeconds -= minute * 60;
-            //var seconds = (int)clockTimeSeconds;
-
-            //// Reset clock before and after midnight
-            //if (hour >= 24)
-            //    hour %= 24;
-            //if (hour < 0)
-            //    hour += 24;
-            //if (minute < 0)
-            //    minute += 60;
-            //if (seconds < 0)
-            //    seconds += 60;
-
             return string.Format("{0:D2}:{1:D2}:{2:D2}", duration.Hours, duration.Minutes, duration.Seconds);
         }
 
@@ -363,22 +347,6 @@ namespace Orts.Common
         public static string FormatPreciseTime(double clockTimeSeconds)
         {
             TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
-
-            //var hour = (int)(clockTimeSeconds / (60 * 60));
-            //clockTimeSeconds -= hour * 60 * 60;
-            //var minute = (int)(clockTimeSeconds / 60);
-            //clockTimeSeconds -= minute * 60;
-            //var seconds = clockTimeSeconds;
-
-            //// Reset clock before and after midnight
-            //if (hour >= 24)
-            //    hour %= 24;
-            //if (hour < 0)
-            //    hour += 24;
-            //if (minute < 0)
-            //    minute += 60;
-            //if (seconds < 0)
-            //    seconds += 60;
 
             return string.Format("{0:D2}:{1:D2}:{2:D2}.{3:D2}", duration.Hours, duration.Minutes, duration.Seconds, duration.Milliseconds);
         }
@@ -391,18 +359,6 @@ namespace Orts.Common
         public static string FormatApproximateTime(double clockTimeSeconds)
         {
             TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
-            //var hour = (int)(clockTimeSeconds / (60 * 60));
-            //clockTimeSeconds -= hour * 60 * 60;
-            //var minute = (int)Math.Round(clockTimeSeconds / 60);
-            //clockTimeSeconds -= minute * 60;
-
-            //// Reset clock before and after midnight
-            //if (hour >= 24)
-            //    hour %= 24;
-            //if (hour < 0)
-            //    hour += 24;
-            //if (minute < 0)
-            //    minute += 60;
 
             return string.Format("{0:D2}:{1:D2}", duration.Hours, duration.Minutes);
         }

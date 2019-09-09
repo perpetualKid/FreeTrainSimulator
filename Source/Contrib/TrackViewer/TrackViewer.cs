@@ -37,6 +37,7 @@ using ORTS.TrackViewer.Editing;
 using ORTS.TrackViewer.Editing.Charts;
 using Orts.Common.Msts;
 using Orts.Menu.Entities;
+using Orts.Common.Calc;
 
 namespace ORTS.TrackViewer
 {

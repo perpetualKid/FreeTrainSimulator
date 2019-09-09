@@ -76,7 +76,7 @@
     <Compile Include="Integrator.cs" />
     <Compile Include="Msts\MstsPath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SmoothedData.cs" />
+    <Compile Include="Calc\SmoothedData.cs" />
     <Compile Include="SystemInfo.cs" />
     <Compile Include="Input\UserCommand.cs" />
     <Compile Include="VersionInfo.cs" />

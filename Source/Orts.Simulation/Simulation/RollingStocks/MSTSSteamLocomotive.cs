@@ -1008,11 +1008,11 @@ namespace Orts.Simulation.RollingStocks
             ControllerFactory.Restore(FiringRateController, inf);
             ControllerFactory.Restore(SmallEjectorController, inf);
             FuelBurnRateSmoothedKGpS = inf.ReadSingle();
-            BurnRateSmoothKGpS.ForceSmoothValue(FuelBurnRateSmoothedKGpS);
+            BurnRateSmoothKGpS.Preset(FuelBurnRateSmoothedKGpS);
             BoilerHeatSmoothedBTU = inf.ReadSingle();
-            BoilerHeatSmoothBTU.ForceSmoothValue(BoilerHeatSmoothedBTU);
+            BoilerHeatSmoothBTU.Preset(BoilerHeatSmoothedBTU);
             FuelRateSmoothed = inf.ReadSingle();
-            FuelRate.ForceSmoothValue(FuelRateSmoothed);
+            FuelRate.Preset(FuelRateSmoothed);
             base.Restore(inf);
         }
 

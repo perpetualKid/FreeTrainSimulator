@@ -18,6 +18,7 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using Orts.Common;
+using Orts.Common.Calc;
 using System;
 using System.Diagnostics;
 using System.IO;

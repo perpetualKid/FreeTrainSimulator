@@ -17,12 +17,12 @@
 
 using System.Collections.Generic;
 
-namespace Orts.Common
+namespace Orts.Common.Calc
 {
     public class SmoothedData
     {
         public readonly float SmoothPeriodS = 3;
-        protected float value = float.NaN;
+        protected float currentValue = float.NaN;
         protected float smoothedValue = float.NaN;
 
         public SmoothedData()
@@ -35,80 +35,74 @@ namespace Orts.Common
             SmoothPeriodS = smoothPeriodS;
         }
 
-        public void Update(float periodS, float newValue)
+        public virtual void Update(float periodS, float value)
         {
+            currentValue = value;
+
             if (periodS < float.Epsilon)
             {
                 if (float.IsNaN(smoothedValue) || float.IsInfinity(smoothedValue))
-                    smoothedValue = newValue;
+                    smoothedValue = currentValue;
                 return;
             }
 
-            value = newValue;
-            SmoothValue(ref smoothedValue, periodS, newValue);
+            smoothedValue = SmoothValue(smoothedValue, periodS, currentValue);
         }
 
-        protected void SmoothValue(ref float smoothedValue, float periodS, float newValue)
+        protected float SmoothValue(float smoothedValue, float periodS, float value)
         {
-            var rate = SmoothPeriodS / periodS;
-            if (float.IsNaN(smoothedValue) || float.IsInfinity(smoothedValue))
-                smoothedValue = newValue;
-            else if (rate < 1)
-                smoothedValue = newValue;
+            float rate = SmoothPeriodS / periodS;
+            if (rate < 1 || float.IsNaN(smoothedValue) || float.IsInfinity(smoothedValue))
+                return value;
             else
-                smoothedValue = (smoothedValue * (rate - 1) + newValue) / rate;
+                return (smoothedValue * (rate - 1) + value) / rate;
         }
 
-        public void ForceSmoothValue(float forcedValue)
+        public void Preset(float smoothedValue)
         {
-            smoothedValue = forcedValue;
+            this.smoothedValue = smoothedValue;
         }
 
-        public float Value { get { return value; } }
+        public float Value { get { return currentValue; } }
         public float SmoothedValue { get { return smoothedValue; } }
     }
 
     public class SmoothedDataWithPercentiles : SmoothedData
     {
-        const int HistoryStepCount = 40; // 40 units (i.e. 10 seconds)
-        const float HistoryStepSize = 0.25f; // each unit = 1/4 second
+        private const int historyStepCount = 40; // 40 units (i.e. 10 seconds)
+        private const float historyStepSize = 0.25f; // each unit = 1/4 second
 
-        Queue<float> longHistory = new Queue<float>();
-        Queue<int> historyCount = new Queue<int>(HistoryStepCount);
+        private Queue<float> longHistory = new Queue<float>();
+        private Queue<int> historyCount = new Queue<int>(historyStepCount);
 
-        int count = 0;
+        private int count = 0;
 
-        float position;
-        float smoothedP50 = float.NaN;
-        float smoothedP95 = float.NaN;
-        float smoothedP99 = float.NaN;
+        private float position;
 
         public float P50 { get; private set; }
         public float P95 { get; private set; }
         public float P99 { get; private set; }
 
-        public float SmoothedP50 { get { return smoothedP50; } }
-        public float SmoothedP95 { get { return smoothedP95; } }
-        public float SmoothedP99 { get { return smoothedP99; } }
-
-        public float SmoothedP95PCFromP50 { get; private set; }
-        public float SmoothedP99PCFromP50 { get; private set; }
+        public float SmoothedP50 { get; private set; } = float.NaN;
+        public float SmoothedP95 { get; private set; } = float.NaN;
+        public float SmoothedP99 { get; private set; } = float.NaN;
 
         public SmoothedDataWithPercentiles()
             : base()
         {
-            for (var i = 0; i < HistoryStepCount; i++)
+            for (var i = 0; i < historyStepCount; i++)
                 historyCount.Enqueue(0);
         }
 
-        public new void Update(float periodS, float newValue)
+        public override void Update(float periodS, float newValue)
         {
             base.Update(periodS, newValue);
+
             longHistory.Enqueue(newValue);
             position += periodS;
             count++;
 
-            if (position >= HistoryStepSize)
+            if (position >= historyStepSize)
             {
                 var samples = new List<float>(longHistory);
                 samples.Sort();
@@ -117,12 +111,9 @@ namespace Orts.Common
                 P95 = samples[(int)(samples.Count * 0.95f)];
                 P99 = samples[(int)(samples.Count * 0.99f)];
 
-                SmoothValue(ref smoothedP50, position, P50);
-                SmoothValue(ref smoothedP95, position, P95);
-                SmoothValue(ref smoothedP99, position, P99);
-
-                SmoothedP95PCFromP50 = 100f * (smoothedP95 - smoothedP50) / smoothedP50;
-                SmoothedP99PCFromP50 = 100f * (smoothedP99 - smoothedP50) / smoothedP50;
+                SmoothedP50 = SmoothValue(SmoothedP50, position, P50);
+                SmoothedP95 = SmoothValue(SmoothedP95, position, P95);
+                SmoothedP99 = SmoothValue(SmoothedP99, position, P99);
 
                 historyCount.Enqueue(count);
                 count = historyCount.Dequeue();

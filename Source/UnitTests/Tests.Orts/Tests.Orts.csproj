@@ -85,6 +85,7 @@
     <Compile Include="Common\Calc\MovingAverageTests.cs" />
     <Compile Include="Common\Calc\AlmostEqualTests.cs" />
     <Compile Include="Common\Calc\ConversionsTests.cs" />
+    <Compile Include="Common\Calc\SmoothedDataTests.cs" />
     <Compile Include="Common\EqualityPrecisionDelta.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Common\FormatStringsTests.cs" />
