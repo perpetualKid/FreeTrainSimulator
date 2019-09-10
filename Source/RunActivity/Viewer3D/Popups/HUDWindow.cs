@@ -753,11 +753,16 @@ namespace Orts.Viewer3D.Popups
                         {
                             foreach (var cell in line.Split('\t'))
                             {
-                                column++;
+                                TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}",
+                                Viewer.Catalog.GetString("PlayerLoco"),
+                                Viewer.Catalog.GetString("Exhauster"),
+                                (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumExhausterIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
+ 								column++;
                                 if (cell.Contains(car.CarID)) LocomotiveName.Add(cell);
                             }
                             if (column > maxColumns) maxColumns = column;
 
+                        else if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpFitted && (Viewer.PlayerLocomotive as MSTSLocomotive).SmallEjectorFitted)
                             statusData.Add(line);
                         }
                         else
