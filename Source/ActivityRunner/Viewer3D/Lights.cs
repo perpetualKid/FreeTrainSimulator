@@ -764,8 +764,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            MatrixExtension.Multiply(in view, in Viewer.Camera.XnaProjection, out Matrix result);
-
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
@@ -773,7 +771,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     RenderItem item = renderItems[i];
                     // Glow lights were not working properly because farPlaneDistance used by XNASkyProjection is hardcoded at 6100.  So when view distance was greater than 6100, the 
                     // glow lights were unable to render properly.
-                    MatrixExtension.Multiply(in item.XNAMatrix, in result, out Matrix wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in viewProjection, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();
@@ -821,8 +819,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            MatrixExtension.Multiply(in view, in Viewer.Camera.XnaProjection, out Matrix result);
-
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
@@ -831,7 +827,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     // Light cone was originally using XNASkyProjection, but with no problems.
                     // Switched to Viewer.Camera.XnaProjection to keep the standard since farPlaneDistance used by XNASkyProjection is limited to 6100.
                     //                    Matrix wvp = item.XNAMatrix * viewMatrix * Viewer.Camera.XnaProjection;
-                    MatrixExtension.Multiply(in item.XNAMatrix, in result, out Matrix wvp);
+                    MatrixExtension.Multiply(in item.XNAMatrix, in viewProjection, out Matrix wvp);
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();
