@@ -50,8 +50,8 @@
     <Compile Include="CabViewFile.cs" />
     <Compile Include="EngineFile.cs" />
     <Compile Include="EnvironmentFile.cs" />
-    <Compile Include="Parsers\Interpolator.cs" />
     <Compile Include="Parsers\SBR.cs" />
+    <Compile Include="Parsers\StfInterpolatorExtension.cs" />
     <Compile Include="Parsers\STFReader.cs" />
     <Compile Include="Parsers\TokenID.cs" />
     <Compile Include="Signalling\Enums.cs" />

@@ -772,10 +772,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         ExhaustTransientColor.B = tempTR;
                         initLevel |= SettingsFlags.ExhaustTransientColor;
                         break;
-                    case "dieselpowertab": DieselPowerTab = new Interpolator(stf);initLevel |= SettingsFlags.DieselPowerTab; break;
-                    case "dieselconsumptiontab": DieselConsumptionTab = new Interpolator(stf);initLevel |= SettingsFlags.DieselConsumptionTab; break;
-                    case "throttlerpmtab": ThrottleRPMTab = new Interpolator(stf); initLevel |= SettingsFlags.ThrottleRPMTab; break;
-                    case "dieseltorquetab": DieselTorqueTab = new Interpolator(stf); initLevel |= SettingsFlags.DieselTorqueTab; break;
+                    case "dieselpowertab": DieselPowerTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselPowerTab; break;
+                    case "dieselconsumptiontab": DieselConsumptionTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselConsumptionTab; break;
+                    case "throttlerpmtab": ThrottleRPMTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.ThrottleRPMTab; break;
+                    case "dieseltorquetab": DieselTorqueTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselTorqueTab; break;
                     case "minoilpressure": DieselMinOilPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, 40f); initLevel |= SettingsFlags.MinOilPressure; break;
                     case "maxoilpressure": DieselMaxOilPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, 120f); initLevel |= SettingsFlags.MaxOilPressure; break;
                     case "maxtemperature": DieselMaxTemperatureDeg = stf.ReadFloatBlock(STFReader.UNITS.TemperatureDifference, 100f); initLevel |= SettingsFlags.MaxTemperature; break;

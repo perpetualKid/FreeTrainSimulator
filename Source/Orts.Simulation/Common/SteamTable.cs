@@ -17,6 +17,7 @@
 
 
 
+using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Common

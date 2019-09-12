@@ -405,7 +405,7 @@ namespace Orts.Simulation.RollingStocks
                     if (t > (DieselEngines.MaxOutputPowerW / DieselEngines.MaxPowerW))
                         t = (DieselEngines.MaxOutputPowerW / DieselEngines.MaxPowerW);
                     MotiveForceN = TractiveForceCurves.Get(t, AbsWheelSpeedMpS) * (1 - PowerReduction);
-                    if (MotiveForceN < 0 && !TractiveForceCurves.AcceptsNegativeValues())
+                    if (MotiveForceN < 0 && !TractiveForceCurves.HasNegativeValues)
                         MotiveForceN = 0;
                 }
 

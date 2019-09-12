@@ -779,13 +779,13 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsfuelcalorific": FuelCalorificKJpKG = stf.ReadFloatBlock(STFReader.UNITS.EnergyDensity, null); break;
                 case "engine(ortsboilerevaporationrate": BoilerEvapRateLbspFt2 = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
                 case "engine(ortscylinderefficiencyrate": CylinderEfficiencyRate = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-                case "engine(ortscylinderinitialpressuredrop": InitialPressureDropRatioRpMtoX = new Interpolator(stf); break;
-                case "engine(ortscylinderbackpressure": BackPressureIHPtoPSI = new Interpolator(stf); break;
-                case "engine(ortsburnrate": NewBurnRateSteamToCoalLbspH = new Interpolator(stf); break;
-                case "engine(ortsboilerefficiency": BoilerEfficiencyGrateAreaLBpFT2toX = new Interpolator(stf); break;
-                case "engine(ortscylindereventexhaust": CylinderExhausttoCutoff = new Interpolator(stf); break;
-                case "engine(ortscylindereventcompression": CylinderCompressiontoCutoff = new Interpolator(stf); break;
-                case "engine(ortscylindereventadmission": CylinderAdmissiontoCutoff = new Interpolator(stf); break;
+                case "engine(ortscylinderinitialpressuredrop": InitialPressureDropRatioRpMtoX = stf.CreateInterpolator(); break;
+                case "engine(ortscylinderbackpressure": BackPressureIHPtoPSI = stf.CreateInterpolator(); break;
+                case "engine(ortsburnrate": NewBurnRateSteamToCoalLbspH = stf.CreateInterpolator(); break;
+                case "engine(ortsboilerefficiency": BoilerEfficiencyGrateAreaLBpFT2toX = stf.CreateInterpolator(); break;
+                case "engine(ortscylindereventexhaust": CylinderExhausttoCutoff = stf.CreateInterpolator(); break;
+                case "engine(ortscylindereventcompression": CylinderCompressiontoCutoff = stf.CreateInterpolator(); break;
+                case "engine(ortscylindereventadmission": CylinderAdmissiontoCutoff = stf.CreateInterpolator(); break;
                 case "engine(ortssteamgearratio":
                     stf.MustMatch("(");
                     SteamGearRatioLow = stf.ReadFloat(STFReader.UNITS.None, null);

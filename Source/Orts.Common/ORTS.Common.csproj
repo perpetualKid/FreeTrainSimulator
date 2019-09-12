@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="Calc\AlmostEqualExtension.cs" />
     <Compile Include="Calc\Conversions.cs" />
+    <Compile Include="Calc\Interpolator.cs" />
     <Compile Include="Calc\MovingAverage.cs" />
     <Compile Include="Input\UserCommandInput.cs" />
     <Compile Include="Native\GDI32.cs" />
@@ -73,7 +74,7 @@
     <Compile Include="Enums.cs" />
     <Compile Include="Filter.cs" />
     <Compile Include="Input\RailDriverBase.cs" />
-    <Compile Include="Integrator.cs" />
+    <Compile Include="Calc\Integrator.cs" />
     <Compile Include="Msts\MstsPath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Calc\SmoothedData.cs" />

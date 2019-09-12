@@ -18,7 +18,7 @@
 using System;
 using System.IO;
 
-namespace Orts.Common
+namespace Orts.Common.Calc
 {
     public enum IntegratorMethod
     {
