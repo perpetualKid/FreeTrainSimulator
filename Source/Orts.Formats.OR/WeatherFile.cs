@@ -17,8 +17,7 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Xna.Framework;
-using Orts.Parsers.OR;
+using Orts.Formats.OR.Parsers;
 
 namespace Orts.Formats.OR
 {

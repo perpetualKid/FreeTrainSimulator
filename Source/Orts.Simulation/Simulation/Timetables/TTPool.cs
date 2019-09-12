@@ -26,12 +26,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Orts.Common.Threading;
+using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
-using Orts.Parsers.OR;
-using Orts.Common.Threading;
 
 namespace Orts.Simulation.Timetables
 {

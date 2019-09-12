@@ -99,10 +99,6 @@
       <Project>{8a84696c-3559-49b8-b27f-bb6932d8a1c6}</Project>
       <Name>Orts.Parsers.Msts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Orts.Parsers.OR\Orts.Parsers.OR.csproj">
-      <Project>{1cc3bd5c-06c5-4784-b067-f93945a7ca2c}</Project>
-      <Name>Orts.Parsers.OR</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj">
       <Project>{333c4378-d82e-4b47-b561-6ba923b8fdfd}</Project>
       <Name>Orts.Simulation</Name>

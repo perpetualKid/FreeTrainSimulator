@@ -22,8 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Orts.Parsers.OR;
-using Orts.Common;
+using Orts.Formats.OR.Parsers;
 
 namespace Orts.Simulation.Timetables
 {

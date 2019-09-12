@@ -15,12 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Parsers.OR;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using Orts.Formats.OR.Parsers;
 using Xunit;
 
 namespace Orts.Tests.Orts.Parsers.OR

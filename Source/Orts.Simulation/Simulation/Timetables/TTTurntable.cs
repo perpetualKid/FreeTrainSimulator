@@ -21,20 +21,19 @@
 // #define DEBUG_TURNTABLEINFO
 //
 
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
+using Microsoft.Xna.Framework;
+using Orts.Common;
+using Orts.Common.Calc;
+using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
-using Orts.Parsers.OR;
-using Orts.Common;
-using Orts.Common.Calc;
 
 namespace Orts.Simulation.Timetables
 {
