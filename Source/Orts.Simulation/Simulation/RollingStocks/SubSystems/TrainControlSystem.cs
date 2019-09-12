@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 using ORTS.Scripting.Api;
 

@@ -16,12 +16,9 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Xna.Framework;
-using Orts.Parsers.Msts;
-
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
 {

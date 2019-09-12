@@ -21,7 +21,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Orts.Common;
-using Orts.Parsers.Msts;
 
 namespace Orts.ContentChecker
 {

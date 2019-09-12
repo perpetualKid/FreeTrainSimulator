@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Parsers.Msts;
-using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Orts.Formats.Msts.Parsers;
+using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {

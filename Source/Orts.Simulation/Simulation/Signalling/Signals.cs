@@ -25,24 +25,22 @@
 // #define DEBUG_DEADLOCK
 // print details of deadlock processing
 
-using Microsoft.Xna.Framework;
-using Orts.Formats.Msts;
-using Orts.Formats.OR;
-using Orts.MultiPlayer;
-using Orts.Parsers.Msts;
-using Orts.Simulation.AIs;
-using Orts.Simulation.Physics;
-using Orts.Simulation.Timetables;
-using Orts.Common;
-using Orts.Common.Threading;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Event = Orts.Common.Event;
+using Microsoft.Xna.Framework;
+using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.Threading;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Parsers;
+using Orts.MultiPlayer;
+using Orts.Simulation.AIs;
+using Orts.Simulation.Physics;
+using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.Signalling
 {

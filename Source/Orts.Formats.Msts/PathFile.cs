@@ -25,12 +25,9 @@
 // The last TrPathNode is marked with a 4294967295 ( -1L or 0xFFFFFFFF) in its next field.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using Orts.Parsers.Msts;
-
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
 {

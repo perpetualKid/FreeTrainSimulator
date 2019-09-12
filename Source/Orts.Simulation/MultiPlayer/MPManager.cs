@@ -33,7 +33,7 @@ using System.Text;
 using System.Threading;
 using GNU.Gettext;
 using Orts.Common;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;

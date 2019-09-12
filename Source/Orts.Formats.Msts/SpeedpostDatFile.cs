@@ -16,18 +16,15 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using Microsoft.Xna.Framework;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 
 // <Comment> This file parses only the shape names for temporary speed restrictions; the other shape names are not needed
 // </Comment>
 namespace Orts.Formats.Msts
 {
 
-	public class SpeedpostDatFile
+    public class SpeedpostDatFile
 	{
 		public string [] TempSpeedShapeNames = new string[3];
 

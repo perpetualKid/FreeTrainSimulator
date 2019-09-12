@@ -25,12 +25,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 using System.IO;
-using Orts.Parsers.Msts;
-using Orts.Common;
+using System.Linq;
 using Orts.Common.Calc;
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
 {

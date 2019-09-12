@@ -15,19 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using Microsoft.Xna.Framework;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 
 
 namespace Orts.Formats.Msts
 {
 
-	// TODO - this is an incomplete parse of the cvf file.
-	public class TrackTypesFile: List<TrackTypesFile.TrackType>
+    // TODO - this is an incomplete parse of the cvf file.
+    public class TrackTypesFile: List<TrackTypesFile.TrackType>
 	{
         
         public TrackTypesFile(string filePath)

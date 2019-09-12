@@ -43,7 +43,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems;

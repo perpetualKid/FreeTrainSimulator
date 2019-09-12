@@ -19,12 +19,9 @@
 // This class reads the config file into a list of camera objects
 
 
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.Xna.Framework;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
 {

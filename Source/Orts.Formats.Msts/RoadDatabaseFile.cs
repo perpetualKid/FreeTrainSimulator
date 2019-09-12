@@ -15,18 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Diagnostics;
-using System.IO;
 using System.Diagnostics.CodeAnalysis;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
 {
-	/// <summary>
-	/// RDBFile is a representation of the .rdb file, that contains the road data base.
+    /// <summary>
+    /// RDBFile is a representation of the .rdb file, that contains the road data base.
     /// The database contains the same kind of objects as TDBFile, apart from a few road-specific items.
-	/// </summary>
+    /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
     [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable", Justification = "Disposable only used in using statement, known FcCop bug")]
     public class RoadDatabaseFile

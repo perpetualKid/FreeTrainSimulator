@@ -251,10 +251,6 @@
       <Project>{1c5b0b41-2fe9-41c9-8b21-ccdcbeb3dda5}</Project>
       <Name>Orts.Menu.Entities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Orts.Parsers.Msts\Orts.Parsers.Msts.csproj">
-      <Project>{8a84696c-3559-49b8-b27f-bb6932d8a1c6}</Project>
-      <Name>Orts.Parsers.Msts</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\ORTS.Settings\Orts.Settings.csproj">
       <Project>{67F84996-8769-4FD8-819B-464AF269037B}</Project>
       <Name>Orts.Settings</Name>

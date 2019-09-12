@@ -52,29 +52,27 @@
 // Debug for calculation of Advanced coupler forces
 // #define DEBUG_COUPLER_FORCES
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Formats.Msts;
-using Orts.MultiPlayer;
-using Orts.Simulation.AIs;
-using Orts.Simulation.RollingStocks;
-using Orts.Simulation.RollingStocks.SubSystems.Brakes;
-using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
-using Orts.Parsers.Msts;
-using Orts.Simulation.Signalling;
-using Orts.Simulation.Timetables;
-using Orts.Common;
-using ORTS.Scripting.Api;
-using Orts.Settings;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Event = Orts.Common.Event;
-using Orts.Common.Xna;
+using Microsoft.Xna.Framework;
+using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.Xna;
+using Orts.Formats.Msts;
+using Orts.MultiPlayer;
+using Orts.Settings;
+using Orts.Simulation.AIs;
+using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems.Brakes;
+using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
+using Orts.Simulation.Signalling;
+using Orts.Simulation.Timetables;
+using ORTS.Scripting.Api;
+using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.Physics
 {

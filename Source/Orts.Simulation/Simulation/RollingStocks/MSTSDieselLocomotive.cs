@@ -30,20 +30,19 @@
 
 //#define ALLOW_ORTS_SPECIFIC_ENG_PARAMETERS
 
+using System;
+using System.IO;
+using System.Text;
 using Microsoft.Xna.Framework;
+using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Formats.Msts;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
-using Orts.Common;
-using System.Diagnostics;
-using System;
-using System.IO;
-using System.Text;
 using Event = Orts.Common.Event;
-using Orts.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks
 {

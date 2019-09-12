@@ -18,7 +18,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
 {

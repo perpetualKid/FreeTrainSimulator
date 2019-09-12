@@ -25,7 +25,7 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 using ORTS.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS

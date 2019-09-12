@@ -54,17 +54,17 @@
 //         *)
 
 //        RouteID = "RouteID", "(", Text, ")" ;  (* file name *)
-			
+
 //        Name = "Name", "(", Text, ")" ;
-			
+
 //        Description = "Description", "(", Text, ")" ;
 
 //        Briefing = "Briefing", "(", ParagraphText, ")" ;
-			
+
 //            ParagraphText = Text, *( "+", Text ) ;
-			
+
 //        CompleteActivity = "CompleteActivity", "(", Integer, ")" ;	(* 1 for true (to be checked) *)
-			
+
 //        Type = "Type", "(", Integer, ")" ;	(* 0 (default) for ??? (to be checked) *)
 
 //        Mode = "Mode", "(", Integer, ")" ;	(* 2 (default) for ??? (to be checked) *)
@@ -84,25 +84,25 @@
 //        Difficulty = "Difficulty", "(", Integer, ")" ;	(* Easy=0 (default), Medium, Hard *)
 
 //        Animals = "Animals", "(", Integer, ")" ;	(* 0-100 for % (default is 100) *)
-			
+
 //        Workers = "Workers", "(", Integer, ")" ;	(* 0-100 for % (default is 0) *)
-			
+
 //        FuelWater = "FuelWater", "(", Integer, ")";	(* 0-100 for % (default is 100) *)
-			
+
 //        FuelCoal = "FuelCoal", "(", Integer, ")";	(* 0-100 for % (default is 100) *)
-			
+
 //        FuelDiesel = "FuelDiesel", "(", Integer, ")";	(* 0-100 for % (default is 100) *)
 
 //    Tr_Activity_File = "Tr_Activity_File", 
 //        "(", *[ Player_Service_Definition | NextServiceUID | NextActivityObjectUID
 //        | Traffic_Definition | Events | ActivityObjects | ActivityFailedSignals | PlatformNumPassengersWaiting | ActivityRestrictedSpeedZones ] ")" ;
-		
+
 //        Player_Service_Definition = "Player_Service_Definition",	(* Text is linked to PathID somehow. *)
 //            "(", Text, [ Player_Traffic_Definition | UiD | *Player_Service_Item ], ")" ;    (* Code suggests just one Player_Traffic_Definition *)
-			
+
 //                Player_Traffic_Definition = "Player_Traffic_Definition", 
 //                    "(", Integer, *( Player_Traffic_Item ), ")" ;
-					
+
 //                    Player_Traffic_Item =	(* Note lack of separator between Player_Traffic_Items. 
 //                                               For simplicity, parser creates a new object whenever PlatformStartID is parsed. *)
 //                        *[ "ArrivalTime", "(", Integer, ")"
@@ -110,7 +110,7 @@
 //                         | "SkipCount", "(", Integer, ")"
 //                         | "DistanceDownPath", "(", Float, ")" ],
 //                        "PlatformStartID", "(", Integer, ")" ;
-				
+
 //                UiD = "UiD", "(", Integer, ")" ;
 
 //                Player_Service_Item =	(* Note lack of separator between Player_Service_Items *)
@@ -119,13 +119,13 @@
 //                     | "SkipCount", "(", Integer, ")"
 //                     | "DistanceDownPath", "(", Float, ")" ],
 //                    "PlatformStartID", "(", Integer, ")" ;
-				
+
 //        NextServiceUID = "NextServiceUID", "(", Integer, ")" ;
 
 //        NextActivityObjectUID = "NextActivityObjectUID", "(", Integer, ")" ;
-			
+
 //        Traffic_Definition = "Traffic_Definition", "(", Text, *Service_Definition, ")" ;
-			
+
 //            Service_Definition = "Service_Definition",
 //                "(", Text, Integer, UiD, *Player_Service_Item, ")" ;  (* Integer is time in seconds *)
 
@@ -135,34 +135,34 @@
 //            EventCategoryLocation = "EventCategoryLocation", 
 //                "(", *[ EventTypeLocation | ID | Activation_Level | Outcomes
 //                | Name | Location | TriggerOnStop ], ")" ;  (* ID and Name defined above *)	
-				
+
 //                EventTypeLocation = "EventTypeLocation", "(", ")" ;
-				
+
 //                ID = "ID", "(", Integer, ")" ;
-				
+
 //                Activation_Level = "Activation_Level", "(", Integer, ")" ;
-					
+
 //                Outcomes = "Outcomes",
 //                    "(", *[ ActivitySuccess | ActivityFail | ActivateEvent | RestoreActLevel | DecActLevel | IncActLevel | DisplayMessage ], ")" ;
-				
+
 //                    ActivitySuccess = "ActivitySuccess", "(", ")" ;   (* No text parameter *)
-						
+
 //                    ActivityFail = "ActivityFail", "(", Text, ")" ;
-						
+
 //                    ActivateEvent = "ActivateEvent", "(", Integer, ")" ;
 
 //                    RestoreActLevel = "RestoreActLevel", "(", Integer, ")" ;
 
 //                    DecActLevel = "DecActLevel", "(", Integer, ")" ;
-						
+
 //                    IncActLevel = "IncActLevel", "(", Integer, ")" ;  (* Some MSTS samples have more than a single IncActLevel *)
-						
+
 //                    DisplayMessage = "DisplayMessage", "(", Text, ")" ;
-						
+
 //                Location = "Location", "(", 5*Integer, ")" ;
-					
+
 //                TriggerOnStop = "TriggerOnStop", "(", Integer, ")" ;  (* 0 for ?? *)
-					
+
 //                TextToDisplayOnCompletionIfTriggered = "TextToDisplayOnCompletionIfTriggered", "(", ParagraphText, ")" ;
 
 //                TextToDisplayOnCompletionIfNotTriggered = "TextToDisplayOnCompletionIfNotTriggered", "(", ParagraphText, ")" ;
@@ -180,41 +180,41 @@
 //                    EventTypeAllStops = "EventTypeAllStops", "(", ")" ;
 
 //                    EventTypeAssembleTrain = "EventTypeAssembleTrain", "(", ")" ;
-					
+
 //                    EventTypeAssembleTrainAtLocation = "EventTypeAssembleTrainAtLocation", "(", ")" ;
-					
+
 //                    EventTypeDropOffWagonsAtLocation = "EventTypeDropOffWagonsAtLocation", "(", ")" ;
-					
+
 //                    EventTypePickUpPassengers = "EventTypePickUpPassengers", "(", ")" ;
 
 //                    EventTypePickUpWagons = "EventTypePickUpWagons", "(", ")" ;
-					
+
 //                    EventTypeReachSpeed = "EventTypeReachSpeed", "(", ")" ;
 
 //                Reversable_Event = [ "Reversable_Event" | "Reversible_Event" ],  (* Reversable is not listed at www.learnersdictionary.com *) 
 //                    "(", ")" ;
-					
+
 //                SidingItem =  "(", Integer, ")" ;
 
 //                Wagon_List = "Wagon_List", "(", *WagonListItem, ")" ;
-					
+
 //                    WagonListItem = (* Description omitted from PickUpWagons and sometimes from DropOffWagonsAtLocation *)
 //                        UiD, SidingItem, [ "Description", "(", Text, ")" ] ;  (" MSTS uses SidingItem inside the Wagon_List and also at the same level *)
-						
+
 //                StationStop = 
-				
+
 //                Speed = "(", Integer, ")" ;
-					
+
 //            EventCategoryTime = "EventCategoryTime", "(",  (* single instance of each alternative *)
 //                [ EventTypeTime | ID | Activation_Level | Outcomes | TextToDisplayOnCompletionIfTriggered 
 //                | TextToDisplayOnCompletionIfNotTriggered | Name | Time ], ")" ;  (* Outcomes may have empty parameters *)
-				
+
 //                EventTypeTime = "EventTypeTime", "(", ")" ;
 
 //                Time = "Time", "(", Integer, ")" ;
-					
+
 //        ActivityObjects	= "ActivityObjects", "(", *ActivityObject, ")" ;
-			
+
 //            ActivityObject = "ActivityObject", 
 //                "(", *[ ObjectType | Train_Config | Direction | ID | Tile ], ")" ;  (* ID defined above *)
 
@@ -225,13 +225,13 @@
 
 //                    TrainCfg = "TrainCfg", 
 //                        "(", [ Name | Serial | MaxVelocity | NextWagonUID | Durability | Wagon | Engine ], ")" ;
-						
+
 //                        Serial = "Serial", "(", Integer, ")" ;
-						
+
 //                        MaxVelocity = "MaxVelocity", "(", 2*Float, ")" ;
-						
+
 //                        NextWagonUID = "NextWagonUID", "(", Integer, ")" ;
-						
+
 //                        Durability = "Durability", "(", Float, ")" ;
 
 //                        Wagon = "Wagon", 
@@ -240,40 +240,38 @@
 //                            WagonData = "WagonData", "(", 2*Text, ")" ;
 
 //                        Engine = "Engine", "(", *[ UiD | EngineData ], ")" ;  (* UiD defined above *)
-						
+
 //                            EngineData = "EngineData", 
 //                                "(", 2*Text, ")" ;
-							
+
 //                Direction = "Direction", "(", Integer, ")" ;  (* 0 for ??, 1 for ?? *)
 
 //                Tile = "Tile", "(", 2*Integer, 2*Float, ")" ;
-		
+
 //        ActivityFailedSignals = "ActivityFailedSignals", "(", *ActivityFailedSignal, ")" ;
-		
+
 //            ActivityFailedSignal = "ActivityFailedSignal", "(", Integer, ")" ;
-		
+
 //        PlatformNumPassengersWaiting = "PlatformNumPassengersWaiting", "(", *PlatformData, ")" ;
-		
+
 //            PlatformData = "PlatformData", "(", 2*Integer, ")" ;
-		
+
 //        ActivityRestrictedSpeedZones = "ActivityRestrictedSpeedZones", "(", *ActivityRestrictedSpeedZone, ")" ;
-			
+
 //            ActivityRestrictedSpeedZone = "ActivityRestrictedSpeedZone",
 //                "(", StartPosition, EndPosition, ")" ;
 
 //                StartPosition = "StartPosition, "(", 4*Integer, ")" ;
-				
+
 //                EndPosition = "EndPosition", "(", 4*Integer, ")" ;
 
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.IO;
-using Orts.Parsers.Msts; // For class S (seconds)
 using Microsoft.Xna.Framework;
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
 {

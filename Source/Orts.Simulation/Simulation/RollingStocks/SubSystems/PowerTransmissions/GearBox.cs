@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using Orts.Common;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions

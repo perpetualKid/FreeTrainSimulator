@@ -16,19 +16,18 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
 {
 
-	// TODO - this is an incomplete parse of the cvf file.
-	public class CabViewFile
+    // TODO - this is an incomplete parse of the cvf file.
+    public class CabViewFile
 	{
         public List<Vector3> Locations = new List<Vector3>();   // Head locations for front, left and right views
         public List<Vector3> Directions = new List<Vector3>();  // Head directions for each view

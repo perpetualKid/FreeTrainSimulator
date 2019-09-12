@@ -24,7 +24,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies

@@ -16,8 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 
 /*
             stf.ParseBlock(new STFReader.TokenProcessor[] {

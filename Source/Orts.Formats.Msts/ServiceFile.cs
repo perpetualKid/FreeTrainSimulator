@@ -15,17 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections;
-using System.IO;
-using Orts.Parsers.Msts;
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
 {
-	/// <summary>
-	/// Work with Service Files
-	/// </summary>
-	public class ServiceFile
+    /// <summary>
+    /// Work with Service Files
+    /// </summary>
+    public class ServiceFile
 	{
 		public int Serial;
 		public string Name;

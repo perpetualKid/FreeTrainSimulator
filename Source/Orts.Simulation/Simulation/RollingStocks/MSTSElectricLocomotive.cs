@@ -27,15 +27,14 @@
  * 
  */
 
-using Microsoft.Xna.Framework;
-using Orts.Formats.Msts;
-using Orts.Parsers.Msts;
-using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
-using Orts.Common;
-using ORTS.Scripting.Api;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Parsers;
+using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
+using ORTS.Scripting.Api;
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.RollingStocks

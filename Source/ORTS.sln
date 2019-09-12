@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orts.Formats.Msts", "Orts.Formats.Msts\Orts.Formats.Msts.csproj", "{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orts.Parsers.Msts", "Orts.Parsers.Msts\Orts.Parsers.Msts.csproj", "{8A84696C-3559-49B8-B27F-BB6932D8A1C6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orts.Common", "ORTS.Common\Orts.Common.csproj", "{DA94D876-7D35-46C3-AECE-AFACE72C686C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Orts.Settings", "ORTS.Settings\Orts.Settings.csproj", "{67F84996-8769-4FD8-819B-464AF269037B}"
@@ -69,10 +67,6 @@ Global
 		{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8A84696C-3559-49B8-B27F-BB6932D8A1C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8A84696C-3559-49B8-B27F-BB6932D8A1C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8A84696C-3559-49B8-B27F-BB6932D8A1C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8A84696C-3559-49B8-B27F-BB6932D8A1C6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DA94D876-7D35-46C3-AECE-AFACE72C686C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DA94D876-7D35-46C3-AECE-AFACE72C686C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA94D876-7D35-46C3-AECE-AFACE72C686C}.Release|Any CPU.ActiveCfg = Release|Any CPU

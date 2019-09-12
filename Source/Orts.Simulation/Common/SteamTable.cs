@@ -16,7 +16,8 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 
-using Orts.Parsers.Msts;
+
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Common
 {

@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
-using Orts.Parsers.Msts;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Xna.Framework;
+using Orts.Formats.Msts.Parsers;
 using Xunit;
 
 #region Integration tests (all tests from original reader)
@@ -753,7 +753,7 @@ namespace Orts.Tests.Orts.Parsers.Msts.StfException
 
 }
 namespace Orts.Tests.Orts.Parsers.Msts.StfReader
-{   
+{
     // NEW_READER compilation flag is set for those tests that can be performed (compiled) only for the new STFReader, 
     // but not on the old reader. The new reader should also pass all tests that compile on the old reader.
     // This means in this file NEW_READER flag adds a number of tests, but it should also work if the flag is not set.

@@ -15,20 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Parsers.Msts;
 using Orts.Common;
-using Orts.Formats.Msts;
+using Orts.Common.Xna;
+using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using Orts.Common.Xna;
 
 namespace Orts.Simulation
 {
@@ -38,7 +34,7 @@ namespace Orts.Simulation
     /// 
 
 
- 
+
     public class Transfertable : MovingTable
     {
         public float Width;

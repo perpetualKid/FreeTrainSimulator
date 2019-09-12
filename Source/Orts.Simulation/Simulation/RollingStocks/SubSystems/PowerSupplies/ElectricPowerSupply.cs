@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Parsers.Msts;
-using Orts.Common;
-using ORTS.Scripting.Api;
 using System.IO;
+using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts.Parsers;
+using ORTS.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
