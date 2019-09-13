@@ -69,7 +69,7 @@
     <Compile Include="Threading\CancellationTokenSource.cs" />
     <Compile Include="FormatStrings.cs" />
     <Compile Include="Coordinates.cs" />
-    <Compile Include="DataLogger.cs" />
+    <Compile Include="Logging\DataLogger.cs" />
     <Compile Include="ElapsedTime.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Calc\Filter.cs" />

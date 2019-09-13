@@ -61,6 +61,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.Logging;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.MultiPlayer;
@@ -2245,7 +2246,9 @@ namespace Orts.Simulation.Physics
 
             if (!File.Exists(DataLogFile))
             {
-                char Separator = (char)(DataLogger.Separators)Enum.Parse(typeof(DataLogger.Separators), Simulator.Settings.DataLoggerSeparator);
+                if (!Enum.TryParse(Simulator.Settings.DataLoggerSeparator, true, out DataLogger.SeparatorChar value))
+                    throw new ArgumentException($"Separator char \"{Simulator.Settings.DataLoggerSeparator}\" is not one of allowed values");
+                char Separator = (char)value;
 
                 if (DatalogTSContents[0] == 1)
                 {
@@ -2352,7 +2355,9 @@ namespace Orts.Simulation.Physics
 
                 var stringBuild = new StringBuilder();
 
-                char Separator = (char)(DataLogger.Separators)Enum.Parse(typeof(DataLogger.Separators), Simulator.Settings.DataLoggerSeparator);
+                if (!Enum.TryParse(Simulator.Settings.DataLoggerSeparator, true, out DataLogger.SeparatorChar value))
+                    throw new ArgumentException($"Separator char \"{Simulator.Settings.DataLoggerSeparator}\" is not one of allowed values");
+                char Separator = (char)value;
 
                 if (DatalogTSContents[0] == 1)
                 {
