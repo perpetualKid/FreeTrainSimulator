@@ -49,7 +49,6 @@
     <Compile Include="Common\Commands.cs" />
     <Compile Include="Common\ErrorLogger.cs" />
     <Compile Include="Common\Events.cs" />
-    <Compile Include="Common\OrtsMath.cs" />
     <Compile Include="Common\OrtsPaths.cs" />
     <Compile Include="Common\Scripting\BrakeController.cs" />
     <Compile Include="Common\Scripting\Common.cs" />

@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 
 namespace Orts.Common.Xna
@@ -67,5 +68,40 @@ namespace Orts.Common.Xna
         {
             return SetTranslation(matrix, Vector3.Zero);
         }
+
+        //
+        // from http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToEuler/index.htm
+        //
+        public static void MatrixToAngles(this in Matrix m, out float heading, out float attitude, out float bank)
+        {    // Assuming the angles are in radians.
+            if (m.M21 > 0.998)
+            { // singularity at north pole
+                heading = (float)Math.Atan2(m.M13, m.M33);
+                attitude = MathHelper.PiOver2;
+                bank = 0;
+            }
+            else if (m.M21 < -0.998)
+            { // singularity at south pole
+                heading = (float)Math.Atan2(m.M13, m.M33);
+                attitude = -MathHelper.PiOver2;
+                bank = 0;
+            }
+            else
+            {
+                heading = (float)Math.Atan2(-m.M31, m.M11);
+                bank = (float)Math.Atan2(-m.M23, m.M22);
+                attitude = (float)Math.Asin(m.M21);
+            }
+        }
+
+        public static float MatrixToYAngle(this in Matrix m)
+        {    // Assuming the angles are in radians.
+
+            if (m.M21 == 0.998)
+                return (float)Math.Atan2(-m.M31, m.M11);
+            else            // singularity at poles
+                return (float)Math.Atan2(m.M13, m.M33);
+        }
+
     }
 }

@@ -25,6 +25,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
@@ -414,7 +415,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (previousCamera != null)
             {
-                OrtsMath.MatrixToAngles(ref previousCamera.XnaView, out float h, out float a, out float b);
+                previousCamera.XnaView.MatrixToAngles(out float h, out float a, out float b);
                 RotationXRadians = -b;
                 RotationYRadians = -h;
             }
@@ -2221,7 +2222,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            RotationYRadians = -OrtsMath.MatrixToYAngle(ref XnaView);
+            RotationYRadians = -XnaView.MatrixToYAngle();
             var speed = GetSpeed(elapsedTime);
 
             if (UserInput.IsDown(UserCommand.CameraPanUp))

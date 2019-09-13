@@ -1406,7 +1406,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 var matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ, 
                                 matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
                                 Vector3 xnaCenter = Camera.XnaLocation(matrixWorldLocation);
-                                float d = OrtsMath.LineSegmentDistanceSq(xnaCenter, NearPoint, FarPoint);
+                                float d = xnaCenter.LineSegmentDistanceSquare(NearPoint, FarPoint);
                                 if (bestD > d)
                                 {
                                     MouseChangingControl = cabRenderer as CabViewDiscreteRenderer;
@@ -1466,7 +1466,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 var matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ, 
                                     matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
                                 Vector3 xnaCenter = Camera.XnaLocation(matrixWorldLocation);
-                                float d = OrtsMath.LineSegmentDistanceSq(xnaCenter, NearPoint, FarPoint);
+                                float d = xnaCenter.LineSegmentDistanceSquare(NearPoint, FarPoint);
 
                                 if (bestD > d)
                                 {
@@ -1704,7 +1704,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
 
                     Vector3 xnaCenter = Camera.XnaLocation(new WorldLocation(tn.UiD.TileX, tn.UiD.TileZ, tn.UiD.X, tn.UiD.Y, tn.UiD.Z));
-                    float d = OrtsMath.LineSegmentDistanceSq(xnaCenter, NearPoint, FarPoint);
+                    float d = xnaCenter.LineSegmentDistanceSquare(NearPoint, FarPoint);
 
                     if (bestD > d)
                     {
