@@ -94,11 +94,11 @@ namespace Orts.Common.Calc
                 historyCount.Enqueue(0);
         }
 
-        public override void Update(float periodS, float newValue)
+        public override void Update(float periodS, float value)
         {
-            base.Update(periodS, newValue);
+            base.Update(periodS, value);
 
-            longHistory.Enqueue(newValue);
+            longHistory.Enqueue(value);
             position += periodS;
             count++;
 

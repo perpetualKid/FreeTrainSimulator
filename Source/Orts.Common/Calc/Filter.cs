@@ -16,11 +16,8 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Orts.Common.Calc;
 
-namespace Orts.Common
+namespace Orts.Common.Calc
 {
     /// <summary>
     /// by Matej Pacha

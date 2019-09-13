@@ -72,7 +72,7 @@
     <Compile Include="DataLogger.cs" />
     <Compile Include="ElapsedTime.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="Filter.cs" />
+    <Compile Include="Calc\Filter.cs" />
     <Compile Include="Input\RailDriverBase.cs" />
     <Compile Include="Calc\Integrator.cs" />
     <Compile Include="Msts\MstsPath.cs" />
