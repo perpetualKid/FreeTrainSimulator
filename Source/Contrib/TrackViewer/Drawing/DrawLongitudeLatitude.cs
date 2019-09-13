@@ -46,9 +46,7 @@ namespace ORTS.TrackViewer.Drawing
         {
             if (!Properties.Settings.Default.showLonLat) return;
             
-            double latitude = 1f;
-            double longitude = 1f;
-            WorldLatLon.ConvertWTC(mstsLocation.TileX, mstsLocation.TileZ, mstsLocation.Location, ref latitude, ref longitude);
+            WorldCoordinates.ConvertWTC(mstsLocation.TileX, mstsLocation.TileZ, mstsLocation.Location, out double latitude, out double longitude);
             string latitudeDegrees = MathHelper.ToDegrees((float)latitude).ToString("F5", System.Globalization.CultureInfo.CurrentCulture);
             string longitudeDegrees = MathHelper.ToDegrees((float)longitude).ToString("F5", System.Globalization.CultureInfo.CurrentCulture);
             string locationText = String.Format(System.Globalization.CultureInfo.CurrentCulture, 

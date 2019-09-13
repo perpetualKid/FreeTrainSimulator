@@ -57,7 +57,8 @@ namespace Orts.ActivityRunner.Viewer3D
         #region Class variables
         // Latitude of current route in radians. -pi/2 = south pole, 0 = equator, pi/2 = north pole.
         // Longitude of current route in radians. -pi = west of prime, 0 = prime, pi = east of prime.
-        public double mstsskylatitude, mstsskylongitude;
+        private double mstsskylatitude, mstsskylongitude;
+        public bool ResetTexture => mstsskylatitude != 0;
         // Date of activity
 
         public Orts.ActivityRunner.Viewer3D.SkyViewer.Date date;
@@ -139,7 +140,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 step1 = step2 = (int)(mstsskyoldClockTime / 1200);
                 step2 = step2 < maxSteps - 1 ? step2 + 1 : 0; // limit to max. steps in case activity starts near midnight
                 // Get the current latitude and longitude coordinates
-                WorldLatLon.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, ref mstsskylatitude, ref mstsskylongitude);
+                WorldCoordinates.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, out mstsskylatitude, out mstsskylongitude);
                 // Fill in the sun- and moon-position lookup tables
                 for (int i = 0; i < maxSteps; i++)
                 {
@@ -264,22 +265,21 @@ namespace Orts.ActivityRunner.Viewer3D
         public void LoadPrep()
         {
             if (mstsskyseasonType != (int)MSTSSkyViewer.Simulator.Season)
-            if (mstsskyseasonType != (int)MSTSSkyViewer.Simulator.Season)
-            {
-                mstsskyseasonType = (int)MSTSSkyViewer.Simulator.Season;
-                date.ordinalDate = 82 + mstsskyseasonType * 91;
-                date.month = 1 + date.ordinalDate / 30;
-                date.day = 21;
-                date.year = 2010;
-            }
+                if (mstsskyseasonType != (int)MSTSSkyViewer.Simulator.Season)
+                {
+                    mstsskyseasonType = (int)MSTSSkyViewer.Simulator.Season;
+                    date.ordinalDate = 82 + mstsskyseasonType * 91;
+                    date.month = 1 + date.ordinalDate / 30;
+                    date.day = 21;
+                    date.year = 2010;
+                }
 
             // Get the current latitude and longitude coordinates
-            WorldLatLon.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, ref mstsskylatitude, ref mstsskylongitude);
+            WorldCoordinates.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, out mstsskylatitude, out mstsskylongitude);
             float fractClockTime = (float)MSTSSkyViewer.Simulator.ClockTime / 86400;
             mstsskysolarDirection = SunMoonPos.SolarAngle(mstsskylatitude, mstsskylongitude, fractClockTime, date);
             mstsskylatitude = 0;
             mstsskylongitude = 0;
-
         }
 
         //[CallOnThread("Loader")]
@@ -585,7 +585,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             //if (Viewer.Settings.DistantMountains) SharedMaterialManager.FogCoeff *= (3 * (5 - Viewer.Settings.DistantMountainsFogValue) + 0.5f);
 
-            if (Viewer.World.MSTSSky.mstsskylatitude > 0) // TODO: Use a dirty flag to determine if it is necessary to set the texture again
+            if (Viewer.World.MSTSSky.ResetTexture) // TODO: Use a dirty flag to determine if it is necessary to set the texture again
                 shader.StarMapTexture = mstsSkyStarTexture;
             shader.Random = Viewer.World.MSTSSky.mstsskymoonPhase; // Keep setting this before LightVector for the preshader to work correctly
             shader.LightVector = Viewer.World.MSTSSky.mstsskysolarDirection;

@@ -59,7 +59,6 @@
     <Compile Include="Common\Scripting\ScriptManager.cs" />
     <Compile Include="Common\Scripting\TrainControlSystem.cs" />
     <Compile Include="Common\SteamTable.cs" />
-    <Compile Include="Common\WorldLatLon.cs" />
     <Compile Include="MultiPlayer\ClientComm.cs" />
     <Compile Include="MultiPlayer\Decoder.cs" />
     <Compile Include="MultiPlayer\Message.cs" />

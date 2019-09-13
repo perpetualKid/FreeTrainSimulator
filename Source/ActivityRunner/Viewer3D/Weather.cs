@@ -307,10 +307,8 @@ namespace Orts.ActivityRunner.Viewer3D
         private void CheckDesertZone()
         {
             // Compute player train lat/lon in degrees 
-            double latitude = 0;
-            double longitude = 0;
             var location = Viewer.PlayerLocomotive.Train.FrontTDBTraveller;
-            WorldLatLon.ConvertWTC(location.TileX, location.TileZ, location.Location, ref latitude, ref longitude);
+            WorldCoordinates.ConvertWTC(location.TileX, location.TileZ, location.Location, out double latitude, out double longitude);
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
             float LongitudeDeg = MathHelper.ToDegrees((float)longitude);
 

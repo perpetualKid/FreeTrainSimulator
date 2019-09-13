@@ -61,6 +61,7 @@
     <Compile Include="Calc\Conversions.cs" />
     <Compile Include="Calc\Interpolator.cs" />
     <Compile Include="Calc\MovingAverage.cs" />
+    <Compile Include="WorldCoordinates.cs" />
     <Compile Include="Input\UserCommandInput.cs" />
     <Compile Include="Native\GDI32.cs" />
     <Compile Include="Native\Kernel32.cs" />

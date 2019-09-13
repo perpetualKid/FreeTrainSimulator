@@ -49,7 +49,8 @@ namespace Orts.ActivityRunner.Viewer3D
         int seasonType; //still need to remember it as MP now can change it.
         // Latitude of current route in radians. -pi/2 = south pole, 0 = equator, pi/2 = north pole.
         // Longitude of current route in radians. -pi = west of prime, 0 = prime, pi = east of prime.
-        public double latitude, longitude;
+        private double latitude, longitude;
+        public bool ResetTexture => latitude != 0;
         // Date of activity
         public struct Date
         {
@@ -109,7 +110,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 step2 = step2 < maxSteps - 1 ? step2 + 1 : 0; // limit to max. steps in case activity starts near midnight
 
                 // Get the current latitude and longitude coordinates
-                WorldLatLon.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, ref latitude, ref longitude);
+                WorldCoordinates.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, out latitude, out longitude);
                 if (seasonType != (int)Viewer.Simulator.Season)
                 {
                     seasonType = (int)Viewer.Simulator.Season;
@@ -180,7 +181,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void LoadPrep()
         {
             // Get the current latitude and longitude coordinates
-            WorldLatLon.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, ref latitude, ref longitude);
+            WorldCoordinates.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, out latitude, out longitude);
             seasonType = (int)Viewer.Simulator.Season;
             date.ordinalDate = latitude >= 0 ? 82 + seasonType * 91 : (82 + (seasonType + 2) * 91) % 365;
             date.month = 1 + date.ordinalDate / 30;
@@ -453,7 +454,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             //if (Viewer.Settings.DistantMountains) SharedMaterialManager.FogCoeff *= (3 * (5 - Viewer.Settings.DistantMountainsFogValue) + 0.5f);
 
-            if (Viewer.World.Sky.latitude > 0) // TODO: Use a dirty flag to determine if it is necessary to set the texture again
+            if (Viewer.World.Sky.ResetTexture) // TODO: Use a dirty flag to determine if it is necessary to set the texture again
                 skyShader.StarMapTexture = starTextureN;
             else
                 skyShader.StarMapTexture = starTextureS;

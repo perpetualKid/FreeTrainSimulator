@@ -69,7 +69,7 @@ namespace Orts.Common.Logging
             Task.Run(FlushAsync);
         }
 
-        public async Task FlushAsync()
+        private async Task FlushAsync()
         {
             await fileAccess.WaitAsync().ConfigureAwait(false);
             using (StreamWriter file = File.AppendText(filePath))
