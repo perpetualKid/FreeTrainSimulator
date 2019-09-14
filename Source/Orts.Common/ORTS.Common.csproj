@@ -61,6 +61,9 @@
     <Compile Include="Calc\Conversions.cs" />
     <Compile Include="Calc\Interpolator.cs" />
     <Compile Include="Calc\MovingAverage.cs" />
+    <Compile Include="Exceptions.cs" />
+    <Compile Include="Logging\FileTeeLogger.cs" />
+    <Compile Include="Logging\ORTraceListener.cs" />
     <Compile Include="WorldCoordinates.cs" />
     <Compile Include="Input\UserCommandInput.cs" />
     <Compile Include="Native\GDI32.cs" />

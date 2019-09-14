@@ -87,6 +87,10 @@
       <Project>{9be44f64-417d-4aa6-af4d-2a6a0cbc814d}</Project>
       <Name>ActivityRunner</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\ORTS.Common\Orts.Common.csproj">
+      <Project>{da94d876-7d35-46c3-aece-aface72c686c}</Project>
+      <Name>Orts.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj">
       <Project>{570709fa-0c8a-4b1d-ba2d-d9455afd9b5c}</Project>
       <Name>Orts.Formats.Msts</Name>

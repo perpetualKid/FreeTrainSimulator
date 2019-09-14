@@ -37,6 +37,7 @@ using Orts.MultiPlayer;
 using Orts.Simulation;
 using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.Settings;
+using Orts.Common.Logging;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
@@ -700,9 +701,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             Simulator != null && Simulator.TRK != null && Simulator.TRK.Tr_RouteFile != null ? Simulator.TRK.Tr_RouteFile.Name.Replace(",", ";") : "",
                             Simulator != null && Simulator.Activity != null && Simulator.Activity.Tr_Activity != null && Simulator.Activity.Tr_Activity.Tr_Activity_Header != null ? Simulator.Activity.Tr_Activity.Tr_Activity_Header.Name.Replace(",", ";") : "",
                             passed ? "Yes" : "No",
-                            ORTraceListener != null ? ORTraceListener.Counts[0] + ORTraceListener.Counts[1] : 0,
-                            ORTraceListener != null ? ORTraceListener.Counts[2] : 0,
-                            ORTraceListener != null ? ORTraceListener.Counts[3] : 0,
+                            ORTraceListener?.EventCount(TraceEventType.Critical) ?? 0 + ORTraceListener?.EventCount(TraceEventType.Error) ?? 0,
+                            ORTraceListener?.EventCount(TraceEventType.Warning) ?? 0,
+                            ORTraceListener?.EventCount(TraceEventType.Information) ?? 0,
                             loadTime,
                             Viewer != null && Viewer.RenderProcess != null ? Viewer.RenderProcess.FrameRate.SmoothedValue : 0);
                     }

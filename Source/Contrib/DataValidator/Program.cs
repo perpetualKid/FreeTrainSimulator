@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Orts.Common.Logging;
 
 namespace Orts.DataValidator
 {
@@ -76,9 +76,9 @@ namespace Orts.DataValidator
         {
             Console.WriteLine();
             Console.WriteLine("Validator summary");
-            Console.WriteLine("  Errors:        {0}", traceListener.Counts[0] + traceListener.Counts[1]);
-            Console.WriteLine("  Warnings:      {0}", traceListener.Counts[2]);
-            Console.WriteLine("  Informations:  {0}", traceListener.Counts[3]);
+            Console.WriteLine("  Errors:        {0}", traceListener.EventCount(TraceEventType.Critical) + traceListener.EventCount(TraceEventType.Error));
+            Console.WriteLine("  Warnings:      {0}", traceListener.EventCount(TraceEventType.Warning));
+            Console.WriteLine("  Informations:  {0}", traceListener.EventCount(TraceEventType.Information));
             Console.WriteLine();
         }
 

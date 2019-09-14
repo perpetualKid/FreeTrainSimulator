@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Orts.Common;
+using Orts.Common.Logging;
 
 namespace Orts.ContentChecker
 {
@@ -336,9 +336,9 @@ namespace Orts.ContentChecker
             Console.WriteLine("  Files loaded:  {0}", FilesLoaded);
             Console.WriteLine("  Files skipped: {0}", FilesSkipped);
             Console.WriteLine();
-            Console.WriteLine("  Errors:        {0}", traceListener.Counts[0] + traceListener.Counts[1]);
-            Console.WriteLine("  Warnings:      {0}", traceListener.Counts[2]);
-            Console.WriteLine("  Informations:  {0}", traceListener.Counts[3]);
+            Console.WriteLine("  Errors:        {0}", traceListener.EventCount(TraceEventType.Critical) + traceListener.EventCount(TraceEventType.Error));
+            Console.WriteLine("  Warnings:      {0}", traceListener.EventCount(TraceEventType.Warning));
+            Console.WriteLine("  Informations:  {0}", traceListener.EventCount(TraceEventType.Information));
             Console.WriteLine();
         }
 

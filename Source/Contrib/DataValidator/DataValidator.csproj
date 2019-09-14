@@ -46,13 +46,13 @@
     <Compile Include="Validator.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ORTS.Common\Orts.Common.csproj">
+      <Project>{da94d876-7d35-46c3-aece-aface72c686c}</Project>
+      <Name>Orts.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj">
       <Project>{570709fa-0c8a-4b1d-ba2d-d9455afd9b5c}</Project>
       <Name>Orts.Formats.Msts</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj">
-      <Project>{333c4378-d82e-4b47-b561-6ba923b8fdfd}</Project>
-      <Name>Orts.Simulation</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -24,8 +24,8 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Threading;
-using Orts.Common;
 using Orts.ActivityRunner.Processes;
+using Orts.Common;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
