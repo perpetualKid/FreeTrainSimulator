@@ -21,7 +21,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Orts.Common;
-using Orts.Common.Msts;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 
@@ -57,7 +56,7 @@ namespace ORTS.TrackViewer.Drawing
             this.storedRoutePath = routePath;
 
             messageDelegate(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
-            RouteFile TRK = new RouteFile(FileStructure.TrackFileName(routePath));
+            RouteFile TRK = new RouteFile(FolderStructure.TrackFileName(routePath));
             RouteName = TRK.Tr_RouteFile.Name;
 
             messageDelegate(TrackViewer.catalog.GetString("Loading track database .tdb ..."));

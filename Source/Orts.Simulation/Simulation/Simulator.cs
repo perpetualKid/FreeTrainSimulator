@@ -22,21 +22,20 @@ using System.IO;
 using GNU.Gettext;
 using Microsoft.Xna.Framework;
 using Orts.Common;
-using Orts.Common.Msts;
+using Orts.Common.Calc;
 using Orts.Common.Scripting;
 using Orts.Common.Threading;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
 using Orts.MultiPlayer;
+using Orts.Settings;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
-using Orts.Settings;
 using Event = Orts.Common.Event;
-using Orts.Common.Calc;
 
 namespace Orts.Simulation
 {
@@ -277,7 +276,7 @@ namespace Orts.Simulation
             Trace.Write("Loading ");
 
             Trace.Write(" TRK");
-            TRK = new RouteFile(FileStructure.TrackFileName(RoutePath));
+            TRK = new RouteFile(FolderStructure.TrackFileName(RoutePath));
             RouteName = TRK.Tr_RouteFile.Name;
             MilepostUnitsMetric = TRK.Tr_RouteFile.MilepostUnitsMetric;
             OpenDoorsInAITrains = TRK.Tr_RouteFile.OpenDoorsInAITrains == null ? Settings.OpenDoorsInAITrains : (bool)TRK.Tr_RouteFile.OpenDoorsInAITrains;

@@ -21,7 +21,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Orts.Formats.Msts;
-using Orts.Common.Msts;
 
 namespace Orts.Menu.Entities
 {
@@ -36,7 +35,7 @@ namespace Orts.Menu.Entities
         {
             if (Directory.Exists(path))
             {
-				string trkFilePath = FileStructure.TrackFileName(path);
+				string trkFilePath = FolderStructure.TrackFileName(path);
                 try
                 {
 					var trkFile = new RouteFile(trkFilePath);

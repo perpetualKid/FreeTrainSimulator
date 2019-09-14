@@ -29,16 +29,15 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.Common;
-using Orts.Common.Msts;
+using Orts.Common.Logging;
 using Orts.Common.Native;
 using Orts.Common.Xna;
-using Orts.MultiPlayer;
-using Orts.Simulation;
-using Orts.ActivityRunner.Viewer3D.Debugging;
-using Orts.Settings;
-using Orts.Common.Logging;
 using Orts.Formats.Msts;
+using Orts.MultiPlayer;
+using Orts.Settings;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
@@ -55,7 +54,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         string Code;
 
         private static Viewer Viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
-        static ORTraceListener ORTraceListener { get { return Program.ORTraceListener; } set { Program.ORTraceListener = value; } }
+        private ORTraceListener traceListener;
         static string logFileName { get { return Program.logFileName; } set { Program.logFileName = value; } }
 
         static DispatchViewer DebugViewer { get { return Program.DebugViewer; } set { Program.DebugViewer = value; } }
@@ -692,6 +691,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 // Append to CSV file in format suitable for Excel
                 var summaryFileName = Path.Combine(UserSettings.UserDataFolder, "TestingSummary.csv");
+                ORTraceListener traceListener = Trace.Listeners.OfType<ORTraceListener>().FirstOrDefault();
                 // Could fail if already opened by Excel
                 try
                 {
@@ -702,9 +702,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             Simulator != null && Simulator.TRK != null && Simulator.TRK.Tr_RouteFile != null ? Simulator.TRK.Tr_RouteFile.Name.Replace(",", ";") : "",
                             Simulator != null && Simulator.Activity != null && Simulator.Activity.Tr_Activity != null && Simulator.Activity.Tr_Activity.Tr_Activity_Header != null ? Simulator.Activity.Tr_Activity.Tr_Activity_Header.Name.Replace(",", ";") : "",
                             passed ? "Yes" : "No",
-                            ORTraceListener?.EventCount(TraceEventType.Critical) ?? 0 + ORTraceListener?.EventCount(TraceEventType.Error) ?? 0,
-                            ORTraceListener?.EventCount(TraceEventType.Warning) ?? 0,
-                            ORTraceListener?.EventCount(TraceEventType.Information) ?? 0,
+                            traceListener?.EventCount(TraceEventType.Critical) ?? 0 + traceListener?.EventCount(TraceEventType.Error) ?? 0,
+                            traceListener?.EventCount(TraceEventType.Warning) ?? 0,
+                            traceListener?.EventCount(TraceEventType.Information) ?? 0,
                             loadTime,
                             Viewer != null && Viewer.RenderProcess != null ? Viewer.RenderProcess.FrameRate.SmoothedValue : 0);
                     }
@@ -742,10 +742,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             // Captures Trace.Trace* calls and others and formats.
-            ORTraceListener = new ORTraceListener(Console.Out, !settings.Logging);
-            ORTraceListener.TraceOutputOptions = TraceOptions.Callstack;
+            traceListener = new ORTraceListener(Console.Out, !settings.Logging)
+            {
+                TraceOutputOptions = TraceOptions.Callstack
+            };
             // Trace.Listeners and Debug.Listeners are the same list.
-            Trace.Listeners.Add(ORTraceListener);
+            Trace.Listeners.Add(traceListener);
 
             Console.WriteLine("This is a log file for {0}. Please include this file in bug reports.", Application.ProductName);
             LogSeparator();
@@ -1074,14 +1076,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        string GetRouteName(string path)
+        private string GetRouteName(string path)
         {
+            FolderStructure.InitializeFromPathOrActivity(path); //TODO: this should be initialized higher up the stack
             try
             {
-                if (Path.GetExtension(path).Equals(".act", StringComparison.OrdinalIgnoreCase) || Path.GetExtension(path).Equals(".pat", StringComparison.OrdinalIgnoreCase))
                 {
-                    var trk = new RouteFile(FileStructure.TrackFileName(Path.GetDirectoryName(Path.GetDirectoryName(path))));
-                    return trk.Tr_RouteFile.Name;
+                    return new RouteFile(FolderStructure.TrackFile).Tr_RouteFile.Name;
                 }
             }
             catch { }

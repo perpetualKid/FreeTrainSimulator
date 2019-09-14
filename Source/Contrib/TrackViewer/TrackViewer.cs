@@ -17,28 +17,25 @@
 //
 
 using System;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
+using System.Reflection;
+using System.Windows.Forms;
+using GNU.Gettext;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Color = Microsoft.Xna.Framework.Color;
-using MessageBox = System.Windows.Forms.MessageBox;
-
-using System.Windows.Forms;
-using System.Reflection;
-using GNU.Gettext;
 using Orts.Common;
-using ORTS.TrackViewer.Drawing;
-using ORTS.TrackViewer.Drawing.Labels;
-using ORTS.TrackViewer.UserInterface;
-using ORTS.TrackViewer.Editing;
-using ORTS.TrackViewer.Editing.Charts;
-using Orts.Common.Msts;
-using Orts.Menu.Entities;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Menu.Entities;
+using ORTS.TrackViewer.Drawing;
+using ORTS.TrackViewer.Drawing.Labels;
+using ORTS.TrackViewer.Editing;
+using ORTS.TrackViewer.Editing.Charts;
+using ORTS.TrackViewer.UserInterface;
+using Color = Microsoft.Xna.Framework.Color;
+using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace ORTS.TrackViewer
 {
@@ -214,7 +211,7 @@ namespace ORTS.TrackViewer
             {
                 try
                 {
-                    Properties.Settings.Default.installDirectory = FileStructure.Base();
+                    Properties.Settings.Default.installDirectory = FolderStructure.RootFolder;
                 }
                 catch {}
             }

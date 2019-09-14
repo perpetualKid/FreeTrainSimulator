@@ -15,13 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
-using Orts.Common;
-using Orts.Common.Msts;
-using Orts.Formats.Msts;
-using Orts.Settings;
-using Orts.Updater;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -30,6 +23,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using GNU.Gettext;
+using GNU.Gettext.WinForms;
+using Orts.Formats.Msts;
+using Orts.Settings;
+using Orts.Updater;
 
 namespace Orts.Menu
 {
@@ -268,7 +266,7 @@ namespace Orts.Menu
                 buttonContentBrowse.Enabled = false; // Initial state because browsing a null path leads to an exception
                 try
                 {
-                    bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = FileStructure.Base() });
+                    bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.RootFolder });
                 }
                 catch { }
             }

@@ -36,7 +36,6 @@ namespace Orts.ActivityRunner
         public static Viewer Viewer;
         public static DispatchViewer DebugViewer;
         public static SoundDebugForm SoundDebugForm;
-        public static ORTraceListener ORTraceListener;
         public static string logFileName = "";
 
         /// <summary>
