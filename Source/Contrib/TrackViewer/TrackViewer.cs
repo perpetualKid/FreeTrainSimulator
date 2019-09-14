@@ -38,6 +38,7 @@ using ORTS.TrackViewer.Editing.Charts;
 using Orts.Common.Msts;
 using Orts.Menu.Entities;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 
 namespace ORTS.TrackViewer
 {
@@ -213,7 +214,7 @@ namespace ORTS.TrackViewer
             {
                 try
                 {
-                    Properties.Settings.Default.installDirectory = MstsPath.Base();
+                    Properties.Settings.Default.installDirectory = FileStructure.Base();
                 }
                 catch {}
             }

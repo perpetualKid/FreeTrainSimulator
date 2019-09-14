@@ -277,7 +277,7 @@ namespace Orts.Simulation
             Trace.Write("Loading ");
 
             Trace.Write(" TRK");
-            TRK = new RouteFile(MstsPath.GetTRKFileName(RoutePath));
+            TRK = new RouteFile(FileStructure.TrackFileName(RoutePath));
             RouteName = TRK.Tr_RouteFile.Name;
             MilepostUnitsMetric = TRK.Tr_RouteFile.MilepostUnitsMetric;
             OpenDoorsInAITrains = TRK.Tr_RouteFile.OpenDoorsInAITrains == null ? Settings.OpenDoorsInAITrains : (bool)TRK.Tr_RouteFile.OpenDoorsInAITrains;

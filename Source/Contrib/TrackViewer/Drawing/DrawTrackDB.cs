@@ -57,7 +57,7 @@ namespace ORTS.TrackViewer.Drawing
             this.storedRoutePath = routePath;
 
             messageDelegate(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
-            RouteFile TRK = new RouteFile(MstsPath.GetTRKFileName(routePath));
+            RouteFile TRK = new RouteFile(FileStructure.TrackFileName(routePath));
             RouteName = TRK.Tr_RouteFile.Name;
 
             messageDelegate(TrackViewer.catalog.GetString("Loading track database .tdb ..."));

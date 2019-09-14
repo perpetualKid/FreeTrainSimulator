@@ -36,7 +36,7 @@ namespace Orts.Menu.Entities
         {
             if (Directory.Exists(path))
             {
-				string trkFilePath = MstsPath.GetTRKFileName(path);
+				string trkFilePath = FileStructure.TrackFileName(path);
                 try
                 {
 					var trkFile = new RouteFile(trkFilePath);

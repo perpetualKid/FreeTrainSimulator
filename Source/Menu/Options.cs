@@ -19,6 +19,7 @@ using GNU.Gettext;
 using GNU.Gettext.WinForms;
 using Orts.Common;
 using Orts.Common.Msts;
+using Orts.Formats.Msts;
 using Orts.Settings;
 using Orts.Updater;
 using System;
@@ -267,7 +268,7 @@ namespace Orts.Menu
                 buttonContentBrowse.Enabled = false; // Initial state because browsing a null path leads to an exception
                 try
                 {
-                    bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = MstsPath.Base() });
+                    bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = FileStructure.Base() });
                 }
                 catch { }
             }

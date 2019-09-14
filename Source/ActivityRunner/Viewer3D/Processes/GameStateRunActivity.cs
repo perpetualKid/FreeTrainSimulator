@@ -38,6 +38,7 @@ using Orts.Simulation;
 using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.Settings;
 using Orts.Common.Logging;
+using Orts.Formats.Msts;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
@@ -1079,7 +1080,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 if (Path.GetExtension(path).Equals(".act", StringComparison.OrdinalIgnoreCase) || Path.GetExtension(path).Equals(".pat", StringComparison.OrdinalIgnoreCase))
                 {
-                    var trk = new Orts.Formats.Msts.RouteFile(MstsPath.GetTRKFileName(Path.GetDirectoryName(Path.GetDirectoryName(path))));
+                    var trk = new RouteFile(FileStructure.TrackFileName(Path.GetDirectoryName(Path.GetDirectoryName(path))));
                     return trk.Tr_RouteFile.Name;
                 }
             }

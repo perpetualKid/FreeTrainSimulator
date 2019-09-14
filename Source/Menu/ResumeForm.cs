@@ -63,6 +63,7 @@ using Orts.Common;
 using Orts.Common.Msts;
 using Orts.Settings;
 using Path = System.IO.Path;
+using Orts.Formats.Msts;
 
 namespace Orts.Menu
 {
@@ -576,7 +577,7 @@ namespace Orts.Menu
                     if( !File.Exists(filePath) )
                     {
                         // Show the dialog and get result.
-                        openFileDialog1.InitialDirectory = MstsPath.Base();
+                        openFileDialog1.InitialDirectory = FileStructure.Base();
                         openFileDialog1.FileName = Path.GetFileName(filePath);
                         openFileDialog1.Title = @"Find location for file " + filePath;
                         if( openFileDialog1.ShowDialog() != DialogResult.OK )
@@ -591,7 +592,7 @@ namespace Orts.Menu
                         if( !File.Exists(filePath) )
                         {
                             // Show the dialog and get result.
-                            openFileDialog1.InitialDirectory = MstsPath.Base();
+                            openFileDialog1.InitialDirectory = FileStructure.Base();
                             openFileDialog1.FileName = Path.GetFileName(filePath);
                             openFileDialog1.Title = @"Find location for file " + filePath;
                             if( openFileDialog1.ShowDialog() != DialogResult.OK )
