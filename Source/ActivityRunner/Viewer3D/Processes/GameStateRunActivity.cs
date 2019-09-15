@@ -252,12 +252,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             var openTracker = MessageBox.Show(String.Format(
                                     "A fatal error has occured and {0} cannot continue.\n\n" +
                                     "    {1}\n\n" +
-                                    "This error may be due to bad data or a bug. You can help improve {0} by reporting this error in our bug tracker at http://launchpad.net/or and attaching the log file {2}.\n\n" +
+                                    "This error may be due to bad data or a bug. You can help improve {0} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {2}.\n\n" +
                                     ">>> Click OK to report this error on the {0} bug tracker <<<",
                                     Application.ProductName, errorSummary, logFile),
                                     Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                             if (openTracker == DialogResult.OK)
-                                Process.Start("http://launchpad.net/or");
+                                Process.Start("https://github.com/perpetualKid/ORTS-MG/issues");
                             // James Ross would prefer to do this:
                             //   Process.Start("http://bugs.launchpad.net/or/+filebug?field.title=" + Uri.EscapeDataString(errorSummary));
                             // but unfortunately if you need to log in (as most people might), Launchpad munges the title
@@ -1473,32 +1473,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 loadingPercent = Parameters["LoadingPercent"];
                 loadingTexture = Parameters["LoadingTexture"];
             }
-        }
-    }
-
-    public sealed class IncompatibleSaveException : Exception
-    {
-        public readonly string SaveFile;
-        public readonly string VersionOrBuild;
-
-        public IncompatibleSaveException(string saveFile, string versionOrBuild, Exception innerException)
-            : base(null, innerException)
-        {
-            SaveFile = saveFile;
-            VersionOrBuild = versionOrBuild;
-        }
-
-        public IncompatibleSaveException(string saveFile, string versionOrBuild)
-            : this(saveFile, versionOrBuild, null)
-        {
-        }
-    }
-
-    public sealed class InvalidCommandLine : Exception
-    {
-        public InvalidCommandLine(string message)
-            : base(message)
-        {
         }
     }
 }

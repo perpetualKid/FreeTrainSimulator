@@ -22,7 +22,6 @@ using System.Reflection;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.ActivityRunner.Viewer3D.Processes;
-using Orts.Common.Logging;
 using Orts.Common.Native;
 using Orts.Settings;
 using Orts.Simulation;
