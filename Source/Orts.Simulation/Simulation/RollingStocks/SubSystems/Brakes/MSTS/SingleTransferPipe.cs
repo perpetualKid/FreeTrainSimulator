@@ -39,7 +39,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             switch (lowercasetoken)
             {
                 // OpenRails specific parameters
-                case "wagon(brakepipevolume": BrakePipeVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
+                case "wagon(brakepipevolume": BrakePipeVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
             }
         }
 

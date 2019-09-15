@@ -393,12 +393,12 @@ namespace Orts.Formats.Msts
             stf.ReadInt(null);
             TileX = stf.ReadInt(null);
             TileZ = stf.ReadInt(null);
-            X = stf.ReadFloat(STFReader.UNITS.None, null);
-            Y = stf.ReadFloat(STFReader.UNITS.None, null);
-            Z = stf.ReadFloat(STFReader.UNITS.None, null);
-            AX = stf.ReadFloat(STFReader.UNITS.None, null);
-            AY = stf.ReadFloat(STFReader.UNITS.None, null);
-            AZ = stf.ReadFloat(STFReader.UNITS.None, null);
+            X = stf.ReadFloat(STFReader.Units.None, null);
+            Y = stf.ReadFloat(STFReader.Units.None, null);
+            Z = stf.ReadFloat(STFReader.Units.None, null);
+            AX = stf.ReadFloat(STFReader.Units.None, null);
+            AY = stf.ReadFloat(STFReader.Units.None, null);
+            AZ = stf.ReadFloat(STFReader.Units.None, null);
             stf.SkipRestOfBlock();
         }
         
@@ -690,12 +690,12 @@ namespace Orts.Formats.Msts
             stf.ReadString(); // 00 
             TileX = stf.ReadInt(null);
             TileZ = stf.ReadInt(null);
-            X = stf.ReadFloat(STFReader.UNITS.None, null);
-            Y = stf.ReadFloat(STFReader.UNITS.None, null);
-            Z = stf.ReadFloat(STFReader.UNITS.None, null);
-            AX = stf.ReadFloat(STFReader.UNITS.None, null);
-            AY = stf.ReadFloat(STFReader.UNITS.None, null);
-            AZ = stf.ReadFloat(STFReader.UNITS.None, null);
+            X = stf.ReadFloat(STFReader.Units.None, null);
+            Y = stf.ReadFloat(STFReader.Units.None, null);
+            Z = stf.ReadFloat(STFReader.Units.None, null);
+            AX = stf.ReadFloat(STFReader.Units.None, null);
+            AY = stf.ReadFloat(STFReader.Units.None, null);
+            AZ = stf.ReadFloat(STFReader.Units.None, null);
         }
 
         /// <summary>
@@ -816,9 +816,9 @@ namespace Orts.Formats.Msts
         protected void TrItemRData(STFReader stf)
         {
             stf.MustMatch("(");
-            X = stf.ReadFloat(STFReader.UNITS.None, null);
-            Y = stf.ReadFloat(STFReader.UNITS.None, null);
-            Z = stf.ReadFloat(STFReader.UNITS.None, null);
+            X = stf.ReadFloat(STFReader.Units.None, null);
+            Y = stf.ReadFloat(STFReader.Units.None, null);
+            Z = stf.ReadFloat(STFReader.Units.None, null);
             TileX = stf.ReadInt(null);
             TileZ = stf.ReadInt(null);
             stf.SkipRestOfBlock();
@@ -832,8 +832,8 @@ namespace Orts.Formats.Msts
         protected void TrItemPData(STFReader stf)
         {
             stf.MustMatch("(");
-            PX = stf.ReadFloat(STFReader.UNITS.None, null);
-            PZ = stf.ReadFloat(STFReader.UNITS.None, null);
+            PX = stf.ReadFloat(STFReader.Units.None, null);
+            PZ = stf.ReadFloat(STFReader.Units.None, null);
             TilePX = stf.ReadInt(null);
             TilePZ = stf.ReadInt(null);
             stf.SkipRestOfBlock();
@@ -847,7 +847,7 @@ namespace Orts.Formats.Msts
         protected void TrItemSData(STFReader stf)
         {
             stf.MustMatch("(");
-            SData1 = stf.ReadFloat(STFReader.UNITS.None, null);
+            SData1 = stf.ReadFloat(STFReader.Units.None, null);
             SData2 = stf.ReadString();
             stf.SkipRestOfBlock();
         }
@@ -949,7 +949,7 @@ namespace Orts.Formats.Msts
                     stf.MustMatch("(");
                     Flags1 = stf.ReadString();
                     Direction = stf.ReadUInt(null);
-                    SigData1 = stf.ReadFloat(STFReader.UNITS.None, null);
+                    SigData1 = stf.ReadFloat(STFReader.Units.None, null);
                     SignalType = stf.ReadString().ToLowerInvariant();
                     // To do get index to Sigtypes table corresponding to this sigmal
                     stf.SkipRestOfBlock();
@@ -1074,9 +1074,9 @@ namespace Orts.Formats.Msts
                     //  To do: Check flags seetings and parse accordingly.
 		            if (!IsResume)
 		            {
-                        //SpeedInd = stf.ReadFloat(STFReader.UNITS.None, null);
+                        //SpeedInd = stf.ReadFloat(STFReader.Units.None, null);
                         if (IsMilePost && ((Flags & (1 << 9)) == 0)) SpeedInd = (float)Math.Truncate(stf.ReadDouble(null));
-                        else SpeedInd = stf.ReadFloat(STFReader.UNITS.None, null);
+                        else SpeedInd = stf.ReadFloat(STFReader.Units.None, null);
 		            }
 
     		        if (ShowNumber)
@@ -1084,7 +1084,7 @@ namespace Orts.Formats.Msts
 			            DisplayNumber = stf.ReadInt(null);
 		            }
                     
-			        Angle = MathHelper.WrapAngle(stf.ReadFloat(STFReader.UNITS.None, null));
+			        Angle = MathHelper.WrapAngle(stf.ReadFloat(STFReader.Units.None, null));
 
                     stf.SkipRestOfBlock();
                 }),
@@ -1182,7 +1182,7 @@ namespace Orts.Formats.Msts
                     stf.MustMatch("(");
                     SRData1 = stf.ReadUInt(null);
                     SRData2 = stf.ReadUInt(null);
-                    SRData3 = stf.ReadFloat(STFReader.UNITS.None, null);
+                    SRData3 = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
             });

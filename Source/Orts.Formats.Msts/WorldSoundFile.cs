@@ -77,9 +77,9 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("filename", ()=>{ SoundSourceFileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("position", ()=>{
                     stf.MustMatch("(");
-                    X = stf.ReadFloat(STFReader.UNITS.None, null);
-                    Y = stf.ReadFloat(STFReader.UNITS.None, null);
-                    Z = stf.ReadFloat(STFReader.UNITS.None, null);
+                    X = stf.ReadFloat(STFReader.Units.None, null);
+                    Y = stf.ReadFloat(STFReader.Units.None, null);
+                    Z = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
             });
@@ -98,7 +98,7 @@ namespace Orts.Formats.Msts
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("soundregiontracktype", ()=>{ SoundRegionTrackType = stf.ReadIntBlock(-1); }),
-                new STFReader.TokenProcessor("soundregionroty", ()=>{ ROTy = stf.ReadFloatBlock(STFReader.UNITS.None, float.MaxValue); }),
+                new STFReader.TokenProcessor("soundregionroty", ()=>{ ROTy = stf.ReadFloatBlock(STFReader.Units.None, float.MaxValue); }),
                 new STFReader.TokenProcessor("tritemid", ()=>{
                     stf.MustMatch("(");
                     var dummy = stf.ReadInt(0);

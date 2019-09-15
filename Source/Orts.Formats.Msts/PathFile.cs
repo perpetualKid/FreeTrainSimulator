@@ -213,9 +213,9 @@ TrackPath (
             stf.MustMatch("(");
             TileX = stf.ReadInt(null);
             TileZ = stf.ReadInt(null);
-            X = stf.ReadFloat(STFReader.UNITS.None, null);
-            Y = stf.ReadFloat(STFReader.UNITS.None, null);
-            Z = stf.ReadFloat(STFReader.UNITS.None, null);
+            X = stf.ReadFloat(STFReader.Units.None, null);
+            Y = stf.ReadFloat(STFReader.Units.None, null);
+            Z = stf.ReadFloat(STFReader.Units.None, null);
             junctionFlag = stf.ReadInt(null);
             invalidFlag = stf.ReadInt(null);
             stf.SkipRestOfBlock();

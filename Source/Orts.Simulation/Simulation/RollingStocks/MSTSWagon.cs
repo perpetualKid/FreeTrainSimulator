@@ -832,38 +832,38 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(freightanim":
                     stf.MustMatch("(");
                     FreightShapeFileName = stf.ReadString();
-                    FreightAnimMaxLevelM = stf.ReadFloat(STFReader.UNITS.Distance, null);
-                    FreightAnimMinLevelM = stf.ReadFloat(STFReader.UNITS.Distance, null);
+                    FreightAnimMaxLevelM = stf.ReadFloat(STFReader.Units.Distance, null);
+                    FreightAnimMinLevelM = stf.ReadFloat(STFReader.Units.Distance, null);
                     // Flags are optional and we want to avoid a warning.
                     if (!stf.EndOfBlock())
                     {
                         // TODO: The variable name (Flag), data type (Float), and unit (Distance) don't make sense here.
-                        FreightAnimFlag = stf.ReadFloat(STFReader.UNITS.Distance, 1.0f);
+                        FreightAnimFlag = stf.ReadFloat(STFReader.Units.Distance, 1.0f);
                         stf.SkipRestOfBlock();
                     }
                     break;
                 case "wagon(size":
                     stf.MustMatch("(");
-                    CarWidthM = stf.ReadFloat(STFReader.UNITS.Distance, null);
-                    CarHeightM = stf.ReadFloat(STFReader.UNITS.Distance, null);
-                    CarLengthM = stf.ReadFloat(STFReader.UNITS.Distance, null);
+                    CarWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
+                    CarHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
+                    CarLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(ortstrackgauge":
                     stf.MustMatch("(");
-                    TrackGaugeM = stf.ReadFloat(STFReader.UNITS.Distance, null);
+                    TrackGaugeM = stf.ReadFloat(STFReader.Units.Distance, null);
                     // Allow for imperial feet and inches to be specified separately (not ideal - please don't copy this).
                     if (!stf.EndOfBlock())
                     {
-                        TrackGaugeM += stf.ReadFloat(STFReader.UNITS.Distance, 0);
+                        TrackGaugeM += stf.ReadFloat(STFReader.Units.Distance, 0);
                         stf.SkipRestOfBlock();
                     }
                     break;
                 case "wagon(centreofgravity":
                     stf.MustMatch("(");
-                    InitialCentreOfGravityM.X = stf.ReadFloat(STFReader.UNITS.Distance, null);
-                    InitialCentreOfGravityM.Y = stf.ReadFloat(STFReader.UNITS.Distance, null);
-                    InitialCentreOfGravityM.Z = stf.ReadFloat(STFReader.UNITS.Distance, null);
+                    InitialCentreOfGravityM.X = stf.ReadFloat(STFReader.Units.Distance, null);
+                    InitialCentreOfGravityM.Y = stf.ReadFloat(STFReader.Units.Distance, null);
+                    InitialCentreOfGravityM.Z = stf.ReadFloat(STFReader.Units.Distance, null);
                     if (Math.Abs(InitialCentreOfGravityM.Z) > 1)
                     {
                         STFException.TraceWarning(stf, string.Format("Ignored CentreOfGravity Z value {0} outside range -1 to +1", InitialCentreOfGravityM.Z));
@@ -871,31 +871,31 @@ namespace Orts.Simulation.RollingStocks
                     }
                     stf.SkipRestOfBlock();
                     break;
-                case "wagon(ortsunbalancedsuperelevation": UnbalancedSuperElevationM = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); break;
+                case "wagon(ortsunbalancedsuperelevation": UnbalancedSuperElevationM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(ortsrigidwheelbase":
                     stf.MustMatch("(");
-                    RigidWheelBaseM = stf.ReadFloat(STFReader.UNITS.Distance, null);
+                    RigidWheelBaseM = stf.ReadFloat(STFReader.Units.Distance, null);
                     // Allow for imperial feet and inches to be specified separately (not ideal - please don't copy this).
                     if (!stf.EndOfBlock())
                     {
-                        RigidWheelBaseM += stf.ReadFloat(STFReader.UNITS.Distance, 0);
+                        RigidWheelBaseM += stf.ReadFloat(STFReader.Units.Distance, 0);
                         stf.SkipRestOfBlock();
                     }
                     break;
-                case "wagon(ortsauxtenderwatermass": AuxTenderWaterMassKG = stf.ReadFloatBlock(STFReader.UNITS.Mass, null); break;
-                case "wagon(mass": InitialMassKG = stf.ReadFloatBlock(STFReader.UNITS.Mass, null); if (InitialMassKG < 0.1f) InitialMassKG = 0.1f; break;
-                case "wagon(wheelradius": WheelRadiusM = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); break;
-                case "engine(wheelradius": DriverWheelRadiusM = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); break;
+                case "wagon(ortsauxtenderwatermass": AuxTenderWaterMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
+                case "wagon(mass": InitialMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); if (InitialMassKG < 0.1f) InitialMassKG = 0.1f; break;
+                case "wagon(wheelradius": WheelRadiusM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "engine(wheelradius": DriverWheelRadiusM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(sound": MainSoundFileName = stf.ReadStringBlock(null); break;
                 case "wagon(ortsbrakeshoefriction": BrakeShoeFrictionFactor = stf.CreateInterpolator(); break;
-                case "wagon(maxhandbrakeforce": InitialMaxHandbrakeForceN = stf.ReadFloatBlock(STFReader.UNITS.Force, null); break;
-                case "wagon(maxbrakeforce": InitialMaxBrakeForceN = stf.ReadFloatBlock(STFReader.UNITS.Force, null); break;
-                case "wagon(ortsdavis_a": DavisAN = stf.ReadFloatBlock(STFReader.UNITS.Force, null); break;
-                case "wagon(ortsdavis_b": DavisBNSpM = stf.ReadFloatBlock(STFReader.UNITS.Resistance, null); break;
-                case "wagon(ortsdavis_c": DavisCNSSpMM = stf.ReadFloatBlock(STFReader.UNITS.ResistanceDavisC, null); break;
-                case "wagon(ortsdavisdragconstant": DavisDragConstant = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-                case "wagon(ortswagonfrontalarea": WagonFrontalAreaM2 = stf.ReadFloatBlock(STFReader.UNITS.AreaDefaultFT2, null); break;
-                case "wagon(ortstraillocomotiveresistancefactor": TrailLocoResistanceFactor = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
+                case "wagon(maxhandbrakeforce": InitialMaxHandbrakeForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
+                case "wagon(maxbrakeforce": InitialMaxBrakeForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
+                case "wagon(ortsdavis_a": DavisAN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
+                case "wagon(ortsdavis_b": DavisBNSpM = stf.ReadFloatBlock(STFReader.Units.Resistance, null); break;
+                case "wagon(ortsdavis_c": DavisCNSSpMM = stf.ReadFloatBlock(STFReader.Units.ResistanceDavisC, null); break;
+                case "wagon(ortsdavisdragconstant": DavisDragConstant = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "wagon(ortswagonfrontalarea": WagonFrontalAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
+                case "wagon(ortstraillocomotiveresistancefactor": TrailLocoResistanceFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "wagon(effects(specialeffects": ParseEffects(lowercasetoken, stf); break;
                 case "wagon(ortsbearingtype":
                     stf.MustMatch("(");
@@ -906,11 +906,11 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 case "wagon(friction":
                     stf.MustMatch("(");
-                    FrictionC1 = stf.ReadFloat(STFReader.UNITS.Resistance, null);
-                    FrictionE1 = stf.ReadFloat(STFReader.UNITS.None, null);
-                    FrictionV2 = stf.ReadFloat(STFReader.UNITS.Speed, null);
-                    FrictionC2 = stf.ReadFloat(STFReader.UNITS.Resistance, null);
-                    FrictionE2 = stf.ReadFloat(STFReader.UNITS.None, null);
+                    FrictionC1 = stf.ReadFloat(STFReader.Units.Resistance, null);
+                    FrictionE1 = stf.ReadFloat(STFReader.Units.None, null);
+                    FrictionV2 = stf.ReadFloat(STFReader.Units.Speed, null);
+                    FrictionC2 = stf.ReadFloat(STFReader.Units.Resistance, null);
+                    FrictionE2 = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                     ; break;
                 case "wagon(brakesystemtype":
@@ -958,80 +958,80 @@ namespace Orts.Simulation.RollingStocks
                 // For simple or legacy coupler
                 case "wagon(coupling(spring(stiffness":
                     stf.MustMatch("(");
-                    Couplers[CouplerCountLocation].SetStiffness(stf.ReadFloat(STFReader.UNITS.Stiffness, null), stf.ReadFloat(STFReader.UNITS.Stiffness, null));
+                    Couplers[CouplerCountLocation].SetStiffness(stf.ReadFloat(STFReader.Units.Stiffness, null), stf.ReadFloat(STFReader.Units.Stiffness, null));
                     stf.SkipRestOfBlock();
                     break;
                     // This is for the advanced coupler and is designed to be used instead of the MSTS parameter Stiffness
                 case "wagon(coupling(spring(ortstensionstiffness":
                     stf.MustMatch("(");
-                    Couplers[CouplerCountLocation].SetTensionStiffness(stf.ReadFloat(STFReader.UNITS.Stiffness, null), stf.ReadFloat(STFReader.UNITS.Force, null));
+                    Couplers[CouplerCountLocation].SetTensionStiffness(stf.ReadFloat(STFReader.Units.Stiffness, null), stf.ReadFloat(STFReader.Units.Force, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(ortscompressionstiffness":
                     stf.MustMatch("(");
-                    Couplers[CouplerCountLocation].SetCompressionStiffness(stf.ReadFloat(STFReader.UNITS.Stiffness, null), stf.ReadFloat(STFReader.UNITS.Force, null));
+                    Couplers[CouplerCountLocation].SetCompressionStiffness(stf.ReadFloat(STFReader.Units.Stiffness, null), stf.ReadFloat(STFReader.Units.Force, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(ortstensionslack":
                     stf.MustMatch("(");
                     IsAdvancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.
-                    Couplers[CouplerCountLocation].SetTensionSlack(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    Couplers[CouplerCountLocation].SetTensionSlack(stf.ReadFloat(STFReader.Units.Distance, null), stf.ReadFloat(STFReader.Units.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(ortscompressionslack":
                     stf.MustMatch("(");
                     IsAdvancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.
-                    Couplers[CouplerCountLocation].SetCompressionSlack(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    Couplers[CouplerCountLocation].SetCompressionSlack(stf.ReadFloat(STFReader.Units.Distance, null), stf.ReadFloat(STFReader.Units.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(break":
                     stf.MustMatch("(");
-                    Couplers[CouplerCountLocation].SetBreak(stf.ReadFloat(STFReader.UNITS.Force, null), stf.ReadFloat(STFReader.UNITS.Force, null));
+                    Couplers[CouplerCountLocation].SetBreak(stf.ReadFloat(STFReader.Units.Force, null), stf.ReadFloat(STFReader.Units.Force, null));
                     stf.SkipRestOfBlock();
                     break;
                 // This is for the advanced coupler and is designed to be used instead of the MSTS parameter Break
                 case "wagon(coupling(spring(ortsbreak":
                     stf.MustMatch("(");
-                    Couplers[CouplerCountLocation].SetBreak(stf.ReadFloat(STFReader.UNITS.Force, null), stf.ReadFloat(STFReader.UNITS.Force, null));
+                    Couplers[CouplerCountLocation].SetBreak(stf.ReadFloat(STFReader.Units.Force, null), stf.ReadFloat(STFReader.Units.Force, null));
                     stf.SkipRestOfBlock();
                     break;
                     // For simple or legacy coupler
                 case "wagon(coupling(spring(r0":
                     stf.MustMatch("(");
-                    Couplers[CouplerCountLocation].SetR0(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    Couplers[CouplerCountLocation].SetR0(stf.ReadFloat(STFReader.Units.Distance, null), stf.ReadFloat(STFReader.Units.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 // This is for the advanced coupler and is designed to be used instead of the MSTS parameter R0
                 case "wagon(coupling(spring(ortstensionr0":
                     stf.MustMatch("(");
-                    Couplers[CouplerCountLocation].SetR0(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    Couplers[CouplerCountLocation].SetR0(stf.ReadFloat(STFReader.Units.Distance, null), stf.ReadFloat(STFReader.Units.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(ortscompressionr0":
                     stf.MustMatch("(");
-                    Couplers[CouplerCountLocation].SetCompressionR0(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    Couplers[CouplerCountLocation].SetCompressionR0(stf.ReadFloat(STFReader.Units.Distance, null), stf.ReadFloat(STFReader.Units.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(adheasion":
                     stf.MustMatch("(");
-                    Adhesion1 = stf.ReadFloat(STFReader.UNITS.None, null);
-                    Adhesion2 = stf.ReadFloat(STFReader.UNITS.None, null);
-                    Adhesion3 = stf.ReadFloat(STFReader.UNITS.None, null);
-                    stf.ReadFloat(STFReader.UNITS.None, null);
+                    Adhesion1 = stf.ReadFloat(STFReader.Units.None, null);
+                    Adhesion2 = stf.ReadFloat(STFReader.Units.None, null);
+                    Adhesion3 = stf.ReadFloat(STFReader.Units.None, null);
+                    stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(ortsadhesion(ortscurtius_kniffler":
                     //e.g. Wagon ( ORTSAdhesion ( ORTSCurtius_Kniffler ( 7.5 44 0.161 0.7 ) ) )
                     stf.MustMatch("(");
-                    Curtius_KnifflerA = stf.ReadFloat(STFReader.UNITS.None, 7.5f); if (Curtius_KnifflerA <= 0) Curtius_KnifflerA = 7.5f;
-                    Curtius_KnifflerB = stf.ReadFloat(STFReader.UNITS.None, 44.0f); if (Curtius_KnifflerB <= 0) Curtius_KnifflerB = 44.0f;
-                    Curtius_KnifflerC = stf.ReadFloat(STFReader.UNITS.None, 0.161f); if (Curtius_KnifflerC <= 0) Curtius_KnifflerC = 0.161f;
-                    AdhesionK = stf.ReadFloat(STFReader.UNITS.None, 0.7f); if (AdhesionK <= 0) AdhesionK = 0.7f;
+                    Curtius_KnifflerA = stf.ReadFloat(STFReader.Units.None, 7.5f); if (Curtius_KnifflerA <= 0) Curtius_KnifflerA = 7.5f;
+                    Curtius_KnifflerB = stf.ReadFloat(STFReader.Units.None, 44.0f); if (Curtius_KnifflerB <= 0) Curtius_KnifflerB = 44.0f;
+                    Curtius_KnifflerC = stf.ReadFloat(STFReader.Units.None, 0.161f); if (Curtius_KnifflerC <= 0) Curtius_KnifflerC = 0.161f;
+                    AdhesionK = stf.ReadFloat(STFReader.Units.None, 0.7f); if (AdhesionK <= 0) AdhesionK = 0.7f;
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(ortsadhesion(ortsslipwarningthreshold":
                     stf.MustMatch("(");
-                    SlipWarningThresholdPercent = stf.ReadFloat(STFReader.UNITS.None, 70.0f); if (SlipWarningThresholdPercent <= 0) SlipWarningThresholdPercent = 70.0f;
+                    SlipWarningThresholdPercent = stf.ReadFloat(STFReader.Units.None, 70.0f); if (SlipWarningThresholdPercent <= 0) SlipWarningThresholdPercent = 70.0f;
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(ortsadhesion(ortsantislip":
@@ -1041,12 +1041,12 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 case "wagon(ortsadhesion(wheelset(axle(ortsinertia":
                     stf.MustMatch("(");
-                    AxleInertiaKgm2 = stf.ReadFloat(STFReader.UNITS.RotationalInertia, null);
+                    AxleInertiaKgm2 = stf.ReadFloat(STFReader.Units.RotationalInertia, null);
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(ortsadhesion(wheelset(axle(ortsradius":
                     stf.MustMatch("(");
-                    AdhesionDriveWheelRadiusM = stf.ReadFloat(STFReader.UNITS.Distance, null);
+                    AdhesionDriveWheelRadiusM = stf.ReadFloat(STFReader.Units.Distance, null);
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(lights":
@@ -1054,7 +1054,7 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 case "wagon(inside": HasInsideView = true; ParseWagonInside(stf); break;
                 case "wagon(orts3dcab": Parse3DCab(stf); break;
-                case "wagon(numwheels": NumWheelsBrakingFactor = stf.ReadFloatBlock(STFReader.UNITS.None, 4.0f); break;
+                case "wagon(numwheels": NumWheelsBrakingFactor = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); break;
                 case "wagon(ortspantographs":
                     Pantographs.Parse(lowercasetoken, stf);
                     break;
@@ -1063,7 +1063,7 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortsfreightanims":
                     FreightAnimations = new FreightAnimations(stf, this);
                     break;
-                case "wagon(ortsexternalsoundpassedthroughpercent": ExternalSoundPassThruPercent = stf.ReadFloatBlock(STFReader.UNITS.None, -1); break;
+                case "wagon(ortsexternalsoundpassedthroughpercent": ExternalSoundPassThruPercent = stf.ReadFloatBlock(STFReader.Units.None, -1); break;
                 case "wagon(ortsalternatepassengerviewpoints": // accepted only if there is already a passenger viewpoint
                     if (HasInsideView)
                     {
@@ -1215,9 +1215,9 @@ namespace Orts.Simulation.RollingStocks
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("sound", ()=>{ InteriorSoundFileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("passengercabinfile", ()=>{ InteriorShapeFileName = stf.ReadStringBlock(null); }),
-                new STFReader.TokenProcessor("passengercabinheadpos", ()=>{ passengerViewPoint.Location = stf.ReadVector3Block(STFReader.UNITS.Distance, new Vector3()); }),
-                new STFReader.TokenProcessor("rotationlimit", ()=>{ passengerViewPoint.RotationLimit = stf.ReadVector3Block(STFReader.UNITS.None, new Vector3()); }),
-                new STFReader.TokenProcessor("startdirection", ()=>{ passengerViewPoint.StartDirection = stf.ReadVector3Block(STFReader.UNITS.None, new Vector3()); }),
+                new STFReader.TokenProcessor("passengercabinheadpos", ()=>{ passengerViewPoint.Location = stf.ReadVector3Block(STFReader.Units.Distance, new Vector3()); }),
+                new STFReader.TokenProcessor("rotationlimit", ()=>{ passengerViewPoint.RotationLimit = stf.ReadVector3Block(STFReader.Units.None, new Vector3()); }),
+                new STFReader.TokenProcessor("startdirection", ()=>{ passengerViewPoint.StartDirection = stf.ReadVector3Block(STFReader.Units.None, new Vector3()); }),
             });
             // Set initial direction
             passengerViewPoint.RotationXRadians = MathHelper.ToRadians(passengerViewPoint.StartDirection.X);
@@ -1231,9 +1231,9 @@ namespace Orts.Simulation.RollingStocks
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("sound", ()=>{ Cab3DSoundFileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("orts3dcabfile", ()=>{ Cab3DShapeFileName = stf.ReadStringBlock(null); }),
-                new STFReader.TokenProcessor("orts3dcabheadpos", ()=>{ passengerViewPoint.Location = stf.ReadVector3Block(STFReader.UNITS.Distance, new Vector3()); }),
-                new STFReader.TokenProcessor("rotationlimit", ()=>{ passengerViewPoint.RotationLimit = stf.ReadVector3Block(STFReader.UNITS.None, new Vector3()); }),
-                new STFReader.TokenProcessor("startdirection", ()=>{ passengerViewPoint.StartDirection = stf.ReadVector3Block(STFReader.UNITS.None, new Vector3()); }),
+                new STFReader.TokenProcessor("orts3dcabheadpos", ()=>{ passengerViewPoint.Location = stf.ReadVector3Block(STFReader.Units.Distance, new Vector3()); }),
+                new STFReader.TokenProcessor("rotationlimit", ()=>{ passengerViewPoint.RotationLimit = stf.ReadVector3Block(STFReader.Units.None, new Vector3()); }),
+                new STFReader.TokenProcessor("startdirection", ()=>{ passengerViewPoint.StartDirection = stf.ReadVector3Block(STFReader.Units.None, new Vector3()); }),
             });
             // Set initial direction
             passengerViewPoint.RotationXRadians = MathHelper.ToRadians(passengerViewPoint.StartDirection.X);
@@ -3229,8 +3229,8 @@ namespace Orts.Simulation.RollingStocks
         public IntakePoint(STFReader stf)
         {
             stf.MustMatch("(");
-            OffsetM = stf.ReadFloat(STFReader.UNITS.None, 0f);
-            WidthM = stf.ReadFloat(STFReader.UNITS.None, 10f);
+            OffsetM = stf.ReadFloat(STFReader.Units.None, 0f);
+            WidthM = stf.ReadFloat(STFReader.Units.None, 10f);
             Type = (MSTSWagon.PickupType)Enum.Parse(typeof(MSTSWagon.PickupType), stf.ReadString().ToLower(), true);
             stf.SkipRestOfBlock();
         }
@@ -3450,14 +3450,14 @@ namespace Orts.Simulation.RollingStocks
         public ParticleEmitterData(STFReader stf)
         {
             stf.MustMatch("(");
-            XNALocation.X = stf.ReadFloat(STFReader.UNITS.Distance, 0.0f);
-            XNALocation.Y = stf.ReadFloat(STFReader.UNITS.Distance, 0.0f);
-            XNALocation.Z = -stf.ReadFloat(STFReader.UNITS.Distance, 0.0f);
-            XNADirection.X = stf.ReadFloat(STFReader.UNITS.Distance, 0.0f);
-            XNADirection.Y = stf.ReadFloat(STFReader.UNITS.Distance, 0.0f);
-            XNADirection.Z = -stf.ReadFloat(STFReader.UNITS.Distance, 0.0f);
+            XNALocation.X = stf.ReadFloat(STFReader.Units.Distance, 0.0f);
+            XNALocation.Y = stf.ReadFloat(STFReader.Units.Distance, 0.0f);
+            XNALocation.Z = -stf.ReadFloat(STFReader.Units.Distance, 0.0f);
+            XNADirection.X = stf.ReadFloat(STFReader.Units.Distance, 0.0f);
+            XNADirection.Y = stf.ReadFloat(STFReader.Units.Distance, 0.0f);
+            XNADirection.Z = -stf.ReadFloat(STFReader.Units.Distance, 0.0f);
             XNADirection.Normalize();
-            NozzleWidth = stf.ReadFloat(STFReader.UNITS.Distance, 0.0f);
+            NozzleWidth = stf.ReadFloat(STFReader.Units.Distance, 0.0f);
             stf.SkipRestOfBlock();
         }
     }

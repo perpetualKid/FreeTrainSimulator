@@ -36,8 +36,8 @@ namespace Orts.Formats.Msts
 		public SectionCurve(STFReader stf)
 		{
 			stf.MustMatch("(");
-            Radius = stf.ReadFloat(STFReader.UNITS.Distance, null);
-            Angle = stf.ReadFloat(STFReader.UNITS.None, null);
+            Radius = stf.ReadFloat(STFReader.Units.Distance, null);
+            Angle = stf.ReadFloat(STFReader.Units.None, null);
             stf.SkipRestOfBlock();
 		}
 		public float Radius;	// meters
@@ -54,8 +54,8 @@ namespace Orts.Formats.Msts
 		public SectionSize(STFReader stf)
 		{
 			stf.MustMatch("(");
-            Width = stf.ReadFloat(STFReader.UNITS.Distance, null);
-            Length = stf.ReadFloat(STFReader.UNITS.Distance, null);
+            Width = stf.ReadFloat(STFReader.Units.Distance, null);
+            Length = stf.ReadFloat(STFReader.Units.Distance, null);
             stf.SkipRestOfBlock();
 		}
 		public float Width;
@@ -94,8 +94,8 @@ namespace Orts.Formats.Msts
 			stf.SkipBlock();
             SectionIndex = stf.ReadUInt(null);
 			SectionSize = new SectionSize();
-            float a = stf.ReadFloat(STFReader.UNITS.Distance, null);
-            float b = stf.ReadFloat(STFReader.UNITS.None, null);
+            float a = stf.ReadFloat(STFReader.Units.Distance, null);
+            float b = stf.ReadFloat(STFReader.Units.None, null);
 			if( b == 0 )
 				// Its straight
 			{
@@ -201,7 +201,7 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("filename", ()=>{ FileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("numpaths", ()=>{ SectionIdxs = new SectionIdx[NumPaths = stf.ReadUIntBlock(null)]; }),
                 new STFReader.TokenProcessor("mainroute", ()=>{ MainRoute = stf.ReadUIntBlock(null); }),
-                new STFReader.TokenProcessor("clearancedist", ()=>{ ClearanceDistance = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); }),
+                new STFReader.TokenProcessor("clearancedist", ()=>{ ClearanceDistance = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("sectionidx", ()=>{ SectionIdxs[nextPath++] = new SectionIdx(stf); }),
                 new STFReader.TokenProcessor("tunnelshape", ()=>{ TunnelShape = stf.ReadBoolBlock(true); }),
                 new STFReader.TokenProcessor("roadshape", ()=>{ RoadShape = stf.ReadBoolBlock(true); }),

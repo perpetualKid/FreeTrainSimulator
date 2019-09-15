@@ -222,7 +222,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Headlight
 			var newTrainHeadlight = locomotive != null ? locomotive.Headlight : Car.Train != null && Car.Train.TrainType != Train.TRAINTYPE.STATIC ? 2 : 0;
-            // Unit
+            // Units
 			var locomotiveFlipped = locomotive != null && locomotive.Flipped;
 			var locomotiveReverseCab = mstsLocomotive != null && mstsLocomotive.UsingRearCab;
             var newCarIsReversed = Car.Flipped ^ locomotiveFlipped ^ locomotiveReverseCab;

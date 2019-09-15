@@ -1171,7 +1171,7 @@ namespace Orts.Simulation
         /// (Uses MSTS rigid-body rotation method for curve on a grade.)
         /// </summary>
         /// <param name="vPC">Local position vector for Point-of-Curve (PC) in x-z plane.</param>
-        /// <param name="vPC_O">Unit vector in direction from PC to arc center (O).</param>
+        /// <param name="vPC_O">Units vector in direction from PC to arc center (O).</param>
         /// <param name="mRotY">Rotation matrix that deflects arc from PC to a point on curve (P).</param>
         /// <param name="mWorld">Transformation from local to world coordinates.</param>
         /// <param name="vP">Position vector for desired point on curve (P), returned by reference.</param>
@@ -1189,7 +1189,7 @@ namespace Orts.Simulation
         /// MSTSInterpolateAlongStraight interpolates position along a straight stretch.
         /// </summary>
         /// <param name="vP0">Local position vector for starting point P0 in x-z plane.</param>
-        /// <param name="vP0_P">Unit vector in direction from P0 to P.</param>
+        /// <param name="vP0_P">Units vector in direction from P0 to P.</param>
         /// <param name="offset">Distance from P0 to P.</param>
         /// <param name="mWorld">Transformation from local to world coordinates.</param>
         /// <param name="vP">Position vector for desired point(P), returned by reference.</param>

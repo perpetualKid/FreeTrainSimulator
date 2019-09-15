@@ -47,8 +47,8 @@ namespace Orts.Formats.Msts
                         new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
                         new STFReader.TokenProcessor("train_config", ()=>{ Train_Config = stf.ReadStringBlock(null); }),
                         new STFReader.TokenProcessor("pathid", ()=>{ PathID = stf.ReadStringBlock(null); }),
-                        new STFReader.TokenProcessor("maxwheelacceleration", ()=>{ MaxWheelAcceleration = stf.ReadFloatBlock(STFReader.UNITS.Any, null); }),
-                        new STFReader.TokenProcessor("efficiency", ()=>{ Efficiency = stf.ReadFloatBlock(STFReader.UNITS.Any, null); }),
+                        new STFReader.TokenProcessor("maxwheelacceleration", ()=>{ MaxWheelAcceleration = stf.ReadFloatBlock(STFReader.Units.Any, null); }),
+                        new STFReader.TokenProcessor("efficiency", ()=>{ Efficiency = stf.ReadFloatBlock(STFReader.Units.Any, null); }),
                         new STFReader.TokenProcessor("timetable", ()=>{ TimeTable = new TimeTable(stf); }),
                     });}),
                 });
@@ -70,7 +70,7 @@ namespace Orts.Formats.Msts
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("startingspeed", ()=>{ InitialSpeed = stf.ReadFloatBlock(STFReader.UNITS.Any, null); }),
+                new STFReader.TokenProcessor("startingspeed", ()=>{ InitialSpeed = stf.ReadFloatBlock(STFReader.Units.Any, null); }),
             });
         }
 

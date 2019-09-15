@@ -367,7 +367,7 @@ namespace Orts.Formats.Msts.Parsers
         public override uint ReadFlags() { return f.ReadHex(null); }
         public override int ReadInt() { return f.ReadInt(null); }
         public override uint ReadUInt() { return f.ReadUInt(null); }
-        public override float ReadFloat() { return f.ReadFloat(STFReader.UNITS.None, null); }
+        public override float ReadFloat() { return f.ReadFloat(STFReader.Units.None, null); }
         public override string ReadString() { return f.ReadItem(); }
 
         public override void TraceInformation(string message)

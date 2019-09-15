@@ -52,13 +52,13 @@ namespace Orts.Formats.Msts
 			stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("filename", ()=>{ FileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("workers", ()=>{ Workers = stf.ReadStringBlock(null); }),
-                new STFReader.TokenProcessor("distance", ()=>{ Distance = stf.ReadFloatBlock(STFReader.UNITS.None, 10); }),
-                new STFReader.TokenProcessor("speed", ()=>{ Speed = stf.ReadFloatBlock(STFReader.UNITS.None, 3); }),
-                new STFReader.TokenProcessor("idle_key", ()=>{ Idle_Key = stf.ReadVector2Block(STFReader.UNITS.None, Idle_Key); }),
-                new STFReader.TokenProcessor("idle_key2", ()=>{ Idle_Key2 = stf.ReadVector2Block(STFReader.UNITS.None, Idle_Key2); }),
-                new STFReader.TokenProcessor("surprise_key_left", ()=>{ Surprise_Key_Left = stf.ReadVector2Block(STFReader.UNITS.None, Surprise_Key_Left); }),
-                new STFReader.TokenProcessor("surprise_key_right", ()=>{ Surprise_Key_Right = stf.ReadVector2Block(STFReader.UNITS.None, Surprise_Key_Right); }),
-                new STFReader.TokenProcessor("success_scarper_key", ()=>{ Success_Scarper_Key = stf.ReadVector2Block(STFReader.UNITS.None, Success_Scarper_Key); }),
+                new STFReader.TokenProcessor("distance", ()=>{ Distance = stf.ReadFloatBlock(STFReader.Units.None, 10); }),
+                new STFReader.TokenProcessor("speed", ()=>{ Speed = stf.ReadFloatBlock(STFReader.Units.None, 3); }),
+                new STFReader.TokenProcessor("idle_key", ()=>{ Idle_Key = stf.ReadVector2Block(STFReader.Units.None, Idle_Key); }),
+                new STFReader.TokenProcessor("idle_key2", ()=>{ Idle_Key2 = stf.ReadVector2Block(STFReader.Units.None, Idle_Key2); }),
+                new STFReader.TokenProcessor("surprise_key_left", ()=>{ Surprise_Key_Left = stf.ReadVector2Block(STFReader.Units.None, Surprise_Key_Left); }),
+                new STFReader.TokenProcessor("surprise_key_right", ()=>{ Surprise_Key_Right = stf.ReadVector2Block(STFReader.Units.None, Surprise_Key_Right); }),
+                new STFReader.TokenProcessor("success_scarper_key", ()=>{ Success_Scarper_Key = stf.ReadVector2Block(STFReader.Units.None, Success_Scarper_Key); }),
            });
 			//TODO This should be changed to STFException.TraceError() with defaults values created
 			if (FileName == null) throw new STFException(stf, "Missing FileName");

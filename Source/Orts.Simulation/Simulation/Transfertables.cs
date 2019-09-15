@@ -65,9 +65,9 @@ namespace Orts.Simulation
                 new STFReader.TokenProcessor("uid", ()=>{ UID = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("animation", ()=>{ animation = stf.ReadStringBlock(null);
                                                                 Animations.Add(animation.ToLower());}),
-                new STFReader.TokenProcessor("length", ()=>{ Length = stf.ReadFloatBlock(STFReader.UNITS.None , null);}),
-                new STFReader.TokenProcessor("xoffset", ()=>{ CenterOffset.X = stf.ReadFloatBlock(STFReader.UNITS.None , null);}),
-                new STFReader.TokenProcessor("zoffset", ()=>{ CenterOffset.Z = -stf.ReadFloatBlock(STFReader.UNITS.None , null);}),
+                new STFReader.TokenProcessor("length", ()=>{ Length = stf.ReadFloatBlock(STFReader.Units.None , null);}),
+                new STFReader.TokenProcessor("xoffset", ()=>{ CenterOffset.X = stf.ReadFloatBlock(STFReader.Units.None , null);}),
+                new STFReader.TokenProcessor("zoffset", ()=>{ CenterOffset.Z = -stf.ReadFloatBlock(STFReader.Units.None , null);}),
                 new STFReader.TokenProcessor("trackshapeindex", ()=>
                 {
                     TrackShapeIndex = stf.ReadIntBlock(-1);

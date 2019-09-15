@@ -741,27 +741,27 @@ namespace Orts.Simulation.RollingStocks
             switch (lowercasetoken)
             {
                 case "engine(numcylinders": NumCylinders = stf.ReadIntBlock(null); break;
-                case "engine(cylinderstroke": CylinderStrokeM = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); break;
-                case "engine(cylinderdiameter": CylinderDiameterM = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); break;
+                case "engine(cylinderstroke": CylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "engine(cylinderdiameter": CylinderDiameterM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "engine(lpnumcylinders": LPNumCylinders = stf.ReadIntBlock(null); break;
-                case "engine(lpcylinderstroke": LPCylinderStrokeM = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); break;
-                case "engine(lpcylinderdiameter": LPCylinderDiameterM = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); break;
-                case "engine(ortscylinderportopening": CylinderPortOpeningFactor = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-                case "engine(boilervolume": BoilerVolumeFT3 = stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null); break;
-                case "engine(maxboilerpressure": MaxBoilerPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break;
-                case "engine(ortsmaxsuperheattemperature": MaxSuperheatRefTempF = stf.ReadFloatBlock(STFReader.UNITS.None, null);break;  // New input and conversion units to be added for temperature
-                case "engine(ortsmaxindicatedhorsepower": MaxIndicatedHorsePowerHP = stf.ReadFloatBlock(STFReader.UNITS.Power, null);
+                case "engine(lpcylinderstroke": LPCylinderStrokeM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "engine(lpcylinderdiameter": LPCylinderDiameterM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "engine(ortscylinderportopening": CylinderPortOpeningFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(boilervolume": BoilerVolumeFT3 = stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null); break;
+                case "engine(maxboilerpressure": MaxBoilerPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
+                case "engine(ortsmaxsuperheattemperature": MaxSuperheatRefTempF = stf.ReadFloatBlock(STFReader.Units.None, null);break;  // New input and conversion units to be added for temperature
+                case "engine(ortsmaxindicatedhorsepower": MaxIndicatedHorsePowerHP = stf.ReadFloatBlock(STFReader.Units.Power, null);
                     MaxIndicatedHorsePowerHP = Dynamics.Power.ToHp(MaxIndicatedHorsePowerHP);  // Convert input to HP for use internally in this module
                     break;
-                case "engine(vacuumbrakeslargeejectorusagerate": EjectorLargeSteamConsumptionLbpS = Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.UNITS.MassRateDefaultLBpH, null)); break;
-                case "engine(vacuumbrakessmallejectorusagerate": EjectorSmallSteamConsumptionLbpS = Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.UNITS.MassRateDefaultLBpH, null)); break;
-                case "engine(ortssuperheatcutoffpressurefactor": SuperheatCutoffPressureFactor = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-                case "engine(shovelcoalmass": ShovelMassKG = stf.ReadFloatBlock(STFReader.UNITS.Mass, null); break;
-                case "engine(maxtendercoalmass": MaxTenderCoalMassKG = stf.ReadFloatBlock(STFReader.UNITS.Mass, null); break;
-                case "engine(maxtenderwatermass": MaxLocoTenderWaterMassKG = stf.ReadFloatBlock(STFReader.UNITS.Mass, null); break;
-                case "engine(steamfiremanmaxpossiblefiringrate": MaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.UNITS.MassRateDefaultLBpH, null) / 2.2046f / 3600; break;
-                case "engine(steamfiremanismechanicalstoker": Stoker = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-                case "engine(ortssteamfiremanmaxpossiblefiringrate": ORTSMaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.UNITS.MassRateDefaultLBpH, null) / 2.2046f / 3600; break;
+                case "engine(vacuumbrakeslargeejectorusagerate": EjectorLargeSteamConsumptionLbpS = Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null)); break;
+                case "engine(vacuumbrakessmallejectorusagerate": EjectorSmallSteamConsumptionLbpS = Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null)); break;
+                case "engine(ortssuperheatcutoffpressurefactor": SuperheatCutoffPressureFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(shovelcoalmass": ShovelMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
+                case "engine(maxtendercoalmass": MaxTenderCoalMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
+                case "engine(maxtenderwatermass": MaxLocoTenderWaterMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
+                case "engine(steamfiremanmaxpossiblefiringrate": MaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null) / 2.2046f / 3600; break;
+                case "engine(steamfiremanismechanicalstoker": Stoker = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(ortssteamfiremanmaxpossiblefiringrate": ORTSMaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null) / 2.2046f / 3600; break;
                 case "engine(enginecontrollers(cutoff": CutoffController.Parse(stf); break;
                 case "engine(enginecontrollers(ortssmallejector": SmallEjectorController.Parse(stf); SmallEjectorFitted = true;  break;
                 case "engine(enginecontrollers(injector1water": Injector1Controller.Parse(stf); break;
@@ -771,14 +771,14 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(enginecontrollers(shovel": FiringRateController.Parse(stf); break;
                 case "engine(enginecontrollers(firedoor": FireboxDoorController.Parse(stf); break;
                 case "engine(effects(steamspecialeffects": ParseEffects(lowercasetoken, stf); break;
-                case "engine(ortsgratearea": GrateAreaM2 = stf.ReadFloatBlock(STFReader.UNITS.AreaDefaultFT2, null); break;
-                case "engine(superheater": SuperheaterFactor = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-                case "engine(istenderrequired": IsTenderRequired = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-                case "engine(ortsevaporationarea": EvaporationAreaM2 = stf.ReadFloatBlock(STFReader.UNITS.AreaDefaultFT2, null); break;
-                case "engine(ortssuperheatarea": SuperheatAreaM2 = stf.ReadFloatBlock(STFReader.UNITS.AreaDefaultFT2, null); break;
-                case "engine(ortsfuelcalorific": FuelCalorificKJpKG = stf.ReadFloatBlock(STFReader.UNITS.EnergyDensity, null); break;
-                case "engine(ortsboilerevaporationrate": BoilerEvapRateLbspFt2 = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-                case "engine(ortscylinderefficiencyrate": CylinderEfficiencyRate = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
+                case "engine(ortsgratearea": GrateAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
+                case "engine(superheater": SuperheaterFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(istenderrequired": IsTenderRequired = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(ortsevaporationarea": EvaporationAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
+                case "engine(ortssuperheatarea": SuperheatAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
+                case "engine(ortsfuelcalorific": FuelCalorificKJpKG = stf.ReadFloatBlock(STFReader.Units.EnergyDensity, null); break;
+                case "engine(ortsboilerevaporationrate": BoilerEvapRateLbspFt2 = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(ortscylinderefficiencyrate": CylinderEfficiencyRate = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(ortscylinderinitialpressuredrop": InitialPressureDropRatioRpMtoX = stf.CreateInterpolator(); break;
                 case "engine(ortscylinderbackpressure": BackPressureIHPtoPSI = stf.CreateInterpolator(); break;
                 case "engine(ortsburnrate": NewBurnRateSteamToCoalLbspH = stf.CreateInterpolator(); break;
@@ -788,11 +788,11 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortscylindereventadmission": CylinderAdmissiontoCutoff = stf.CreateInterpolator(); break;
                 case "engine(ortssteamgearratio":
                     stf.MustMatch("(");
-                    SteamGearRatioLow = stf.ReadFloat(STFReader.UNITS.None, null);
-                    SteamGearRatioHigh = stf.ReadFloat(STFReader.UNITS.None, null);
+                    SteamGearRatioLow = stf.ReadFloat(STFReader.Units.None, null);
+                    SteamGearRatioHigh = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                     break;
-                case "engine(ortssteammaxgearpistonrate": MaxSteamGearPistonRateFtpM = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
+                case "engine(ortssteammaxgearpistonrate": MaxSteamGearPistonRateFtpM = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(ortssteamlocomotivetype":
                     stf.MustMatch("(");
                     var steamengineType = stf.ReadString();
@@ -6295,7 +6295,7 @@ namespace Orts.Simulation.RollingStocks
                 FormatStrings.h,
                 Simulator.Catalog.GetString("Rate"),
                 LargeEjectorBrakePipeChargingRatePSIorInHgpS,
-                //                FormatStrings.FormatPressure(BrakePipeChargingRatePSIorInHgpS, Pressure.Unit.InHg, MainPressureUnit, true),
+                //                FormatStrings.FormatPressure(BrakePipeChargingRatePSIorInHgpS, Pressure.Units.InHg, MainPressureUnit, true),
                 Simulator.Catalog.GetString("Lg Ej"),
                 LargeSteamEjectorIsOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")
                 );
@@ -6310,7 +6310,7 @@ namespace Orts.Simulation.RollingStocks
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(TempEjectorSmallSteamConsumptionLbpS)), IsMetric),
                     FormatStrings.h,
                     Simulator.Catalog.GetString("Rate"),
-                    // FormatStrings.FormatPressure(SmallEjectorBrakePipeChargingRatePSIorInHgpS, Pressure.Unit.InHg, MainPressureUnit, true),
+                    // FormatStrings.FormatPressure(SmallEjectorBrakePipeChargingRatePSIorInHgpS, Pressure.Units.InHg, MainPressureUnit, true),
                     SmallEjectorBrakePipeChargingRatePSIorInHgpS,
                     Simulator.Catalog.GetString("Sm Ej"),
                     SmallSteamEjectorIsOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")

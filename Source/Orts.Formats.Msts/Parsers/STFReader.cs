@@ -29,6 +29,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Orts.Common.Calc;
 
 #region Original STFreader
 #if !NEW_READER
@@ -109,9 +110,9 @@ namespace Orts.Formats.Msts.Parsers
     //
     //     using (STFReader stf = new STFReader(filename, false))
     //         stf.ParseFile(new STFReader.TokenProcessor[] {
-    //             new STFReader.TokenProcessor("item_single_constant", ()=>{ float isc = stf.ReadFloat(STFReader.UNITS.None, 0); }),
-    //             new STFReader.TokenProcessor("item_single_speed", ()=>{ float iss_mps = stf.ReadFloat(STFReader.UNITS.Speed, 0); }),
-    //             new STFReader.TokenProcessor("block_single_constant", ()=>{ float bsc = stf.ReadFloatBlock(STFReader.UNITS.None, 0); }),
+    //             new STFReader.TokenProcessor("item_single_constant", ()=>{ float isc = stf.ReadFloat(STFReader.Units.None, 0); }),
+    //             new STFReader.TokenProcessor("item_single_speed", ()=>{ float iss_mps = stf.ReadFloat(STFReader.Units.Speed, 0); }),
+    //             new STFReader.TokenProcessor("block_single_constant", ()=>{ float bsc = stf.ReadFloatBlock(STFReader.Units.None, 0); }),
     //             new STFReader.TokenProcessor("block_fixed_format", ()=>{
     //                 stf.MustMatch("(");
     //                 int bff1 = stf.ReadInt(0);
@@ -131,9 +132,9 @@ namespace Orts.Formats.Msts.Parsers
     //            while (!stf.Eof)
     //                switch (stf.ReadItem().ToLower())
     //                {
-    //                    case "item_single_constant": float isc = stf.ReadFloat(STFReader.UNITS.None, 0); break;
-    //                    case "item_single_speed": float iss_mps = stf.ReadFloat(STFReader.UNITS.Speed, 0); break;
-    //                    case "block_single_constant": float bsc = stf.ReadFloatBlock(STFReader.UNITS.None, 0); break;
+    //                    case "item_single_constant": float isc = stf.ReadFloat(STFReader.Units.None, 0); break;
+    //                    case "item_single_speed": float iss_mps = stf.ReadFloat(STFReader.Units.Speed, 0); break;
+    //                    case "block_single_constant": float bsc = stf.ReadFloatBlock(STFReader.Units.None, 0); break;
     //                    case "block_fixed_format":
     //                        stf.MustMatch("(");
     //                        int bff1 = stf.ReadInt(0);
@@ -584,10 +585,10 @@ namespace Orts.Formats.Msts.Parsers
         }
         /// <summary>Read an single precision floating point number {constant_item}
         /// </summary>
-        /// <param name="validUnits">Any combination of the UNITS enumeration, to limit the available suffixes to reasonable values.</param>
+        /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">the default value if an unexpected ')' token is found</param>
         /// <returns>The next {constant_item} from the STF file, with the suffix normalized to OR units.</returns>
-        public float ReadFloat(UNITS validUnits, float? defaultValue)
+        public float ReadFloat(Units validUnits, float? defaultValue)
         {
             string item = ReadItem();
 
@@ -603,10 +604,12 @@ namespace Orts.Formats.Msts.Parsers
             // and has been abandoned. </CJComment> 
 
             float val;
-            double scale = ParseUnitSuffix(ref item, validUnits);
+            var scaling = ParseUnitSuffix(ref item, validUnits);
             if (item.Length == 0) return 0.0f;
             if (item[item.Length - 1] == ',') item = item.TrimEnd(',');
-            if (float.TryParse(item, parseNum, parseNFI, out val)) return (scale == 1) ? val : (float)(scale * val);
+            if (float.TryParse(item, parseNum, parseNFI, out val)) return (scaling.factor == 1) ? val : 
+                    (scaling.offset == 0) ? (float)(scaling.factor * val) : 
+                (float)((val + scaling.offset)*scaling.factor); //this is only for conversion from degree fahrenheit to degree celsius
             STFException.TraceWarning(this, "Cannot parse the constant number " + item);
             if (item == ")") StepBackOneItem();
             return defaultValue.GetValueOrDefault(0);
@@ -640,13 +643,13 @@ namespace Orts.Formats.Msts.Parsers
         /// </summary>
         // Additional entries because MSTS has multiple default units, e.g. some speeds in metres/sec and others in miles/hr
         [Flags]
-        public enum UNITS
+        public enum Units
         {
             /// <summary>No unit parsing is done on the {constant_item} - which is obviously fastest
             /// </summary>
             None = 0,
 
-            /// <summary>Combined using an | with other UNITS if the unit is compulsory (compulsory units will slow parsing)
+            /// <summary>Combined using an | with other Units if the unit is compulsory (compulsory units will slow parsing)
             /// </summary>
             Compulsory = 1 << 0,
 
@@ -719,7 +722,7 @@ namespace Orts.Formats.Msts.Parsers
 
             /// <summary>Valid Units: m/s, mph, kph, kmh, km/h
             /// <para>Scaled to miles/hour.</para>
-            /// Similar to UNITS.Speed except default unit is mph.
+            /// Similar to Units.Speed except default unit is mph.
             /// </summary>
             SpeedDefaultMPH = 1 << 13,
 
@@ -756,7 +759,7 @@ namespace Orts.Formats.Msts.Parsers
 
             /// <summary>Valid Units: psi, bar, inhg, kpa
             /// <para>Scaled to pounds per square inch.</para>
-            /// Similar to UNITS.Pressure except default unit is inHg.
+            /// Similar to Units.Pressure except default unit is inHg.
             /// </summary>
             PressureDefaultInHg = 1 << 20,
 
@@ -769,7 +772,7 @@ namespace Orts.Formats.Msts.Parsers
             /// <summary>
             /// Valid Units: psi/s, bar/s, inhg/s, kpa/s
             /// <para>Scaled to psi/s.</para>
-            /// Similar to UNITS.PressureRate except default unit is inHg/s.
+            /// Similar to Units.PressureRate except default unit is inHg/s.
             /// </summary>            
             PressureRateDefaultInHgpS = 1 << 22,
 
@@ -807,12 +810,12 @@ namespace Orts.Formats.Msts.Parsers
         /// <remarks>This function is marked internal so it can be used to support arithmetic processing once the elements are seperated (eg. 5*2m)
         /// </remarks>
         /// <param name="constant">string with suffix (ie "23 mph"), after the function call the suffix is removed.</param>
-        /// <param name="validUnits">Any combination of the UNITS enumeration, to limit the available suffixes to reasonable values.</param>
+        /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <returns>The scaler that should be used to multiply the constant to convert into standard OR units.</returns>
-        internal double ParseUnitSuffix(ref string constant, UNITS validUnits)
+        internal (double factor, double offset) ParseUnitSuffix(ref string constant, Units validUnits)
         {
-            if (validUnits == UNITS.None)
-                return 1;
+            if (validUnits == Units.None)
+                return (1, 0);
 
             // Enclose the prefixed numeric string with beg,end
             int beg, end, i;
@@ -832,7 +835,7 @@ namespace Orts.Formats.Msts.Parsers
             string suffix = "";
             if (i == constant.Length)
             {
-                if ((validUnits & UNITS.Compulsory) > 0)
+                if ((validUnits & Units.Compulsory) > 0)
                     STFException.TraceWarning(this, "Missing a suffix for data expecting " + validUnits.ToString() + " units");
             }
             else
@@ -861,246 +864,246 @@ namespace Orts.Formats.Msts.Parsers
                 constant = constant.Substring(beg, end - beg);
             }
             // Select and return the scalar value
-            if ((validUnits & UNITS.Mass) > 0)
+            if ((validUnits & Units.Mass) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "kg": return 1;
-                    case "lb": return 0.45359237;
-                    case "t": return 1e3;   // metric tonne
-                    case "t-uk": return 1016.05;
-                    case "t-us": return 907.18474;
+                    case "":
+                    case "kg": return (1.0, 0);
+                    case "lb": return (Mass.Kilogram.FromLb(1), 0);
+                    case "t": return (Mass.Kilogram.FromTonnes(1), 0);   // metric tonne
+                    case "t-uk": return (Mass.Kilogram.FromTonsUK(1), 0);
+                    case "t-us": return (Mass.Kilogram.FromTonsUS(1), 0);
                 }
-            if ((validUnits & UNITS.Distance) > 0)
+            if ((validUnits & Units.Distance) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "m": return 1;
-                    case "cm": return 0.01;
-                    case "mm": return 0.001;
-                    case "km": return 1e3;
-                    case "ft": return 0.3048;
-                    case "in": return 0.0254;
-                    case "in/2": return 0.0127; // Used to measure wheel radius in half-inches, as sometimes the practice in the tyre industry
+                    case "":
+                    case "m": return (1.0, 0);
+                    case "cm": return (0.01, 0);
+                    case "mm": return (0.001, 0);
+                    case "km": return (Size.Length.FromKM(1), 0);
+                    case "ft": return (Size.Length.FromFt(1), 0);
+                    case "in": return (Size.Length.FromIn(1), 0);
+                    case "in/2": return (Size.Length.FromIn(0.5f), 0); // Used to measure wheel radius in half-inches, as sometimes the practice in the tyre industry
                                                 // - see trainset\KIHA31\KIHA31a.eng and others
                 }
-            if ((validUnits & UNITS.AreaDefaultFT2) > 0)
+            if ((validUnits & Units.AreaDefaultFT2) > 0)
                 switch (suffix)
                 {
-                    case "": return 0.09290304f;
-                    case "*(m^2)": return 1.0f;
-                    case "m^2": return 1.0f;
-                    case "*(ft^2)": return 0.09290304f;
-                    case "ft^2": return 0.09290304f;
+                    case "":
+                    case "*(ft^2)":
+                    case "ft^2": return (Size.Area.FromFt2(1), 0);
+                    case "*(m^2)":
+                    case "m^2": return (1.0f, 0);
                 }
-            if ((validUnits & UNITS.Volume) > 0)
+            if ((validUnits & Units.Volume) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "*(ft^3)": return 28.3168;
-                    case "ft^3": return 28.3168;
-                    case "*(in^3)": return 0.0163871;
-                    case "in^3": return 0.0163871;
-                    case "*(m^3)": return 1000;
-                    case "m^3": return 1000;
-                    case "l": return 1;
-                    case "g-uk": return 4.54609f;
-                    case "g-us": return 3.78541f;
-                    case "gal": return 3.78541f;  // US gallons
-                    case "gals": return 3.78541f; // US gallons
+                    case "":
+                    case "l": return (1.0, 0);
+                    case "ft^3":
+                    case "*(ft^3)": return (Size.LiquidVolume.FromFt3(1), 0);
+                    case "*(in^3)":
+                    case "in^3": return (Size.LiquidVolume.FromIn3(1), 0);
+                    case "*(m^3)":
+                    case "m^3": return (Size.LiquidVolume.FromM3(1), 0);
+                    case "g-uk": return (Size.LiquidVolume.FromGallonUK(1), 0);
+                    case "g-us":
+                    case "gal":
+                    case "gals": return (Size.LiquidVolume.FromGallonUS(1), 0); // US gallons
                 }
-            if ((validUnits & UNITS.VolumeDefaultFT3) > 0)
+            if ((validUnits & Units.VolumeDefaultFT3) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "*(ft^3)": return 1;  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
-                    case "ft^3": return 1;  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
-                    case "*(in^3)": return 0.000578703704;
-                    case "in^3": return 0.000578703704;
-                    case "*(m^3)": return 35.3146667;
-                    case "m^3": return 35.3146667;
-                    case "l": return 0.0353146667;
-                    case "g-uk": return 0.16054372f;
-                    case "g-us": return 0.133680556f;
-                    case "gal": return 0.133680556f;  // US gallons
-                    case "gals": return 0.133680556f; // US gallons
+                    case "": 
+                    case "*(ft^3)":         // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
+                    case "ft^3": return (1.0, 0);  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
+                    case "*(in^3)": 
+                    case "in^3": return (Size.LiquidVolume.ToFt3(Size.LiquidVolume.FromIn3(1)), 0);
+                    case "*(m^3)":
+                    case "m^3": return (Size.Volume.ToFt3(1), 0);
+                    case "l": return (Size.LiquidVolume.ToFt3(1), 0);
+                    case "g-uk": return (Size.LiquidVolume.ToFt3(Size.LiquidVolume.FromGallonUK(1)), 0);
+                    case "g-us": 
+                    case "gal": 
+                    case "gals": return (Size.LiquidVolume.ToFt3(Size.LiquidVolume.FromGallonUS(1)), 0); // US gallons
                 }
-            if ((validUnits & UNITS.Time) > 0)
+            if ((validUnits & Units.Time) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "s": return 1;
-                    case "m": return 60;    // If validUnits == UNITS.Any then "m" for meters will be returned instead of "m" for minutes.
-                                            // Use of UNITS.Any is not good practice.
-                    case "h": return 3600;
+                    case "":
+                    case "s": return (1.0, 0);
+                    case "m": return (Time.Second.FromM(1), 0);    // If validUnits == Units.Any then "m" for meters will be returned instead of "m" for minutes.
+                                            // Use of Units.Any is not good practice.
+                    case "h": return (Time.Second.FromH(1), 0);
                 }
-            if ((validUnits & UNITS.TimeDefaultM) > 0)
+            if ((validUnits & Units.TimeDefaultM) > 0)
                 switch (suffix)
                 {
-                    case "": return 60.0;
-                    case "s": return 1;
-                    case "m": return 60;
-                    case "h": return 3600;
+                    case "": return (Time.Second.FromM(1), 0);
+                    case "s": return (1.0, 0);
+                    case "m": return (Time.Second.FromM(1), 0);
+                    case "h": return (Time.Second.FromH(1), 0);
                 }
-            if ((validUnits & UNITS.TimeDefaultH) > 0)
+            if ((validUnits & Units.TimeDefaultH) > 0)
                 switch (suffix)
                 {
-                    case "": return 3600.0;
-                    case "s": return 1;
-                    case "m": return 60;
-                    case "h": return 3600;
+                    case "": return (Time.Second.FromH(1), 0);
+                    case "s": return (1.0, 0);
+                    case "m": return (Time.Second.FromM(1), 0);
+                    case "h": return (Time.Second.FromH(1), 0);
                 }
-            if ((validUnits & UNITS.Current) > 0)
+            if ((validUnits & Units.Current) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "amps": return 1;
-                    case "a": return 1;
+                    case "": 
+                    case "amps": 
+                    case "a": return (1.0, 0);
                 }
-            if ((validUnits & UNITS.Voltage) > 0)
+            if ((validUnits & Units.Voltage) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "v": return 1;
-                    case "kv": return 1000;
+                    case "": 
+                    case "v": return (1.0, 0);
+                    case "kv": return (1000.0, 0);
                 }
-            if ((validUnits & UNITS.MassRateDefaultLBpH) > 0)
+            if ((validUnits & Units.MassRateDefaultLBpH) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "lb/h": return 1;  // <CJComment> To be revised when non-metric internal units removed. </CJComment>
-                    case "kg/h": return 2.20462;
-                    case "g/h": return 0.00220462;
+                    case "": 
+                    case "lb/h": return (1.0, 0);  // <CJComment> To be revised when non-metric internal units removed. </CJComment>
+                    case "kg/h": return (Rate.Flow.Mass.ToLbpH(Time.Second.ToH(1)), 0);
+                    case "g/h": return (Rate.Flow.Mass.ToLbpH(Time.Second.ToH(1)) / 1000.0f, 0);
                 }
-            if ((validUnits & UNITS.Speed) > 0)
+            if ((validUnits & Units.Speed) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "m/s": return 1.0;
-                    case "mph": return 0.44704;
-                    case "kph": return 0.27777778;
-                    case "km/h": return 0.27777778;
-                    case "kmph": return 0.27777778;
-                    case "kmh": return 0.27777778; // Misspelled unit accepted by MSTS, documented in Richter-Realmuto's 
+                    case "": 
+                    case "m/s": return (1.0, 0);
+                    case "mph": return (Speed.MeterPerSecond.FromMpH(1), 0);
+                    case "kph": 
+                    case "km/h": 
+                    case "kmph": 
+                    case "kmh": return (Speed.MeterPerSecond.FromKpH(1), 0); // Misspelled unit accepted by MSTS, documented in Richter-Realmuto's 
+                                                                             // "Manual for .eng- and .wag-files of the MS Train Simulator 1.0". and used in Bernina
+                }
+            if ((validUnits & Units.SpeedDefaultMPH) > 0)
+                switch (suffix)
+                {
+                    case "": return (Speed.MeterPerSecond.FromMpH(1), 0);
+                    case "m/s": return (1.0, 0);
+                    case "mph": return (Speed.MeterPerSecond.FromMpH(1), 0);
+                    case "kph": 
+                    case "km/h": 
+                    case "kmph": 
+                    case "kmh": return (Speed.MeterPerSecond.FromKpH(1), 0); // Misspelled unit accepted by MSTS, documented in Richter-Realmuto's 
                                                    // "Manual for .eng- and .wag-files of the MS Train Simulator 1.0". and used in Bernina
                 }
-            if ((validUnits & UNITS.SpeedDefaultMPH) > 0)
+            if ((validUnits & Units.Frequency) > 0)
                 switch (suffix)
                 {
-                    case "": return 0.44704;
-                    case "m/s": return 1.0;
-                    case "mph": return 0.44704;
-                    case "kph": return 0.27777778;
-                    case "km/h": return 0.27777778;
-                    case "kmph": return 0.27777778;
-                    case "kmh": return 0.27777778; // Misspelled unit accepted by MSTS, documented in Richter-Realmuto's 
-                                                   // "Manual for .eng- and .wag-files of the MS Train Simulator 1.0". and used in Bernina
+                    case "": 
+                    case "hz": 
+                    case "rps": return (1.0, 0);
+                    case "rpm": return (Frequency.Periodic.FromMinutes(1), 0); 
                 }
-            if ((validUnits & UNITS.Frequency) > 0)
+            if ((validUnits & Units.Force) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "hz": return 1;
-                    case "rps": return 1;
-                    case "rpm": return 1.0 / 60;
+                    case "": 
+                    case "n": return (1.0, 0);
+                    case "kn": return (1000, 0);
+                    case "lb": 
+                    case "lbf": return (Dynamics.Force.FromLbf(1), 0);
                 }
-            if ((validUnits & UNITS.Force) > 0)
+            if ((validUnits & Units.Power) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "n": return 1;
-                    case "kn": return 1e3;
-                    case "lbf": return 4.44822162;
-                    case "lb": return 4.44822162;
+                    case "":
+                    case "w": return (1.0, 0);
+                    case "kw": return (1000, 0);
+                    case "hp": return (Dynamics.Power.FromHp(1), 0);
                 }
-            if ((validUnits & UNITS.Power) > 0)
+            if ((validUnits & Units.Stiffness) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "w": return 1;
-                    case "kw": return 1e3;
-                    case "hp": return 745.699872;
+                    case "":
+                    case "n/m": return (1.0, 0);
                 }
-            if ((validUnits & UNITS.Stiffness) > 0)
+            if ((validUnits & Units.Resistance) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "n/m": return 1;
+                    case "": 
+                    case "n/m/s": 
+                    case "ns/m": return (1.0, 0);
+                    case "lbf/mph": return (Dynamics.Resistance.FromLbfpMpH(1), 0);  
                 }
-            if ((validUnits & UNITS.Resistance) > 0)
+            if ((validUnits & Units.PressureDefaultPSI) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "n/m/s": return 1;
-                    case "ns/m": return 1;
-                    case "lbf/mph": return 10.0264321;  // 1 lbf = 4.4822162, 1 mph = 0.44704 mps => 4.4822162 / 0.44704 = 10.0264321
+                    case "": 
+                    case "psi": return (1.0, 0);  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
+                    case "bar": return (Pressure.Atmospheric.ToPSI(1), 0);
+                    case "inhg": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "kpa": return (Pressure.Standard.ToPSI(1), 0);
                 }
-            if ((validUnits & UNITS.PressureDefaultPSI) > 0)
+            if ((validUnits & Units.PressureDefaultInHg) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "psi": return 1;  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
-                    case "bar": return 14.5037738;
-                    case "inhg": return 0.4911542;
-                    case "kpa": return 0.145037738;
+                    case "": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "psi": return (1.0, 0);  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
+                    case "bar": return (Pressure.Atmospheric.ToPSI(1), 0);
+                    case "inhg": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "kpa": return (Pressure.Standard.ToPSI(1), 0);
                 }
-            if ((validUnits & UNITS.PressureDefaultInHg) > 0)
+            if ((validUnits & Units.PressureRateDefaultPSIpS) > 0)
                 switch (suffix)
                 {
-                    case "": return 0.4911542;
-                    case "psi": return 1;  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
-                    case "bar": return 14.5037738;
-                    case "inhg": return 0.4911542;
-                    case "kpa": return 0.145037738;
+                    case "": 
+                    case "psi/s": return (1.0, 0);  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
+                    case "inhg/s": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "bar/s": return (Rate.Pressure.ToPSIpS(1), 0);
+                    case "kpa/s": return (Pressure.Standard.ToPSI(1), 0);
                 }
-            if ((validUnits & UNITS.PressureRateDefaultPSIpS) > 0)
+            if ((validUnits & Units.PressureRateDefaultInHgpS) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "psi/s": return 1;  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
-                    case "inhg/s": return 0.4911542;
-                    case "bar/s": return 14.5037738;
-                    case "kpa/s": return 0.145;
+                    case "": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "psi/s": return (1.0, 0);  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
+                    case "inhg/s": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "bar/s": return (Rate.Pressure.ToPSIpS(1), 0);
+                    case "kpa/s": return (Pressure.Standard.ToPSI(1), 0);
                 }
-            if ((validUnits & UNITS.PressureRateDefaultInHgpS) > 0)
+            if ((validUnits & Units.EnergyDensity) > 0)
                 switch (suffix)
                 {
-                    case "": return 0.4911542;
-                    case "psi/s": return 1;  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
-                    case "inhg/s": return 0.4911542;
-                    case "bar/s": return 14.5037738;
-                    case "kpa/s": return 0.145;
+                    case "": 
+                    case "kj/kg": 
+                    case "j/g": return (1.0, 0);
+                    case "btu/lb": return (Energy.Density.Mass.FromBTUpLb(1), 0);
                 }
-            if ((validUnits & UNITS.EnergyDensity) > 0)
+            if ((validUnits & Units.TemperatureDifference) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "kj/kg": return 1;
-                    case "j/g": return 1;
-                    case "btu/lb": return 2.326f;
+                    case "":
+                    case "degc": return (1.0, 0);
+                    case "degf": return (100f / 180f, -32);
                 }
-            if ((validUnits & UNITS.TemperatureDifference) > 0)
+            if ((validUnits & Units.RotationalInertia) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                    case "degc": return 1;
-                    case "degf": return 100.0 / 180;
+                    case "": return (1.0, 0);
                 }
-            if ((validUnits & UNITS.RotationalInertia) > 0)
+            if ((validUnits & Units.ResistanceDavisC) > 0)
                 switch (suffix)
                 {
-                    case "": return 1.0;
-                }
-            if ((validUnits & UNITS.ResistanceDavisC) > 0)
-                switch (suffix)
-                {
-                    case "": return 1.0;
-                    case "Nm/s^2": return 1;
-                    case "lbf/mph^2": return 22.42849;  // 1 lbf = 4.4822162, 1 mph = 0.44704 mps +> 4.4822162 / (0.44704 * 0.44704) = 22.42849
+                    case "": 
+                    case "Nm/s^2": return (1.0f, 0);
+                    case "lbf/mph^2": return (Dynamics.Resistance.FromLbfpMpH2(1), 0); 
                 }
 
             STFException.TraceWarning(this, "Found a suffix '" + suffix + "' which could not be parsed as a " + validUnits.ToString() + " unit");
-            return 1;
+            return (1.0f, 0);
         }
 
         /// <summary>Read an string constant from the STF format '( {string_constant} ... )'
@@ -1223,10 +1226,10 @@ namespace Orts.Formats.Msts.Parsers
 
         /// <summary>Read an single precision constant from the STF format '( {float_constant} ... )'
         /// </summary>
-        /// <param name="validUnits">Any combination of the UNITS enumeration, to limit the available suffixes to reasonable values.</param>
+        /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">the default value if the constant is not found in the block.</param>
         /// <returns>The STF block with the first {item} converted to a single precision constant.</returns>
-        public float ReadFloatBlock(UNITS validUnits, float? defaultValue)
+        public float ReadFloatBlock(Units validUnits, float? defaultValue)
         {
             if (Eof)
             {
@@ -1318,10 +1321,10 @@ namespace Orts.Formats.Msts.Parsers
 
         /// <summary>Read a Vector3 object in the STF format '( {X} {Y} {Z} ... )'
         /// </summary>
-        /// <param name="validUnits">Any combination of the UNITS enumeration, to limit the available suffixes to reasonable values.</param>
+        /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">The default vector if any of the values are not specified</param>
         /// <returns>The STF block as a Vector3</returns>
-        public Vector3 ReadVector3Block(UNITS validUnits, Vector3 defaultValue)
+        public Vector3 ReadVector3Block(Units validUnits, Vector3 defaultValue)
         {
             if (Eof)
             {
@@ -1348,10 +1351,10 @@ namespace Orts.Formats.Msts.Parsers
 
         /// <summary>Read a Vector3 object in the STF format '( {X} {Y} ... )'
         /// </summary>
-        /// <param name="validUnits">Any combination of the UNITS enumeration, to limit the available suffixes to reasonable values.</param>
+        /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">The default vector if any of the values are not specified</param>
         /// <returns>The STF block as a Vector2</returns>
-        public Vector2 ReadVector2Block(UNITS validUnits, Vector2 defaultValue)
+        public Vector2 ReadVector2Block(Units validUnits, Vector2 defaultValue)
         {
             if (Eof)
             {
@@ -1377,10 +1380,10 @@ namespace Orts.Formats.Msts.Parsers
 
         /// <summary>Read a Vector4 object in the STF format '( {X} {Y} {Z} {W} ... )'
         /// </summary>
-        /// <param name="validUnits">Any combination of the UNITS enumeration, to limit the available suffixes to reasonable values.</param>
+        /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">The default vector if any of the values are not specified</param>
         /// <returns>The STF block as a Vector4</returns>
-        public Vector4 ReadVector4Block(UNITS validUnits, Vector4 defaultValue)
+        public Vector4 ReadVector4Block(Units validUnits, Vector4 defaultValue)
         {
             if (Eof)
             {
@@ -1525,16 +1528,16 @@ namespace Orts.Formats.Msts.Parsers
         /// </summary>
         private string tree_cache;
 
-        private static NumberStyles parseHex = NumberStyles.AllowLeadingWhite | NumberStyles.AllowHexSpecifier | NumberStyles.AllowTrailingWhite;
-        private static NumberStyles parseNum = NumberStyles.AllowLeadingWhite | NumberStyles.AllowLeadingSign | NumberStyles.AllowThousands | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent | NumberStyles.AllowTrailingWhite;
-        private static IFormatProvider parseNFI = NumberFormatInfo.InvariantInfo;
-        #region *** StepBack Variables - It is important that all state variables in this STFReader class have a equivalent in the STEPBACK structure
+        private static readonly NumberStyles parseHex = NumberStyles.AllowLeadingWhite | NumberStyles.AllowHexSpecifier | NumberStyles.AllowTrailingWhite;
+        private static readonly NumberStyles parseNum = NumberStyles.AllowLeadingWhite | NumberStyles.AllowLeadingSign | NumberStyles.AllowThousands | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent | NumberStyles.AllowTrailingWhite;
+        private static readonly IFormatProvider parseNFI = NumberFormatInfo.InvariantInfo;
+        #region *** StepBack Variables - It is important that all state variables in this STFReader class have a equivalent in the BackStep structure
         /// <summary>This flag is set in StepBackOneItem(), and causes ReadItem(), to use the stepback* variables to do an item repeat
         /// </summary>
         private bool stepbackoneitemFlag;
         /// <summary>Internal Structure used to group together the variables used to implement step back functionality.
         /// </summary>
-        private struct STEPBACK
+        private class BackStep
         {
             //streamSTF - is not needed for this stepback implementation
             //includeReader - is not needed for this stepback implementation
@@ -1553,7 +1556,7 @@ namespace Orts.Formats.Msts.Parsers
             public int BlockDepth;
             //tree_cache can just be set to null, so it is re-evaluated from the stepback'd tree state variable if Tree is called
         };
-        private STEPBACK stepback = new STEPBACK();
+        private BackStep stepback = new BackStep();
         #endregion
 
         #region *** Private Class Implementation

@@ -90,8 +90,8 @@ namespace Orts.Tests.Orts.Parsers.Msts
                 Assert.Equal(false, reader.ReadBoolBlock(false));
                 Assert.Equal(0, reader.ReadDouble(null));
                 Assert.Equal(0, reader.ReadDoubleBlock(null));
-                Assert.Equal(0, reader.ReadFloat(STFReader.UNITS.None, null));
-                Assert.Equal(0, reader.ReadFloatBlock(STFReader.UNITS.None, null));
+                Assert.Equal(0, reader.ReadFloat(STFReader.Units.None, null));
+                Assert.Equal(0, reader.ReadFloatBlock(STFReader.Units.None, null));
                 Assert.Equal(0U, reader.ReadHex(null));
                 Assert.Equal(0U, reader.ReadHexBlock(null));
                 Assert.Equal(0, reader.ReadInt(null));
@@ -101,8 +101,8 @@ namespace Orts.Tests.Orts.Parsers.Msts
                 Assert.Equal(null, reader.ReadStringBlock(null));
                 Assert.Equal(0U, reader.ReadUInt(null));
                 Assert.Equal(0U, reader.ReadUIntBlock(null));
-                Assert.Equal(Vector3.Zero, reader.ReadVector3Block(STFReader.UNITS.None, Vector3.Zero));
-                Assert.Equal(Vector4.Zero, reader.ReadVector4Block(STFReader.UNITS.None, Vector4.Zero));
+                Assert.Equal(Vector3.Zero, reader.ReadVector3Block(STFReader.Units.None, Vector3.Zero));
+                Assert.Equal(Vector4.Zero, reader.ReadVector4Block(STFReader.Units.None, Vector4.Zero));
             }
         }
 
@@ -187,9 +187,9 @@ namespace Orts.Tests.Orts.Parsers.Msts
                 Assert.Equal(1.123456789, reader.ReadDouble(null));
                 Assert.Equal(1e9, reader.ReadDouble(null));
                 Assert.Equal(1.1e9, reader.ReadDouble(null));
-                Assert.Equal(2.123456f, reader.ReadFloat(STFReader.UNITS.None, null));
-                Assert.Equal(2e9, reader.ReadFloat(STFReader.UNITS.None, null));
-                Assert.Equal(2.1e9f, reader.ReadFloat(STFReader.UNITS.None, null));
+                Assert.Equal(2.123456f, reader.ReadFloat(STFReader.Units.None, null));
+                Assert.Equal(2e9, reader.ReadFloat(STFReader.Units.None, null));
+                Assert.Equal(2.1e9f, reader.ReadFloat(STFReader.Units.None, null));
                 Assert.Equal((uint)0xABCDEF, reader.ReadHex(null));
                 Assert.Equal(123456, reader.ReadInt(null));
                 Assert.Equal(-123456, reader.ReadInt(null));
@@ -229,9 +229,9 @@ namespace Orts.Tests.Orts.Parsers.Msts
                 Assert.Equal(1.123456789, reader.ReadDoubleBlock(null));
                 Assert.Equal(1e9, reader.ReadDoubleBlock(null));
                 Assert.Equal(1.1e9, reader.ReadDoubleBlock(null));
-                Assert.Equal(2.123456f, reader.ReadFloatBlock(STFReader.UNITS.None, null));
-                Assert.Equal(2e9, reader.ReadFloatBlock(STFReader.UNITS.None, null));
-                Assert.Equal(2.1e9f, reader.ReadFloatBlock(STFReader.UNITS.None, null));
+                Assert.Equal(2.123456f, reader.ReadFloatBlock(STFReader.Units.None, null));
+                Assert.Equal(2e9, reader.ReadFloatBlock(STFReader.Units.None, null));
+                Assert.Equal(2.1e9f, reader.ReadFloatBlock(STFReader.Units.None, null));
                 Assert.Equal((uint)0xABCDEF, reader.ReadHexBlock(null));
                 Assert.Equal(123456, reader.ReadIntBlock(null));
                 Assert.Equal(-123456, reader.ReadIntBlock(null));
@@ -263,9 +263,9 @@ namespace Orts.Tests.Orts.Parsers.Msts
         {
             using (var reader = new STFReader(new MemoryStream(Encoding.Unicode.GetBytes("(1.1 1.2 ignored) (1.1 1.2 1.3 ignored) (1.1 1.2 1.3 1.4 ignored)")), "", Encoding.Unicode, false))
             {
-                Assert.Equal(new Vector2(1.1f, 1.2f), reader.ReadVector2Block(STFReader.UNITS.None, Vector2.Zero));
-                Assert.Equal(new Vector3(1.1f, 1.2f, 1.3f), reader.ReadVector3Block(STFReader.UNITS.None, Vector3.Zero));
-                Assert.Equal(new Vector4(1.1f, 1.2f, 1.3f, 1.4f), reader.ReadVector4Block(STFReader.UNITS.None, Vector4.Zero));
+                Assert.Equal(new Vector2(1.1f, 1.2f), reader.ReadVector2Block(STFReader.Units.None, Vector2.Zero));
+                Assert.Equal(new Vector3(1.1f, 1.2f, 1.3f), reader.ReadVector3Block(STFReader.Units.None, Vector3.Zero));
+                Assert.Equal(new Vector4(1.1f, 1.2f, 1.3f, 1.4f), reader.ReadVector4Block(STFReader.Units.None, Vector4.Zero));
                 Assert.True(reader.Eof, "STFReader.Eof");
                 Assert.True(reader.EOF(), "STFReader.EOF()");
                 Assert.True(reader.EndOfBlock(), "STFReader.EndOfBlock()");
@@ -279,21 +279,21 @@ namespace Orts.Tests.Orts.Parsers.Msts
             AssertWarnings.NotExpected();
             using (var reader = new STFReader(new MemoryStream(Encoding.Unicode.GetBytes("1.1 1.2 1.3km 1.4 1.5km")), "", Encoding.Unicode, false))
             {
-                Assert.Equal(1.10000f, reader.ReadFloat(STFReader.UNITS.None, null), DynamicPrecisionEqualityComparer.Float);
-                Assert.Equal(1.20000f, reader.ReadFloat(STFReader.UNITS.Distance, null), DynamicPrecisionEqualityComparer.Float);
-                Assert.Equal(1300.00000f, reader.ReadFloat(STFReader.UNITS.Distance, null), DynamicPrecisionEqualityComparer.Float);
+                Assert.Equal(1.10000f, reader.ReadFloat(STFReader.Units.None, null), DynamicPrecisionEqualityComparer.Float);
+                Assert.Equal(1.20000f, reader.ReadFloat(STFReader.Units.Distance, null), DynamicPrecisionEqualityComparer.Float);
+                Assert.Equal(1300.00000f, reader.ReadFloat(STFReader.Units.Distance, null), DynamicPrecisionEqualityComparer.Float);
                 float result4 = 0;
                 AssertWarnings.Matching("", () =>
                 {
-                    result4 = reader.ReadFloat(STFReader.UNITS.Distance | STFReader.UNITS.Compulsory, null);
+                    result4 = reader.ReadFloat(STFReader.Units.Distance | STFReader.Units.Compulsory, null);
                 });
                 Assert.Equal(1.40000f, result4, DynamicPrecisionEqualityComparer.Float);
-                Assert.Equal(1500.00000f, reader.ReadFloat(STFReader.UNITS.Distance | STFReader.UNITS.Compulsory, null), DynamicPrecisionEqualityComparer.Float);
+                Assert.Equal(1500.00000f, reader.ReadFloat(STFReader.Units.Distance | STFReader.Units.Compulsory, null), DynamicPrecisionEqualityComparer.Float);
                 Assert.True(reader.Eof, "STFReader.Eof");
             }
         }
 
-        static void UnitConversionTest(string input, double output, STFReader.UNITS unit)
+        static void UnitConversionTest(string input, double output, STFReader.Units unit)
         {
             using (var reader = new STFReader(new MemoryStream(Encoding.Unicode.GetBytes(input)), "", Encoding.Unicode, false))
             {
@@ -327,9 +327,9 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsCurrent()
         {
-            UnitConversionTest("1.2a", 1.2, STFReader.UNITS.Current);
-            // TODO not implemented yet: UnitConversionTest("1.2ka", 1.2 * 1000, STFReader.UNITS.Current);
-            // TODO not implemented yet: UnitConversionTest("1.2ma", 1.2 * 1000 * 1000, STFReader.UNITS.Current);
+            UnitConversionTest("1.2a", 1.2, STFReader.Units.Current);
+            // TODO not implemented yet: UnitConversionTest("1.2ka", 1.2 * 1000, STFReader.Units.Current);
+            // TODO not implemented yet: UnitConversionTest("1.2ma", 1.2 * 1000 * 1000, STFReader.Units.Current);
         }
 
         /* Base units for energy available in MSTS:
@@ -339,8 +339,8 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsEnergy()
         {
-            // TODO not implemented yet: UnitConversionTest("1.2j", 1.2, STFReader.UNITS.Energy);
-            // TODO not implemented yet: UnitConversionTest("1.2nm", 1.2, STFReader.UNITS.Energy);
+            // TODO not implemented yet: UnitConversionTest("1.2j", 1.2, STFReader.Units.Energy);
+            // TODO not implemented yet: UnitConversionTest("1.2nm", 1.2, STFReader.Units.Energy);
         }
 
         /* Base units for force available in MSTS:
@@ -351,9 +351,9 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsForce()
         {
-            UnitConversionTest("1.2n", 1.2, STFReader.UNITS.Force);
-            UnitConversionTest("1.2kn", 1.2 * 1000, STFReader.UNITS.Force);
-            UnitConversionTest("1.2lbf", 1.2 * PoundForceToNewton, STFReader.UNITS.Force);
+            UnitConversionTest("1.2n", 1.2, STFReader.Units.Force);
+            UnitConversionTest("1.2kn", 1.2 * 1000, STFReader.Units.Force);
+            UnitConversionTest("1.2lbf", 1.2 * PoundForceToNewton, STFReader.Units.Force);
         }
 
         /* Base units for length available in MSTS:
@@ -370,15 +370,15 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsLength()
         {
-            UnitConversionTest("1.2mm", 1.2 / 1000, STFReader.UNITS.Distance);
-            UnitConversionTest("1.2cm", 1.2 / 100, STFReader.UNITS.Distance);
-            UnitConversionTest("1.2m", 1.2, STFReader.UNITS.Distance);
-            UnitConversionTest("1.2km", 1.2 * 1000, STFReader.UNITS.Distance);
-            // TODO not implemented yet: UnitConversionTest("1.2\"", 1.2 * InchToMetre, STFReader.UNITS.Distance);
-            UnitConversionTest("1.2in", 1.2 * InchToMetre, STFReader.UNITS.Distance);
-            // TODO not implemented yet: UnitConversionTest("1.2\'", 1.2 * FeetToMetre, STFReader.UNITS.Distance);
-            UnitConversionTest("1.2ft", 1.2 * FeetToMetre, STFReader.UNITS.Distance);
-            // TODO not implemented yet: UnitConversionTest("1.2mil", 1.2 * MileToMetre, STFReader.UNITS.Distance);
+            UnitConversionTest("1.2mm", 1.2 / 1000, STFReader.Units.Distance);
+            UnitConversionTest("1.2cm", 1.2 / 100, STFReader.Units.Distance);
+            UnitConversionTest("1.2m", 1.2, STFReader.Units.Distance);
+            UnitConversionTest("1.2km", 1.2 * 1000, STFReader.Units.Distance);
+            // TODO not implemented yet: UnitConversionTest("1.2\"", 1.2 * InchToMetre, STFReader.Units.Distance);
+            UnitConversionTest("1.2in", 1.2 * InchToMetre, STFReader.Units.Distance);
+            // TODO not implemented yet: UnitConversionTest("1.2\'", 1.2 * FeetToMetre, STFReader.Units.Distance);
+            UnitConversionTest("1.2ft", 1.2 * FeetToMetre, STFReader.Units.Distance);
+            // TODO not implemented yet: UnitConversionTest("1.2mil", 1.2 * MileToMetre, STFReader.Units.Distance);
         }
 
         /* Base units for mass available in MSTS:
@@ -393,13 +393,13 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsMass()
         {
-            // TODO not implemented yet: UnitConversionTest("1.2g", 1.2 / 1000, STFReader.UNITS.Mass);
-            UnitConversionTest("1.2kg", 1.2, STFReader.UNITS.Mass);
-            UnitConversionTest("1.2t", 1.2 * TonneToKG, STFReader.UNITS.Mass);
-            // TODO not implemented yet: UnitConversionTest("1.2tn", 1.2 * TonShortToKG, STFReader.UNITS.Mass);
-            // TODO not implemented yet: UnitConversionTest("1.2ton", 1.2 * TonLongToKG, STFReader.UNITS.Mass);
-            UnitConversionTest("1.2lb", 1.2 * PoundToKG, STFReader.UNITS.Mass);
-            // TODO not implemented yet: UnitConversionTest("1.2lbs", 1.2 * PoundToKG, STFReader.UNITS.Mass);
+            // TODO not implemented yet: UnitConversionTest("1.2g", 1.2 / 1000, STFReader.Units.Mass);
+            UnitConversionTest("1.2kg", 1.2, STFReader.Units.Mass);
+            UnitConversionTest("1.2t", 1.2 * TonneToKG, STFReader.Units.Mass);
+            // TODO not implemented yet: UnitConversionTest("1.2tn", 1.2 * TonShortToKG, STFReader.Units.Mass);
+            // TODO not implemented yet: UnitConversionTest("1.2ton", 1.2 * TonLongToKG, STFReader.Units.Mass);
+            UnitConversionTest("1.2lb", 1.2 * PoundToKG, STFReader.Units.Mass);
+            // TODO not implemented yet: UnitConversionTest("1.2lbs", 1.2 * PoundToKG, STFReader.Units.Mass);
         }
 
         /* Base units for power available in MSTS:
@@ -409,8 +409,8 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsPower()
         {
-            UnitConversionTest("1.2kw", 1.2 * 1000, STFReader.UNITS.Power);
-            UnitConversionTest("1.2hp", 1.2 * HorsepowerToWatt, STFReader.UNITS.Power);
+            UnitConversionTest("1.2kw", 1.2 * 1000, STFReader.Units.Power);
+            UnitConversionTest("1.2hp", 1.2 * HorsepowerToWatt, STFReader.Units.Power);
         }
 
         /* Base units for pressure available in MSTS:
@@ -422,14 +422,14 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsPressure()
         {
-            // TODO not implemented yet: UnitConversionTest("1.2pascal", 1.2, STFReader.UNITS.PressureDefaultInHg);
-            // TODO not implemented yet: UnitConversionTest("1.2pascal", 1.2, STFReader.UNITS.PressureDefaultPSI);
-            // TODO not implemented yet: UnitConversionTest("1.2mbar", 1.2 / 1000 * BarToPascal, STFReader.UNITS.PressureDefaultInHg);
-            // TODO not implemented yet: UnitConversionTest("1.2mbar", 1.2 / 1000 * BarToPascal, STFReader.UNITS.PressureDefaultPSI);
-            // TODO not using SI units: UnitConversionTest("1.2bar", 1.2 * BarToPascal, STFReader.UNITS.PressureDefaultInHg);
-            // TODO not using SI units: UnitConversionTest("1.2bar", 1.2 * BarToPascal, STFReader.UNITS.PressureDefaultPSI);
-            // TODO not using SI units: UnitConversionTest("1.2psi", 1.2 * PSIToPascal, STFReader.UNITS.PressureDefaultInHg);
-            // TODO not using SI units: UnitConversionTest("1.2psi", 1.2 * PSIToPascal, STFReader.UNITS.PressureDefaultPSI);
+            // TODO not implemented yet: UnitConversionTest("1.2pascal", 1.2, STFReader.Units.PressureDefaultInHg);
+            // TODO not implemented yet: UnitConversionTest("1.2pascal", 1.2, STFReader.Units.PressureDefaultPSI);
+            // TODO not implemented yet: UnitConversionTest("1.2mbar", 1.2 / 1000 * BarToPascal, STFReader.Units.PressureDefaultInHg);
+            // TODO not implemented yet: UnitConversionTest("1.2mbar", 1.2 / 1000 * BarToPascal, STFReader.Units.PressureDefaultPSI);
+            // TODO not using SI units: UnitConversionTest("1.2bar", 1.2 * BarToPascal, STFReader.Units.PressureDefaultInHg);
+            // TODO not using SI units: UnitConversionTest("1.2bar", 1.2 * BarToPascal, STFReader.Units.PressureDefaultPSI);
+            // TODO not using SI units: UnitConversionTest("1.2psi", 1.2 * PSIToPascal, STFReader.Units.PressureDefaultInHg);
+            // TODO not using SI units: UnitConversionTest("1.2psi", 1.2 * PSIToPascal, STFReader.Units.PressureDefaultPSI);
         }
 
         /* Base units for rotation available in MSTS:
@@ -439,8 +439,8 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsRotation()
         {
-            // TODO not implemented yet: UnitConversionTest("1.2deg", 1.2, STFReader.UNITS.Rotation);
-            // TODO not implemented yet: UnitConversionTest("1.2rad", 1.2 * Math.PI / 180, STFReader.UNITS.Rotation);
+            // TODO not implemented yet: UnitConversionTest("1.2deg", 1.2, STFReader.Units.Rotation);
+            // TODO not implemented yet: UnitConversionTest("1.2rad", 1.2 * Math.PI / 180, STFReader.Units.Rotation);
         }
 
         /* Base units for temperature available in MSTS:
@@ -451,9 +451,9 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsTemperature()
         {
-            // TODO not implemented yet: UnitConversionTest("1.2k", 1.2, STFReader.UNITS.Temperature);
-            // TODO not implemented yet: UnitConversionTest("1.2c", 1.2 + CelsiusToKelvin, STFReader.UNITS.Temperature);
-            // TODO not implemented yet: UnitConversionTest("1.2f", (1.2 + FahrenheitToKelvinA) * FahrenheitToKelvinB, STFReader.UNITS.Temperature);
+            // TODO not implemented yet: UnitConversionTest("1.2k", 1.2, STFReader.Units.Temperature);
+            // TODO not implemented yet: UnitConversionTest("1.2c", 1.2 + CelsiusToKelvin, STFReader.Units.Temperature);
+            // TODO not implemented yet: UnitConversionTest("1.2f", (1.2 + FahrenheitToKelvinA) * FahrenheitToKelvinB, STFReader.Units.Temperature);
         }
 
         /* Base units for time available in MSTS:
@@ -467,24 +467,24 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsTime()
         {
-            // TODO not implemented yet: UnitConversionTest("1.2us", 1.2 / 1000000, STFReader.UNITS.Time);
-            // TODO not implemented yet: UnitConversionTest("1.2us", 1.2 / 1000000, STFReader.UNITS.TimeDefaultM);
-            // TODO not implemented yet: UnitConversionTest("1.2us", 1.2 / 1000000, STFReader.UNITS.TimeDefaultH);
-            // TODO not implemented yet: UnitConversionTest("1.2ms", 1.2 / 1000, STFReader.UNITS.Time);
-            // TODO not implemented yet: UnitConversionTest("1.2ms", 1.2 / 1000, STFReader.UNITS.TimeDefaultM);
-            // TODO not implemented yet: UnitConversionTest("1.2ms", 1.2 / 1000, STFReader.UNITS.TimeDefaultH);
-            UnitConversionTest("1.2s", 1.2, STFReader.UNITS.Time);
-            UnitConversionTest("1.2s", 1.2, STFReader.UNITS.TimeDefaultM);
-            UnitConversionTest("1.2s", 1.2, STFReader.UNITS.TimeDefaultH);
-            // TODO not implemented yet: UnitConversionTest("1.2min", 1.2 * MinuteToSecond, STFReader.UNITS.Time);
-            // TODO not implemented yet: UnitConversionTest("1.2min", 1.2 * MinuteToSecond, STFReader.UNITS.TimeDefaultM);
-            // TODO not implemented yet: UnitConversionTest("1.2min", 1.2 * MinuteToSecond, STFReader.UNITS.TimeDefaultH);
-            UnitConversionTest("1.2h", 1.2 * HourToSecond, STFReader.UNITS.Time);
-            UnitConversionTest("1.2h", 1.2 * HourToSecond, STFReader.UNITS.TimeDefaultM);
-            UnitConversionTest("1.2h", 1.2 * HourToSecond, STFReader.UNITS.TimeDefaultH);
-            // TODO not implemented yet: UnitConversionTest("1.2d", 1.2 * DayToSecond, STFReader.UNITS.Time);
-            // TODO not implemented yet: UnitConversionTest("1.2d", 1.2 * DayToSecond, STFReader.UNITS.TimeDefaultM);
-            // TODO not implemented yet: UnitConversionTest("1.2d", 1.2 * DayToSecond, STFReader.UNITS.TimeDefaultH);
+            // TODO not implemented yet: UnitConversionTest("1.2us", 1.2 / 1000000, STFReader.Units.Time);
+            // TODO not implemented yet: UnitConversionTest("1.2us", 1.2 / 1000000, STFReader.Units.TimeDefaultM);
+            // TODO not implemented yet: UnitConversionTest("1.2us", 1.2 / 1000000, STFReader.Units.TimeDefaultH);
+            // TODO not implemented yet: UnitConversionTest("1.2ms", 1.2 / 1000, STFReader.Units.Time);
+            // TODO not implemented yet: UnitConversionTest("1.2ms", 1.2 / 1000, STFReader.Units.TimeDefaultM);
+            // TODO not implemented yet: UnitConversionTest("1.2ms", 1.2 / 1000, STFReader.Units.TimeDefaultH);
+            UnitConversionTest("1.2s", 1.2, STFReader.Units.Time);
+            UnitConversionTest("1.2s", 1.2, STFReader.Units.TimeDefaultM);
+            UnitConversionTest("1.2s", 1.2, STFReader.Units.TimeDefaultH);
+            // TODO not implemented yet: UnitConversionTest("1.2min", 1.2 * MinuteToSecond, STFReader.Units.Time);
+            // TODO not implemented yet: UnitConversionTest("1.2min", 1.2 * MinuteToSecond, STFReader.Units.TimeDefaultM);
+            // TODO not implemented yet: UnitConversionTest("1.2min", 1.2 * MinuteToSecond, STFReader.Units.TimeDefaultH);
+            UnitConversionTest("1.2h", 1.2 * HourToSecond, STFReader.Units.Time);
+            UnitConversionTest("1.2h", 1.2 * HourToSecond, STFReader.Units.TimeDefaultM);
+            UnitConversionTest("1.2h", 1.2 * HourToSecond, STFReader.Units.TimeDefaultH);
+            // TODO not implemented yet: UnitConversionTest("1.2d", 1.2 * DayToSecond, STFReader.Units.Time);
+            // TODO not implemented yet: UnitConversionTest("1.2d", 1.2 * DayToSecond, STFReader.Units.TimeDefaultM);
+            // TODO not implemented yet: UnitConversionTest("1.2d", 1.2 * DayToSecond, STFReader.Units.TimeDefaultH);
         }
 
         /* Base units for velocity available in MSTS:
@@ -494,10 +494,10 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsVelocity()
         {
-            UnitConversionTest("1.2kmh", 1.2 * KilometrePerHourToMetrePerSecond, STFReader.UNITS.Speed);
-            UnitConversionTest("1.2kmh", 1.2 * KilometrePerHourToMetrePerSecond, STFReader.UNITS.SpeedDefaultMPH);
-            UnitConversionTest("1.2mph", 1.2 * MilePerHourToMetrePerSecond, STFReader.UNITS.Speed);
-            UnitConversionTest("1.2mph", 1.2 * MilePerHourToMetrePerSecond, STFReader.UNITS.SpeedDefaultMPH);
+            UnitConversionTest("1.2kmh", 1.2 * KilometrePerHourToMetrePerSecond, STFReader.Units.Speed);
+            UnitConversionTest("1.2kmh", 1.2 * KilometrePerHourToMetrePerSecond, STFReader.Units.SpeedDefaultMPH);
+            UnitConversionTest("1.2mph", 1.2 * MilePerHourToMetrePerSecond, STFReader.Units.Speed);
+            UnitConversionTest("1.2mph", 1.2 * MilePerHourToMetrePerSecond, STFReader.Units.SpeedDefaultMPH);
         }
 
         /* Base units for voltage available in MSTS:
@@ -508,9 +508,9 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsVoltage()
         {
-            UnitConversionTest("1.2v", 1.2, STFReader.UNITS.Voltage);
-            UnitConversionTest("1.2kv", 1.2 * 1000, STFReader.UNITS.Voltage);
-            // TODO not implemented yet: UnitConversionTest("1.2mv", 1.2 * 1000 * 1000, STFReader.UNITS.Voltage);
+            UnitConversionTest("1.2v", 1.2, STFReader.Units.Voltage);
+            UnitConversionTest("1.2kv", 1.2 * 1000, STFReader.Units.Voltage);
+            // TODO not implemented yet: UnitConversionTest("1.2mv", 1.2 * 1000 * 1000, STFReader.Units.Voltage);
         }
 
         /* Base units for volume available in MSTS:
@@ -520,65 +520,65 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionBaseMstsVolume()
         {
-            // TODO not using SI units: UnitConversionTest("1.2l", 1.2 * LitreToCubicMetre, STFReader.UNITS.Volume);
-            // TODO not using SI units: UnitConversionTest("1.2l", 1.2 * LitreToCubicMetre, STFReader.UNITS.VolumeDefaultFT3);
-            // TODO not using SI units: UnitConversionTest("1.2gal", 1.2 * GallonUSToCubicMetre, STFReader.UNITS.Volume);
-            // TODO not using SI units: UnitConversionTest("1.2gal", 1.2 * GallonUSToCubicMetre, STFReader.UNITS.VolumeDefaultFT3);
+            // TODO not using SI units: UnitConversionTest("1.2l", 1.2 * LitreToCubicMetre, STFReader.Units.Volume);
+            // TODO not using SI units: UnitConversionTest("1.2l", 1.2 * LitreToCubicMetre, STFReader.Units.VolumeDefaultFT3);
+            // TODO not using SI units: UnitConversionTest("1.2gal", 1.2 * GallonUSToCubicMetre, STFReader.Units.Volume);
+            // TODO not using SI units: UnitConversionTest("1.2gal", 1.2 * GallonUSToCubicMetre, STFReader.Units.VolumeDefaultFT3);
         }
 
         [Fact]
         public static void UnitConversionDerivedMstsArea()
         {
-            // TODO not implemented yet: UnitConversionTest("1.2mm^2", 1.2 / 1000 / 1000, STFReader.UNITS.AreaDefaultFT2);
-            // TODO not implemented yet: UnitConversionTest("1.2cm^2", 1.2 / 100 / 100, STFReader.UNITS.AreaDefaultFT2);
-            UnitConversionTest("1.2m^2", 1.2, STFReader.UNITS.AreaDefaultFT2);
-            // TODO not implemented yet: UnitConversionTest("1.2km^2", 1.2 * 1000 * 1000, STFReader.UNITS.AreaDefaultFT2);
-            // TODO not implemented yet: UnitConversionTest("1.2\"^2", 1.2 * InchToMetre * InchToMetre, STFReader.UNITS.AreaDefaultFT2);
-            // TODO not implemented yet: UnitConversionTest("1.2in^2", 1.2 * InchToMetre * InchToMetre, STFReader.UNITS.AreaDefaultFT2);
-            // TODO not implemented yet: UnitConversionTest("1.2\'^2", 1.2 * FeetToMetre * FeetToMetre, STFReader.UNITS.AreaDefaultFT2);
-            UnitConversionTest("1.2ft^2", 1.2 * FeetToMetre * FeetToMetre, STFReader.UNITS.AreaDefaultFT2);
-            // TODO not implemented yet: UnitConversionTest("1.2mil^2", 1.2 * MileToMetre * MileToMetre, STFReader.UNITS.AreaDefaultFT2);
+            // TODO not implemented yet: UnitConversionTest("1.2mm^2", 1.2 / 1000 / 1000, STFReader.Units.AreaDefaultFT2);
+            // TODO not implemented yet: UnitConversionTest("1.2cm^2", 1.2 / 100 / 100, STFReader.Units.AreaDefaultFT2);
+            UnitConversionTest("1.2m^2", 1.2, STFReader.Units.AreaDefaultFT2);
+            // TODO not implemented yet: UnitConversionTest("1.2km^2", 1.2 * 1000 * 1000, STFReader.Units.AreaDefaultFT2);
+            // TODO not implemented yet: UnitConversionTest("1.2\"^2", 1.2 * InchToMetre * InchToMetre, STFReader.Units.AreaDefaultFT2);
+            // TODO not implemented yet: UnitConversionTest("1.2in^2", 1.2 * InchToMetre * InchToMetre, STFReader.Units.AreaDefaultFT2);
+            // TODO not implemented yet: UnitConversionTest("1.2\'^2", 1.2 * FeetToMetre * FeetToMetre, STFReader.Units.AreaDefaultFT2);
+            UnitConversionTest("1.2ft^2", 1.2 * FeetToMetre * FeetToMetre, STFReader.Units.AreaDefaultFT2);
+            // TODO not implemented yet: UnitConversionTest("1.2mil^2", 1.2 * MileToMetre * MileToMetre, STFReader.Units.AreaDefaultFT2);
         }
 
         [Fact]
         public static void UnitConversionDerivedMstsDamping()
         {
-            UnitConversionTest("1.2n/m/s", 1.2, STFReader.UNITS.Resistance);
+            UnitConversionTest("1.2n/m/s", 1.2, STFReader.Units.Resistance);
         }
 
         [Fact]
         public static void UnitConversionDerivedMstsMassRate()
         {
-            // TODO not using SI units: UnitConversionTest("1.2lb/h", 1.2 * PoundToKG / HourToSecond, STFReader.UNITS.MassRateDefaultLBpH);
+            // TODO not using SI units: UnitConversionTest("1.2lb/h", 1.2 * PoundToKG / HourToSecond, STFReader.Units.MassRateDefaultLBpH);
         }
 
         [Fact]
         public static void UnitConversionDerivedMstsStiffness()
         {
-            UnitConversionTest("1.2n/m", 1.2, STFReader.UNITS.Stiffness);
+            UnitConversionTest("1.2n/m", 1.2, STFReader.Units.Stiffness);
         }
 
         [Fact]
         public static void UnitConversionDerivedMstsVelocity()
         {
-            UnitConversionTest("1.2m/s", 1.2, STFReader.UNITS.Speed);
-            UnitConversionTest("1.2m/s", 1.2, STFReader.UNITS.SpeedDefaultMPH);
-            UnitConversionTest("1.2km/h", 1.2 * 1000 / HourToSecond, STFReader.UNITS.Speed);
-            UnitConversionTest("1.2km/h", 1.2 * 1000 / HourToSecond, STFReader.UNITS.SpeedDefaultMPH);
+            UnitConversionTest("1.2m/s", 1.2, STFReader.Units.Speed);
+            UnitConversionTest("1.2m/s", 1.2, STFReader.Units.SpeedDefaultMPH);
+            UnitConversionTest("1.2km/h", 1.2 * 1000 / HourToSecond, STFReader.Units.Speed);
+            UnitConversionTest("1.2km/h", 1.2 * 1000 / HourToSecond, STFReader.Units.SpeedDefaultMPH);
         }
 
         [Fact]
         public static void UnitConversionDerivedMstsVolume()
         {
-            // TODO not implemented yet: UnitConversionTest("1.2mm^3", 1.2 * 1000 / 1000 / 1000, STFReader.UNITS.Volume);
-            // TODO not implemented yet: UnitConversionTest("1.2cm^3", 1.2 / 100 / 100 / 100, STFReader.UNITS.Volume);
-            // TODO not using SI units: UnitConversionTest("1.2m^3", 1.2, STFReader.UNITS.Volume);
-            // TODO not implemented yet: UnitConversionTest("1.2km^3", 1.2 * 1000 * 1000 * 1000, STFReader.UNITS.Volume);
-            // TODO not implemented yet: UnitConversionTest("1.2\"^3", 1.2 * InchToMetre * InchToMetre * InchToMetre, STFReader.UNITS.Volume);
-            // TODO not using SI units: UnitConversionTest("1.2in^3", 1.2 * InchToMetre * InchToMetre * InchToMetre, STFReader.UNITS.Volume);
-            // TODO not implemented yet: UnitConversionTest("1.2\'^3", 1.2 * FeetToMetre * FeetToMetre * FeetToMetre, STFReader.UNITS.Volume);
-            // TODO not using SI units: UnitConversionTest("1.2ft^3", 1.2 * FeetToMetre * FeetToMetre * FeetToMetre, STFReader.UNITS.Volume);
-            // TODO not implemented yet: UnitConversionTest("1.2mil^3", 1.2 * MileToMetre * MileToMetre * MileToMetre, STFReader.UNITS.Volume);
+            // TODO not implemented yet: UnitConversionTest("1.2mm^3", 1.2 * 1000 / 1000 / 1000, STFReader.Units.Volume);
+            // TODO not implemented yet: UnitConversionTest("1.2cm^3", 1.2 / 100 / 100 / 100, STFReader.Units.Volume);
+            // TODO not using SI units: UnitConversionTest("1.2m^3", 1.2, STFReader.Units.Volume);
+            // TODO not implemented yet: UnitConversionTest("1.2km^3", 1.2 * 1000 * 1000 * 1000, STFReader.Units.Volume);
+            // TODO not implemented yet: UnitConversionTest("1.2\"^3", 1.2 * InchToMetre * InchToMetre * InchToMetre, STFReader.Units.Volume);
+            // TODO not using SI units: UnitConversionTest("1.2in^3", 1.2 * InchToMetre * InchToMetre * InchToMetre, STFReader.Units.Volume);
+            // TODO not implemented yet: UnitConversionTest("1.2\'^3", 1.2 * FeetToMetre * FeetToMetre * FeetToMetre, STFReader.Units.Volume);
+            // TODO not using SI units: UnitConversionTest("1.2ft^3", 1.2 * FeetToMetre * FeetToMetre * FeetToMetre, STFReader.Units.Volume);
+            // TODO not implemented yet: UnitConversionTest("1.2mil^3", 1.2 * MileToMetre * MileToMetre * MileToMetre, STFReader.Units.Volume);
         }
 
         /* Default unit for pressure in MSTS is UNKNOWN.
@@ -586,9 +586,9 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionDefaultMstsPressure()
         {
-            //UnitConversionTest("1.2", UNKNOWN, STFReader.UNITS.Pressure);
-            UnitConversionTest("1.2", 1.2 * InchOfMercuryToPascal * PascalToPSI, STFReader.UNITS.PressureDefaultInHg);
-            UnitConversionTest("1.2", 1.2, STFReader.UNITS.PressureDefaultPSI);
+            //UnitConversionTest("1.2", UNKNOWN, STFReader.Units.Pressure);
+            UnitConversionTest("1.2", 1.2 * InchOfMercuryToPascal * PascalToPSI, STFReader.Units.PressureDefaultInHg);
+            UnitConversionTest("1.2", 1.2, STFReader.Units.PressureDefaultPSI);
         }
 
         /* Default unit for time in MSTS is seconds.
@@ -596,9 +596,9 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionDefaultMstsTime()
         {
-            UnitConversionTest("1.2", 1.2, STFReader.UNITS.Time);
-            UnitConversionTest("1.2", 1.2 * MinuteToSecond, STFReader.UNITS.TimeDefaultM);
-            UnitConversionTest("1.2", 1.2 * HourToSecond, STFReader.UNITS.TimeDefaultH);
+            UnitConversionTest("1.2", 1.2, STFReader.Units.Time);
+            UnitConversionTest("1.2", 1.2 * MinuteToSecond, STFReader.Units.TimeDefaultM);
+            UnitConversionTest("1.2", 1.2 * HourToSecond, STFReader.Units.TimeDefaultH);
         }
 
         /* Default unit for velocity in MSTS is UNKNOWN.
@@ -606,8 +606,8 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionDefaultMstsVelocity()
         {
-            //UnitConversionTest("1.2", UNKNOWN, STFReader.UNITS.Speed);
-            UnitConversionTest("1.2", 1.2 * MilePerHourToMetrePerSecond, STFReader.UNITS.SpeedDefaultMPH);
+            //UnitConversionTest("1.2", UNKNOWN, STFReader.Units.Speed);
+            UnitConversionTest("1.2", 1.2 * MilePerHourToMetrePerSecond, STFReader.Units.SpeedDefaultMPH);
         }
 
         /* Default unit for volume in MSTS is UNKNOWN.
@@ -615,8 +615,8 @@ namespace Orts.Tests.Orts.Parsers.Msts
         [Fact]
         public static void UnitConversionDefaultMstsVolume()
         {
-            //UnitConversionTest("1.2", UNKNOWN, STFReader.UNITS.Volume);
-            // TODO not using SI units: UnitConversionTest("1.2", 1.2 * FeetToMetre * FeetToMetre * FeetToMetre, STFReader.UNITS.VolumeDefaultFT3);
+            //UnitConversionTest("1.2", UNKNOWN, STFReader.Units.Volume);
+            // TODO not using SI units: UnitConversionTest("1.2", 1.2 * FeetToMetre * FeetToMetre * FeetToMetre, STFReader.Units.VolumeDefaultFT3);
         }
 
         /* The following units are currently accepted by Open Rails but have no meaning in MSTS:
@@ -2448,33 +2448,33 @@ namespace Orts.Tests.Orts.Parsers.Msts.StfReader
         public static void OnNoValueWarnAndReturnDefault()
         {
             StfTokenReaderCommon.OnNoValueWarnAndReturnDefault<float, float?>
-                (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloat(STFReader.UNITS.None, x));
+                (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloat(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void ReturnValue()
         {
-            StfTokenReaderCommon.ReturnValue<float>(SOMEDEFAULTS, reader => reader.ReadFloat(STFReader.UNITS.None, null));
+            StfTokenReaderCommon.ReturnValue<float>(SOMEDEFAULTS, reader => reader.ReadFloat(STFReader.Units.None, null));
         }
 
         [Fact]
         public static void WithCommaReturnValue()
         {
-            StfTokenReaderCommon.WithCommaReturnValue<float>(SOMEDEFAULTS, reader => reader.ReadFloat(STFReader.UNITS.None, null));
+            StfTokenReaderCommon.WithCommaReturnValue<float>(SOMEDEFAULTS, reader => reader.ReadFloat(STFReader.Units.None, null));
         }
 
         [Fact]
         public static void ForEmptyStringReturnNiceDefault()
         {
             StfTokenReaderCommon.ForEmptyStringReturnNiceDefault<float, float?>
-                (NICEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloat(STFReader.UNITS.None, x));
+                (NICEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloat(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void ForNonNumbersReturnZeroAndWarn()
         {
             StfTokenReaderCommon.ForNonNumbersReturnNiceDefaultAndWarn<float, float?>
-                (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloat(STFReader.UNITS.None, x));
+                (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloat(STFReader.Units.None, x));
         }
 
     }
@@ -2488,34 +2488,34 @@ namespace Orts.Tests.Orts.Parsers.Msts.StfReader
         public static void OnEofWarnAndReturnDefault()
         {
             StfTokenReaderCommon.OnEofWarnAndReturnDefault<float, float?>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloatBlock(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloatBlock(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void ForNoOpenReturnDefaultAndWarn()
         {
             StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<float, float?>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloatBlock(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloatBlock(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void OnBlockEndReturnDefaultOrWarn()
         {
             StfTokenReaderCommon.OnBlockEndReturnDefaultOrWarn<float, float?>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloatBlock(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloatBlock(STFReader.Units.None, x));
         }
 
         public static void ReturnValueInBlock()
         {
             StfTokenReaderCommon.ReturnValueInBlock<float>
-                (SOMEDEFAULTS, reader => reader.ReadFloatBlock(STFReader.UNITS.None, null));
+                (SOMEDEFAULTS, reader => reader.ReadFloatBlock(STFReader.Units.None, null));
         }
 
         [Fact]
         public static void ReturnValueInBlockAndSkipRestOfBlock()
         {
             StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<float>
-                (SOMEDEFAULTS, reader => reader.ReadFloatBlock(STFReader.UNITS.None, null));
+                (SOMEDEFAULTS, reader => reader.ReadFloatBlock(STFReader.Units.None, null));
         }
     }
     #endregion
@@ -2532,35 +2532,35 @@ namespace Orts.Tests.Orts.Parsers.Msts.StfReader
         public static void OnEofWarnAndReturnDefault()
         {
             StfTokenReaderCommon.OnEofWarnAndReturnDefault<Vector2, Vector2>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector2Block(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector2Block(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void ForNoOpenReturnDefaultAndWarn()
         {
             StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<Vector2, Vector2>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector2Block(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector2Block(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void OnBlockEndReturnDefaultWhenGiven()
         {
             StfTokenReaderCommon.OnBlockEndReturnGivenDefault<Vector2, Vector2>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector2Block(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector2Block(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void ReturnValueInBlock()
         {
             StfTokenReaderCommon.ReturnValueInBlock<Vector2>
-                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector2Block(STFReader.UNITS.None, Vector2.Zero));
+                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector2Block(STFReader.Units.None, Vector2.Zero));
         }
 
         [Fact]
         public static void ReturnValueInBlockAndSkipRestOfBlock()
         {
             StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<Vector2>
-                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector2Block(STFReader.UNITS.None, Vector2.Zero));
+                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector2Block(STFReader.Units.None, Vector2.Zero));
         }
     }
     #endregion
@@ -2577,35 +2577,35 @@ namespace Orts.Tests.Orts.Parsers.Msts.StfReader
         public static void OnEofWarnAndReturnDefault()
         {
             StfTokenReaderCommon.OnEofWarnAndReturnDefault<Vector3, Vector3>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector3Block(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector3Block(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void ForNoOpenReturnDefaultAndWarn()
         {
             StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<Vector3, Vector3>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector3Block(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector3Block(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void OnBlockEndReturnDefaultWhenGiven()
         {
             StfTokenReaderCommon.OnBlockEndReturnGivenDefault<Vector3, Vector3>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector3Block(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector3Block(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void ReturnValueInBlock()
         {
             StfTokenReaderCommon.ReturnValueInBlock<Vector3>
-                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector3Block(STFReader.UNITS.None, Vector3.Zero));
+                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector3Block(STFReader.Units.None, Vector3.Zero));
         }
 
         [Fact]
         public static void ReturnValueInBlockAndSkipRestOfBlock()
         {
             StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<Vector3>
-                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector3Block(STFReader.UNITS.None, Vector3.Zero));
+                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector3Block(STFReader.Units.None, Vector3.Zero));
         }
     }
     #endregion
@@ -2622,35 +2622,35 @@ namespace Orts.Tests.Orts.Parsers.Msts.StfReader
         public static void OnEofWarnAndReturnDefault()
         {
             StfTokenReaderCommon.OnEofWarnAndReturnDefault<Vector4, Vector4>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector4Block(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector4Block(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void ForNoOpenReturnDefaultAndWarn()
         {
             StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<Vector4, Vector4>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector4Block(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector4Block(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void OnBlockEndReturnDefaultWhenGiven()
         {
             StfTokenReaderCommon.OnBlockEndReturnGivenDefault<Vector4, Vector4>
-                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector4Block(STFReader.UNITS.None, x));
+                (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector4Block(STFReader.Units.None, x));
         }
 
         [Fact]
         public static void ReturnValueInBlock()
         {
             StfTokenReaderCommon.ReturnValueInBlock<Vector4>
-                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector4Block(STFReader.UNITS.None, Vector4.Zero));
+                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector4Block(STFReader.Units.None, Vector4.Zero));
         }
 
         [Fact]
         public static void ReturnValueInBlockAndSkipRestOfBlock()
         {
             StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<Vector4>
-                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector4Block(STFReader.UNITS.None, Vector4.Zero));
+                (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector4Block(STFReader.Units.None, Vector4.Zero));
         }
     }
     #endregion

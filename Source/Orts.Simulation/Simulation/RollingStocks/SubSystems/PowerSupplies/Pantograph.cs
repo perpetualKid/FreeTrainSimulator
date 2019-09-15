@@ -238,7 +238,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     new STFReader.TokenProcessor(
                         "delay",
                         () => {
-                            DelayS = stf.ReadFloatBlock(STFReader.UNITS.Time, null);
+                            DelayS = stf.ReadFloatBlock(STFReader.Units.Time, null);
                         }
                     )
                 }

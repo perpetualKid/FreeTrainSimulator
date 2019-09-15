@@ -192,46 +192,46 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             {
                 case "engine(trainbrakescontrollermaxsystempressure":
                 case "engine(enginebrakescontrollermaxsystempressure":
-                    MaxPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null);
+                    MaxPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
                     break;
 
                 case "engine(trainbrakescontrollermaxreleaserate":
                 case "engine(enginebrakescontrollermaxreleaserate":    
-                    ReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null);
+                    ReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
                     break;
 
                 case "engine(trainbrakescontrollermaxquickreleaserate":
                 case "engine(enginebrakescontrollermaxquickreleaserate":
-                    QuickReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null);
+                    QuickReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
                     break;
 
                 case "engine(trainbrakescontrollermaxapplicationrate":
                 case "engine(enginebrakescontrollermaxapplicationrate":
-                    ApplyRatePSIpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null);
+                    ApplyRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
                     break;
 
                 case "engine(trainbrakescontrolleremergencyapplicationrate":
                 case "engine(enginebrakescontrolleremergencyapplicationrate":
-                    EmergencyRatePSIpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null);
+                    EmergencyRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
                     break;
 
                 case "engine(trainbrakescontrollerfullservicepressuredrop":
                 case "engine(enginebrakescontrollerfullservicepressuredrop":
-                    FullServReductionPSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null);
+                    FullServReductionPSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
                     break;
 
                 case "engine(trainbrakescontrollerminpressurereduction":
                 case "engine(enginebrakescontrollerminpressurereduction":
-                    MinReductionPSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null);
+                    MinReductionPSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
                     break;
 
                 case "engine(enginecontrollers(brake_train":
                 case "engine(enginecontrollers(brake_engine":
                     stf.MustMatch("(");
-                    MinimumValue = stf.ReadFloat(STFReader.UNITS.None, null);
-                    MaximumValue = stf.ReadFloat(STFReader.UNITS.None, null);
-                    StepSize = stf.ReadFloat(STFReader.UNITS.None, null);
-                    CurrentValue = stf.ReadFloat(STFReader.UNITS.None, null);
+                    MinimumValue = stf.ReadFloat(STFReader.Units.None, null);
+                    MaximumValue = stf.ReadFloat(STFReader.Units.None, null);
+                    StepSize = stf.ReadFloat(STFReader.Units.None, null);
+                    CurrentValue = stf.ReadFloat(STFReader.Units.None, null);
                     string token = stf.ReadItem(); // s/b numnotches
                     if (string.Compare(token, "NumNotches", true) != 0) // handle error in gp38.eng where extra parameter provided before NumNotches statement 
                         stf.ReadItem();
@@ -240,7 +240,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("notch", ()=>{
                             stf.MustMatch("(");
-                            float value = stf.ReadFloat(STFReader.UNITS.None, null);
+                            float value = stf.ReadFloat(STFReader.Units.None, null);
                             int smooth = stf.ReadInt(null);
                             string type = stf.ReadString();
                             Notches.Add(new MSTSNotch(value, smooth, type, stf));

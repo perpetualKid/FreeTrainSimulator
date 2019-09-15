@@ -85,7 +85,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                         GearBoxMaxSpeedForGearsMpS.Clear();
                         for (int i = 0; i < GearBoxNumberOfGears; i++)
                         {
-                            GearBoxMaxSpeedForGearsMpS.Add(stf.ReadFloat(STFReader.UNITS.SpeedDefaultMPH, 10.0f));
+                            GearBoxMaxSpeedForGearsMpS.Add(stf.ReadFloat(STFReader.Units.SpeedDefaultMPH, 10.0f));
                         }
                         stf.SkipRestOfBlock();
                         initLevel++;
@@ -101,16 +101,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     {
                         GearBoxMaxTractiveForceForGearsN.Clear();
                         for (int i = 0; i < GearBoxNumberOfGears; i++)
-                            GearBoxMaxTractiveForceForGearsN.Add(stf.ReadFloat(STFReader.UNITS.Force, 10000.0f));
+                            GearBoxMaxTractiveForceForGearsN.Add(stf.ReadFloat(STFReader.Units.Force, 10000.0f));
                         stf.SkipRestOfBlock();
                         initLevel++;
                     }
                     break;
-                case "engine(gearboxoverspeedpercentageforfailure": GearBoxOverspeedPercentageForFailure = stf.ReadFloatBlock(STFReader.UNITS.None, 150f); break; // initLevel++; break;
-                case "engine(gearboxbackloadforce": GearBoxBackLoadForceN = stf.ReadFloatBlock(STFReader.UNITS.Force, 0f); break;
-                case "engine(gearboxcoastingforce": GearBoxCoastingForceN = stf.ReadFloatBlock(STFReader.UNITS.Force, 0f); break;
-                case "engine(gearboxupgearproportion": GearBoxUpGearProportion = stf.ReadFloatBlock(STFReader.UNITS.None, 0.85f); break; // initLevel++; break;
-                case "engine(gearboxdowngearproportion": GearBoxDownGearProportion = stf.ReadFloatBlock(STFReader.UNITS.None, 0.25f); break; // initLevel++; break;
+                case "engine(gearboxoverspeedpercentageforfailure": GearBoxOverspeedPercentageForFailure = stf.ReadFloatBlock(STFReader.Units.None, 150f); break; // initLevel++; break;
+                case "engine(gearboxbackloadforce": GearBoxBackLoadForceN = stf.ReadFloatBlock(STFReader.Units.Force, 0f); break;
+                case "engine(gearboxcoastingforce": GearBoxCoastingForceN = stf.ReadFloatBlock(STFReader.Units.Force, 0f); break;
+                case "engine(gearboxupgearproportion": GearBoxUpGearProportion = stf.ReadFloatBlock(STFReader.Units.None, 0.85f); break; // initLevel++; break;
+                case "engine(gearboxdowngearproportion": GearBoxDownGearProportion = stf.ReadFloatBlock(STFReader.Units.None, 0.25f); break; // initLevel++; break;
                 default: break;
             }
         }

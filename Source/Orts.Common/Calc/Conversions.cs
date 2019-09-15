@@ -240,6 +240,10 @@ namespace Orts.Common.Calc
         /// </summary>
         public static class LiquidVolume
         {
+            /// <summary>Convert from cubic metres to litres</summary>
+            public static float FromM3(float qubicMetres) { return qubicMetres * 1000; }
+            /// <summary>Convert litres to cubic metres</summary>
+            public static float ToM3(float litre) { return litre / (1.0f * 1000); }
             /// <summary>Convert from UK Gallons to litres</summary>
             public static float FromGallonUK(float gallonUK) { return gallonUK * 4.54609f; }
             /// <summary>Convert from litres to UK Gallons</summary>
@@ -248,6 +252,14 @@ namespace Orts.Common.Calc
             public static float FromGallonUS(float gallonUS) { return gallonUS * 3.78541f; }
             /// <summary>Convert from litres to US Gallons</summary>
             public static float ToGallonUS(float litre) { return litre * (1.0f / 3.78541f); }
+            /// <summary>Convert from cubic feet to litres</summary>
+            public static float FromFt3(float qubicFeet) { return FromM3(Volume.FromFt3(qubicFeet)); }
+            /// <summary>Convert from litres to cubic feet</summary>
+            public static float ToFt3(float litre) { return Volume.ToFt3(ToM3(litre)); }
+            /// <summary>Convert from cubic inches to litres</summary>
+            public static float FromIn3(float qubicInches) { return FromM3(Volume.FromIn3(qubicInches)); }
+            /// <summary>Convert from litres to cubic inches</summary>
+            public static float ToIn3(float litre) { return Volume.FromFt3(ToM3(litre)); }
         }
     }
 
@@ -297,6 +309,10 @@ namespace Orts.Common.Calc
         /// </summary>
         public static class Resistance
         {
+            /// <summary>Convert from pound-force per mile per hour to Newton per meter per second</summary>
+            public static float FromLbfpMpH(float lbfMpH) { return (Force.FromLbf(lbfMpH) / Speed.MeterPerSecond.FromMpH(1)); }
+            /// <summary>Convert from pound-force per mile per hour squared to Newton per meter per second</summary>
+            public static float FromLbfpMpH2(float lbfMpH) { return (Force.FromLbf(lbfMpH) / (Speed.MeterPerSecond.FromMpH(1) * Speed.MeterPerSecond.FromMpH(1))); }
         }
 
         /// <summary>
@@ -443,7 +459,7 @@ namespace Orts.Common.Calc
         {
             /// <summary>Convert from Pounds per square Inch per second to bar per second</summary>
             public static float FromPSIpS(float psi) { return psi * (1.0f / 14.5037738f); }
-            /// <summary>Convert from</summary>
+            /// <summary>Convert from bar per second to Pounds per square Inch per second</summary>
             public static float ToPSIpS(float bar) { return bar * 14.5037738f; }
         }
     }

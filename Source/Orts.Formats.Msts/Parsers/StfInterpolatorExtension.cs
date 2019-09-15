@@ -10,7 +10,7 @@ namespace Orts.Formats.Msts.Parsers
             List<float> list = new List<float>();
             reader.MustMatch("(");
             while (!reader.EndOfBlock())
-                list.Add(reader.ReadFloat(STFReader.UNITS.Any, null));
+                list.Add(reader.ReadFloat(STFReader.Units.Any, null));
             if (list.Count % 2 == 1)
                 STFException.TraceWarning(reader, "Ignoring extra odd value in Interpolator list.");
             int n = list.Count / 2;
@@ -35,7 +35,7 @@ namespace Orts.Formats.Msts.Parsers
             stf.MustMatch("(");
             while (!stf.EndOfBlock())
             {
-                xlist.Add(stf.ReadFloat(STFReader.UNITS.Any, null));
+                xlist.Add(stf.ReadFloat(STFReader.Units.Any, null));
                 ilist.Add(stf.CreateInterpolator());
             }
             stf.SkipRestOfBlock();
@@ -77,7 +77,7 @@ namespace Orts.Formats.Msts.Parsers
                     int numOfThrottleValues = 0;
                     while (!stf.EndOfBlock())
                     {
-                        xlist.Add(stf.ReadFloat(STFReader.UNITS.None, 0f));
+                        xlist.Add(stf.ReadFloat(STFReader.Units.None, 0f));
                         ilist.Add(new Interpolator(numOfRows));
                         numOfThrottleValues++;
                     }
@@ -100,7 +100,7 @@ namespace Orts.Formats.Msts.Parsers
                         stf.MustMatch("(");
                         for (int i = 0; i < numOfRows; i++)
                         {
-                            float x = stf.ReadFloat(STFReader.UNITS.SpeedDefaultMPH, 0);
+                            float x = stf.ReadFloat(STFReader.Units.SpeedDefaultMPH, 0);
                             numofData++;
                             for (int j = 0; j < numOfColumns - 1; j++)
                             {
@@ -109,7 +109,7 @@ namespace Orts.Formats.Msts.Parsers
                                     STFException.TraceWarning(stf, "Interpolator throttle vs. num of columns mismatch. (missing some throttle values)");
                                     errorFound = true;
                                 }
-                                ilist[j][x] = stf.ReadFloat(STFReader.UNITS.Force, 0);
+                                ilist[j][x] = stf.ReadFloat(STFReader.Units.Force, 0);
                                 numofData++;
                             }
                         }
@@ -167,7 +167,7 @@ namespace Orts.Formats.Msts.Parsers
                 stf.MustMatch("(");
                 while (!stf.EndOfBlock())
                 {
-                    xlist.Add(stf.ReadFloat(STFReader.UNITS.Any, null));
+                    xlist.Add(stf.ReadFloat(STFReader.Units.Any, null));
                     ilist.Add(stf.CreateInterpolator());
                 }
             }

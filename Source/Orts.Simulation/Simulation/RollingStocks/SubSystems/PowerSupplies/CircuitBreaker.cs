@@ -101,7 +101,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     break;
 
                 case "engine(ortscircuitbreakerclosingdelay":
-                    DelayS = stf.ReadFloatBlock(STFReader.UNITS.Time, null);
+                    DelayS = stf.ReadFloatBlock(STFReader.Units.Time, null);
                     break;
             }
         }

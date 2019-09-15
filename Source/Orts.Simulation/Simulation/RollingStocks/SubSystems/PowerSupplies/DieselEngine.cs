@@ -744,19 +744,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 string lowercasetoken = stf.ReadItem().ToLower();
                 switch (lowercasetoken)
                 {
-                    case "idlerpm": IdleRPM = stf.ReadFloatBlock(STFReader.UNITS.None, 0); initLevel |= SettingsFlags.IdleRPM; break;
-                    case "maxrpm":          MaxRPM = stf.ReadFloatBlock(STFReader.UNITS.None, 0);initLevel |= SettingsFlags.MaxRPM; break;
-                    case "startingrpm": StartingRPM = stf.ReadFloatBlock(STFReader.UNITS.None, 0); initLevel |= SettingsFlags.StartingRPM; break;
-                    case "startingconfirmrpm": StartingConfirmationRPM = stf.ReadFloatBlock(STFReader.UNITS.None, 0); initLevel |= SettingsFlags.StartingConfirmRPM; break;
-                    case "changeuprpmps": ChangeUpRPMpS = stf.ReadFloatBlock(STFReader.UNITS.None, 0); initLevel |= SettingsFlags.ChangeUpRPMpS; break;
-                    case "changedownrpmps": ChangeDownRPMpS = stf.ReadFloatBlock(STFReader.UNITS.None, 0); initLevel |= SettingsFlags.ChangeDownRPMpS; break;
-                    case "rateofchangeuprpmpss": RateOfChangeUpRPMpSS = stf.ReadFloatBlock(STFReader.UNITS.None, 0);initLevel |= SettingsFlags.RateOfChangeUpRPMpSS; break;
-                    case "rateofchangedownrpmpss": RateOfChangeDownRPMpSS = stf.ReadFloatBlock(STFReader.UNITS.None, 0);initLevel |= SettingsFlags.RateOfChangeDownRPMpSS; break;
-                    case "maximalpower":   MaximalPowerW = stf.ReadFloatBlock(STFReader.UNITS.Power, 0);initLevel |= SettingsFlags.MaximalPowerW; break;
-                    case "idleexhaust":     InitialExhaust = stf.ReadFloatBlock(STFReader.UNITS.None, 0); initLevel |= SettingsFlags.IdleExhaust; break;
-                    case "maxexhaust":      MaxExhaust = stf.ReadFloatBlock(STFReader.UNITS.None, 0);initLevel |= SettingsFlags.MaxExhaust; break;
-                    case "exhaustdynamics": ExhaustAccelIncrease = stf.ReadFloatBlock(STFReader.UNITS.None, 0); initLevel |= SettingsFlags.ExhaustDynamics; break;
-                    case "exhaustdynamicsdown": ExhaustDecelReduction = stf.ReadFloatBlock(STFReader.UNITS.None, null); initLevel |= SettingsFlags.ExhaustDynamics; break;
+                    case "idlerpm": IdleRPM = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.IdleRPM; break;
+                    case "maxrpm":          MaxRPM = stf.ReadFloatBlock(STFReader.Units.None, 0);initLevel |= SettingsFlags.MaxRPM; break;
+                    case "startingrpm": StartingRPM = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.StartingRPM; break;
+                    case "startingconfirmrpm": StartingConfirmationRPM = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.StartingConfirmRPM; break;
+                    case "changeuprpmps": ChangeUpRPMpS = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.ChangeUpRPMpS; break;
+                    case "changedownrpmps": ChangeDownRPMpS = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.ChangeDownRPMpS; break;
+                    case "rateofchangeuprpmpss": RateOfChangeUpRPMpSS = stf.ReadFloatBlock(STFReader.Units.None, 0);initLevel |= SettingsFlags.RateOfChangeUpRPMpSS; break;
+                    case "rateofchangedownrpmpss": RateOfChangeDownRPMpSS = stf.ReadFloatBlock(STFReader.Units.None, 0);initLevel |= SettingsFlags.RateOfChangeDownRPMpSS; break;
+                    case "maximalpower":   MaximalPowerW = stf.ReadFloatBlock(STFReader.Units.Power, 0);initLevel |= SettingsFlags.MaximalPowerW; break;
+                    case "idleexhaust":     InitialExhaust = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.IdleExhaust; break;
+                    case "maxexhaust":      MaxExhaust = stf.ReadFloatBlock(STFReader.Units.None, 0);initLevel |= SettingsFlags.MaxExhaust; break;
+                    case "exhaustdynamics": ExhaustAccelIncrease = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.ExhaustDynamics; break;
+                    case "exhaustdynamicsdown": ExhaustDecelReduction = stf.ReadFloatBlock(STFReader.Units.None, null); initLevel |= SettingsFlags.ExhaustDynamics; break;
                     case "exhaustcolor":
                         // Color byte order changed in XNA 4 from BGRA to RGBA
                         ExhaustSteadyColor.PackedValue = stf.ReadHexBlock(Color.Gray.PackedValue);
@@ -776,13 +776,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     case "dieselconsumptiontab": DieselConsumptionTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselConsumptionTab; break;
                     case "throttlerpmtab": ThrottleRPMTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.ThrottleRPMTab; break;
                     case "dieseltorquetab": DieselTorqueTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselTorqueTab; break;
-                    case "minoilpressure": DieselMinOilPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, 40f); initLevel |= SettingsFlags.MinOilPressure; break;
-                    case "maxoilpressure": DieselMaxOilPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, 120f); initLevel |= SettingsFlags.MaxOilPressure; break;
-                    case "maxtemperature": DieselMaxTemperatureDeg = stf.ReadFloatBlock(STFReader.UNITS.TemperatureDifference, 100f); initLevel |= SettingsFlags.MaxTemperature; break;
+                    case "minoilpressure": DieselMinOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 40f); initLevel |= SettingsFlags.MinOilPressure; break;
+                    case "maxoilpressure": DieselMaxOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 120f); initLevel |= SettingsFlags.MaxOilPressure; break;
+                    case "maxtemperature": DieselMaxTemperatureDeg = stf.ReadFloatBlock(STFReader.Units.TemperatureDifference, 100f); initLevel |= SettingsFlags.MaxTemperature; break;
                     case "cooling": EngineCooling = (Cooling)stf.ReadIntBlock((int)Cooling.Proportional); initLevel |= SettingsFlags.Cooling; break ; //ReadInt changed to ReadIntBlock
-                    case "temptimeconstant": DieselTempTimeConstantSec = stf.ReadFloatBlock(STFReader.UNITS.Time, 720f); initLevel |= SettingsFlags.TempTimeConstant; break;
-                    case "opttemperature": DieselOptimalTemperatureDegC = stf.ReadFloatBlock(STFReader.UNITS.TemperatureDifference, 95f); initLevel |= SettingsFlags.OptTemperature; break;
-                    case "idletemperature": DieselIdleTemperatureDegC = stf.ReadFloatBlock(STFReader.UNITS.TemperatureDifference, 75f); initLevel |= SettingsFlags.IdleTemperature; break;
+                    case "temptimeconstant": DieselTempTimeConstantSec = stf.ReadFloatBlock(STFReader.Units.Time, 720f); initLevel |= SettingsFlags.TempTimeConstant; break;
+                    case "opttemperature": DieselOptimalTemperatureDegC = stf.ReadFloatBlock(STFReader.Units.TemperatureDifference, 95f); initLevel |= SettingsFlags.OptTemperature; break;
+                    case "idletemperature": DieselIdleTemperatureDegC = stf.ReadFloatBlock(STFReader.Units.TemperatureDifference, 75f); initLevel |= SettingsFlags.IdleTemperature; break;
                     default:
                         end = true;
                         break;

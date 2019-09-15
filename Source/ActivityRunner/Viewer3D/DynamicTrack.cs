@@ -565,9 +565,9 @@ namespace Orts.ActivityRunner.Viewer3D
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("lodmethod", ()=> { LODMethod = GetLODMethod(stf.ReadStringBlock(null)); }),
-                new STFReader.TokenProcessor("chordspan", ()=>{ ChordSpan = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); }),
+                new STFReader.TokenProcessor("chordspan", ()=>{ ChordSpan = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("pitchcontrol", ()=> { PitchControl = GetPitchControl(stf.ReadStringBlock(null)); }),
-                new STFReader.TokenProcessor("pitchcontrolscalar", ()=>{ PitchControlScalar = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); }),
+                new STFReader.TokenProcessor("pitchcontrolscalar", ()=>{ PitchControlScalar = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("lod", ()=> { LODs.Add(new LOD(viewer, stf)); }),
             });
 
@@ -729,7 +729,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("cutoffradius", ()=>{ CutoffRadius = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); }),
+                new STFReader.TokenProcessor("cutoffradius", ()=>{ CutoffRadius = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("loditem", ()=>{
                     LODItem lodItem = new LODItem(viewer, stf);
                     LODItems.Add(lodItem); // Append to Polylines array
@@ -788,7 +788,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 new STFReader.TokenProcessor("alphatestmode", ()=>{ AlphaTestMode = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("texaddrmodename", ()=>{ TexAddrModeName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("esd_alternative_texture", ()=>{ ESD_Alternative_Texture = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("mipmaplevelofdetailbias", ()=>{ MipMapLevelOfDetailBias = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),
+                new STFReader.TokenProcessor("mipmaplevelofdetailbias", ()=>{ MipMapLevelOfDetailBias = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("polyline", ()=>{
                     Polyline pl = new Polyline(stf);
                     Polylines.Add(pl); // Append to Polylines array
@@ -843,8 +843,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 new STFReader.TokenProcessor("vertex", ()=>{ Vertices.Add(new Vertex(stf)); }),
                 new STFReader.TokenProcessor("deltatexcoord", ()=>{
                     stf.MustMatch("(");
-                    DeltaTexCoord.X = stf.ReadFloat(STFReader.UNITS.None, null);
-                    DeltaTexCoord.Y = stf.ReadFloat(STFReader.UNITS.None, null);
+                    DeltaTexCoord.X = stf.ReadFloat(STFReader.Units.None, null);
+                    DeltaTexCoord.Y = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
             });
@@ -895,22 +895,22 @@ namespace Orts.ActivityRunner.Viewer3D
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("position", ()=>{
                     stf.MustMatch("(");
-                    v.Position.X = stf.ReadFloat(STFReader.UNITS.None, null);
-                    v.Position.Y = stf.ReadFloat(STFReader.UNITS.None, null);
+                    v.Position.X = stf.ReadFloat(STFReader.Units.None, null);
+                    v.Position.Y = stf.ReadFloat(STFReader.Units.None, null);
                     v.Position.Z = 0.0f;
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("normal", ()=>{
                     stf.MustMatch("(");
-                    v.Normal.X = stf.ReadFloat(STFReader.UNITS.None, null);
-                    v.Normal.Y = stf.ReadFloat(STFReader.UNITS.None, null);
-                    v.Normal.Z = stf.ReadFloat(STFReader.UNITS.None, null);
+                    v.Normal.X = stf.ReadFloat(STFReader.Units.None, null);
+                    v.Normal.Y = stf.ReadFloat(STFReader.Units.None, null);
+                    v.Normal.Z = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("texcoord", ()=>{
                     stf.MustMatch("(");
-                    v.TexCoord.X = stf.ReadFloat(STFReader.UNITS.None, null);
-                    v.TexCoord.Y = stf.ReadFloat(STFReader.UNITS.None, null);
+                    v.TexCoord.X = stf.ReadFloat(STFReader.Units.None, null);
+                    v.TexCoord.Y = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
             });

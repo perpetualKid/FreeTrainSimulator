@@ -256,7 +256,7 @@ namespace Orts.Simulation.RollingStocks
                         {
                             float? f = defaultValue as float?;
                             _fi.SetValue(setWhom,
-                                stf.ReadFloatBlock(STFReader.UNITS.Any, f));
+                                stf.ReadFloatBlock(STFReader.Units.Any, f));
                             break;
                         }
                     case "double":
@@ -271,7 +271,7 @@ namespace Orts.Simulation.RollingStocks
                             Vector3 v3 = (defaultValue as string).ParseVector3();
                             {
                                 _fi.SetValue(setWhom,
-                                    stf.ReadVector3Block(STFReader.UNITS.Any, v3));
+                                    stf.ReadVector3Block(STFReader.Units.Any, v3));
                             }
                             break;
                         }
@@ -280,7 +280,7 @@ namespace Orts.Simulation.RollingStocks
                             Vector4 v4 = (defaultValue as string).ParseVector4();
                             {
                                 _fi.SetValue(setWhom,
-                                    stf.ReadVector4Block(STFReader.UNITS.Any, v4));
+                                    stf.ReadVector4Block(STFReader.Units.Any, v4));
                             }
                             break;
                         }
@@ -289,7 +289,7 @@ namespace Orts.Simulation.RollingStocks
                             Color c = (defaultValue as string).ParseColor();
                             {
                                 Vector4 v4 = new Vector4(-1);
-                                v4 = stf.ReadVector4Block(STFReader.UNITS.Any, v4);
+                                v4 = stf.ReadVector4Block(STFReader.Units.Any, v4);
                                 if (v4.W == -1)
                                 {
                                     c.A = 255;

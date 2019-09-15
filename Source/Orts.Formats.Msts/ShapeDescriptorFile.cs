@@ -63,7 +63,7 @@ namespace Orts.Formats.Msts
                             ESD_Bounding_Box = null;
                     }),
                     new STFReader.TokenProcessor("esd_ortssoundfilename", ()=>{ ESD_SoundFileName = stf.ReadStringBlock(null); }),
-                    new STFReader.TokenProcessor("esd_ortsbellanimationfps", ()=>{ ESD_BellAnimationFPS = stf.ReadFloatBlock(STFReader.UNITS.Frequency, null); }),
+                    new STFReader.TokenProcessor("esd_ortsbellanimationfps", ()=>{ ESD_BellAnimationFPS = stf.ReadFloatBlock(STFReader.Units.Frequency, null); }),
                 });
                 // TODO - some objects have no bounding box - ie JP2BillboardTree1.sd
                 //if (ESD_Bounding_Box == null) throw new STFException(stf, "Missing ESD_Bound_Box statement");
@@ -92,13 +92,13 @@ namespace Orts.Formats.Msts
                 string item = stf.ReadString();
                 if (item == ")") return;    // quietly return on ESD_Bounding_Box()
                 stf.StepBackOneItem();
-                float X = stf.ReadFloat(STFReader.UNITS.None, null);
-                float Y = stf.ReadFloat(STFReader.UNITS.None, null);
-                float Z = stf.ReadFloat(STFReader.UNITS.None, null);
+                float X = stf.ReadFloat(STFReader.Units.None, null);
+                float Y = stf.ReadFloat(STFReader.Units.None, null);
+                float Z = stf.ReadFloat(STFReader.Units.None, null);
                 Min = new TWorldPosition(X, Y, Z);
-                X = stf.ReadFloat(STFReader.UNITS.None, null);
-                Y = stf.ReadFloat(STFReader.UNITS.None, null);
-                Z = stf.ReadFloat(STFReader.UNITS.None, null);
+                X = stf.ReadFloat(STFReader.Units.None, null);
+                Y = stf.ReadFloat(STFReader.Units.None, null);
+                Z = stf.ReadFloat(STFReader.Units.None, null);
                 Max = new TWorldPosition(X, Y, Z);
                 // JP2indirt.sd has extra parameters
                 stf.SkipRestOfBlock();

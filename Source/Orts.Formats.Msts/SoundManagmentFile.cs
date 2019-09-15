@@ -101,7 +101,7 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("activation", ()=>{ Activation = new Activation(stf); }),
                 new STFReader.TokenProcessor("deactivation", ()=>{ Deactivation = new Deactivation(stf); }),
                 new STFReader.TokenProcessor("streams", ()=>{ Streams = new SMSStreams(stf); }),
-                new STFReader.TokenProcessor("volume", ()=>{ Volume = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),
+                new STFReader.TokenProcessor("volume", ()=>{ Volume = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("stereo", ()=>{ Stereo = stf.ReadBoolBlock(true); }),
                 new STFReader.TokenProcessor("ignore3d", ()=>{ Ignore3D = stf.ReadBoolBlock(true); }),
             });
@@ -123,7 +123,7 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("externalcam", ()=>{ ExternalCam = stf.ReadBoolBlock(true); }),
                 new STFReader.TokenProcessor("cabcam", ()=>{ CabCam = stf.ReadBoolBlock(true); }),
                 new STFReader.TokenProcessor("passengercam", ()=>{ PassengerCam = stf.ReadBoolBlock(true); }),
-                new STFReader.TokenProcessor("distance", ()=>{ Distance = stf.ReadFloatBlock(STFReader.UNITS.Distance, Distance); }),
+                new STFReader.TokenProcessor("distance", ()=>{ Distance = stf.ReadFloatBlock(STFReader.Units.Distance, Distance); }),
                 new STFReader.TokenProcessor("tracktype", ()=>{ TrackType = stf.ReadIntBlock(null); }),
             });
         }
@@ -180,7 +180,7 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("triggers", ()=>{ Triggers = new Triggers(stf); }),
                 new STFReader.TokenProcessor("volumecurve", ()=>{ VolumeCurves.Add(new VolumeCurve(stf)); }),
                 new STFReader.TokenProcessor("frequencycurve", ()=>{ FrequencyCurve = new FrequencyCurve(stf); }),
-                new STFReader.TokenProcessor("volume", ()=>{ Volume = stf.ReadFloatBlock(STFReader.UNITS.None, Volume); }),
+                new STFReader.TokenProcessor("volume", ()=>{ Volume = stf.ReadFloatBlock(STFReader.Units.None, Volume); }),
             });
             //if (Volume > 1)  Volume /= 100f;
         }
@@ -216,20 +216,20 @@ namespace Orts.Formats.Msts
                 default: STFException.TraceWarning(stf, "Crash expected: Skipped unknown VolumeCurve/Frequencycurve type " + type); stf.SkipRestOfBlock(); return;
             }
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("granularity", ()=>{ Granularity = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),
+                new STFReader.TokenProcessor("granularity", ()=>{ Granularity = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("curvepoints", ()=>{
                     stf.MustMatch("(");
                     int count = stf.ReadInt(null);
                     CurvePoints = new CurvePoint[count];
                     for (int i = 0; i < count; ++i)
                     {
-                        CurvePoints[i].X = stf.ReadFloat(STFReader.UNITS.None, null);
+                        CurvePoints[i].X = stf.ReadFloat(STFReader.Units.None, null);
                         if (Control == Controls.DistanceControlled)
 						{
 							if (CurvePoints[i].X >= 0) CurvePoints[i].X *= CurvePoints[i].X;
 							else CurvePoints[i].X *= -CurvePoints[i].X;
 						}
-                        CurvePoints[i].Y = stf.ReadFloat(STFReader.UNITS.None, null);
+                        CurvePoints[i].Y = stf.ReadFloat(STFReader.Units.None, null);
                     }
                     stf.SkipRestOfBlock();
                 }),
@@ -346,7 +346,7 @@ namespace Orts.Formats.Msts
 
             string eventString = f.ReadString();
 
-            Threshold = f.ReadFloat(STFReader.UNITS.None, null);
+            Threshold = f.ReadFloat(STFReader.Units.None, null);
 
             switch (eventString.ToLower())
             {
@@ -398,8 +398,8 @@ namespace Orts.Formats.Msts
                 string lowtok = f.ReadString().ToLower();
                 switch (lowtok)
                 {
-                    case "dist_min_max": f.MustMatch("("); Dist_Min = f.ReadFloat(STFReader.UNITS.Distance, null); Dist_Max = f.ReadFloat(STFReader.UNITS.Distance, null); f.SkipRestOfBlock(); break;
-                    case "volume_min_max": f.MustMatch("("); Volume_Min = f.ReadFloat(STFReader.UNITS.None, null); Volume_Max = f.ReadFloat(STFReader.UNITS.None, null); f.SkipRestOfBlock(); break;
+                    case "dist_min_max": f.MustMatch("("); Dist_Min = f.ReadFloat(STFReader.Units.Distance, null); Dist_Max = f.ReadFloat(STFReader.Units.Distance, null); f.SkipRestOfBlock(); break;
+                    case "volume_min_max": f.MustMatch("("); Volume_Min = f.ReadFloat(STFReader.Units.None, null); Volume_Max = f.ReadFloat(STFReader.Units.None, null); f.SkipRestOfBlock(); break;
                     default: ParsePlayCommand(f, lowtok); break;
                 }
             }
@@ -421,8 +421,8 @@ namespace Orts.Formats.Msts
                 string lowtok = f.ReadString().ToLower();
                 switch (lowtok)
                 {
-                    case "delay_min_max": f.MustMatch("("); Delay_Min = f.ReadFloat(STFReader.UNITS.None, null); Delay_Max = f.ReadFloat(STFReader.UNITS.None, null); f.SkipRestOfBlock(); break;
-                    case "volume_min_max": f.MustMatch("("); Volume_Min = f.ReadFloat(STFReader.UNITS.None, null); Volume_Max = f.ReadFloat(STFReader.UNITS.None, null); f.SkipRestOfBlock(); break;
+                    case "delay_min_max": f.MustMatch("("); Delay_Min = f.ReadFloat(STFReader.Units.None, null); Delay_Max = f.ReadFloat(STFReader.Units.None, null); f.SkipRestOfBlock(); break;
+                    case "volume_min_max": f.MustMatch("("); Volume_Min = f.ReadFloat(STFReader.Units.None, null); Volume_Max = f.ReadFloat(STFReader.Units.None, null); f.SkipRestOfBlock(); break;
                     default: ParsePlayCommand(f, lowtok); break;
                 }
             }
@@ -440,7 +440,7 @@ namespace Orts.Formats.Msts
         public SetStreamVolume(STFReader f)
         {
             f.MustMatch("(");
-            Volume = f.ReadFloat(STFReader.UNITS.None, null);
+            Volume = f.ReadFloat(STFReader.Units.None, null);
             f.SkipRestOfBlock();
         }
     }

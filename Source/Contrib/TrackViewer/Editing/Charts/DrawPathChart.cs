@@ -1075,7 +1075,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         public decimal ValueMax { get; private set; }
         /// <summary>Scale between the unit of the data and the unit used for presenting (e.g. 0.3048 for data in m but presenting in feet)</summary>
         public decimal Scale { get; private set; }
-        /// <summary>Unit to be used for printing</summary>
+        /// <summary>Units to be used for printing</summary>
         public string Unit { get; private set; }
 
         /// <summary>

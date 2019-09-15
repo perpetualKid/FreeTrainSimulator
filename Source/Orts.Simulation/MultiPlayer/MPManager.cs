@@ -905,7 +905,7 @@ namespace Orts.MultiPlayer
 							new STFReader.TokenProcessor("wagon", ()=>{
 								stf.ReadString();
 								stf.ParseBlock(new STFReader.TokenProcessor[] {
-									new STFReader.TokenProcessor("size", ()=>{ def = stf.ReadVector3Block(STFReader.UNITS.Distance, def); }),
+									new STFReader.TokenProcessor("size", ()=>{ def = stf.ReadVector3Block(STFReader.Units.Distance, def); }),
 								});
 							}),
 						});

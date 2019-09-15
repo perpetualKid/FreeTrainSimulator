@@ -87,7 +87,7 @@ namespace Orts.Formats.Msts
             stf.MustMatch("(");
             //pre fit in the shape path so no need to do it again and again later
             name = shapePath + stf.ReadString();
-            dist = stf.ReadFloat(STFReader.UNITS.Distance, null);
+            dist = stf.ReadFloat(STFReader.Units.Distance, null);
             stf.SkipRestOfBlock();
         }
     } 

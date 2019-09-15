@@ -108,7 +108,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 s = string.Format(" Lead BP {0}", FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true));
             }
 
-            //            string s = string.Format(" V {0}", FormatStrings.FormatPressure(Car.Train.EqualReservoirPressurePSIorInHg, Pressure.Unit.InHg, Pressure.Unit.InHg, true));
+            //            string s = string.Format(" V {0}", FormatStrings.FormatPressure(Car.Train.EqualReservoirPressurePSIorInHg, Pressure.Units.InHg, Pressure.Units.InHg, true));
             if (lastCarBrakeSystem != null && lastCarBrakeSystem != this)
                 s += " EOT " + lastCarBrakeSystem.GetStatus(units);
             if (HandbrakePercent > 0)
@@ -160,10 +160,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             switch (lowercasetoken)
             {
-                case "wagon(brakecylinderpressureformaxbrakebrakeforce": MaxForcePressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultInHg, null); break;
-                case "wagon(maxreleaserate": MaxReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultInHgpS, null); break;
-                case "wagon(maxapplicationrate": MaxApplicationRatePSIpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultInHgpS, null); break;
-                case "wagon(ortsdirectadmissionvalve": DirectAdmissionValve = stf.ReadFloatBlock(STFReader.UNITS.None, null);
+                case "wagon(brakecylinderpressureformaxbrakebrakeforce": MaxForcePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultInHg, null); break;
+                case "wagon(maxreleaserate": MaxReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultInHgpS, null); break;
+                case "wagon(maxapplicationrate": MaxApplicationRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultInHgpS, null); break;
+                case "wagon(ortsdirectadmissionvalve": DirectAdmissionValve = stf.ReadFloatBlock(STFReader.Units.None, null);
                     if(DirectAdmissionValve == 1.0f)
                     {
                         HasDirectAdmissionValue = true;
@@ -174,9 +174,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     }
                     break;
                 // OpenRails specific parameters
-                case "wagon(brakepipevolume": BrakePipeVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
-                case "wagon(ortsauxilaryrescapacity": VacResVolM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
-                case "wagon(ortsbrakecylindersize": float BrakeCylSizeM = stf.ReadFloatBlock(STFReader.UNITS.Distance, null);
+                case "wagon(brakepipevolume": BrakePipeVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "wagon(ortsauxilaryrescapacity": VacResVolM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "wagon(ortsbrakecylindersize": float BrakeCylSizeM = stf.ReadFloatBlock(STFReader.Units.Distance, null);
                     BrakeCylVolM3 = Size.Volume.FromIn3((float)((Size.Length.ToIn(BrakeCylSizeM) / 2) * (Size.Length.ToIn(BrakeCylSizeM) / 2) * 4.5 * Math.PI)); // Calculate brake cylinder volume based upon size of BC, 4.5" of piston travel
                     break;
                 case "wagon(ortsnumberbrakecylinders": NumBrakeCylinders = stf.ReadIntBlock(null); break;

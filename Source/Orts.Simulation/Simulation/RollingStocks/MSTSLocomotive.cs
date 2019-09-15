@@ -696,11 +696,11 @@ namespace Orts.Simulation.RollingStocks
             {
                 case "engine(sound": CabSoundFileName = stf.ReadStringBlock(null); break;
                 case "engine(cabview": CVFFileName = stf.ReadStringBlock(null); break;
-                case "engine(maxpower": MaxPowerW = stf.ReadFloatBlock(STFReader.UNITS.Power, null); break;
-                case "engine(maxforce": MaxForceN = stf.ReadFloatBlock(STFReader.UNITS.Force, null); break;
-                case "engine(maxcurrent": MaxCurrentA = stf.ReadFloatBlock(STFReader.UNITS.Current, null); break;
-                case "engine(maxcontinuousforce": MaxContinuousForceN = stf.ReadFloatBlock(STFReader.UNITS.Force, null); break;
-                case "engine(maxvelocity": MaxSpeedMpS = stf.ReadFloatBlock(STFReader.UNITS.Speed, null); break;
+                case "engine(maxpower": MaxPowerW = stf.ReadFloatBlock(STFReader.Units.Power, null); break;
+                case "engine(maxforce": MaxForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
+                case "engine(maxcurrent": MaxCurrentA = stf.ReadFloatBlock(STFReader.Units.Current, null); break;
+                case "engine(maxcontinuousforce": MaxContinuousForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
+                case "engine(maxvelocity": MaxSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
 
                 case "engine(type":
                     stf.MustMatch("(");
@@ -752,56 +752,56 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(awsmonitor":
                 case "engine(overspeedmonitor": VigilanceMonitor = true; TrainControlSystem.Parse(lowercasetoken, stf); break;
                 case "engine(enginecontrollers(combined_control": ParseCombData(lowercasetoken, stf); break;
-                case "engine(airbrakesmainresvolume": MainResVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
-                case "engine(airbrakesmainmaxairpressure": MainResPressurePSI = MaxMainResPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break;
-                case "engine(airbrakescompressorrestartpressure": CompressorRestartPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break;
-                case "engine(airbrakesaircompressorpowerrating": CompressorChargingRateM3pS = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
-                case "engine(trainpipeleakrate": TrainBrakePipeLeakPSIorInHgpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null); break;
-                case "engine(vacuumbrakesvacuumpumpresistance": VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.UNITS.Force, null); break;
+                case "engine(airbrakesmainresvolume": MainResVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "engine(airbrakesmainmaxairpressure": MainResPressurePSI = MaxMainResPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
+                case "engine(airbrakescompressorrestartpressure": CompressorRestartPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
+                case "engine(airbrakesaircompressorpowerrating": CompressorChargingRateM3pS = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "engine(trainpipeleakrate": TrainBrakePipeLeakPSIorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
+                case "engine(vacuumbrakesvacuumpumpresistance": VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
 
-                case "engine(ortsvacuumbrakesmainresvolume": VacuumBrakesMainResVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.UNITS.VolumeDefaultFT3, null)); break;
-                case "engine(ortsvacuumbrakesmainresmaxvacuum": VacuumBrakesMainResMaxVacuumPSIAorInHg = OneAtmospherePSI - stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
-                case "engine(ortsvacuumbrakesexhausterrestartvacuum": VacuumBrakesExhausterRestartVacuumPSIAorInHg = OneAtmospherePSI - stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
-                case "engine(ortsvacuumbrakesmainreschargingrate": VacuumBrakesMainResChargingRatePSIAorInHgpS = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break;
+                case "engine(ortsvacuumbrakesmainresvolume": VacuumBrakesMainResVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "engine(ortsvacuumbrakesmainresmaxvacuum": VacuumBrakesMainResMaxVacuumPSIAorInHg = OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
+                case "engine(ortsvacuumbrakesexhausterrestartvacuum": VacuumBrakesExhausterRestartVacuumPSIAorInHg = OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
+                case "engine(ortsvacuumbrakesmainreschargingrate": VacuumBrakesMainResChargingRatePSIAorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
 
-                case "engine(ortsmainreschargingrate": MainResChargingRatePSIpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null); break;
-                case "engine(ortsenginebrakereleaserate": EngineBrakeReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null); break;
-                case "engine(ortsenginebrakeapplicationrate": EngineBrakeApplyRatePSIpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null); break;
-                case "engine(ortsbrakepipetimefactor": BrakePipeTimeFactorS = stf.ReadFloatBlock(STFReader.UNITS.Time, null); break;
-                case "engine(ortsbrakeservicetimefactor": BrakeServiceTimeFactorS = stf.ReadFloatBlock(STFReader.UNITS.Time, null); break;
-                case "engine(ortsbrakeemergencytimefactor": BrakeEmergencyTimeFactorS = stf.ReadFloatBlock(STFReader.UNITS.Time, null); break;
-                case "engine(ortsbrakepipechargingrate": BrakePipeChargingRatePSIorInHgpS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null); break;
-                case "engine(ortsbrakepipedischargetimemult": BrakePipeDischargeTimeFactor = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
+                case "engine(ortsmainreschargingrate": MainResChargingRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
+                case "engine(ortsenginebrakereleaserate": EngineBrakeReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
+                case "engine(ortsenginebrakeapplicationrate": EngineBrakeApplyRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
+                case "engine(ortsbrakepipetimefactor": BrakePipeTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
+                case "engine(ortsbrakeservicetimefactor": BrakeServiceTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
+                case "engine(ortsbrakeemergencytimefactor": BrakeEmergencyTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
+                case "engine(ortsbrakepipechargingrate": BrakePipeChargingRatePSIorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
+                case "engine(ortsbrakepipedischargetimemult": BrakePipeDischargeTimeFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(ortsmaxtractiveforcecurves": TractiveForceCurves = stf.CreateInterpolator2D(false); TractiveForceCurves.CheckForNegativeValues(); break;
                 case "engine(ortstractioncharacteristics": TractiveForceCurves = stf.CreateInterpolator2D(true); break;
                 case "engine(ortsdynamicbrakeforcecurves": DynamicBrakeForceCurves = stf.CreateInterpolator2D(false); break;
-                case "engine(ortscontinuousforcetimefactor": ContinuousForceTimeFactor = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-                case "engine(orts(ortssanderspeedeffectupto": SanderSpeedEffectUpToMpS = stf.ReadFloatBlock(STFReader.UNITS.Speed, null); break;
+                case "engine(ortscontinuousforcetimefactor": ContinuousForceTimeFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(orts(ortssanderspeedeffectupto": SanderSpeedEffectUpToMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
                 case "engine(orts(ortsemergencycausespowerdown": EmergencyCausesPowerDown = stf.ReadBoolBlock(false); break;
                 case "engine(orts(ortsemergencycausesthrottledown": EmergencyCausesThrottleDown = stf.ReadBoolBlock(false); break;
                 case "engine(orts(ortsemergencyengageshorn": EmergencyEngagesHorn = stf.ReadBoolBlock(false); break;
                 case "engine(orts(ortswheelslipcausesthrottledown": WheelslipCausesThrottleDown = stf.ReadBoolBlock(false); break;
-                case "engine(dynamicbrakesminusablespeed": DynamicBrakeSpeed1MpS = stf.ReadFloatBlock(STFReader.UNITS.SpeedDefaultMPH, null); break;
-                case "engine(dynamicbrakesfadingspeed": DynamicBrakeSpeed2MpS = stf.ReadFloatBlock(STFReader.UNITS.SpeedDefaultMPH, null); break;
-                case "engine(dynamicbrakesmaximumeffectivespeed": DynamicBrakeSpeed3MpS = stf.ReadFloatBlock(STFReader.UNITS.SpeedDefaultMPH, null); break;
-                case "engine(dynamicbrakesmaximumspeedforfadeout": DynamicBrakeSpeed4MpS = stf.ReadFloatBlock(STFReader.UNITS.SpeedDefaultMPH, null); break;
-                case "engine(dynamicbrakeseffectatmaximumfadeout": DynamicBrakeRatioAtSpeed4 = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-                case "engine(dynamicbrakesmaximumforce": MaxDynamicBrakeForceN = stf.ReadFloatBlock(STFReader.UNITS.Force, null); break;
+                case "engine(dynamicbrakesminusablespeed": DynamicBrakeSpeed1MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null); break;
+                case "engine(dynamicbrakesfadingspeed": DynamicBrakeSpeed2MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null); break;
+                case "engine(dynamicbrakesmaximumeffectivespeed": DynamicBrakeSpeed3MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null); break;
+                case "engine(dynamicbrakesmaximumspeedforfadeout": DynamicBrakeSpeed4MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null); break;
+                case "engine(dynamicbrakeseffectatmaximumfadeout": DynamicBrakeRatioAtSpeed4 = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(dynamicbrakesmaximumforce": MaxDynamicBrakeForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
                 case "engine(dynamicbrakehasautobailoff":
                 case "engine(ortsdynamicbrakeshasautobailoff": DynamicBrakeAutoBailOff = stf.ReadBoolBlock(true); break;
-                case "engine(dynamicbrakesdelaytimebeforeengaging": DynamicBrakeDelayS = stf.ReadFloatBlock(STFReader.UNITS.Time, null); break;
-                case "engine(dynamicbrakesresistorcurrentlimit": DynamicBrakeMaxCurrentA = stf.ReadFloatBlock(STFReader.UNITS.Current, null); break;
-                case "engine(numwheels": LocoNumDrvWheels = stf.ReadFloatBlock(STFReader.UNITS.None, 4.0f); if (LocoNumDrvWheels < 1) STFException.TraceWarning(stf, "Engine:NumWheels is less than 1, parts of the simulation may not function correctly"); break;
+                case "engine(dynamicbrakesdelaytimebeforeengaging": DynamicBrakeDelayS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
+                case "engine(dynamicbrakesresistorcurrentlimit": DynamicBrakeMaxCurrentA = stf.ReadFloatBlock(STFReader.Units.Current, null); break;
+                case "engine(numwheels": LocoNumDrvWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); if (LocoNumDrvWheels < 1) STFException.TraceWarning(stf, "Engine:NumWheels is less than 1, parts of the simulation may not function correctly"); break;
                 case "engine(antislip": AntiSlip = stf.ReadBoolBlock(false); break;
-                case "engine(ortsdrivewheelweight": InitialDrvWheelWeightKg = stf.ReadFloatBlock(STFReader.UNITS.Mass, null); break;
+                case "engine(ortsdrivewheelweight": InitialDrvWheelWeightKg = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
                 case "engine(engineoperatingprocedures": EngineOperatingProcedures = stf.ReadStringBlock(""); break;
                 case "engine(headout":
-                    HeadOutViewpoints.Add(new ViewPoint(stf.ReadVector3Block(STFReader.UNITS.Distance, Vector3.Zero)));
+                    HeadOutViewpoints.Add(new ViewPoint(stf.ReadVector3Block(STFReader.Units.Distance, Vector3.Zero)));
                     HeadOutViewpoints.Add(new ViewPoint(HeadOutViewpoints[0], true));
                     break;
-                case "engine(sanding": SanderSpeedOfMpS = stf.ReadFloatBlock(STFReader.UNITS.Speed, 30.0f); break;
+                case "engine(sanding": SanderSpeedOfMpS = stf.ReadFloatBlock(STFReader.Units.Speed, 30.0f); break;
                 case "engine(doesbrakecutpower": DoesBrakeCutPower = stf.ReadBoolBlock(false); break;
-                case "engine(brakecutspoweratbrakecylinderpressure": BrakeCutsPowerAtBrakeCylinderPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break;
+                case "engine(brakecutspoweratbrakecylinderpressure": BrakeCutsPowerAtBrakeCylinderPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(doeshorntriggerbell": DoesHornTriggerBell = stf.ReadBoolBlock(false); break;
                 case "engine(brakesenginecontrollers":
                     foreach (var brakesenginecontrollers in stf.ReadStringBlock("").ToLower().Replace(" ", "").Split(','))
@@ -841,14 +841,14 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(vacuumbrakeshasvacuumpump": VacuumPumpFitted = stf.ReadBoolBlock(false); break;
                 case "engine(enginecontrollers(ortssteamheat": SteamHeatController.Parse(stf); break;
                 case "engine(name": stf.MustMatch("("); LocomotiveName = stf.ReadString(); break;
-                case "engine(maxsteamheatingpressure": MaxSteamHeatPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break;
+                case "engine(maxsteamheatingpressure": MaxSteamHeatPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(ortsonlinecabradio": OnLineCabRadio = stf.ReadBoolBlock(false); break;
                 case "engine(ortsonlinecabradiourl": OnLineCabRadioURL = stf.ReadString(); break;
-                case "engine(vacuumbrakesminboilerpressuremaxvacuum": MaxVaccuumMaxPressurePSI = stf.ReadFloatBlock(STFReader.UNITS.PressureDefaultPSI, null); break;
+                case "engine(vacuumbrakesminboilerpressuremaxvacuum": MaxVaccuumMaxPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(enginecontrollers(waterscoop": HasWaterScoop = true; break;
-                case "engine(ortswaterscoopfillelevation": WaterScoopFillElevationM = stf.ReadFloatBlock(STFReader.UNITS.Distance, 0.0f); break;
-                case "engine(ortswaterscoopdepth": WaterScoopDepthM = stf.ReadFloatBlock(STFReader.UNITS.Distance, 0.0f); break;
-                case "engine(ortswaterscoopwidth": WaterScoopWidthM = stf.ReadFloatBlock(STFReader.UNITS.Distance, 0.0f); break;
+                case "engine(ortswaterscoopfillelevation": WaterScoopFillElevationM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f); break;
+                case "engine(ortswaterscoopdepth": WaterScoopDepthM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f); break;
+                case "engine(ortswaterscoopwidth": WaterScoopWidthM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f); break;
                 default: base.Parse(lowercasetoken, stf); break;
                     
             }
@@ -1043,10 +1043,10 @@ namespace Orts.Simulation.RollingStocks
             var independent = false;
 
             stf.MustMatch("(");
-            var minValue = stf.ReadFloat(STFReader.UNITS.None, 0);
-            var maxValue = stf.ReadFloat(STFReader.UNITS.None, 1);
-            var split = stf.ReadFloat(STFReader.UNITS.None, 0.5f);
-            var defaultValue = stf.ReadFloat(STFReader.UNITS.None, 0.5f);
+            var minValue = stf.ReadFloat(STFReader.Units.None, 0);
+            var maxValue = stf.ReadFloat(STFReader.Units.None, 1);
+            var split = stf.ReadFloat(STFReader.Units.None, 0.5f);
+            var defaultValue = stf.ReadFloat(STFReader.Units.None, 0.5f);
 
             string s;
             while ((s = stf.ReadItem()) != ")")

@@ -405,7 +405,7 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("season", ()=>{ Season = (SeasonType)stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("weather", ()=>{ Weather = (WeatherType)stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("pathid", ()=>{ PathID = stf.ReadStringBlock(null); }),
-                new STFReader.TokenProcessor("startingspeed", ()=>{ StartingSpeed = (int)stf.ReadFloatBlock(STFReader.UNITS.Speed, (float)StartingSpeed); }),                
+                new STFReader.TokenProcessor("startingspeed", ()=>{ StartingSpeed = (int)stf.ReadFloatBlock(STFReader.Units.Speed, (float)StartingSpeed); }),                
                 new STFReader.TokenProcessor("duration", ()=>{ Duration = new Duration(stf); }),
                 new STFReader.TokenProcessor("difficulty", ()=>{ Difficulty = (Difficulty)stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("animals", ()=>{ Animals = stf.ReadIntBlock(Animals); }),
@@ -896,14 +896,14 @@ namespace Orts.Formats.Msts
             float distanceDownPath = new float();
             int platformStartID = 0;
             stf.MustMatch("(");
-            Time = (int)stf.ReadFloat(STFReader.UNITS.Time, null);
+            Time = (int)stf.ReadFloat(STFReader.Units.Time, null);
             // Clumsy parsing. You only get a new Player_Traffic_Item in the list after a PlatformStartId is met.
             // Blame lies with Microsoft for poor design of syntax.
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("arrivaltime", ()=>{ arrivalTime = baseDT.AddSeconds(stf.ReadFloatBlock(STFReader.UNITS.Time, null)); }),
-                new STFReader.TokenProcessor("departtime", ()=>{ departTime = baseDT.AddSeconds(stf.ReadFloatBlock(STFReader.UNITS.Time, null)); }),
+                new STFReader.TokenProcessor("arrivaltime", ()=>{ arrivalTime = baseDT.AddSeconds(stf.ReadFloatBlock(STFReader.Units.Time, null)); }),
+                new STFReader.TokenProcessor("departtime", ()=>{ departTime = baseDT.AddSeconds(stf.ReadFloatBlock(STFReader.Units.Time, null)); }),
                 new STFReader.TokenProcessor("skipcount", ()=>{ skipCount = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("distancedownpath", ()=>{ distanceDownPath = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); }),
+                new STFReader.TokenProcessor("distancedownpath", ()=>{ distanceDownPath = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("platformstartid", ()=>{ platformStartID = stf.ReadIntBlock(null); 
                     Player_Traffic_List.Add(new Player_Traffic_Item(arrivalTime, departTime, skipCount, distanceDownPath, platformStartID)); }),
             });
@@ -942,15 +942,15 @@ namespace Orts.Formats.Msts
         public Service_Definition(STFReader stf) {
             stf.MustMatch("(");
             Name = stf.ReadString();
-            Time = (int)stf.ReadFloat(STFReader.UNITS.Time, null);
+            Time = (int)stf.ReadFloat(STFReader.Units.Time, null);
             stf.MustMatch("uid");
             UiD = stf.ReadIntBlock(null);
             // Clumsy parsing. You only get a new Service_Item in the list after a PlatformStartId is met.
             // Blame lies with Microsoft for poor design of syntax.
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("efficiency", ()=>{ efficiency = stf.ReadFloatBlock(STFReader.UNITS.Any, null); }),
+                new STFReader.TokenProcessor("efficiency", ()=>{ efficiency = stf.ReadFloatBlock(STFReader.Units.Any, null); }),
                 new STFReader.TokenProcessor("skipcount", ()=>{ skipCount = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("distancedownpath", ()=>{ distanceDownPath = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); }),
+                new STFReader.TokenProcessor("distancedownpath", ()=>{ distanceDownPath = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("platformstartid", ()=>{ platformStartID = stf.ReadIntBlock(null); 
                     ServiceList.Add(new Service_Item(efficiency, skipCount, distanceDownPath, platformStartID)); }),
             });
@@ -1179,9 +1179,9 @@ namespace Orts.Formats.Msts
                     stf.MustMatch("(");
                     TileX = stf.ReadInt(null);
                     TileZ = stf.ReadInt(null);
-                    X = stf.ReadFloat(STFReader.UNITS.None, null);
-                    Z = stf.ReadFloat(STFReader.UNITS.None, null);
-                    RadiusM = stf.ReadFloat(STFReader.UNITS.Distance, null);
+                    X = stf.ReadFloat(STFReader.Units.None, null);
+                    Z = stf.ReadFloat(STFReader.Units.None, null);
+                    RadiusM = stf.ReadFloat(STFReader.Units.Distance, null);
                     stf.MustMatch(")");
                 }),
                 new STFReader.TokenProcessor("ortscontinue", ()=>{ ORTSContinue = stf.ReadIntBlock(0); }),
@@ -1254,7 +1254,7 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("wagon_list", ()=>{ WagonList = new WagonList(stf, Type); }),
                 new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = (uint)stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("speed", ()=>{ SpeedMpS = stf.ReadFloatBlock(STFReader.UNITS.Speed, null); }),
+                new STFReader.TokenProcessor("speed", ()=>{ SpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); }),
                 new STFReader.TokenProcessor("reversable_event", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Reversible = true; }),
                 // Also support the correct spelling !
                 new STFReader.TokenProcessor("reversible_event", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Reversible = true; }),
@@ -1338,7 +1338,7 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("texttodisplayoncompletioniftriggered", ()=>{ TextToDisplayOnCompletionIfTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletionifnotrriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
-                new STFReader.TokenProcessor("time", ()=>{ Time = (int)stf.ReadFloatBlock(STFReader.UNITS.Time, null); }),
+                new STFReader.TokenProcessor("time", ()=>{ Time = (int)stf.ReadFloatBlock(STFReader.Units.Time, null); }),
                 new STFReader.TokenProcessor("ortscontinue", ()=>{ ORTSContinue = stf.ReadIntBlock(0); }),
                 new STFReader.TokenProcessor("ortsactsoundfile", ()=>
                 {
@@ -1508,9 +1508,9 @@ namespace Orts.Formats.Msts
                     stf.MustMatch("(");
                     TileX = stf.ReadInt(null);
                     TileZ = stf.ReadInt(null);
-                    X = stf.ReadFloat(STFReader.UNITS.None, null);
-                    Y = stf.ReadFloat(STFReader.UNITS.None, null);
-                    Z = stf.ReadFloat(STFReader.UNITS.None, null);
+                    X = stf.ReadFloat(STFReader.Units.None, null);
+                    Y = stf.ReadFloat(STFReader.Units.None, null);
+                    Z = stf.ReadFloat(STFReader.Units.None, null);
                     stf.MustMatch(")");
                 }),
             });
@@ -1558,8 +1558,8 @@ namespace Orts.Formats.Msts
                     stf.MustMatch("(");
                     TileX = stf.ReadInt(null);
                     TileZ = stf.ReadInt(null);
-                    X = stf.ReadFloat(STFReader.UNITS.None, null);
-                    Z = stf.ReadFloat(STFReader.UNITS.None, null);
+                    X = stf.ReadFloat(STFReader.Units.None, null);
+                    Z = stf.ReadFloat(STFReader.Units.None, null);
                     stf.MustMatch(")");
                 }),
             });
@@ -1584,8 +1584,8 @@ namespace Orts.Formats.Msts
 
         public MaxVelocity(STFReader stf) {
             stf.MustMatch("(");
-            A = stf.ReadFloat(STFReader.UNITS.Speed, null);
-            B = stf.ReadFloat(STFReader.UNITS.Speed, null);
+            A = stf.ReadFloat(STFReader.Units.Speed, null);
+            B = stf.ReadFloat(STFReader.Units.Speed, null);
             stf.MustMatch(")");
         }
     }
@@ -1607,7 +1607,7 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("serial", ()=>{ Serial = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("maxvelocity", ()=>{ MaxVelocity = new MaxVelocity(stf); }),
                 new STFReader.TokenProcessor("nextwagonuid", ()=>{ NextWagonUID = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("durability", ()=>{ Durability = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),
+                new STFReader.TokenProcessor("durability", ()=>{ Durability = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("wagon", ()=>{ WagonList.Add(new Wagon(stf)); }),
                 new STFReader.TokenProcessor("engine", ()=>{ WagonList.Add(new Wagon(stf)); }),
             });
@@ -1722,8 +1722,8 @@ namespace Orts.Formats.Msts
             stf.MustMatch("(");
             TileX = stf.ReadInt(null);
             TileZ = stf.ReadInt(null);
-            X = stf.ReadFloat(STFReader.UNITS.None, null);
-            Z = stf.ReadFloat(STFReader.UNITS.None, null);
+            X = stf.ReadFloat(STFReader.Units.None, null);
+            Z = stf.ReadFloat(STFReader.Units.None, null);
             stf.MustMatch(")");
         }
     }

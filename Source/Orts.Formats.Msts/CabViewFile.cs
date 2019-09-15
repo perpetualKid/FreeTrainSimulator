@@ -41,8 +41,8 @@ namespace Orts.Formats.Msts
             using (STFReader stf = new STFReader(filePath, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("tr_cabviewfile", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("position", ()=>{ Locations.Add(stf.ReadVector3Block(STFReader.UNITS.None, new Vector3())); }),
-                        new STFReader.TokenProcessor("direction", ()=>{ Directions.Add(stf.ReadVector3Block(STFReader.UNITS.None, new Vector3())); }),
+                        new STFReader.TokenProcessor("position", ()=>{ Locations.Add(stf.ReadVector3Block(STFReader.Units.None, new Vector3())); }),
+                        new STFReader.TokenProcessor("direction", ()=>{ Directions.Add(stf.ReadVector3Block(STFReader.Units.None, new Vector3())); }),
                         new STFReader.TokenProcessor("cabviewfile", ()=>{
                             var fileName = stf.ReadStringBlock(null);
                             var path = Path.Combine(basePath, Path.GetDirectoryName(fileName));
@@ -404,7 +404,7 @@ namespace Orts.Formats.Msts
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("position", ()=>{ ParsePosition(stf);  }),
                 new STFReader.TokenProcessor("graphic", ()=>{ ParseGraphic(stf, basepath); }),
-                new STFReader.TokenProcessor("pivot", ()=>{ Center = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),
+                new STFReader.TokenProcessor("pivot", ()=>{ Center = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 });
             ControlType = dialtype;
             ControlStyle = CABViewControlStyles.NEEDLE;
@@ -427,12 +427,12 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("style", ()=>{ ParseStyle(stf); }),
                 new STFReader.TokenProcessor("units", ()=>{ ParseUnits(stf); }),
 
-                new STFReader.TokenProcessor("pivot", ()=>{ Center = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),
+                new STFReader.TokenProcessor("pivot", ()=>{ Center = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("dirincrease", ()=>{ Direction = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("scalepos", ()=>{
                     stf.MustMatch("(");
-                    FromDegree = stf.ReadFloat(STFReader.UNITS.None, null);
-                    ToDegree = stf.ReadFloat(STFReader.UNITS.None, null);
+                    FromDegree = stf.ReadFloat(STFReader.Units.None, null);
+                    ToDegree = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
             });
@@ -1071,7 +1071,7 @@ namespace Orts.Formats.Msts
                             stf.ParseBlock( new STFReader.TokenProcessor[] {
                                 new STFReader.TokenProcessor("style", ()=>{ MSStyles.Add(ParseNumStyle(stf));
                                 }),
-                                new STFReader.TokenProcessor("switchval", ()=>{ Values.Add(stf.ReadFloatBlock(STFReader.UNITS.None, null))
+                                new STFReader.TokenProcessor("switchval", ()=>{ Values.Add(stf.ReadFloatBlock(STFReader.Units.None, null))
                                 ; }),
                         });}),
                     });

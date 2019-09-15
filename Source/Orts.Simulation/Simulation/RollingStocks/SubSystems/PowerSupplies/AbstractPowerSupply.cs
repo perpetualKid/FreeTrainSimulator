@@ -122,11 +122,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             switch (lowercasetoken)
             {
                 case "engine(ortspowerondelay":
-                    PowerOnDelayS = stf.ReadFloatBlock(STFReader.UNITS.Time, null);
+                    PowerOnDelayS = stf.ReadFloatBlock(STFReader.Units.Time, null);
                     break;
 
                 case "engine(ortsauxpowerondelay":
-                    AuxPowerOnDelayS = stf.ReadFloatBlock(STFReader.UNITS.Time, null);
+                    AuxPowerOnDelayS = stf.ReadFloatBlock(STFReader.Units.Time, null);
                     break;
             }
         }

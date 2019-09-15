@@ -192,10 +192,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public void Parse(STFReader stf)
         {
             stf.MustMatch("(");
-            MinimumValue = stf.ReadFloat(STFReader.UNITS.None, null);
-            MaximumValue = stf.ReadFloat(STFReader.UNITS.None, null);
-            StepSize = stf.ReadFloat(STFReader.UNITS.None, null);
-            IntermediateValue = CurrentValue = stf.ReadFloat(STFReader.UNITS.None, null);
+            MinimumValue = stf.ReadFloat(STFReader.Units.None, null);
+            MaximumValue = stf.ReadFloat(STFReader.Units.None, null);
+            StepSize = stf.ReadFloat(STFReader.Units.None, null);
+            IntermediateValue = CurrentValue = stf.ReadFloat(STFReader.Units.None, null);
             string token = stf.ReadItem(); // s/b numnotches
             if (string.Compare(token, "NumNotches", true) != 0) // handle error in gp38.eng where extra parameter provided before NumNotches statement 
                 stf.ReadItem();
@@ -204,7 +204,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("notch", ()=>{
                     stf.MustMatch("(");
-                    float value = stf.ReadFloat(STFReader.UNITS.None, null);
+                    float value = stf.ReadFloat(STFReader.Units.None, null);
                     int smooth = stf.ReadInt(null);
                     string type = stf.ReadString();
                     Notches.Add(new MSTSNotch(value, smooth, type, stf));

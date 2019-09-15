@@ -41,8 +41,8 @@ namespace Orts.Formats.Msts
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("world", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("world_water", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
-                            new STFReader.TokenProcessor("world_water_wave_height", ()=>{ WaterWaveHeight = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); }),
-                            new STFReader.TokenProcessor("world_water_wave_speed", ()=>{ WaterWaveSpeed = stf.ReadFloatBlock(STFReader.UNITS.Speed, null); }),
+                            new STFReader.TokenProcessor("world_water_wave_height", ()=>{ WaterWaveHeight = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
+                            new STFReader.TokenProcessor("world_water_wave_speed", ()=>{ WaterWaveSpeed = stf.ReadFloatBlock(STFReader.Units.Speed, null); }),
                             new STFReader.TokenProcessor("world_water_layers", ()=>{ ParseWaterLayers(stf); }),
                             });}),
                         });}),
@@ -52,7 +52,7 @@ namespace Orts.Formats.Msts
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("world", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("world_sky", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
-                               new STFReader.TokenProcessor("worldskynlayers_behind_satellites", ()=>{ WorldSkynLayers = stf.ReadFloatBlock( STFReader.UNITS.Any, null ); }),
+                               new STFReader.TokenProcessor("worldskynlayers_behind_satellites", ()=>{ WorldSkynLayers = stf.ReadFloatBlock( STFReader.Units.Any, null ); }),
                                new STFReader.TokenProcessor("world_sky_layers", ()=>{ ParseSkyLayers(stf); }),
                                new STFReader.TokenProcessor("world_sky_satellites", ()=>{ ParseWorldSkySatellites(stf); }),
                                });}),
@@ -99,7 +99,7 @@ namespace Orts.Formats.Msts
             {
                 stf.MustMatch("(");
                 stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("world_water_layer_height", ()=>{ Height = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); }),
+                new STFReader.TokenProcessor("world_water_layer_height", ()=>{ Height = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("world_anim_shader", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("world_shader", ()=>{ stf.MustMatch("("); stf.ReadString()/*TextureMode*/; stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("terrain_texslots", ()=>{ stf.MustMatch("("); stf.ReadInt(null)/*Count*/; stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -131,7 +131,7 @@ namespace Orts.Formats.Msts
                         new STFReader.TokenProcessor("world_anim_shader", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
                             new STFReader.TokenProcessor("world_anim_shader_frames", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
                                 new STFReader.TokenProcessor("world_anim_shader_frame", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
-                                    new STFReader.TokenProcessor("world_anim_shader_frame_uvtiles", ()=>{ stf.MustMatch("("); TileX = stf.ReadFloat(STFReader.UNITS.Any, 1.0f); TileY = stf.ReadFloat(STFReader.UNITS.Any, 1.0f); stf.ParseBlock(new STFReader.TokenProcessor[] {
+                                    new STFReader.TokenProcessor("world_anim_shader_frame_uvtiles", ()=>{ stf.MustMatch("("); TileX = stf.ReadFloat(STFReader.Units.Any, 1.0f); TileY = stf.ReadFloat(STFReader.Units.Any, 1.0f); stf.ParseBlock(new STFReader.TokenProcessor[] {
                                     });}),  
                                 });}),
                             });}),

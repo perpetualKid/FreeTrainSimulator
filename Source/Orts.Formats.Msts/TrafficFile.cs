@@ -80,12 +80,12 @@ namespace Orts.Formats.Msts
 
             stf.MustMatch("(");
             Service_Definition = stf.ReadString();
-            Time = stf.ReadInt(null);   // Cannot use stt.ReadFloat(STFReader.UNITS.Time, null) as number will be followed by "arrivaltime"
+            Time = stf.ReadInt(null);   // Cannot use stt.ReadFloat(STFReader.Units.Time, null) as number will be followed by "arrivaltime"
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("arrivaltime", ()=>{ arrivalTime = (int)stf.ReadFloatBlock(STFReader.UNITS.Time, null); }),
-                new STFReader.TokenProcessor("departtime", ()=>{ departTime = (int)stf.ReadFloatBlock(STFReader.UNITS.Time, null); }),
+                new STFReader.TokenProcessor("arrivaltime", ()=>{ arrivalTime = (int)stf.ReadFloatBlock(STFReader.Units.Time, null); }),
+                new STFReader.TokenProcessor("departtime", ()=>{ departTime = (int)stf.ReadFloatBlock(STFReader.Units.Time, null); }),
                 new STFReader.TokenProcessor("skipcount", ()=>{ skipCount = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("distancedownpath", ()=>{ distanceDownPath = stf.ReadFloatBlock(STFReader.UNITS.Distance, null); }),
+                new STFReader.TokenProcessor("distancedownpath", ()=>{ distanceDownPath = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("platformstartid", ()=>{ platformStartID = stf.ReadIntBlock(null); 
                     TrafficDetails.Add(new Traffic_Traffic_Item(arrivalTime, departTime, skipCount, distanceDownPath, platformStartID));
                 }),

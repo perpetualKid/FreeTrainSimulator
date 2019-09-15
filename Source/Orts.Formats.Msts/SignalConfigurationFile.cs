@@ -355,10 +355,10 @@ namespace Orts.Formats.Msts
             stf.MustMatch("(");
             Name = stf.ReadString().ToLowerInvariant();
             TextureFile = stf.ReadString();
-            u0 = stf.ReadFloat(STFReader.UNITS.None, null);
-            v0 = stf.ReadFloat(STFReader.UNITS.None, null);
-            u1 = stf.ReadFloat(STFReader.UNITS.None, null);
-            v1 = stf.ReadFloat(STFReader.UNITS.None, null);
+            u0 = stf.ReadFloat(STFReader.Units.None, null);
+            v0 = stf.ReadFloat(STFReader.Units.None, null);
+            u1 = stf.ReadFloat(STFReader.Units.None, null);
+            v1 = stf.ReadFloat(STFReader.Units.None, null);
             stf.SkipRestOfBlock();
         }
     }
@@ -513,15 +513,15 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("signalaspects", ()=>{ Aspects = ReadAspects(stf); }),
                 new STFReader.TokenProcessor("approachcontrolsettings", ()=>{ ApproachControlDetails = ReadApproachControlDetails(stf); }),
                 new STFReader.TokenProcessor("signalnumclearahead", ()=>{ numClearAhead = numClearAhead >= -1 ? numClearAhead : stf.ReadIntBlock(null); numdefs++;}),
-                new STFReader.TokenProcessor("semaphoreinfo", ()=>{ SemaphoreInfo = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),
-                new STFReader.TokenProcessor("ortsdayglow", ()=>{ DayGlow = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),
-                new STFReader.TokenProcessor("ortsnightglow", ()=>{ NightGlow = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),                
+                new STFReader.TokenProcessor("semaphoreinfo", ()=>{ SemaphoreInfo = stf.ReadFloatBlock(STFReader.Units.None, null); }),
+                new STFReader.TokenProcessor("ortsdayglow", ()=>{ DayGlow = stf.ReadFloatBlock(STFReader.Units.None, null); }),
+                new STFReader.TokenProcessor("ortsnightglow", ()=>{ NightGlow = stf.ReadFloatBlock(STFReader.Units.None, null); }),                
                 new STFReader.TokenProcessor("ortsdaylight", ()=>{ DayLight = stf.ReadBoolBlock(true); }),
                 new STFReader.TokenProcessor("ortsnormalsubtype", ()=>{ ORTSNormalSubtype = ReadORTSNormalSubtype(stf, ORTSNormalSubtypes); }),
                 new STFReader.TokenProcessor("sigflashduration", ()=>{
                     stf.MustMatch("(");
-                    FlashTimeOn = stf.ReadFloat(STFReader.UNITS.None, null);
-                    FlashTimeOff = stf.ReadFloat(STFReader.UNITS.None, null);
+                    FlashTimeOn = stf.ReadFloat(STFReader.Units.None, null);
+                    FlashTimeOff = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("signalflags", ()=>{
@@ -795,12 +795,12 @@ namespace Orts.Formats.Msts
             Index = stf.ReadUInt(null);
             Name = stf.ReadString().ToLowerInvariant();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("radius", ()=>{ Radius = stf.ReadFloatBlock(STFReader.UNITS.None, null); }),
+                new STFReader.TokenProcessor("radius", ()=>{ Radius = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("position", ()=>{
                     stf.MustMatch("(");
-                    X = stf.ReadFloat(STFReader.UNITS.None, null);
-                    Y = stf.ReadFloat(STFReader.UNITS.None, null);
-                    Z = stf.ReadFloat(STFReader.UNITS.None, null);
+                    X = stf.ReadFloat(STFReader.Units.None, null);
+                    Y = stf.ReadFloat(STFReader.Units.None, null);
+                    Z = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("signalflags", ()=>{
@@ -866,7 +866,7 @@ namespace Orts.Formats.Msts
             Name = stf.ReadString().ToLowerInvariant();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("drawlights", ()=>{ DrawLights = ReadDrawLights(stf); }),
-                new STFReader.TokenProcessor("semaphorepos", ()=>{ SemaphorePos = stf.ReadFloatBlock(STFReader.UNITS.None, 0); }),
+                new STFReader.TokenProcessor("semaphorepos", ()=>{ SemaphorePos = stf.ReadFloatBlock(STFReader.Units.None, 0); }),
             });
         }
 
@@ -986,8 +986,8 @@ namespace Orts.Formats.Msts
             }
             DrawStateName = stf.ReadString().ToLowerInvariant();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("speedmph", ()=>{ SpeedMpS = Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
-                new STFReader.TokenProcessor("speedkph", ()=>{ SpeedMpS = Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
+                new STFReader.TokenProcessor("speedmph", ()=>{ SpeedMpS = Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("speedkph", ()=>{ SpeedMpS = Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
                 new STFReader.TokenProcessor("signalflags", ()=>{
                     stf.MustMatch("(");
                     while (!stf.EndOfBlock())
@@ -1023,12 +1023,12 @@ namespace Orts.Formats.Msts
         public ApproachControlLimits(STFReader stf)
         {
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("positionmiles", ()=>{ ApproachControlPositionM = Size.Length.FromMi(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
-                new STFReader.TokenProcessor("positionkm", ()=>{ ApproachControlPositionM = (stf.ReadFloatBlock(STFReader.UNITS.None, 0) * 1000); }),
-                new STFReader.TokenProcessor("positionm", ()=>{ ApproachControlPositionM = stf.ReadFloatBlock(STFReader.UNITS.None, 0); }),
-                new STFReader.TokenProcessor("positionyd", ()=>{ ApproachControlPositionM = Size.Length.FromYd(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
-                new STFReader.TokenProcessor("speedmph", ()=>{ ApproachControlSpeedMpS = Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
-                new STFReader.TokenProcessor("speedkph", ()=>{ ApproachControlSpeedMpS = Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.UNITS.None, 0)); }),
+                new STFReader.TokenProcessor("positionmiles", ()=>{ ApproachControlPositionM = Size.Length.FromMi(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("positionkm", ()=>{ ApproachControlPositionM = (stf.ReadFloatBlock(STFReader.Units.None, 0) * 1000); }),
+                new STFReader.TokenProcessor("positionm", ()=>{ ApproachControlPositionM = stf.ReadFloatBlock(STFReader.Units.None, 0); }),
+                new STFReader.TokenProcessor("positionyd", ()=>{ ApproachControlPositionM = Size.Length.FromYd(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("speedmph", ()=>{ ApproachControlSpeedMpS = Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("speedkph", ()=>{ ApproachControlSpeedMpS = Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
                 });
         }
     }
