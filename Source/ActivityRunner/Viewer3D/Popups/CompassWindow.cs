@@ -63,7 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             if (updateFull)
             {
-                WorldCoordinates.ConvertWTC(camera.TileX, camera.TileZ, camera.Location, out double latitude, out double longitude);
+                EarthCoordinates.ConvertWTC(camera.TileX, camera.TileZ, camera.Location, out double latitude, out double longitude);
                 Latitude.Text = MathHelper.ToDegrees((float)latitude).ToString("F6");
                 Longitude.Text = MathHelper.ToDegrees((float)longitude).ToString("F6");
             }

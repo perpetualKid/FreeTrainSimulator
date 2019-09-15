@@ -64,7 +64,7 @@
     <Compile Include="Exceptions.cs" />
     <Compile Include="Logging\FileTeeLogger.cs" />
     <Compile Include="Logging\ORTraceListener.cs" />
-    <Compile Include="WorldCoordinates.cs" />
+    <Compile Include="EarthCoordinates.cs" />
     <Compile Include="Input\UserCommandInput.cs" />
     <Compile Include="Native\GDI32.cs" />
     <Compile Include="Native\Kernel32.cs" />

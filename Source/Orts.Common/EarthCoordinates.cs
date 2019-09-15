@@ -34,7 +34,7 @@ using System;
 
 namespace Orts.Common
 {
-    public static class WorldCoordinates
+    public static class EarthCoordinates
     {      
         private const int earthRadius = 6370997; // Average radius of the earth, meters
         private const double epsilon = 0.0000000001; // Error factor (arbitrary)

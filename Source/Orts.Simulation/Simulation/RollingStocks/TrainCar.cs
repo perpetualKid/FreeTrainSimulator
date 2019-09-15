@@ -663,7 +663,7 @@ namespace Orts.Simulation.RollingStocks
             OutsideSummerTempbyLatitudeC = WorldSummerLatitudetoTemperatureC();
 
             // Find the latitude reading and set outside temperature
-            WorldCoordinates.ConvertWTC(WorldPosition.TileX, WorldPosition.TileZ, WorldPosition.Location, out double latitude, out double longitude);
+            EarthCoordinates.ConvertWTC(WorldPosition.TileX, WorldPosition.TileZ, WorldPosition.Location, out double latitude, out double longitude);
                         
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
 

@@ -308,7 +308,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // Compute player train lat/lon in degrees 
             var location = Viewer.PlayerLocomotive.Train.FrontTDBTraveller;
-            WorldCoordinates.ConvertWTC(location.TileX, location.TileZ, location.Location, out double latitude, out double longitude);
+            EarthCoordinates.ConvertWTC(location.TileX, location.TileZ, location.Location, out double latitude, out double longitude);
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
             float LongitudeDeg = MathHelper.ToDegrees((float)longitude);
 

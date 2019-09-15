@@ -141,13 +141,6 @@ namespace Orts.Common
         /// </summary>
         public WorldPosition Normalize()
         {
-            //var TileLocation = XNAMatrix.Translation;
-            //while (TileLocation.X > 1024) { TileLocation.X -= 2048; TileX++; }
-            //while (TileLocation.X < -1024) { TileLocation.X += 2048; TileX--; }
-            //while (TileLocation.Z > 1024) { TileLocation.Z -= 2048; TileZ++; }
-            //while (TileLocation.Z < -1024) { TileLocation.Z += 2048; TileZ--; }
-            //XNAMatrix.Translation = TileLocation;
-
             Vector3 location = XnaLocation();
             int xTileDistance = (int)Math.Ceiling((int)(location.X / 1024) / 2.0);
             int zTileDistance = (int)Math.Ceiling((int)(location.Z / 1024) / 2.0);
@@ -163,13 +156,6 @@ namespace Orts.Common
         /// <param name="tileZ">The x-value of the tile to normalize to</param>
         public WorldPosition NormalizeTo(int tileX, int tileZ)
         {
-            //Vector3 TileLocation = XNAMatrix.Translation;
-            //while (TileX < tileX) { TileLocation.X -= 2048; TileX++; }
-            //while (TileX > tileX) { TileLocation.X += 2048; TileX--; }
-            //while (TileZ < tileZ) { TileLocation.Z += 2048; TileZ++; }
-            //while (TileZ > tileZ) { TileLocation.Z -= 2048; TileZ--; }
-            //XNAMatrix.Translation = TileLocation;
-
             Vector3 location = XnaLocation();
             int xDiff = TileX - tileX;
             int zDiff = TileZ - tileZ;
@@ -239,11 +225,6 @@ namespace Orts.Common
             int zTileDistance = (int)Math.Ceiling((int)(Location.Z / 1024) / 2.0);
 
             return new WorldLocation(TileX + xTileDistance, TileZ + zTileDistance, new Vector3(Location.X - (xTileDistance * TileSize), Location.Y, Location.Z - (zTileDistance * TileSize)));
-
-            //while (Location.X >= 1024) { Location.X -= 2048; TileX++; }
-            //while (Location.X < -1024) { Location.X += 2048; TileX--; }
-            //while (Location.Z >= 1024) { Location.Z -= 2048; TileZ++; }
-            //while (Location.Z < -1024) { Location.Z += 2048; TileZ--; }
         }
 
         /// <summary>
@@ -256,11 +237,6 @@ namespace Orts.Common
             int xDiff = TileX - tileX;
             int zDiff = TileZ - tileZ;
             return new WorldLocation(tileX, tileZ, new Vector3(Location.X + (xDiff * TileSize), Location.Y, Location.Z + (zDiff * TileSize)));
-
-            //while (TileX < tileX) { Location.X -= 2048; TileX++; }
-            //while (TileX > tileX) { Location.X += 2048; TileX--; }
-            //while (TileZ < tileZ) { Location.Z -= 2048; TileZ++; }
-            //while (TileZ > tileZ) { Location.Z += 2048; TileZ--; }
         }
 
         /// <summary>

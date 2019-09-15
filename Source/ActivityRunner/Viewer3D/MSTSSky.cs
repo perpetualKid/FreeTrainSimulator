@@ -140,7 +140,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 step1 = step2 = (int)(mstsskyoldClockTime / 1200);
                 step2 = step2 < maxSteps - 1 ? step2 + 1 : 0; // limit to max. steps in case activity starts near midnight
                 // Get the current latitude and longitude coordinates
-                WorldCoordinates.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, out mstsskylatitude, out mstsskylongitude);
+                EarthCoordinates.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, out mstsskylatitude, out mstsskylongitude);
                 // Fill in the sun- and moon-position lookup tables
                 for (int i = 0; i < maxSteps; i++)
                 {
@@ -275,7 +275,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
 
             // Get the current latitude and longitude coordinates
-            WorldCoordinates.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, out mstsskylatitude, out mstsskylongitude);
+            EarthCoordinates.ConvertWTC(MSTSSkyViewer.Camera.TileX, MSTSSkyViewer.Camera.TileZ, MSTSSkyViewer.Camera.Location, out mstsskylatitude, out mstsskylongitude);
             float fractClockTime = (float)MSTSSkyViewer.Simulator.ClockTime / 86400;
             mstsskysolarDirection = SunMoonPos.SolarAngle(mstsskylatitude, mstsskylongitude, fractClockTime, date);
             mstsskylatitude = 0;

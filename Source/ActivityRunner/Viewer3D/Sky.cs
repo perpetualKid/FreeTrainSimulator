@@ -110,7 +110,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 step2 = step2 < maxSteps - 1 ? step2 + 1 : 0; // limit to max. steps in case activity starts near midnight
 
                 // Get the current latitude and longitude coordinates
-                WorldCoordinates.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, out latitude, out longitude);
+                EarthCoordinates.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, out latitude, out longitude);
                 if (seasonType != (int)Viewer.Simulator.Season)
                 {
                     seasonType = (int)Viewer.Simulator.Season;
@@ -181,7 +181,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void LoadPrep()
         {
             // Get the current latitude and longitude coordinates
-            WorldCoordinates.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, out latitude, out longitude);
+            EarthCoordinates.ConvertWTC(Viewer.Camera.TileX, Viewer.Camera.TileZ, Viewer.Camera.Location, out latitude, out longitude);
             seasonType = (int)Viewer.Simulator.Season;
             date.ordinalDate = latitude >= 0 ? 82 + seasonType * 91 : (82 + (seasonType + 2) * 91) % 365;
             date.month = 1 + date.ordinalDate / 30;
