@@ -22,6 +22,8 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Parsers;
 
 namespace ORTS.TrackViewer.Drawing

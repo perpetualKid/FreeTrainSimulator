@@ -1841,6 +1841,7 @@ namespace Orts.Formats.Msts.Parsers
         #endregion
     }
 
+    [Serializable]
     public class STFException : Exception
     {
         public static void TraceWarning(STFReader stf, string message)

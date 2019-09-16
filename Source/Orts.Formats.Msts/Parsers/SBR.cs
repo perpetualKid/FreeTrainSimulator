@@ -16,12 +16,10 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using Microsoft.Xna.Framework;
 using Orts.Common;
 
 namespace Orts.Formats.Msts.Parsers
@@ -131,15 +129,6 @@ namespace Orts.Formats.Msts.Parsers
         public abstract string ReadString();
         public abstract bool EndOfBlock();
 
-        public Vector3 ReadVector3()
-        {
-            Vector3 vector3 = new Vector3();
-            vector3.X = ReadFloat();
-            vector3.Y = ReadFloat();
-            vector3.Z = ReadFloat();
-            return vector3;
-        }
-
         public void VerifyID(TokenID desiredID)
         {
            if (ID != desiredID)
@@ -241,8 +230,10 @@ namespace Orts.Formats.Msts.Parsers
 
         public override SBR ReadSubBlock()
         {
-            UnicodeBlockReader block = new UnicodeBlockReader();
-            block.f = f;
+            UnicodeBlockReader block = new UnicodeBlockReader
+            {
+                f = f
+            };
 
             string token = f.ReadItem();
 
@@ -419,11 +410,12 @@ namespace Orts.Formats.Msts.Parsers
 
         public override SBR ReadSubBlock()
         {
-            BinaryBlockReader block = new BinaryBlockReader();
-
-            block.Filename = Filename;
-            block.InputStream = InputStream;
-            block.TokenOffset = TokenOffset;
+            BinaryBlockReader block = new BinaryBlockReader
+            {
+                Filename = Filename,
+                InputStream = InputStream,
+                TokenOffset = TokenOffset
+            };
 
             int MSTSToken = InputStream.ReadUInt16();
             block.ID = (TokenID)(MSTSToken + TokenOffset);
@@ -508,6 +500,7 @@ namespace Orts.Formats.Msts.Parsers
         }
     }
 
+    [Serializable]
     public class SBRException : Exception
     {
         public static void TraceWarning(BinaryBlockReader sbr, string message)

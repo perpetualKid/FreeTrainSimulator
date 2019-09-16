@@ -48,6 +48,7 @@
     <Compile Include="CarSpawnerFile.cs" />
     <Compile Include="ConsistFile.cs" />
     <Compile Include="CabViewFile.cs" />
+    <Compile Include="Entities\RoadTracks.cs" />
     <Compile Include="Entities\Shapes.cs" />
     <Compile Include="Entities\TimeTable.cs" />
     <Compile Include="Entities\TrackType.cs" />

@@ -23,6 +23,7 @@ using Orts.Formats.Msts;
 using Orts.Common;
 using ORTS.TrackViewer.Properties;
 using Orts.Simulation;
+using Orts.Formats.Msts.Entities;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -67,7 +68,7 @@ namespace ORTS.TrackViewer.Drawing
             if (originalTrItem is PickupItem)     { return new DrawablePickupItem(originalTrItem); }
             if (originalTrItem is LevelCrItem)    { return new DrawableLevelCrItem(originalTrItem); }
             if (originalTrItem is SoundRegionItem){ return new DrawableSoundRegionItem(originalTrItem); }
-            if (originalTrItem is RoadLevelCrItem){ return new DrawableRoadLevelCrItem(originalTrItem); }
+            if (originalTrItem is RoadLevelCrossingItem){ return new DrawableRoadLevelCrItem(originalTrItem); }
             if (originalTrItem is CarSpawnerItem) { return new DrawableCarSpawnerItem(originalTrItem); }
             if (originalTrItem is CrossoverItem)  { return new DrawableCrossoverItem(originalTrItem); }
             return new DrawableEmptyItem(originalTrItem);
