@@ -23,17 +23,17 @@ namespace Orts.Formats.Msts
 {
     public class TerrainFlagsFile
     {
-        readonly byte[,] Flags;
+        private readonly byte[,] flags;
 
         public TerrainFlagsFile(string fileName, int sampleCount)
         {
-            Flags = new byte[sampleCount, sampleCount];
+            flags = new byte[sampleCount, sampleCount];
             try
             {
                 using (var reader = new BinaryReader(File.OpenRead(fileName)))
                     for (var z = 0; z < sampleCount; z++)
                         for (var x = 0; x < sampleCount; x++)
-                            Flags[x, z] = reader.ReadByte();
+                            flags[x, z] = reader.ReadByte();
             }
             catch (Exception error)
             {
@@ -47,9 +47,9 @@ namespace Orts.Formats.Msts
         /// <param name="x">X coordinate; starts at west side, increases easterly.</param>
         /// <param name="z">Z coordinate; starts at north side, increases southerly.</param>
         /// <returns>Vertex-hidden flag.</returns>
-        public bool IsVertexHidden(int x, int z)
+        public bool IsVertexHiddenAt(int x, int z)
         {
-            return (Flags[x, z] & 0x04) == 0x04;
+            return (flags[x, z] & 0x04) == 0x04;
         }
     }
 }

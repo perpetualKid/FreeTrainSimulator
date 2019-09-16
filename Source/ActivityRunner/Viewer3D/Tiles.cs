@@ -445,7 +445,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         internal bool IsVertexHidden(int ux, int uz)
         {
-            return FFile == null ? false : FFile.IsVertexHidden(ux, uz);
+            return FFile == null ? false : FFile.IsVertexHiddenAt(ux, uz);
         }
     }
 }
