@@ -1,5 +1,5 @@
 ﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.33
-September 3rd, 2019
+September 16th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -9,22 +9,25 @@ INSTALLATION
 - you must have at least a Windows Vista computer. Windows XP is not supported
 - start openrails simply by clicking on Openrails.exe
 - don't try to update the pack by using the link on the upper right side of the main menu window: 
-you would return to a non-MG OR version.
+you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails revision U2019.08.29-0736.
-Such official revision is already based on Monogame.
-It includes some features not (yet) available in the Open Rails official version, that is:
+This unofficial version has been derived from the official Open Rails unstable revision U2019.09.16-0636.
+It includes some features not (yet) available in the Open Rails unstable official version, that is:
+- Monogame adaptations, based on Peter Gulyas' work, and then updated and completed by dennisat, perpetualKid and myself; already present as PR for the official OR version
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
 - checkbox in General Options tab to enable or disable watchdog
 - increase of remote horn sound volume level
-- second phase of advanced coupler forces management (by steamer_ctn)
 - when car is ( cted through the F9 window, the car's brake line in the extended brake HUD is highlighted in yellow (by mbm_or)
 - improved distance management in roadcar camera
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
-- second phase of wheel bearing management (by steamer_ctn)
-- separation of motive force from dynamic force (by steamer_ctn)
+- addition of visual effects for rolling stock (by steamer_ctn), already present as PR for the official OR version
+- additional features for vacuum brakes (by steamer_ctn), already present as PR for the official OR version
+- turntables operating in timetable mode (by roeter), already present as PR for the official OR version.
+
+
+
 
 
 CREDITS
@@ -36,6 +39,7 @@ This unofficial version couldn't have been created without following contributio
 - Dennis A T (dennisat)
 - Mauricio (mbm_OR)
 - Peter Newell (steamer_ctn)
+- Rob Roeterdink (roeter)
 - Carlo Santucci
 
 - all those who contributed with ideas and provided contents for testing and pointed to malfunctions.
