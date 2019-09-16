@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

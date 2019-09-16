@@ -22,6 +22,7 @@ using System.Linq;
 using System.Text;
 
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ContentChecker
 {

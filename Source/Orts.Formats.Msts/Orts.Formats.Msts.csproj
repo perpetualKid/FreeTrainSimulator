@@ -49,8 +49,10 @@
     <Compile Include="ConsistFile.cs" />
     <Compile Include="CabViewFile.cs" />
     <Compile Include="EngineFile.cs" />
+    <Compile Include="Entities\EnvironmentLayers.cs" />
+    <Compile Include="Entities\Sound.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="EnvironmentFile.cs" />
+    <Compile Include="Files\EnvironmentFile.cs" />
     <Compile Include="FolderStructure.cs" />
     <Compile Include="Parsers\SBR.cs" />
     <Compile Include="Parsers\StfInterpolatorExtension.cs" />
@@ -61,7 +63,7 @@
     <Compile Include="Signalling\Tokenizer.cs" />
     <Compile Include="Signalling\Tokens.cs" />
     <Compile Include="SignalScripts.cs" />
-    <Compile Include="TerrainFlagsFile.cs" />
+    <Compile Include="Files\TerrainFlagsFile.cs" />
     <Compile Include="HazardFile.cs" />
     <Compile Include="LightCollection.cs" />
     <Compile Include="MstsUtility.cs" />
@@ -83,8 +85,8 @@
     <Compile Include="TrackTypesFile.cs" />
     <Compile Include="WagonFile.cs" />
     <Compile Include="WorldFile.cs" />
-    <Compile Include="WorldSoundFile.cs" />
-    <Compile Include="TerrainAltitudeFile.cs" />
+    <Compile Include="Files\WorldSoundFile.cs" />
+    <Compile Include="Files\TerrainAltitudeFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ORTS.Common\Orts.Common.csproj">

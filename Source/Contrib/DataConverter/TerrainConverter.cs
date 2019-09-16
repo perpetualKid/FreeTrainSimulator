@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using System;
 using System.Collections.Generic;
 using System.IO;

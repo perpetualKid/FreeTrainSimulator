@@ -46,6 +46,7 @@ using Event = Orts.Common.Event;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common.Calc;
 using Orts.Settings.Util;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
