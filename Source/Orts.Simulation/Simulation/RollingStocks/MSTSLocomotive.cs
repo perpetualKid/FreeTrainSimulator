@@ -53,6 +53,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Parsers;
 using Orts.MultiPlayer;
 using Orts.Simulation.Physics;
@@ -628,7 +629,7 @@ namespace Orts.Simulation.RollingStocks
                 if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
                 {
                     shapeFile = new ShapeDescriptorFile(shapeFilePath + "d");
-                    if (shapeFile.shape.ESD_Bounding_Box != null) boundingLimitsFound = true;
+                    if (shapeFile.Shape.ESD_Bounding_Box != null) boundingLimitsFound = true;
                 }
             }
             if (!boundingLimitsFound)
@@ -637,15 +638,15 @@ namespace Orts.Simulation.RollingStocks
                 if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
                 {
                     shapeFile = new ShapeDescriptorFile(shapeFilePath + "d");
-                    if (shapeFile.shape.ESD_Bounding_Box != null) boundingLimitsFound = true;
+                    if (shapeFile.Shape.ESD_Bounding_Box != null) boundingLimitsFound = true;
                 }
             }
             if (boundingLimitsFound)
             {
                 if (cabViewType == CabViewType.Front)
-                    noseAhead = (viewPointList[0].Location.Z + 0.5f < shapeFile.shape.ESD_Bounding_Box.Max.Z) ? true : false;
+                    noseAhead = (viewPointList[0].Location.Z + 0.5f < shapeFile.Shape.ESD_Bounding_Box.Max.Z) ? true : false;
                 else if (cabViewType == CabViewType.Rear)
-                    noseAhead = (viewPointList[0].Location.Z - 0.5f > shapeFile.shape.ESD_Bounding_Box.Min.Z) ? true : false;
+                    noseAhead = (viewPointList[0].Location.Z - 0.5f > shapeFile.Shape.ESD_Bounding_Box.Min.Z) ? true : false;
             }
             if (!(this is MSTSSteamLocomotive))
             {

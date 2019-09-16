@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.OR.Parsers;
 
 namespace Orts.ContentManager.Models
@@ -43,8 +44,8 @@ namespace Orts.ContentManager.Models
             {
                 var file = new ServiceFile(content.PathName);
                 Name = file.Name;
-                Consist = file.Train_Config;
-                Path = file.PathID;
+                Consist = file.TrainConfig;
+                Path = file.PathId;
 
                 Debug.Assert(content is ContentMSTSService);
                 var msts = content as ContentMSTSService;

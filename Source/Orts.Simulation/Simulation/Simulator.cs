@@ -26,6 +26,7 @@ using Orts.Common.Calc;
 using Orts.Common.Scripting;
 using Orts.Common.Threading;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.OR;
 using Orts.MultiPlayer;
 using Orts.Settings;
@@ -610,8 +611,8 @@ namespace Orts.Simulation
         {
             var PlayerServiceFileName = Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name;
             var srvFile = new ServiceFile(RoutePath + @"\SERVICES\" + PlayerServiceFileName + ".SRV");
-            conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.Train_Config + ".CON";
-            patFileName = RoutePath + @"\PATHS\" + srvFile.PathID + ".PAT";
+            conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
+            patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
         }
 
 
@@ -1090,13 +1091,10 @@ namespace Orts.Simulation
             else
             {
                 playerServiceFileName = Path.GetFileNameWithoutExtension(ExploreConFile);
-                srvFile = new ServiceFile();
-                srvFile.Name = playerServiceFileName;
-                srvFile.Train_Config = playerServiceFileName;
-                srvFile.PathID = Path.GetFileNameWithoutExtension(ExplorePathFile);
+                srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, Path.GetFileNameWithoutExtension(ExplorePathFile));
             }
-            conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.Train_Config + ".CON";
-            patFileName = RoutePath + @"\PATHS\" + srvFile.PathID + ".PAT";
+            conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
+            patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
             OriginalPlayerTrain = train;
 
 
@@ -1243,13 +1241,10 @@ namespace Orts.Simulation
             else
             {
                 playerServiceFileName = Path.GetFileNameWithoutExtension(ExploreConFile);
-                srvFile = new ServiceFile();
-                srvFile.Name = playerServiceFileName;
-                srvFile.Train_Config = playerServiceFileName;
-                srvFile.PathID = Path.GetFileNameWithoutExtension(ExplorePathFile);
+                srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, Path.GetFileNameWithoutExtension(ExplorePathFile));
             }
-            conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.Train_Config + ".CON";
-            patFileName = RoutePath + @"\PATHS\" + srvFile.PathID + ".PAT";
+            conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
+            patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
             Player_Traffic_Definition player_Traffic_Definition = Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition;
             Traffic_Service_Definition aPPlayer_Traffic_Definition = new Traffic_Service_Definition(playerServiceFileName, player_Traffic_Definition);
             Service_Definition aPPlayer_Service_Definition = new Service_Definition(playerServiceFileName, player_Traffic_Definition);

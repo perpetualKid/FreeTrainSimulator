@@ -9,6 +9,7 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Common;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
@@ -86,13 +87,13 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (File.Exists(FilePath + "d"))
             {
                 var sdFile = new ShapeDescriptorFile(FilePath + "d");
-                textureFlags = (Helpers.TextureFlags)sdFile.shape.ESD_Alternative_Texture;
+                textureFlags = (Helpers.TextureFlags)sdFile.Shape.ESD_Alternative_Texture;
                 if (FilePath != null && FilePath.Contains("\\global\\")) textureFlags |= Helpers.TextureFlags.SnowTrack;//roads and tracks are in global, as MSTS will always use snow texture in snow weather
-                HasNightSubObj = sdFile.shape.ESD_SubObj;
+                HasNightSubObj = sdFile.Shape.ESD_SubObj;
                 if ((textureFlags & Helpers.TextureFlags.Night) != 0 && FilePath.Contains("\\trainset\\"))
                     textureFlags |= Helpers.TextureFlags.Underground;
-                SoundFileName = sdFile.shape.ESD_SoundFileName;
-                BellAnimationFPS = sdFile.shape.ESD_BellAnimationFPS;
+                SoundFileName = sdFile.Shape.ESD_SoundFileName;
+                BellAnimationFPS = sdFile.Shape.ESD_BellAnimationFPS;
             }
 
             var matrixCount = sFile.shape.matrices.Count;

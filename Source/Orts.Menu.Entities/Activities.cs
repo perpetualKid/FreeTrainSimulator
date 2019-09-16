@@ -21,6 +21,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Menu.Entities
 {
@@ -88,8 +89,8 @@ namespace Orts.Menu.Entities
                 {
                     ActivityFile activityFile = new ActivityFile(filePath);
                     ServiceFile srvFile = new ServiceFile(System.IO.Path.Combine(route.Path, "SERVICES", activityFile.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name + ".srv"));
-                    Consist consist = Consist.GetConsist(folder, srvFile.Train_Config);
-                    Path path = new Path(System.IO.Path.Combine(route.Path, "PATHS", srvFile.PathID + ".pat"));
+                    Consist consist = Consist.GetConsist(folder, srvFile.TrainConfig);
+                    Path path = new Path(System.IO.Path.Combine(route.Path, "PATHS", srvFile.PathId + ".pat"));
                     if (!path.IsPlayerPath)
                     {
                         return null;

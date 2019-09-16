@@ -52,6 +52,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -349,10 +350,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
                 {
                     var shape = new ShapeDescriptorFile(shapeFilePath + "d");
-                    if (shape.shape.ESD_Bounding_Box != null)
+                    if (shape.Shape.ESD_Bounding_Box != null)
                     {
-                        var min = shape.shape.ESD_Bounding_Box.Min;
-                        var max = shape.shape.ESD_Bounding_Box.Max;
+                        var min = shape.Shape.ESD_Bounding_Box.Min;
+                        var max = shape.Shape.ESD_Bounding_Box.Max;
                         var transform = Matrix.Invert(worldMatrix.XNAMatrix);
                         // Not sure if this is needed, but it is to correct for center-of-gravity being not the center of the box.
                         //transform.M41 += (max.X + min.X) / 2;
@@ -519,7 +520,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         else
                         {
                             sceneryObjects.Add(new StaticShape(
-                                tempSpeedItem.IsWarning ? Viewer.SpeedpostDatFile.TempSpeedShapeNames[0] : (tempSpeedItem.IsResume ? Viewer.SpeedpostDatFile.TempSpeedShapeNames[2] : Viewer.SpeedpostDatFile.TempSpeedShapeNames[1]),
+                                tempSpeedItem.IsWarning ? Viewer.SpeedpostDatFile.ShapeNames[0] : (tempSpeedItem.IsResume ? Viewer.SpeedpostDatFile.ShapeNames[2] : Viewer.SpeedpostDatFile.ShapeNames[1]),
                                 tempSpeedItem.WorldPosition, ShapeFlags.None));
                         }
                     }

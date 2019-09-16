@@ -48,7 +48,9 @@
     <Compile Include="CarSpawnerFile.cs" />
     <Compile Include="ConsistFile.cs" />
     <Compile Include="CabViewFile.cs" />
-    <Compile Include="EngineFile.cs" />
+    <Compile Include="Entities\Shapes.cs" />
+    <Compile Include="Entities\TimeTable.cs" />
+    <Compile Include="Files\EngineFile.cs" />
     <Compile Include="Entities\EnvironmentLayers.cs" />
     <Compile Include="Entities\Sound.cs" />
     <Compile Include="Enums.cs" />
@@ -70,13 +72,13 @@
     <Compile Include="PathFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RoadDatabaseFile.cs" />
-    <Compile Include="ShapeDescriptorFile.cs" />
+    <Compile Include="Files\ShapeDescriptorFile.cs" />
     <Compile Include="ShapeFile.cs" />
     <Compile Include="SignalConfigurationFile.cs" />
     <Compile Include="SignalEnums.cs" />
-    <Compile Include="SpeedpostDatFile.cs" />
+    <Compile Include="Files\SpeedpostDatFile.cs" />
     <Compile Include="SoundManagmentFile.cs" />
-    <Compile Include="ServiceFile.cs" />
+    <Compile Include="Files\ServiceFile.cs" />
     <Compile Include="TrackDatabaseFile.cs" />
     <Compile Include="TerrainFile.cs" />
     <Compile Include="TrafficFile.cs" />

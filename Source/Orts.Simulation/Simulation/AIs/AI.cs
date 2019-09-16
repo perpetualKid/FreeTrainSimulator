@@ -44,6 +44,7 @@ using System.Diagnostics;
 using System.IO;
 using Orts.Common.Threading;
 using Orts.Common.Calc;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Simulation.AIs
 {
@@ -849,9 +850,9 @@ namespace Orts.Simulation.AIs
         {
             // read consist file
 
-            string consistFileName = Simulator.BasePath + @"\TRAINS\CONSISTS\" + srvFile.Train_Config + ".CON";
+            string consistFileName = Simulator.BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
             ConsistFile conFile = new ConsistFile(consistFileName);
-            string pathFileName = Simulator.RoutePath + @"\PATHS\" + srvFile.PathID + ".PAT";
+            string pathFileName = Simulator.RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
 
             // Patch Placingproblem - JeroenP
             // 
