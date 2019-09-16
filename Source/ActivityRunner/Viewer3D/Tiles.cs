@@ -440,7 +440,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         internal float GetElevation(int ux, int uz)
         {
-            return (float)YFile.GetElevation(ux, uz) * Resolution + Floor;
+            return (float)YFile.ElevationAt(ux, uz) * Resolution + Floor;
         }
 
         internal bool IsVertexHidden(int ux, int uz)

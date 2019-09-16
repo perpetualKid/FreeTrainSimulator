@@ -266,7 +266,7 @@ namespace Orts.DataConverter
 
         private int GetElevation(int x, int z)
         {
-            return YFile.GetElevation(
+            return YFile.ElevationAt(
                 Math.Min(PatchX * PatchSize + x, TFile.terrain.terrain_samples.terrain_nsamples - 1),
                 Math.Min(PatchZ * PatchSize + z, TFile.terrain.terrain_samples.terrain_nsamples - 1)
             );

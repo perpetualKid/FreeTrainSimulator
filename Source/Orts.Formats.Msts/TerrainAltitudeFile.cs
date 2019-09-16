@@ -23,17 +23,17 @@ namespace Orts.Formats.Msts
 {
     public class TerrainAltitudeFile
     {
-        readonly ushort[,] Elevation;
+        private readonly ushort[,] elevation;
 
         public TerrainAltitudeFile(string fileName, int sampleCount)
         {
-            Elevation = new ushort[sampleCount, sampleCount];
+            elevation = new ushort[sampleCount, sampleCount];
             try
             {
                 using (var reader = new BinaryReader(File.OpenRead(fileName)))
                     for (var z = 0; z < sampleCount; z++)
                         for (var x = 0; x < sampleCount; x++)
-                            Elevation[x, z] = reader.ReadUInt16();
+                            elevation[x, z] = reader.ReadUInt16();
             }
             catch (Exception error)
             {
@@ -47,9 +47,9 @@ namespace Orts.Formats.Msts
         /// <param name="x">X coordinate; starts at west side, increases easterly.</param>
         /// <param name="z">Z coordinate; starts at north side, increases southerly.</param>
         /// <returns>Elevation relative to the tile's floor and scaled by resolution.</returns>
-        public ushort GetElevation(int x, int z)
+        public ushort ElevationAt(int x, int z)
         {
-            return Elevation[x, z];
+            return elevation[x, z];
         }
     }
 }
