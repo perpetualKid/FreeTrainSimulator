@@ -2289,9 +2289,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (prevItem != null && nextItem != null)
             {
-                if (prevItem.SoundRegionTrackType == nextItem.SoundRegionTrackType)
+                if (prevItem.TrackType == nextItem.TrackType)
                 {
-                    retval = prevItem.SoundRegionTrackType;
+                    retval = prevItem.TrackType;
                 }
                 else if (nextDist < 10)
                 {
@@ -2360,7 +2360,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                             tmp.ReverseDirection();
 
                                         // If faces toward us then it is applicable
-                                        if (Math.Abs(tmp.RotY - wsr.ROTy) < .35)
+                                        if (Math.Abs(tmp.RotY - wsr.RotY) < .35)
                                         {
                                             nextDist = d;
                                             nextItem = wsr;
@@ -2387,7 +2387,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                                 tmp.ReverseDirection();
 
                                             // Applicable if faces with us
-                                            if (Math.Abs(tmp.RotY - wsr.ROTy) < .35)
+                                            if (Math.Abs(tmp.RotY - wsr.RotY) < .35)
                                             {
                                                 prevDist = d;
                                                 prevItem = wsr;
@@ -2405,10 +2405,10 @@ namespace Orts.ActivityRunner.Viewer3D
             if (prevItem != null && nextItem != null)
             {
                 // Between same type, means we are in a sound region
-                if (prevItem.SoundRegionTrackType == nextItem.SoundRegionTrackType)
+                if (prevItem.TrackType == nextItem.TrackType)
                 {
                     // return one of those, doesn't matter which.
-                    retval = prevItem.SoundRegionTrackType;
+                    retval = prevItem.TrackType;
                     outPrevDist = prevDist;
                     outNextDist = nextDist;
                 }
@@ -2425,13 +2425,13 @@ namespace Orts.ActivityRunner.Viewer3D
             else if (prevItem != null)
             {
                 // only one, take it!
-                retval = prevItem.SoundRegionTrackType;
+                retval = prevItem.TrackType;
                 outPrevDist = prevDist;
             }
             else if (nextItem != null)
             {
                 // only one, take it!
-                retval = nextItem.SoundRegionTrackType;
+                retval = nextItem.TrackType;
                 outNextDist = nextDist;
             }
             //  - Missing items before or behind us, maintain last sound
@@ -2446,15 +2446,15 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             string name = Viewer.Simulator.RoutePath + @"\WORLD\" + WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s";
             WorldSoundFile wf = new WorldSoundFile(name, Viewer.Simulator.TDB.TrackDB.TrItemTable);
-            if (wf.TR_WorldSoundFile != null)
+            if (wf.TrackItemSound != null)
             {
                 string[] pathArray = { Path.Combine(Viewer.Simulator.RoutePath, "SOUND"), Path.Combine(Viewer.Simulator.BasePath, "SOUND") };
 
                 var ls = new List<SoundSourceBase>();
-                foreach (var fss in wf.TR_WorldSoundFile.SoundSources)
+                foreach (var fss in wf.TrackItemSound.SoundSources)
                 {
                     WorldLocation wl = new WorldLocation(TileX, TileZ, fss.X, fss.Y, fss.Z);
-                    var fullPath = ORTSPaths.GetFileFromFolders(pathArray, fss.SoundSourceFileName);
+                    var fullPath = ORTSPaths.GetFileFromFolders(pathArray, fss.FileName);
                     if (fullPath != null)
                     {
                         ss = new SoundSource(Viewer, wl, Events.Source.None, fullPath, true);
@@ -2468,7 +2468,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (!SoundRegions.ContainsKey(name))
                     {
-                        SoundRegions.Add(name, wf.TR_WorldSoundFile.SoundRegions);
+                        SoundRegions.Add(name, wf.TrackItemSound.SoundRegions);
                     }
                 }
             }

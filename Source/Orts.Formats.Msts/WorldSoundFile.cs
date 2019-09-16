@@ -24,36 +24,31 @@ namespace Orts.Formats.Msts
 {
     public class WorldSoundFile
     {
-        public TR_WorldSoundFile TR_WorldSoundFile;
+        public TrackItemSound TrackItemSound { get; private set; }
 
-        public WorldSoundFile(string wsfilename, TrItem[] trItems)
+        public WorldSoundFile(string fileName, TrItem[] trItems)
         {
-            Read(wsfilename, trItems);
-        }
-
-        public void Read(string wsfilename, TrItem[] trItems)
-        {
-            if (File.Exists(wsfilename))
+            if (File.Exists(fileName))
             {
                 Trace.Write("$");
-                using (STFReader stf = new STFReader(wsfilename, false))
+                using (STFReader stf = new STFReader(fileName, false))
                 {
                     stf.ParseFile(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("tr_worldsoundfile", ()=>{ TR_WorldSoundFile = new TR_WorldSoundFile(stf, trItems); }),
+                        new STFReader.TokenProcessor("tr_worldsoundfile", ()=>{ TrackItemSound = new TrackItemSound(stf, trItems); }),
                     });
-                    if (TR_WorldSoundFile == null)
+                    if (TrackItemSound == null)
                         STFException.TraceWarning(stf, "Missing TR_WorldSoundFile statement");
                 }
             }
         }
     }
 
-    public class TR_WorldSoundFile
+    public class TrackItemSound
     {
-        public List<WorldSoundSource> SoundSources = new List<WorldSoundSource>();
-        public List<WorldSoundRegion> SoundRegions = new List<WorldSoundRegion>();
+        public List<WorldSoundSource> SoundSources { get; private set; } = new List<WorldSoundSource>();
+        public List<WorldSoundRegion> SoundRegions { get; private set; } = new List<WorldSoundRegion>();
 
-        public TR_WorldSoundFile(STFReader stf, TrItem[] trItems)
+        public TrackItemSound(STFReader stf, TrItem[] trItems)
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -65,16 +60,16 @@ namespace Orts.Formats.Msts
 
     public class WorldSoundSource
     {
-        public float X;
-        public float Y;
-        public float Z;
-        public string SoundSourceFileName;
+        public float X { get; private set; }
+        public float Y { get; private set; }
+        public float Z { get; private set; }
+        public string FileName { get; private set; }
 
         public WorldSoundSource(STFReader stf)
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("filename", ()=>{ SoundSourceFileName = stf.ReadStringBlock(null); }),
+                new STFReader.TokenProcessor("filename", ()=>{ FileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("position", ()=>{
                     stf.MustMatch("(");
                     X = stf.ReadFloat(STFReader.Units.None, null);
@@ -88,20 +83,20 @@ namespace Orts.Formats.Msts
 
     public class WorldSoundRegion
     {
-        public int SoundRegionTrackType = -1;
-        public float ROTy;
-        public List<int> TrackNodes;
+        public int TrackType { get; private set; } = -1;
+        public float RotY { get; private set; }
+        public List<int> TrackNodes { get; private set; }
 
         public WorldSoundRegion(STFReader stf, TrItem[] trItems)
         {
             TrackNodes = new List<int>();
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("soundregiontracktype", ()=>{ SoundRegionTrackType = stf.ReadIntBlock(-1); }),
-                new STFReader.TokenProcessor("soundregionroty", ()=>{ ROTy = stf.ReadFloatBlock(STFReader.Units.None, float.MaxValue); }),
+                new STFReader.TokenProcessor("soundregiontracktype", ()=>{ TrackType = stf.ReadIntBlock(-1); }),
+                new STFReader.TokenProcessor("soundregionroty", ()=>{ RotY = stf.ReadFloatBlock(STFReader.Units.None, float.MaxValue); }),
                 new STFReader.TokenProcessor("tritemid", ()=>{
                     stf.MustMatch("(");
-                    var dummy = stf.ReadInt(0);
+                    stf.ReadInt(0);//dummy read
                     var trItemId = stf.ReadInt(-1);
                     if (trItemId != -1) {
                         if (trItemId >= trItems.Length) {
