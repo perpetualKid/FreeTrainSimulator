@@ -552,12 +552,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 mstsSkyTextures.Add(SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "SkyDome1.png")));
                 mstsSkyStarTexture = SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "Starmap_N.png"));
             }
-            if (viewer.ENVFile.SkySatellite != null)
+            if (viewer.ENVFile.SkySatellites != null)
             {
-                var mstsskysatellitetexture = Viewer.ENVFile.SkySatellite.ToArray();
-
-                string mstsSkySunTextureName = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskysatellitetexture[0].TextureName;
-                string mstsSkyMoonTextureName = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskysatellitetexture[1].TextureName;
+                string mstsSkySunTextureName = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + Viewer.ENVFile.SkySatellites[0].TextureName;
+                string mstsSkyMoonTextureName = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + Viewer.ENVFile.SkySatellites[1].TextureName;
 
                 mstsSkySunTexture = SharedTextureManager.Get(graphicsDevice, mstsSkySunTextureName);
                 mstsSkyMoonTexture = SharedTextureManager.Get(graphicsDevice, mstsSkyMoonTextureName);

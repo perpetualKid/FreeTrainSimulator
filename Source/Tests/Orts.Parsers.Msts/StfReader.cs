@@ -2625,8 +2625,8 @@ namespace Orts.Tests.Orts.Parsers.Msts.StfReader
             string sometoken = "sometoken";
             int called = 0;
             var tokenProcessor = new STFReader.TokenProcessor(sometoken, () => { called++; });
-            Assert.Equal(sometoken, tokenProcessor.token);
-            tokenProcessor.processor.Invoke();
+            Assert.Equal(sometoken, tokenProcessor.Token);
+            tokenProcessor.Processor.Invoke();
             Assert.Equal(1, called);
         }
 

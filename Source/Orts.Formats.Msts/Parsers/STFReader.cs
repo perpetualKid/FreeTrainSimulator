@@ -1413,9 +1413,9 @@ namespace Orts.Formats.Msts.Parsers
                 string token = ReadItem().ToLower();
                 if (token == "(") { SkipRestOfBlock(); continue; }
                 foreach (TokenProcessor tp in processors)
-                    if (tp.token == token)
+                    if (tp.Token == token)
 #line default
-                        tp.processor(); // Press F11 'Step Into' to debug the Processor delegate
+                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
             } // Press F10 'Step Over' to jump to the next token
         }
         /// <summary>Parse an STF file until the EOF, using the array of lower case tokens, with a processor delegate/lambda
@@ -1436,9 +1436,9 @@ namespace Orts.Formats.Msts.Parsers
                 string token = ReadItem().ToLower();
                 if (token == "(") { SkipRestOfBlock(); continue; }
                 foreach (TokenProcessor tp in processors)
-                    if (tp.token == token)
+                    if (tp.Token == token)
 #line default
-                        tp.processor(); // Press F11 'Step Into' to debug the Processor delegate
+                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
             } // Press F10 'Step Over' to jump to the next token
         }
         /// <summary>Parse an STF file until the end of block ')' marker, using the array of lower case tokens, with a processor delegate/lambda
@@ -1452,9 +1452,9 @@ namespace Orts.Formats.Msts.Parsers
                 string token = ReadItem().ToLower();
                 if (token == "(") { SkipRestOfBlock(); continue; }
                 foreach (TokenProcessor tp in processors)
-                    if (tp.token == token)
+                    if (tp.Token == token)
 #line default
-                        tp.processor(); // Press F11 'Step Into' to debug the Processor delegate
+                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
             } // Press F10 'Step Over' to jump to the next token
         }
         /// <summary>Parse an STF file until the end of block ')' marker, using the array of lower case tokens, with a processor delegate/lambda
@@ -1475,9 +1475,9 @@ namespace Orts.Formats.Msts.Parsers
                 string token = ReadItem().ToLower();
                 if (token == "(") { SkipRestOfBlock(); continue; }
                 foreach (TokenProcessor tp in processors)
-                    if (tp.token == token)
+                    if (tp.Token == token)
 #line default
-                        tp.processor(); // Press F11 'Step Into' to debug the Processor delegate
+                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
             } // Press F10 'Step Over' to jump to the next token
         }
         #region *** Delegate and Structure definitions used by the Parse...() methods.
@@ -1490,15 +1490,21 @@ namespace Orts.Formats.Msts.Parsers
         public delegate bool ParsingBreak();
         /// <summary>A structure used to index lambda functions to a lower cased token.
         /// </summary>
-        public struct TokenProcessor
+        public readonly struct TokenProcessor
         {
             /// <summary>This constructor is used for the arguments to ParseFile and ParseBlock.
             /// </summary>
             /// <param name="t">The lower case token.</param>
             /// <param name="p">A lambda function or delegate that will be called from the Parse...() method.</param>
             [DebuggerStepThrough]
-            public TokenProcessor(string t, Processor p) { token = t; processor = p; }
-            public string token; public Processor processor;
+            public TokenProcessor(string token, Processor processor)
+            {
+                Token = token;
+                Processor = processor;
+            }
+
+            public readonly string Token;
+            public readonly Processor Processor;
         }
         #endregion
 
