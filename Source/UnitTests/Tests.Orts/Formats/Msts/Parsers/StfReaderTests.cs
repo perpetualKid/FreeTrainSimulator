@@ -20,7 +20,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
     public class StfExceptionTests
     {
         [TestMethod]
-        public void BeConstructable()
+        public void ConstructorTest()
         {
             var reader = Create.Reader("sometoken");
             //Assert there is no exception thrown

@@ -711,47 +711,6 @@ namespace Orts.Tests.Orts.Parsers.Msts
 #endregion
 
 #region Unit tests
-namespace Orts.Tests.Orts.Parsers.Msts.StfException
-{
-    #region StfExceptionTests
-    /// <summary>
-    /// Test the exceptions for Stf itself
-    /// </summary>
-    public class Should
-    {
-        [Fact]
-        public static void BeConstructableFromStfReader()
-        {
-            var reader = Tests.Orts.Parsers.Msts.StfReader.Create.Reader("sometoken");
-            Assert.DoesNotThrow(() => new STFException(reader, "some message"));
-        }
-
-#if NEW_READER
-        /// <summary>
-        /// Test constructors of the exception class
-        /// </summary>
-        [Fact]
-        public static void BeConstructable()
-        {
-            Assert.DoesNotThrow(() => new STFException("filename", 1, "some message"));
-        }
-
-        /// <summary>
-        /// Test that we can correctly assert a throw of an exception
-        /// </summary>
-        [Fact]
-        public static void BeThrowable()
-        {
-            string filename = "somefile";
-            int lineNumber = 2;
-            string message = "some message";
-            Tests.Msts.Parsers.StfReader.AssertStfException.Throws(() => { throw new STFException(filename, lineNumber, message); }, message);
-        }
-#endif
-    }
-    #endregion
-
-}
 namespace Orts.Tests.Orts.Parsers.Msts.StfReader
 {
     // NEW_READER compilation flag is set for those tests that can be performed (compiled) only for the new STFReader, 
