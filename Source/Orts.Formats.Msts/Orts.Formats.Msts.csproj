@@ -50,6 +50,7 @@
     <Compile Include="CabViewFile.cs" />
     <Compile Include="Entities\Shapes.cs" />
     <Compile Include="Entities\TimeTable.cs" />
+    <Compile Include="Entities\TrackType.cs" />
     <Compile Include="Files\EngineFile.cs" />
     <Compile Include="Entities\EnvironmentLayers.cs" />
     <Compile Include="Entities\Sound.cs" />
@@ -84,7 +85,7 @@
     <Compile Include="TrafficFile.cs" />
     <Compile Include="RouteFile.cs" />
     <Compile Include="TrackSectionsFile.cs" />
-    <Compile Include="TrackTypesFile.cs" />
+    <Compile Include="Files\TrackTypesFile.cs" />
     <Compile Include="WagonFile.cs" />
     <Compile Include="WorldFile.cs" />
     <Compile Include="Files\WorldSoundFile.cs" />

@@ -124,7 +124,7 @@ namespace Orts.ActivityRunner.Viewer3D
             _inSources = new List<SoundSource>();
             _outSources = new List<SoundSource>();
 
-            foreach (Orts.Formats.Msts.TrackTypesFile.TrackType ttdf in viewer.TrackTypes)
+            foreach (TrackType ttdf in viewer.TrackTypes)
             {
                 MSTSLocomotive loco = Car as MSTSLocomotive;
 
