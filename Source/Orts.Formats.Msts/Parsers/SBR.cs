@@ -22,6 +22,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Orts.Common;
 
 namespace Orts.Formats.Msts.Parsers
 {
@@ -273,33 +274,13 @@ namespace Orts.Formats.Msts.Parsers
             return block;
         }
 
-        /// <summary>
-        /// Used to convert token string to their equivalent enum TokenID
-        /// </summary>
-        private static Dictionary<string, TokenID> TokenTable;
-
-        private static void InitTokenTable()
-        {
-            TokenID[] tokenIDValues = (TokenID[])Enum.GetValues(typeof(TokenID));
-            TokenTable = new Dictionary<string, TokenID>(tokenIDValues.GetLength(0));
-            foreach (TokenID tokenID in tokenIDValues)
-            {
-                TokenTable.Add(tokenID.ToString().ToLower(), tokenID);
-            }
-        }
-
         private TokenID GetTokenID(string token)
         {
-            if (TokenTable == null) InitTokenTable();
 
-            TokenID tokenID = 0;
-            if (TokenTable.TryGetValue(token.ToLower(), out tokenID))
+            if (EnumExtension.GetValue(token, out TokenID tokenID))
                 return tokenID;
-            else if (string.Compare(token, "SKIP", true) == 0)
-                return TokenID.comment;
-            else if (string.Compare(token, "COMMENT", true) == 0)
-                return TokenID.comment;
-            else if (token.StartsWith("#"))
+            else if (string.Compare(token, "SKIP", true) == 0 || string.Compare(token, "COMMENT", true) == 0 
+                || token.StartsWith("#"))
                 return TokenID.comment;
             else
             {
