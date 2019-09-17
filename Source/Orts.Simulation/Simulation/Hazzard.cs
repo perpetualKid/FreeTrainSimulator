@@ -21,6 +21,7 @@ using Orts.Formats.Msts;
 using Orts.Common;
 using System.Collections.Generic;
 using System.Linq;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Simulation
 {
@@ -130,7 +131,7 @@ namespace Orts.Simulation
         readonly TrackNode TrackNode;
 
         internal WorldLocation Location;
-		public HazardFile HazFile { get { return hazF; } set { hazF = value; if (hazF.Tr_HazardFile.Workers != null) animal = false; else animal = true; } }
+		public HazardFile HazFile { get { return hazF; } set { hazF = value; if (hazF.Hazard.Workers != null) animal = false; else animal = true; } }
 		public HazardFile hazF;
 		public enum State { Idle1, Idle2, LookLeft, LookRight, Scared };
 		public State state;

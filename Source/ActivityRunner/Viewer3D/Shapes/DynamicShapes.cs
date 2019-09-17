@@ -562,7 +562,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             var h = viewer.Simulator.HazzardManager.AddHazzardIntoGame(hazardObject.itemId, hazardObject.FileName);
             if (h == null)
                 return null;
-            return new HazardShape(viewer.Simulator.BasePath + @"\Global\Shapes\" + h.HazFile.Tr_HazardFile.FileName + "\0" + viewer.Simulator.BasePath + @"\Global\Textures", positionSource, shapeFlags, hazardObject, h);
+            return new HazardShape(viewer.Simulator.BasePath + @"\Global\Shapes\" + h.HazFile.Hazard.FileName + "\0" + viewer.Simulator.BasePath + @"\Global\Textures", positionSource, shapeFlags, hazardObject, h);
 
         }
 
@@ -590,19 +590,19 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             switch (hazard.state)
             {
                 case Hazzard.State.Idle1:
-                    currentRange = hazard.HazFile.Tr_HazardFile.Idle_Key; break;
+                    currentRange = hazard.HazFile.Hazard.IdleKey; break;
                 case Hazzard.State.Idle2:
-                    currentRange = hazard.HazFile.Tr_HazardFile.Idle_Key2; break;
+                    currentRange = hazard.HazFile.Hazard.IdleKey2; break;
                 case Hazzard.State.LookLeft:
-                    currentRange = hazard.HazFile.Tr_HazardFile.Surprise_Key_Left; break;
+                    currentRange = hazard.HazFile.Hazard.SurpriseKeyLeft; break;
                 case Hazzard.State.LookRight:
-                    currentRange = hazard.HazFile.Tr_HazardFile.Surprise_Key_Right; break;
+                    currentRange = hazard.HazFile.Hazard.SurpriseKeyRight; break;
                 case Hazzard.State.Scared:
                 default:
-                    currentRange = hazard.HazFile.Tr_HazardFile.Success_Scarper_Key;
-                    if (moved < hazard.HazFile.Tr_HazardFile.Distance)
+                    currentRange = hazard.HazFile.Hazard.SuccessScarperKey;
+                    if (moved < hazard.HazFile.Hazard.Distance)
                     {
-                        var m = hazard.HazFile.Tr_HazardFile.Speed * elapsedTime.ClockSeconds;
+                        var m = hazard.HazFile.Hazard.Speed * elapsedTime.ClockSeconds;
                         moved += m;
                         hazardObject.Position.Move(hazardObject.QDirection, m);
                         // Shape's position isn't stored but only calculated dynamically as it's passed to PrepareFrame further down

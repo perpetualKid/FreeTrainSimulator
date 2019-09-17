@@ -350,10 +350,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
                 {
                     var shape = new ShapeDescriptorFile(shapeFilePath + "d");
-                    if (shape.Shape.ESD_Bounding_Box != null)
+                    if (shape.Shape.EsdBoundingBox != null)
                     {
-                        var min = shape.Shape.ESD_Bounding_Box.Min;
-                        var max = shape.Shape.ESD_Bounding_Box.Max;
+                        var min = shape.Shape.EsdBoundingBox.Min;
+                        var max = shape.Shape.EsdBoundingBox.Max;
                         var transform = Matrix.Invert(worldMatrix.XNAMatrix);
                         // Not sure if this is needed, but it is to correct for center-of-gravity being not the center of the box.
                         //transform.M41 += (max.X + min.X) / 2;

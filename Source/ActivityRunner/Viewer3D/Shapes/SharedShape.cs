@@ -88,13 +88,13 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (File.Exists(FilePath + "d"))
             {
                 var sdFile = new ShapeDescriptorFile(FilePath + "d");
-                textureFlags = (Helpers.TextureFlags)sdFile.Shape.ESD_Alternative_Texture;
+                textureFlags = (Helpers.TextureFlags)sdFile.Shape.EsdAlternativeTexture;
                 if (FilePath != null && FilePath.Contains("\\global\\")) textureFlags |= Helpers.TextureFlags.SnowTrack;//roads and tracks are in global, as MSTS will always use snow texture in snow weather
-                HasNightSubObj = sdFile.Shape.ESD_SubObj;
+                HasNightSubObj = sdFile.Shape.EsdSubObject;
                 if ((textureFlags & Helpers.TextureFlags.Night) != 0 && FilePath.Contains("\\trainset\\"))
                     textureFlags |= Helpers.TextureFlags.Underground;
-                SoundFileName = sdFile.Shape.ESD_SoundFileName;
-                BellAnimationFPS = sdFile.Shape.ESD_BellAnimationFPS;
+                SoundFileName = sdFile.Shape.EsdSoundFileName;
+                BellAnimationFPS = sdFile.Shape.EsdBellAnimationFps;
             }
 
             Matrices = sFile.Shape.Matrices.ToArray();

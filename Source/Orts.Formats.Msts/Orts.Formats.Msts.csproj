@@ -44,10 +44,12 @@
   <ItemGroup>
     <Compile Include="AceFile.cs" />
     <Compile Include="ActivityFile.cs" />
-    <Compile Include="CameraConfigurationFile.cs" />
+    <Compile Include="Entities\Camera.cs" />
+    <Compile Include="Files\CameraConfigurationFile.cs" />
     <Compile Include="CarSpawnerFile.cs" />
     <Compile Include="ConsistFile.cs" />
     <Compile Include="CabViewFile.cs" />
+    <Compile Include="Entities\Hazard.cs" />
     <Compile Include="Entities\RoadTracks.cs" />
     <Compile Include="Entities\Shapes.cs" />
     <Compile Include="Entities\TimeTable.cs" />
@@ -68,7 +70,7 @@
     <Compile Include="Signalling\Tokens.cs" />
     <Compile Include="SignalScripts.cs" />
     <Compile Include="Files\TerrainFlagsFile.cs" />
-    <Compile Include="HazardFile.cs" />
+    <Compile Include="Files\HazardFile.cs" />
     <Compile Include="LightCollection.cs" />
     <Compile Include="MstsUtility.cs" />
     <Compile Include="PathFile.cs" />
