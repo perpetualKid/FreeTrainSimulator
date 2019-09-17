@@ -231,8 +231,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     // a SemaphorePos (0) in sigcfg.dat is executed as SemaphorePos (0)
                     // First we check if there are only two animation steps
                     if (signalShape.SharedShape.Animations != null && signalShape.SharedShape.Animations.Count != 0 && MatrixIndices.Count > 0 &&
-                            signalShape.SharedShape.Animations[0].anim_nodes[MatrixIndices[0]].controllers.Count != 0 &&
-                            signalShape.SharedShape.Animations[0].anim_nodes[MatrixIndices[0]].controllers[0].Count == 2)
+                            signalShape.SharedShape.Animations[0].AnimationNodes[MatrixIndices[0]].Controllers.Count != 0 &&
+                            signalShape.SharedShape.Animations[0].AnimationNodes[MatrixIndices[0]].Controllers[0].Count == 2)
                     {
 
                         // OK, now we check if maximum SemaphorePos is 2 (we won't correct if there are only SemaphorePos 1 and 0,
@@ -270,7 +270,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     foreach (int mindex in MatrixIndices)
                     {
                         if (mindex == 0 && (signalShape.SharedShape.Animations == null || signalShape.SharedShape.Animations.Count == 0 ||
-                            signalShape.SharedShape.Animations[0].anim_nodes[mindex].controllers.Count == 0))
+                            signalShape.SharedShape.Animations[0].AnimationNodes[mindex].Controllers.Count == 0))
                             continue;
                         AnimatedPart SemaphorePart = new AnimatedPart(signalShape);
                         SemaphorePart.AddMatrix(mindex);

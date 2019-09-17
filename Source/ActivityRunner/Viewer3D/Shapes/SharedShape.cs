@@ -9,6 +9,7 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Common;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Entities;
 using Orts.Formats.Msts.Files;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
@@ -20,7 +21,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         // This data is common to all instances of the shape
         public List<string> MatrixNames = new List<string>();
         public Matrix[] Matrices = new Matrix[0];  // the original natural pose for this shape - shared by all instances
-        public animations Animations;
+        public Animations Animations;
         public LodControl[] LodControls;
         public bool HasNightSubObj;
         public int RootSubObjectIndex = 0;
@@ -96,15 +97,17 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 BellAnimationFPS = sdFile.Shape.ESD_BellAnimationFPS;
             }
 
-            var matrixCount = sFile.shape.matrices.Count;
-            MatrixNames.Capacity = matrixCount;
-            Matrices = new Matrix[matrixCount];
-            for (var i = 0; i < matrixCount; ++i)
-            {
-                MatrixNames.Add(sFile.shape.matrices[i].Name.ToUpper());
-                Matrices[i] = XNAMatrixFromMSTS(sFile.shape.matrices[i]);
-            }
-            Animations = sFile.shape.animations;
+            Matrices = sFile.Shape.Matrices.ToArray();
+            MatrixNames = sFile.Shape.Matrices.MatrixNames;
+            //var matrixCount = sFile.shape.matrices.Count;
+            //MatrixNames.Capacity = matrixCount;
+            //Matrices = new Matrix[matrixCount];
+            //for (var i = 0; i < matrixCount; ++i)
+            //{
+            //    MatrixNames.Add(sFile.shape.matrices[i].Name.ToUpper());
+            //    Matrices[i] = XNAMatrixFromMSTS(sFile.shape.matrices[i]);
+            //}
+            Animations = sFile.Shape.Animations;
 
 #if DEBUG_SHAPE_HIERARCHY
             var debugShapeHierarchy = new StringBuilder();
@@ -123,7 +126,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
             Console.Write(debugShapeHierarchy.ToString());
 #endif
-            LodControls = (from lod_control lod in sFile.shape.lod_controls
+            LodControls = (from Formats.Msts.Entities.LodControl lod in sFile.Shape.LodControls
                            select new LodControl(lod, textureFlags, sFile, this)).ToArray();
             if (LodControls.Length == 0)
                 throw new InvalidDataException("Shape file missing lod_control section");
@@ -139,8 +142,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 // Look for root subobject, it is not necessarily the first (see ProTrain signal)
                 for (int soIndex = 0; soIndex <= LodControls[0].DistanceLevels[0].SubObjects.Length - 1; soIndex++)
                 {
-                    sub_object subObject = sFile.shape.lod_controls[0].distance_levels[0].sub_objects[soIndex];
-                    if (subObject.sub_object_header.geometry_info.geometry_node_map[0] == 0)
+                    Formats.Msts.Entities.SubObject subObject = sFile.Shape.LodControls[0].DistanceLevels[0].SubObjects[soIndex];
+                    if (subObject.SubObjectHeader.GeometryInfo.GeometryNodeMap[0] == 0)
                     {
                         RootSubObjectIndex = soIndex;
                         break;
@@ -153,12 +156,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         {
             public DistanceLevel[] DistanceLevels;
 
-            public LodControl(lod_control MSTSlod_control, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
+            public LodControl(Formats.Msts.Entities.LodControl MSTSlod_control, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
             {
 #if DEBUG_SHAPE_HIERARCHY
                 Console.WriteLine("  LOD control:");
 #endif
-                DistanceLevels = (from distance_level level in MSTSlod_control.distance_levels
+                DistanceLevels = (from Formats.Msts.Entities.DistanceLevel level in MSTSlod_control.DistanceLevels
                                   select new DistanceLevel(level, textureFlags, sFile, sharedShape)).ToArray();
                 if (DistanceLevels.Length == 0)
                     throw new InvalidDataException("Shape file missing distance_level");
@@ -177,15 +180,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             public float ViewSphereRadius;
             public SubObject[] SubObjects;
 
-            public DistanceLevel(distance_level MSTSdistance_level, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
+            public DistanceLevel(Formats.Msts.Entities.DistanceLevel MSTSdistance_level, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
             {
 #if DEBUG_SHAPE_HIERARCHY
                 Console.WriteLine("    Distance level {0}: hierarchy={1}", MSTSdistance_level.distance_level_header.dlevel_selection, String.Join(" ", MSTSdistance_level.distance_level_header.hierarchy.Select(i => i.ToString()).ToArray()));
 #endif
-                ViewingDistance = MSTSdistance_level.distance_level_header.dlevel_selection;
+                ViewingDistance = MSTSdistance_level.DistanceLevelHeader.DistanceLevelSelection;
                 // TODO, work out ViewShereRadius from all sub_object radius and centers.
-                if (sFile.shape.volumes.Count > 0)
-                    ViewSphereRadius = sFile.shape.volumes[0].Radius;
+                if (sFile.Shape.Volumes.Count > 0)
+                    ViewSphereRadius = sFile.Shape.Volumes[0].Radius;
                 else
                     ViewSphereRadius = 100;
 
@@ -195,8 +198,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 SubObjects = (from sub_object obj in MSTSdistance_level.sub_objects
                               select new SubObject(obj, ref index, MSTSdistance_level.distance_level_header.hierarchy, textureFlags, subObjectIndex++, sFile, sharedShape)).ToArray();
 #else
-                SubObjects = (from sub_object obj in MSTSdistance_level.sub_objects
-                              select new SubObject(obj, ref index, MSTSdistance_level.distance_level_header.hierarchy, textureFlags, sFile, sharedShape)).ToArray();
+                SubObjects = (from Formats.Msts.Entities.SubObject obj in MSTSdistance_level.SubObjects
+                              select new SubObject(obj, ref index, MSTSdistance_level.DistanceLevelHeader.Hierarchy, textureFlags, sFile, sharedShape)).ToArray();
 #endif
                 if (SubObjects.Length == 0)
                     throw new InvalidDataException("Shape file missing sub_object");
@@ -242,7 +245,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 #if DEBUG_SHAPE_HIERARCHY
             public SubObject(sub_object sub_object, ref int totalPrimitiveIndex, int[] hierarchy, Helpers.TextureFlags textureFlags, int subObjectIndex, SFile sFile, SharedShape sharedShape)
 #else
-            public SubObject(sub_object sub_object, ref int totalPrimitiveIndex, int[] hierarchy, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
+            public SubObject(Formats.Msts.Entities.SubObject sub_object, ref int totalPrimitiveIndex, int[] hierarchy, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
 #endif
             {
 #if DEBUG_SHAPE_HIERARCHY
@@ -261,24 +264,24 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 #if DEBUG_SHAPE_NORMALS
                 ShapePrimitives = new ShapePrimitive[sub_object.primitives.Count * 2];
 #else
-                ShapePrimitives = new ShapePrimitive[sub_object.primitives.Count];
+                ShapePrimitives = new ShapePrimitive[sub_object.Primitives.Count];
 #endif
-                foreach (primitive primitive in sub_object.primitives)
+                foreach (Primitive primitive in sub_object.Primitives)
 #endif
                 {
-                    var primitiveState = sFile.shape.prim_states[primitive.prim_state_idx];
-                    var vertexState = sFile.shape.vtx_states[primitiveState.ivtx_state];
-                    var lightModelConfiguration = sFile.shape.light_model_cfgs[vertexState.LightCfgIdx];
+                    var primitiveState = sFile.Shape.PrimaryStates[primitive.PrimitiveStateIndex];
+                    var vertexState = sFile.Shape.VertexStates[primitiveState.VertexStateIndex];
+                    var lightModelConfiguration = sFile.Shape.LightModelConfigs[vertexState.LightConfigIndex];
                     var options = SceneryMaterialOptions.None;
 
                     // Validate hierarchy position.
-                    var hierarchyIndex = vertexState.imatrix;
+                    var hierarchyIndex = vertexState.MatrixIndex;
                     while (hierarchyIndex != -1)
                     {
                         if (hierarchyIndex < 0 || hierarchyIndex >= hierarchy.Length)
                         {
                             var hierarchyList = new List<int>();
-                            hierarchyIndex = vertexState.imatrix;
+                            hierarchyIndex = vertexState.MatrixIndex;
                             while (hierarchyIndex >= 0 && hierarchyIndex < hierarchy.Length)
                             {
                                 hierarchyList.Add(hierarchyIndex);
@@ -291,32 +294,32 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         hierarchyIndex = hierarchy[hierarchyIndex];
                     }
 
-                    if (lightModelConfiguration.uv_ops.Count > 0)
-                        if (lightModelConfiguration.uv_ops[0].TexAddrMode - 1 >= 0 && lightModelConfiguration.uv_ops[0].TexAddrMode - 1 < UVTextureAddressModeMap.Length)
-                            options |= UVTextureAddressModeMap[lightModelConfiguration.uv_ops[0].TexAddrMode - 1];
-                        else if (!shapeWarnings.Contains("texture_addressing_mode:" + lightModelConfiguration.uv_ops[0].TexAddrMode))
+                    if (lightModelConfiguration.UVOperations.Count > 0)
+                        if (lightModelConfiguration.UVOperations[0].TextureAddressMode - 1 >= 0 && lightModelConfiguration.UVOperations[0].TextureAddressMode - 1 < UVTextureAddressModeMap.Length)
+                            options |= UVTextureAddressModeMap[lightModelConfiguration.UVOperations[0].TextureAddressMode - 1];
+                        else if (!shapeWarnings.Contains("texture_addressing_mode:" + lightModelConfiguration.UVOperations[0].TextureAddressMode))
                         {
-                            Trace.TraceInformation("Skipped unknown texture addressing mode {1} first seen in shape {0}", sharedShape.FilePath, lightModelConfiguration.uv_ops[0].TexAddrMode);
-                            shapeWarnings.Add("texture_addressing_mode:" + lightModelConfiguration.uv_ops[0].TexAddrMode);
+                            Trace.TraceInformation("Skipped unknown texture addressing mode {1} first seen in shape {0}", sharedShape.FilePath, lightModelConfiguration.UVOperations[0].TextureAddressMode);
+                            shapeWarnings.Add("texture_addressing_mode:" + lightModelConfiguration.UVOperations[0].TextureAddressMode);
                         }
 
-                    if (primitiveState.alphatestmode == 1)
+                    if (primitiveState.AlphaTestMode == 1)
                         options |= SceneryMaterialOptions.AlphaTest;
 
-                    if (ShaderNames.ContainsKey(sFile.shape.shader_names[primitiveState.ishader]))
-                        options |= ShaderNames[sFile.shape.shader_names[primitiveState.ishader]];
-                    else if (!shapeWarnings.Contains("shader_name:" + sFile.shape.shader_names[primitiveState.ishader]))
+                    if (ShaderNames.ContainsKey(sFile.Shape.ShaderNames[primitiveState.ShaderIndex]))
+                        options |= ShaderNames[sFile.Shape.ShaderNames[primitiveState.ShaderIndex]];
+                    else if (!shapeWarnings.Contains("shader_name:" + sFile.Shape.ShaderNames[primitiveState.ShaderIndex]))
                     {
-                        Trace.TraceInformation("Skipped unknown shader name {1} first seen in shape {0}", sharedShape.FilePath, sFile.shape.shader_names[primitiveState.ishader]);
-                        shapeWarnings.Add("shader_name:" + sFile.shape.shader_names[primitiveState.ishader]);
+                        Trace.TraceInformation("Skipped unknown shader name {1} first seen in shape {0}", sharedShape.FilePath, sFile.Shape.ShaderNames[primitiveState.ShaderIndex]);
+                        shapeWarnings.Add("shader_name:" + sFile.Shape.ShaderNames[primitiveState.ShaderIndex]);
                     }
 
-                    if (12 + vertexState.LightMatIdx >= 0 && 12 + vertexState.LightMatIdx < VertexLightModeMap.Length)
-                        options |= VertexLightModeMap[12 + vertexState.LightMatIdx];
-                    else if (!shapeWarnings.Contains("lighting_model:" + vertexState.LightMatIdx))
+                    if (12 + vertexState.LightMatrixIndex >= 0 && 12 + vertexState.LightMatrixIndex < VertexLightModeMap.Length)
+                        options |= VertexLightModeMap[12 + vertexState.LightMatrixIndex];
+                    else if (!shapeWarnings.Contains("lighting_model:" + vertexState.LightMatrixIndex))
                     {
-                        Trace.TraceInformation("Skipped unknown lighting model index {1} first seen in shape {0}", sharedShape.FilePath, vertexState.LightMatIdx);
-                        shapeWarnings.Add("lighting_model:" + vertexState.LightMatIdx);
+                        Trace.TraceInformation("Skipped unknown lighting model index {1} first seen in shape {0}", sharedShape.FilePath, vertexState.LightMatrixIndex);
+                        shapeWarnings.Add("lighting_model:" + vertexState.LightMatrixIndex);
                     }
 
                     if ((textureFlags & Helpers.TextureFlags.Night) != 0)
@@ -326,10 +329,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         options |= SceneryMaterialOptions.UndergroundTexture;
 
                     Material material;
-                    if (primitiveState.tex_idxs.Length != 0)
+                    if (primitiveState.TextureIndices.Length != 0)
                     {
-                        var texture = sFile.shape.textures[primitiveState.tex_idxs[0]];
-                        var imageName = sFile.shape.images[texture.iImage];
+                        var texture = sFile.Shape.Textures[primitiveState.TextureIndices[0]];
+                        var imageName = sFile.Shape.ImageNames[texture.ImageIndex];
                         if (String.IsNullOrEmpty(sharedShape.ReferencePath))
                             material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, textureFlags, imageName), (int)options, texture.MipMapLODBias);
                         else
@@ -355,18 +358,18 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     return new { Key = material.ToString() + "/" + vertexState.imatrix.ToString(), Primitive = primitive, Material = material, HierachyIndex = vertexState.imatrix };
                 }).ToArray();
 #else
-                    if (primitive.indexed_trilist.vertex_idxs.Count == 0)
+                    if (primitive.IndexedTriList.VertexIndices.Count == 0)
                     {
                         Trace.TraceWarning("Skipped primitive with 0 indices in {0}", sharedShape.FilePath);
                         continue;
                     }
 
-                    var indexData = new List<ushort>(primitive.indexed_trilist.vertex_idxs.Count * 3);
-                    foreach (vertex_idx vertex_idx in primitive.indexed_trilist.vertex_idxs)
-                        foreach (var index in new[] { vertex_idx.a, vertex_idx.b, vertex_idx.c })
+                    var indexData = new List<ushort>(primitive.IndexedTriList.VertexIndices.Count * 3);
+                    foreach (VertexIndex vertex_idx in primitive.IndexedTriList.VertexIndices)
+                        foreach (var index in new[] { vertex_idx.A, vertex_idx.B, vertex_idx.C })
                             indexData.Add((ushort)index);
 
-                    ShapePrimitives[primitiveIndex] = new ShapePrimitive(material, vertexBufferSet, indexData, viewer.RenderProcess.GraphicsDevice, hierarchy, vertexState.imatrix);
+                    ShapePrimitives[primitiveIndex] = new ShapePrimitive(material, vertexBufferSet, indexData, viewer.RenderProcess.GraphicsDevice, hierarchy, vertexState.MatrixIndex);
                     ShapePrimitives[primitiveIndex].SortIndex = ++totalPrimitiveIndex;
                     ++primitiveIndex;
 #if DEBUG_SHAPE_NORMALS
@@ -460,34 +463,32 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
 #endif
 
-            public VertexBufferSet(sub_object sub_object, ShapeFile sFile, GraphicsDevice graphicsDevice)
+            public VertexBufferSet(Formats.Msts.Entities.SubObject sub_object, ShapeFile sFile, GraphicsDevice graphicsDevice)
 #if DEBUG_SHAPE_NORMALS
                 : this(CreateVertexData(sub_object, sFile.shape), CreateDebugNormalsVertexData(sub_object, sFile.shape), graphicsDevice)
 #else
-                : this(CreateVertexData(sub_object, sFile.shape), graphicsDevice)
+                : this(CreateVertexData(sub_object, sFile.Shape), graphicsDevice)
 #endif
             {
             }
 
-            static VertexPositionNormalTexture[] CreateVertexData(sub_object sub_object, shape shape)
+            static VertexPositionNormalTexture[] CreateVertexData(Formats.Msts.Entities.SubObject sub_object, Shape shape)
             {
                 // TODO - deal with vertex sets that have various numbers of texture coordinates - ie 0, 1, 2 etc
-                return (from vertex vertex in sub_object.vertices
+                return (from Orts.Formats.Msts.Entities.Vertex vertex in sub_object.Vertices
                         select XNAVertexPositionNormalTextureFromMSTS(vertex, shape)).ToArray();
             }
 
-            static VertexPositionNormalTexture XNAVertexPositionNormalTextureFromMSTS(vertex vertex, shape shape)
+            static VertexPositionNormalTexture XNAVertexPositionNormalTextureFromMSTS(Formats.Msts.Entities.Vertex vertex, Shape shape)
             {
-                var position = shape.points[vertex.ipoint];
-                var normal = shape.normals[vertex.inormal];
-                // TODO use a simpler vertex description when no UV's in use
-                var texcoord = vertex.vertex_uvs.Length > 0 ? shape.uv_points[vertex.vertex_uvs[0]] : new uv_point(0, 0);
+                var position = shape.Points[vertex.PointIndex];
+                var normal = shape.Normals[vertex.NormalIndex];
 
                 return new VertexPositionNormalTexture()
                 {
                     Position = new Vector3(position.X, position.Y, -position.Z),
                     Normal = new Vector3(normal.X, normal.Y, -normal.Z),
-                    TextureCoordinate = new Vector2(texcoord.U, texcoord.V),
+                    TextureCoordinate = vertex.VertexUVs.Length > 0 ? shape.UVPoints[vertex.VertexUVs[0]] : new Vector2(0, 0)
                 };
             }
 
@@ -519,26 +520,6 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 return vertexData.ToArray();
             }
 #endif
-        }
-
-        static Matrix XNAMatrixFromMSTS(matrix MSTSMatrix)
-        {
-            var XNAMatrix = Matrix.Identity;
-
-            XNAMatrix.M11 = MSTSMatrix.AX;
-            XNAMatrix.M12 = MSTSMatrix.AY;
-            XNAMatrix.M13 = -MSTSMatrix.AZ;
-            XNAMatrix.M21 = MSTSMatrix.BX;
-            XNAMatrix.M22 = MSTSMatrix.BY;
-            XNAMatrix.M23 = -MSTSMatrix.BZ;
-            XNAMatrix.M31 = -MSTSMatrix.CX;
-            XNAMatrix.M32 = -MSTSMatrix.CY;
-            XNAMatrix.M33 = MSTSMatrix.CZ;
-            XNAMatrix.M41 = MSTSMatrix.DX;
-            XNAMatrix.M42 = MSTSMatrix.DY;
-            XNAMatrix.M43 = -MSTSMatrix.DZ;
-
-            return XNAMatrix;
         }
 
         public void PrepareFrame(RenderFrame frame, in WorldPosition location, ShapeFlags flags)

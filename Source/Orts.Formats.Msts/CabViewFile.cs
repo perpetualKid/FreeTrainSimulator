@@ -372,10 +372,10 @@ namespace Orts.Formats.Msts
             stf.SkipRestOfBlock();
         }
         // Used by subclasses CVCGauge and CVCDigital
-        protected virtual color ParseControlColor( STFReader stf )
+        protected virtual Color ParseControlColor( STFReader stf )
         {
             stf.MustMatch("(");
-            color colour = new color { A = 1, R = stf.ReadInt(0) / 255f, G = stf.ReadInt(0) / 255f, B = stf.ReadInt(0) / 255f };
+            Color colour = new Color(stf.ReadInt(0) / 255f, stf.ReadInt(0) / 255f, stf.ReadInt(0) / 255f, 1.0f);
             stf.SkipRestOfBlock();
             return colour;
         }
@@ -447,15 +447,15 @@ namespace Orts.Formats.Msts
         public int ZeroPos;
         public int Orientation;
         public int Direction;
-        public color PositiveColor { get; set; }
-        public color SecondPositiveColor { get; set; }
+        public Color PositiveColor { get; set; }
+        public Color SecondPositiveColor { get; set; }
         public float PositiveSwitchVal { get; set; }
-        public color NegativeColor { get; set; }
+        public Color NegativeColor { get; set; }
         public float NegativeSwitchVal { get; set; }
-        public color SecondNegativeColor { get; set; }
+        public Color SecondNegativeColor { get; set; }
         public int NumPositiveColors { get; set; }
         public int NumNegativeColors { get; set; }
-        public color DecreaseColor { get; set; }
+        public Color DecreaseColor { get; set; }
 
         public CVCGauge() { }
 
@@ -487,7 +487,7 @@ namespace Orts.Formats.Msts
                     NumPositiveColors = stf.ReadInt(0);
                     if((stf.EndOfBlock() == false))
                     {
-                       List <color> Colorset = new List<color>();
+                       List <Color> Colorset = new List<Color>();
                        stf.ParseBlock(new STFReader.TokenProcessor[] {
                             new STFReader.TokenProcessor("controlcolour", ()=>{ Colorset.Add(ParseControlColor(stf));}), 
                             new STFReader.TokenProcessor("switchval", () => { PositiveSwitchVal = ParseSwitchVal(stf); }) });
@@ -500,7 +500,7 @@ namespace Orts.Formats.Msts
                     NumNegativeColors = stf.ReadInt(0);
                     if ((stf.EndOfBlock() == false))
                     {
-                        List<color> Colorset = new List<color>();
+                        List<Color> Colorset = new List<Color>();
                         stf.ParseBlock(new STFReader.TokenProcessor[] {
                             new STFReader.TokenProcessor("controlcolour", ()=>{ Colorset.Add(ParseControlColor(stf));}), 
                             new STFReader.TokenProcessor("switchval", () => { NegativeSwitchVal = ParseSwitchVal(stf); }) });
@@ -559,15 +559,15 @@ namespace Orts.Formats.Msts
         public double Accuracy { get; set; }
         public double AccuracySwitch { get; set; }
         public int Justification { get; set; }
-        public color PositiveColor { get; set; }
-        public color SecondPositiveColor { get; set; }
+        public Color PositiveColor { get; set; }
+        public Color SecondPositiveColor { get; set; }
         public float PositiveSwitchVal { get; set; }
-        public color NegativeColor { get; set; }
+        public Color NegativeColor { get; set; }
         public float NegativeSwitchVal { get; set; }
-        public color SecondNegativeColor { get; set; }
+        public Color SecondNegativeColor { get; set; }
         public int NumPositiveColors { get; set; }
         public int NumNegativeColors { get; set; }
-        public color DecreaseColor { get; set; }
+        public Color DecreaseColor { get; set; }
         public float FontSize { get; set; }
         public int FontStyle { get; set; }
         public string FontFamily = "";
@@ -579,10 +579,10 @@ namespace Orts.Formats.Msts
         public CVCDigital(STFReader stf, string basepath)
         {
             // Set white as the default positive colour for digital displays
-            color white = new color();
-            white.R = 255f;
-            white.G = 255f;
-            white.B = 255f;
+            Color white = new Color();
+            white.R = 255;
+            white.G = 255;
+            white.B = 255;
             PositiveColor = white;
             FontSize = 8;
             FontStyle = 0;
@@ -605,7 +605,7 @@ namespace Orts.Formats.Msts
                     NumPositiveColors = stf.ReadInt(0);
                     if((stf.EndOfBlock() == false))
                     {
-                       List <color> Colorset = new List<color>();
+                       List <Color> Colorset = new List<Color>();
                        stf.ParseBlock(new STFReader.TokenProcessor[] {
                             new STFReader.TokenProcessor("controlcolour", ()=>{ Colorset.Add(ParseControlColor(stf));}), 
                             new STFReader.TokenProcessor("switchval", () => { PositiveSwitchVal = ParseSwitchVal(stf); }) });
@@ -618,7 +618,7 @@ namespace Orts.Formats.Msts
                     NumNegativeColors = stf.ReadInt(0);
                     if ((stf.EndOfBlock() == false))
                     {
-                        List<color> Colorset = new List<color>();
+                        List<Color> Colorset = new List<Color>();
                         stf.ParseBlock(new STFReader.TokenProcessor[] {
                             new STFReader.TokenProcessor("controlcolour", ()=>{ Colorset.Add(ParseControlColor(stf));}), 
                             new STFReader.TokenProcessor("switchval", () => { NegativeSwitchVal = ParseSwitchVal(stf); }) });

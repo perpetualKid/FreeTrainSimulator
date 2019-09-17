@@ -1514,7 +1514,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             IsFire = true;
         }
 
-        public color GetColor(out bool positive)
+        public Color GetColor(out bool positive)
         {
             if (Locomotive.GetDataOf(Control) < 0) { positive = false; return Gauge.NegativeColor; }
             else { positive = true; return Gauge.PositiveColor; }
@@ -2837,7 +2837,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         Material FindMaterial()
         {
             bool Positive;
-            color c = this.CVFR.GetColor(out Positive);
+            Color c = this.CVFR.GetColor(out Positive);
             if (Positive)
             {
                 if (PositiveMaterial == null)

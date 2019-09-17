@@ -9,6 +9,7 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Common;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Entities;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Event = Orts.Common.Event;
@@ -81,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 return;  // animation is missing
             }
 
-            if (iMatrix < 0 || iMatrix >= SharedShape.Animations[0].anim_nodes.Count || iMatrix >= XNAMatrices.Length)
+            if (iMatrix < 0 || iMatrix >= SharedShape.Animations[0].AnimationNodes.Count || iMatrix >= XNAMatrices.Length)
             {
                 if (!SeenShapeAnimationError.ContainsKey(SharedShape.FilePath))
                     Trace.TraceInformation("Ignored out of bounds matrix {1} in shape {0}", SharedShape.FilePath, iMatrix);
@@ -89,14 +90,14 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 return;  // mismatched matricies
             }
 
-            var anim_node = SharedShape.Animations[0].anim_nodes[iMatrix];
-            if (anim_node.controllers.Count == 0)
+            var anim_node = SharedShape.Animations[0].AnimationNodes[iMatrix];
+            if (anim_node.Controllers.Count == 0)
                 return;  // missing controllers
 
             // Start with the intial pose in the shape file.
             var xnaPose = SharedShape.Matrices[iMatrix];
 
-            foreach (controller controller in anim_node.controllers)
+            foreach (Controller controller in anim_node.Controllers)
             {
                 // Determine the frame index from the current frame ('key'). We will be interpolating between two key
                 // frames (the items in 'controller') so we need to find the last one LESS than the current frame
@@ -117,33 +118,21 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 // difference between frame1 and frame2 or we'll crash.
                 var amount = frame1 < frame2 ? MathHelper.Clamp((key - frame1) / (frame2 - frame1), 0, 1) : 0;
 
-                if (position1.GetType() == typeof(slerp_rot))  // rotate the existing matrix
+                if (position1 is SlerpRotation slerp1 && position2 is SlerpRotation slerp2)  // rotate the existing matrix
                 {
-                    slerp_rot MSTS1 = (slerp_rot)position1;
-                    slerp_rot MSTS2 = (slerp_rot)position2;
-                    Quaternion XNA1 = new Quaternion(MSTS1.X, MSTS1.Y, -MSTS1.Z, MSTS1.W);
-                    Quaternion XNA2 = new Quaternion(MSTS2.X, MSTS2.Y, -MSTS2.Z, MSTS2.W);
-                    Quaternion q = Quaternion.Slerp(XNA1, XNA2, amount);
+                    Quaternion.Slerp(ref slerp1.Quaternion, ref slerp1.Quaternion, amount, out Quaternion q);
                     Vector3 location = xnaPose.Translation;
                     xnaPose = Matrix.CreateFromQuaternion(q);
                     xnaPose.Translation = location;
                 }
-                else if (position1.GetType() == typeof(linear_key))  // a key sets an absolute position, vs shifting the existing matrix
+                else if (position1 is LinearKey key1 && position2 is LinearKey key2)  // a key sets an absolute position, vs shifting the existing matrix
                 {
-                    linear_key MSTS1 = (linear_key)position1;
-                    linear_key MSTS2 = (linear_key)position2;
-                    Vector3 XNA1 = new Vector3(MSTS1.X, MSTS1.Y, -MSTS1.Z);
-                    Vector3 XNA2 = new Vector3(MSTS2.X, MSTS2.Y, -MSTS2.Z);
-                    Vector3 v = Vector3.Lerp(XNA1, XNA2, amount);
+                    Vector3.Lerp(ref key1.Position, ref key2.Position, amount, out Vector3 v);
                     xnaPose.Translation = v;
                 }
-                else if (position1.GetType() == typeof(tcb_key)) // a tcb_key sets an absolute rotation, vs rotating the existing matrix
+                else if (position1 is TcbKey tcbkey1 && position2 is TcbKey tcbkey2) // a tcb_key sets an absolute rotation, vs rotating the existing matrix
                 {
-                    tcb_key MSTS1 = (tcb_key)position1;
-                    tcb_key MSTS2 = (tcb_key)position2;
-                    Quaternion XNA1 = new Quaternion(MSTS1.X, MSTS1.Y, -MSTS1.Z, MSTS1.W);
-                    Quaternion XNA2 = new Quaternion(MSTS2.X, MSTS2.Y, -MSTS2.Z, MSTS2.W);
-                    Quaternion q = Quaternion.Slerp(XNA1, XNA2, amount);
+                    Quaternion.Slerp(ref tcbkey1.Quaternion, ref tcbkey2.Quaternion, amount, out Quaternion q);
                     Vector3 location = xnaPose.Translation;
                     xnaPose = Matrix.CreateFromQuaternion(q);
                     xnaPose.Translation = location;
@@ -756,10 +745,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             fuelPickupItem = viewer.Simulator.FuelManager.CreateFuelStation(WorldPosition, from tid in fuelPickupItemObject.TrItemIDList where tid.db == 0 select tid.dbID);
             animationFrames = 1;
             frameRate = 1;
-            if (SharedShape.Animations != null && SharedShape.Animations.Count > 0 && SharedShape.Animations[0].anim_nodes != null && SharedShape.Animations[0].anim_nodes.Count > 0)
+            if (SharedShape.Animations != null && SharedShape.Animations.Count > 0 && SharedShape.Animations[0].AnimationNodes != null && SharedShape.Animations[0].AnimationNodes.Count > 0)
             {
                 frameRate = SharedShape.Animations[0].FrameCount / fuelPickupItemObject.PickupAnimData.AnimationSpeed;
-                foreach (var anim_node in SharedShape.Animations[0].anim_nodes)
+                foreach (var anim_node in SharedShape.Animations[0].AnimationNodes)
                     if (anim_node.Name == "ANIMATED_PARTS")
                     {
                         animationFrames = SharedShape.Animations[0].FrameCount;

@@ -73,9 +73,9 @@
     <Compile Include="MstsUtility.cs" />
     <Compile Include="PathFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RoadDatabaseFile.cs" />
+    <Compile Include="Files\RoadDatabaseFile.cs" />
     <Compile Include="Files\ShapeDescriptorFile.cs" />
-    <Compile Include="ShapeFile.cs" />
+    <Compile Include="Files\ShapeFile.cs" />
     <Compile Include="SignalConfigurationFile.cs" />
     <Compile Include="SignalEnums.cs" />
     <Compile Include="Files\SpeedpostDatFile.cs" />
