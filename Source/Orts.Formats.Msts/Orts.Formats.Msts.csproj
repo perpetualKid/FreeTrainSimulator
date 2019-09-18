@@ -45,6 +45,7 @@
     <Compile Include="AceFile.cs" />
     <Compile Include="ActivityFile.cs" />
     <Compile Include="Entities\Camera.cs" />
+    <Compile Include="Entities\TrainCar.cs" />
     <Compile Include="Files\CameraConfigurationFile.cs" />
     <Compile Include="CarSpawnerFile.cs" />
     <Compile Include="ConsistFile.cs" />

@@ -96,6 +96,7 @@
     <Compile Include="Settings\Store\RegistryStoreTests.cs" />
     <Compile Include="Settings\UpdateSettingsTests.cs" />
     <Compile Include="Settings\UserSettingsTests.cs" />
+    <Compile Include="Shared\AssertWarnings.cs" />
     <Compile Include="Shared\DynamicPrecisionEqualityComparer.cs" />
     <Compile Include="Shared\TestFile.cs" />
   </ItemGroup>

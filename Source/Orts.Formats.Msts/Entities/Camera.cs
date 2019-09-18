@@ -20,7 +20,7 @@ namespace Orts.Formats.Msts.Entities
                 new STFReader.TokenProcessor("description", ()=>{ Description = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("fov", ()=>{ Fov = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("zclip", ()=>{ ZClip = stf.ReadFloatBlock(STFReader.Units.None, null); }),
-                new STFReader.TokenProcessor("wagonnum", ()=>{ WagonNum = stf.ReadIntBlock(null); }),
+                new STFReader.TokenProcessor("wagonnum", ()=>{ WagonNumber = stf.ReadIntBlock(null); }),
             });
         }
 
@@ -32,7 +32,7 @@ namespace Orts.Formats.Msts.Entities
         public ref Vector3 Direction => ref direction;
         public float Fov { get; private set; } = 55f;
         public float ZClip { get; private set; } = 0.1f;
-        public int WagonNum { get; private set; } = -1;
+        public int WagonNumber { get; private set; } = -1;
         public ref Vector3 ObjectOffset => ref objectOffset;
         public ref Vector3 RotationLimit => ref rotationLimit;
         public string Description { get; private set; } = "";

@@ -271,6 +271,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Xna.Framework;
+using Orts.Formats.Msts.Entities;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
@@ -1277,42 +1278,6 @@ namespace Orts.Formats.Msts
                     stf.MustMatch(")");
                 }),
             });
-        }
-    }
-
-
-    public class WagonList {
-        public List<WorkOrderWagon> WorkOrderWagonList = new List<WorkOrderWagon>();
-        Nullable<uint> uID;        // Nullable as can't use -1 to indicate not set.  
-        Nullable<uint> sidingId;   // May be specified outside the Wagon_List instead.
-        string description = "";   // Value assumed if property not found.
-
-        public WagonList(STFReader stf, EventType eventType) {
-            stf.MustMatch("(");
-            // "Drop Off" Wagon_List sometimes lacks a Description attribute, so we create the wagon _before_ description
-            // is parsed. Bad practice, but not very dangerous as each Description usually repeats the same data.
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("uid", ()=>{ uID = stf.ReadUIntBlock(null); }),
-                new STFReader.TokenProcessor("sidingitem", ()=>{ sidingId = stf.ReadUIntBlock(null); 
-                    WorkOrderWagonList.Add(new WorkOrderWagon(uID.Value, sidingId.Value, description));}),
-                new STFReader.TokenProcessor("description", ()=>{ description = stf.ReadStringBlock(""); }),
-            });
-        }
-    }
-
-    /// <summary>
-    /// Parses a wagon from the WagonList.
-    /// Do not confuse with older class Wagon below, which parses TrainCfg from the *.con file.
-    /// </summary>
-    public class WorkOrderWagon {
-        public Nullable<uint> UID;        // Nullable as can't use -1 to indicate not set.  
-        public Nullable<uint> SidingId;   // May be specified outside the Wagon_List.
-        public string Description = "";   // Value assumed if property not found.
-
-        public WorkOrderWagon(uint uId, uint sidingId, string description) {
-            UID = uId;
-            SidingId = sidingId;
-            Description = description;
         }
     }
 

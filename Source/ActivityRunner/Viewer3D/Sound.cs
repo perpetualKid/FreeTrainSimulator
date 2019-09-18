@@ -2455,7 +2455,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var ls = new List<SoundSourceBase>();
                 foreach (var fss in wf.TrackItemSound.SoundSources)
                 {
-                    WorldLocation wl = new WorldLocation(TileX, TileZ, fss.X, fss.Y, fss.Z);
+                    WorldLocation wl = new WorldLocation(TileX, TileZ, fss.Position);
                     var fullPath = ORTSPaths.GetFileFromFolders(pathArray, fss.FileName);
                     if (fullPath != null)
                     {

@@ -31,6 +31,7 @@ using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings;
 using Orts.Settings.Util;
+using Orts.Formats.Msts.Entities;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -195,7 +196,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                     var locationShown = false;
                                     var wagonIdx = 0;
                                     var locationFirst = "";
-                                    foreach (Orts.Formats.Msts.WorkOrderWagon wagonItem in eventAction.WagonList.WorkOrderWagonList)
+                                    foreach (WorkOrderWagon wagonItem in eventAction.WagonList.WorkOrderWagonList)
                                     {
                                         if (locationShown)
                                         {
@@ -205,8 +206,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                                         // Car(s) column
                                         // Wagon.UiD contains train and wagon indexes packed into single 32-bit value, e.g. 32678 - 0
-                                        var trainIndex = wagonItem.UID >> 16;         // Extract upper 16 bits
-                                        var wagonIndex = wagonItem.UID & 0x0000FFFF;  // Extract lower 16 bits
+                                        var trainIndex = wagonItem.UId >> 16;         // Extract upper 16 bits
+                                        var wagonIndex = wagonItem.UId & 0x0000FFFF;  // Extract lower 16 bits
                                         var wagonName = trainIndex.ToString() + " - " + wagonIndex.ToString();
                                         var wagonType = "";
                                         var wagonFound = false;
@@ -233,7 +234,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             {
                                                 foreach (var car in owner.Viewer.PlayerTrain.Cars)
                                                 {
-                                                    if (car.UiD == wagonItem.UID)
+                                                    if (car.UiD == wagonItem.UId)
                                                     {
                                                         wagonType = Path.GetFileNameWithoutExtension(car.WagFilePath);
                                                         wagonFound = true;
@@ -467,7 +468,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                     {
                                         var location = "";
                                         var locationFirst = "";
-                                        foreach (Orts.Formats.Msts.WorkOrderWagon wagonItem in eventAction.WagonList.WorkOrderWagonList)
+                                        foreach (WorkOrderWagon wagonItem in eventAction.WagonList.WorkOrderWagonList)
                                         {
                                             var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
                                                 || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation

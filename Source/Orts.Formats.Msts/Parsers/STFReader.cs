@@ -1368,7 +1368,7 @@ namespace Orts.Formats.Msts.Parsers
             STFException.TraceWarning(this, "Block Not Found - instead found " + s);
         }
 
-        /// <summary>Read a Vector3 object in the STF format '( {X} {Y} ... )'
+        /// <summary>Read a Vector2 object in the STF format '( {X} {Y} ... )'
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">The default vector if any of the values are not specified</param>

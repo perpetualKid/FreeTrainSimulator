@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Entities
@@ -20,9 +21,12 @@ namespace Orts.Formats.Msts.Entities
 
     public class WorldSoundSource
     {
-        public float X { get; private set; }
-        public float Y { get; private set; }
-        public float Z { get; private set; }
+        private Vector3 position;
+
+        public float X => position.X;
+        public float Y => position.Y;
+        public float Z => position.Z;
+        public ref Vector3 Position => ref position;
         public string FileName { get; private set; }
 
         public WorldSoundSource(STFReader stf)
@@ -32,9 +36,7 @@ namespace Orts.Formats.Msts.Entities
                 new STFReader.TokenProcessor("filename", ()=>{ FileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("position", ()=>{
                     stf.MustMatch("(");
-                    X = stf.ReadFloat(STFReader.Units.None, null);
-                    Y = stf.ReadFloat(STFReader.Units.None, null);
-                    Z = stf.ReadFloat(STFReader.Units.None, null);
+                    stf.ReadVector3Block(STFReader.Units.None, ref position);
                     stf.SkipRestOfBlock();
                 }),
             });
