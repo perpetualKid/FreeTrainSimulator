@@ -18,6 +18,10 @@ namespace Tests.Orts.Common
             Assert.AreEqual(-262, location.Location.X);
             Assert.AreEqual(-2, location.TileZ);
             Assert.AreEqual(-22, location.Location.Z);
+
+            location = new WorldLocation(0, 0, 3834, 0, -1088, true);
+            Assert.AreEqual(-1, location.TileZ);
+            Assert.AreEqual(960, location.Location.Z);
         }
 
         [TestMethod]
@@ -134,6 +138,11 @@ namespace Tests.Orts.Common
             Assert.AreEqual(-2, position.TileZ);
             Assert.AreEqual(22, position.Location.Z);
             Assert.AreEqual(-22, position.XNAMatrix.M43);
+
+            position = new WorldPosition(0, 0, MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix.Identity, 3834, 0, -1088)).Normalize();
+
+            Assert.AreEqual(-1, position.TileZ);
+            Assert.AreEqual(-960, position.Location.Z);
         }
 
         [TestMethod]

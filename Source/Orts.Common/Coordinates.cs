@@ -142,8 +142,9 @@ namespace Orts.Common
         public WorldPosition Normalize()
         {
             Vector3 location = XnaLocation();
-            int xTileDistance = (int)Math.Ceiling((int)(location.X / 1024) / 2.0);
-            int zTileDistance = (int)Math.Ceiling((int)(location.Z / 1024) / 2.0);
+            int xTileDistance = (int)Math.Round((int)(location.X / 1024) / 2.0, MidpointRounding.AwayFromZero);
+            int zTileDistance = (int)Math.Round((int)(location.Z / 1024) / 2.0, MidpointRounding.AwayFromZero);
+
             return new WorldPosition(TileX + xTileDistance, TileZ + zTileDistance,
                 MatrixExtension.SetTranslation(XNAMatrix, location.X - (xTileDistance * TileSize), 
                 location.Y, location.Z - (zTileDistance * TileSize)));
@@ -221,8 +222,8 @@ namespace Orts.Common
         /// </summary>
         public WorldLocation Normalize()
         {
-            int xTileDistance = (int)Math.Ceiling((int)(Location.X / 1024) / 2.0);
-            int zTileDistance = (int)Math.Ceiling((int)(Location.Z / 1024) / 2.0);
+            int xTileDistance = (int)Math.Round((int)(Location.X / 1024) / 2.0, MidpointRounding.AwayFromZero);
+            int zTileDistance = (int)Math.Round((int)(Location.Z / 1024) / 2.0, MidpointRounding.AwayFromZero);
 
             return new WorldLocation(TileX + xTileDistance, TileZ + zTileDistance, new Vector3(Location.X - (xTileDistance * TileSize), Location.Y, Location.Z - (zTileDistance * TileSize)));
         }
