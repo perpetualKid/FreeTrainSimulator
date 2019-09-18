@@ -659,8 +659,8 @@ namespace Orts.Viewer3D.Popups
             //Disable loco nav scroll button when only one loco.
             hudWindowSteamLocoLead = LocomotiveID.Count == 1 && IsSteamLocomotive ? true : false;
 
-            //PlayerLoco
-            statusHeader.Add(String.Format("{8}\t{0}\t{4}\t{1}\t{5:F0}%\t{2}\t{6:F0}%\t{3}\t\t{7}\n",
+            //PlayerLoco data to display
+            statusHeader.Add(String.Format("{10}\t{0}\t{4}\t{1}\t{5:F0}%\t{2}\t{6:F0}%\t{3}\t\t{7}\t{8}\t\t{9}\n",
                 //0
                 Viewer.Catalog.GetString("Direction"),
                 //1
@@ -678,6 +678,10 @@ namespace Orts.Viewer3D.Popups
                 //7
                 train.MUDynamicBrakePercent >= 0 ? string.Format("{0:F0}%", train.MUDynamicBrakePercent) : Viewer.Catalog.GetString("off"),
                 //8
+                Viewer.Catalog.GetString("Exhauster"),
+                //9
+                (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumExhausterIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
+                //10
                 Viewer.Catalog.GetString("PlayerLoco")));
 
             foreach (var car in train.Cars)
@@ -753,16 +757,11 @@ namespace Orts.Viewer3D.Popups
                         {
                             foreach (var cell in line.Split('\t'))
                             {
-                                TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}",
-                                Viewer.Catalog.GetString("PlayerLoco"),
-                                Viewer.Catalog.GetString("Exhauster"),
-                                (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumExhausterIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
- 								column++;
+                                column++;
                                 if (cell.Contains(car.CarID)) LocomotiveName.Add(cell);
                             }
                             if (column > maxColumns) maxColumns = column;
 
-                        else if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumPumpFitted && (Viewer.PlayerLocomotive as MSTSLocomotive).SmallEjectorFitted)
                             statusData.Add(line);
                         }
                         else
@@ -1921,6 +1920,16 @@ namespace Orts.Viewer3D.Popups
                     stringStatus.Add(cumulativeTabString.Contains(CumulativeTabStatus.Values.First()) ? cumulativeTabString.TrimEnd('\t') : CumulativeTabStatus.Values.First() + cumulativeTabString.TrimEnd('\t'));
                     cumulativeTabString = "";
                     cumulativeTextString = "";
+                }
+
+                //Add '\n' to all stringStatus when 'PlayerLoco' Header
+                if (stringStatus.Count > 0 && stringStatus[0].Contains(Viewer.Catalog.GetString("PlayerLoco")) && stringStatus[stringStatus.Count-1].EndsWith("\n"))
+                {//TO DO: rewrite this code using LINQ
+                    for (int n = 0; n < stringStatus.Count-1 ;n++)
+                    {
+                        if (!stringStatus[n].EndsWith("\n"))
+                            stringStatus[n] = stringStatus[n] + "\n";
+                    }
                 }
 
                 //Update 'page right' and 'page left' labels.
