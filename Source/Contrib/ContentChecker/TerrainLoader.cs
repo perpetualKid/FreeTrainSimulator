@@ -15,13 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.IO;
-
-using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ContentChecker
 {
@@ -46,7 +41,7 @@ namespace Orts.ContentChecker
         protected override void AddDependentFiles()
         {
             var baseFileWithDir = Path.Combine(Path.GetDirectoryName(loadedFile), Path.GetFileNameWithoutExtension(loadedFile));
-            var sampleCount = tFile.terrain.terrain_samples.terrain_nsamples;
+            var sampleCount = tFile.Terrain.Samples.SampleCount;
             AddAdditionalFileAction.Invoke(baseFileWithDir + "_y.raw", new TerrainAltitudeLoader(sampleCount));
 
             var f_raw_file = baseFileWithDir + "_f.raw";

@@ -631,7 +631,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                             filename = new string(activityname.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray()) + ".";
 
-                            var dbfevalDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Application.ProductName);
+                            var dbfevalDataFolder = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), Application.ProductName);
 
                             if (!Directory.Exists(dbfevalDataFolder))
                                 Directory.CreateDirectory(dbfevalDataFolder);

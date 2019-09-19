@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts.Entities;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts

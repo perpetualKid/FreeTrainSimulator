@@ -25,6 +25,7 @@ using System.Text;
 using Orts.Formats.Msts;
 using Orts.ContentManager.Models;
 using Path = Orts.ContentManager.Models.Path;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ContentManager
 {

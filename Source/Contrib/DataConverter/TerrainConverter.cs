@@ -72,7 +72,7 @@ namespace Orts.DataConverter
                     throw new InvalidCommandLineException("Unable to parse tile coordinates from world filename: " + filename);
                 }
                 var tilesDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(conversion.Input)), "Tiles");
-                var tileName = TileName.FromTileXZ(tileX, tileZ, TileName.Zoom.Small);
+                var tileName = TileHelper.FromTileXZ(tileX, tileZ, TileHelper.Zoom.Small);
                 conversion.SetInput(Path.Combine(tilesDirectory, tileName + ".t"));
             }
 
@@ -80,7 +80,7 @@ namespace Orts.DataConverter
 
             var tFile = new TerrainFile(baseFileName + ".t");
 
-            var sampleCount = tFile.terrain.terrain_samples.terrain_nsamples;
+            var sampleCount = tFile.Terrain.Samples.SampleCount;
             var yFile = new TerrainAltitudeFile(baseFileName + "_y.raw", sampleCount);
             TerrainFlagsFile fFile;
             if (File.Exists(baseFileName + "_f.raw"))
@@ -88,7 +88,7 @@ namespace Orts.DataConverter
                 fFile = new TerrainFlagsFile(baseFileName + "_f.raw", sampleCount);
             }
 
-            var patchCount = tFile.terrain.terrain_patchsets[0].terrain_patchset_npatches;
+            var patchCount = tFile.Terrain.Patchsets[0].PatchSize;
             for (var x = 0; x < patchCount; x++)
             {
                 for (var z = 0; z < patchCount; z++)
@@ -262,14 +262,14 @@ namespace Orts.DataConverter
             YFile = yFile;
             PatchX = patchX;
             PatchZ = patchZ;
-            PatchSize = tFile.terrain.terrain_samples.terrain_nsamples / tFile.terrain.terrain_patchsets[0].terrain_patchset_npatches;
+            PatchSize = tFile.Terrain.Samples.SampleCount / tFile.Terrain.Patchsets[0].PatchSize;
         }
 
         private int GetElevation(int x, int z)
         {
             return YFile.ElevationAt(
-                Math.Min(PatchX * PatchSize + x, TFile.terrain.terrain_samples.terrain_nsamples - 1),
-                Math.Min(PatchZ * PatchSize + z, TFile.terrain.terrain_samples.terrain_nsamples - 1)
+                Math.Min(PatchX * PatchSize + x, TFile.Terrain.Samples.SampleCount - 1),
+                Math.Min(PatchZ * PatchSize + z, TFile.Terrain.Samples.SampleCount - 1)
             );
         }
 
@@ -292,9 +292,9 @@ namespace Orts.DataConverter
                 for (var z = 0; z <= PatchSize; z++)
                 {
                     output.AppendFormat("{0} {1} {2} ",
-                        x * TFile.terrain.terrain_samples.terrain_sample_size,
-                        GetElevation(x, z) * TFile.terrain.terrain_samples.terrain_sample_scale,
-                        z * TFile.terrain.terrain_samples.terrain_sample_size
+                        x * TFile.Terrain.Samples.SampleSize,
+                        GetElevation(x, z) * TFile.Terrain.Samples.SampleScale,
+                        z * TFile.Terrain.Samples.SampleSize
                     );
                 }
             }

@@ -32,6 +32,7 @@ using Event = Orts.Common.Event;
 using Orts.Common.Xna;
 using Orts.Common.Calc;
 using Orts.Common.Logging;
+using Orts.Formats.Msts.Entities;
 
 namespace Orts.Simulation
 {

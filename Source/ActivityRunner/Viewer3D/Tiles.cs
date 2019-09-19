@@ -27,6 +27,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Entities;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -39,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D
         const int MaximumCachedTiles = 8 * 8;
 
         readonly string FilePath;
-        readonly TileName.Zoom Zoom;
+        readonly TileHelper.Zoom Zoom;
 
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
@@ -54,7 +55,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public TileManager(string filePath, bool loTiles)
         {
             FilePath = filePath;
-            Zoom = loTiles ? TileName.Zoom.DMSmall : TileName.Zoom.Small;
+            Zoom = loTiles ? TileHelper.Zoom.DMSmall : TileHelper.Zoom.Small;
         }
 
         /// <summary>
@@ -78,7 +79,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 tileList.RemoveAt(0);
 
             // Check for 1x1 (or 8x8) tiles.
-            TileName.Snap(ref tileX, ref tileZ, Zoom);
+            TileHelper.Snap(ref tileX, ref tileZ, Zoom);
             if (tiles.ByXZ.ContainsKey(((uint)tileX << 16) + (uint)tileZ))
                 return;
 
@@ -91,7 +92,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             // Check for 2x2 (or 16x16) tiles.
-            TileName.Snap(ref tileX, ref tileZ, Zoom - 1);
+            TileHelper.Snap(ref tileX, ref tileZ, Zoom - 1);
             if (tiles.ByXZ.ContainsKey(((uint)tileX << 16) + (uint)tileZ))
                 return;
 
@@ -152,12 +153,12 @@ namespace Orts.ActivityRunner.Viewer3D
             Tile tile;
 
             // Check for 1x1 (or 8x8) tiles.
-            TileName.Snap(ref tileX, ref tileZ, Zoom);
+            TileHelper.Snap(ref tileX, ref tileZ, Zoom);
             if (tiles.ByXZ.TryGetValue(((uint)tileX << 16) + (uint)tileZ, out tile) && tile.Size == (1 << (15 - (int)Zoom)))
                 return tile;
 
             // Check for 2x2 (or 16x16) tiles.
-            TileName.Snap(ref tileX, ref tileZ, Zoom - 1);
+            TileHelper.Snap(ref tileX, ref tileZ, Zoom - 1);
             if (tiles.ByXZ.TryGetValue(((uint)tileX << 16) + (uint)tileZ, out tile) && tile.Size == (1 << (15 - (int)Zoom + 1)))
                 return tile;
 
@@ -319,40 +320,40 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly int TileX, TileZ, Size;
 
         public bool Loaded { get { return TFile != null && YFile != null; } }
-        public float Floor { get { return TFile.terrain.terrain_samples.terrain_sample_floor; } }  // in meters
-        public float Resolution { get { return TFile.terrain.terrain_samples.terrain_sample_scale; } }  // in meters per( number in Y-file )
-        public int SampleCount { get { return TFile.terrain.terrain_samples.terrain_nsamples; } }
-        public float SampleSize { get { return TFile.terrain.terrain_samples.terrain_sample_size; } }
-        public int PatchCount { get { return TFile.terrain.terrain_patchsets[0].terrain_patchset_npatches; } }
-        public terrain_shader[] Shaders { get { return TFile.terrain.terrain_shaders; } }
-        public float WaterNE { get { return TFile.terrain.terrain_water_height_offset.NE != 0 ? TFile.terrain.terrain_water_height_offset.NE : TFile.terrain.terrain_water_height_offset.SW; } } // in meters
-        public float WaterNW { get { return TFile.terrain.terrain_water_height_offset.NW != 0 ? TFile.terrain.terrain_water_height_offset.NW : TFile.terrain.terrain_water_height_offset.SW; } }
-        public float WaterSE { get { return TFile.terrain.terrain_water_height_offset.SE != 0 ? TFile.terrain.terrain_water_height_offset.SE : TFile.terrain.terrain_water_height_offset.SW; } }
-        public float WaterSW { get { return TFile.terrain.terrain_water_height_offset.SW != 0 ? TFile.terrain.terrain_water_height_offset.SW : TFile.terrain.terrain_water_height_offset.SW; } }
+        public float Floor { get { return TFile.Terrain.Samples.SampleFloor; } }  // in meters
+        public float Resolution { get { return TFile.Terrain.Samples.SampleScale; } }  // in meters per( number in Y-file )
+        public int SampleCount { get { return TFile.Terrain.Samples.SampleCount; } }
+        public float SampleSize { get { return TFile.Terrain.Samples.SampleSize; } }
+        public int PatchCount { get { return TFile.Terrain.Patchsets[0].PatchSize; } }
+        public Formats.Msts.Entities.Shader[] Shaders { get { return TFile.Terrain.Shaders; } }
+        public float WaterNE { get { return TFile.Terrain.WaterLevelOffset.NE != 0 ? TFile.Terrain.WaterLevelOffset.NE : TFile.Terrain.WaterLevelOffset.SW; } } // in meters
+        public float WaterNW { get { return TFile.Terrain.WaterLevelOffset.NW != 0 ? TFile.Terrain.WaterLevelOffset.NW : TFile.Terrain.WaterLevelOffset.SW; } }
+        public float WaterSE { get { return TFile.Terrain.WaterLevelOffset.SE != 0 ? TFile.Terrain.WaterLevelOffset.SE : TFile.Terrain.WaterLevelOffset.SW; } }
+        public float WaterSW { get { return TFile.Terrain.WaterLevelOffset.SW != 0 ? TFile.Terrain.WaterLevelOffset.SW : TFile.Terrain.WaterLevelOffset.SW; } }
 
         public bool ContainsWater
         {
             get
             {
-                if (TFile.terrain.terrain_water_height_offset != null)
-                    foreach (var patchset in TFile.terrain.terrain_patchsets)
-                        foreach (var patch in patchset.terrain_patchset_patches)
+                if (TFile.Terrain.WaterLevelOffset != null)
+                    foreach (var patchset in TFile.Terrain.Patchsets)
+                        foreach (var patch in patchset.Patches)
                             if (patch.WaterEnabled)
                                 return true;
                 return false;
             }
         }
 
-        public terrain_patchset_patch GetPatch(int x, int z)
+        public Patch GetPatch(int x, int z)
         {
-            return TFile.terrain.terrain_patchsets[0].terrain_patchset_patches[z * PatchCount + x];
+            return TFile.Terrain.Patchsets[0].Patches[z * PatchCount + x];
         }
 
         readonly TerrainFile TFile;
         readonly TerrainAltitudeFile YFile;
         readonly TerrainFlagsFile FFile;
 
-        public Tile(string filePath, int tileX, int tileZ, TileName.Zoom zoom, bool visible)
+        public Tile(string filePath, int tileX, int tileZ, TileHelper.Zoom zoom, bool visible)
         {
             if (!Directory.Exists(filePath))
                 return;
@@ -361,7 +362,7 @@ namespace Orts.ActivityRunner.Viewer3D
             TileZ = tileZ;
             Size = 1 << (15 - (int)zoom);
 
-            string fileName = TileName.FromTileXZ(tileX, tileZ, zoom);
+            string fileName = TileHelper.FromTileXZ(tileX, tileZ, zoom);
             string[] tileFiles = Directory.GetFiles(filePath, fileName + "??.*");
 
             foreach (string file in tileFiles)
