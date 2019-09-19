@@ -34,6 +34,7 @@ using Orts.Common.Calc;
 using Orts.Common.Threading;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.OR;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
@@ -2437,7 +2438,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="trainsetDirectory">Consist Directory</param>
             /// <param name="simulator">Simulator</param>
             /// <returns>Generated TrainCar list</returns>
-            public List<TrainCar> AddWagons(Orts.Formats.Msts.ConsistFile consistFile, string trainsDirectory, Simulator simulator, bool consistReverse)
+            public List<TrainCar> AddWagons(ConsistFile consistFile, string trainsDirectory, Simulator simulator, bool consistReverse)
             {
                 List<TrainCar> cars = new List<TrainCar>();
 

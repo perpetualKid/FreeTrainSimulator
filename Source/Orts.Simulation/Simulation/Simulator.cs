@@ -1251,7 +1251,7 @@ namespace Orts.Simulation
             conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
             patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
             Player_Traffic_Definition player_Traffic_Definition = Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition;
-            Traffic_Service_Definition aPPlayer_Traffic_Definition = new Traffic_Service_Definition(playerServiceFileName, player_Traffic_Definition);
+            ServiceDefinition aPPlayer_Traffic_Definition = new ServiceDefinition(playerServiceFileName, player_Traffic_Definition);
             Service_Definition aPPlayer_Service_Definition = new Service_Definition(playerServiceFileName, player_Traffic_Definition);
 
             AI AI = new AI(this);

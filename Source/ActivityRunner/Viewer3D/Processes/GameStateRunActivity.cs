@@ -35,6 +35,7 @@ using Orts.Common.Logging;
 using Orts.Common.Native;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.MultiPlayer;
 using Orts.Settings;
 using Orts.Simulation;
@@ -1123,7 +1124,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 if (Path.GetExtension(path).Equals(".con", StringComparison.OrdinalIgnoreCase))
                 {
-                    var con = new Orts.Formats.Msts.ConsistFile(path);
+                    var con = new ConsistFile(path);
                     return con.Name;
                 }
             }

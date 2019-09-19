@@ -63,7 +63,7 @@ namespace Orts.ContentManager.Models
                 {
                     var trfFile = new TrafficFile(msts.TrafficPathName);
                     var activityService = actFile.Tr_Activity.Tr_Activity_File.Traffic_Definition.ServiceDefinitionList[msts.TrafficIndex];
-                    var trafficService = trfFile.TrafficDefinition.TrafficItems[msts.TrafficIndex];
+                    var trafficService = trfFile.TrafficDefinition.Services[msts.TrafficIndex];
 
                     ID = activityService.UiD.ToString();
                     StartTime = MSTSTimeToDateTime(activityService.Time);

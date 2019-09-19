@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2018 by the Open Rails project.
+﻿// COPYRIGHT 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -15,24 +15,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Parsers;
 
-using Orts.Formats.Msts.Files;
-
-namespace Orts.ContentChecker
+namespace Orts.Formats.Msts.Files
 {
     /// <summary>
-    /// Loader class for .trf files
+    /// Work with Traffic Files
     /// </summary>
-    class TrafficLoader : Loader
+    public class TrafficFile
     {
-        /// <summary>
-        /// Try to load the file.
-        /// Possibly this might raise an exception. That exception is not caught here
-        /// </summary>
-        /// <param name="file">The file that needs to be loaded</param>
-        public override void TryLoading(string file)
+        public TrafficDefinition TrafficDefinition { get; private set; }
+
+        public TrafficFile(string filePath)
         {
-            var trafficFile = new TrafficFile(file);
+            using (var stf = new STFReader(filePath, false))
+                stf.ParseFile(new STFReader.TokenProcessor[] {
+                    new STFReader.TokenProcessor("traffic_definition", ()=>{ TrafficDefinition = new TrafficDefinition(stf); }),
+                });
         }
     }
 }

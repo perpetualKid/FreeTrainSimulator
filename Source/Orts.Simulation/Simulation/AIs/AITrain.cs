@@ -42,6 +42,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Event = Orts.Common.Event;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Entities;
 
 namespace Orts.Simulation.AIs
 {
@@ -140,7 +142,7 @@ namespace Orts.Simulation.AIs
         /// </summary>
 
         public AITrain(Simulator simulator, Service_Definition sd, AI ai, AIPath path, float efficiency,
-                string name, Traffic_Service_Definition trafficService, float maxVelocityA)
+                string name, ServiceDefinition trafficService, float maxVelocityA)
             : base(simulator)
         {
             ServiceDefinition = sd;

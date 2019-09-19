@@ -45,10 +45,11 @@
     <Compile Include="AceFile.cs" />
     <Compile Include="ActivityFile.cs" />
     <Compile Include="Entities\Camera.cs" />
+    <Compile Include="Entities\Traffic.cs" />
     <Compile Include="Entities\TrainCar.cs" />
     <Compile Include="Files\CameraConfigurationFile.cs" />
     <Compile Include="Files\CarSpawnerFile.cs" />
-    <Compile Include="ConsistFile.cs" />
+    <Compile Include="Files\ConsistFile.cs" />
     <Compile Include="CabViewFile.cs" />
     <Compile Include="Entities\Hazard.cs" />
     <Compile Include="Entities\RoadTracks.cs" />
@@ -87,7 +88,7 @@
     <Compile Include="Files\ServiceFile.cs" />
     <Compile Include="TrackDatabaseFile.cs" />
     <Compile Include="TerrainFile.cs" />
-    <Compile Include="TrafficFile.cs" />
+    <Compile Include="Files\TrafficFile.cs" />
     <Compile Include="RouteFile.cs" />
     <Compile Include="TrackSectionsFile.cs" />
     <Compile Include="Files\TrackTypesFile.cs" />

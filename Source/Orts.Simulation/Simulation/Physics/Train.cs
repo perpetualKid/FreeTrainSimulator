@@ -64,6 +64,7 @@ using Orts.Common.Calc;
 using Orts.Common.Logging;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Entities;
 using Orts.MultiPlayer;
 using Orts.Settings;
 using Orts.Simulation.AIs;
@@ -282,7 +283,7 @@ namespace Orts.Simulation.Physics
         public Train IncorporatingTrain;                      // train incorporating another train
         public int IncorporatingTrainNo = -1;                   // number of train incorporating the actual train
 
-        public Traffic_Service_Definition TrafficService;
+        public ServiceDefinition TrafficService;
         public int[,] MisalignedSwitch = new int[2, 2] { { -1, -1 }, { -1, -1 } };  // misaligned switch indication per direction:
         // cell 0 : index of switch, cell 1 : required linked section; -1 if not valid
         public Dictionary<int, float> PassedSignalSpeeds = new Dictionary<int, float>();  // list of signals and related speeds pending processing (manual and explorer mode)
@@ -585,10 +586,9 @@ namespace Orts.Simulation.Physics
             AuxActionsContain = new AuxActionsContainer(this);
             if (orgTrain.TrafficService != null)
             {
-                TrafficService = new Traffic_Service_Definition();
-                TrafficService.Time = orgTrain.TrafficService.Time;
+                TrafficService = new ServiceDefinition(orgTrain.TrafficService.Time);
 
-                foreach (Traffic_Traffic_Item thisTrafficItem in orgTrain.TrafficService.TrafficDetails)
+                foreach (TrafficDetail thisTrafficItem in orgTrain.TrafficService.TrafficDetails)
                 {
                     TrafficService.TrafficDetails.Add(thisTrafficItem);
                 }
@@ -922,29 +922,24 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        static Traffic_Service_Definition RestoreTrafficSDefinition(BinaryReader inf)
+        static ServiceDefinition RestoreTrafficSDefinition(BinaryReader inf)
         {
-            Traffic_Service_Definition thisDefinition = new Traffic_Service_Definition();
-            thisDefinition.Time = inf.ReadInt32();
+            ServiceDefinition thisDefinition = new ServiceDefinition(inf.ReadInt32());
 
             int totalTrafficItems = inf.ReadInt32();
 
             for (int iTraffic = 0; iTraffic < totalTrafficItems; iTraffic++)
             {
-                Traffic_Traffic_Item thisItem = RestoreTrafficItem(inf);
+                TrafficDetail thisItem = RestoreTrafficItem(inf);
                 thisDefinition.TrafficDetails.Add(thisItem);
             }
 
             return (thisDefinition);
         }
 
-        static Traffic_Traffic_Item RestoreTrafficItem(BinaryReader inf)
+        static TrafficDetail RestoreTrafficItem(BinaryReader inf)
         {
-            Traffic_Traffic_Item thisTraffic = new Traffic_Traffic_Item();
-            thisTraffic.ArrivalTime = inf.ReadInt32();
-            thisTraffic.DepartTime = inf.ReadInt32();
-            thisTraffic.DistanceDownPath = inf.ReadSingle();
-            thisTraffic.PlatformStartID = inf.ReadInt32();
+            TrafficDetail thisTraffic = new TrafficDetail(inf.ReadInt32(), inf.ReadInt32(), 0, inf.ReadSingle(), inf.ReadInt32());
 
             return (thisTraffic);
         }
@@ -1175,17 +1170,17 @@ namespace Orts.Simulation.Physics
                 RollingStock.Save(outf, car);
         }
 
-        static void SaveTrafficSDefinition(BinaryWriter outf, Traffic_Service_Definition thisTSD)
+        static void SaveTrafficSDefinition(BinaryWriter outf, ServiceDefinition thisTSD)
         {
             outf.Write(thisTSD.Time);
             outf.Write(thisTSD.TrafficDetails.Count);
-            foreach (Traffic_Traffic_Item thisTI in thisTSD.TrafficDetails)
+            foreach (TrafficDetail thisTI in thisTSD.TrafficDetails)
             {
                 SaveTrafficItem(outf, thisTI);
             }
         }
 
-        static void SaveTrafficItem(BinaryWriter outf, Traffic_Traffic_Item thisTI)
+        static void SaveTrafficItem(BinaryWriter outf, TrafficDetail thisTI)
         {
             outf.Write(thisTI.ArrivalTime);
             outf.Write(thisTI.DepartTime);
@@ -11682,21 +11677,10 @@ namespace Orts.Simulation.Physics
             int beginActiveSubroute = 0;
             int activeSubrouteNodeIndex = 0;
 
-            foreach (Traffic_Traffic_Item thisItem in TrafficService.TrafficDetails)
+            foreach (TrafficDetail thisItem in TrafficService.TrafficDetails)
             {
-                if (thisItem.ArrivalTime < 0)
-                {
-                    thisItem.ArrivalTime = thisItem.DepartTime < 0 ? TrafficService.Time : Math.Min(thisItem.DepartTime, TrafficService.Time);
-                    Trace.TraceInformation("Train {0} Service {1} : Corrected negative arrival time within .trf or .act file", Number.ToString(), Name);
-                }
-                if (thisItem.DepartTime < 0)
-                {
-                    thisItem.DepartTime = Math.Max(thisItem.ArrivalTime, TrafficService.Time);
-                    Trace.TraceInformation("Train {0} Service {1} : Corrected negative depart time within .trf or .act file", Number.ToString(), Name);
-                }
-
-                DateTime arriveDT = new DateTime((long)(Math.Pow(10, 7) * thisItem.ArrivalTime));
-                DateTime departDT = new DateTime((long)(Math.Pow(10, 7) * thisItem.DepartTime));
+                DateTime arriveDT = new DateTime().AddSeconds(thisItem.ArrivalTime);
+                DateTime departDT = new DateTime().AddSeconds(thisItem.DepartTime);
                 bool validStop =
                     CreateStationStop(thisItem.PlatformStartID, thisItem.ArrivalTime, thisItem.DepartTime, arriveDT, departDT, clearingDistanceM,
                     ref beginActiveSubroute, ref activeSubrouteNodeIndex);
@@ -12483,13 +12467,13 @@ namespace Orts.Simulation.Physics
                 return;    // no traffic details
             }
 
-            TrafficService = new Traffic_Service_Definition();
+            TrafficService = new ServiceDefinition(0);
 
             foreach (Player_Traffic_Item thisItem in playerList)
             {
                 int iArrivalTime = Convert.ToInt32(thisItem.ArrivalTime.TimeOfDay.TotalSeconds);
                 int iDepartTime = Convert.ToInt32(thisItem.DepartTime.TimeOfDay.TotalSeconds);
-                Traffic_Traffic_Item newItem = new Traffic_Traffic_Item(iArrivalTime, iDepartTime,
+                TrafficDetail newItem = new TrafficDetail(iArrivalTime, iDepartTime,
                         0, thisItem.DistanceDownPath, thisItem.PlatformStartID);
                 TrafficService.TrafficDetails.Add(newItem);
             }

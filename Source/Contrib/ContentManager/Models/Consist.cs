@@ -19,8 +19,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ContentManager.Models
 {
