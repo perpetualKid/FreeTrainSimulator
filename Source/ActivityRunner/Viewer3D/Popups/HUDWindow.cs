@@ -660,7 +660,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             hudWindowSteamLocoLead = LocomotiveID.Count == 1 && IsSteamLocomotive ? true : false;
 
             //PlayerLoco data to display
-            statusHeader.Add(String.Format("{10}\t{0}\t{4}\t{1}\t{5:F0}%\t{2}\t{6:F0}%\t{3}\t\t{7}\t{8}\t\t{9}\n",
+            statusHeader.Add(String.Format("{8}\t{0}\t{4}\t{1}\t{5:F0}%\t{2}\t{6:F0}%\t{3}\t\t{7}\n",
                 //0
                 Viewer.Catalog.GetString("Direction"),
                 //1
@@ -678,10 +678,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 //7
                 train.MUDynamicBrakePercent >= 0 ? string.Format("{0:F0}%", train.MUDynamicBrakePercent) : Viewer.Catalog.GetString("off"),
                 //8
-                Viewer.Catalog.GetString("Exhauster"),
-                //9
-                (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumExhausterIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off"),
-                //10
                 Viewer.Catalog.GetString("PlayerLoco")));
 
             foreach (var car in train.Cars)
@@ -903,8 +899,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 if ((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumBrakeEQFitted)
                 {
-                    TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}",
+                    TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
                     Viewer.Catalog.GetString("PlayerLoco"),
+                    Viewer.Catalog.GetString("Main reservoir"),
+                    FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure((Viewer.PlayerLocomotive as MSTSLocomotive).VacuumMainResVacuumPSIAorInHg), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
                     Viewer.Catalog.GetString("Exhauster"),
                     (Viewer.PlayerLocomotive as MSTSLocomotive).VacuumExhausterIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
                 }
@@ -991,7 +989,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             string[] stringStatusToList;//Allow to change data from TableAddLines to TableSetCell
             hudWindowLocoPagesCount = 0;
             int n = train.Cars.Count;
-            int maxColumns = 0;
 
             // Different display depending upon whether vacuum braked or air braked
             for (var i = 0; i < n; i++)
@@ -1221,7 +1218,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Axle drive force"), "{0}", FormatStrings.FormatForce(mstsLocomotive.LocomotiveAxle.DriveForceN, mstsLocomotive.IsMetric));
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Axle brake force"), "{0}", FormatStrings.FormatForce(mstsLocomotive.LocomotiveAxle.BrakeRetardForceN, mstsLocomotive.IsMetric));
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Number of substeps"), "{0:F0} ({1})", mstsLocomotive.LocomotiveAxle.AxleRevolutionsInt.NumOfSubstepsPS,
-                                                                                                    Viewer.Catalog.GetStringFmt("filtered by {0:F0}", mstsLocomotive.LocomotiveAxle.FilterMovingAverage.Size));
+                                                  Viewer.Catalog.GetStringFmt("filtered by {0:F0}", mstsLocomotive.LocomotiveAxle.FilterMovingAverage.Size));
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Solver"), "{0}", mstsLocomotive.LocomotiveAxle.AxleRevolutionsInt.Method.ToString());
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Stability correction"), "{0:F0}", mstsLocomotive.LocomotiveAxle.AdhesionK);
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Axle out force"), "{0} ({1})",
@@ -1307,7 +1304,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 Viewer.Catalog.GetString("Brk Slide"),
                 Viewer.Catalog.GetString("Bear Temp")
 
-                //Add new header data here, if adding additional column.
+                // Possibly needed for buffing forces
+                //                Viewer.Catalog.GetString("VertD"),
+                //                Viewer.Catalog.GetString("VertL"),
+                //                Viewer.Catalog.GetString("BuffExc"),
+                //                Viewer.Catalog.GetString("CplAng")
 
                 );
             }
@@ -1337,8 +1338,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                     TableSetCell(table, 9, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
 
-                    //Add new column data here, if adding additional column.
+                    // Possibly needed for buffing forces
+                    //                TableSetCell(table, 17, "{0}", FormatStrings.FormatForce(car.WagonVerticalDerailForceN, car.IsMetric));
+                    //                TableSetCell(table, 18, "{0}", FormatStrings.FormatForce(car.TotalWagonLateralDerailForceN, car.IsMetric));
+                    //                TableSetCell(table, 19, car.BuffForceExceeded ? Viewer.Catalog.GetString("Yes") : "No");
 
+                    //                TableSetCell(table, 20, "{0:F2}", MathHelper.ToDegrees(car.WagonFrontCouplerAngleRad));
                     TableAddLine(table);
                     TableSetCell(table, 1, "Tot.Slack:");
                     TableSetCell(table, 2, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
@@ -1365,9 +1370,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                     TableSetCell(table, 18, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
 
-                    //Add new column data here, if adding additional column.
-
                     TableAddLine(table);
+                    //TableSetCell(table, 11, "Tot {0}", FormatStrings.FormatShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
                     TableSetCell(table, 10, "Tot.Slack:");
                     TableSetCell(table, 11, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
                 }
