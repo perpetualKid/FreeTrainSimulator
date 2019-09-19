@@ -33,6 +33,7 @@ using System.Linq;
 using Orts.Common.Calc;
 using Orts.Common.Threading;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Entities;
 using Orts.Formats.OR;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
@@ -149,7 +150,7 @@ namespace Orts.Simulation.Timetables
             if (!addPathNoLoadFailure) loadPathNoFailure = false;
 
             // set references (required to process commands)
-            foreach (Train thisTrain in trainList)
+            foreach (Physics.Train thisTrain in trainList)
             {
                 if (simulator.NameDictionary.ContainsKey(thisTrain.Name.ToLower()))
                 {
@@ -758,7 +759,7 @@ namespace Orts.Simulation.Timetables
                     reqTrain.TTTrain.Path = usedPath;
                     reqTrain.TTTrain.CreateRoute(false);  // create route without use of FrontTDBtraveller
                     reqTrain.TTTrain.EndRouteAtLastSignal();
-                    reqTrain.TTTrain.ValidRoute[0] = new Train.TCSubpathRoute(reqTrain.TTTrain.TCRoute.TCRouteSubpaths[0]);
+                    reqTrain.TTTrain.ValidRoute[0] = new Physics.Train.TCSubpathRoute(reqTrain.TTTrain.TCRoute.TCRouteSubpaths[0]);
                     reqTrain.TTTrain.AITrainDirectionForward = true;
 
                     // process stops
@@ -830,10 +831,10 @@ namespace Orts.Simulation.Timetables
             TTTrain playerTrain = reqTrain.TTTrain;
             reqTrain.playerTrain = true;
 
-            playerTrain.TrainType = Train.TRAINTYPE.INTENDED_PLAYER;
+            playerTrain.TrainType = Physics.Train.TRAINTYPE.INTENDED_PLAYER;
             playerTrain.OrgAINumber = playerTrain.Number;
             playerTrain.Number = 0;
-            playerTrain.ControlMode = Train.TRAIN_CONTROL.INACTIVE;
+            playerTrain.ControlMode = Physics.Train.TRAIN_CONTROL.INACTIVE;
             playerTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
             // define style of passing path
@@ -846,7 +847,7 @@ namespace Orts.Simulation.Timetables
             // extract train path
             playerTrain.SetRoutePath(usedPath, simulator.Signals);
             playerTrain.EndRouteAtLastSignal();
-            playerTrain.ValidRoute[0] = new Train.TCSubpathRoute(playerTrain.TCRoute.TCRouteSubpaths[0]);
+            playerTrain.ValidRoute[0] = new Physics.Train.TCSubpathRoute(playerTrain.TCRoute.TCRouteSubpaths[0]);
         }
 
         //================================================================================================//
@@ -994,7 +995,7 @@ namespace Orts.Simulation.Timetables
             // if train is created before start time, create train as intended player train
             if (playerTrain.StartTime != playerTrain.ActivateTime)
             {
-                playerTrain.TrainType = Train.TRAINTYPE.INTENDED_PLAYER;
+                playerTrain.TrainType = Physics.Train.TRAINTYPE.INTENDED_PLAYER;
                 playerTrain.FormedOf = -1;
                 playerTrain.FormedOfType = TTTrain.FormCommand.Created;
             }
@@ -2373,15 +2374,15 @@ namespace Orts.Simulation.Timetables
 
                     // derive speed
 
-                    if (conFile.Train.TrainCfg.MaxVelocity != null && conFile.Train.TrainCfg.MaxVelocity.A > 0)
+                    if (conFile.Train.TrainConfig.MaxVelocity != null && conFile.Train.TrainConfig.MaxVelocity.A > 0)
                     {
                         if (confMaxSpeed.HasValue)
                         {
-                            confMaxSpeed = Math.Min(confMaxSpeed.Value, conFile.Train.TrainCfg.MaxVelocity.A);
+                            confMaxSpeed = Math.Min(confMaxSpeed.Value, conFile.Train.TrainConfig.MaxVelocity.A);
                         }
                         else
                         {
-                            confMaxSpeed = Math.Min((float)simulator.TRK.Tr_RouteFile.SpeedLimit, conFile.Train.TrainCfg.MaxVelocity.A);
+                            confMaxSpeed = Math.Min((float)simulator.TRK.Tr_RouteFile.SpeedLimit, conFile.Train.TrainConfig.MaxVelocity.A);
                         }
                     }
                 }
@@ -2441,7 +2442,7 @@ namespace Orts.Simulation.Timetables
                 List<TrainCar> cars = new List<TrainCar>();
 
                 // add wagons
-                foreach (Wagon wagon in consistFile.Train.TrainCfg.WagonList)
+                foreach (Wagon wagon in consistFile.Train.TrainConfig.WagonList)
                 {
                     string wagonFolder = Path.Combine(trainsDirectory, wagon.Folder);
                     string wagonFilePath = Path.Combine(wagonFolder, wagon.Name + ".wag");
@@ -2835,7 +2836,7 @@ namespace Orts.Simulation.Timetables
                         outTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, outPath);
                         outTrain.Path = outPath;
                         outTrain.CreateRoute(false);
-                        outTrain.ValidRoute[0] = new Train.TCSubpathRoute(outTrain.TCRoute.TCRouteSubpaths[0]);
+                        outTrain.ValidRoute[0] = new Physics.Train.TCSubpathRoute(outTrain.TCRoute.TCRouteSubpaths[0]);
                         outTrain.AITrainDirectionForward = true;
                         outTrain.StartTime = DisposeDetails.StableInfo.Stable_outtime;
                         outTrain.ActivateTime = DisposeDetails.StableInfo.Stable_outtime;
@@ -2854,7 +2855,7 @@ namespace Orts.Simulation.Timetables
                         }
                         outTrain.FormedOf = TTTrain.Number;
                         outTrain.FormedOfType = TTTrain.FormCommand.TerminationFormed;
-                        outTrain.TrainType = Train.TRAINTYPE.AI_AUTOGENERATE;
+                        outTrain.TrainType = Physics.Train.TRAINTYPE.AI_AUTOGENERATE;
                         if (DisposeDetails.DisposeSpeed != null)
                         {
                             outTrain.SpeedSettings.maxSpeedMpS = DisposeDetails.DisposeSpeed.Value;
@@ -2888,14 +2889,14 @@ namespace Orts.Simulation.Timetables
                             inTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, inPath);
                             inTrain.Path = inPath;
                             inTrain.CreateRoute(false);
-                            inTrain.ValidRoute[0] = new Train.TCSubpathRoute(inTrain.TCRoute.TCRouteSubpaths[0]);
+                            inTrain.ValidRoute[0] = new Physics.Train.TCSubpathRoute(inTrain.TCRoute.TCRouteSubpaths[0]);
                             inTrain.AITrainDirectionForward = true;
                             inTrain.StartTime = DisposeDetails.StableInfo.Stable_intime;
                             inTrain.ActivateTime = DisposeDetails.StableInfo.Stable_intime;
                             inTrain.Name = String.Concat("SI_", finalForms.ToString("0000"));
                             inTrain.FormedOf = outTrain.Number;
                             inTrain.FormedOfType = DisposeDetails.FormType; // set forms or triggered as defined in stable
-                            inTrain.TrainType = Train.TRAINTYPE.AI_AUTOGENERATE;
+                            inTrain.TrainType = Physics.Train.TRAINTYPE.AI_AUTOGENERATE;
                             inTrain.Forms = finalForms;
                             inTrain.SetStop = DisposeDetails.SetStop;
                             inTrain.FormsStatic = false;
@@ -2918,7 +2919,7 @@ namespace Orts.Simulation.Timetables
                             formedTrain.FormedOf = inTrain.Number;
                             formedTrain.FormedOfType = TTTrain.FormCommand.TerminationFormed;
 
-                            Train.TCSubpathRoute lastSubpath = inTrain.TCRoute.TCRouteSubpaths[inTrain.TCRoute.TCRouteSubpaths.Count - 1];
+                            Physics.Train.TCSubpathRoute lastSubpath = inTrain.TCRoute.TCRouteSubpaths[inTrain.TCRoute.TCRouteSubpaths.Count - 1];
                             if (inTrain.FormedOfType == TTTrain.FormCommand.TerminationTriggered && formedTrain.Number != 0) // no need to set consist for player train
                             {
                                 bool reverseTrain = CheckFormedReverse(lastSubpath, formedTrain.TCRoute.TCRouteSubpaths[0]);
@@ -3033,12 +3034,12 @@ namespace Orts.Simulation.Timetables
                     formedTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, formedPath);
                     formedTrain.Path = formedPath;
                     formedTrain.CreateRoute(false);
-                    formedTrain.ValidRoute[0] = new Train.TCSubpathRoute(formedTrain.TCRoute.TCRouteSubpaths[0]);
+                    formedTrain.ValidRoute[0] = new Physics.Train.TCSubpathRoute(formedTrain.TCRoute.TCRouteSubpaths[0]);
                     formedTrain.AITrainDirectionForward = true;
                     formedTrain.Name = String.Concat("RR_", rrtrain.Number.ToString("0000"));
                     formedTrain.FormedOf = rrtrain.Number;
                     formedTrain.FormedOfType = TTTrain.FormCommand.Detached;
-                    formedTrain.TrainType = Train.TRAINTYPE.AI_AUTOGENERATE;
+                    formedTrain.TrainType = Physics.Train.TRAINTYPE.AI_AUTOGENERATE;
                     if (disposeDetails.DisposeSpeed != null)
                     {
                         formedTrain.SpeedSettings.maxSpeedMpS = disposeDetails.DisposeSpeed.Value;
@@ -3049,7 +3050,7 @@ namespace Orts.Simulation.Timetables
                     formedTrain.AttachDetails = new AttachInfo(rrtrain);
                     trainList.Add(formedTrain);
 
-                    Train.TCSubpathRoute lastSubpath = rrtrain.TCRoute.TCRouteSubpaths[rrtrain.TCRoute.TCRouteSubpaths.Count - 1];
+                    Physics.Train.TCSubpathRoute lastSubpath = rrtrain.TCRoute.TCRouteSubpaths[rrtrain.TCRoute.TCRouteSubpaths.Count - 1];
                     if (atStart) lastSubpath = rrtrain.TCRoute.TCRouteSubpaths[0]; // if runround at start use first subpath
 
                     bool reverseTrain = CheckFormedReverse(lastSubpath, formedTrain.TCRoute.TCRouteSubpaths[0]);
@@ -3099,12 +3100,12 @@ namespace Orts.Simulation.Timetables
             /// <param name="stabledTrain"></param>
             /// <param name="cars"></param>
             /// <param name="trainRoute"></param>
-            private void BuildStabledConsist(ref TTTrain stabledTrain, List<TrainCar> cars, Train.TCSubpathRoute trainRoute, bool reverseTrain)
+            private void BuildStabledConsist(ref TTTrain stabledTrain, List<TrainCar> cars, Physics.Train.TCSubpathRoute trainRoute, bool reverseTrain)
             {
                 int totalreverse = 0;
 
                 // check no. of reversals
-                foreach (Train.TCReversalInfo reversalInfo in stabledTrain.TCRoute.ReversalInfo)
+                foreach (Physics.Train.TCReversalInfo reversalInfo in stabledTrain.TCRoute.ReversalInfo)
                 {
                     if (reversalInfo.Valid) totalreverse++;
                 }
@@ -3144,11 +3145,11 @@ namespace Orts.Simulation.Timetables
             /// <param name="thisTrainRoute"></param>
             /// <param name="formedTrainRoute"></param>
             /// <returns></returns>
-            public bool CheckFormedReverse(Train.TCSubpathRoute thisTrainRoute, Train.TCSubpathRoute formedTrainRoute)
+            public bool CheckFormedReverse(Physics.Train.TCSubpathRoute thisTrainRoute, Physics.Train.TCSubpathRoute formedTrainRoute)
             {
                 // get matching route sections to check on direction
                 int lastElementIndex = thisTrainRoute.Count - 1;
-                Train.TCRouteElement lastElement = thisTrainRoute[lastElementIndex];
+                Physics.Train.TCRouteElement lastElement = thisTrainRoute[lastElementIndex];
 
                 int firstElementIndex = formedTrainRoute.GetRouteIndex(lastElement.TCSectionIndex, 0);
 
@@ -3165,7 +3166,7 @@ namespace Orts.Simulation.Timetables
                     return false;
                 }
 
-                Train.TCRouteElement firstElement = formedTrainRoute[firstElementIndex];
+                Physics.Train.TCRouteElement firstElement = formedTrainRoute[firstElementIndex];
 
                 // reverse required
                 return (firstElement.Direction != lastElement.Direction);
@@ -3479,7 +3480,7 @@ namespace Orts.Simulation.Timetables
                         while (routeIndex < 0 && actSubpath < (actTrain.TCRoute.TCRouteSubpaths.Count - 1))
                         {
                             actSubpath++;
-                            Train.TCSubpathRoute thisRoute = actTrain.TCRoute.TCRouteSubpaths[actSubpath];
+                            Physics.Train.TCSubpathRoute thisRoute = actTrain.TCRoute.TCRouteSubpaths[actSubpath];
                             routeIndex = thisRoute.GetRouteIndex(sectionIndex, 0);
 
                             // if first section not found in route, try last

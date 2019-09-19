@@ -60,7 +60,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer = viewer;
             CarSpawnerObj = carSpawnerObj;
 
-            if (viewer.Simulator.RDB == null || viewer.Simulator.CarSpawnerFile == null)
+            if (viewer.Simulator.RDB == null || viewer.Simulator.CarSpawnerLists == null)
                 throw new InvalidOperationException("RoadCarSpawner requires a RDB and CARSPAWN.DAT");
 
             var start = CarSpawnerObj.getTrItemID(0);
@@ -255,8 +255,8 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Spawner = spawner;
             CarSpawnerListIdx = carSpawnerListIdx;
-            Type = Viewer.Random.Next() % viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].shapeNames.Length;
-            Length = viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].distanceFrom[Type];
+            Type = Viewer.Random.Next() % viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].Count;
+            Length = viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx][Type].Distance;
             // Front and rear travellers approximate wheel positions at 25% and 75% along vehicle.
             FrontTraveller = new Traveller(spawner.Traveller);
             FrontTraveller.Move(Length * 0.15f);
@@ -412,7 +412,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public RoadCarPrimitive(Viewer viewer, RoadCar car)
         {
             Car = car;
-            CarShape = new RoadCarShape(viewer.Simulator.CarSpawnerLists[Car.CarSpawnerListIdx].shapeNames[car.Type], car);
+            CarShape = new RoadCarShape(viewer.Simulator.CarSpawnerLists[Car.CarSpawnerListIdx][car.Type].Name, car);
         }
 
         //[CallOnThread("Updater")]

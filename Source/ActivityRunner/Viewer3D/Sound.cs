@@ -1055,7 +1055,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 return (!IsEnvSound && !IsExternal && (Viewer.Camera.Style == Camera.Styles.Cab || Viewer.Camera.Style == Camera.Styles.ThreeDimCab)
                     && Car != null && Viewer.Camera.AttachedCar != null && !(Car is MSTSLocomotive) && !Car.HasInsideView && Car.PassengerViewpoints.Count == 0
-                    && (Car.Train == Viewer.Camera.AttachedCar.Train || Car.Train.TrainType == Train.TRAINTYPE.STATIC || Car.Train.TrainType == Train.TRAINTYPE.AI_NOTSTARTED));
+                    && (Car.Train == Viewer.Camera.AttachedCar.Train || Car.Train.TrainType == Simulation.Physics.Train.TRAINTYPE.STATIC || Car.Train.TrainType == Simulation.Physics.Train.TRAINTYPE.AI_NOTSTARTED));
             }
         }
 
@@ -2304,7 +2304,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return retval;
         }
 
-        public int GetTType(Train train, out float outPrevDist, out float outNextDist)
+        public int GetTType(Simulation.Physics.Train train, out float outPrevDist, out float outNextDist)
         {
             int retval = 0;
             Traveller traveller;

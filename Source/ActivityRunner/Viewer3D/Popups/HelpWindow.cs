@@ -206,8 +206,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                                         // Car(s) column
                                         // Wagon.UiD contains train and wagon indexes packed into single 32-bit value, e.g. 32678 - 0
-                                        var trainIndex = wagonItem.UId >> 16;         // Extract upper 16 bits
-                                        var wagonIndex = wagonItem.UId & 0x0000FFFF;  // Extract lower 16 bits
+                                        var trainIndex = wagonItem.UiD >> 16;         // Extract upper 16 bits
+                                        var wagonIndex = wagonItem.UiD & 0x0000FFFF;  // Extract lower 16 bits
                                         var wagonName = trainIndex.ToString() + " - " + wagonIndex.ToString();
                                         var wagonType = "";
                                         var wagonFound = false;
@@ -217,7 +217,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             {
                                                 if (activityObject.ID == trainIndex)
                                                 {
-                                                    foreach (Orts.Formats.Msts.Wagon trainWagon in activityObject.Train_Config.TrainCfg.WagonList)
+                                                    foreach (Wagon trainWagon in activityObject.Train_Config.TrainConfig.WagonList)
                                                     {
                                                         if (trainWagon.UiD == wagonIndex)
                                                         {
@@ -234,7 +234,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             {
                                                 foreach (var car in owner.Viewer.PlayerTrain.Cars)
                                                 {
-                                                    if (car.UiD == wagonItem.UId)
+                                                    if (car.UiD == wagonItem.UiD)
                                                     {
                                                         wagonType = Path.GetFileNameWithoutExtension(car.WagFilePath);
                                                         wagonFound = true;
@@ -307,7 +307,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                         // Detect at arrival              
                         int dbfstationstopsremaining = 0;
-                        Train playerTrain = Owner.Viewer.Simulator.PlayerLocomotive.Train;
+                        Simulation.Physics.Train playerTrain = Owner.Viewer.Simulator.PlayerLocomotive.Train;
 
                         scrollbox = cl.AddLayoutScrollboxVertical(cl.RemainingWidth);
                         var colWidth = (cl.RemainingWidth - cl.TextHeight) / 7;
@@ -557,7 +557,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 DbfEvalValues.Add("Train Overturned", TrainCar.DbfEvalTrainOverturned);
                                 DbfEvalValues.Add("Alerter applications above 10MPH/16KMH", Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
                                 DbfEvalValues.Add("Auto pilot (Time)", Viewer.DbfEvalAutoPilotTimeS);
-                                DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", Train.NumOfCouplerBreaks);
+                                DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", Simulation.Physics.Train.NumOfCouplerBreaks);
                                 DbfEvalValues.Add("Coupling speed limits", Simulator.DbfEvalOverSpeedCoupling);
                                 DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? TrainCar.DbfEvalTravellingTooFast : 0);
                                 if (playerTrain.Delay != null) DbfEvalValues.Add("Activity, current delay", (long)playerTrain.Delay.Value.TotalMinutes);
@@ -609,7 +609,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             dbfevalActivityEnded = true;
 
                             //If Autopilot control then update recorded time
-                            if (!ldbfevalupdateautopilottime && owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
+                            if (!ldbfevalupdateautopilottime && owner.Viewer.PlayerLocomotive.Train.TrainType == Simulation.Physics.Train.TRAINTYPE.AI_PLAYERHOSTING)
                             {
                                 Viewer.DbfEvalAutoPilotTimeS = Viewer.DbfEvalAutoPilotTimeS + (owner.Viewer.Simulator.ClockTime - Viewer.DbfEvalIniAutoPilotTimeS);
                                 ldbfevalupdateautopilottime = true;
@@ -931,7 +931,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             nhosebreaks = 7 * nhosebreaks;
 
                             //Coupler Breaks. -10.
-                            int ncouplerbreaks = Train.NumOfCouplerBreaks;
+                            int ncouplerbreaks = Simulation.Physics.Train.NumOfCouplerBreaks;
                             labeltext = (lbreakcouplers ? "  Coupler breaks=" : "  Coupler overloaded=") + ncouplerbreaks;
                             outmesssage(labeltext, colWidth * 4, true, 4);
                             ncouplerbreaks = 10 * ncouplerbreaks;

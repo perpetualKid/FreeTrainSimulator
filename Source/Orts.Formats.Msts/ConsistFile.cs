@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 
+using Orts.Formats.Msts.Entities;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
@@ -26,15 +27,15 @@ namespace Orts.Formats.Msts
     public class ConsistFile
     {
         public string Name; // from the Name field or label field of the consist file
-        public Train_Config Train;
+        public TrainSet Train;
 
         public ConsistFile(string filePath)
         {
             using (var stf = new STFReader(filePath, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("train", ()=>{ Train = new Train_Config(stf); }),
+                    new STFReader.TokenProcessor("train", ()=>{ Train = new TrainSet(stf); }),
                 });
-            Name = Train.TrainCfg.Name;
+            Name = Train.TrainConfig.Name;
         }
 
         public override string ToString()

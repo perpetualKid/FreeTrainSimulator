@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AuxActionRef.cs" />
-    <Compile Include="ExtCarSpawnerFile.cs" />
+    <Compile Include="Files\AdditionalCarSpawnerFile.cs" />
     <Compile Include="Parsers\JsonReader.cs" />
     <Compile Include="Parsers\TimetableReader.cs" />
     <Compile Include="WeatherFile.cs" />

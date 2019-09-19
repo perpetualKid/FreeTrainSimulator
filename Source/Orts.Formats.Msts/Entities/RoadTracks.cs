@@ -43,7 +43,7 @@ namespace Orts.Formats.Msts.Entities
                     stf.ParseBlock(()=> ++idx == -1, new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("levelcritem", ()=>{ TrItemTable[idx] = new RoadLevelCrossingItem(stf,idx); }),
                         new STFReader.TokenProcessor("emptyitem", ()=>{ TrItemTable[idx] = new EmptyItem(stf,idx); }),
-                        new STFReader.TokenProcessor("carspawneritem", ()=>{ TrItemTable[idx] = new CarSpawnerItem(stf,idx); })
+                        new STFReader.TokenProcessor("carspawneritem", ()=>{ TrItemTable[idx] = new RoadCarSpawner(stf,idx); })
                     });
                 }),
             });
@@ -82,14 +82,14 @@ namespace Orts.Formats.Msts.Entities
     /// <summary>
     /// Represent a Car Spawner: the place where cars start to appear or disappear again
     /// </summary>
-	public class CarSpawnerItem : TrItem
+	public class RoadCarSpawner : TrItem
     {
         /// <summary>
         /// Default constructor used during file parsing.
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
-		public CarSpawnerItem(STFReader stf, int idx)
+		public RoadCarSpawner(STFReader stf, int idx)
         {
             ItemType = trItemType.trCARSPAWNER;
             stf.MustMatch("(");

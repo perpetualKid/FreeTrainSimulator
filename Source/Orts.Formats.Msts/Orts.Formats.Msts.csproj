@@ -47,7 +47,7 @@
     <Compile Include="Entities\Camera.cs" />
     <Compile Include="Entities\TrainCar.cs" />
     <Compile Include="Files\CameraConfigurationFile.cs" />
-    <Compile Include="CarSpawnerFile.cs" />
+    <Compile Include="Files\CarSpawnerFile.cs" />
     <Compile Include="ConsistFile.cs" />
     <Compile Include="CabViewFile.cs" />
     <Compile Include="Entities\Hazard.cs" />
@@ -55,6 +55,7 @@
     <Compile Include="Entities\Shapes.cs" />
     <Compile Include="Entities\TimeTable.cs" />
     <Compile Include="Entities\TrackType.cs" />
+    <Compile Include="Entities\CarSpawner.cs" />
     <Compile Include="Files\EngineFile.cs" />
     <Compile Include="Entities\EnvironmentLayers.cs" />
     <Compile Include="Entities\Sound.cs" />
