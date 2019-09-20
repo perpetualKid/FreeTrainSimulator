@@ -23,6 +23,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D;
+using Orts.Formats.Msts.Files;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -311,7 +312,7 @@ namespace ORTS.TrackViewer.Drawing
                 oldAceFiles = new List<string>();
                 if (System.IO.File.Exists(path))
                 {
-                    Texture2D texture = Orts.Formats.Msts.AceFile.Texture2DFromFile(graphicsDevice, path);
+                    Texture2D texture = AceFile.Texture2DFromFile(graphicsDevice, path);
                     textures[textureName] = texture;
                     textureScales[textureName] = texture.Width;
                     textureOffsets[textureName] = new Vector2(texture.Width / 2, texture.Height / 2);

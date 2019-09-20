@@ -26,6 +26,7 @@ using Orts.Common.Input;
 using Orts.Common.Xna;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -532,7 +533,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 for (int i = 0; i < Viewer.ENVFile.SkyLayers.Count; i++)
                 {
                     mstsSkyTextureNames[i] = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskytexture[i].TextureName;
-                    mstsSkyTextures.Add(Orts.Formats.Msts.AceFile.Texture2DFromFile(graphicsDevice, mstsSkyTextureNames[i]));
+                    mstsSkyTextures.Add(AceFile.Texture2DFromFile(graphicsDevice, mstsSkyTextureNames[i]));
                     if( i == 0 )
                     {
                         mstsDayTexture = mstsSkyTextures[i];
@@ -543,7 +544,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else
                     {
-                        mstsSkyCloudTextures.Add(Orts.Formats.Msts.AceFile.Texture2DFromFile(graphicsDevice, mstsSkyTextureNames[i]));
+                        mstsSkyCloudTextures.Add(AceFile.Texture2DFromFile(graphicsDevice, mstsSkyTextureNames[i]));
                     }
                 }
             }

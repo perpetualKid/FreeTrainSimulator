@@ -632,7 +632,7 @@ namespace ORTS.TrackViewer.Drawing
                     messageDelegate(String.Format(TrackViewer.catalog.GetString("Loading terrain ace-files {0}-{1} (scaled down with a factor {2})"), loadedAceFilesCounter, loadedAceFilesCounter + 99, CurrentScaleFactor));
                 }
                 loadedAceFilesCounter++;
-                var originalTexture = Orts.Formats.Msts.AceFile.Texture2DFromFile(this.device, path);
+                var originalTexture = AceFile.Texture2DFromFile(this.device, path);
                 var reducableTexture = new ReducableTexture2D(device, originalTexture);
                 reducableTexture.ReduceToFactor(CurrentScaleFactor);
                 this[filename] = reducableTexture;

@@ -1417,14 +1417,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     }
                     else if (File.Exists(path))
                     {
-                        texture = Orts.Formats.Msts.AceFile.Texture2DFromFile(gd, path);
+                        texture = AceFile.Texture2DFromFile(gd, path);
                     }
                     else
                     {
                         path = Path.Combine(Simulator.RoutePath, defaultScreen);
                         if (File.Exists(path))
                         {
-                            texture = Orts.Formats.Msts.AceFile.Texture2DFromFile(gd, path);
+                            texture = AceFile.Texture2DFromFile(gd, path);
                         }
                         else
                         {

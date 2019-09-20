@@ -128,4 +128,24 @@ namespace Orts.Formats.Msts
     }
 
     #endregion
+
+    #region AceFile
+    [Flags]
+    public enum SimisAceFormatOptions
+    {
+        Default = 0,
+        MipMaps = 0x01,
+        RawData = 0x10,
+    }
+
+    public enum SimisAceChannelId
+    {
+        Mask = 2,
+        Red = 3,
+        Green = 4,
+        Blue = 5,
+        Alpha = 6,
+    }
+
+    #endregion
 }
