@@ -64,7 +64,7 @@ namespace Orts.Simulation.AIs
                 return;
             }
             foreach (PathNode tpn in patFile.PathNodes)
-                Nodes.Add(new AIPathNode(tpn, patFile.DataPoints[(int)tpn.fromPDP], TrackDB, isTimetableMode));
+                Nodes.Add(new AIPathNode(tpn, patFile.DataPoints[(int)tpn.PathDataPoint], TrackDB, isTimetableMode));
             FirstNode = Nodes[0];
             //LastVisitedNode = FirstNode;            
 
@@ -269,7 +269,7 @@ namespace Orts.Simulation.AIs
         /// </summary>
         public AIPathNode(PathNode tpn, PathDataPoint pdp, TrackDB trackDB, bool isTimetableMode)
         {
-            ID = (int)tpn.fromPDP;
+            ID = (int)tpn.PathDataPoint;
             InterpretPathNodeFlags(tpn, pdp, isTimetableMode);
 
             Location = pdp.Location;

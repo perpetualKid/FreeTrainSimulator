@@ -45,7 +45,7 @@ namespace Orts.ContentManager.Models
                 var nodeNexts = new List<List<Node>>(file.PathNodes.Count);
                 foreach (var node in file.PathNodes)
                 {
-                    var pdp = file.DataPoints[(int)node.fromPDP];
+                    var pdp = file.DataPoints[(int)node.PathDataPoint];
                     var next = new List<Node>();
                     nodes.Add(new Node(pdp.Location.ToString(), node.PathFlags, node.WaitTime, next));
                     nodeNexts.Add(next);

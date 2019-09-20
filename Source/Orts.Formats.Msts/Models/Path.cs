@@ -33,7 +33,7 @@ namespace Orts.Formats.Msts.Models
         public PathFlags PathFlags { get; private set; }
         public uint NextMainNode { get; private set; }
         public uint NextSidingNode { get; private set; }
-        public uint fromPDP { get; private set; }
+        public uint PathDataPoint { get; private set; }
 
         public bool HasNextMainNode { get { return (NextMainNode != 0xffffffff); } }
         public bool HasNextSidingNode { get { return (NextSidingNode != 0xffffffff); } }
@@ -46,16 +46,16 @@ namespace Orts.Formats.Msts.Models
             PathFlags = (PathFlags)stf.ReadHex(0);
             NextMainNode = stf.ReadUInt(null);
             NextSidingNode = stf.ReadUInt(null);
-            fromPDP = stf.ReadUInt(null);
+            PathDataPoint = stf.ReadUInt(null);
             stf.SkipRestOfBlock();
         }
 
-        public PathNode(uint flags, uint nextNode, uint nextSiding, uint pdp)
+        public PathNode(uint flags, uint nextNode, uint nextSiding, uint pathDataPoint)
         {
             PathFlags = (PathFlags)flags;
             NextMainNode = nextNode;
             NextSidingNode = nextSiding;
-            fromPDP = pdp;
+            PathDataPoint = pathDataPoint;
         }
     }
 }

@@ -231,7 +231,7 @@ namespace ORTS.TrackViewer.Editing
         private void CreateNodes(PathFile patFile, List<TrainpathNode> Nodes)
         {
             foreach (PathNode tpn in patFile.PathNodes)
-                Nodes.Add(TrainpathNode.CreatePathNode(tpn, patFile.DataPoints[(int)tpn.fromPDP], trackDB, tsectionDat));
+                Nodes.Add(TrainpathNode.CreatePathNode(tpn, patFile.DataPoints[(int)tpn.PathDataPoint], trackDB, tsectionDat));
             FirstNode = Nodes[0];
             FirstNode.NodeType = TrainpathNodeType.Start;
         }
