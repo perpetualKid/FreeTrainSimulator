@@ -250,5 +250,16 @@ namespace Orts.Formats.Msts
     }
     #endregion
 
+    #region Activity
+    public enum OrtsActivitySoundFileType
+    {
+        None,
+        Everywhere,
+        Cab,
+        Pass,
+        Ground,
+        Location
+    }
+    #endregion
 
 }

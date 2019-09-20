@@ -150,8 +150,8 @@ namespace Orts.Simulation
                     EventList.Add(new EventCategoryTimeWrapper(i, Simulator));
                 }
                 EventWrapper eventAdded = EventList.Last();
-                eventAdded.OriginalActivationLevel = i.Activation_Level;
-                if (i.ORTSWeatherChange != null || i.Outcomes.ORTSWeatherChange != null) WeatherChangesPresent = true;
+                eventAdded.OriginalActivationLevel = i.ActivationLevel;
+                if (i.OrtsWeatherChange != null || i.Outcomes.ORTSWeatherChange != null) WeatherChangesPresent = true;
             }
 
             StationStopLogActive = false;
@@ -198,7 +198,7 @@ namespace Orts.Simulation
                     // so this line needs to be inside the EventList loop.
                     if (this.TriggeredEvent != null) { break; }
 
-                    if (i != null && i.ParsedObject.Activation_Level > 0)
+                    if (i != null && i.ParsedObject.ActivationLevel > 0)
                     {
                         if (i.TimesTriggered < 1 || i.ParsedObject.Reversible)
                         {
@@ -1145,14 +1145,14 @@ namespace Orts.Simulation
     /// </summary>
     public abstract class EventWrapper
     {
-        public Orts.Formats.Msts.Event ParsedObject;     // Points to object parsed from file *.act
+        public Orts.Formats.Msts.Models.Event ParsedObject;     // Points to object parsed from file *.act
         public int OriginalActivationLevel; // Needed to reset .ActivationLevel
         public int TimesTriggered;          // Needed for evaluation after activity ends
         public Boolean IsDisabled;          // Used for a reversible event to prevent it firing again until after it has been reset.
         protected Simulator Simulator;
         public Train Train;              // Train involved in event; if null actual or original player train
 
-        public EventWrapper(Orts.Formats.Msts.Event @event, Simulator simulator)
+        public EventWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
         {
             ParsedObject = @event;
             Simulator = simulator;
@@ -1163,14 +1163,14 @@ namespace Orts.Simulation
         {
             outf.Write(TimesTriggered);
             outf.Write(IsDisabled);
-            outf.Write(ParsedObject.Activation_Level);
+            outf.Write(ParsedObject.ActivationLevel);
         }
 
         public virtual void Restore(BinaryReader inf)
         {
             TimesTriggered = inf.ReadInt32();
             IsDisabled = inf.ReadBoolean();
-            ParsedObject.Activation_Level = inf.ReadInt32();
+            ParsedObject.ActivationLevel = inf.ReadInt32();
         }
 
         /// <summary>
@@ -1199,7 +1199,7 @@ namespace Orts.Simulation
             else
             {
                 // Stop this event being monitored
-                this.ParsedObject.Activation_Level = 0;
+                this.ParsedObject.ActivationLevel = 0;
             }
             // No further action if this reversible event has been triggered before
             if (this.TimesTriggered > 1) { return false; }
@@ -1211,34 +1211,34 @@ namespace Orts.Simulation
             foreach (int eventId in ParsedObject.Outcomes.ActivateList)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
-                    item.ParsedObject.Activation_Level = 1;
+                    item.ParsedObject.ActivationLevel = 1;
             }
             foreach (int eventId in ParsedObject.Outcomes.RestoreActLevelList)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
-                    item.ParsedObject.Activation_Level = item.OriginalActivationLevel;
+                    item.ParsedObject.ActivationLevel = item.OriginalActivationLevel;
             }
             foreach (int eventId in ParsedObject.Outcomes.DecActLevelList)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
-                    item.ParsedObject.Activation_Level += -1;
+                    item.ParsedObject.ActivationLevel += -1;
             }
             foreach (int eventId in ParsedObject.Outcomes.IncActLevelList)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
                 {
-                    item.ParsedObject.Activation_Level += +1;
+                    item.ParsedObject.ActivationLevel += +1;
                 }
             }
 
             // Activity sound management
 
-            if (this.ParsedObject.ORTSActSoundFile != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.ActivitySound != null))
+            if (this.ParsedObject.OrtsActivitySoundFile != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.ActivitySound != null))
             {
                 if (activity.triggeredEventWrapper == null) activity.triggeredEventWrapper = this;
             }
 
-            if (this.ParsedObject.ORTSWeatherChange != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.ORTSWeatherChange != null))
+            if (this.ParsedObject.OrtsWeatherChange != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.ORTSWeatherChange != null))
             {
                 if (activity.triggeredEventWrapper == null) activity.triggeredEventWrapper = this;
             }
@@ -1270,7 +1270,7 @@ namespace Orts.Simulation
         SidingItem SidingEnd2;
         List<string> ChangeWagonIdList;   // Wagons to be assembled, picked up or dropped off.
 
-        public EventCategoryActionWrapper(Orts.Formats.Msts.Event @event, Simulator simulator)
+        public EventCategoryActionWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
             : base(@event, simulator)
         {
             var e = this.ParsedObject as EventCategoryAction;
@@ -1517,7 +1517,7 @@ namespace Orts.Simulation
 
     public class EventCategoryLocationWrapper : EventWrapper
     {
-        public EventCategoryLocationWrapper(Orts.Formats.Msts.Event @event, Simulator simulator)
+        public EventCategoryLocationWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
             : base(@event, simulator)
         {
         }
@@ -1525,7 +1525,7 @@ namespace Orts.Simulation
         override public Boolean Triggered(Activity activity)
         {
             var triggered = false;
-            var e = this.ParsedObject as Orts.Formats.Msts.EventCategoryLocation;
+            var e = this.ParsedObject as Orts.Formats.Msts.Models.EventCategoryLocation;
             var train = Simulator.PlayerLocomotive.Train;
             if (ParsedObject.TrainService != "" && Train != null)
             {
@@ -1543,11 +1543,11 @@ namespace Orts.Simulation
             }
             var trainFrontPosition = new Traveller(train.nextRouteReady && train.TCRoute.activeSubpath > 0 && train.TCRoute.ReversalInfo[train.TCRoute.activeSubpath - 1].Valid ?
                 train.RearTDBTraveller : train.FrontTDBTraveller); // just after reversal the old train front position must be considered
-            var distance = trainFrontPosition.DistanceTo(e.TileX, e.TileZ, e.X, trainFrontPosition.Y, e.Z, e.RadiusM);
+            var distance = trainFrontPosition.DistanceTo(e.Location.TileX, e.Location.TileZ, e.Location.Location.X, trainFrontPosition.Y, e.Location.Location.Z, e.RadiusM);
             if (distance == -1)
             {
                 trainFrontPosition.ReverseDirection();
-                distance = trainFrontPosition.DistanceTo(e.TileX, e.TileZ, e.X, trainFrontPosition.Y, e.Z, e.RadiusM);
+                distance = trainFrontPosition.DistanceTo(e.Location.TileX, e.Location.TileZ, e.Location.Location.X, trainFrontPosition.Y, e.Location.Location.Z, e.RadiusM);
                 if (distance == -1)
                     return triggered;
             }
@@ -1559,14 +1559,14 @@ namespace Orts.Simulation
     public class EventCategoryTimeWrapper : EventWrapper
     {
 
-        public EventCategoryTimeWrapper(Orts.Formats.Msts.Event @event, Simulator simulator)
+        public EventCategoryTimeWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
             : base(@event, simulator)
         {
         }
 
         override public Boolean Triggered(Activity activity)
         {
-            var e = this.ParsedObject as Orts.Formats.Msts.EventCategoryTime;
+            var e = this.ParsedObject as Orts.Formats.Msts.Models.EventCategoryTime;
             if (e == null) return false;
             Train = Simulator.PlayerLocomotive.Train;
             var triggered = (e.Time <= (int)Simulator.ClockTime - activity.StartTimeS);

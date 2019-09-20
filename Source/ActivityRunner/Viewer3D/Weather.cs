@@ -503,7 +503,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
             if (Program.Simulator != null && Program.Simulator.ActivityRun != null && Program.Simulator.ActivityRun.triggeredEventWrapper != null &&
-               (Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.ORTSWeatherChange != null || Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ORTSWeatherChange != null))
+               (Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.OrtsWeatherChange != null || Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ORTSWeatherChange != null))
                 // Start a weather change sequence in activity mode
             {
                 // if not yet weather changes, create the instance
@@ -512,7 +512,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     dynamicWeather = new DynamicWeather();
                 }
                 var weatherChange = Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ORTSWeatherChange != null ?
-                    Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ORTSWeatherChange : Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.ORTSWeatherChange;
+                    Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ORTSWeatherChange : Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.OrtsWeatherChange;
                 dynamicWeather.WeatherChange_Init(weatherChange, this);
                 Program.Simulator.ActivityRun.triggeredEventWrapper = null;               
             }

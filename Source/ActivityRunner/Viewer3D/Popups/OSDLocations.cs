@@ -17,12 +17,12 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Simulation;
-using Orts.Common;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -88,7 +88,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         foreach (var @event in activity.EventList)
                         {
-                            var eventAction = @event.ParsedObject as Orts.Formats.Msts.EventCategoryAction;
+                            var eventAction = @event.ParsedObject as EventCategoryAction;
                             if (eventAction != null)
                             {
                                 var sidingId1 = eventAction.SidingId;

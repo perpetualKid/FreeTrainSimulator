@@ -204,11 +204,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                     // Only needs updating the first time through
                                     if (!Owner.Viewer.Simulator.Paused && Visible == false)
                                     {
-                                        Owner.Viewer.Simulator.Paused = e.ParsedObject.ORTSContinue < 0 ? true : false;
-                                        if (e.ParsedObject.ORTSContinue != 0)
+                                        Owner.Viewer.Simulator.Paused = e.ParsedObject.OrtsContinue < 0 ? true : false;
+                                        if (e.ParsedObject.OrtsContinue != 0)
                                         {
                                             ComposeMenu(e.ParsedObject.Name, text);
-                                            if (e.ParsedObject.ORTSContinue < 0) ResumeMenu();
+                                            if (e.ParsedObject.OrtsContinue < 0) ResumeMenu();
                                             else NoPauseMenu();
                                         }
                                         PopupTime = DateTime.UtcNow;
@@ -222,7 +222,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 Activity.TriggeredEvent = null;
                             }
                             TimeSpan diff1 = DateTime.UtcNow - PopupTime;
-                            if (Visible && e.ParsedObject.ORTSContinue >= 0 && diff1.TotalSeconds >= e.ParsedObject.ORTSContinue && !Owner.Viewer.Simulator.Paused)
+                            if (Visible && e.ParsedObject.OrtsContinue >= 0 && diff1.TotalSeconds >= e.ParsedObject.OrtsContinue && !Owner.Viewer.Simulator.Paused)
                             {
                                 CloseBox();
                             }
