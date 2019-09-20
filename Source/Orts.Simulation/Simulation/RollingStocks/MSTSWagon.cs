@@ -44,6 +44,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
@@ -1050,7 +1051,7 @@ namespace Orts.Simulation.RollingStocks
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(lights":
-                    Lights = new LightCollection(stf);
+                    Lights = new Lights(stf);
                     break;
                 case "wagon(inside": HasInsideView = true; ParseWagonInside(stf); break;
                 case "wagon(orts3dcab": Parse3DCab(stf); break;

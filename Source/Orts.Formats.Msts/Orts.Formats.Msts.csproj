@@ -78,7 +78,7 @@
     <Compile Include="SignalScripts.cs" />
     <Compile Include="Files\TerrainFlagsFile.cs" />
     <Compile Include="Files\HazardFile.cs" />
-    <Compile Include="LightCollection.cs" />
+    <Compile Include="Models\Light.cs" />
     <Compile Include="MstsUtility.cs" />
     <Compile Include="Files\PathFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

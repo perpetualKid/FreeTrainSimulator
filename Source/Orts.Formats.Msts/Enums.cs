@@ -148,4 +148,107 @@ namespace Orts.Formats.Msts
     }
 
     #endregion
+
+    #region Light
+    /// <summary>
+    /// Specifies whether a wagon light is glow (simple light texture) or cone (projected light cone).
+    /// </summary>
+    public enum LightType
+    {
+        Glow,
+        Cone,
+    }
+
+    /// <summary>
+    /// Specifies in which headlight positions (off, dim, bright) the wagon light is illuminated.
+    /// </summary>
+    public enum LightHeadlightCondition
+    {
+        Ignore,
+        Off,
+        Dim,
+        Bright,
+        DimBright, // MSTSBin
+        OffBright, // MSTSBin
+        OffDim, // MSTSBin
+        // TODO: DimBright?, // MSTSBin labels this the same as DimBright. Not sure what it means.
+    }
+
+    /// <summary>
+    /// Specifies on which units of a consist (first, middle, last) the wagon light is illuminated.
+    /// </summary>
+    public enum LightUnitCondition
+    {
+        Ignore,
+        Middle,
+        First,
+        Last,
+        LastRev, // MSTSBin
+        FirstRev, // MSTSBin
+    }
+
+    /// <summary>
+    /// Specifies in which penalty states (no, yes) the wagon light is illuminated.
+    /// </summary>
+    public enum LightPenaltyCondition
+    {
+        Ignore,
+        No,
+        Yes,
+    }
+
+    /// <summary>
+    /// Specifies on which types of trains (AI, player) the wagon light is illuminated.
+    /// </summary>
+    public enum LightControlCondition
+    {
+        Ignore,
+        AI,
+        Player,
+    }
+
+    /// <summary>
+    /// Specifies in which in-service states (no, yes) the wagon light is illuminated.
+    /// </summary>
+    public enum LightServiceCondition
+    {
+        Ignore,
+        No,
+        Yes,
+    }
+
+    /// <summary>
+    /// Specifies during which times of day (day, night) the wagon light is illuminated.
+    /// </summary>
+    public enum LightTimeOfDayCondition
+    {
+        Ignore,
+        Day,
+        Night,
+    }
+
+    /// <summary>
+    /// Specifies in which weather conditions (clear, rain, snow) the wagon light is illuminated.
+    /// </summary>
+    public enum LightWeatherCondition
+    {
+        Ignore,
+        Clear,
+        Rain,
+        Snow,
+    }
+
+    /// <summary>
+    /// Specifies on which units of a consist by coupling (front, rear, both) the wagon light is illuminated.
+    /// </summary>
+    public enum LightCouplingCondition
+    {
+        Ignore,
+        Front,
+        Rear,
+        Both,
+    }
+    #endregion
+
+
 }
