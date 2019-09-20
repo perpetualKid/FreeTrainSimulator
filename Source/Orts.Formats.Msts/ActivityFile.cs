@@ -274,6 +274,7 @@ using Microsoft.Xna.Framework;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Parsers;
+using Orts.Common;
 
 namespace Orts.Formats.Msts
 {
@@ -420,7 +421,7 @@ namespace Orts.Formats.Msts
         public Events Events;
         public Traffic_Definition Traffic_Definition;
         public PlatformNumPassengersWaiting PlatformNumPassengersWaiting;
-        public ActivityRestrictedSpeedZones ActivityRestrictedSpeedZones;
+        public RestrictedSpeedZones ActivityRestrictedSpeedZones;
         public int ORTSAIHornAtCrossings = -1;
 
         // Override values for activity creators
@@ -471,7 +472,7 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("activityobjects",()=>{ ActivityObjects = new ActivityObjects(stf); }),
                 new STFReader.TokenProcessor("platformnumpassengerswaiting",()=>{ PlatformNumPassengersWaiting = new PlatformNumPassengersWaiting(stf); }),  // 35 files. To test, use EUROPE1\ACTIVITIES\aftstorm.act
                 new STFReader.TokenProcessor("activityfailedsignals",()=>{ ActivityFailedSignals = new ActivityFailedSignals(stf); }),
-                new STFReader.TokenProcessor("activityrestrictedspeedzones",()=>{ ActivityRestrictedSpeedZones = new ActivityRestrictedSpeedZones(stf); }),   // 27 files. To test, use EUROPE1\ACTIVITIES\lclsrvce.act
+                new STFReader.TokenProcessor("activityrestrictedspeedzones",()=>{ ActivityRestrictedSpeedZones = new RestrictedSpeedZones(stf); }),   // 27 files. To test, use EUROPE1\ACTIVITIES\lclsrvce.act
             });
         }
 
@@ -526,13 +527,12 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("ortssuperelevationminimumlength", ()=>{ ORTSOptionsSuperElevationMinimumLength = stf.ReadIntBlock(ORTSOptionsSuperElevationMinimumLength); IsActivityOverride = true; }),
                 new STFReader.TokenProcessor("ortssuperelevationgauge", ()=>{ ORTSOptionsSuperElevationGauge = stf.ReadIntBlock(ORTSOptionsSuperElevationGauge); IsActivityOverride = true; }),
 
-
-
-
                 new STFReader.TokenProcessor("events",()=>
                 {
-                    if ( Events == null) Events = new Events(stf);
-                    else Events.InsertORSpecificData (stf);
+                    if ( Events == null)
+                        Events = new Events(stf);
+                    else
+                        Events.InsertORSpecificData (stf);
                 }
                 ),
             });
@@ -971,79 +971,6 @@ namespace Orts.Formats.Msts
         }
     }
 
-    /// <summary>
-    /// Parses Event objects and saves them in EventList.
-    /// </summary>
-    public class Events {
-        public List<Event> EventList = new List<Event>();
-
-        public Events(STFReader stf) {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("eventcategorylocation", ()=>{ EventList.Add(new EventCategoryLocation(stf)); }),
-                new STFReader.TokenProcessor("eventcategoryaction", ()=>{ EventList.Add(new EventCategoryAction(stf)); }),
-                new STFReader.TokenProcessor("eventcategorytime", ()=>{ EventList.Add(new EventCategoryTime(stf)); }),
-            });
-        }
-
-        public void InsertORSpecificData (STFReader stf)
-        {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("eventcategorylocation", ()=>{ TryModify(0, stf); }),
-                new STFReader.TokenProcessor("eventcategoryaction", ()=>{ TryModify(1, stf); }),
-                new STFReader.TokenProcessor("eventcategorytime", ()=>{ TryModify(2, stf); }),
-            });
-        }
-
-        public void TryModify(int Category, STFReader stf)
-        {
-            Event origEvent;
-            bool wrongEventID = false;
-            int modifiedID = -1;
-            try
-            {
-                stf.MustMatch("(");
-                stf.MustMatch("id");
-                stf.MustMatch("(");
-                modifiedID = stf.ReadInt(null);
-                stf.MustMatch(")");
-                origEvent = EventList.Find(x => x.ID == modifiedID);
-                if (origEvent == null)
-                {
-                    wrongEventID = true;
-                    Trace.TraceWarning("Skipped event {0} not present in base activity file", modifiedID);
-                    stf.SkipRestOfBlock();
-                }
-                else
-                {
-                    wrongEventID = !TestMatch(Category, origEvent);
-                    if (!wrongEventID)
-                    {
-                       origEvent.AddOrModifyEvent(stf, Path.GetDirectoryName(stf.FileName));
-                    }
-                    else
-                    {
-                        Trace.TraceWarning("Skipped event {0} of event category not matching with base activity file", modifiedID);
-                        stf.SkipRestOfBlock();
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                Trace.WriteLine(new FileLoadException("Error in additional activity file", error));
-            }
-        }
-
-        private bool TestMatch(int category, Event origEvent)
-        {
-            if (category == 0 && origEvent is EventCategoryLocation) return true;
-            if (category == 1 && origEvent is EventCategoryAction) return true;
-            if (category == 2 && origEvent is EventCategoryTime) return true;
-            return false;
-        }
-    }
-
     public class Outcomes {
         public bool ActivitySuccess;
         public string ActivityFail;
@@ -1298,51 +1225,41 @@ namespace Orts.Formats.Msts
         }
     }
 
-    public class ActivityRestrictedSpeedZones {  // For use, see file EUROPE1\ACTIVITIES\aftstorm.act
-        public List<ActivityRestrictedSpeedZone> ActivityRestrictedSpeedZoneList = new List<ActivityRestrictedSpeedZone>();
+    public class RestrictedSpeedZones: List<RestrictedSpeedZone>
+    {  // For use, see file EUROPE1\ACTIVITIES\aftstorm.act
 
-        public ActivityRestrictedSpeedZones(STFReader stf) {
+        public RestrictedSpeedZones(STFReader stf) {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("activityrestrictedspeedzone", ()=>{ ActivityRestrictedSpeedZoneList.Add(new ActivityRestrictedSpeedZone(stf)); }),
+                new STFReader.TokenProcessor("activityrestrictedspeedzone", ()=>{ Add(new RestrictedSpeedZone(stf)); }),
             });
         }
     }
 
-    public class ActivityRestrictedSpeedZone {
-        public Position StartPosition;
-        public Position EndPosition;
+    public class RestrictedSpeedZone
+    {
+        private WorldLocation startPosition;
+        private WorldLocation endPosition;
 
-        public ActivityRestrictedSpeedZone(STFReader stf) {
+        public ref WorldLocation StartPosition=>ref startPosition;
+        public ref WorldLocation EndPosition => ref endPosition;
+
+        public RestrictedSpeedZone(STFReader stf) {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("startposition", ()=>{ StartPosition = new Position(stf); }),
-                new STFReader.TokenProcessor("endposition", ()=>{ EndPosition = new Position(stf); }),
+                new STFReader.TokenProcessor("startposition", ()=>{
+                    stf.MustMatch("(");
+                    startPosition = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
+                        stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
+                    stf.MustMatch(")");
+                }),
+                new STFReader.TokenProcessor("endposition", ()=>{
+                    stf.MustMatch("(");
+                    endPosition = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
+                        stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
+                    stf.MustMatch(")");
+                })
             });
-        }
-    }
-
-    public class Position {
-        public int TileX;
-        public int TileZ;
-        public float X;
-        public float Z;
-        public float Y;
-
-        public Position(int tileX, int tileZ, int x, int z) {
-            TileX = tileX;
-            TileZ = tileZ;
-            X = x;
-            Z = z;
-        }
-
-        public Position(STFReader stf) {
-            stf.MustMatch("(");
-            TileX = stf.ReadInt(null);
-            TileZ = stf.ReadInt(null);
-            X = stf.ReadFloat(STFReader.Units.None, null);
-            Z = stf.ReadFloat(STFReader.Units.None, null);
-            stf.MustMatch(")");
         }
     }
 }

@@ -1108,12 +1108,12 @@ namespace Orts.Formats.Msts
         /// 
         public WorldPosition WorldPosition;
 
-        public TempSpeedPostItem(Tr_RouteFile routeFile, Position position,  bool isStart, in WorldPosition worldPosition, bool isWarning)
+        public TempSpeedPostItem(Tr_RouteFile routeFile, in WorldLocation location,  bool isStart, in WorldPosition worldPosition, bool isWarning)
         {
             // TrItemId needs to be set later
             ItemType = trItemType.trSPEEDPOST;
             WorldPosition = worldPosition;
-            CreateRPData(position);
+            CreateRPData(location);
 
             IsMilePost = false;
             IsLimit = true;
@@ -1141,13 +1141,13 @@ namespace Orts.Formats.Msts
         /// Create the R P data from a position
         /// </summary>
         /// <param name="position">Position of the speedpost</param>
-        private void CreateRPData(Position position)
+        private void CreateRPData(in WorldLocation location)
         {
-            X = PX = position.X;
-            Z = PZ = position.Z;
-            Y = position.Y;
-            TileX = TilePX = position.TileX;
-            TileZ = TilePZ = position.TileZ;
+            X = PX = location.Location.X;
+            Z = PZ = location.Location.Z;
+            Y = location.Location.Y;
+            TileX = TilePX = location.TileX;
+            TileZ = TilePZ = location.TileZ;
         }
 
     }

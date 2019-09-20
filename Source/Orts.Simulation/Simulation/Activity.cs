@@ -134,7 +134,7 @@ namespace Orts.Simulation
             if (actFile.Tr_Activity == null) { return; }
             if (actFile.Tr_Activity.Tr_Activity_File == null) { return; }
             if (actFile.Tr_Activity.Tr_Activity_File.Events == null) { return; }
-            var parsedEventList = actFile.Tr_Activity.Tr_Activity_File.Events.EventList;
+            var parsedEventList = actFile.Tr_Activity.Tr_Activity_File.Events;
             foreach (var i in parsedEventList)
             {
                 if (i is EventCategoryAction)
@@ -514,9 +514,9 @@ namespace Orts.Simulation
         /// <param name="tsectionDat">track sections containing the details of the various sections</param>
         /// <param name="trackDB">The track Database that needs to be updated</param>
         /// <param name="zones">List of speed restriction zones</param>
-        public void AddRestrictZones(Tr_RouteFile routeFile, TrackSectionsFile tsectionDat, TrackDB trackDB, ActivityRestrictedSpeedZones zones)
+        public void AddRestrictZones(Tr_RouteFile routeFile, TrackSectionsFile tsectionDat, TrackDB trackDB, RestrictedSpeedZones zones)
         {
-            if (zones.ActivityRestrictedSpeedZoneList.Count < 1) return;
+            if (zones.Count < 1) return;
 
             TempSpeedPostItems = new List<TempSpeedPostItem>();
 
@@ -526,22 +526,20 @@ namespace Orts.Simulation
 
             const float MaxDistanceOfWarningPost = 2000;
 
-            for (int idxZone = 0; idxZone < zones.ActivityRestrictedSpeedZoneList.Count; idxZone++)
+            for (int idxZone = 0; idxZone < zones.Count; idxZone++)
             {
-                var worldPosition1 = WorldPosition.None;
                 newSpeedPostItems[0] = new TempSpeedPostItem(routeFile,
-                    zones.ActivityRestrictedSpeedZoneList[idxZone].StartPosition, true, worldPosition1, false);
-                var worldPosition2 = WorldPosition.None;
+                    zones[idxZone].StartPosition, true, WorldPosition.None, false);
                 newSpeedPostItems[1] = new TempSpeedPostItem(routeFile,
-                    zones.ActivityRestrictedSpeedZoneList[idxZone].EndPosition, false, worldPosition2, false);
+                    zones[idxZone].EndPosition, false, WorldPosition.None, false);
 
                 // Add the speedposts to the track database. This will set the TrItemId's of all speedposts
                 trackDB.AddTrItems(newSpeedPostItems);
 
                 // And now update the various (vector) tracknodes (this needs the TrItemIds.
-                var endOffset = AddItemIdToTrackNode(ref zones.ActivityRestrictedSpeedZoneList[idxZone].EndPosition,
+                var endOffset = AddItemIdToTrackNode(zones[idxZone].EndPosition,
                     tsectionDat, trackDB, newSpeedPostItems[1], out traveller);
-                var startOffset = AddItemIdToTrackNode(ref zones.ActivityRestrictedSpeedZoneList[idxZone].StartPosition,
+                var startOffset = AddItemIdToTrackNode(zones[idxZone].StartPosition,
                     tsectionDat, trackDB, newSpeedPostItems[0], out traveller);
                 float distanceOfWarningPost = 0;
                 TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];
@@ -556,7 +554,7 @@ namespace Orts.Simulation
                 traveller.Move(distanceOfWarningPost);
                 var worldPosition3 = WorldPosition.None;
                 var speedWarningPostItem = new TempSpeedPostItem(routeFile,
-                    zones.ActivityRestrictedSpeedZoneList[idxZone].StartPosition, false, worldPosition3, true);
+                    zones[idxZone].StartPosition, false, worldPosition3, true);
                 SpeedPostPosition(speedWarningPostItem, ref traveller);
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                 {
@@ -574,15 +572,15 @@ namespace Orts.Simulation
         /// <summary>
         /// Add a reference to a new TrItemId to the correct trackNode (which needs to be determined from the position)
         /// </summary>
-        /// <param name="position">Position of the new </param>
+        /// <param name="location">Position of the new </param>
         /// <param name="tsectionDat">track sections containing the details of the various sections</param>
         /// <param name="trackDB">track database to be modified</param>
         /// <param name="newTrItemRef">The Id of the new TrItem to add to the tracknode</param>
         /// <param name="traveller">The computed traveller to the speedPost position</param>
-        static float? AddItemIdToTrackNode(ref Position position, TrackSectionsFile tsectionDat, TrackDB trackDB, TrItem newTrItem, out Traveller traveller)
+        static float? AddItemIdToTrackNode(in WorldLocation location, TrackSectionsFile tsectionDat, TrackDB trackDB, TrItem newTrItem, out Traveller traveller)
         {
             float? offset = 0.0f;
-            traveller = new Traveller(tsectionDat, trackDB.TrackNodes, position.TileX, position.TileZ, position.X, position.Z);
+            traveller = new Traveller(tsectionDat, trackDB.TrackNodes, location.TileX, location.TileZ, location.Location.X, location.Location.Z);
             TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];//find the track node
             if (trackNode.TrVectorNode != null)
             {

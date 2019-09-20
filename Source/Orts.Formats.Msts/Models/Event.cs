@@ -1,10 +1,85 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
+    /// <summary>
+    /// Parses Event objects and saves them in EventList.
+    /// </summary>
+    public class Events: List<Event>
+    {
+        public Events(STFReader stf)
+        {
+            stf.MustMatch("(");
+            stf.ParseBlock(new STFReader.TokenProcessor[] {
+                new STFReader.TokenProcessor("eventcategorylocation", ()=>{ Add(new EventCategoryLocation(stf)); }),
+                new STFReader.TokenProcessor("eventcategoryaction", ()=>{ Add(new EventCategoryAction(stf)); }),
+                new STFReader.TokenProcessor("eventcategorytime", ()=>{ Add(new EventCategoryTime(stf)); }),
+            });
+        }
+
+        public void InsertORSpecificData(STFReader stf)
+        {
+            stf.MustMatch("(");
+            stf.ParseBlock(new STFReader.TokenProcessor[] {
+                new STFReader.TokenProcessor("eventcategorylocation", ()=>{ TryModify(0, stf); }),
+                new STFReader.TokenProcessor("eventcategoryaction", ()=>{ TryModify(1, stf); }),
+                new STFReader.TokenProcessor("eventcategorytime", ()=>{ TryModify(2, stf); }),
+            });
+        }
+
+        private void TryModify(int category, STFReader stf)
+        {
+            Event origEvent;
+            bool wrongEventID = false;
+            int modifiedID = -1;
+            try
+            {
+                stf.MustMatch("(");
+                stf.MustMatch("id");
+                stf.MustMatch("(");
+                modifiedID = stf.ReadInt(null);
+                stf.MustMatch(")");
+                origEvent = Find(x => x.ID == modifiedID);
+                if (origEvent == null)
+                {
+                    wrongEventID = true;
+                    Trace.TraceWarning("Skipped event {0} not present in base activity file", modifiedID);
+                    stf.SkipRestOfBlock();
+                }
+                else
+                {
+                    wrongEventID = !TestMatch(category, origEvent);
+                    if (!wrongEventID)
+                    {
+                        origEvent.AddOrModifyEvent(stf, Path.GetDirectoryName(stf.FileName));
+                    }
+                    else
+                    {
+                        Trace.TraceWarning("Skipped event {0} of event category not matching with base activity file", modifiedID);
+                        stf.SkipRestOfBlock();
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                Trace.WriteLine(new FileLoadException("Error in additional activity file", error));
+            }
+        }
+
+        private bool TestMatch(int category, Event origEvent)
+        {
+            return 
+                ((category == 0 && origEvent is EventCategoryLocation) ||
+                (category == 1 && origEvent is EventCategoryAction) ||
+                (category == 2 && origEvent is EventCategoryTime));
+        }
+    }
+
     /// <summary>
     /// The 3 types of event are inherited from the abstract Event class.
     /// </summary>
