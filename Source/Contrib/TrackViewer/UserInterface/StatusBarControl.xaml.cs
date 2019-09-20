@@ -17,23 +17,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Forms.Integration;
-
-using Orts.Formats.Msts;
 using Orts.Common;
-using ORTS.TrackViewer.Properties;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using ORTS.TrackViewer.Editing;
-
 
 namespace ORTS.TrackViewer.UserInterface
 {
@@ -285,12 +274,12 @@ namespace ORTS.TrackViewer.UserInterface
         {
             if (Properties.Settings.Default.statusShowPATfile && (trackViewer.DrawPATfile != null))
             {
-                TrPathNode curNode = trackViewer.DrawPATfile.CurrentNode;
-                TrackPDP curPDP = trackViewer.DrawPATfile.CurrentPdp;
+                PathNode curNode = trackViewer.DrawPATfile.CurrentNode;
+                PathDataPoint curPDP = trackViewer.DrawPATfile.CurrentPdp;
                 statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                     " {7}: {3}, {4} [{1} {2}] [{5} {6}] <{0}>",
-                    curNode.pathFlags, (int)curNode.nextMainNode, (int)curNode.nextSidingNode,
-                    curPDP.X, curPDP.Z, curPDP.junctionFlag, curPDP.invalidFlag, trackViewer.DrawPATfile.FileName);
+                    curNode.PathFlags, (int)curNode.NextMainNode, (int)curNode.NextSidingNode,
+                    curPDP.Location.Location.X, curPDP.Location.Location.Z, curPDP.JunctionFlag, curPDP.InvalidFlag, trackViewer.DrawPATfile.FileName);
             }
         }
 

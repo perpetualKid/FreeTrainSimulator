@@ -38,14 +38,12 @@
 // Because the path is a double linked list, to prevent issues with garbage collection, an Unlink method is provided that removes the lilnks.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
-using Orts.Formats.Msts;
 using Orts.Common;
-using ORTS.TrackViewer.Drawing;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Simulation;
+using ORTS.TrackViewer.Drawing;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -142,7 +140,7 @@ namespace ORTS.TrackViewer.Editing
         /// Sort of constructor. But it creates the right sub-class
         /// </summary>
         /// <returns>A sub-class object properly initialized</returns>
-        public static TrainpathNode CreatePathNode(TrPathNode tpn, TrackPDP pdp, TrackDB trackDB, TrackSectionsFile tsectionDat)
+        public static TrainpathNode CreatePathNode(PathNode tpn, PathDataPoint pdp, TrackDB trackDB, TrackSectionsFile tsectionDat)
         {
             if (pdp.IsJunction) {
                 // we do not use tpn: this means we do not interpret the flags
@@ -180,10 +178,10 @@ namespace ORTS.TrackViewer.Editing
         /// Creates a single trainpathNode and initializes everything that do not depend on other nodes.
         /// The trainpath constructor will initialize the rest.
         /// </summary>
-        protected TrainpathNode(TrackPDP pdp, TrackDB trackDB, TrackSectionsFile tsectionDat)
+        protected TrainpathNode(PathDataPoint pdp, TrackDB trackDB, TrackSectionsFile tsectionDat)
             :this(trackDB, tsectionDat)
         {
-            Location = new WorldLocation(pdp.TileX, pdp.TileZ, pdp.X, pdp.Y, pdp.Z);
+            Location = pdp.Location;
             if (pdp.IsInvalid) // not a valid point
             {
                 this.SetBroken(NodeStatus.SetAsInvalid);
@@ -338,7 +336,7 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="pdp">Corresponding PDP in the .patfile</param>
         /// <param name="trackDB"></param>
         /// <param name="tsectionDat"></param>
-        public TrainpathJunctionNode(TrackPDP pdp, TrackDB trackDB, TrackSectionsFile tsectionDat) 
+        public TrainpathJunctionNode(PathDataPoint pdp, TrackDB trackDB, TrackSectionsFile tsectionDat) 
             : base(pdp, trackDB, tsectionDat)
         {
             JunctionIndex = FindJunctionOrEndIndex(true);
@@ -722,7 +720,7 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="pdp">TrackPDP from .pat file</param>
         /// <param name="trackDB"></param>
         /// <param name="tsectionDat"></param>
-        public TrainpathVectorNode(TrPathNode tpn, TrackPDP pdp, TrackDB trackDB, TrackSectionsFile tsectionDat)
+        public TrainpathVectorNode(PathNode tpn, PathDataPoint pdp, TrackDB trackDB, TrackSectionsFile tsectionDat)
             : base(pdp, trackDB, tsectionDat)
         {
             try
@@ -887,12 +885,12 @@ namespace ORTS.TrackViewer.Editing
         // But the interpretation below is a bit more complicated.
         // Since this interpretation belongs to the PATfile itself, 
         // in principle it would be more logical to have it in PATfile.cs. But this leads to too much code duplication
-        private void InterpretPathNodeFlags(TrPathNode tpn)
+        private void InterpretPathNodeFlags(PathNode tpn)
         {
-            if ((tpn.pathFlags & 03) == 0) return;
+            if ((tpn.PathFlags & (PathFlags.ReversalPoint & PathFlags.WaitPoint)) == 0) return;
             // bit 0 and/or bit 1 is set.
 
-            if ((tpn.pathFlags & 01) != 0)
+            if ((tpn.PathFlags & PathFlags.ReversalPoint) != 0)
             {
                 // if bit 0 is set: reversal
                 NodeType = TrainpathNodeType.Reverse;
@@ -903,7 +901,7 @@ namespace ORTS.TrackViewer.Editing
                 NodeType = TrainpathNodeType.Stop;
             }
 
-            WaitTimeS = (int)((tpn.pathFlags >> 16) & 0xffff); // get the AAAA part.
+            WaitTimeS = tpn.WaitTime; // get the AAAA part.
         }
 
         /// <summary>

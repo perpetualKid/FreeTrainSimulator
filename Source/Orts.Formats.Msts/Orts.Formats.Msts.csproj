@@ -78,7 +78,7 @@
     <Compile Include="Files\HazardFile.cs" />
     <Compile Include="LightCollection.cs" />
     <Compile Include="MstsUtility.cs" />
-    <Compile Include="PathFile.cs" />
+    <Compile Include="Files\PathFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Files\RoadDatabaseFile.cs" />
     <Compile Include="Files\ShapeDescriptorFile.cs" />

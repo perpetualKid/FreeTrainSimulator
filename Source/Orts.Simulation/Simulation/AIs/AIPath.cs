@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Simulation.AIs
 {
@@ -56,14 +57,14 @@ namespace Orts.Simulation.AIs
             TrackDB = TDB.TrackDB;
             TSectionDat = tsectiondat;
             bool fatalerror = false;
-            if (patFile.TrPathNodes.Count <= 0)
+            if (patFile.PathNodes.Count <= 0)
             {
                 fatalerror = true;
                 Nodes = null;
                 return;
             }
-            foreach (TrPathNode tpn in patFile.TrPathNodes)
-                Nodes.Add(new AIPathNode(tpn, patFile.TrackPDPs[(int)tpn.fromPDP], TrackDB, isTimetableMode));
+            foreach (PathNode tpn in patFile.PathNodes)
+                Nodes.Add(new AIPathNode(tpn, patFile.DataPoints[(int)tpn.fromPDP], TrackDB, isTimetableMode));
             FirstNode = Nodes[0];
             //LastVisitedNode = FirstNode;            
 
@@ -72,12 +73,12 @@ namespace Orts.Simulation.AIs
             {
                 AIPathNode node = Nodes[i];
                 node.Index = i;
-                TrPathNode tpn = patFile.TrPathNodes[i];
+                PathNode tpn = patFile.PathNodes[i];
 
                 // find TVNindex to next main node.
                 if (tpn.HasNextMainNode)
                 {
-                    node.NextMainNode = Nodes[(int)tpn.nextMainNode];
+                    node.NextMainNode = Nodes[(int)tpn.NextMainNode];
                     node.NextMainTVNIndex = node.FindTVNIndex(node.NextMainNode, TDB, tsectiondat, i == 0 ? -1 : Nodes[i-1].NextMainTVNIndex );
                     if (node.JunctionIndex >= 0)
                         node.IsFacingPoint = TestFacingPoint(node.JunctionIndex, node.NextMainTVNIndex);
@@ -92,7 +93,7 @@ namespace Orts.Simulation.AIs
                 // find TVNindex to next siding node
                 if (tpn.HasNextSidingNode)
                 {
-                    node.NextSidingNode = Nodes[(int)tpn.nextSidingNode];
+                    node.NextSidingNode = Nodes[(int)tpn.NextSidingNode];
                     node.NextSidingTVNIndex = node.FindTVNIndex(node.NextSidingNode, TDB, tsectiondat, i == 0 ? -1 : Nodes[i - 1].NextMainTVNIndex);
                     if (node.JunctionIndex >= 0)
                         node.IsFacingPoint = TestFacingPoint(node.JunctionIndex, node.NextSidingTVNIndex);
@@ -266,12 +267,12 @@ namespace Orts.Simulation.AIs
         /// Creates a single AIPathNode and initializes everything that do not depend on other nodes.
         /// The AIPath constructor will initialize the rest.
         /// </summary>
-        public AIPathNode(TrPathNode tpn, TrackPDP pdp, TrackDB trackDB, bool isTimetableMode)
+        public AIPathNode(PathNode tpn, PathDataPoint pdp, TrackDB trackDB, bool isTimetableMode)
         {
             ID = (int)tpn.fromPDP;
             InterpretPathNodeFlags(tpn, pdp, isTimetableMode);
 
-            Location = new WorldLocation(pdp.TileX, pdp.TileZ, pdp.X, pdp.Y, pdp.Z);
+            Location = pdp.Location;
             if (pdp.IsJunction)
             {
                 JunctionIndex = FindJunctionOrEndIndex(Location, trackDB, true);
@@ -314,12 +315,12 @@ namespace Orts.Simulation.AIs
         // But the interpretation below is a bit more complicated.
         // TODO. Since this interpretation belongs to the PATfile itself, 
         // in principle it would be more logical to have it in PATfile.cs. But this leads to too much code duplication
-        private void InterpretPathNodeFlags(TrPathNode tpn, TrackPDP pdp, bool isTimetableMode)
+        private void InterpretPathNodeFlags(PathNode tpn, PathDataPoint pdp, bool isTimetableMode)
         {
-            if ((tpn.pathFlags & 03) == 0) return;
+            if ((tpn.PathFlags & (PathFlags.WaitPoint | PathFlags.ReversalPoint)) == 0) return;
             // bit 0 and/or bit 1 is set.
 
-            if ((tpn.pathFlags & 01) != 0)
+            if ((tpn.PathFlags & PathFlags.ReversalPoint) != 0)
             {
                 // if bit 0 is set: reversal
                 Type = AIPathNodeType.Reverse;
@@ -337,7 +338,7 @@ namespace Orts.Simulation.AIs
                 }
             }
 
-            WaitTimeS = (int)((tpn.pathFlags >> 16) & 0xffff); // get the AAAA part.
+            WaitTimeS = tpn.WaitTime; // get the AAAA part.
             // computations for absolute wait times are made within AITrain.cs
 /*            if (WaitTimeS >= 30000 && WaitTimeS < 40000)
             {

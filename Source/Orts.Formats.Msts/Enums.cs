@@ -1,4 +1,6 @@
-﻿namespace Orts.Formats.Msts
+﻿using System;
+
+namespace Orts.Formats.Msts
 {
     #region Activity
     public enum EventType
@@ -104,5 +106,26 @@
         /// <summary>Unknown (or undefined) signal type</summary>
         UNKNOWN, // needs to be last because some code depends this for looping. That should be changed of course.
     }
+    #endregion
+
+    #region Path
+    // This relates to TrPathFlags, which is not always present in .pat file
+    // Bit 0 - connected pdp-entry references a reversal-point (1/x1)
+    // Bit 1 - waiting point (2/x2)
+    // Bit 2 - intermediate point between switches (4/x4)
+    // Bit 3 - 'other exit' is used (8/x8)
+    // Bit 4 - 'optional Route' active (16/x10)
+     [Flags]
+    public enum PathFlags: uint
+    {
+        None = 0x0,
+        ReversalPoint = 1 << 0,
+        WaitPoint = 1 << 1,
+        IntermediatePoint = 1 << 2,
+        OtherExit = 1 << 3,
+        OptionalRoute = 1 << 4,
+        NotPlayerPath = 1 << 5,
+    }
+
     #endregion
 }

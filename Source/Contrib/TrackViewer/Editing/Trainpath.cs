@@ -27,6 +27,7 @@ using System.Windows.Forms;
 
 using Orts.Formats.Msts;
 using Orts.Simulation;
+using Orts.Formats.Msts.Files;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -217,8 +218,8 @@ namespace ORTS.TrackViewer.Editing
             if (patFile.PathID == null) { return true; }
             if (patFile.Start == null) { return true; }
             if (patFile.End == null) { return true; }
-            if (patFile.TrackPDPs.Count == 0) { return true; }
-            if (patFile.TrPathNodes.Count == 0) { return true; }
+            if (patFile.DataPoints.Count == 0) { return true; }
+            if (patFile.PathNodes.Count == 0) { return true; }
             
             return false;
         }
@@ -230,8 +231,8 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="Nodes">The list that is going to be filled with as-of-yet unlinked and almost unprocessed path nodes</param>
         private void CreateNodes(PathFile patFile, List<TrainpathNode> Nodes)
         {
-            foreach (TrPathNode tpn in patFile.TrPathNodes)
-                Nodes.Add(TrainpathNode.CreatePathNode(tpn, patFile.TrackPDPs[(int)tpn.fromPDP], trackDB, tsectionDat));
+            foreach (PathNode tpn in patFile.PathNodes)
+                Nodes.Add(TrainpathNode.CreatePathNode(tpn, patFile.DataPoints[(int)tpn.fromPDP], trackDB, tsectionDat));
             FirstNode = Nodes[0];
             FirstNode.NodeType = TrainpathNodeType.Start;
         }
@@ -248,12 +249,12 @@ namespace ORTS.TrackViewer.Editing
             for (int i = 0; i < Nodes.Count; i++)
             {
                 TrainpathNode node = Nodes[i];
-                TrPathNode tpn = patFile.TrPathNodes[i];
+                PathNode tpn = patFile.PathNodes[i];
 
                 // find TvnIndex to next main node.
                 if (tpn.HasNextMainNode)
                 {
-                    node.NextMainNode = Nodes[(int)tpn.nextMainNode];
+                    node.NextMainNode = Nodes[(int)tpn.NextMainNode];
                     node.NextMainNode.PrevNode = node;
                     node.NextMainTvnIndex = node.FindTvnIndex(node.NextMainNode);
                 }
@@ -261,7 +262,7 @@ namespace ORTS.TrackViewer.Editing
                 // find TvnIndex to next siding node
                 if (tpn.HasNextSidingNode)
                 {
-                    node.NextSidingNode = Nodes[(int)tpn.nextSidingNode];
+                    node.NextSidingNode = Nodes[(int)tpn.NextSidingNode];
                     if (node.NextSidingNode.PrevNode == null)
                     {
                         node.NextSidingNode.PrevNode = node;

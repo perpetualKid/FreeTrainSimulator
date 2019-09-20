@@ -117,7 +117,7 @@ namespace Orts.ContentManager
                             line.Append(" ");
                             for (var i = 0; i < tracks.Count; i++)
                                 line.Append(i == activeTrack ? " |" : " .");
-                            if ((node.Flags & Path.Flags.Wait) != 0)
+                            if ((node.Flags & PathFlags.WaitPoint) != 0)
                                 line.AppendLine($"\t{node.Location}\t{node.Flags} (wait for {node.WaitTime} seconds)");
                             else
                                 line.AppendLine($"\t{node.Location}\t{node.Flags}");
