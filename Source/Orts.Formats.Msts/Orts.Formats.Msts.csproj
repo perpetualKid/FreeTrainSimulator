@@ -50,6 +50,7 @@
     <Compile Include="Models\Path.cs" />
     <Compile Include="Models\Route.cs" />
     <Compile Include="Models\Terrain.cs" />
+    <Compile Include="Models\Time.cs" />
     <Compile Include="Models\Traffic.cs" />
     <Compile Include="Models\TrainCar.cs" />
     <Compile Include="Files\CameraConfigurationFile.cs" />

@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -22,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace Orts.Common.Logging
 {
-    public class DataLogger
+    public class DataLogger: IDisposable
     {
         private const int cacheSize = 2048 * 1024;  // 2 Megs
         private readonly string filePath;
@@ -80,5 +81,27 @@ namespace Orts.Common.Logging
                 fileAccess.Release();
             }
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    fileAccess.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }

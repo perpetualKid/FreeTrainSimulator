@@ -156,10 +156,26 @@ namespace Orts.Formats.Msts.Parsers
         public abstract void TraceWarning(string message);
         public abstract void ThrowException(string message);
 
-        public void Dispose()
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
         {
             VerifyEndOfBlock();
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                }
+                disposedValue = true;
+            }
         }
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 
     /// <summary>

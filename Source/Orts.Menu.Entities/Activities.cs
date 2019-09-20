@@ -22,6 +22,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Menu.Entities
 {

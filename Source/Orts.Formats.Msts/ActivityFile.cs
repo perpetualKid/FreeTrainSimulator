@@ -411,64 +411,6 @@ namespace Orts.Formats.Msts
         }
     }
 
-    public class StartTime {
-        public int Hour;
-        public int Minute;
-        public int Second;
-
-        public StartTime(int h, int m, int s) {
-            Hour = h;
-            Minute = m;
-            Second = s;
-        }
-
-        public StartTime(STFReader stf) {
-            stf.MustMatch("(");
-            Hour = stf.ReadInt(null);
-            Minute = stf.ReadInt(null);
-            Second = stf.ReadInt(null);
-            stf.MustMatch(")");
-        }
-
-        public String FormattedStartTime() {
-            return Hour.ToString("00") + ":" + Minute.ToString("00") + ":" + Second.ToString("00");
-        }
-    }
-
-    public class Duration {
-        int Hour;
-        int Minute;
-        int Second;
-
-        public Duration(int h, int m) {
-            Hour = h;
-            Minute = m;
-        }
-
-        public Duration(STFReader stf) {
-            stf.MustMatch("(");
-            Hour = stf.ReadInt(null);
-            Minute = stf.ReadInt(null);
-            stf.MustMatch(")");
-        }
-
-        public int ActivityDuration ()
-        {
-            return Hour * 3600 + Minute * 60 + Second; // Convert time to seconds
-        }
-
-        public String FormattedDurationTime()
-        {
-            return Hour.ToString("00") + ":" + Minute.ToString("00");
-        }
-
-        public String FormattedDurationTimeHMS()
-        {
-            return Hour.ToString("00") + ":" + Minute.ToString("00") + ":" + Second.ToString("00");
-        }
-        
-    }
-
     public class Tr_Activity_File {
         public Player_Service_Definition Player_Service_Definition;
         public int NextServiceUID = 1;
