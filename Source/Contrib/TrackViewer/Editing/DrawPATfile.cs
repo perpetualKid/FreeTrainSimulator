@@ -17,6 +17,7 @@
 using System;
 using System.Linq;
 using Orts.Common;
+using Orts.Formats.Msts.Entities;
 using Orts.Formats.Msts.Files;
 using Orts.Menu.Entities;
 using ORTS.TrackViewer.Drawing;

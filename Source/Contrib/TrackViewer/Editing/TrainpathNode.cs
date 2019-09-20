@@ -41,7 +41,7 @@ using System;
 using System.Linq;
 using Orts.Common;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Entities;
 using Orts.Simulation;
 using ORTS.TrackViewer.Drawing;
 

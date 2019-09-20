@@ -22,14 +22,14 @@
  * Could this be used for player trains also?
  * 
  */
-using Orts.Formats.Msts;
-using Orts.Formats.OR;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Entities;
 using Orts.Formats.Msts.Files;
 
 namespace Orts.Simulation.AIs

@@ -1110,7 +1110,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 if (Path.GetExtension(path).Equals(".pat", StringComparison.OrdinalIgnoreCase))
                 {
-                    var pat = new Orts.Formats.Msts.PathFile(path);
+                    var pat = new PathFile(path);
                     return pat.Name;
                 }
             }

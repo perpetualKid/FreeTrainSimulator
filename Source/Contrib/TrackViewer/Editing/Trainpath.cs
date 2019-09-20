@@ -19,15 +19,14 @@
 // Hence a different class
 
 using System;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-
 using Orts.Formats.Msts;
-using Orts.Simulation;
+using Orts.Formats.Msts.Entities;
 using Orts.Formats.Msts.Files;
+using Orts.Simulation;
 
 namespace ORTS.TrackViewer.Editing
 {
