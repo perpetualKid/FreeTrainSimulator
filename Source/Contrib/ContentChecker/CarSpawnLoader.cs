@@ -17,7 +17,7 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.OR.Files;
 

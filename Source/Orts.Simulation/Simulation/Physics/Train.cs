@@ -64,7 +64,7 @@ using Orts.Common.Calc;
 using Orts.Common.Logging;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.MultiPlayer;
 using Orts.Settings;
 using Orts.Simulation.AIs;

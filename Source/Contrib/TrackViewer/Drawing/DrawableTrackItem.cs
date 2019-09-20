@@ -23,7 +23,7 @@ using Orts.Formats.Msts;
 using Orts.Common;
 using ORTS.TrackViewer.Properties;
 using Orts.Simulation;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Drawing
 {

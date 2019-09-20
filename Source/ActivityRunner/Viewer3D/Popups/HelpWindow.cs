@@ -31,7 +31,7 @@ using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings;
 using Orts.Settings.Util;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {

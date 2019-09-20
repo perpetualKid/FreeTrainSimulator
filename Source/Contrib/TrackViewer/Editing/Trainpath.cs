@@ -24,7 +24,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Forms;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using Orts.Simulation;
 

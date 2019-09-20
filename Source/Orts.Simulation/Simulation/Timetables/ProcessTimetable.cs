@@ -33,7 +33,7 @@ using System.Linq;
 using Orts.Common.Calc;
 using Orts.Common.Threading;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.OR;
 using Orts.Formats.OR.Parsers;

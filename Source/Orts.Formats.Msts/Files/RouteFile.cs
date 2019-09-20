@@ -16,7 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System.IO;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Files

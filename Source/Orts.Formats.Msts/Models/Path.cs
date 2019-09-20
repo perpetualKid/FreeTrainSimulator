@@ -1,7 +1,7 @@
 ﻿using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 
-namespace Orts.Formats.Msts.Entities
+namespace Orts.Formats.Msts.Models
 {
     public class PathDataPoint
     {

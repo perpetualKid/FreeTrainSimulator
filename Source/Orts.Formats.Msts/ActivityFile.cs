@@ -271,7 +271,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Xna.Framework;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Parsers;
 

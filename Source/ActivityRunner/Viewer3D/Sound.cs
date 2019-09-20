@@ -54,7 +54,7 @@ using Orts.Simulation.Signalling;
 using Orts.Settings;
 using Event = Orts.Common.Event;
 using Events = Orts.Common.Events;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 
 namespace Orts.ActivityRunner.Viewer3D

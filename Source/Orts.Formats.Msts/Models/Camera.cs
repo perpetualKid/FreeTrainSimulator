@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Orts.Formats.Msts.Parsers;
 
-namespace Orts.Formats.Msts.Entities
+namespace Orts.Formats.Msts.Models
 {
     /// <summary>
     /// Individual camera object from the config file

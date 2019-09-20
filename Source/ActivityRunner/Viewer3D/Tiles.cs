@@ -27,7 +27,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -325,7 +325,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public int SampleCount { get { return TFile.Terrain.Samples.SampleCount; } }
         public float SampleSize { get { return TFile.Terrain.Samples.SampleSize; } }
         public int PatchCount { get { return TFile.Terrain.Patchsets[0].PatchSize; } }
-        public Formats.Msts.Entities.Shader[] Shaders { get { return TFile.Terrain.Shaders; } }
+        public Formats.Msts.Models.Shader[] Shaders { get { return TFile.Terrain.Shaders; } }
         public float WaterNE { get { return TFile.Terrain.WaterLevelOffset.NE != 0 ? TFile.Terrain.WaterLevelOffset.NE : TFile.Terrain.WaterLevelOffset.SW; } } // in meters
         public float WaterNW { get { return TFile.Terrain.WaterLevelOffset.NW != 0 ? TFile.Terrain.WaterLevelOffset.NW : TFile.Terrain.WaterLevelOffset.SW; } }
         public float WaterSE { get { return TFile.Terrain.WaterLevelOffset.SE != 0 ? TFile.Terrain.WaterLevelOffset.SE : TFile.Terrain.WaterLevelOffset.SW; } }

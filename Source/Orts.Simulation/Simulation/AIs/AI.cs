@@ -45,7 +45,7 @@ using System.IO;
 using Orts.Common.Threading;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.AIs
 {

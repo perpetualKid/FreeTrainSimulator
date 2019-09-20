@@ -9,7 +9,7 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Common;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
@@ -126,7 +126,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
             Console.Write(debugShapeHierarchy.ToString());
 #endif
-            LodControls = (from Formats.Msts.Entities.LodControl lod in sFile.Shape.LodControls
+            LodControls = (from Formats.Msts.Models.LodControl lod in sFile.Shape.LodControls
                            select new LodControl(lod, textureFlags, sFile, this)).ToArray();
             if (LodControls.Length == 0)
                 throw new InvalidDataException("Shape file missing lod_control section");
@@ -142,7 +142,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 // Look for root subobject, it is not necessarily the first (see ProTrain signal)
                 for (int soIndex = 0; soIndex <= LodControls[0].DistanceLevels[0].SubObjects.Length - 1; soIndex++)
                 {
-                    Formats.Msts.Entities.SubObject subObject = sFile.Shape.LodControls[0].DistanceLevels[0].SubObjects[soIndex];
+                    Formats.Msts.Models.SubObject subObject = sFile.Shape.LodControls[0].DistanceLevels[0].SubObjects[soIndex];
                     if (subObject.SubObjectHeader.GeometryInfo.GeometryNodeMap[0] == 0)
                     {
                         RootSubObjectIndex = soIndex;
@@ -156,12 +156,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         {
             public DistanceLevel[] DistanceLevels;
 
-            public LodControl(Formats.Msts.Entities.LodControl MSTSlod_control, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
+            public LodControl(Formats.Msts.Models.LodControl MSTSlod_control, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
             {
 #if DEBUG_SHAPE_HIERARCHY
                 Console.WriteLine("  LOD control:");
 #endif
-                DistanceLevels = (from Formats.Msts.Entities.DistanceLevel level in MSTSlod_control.DistanceLevels
+                DistanceLevels = (from Formats.Msts.Models.DistanceLevel level in MSTSlod_control.DistanceLevels
                                   select new DistanceLevel(level, textureFlags, sFile, sharedShape)).ToArray();
                 if (DistanceLevels.Length == 0)
                     throw new InvalidDataException("Shape file missing distance_level");
@@ -180,7 +180,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             public float ViewSphereRadius;
             public SubObject[] SubObjects;
 
-            public DistanceLevel(Formats.Msts.Entities.DistanceLevel MSTSdistance_level, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
+            public DistanceLevel(Formats.Msts.Models.DistanceLevel MSTSdistance_level, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
             {
 #if DEBUG_SHAPE_HIERARCHY
                 Console.WriteLine("    Distance level {0}: hierarchy={1}", MSTSdistance_level.distance_level_header.dlevel_selection, String.Join(" ", MSTSdistance_level.distance_level_header.hierarchy.Select(i => i.ToString()).ToArray()));
@@ -198,7 +198,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 SubObjects = (from sub_object obj in MSTSdistance_level.sub_objects
                               select new SubObject(obj, ref index, MSTSdistance_level.distance_level_header.hierarchy, textureFlags, subObjectIndex++, sFile, sharedShape)).ToArray();
 #else
-                SubObjects = (from Formats.Msts.Entities.SubObject obj in MSTSdistance_level.SubObjects
+                SubObjects = (from Formats.Msts.Models.SubObject obj in MSTSdistance_level.SubObjects
                               select new SubObject(obj, ref index, MSTSdistance_level.DistanceLevelHeader.Hierarchy, textureFlags, sFile, sharedShape)).ToArray();
 #endif
                 if (SubObjects.Length == 0)
@@ -245,7 +245,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 #if DEBUG_SHAPE_HIERARCHY
             public SubObject(sub_object sub_object, ref int totalPrimitiveIndex, int[] hierarchy, Helpers.TextureFlags textureFlags, int subObjectIndex, SFile sFile, SharedShape sharedShape)
 #else
-            public SubObject(Formats.Msts.Entities.SubObject sub_object, ref int totalPrimitiveIndex, int[] hierarchy, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
+            public SubObject(Formats.Msts.Models.SubObject sub_object, ref int totalPrimitiveIndex, int[] hierarchy, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
 #endif
             {
 #if DEBUG_SHAPE_HIERARCHY
@@ -463,7 +463,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
 #endif
 
-            public VertexBufferSet(Formats.Msts.Entities.SubObject sub_object, ShapeFile sFile, GraphicsDevice graphicsDevice)
+            public VertexBufferSet(Formats.Msts.Models.SubObject sub_object, ShapeFile sFile, GraphicsDevice graphicsDevice)
 #if DEBUG_SHAPE_NORMALS
                 : this(CreateVertexData(sub_object, sFile.shape), CreateDebugNormalsVertexData(sub_object, sFile.shape), graphicsDevice)
 #else
@@ -472,14 +472,14 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             {
             }
 
-            static VertexPositionNormalTexture[] CreateVertexData(Formats.Msts.Entities.SubObject sub_object, Shape shape)
+            static VertexPositionNormalTexture[] CreateVertexData(Formats.Msts.Models.SubObject sub_object, Shape shape)
             {
                 // TODO - deal with vertex sets that have various numbers of texture coordinates - ie 0, 1, 2 etc
-                return (from Orts.Formats.Msts.Entities.Vertex vertex in sub_object.Vertices
+                return (from Orts.Formats.Msts.Models.Vertex vertex in sub_object.Vertices
                         select XNAVertexPositionNormalTextureFromMSTS(vertex, shape)).ToArray();
             }
 
-            static VertexPositionNormalTexture XNAVertexPositionNormalTextureFromMSTS(Formats.Msts.Entities.Vertex vertex, Shape shape)
+            static VertexPositionNormalTexture XNAVertexPositionNormalTextureFromMSTS(Formats.Msts.Models.Vertex vertex, Shape shape)
             {
                 var position = shape.Points[vertex.PointIndex];
                 var normal = shape.Normals[vertex.NormalIndex];

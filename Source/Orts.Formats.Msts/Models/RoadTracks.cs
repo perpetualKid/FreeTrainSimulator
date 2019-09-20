@@ -1,6 +1,6 @@
 ﻿using Orts.Formats.Msts.Parsers;
 
-namespace Orts.Formats.Msts.Entities
+namespace Orts.Formats.Msts.Models
 {
     /// <summary>
     /// This class represents the Road Track Database. This is pretty similar to the (rail) Track Database. So for more details see there

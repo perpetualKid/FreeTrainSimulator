@@ -29,7 +29,7 @@ using System.IO;
 using System.Linq;
 using Orts.Common;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 
 namespace Orts.Simulation.AIs

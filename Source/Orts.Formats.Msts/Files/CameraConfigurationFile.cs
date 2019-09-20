@@ -20,7 +20,7 @@
 
 
 using System.Collections.Generic;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Files

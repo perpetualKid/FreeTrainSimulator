@@ -43,7 +43,7 @@ using System.Diagnostics;
 using System.IO;
 using Event = Orts.Common.Event;
 using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.AIs
 {

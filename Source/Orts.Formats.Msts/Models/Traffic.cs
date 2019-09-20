@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Orts.Formats.Msts.Parsers;
 
-namespace Orts.Formats.Msts.Entities
+namespace Orts.Formats.Msts.Models
 {
     /// <summary>
     /// Parses Traffic Definitions in Traffic File

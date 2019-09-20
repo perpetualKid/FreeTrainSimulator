@@ -62,7 +62,7 @@ using Orts.Formats.Msts;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.Common;
 using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Drawing
 {

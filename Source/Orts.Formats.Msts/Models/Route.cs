@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
 
-namespace Orts.Formats.Msts.Entities
+namespace Orts.Formats.Msts.Models
 {
     public class Tr_RouteFile
     {

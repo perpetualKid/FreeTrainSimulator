@@ -21,7 +21,7 @@ using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using Orts.Common;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Entities;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using ORTS.TrackViewer.Editing;
 

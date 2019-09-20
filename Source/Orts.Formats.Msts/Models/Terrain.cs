@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using Orts.Formats.Msts.Parsers;
 
-namespace Orts.Formats.Msts.Entities
+namespace Orts.Formats.Msts.Models
 {
     public class WaterLevelOffset
     {
