@@ -98,12 +98,12 @@ namespace Orts.Simulation
             sd = actFile.Tr_Activity.Tr_Activity_File.Player_Service_Definition;
             if (sd != null)
             {
-                if (sd.Player_Traffic_Definition.Player_Traffic_List.Count > 0)
+                if (sd.Player_Traffic_Definition.Count > 0)
                 {
                     PlatformItem Platform = null;
                     ActivityTask task = null;
 
-                    foreach (var i in sd.Player_Traffic_Definition.Player_Traffic_List)
+                    foreach (var i in sd.Player_Traffic_Definition)
                     {
                         if (i.PlatformStartID < Simulator.TDB.TrackDB.TrItemTable.Length && i.PlatformStartID >= 0 &&
                             Simulator.TDB.TrackDB.TrItemTable[i.PlatformStartID] is PlatformItem)
@@ -120,8 +120,8 @@ namespace Orts.Simulation
                                 PlatformItem Platform2 = Simulator.TDB.TrackDB.TrItemTable[Platform.LinkedPlatformItemId] as PlatformItem;
                                 Tasks.Add(task = new ActivityTaskPassengerStopAt(simulator,
                                     task,
-                                    i.ArrivalTime,
-                                    i.DepartTime,
+                                    new DateTime().AddSeconds(i.ArrivalTime),
+                                    new DateTime().AddSeconds(i.DepartTime),
                                     Platform, Platform2));
                             }
                         }
@@ -151,7 +151,7 @@ namespace Orts.Simulation
                 }
                 EventWrapper eventAdded = EventList.Last();
                 eventAdded.OriginalActivationLevel = i.ActivationLevel;
-                if (i.OrtsWeatherChange != null || i.Outcomes.ORTSWeatherChange != null) WeatherChangesPresent = true;
+                if (i.WeatherChange != null || i.Outcomes.WeatherChange != null) WeatherChangesPresent = true;
             }
 
             StationStopLogActive = false;
@@ -1211,17 +1211,17 @@ namespace Orts.Simulation
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
                     item.ParsedObject.ActivationLevel = 1;
             }
-            foreach (int eventId in ParsedObject.Outcomes.RestoreActLevelList)
+            foreach (int eventId in ParsedObject.Outcomes.RestoreActivityLevels)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
                     item.ParsedObject.ActivationLevel = item.OriginalActivationLevel;
             }
-            foreach (int eventId in ParsedObject.Outcomes.DecActLevelList)
+            foreach (int eventId in ParsedObject.Outcomes.DecrementActivityLevels)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
                     item.ParsedObject.ActivationLevel += -1;
             }
-            foreach (int eventId in ParsedObject.Outcomes.IncActLevelList)
+            foreach (int eventId in ParsedObject.Outcomes.IncrementActivityLevels)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
                 {
@@ -1231,12 +1231,12 @@ namespace Orts.Simulation
 
             // Activity sound management
 
-            if (this.ParsedObject.OrtsActivitySoundFile != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.ActivitySound != null))
+            if (this.ParsedObject.SoundFile != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.ActivitySound != null))
             {
                 if (activity.triggeredEventWrapper == null) activity.triggeredEventWrapper = this;
             }
 
-            if (this.ParsedObject.OrtsWeatherChange != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.ORTSWeatherChange != null))
+            if (this.ParsedObject.WeatherChange != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.WeatherChange != null))
             {
                 if (activity.triggeredEventWrapper == null) activity.triggeredEventWrapper = this;
             }

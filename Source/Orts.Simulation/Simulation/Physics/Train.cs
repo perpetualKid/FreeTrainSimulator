@@ -283,7 +283,7 @@ namespace Orts.Simulation.Physics
         public Train IncorporatingTrain;                      // train incorporating another train
         public int IncorporatingTrainNo = -1;                   // number of train incorporating the actual train
 
-        public ServiceDefinition TrafficService;
+        public Services TrafficService;
         public int[,] MisalignedSwitch = new int[2, 2] { { -1, -1 }, { -1, -1 } };  // misaligned switch indication per direction:
         // cell 0 : index of switch, cell 1 : required linked section; -1 if not valid
         public Dictionary<int, float> PassedSignalSpeeds = new Dictionary<int, float>();  // list of signals and related speeds pending processing (manual and explorer mode)
@@ -586,11 +586,11 @@ namespace Orts.Simulation.Physics
             AuxActionsContain = new AuxActionsContainer(this);
             if (orgTrain.TrafficService != null)
             {
-                TrafficService = new ServiceDefinition(orgTrain.TrafficService.Time);
+                TrafficService = new Services(orgTrain.TrafficService.Time);
 
-                foreach (TrafficDetail thisTrafficItem in orgTrain.TrafficService.TrafficDetails)
+                foreach (TrafficDetail thisTrafficItem in orgTrain.TrafficService)
                 {
-                    TrafficService.TrafficDetails.Add(thisTrafficItem);
+                    TrafficService.Add(thisTrafficItem);
                 }
             }
 
@@ -922,16 +922,16 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        static ServiceDefinition RestoreTrafficSDefinition(BinaryReader inf)
+        static Services RestoreTrafficSDefinition(BinaryReader inf)
         {
-            ServiceDefinition thisDefinition = new ServiceDefinition(inf.ReadInt32());
+            Services thisDefinition = new Services(inf.ReadInt32());
 
             int totalTrafficItems = inf.ReadInt32();
 
             for (int iTraffic = 0; iTraffic < totalTrafficItems; iTraffic++)
             {
                 TrafficDetail thisItem = RestoreTrafficItem(inf);
-                thisDefinition.TrafficDetails.Add(thisItem);
+                thisDefinition.Add(thisItem);
             }
 
             return (thisDefinition);
@@ -1170,11 +1170,11 @@ namespace Orts.Simulation.Physics
                 RollingStock.Save(outf, car);
         }
 
-        static void SaveTrafficSDefinition(BinaryWriter outf, ServiceDefinition thisTSD)
+        static void SaveTrafficSDefinition(BinaryWriter outf, Services thisTSD)
         {
             outf.Write(thisTSD.Time);
-            outf.Write(thisTSD.TrafficDetails.Count);
-            foreach (TrafficDetail thisTI in thisTSD.TrafficDetails)
+            outf.Write(thisTSD.Count);
+            foreach (TrafficDetail thisTI in thisTSD)
             {
                 SaveTrafficItem(outf, thisTI);
             }
@@ -10586,7 +10586,7 @@ namespace Orts.Simulation.Physics
                 requiredActions.Clear();
 
                 if (TrafficService != null)
-                    TrafficService.TrafficDetails.Clear();
+                    TrafficService.Clear();
 
                 // build dummy route
 
@@ -11677,7 +11677,7 @@ namespace Orts.Simulation.Physics
             int beginActiveSubroute = 0;
             int activeSubrouteNodeIndex = 0;
 
-            foreach (TrafficDetail thisItem in TrafficService.TrafficDetails)
+            foreach (TrafficDetail thisItem in TrafficService)
             {
                 DateTime arriveDT = new DateTime().AddSeconds(thisItem.ArrivalTime);
                 DateTime departDT = new DateTime().AddSeconds(thisItem.DepartTime);
@@ -12459,7 +12459,7 @@ namespace Orts.Simulation.Physics
         /// Convert player traffic list to station list
         /// <\summary>
 
-        public void ConvertPlayerTraffic(List<Player_Traffic_Item> playerList)
+        public void ConvertPlayerTraffic(List<TrafficDetail> playerList)
         {
 
             if (playerList == null || playerList.Count == 0)
@@ -12467,17 +12467,9 @@ namespace Orts.Simulation.Physics
                 return;    // no traffic details
             }
 
-            TrafficService = new ServiceDefinition(0);
+            TrafficService = new Services(0);
 
-            foreach (Player_Traffic_Item thisItem in playerList)
-            {
-                int iArrivalTime = Convert.ToInt32(thisItem.ArrivalTime.TimeOfDay.TotalSeconds);
-                int iDepartTime = Convert.ToInt32(thisItem.DepartTime.TimeOfDay.TotalSeconds);
-                TrafficDetail newItem = new TrafficDetail(iArrivalTime, iDepartTime,
-                        0, thisItem.DistanceDownPath, thisItem.PlatformStartID);
-                TrafficService.TrafficDetails.Add(newItem);
-            }
-
+            TrafficService.AddRange(playerList);
             BuildStationList(15.0f);  // use 15m. clearing distance
         }
 

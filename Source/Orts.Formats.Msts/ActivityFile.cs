@@ -417,10 +417,10 @@ namespace Orts.Formats.Msts
         public int NextServiceUID = 1;
         public int NextActivityObjectUID = 32786;
         public ActivityObjects ActivityObjects;
-        public ActivityFailedSignals ActivityFailedSignals;
+        public FailedSignals ActivityFailedSignals;
         public Events Events;
         public Traffic_Definition Traffic_Definition;
-        public PlatformNumPassengersWaiting PlatformNumPassengersWaiting;
+        public PlatformPassengersWaiting PlatformWaitingPassengers;
         public RestrictedSpeedZones ActivityRestrictedSpeedZones;
         public int ORTSAIHornAtCrossings = -1;
 
@@ -470,8 +470,8 @@ namespace Orts.Formats.Msts
                 new STFReader.TokenProcessor("events",()=>{ Events = new Events(stf); }),
                 new STFReader.TokenProcessor("traffic_definition",()=>{ Traffic_Definition = new Traffic_Definition(stf); }),
                 new STFReader.TokenProcessor("activityobjects",()=>{ ActivityObjects = new ActivityObjects(stf); }),
-                new STFReader.TokenProcessor("platformnumpassengerswaiting",()=>{ PlatformNumPassengersWaiting = new PlatformNumPassengersWaiting(stf); }),  // 35 files. To test, use EUROPE1\ACTIVITIES\aftstorm.act
-                new STFReader.TokenProcessor("activityfailedsignals",()=>{ ActivityFailedSignals = new ActivityFailedSignals(stf); }),
+                new STFReader.TokenProcessor("platformnumpassengerswaiting",()=>{ PlatformWaitingPassengers = new PlatformPassengersWaiting(stf); }),  // 35 files. To test, use EUROPE1\ACTIVITIES\aftstorm.act
+                new STFReader.TokenProcessor("activityfailedsignals",()=>{ ActivityFailedSignals = new FailedSignals(stf); }),
                 new STFReader.TokenProcessor("activityrestrictedspeedzones",()=>{ ActivityRestrictedSpeedZones = new RestrictedSpeedZones(stf); }),   // 27 files. To test, use EUROPE1\ACTIVITIES\lclsrvce.act
             });
         }
@@ -815,48 +815,34 @@ namespace Orts.Formats.Msts
         }
     }
 
-    public class Player_Traffic_Definition {
+    public class Player_Traffic_Definition: List<TrafficDetail>
+    {
         public int Time;
-        public List<Player_Traffic_Item> Player_Traffic_List = new List<Player_Traffic_Item>();
 
-        public Player_Traffic_Definition(STFReader stf) {
-            DateTime baseDT = new DateTime();
-            DateTime arrivalTime = new DateTime();
-            DateTime departTime = new DateTime();
+        public Player_Traffic_Definition(STFReader stf)
+        {
+            int arrivalTime = 0;
+            int departTime = 0;
             int skipCount = 0;
-            float distanceDownPath = new float();
-            int platformStartID = 0;
+            float distanceDownPath = 0f;
+            int platformStartID;
             stf.MustMatch("(");
             Time = (int)stf.ReadFloat(STFReader.Units.Time, null);
             // Clumsy parsing. You only get a new Player_Traffic_Item in the list after a PlatformStartId is met.
             // Blame lies with Microsoft for poor design of syntax.
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("arrivaltime", ()=>{ arrivalTime = baseDT.AddSeconds(stf.ReadFloatBlock(STFReader.Units.Time, null)); }),
-                new STFReader.TokenProcessor("departtime", ()=>{ departTime = baseDT.AddSeconds(stf.ReadFloatBlock(STFReader.Units.Time, null)); }),
+                new STFReader.TokenProcessor("arrivaltime", ()=>{ arrivalTime = (int)stf.ReadFloatBlock(STFReader.Units.Time, null); }),
+                new STFReader.TokenProcessor("departtime", ()=>{ departTime = (int)stf.ReadFloatBlock(STFReader.Units.Time, null); }),
                 new STFReader.TokenProcessor("skipcount", ()=>{ skipCount = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("distancedownpath", ()=>{ distanceDownPath = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("platformstartid", ()=>{ platformStartID = stf.ReadIntBlock(null); 
-                    Player_Traffic_List.Add(new Player_Traffic_Item(arrivalTime, departTime, skipCount, distanceDownPath, platformStartID)); }),
+                    Add(new TrafficDetail(arrivalTime, departTime, skipCount, distanceDownPath, platformStartID)); }),
             });
         }
 
         // Used for explore in activity mode
         public Player_Traffic_Definition()
         {
-        }
-    }
-
-    public class Player_Traffic_Item {
-        public DateTime ArrivalTime;
-        public DateTime DepartTime;
-        public float DistanceDownPath;
-        public int PlatformStartID;
-
-        public Player_Traffic_Item(DateTime arrivalTime, DateTime departTime, int skipCount, float distanceDownPath, int platformStartID) {
-            ArrivalTime = arrivalTime;
-            DepartTime = departTime;
-            DistanceDownPath = distanceDownPath;
-            PlatformStartID = platformStartID;
         }
     }
 
@@ -893,12 +879,12 @@ namespace Orts.Formats.Msts
             Name = service_Definition;
             Time = player_Traffic_Definition.Time;
             UiD = 0;
-            foreach (Player_Traffic_Item player_Traffic_Item in player_Traffic_Definition.Player_Traffic_List)
+            foreach (TrafficDetail item in player_Traffic_Definition)
             {
                 efficiency = 0.95f; // Not present in player traffic definition
-                distanceDownPath = player_Traffic_Item.DistanceDownPath;
-                platformStartID = player_Traffic_Item.PlatformStartID;
-                skipCount = 0;
+                distanceDownPath = item.DistanceDownPath;
+                platformStartID = item.PlatformStartID;
+                skipCount = item.SkipCount;
                 ServiceList.Add(new Service_Item(efficiency, skipCount, distanceDownPath, platformStartID));
             }
         }
@@ -938,16 +924,21 @@ namespace Orts.Formats.Msts
 
     public class Service_Item
     {
-        public float Efficiency = new float();
-        public int SkipCount;
-        public float DistanceDownPath = new float();
-        public int PlatformStartID;
+        public float Efficiency { get; private set; }
+        public int SkipCount { get; private set; }
+        public float DistanceDownPath { get; private set; }
+        public int PlatformStartID { get; private set; }
 
         public Service_Item(float efficiency, int skipCount, float distanceDownPath, int platformStartID) {
             Efficiency = efficiency;
             SkipCount = skipCount;
             DistanceDownPath = distanceDownPath;
             PlatformStartID = platformStartID;
+        }
+
+        public void SetAlternativeStationStop(int platformStartId)
+        {
+            this.PlatformStartID = platformStartId;
         }
     }
 
@@ -968,44 +959,6 @@ namespace Orts.Formats.Msts
 
             TrafficFile = new TrafficFile(Path.Combine(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(stf.FileName)), "Traffic"), Name + ".trf"));
 
-        }
-    }
-
-    public class Outcomes {
-        public bool ActivitySuccess;
-        public string ActivityFail;
-        // MSTS Activity Editor limits model to 4 outcomes of any type. We use lists so there is no restriction.
-        public List<int> ActivateList = new List<int>();
-        public List<int> RestoreActLevelList = new List<int>();
-        public List<int> DecActLevelList = new List<int>();
-        public List<int> IncActLevelList = new List<int>();
-        public string DisplayMessage;
- //       public string WaitingTrainToRestart;
-        public RestartWaitingTrain RestartWaitingTrain;
-        public ORTSWeatherChange ORTSWeatherChange;
-        public ActivitySound ActivitySound;
-
-        public Outcomes(STFReader stf, string fileName) {
-            CreateOrModifyOutcomes(stf, fileName);
-        }
-
-        public void CreateOrModifyOutcomes(STFReader stf, string fileName)
-        { 
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("activitysuccess", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); ActivitySuccess = true; }),
-                new STFReader.TokenProcessor("activityfail", ()=>{ ActivityFail = stf.ReadStringBlock(""); }),
-                new STFReader.TokenProcessor("activateevent", ()=>{ ActivateList.Add(stf.ReadIntBlock(null)); }),
-                new STFReader.TokenProcessor("restoreactlevel", ()=>{ RestoreActLevelList.Add(stf.ReadIntBlock(null)); }),
-                new STFReader.TokenProcessor("decactlevel", ()=>{ DecActLevelList.Add(stf.ReadIntBlock(null)); }),
-                new STFReader.TokenProcessor("incactlevel", ()=>{ IncActLevelList.Add(stf.ReadIntBlock(null)); }),
-                new STFReader.TokenProcessor("displaymessage", ()=>{
-                    DisplayMessage = stf.ReadStringBlock(""); }),
- //               new STFReader.TokenProcessor("ortswaitingtraintorestart", ()=>{ WaitingTrainToRestart = stf.ReadStringBlock(""); }),
-                new STFReader.TokenProcessor("ortsrestartwaitingtrain", ()=>{ RestartWaitingTrain = new RestartWaitingTrain(stf); }),
-                new STFReader.TokenProcessor("ortsweatherchange", ()=>{ ORTSWeatherChange = new ORTSWeatherChange(stf);}),
-                new STFReader.TokenProcessor("ortsactivitysound", ()=>{ ActivitySound = new ActivitySound(stf, fileName);}),
-            });
         }
     }
 
@@ -1034,232 +987,5 @@ namespace Orts.Formats.Msts
             stf.SkipRestOfBlock();
         }
 
-    }
-
-    public class ORTSWeatherChange
-    {
-        public float ORTSOvercast = -1;
-        public int ORTSOvercastTransitionTimeS = -1;
-        public float ORTSFog = -1;
-        public int ORTSFogTransitionTimeS = -1;
-        public float ORTSPrecipitationIntensity = -1;
-        public int ORTSPrecipitationIntensityTransitionTimeS = -1;
-        public float ORTSPrecipitationLiquidity = -1;
-        public int ORTSPrecipitationLiquidityTransitionTimeS = -1;
-
-        public ORTSWeatherChange(STFReader stf)
-        {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("ortsovercast", ()=>
-                {
-                    stf.MustMatch("(");                    
-                    ORTSOvercast = stf.ReadFloat(0, -1);
-                    ORTSOvercastTransitionTimeS = stf.ReadInt(-1);
-                    stf.MustMatch(")");                
-                }),
-                new STFReader.TokenProcessor("ortsfog", ()=>
-                {
-                    stf.MustMatch("(");
-                    ORTSFog = stf.ReadFloat(0, -1);
-                    ORTSFogTransitionTimeS = stf.ReadInt(-1);
-                    stf.MustMatch(")");
-                }),
-                new STFReader.TokenProcessor("ortsprecipitationintensity", ()=>
-                {
-                    stf.MustMatch("(");
-                    ORTSPrecipitationIntensity = stf.ReadFloat(0, -1);
-                    ORTSPrecipitationIntensityTransitionTimeS = stf.ReadInt(-1);
-                    stf.MustMatch(")");
-                }),
-                               new STFReader.TokenProcessor("ortsprecipitationliquidity", ()=>
-                {
-                    stf.MustMatch("(");
-                    ORTSPrecipitationLiquidity = stf.ReadFloat(0, -1);
-                    ORTSPrecipitationLiquidityTransitionTimeS = stf.ReadInt(-1);
-                    stf.MustMatch(")");
-                })
-            });
-        }
-    }
-
-    public class ActivitySound
-    {
-        public string ORTSActSoundFile;
-        public OrtsActivitySoundFileType ORTSActSoundFileType;
-        public int TileX;
-        public int TileZ;
-        public float X;
-        public float Y;
-        public float Z;
-        public ActivitySound(STFReader stf, string fileName)
-        {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("ortsactsoundfile", ()=>
-                {
-                    stf.MustMatch("(");
-                    var tempString = stf.ReadString();
-                    ORTSActSoundFile =Path.Combine(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(fileName)), "SOUND"), tempString);
-                    try
-                    {
-                    ORTSActSoundFileType = (OrtsActivitySoundFileType)Enum.Parse(typeof(OrtsActivitySoundFileType), stf.ReadString());
-                    }
-                    catch(ArgumentException)
-                    {
-                        stf.StepBackOneItem();
-                        STFException.TraceInformation(stf, "Skipped unknown activity sound file type " + stf.ReadString());
-                        ORTSActSoundFileType = OrtsActivitySoundFileType.None;
-                    }
-                    stf.MustMatch(")");
-                }),
-            new STFReader.TokenProcessor("ortssoundlocation", ()=>{
-                    stf.MustMatch("(");
-                    TileX = stf.ReadInt(null);
-                    TileZ = stf.ReadInt(null);
-                    X = stf.ReadFloat(STFReader.Units.None, null);
-                    Y = stf.ReadFloat(STFReader.Units.None, null);
-                    Z = stf.ReadFloat(STFReader.Units.None, null);
-                    stf.MustMatch(")");
-                }),
-            });
-        }
-    }
-
-
-    /// <summary>
-    /// Parses ActivityObject objects and saves them in ActivityObjectList.
-    /// </summary>
-    public class ActivityObjects {
-        public List<ActivityObject> ActivityObjectList = new List<ActivityObject>();
-
-        //public new ActivityObject this[int i]
-        //{
-        //    get { return (ActivityObject)base[i]; }
-        //    set { base[i] = value; }
-        //}
-
-        public ActivityObjects(STFReader stf) {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("activityobject", ()=>{ ActivityObjectList.Add(new ActivityObject(stf)); }),
-            });
-        }
-    }
-
-    public class ActivityObject {
-        public TrainSet Train_Config;
-        public int Direction;
-        public int ID;
-        public int TileX;
-        public int TileZ;
-        public float X;
-        public float Z;
-
-        public ActivityObject(STFReader stf) {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("objecttype", ()=>{ stf.MustMatch("("); stf.MustMatch("WagonsList"); stf.MustMatch(")"); }),
-                new STFReader.TokenProcessor("train_config", ()=>{ Train_Config = new TrainSet(stf); }),
-                new STFReader.TokenProcessor("direction", ()=>{ Direction = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("id", ()=>{ ID = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("tile", ()=>{
-                    stf.MustMatch("(");
-                    TileX = stf.ReadInt(null);
-                    TileZ = stf.ReadInt(null);
-                    X = stf.ReadFloat(STFReader.Units.None, null);
-                    Z = stf.ReadFloat(STFReader.Units.None, null);
-                    stf.MustMatch(")");
-                }),
-            });
-        }
-    }
-
-    public class MaxVelocity {
-        public float A;
-        public float B = 0.001f;
-
-        public MaxVelocity(STFReader stf) {
-            stf.MustMatch("(");
-            A = stf.ReadFloat(STFReader.Units.Speed, null);
-            B = stf.ReadFloat(STFReader.Units.Speed, null);
-            stf.MustMatch(")");
-        }
-    }
-
-    public class PlatformNumPassengersWaiting {  // For use, see file EUROPE1\ACTIVITIES\aftstorm.act
-        public List<PlatformData> PlatformDataList = new List<PlatformData>();
-
-        public PlatformNumPassengersWaiting(STFReader stf) {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("platformdata", ()=>{ PlatformDataList.Add(new PlatformData(stf)); }),
-            });
-        }
-    }
-
-    public class PlatformData { // e.g. "PlatformData ( 41 20 )" 
-        public int Id;
-        public int PassengerCount;
-
-        public PlatformData(int id, int passengerCount) {
-            Id = id;
-            PassengerCount = passengerCount;
-        }
-
-        public PlatformData(STFReader stf) {
-            stf.MustMatch("(");
-            Id = stf.ReadInt(null);
-            PassengerCount = stf.ReadInt(null);
-            stf.MustMatch(")");
-        }
-    }
-
-    public class ActivityFailedSignals { // e.g. ActivityFailedSignals ( ActivityFailedSignal ( 50 ) )
-        public List<int> FailedSignalList = new List<int>();
-        public ActivityFailedSignals(STFReader stf) {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("activityfailedsignal", ()=>{ FailedSignalList.Add(stf.ReadIntBlock(null)); }),
-            });
-        }
-    }
-
-    public class RestrictedSpeedZones: List<RestrictedSpeedZone>
-    {  // For use, see file EUROPE1\ACTIVITIES\aftstorm.act
-
-        public RestrictedSpeedZones(STFReader stf) {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("activityrestrictedspeedzone", ()=>{ Add(new RestrictedSpeedZone(stf)); }),
-            });
-        }
-    }
-
-    public class RestrictedSpeedZone
-    {
-        private WorldLocation startPosition;
-        private WorldLocation endPosition;
-
-        public ref WorldLocation StartPosition=>ref startPosition;
-        public ref WorldLocation EndPosition => ref endPosition;
-
-        public RestrictedSpeedZone(STFReader stf) {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("startposition", ()=>{
-                    stf.MustMatch("(");
-                    startPosition = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
-                        stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
-                    stf.MustMatch(")");
-                }),
-                new STFReader.TokenProcessor("endposition", ()=>{
-                    stf.MustMatch("(");
-                    endPosition = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
-                        stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
-                    stf.MustMatch(")");
-                })
-            });
-        }
     }
 }

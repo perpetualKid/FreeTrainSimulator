@@ -8,20 +8,20 @@ namespace Orts.Formats.Msts.Models
     /// <summary>
     /// Parses Traffic Definitions in Traffic File
     /// </summary>
-    public class TrafficDefinition
+    public class Traffic
     {
         public string Name { get; private set; }
         public int Serial { get; private set; }
-        public List<ServiceDefinition> Services { get; } = new List<ServiceDefinition>();
+        public List<Services> Services { get; } = new List<Services>();
 
-        public TrafficDefinition(STFReader stf)
+        public Traffic(STFReader stf)
         {
             stf.MustMatch("(");
             Name = stf.ReadString();
             stf.MustMatch("serial");
             Serial = stf.ReadIntBlock(null);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("service_definition", ()=>{ Services.Add(new ServiceDefinition(stf)); }),
+                new STFReader.TokenProcessor("service_definition", ()=>{ Services.Add(new Services(stf)); }),
             });
         }
     }
@@ -29,18 +29,17 @@ namespace Orts.Formats.Msts.Models
     /// <summary>
     /// Parses Traffic Definition Items in Traffic Definitions in Traffic File
     /// </summary>
-    public class ServiceDefinition
+    public class Services: List<TrafficDetail>
     {
         public string ServiceName { get; private set; }
         public int Time { get; private set; }
-        public List<TrafficDetail> TrafficDetails { get; } = new List<TrafficDetail>();
 
-        public ServiceDefinition(int trafficTime)
+        public Services(int serviceTime)
         {
-            Time = trafficTime;
+            Time = serviceTime;
         }
 
-        public ServiceDefinition(STFReader stf)
+        public Services(STFReader stf)
         {
             int arrivalTime = 0;
             int departTime = 0;
@@ -57,31 +56,18 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("skipcount", ()=>{ skipCount = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("distancedownpath", ()=>{ distanceDownPath = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("platformstartid", ()=>{ platformStartID = stf.ReadIntBlock(null);
-                    TrafficDetails.Add(new TrafficDetail(arrivalTime, departTime, skipCount, distanceDownPath, platformStartID, this));
+                    Add(new TrafficDetail(arrivalTime, departTime, skipCount, distanceDownPath, platformStartID, this));
                 }),
             });
         }
 
         // This is used to convert the player data taken from the .act file into a traffic service definition for autopilot mode
-        public ServiceDefinition(string service_Definition, Player_Traffic_Definition player_Traffic_Definition)
+        public Services(string serviceName, Player_Traffic_Definition playerTraffic)
         {
-            int arrivalTime = 0;
-            int departTime = 0;
-            int skipCount = 0;
-            float distanceDownPath = 0f;
-            int platformStartID = 0;
+            ServiceName = serviceName;
+            Time = playerTraffic.Time;
 
-            ServiceName = service_Definition;
-            Time = player_Traffic_Definition.Time;
-
-            foreach (Player_Traffic_Item player_Traffic_Item in player_Traffic_Definition.Player_Traffic_List)
-            {
-                arrivalTime = (int)player_Traffic_Item.ArrivalTime.TimeOfDay.TotalSeconds;
-                departTime = (int)player_Traffic_Item.DepartTime.TimeOfDay.TotalSeconds;
-                distanceDownPath = player_Traffic_Item.DistanceDownPath;
-                platformStartID = player_Traffic_Item.PlatformStartID;
-                TrafficDetails.Add(new TrafficDetail(arrivalTime, departTime, skipCount, distanceDownPath, platformStartID, this));
-            }
+            AddRange(playerTraffic);
         }
 
     }
@@ -103,7 +89,7 @@ namespace Orts.Formats.Msts.Models
             PlatformStartID = platformStartID;
         }
 
-        public TrafficDetail(int arrivalTime, int departTime, int skipCount, float distanceDownPath, int platformStartID, ServiceDefinition parent)
+        public TrafficDetail(int arrivalTime, int departTime, int skipCount, float distanceDownPath, int platformStartID, Services parent)
             : this(arrivalTime, departTime, skipCount, distanceDownPath, platformStartID)
 
         {

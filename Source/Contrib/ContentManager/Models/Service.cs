@@ -56,7 +56,7 @@ namespace Orts.ContentManager.Models
 
                     ID = "0";
                     StartTime = MSTSTimeToDateTime(activityTraffic.Time);
-                    Stops = from stop in activityTraffic.Player_Traffic_List
+                    Stops = from stop in activityTraffic
                             select new Stop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(stop.ArrivalTime), MSTSTimeToDateTime(stop.DepartTime));
                 }
                 else
@@ -67,7 +67,7 @@ namespace Orts.ContentManager.Models
 
                     ID = activityService.UiD.ToString();
                     StartTime = MSTSTimeToDateTime(activityService.Time);
-                    Stops = trafficService.TrafficDetails.Zip(activityService.ServiceList, (tt, stop) => new Stop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(tt.ArrivalTime), MSTSTimeToDateTime(tt.DepartTime)));
+                    Stops = trafficService.Zip(activityService.ServiceList, (tt, stop) => new Stop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(tt.ArrivalTime), MSTSTimeToDateTime(tt.DepartTime)));
                 }
             }
             else if (System.IO.Path.GetExtension(content.PathName).Equals(".timetable_or", StringComparison.OrdinalIgnoreCase))

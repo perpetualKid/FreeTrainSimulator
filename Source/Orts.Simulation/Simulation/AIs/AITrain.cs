@@ -142,7 +142,7 @@ namespace Orts.Simulation.AIs
         /// </summary>
 
         public AITrain(Simulator simulator, Service_Definition sd, AI ai, AIPath path, float efficiency,
-                string name, ServiceDefinition trafficService, float maxVelocityA)
+                string name, Services trafficService, float maxVelocityA)
             : base(simulator)
         {
             ServiceDefinition = sd;
@@ -6016,7 +6016,7 @@ namespace Orts.Simulation.AIs
                 var actualServiceItem = ServiceDefinition.ServiceList.Find(si => si.PlatformStartID == orgStop.PlatformReference);
                 if (actualServiceItem != null)
                 {
-                    actualServiceItem.PlatformStartID = newStop.PlatformReference;
+                    actualServiceItem.SetAlternativeStationStop(newStop.PlatformReference);
                 }
             }
             return newStop;

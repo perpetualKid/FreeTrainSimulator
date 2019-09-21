@@ -45,6 +45,7 @@
     <Compile Include="Files\AceFile.cs" />
     <Compile Include="ActivityFile.cs" />
     <Compile Include="Models\Ace.cs" />
+    <Compile Include="Models\Activity.cs" />
     <Compile Include="Models\Camera.cs" />
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\Path.cs" />

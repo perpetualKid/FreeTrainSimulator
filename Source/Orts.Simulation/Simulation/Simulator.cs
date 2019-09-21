@@ -1189,7 +1189,7 @@ namespace Orts.Simulation
                 train.SetRoutePath(aiPath, Signals);
                 train.BuildWaitingPointList(0.0f);
 
-                train.ConvertPlayerTraffic(Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition.Player_Traffic_List);
+                train.ConvertPlayerTraffic(Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition);
             }
             else // explorer mode
             {
@@ -1251,7 +1251,7 @@ namespace Orts.Simulation
             conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
             patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
             Player_Traffic_Definition player_Traffic_Definition = Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition;
-            ServiceDefinition aPPlayer_Traffic_Definition = new ServiceDefinition(playerServiceFileName, player_Traffic_Definition);
+            Services aPPlayer_Traffic_Definition = new Services(playerServiceFileName, player_Traffic_Definition);
             Service_Definition aPPlayer_Service_Definition = new Service_Definition(playerServiceFileName, player_Traffic_Definition);
 
             AI AI = new AI(this);
@@ -1313,9 +1313,8 @@ namespace Orts.Simulation
             if (Activity.Tr_Activity == null) return;
             if (Activity.Tr_Activity.Tr_Activity_File == null) return;
             if (Activity.Tr_Activity.Tr_Activity_File.ActivityObjects == null) return;
-            if (Activity.Tr_Activity.Tr_Activity_File.ActivityObjects.ActivityObjectList == null) return;
             // for each static consist
-            foreach (ActivityObject activityObject in Activity.Tr_Activity.Tr_Activity_File.ActivityObjects.ActivityObjectList)
+            foreach (ActivityObject activityObject in Activity.Tr_Activity.Tr_Activity_File.ActivityObjects)
             {
                 try
                 {
@@ -1332,15 +1331,15 @@ namespace Orts.Simulation
                         default: consistDirection = 1; break;  // forward ( confirmed on L&PS route )
                     }
                     // FIXME: Where are TSectionDat and TDB from?
-                    train.RearTDBTraveller = new Traveller(TSectionDat, TDB.TrackDB.TrackNodes, activityObject.TileX, activityObject.TileZ, activityObject.X, activityObject.Z);
+                    train.RearTDBTraveller = new Traveller(TSectionDat, TDB.TrackDB.TrackNodes, activityObject.Location);
                     if (consistDirection != 1)
                         train.RearTDBTraveller.ReverseDirection();
                     // add wagons in reverse order - ie first wagon is at back of train
                     // static consists are listed back to front in the activities, so we have to reverse the order, and flip the cars
                     // when we add them to ORTS
-                    for (int iWagon = activityObject.Train_Config.TrainConfig.WagonList.Count - 1; iWagon >= 0; --iWagon)
+                    for (int iWagon = activityObject.TrainSet.TrainConfig.WagonList.Count - 1; iWagon >= 0; --iWagon)
                     {
-                        Wagon wagon = (Wagon)activityObject.Train_Config.TrainConfig.WagonList[iWagon];
+                        Wagon wagon = (Wagon)activityObject.TrainSet.TrainConfig.WagonList[iWagon];
                         string wagonFolder = BasePath + @"\trains\trainset\" + wagon.Folder;
                         string wagonFilePath = wagonFolder + @"\" + wagon.Name + ".wag"; ;
                         if (wagon.IsEngine)
@@ -1348,7 +1347,7 @@ namespace Orts.Simulation
 
                         if (!File.Exists(wagonFilePath))
                         {
-                            Trace.TraceWarning("Ignored missing wagon {0} in activity definition {1}", wagonFilePath, activityObject.Train_Config.TrainConfig.Name);
+                            Trace.TraceWarning("Ignored missing wagon {0} in activity definition {1}", wagonFilePath, activityObject.TrainSet.TrainConfig.Name);
                             continue;
                         }
 

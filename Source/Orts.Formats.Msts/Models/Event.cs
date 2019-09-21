@@ -56,7 +56,7 @@ namespace Orts.Formats.Msts.Models
                     wrongEventID = !TestMatch(category, origEvent);
                     if (!wrongEventID)
                     {
-                        origEvent.AddOrModifyEvent(stf, Path.GetDirectoryName(stf.FileName));
+                        origEvent.Update(stf);
                     }
                     else
                     {
@@ -93,28 +93,28 @@ namespace Orts.Formats.Msts.Models
         public string TextToDisplayOnCompletionIfNotTriggered { get; protected set; } = "";
         public bool Reversible { get; protected set; }
         public int OrtsContinue { get; protected set; } = -1;
-        public string OrtsActivitySoundFile { get; protected set; }
-        public OrtsActivitySoundFileType OrtsActivitySoundFileType { get; protected set; }
-        public ORTSWeatherChange OrtsWeatherChange { get; protected set; }
+        public string SoundFile { get; protected set; }
+        public OrtsActivitySoundFileType SoundFileType { get; protected set; }
+        public OrtsWeatherChange WeatherChange { get; protected set; }
         public string TrainService { get; protected set; } = "";
         public int TrainStartingTime { get; protected set; } = -1;
 
-        public virtual void AddOrModifyEvent(STFReader stf, string fileName)
+        public virtual void Update(STFReader stf)
         { }
 
         protected void OrtsActivitySoundProcessor(STFReader stf)
         {
             stf.MustMatch("(");
             string soundFile = stf.ReadString();
-            OrtsActivitySoundFile = Path.Combine(FolderStructure.RouteSoundsFolder, soundFile);
+            SoundFile = Path.Combine(FolderStructure.RouteSoundsFolder, soundFile);
             if (!EnumExtension.GetValue(stf.ReadString(), out OrtsActivitySoundFileType soundFileType))
             {
                 stf.StepBackOneItem();
                 STFException.TraceInformation(stf, "Skipped unknown activity sound file type " + stf.ReadString());
-                OrtsActivitySoundFileType = OrtsActivitySoundFileType.None;
+                SoundFileType = OrtsActivitySoundFileType.None;
             }
             else
-                OrtsActivitySoundFileType = soundFileType;
+                SoundFileType = soundFileType;
             stf.MustMatch(")");
         }
     }
@@ -129,10 +129,10 @@ namespace Orts.Formats.Msts.Models
         public EventCategoryLocation(STFReader stf)
         {
             stf.MustMatch("(");
-            AddOrModifyEvent(stf, stf.FileName);
+            Update(stf);
         }
 
-        public override void AddOrModifyEvent(STFReader stf, string fileName)
+        public override void Update(STFReader stf)
         {
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("eventtypelocation", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); }),
@@ -142,9 +142,9 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("outcomes", ()=>
                 {
                     if (Outcomes == null)
-                        Outcomes = new Outcomes(stf, fileName);
+                        Outcomes = new Outcomes(stf);
                     else
-                        Outcomes.CreateOrModifyOutcomes(stf, fileName); }),
+                        Outcomes.Update(stf); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletioniftriggered", ()=>{ TextToDisplayOnCompletionIfTriggered = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletionifnottriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(null); }),
@@ -158,7 +158,7 @@ namespace Orts.Formats.Msts.Models
                 }),
                 new STFReader.TokenProcessor("ortscontinue", ()=>{ OrtsContinue = stf.ReadIntBlock(0); }),
                 new STFReader.TokenProcessor("ortsactsoundfile", ()=> OrtsActivitySoundProcessor(stf)),
-                new STFReader.TokenProcessor("ortsweatherchange", ()=>{ OrtsWeatherChange = new ORTSWeatherChange(stf);}),
+                new STFReader.TokenProcessor("ortsweatherchange", ()=>{ WeatherChange = new OrtsWeatherChange(stf);}),
             });
         }
 
@@ -185,10 +185,10 @@ namespace Orts.Formats.Msts.Models
         public EventCategoryAction(STFReader stf)
         {
             stf.MustMatch("(");
-            AddOrModifyEvent(stf, stf.FileName);
+            Update(stf);
         }
 
-        public override void AddOrModifyEvent(STFReader stf, string fileName)
+        public override void Update(STFReader stf)
         {
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("eventtypeallstops", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Type = EventType.AllStops; }),
@@ -203,9 +203,9 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("outcomes", ()=>
                 {
                     if (Outcomes == null)
-                        Outcomes = new Outcomes(stf, fileName);
+                        Outcomes = new Outcomes(stf);
                     else
-                        Outcomes.CreateOrModifyOutcomes(stf, fileName); }),
+                        Outcomes.Update(stf); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletioniftriggered", ()=>{ TextToDisplayOnCompletionIfTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletionifnotrriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
@@ -228,10 +228,10 @@ namespace Orts.Formats.Msts.Models
         public EventCategoryTime(STFReader stf)
         {
             stf.MustMatch("(");
-            AddOrModifyEvent(stf, stf.FileName);
+            Update(stf);
         }
 
-        public override void AddOrModifyEvent(STFReader stf, string fileName)
+        public override void Update(STFReader stf)
         {
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("id", ()=>{ ID = stf.ReadIntBlock(null); }),
@@ -239,17 +239,104 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("outcomes", ()=>
                 {
                     if (Outcomes == null)
-                        Outcomes = new Outcomes(stf, fileName);
+                        Outcomes = new Outcomes(stf);
                     else
-                        Outcomes.CreateOrModifyOutcomes(stf, fileName); }),
+                        Outcomes.Update(stf); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletioniftriggered", ()=>{ TextToDisplayOnCompletionIfTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletionifnotrriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("time", ()=>{ Time = (int)stf.ReadFloatBlock(STFReader.Units.Time, null); }),
                 new STFReader.TokenProcessor("ortscontinue", ()=>{ OrtsContinue = stf.ReadIntBlock(0); }),
                 new STFReader.TokenProcessor("ortsactsoundfile", ()=> OrtsActivitySoundProcessor(stf)),
-                new STFReader.TokenProcessor("ortsweatherchange", ()=>{ OrtsWeatherChange = new ORTSWeatherChange(stf);}),
+                new STFReader.TokenProcessor("ortsweatherchange", ()=>{ WeatherChange = new OrtsWeatherChange(stf);}),
             });
         }
     }
+
+    public class OrtsWeatherChange
+    {
+        public float Overcast {get; private set;}
+        public int OvercastTransitionTime { get; private set; }
+        public float Fog { get; private set; }
+        public int FogTransitionTime { get; private set; }
+        public float PrecipitationIntensity { get; private set; }
+        public int PrecipitationIntensityTransitionTime { get; private set; }
+        public float PrecipitationLiquidity { get; private set; }
+        public int PrecipitationLiquidityTransitionTime { get; private set; }
+
+        public OrtsWeatherChange(STFReader stf)
+        {
+            stf.MustMatch("(");
+            stf.ParseBlock(new STFReader.TokenProcessor[] {
+                new STFReader.TokenProcessor("ortsovercast", ()=>
+                {
+                    stf.MustMatch("(");
+                    Overcast = stf.ReadFloat(STFReader.Units.None, -1);
+                    OvercastTransitionTime = stf.ReadInt(-1);
+                    stf.MustMatch(")");
+                }),
+                new STFReader.TokenProcessor("ortsfog", ()=>
+                {
+                    stf.MustMatch("(");
+                    Fog = stf.ReadFloat(STFReader.Units.None, -1);
+                    FogTransitionTime = stf.ReadInt(-1);
+                    stf.MustMatch(")");
+                }),
+                new STFReader.TokenProcessor("ortsprecipitationintensity", ()=>
+                {
+                    stf.MustMatch("(");
+                    PrecipitationIntensity = stf.ReadFloat(STFReader.Units.None, -1);
+                    PrecipitationIntensityTransitionTime = stf.ReadInt(-1);
+                    stf.MustMatch(")");
+                }),
+                               new STFReader.TokenProcessor("ortsprecipitationliquidity", ()=>
+                {
+                    stf.MustMatch("(");
+                    PrecipitationLiquidity = stf.ReadFloat(STFReader.Units.None, -1);
+                    PrecipitationLiquidityTransitionTime = stf.ReadInt(-1);
+                    stf.MustMatch(")");
+                })
+            });
+        }
+    }
+
+    public class Outcomes
+    {
+        public bool ActivitySuccess { get; private set; }
+        public string ActivityFail { get; private set; }
+        // MSTS Activity Editor limits model to 4 outcomes of any type. We use lists so there is no restriction.
+        public List<int> ActivateList { get; } = new List<int>();
+        public List<int> RestoreActivityLevels { get; } = new List<int>();
+        public List<int> DecrementActivityLevels { get; } = new List<int>();
+        public List<int> IncrementActivityLevels { get; } = new List<int>();
+        public string DisplayMessage { get; private set; }
+        //       public string WaitingTrainToRestart;
+        public RestartWaitingTrain RestartWaitingTrain { get; private set; }
+        public OrtsWeatherChange WeatherChange { get; private set; }
+        public ActivitySound ActivitySound { get; private set; }
+
+        public Outcomes(STFReader stf)
+        {
+            Update(stf);
+        }
+
+        public void Update(STFReader stf)
+        {
+            stf.MustMatch("(");
+            stf.ParseBlock(new STFReader.TokenProcessor[] {
+                new STFReader.TokenProcessor("activitysuccess", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); ActivitySuccess = true; }),
+                new STFReader.TokenProcessor("activityfail", ()=>{ ActivityFail = stf.ReadStringBlock(""); }),
+                new STFReader.TokenProcessor("activateevent", ()=>{ ActivateList.Add(stf.ReadIntBlock(null)); }),
+                new STFReader.TokenProcessor("restoreactlevel", ()=>{ RestoreActivityLevels.Add(stf.ReadIntBlock(null)); }),
+                new STFReader.TokenProcessor("decactlevel", ()=>{ DecrementActivityLevels.Add(stf.ReadIntBlock(null)); }),
+                new STFReader.TokenProcessor("incactlevel", ()=>{ IncrementActivityLevels.Add(stf.ReadIntBlock(null)); }),
+                new STFReader.TokenProcessor("displaymessage", ()=>{
+                    DisplayMessage = stf.ReadStringBlock(""); }),
+                new STFReader.TokenProcessor("ortsrestartwaitingtrain", ()=>{ RestartWaitingTrain = new RestartWaitingTrain(stf); }),
+                new STFReader.TokenProcessor("ortsweatherchange", ()=>{ WeatherChange = new OrtsWeatherChange(stf);}),
+                new STFReader.TokenProcessor("ortsactivitysound", ()=>{ ActivitySound = new ActivitySound(stf);}),
+            });
+        }
+    }
+
 }

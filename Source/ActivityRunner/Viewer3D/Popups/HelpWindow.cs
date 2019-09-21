@@ -213,11 +213,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                         var wagonFound = false;
                                         if (owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_File.ActivityObjects != null)
                                         {
-                                            foreach (Orts.Formats.Msts.ActivityObject activityObject in owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_File.ActivityObjects.ActivityObjectList)
+                                            foreach (ActivityObject activityObject in owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_File.ActivityObjects)
                                             {
                                                 if (activityObject.ID == trainIndex)
                                                 {
-                                                    foreach (Wagon trainWagon in activityObject.Train_Config.TrainConfig.WagonList)
+                                                    foreach (Wagon trainWagon in activityObject.TrainSet.TrainConfig.WagonList)
                                                     {
                                                         if (trainWagon.UiD == wagonIndex)
                                                         {

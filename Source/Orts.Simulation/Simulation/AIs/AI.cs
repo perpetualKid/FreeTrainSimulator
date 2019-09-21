@@ -812,7 +812,7 @@ namespace Orts.Simulation.AIs
         /// <summary>
         /// Creates an AI train
         /// </summary>
-        private AITrain CreateAITrain(Service_Definition sd, TrafficDefinition trd, bool isTimetableMode)
+        private AITrain CreateAITrain(Service_Definition sd, Traffic trd, bool isTimetableMode)
         {
             // set up a new AI train
             // first extract the service definition from the activity file
@@ -820,8 +820,8 @@ namespace Orts.Simulation.AIs
 
             // find related traffic definition
 
-            ServiceDefinition trfDef = null;
-            foreach (ServiceDefinition thisDef in trd.Services)
+            Services trfDef = null;
+            foreach (Services thisDef in trd.Services)
             {
                 if (String.Compare(thisDef.ServiceName, sd.Name) == 0 &&
                 thisDef.Time == sd.Time)
@@ -847,7 +847,7 @@ namespace Orts.Simulation.AIs
         /// Moves the models down 1000M to make them invisible.
         /// called also in case of autopilot mode
         /// </summary>
-        public AITrain CreateAITrainDetail(Service_Definition sd, ServiceDefinition trfDef, ServiceFile srvFile, bool isTimetableMode, bool isInitialPlayerTrain)
+        public AITrain CreateAITrainDetail(Service_Definition sd, Services trfDef, ServiceFile srvFile, bool isTimetableMode, bool isInitialPlayerTrain)
         {
             // read consist file
 

@@ -142,10 +142,8 @@ namespace Orts.Simulation
 
         Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes)
         {
-            if (tSectionDat == null) throw new ArgumentNullException("tSectionDat");
-            if (trackNodes == null) throw new ArgumentNullException("trackNodes");
-            TSectionDat = tSectionDat;
-            TrackNodes = trackNodes;
+            TSectionDat = tSectionDat ?? throw new ArgumentNullException("tSectionDat");
+            TrackNodes = trackNodes ?? throw new ArgumentNullException("trackNodes");
         }
         /// <summary>
         /// Creates a traveller on the starting point of a path, in the direction of the path
@@ -178,9 +176,30 @@ namespace Orts.Simulation
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="loc">Starting world location</param>
-        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, WorldLocation loc)
-            : this(tSectionDat, trackNodes, loc.TileX, loc.TileZ, loc.Location.X, loc.Location.Z)
+        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, in WorldLocation location)
+            : this(tSectionDat, trackNodes)
         {
+            List<TrackNodeCandidate> candidates = new List<TrackNodeCandidate>();
+            // first find all tracknodes that are close enough
+            for (var tni = 0; tni < TrackNodes.Length; tni++)
+            {
+                TrackNodeCandidate candidate = TryTrackNode(tni, location, TSectionDat, TrackNodes);
+                if (candidate != null)
+                {
+                    candidates.Add(candidate);
+                }
+            }
+
+            if (candidates.Count == 0)
+            {
+                throw new InvalidDataException(String.Format("{0} could not be found in the track database.", location));
+            }
+
+            // find the best one.
+            TrackNodeCandidate bestCandidate = candidates.OrderBy(cand => cand.distanceToTrack).First();
+
+            InitFromCandidate(bestCandidate);
+
         }
 
         /// <summary>
@@ -193,30 +212,8 @@ namespace Orts.Simulation
         /// <param name="x">Starting coordinate.</param>
         /// <param name="z">Starting coordinate.</param>
         public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, int tileX, int tileZ, float x, float z)
-            : this(tSectionDat, trackNodes)
+            : this(tSectionDat, trackNodes, new WorldLocation(tileX, tileZ, x, 0, z))
         {
-            List<TrackNodeCandidate> candidates = new List<TrackNodeCandidate>();
-            WorldLocation loc = new WorldLocation(tileX, tileZ, x, 0, z);
-
-            // first find all tracknodes that are close enough
-            for (var tni = 0; tni < TrackNodes.Length; tni++)
-            {
-                TrackNodeCandidate candidate = TryTrackNode(tni, loc, TSectionDat, TrackNodes);
-                if (candidate != null)
-                {
-                    candidates.Add(candidate);
-                }
-            }
-
-            if (candidates.Count == 0)
-            {
-                throw new InvalidDataException(String.Format("{0} could not be found in the track database.", new WorldLocation(tileX, tileZ, x, 0, z)));
-            }
-
-            // find the best one.
-            TrackNodeCandidate bestCandidate = candidates.OrderBy(cand => cand.distanceToTrack).First();
-
-            InitFromCandidate(bestCandidate);
         }
 
         /// <summary>

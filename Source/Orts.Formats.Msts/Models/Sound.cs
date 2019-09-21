@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
+using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
@@ -72,4 +74,41 @@ namespace Orts.Formats.Msts.Models
             });
         }
     }
+
+    public class ActivitySound
+    {
+        private WorldLocation location;
+
+        public string SoundFile { get; private set; }
+        public OrtsActivitySoundFileType SoundFileType { get; private set; }
+        public ref WorldLocation Location => ref location;
+        public ActivitySound(STFReader stf)
+        {
+            stf.MustMatch("(");
+            stf.ParseBlock(new STFReader.TokenProcessor[] {
+                new STFReader.TokenProcessor("ortsactsoundfile", ()=>
+                {
+                    stf.MustMatch("(");
+                    string soundFile = stf.ReadString();
+                    SoundFile = Path.Combine(FolderStructure.RouteSoundsFolder, soundFile);
+                    if (!EnumExtension.GetValue(stf.ReadString(), out OrtsActivitySoundFileType soundFileType))
+                    {
+                        stf.StepBackOneItem();
+                        STFException.TraceInformation(stf, "Skipped unknown activity sound file type " + stf.ReadString());
+                        SoundFileType = OrtsActivitySoundFileType.None;
+                    }
+                    else
+                        SoundFileType = soundFileType;
+                    stf.MustMatch(")");
+                    }),
+                new STFReader.TokenProcessor("ortssoundlocation", ()=>{
+                    stf.MustMatch("(");
+                    location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), 
+                        stf.ReadFloat(STFReader.Units.None, null), stf.ReadFloat(STFReader.Units.None, null), stf.ReadFloat(STFReader.Units.None, null));
+                    stf.MustMatch(")");
+                }),
+            });
+        }
+    }
+
 }
