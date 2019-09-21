@@ -483,6 +483,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             RateOfChangeUpRPMpSS = copy.RateOfChangeUpRPMpSS;
             RateOfChangeDownRPMpSS = copy.RateOfChangeDownRPMpSS;
             MaximumDieselPowerW = copy.MaximumDieselPowerW;
+            MaximumRailOutputPowerW = copy.MaximumRailOutputPowerW;
             initLevel = copy.initLevel;
             DieselPowerTab = new Interpolator(copy.DieselPowerTab);
             DieselConsumptionTab = new Interpolator(copy.DieselConsumptionTab);
