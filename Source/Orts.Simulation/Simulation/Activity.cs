@@ -94,16 +94,16 @@ namespace Orts.Simulation
         public Activity(ActivityFile actFile, Simulator simulator)
         {
             Simulator = simulator;  // Save for future use.
-            Player_Service_Definition sd;
-            sd = actFile.Tr_Activity.Tr_Activity_File.Player_Service_Definition;
+            PlayerServices sd;
+            sd = actFile.Tr_Activity.Tr_Activity_File.PlayerServices;
             if (sd != null)
             {
-                if (sd.Player_Traffic_Definition.Count > 0)
+                if (sd.PlayerTraffics.Count > 0)
                 {
                     PlatformItem Platform = null;
                     ActivityTask task = null;
 
-                    foreach (var i in sd.Player_Traffic_Definition)
+                    foreach (var i in sd.PlayerTraffics)
                     {
                         if (i.PlatformStartID < Simulator.TDB.TrackDB.TrItemTable.Length && i.PlatformStartID >= 0 &&
                             Simulator.TDB.TrackDB.TrItemTable[i.PlatformStartID] is PlatformItem)

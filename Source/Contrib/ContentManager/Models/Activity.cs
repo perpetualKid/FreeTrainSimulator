@@ -42,9 +42,9 @@ namespace Orts.ContentManager.Models
                 Name = file.Tr_Activity.Tr_Activity_Header.Name;
                 Description = file.Tr_Activity.Tr_Activity_Header.Description;
                 Briefing = file.Tr_Activity.Tr_Activity_Header.Briefing;
-                PlayerServices = new[] { String.Format("Player|{0}", file.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name) };
+                PlayerServices = new[] { String.Format("Player|{0}", file.Tr_Activity.Tr_Activity_File.PlayerServices.Name) };
                 if (file.Tr_Activity.Tr_Activity_File.Traffic_Definition != null)
-                    Services = file.Tr_Activity.Tr_Activity_File.Traffic_Definition.ServiceDefinitionList.Select((service, index) =>
+                    Services = file.Tr_Activity.Tr_Activity_File.Traffic_Definition.Services.Select((service, index) =>
                         String.Format("AI|{0}|{1}|{2}", service.Name, file.Tr_Activity.Tr_Activity_File.Traffic_Definition.Name, index)
                     );
                 else

@@ -25,13 +25,13 @@ namespace Orts.Formats.Msts.Files
     /// </summary>
     public class TrafficFile
     {
-        public Traffic TrafficDefinition { get; private set; }
+        public ServiceTraffic TrafficDefinition { get; private set; }
 
         public TrafficFile(string filePath)
         {
             using (var stf = new STFReader(filePath, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("traffic_definition", ()=>{ TrafficDefinition = new Traffic(stf); }),
+                    new STFReader.TokenProcessor("traffic_definition", ()=>{ TrafficDefinition = new ServiceTraffic(stf); }),
                 });
         }
     }

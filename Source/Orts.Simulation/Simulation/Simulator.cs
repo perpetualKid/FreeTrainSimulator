@@ -394,17 +394,15 @@ namespace Orts.Simulation
         {
             ActivityFileName = "ea$" + RoutePathName + "$" + DateTime.Today.Year.ToString() + DateTime.Today.Month.ToString() + DateTime.Today.Day.ToString() +
                 DateTime.Today.Hour.ToString() + DateTime.Today.Minute.ToString() + DateTime.Today.Second.ToString();
-            Activity = new ActivityFile();
+            var time = start.Split(':');
+            TimeSpan StartTime = new TimeSpan(int.Parse(time[0]), time.Length > 1 ? int.Parse(time[1]) : 0, time.Length > 2 ? int.Parse(time[2]) : 0);
+            int startTime = StartTime.Hours + StartTime.Minutes * 60 + StartTime.Seconds * 3600;
+            Activity = new ActivityFile(startTime, Path.GetFileNameWithoutExtension(consist));
             ActivityRun = new Activity(Activity, this);
             ExplorePathFile = path;
             ExploreConFile = consist;
             patFileName = Path.ChangeExtension(path, "PAT");
             conFileName = Path.ChangeExtension(consist, "CON");
-            var time = start.Split(':');
-            TimeSpan StartTime = new TimeSpan(int.Parse(time[0]), time.Length > 1 ? int.Parse(time[1]) : 0, time.Length > 2 ? int.Parse(time[2]) : 0);
-            Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition.Time = StartTime.Hours + StartTime.Minutes * 60 +
-                StartTime.Seconds * 3600;
-            Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name = Path.GetFileNameWithoutExtension(consist);
             ClockTime = StartTime.TotalSeconds;
             Season = (SeasonType)int.Parse(season);
             WeatherType = (WeatherType)int.Parse(weather);
@@ -614,7 +612,7 @@ namespace Orts.Simulation
         /// </summary>
         public void GetPathAndConsist()
         {
-            var PlayerServiceFileName = Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name;
+            var PlayerServiceFileName = Activity.Tr_Activity.Tr_Activity_File.PlayerServices.Name;
             var srvFile = new ServiceFile(RoutePath + @"\SERVICES\" + PlayerServiceFileName + ".SRV");
             conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
             patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
@@ -1089,7 +1087,7 @@ namespace Orts.Simulation
             ServiceFile srvFile;
             if (Activity != null && Activity.Tr_Activity.Serial != -1)
             {
-                playerServiceFileName = Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name;
+                playerServiceFileName = Activity.Tr_Activity.Tr_Activity_File.PlayerServices.Name;
                 srvFile = new ServiceFile(RoutePath + @"\SERVICES\" + playerServiceFileName + ".SRV");
                 train.InitialSpeed = srvFile.TimeTable.InitialSpeed;
             }
@@ -1189,7 +1187,7 @@ namespace Orts.Simulation
                 train.SetRoutePath(aiPath, Signals);
                 train.BuildWaitingPointList(0.0f);
 
-                train.ConvertPlayerTraffic(Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition);
+                train.ConvertPlayerTraffic(Activity.Tr_Activity.Tr_Activity_File.PlayerServices.PlayerTraffics);
             }
             else // explorer mode
             {
@@ -1240,7 +1238,7 @@ namespace Orts.Simulation
             ServiceFile srvFile;
             if (Activity != null && Activity.Tr_Activity.Serial != -1)
             {
-                playerServiceFileName = Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name;
+                playerServiceFileName = Activity.Tr_Activity.Tr_Activity_File.PlayerServices.Name;
                 srvFile = new ServiceFile(RoutePath + @"\SERVICES\" + playerServiceFileName + ".SRV");
             }
             else
@@ -1250,9 +1248,9 @@ namespace Orts.Simulation
             }
             conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
             patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
-            Player_Traffic_Definition player_Traffic_Definition = Activity.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition;
-            Services aPPlayer_Traffic_Definition = new Services(playerServiceFileName, player_Traffic_Definition);
-            Service_Definition aPPlayer_Service_Definition = new Service_Definition(playerServiceFileName, player_Traffic_Definition);
+            PlayerTraffics player_Traffic_Definition = Activity.Tr_Activity.Tr_Activity_File.PlayerServices.PlayerTraffics;
+            ServiceTraffics aPPlayer_Traffic_Definition = new ServiceTraffics(playerServiceFileName, player_Traffic_Definition);
+            Services aPPlayer_Service_Definition = new Services(playerServiceFileName, player_Traffic_Definition);
 
             AI AI = new AI(this);
             AITrain train = AI.CreateAITrainDetail(aPPlayer_Service_Definition, aPPlayer_Traffic_Definition, srvFile, TimetableMode, true);

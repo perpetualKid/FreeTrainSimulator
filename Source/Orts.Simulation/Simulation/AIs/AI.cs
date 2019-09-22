@@ -83,7 +83,7 @@ namespace Orts.Simulation.AIs
 #endif
             if (simulator.Activity != null && simulator.Activity.Tr_Activity.Tr_Activity_File.Traffic_Definition != null)
             {
-                foreach (var sd in simulator.Activity.Tr_Activity.Tr_Activity_File.Traffic_Definition.ServiceDefinitionList)
+                foreach (var sd in simulator.Activity.Tr_Activity.Tr_Activity_File.Traffic_Definition.Services)
                 {
                     AITrain train = CreateAITrain(sd,
                     simulator.Activity.Tr_Activity.Tr_Activity_File.Traffic_Definition.TrafficFile.TrafficDefinition, simulator.TimetableMode);
@@ -812,7 +812,7 @@ namespace Orts.Simulation.AIs
         /// <summary>
         /// Creates an AI train
         /// </summary>
-        private AITrain CreateAITrain(Service_Definition sd, Traffic trd, bool isTimetableMode)
+        private AITrain CreateAITrain(Services sd, ServiceTraffic trd, bool isTimetableMode)
         {
             // set up a new AI train
             // first extract the service definition from the activity file
@@ -820,10 +820,10 @@ namespace Orts.Simulation.AIs
 
             // find related traffic definition
 
-            Services trfDef = null;
-            foreach (Services thisDef in trd.Services)
+            ServiceTraffics trfDef = null;
+            foreach (ServiceTraffics thisDef in trd.ServiceTraffics)
             {
-                if (String.Compare(thisDef.ServiceName, sd.Name) == 0 &&
+                if (String.Compare(thisDef.Name, sd.Name) == 0 &&
                 thisDef.Time == sd.Time)
                 {
                     trfDef = thisDef;
@@ -847,7 +847,7 @@ namespace Orts.Simulation.AIs
         /// Moves the models down 1000M to make them invisible.
         /// called also in case of autopilot mode
         /// </summary>
-        public AITrain CreateAITrainDetail(Service_Definition sd, Services trfDef, ServiceFile srvFile, bool isTimetableMode, bool isInitialPlayerTrain)
+        public AITrain CreateAITrainDetail(Services sd, ServiceTraffics trfDef, ServiceFile srvFile, bool isTimetableMode, bool isInitialPlayerTrain)
         {
             // read consist file
 

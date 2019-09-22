@@ -142,4 +142,26 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
+    public class RestartWaitingTrain
+    {
+        public string WaitingTrainToRestart { get; private set; }
+        public int WaitingTrainStartingTime { get; private set; } = -1;
+        public int DelayToRestart { get; private set; }
+        public int MatchingWPDelay { get; private set; }
+
+        public RestartWaitingTrain(STFReader stf)
+        {
+            stf.MustMatch("(");
+            stf.ParseBlock(new STFReader.TokenProcessor[] {
+                new STFReader.TokenProcessor("ortswaitingtraintorestart", ()=>{
+                    stf.MustMatch("(");
+                    WaitingTrainToRestart = stf.ReadString();
+                    WaitingTrainStartingTime = stf.ReadInt(-1);
+                    stf.SkipRestOfBlock();
+                }),
+                new STFReader.TokenProcessor("ortsdelaytorestart", ()=>{ DelayToRestart = stf.ReadIntBlock(null); }),
+                new STFReader.TokenProcessor("ortsmatchingwpdelay", ()=>{ MatchingWPDelay = stf.ReadIntBlock(null); }),
+            });
+        }
+    }
 }

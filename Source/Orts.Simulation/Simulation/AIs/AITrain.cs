@@ -69,7 +69,7 @@ namespace Orts.Simulation.AIs
         public int? StartTime;                           // starting time
         public bool PowerState = true;                   // actual power state : true if power in on
         public float MaxVelocityA = 30.0f;               // max velocity as set in .con file
-        public Service_Definition ServiceDefinition = null; // train's service definition in .act file
+        public Services ServiceDefinition = null; // train's service definition in .act file
         public bool UncondAttach = false;                       // if false it states that train will unconditionally attach to a train on its path
 
         public float doorOpenDelay = -1f;
@@ -141,8 +141,8 @@ namespace Orts.Simulation.AIs
         /// Constructor
         /// </summary>
 
-        public AITrain(Simulator simulator, Service_Definition sd, AI ai, AIPath path, float efficiency,
-                string name, Services trafficService, float maxVelocityA)
+        public AITrain(Simulator simulator, Services sd, AI ai, AIPath path, float efficiency,
+                string name, ServiceTraffics trafficService, float maxVelocityA)
             : base(simulator)
         {
             ServiceDefinition = sd;
@@ -302,10 +302,10 @@ namespace Orts.Simulation.AIs
 
         public void RestoreServiceDefinition(BinaryReader inf, int serviceLC)
         {
-            ServiceDefinition = new Service_Definition();
+            ServiceDefinition = new Services();
             for (int iServiceList = 0; iServiceList < serviceLC; iServiceList++)
             {
-                ServiceDefinition.ServiceList.Add(new Service_Item(inf.ReadSingle(), 0, 0.0f, inf.ReadInt32()));
+                ServiceDefinition.Add(new TrafficItem(inf.ReadSingle(), 0, 0.0f, inf.ReadInt32()));
             }
         }
         //================================================================================================//
@@ -456,10 +456,10 @@ namespace Orts.Simulation.AIs
                 if (!atStation && StationStops.Count > 0 && this != Simulator.Trains[0])
                 {
                     if (MaxVelocityA > 0 &&
-                        ServiceDefinition != null && ServiceDefinition.ServiceList.Count > 0)
+                        ServiceDefinition != null && ServiceDefinition.Count > 0)
                     {
                         // <CScomment> gets efficiency from .act file to override TrainMaxSpeedMpS computed from .srv efficiency
-                        var sectionEfficiency = ServiceDefinition.ServiceList[0].Efficiency;
+                        var sectionEfficiency = ServiceDefinition[0].Efficiency;
                         if (Simulator.Settings.Autopilot && Simulator.Settings.ActRandomizationLevel > 0) RandomizeEfficiency(ref sectionEfficiency);
                         if (sectionEfficiency > 0)
                             TrainMaxSpeedMpS = Math.Min((float)Simulator.TRK.Tr_RouteFile.SpeedLimit, MaxVelocityA * sectionEfficiency);
@@ -2042,13 +2042,13 @@ namespace Orts.Simulation.AIs
             PreviousStop = thisStation.CreateCopy();
 
             if (thisStation.ActualStopType == StationStop.STOPTYPE.STATION_STOP
-                && MaxVelocityA > 0 && ServiceDefinition != null && ServiceDefinition.ServiceList.Count > 0 && this != Simulator.Trains[0])
+                && MaxVelocityA > 0 && ServiceDefinition != null && ServiceDefinition.Count > 0 && this != Simulator.Trains[0])
             // <CScomment> Recalculate TrainMaxSpeedMpS and AllowedMaxSpeedMpS
             {
-                var actualServiceItemIdx = ServiceDefinition.ServiceList.FindIndex(si => si.PlatformStartID == thisStation.PlatformReference);
-                if (actualServiceItemIdx >= 0 && ServiceDefinition.ServiceList.Count >= actualServiceItemIdx + 2)
+                var actualServiceItemIdx = ServiceDefinition.FindIndex(si => si.PlatformStartID == thisStation.PlatformReference);
+                if (actualServiceItemIdx >= 0 && ServiceDefinition.Count >= actualServiceItemIdx + 2)
                 {
-                    var sectionEfficiency = ServiceDefinition.ServiceList[actualServiceItemIdx + 1].Efficiency;
+                    var sectionEfficiency = ServiceDefinition[actualServiceItemIdx + 1].Efficiency;
                     if (Simulator.Settings.Autopilot && Simulator.Settings.ActRandomizationLevel > 0) RandomizeEfficiency(ref sectionEfficiency);
                     if (sectionEfficiency > 0)
                     {
@@ -6013,7 +6013,7 @@ namespace Orts.Simulation.AIs
             if (newStop != null)
             {
                 // Modify PlatformStartID in ServiceList
-                var actualServiceItem = ServiceDefinition.ServiceList.Find(si => si.PlatformStartID == orgStop.PlatformReference);
+                var actualServiceItem = ServiceDefinition.Find(si => si.PlatformStartID == orgStop.PlatformReference);
                 if (actualServiceItem != null)
                 {
                     actualServiceItem.SetAlternativeStationStop(newStop.PlatformReference);

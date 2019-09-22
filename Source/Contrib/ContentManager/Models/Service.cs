@@ -52,7 +52,7 @@ namespace Orts.ContentManager.Models
                 var actFile = new ActivityFile(content.Parent.PathName);
                 if (msts.IsPlayer)
                 {
-                    var activityTraffic = actFile.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition;
+                    var activityTraffic = actFile.Tr_Activity.Tr_Activity_File.PlayerServices.PlayerTraffics;
 
                     ID = "0";
                     StartTime = MSTSTimeToDateTime(activityTraffic.Time);
@@ -62,12 +62,12 @@ namespace Orts.ContentManager.Models
                 else
                 {
                     var trfFile = new TrafficFile(msts.TrafficPathName);
-                    var activityService = actFile.Tr_Activity.Tr_Activity_File.Traffic_Definition.ServiceDefinitionList[msts.TrafficIndex];
-                    var trafficService = trfFile.TrafficDefinition.Services[msts.TrafficIndex];
+                    var activityService = actFile.Tr_Activity.Tr_Activity_File.Traffic_Definition.Services[msts.TrafficIndex];
+                    var trafficService = trfFile.TrafficDefinition.ServiceTraffics[msts.TrafficIndex];
 
                     ID = activityService.UiD.ToString();
                     StartTime = MSTSTimeToDateTime(activityService.Time);
-                    Stops = trafficService.Zip(activityService.ServiceList, (tt, stop) => new Stop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(tt.ArrivalTime), MSTSTimeToDateTime(tt.DepartTime)));
+                    Stops = trafficService.Zip(activityService, (tt, stop) => new Stop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(tt.ArrivalTime), MSTSTimeToDateTime(tt.DepartTime)));
                 }
             }
             else if (System.IO.Path.GetExtension(content.PathName).Equals(".timetable_or", StringComparison.OrdinalIgnoreCase))

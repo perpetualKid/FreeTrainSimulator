@@ -266,15 +266,13 @@
 //                EndPosition = "EndPosition", "(", 4*Integer, ")" ;
 
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Xna.Framework;
-using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
-using Orts.Common;
 
 namespace Orts.Formats.Msts
 {
@@ -318,9 +316,9 @@ namespace Orts.Formats.Msts
         }
 
         // Used for explore in activity mode
-        public ActivityFile()
+        public ActivityFile(int startTime, string name)
         {
-            Tr_Activity = new Tr_Activity();
+            Tr_Activity = new Tr_Activity(startTime, name);
         }
     }
 
@@ -352,11 +350,11 @@ namespace Orts.Formats.Msts
         }
 
         // Used for explore in activity mode
-        public Tr_Activity()
+        public Tr_Activity(int startTime, string name)
         {
             Serial = -1;
             Tr_Activity_Header = new Tr_Activity_Header();
-            Tr_Activity_File = new Tr_Activity_File();
+            Tr_Activity_File = new Tr_Activity_File(startTime, name);
         }
     }
 
@@ -413,13 +411,13 @@ namespace Orts.Formats.Msts
     }
 
     public class Tr_Activity_File {
-        public Player_Service_Definition Player_Service_Definition;
+        public PlayerServices PlayerServices;
         public int NextServiceUID = 1;
         public int NextActivityObjectUID = 32786;
         public ActivityObjects ActivityObjects;
         public FailedSignals ActivityFailedSignals;
         public Events Events;
-        public Traffic_Definition Traffic_Definition;
+        public Traffic Traffic_Definition;
         public PlatformPassengersWaiting PlatformWaitingPassengers;
         public RestrictedSpeedZones ActivityRestrictedSpeedZones;
         public int ORTSAIHornAtCrossings = -1;
@@ -463,12 +461,12 @@ namespace Orts.Formats.Msts
         public Tr_Activity_File(STFReader stf) {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("player_service_definition",()=>{ Player_Service_Definition = new Player_Service_Definition(stf); }),
+                new STFReader.TokenProcessor("player_service_definition",()=>{ PlayerServices = new PlayerServices(stf); }),
                 new STFReader.TokenProcessor("nextserviceuid",()=>{ NextServiceUID = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("nextactivityobjectuid",()=>{ NextActivityObjectUID = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("ortsaihornatcrossings", ()=>{ ORTSAIHornAtCrossings = stf.ReadIntBlock(ORTSAIHornAtCrossings); }),
                 new STFReader.TokenProcessor("events",()=>{ Events = new Events(stf); }),
-                new STFReader.TokenProcessor("traffic_definition",()=>{ Traffic_Definition = new Traffic_Definition(stf); }),
+                new STFReader.TokenProcessor("traffic_definition",()=>{ Traffic_Definition = new Traffic(stf); }),
                 new STFReader.TokenProcessor("activityobjects",()=>{ ActivityObjects = new ActivityObjects(stf); }),
                 new STFReader.TokenProcessor("platformnumpassengerswaiting",()=>{ PlatformWaitingPassengers = new PlatformPassengersWaiting(stf); }),  // 35 files. To test, use EUROPE1\ACTIVITIES\aftstorm.act
                 new STFReader.TokenProcessor("activityfailedsignals",()=>{ ActivityFailedSignals = new FailedSignals(stf); }),
@@ -477,9 +475,9 @@ namespace Orts.Formats.Msts
         }
 
         // Used for explore in activity mode
-        public Tr_Activity_File()
+        public Tr_Activity_File(int startTime, string name)
         {
-            Player_Service_Definition = new Player_Service_Definition();
+            PlayerServices = new PlayerServices(startTime, name);
         }
 
         //public void ClearStaticConsists()
@@ -794,198 +792,5 @@ namespace Orts.Formats.Msts
 
             }
         }
-    }
-
-    public class Player_Service_Definition {
-        public string Name;
-        public Player_Traffic_Definition Player_Traffic_Definition;
-
-        public Player_Service_Definition(STFReader stf) {
-            stf.MustMatch("(");
-            Name = stf.ReadString();
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("player_traffic_definition", ()=>{ Player_Traffic_Definition = new Player_Traffic_Definition(stf); }),
-            });
-        }
-
-        // Used for explore in activity mode
-        public Player_Service_Definition()
-        {
-            Player_Traffic_Definition = new Player_Traffic_Definition();
-        }
-    }
-
-    public class Player_Traffic_Definition: List<TrafficDetail>
-    {
-        public int Time;
-
-        public Player_Traffic_Definition(STFReader stf)
-        {
-            int arrivalTime = 0;
-            int departTime = 0;
-            int skipCount = 0;
-            float distanceDownPath = 0f;
-            int platformStartID;
-            stf.MustMatch("(");
-            Time = (int)stf.ReadFloat(STFReader.Units.Time, null);
-            // Clumsy parsing. You only get a new Player_Traffic_Item in the list after a PlatformStartId is met.
-            // Blame lies with Microsoft for poor design of syntax.
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("arrivaltime", ()=>{ arrivalTime = (int)stf.ReadFloatBlock(STFReader.Units.Time, null); }),
-                new STFReader.TokenProcessor("departtime", ()=>{ departTime = (int)stf.ReadFloatBlock(STFReader.Units.Time, null); }),
-                new STFReader.TokenProcessor("skipcount", ()=>{ skipCount = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("distancedownpath", ()=>{ distanceDownPath = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
-                new STFReader.TokenProcessor("platformstartid", ()=>{ platformStartID = stf.ReadIntBlock(null); 
-                    Add(new TrafficDetail(arrivalTime, departTime, skipCount, distanceDownPath, platformStartID)); }),
-            });
-        }
-
-        // Used for explore in activity mode
-        public Player_Traffic_Definition()
-        {
-        }
-    }
-
-    public class Service_Definition {
-        public string Name;
-        public int Time;
-        public int UiD;
-        public List<Service_Item> ServiceList = new List<Service_Item>();
-        float efficiency;
-        int skipCount;
-        float distanceDownPath = new float();
-        int platformStartID;
-
-        public Service_Definition(STFReader stf) {
-            stf.MustMatch("(");
-            Name = stf.ReadString();
-            Time = (int)stf.ReadFloat(STFReader.Units.Time, null);
-            stf.MustMatch("uid");
-            UiD = stf.ReadIntBlock(null);
-            // Clumsy parsing. You only get a new Service_Item in the list after a PlatformStartId is met.
-            // Blame lies with Microsoft for poor design of syntax.
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("efficiency", ()=>{ efficiency = stf.ReadFloatBlock(STFReader.Units.Any, null); }),
-                new STFReader.TokenProcessor("skipcount", ()=>{ skipCount = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("distancedownpath", ()=>{ distanceDownPath = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
-                new STFReader.TokenProcessor("platformstartid", ()=>{ platformStartID = stf.ReadIntBlock(null); 
-                    ServiceList.Add(new Service_Item(efficiency, skipCount, distanceDownPath, platformStartID)); }),
-            });
-        }
-
-        // This is used to convert the player traffic definition into an AI train service definition for autopilot mode
-        public Service_Definition(string service_Definition, Player_Traffic_Definition player_Traffic_Definition)
-        {
-            Name = service_Definition;
-            Time = player_Traffic_Definition.Time;
-            UiD = 0;
-            foreach (TrafficDetail item in player_Traffic_Definition)
-            {
-                efficiency = 0.95f; // Not present in player traffic definition
-                distanceDownPath = item.DistanceDownPath;
-                platformStartID = item.PlatformStartID;
-                skipCount = item.SkipCount;
-                ServiceList.Add(new Service_Item(efficiency, skipCount, distanceDownPath, platformStartID));
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// For restore
-        /// <\summary>
-        /// 
-
-        public Service_Definition ()
-        { }
-
-        //================================================================================================//
-        /// <summary>
-        /// Save of useful Service Items parameters
-        /// <\summary>
-        /// 
-
-        public void Save(BinaryWriter outf)
-        {
-            if (ServiceList == null || ServiceList.Count == 0)
-            {
-                outf.Write(-1);
-            }
-            else          
-            {
-                outf.Write (ServiceList.Count);
-                foreach (Service_Item thisServiceItem in ServiceList)
-                {
-                    outf.Write(thisServiceItem.Efficiency);
-                    outf.Write(thisServiceItem.PlatformStartID);
-                }
-            }
-        }
-     }
-
-    public class Service_Item
-    {
-        public float Efficiency { get; private set; }
-        public int SkipCount { get; private set; }
-        public float DistanceDownPath { get; private set; }
-        public int PlatformStartID { get; private set; }
-
-        public Service_Item(float efficiency, int skipCount, float distanceDownPath, int platformStartID) {
-            Efficiency = efficiency;
-            SkipCount = skipCount;
-            DistanceDownPath = distanceDownPath;
-            PlatformStartID = platformStartID;
-        }
-
-        public void SetAlternativeStationStop(int platformStartId)
-        {
-            this.PlatformStartID = platformStartId;
-        }
-    }
-
-    /// <summary>
-    /// Parses Service_Definition objects and saves them in ServiceDefinitionList.
-    /// </summary>
-    public class Traffic_Definition {
-        public string Name;
-        public TrafficFile TrafficFile;
-        public List<Service_Definition> ServiceDefinitionList = new List<Service_Definition>();
-
-        public Traffic_Definition(STFReader stf) {
-            stf.MustMatch("(");
-            Name = stf.ReadString();
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("service_definition", ()=>{ ServiceDefinitionList.Add(new Service_Definition(stf)); }),
-            });
-
-            TrafficFile = new TrafficFile(Path.Combine(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(stf.FileName)), "Traffic"), Name + ".trf"));
-
-        }
-    }
-
-    public class RestartWaitingTrain
-    {
-        public string WaitingTrainToRestart = "";
-        public int WaitingTrainStartingTime = -1;
-        public int DelayToRestart;
-        public int MatchingWPDelay;
-
-        public RestartWaitingTrain (STFReader stf)
-        {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("ortswaitingtraintorestart", ()=>{ ParseTrain(stf); }),
-                new STFReader.TokenProcessor("ortsdelaytorestart", ()=>{ DelayToRestart = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("ortsmatchingwpdelay", ()=>{ MatchingWPDelay = stf.ReadIntBlock(null); }),
-            });
-        }
-
-        protected void ParseTrain(STFReader stf)
-        {
-            stf.MustMatch("(");
-            WaitingTrainToRestart = stf.ReadString();
-            WaitingTrainStartingTime = stf.ReadInt(-1);
-            stf.SkipRestOfBlock();
-        }
-
     }
 }

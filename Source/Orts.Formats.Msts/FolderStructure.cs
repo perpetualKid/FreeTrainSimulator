@@ -38,6 +38,20 @@ namespace Orts.Formats.Msts
                 throw new FileNotFoundException($"Root folder for {path} does not exist");
         }
 
+        public static void InitializeFromRoot(string path)
+        {
+            rootFolder = new DirectoryInfo(path);
+            if (!rootFolder.Exists)
+                throw new FileNotFoundException($"Root folder for {path} does not exist");
+        }
+        public static void InitializeFromRoute(string path)
+        {
+            routeFolder = new DirectoryInfo(path);
+            rootFolder = routeFolder.Parent.Parent;
+            if (!rootFolder.Exists)
+                throw new FileNotFoundException($"Root folder for {path} does not exist");
+        }
+
         /// <summary>
         /// returns the root folder of content set (such as Train Simulator default routes, or other Mini-Route folders
         /// </summary>
@@ -86,7 +100,7 @@ namespace Orts.Formats.Msts
 
         public static string TrafficFile(string trafficName)
         {
-            return Path.Combine(RouteFolder, "TRAFFIC", trafficName, ".trf");
+            return Path.Combine(RouteFolder, "TRAFFIC", trafficName + ".trf");
         }
 
         public static string PathFile(string pathName)

@@ -36,6 +36,7 @@ using Orts.Common.Native;
 using Orts.Settings;
 using Orts.Updater;
 using Path = Orts.Menu.Entities.Path;
+using Orts.Formats.Msts;
 
 namespace Orts.Menu
 {
@@ -817,6 +818,8 @@ namespace Orts.Menu
                 comboBoxFolder.EndUpdate();
             }
             UpdateFromMenuSelection<Folder>(comboBoxFolder, Menu_SelectionIndex.Folder, f => f.Path);
+            if (comboBoxFolder.SelectedItem != null)
+                FolderStructure.InitializeFromRoot(((Folder)comboBoxFolder.SelectedItem).Path);
             UpdateEnabled();
         }
         #endregion
@@ -862,6 +865,8 @@ namespace Orts.Menu
                 comboBoxRoute.EndUpdate();
             }
             UpdateFromMenuSelection<Route>(comboBoxRoute, Menu_SelectionIndex.Route, r => r.Path);
+            if (comboBoxRoute.SelectedItem != null)
+                FolderStructure.InitializeFromRoute(((Route)comboBoxRoute.SelectedItem).Path);
             if (settings.Menu_Selection.Length > (int)Menu_SelectionIndex.Activity)
             {
                 string path = settings.Menu_Selection[(int)Menu_SelectionIndex.Activity]; // Activity or Timetable

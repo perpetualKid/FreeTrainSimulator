@@ -89,7 +89,7 @@ namespace Orts.Menu.Entities
                 try
                 {
                     ActivityFile activityFile = new ActivityFile(filePath);
-                    ServiceFile srvFile = new ServiceFile(System.IO.Path.Combine(route.Path, "SERVICES", activityFile.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name + ".srv"));
+                    ServiceFile srvFile = new ServiceFile(System.IO.Path.Combine(route.Path, "SERVICES", activityFile.Tr_Activity.Tr_Activity_File.PlayerServices.Name + ".srv"));
                     Consist consist = Consist.GetConsist(folder, srvFile.TrainConfig);
                     Path path = new Path(System.IO.Path.Combine(route.Path, "PATHS", srvFile.PathId + ".pat"));
                     if (!path.IsPlayerPath)
