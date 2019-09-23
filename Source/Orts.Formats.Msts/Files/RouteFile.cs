@@ -26,16 +26,16 @@ namespace Orts.Formats.Msts.Files
         public Tr_RouteFile Tr_RouteFile { get; private set; }
         public ORTRKData ORTRKData { get; private set; }
 
-        public RouteFile(string filename)
+        public RouteFile(string fileName)
         {
-            string dir = Path.GetDirectoryName(filename);
-            string file = Path.GetFileName(filename);
+            string dir = Path.GetDirectoryName(fileName);
+            string file = Path.GetFileName(fileName);
             string orFile = dir + @"\openrails\" + file;
             if (File.Exists(orFile))
-                filename = orFile;
+                fileName = orFile;
             try
             {
-                using (STFReader stf = new STFReader(filename, false))
+                using (STFReader stf = new STFReader(fileName, false))
                 {
                     stf.ParseFile(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("tr_routefile", ()=>{ Tr_RouteFile = new Tr_RouteFile(stf); }),

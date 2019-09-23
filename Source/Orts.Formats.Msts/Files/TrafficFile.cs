@@ -27,9 +27,9 @@ namespace Orts.Formats.Msts.Files
     {
         public ServiceTraffic TrafficDefinition { get; private set; }
 
-        public TrafficFile(string filePath)
+        public TrafficFile(string fileName)
         {
-            using (var stf = new STFReader(filePath, false))
+            using (var stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("traffic_definition", ()=>{ TrafficDefinition = new ServiceTraffic(stf); }),
                 });

@@ -23,11 +23,11 @@ namespace Orts.Formats.Msts.Files
 {
     public class HazardFile
 	{
-		public HazardFile(string filename)
+		public HazardFile(string fileName)
 		{
 			try
 			{
-				using (STFReader stf = new STFReader(filename, false))
+				using (STFReader stf = new STFReader(fileName, false))
 				{
 					stf.ParseFile(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("tr_worldfile", ()=>{ Hazard = new Hazard(stf); }),

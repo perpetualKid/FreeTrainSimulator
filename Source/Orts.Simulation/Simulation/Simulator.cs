@@ -26,9 +26,8 @@ using Orts.Common.Calc;
 using Orts.Common.Scripting;
 using Orts.Common.Threading;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
-using Orts.Formats.OR;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
 using Orts.MultiPlayer;
 using Orts.Settings;
@@ -335,7 +334,7 @@ namespace Orts.Simulation
                 if (CarSpawnerLists == null)
                     CarSpawnerLists = new List<CarSpawnerList>();
                 Trace.Write(" EXTCARSPAWN");
-                AdditionalCarSpawnerFile acsf = new AdditionalCarSpawnerFile(RoutePath + @"\openrails\carspawn.dat", RoutePath + @"\shapes\");
+                ORCarSpawnerFile acsf = new ORCarSpawnerFile(RoutePath + @"\openrails\carspawn.dat", RoutePath + @"\shapes\");
                 CarSpawnerLists.AddRange(acsf.CarSpawners);
             }
 

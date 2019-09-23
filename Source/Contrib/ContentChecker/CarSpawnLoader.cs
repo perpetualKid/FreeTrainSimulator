@@ -39,7 +39,7 @@ namespace Orts.ContentChecker
             if (subdirname == "openrails")
             {
                 string RoutePath = Path.GetDirectoryName(Path.GetDirectoryName(file));
-                var extCarSpawnerFile = new AdditionalCarSpawnerFile(file, RoutePath + @"\shapes\");
+                var extCarSpawnerFile = new ORCarSpawnerFile(file, RoutePath + @"\shapes\");
             }
             else
             {

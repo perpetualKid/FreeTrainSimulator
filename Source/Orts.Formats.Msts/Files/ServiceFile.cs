@@ -34,14 +34,9 @@ namespace Orts.Formats.Msts.Files
         public string TimeTableItem { get; private set; }
         public TimeTable TimeTable { get; private set; }
 
-        /// <summary>
-        /// Open a service file, 
-        /// filePath includes full path and extension
-        /// </summary>
-        /// <param name="filePath"></param>
-        public ServiceFile( string filePath )
+        public ServiceFile( string fileName)
 		{
-            using (STFReader stf = new STFReader(filePath, false))
+            using (STFReader stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("service_definition", ()=> { stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("serial", ()=>{ Serial = stf.ReadIntBlock(null); }),

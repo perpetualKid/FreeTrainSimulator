@@ -29,10 +29,10 @@ namespace Orts.Formats.Msts.Files
         public string Description { get; private set; }
         public string CabViewFile { get; private set; }
 
-        public EngineFile(string filePath)
+        public EngineFile(string fileName)
         {
-            Name = Path.GetFileNameWithoutExtension(filePath);
-            using (var stf = new STFReader(filePath, false))
+            Name = Path.GetFileNameWithoutExtension(fileName);
+            using (var stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("engine", ()=>{
                         stf.ReadString();

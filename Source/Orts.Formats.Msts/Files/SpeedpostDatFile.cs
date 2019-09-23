@@ -31,9 +31,9 @@ namespace Orts.Formats.Msts.Files
         /// </summary>
 		public string[] ShapeNames { get; private set; } = new string[3];
 
-		public SpeedpostDatFile(string filePath, string shapePath)
+		public SpeedpostDatFile(string fileName, string shapePath)
 		{
-			using (STFReader stf = new STFReader(filePath, false))
+			using (STFReader stf = new STFReader(fileName, false))
 			{
 				stf.ParseBlock(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("speed_warning_sign_shape", ()=>

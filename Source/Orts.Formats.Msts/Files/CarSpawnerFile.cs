@@ -24,9 +24,9 @@ namespace Orts.Formats.Msts.Files
 	{
         public CarSpawnerList CarSpawners { get; private set; }
 
-        public CarSpawnerFile(string filePath, string shapePath)
+        public CarSpawnerFile(string fileName, string shapePath)
         {
-            using (STFReader stf = new STFReader(filePath, false))
+            using (STFReader stf = new STFReader(fileName, false))
             {
                 CarSpawners = new CarSpawnerList(stf, shapePath, "Default");
             }

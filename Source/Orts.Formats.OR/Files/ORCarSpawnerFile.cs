@@ -22,13 +22,13 @@ using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.OR.Files
 {
-    public class AdditionalCarSpawnerFile
+    public class ORCarSpawnerFile
     {
         public List<CarSpawnerList> CarSpawners { get; private set; } = new List<CarSpawnerList>();
 
-        public AdditionalCarSpawnerFile(string filePath, string shapePath)
+        public ORCarSpawnerFile(string fileName, string shapePath)
         {
-            using (STFReader stf = new STFReader(filePath, false))
+            using (STFReader stf = new STFReader(fileName, false))
             {
                 var listCount = stf.ReadInt(null);
                 string listName = null;

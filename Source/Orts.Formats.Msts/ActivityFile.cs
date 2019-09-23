@@ -266,11 +266,8 @@
 //                EndPosition = "EndPosition", "(", 4*Integer, ")" ;
 
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using Microsoft.Xna.Framework;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
@@ -281,21 +278,15 @@ namespace Orts.Formats.Msts
     /// Parse and *.act file.
     /// Naming for classes matches the terms in the *.act file.
     /// </summary>
-    public class ActivityFile {
-        public Tr_Activity Tr_Activity;
+    public class ActivityFile
+    {
+        public Tr_Activity Tr_Activity { get; private set; }
 
-        public ActivityFile(string filenamewithpath) {
-            Read(filenamewithpath, false);
-        }
-
-        public ActivityFile(string filenamewithpath, bool headerOnly) {
-            Read(filenamewithpath, headerOnly);
-        }
-
-        public void Read(string filenamewithpath, bool headerOnly) {
-            using (STFReader stf = new STFReader(filenamewithpath, false)) {
-                stf.ParseFile(() => headerOnly && (Tr_Activity != null) && (Tr_Activity.Tr_Activity_Header != null), new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("tr_activity", ()=>{ Tr_Activity = new Tr_Activity(stf, headerOnly); }),
+        public ActivityFile(string fileName)
+        {
+            using (STFReader stf = new STFReader(fileName, false)) {
+                stf.ParseFile(new STFReader.TokenProcessor[] {
+                    new STFReader.TokenProcessor("tr_activity", ()=>{ Tr_Activity = new Tr_Activity(stf); }),
                 });
                 if (Tr_Activity == null)
                     STFException.TraceWarning(stf, "Missing Tr_Activity statement");
@@ -327,15 +318,13 @@ namespace Orts.Formats.Msts
         public Tr_Activity_Header Tr_Activity_Header;
         public Tr_Activity_File Tr_Activity_File;
 
-        public Tr_Activity(STFReader stf, bool headerOnly) {
+        public Tr_Activity(STFReader stf) {
             stf.MustMatch("(");
-            stf.ParseBlock(() => headerOnly && (Tr_Activity_Header != null), new STFReader.TokenProcessor[] {
+            stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tr_activity_file", ()=>{ Tr_Activity_File = new Tr_Activity_File(stf); }),
                 new STFReader.TokenProcessor("serial", ()=>{ Serial = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("tr_activity_header", ()=>{ Tr_Activity_Header = new Tr_Activity_Header(stf); }),
             });
-            if (!headerOnly && (Tr_Activity_File == null))
-                STFException.TraceWarning(stf, "Missing Tr_Activity_File statement");
         }
 
         public void InsertORSpecificData(STFReader stf)
@@ -480,11 +469,6 @@ namespace Orts.Formats.Msts
             PlayerServices = new PlayerServices(startTime, name);
         }
 
-        //public void ClearStaticConsists()
-        //{
-        //    NextActivityObjectUID = 32786;
-        //    ActivityObjects.Clear();
-        //}
         public void InsertORSpecificData(STFReader stf)
         {
             stf.MustMatch("(");

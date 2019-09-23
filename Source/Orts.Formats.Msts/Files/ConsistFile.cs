@@ -29,9 +29,9 @@ namespace Orts.Formats.Msts.Files
         public string Name { get; private set; } // from the Name field or label field of the consist file
         public TrainSet Train { get; private set; }
 
-        public ConsistFile(string filePath)
+        public ConsistFile(string fileName)
         {
-            using (var stf = new STFReader(filePath, false))
+            using (var stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("train", ()=>{ Train = new TrainSet(stf); }),
                 });

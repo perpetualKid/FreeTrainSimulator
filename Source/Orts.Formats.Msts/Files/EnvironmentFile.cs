@@ -30,9 +30,9 @@ namespace Orts.Formats.Msts.Files
         public List<SkyLayer> SkyLayers { get; private set; }
         public List<SkySatellite> SkySatellites { get; private set; }
 
-        public EnvironmentFile(string filePath)
+        public EnvironmentFile(string fileName)
         {
-            using (STFReader stf = new STFReader(filePath, false))
+            using (STFReader stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("world", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("world_water", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -43,7 +43,7 @@ namespace Orts.Formats.Msts.Files
                         });}),
                     });
 
-            using (STFReader stf = new STFReader(filePath, false))
+            using (STFReader stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("world", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("world_sky", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {

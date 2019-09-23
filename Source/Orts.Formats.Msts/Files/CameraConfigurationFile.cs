@@ -32,9 +32,9 @@ namespace Orts.Formats.Msts.Files
     {
         public List<Camera> Cameras = new List<Camera>();
 
-        public CameraConfigurationFile(string filename)
+        public CameraConfigurationFile(string fileName)
         {
-            using (STFReader stf = new STFReader(filename, false))
+            using (STFReader stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("camera", ()=>{ Cameras.Add(new Camera(stf)); }),
                 });

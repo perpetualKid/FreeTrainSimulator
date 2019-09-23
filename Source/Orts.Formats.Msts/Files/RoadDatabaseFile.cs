@@ -35,10 +35,10 @@ namespace Orts.Formats.Msts.Files
         /// <summary>
         /// Constructor from file
         /// </summary>
-        /// <param name="filenamewithpath">Full file name of the .rdb file</param>
-		public RoadDatabaseFile(string filenamewithpath)
+        /// <param name="fileName">Full file name of the .rdb file</param>
+		public RoadDatabaseFile(string fileName)
 		{
-			using (STFReader stf = new STFReader(filenamewithpath, false))
+			using (STFReader stf = new STFReader(fileName, false))
 				stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("trackdb", ()=>{ RoadTrackDB = new RoadTrackDB(stf); }),
                 });

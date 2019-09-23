@@ -123,12 +123,12 @@ TrackPath (
         /// <summary>
 		/// Open a PAT file, parse it and store it
 		/// </summary>
-		/// <param name="filePath">path to the PAT file, including full path and extension</param>
-        public PathFile(string filePath)
+		/// <param name="fileName">path to the PAT file, including full path and extension</param>
+        public PathFile(string fileName)
         {
             try
             {
-                using (STFReader stf = new STFReader(filePath, false))
+                using (STFReader stf = new STFReader(fileName, false))
                     stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("trackpdps", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("trackpdp", ()=>{ DataPoints.Add(new PathDataPoint(stf)); }),

@@ -24,9 +24,9 @@ namespace Orts.Formats.Msts.Files
 
     public class TrackTypesFile: List<TrackType>
 	{        
-        public TrackTypesFile(string filePath)
+        public TrackTypesFile(string fileName)
 		{
-            using (STFReader stf = new STFReader(filePath, false))
+            using (STFReader stf = new STFReader(fileName, false))
             {
                 var count = stf.ReadInt(null);
                 stf.ParseBlock(new STFReader.TokenProcessor[] {

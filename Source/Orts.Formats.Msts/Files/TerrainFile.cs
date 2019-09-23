@@ -24,9 +24,9 @@ namespace Orts.Formats.Msts.Files
     {
         public Terrain Terrain { get; private set; }
 
-        public TerrainFile(string filename)
+        public TerrainFile(string fileName)
         {
-            using (var sbr = SBR.Open(filename))
+            using (var sbr = SBR.Open(fileName))
             using (var block = sbr.ReadSubBlock())
                 Terrain = new Terrain(block);
         }

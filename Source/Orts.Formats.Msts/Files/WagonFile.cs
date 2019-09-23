@@ -27,10 +27,10 @@ namespace Orts.Formats.Msts.Files
     {
         public string Name { get; private set; }
 
-        public WagonFile(string filePath)
+        public WagonFile(string fileName)
         {
-            Name = Path.GetFileNameWithoutExtension(filePath);
-            using (var stf = new STFReader(filePath, false))
+            Name = Path.GetFileNameWithoutExtension(fileName);
+            using (var stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("wagon", ()=>{
                         stf.ReadString();
