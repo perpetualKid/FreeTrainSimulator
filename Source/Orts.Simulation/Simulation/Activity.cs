@@ -95,7 +95,7 @@ namespace Orts.Simulation
         {
             Simulator = simulator;  // Save for future use.
             PlayerServices sd;
-            sd = actFile.Tr_Activity.Tr_Activity_File.PlayerServices;
+            sd = actFile.Activity.PlayerServices;
             if (sd != null)
             {
                 if (sd.PlayerTraffics.Count > 0)
@@ -131,11 +131,7 @@ namespace Orts.Simulation
             }
 
             // Compile list of freight events, if any, from the parsed ACT file.
-            if (actFile.Tr_Activity == null) { return; }
-            if (actFile.Tr_Activity.Tr_Activity_File == null) { return; }
-            if (actFile.Tr_Activity.Tr_Activity_File.Events == null) { return; }
-            var parsedEventList = actFile.Tr_Activity.Tr_Activity_File.Events;
-            foreach (var i in parsedEventList)
+            foreach (var i in actFile?.Activity?.Events?.AsEnumerable())
             {
                 if (i is EventCategoryAction)
                 {
@@ -1296,12 +1292,12 @@ namespace Orts.Simulation
         {
             Train OriginalPlayerTrain = Simulator.OriginalPlayerTrain;
             var e = this.ParsedObject as EventCategoryAction;
-            if (e.WagonList != null)
+            if (e.WorkOrderWagons != null)
             {                     // only if event involves wagons
                 if (ChangeWagonIdList == null)
                 {           // populate the list only once - the first time that ActivationLevel > 0 and so this method is called.
                     ChangeWagonIdList = new List<string>();
-                    foreach (var item in e.WagonList.WorkOrderWagonList)
+                    foreach (var item in e.WorkOrderWagons)
                     {
                         ChangeWagonIdList.Add(String.Format("{0} - {1}", ((int)item.UiD & 0xFFFF0000) >> 16, (int)item.UiD & 0x0000FFFF)); // form the .CarID
                     }

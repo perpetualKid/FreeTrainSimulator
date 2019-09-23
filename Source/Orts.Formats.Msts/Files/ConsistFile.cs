@@ -35,7 +35,7 @@ namespace Orts.Formats.Msts.Files
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("train", ()=>{ Train = new TrainSet(stf); }),
                 });
-            Name = Train.TrainConfig.Name;
+            Name = Train.Name;
         }
 
         public override string ToString()

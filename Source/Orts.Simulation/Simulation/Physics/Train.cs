@@ -161,7 +161,7 @@ namespace Orts.Simulation.Physics
         {
             get
             {
-                return Simulator.Activity.Tr_Activity.Tr_Activity_Header.Duration.ActivityDuration();
+                return Simulator.Activity.Activity.Header.Duration.ActivityDuration();
             }
         }
 
@@ -1914,7 +1914,7 @@ namespace Orts.Simulation.Physics
                                 if (mstsSteamLocomotive.AuxTenderMoveFlag == false)  // If locomotive hasn't moved and Auxtender connected use fuel presets on aux tender
                                 {
                                     MaxAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG;
-                                    mstsSteamLocomotive.CurrentAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG * (Simulator.Activity.Tr_Activity.Tr_Activity_Header.FuelWater / 100.0f); // 
+                                    mstsSteamLocomotive.CurrentAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG * (Simulator.Activity.Activity.Header.FuelWater / 100.0f); // 
                                     IsAuxTenderCoupled = true;      // Flag to advise MSTSSteamLovcomotive that tender is set.
                                     AuxTenderFound = true;      // Auxililary tender found in consist.
 

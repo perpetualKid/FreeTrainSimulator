@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
 
@@ -16,7 +17,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("filename", ()=>{ FileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("description", ()=>{ Description = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("maxlinevoltage", ()=>{ MaxLineVoltage = stf.ReadFloatBlock(STFReader.Units.None, null); }),
-                new STFReader.TokenProcessor("routestart", ()=>{ if (RouteStart == null) RouteStart = new RouteStart(stf); }),
+                new STFReader.TokenProcessor("routestart", ()=>{ RouteStart = new RouteStart(stf); }),
                 new STFReader.TokenProcessor("environment", ()=>{ Environment = new Environment(stf); }),
                 new STFReader.TokenProcessor("milepostunitskilometers", ()=>{ MilepostUnitsMetric = true; }),
                 new STFReader.TokenProcessor("electrified", ()=>{ Electrified = stf.ReadBoolBlock(false); }),
@@ -120,18 +121,14 @@ namespace Orts.Formats.Msts.Models
 
     public class RouteStart
     {
-        public double WX { get; private set; }
-        public double WZ { get; private set; }
-        public double X { get; private set; }
-        public double Z { get; private set; }
+        private WorldLocation location;
+
+        public ref WorldLocation Location => ref location;
 
         public RouteStart(STFReader stf)
         {
             stf.MustMatch("(");
-            WX = stf.ReadDouble(null);   // tilex
-            WZ = stf.ReadDouble(null);   // tilez
-            X = stf.ReadDouble(null);
-            Z = stf.ReadDouble(null);
+            location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), 0f, stf.ReadFloat(null));
             stf.SkipRestOfBlock();
         }
     }

@@ -576,6 +576,16 @@ namespace Orts.Formats.Msts.Parsers
             if (item == ")") StepBackOneItem();
             return defaultValue.GetValueOrDefault(0);
         }
+
+        /// <summary>Read an double precision floating point number {constant_item}
+        /// </summary>
+        /// <param name="defaultValue">the default value if an unexpected ')' token is found</param>
+        /// <returns>The next {constant_item} from the STF file.</returns>
+        public float ReadFloat(float? defaultValue)
+        {
+            return ReadFloat(Units.None, defaultValue);
+        }
+
         /// <summary>Read an single precision floating point number {constant_item}
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>

@@ -7,6 +7,16 @@ namespace Orts.Formats.Msts.Models
 {
     public class SDShape
     {
+        public string Name { get; private set; }
+        public int EsdDetailLevel { get; private set; }
+        public int EsdAlternativeTexture { get; private set; }
+        public EsdBoundingBox EsdBoundingBox { get; private set; }
+        public bool EsdNoVisualObstruction { get; private set; }
+        public bool EsdSnapable { get; private set; }
+        public bool EsdSubObject { get; private set; }
+        public string EsdSoundFileName { get; private set; } = string.Empty;
+        public float EsdBellAnimationFps { get; private set; } = 8;
+
         public SDShape()
         {
             EsdBoundingBox = new EsdBoundingBox();
@@ -14,7 +24,7 @@ namespace Orts.Formats.Msts.Models
 
         public SDShape(STFReader stf)
         {
-            stf.ReadString(); // Ignore the filename string. TODO: Check if it agrees with the SD file name? Is this important?
+            Name = stf.ReadString(); // Ignore the filename string. TODO: Check if it agrees with the SD file name? Is this important?
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("esd_detail_level", ()=>{ EsdDetailLevel = stf.ReadIntBlock(null); }),
                     new STFReader.TokenProcessor("esd_alternative_texture", ()=>{ EsdAlternativeTexture = stf.ReadIntBlock(null); }),
@@ -32,15 +42,6 @@ namespace Orts.Formats.Msts.Models
             // TODO - some objects have no bounding box - ie JP2BillboardTree1.sd
             //if (ESD_Bounding_Box == null) throw new STFException(stf, "Missing ESD_Bound_Box statement");
         }
-
-        public int EsdDetailLevel { get; private set; }
-        public int EsdAlternativeTexture { get; private set; }
-        public EsdBoundingBox EsdBoundingBox { get; private set; }
-        public bool EsdNoVisualObstruction { get; private set; }
-        public bool EsdSnapable { get; private set; }
-        public bool EsdSubObject { get; private set; }
-        public string EsdSoundFileName { get; private set; } = string.Empty;
-        public float EsdBellAnimationFps { get; private set; } = 8;
     }
 
     public class EsdBoundingBox
@@ -73,7 +74,6 @@ namespace Orts.Formats.Msts.Models
         }
 
     }
-
 
     public class Shape
     {

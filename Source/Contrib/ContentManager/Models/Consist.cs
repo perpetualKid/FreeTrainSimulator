@@ -38,7 +38,7 @@ namespace Orts.ContentManager.Models
                 var file = new ConsistFile(content.PathName);
                 Name = file.Name;
 
-                Cars = from car in file.Train.TrainConfig.WagonList
+                Cars = from car in file.Train.Wagons
                            select new Car(car);
             }
         }

@@ -178,7 +178,7 @@ namespace Orts.Formats.Msts.Models
     public class EventCategoryAction : Event
     {
         public EventType Type { get; private set; }
-        public WagonList WagonList { get; private set; }
+        public WorkOrderWagons WorkOrderWagons { get; private set; }
         public uint? SidingId { get; private set; }  // May be specified inside the Wagon_List instead. Nullable as can't use -1 to indicate not set.
         public float SpeedMpS { get; private set; }
 
@@ -209,7 +209,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("texttodisplayoncompletioniftriggered", ()=>{ TextToDisplayOnCompletionIfTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletionifnotrriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
-                new STFReader.TokenProcessor("wagon_list", ()=>{ WagonList = new WagonList(stf, Type); }),
+                new STFReader.TokenProcessor("wagon_list", ()=>{ WorkOrderWagons = new WorkOrderWagons(stf, Type); }),
                 new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = (uint)stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("speed", ()=>{ SpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); }),
                 new STFReader.TokenProcessor("reversable_event", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Reversible = true; }),

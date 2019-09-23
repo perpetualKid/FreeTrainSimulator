@@ -506,7 +506,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Check if there are activity restricted speedposts to be loaded
 
-            if (Viewer.Simulator.ActivityRun != null && Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_File.ActivityRestrictedSpeedZones != null)
+            if (Viewer.Simulator.ActivityRun != null && Viewer.Simulator.Activity.Activity.ActivityRestrictedSpeedZones != null)
             {
                 foreach (TempSpeedPostItem tempSpeedItem in Viewer.Simulator.ActivityRun.TempSpeedPostItems)
                 {

@@ -123,7 +123,7 @@ namespace Orts.Menu.Entities
 
         private static Locomotive GetLocomotive(ConsistFile conFile, Folder folder)
         {
-            foreach (var wagon in conFile.Train.TrainConfig.WagonList.Where(w => w.IsEngine))
+            foreach (var wagon in conFile.Train.Wagons.Where(w => w.IsEngine))
             {
                 try
                 {
@@ -136,7 +136,7 @@ namespace Orts.Menu.Entities
 
         private static Locomotive GetLocomotiveReverse(ConsistFile conFile, Folder folder)
         {
-            foreach (var wagon in conFile.Train.TrainConfig.WagonList.Where(w => w.IsEngine))
+            foreach (var wagon in conFile.Train.Wagons.Where(w => w.IsEngine))
             {
                 try
                 {

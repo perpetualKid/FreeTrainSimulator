@@ -701,7 +701,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         // Route, Activity, Passed, Errors, Warnings, Infos, Load Time, Frame Rate
                         writer.WriteLine("{0},{1},{2},{3},{4},{5},{6:F1},{7:F1}",
                             Simulator != null && Simulator.TRK != null && Simulator.TRK.Tr_RouteFile != null ? Simulator.TRK.Tr_RouteFile.Name.Replace(",", ";") : "",
-                            Simulator != null && Simulator.Activity != null && Simulator.Activity.Tr_Activity != null && Simulator.Activity.Tr_Activity.Tr_Activity_Header != null ? Simulator.Activity.Tr_Activity.Tr_Activity_Header.Name.Replace(",", ";") : "",
+                            Simulator != null && Simulator.Activity != null && Simulator.Activity.Activity != null && Simulator.Activity.Activity.Header != null ? Simulator.Activity.Activity.Header.Name.Replace(",", ";") : "",
                             passed ? "Yes" : "No",
                             traceListener?.EventCount(TraceEventType.Critical) ?? 0 + traceListener?.EventCount(TraceEventType.Error) ?? 0,
                             traceListener?.EventCount(TraceEventType.Warning) ?? 0,
@@ -1097,7 +1097,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 if (Path.GetExtension(path).Equals(".act", StringComparison.OrdinalIgnoreCase))
                 {
                     var act = new Orts.Formats.Msts.ActivityFile(path);
-                    return act.Tr_Activity.Tr_Activity_Header.Name;
+                    return act.Activity.Header.Name;
                 }
             }
             catch { }

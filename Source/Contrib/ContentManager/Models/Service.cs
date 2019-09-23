@@ -52,7 +52,7 @@ namespace Orts.ContentManager.Models
                 var actFile = new ActivityFile(content.Parent.PathName);
                 if (msts.IsPlayer)
                 {
-                    var activityTraffic = actFile.Tr_Activity.Tr_Activity_File.PlayerServices.PlayerTraffics;
+                    var activityTraffic = actFile.Activity.PlayerServices.PlayerTraffics;
 
                     ID = "0";
                     StartTime = MSTSTimeToDateTime(activityTraffic.Time);
@@ -62,7 +62,7 @@ namespace Orts.ContentManager.Models
                 else
                 {
                     var trfFile = new TrafficFile(msts.TrafficPathName);
-                    var activityService = actFile.Tr_Activity.Tr_Activity_File.Traffic_Definition.Services[msts.TrafficIndex];
+                    var activityService = actFile.Activity.Traffic.Services[msts.TrafficIndex];
                     var trafficService = trfFile.TrafficDefinition.ServiceTraffics[msts.TrafficIndex];
 
                     ID = activityService.UiD.ToString();

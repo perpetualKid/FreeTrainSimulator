@@ -302,7 +302,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // The speedpost.dat file is needed only to derive the shape names for the temporary speed restriction zones,
             // so it is opened only in activity mode
-            if (Simulator.ActivityRun != null && Simulator.Activity.Tr_Activity.Tr_Activity_File.ActivityRestrictedSpeedZones != null)
+            if (Simulator.ActivityRun != null && Simulator.Activity.Activity.ActivityRestrictedSpeedZones != null)
             {
                 var speedpostDatFile = Simulator.RoutePath + @"\speedpost.dat";
                 if (File.Exists(speedpostDatFile))

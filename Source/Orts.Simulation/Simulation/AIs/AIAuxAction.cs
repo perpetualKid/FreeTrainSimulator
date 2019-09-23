@@ -168,7 +168,7 @@ namespace Orts.Simulation.AIs
 #endif
         protected void SetGenAuxActions(AITrain thisTrain)  //  Add here the new Generic Action
         {
-            if (!thisTrain.Simulator.TimetableMode && thisTrain.Simulator.Activity.Tr_Activity.Tr_Activity_File.ORTSAIHornAtCrossings > 0 && SpecAuxActions.Count == 0)
+            if (!thisTrain.Simulator.TimetableMode && thisTrain.Simulator.Activity.Activity.AIHornAtCrossings > 0 && SpecAuxActions.Count == 0)
             {
                 AuxActionHorn auxActionHorn = new AuxActionHorn(true);
                 AIActionHornRef horn = new AIActionHornRef(thisTrain, auxActionHorn, 0);

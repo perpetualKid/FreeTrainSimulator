@@ -71,11 +71,11 @@ namespace Orts.Simulation
 					//based on act setting for frequency
                     if (Hazzards[itemID].animal == true && Simulator.Activity != null)
                     {
-                        if (Simulator.Random.Next(100) > Simulator.Activity.Tr_Activity.Tr_Activity_Header.Animals) return null;
+                        if (Simulator.Random.Next(100) > Simulator.Activity.Activity.Header.Animals) return null;
                     }
 					else if (Simulator.Activity != null)
 					{
-						if (Simulator.Random.Next(100) > Simulator.Activity.Tr_Activity.Tr_Activity_Header.Animals) return null;
+						if (Simulator.Random.Next(100) > Simulator.Activity.Activity.Header.Animals) return null;
 					}
 					else //in explore mode
 					{

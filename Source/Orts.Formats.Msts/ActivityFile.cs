@@ -280,15 +280,15 @@ namespace Orts.Formats.Msts
     /// </summary>
     public class ActivityFile
     {
-        public Tr_Activity Tr_Activity { get; private set; }
+        public Activity Activity { get; private set; }
 
         public ActivityFile(string fileName)
         {
             using (STFReader stf = new STFReader(fileName, false)) {
                 stf.ParseFile(new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("tr_activity", ()=>{ Tr_Activity = new Tr_Activity(stf); }),
+                    new STFReader.TokenProcessor("tr_activity", ()=>{ Activity = new Activity(stf); }),
                 });
-                if (Tr_Activity == null)
+                if (Activity == null)
                     STFException.TraceWarning(stf, "Missing Tr_Activity statement");
             }
         }
@@ -298,8 +298,8 @@ namespace Orts.Formats.Msts
             using (STFReader stf = new STFReader(filenamewithpath, false))
             {
                 var tr_activityTokenPresent = false;
-                stf.ParseFile(() => false && (Tr_Activity.Tr_Activity_Header != null), new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("tr_activity", ()=>{ tr_activityTokenPresent = true;  Tr_Activity.InsertORSpecificData (stf); }),
+                stf.ParseFile(() => false && (Activity.Header != null), new STFReader.TokenProcessor[] {
+                    new STFReader.TokenProcessor("tr_activity", ()=>{ tr_activityTokenPresent = true;  Activity.InsertORSpecificData (stf); }),
                     });
                 if (!tr_activityTokenPresent)
                     STFException.TraceWarning(stf, "Missing Tr_Activity statement");
@@ -309,97 +309,12 @@ namespace Orts.Formats.Msts
         // Used for explore in activity mode
         public ActivityFile(int startTime, string name)
         {
-            Tr_Activity = new Tr_Activity(startTime, name);
+            Activity = new Activity(startTime, name);
         }
     }
 
-    public class Tr_Activity {
-        public int Serial = 1;
-        public Tr_Activity_Header Tr_Activity_Header;
-        public Tr_Activity_File Tr_Activity_File;
-
-        public Tr_Activity(STFReader stf) {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tr_activity_file", ()=>{ Tr_Activity_File = new Tr_Activity_File(stf); }),
-                new STFReader.TokenProcessor("serial", ()=>{ Serial = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("tr_activity_header", ()=>{ Tr_Activity_Header = new Tr_Activity_Header(stf); }),
-            });
-        }
-
-        public void InsertORSpecificData(STFReader stf)
-        {
-            stf.MustMatch("(");
-            var tr_activity_fileTokenPresent = false;
-            stf.ParseBlock(() => false && (Tr_Activity_Header != null), new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tr_activity_file", ()=>{ tr_activity_fileTokenPresent = true;  Tr_Activity_File.InsertORSpecificData (stf); }),
-            });
-            if (!tr_activity_fileTokenPresent)
-                STFException.TraceWarning(stf, "Missing Tr_Activity_File statement");
-        }
-
-        // Used for explore in activity mode
-        public Tr_Activity(int startTime, string name)
-        {
-            Serial = -1;
-            Tr_Activity_Header = new Tr_Activity_Header();
-            Tr_Activity_File = new Tr_Activity_File(startTime, name);
-        }
-    }
-
-    public class Tr_Activity_Header {
-        public string RouteID;
-        public string Name;					// AE Display Name
-        public string Description = " ";
-        public string Briefing = " ";
-        public int CompleteActivity = 1;    // <CJComment> Should be boolean </CJComment>
-        public int Type;
-        public ActivityMode Mode = ActivityMode.Player;
-        public StartTime StartTime = new StartTime(10, 0, 0);
-        public SeasonType Season = SeasonType.Summer;
-        public WeatherType Weather = WeatherType.Clear;
-        public string PathID;
-        public int StartingSpeed;       // <CJComment> Should be float </CJComment>
-        public Duration Duration = new Duration(1, 0);
-        public Difficulty Difficulty = Difficulty.Easy;
-        public int Animals = 100;		// percent
-        public int Workers; 			// percent
-        public int FuelWater = 100;		// percent
-        public int FuelCoal = 100;		// percent
-        public int FuelDiesel = 100;	// percent
-
-        public Tr_Activity_Header(STFReader stf) {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("routeid", ()=>{ RouteID = stf.ReadStringBlock(null); }),
-                new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
-                new STFReader.TokenProcessor("description", ()=>{ Description = stf.ReadStringBlock(Description); }),
-                new STFReader.TokenProcessor("briefing", ()=>{ Briefing = stf.ReadStringBlock(Briefing); }),
-                new STFReader.TokenProcessor("completeactivity", ()=>{ CompleteActivity = stf.ReadIntBlock(CompleteActivity); }),
-                new STFReader.TokenProcessor("type", ()=>{ Type = stf.ReadIntBlock(Type); }),
-                new STFReader.TokenProcessor("mode", ()=>{ Mode = (ActivityMode)stf.ReadIntBlock((int)Mode); }),
-                new STFReader.TokenProcessor("starttime", ()=>{ StartTime = new StartTime(stf); }),
-                new STFReader.TokenProcessor("season", ()=>{ Season = (SeasonType)stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("weather", ()=>{ Weather = (WeatherType)stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("pathid", ()=>{ PathID = stf.ReadStringBlock(null); }),
-                new STFReader.TokenProcessor("startingspeed", ()=>{ StartingSpeed = (int)stf.ReadFloatBlock(STFReader.Units.Speed, (float)StartingSpeed); }),                
-                new STFReader.TokenProcessor("duration", ()=>{ Duration = new Duration(stf); }),
-                new STFReader.TokenProcessor("difficulty", ()=>{ Difficulty = (Difficulty)stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("animals", ()=>{ Animals = stf.ReadIntBlock(Animals); }),
-                new STFReader.TokenProcessor("workers", ()=>{ Workers = stf.ReadIntBlock(Workers); }),
-                new STFReader.TokenProcessor("fuelwater", ()=>{ FuelWater = stf.ReadIntBlock(FuelWater); }),
-                new STFReader.TokenProcessor("fuelcoal", ()=>{ FuelCoal = stf.ReadIntBlock(FuelCoal); }),
-                new STFReader.TokenProcessor("fueldiesel", ()=>{ FuelDiesel = stf.ReadIntBlock(FuelDiesel); }),
-            });
-        }
-
-        // Used for explore in activity mode
-        public Tr_Activity_Header()
-        {
-        }
-    }
-
-    public class Tr_Activity_File {
+    public class Tr_Activity_File
+    {
         public PlayerServices PlayerServices;
         public int NextServiceUID = 1;
         public int NextActivityObjectUID = 32786;

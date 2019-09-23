@@ -4392,12 +4392,12 @@ namespace Orts.Simulation.Signalling
             }
 
             if (Simulator.Activity != null &&
-                Simulator.Activity.Tr_Activity.Tr_Activity_File.PlatformWaitingPassengers != null)
+                Simulator.Activity.Activity.PlatformWaitingPassengers != null)
 
             // Override .tdb NumPassengersWaiting info with .act NumPassengersWaiting info if any available
             {
                 int overriddenPlatformDetailsIndex;
-                foreach (PlatformData platformData in Simulator.Activity.Tr_Activity.Tr_Activity_File.PlatformWaitingPassengers)
+                foreach (PlatformData platformData in Simulator.Activity.Activity.PlatformWaitingPassengers)
                 {
                     overriddenPlatformDetailsIndex = PlatformDetailsList.FindIndex(platformDetails => (platformDetails.PlatformReference[0] == platformData.ID) || (platformDetails.PlatformReference[1] == platformData.ID));
                     if (overriddenPlatformDetailsIndex >= 0) PlatformDetailsList[overriddenPlatformDetailsIndex].NumPassengersWaiting = platformData.PassengerCount;

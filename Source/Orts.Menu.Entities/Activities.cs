@@ -54,16 +54,16 @@ namespace Orts.Menu.Entities
             else if (null != activityFile)
             {
                 // ITR activities are excluded.
-                Name = activityFile.Tr_Activity.Tr_Activity_Header.Name.Trim();
-                if (activityFile.Tr_Activity.Tr_Activity_Header.Mode == ActivityMode.IntroductoryTrainRide)
+                Name = activityFile.Activity.Header.Name.Trim();
+                if (activityFile.Activity.Header.Mode == ActivityMode.IntroductoryTrainRide)
                     Name = "Introductory Train Ride";
-                Description = activityFile.Tr_Activity.Tr_Activity_Header.Description;
-                Briefing = activityFile.Tr_Activity.Tr_Activity_Header.Briefing;
-                StartTime = activityFile.Tr_Activity.Tr_Activity_Header.StartTime;
-                Season = activityFile.Tr_Activity.Tr_Activity_Header.Season;
-                Weather = activityFile.Tr_Activity.Tr_Activity_Header.Weather;
-                Difficulty = activityFile.Tr_Activity.Tr_Activity_Header.Difficulty;
-                Duration = activityFile.Tr_Activity.Tr_Activity_Header.Duration;
+                Description = activityFile.Activity.Header.Description;
+                Briefing = activityFile.Activity.Header.Briefing;
+                StartTime = activityFile.Activity.Header.StartTime;
+                Season = activityFile.Activity.Header.Season;
+                Weather = activityFile.Activity.Header.Weather;
+                Difficulty = activityFile.Activity.Header.Difficulty;
+                Duration = activityFile.Activity.Header.Duration;
                 Consist = consist;
                 Path = path;
             }
@@ -89,7 +89,7 @@ namespace Orts.Menu.Entities
                 try
                 {
                     ActivityFile activityFile = new ActivityFile(filePath);
-                    ServiceFile srvFile = new ServiceFile(System.IO.Path.Combine(route.Path, "SERVICES", activityFile.Tr_Activity.Tr_Activity_File.PlayerServices.Name + ".srv"));
+                    ServiceFile srvFile = new ServiceFile(System.IO.Path.Combine(route.Path, "SERVICES", activityFile.Activity.PlayerServices.Name + ".srv"));
                     Consist consist = Consist.GetConsist(folder, srvFile.TrainConfig);
                     Path path = new Path(System.IO.Path.Combine(route.Path, "PATHS", srvFile.PathId + ".pat"));
                     if (!path.IsPlayerPath)
@@ -98,7 +98,7 @@ namespace Orts.Menu.Entities
                         // Not nice to throw an error now. Error was originally thrown by new Path(...);
                         throw new InvalidDataException("Not a player path");
                     }
-                    else if (activityFile.Tr_Activity.Tr_Activity_Header.RouteID.ToUpper() != route.RouteID.ToUpper())
+                    else if (activityFile.Activity.Header.RouteID.ToUpper() != route.RouteID.ToUpper())
                     {
                         //Activity and route have different RouteID.
                         result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);

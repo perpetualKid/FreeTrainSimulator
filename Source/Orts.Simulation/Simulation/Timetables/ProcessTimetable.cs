@@ -2375,15 +2375,15 @@ namespace Orts.Simulation.Timetables
 
                     // derive speed
 
-                    if (conFile.Train.TrainConfig.MaxVelocity != null && conFile.Train.TrainConfig.MaxVelocity.A > 0)
+                    if (conFile.Train.MaxVelocity?.A > 0)
                     {
                         if (confMaxSpeed.HasValue)
                         {
-                            confMaxSpeed = Math.Min(confMaxSpeed.Value, conFile.Train.TrainConfig.MaxVelocity.A);
+                            confMaxSpeed = Math.Min(confMaxSpeed.Value, conFile.Train.MaxVelocity.A);
                         }
                         else
                         {
-                            confMaxSpeed = Math.Min((float)simulator.TRK.Tr_RouteFile.SpeedLimit, conFile.Train.TrainConfig.MaxVelocity.A);
+                            confMaxSpeed = Math.Min((float)simulator.TRK.Tr_RouteFile.SpeedLimit, conFile.Train.MaxVelocity.A);
                         }
                     }
                 }
@@ -2443,7 +2443,7 @@ namespace Orts.Simulation.Timetables
                 List<TrainCar> cars = new List<TrainCar>();
 
                 // add wagons
-                foreach (Wagon wagon in consistFile.Train.TrainConfig.WagonList)
+                foreach (Wagon wagon in consistFile.Train.Wagons)
                 {
                     string wagonFolder = Path.Combine(trainsDirectory, wagon.Folder);
                     string wagonFilePath = Path.Combine(wagonFolder, wagon.Name + ".wag");
