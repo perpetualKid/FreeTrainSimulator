@@ -43,7 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Files\AceFile.cs" />
-    <Compile Include="ActivityFile.cs" />
+    <Compile Include="Files\ActivityFile.cs" />
     <Compile Include="Models\Ace.cs" />
     <Compile Include="Models\Activity.cs" />
     <Compile Include="Models\Camera.cs" />
@@ -108,10 +108,6 @@
     <ProjectReference Include="..\ORTS.Common\Orts.Common.csproj">
       <Project>{DA94D876-7D35-46C3-AECE-AFACE72C686C}</Project>
       <Name>Orts.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ORTS.Settings\Orts.Settings.csproj">
-      <Project>{67f84996-8769-4fd8-819b-464af269037b}</Project>
-      <Name>Orts.Settings</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

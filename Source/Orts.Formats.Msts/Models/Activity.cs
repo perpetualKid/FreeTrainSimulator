@@ -19,7 +19,7 @@ namespace Orts.Formats.Msts.Models
         public RestrictedSpeedZones ActivityRestrictedSpeedZones { get; private set; }
         public int AIHornAtCrossings { get; private set; } = -1;
 
-        public class ActivityHeader     //this redirection has no functional advantage, only for clarity in development
+        public class ActivityHeader     //this redirection has no functional advantage, only grouping to improve clarity in development
         {
             public string RouteID { get; internal protected set; }
             public string Name { get; internal protected set; }                 // AE Display Name
@@ -95,17 +95,6 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("activityfailedsignals",()=>{ FailedSignals = new FailedSignals(stf); }),
                 new STFReader.TokenProcessor("activityrestrictedspeedzones",()=>{ ActivityRestrictedSpeedZones = new RestrictedSpeedZones(stf); }),   // 27 files. To test, use EUROPE1\ACTIVITIES\lclsrvce.act
             });
-        }
-
-        public void InsertORSpecificData(STFReader stf)
-        {
-            stf.MustMatch("(");
-            var tr_activity_fileTokenPresent = false;
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tr_activity_file", ()=>{ tr_activity_fileTokenPresent = true; new Tr_Activity_File(stf).InsertORSpecificData (stf); }),
-            });
-            if (!tr_activity_fileTokenPresent)
-                STFException.TraceWarning(stf, "Missing Tr_Activity_File statement");
         }
 
         // Used for explore in activity mode

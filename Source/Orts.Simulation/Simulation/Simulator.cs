@@ -29,6 +29,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
+using Orts.Formats.OR.Models;
 using Orts.MultiPlayer;
 using Orts.Settings;
 using Orts.Simulation.AIs;
@@ -355,9 +356,9 @@ namespace Orts.Simulation
             activityPath = RoutePath + @"\Activities\Openrails\" + ActivityFileName + ".act";
             if (File.Exists(activityPath))
             {
-                // We have an OR-specific addition to activity file
-                Activity.InsertORSpecificData(activityPath);
-//TODO:cleanup                Activity.Activity.OverrideUserSettings(Settings);  // Override user settings for the purposes of this activity
+                ORActivitySettingsFile orActivitySettings = new ORActivitySettingsFile(activityPath);
+                OverrideUserSettings(Settings, orActivitySettings.Activity);    // Override user settings for the purposes of this activity
+                //TODO override Activity.Activity.AIHornAtCrossings from orActivitySettings
             }
 
             ActivityRun = new Activity(Activity, this);
@@ -2154,6 +2155,263 @@ namespace Orts.Simulation
             if (queryCarViewerLoaded != null)
                 queryCarViewerLoaded(this, query);
             return query.Loaded;
+        }
+
+        // Override User settings with activity creator settings if present in INCLUDE file
+        public void OverrideUserSettings(UserSettings setting, ORActivity activitySettings)
+        {
+            if (activitySettings.IsActivityOverride)
+            {
+                Trace.Write("\n------------------------------------------------------------------------------------------------");
+                Trace.Write("\nThe following Option settings have been temporarily set by this activity (no permanent changes have been made to your settings):");
+
+                // General TAB 
+
+                if (activitySettings.Options.RetainersOnAllCars == 1)
+                {
+                    setting.RetainersOnAllCars = true;
+                    Trace.Write("\nRetainers on all cars            =   True");
+                }
+                else if (activitySettings.Options.RetainersOnAllCars == 0)
+                {
+                    setting.RetainersOnAllCars = false;
+                    Trace.Write("\nRetainers on all cars            =   True");
+                }
+
+                if (activitySettings.Options.GraduatedBrakeRelease == 1)
+                {
+                    setting.GraduatedRelease = true;
+                    Trace.Write("\nGraduated Brake Release          =   True");
+                }
+                else if (activitySettings.Options.GraduatedBrakeRelease == 0)
+                {
+                    setting.GraduatedRelease = false;
+                    Trace.Write("\nGraduated Brake Release          =   False");
+                }
+
+                if (activitySettings.Options.ViewDispatcherWindow == 1)
+                {
+                    setting.ViewDispatcher = true;
+                    Trace.Write("\nView Dispatch Window             =   True");
+                }
+                else if (activitySettings.Options.ViewDispatcherWindow == 0)
+                {
+                    setting.ViewDispatcher = false;
+                    Trace.Write("\nView Dispatch Window             =   False");
+                }
+
+                if (activitySettings.Options.SoundSpeedControl == 1)
+                {
+                    setting.SpeedControl = true;
+                    Trace.Write("\nSound speed control              =   True");
+                }
+                else if (activitySettings.Options.SoundSpeedControl == 0)
+                {
+                    setting.SpeedControl = false;
+                    Trace.Write("\nSound speed control              =   True");
+                }
+
+                // Video TAB
+                if (activitySettings.Options.FastFullScreenAltTab == 1)
+                {
+                    setting.FastFullScreenAltTab = true;
+                    Trace.Write("\nFast Full Screen Alt TAB         =   True");
+                }
+                else if (activitySettings.Options.FastFullScreenAltTab == 0)
+                {
+                    setting.FastFullScreenAltTab = false;
+                    Trace.Write("\nFast Full Screen Alt TAB         =   False");
+                }
+
+
+                // Simulation TAB
+                if (activitySettings.Options.Autopilot == 1)
+                {
+                    setting.Autopilot = true;
+                    Trace.Write("\nAutopilot                        =   True");
+                }
+                else if (activitySettings.Options.Autopilot == 0)
+                {
+                    setting.Autopilot = false;
+                    Trace.Write("\nAutopilot                        =   False");
+                }
+
+                if (activitySettings.Options.ForcedRedAtStationStops == 1)
+                {
+                    setting.NoForcedRedAtStationStops = false; // Note this parameter is reversed in its logic to others.
+                    Trace.Write("\nForced Red at Station Stops      =   True");
+                }
+                else if (activitySettings.Options.ForcedRedAtStationStops == 0)
+                {
+                    setting.NoForcedRedAtStationStops = true; // Note this parameter is reversed in its logic to others.
+                    Trace.Write("\nForced Red at Station Stops      =   False");
+                }
+
+
+                if (activitySettings.Options.ExtendedAITrainShunting == 1)
+                {
+                    setting.ExtendedAIShunting = true;
+                    Trace.Write("\nExtended AI Train Shunting       =   True");
+                }
+                else if (activitySettings.Options.ExtendedAITrainShunting == 0)
+                {
+                    setting.ExtendedAIShunting = false;
+                    Trace.Write("\nExtended AI Train Shunting       =   False");
+                }
+
+                if (activitySettings.Options.UseAdvancedAdhesion == 1)
+                {
+                    setting.UseAdvancedAdhesion = true;
+                    Trace.Write("\nUse Advanced Adhesion            =   True");
+                }
+                else if (activitySettings.Options.UseAdvancedAdhesion == 0)
+                {
+                    setting.UseAdvancedAdhesion = false;
+                    Trace.Write("\nUse Advanced Adhesion            =   False");
+                }
+
+                if (activitySettings.Options.BreakCouplers == 1)
+                {
+                    setting.BreakCouplers = true;
+                    Trace.Write("\nBreak Couplers                   =   True");
+                }
+                else if (activitySettings.Options.BreakCouplers == 0)
+                {
+                    setting.BreakCouplers = false;
+                    Trace.Write("\nBreak Couplers                   =   False");
+                }
+
+                if (activitySettings.Options.CurveResistanceDependent == 1)
+                {
+                    setting.CurveResistanceDependent = true;
+                    Trace.Write("\nCurve Resistance Dependent       =   True");
+                }
+                else if (activitySettings.Options.CurveResistanceDependent == 0)
+                {
+                    setting.CurveResistanceDependent = false;
+                    Trace.Write("\nCurve Resistance Dependent       =   False");
+                }
+
+                if (activitySettings.Options.CurveSpeedDependent == 1)
+                {
+                    setting.CurveSpeedDependent = true;
+                    Trace.Write("\nCurve Speed Dependent            =   True");
+                }
+                else if (activitySettings.Options.CurveSpeedDependent == 1)
+                {
+                    setting.CurveSpeedDependent = false;
+                    Trace.Write("\nCurve Speed Dependent            =   False");
+                }
+
+                if (activitySettings.Options.TunnelResistanceDependent == 1)
+                {
+                    setting.TunnelResistanceDependent = true;
+                    Trace.Write("\nTunnel Resistance Dependent      =   True");
+                }
+                else if (activitySettings.Options.TunnelResistanceDependent == 0)
+                {
+                    setting.TunnelResistanceDependent = false;
+                    Trace.Write("\nTunnel Resistance Dependent      =   False");
+                }
+
+                if (activitySettings.Options.WindResistanceDependent == 1)
+                {
+                    setting.WindResistanceDependent = true;
+                    Trace.Write("\nWind Resistance Dependent        =   True");
+                }
+                else if (activitySettings.Options.WindResistanceDependent == 0)
+                {
+                    setting.WindResistanceDependent = false;
+                    Trace.Write("\nWind Resistance Dependent        =   False");
+                }
+
+                if (activitySettings.Options.HotStart == 1)
+                {
+                    setting.HotStart = true;
+                    Trace.Write("\nHot Start                        =   True");
+                }
+                else if (activitySettings.Options.HotStart == 0)
+                {
+                    setting.HotStart = false;
+                    Trace.Write("\nHot Start                        =   False");
+                }
+
+                // Experimental TAB
+                if (activitySettings.Options.UseLocationPassingPaths == 1)
+                {
+                    setting.UseLocationPassingPaths = true;
+                    Trace.Write("\nLocation Linked Passing Paths    =   True");
+                }
+                else if (activitySettings.Options.UseLocationPassingPaths == 0)
+                {
+                    setting.UseLocationPassingPaths = false;
+                    Trace.Write("\nLocation Linked Passing Paths    =   False");
+                }
+
+                if (activitySettings.Options.AdhesionFactor > 0)
+                {
+                    setting.AdhesionFactor = activitySettings.Options.AdhesionFactor;
+                    setting.AdhesionFactor = MathHelper.Clamp(setting.AdhesionFactor, 10, 200);
+                    Trace.Write("\nAdhesion Factor Correction       =   " + setting.AdhesionFactor.ToString());
+                }
+
+                if (activitySettings.Options.AdhesionFactorChange > 0)
+                {
+                    setting.AdhesionFactorChange = activitySettings.Options.AdhesionFactorChange;
+                    setting.AdhesionFactorChange = MathHelper.Clamp(setting.AdhesionFactorChange, 0, 100);
+                    Trace.Write("\nAdhesion Factor Change           =   " + setting.AdhesionFactorChange.ToString());
+                }
+
+                if (activitySettings.Options.AdhesionProportionalToWeather == 1)
+                {
+                    setting.AdhesionProportionalToWeather = true;
+                    Trace.Write("\nAdhesion Proportional to Weather =   True");
+                }
+                else if (activitySettings.Options.AdhesionProportionalToWeather == 0)
+                {
+                    setting.AdhesionProportionalToWeather = true;
+                    Trace.Write("\nAdhesion Proportional to Weather =   False");
+                }
+
+                if (activitySettings.Options.ActivityRandomization > 0)
+                {
+                    setting.ActRandomizationLevel = activitySettings.Options.ActivityRandomization;
+                    setting.ActRandomizationLevel = MathHelper.Clamp(setting.ActRandomizationLevel, 0, 3);
+                    Trace.Write("\nActivity Randomization           =   " + setting.ActRandomizationLevel.ToString());
+                }
+
+                if (activitySettings.Options.ActivityWeatherRandomization > 0)
+                {
+                    setting.ActWeatherRandomizationLevel = activitySettings.Options.ActivityWeatherRandomization;
+                    setting.ActWeatherRandomizationLevel = MathHelper.Clamp(setting.ActWeatherRandomizationLevel, 0, 3);
+                    Trace.Write("\nActivity Weather Randomization   =   " + setting.ActWeatherRandomizationLevel.ToString());
+                }
+
+                if (activitySettings.Options.SuperElevationLevel > 0)
+                {
+                    setting.UseSuperElevation = activitySettings.Options.SuperElevationLevel;
+                    setting.UseSuperElevation = MathHelper.Clamp(setting.UseSuperElevation, 0, 10);
+                    Trace.Write("\nSuper elevation - level          =   " + setting.UseSuperElevation.ToString());
+                }
+
+                if (activitySettings.Options.SuperElevationMinimumLength > 0)
+                {
+                    setting.SuperElevationMinLen = activitySettings.Options.SuperElevationMinimumLength;
+                    setting.SuperElevationMinLen = MathHelper.Clamp(setting.SuperElevationMinLen, 50, 1000000);
+                    Trace.Write("\nSuper elevation - minimum length =   " + setting.SuperElevationMinLen.ToString());
+                }
+
+                if (activitySettings.Options.SuperElevationGauge > 0)
+                {
+                    setting.SuperElevationGauge = activitySettings.Options.SuperElevationGauge;
+                    setting.SuperElevationGauge = MathHelper.Clamp(setting.SuperElevationGauge, 300, 2500);
+                    Trace.Write("\nSuper elevation - gauge          =   " + setting.SuperElevationGauge.ToString());
+                }
+
+
+                Trace.Write("\n------------------------------------------------------------------------------------------------");
+
+            }
         }
 
     } // Simulator

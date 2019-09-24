@@ -22,7 +22,7 @@ namespace Orts.Formats.Msts.Models
             });
         }
 
-        public void InsertORSpecificData(STFReader stf)
+        public void UpdateORActivtyData(STFReader stf)
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {

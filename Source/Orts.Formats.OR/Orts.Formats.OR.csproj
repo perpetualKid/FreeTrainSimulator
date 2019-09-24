@@ -50,6 +50,7 @@
     <Compile Include="AuxActionRef.cs" />
     <Compile Include="Files\ORActivitySettingsFile.cs" />
     <Compile Include="Files\ORCarSpawnerFile.cs" />
+    <Compile Include="Models\ORActivity.cs" />
     <Compile Include="Parsers\JsonReader.cs" />
     <Compile Include="Parsers\TimetableReader.cs" />
     <Compile Include="WeatherFile.cs" />
@@ -70,9 +71,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX">
-      <Version>3.7.1.189</Version>
-    </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>12.0.2</Version>
     </PackageReference>

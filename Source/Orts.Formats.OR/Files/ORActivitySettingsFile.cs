@@ -1,10 +1,13 @@
 ﻿using Orts.Formats.Msts.Parsers;
+using Orts.Formats.OR.Models;
 
 namespace Orts.Formats.OR.Files
 {
     public class ORActivitySettingsFile
     {
-        public void InsertORSpecificData(string fileName)
+        public ORActivity Activity { get; private set; }
+
+        public ORActivitySettingsFile(string fileName)
         {
             using (STFReader stf = new STFReader(fileName, false))
             {
@@ -33,15 +36,10 @@ namespace Orts.Formats.OR.Files
             stf.MustMatch("(");
             var tokenPresent = false;
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tr_activity_file", ()=>{ tokenPresent = true; OverrideActivityUserSettings(stf); }),
+                new STFReader.TokenProcessor("tr_activity_file", ()=>{ tokenPresent = true; Activity = new ORActivity(stf); }),
             });
             if (!tokenPresent)
                 STFException.TraceWarning(stf, "Missing Tr_Activity_File statement");
-        }
-
-        private void OverrideActivityUserSettings(STFReader reader)
-        {
-
         }
     }
 }

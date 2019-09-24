@@ -33,6 +33,7 @@ using Orts.Common.Xna;
 using Orts.Common.Calc;
 using Orts.Common.Logging;
 using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Simulation
 {

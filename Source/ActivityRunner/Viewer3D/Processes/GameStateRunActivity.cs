@@ -1096,7 +1096,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 if (Path.GetExtension(path).Equals(".act", StringComparison.OrdinalIgnoreCase))
                 {
-                    var act = new Orts.Formats.Msts.ActivityFile(path);
+                    var act = new ActivityFile(path);
                     return act.Activity.Header.Name;
                 }
             }
