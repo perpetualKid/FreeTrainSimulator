@@ -260,6 +260,12 @@ namespace Orts.Formats.Msts
         Ground,
         Location
     }
+
+    public enum ActivationType
+    {
+        Activate,
+        Deactivate,
+    }
     #endregion
 
 }

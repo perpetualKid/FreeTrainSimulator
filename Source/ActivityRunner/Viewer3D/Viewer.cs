@@ -394,7 +394,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Simulator.Trains[0].LeadLocomotiveIndex = -1;
             }
 
-            InitializeAutomaticTrackSounds();
+            SharedSMSFileManager.Initialize(TrackTypes.Count, Simulator.TRK.Tr_RouteFile.SwitchSMSNumber, Simulator.TRK.Tr_RouteFile.CurveSMSNumber, Simulator.TRK.Tr_RouteFile.CurveSwitchSMSNumber);
 
             TextureManager = new SharedTextureManager(this, Game.GraphicsDevice);
 
@@ -561,37 +561,6 @@ namespace Orts.ActivityRunner.Viewer3D
             // Rotate list moving 1 to 0 etc. (by adding 0 to end, then removing 0)
             FreeRoamCameraList.Add(FreeRoamCamera);
             FreeRoamCameraList.RemoveAt(0);
-        }
-
-
-        public void InitializeAutomaticTrackSounds()
-        {
-            SharedSMSFileManager.AutoTrackSound = false;
-            SharedSMSFileManager.SwitchSMSNumber = Simulator.TRK.Tr_RouteFile.SwitchSMSNumber;
-
-            if (SharedSMSFileManager.SwitchSMSNumber < -1 || SharedSMSFileManager.SwitchSMSNumber >= TrackTypes.Count)
-            {
-                SharedSMSFileManager.SwitchSMSNumber = -1;
-                Trace.TraceInformation("Switch SMS Number out of range");
-            }
-            if (SharedSMSFileManager.SwitchSMSNumber != -1) SharedSMSFileManager.AutoTrackSound = true;
-
-            SharedSMSFileManager.CurveSMSNumber = Simulator.TRK.Tr_RouteFile.CurveSMSNumber;
-            if (SharedSMSFileManager.CurveSMSNumber < -1 || SharedSMSFileManager.CurveSMSNumber >= TrackTypes.Count)
-            {
-                SharedSMSFileManager.CurveSMSNumber = -1;
-                Trace.TraceInformation("Curve SMS Number out of range");
-            }
-            if (SharedSMSFileManager.CurveSMSNumber != -1) SharedSMSFileManager.AutoTrackSound = true;
-
-            SharedSMSFileManager.CurveSwitchSMSNumber = Simulator.TRK.Tr_RouteFile.CurveSwitchSMSNumber;
-            if (SharedSMSFileManager.CurveSwitchSMSNumber < -1 || SharedSMSFileManager.CurveSwitchSMSNumber >= TrackTypes.Count)
-            {
-                SharedSMSFileManager.CurveSwitchSMSNumber = SharedSMSFileManager.CurveSMSNumber;
-                Trace.TraceInformation("CurveSwitch SMS Number out of range, replaced with curve SMS number");
-            }
-            if (SharedSMSFileManager.CurveSwitchSMSNumber != -1) SharedSMSFileManager.AutoTrackSound = true;
-
         }
 
         public void ChangeSelectedTrain(Train selectedTrain)

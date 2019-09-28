@@ -15,14 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
+using Orts.ActivityRunner.Viewer3D;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.IO;
 using Path = System.IO.Path;
-
-using Orts.Formats.Msts;
 
 namespace Orts.ContentChecker
 {
@@ -62,8 +60,8 @@ namespace Orts.ContentChecker
                 possiblePaths.Add(Path.Combine(basePath, "SOUND"));
             }
 
-            // Try to also load all sound files. This is tricky, beucase quit deep into the structure of a sms
-            foreach (var group in sms.Tr_SMS.ScalabiltyGroups)
+            // Try to also load all sound files. This is tricky, because quite deep into the structure of a sms
+            foreach (var group in sms.ScalabiltyGroups)
             {
                 if (group.Streams == null) { continue; }
                 foreach (var stream in group.Streams)

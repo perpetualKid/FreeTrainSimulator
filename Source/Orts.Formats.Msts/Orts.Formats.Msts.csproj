@@ -60,12 +60,12 @@
     <Compile Include="CabViewFile.cs" />
     <Compile Include="Models\Hazard.cs" />
     <Compile Include="Models\RoadTracks.cs" />
-    <Compile Include="Models\Shapes.cs" />
+    <Compile Include="Models\Shape.cs" />
     <Compile Include="Models\TimeTable.cs" />
     <Compile Include="Models\TrackType.cs" />
     <Compile Include="Models\CarSpawner.cs" />
     <Compile Include="Files\EngineFile.cs" />
-    <Compile Include="Models\EnvironmentLayers.cs" />
+    <Compile Include="Models\EnvironmentLayer.cs" />
     <Compile Include="Models\Sound.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Files\EnvironmentFile.cs" />

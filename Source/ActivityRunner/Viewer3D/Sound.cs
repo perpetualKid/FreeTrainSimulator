@@ -60,6 +60,61 @@ using Orts.Formats.Msts.Files;
 namespace Orts.ActivityRunner.Viewer3D
 {
 
+    /// <summary>
+    /// Utility class to avoid loading multiple copies of the same file.
+    /// </summary>
+    public class SharedSMSFileManager
+    {
+        private static Dictionary<string, SoundManagmentFile> sharedSMSFiles = new Dictionary<string, SoundManagmentFile>();
+
+        public static int SwitchSmsNumber { get; private set; }
+        public static int CurveSmsNumber { get; private set; }
+        public static int CurveSwitchSmsNumber { get; private set; }
+        public static bool AutoTrackSound { get; private set; }
+
+        public static SoundManagmentFile Get(string path)
+        {
+            if (!sharedSMSFiles.ContainsKey(path))
+            {
+                SoundManagmentFile smsFile = new SoundManagmentFile(path);
+                sharedSMSFiles.Add(path, smsFile);
+            }
+            return sharedSMSFiles[path];
+        }
+
+        public static void Initialize(int trackTypesNumber, int switchSmsNumber, int curveSmsNumber, int curveSwitchSmsNumber)
+        {
+            SwitchSmsNumber = switchSmsNumber;
+
+            if (SwitchSmsNumber < -1 || SwitchSmsNumber >= trackTypesNumber)
+            {
+                SwitchSmsNumber = -1;
+                Trace.TraceInformation("Switch SMS Number out of range");
+            }
+            if (SwitchSmsNumber != -1)
+                AutoTrackSound = true;
+
+            CurveSmsNumber = curveSmsNumber;
+            if (CurveSmsNumber < -1 || CurveSmsNumber >= trackTypesNumber)
+            {
+                CurveSmsNumber = -1;
+                Trace.TraceInformation("Curve SMS Number out of range");
+            }
+            if (CurveSmsNumber != -1)
+                AutoTrackSound = true;
+
+            CurveSwitchSmsNumber = curveSwitchSmsNumber;
+            if (CurveSwitchSmsNumber < -1 || CurveSwitchSmsNumber >= trackTypesNumber)
+            {
+                CurveSwitchSmsNumber = CurveSmsNumber;
+                Trace.TraceInformation("CurveSwitch SMS Number out of range, replaced with curve SMS number");
+            }
+            if (CurveSwitchSmsNumber != -1)
+                AutoTrackSound = true;
+
+        }
+    }
+
     /////////////////////////////////////////////////////////
     // SOUND SOURCE
     /////////////////////////////////////////////////////////
@@ -246,9 +301,9 @@ namespace Orts.ActivityRunner.Viewer3D
                             }
                         else
                             if (!SharedSMSFileManager.AutoTrackSound || (
-                                _curTType != SharedSMSFileManager.SwitchSMSNumber &&
-                                _curTType != SharedSMSFileManager.CurveSMSNumber &&
-                                _curTType != SharedSMSFileManager.CurveSwitchSMSNumber))
+                                _curTType != SharedSMSFileManager.SwitchSmsNumber &&
+                                _curTType != SharedSMSFileManager.CurveSmsNumber &&
+                                _curTType != SharedSMSFileManager.CurveSwitchSmsNumber))
                                 Car.TrackSoundType = _curTType;
                             else
                             {
@@ -429,18 +484,18 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (stateChange && (CarOnSwitch || CarOnCurve))
                     {
                         Car.TrackSoundLocation = Car.WorldPosition.WorldLocation;
-                        if (CarOnSwitch && CarOnCurve && SharedSMSFileManager.CurveSwitchSMSNumber != -1)
+                        if (CarOnSwitch && CarOnCurve && SharedSMSFileManager.CurveSwitchSmsNumber != -1)
                         {
-                            _curTType = SharedSMSFileManager.CurveSwitchSMSNumber;
+                            _curTType = SharedSMSFileManager.CurveSwitchSmsNumber;
                         }
-                        else if (CarOnCurve && SharedSMSFileManager.CurveSMSNumber != -1)
+                        else if (CarOnCurve && SharedSMSFileManager.CurveSmsNumber != -1)
                         {
-                            _curTType = SharedSMSFileManager.CurveSMSNumber;
+                            _curTType = SharedSMSFileManager.CurveSmsNumber;
                         }
-                        else if (CarOnSwitch && SharedSMSFileManager.SwitchSMSNumber != -1)
+                        else if (CarOnSwitch && SharedSMSFileManager.SwitchSmsNumber != -1)
                         // car on switch
                         {
-                            _curTType = SharedSMSFileManager.SwitchSMSNumber;
+                            _curTType = SharedSMSFileManager.SwitchSmsNumber;
                         }
                         else stateChange = false;
                     }
@@ -637,8 +692,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public string WavFolder;
         public string WavFileName;
         public bool Active;
-        private Orts.Formats.Msts.Activation ActivationConditions;
-        private Orts.Formats.Msts.Deactivation DeactivationConditions;
+        private SoundActivationCondition ActivationConditions;
+        private SoundActivationCondition DeactivationConditions;
         public bool IsEnvSound;
         public bool IsExternal = true;
         public bool Ignore3D;
@@ -683,20 +738,20 @@ namespace Orts.ActivityRunner.Viewer3D
 
             SMSFolder = Path.GetDirectoryName(smsFilePath);
             SMSFileName = Path.GetFileName(smsFilePath);
-            Orts.Formats.Msts.SoundManagmentFile smsFile = Orts.Formats.Msts.SharedSMSFileManager.Get(smsFilePath);
+            Orts.Formats.Msts.SoundManagmentFile smsFile = SharedSMSFileManager.Get(smsFilePath);
 
 
             // find correct ScalabiltyGroup
             int iSG = 0;
-            while ( iSG < smsFile.Tr_SMS.ScalabiltyGroups.Count)
+            while ( iSG < smsFile.ScalabiltyGroups.Count)
             {
-                if (smsFile.Tr_SMS.ScalabiltyGroups[iSG].DetailLevel <= Viewer.Settings.SoundDetailLevel)
+                if (smsFile.ScalabiltyGroups[iSG].DetailLevel <= Viewer.Settings.SoundDetailLevel)
                     break;
                 ++iSG;
             }
-            if (iSG < smsFile.Tr_SMS.ScalabiltyGroups.Count && smsFile.Tr_SMS.ScalabiltyGroups[iSG].Streams != null)  // else we want less sound so don't provide any
+            if (iSG < smsFile.ScalabiltyGroups.Count && smsFile.ScalabiltyGroups[iSG].Streams != null)  // else we want less sound so don't provide any
             {
-                Orts.Formats.Msts.ScalabiltyGroup mstsScalabiltyGroup = smsFile.Tr_SMS.ScalabiltyGroups[iSG];
+                ScalabiltyGroup mstsScalabiltyGroup = smsFile.ScalabiltyGroups[iSG];
 
                 ActivationConditions = mstsScalabiltyGroup.Activation;
                 DeactivationConditions = mstsScalabiltyGroup.Deactivation;
@@ -707,7 +762,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 SetRolloffFactor();
 
-                foreach (Orts.Formats.Msts.SMSStream mstsStream in mstsScalabiltyGroup.Streams)
+                foreach (SmsStream mstsStream in mstsScalabiltyGroup.Streams)
                 {
                     SoundStreams.Add(new SoundStream(mstsStream, eventSource, this, Viewer.Settings));
                 }
@@ -737,62 +792,22 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Viewer.Settings.SoundDetailLevel >= 3)
             {
                 // base initializations
-                ActivationConditions = new Orts.Formats.Msts.Activation();
-                DeactivationConditions = new Orts.Formats.Msts.Deactivation();
-                ActivationConditions.TrackType = -1;
-                DeactivationConditions.TrackType = -1;
-                ActivationConditions.Distance = 1000;
-                DeactivationConditions.Distance = 1000;
+                ActivationConditions = new SoundActivationCondition(ORTSActSoundFileType, ActivationType.Activate);
+                DeactivationConditions = new SoundActivationCondition(ORTSActSoundFileType, ActivationType.Deactivate);
                 switch (ORTSActSoundFileType)
                 {
                     case OrtsActivitySoundFileType.Everywhere:
-                        ActivationConditions.CabCam = true;
-                        ActivationConditions.ExternalCam = true;
-                        ActivationConditions.PassengerCam = true;
-                        DeactivationConditions.CabCam = false;
-                        DeactivationConditions.ExternalCam = false;
-                        DeactivationConditions.PassengerCam = false;
                         Ignore3D = true;
                         IsExternal = true;
                         break;
                     default:
                     case OrtsActivitySoundFileType.Cab:
-                        ActivationConditions.CabCam = true;
-                        ActivationConditions.ExternalCam = false;
-                        ActivationConditions.PassengerCam = false;
-                        DeactivationConditions.CabCam = false;
-                        DeactivationConditions.ExternalCam = true;
-                        DeactivationConditions.PassengerCam = true;
-                        Ignore3D = true;
-                        IsExternal = false;
-                        break;
                     case OrtsActivitySoundFileType.Pass:
-                        ActivationConditions.CabCam = false;
-                        ActivationConditions.ExternalCam = false;
-                        ActivationConditions.PassengerCam = true;
-                        DeactivationConditions.CabCam = true;
-                        DeactivationConditions.ExternalCam = true;
-                        DeactivationConditions.PassengerCam = false;
                         Ignore3D = true;
                         IsExternal = false;
                         break;
                     case OrtsActivitySoundFileType.Ground:
-                        ActivationConditions.CabCam = true;
-                        ActivationConditions.ExternalCam = true;
-                        ActivationConditions.PassengerCam = true;
-                        DeactivationConditions.CabCam = false;
-                        DeactivationConditions.ExternalCam = false;
-                        DeactivationConditions.PassengerCam = false;
-                        Ignore3D = false;
-                        IsExternal = true;
-                        break;
                     case OrtsActivitySoundFileType.Location:
-                        ActivationConditions.CabCam = true;
-                        ActivationConditions.ExternalCam = true;
-                        ActivationConditions.PassengerCam = true;
-                        DeactivationConditions.CabCam = false;
-                        DeactivationConditions.ExternalCam = false;
-                        DeactivationConditions.PassengerCam = false;
                         Ignore3D = false;
                         IsExternal = true;
                         break;
@@ -1065,7 +1080,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         /// <param name="conditions"></param>
         /// <returns></returns>
-        private bool ConditionsMet(Orts.Formats.Msts.Activation conditions)
+        private bool ConditionsMet(SoundActivationCondition conditions)
         {
             if (conditions == null)
                 return false;
@@ -1130,7 +1145,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// A stream as is represented in sms file
         /// </summary>
-        protected Orts.Formats.Msts.SMSStream MSTSStream;
+        protected SmsStream MSTSStream;
         /// <summary>
         /// Each stream can contain only one initial trigger, which should be audible
         /// in case the SoundSource is in scope, and no other variable trigger is active
@@ -1164,7 +1179,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         IEnumerable<ORTSTrigger> TriggersList;
 
-        public SoundStream(Orts.Formats.Msts.SMSStream mstsStream, Events.Source eventSource, SoundSource soundSource, UserSettings settings)
+        public SoundStream(SmsStream mstsStream, Events.Source eventSource, SoundSource soundSource, UserSettings settings)
         {
             SoundSource = soundSource;
             MSTSStream = mstsStream;
@@ -1174,8 +1189,8 @@ namespace Orts.ActivityRunner.Viewer3D
             // Insert lower RollOff for horns
             if (mstsStream.Triggers != null)
             {
-                foreach (Orts.Formats.Msts.Trigger trigger in mstsStream.Triggers)
-                    if (trigger.GetType() == typeof(Orts.Formats.Msts.Discrete_Trigger) && soundSource.Car != null && (trigger as Discrete_Trigger).TriggerID == 8)
+                foreach (Trigger trigger in mstsStream.Triggers)
+                    if (trigger is DiscreteTrigger && soundSource.Car != null && (trigger as DiscreteTrigger).TriggerId == 8)
                     {
                         rolloffFactor = SoundSource.HornRolloffFactor;
                         break;
@@ -1185,38 +1200,38 @@ namespace Orts.ActivityRunner.Viewer3D
             ALSoundSource = new ALSoundSource(soundSource.IsEnvSound, rolloffFactor);
 
             if (mstsStream.Triggers != null)
-                foreach (Orts.Formats.Msts.Trigger trigger in mstsStream.Triggers)
+                foreach (Trigger trigger in mstsStream.Triggers)
                 {
                     if (trigger.SoundCommand == null) // ignore improperly formed SMS files
                     {
                         Triggers.Add(new ORTSTrigger()); // null trigger
                     }
-                    else if (trigger.GetType() == typeof(Orts.Formats.Msts.Dist_Travelled_Trigger) && soundSource.Car != null)
+                    else if (trigger is DistanceTravelledTrigger && soundSource.Car != null)
                     {
-                        Triggers.Add(new ORTSDistanceTravelledTrigger(this, (Orts.Formats.Msts.Dist_Travelled_Trigger)trigger));
+                        Triggers.Add(new ORTSDistanceTravelledTrigger(this, (DistanceTravelledTrigger)trigger));
                     }
-                    else if (trigger.GetType() == typeof(Orts.Formats.Msts.Initial_Trigger))
+                    else if (trigger is InitialTrigger)
                     {
-                        _InitialTrigger = new ORTSInitialTrigger(this, (Orts.Formats.Msts.Initial_Trigger)trigger);
+                        _InitialTrigger = new ORTSInitialTrigger(this, (InitialTrigger)trigger);
                         Triggers.Add(_InitialTrigger);
                     }
-                    else if (trigger.GetType() == typeof(Orts.Formats.Msts.Random_Trigger))
+                    else if (trigger is RandomTrigger)
                     {
-                        Triggers.Add(new ORTSRandomTrigger(this, (Orts.Formats.Msts.Random_Trigger)trigger));
+                        Triggers.Add(new ORTSRandomTrigger(this, (RandomTrigger)trigger));
                     }
-                    else if (trigger.GetType() == typeof(Orts.Formats.Msts.Variable_Trigger) && (soundSource.Car != null || soundSource.IsEnvSound))
+                    else if (trigger is VariableTrigger && (soundSource.Car != null || soundSource.IsEnvSound))
                     {
-                        Triggers.Add(new ORTSVariableTrigger(this, (Orts.Formats.Msts.Variable_Trigger)trigger));
+                        Triggers.Add(new ORTSVariableTrigger(this, (VariableTrigger)trigger));
                     }
-                    else if (trigger.GetType() == typeof(Orts.Formats.Msts.Discrete_Trigger) && soundSource.Car != null)
+                    else if (trigger is DiscreteTrigger && soundSource.Car != null)
                     {
-                        ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, (Orts.Formats.Msts.Discrete_Trigger)trigger, settings);
+                        ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, (DiscreteTrigger)trigger, settings);
                         Triggers.Add(ortsTrigger);  // list them here so we can enable and disable 
                         SoundSource.Car.EventHandlers.Add(ortsTrigger);  // tell the simulator to call us when the event occurs
                     }
-                    else if (trigger.GetType() == typeof(Orts.Formats.Msts.Discrete_Trigger))
+                    else if (trigger is DiscreteTrigger)
                     {
-                        ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, (Orts.Formats.Msts.Discrete_Trigger)trigger, settings);
+                        ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, (DiscreteTrigger)trigger, settings);
                         Triggers.Add(ortsTrigger);  // list them here so we can enable and disable 
                     }
                         // unapplicable trigger type
@@ -1319,9 +1334,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     float x = 0;
                     if (SoundSource.Car != null)
-                        x = ReadValue(MSTSStream.FrequencyCurve.Control, SoundSource.Car);
+                        x = ReadValue(MSTSStream.FrequencyCurve.Mode, SoundSource.Car);
                     else if (SoundSource.Viewer.Camera.AttachedCar != null)
-                        x = ReadValue(MSTSStream.FrequencyCurve.Control, (MSTSWagon)SoundSource.Viewer.Camera.AttachedCar);
+                        x = ReadValue(MSTSStream.FrequencyCurve.Mode, (MSTSWagon)SoundSource.Viewer.Camera.AttachedCar);
                     float y = Interpolate(x, MSTSStream.FrequencyCurve);
                     if (SoundSource.MstsMonoTreatment && ALSoundSource.MstsMonoTreatment)
                         y *= 2;
@@ -1338,9 +1353,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     float x;
                     if (SoundSource.Car != null)
-                        x = ReadValue(MSTSStream.VolumeCurves[i].Control, SoundSource.Car);
+                        x = ReadValue(MSTSStream.VolumeCurves[i].Mode, SoundSource.Car);
                     else if (SoundSource.Viewer.Camera.AttachedCar != null)
-                        x = ReadValue(MSTSStream.VolumeCurves[i].Control, (MSTSWagon)SoundSource.Viewer.Camera.AttachedCar);
+                        x = ReadValue(MSTSStream.VolumeCurves[i].Mode, (MSTSWagon)SoundSource.Viewer.Camera.AttachedCar);
                     else
                         x = SoundSource.DistanceSquared;
 
@@ -1364,12 +1379,12 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="x"></param>
         /// <param name="Curve"></param>
         /// <returns></returns>
-        static float Interpolate(float x, Orts.Formats.Msts.VolumeCurve Curve)
+        static float Interpolate(float x, Curve Curve)
         {
             if (Curve.CurvePoints.Count() < 2)
                 return Curve.CurvePoints[0].Y;
 
-            Orts.Formats.Msts.CurvePoint[] curvePoints = Curve.CurvePoints;
+            CurvePoint[] curvePoints = Curve.CurvePoints;
 
             if (x < curvePoints[0].X)
                 return curvePoints[0].Y;
@@ -1397,17 +1412,17 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="control"></param>
         /// <param name="car"></param>
         /// <returns></returns>
-        private float ReadValue(Orts.Formats.Msts.VolumeCurve.Controls control, MSTSWagon car)
+        private float ReadValue(Curve.ControlMode control, MSTSWagon car)
         {
             switch (control)
             {
-                case Orts.Formats.Msts.VolumeCurve.Controls.DistanceControlled: return SoundSource.DistanceSquared;
-                case Orts.Formats.Msts.VolumeCurve.Controls.SpeedControlled: return car.AbsSpeedMpS;
-                case Orts.Formats.Msts.VolumeCurve.Controls.Variable1Controlled: return car.Variable1;
-                case Orts.Formats.Msts.VolumeCurve.Controls.Variable2Controlled: return car.Variable2;
-                case Orts.Formats.Msts.VolumeCurve.Controls.Variable3Controlled: return car.Variable3;
-                case Orts.Formats.Msts.VolumeCurve.Controls.BrakeCylControlled: return car.BrakeSystem.GetCylPressurePSI();
-                case Orts.Formats.Msts.VolumeCurve.Controls.CurveForceControlled: return car.CurveForceNFiltered;
+                case Curve.ControlMode.Distance: return SoundSource.DistanceSquared;
+                case Curve.ControlMode.Speed: return car.AbsSpeedMpS;
+                case Curve.ControlMode.Variable1: return car.Variable1;
+                case Curve.ControlMode.Variable2: return car.Variable2;
+                case Curve.ControlMode.Variable3: return car.Variable3;
+                case Curve.ControlMode.BrakeCylinder: return car.BrakeSystem.GetCylPressurePSI();
+                case Curve.ControlMode.CurveForce: return car.CurveForceNFiltered;
                 default: return 0;
             }
         }
@@ -1549,9 +1564,9 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private bool Triggered;
 
-        public ORTSDiscreteTrigger(SoundStream soundStream, Events.Source eventSound, Orts.Formats.Msts.Discrete_Trigger smsData, UserSettings settings)
+        public ORTSDiscreteTrigger(SoundStream soundStream, Events.Source eventSound, DiscreteTrigger smsData, UserSettings settings)
         {
-            TriggerID = Events.From(settings.MSTSBINSound, eventSound, smsData.TriggerID);
+            TriggerID = Events.From(settings.MSTSBINSound, eventSound, smsData.TriggerId);
             SoundCommand = ORTSSoundCommand.FromMSTS(smsData.SoundCommand, soundStream);
             SoundStream = soundStream;
         }
@@ -1620,12 +1635,12 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public sealed class ORTSDistanceTravelledTrigger : ORTSTrigger
     {
-        Orts.Formats.Msts.Dist_Travelled_Trigger SMS;
+        DistanceTravelledTrigger SMS;
         float triggerDistance;
         TrainCar car;
         SoundStream SoundStream;
 
-        public ORTSDistanceTravelledTrigger(SoundStream soundStream, Orts.Formats.Msts.Dist_Travelled_Trigger smsData)
+        public ORTSDistanceTravelledTrigger(SoundStream soundStream, DistanceTravelledTrigger smsData)
         {
             SoundStream = soundStream;
             car = soundStream.SoundSource.Car;
@@ -1648,7 +1663,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     SoundStream.RepeatedTrigger = this == SoundStream.LastTriggered;
                     SoundCommand.Run();
-                    float volume = (float)Viewer.Random.NextDouble() * (SMS.Volume_Max - SMS.Volume_Min) + SMS.Volume_Min;
+                    float volume = (float)Viewer.Random.NextDouble() * (SMS.MaximumVolume - SMS.MinimumVolume) + SMS.MinimumVolume;
                     SoundStream.Volume = volume;
                     SoundStream.LastTriggered = this;
                 }
@@ -1669,13 +1684,13 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private void UpdateTriggerDistance()
         {
-            if (SMS.Dist_Max != SMS.Dist_Min)
+            if (SMS.MaximumDistance != SMS.MinimumDistance)
             {
-                triggerDistance = car.DistanceM + ((float)Viewer.Random.NextDouble() * (SMS.Dist_Max - SMS.Dist_Min) + SMS.Dist_Min);
+                triggerDistance = car.DistanceM + ((float)Viewer.Random.NextDouble() * (SMS.MaximumDistance - SMS.MinimumDistance) + SMS.MinimumDistance);
             }
             else
             {
-                triggerDistance = car.DistanceM + ((float)Viewer.Random.NextDouble() * (SMS.Dist_Min) + SMS.Dist_Min);
+                triggerDistance = car.DistanceM + ((float)Viewer.Random.NextDouble() * (SMS.MinimumDistance) + SMS.MinimumDistance);
             }
         }
 
@@ -1688,7 +1703,7 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         private SoundStream SoundStream;
 
-        public ORTSInitialTrigger(SoundStream soundStream, Orts.Formats.Msts.Initial_Trigger smsData)
+        public ORTSInitialTrigger(SoundStream soundStream, InitialTrigger smsData)
         {
             SoundCommand = ORTSSoundCommand.FromMSTS(smsData.SoundCommand, soundStream);
             SoundStream = soundStream;
@@ -1725,11 +1740,11 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class ORTSRandomTrigger : ORTSTrigger
     {
         Simulator Simulator;
-        Orts.Formats.Msts.Random_Trigger SMS;
+        RandomTrigger SMS;
         double triggerAtSeconds;
         SoundStream SoundStream;
 
-        public ORTSRandomTrigger(SoundStream soundStream, Orts.Formats.Msts.Random_Trigger smsData)
+        public ORTSRandomTrigger(SoundStream soundStream, RandomTrigger smsData)
         {
             SoundStream = soundStream;
             SMS = smsData;
@@ -1752,7 +1767,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     SoundStream.RepeatedTrigger = this == SoundStream.LastTriggered;
                     SoundCommand.Run();
-                    float volume = (float)Viewer.Random.NextDouble() * (SMS.Volume_Max - SMS.Volume_Min) + SMS.Volume_Min;
+                    float volume = (float)Viewer.Random.NextDouble() * (SMS.MaximumVolume - SMS.MinimumVolume) + SMS.MinimumVolume;
                     SoundStream.Volume = volume;
                     SoundStream.LastTriggered = this;
                 }
@@ -1769,7 +1784,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private void UpdateTriggerAtSeconds()
         {
-            double interval = Viewer.Random.NextDouble() * (SMS.Delay_Max - SMS.Delay_Min) + SMS.Delay_Min;
+            double interval = Viewer.Random.NextDouble() * (SMS.MaximumDelay - SMS.MinimumDelay) + SMS.MinimumDelay;
             triggerAtSeconds = Simulator.ClockTime + interval;
         }
 
@@ -1780,14 +1795,14 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public sealed class ORTSVariableTrigger : ORTSTrigger
     {
-        Orts.Formats.Msts.Variable_Trigger SMS;
+        VariableTrigger SMS;
         MSTSWagon car;
         SoundStream SoundStream;
 
         float StartValue;
         public bool IsBellow;
 
-        public ORTSVariableTrigger(SoundStream soundStream, Orts.Formats.Msts.Variable_Trigger smsData)
+        public ORTSVariableTrigger(SoundStream soundStream, VariableTrigger smsData)
         {
             SMS = smsData;
             car = soundStream.SoundSource.Car != null ? soundStream.SoundSource.Car : (MSTSWagon)soundStream.SoundSource.Viewer.Camera.AttachedCar;
@@ -1798,7 +1813,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void  Initialize()
         {
-            StartValue = SMS.Event == Orts.Formats.Msts.Variable_Trigger.Events.Distance_Dec_Past ? float.MaxValue : 0;
+            StartValue = SMS.Event == VariableTrigger.TriggerEvent.DistanceDecrease ? float.MaxValue : 0;
 
             /*if ((new Variable_Trigger.Events[] { Variable_Trigger.Events.Variable1_Dec_Past,
                 Variable_Trigger.Events.Variable1_Inc_Past, Variable_Trigger.Events.Variable2_Dec_Past, 
@@ -1818,13 +1833,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
             switch (SMS.Event)
             {
-                case Orts.Formats.Msts.Variable_Trigger.Events.Distance_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Speed_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable1_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable2_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable3_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.BrakeCyl_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.CurveForce_Dec_Past:
+                case VariableTrigger.TriggerEvent.DistanceDecrease:
+                case VariableTrigger.TriggerEvent.SpeedDecrease:
+                case VariableTrigger.TriggerEvent.Variable1Decrease:
+                case VariableTrigger.TriggerEvent.Variable2Decrease:
+                case VariableTrigger.TriggerEvent.Variable3Decrease:
+                case VariableTrigger.TriggerEvent.BrakeCylinderDecrease:
+                case VariableTrigger.TriggerEvent.CurveForceDecrease:
                     if (newValue < SMS.Threshold)
                     {
                         Signaled = true;
@@ -1832,13 +1847,13 @@ namespace Orts.ActivityRunner.Viewer3D
                             triggered = true;
                     }
                     break;
-                case Orts.Formats.Msts.Variable_Trigger.Events.Distance_Inc_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Speed_Inc_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable1_Inc_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable2_Inc_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable3_Inc_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.BrakeCyl_Inc_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.CurveForce_Inc_Past:
+                case VariableTrigger.TriggerEvent.DistanceIncrease:
+                case VariableTrigger.TriggerEvent.SpeedIncrease:
+                case VariableTrigger.TriggerEvent.Variable1Increase:
+                case VariableTrigger.TriggerEvent.Variable2Increase:
+                case VariableTrigger.TriggerEvent.Variable3Increase:
+                case VariableTrigger.TriggerEvent.BrakeCylinderIncrease:
+                case VariableTrigger.TriggerEvent.CurveForceIncrease:
                     if (newValue > SMS.Threshold)
                     {
                         Signaled = true;
@@ -1892,26 +1907,26 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             switch (SMS.Event)
             {
-                case Orts.Formats.Msts.Variable_Trigger.Events.Distance_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Distance_Inc_Past:
+                case VariableTrigger.TriggerEvent.DistanceDecrease:
+                case VariableTrigger.TriggerEvent.DistanceIncrease:
                     return SoundStream.SoundSource.DistanceSquared;
-                case Orts.Formats.Msts.Variable_Trigger.Events.Speed_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Speed_Inc_Past:
+                case VariableTrigger.TriggerEvent.SpeedDecrease:
+                case VariableTrigger.TriggerEvent.SpeedIncrease:
                     return car.AbsSpeedMpS;
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable1_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable1_Inc_Past:
+                case VariableTrigger.TriggerEvent.Variable1Decrease:
+                case VariableTrigger.TriggerEvent.Variable1Increase:
                     return car.Variable1;
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable2_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable2_Inc_Past:
+                case VariableTrigger.TriggerEvent.Variable2Decrease:
+                case VariableTrigger.TriggerEvent.Variable2Increase:
                     return car.Variable2;
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable3_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.Variable3_Inc_Past:
+                case VariableTrigger.TriggerEvent.Variable3Decrease:
+                case VariableTrigger.TriggerEvent.Variable3Increase:
                     return car.Variable3;
-                case Orts.Formats.Msts.Variable_Trigger.Events.BrakeCyl_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.BrakeCyl_Inc_Past:
+                case VariableTrigger.TriggerEvent.BrakeCylinderDecrease:
+                case VariableTrigger.TriggerEvent.BrakeCylinderIncrease:
                     return car.BrakeSystem.GetCylPressurePSI();
-                case Orts.Formats.Msts.Variable_Trigger.Events.CurveForce_Dec_Past:
-                case Orts.Formats.Msts.Variable_Trigger.Events.CurveForce_Inc_Past:
+                case VariableTrigger.TriggerEvent.CurveForceDecrease:
+                case VariableTrigger.TriggerEvent.CurveForceIncrease:
                     return car.CurveForceNFiltered;
                 default:
                     return 0;
@@ -1931,7 +1946,7 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public class ORTSPlayOneShot : ORTSSoundPlayCommand
     {
-        public ORTSPlayOneShot(SoundStream ortsStream, Orts.Formats.Msts.SoundPlayCommand mstsSoundPlayCommand)
+        public ORTSPlayOneShot(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
             : base(ortsStream, mstsSoundPlayCommand)
         {
         }
@@ -1957,7 +1972,7 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public class ORTSStartLoop : ORTSSoundPlayCommand
     {
-        public ORTSStartLoop( SoundStream ortsStream, Orts.Formats.Msts.SoundPlayCommand mstsSoundPlayCommand )
+        public ORTSStartLoop( SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand )
             : base( ortsStream, mstsSoundPlayCommand )
         {
         }
@@ -1995,7 +2010,7 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public class ORTSStartLoopRelease : ORTSSoundPlayCommand
     {
-        public ORTSStartLoopRelease(SoundStream ortsStream, Orts.Formats.Msts.PlayOneShot mstsStartLoopRelease)
+        public ORTSStartLoopRelease(SoundStream ortsStream, SoundPlayCommand mstsStartLoopRelease)
             : base(ortsStream, mstsStartLoopRelease)
         {
         }
@@ -2036,10 +2051,10 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         int TriggerIndex;  // index into the stream's trigger list 
 
-        public ORTSDisableTrigger(SoundStream ortsStream, Orts.Formats.Msts.DisableTrigger smsData )
+        public ORTSDisableTrigger(SoundStream ortsStream, TriggerCommand smsData )
             : base(ortsStream)
         {
-            TriggerIndex = smsData.TriggerID - 1;
+            TriggerIndex = smsData.TriggerId - 1;
         }
 
         public override void Run()
@@ -2056,10 +2071,10 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         int TriggerIndex;
 
-        public ORTSEnableTrigger(SoundStream ortsStream, Orts.Formats.Msts.DisableTrigger smsData)
+        public ORTSEnableTrigger(SoundStream ortsStream, TriggerCommand smsData)
             : base(ortsStream)
         {
-            TriggerIndex = smsData.TriggerID - 1;
+            TriggerIndex = smsData.TriggerId - 1;
         }
 
         public override void Run()
@@ -2076,7 +2091,7 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         float Volume;
 
-        public ORTSSetStreamVolume(SoundStream ortsStream, Orts.Formats.Msts.SetStreamVolume smsData)
+        public ORTSSetStreamVolume(SoundStream ortsStream, StreamVolumeCommand smsData)
             : base(ortsStream)
         {
             Volume = smsData.Volume;
@@ -2130,43 +2145,47 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="mstsSoundCommand"></param>
         /// <param name="soundStream"></param>
         /// <returns></returns>
-        public static ORTSSoundCommand FromMSTS(Orts.Formats.Msts.SoundCommand mstsSoundCommand, SoundStream soundStream)
+        public static ORTSSoundCommand FromMSTS(SoundCommand mstsSoundCommand, SoundStream soundStream)
         {
             if (mstsSoundCommand == null)
             {
                 return new ORTSNoOp();
             }
-            else if (mstsSoundCommand.GetType() == typeof(Orts.Formats.Msts.PlayOneShot))
+            else if (mstsSoundCommand is SoundPlayCommand playCommand)
             {
-                return new ORTSPlayOneShot(soundStream, (Orts.Formats.Msts.PlayOneShot)mstsSoundCommand);
+                switch (playCommand.CommandType)
+                {
+                    case SoundPlayCommand.SoundCommandType.PlayOneShot:
+                        return new ORTSPlayOneShot(soundStream, playCommand);
+                    case SoundPlayCommand.SoundCommandType.StartLoop:
+                        return new ORTSStartLoop(soundStream, playCommand);
+                    case SoundPlayCommand.SoundCommandType.StartLoopRelease:
+                        return new ORTSStartLoopRelease(soundStream, playCommand);
+                }
             }
-            else if (mstsSoundCommand.GetType() == typeof(Orts.Formats.Msts.StartLoop))
+            else if (mstsSoundCommand is LoopRelease releaseCommand)
             {
-                return new ORTSStartLoop(soundStream, (Orts.Formats.Msts.StartLoop)mstsSoundCommand);
+                switch (releaseCommand.ReleaseMode)
+                {
+                    case LoopRelease.ReleaseType.Release:
+                        return new ORTSReleaseLoopRelease(soundStream);
+                    case LoopRelease.ReleaseType.ReleaseWithJump:
+                        return new ORTSReleaseLoopReleaseWithJump(soundStream);
+                }
             }
-            else if (mstsSoundCommand.GetType() == typeof(Orts.Formats.Msts.StartLoopRelease))
+            else if (mstsSoundCommand is StreamVolumeCommand)
             {
-                return new ORTSStartLoopRelease(soundStream, (Orts.Formats.Msts.StartLoopRelease)mstsSoundCommand);
+                return new ORTSSetStreamVolume(soundStream, (StreamVolumeCommand)mstsSoundCommand);
             }
-            else if (mstsSoundCommand.GetType() == typeof(Orts.Formats.Msts.ReleaseLoopRelease))
+            else if (mstsSoundCommand is TriggerCommand triggerCommand)
             {
-                return new ORTSReleaseLoopRelease(soundStream);
-            }
-            else if (mstsSoundCommand.GetType() == typeof(Orts.Formats.Msts.ReleaseLoopReleaseWithJump))
-            {
-                return new ORTSReleaseLoopReleaseWithJump(soundStream);
-            }
-            else if (mstsSoundCommand.GetType() == typeof(Orts.Formats.Msts.SetStreamVolume))
-            {
-                return new ORTSSetStreamVolume(soundStream, (Orts.Formats.Msts.SetStreamVolume)mstsSoundCommand);
-            }
-            else if (mstsSoundCommand.GetType() == typeof(Orts.Formats.Msts.DisableTrigger))
-            {
-                return new ORTSDisableTrigger(soundStream, (Orts.Formats.Msts.DisableTrigger)mstsSoundCommand);
-            }
-            else if (mstsSoundCommand.GetType() == typeof(Orts.Formats.Msts.EnableTrigger))
-            {
-                return new ORTSEnableTrigger(soundStream, (Orts.Formats.Msts.EnableTrigger)mstsSoundCommand);
+                switch (triggerCommand.Trigger)
+                {
+                    case TriggerCommand.TriggerType.Disable:
+                        return new ORTSDisableTrigger(soundStream, triggerCommand);
+                    case TriggerCommand.TriggerType.Enable:
+                        return new ORTSEnableTrigger(soundStream, triggerCommand);
+                }
             }
             throw new ArgumentException("Unexpected soundCommand type " + mstsSoundCommand.GetType().ToString() + " in " + soundStream.SoundSource.SMSFolder, "mstsSoundCommand");
         }
@@ -2200,13 +2219,13 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// How to select from available files
         /// </summary>
-        protected Orts.Formats.Msts.SoundCommand.SelectionMethods SelectionMethod;
+        protected SoundPlayCommand.Selection SelectionMethod;
         /// <summary>
         /// Index of the file to play inside <see cref="Files"/> vector
         /// </summary>
         public int iFile;
 
-        public ORTSSoundPlayCommand(SoundStream ortsStream, Orts.Formats.Msts.SoundPlayCommand mstsSoundPlayCommand)
+        public ORTSSoundPlayCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
             : base(ortsStream)
         {
             Files = mstsSoundPlayCommand.Files;
@@ -2219,7 +2238,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Files = new String[1];
             Files[0] = wavFileName;
-            SelectionMethod = Orts.Formats.Msts.SoundCommand.SelectionMethods.SequentialSelection;
+            SelectionMethod = SoundPlayCommand.Selection.Sequential;
         }
 
         /// <summary>
@@ -2228,13 +2247,13 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <returns>File name with full path </returns>
         protected string GetNextFile()
         {
-            if (SelectionMethod == Orts.Formats.Msts.SoundCommand.SelectionMethods.SequentialSelection)
+            if (SelectionMethod == SoundPlayCommand.Selection.Sequential)
             {
                 ++iFile;
                 if (iFile >= Files.Length)
                     iFile = 0;
             }
-            else if (SelectionMethod == Orts.Formats.Msts.SoundCommand.SelectionMethods.RandomSelection)
+            else if (SelectionMethod == SoundPlayCommand.Selection.Random)
             {
                 iFile = Viewer.Random.Next(Files.Length);
             }

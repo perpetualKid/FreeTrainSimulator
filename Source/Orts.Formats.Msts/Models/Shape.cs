@@ -5,7 +5,7 @@ using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
-    public class SDShape
+    public class ShapeDescriptor
     {
         public string Name { get; private set; }
         public int EsdDetailLevel { get; private set; }
@@ -17,12 +17,12 @@ namespace Orts.Formats.Msts.Models
         public string EsdSoundFileName { get; private set; } = string.Empty;
         public float EsdBellAnimationFps { get; private set; } = 8;
 
-        public SDShape()
+        public ShapeDescriptor()
         {
             EsdBoundingBox = new EsdBoundingBox();
         }
 
-        public SDShape(STFReader stf)
+        public ShapeDescriptor(STFReader stf)
         {
             Name = stf.ReadString(); // Ignore the filename string. TODO: Check if it agrees with the SD file name? Is this important?
             stf.ParseBlock(new STFReader.TokenProcessor[] {

@@ -22,11 +22,11 @@ namespace Orts.Formats.Msts.Files
 {
     public class ShapeDescriptorFile
     {
-        public SDShape Shape { get; private set; }
+        public ShapeDescriptor Shape { get; private set; }
 
         public ShapeDescriptorFile()  // use for files with no SD file
         {
-            Shape = new SDShape();
+            Shape = new ShapeDescriptor();
         }
 
         public ShapeDescriptorFile(string fileName)
@@ -34,7 +34,7 @@ namespace Orts.Formats.Msts.Files
             using (STFReader stf = new STFReader(fileName, false))
             {
                 stf.ParseFile(new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("shape", ()=>{ Shape = new SDShape(stf); }),
+                    new STFReader.TokenProcessor("shape", ()=>{ Shape = new ShapeDescriptor(stf); }),
                 });
                 //TODO This should be changed to STFException.TraceError() with defaults values created
                 if (Shape == null)
