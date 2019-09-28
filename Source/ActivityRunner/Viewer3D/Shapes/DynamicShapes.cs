@@ -195,7 +195,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             : base(path, positionSource, ShapeFlags.AutoZBias)
         {
             this.trackJunctionNode = trackJunctionNode;
-            mainRoute = viewer.Simulator.TSectionDat.TrackShapes.Get(trackJunctionNode.ShapeIndex).MainRoute;
+            mainRoute = viewer.Simulator.TSectionDat.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute;
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)

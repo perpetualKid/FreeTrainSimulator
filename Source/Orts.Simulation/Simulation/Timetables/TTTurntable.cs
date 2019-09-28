@@ -29,6 +29,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -781,17 +782,15 @@ namespace Orts.Simulation.Timetables
 
                 if (Simulatorref.TSectionDat.TrackSections.ContainsKey(thisVector.SectionIndex))
                 {
-                    Orts.Formats.Msts.TrackSection TS = Simulatorref.TSectionDat.TrackSections[thisVector.SectionIndex];
+                    TrackSection TS = Simulatorref.TSectionDat.TrackSections[thisVector.SectionIndex];
 
-                    if (TS.SectionCurve != null)
+                    if (TS.Curved)
                     {
-                        thisLength =
-                                MathHelper.ToRadians(Math.Abs(TS.SectionCurve.Angle)) *
-                                TS.SectionCurve.Radius;
+                        thisLength = MathHelper.ToRadians(Math.Abs(TS.Angle)) * TS.Radius;
                     }
                     else
                     {
-                        thisLength = TS.SectionSize.Length;
+                        thisLength = TS.Length;
                     }
                 }
 

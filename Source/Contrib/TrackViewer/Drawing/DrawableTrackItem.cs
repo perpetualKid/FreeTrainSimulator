@@ -15,15 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Orts.Formats.Msts;
 using Orts.Common;
-using ORTS.TrackViewer.Properties;
-using Orts.Simulation;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Simulation;
+using System;
 
 namespace ORTS.TrackViewer.Drawing
 {

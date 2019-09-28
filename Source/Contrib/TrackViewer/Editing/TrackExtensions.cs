@@ -15,11 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -62,7 +60,7 @@ namespace ORTS.TrackViewer.Editing
                 uint trackShapeIndex = tn.TrJunctionNode.ShapeIndex;
                 try
                 {
-                    TrackShape trackShape = tsectionDat.TrackShapes.Get(trackShapeIndex);
+                    TrackShape trackShape = tsectionDat.TrackShapes[trackShapeIndex];
                     mainRoute = trackShape.MainRoute;
                 }
                 catch (System.IO.InvalidDataException exception)

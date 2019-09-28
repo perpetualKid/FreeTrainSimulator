@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using Orts.Common.Xna;
 using System.Collections;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -196,7 +197,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             try
                             {
-                                var trackShape = Viewer.Simulator.TSectionDat.TrackShapes.Get((uint)section.ShapeIndex);
+                                var trackShape = Viewer.Simulator.TSectionDat.TrackShapes[section.ShapeIndex];
                                 if (trackShape != null && trackShape.TunnelShape)
                                 {
                                     xnaTreePosition.Y = tiles.LoadAndGetElevation(position.TileX, position.TileZ, xnaTreePosition.X, -xnaTreePosition.Z, false);
@@ -281,7 +282,7 @@ namespace Orts.ActivityRunner.Viewer3D
             trackSection = Viewer.Simulator.TSectionDat.TrackSections.Get(section.SectionIndex);
             if (trackSection == null)
                 return false;
-            if (trackSection.SectionCurve != null)
+            if (trackSection.Curved)
             {
                 return InitTrackSectionCurved(tileX, tileZ, xnaTreePosition.X, -xnaTreePosition.Z, section, treeWidth);
             }
@@ -330,7 +331,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Do a preliminary cull based on a bounding square around the track section.
             // Bounding distance is (radius * angle + error) by (radius * angle + error) around starting coordinates but no more than 2 for angle.
-            var boundingDistance = trackSection.SectionCurve.Radius * Math.Min(Math.Abs(MathHelper.ToRadians(trackSection.SectionCurve.Angle)), 2) + MaximumCenterlineOffset+treeWidth;
+            var boundingDistance = trackSection.Radius * Math.Min(Math.Abs(MathHelper.ToRadians(trackSection.Angle)), 2) + MaximumCenterlineOffset+treeWidth;
             var dx = Math.Abs(x - sx);
             var dz = Math.Abs(z - sz);
             if (dx > boundingDistance || dz > boundingDistance)
@@ -340,20 +341,20 @@ namespace Orts.ActivityRunner.Viewer3D
             x -= sx;
             z -= sz;
             MstsUtility.Rotate2D(trackVectorSection.AY, ref x, ref z);
-            if (trackSection.SectionCurve.Angle < 0)
+            if (trackSection.Angle < 0)
                 x *= -1;
 
             // Compute distance to curve's center at (radius,0) then adjust to get distance from centerline.
-            dx = x - trackSection.SectionCurve.Radius;
-            var lat = Math.Sqrt(dx * dx + z * z) - trackSection.SectionCurve.Radius;
+            dx = x - trackSection.Radius;
+            var lat = Math.Sqrt(dx * dx + z * z) - trackSection.Radius;
             if (Math.Abs(lat) > MaximumCenterlineOffset + treeWidth)
                 return false;
 
             // Compute distance along curve (ensure we are in the top right quadrant, otherwise our math goes wrong).
-            if (z < -InitErrorMargin || x > trackSection.SectionCurve.Radius + InitErrorMargin || z > trackSection.SectionCurve.Radius + InitErrorMargin)
+            if (z < -InitErrorMargin || x > trackSection.Radius + InitErrorMargin || z > trackSection.Radius + InitErrorMargin)
                 return false;
-            var radiansAlongCurve = (float)Math.Asin(z / trackSection.SectionCurve.Radius);
-            var lon = radiansAlongCurve * trackSection.SectionCurve.Radius;
+            var radiansAlongCurve = (float)Math.Asin(z / trackSection.Radius);
+            var lon = radiansAlongCurve * trackSection.Radius;
             var trackSectionLength = GetLength(trackSection);
             if (lon < -InitErrorMargin || lon > trackSectionLength + InitErrorMargin)
                 return false;
@@ -371,7 +372,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Do a preliminary cull based on a bounding square around the track section.
             // Bounding distance is (length + error) by (length + error) around starting coordinates.
-            var boundingDistance = trackSection.SectionSize.Length + MaximumCenterlineOffset + treeWidth;
+            var boundingDistance = trackSection.Length + MaximumCenterlineOffset + treeWidth;
             var dx = Math.Abs(x - sx);
             var dz = Math.Abs(z - sz);
             if (dx > boundingDistance || dz > boundingDistance)
@@ -391,7 +392,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         static float GetLength(TrackSection trackSection)
         {
-            return trackSection.SectionCurve != null ? trackSection.SectionCurve.Radius * Math.Abs(MathHelper.ToRadians(trackSection.SectionCurve.Angle)) : trackSection.SectionSize.Length;
+            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
         }
 
         public override void Draw()

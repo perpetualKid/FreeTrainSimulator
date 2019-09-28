@@ -429,15 +429,15 @@ namespace Orts.Simulation
 
         protected void InitializeAnglesAndTrackNodes()
         {
-            var trackShape = Simulator.TSectionDat.TrackShapes.Get((uint)TrackShapeIndex);
-            var nSections = Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIdxs[0].NoSections;
-            MyTrackNodesIndex = new int[Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIdxs.Length];
+            var trackShape = Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
+            var nSections = Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices[0].SectionsCount;
+            MyTrackNodesIndex = new int[Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices.Length];
             MyTrackNodesOrientation = new bool[MyTrackNodesIndex.Length];
             MyTrVectorSectionsIndex = new int[MyTrackNodesIndex.Length];
             var iMyTrackNodes = 0;
-            foreach (var sectionIdx in trackShape.SectionIdxs)
+            foreach (var sectionIdx in trackShape.SectionIndices)
             {
-                Angles.Add(MathHelper.ToRadians((float)sectionIdx.A));
+                Angles.Add(MathHelper.ToRadians((float)sectionIdx.AngularOffset));
                 MyTrackNodesIndex[iMyTrackNodes] = -1;
                 MyTrVectorSectionsIndex[iMyTrackNodes] = -1;
                 iMyTrackNodes++;

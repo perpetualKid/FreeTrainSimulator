@@ -21,6 +21,16 @@
 //    Richard Plokhaar / Signalsoft Rail Consultancy Ltd.
 // 
 
+using GNU.Gettext.WinForms;
+using Microsoft.Xna.Framework;
+using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation;
+using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
+using Orts.Simulation.Signalling;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -28,18 +38,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Windows.Forms;
-using GNU.Gettext.WinForms;
-using Microsoft.Xna.Framework;
-using Orts.Formats.Msts;
-using Orts.Simulation;
-using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
-using Orts.Simulation.Signalling;
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Color = System.Drawing.Color;
 using Control = System.Windows.Forms.Control;
 using Image = System.Drawing.Image;
-using Orts.Common;
 
 namespace Orts.ActivityRunner.Viewer3D.Debugging
 {
@@ -2184,7 +2185,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	   public SwitchWidget(TrackNode item)
 	   {
 		   Item = item;
-		   var TS = Program.Simulator.TSectionDat.TrackShapes.Get(item.TrJunctionNode.ShapeIndex);  // TSECTION.DAT tells us which is the main route
+		   var TS = Program.Simulator.TSectionDat.TrackShapes[item.TrJunctionNode.ShapeIndex];  // TSECTION.DAT tells us which is the main route
 
 		   if (TS != null) { main = TS.MainRoute;}
 		   else main = 0;
@@ -2299,16 +2300,16 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		   TrackSection ts = Program.Simulator.TSectionDat.TrackSections.Get(k);
 		   if (ts != null)
 		   {
-			   if (ts.SectionCurve != null)
+			   if (ts.Curved)
 			   {
-				   float diff = (float) (ts.SectionCurve.Radius * (1 - Math.Cos(ts.SectionCurve.Angle * 3.14f / 360)));
+				   float diff = (float) (ts.Radius * (1 - Math.Cos(ts.Angle * 3.14f / 360)));
 				   if (diff < 3) return; //not need to worry, curve too small
 				   //curve = ts.SectionCurve;
 				   Vector3 v = new Vector3((float)((B.TileX-A.TileX)*2048 + B.X - A.X), 0, (float)((B.TileZ - A.TileZ)*2048 + B.Z - A.Z));
 				   isCurved = true;
 				   Vector3 v2 = Vector3.Cross(Vector3.Up, v); v2.Normalize();
                    v = v / 2; v.X += A.TileX * 2048 + (float)A.X; v.Z += A.TileZ * 2048 + (float)A.Z;
-				   if (ts.SectionCurve.Angle > 0)
+				   if (ts.Angle > 0)
 				   {
 					   v = v2*-diff + v;
 				   }

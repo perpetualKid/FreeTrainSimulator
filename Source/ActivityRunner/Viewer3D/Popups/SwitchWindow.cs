@@ -134,7 +134,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             var switchPreviousNodeID = Owner.Viewer.Simulator.TDB.TrackDB.TrackNodesIndexOf(SwitchPreviousNode);
             var switchBranchesAwayFromUs = SwitchNode.TrPins[0].Link == switchPreviousNodeID;
-            var switchTrackSection = Owner.Viewer.Simulator.TSectionDat.TrackShapes.Get(SwitchNode.TrJunctionNode.ShapeIndex);  // TSECTION.DAT tells us which is the main route
+            var switchTrackSection = Owner.Viewer.Simulator.TSectionDat.TrackShapes[SwitchNode.TrJunctionNode.ShapeIndex];  // TSECTION.DAT tells us which is the main route
             var switchMainRouteIsLeft = SwitchNode.TrJunctionNode.GetAngle(Owner.Viewer.Simulator.TSectionDat) > 0;  // align the switch
 
             image.Source.X = ((switchBranchesAwayFromUs == front ? 1 : 3) + (switchMainRouteIsLeft ? 1 : 0)) * SwitchImageSize;

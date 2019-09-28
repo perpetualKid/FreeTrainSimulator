@@ -52,6 +52,7 @@
     <Compile Include="Models\Route.cs" />
     <Compile Include="Models\Terrain.cs" />
     <Compile Include="Models\Time.cs" />
+    <Compile Include="Models\Track.cs" />
     <Compile Include="Models\Traffic.cs" />
     <Compile Include="Models\TrainCar.cs" />
     <Compile Include="Files\CameraConfigurationFile.cs" />
@@ -90,14 +91,14 @@
     <Compile Include="Files\ShapeFile.cs" />
     <Compile Include="SignalConfigurationFile.cs" />
     <Compile Include="Files\SpeedpostDatFile.cs" />
-    <Compile Include="SoundManagmentFile.cs" />
+    <Compile Include="Files\SoundManagmentFile.cs" />
     <Compile Include="Files\ServiceFile.cs" />
     <Compile Include="TileHelper.cs" />
     <Compile Include="TrackDatabaseFile.cs" />
     <Compile Include="Files\TerrainFile.cs" />
     <Compile Include="Files\TrafficFile.cs" />
     <Compile Include="Files\RouteFile.cs" />
-    <Compile Include="TrackSectionsFile.cs" />
+    <Compile Include="Files\TrackSectionsFile.cs" />
     <Compile Include="Files\TrackTypesFile.cs" />
     <Compile Include="Files\WagonFile.cs" />
     <Compile Include="WorldFile.cs" />

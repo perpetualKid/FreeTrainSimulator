@@ -738,7 +738,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             SMSFolder = Path.GetDirectoryName(smsFilePath);
             SMSFileName = Path.GetFileName(smsFilePath);
-            Orts.Formats.Msts.SoundManagmentFile smsFile = SharedSMSFileManager.Get(smsFilePath);
+            SoundManagmentFile smsFile = SharedSMSFileManager.Get(smsFilePath);
 
 
             // find correct ScalabiltyGroup

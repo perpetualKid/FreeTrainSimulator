@@ -15,15 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Microsoft.Xna.Framework;
+using Orts.Common;
+using Orts.Common.Calc;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts.Parsers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Xna.Framework;
-using Orts.Common;
-using Orts.Common.Calc;
-using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts
 {
@@ -497,8 +498,8 @@ namespace Orts.Formats.Msts
             AngleComputed = true;
             try //so many things can be in conflict for trackshapes, tracksections etc.
             {
-                TrackShape trackShape = tsectionDat.TrackShapes.Get(ShapeIndex);
-                SectionIdx[] SectionIdxs = trackShape.SectionIdxs;
+                TrackShape trackShape = tsectionDat.TrackShapes[ShapeIndex];
+                SectionIndex[] SectionIdxs = trackShape.SectionIndices;
 
                 for (int index = 0; index <= SectionIdxs.Length-1 ; index++)
                 {
@@ -510,9 +511,9 @@ namespace Orts.Formats.Msts
                         uint sid = SectionIdxs[index].TrackSections[i];
                         TrackSection section = tsectionDat.TrackSections[sid];
 
-                        if (section.SectionCurve != null)
+                        if (section.Curved)
                         {
-                            angle = section.SectionCurve.Angle;
+                            angle = section.Angle;
                             break;
                         }
                     }

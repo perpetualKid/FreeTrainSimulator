@@ -16,7 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using Orts.ActivityRunner.Viewer3D;
-using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using System.Collections.Generic;
 using System.Diagnostics;

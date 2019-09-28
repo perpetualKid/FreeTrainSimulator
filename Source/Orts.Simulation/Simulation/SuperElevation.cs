@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Orts.Common.Calc;
+using Microsoft.Xna.Framework;
 
 namespace Orts.Simulation
 {
@@ -45,35 +46,34 @@ namespace Orts.Simulation
                 if (node == null || node.TrJunctionNode != null || node.TrEndNode == true) continue;
                 var StartCurve = false; var CurveDir = 0; var Len = 0.0f;
                 SectionList.Clear();
-                SectionCurve theCurve = null;
                 int i = 0; int count = node.TrVectorNode.TrVectorSections.Length;
                 foreach (var section in node.TrVectorNode.TrVectorSections)//loop all curves
                 {
                     i++;
                     var sec = simulator.TSectionDat.TrackSections.Get(section.SectionIndex);
                     if (sec == null) continue;
-                    theCurve = sec.SectionCurve;
-                    if (sec.SectionSize != null && Math.Abs(sec.SectionSize.Width - simulator.SuperElevationGauge) > 0.2) continue;//the main route has a gauge different than mine
-
-                    if (theCurve != null && !theCurve.Angle.AlmostEqual(0f, 0.01f)) //a good curve
+                    if (Math.Abs(sec.Width - simulator.SuperElevationGauge) > 0.2) continue;//the main route has a gauge different than mine
+                    float angle = sec.Angle;
+                    if (sec.Curved && !angle.AlmostEqual(0f, 0.01f)) //a good curve
                     {
                         if (i == 1 || i == count)
                         {
                             //if (theCurve.Radius * (float)Math.Abs(theCurve.Angle * 0.0174) < 15f) continue; 
                         } //do not want the first and last piece of short curved track to be in the curve (they connected to switches)
-                        if (StartCurve == false) //we are beginning a curve
+                        if (!StartCurve) //we are beginning a curve
                         {
-                            StartCurve = true; CurveDir = Math.Sign(sec.SectionCurve.Angle);
+                            StartCurve = true;
+                            CurveDir = Math.Sign(sec.Angle);
                             Len = 0f;
                         }
-                        else if (CurveDir != Math.Sign(sec.SectionCurve.Angle)) //we are in curve, but bending different dir
+                        else if (CurveDir != Math.Sign(sec.Angle)) //we are in curve, but bending different dir
                         {
                             MarkSections(simulator, SectionList, Len); //treat the sections encountered so far, then restart with other dir
-                            CurveDir = Math.Sign(sec.SectionCurve.Angle);
+                            CurveDir = Math.Sign(sec.Angle);
                             SectionList.Clear();
                             Len = 0f; //StartCurve remains true as we are still in a curve
                         }
-                        Len += theCurve.Radius * (float)Math.Abs(theCurve.Angle * 0.0174);//0.0174=3.14/180
+                        Len += sec.Radius * (float)Math.Abs(MathHelper.ToRadians(sec.Angle));
                         SectionList.Add(section);
                     }
                     else //meet a straight line
@@ -103,7 +103,7 @@ namespace Orts.Simulation
             var sectionData = tSection.Get(SectionList[0].SectionIndex);
             if (sectionData == null) return;
             //loop all section to determine the max elevation for the whole track
-            double Curvature = sectionData.SectionCurve.Angle * SectionList.Count * 33 / Len;//average radius in degree/100feet
+            double Curvature = sectionData.Angle * SectionList.Count * 33 / Len;//average radius in degree/100feet
             var Max = (float)(Math.Pow(simulator.TRK.Tr_RouteFile.SpeedLimit * 2.25, 2) * 0.0007 * Math.Abs(Curvature) - 3); //in inch
             Max = Max * 2.5f;//change to cm
             Max = (float)Math.Round(Max * 2, MidpointRounding.AwayFromZero) / 200f;//closest to 5 mm increase;

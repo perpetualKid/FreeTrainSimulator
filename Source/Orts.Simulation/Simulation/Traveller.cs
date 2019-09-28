@@ -25,6 +25,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Orts.Common.Calc;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation
 {
@@ -130,11 +132,11 @@ namespace Orts.Simulation
         /// <summary>
         /// Returns whether this traveller is currently on a section of track which is curved.
         /// </summary>
-        public bool IsTrackCurved { get { return IsTrack && trackSection != null && trackSection.SectionCurve != null; } }
+        public bool IsTrackCurved { get { return IsTrack && trackSection != null && trackSection.Curved; } }
         /// <summary>
         /// Returns whether this traveller is currently on a section of track which is straight.
         /// </summary>
-        public bool IsTrackStraight { get { return IsTrack && (trackSection == null || trackSection.SectionCurve == null); } }
+        public bool IsTrackStraight { get { return IsTrack && (trackSection == null || !trackSection.Curved); } }
         /// <summary>
         /// Returns the pin index number, for the current track node, identifying the route travelled into this track node.
         /// </summary>
@@ -469,7 +471,7 @@ namespace Orts.Simulation
             if (trackSection == null)
                 return null;
             TrackNodeCandidate candidate;
-            if (trackSection.SectionCurve == null)
+            if (!trackSection.Curved)
             {
                 candidate = TryTrackSectionStraight(loc, trackVectorSection, trackSection);
             }
@@ -502,7 +504,7 @@ namespace Orts.Simulation
 
             // Do a preliminary cull based on a bounding square around the track section.
             // Bounding distance is (radius * angle + error) by (radius * angle + error) around starting coordinates but no more than 2 for angle.
-            var boundingDistance = trackSection.SectionCurve.Radius * Math.Min(Math.Abs(MathHelper.ToRadians(trackSection.SectionCurve.Angle)), 2) + MaximumCenterlineOffset;
+            var boundingDistance = trackSection.Radius * Math.Min(Math.Abs(MathHelper.ToRadians(trackSection.Angle)), 2) + MaximumCenterlineOffset;
             var dx = Math.Abs(l.X - sx);
             var dz = Math.Abs(l.Z - sz);
             if (dx > boundingDistance || dz > boundingDistance)
@@ -512,24 +514,24 @@ namespace Orts.Simulation
             l.X -= sx;
             l.Z -= sz;
             l = Vector3.Transform(l, Matrix.CreateRotationY(-trackVectorSection.AY));
-            if (trackSection.SectionCurve.Angle < 0)
+            if (trackSection.Angle < 0)
                 l.X *= -1;
 
             // Compute distance to curve's center at (radius,0) then adjust to get distance from centerline.
-            dx = l.X - trackSection.SectionCurve.Radius;
-            float lat = (float)Math.Sqrt(dx * dx + l.Z * l.Z) - trackSection.SectionCurve.Radius;
+            dx = l.X - trackSection.Radius;
+            float lat = (float)Math.Sqrt(dx * dx + l.Z * l.Z) - trackSection.Radius;
             if (Math.Abs(lat) > MaximumCenterlineOffset)
                 return null;
 
             // Compute distance along curve (ensure we are in the top right quadrant, otherwise our math goes wrong).
-            if (l.Z < -InitErrorMargin || l.X > trackSection.SectionCurve.Radius + InitErrorMargin || l.Z > trackSection.SectionCurve.Radius + InitErrorMargin)
+            if (l.Z < -InitErrorMargin || l.X > trackSection.Radius + InitErrorMargin || l.Z > trackSection.Radius + InitErrorMargin)
                 return null;
             float radiansAlongCurve;
-            if (l.Z > trackSection.SectionCurve.Radius)
+            if (l.Z > trackSection.Radius)
                 radiansAlongCurve = MathHelper.PiOver2;
             else
-                radiansAlongCurve = (float)Math.Asin(l.Z / trackSection.SectionCurve.Radius);
-            var lon = radiansAlongCurve * trackSection.SectionCurve.Radius;
+                radiansAlongCurve = (float)Math.Asin(l.Z / trackSection.Radius);
+            var lon = radiansAlongCurve * trackSection.Radius;
             var trackSectionLength = GetLength(trackSection);
             if (lon < -InitErrorMargin || lon > trackSectionLength + InitErrorMargin)
                 return null;
@@ -558,9 +560,9 @@ namespace Orts.Simulation
 
             // Do a preliminary cull based on a bounding square around the track section.
             // Bounding distance is (length + error) by (length + error) around starting coordinates.
-            if (trackSection != null && trackSection.SectionSize != null)
+            if (trackSection != null)
             {
-                var boundingDistance = trackSection.SectionSize.Length + MaximumCenterlineOffset;
+                var boundingDistance = trackSection.Length + MaximumCenterlineOffset;
                 var dx = Math.Abs(x - sx);
                 var dz = Math.Abs(z - sz);
                 if (dx > boundingDistance || dz > boundingDistance)
@@ -724,7 +726,7 @@ namespace Orts.Simulation
                 if (traveller.IsTrack)
                 {
                     var initialOffset = traveller.trackOffset;
-                    var radius = traveller.IsTrackCurved ? traveller.trackSection.SectionCurve.Radius : 1;
+                    var radius = traveller.IsTrackCurved ? traveller.trackSection.Radius : 1;
                     if (traveller.TN == trackNode || trackNode == null)
                     {
                         var direction = traveller.Direction == TravellerDirection.Forward ? 1 : -1;
@@ -739,7 +741,7 @@ namespace Orts.Simulation
                         }
                     }
                     // No sign of the target location in this track section, accumulate remaining track section length and continue.
-                    var length = traveller.trackSection != null ? traveller.IsTrackCurved ? Math.Abs(MathHelper.ToRadians(traveller.trackSection.SectionCurve.Angle)) : traveller.trackSection.SectionSize.Length : 0;
+                    var length = traveller.trackSection != null ? traveller.IsTrackCurved ? Math.Abs(MathHelper.ToRadians(traveller.trackSection.Angle)) : traveller.trackSection.Length : 0;
                     accumulatedDistance += (traveller.Direction == TravellerDirection.Forward ? length - initialOffset : initialOffset) * radius;
                 }
                 // No sign of the target location yet, let's move on to the next track section.
@@ -837,7 +839,7 @@ namespace Orts.Simulation
             if (trackSection == null)
                 return false;
             locationSet = lengthSet = false;
-            trackOffset = direction == TravellerDirection.Forward ? 0 : IsTrackCurved ? Math.Abs(MathHelper.ToRadians(trackSection.SectionCurve.Angle)) : trackSection.SectionSize.Length;
+            trackOffset = direction == TravellerDirection.Forward ? 0 : IsTrackCurved ? Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
             return true;
         }
 
@@ -871,12 +873,12 @@ namespace Orts.Simulation
             directionVector.Y = tvs.AY;
             directionVector.Z = tvs.AZ;
 
-            if (ts.SectionCurve != null)
+            if (ts.Curved)
             {
                 // "Handedness" Convention: A right-hand curve (TS.SectionCurve.Angle > 0) curves 
                 // to the right when moving forward.
-                var sign = -Math.Sign(ts.SectionCurve.Angle);
-                var vectorCurveStartToCenter = Vector3.Left * ts.SectionCurve.Radius * sign;
+                var sign = -Math.Sign(ts.Angle);
+                var vectorCurveStartToCenter = Vector3.Left * ts.Radius * sign;
                 var curveRotation = Matrix.CreateRotationY(to * sign);
                 var XNAMatrix = Matrix.CreateFromYawPitchRoll(-tvs.AY, -tvs.AX, tvs.AZ);
                 var displacement = MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, XNAMatrix, out Vector3 vP);
@@ -923,7 +925,7 @@ namespace Orts.Simulation
                 if (i < TrackVectorSectionIndex)
                     trackNodeOffset += length;
                 if (i == TrackVectorSectionIndex)
-                    trackNodeOffset += trackOffset * (ts.SectionCurve != null ? ts.SectionCurve.Radius : 1);
+                    trackNodeOffset += trackOffset * (ts.Curved ? ts.Radius : 1);
             }
             if (Direction == TravellerDirection.Backward)
                 trackNodeOffset = trackNodeLength - trackNodeOffset;
@@ -934,7 +936,7 @@ namespace Orts.Simulation
             if (trackSection == null)
                 return 0;
 
-            return trackSection.SectionCurve != null ? trackSection.SectionCurve.Radius * Math.Abs(MathHelper.ToRadians(trackSection.SectionCurve.Angle)) : trackSection.SectionSize != null ? trackSection.SectionSize.Length : 0;
+            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
         }
 
         /// <summary>
@@ -946,7 +948,7 @@ namespace Orts.Simulation
             if (trackSection == null)
                 return 0;
 
-            return trackSection.SectionCurve != null ? trackSection.SectionCurve.Radius : 0;
+            return trackSection.Curved ? trackSection.Radius : 0;
         }
 
         public float GetCurvature()
@@ -954,7 +956,7 @@ namespace Orts.Simulation
             if (trackSection == null)
                 return 0;
 
-            return trackSection.SectionCurve != null ? Math.Sign(trackSection.SectionCurve.Angle) / trackSection.SectionCurve.Radius : 0;
+            return trackSection.Curved ? Math.Sign(trackSection.Angle) / trackSection.Radius : 0;
         }
 
         public float GetSuperElevation()
@@ -962,14 +964,14 @@ namespace Orts.Simulation
             if (trackSection == null)
                 return 0;
 
-            if (trackSection.SectionCurve == null)
+            if (!trackSection.Curved)
                 return 0;
 
             if (trackVectorSection == null)
                 return 0;
 
-            var trackLength = Math.Abs(MathHelper.ToRadians(trackSection.SectionCurve.Angle));
-            var sign = Math.Sign(trackSection.SectionCurve.Angle) > 0 ^ direction == TravellerDirection.Backward ? -1 : 1;
+            var trackLength = Math.Abs(MathHelper.ToRadians(trackSection.Angle));
+            var sign = Math.Sign(trackSection.Angle) > 0 ^ direction == TravellerDirection.Backward ? -1 : 1;
             var trackOffsetReverse = trackLength - trackOffset;
 
             var startingElevation = trackVectorSection.StartElev;
@@ -1015,14 +1017,14 @@ namespace Orts.Simulation
             {
                 desiredZ = 0f;
             }
-            else if (ts.SectionCurve != null)
+            else if (ts.Curved)
             {
                 float maxv = tvs.MaxElev;
                 maxv = 0.14f * speed / 40f;//max 8 degree
                 //maxv *= speed / 40f;
                 //if (maxv.AlmostEqual(0f, 0.001f)) maxv = 0.02f; //short curve, add some effect anyway
-                var sign = -Math.Sign(ts.SectionCurve.Angle);
-                if ((this.direction == TravellerDirection.Forward ? 1 : -1) * sign > 0) desiredZ = 1f;
+                var sign = -Math.Sign(ts.Angle);
+                if ((direction == TravellerDirection.Forward ? 1 : -1) * sign > 0) desiredZ = 1f;
                 else desiredZ = -1f;
                 desiredZ *= maxv;//max elevation
             }
@@ -1125,8 +1127,8 @@ namespace Orts.Simulation
         float MoveInTrackSectionCurved(float distanceToGo)
         {
             var scale = Direction == TravellerDirection.Forward ? 1 : -1;
-            var desiredTurnRadians = distanceToGo / trackSection.SectionCurve.Radius;
-            var sectionTurnRadians = Math.Abs(MathHelper.ToRadians(trackSection.SectionCurve.Angle));
+            var desiredTurnRadians = distanceToGo / trackSection.Radius;
+            var sectionTurnRadians = Math.Abs(MathHelper.ToRadians(trackSection.Angle));
             if (direction == TravellerDirection.Forward)
             {
                 if (desiredTurnRadians > sectionTurnRadians - trackOffset)
@@ -1138,9 +1140,9 @@ namespace Orts.Simulation
                     desiredTurnRadians = trackOffset;
             }
             trackOffset += scale * desiredTurnRadians;
-            trackNodeOffset += desiredTurnRadians * trackSection.SectionCurve.Radius;
+            trackNodeOffset += desiredTurnRadians * trackSection.Radius;
             locationSet = false;
-            return distanceToGo - desiredTurnRadians * trackSection.SectionCurve.Radius;
+            return distanceToGo - desiredTurnRadians * trackSection.Radius;
         }
 
         float MoveInTrackSectionStraight(float distanceToGo)
@@ -1149,8 +1151,8 @@ namespace Orts.Simulation
             var desiredDistance = distanceToGo;
             if (direction == TravellerDirection.Forward)
             {
-                if (desiredDistance > trackSection.SectionSize.Length - trackOffset)
-                    desiredDistance = trackSection.SectionSize.Length - trackOffset;
+                if (desiredDistance > trackSection.Length - trackOffset)
+                    desiredDistance = trackSection.Length - trackOffset;
             }
             else
             {

@@ -393,7 +393,7 @@ namespace ORTS.TrackViewer.Drawing
             vectorToMouse = Vector3.Transform(vectorToMouse, Matrix.CreateRotationY(-trackVectorSection.AY));
 
             float lon, lat;
-            if (trackSection.SectionCurve == null)
+            if (!trackSection.Curved)
             {
                 //Track is straight. In this coordinate system, the distance along track (lon) and orthogonal to track (lat) are easy.
                 lon = vectorToMouse.Z;
@@ -403,18 +403,18 @@ namespace ORTS.TrackViewer.Drawing
             {
                 // make sure the vector is as if the vector section turns to the left.
                 // The center of the curved track is now a (x=-radius, z=0), track starting at (0,0), pointing in positive Z
-                if (trackSection.SectionCurve.Angle > 0)
+                if (trackSection.Angle > 0)
                     vectorToMouse.X *= -1;
 
                 //make vector relative to center of curve. Track now starts at (radius,0)
-                vectorToMouse.X += trackSection.SectionCurve.Radius;
+                vectorToMouse.X += trackSection.Radius;
 
                 float radiansAlongCurve = (float)Math.Atan2(vectorToMouse.Z, vectorToMouse.X);
 
                 //The following calculations make sense when close to the track. Otherwise they are not necessarily sensible, but at least well-defined.
                 // Distance from mouse to circle through track section.
-                lat = (float)Math.Sqrt(vectorToMouse.X * vectorToMouse.X + vectorToMouse.Z * vectorToMouse.Z) - trackSection.SectionCurve.Radius;
-                lon = radiansAlongCurve * trackSection.SectionCurve.Radius;
+                lat = (float)Math.Sqrt(vectorToMouse.X * vectorToMouse.X + vectorToMouse.Z * vectorToMouse.Z) - trackSection.Radius;
+                lon = radiansAlongCurve * trackSection.Radius;
             }
 
 

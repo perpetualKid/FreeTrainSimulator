@@ -15,15 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 //
+using Newtonsoft.Json;
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
-
-using Orts.Common;
-using Orts.Formats.Msts;
-using Orts.Simulation;
 
 namespace ORTS.TrackViewer.Editing.Charts
 {
@@ -340,17 +340,12 @@ namespace ORTS.TrackViewer.Editing.Charts
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
 
             float curvature = 0;
-            if (trackSection != null) // if it is null, something is wrong but we do not want to crash
+            if (trackSection?.Curved ?? false) // if it is null, something is wrong but we do not want to crash
             {
-                SectionCurve thisCurve = trackSection.SectionCurve;
-
-                if (thisCurve != null)
+                curvature = Math.Sign(trackSection.Angle) / trackSection.Radius;
+                if (!isForward)
                 {
-                    curvature = Math.Sign(thisCurve.Angle) / thisCurve.Radius;
-                    if (!isForward)
-                    {
-                        curvature *= -1;
-                    }
+                    curvature *= -1;
                 }
             }
             
@@ -407,13 +402,13 @@ namespace ORTS.TrackViewer.Editing.Charts
                 return 100;  // need to return something. Not easy to recover
             }
 
-            if (trackSection.SectionCurve != null)
+            if (trackSection.Curved)
             {
-                fullSectionLength = trackSection.SectionCurve.Radius * Math.Abs(Microsoft.Xna.Framework.MathHelper.ToRadians(trackSection.SectionCurve.Angle));
+                fullSectionLength = trackSection.Radius * Math.Abs(Microsoft.Xna.Framework.MathHelper.ToRadians(trackSection.Angle));
             }
             else
             {
-                fullSectionLength = trackSection.SectionSize.Length;
+                fullSectionLength = trackSection.Length;
             }
             return fullSectionLength;
         }

@@ -36,6 +36,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Threading;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.MultiPlayer;
@@ -4724,17 +4725,16 @@ namespace Orts.Simulation.Signalling
                         }
 
                         float thisLength = 0f;
-                        Orts.Formats.Msts.TrackSection TS = tsectiondat.TrackSections[thisSection.SectionIndex];
+                        TrackSection TS = tsectiondat.TrackSections[thisSection.SectionIndex];
 
                         // determine length
-                        if (TS.SectionCurve != null)
+                        if (TS.Curved)
                         {
-                            thisLength =
-                                    MathHelper.ToRadians(Math.Abs(TS.SectionCurve.Angle)) * TS.SectionCurve.Radius;
+                            thisLength = MathHelper.ToRadians(Math.Abs(TS.Angle)) * TS.Radius;
                         }
                         else
                         {
-                            thisLength = TS.SectionSize.Length;
+                            thisLength = TS.Length;
 
                         }
 
@@ -4747,7 +4747,7 @@ namespace Orts.Simulation.Signalling
                         {
                             TrackShape thisShape = tsectiondat.TrackShapes[thisSection.ShapeIndex];
                             tunnelShape = thisShape.TunnelShape;
-                            shapePaths = Convert.ToInt32(thisShape.NumPaths);
+                            shapePaths = Convert.ToInt32(thisShape.PathsNumber);
                         }
 
                         if (tunnelShape)
@@ -4920,17 +4920,16 @@ namespace Orts.Simulation.Signalling
                         }
 
                         float thisLength = 0f;
-                        Orts.Formats.Msts.TrackSection TS = tsectiondat.TrackSections[thisSection.SectionIndex];
+                        TrackSection TS = tsectiondat.TrackSections[thisSection.SectionIndex];
 
                         // determine length
-                        if (TS.SectionCurve != null)
+                        if (TS.Curved)
                         {
-                            thisLength =
-                                    MathHelper.ToRadians(Math.Abs(TS.SectionCurve.Angle)) * TS.SectionCurve.Radius;
+                            thisLength = MathHelper.ToRadians(Math.Abs(TS.Angle)) * TS.Radius;
                         }
                         else
                         {
-                            thisLength = TS.SectionSize.Length;
+                            thisLength = TS.Length;
 
                         }
 
@@ -4945,7 +4944,7 @@ namespace Orts.Simulation.Signalling
                             if (thisShape.FileName != null)
                             {
                                 troughShape = thisShape.FileName.EndsWith("Wtr.s") || thisShape.FileName.EndsWith("wtr.s");
-                                shapePaths = Convert.ToInt32(thisShape.NumPaths);
+                                shapePaths = Convert.ToInt32(thisShape.PathsNumber);
                             }
                         }
 
@@ -5392,17 +5391,15 @@ namespace Orts.Simulation.Signalling
 
                     if (tsectiondat.TrackSections.ContainsKey(thisSection.SectionIndex))
                     {
-                        Orts.Formats.Msts.TrackSection TS = tsectiondat.TrackSections[thisSection.SectionIndex];
+                        TrackSection TS = tsectiondat.TrackSections[thisSection.SectionIndex];
 
-                        if (TS.SectionCurve != null)
+                        if (TS.Curved)
                         {
-                            thisLength =
-                                    MathHelper.ToRadians(Math.Abs(TS.SectionCurve.Angle)) *
-                                    TS.SectionCurve.Radius;
+                            thisLength = MathHelper.ToRadians(Math.Abs(TS.Angle)) * TS.Radius;
                         }
                         else
                         {
-                            thisLength = TS.SectionSize.Length;
+                            thisLength = TS.Length;
 
                         }
                     }

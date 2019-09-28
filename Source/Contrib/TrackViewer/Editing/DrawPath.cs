@@ -14,17 +14,16 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-using System;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
-using Orts.Formats.Msts;
 using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using ORTS.TrackViewer.Drawing;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -394,22 +393,22 @@ namespace ORTS.TrackViewer.Editing
 
             WorldLocation thisLocation = new WorldLocation(tvs.TileX, tvs.TileZ, tvs.X, 0, tvs.Z);
             
-            if (trackSection.SectionCurve != null)
+            if (trackSection.Curved)
             {   //curved section
-                float radius = trackSection.SectionCurve.Radius;
-                int sign = (trackSection.SectionCurve.Angle < 0) ? -1 : 1;
-                float angleLength = (stopOffset < 0) ? trackSection.SectionCurve.Angle : sign*MathHelper.ToDegrees(stopOffset/radius);
+                float radius = trackSection.Radius;
+                int sign = (trackSection.Angle < 0) ? -1 : 1;
+                float angleLength = (stopOffset < 0) ? trackSection.Angle : sign*MathHelper.ToDegrees(stopOffset/radius);
                 float angleStart = sign*MathHelper.ToDegrees(startOffset / radius);
                 angleLength -= angleStart;
 
-                drawArea.DrawArc(trackSection.SectionSize.Width, colors.TrackCurved, thisLocation,
+                drawArea.DrawArc(trackSection.Width, colors.TrackCurved, thisLocation,
                     radius, tvs.AY, angleLength, angleStart);
             }
             else
             {   // straight section
-                float length = (stopOffset < 0) ? trackSection.SectionSize.Length : stopOffset;
+                float length = (stopOffset < 0) ? trackSection.Length : stopOffset;
                 length -= startOffset;
-                drawArea.DrawLine(trackSection.SectionSize.Width, colors.TrackStraight, thisLocation,
+                drawArea.DrawLine(trackSection.Width, colors.TrackStraight, thisLocation,
                     length, tvs.AY, startOffset);
             }
         }

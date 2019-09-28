@@ -365,9 +365,9 @@ namespace ORTS.TrackViewer.Drawing
                         try
                         { // try to get even better in case the last section is curved
                             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
-                            if (trackSection.SectionCurve != null)
+                            if (trackSection.Curved)
                             {
-                                endnodeAngles[tn.Index] += MathHelper.ToRadians(trackSection.SectionCurve.Angle);
+                                endnodeAngles[tn.Index] += MathHelper.ToRadians(trackSection.Angle);
                             }
                         }
                         catch { }
@@ -623,7 +623,7 @@ namespace ORTS.TrackViewer.Drawing
             WorldLocation endLocation   = FindLocationInSection(tvs, trackSection, trackSectionLength);
             boxList.Add(beginLocation);
             boxList.Add(endLocation);
-            if (trackSection.SectionCurve != null)
+            if (trackSection.Curved)
             {   // For straight, the box effectively has zero width
                 // For curved, here, the box has a width. It will be a rectangle containing begin and end node on one side.
                 // On the other side it will touch the middle point of the curve/arc. 
@@ -836,15 +836,15 @@ namespace ORTS.TrackViewer.Drawing
                 closeToMouseTrack.CheckMouseDistance(thisLocation, drawArea.MouseLocation, tn, tvs, tvsi, drawArea.Scale);
             }
 
-            if (trackSection.SectionCurve != null)
+            if (trackSection.Curved)
             {
-                drawArea.DrawArc(trackSection.SectionSize.Width, colors.TrackCurved, thisLocation,
-                    trackSection.SectionCurve.Radius, tvs.AY, trackSection.SectionCurve.Angle, 0);
+                drawArea.DrawArc(trackSection.Width, colors.TrackCurved, thisLocation,
+                    trackSection.Radius, tvs.AY, trackSection.Angle, 0);
             }
             else
             {
-                drawArea.DrawLine(trackSection.SectionSize.Width, colors.TrackStraight, thisLocation,
-                    trackSection.SectionSize.Length, tvs.AY, 0);
+                drawArea.DrawLine(trackSection.Width, colors.TrackStraight, thisLocation,
+                    trackSection.Length, tvs.AY, 0);
             }
         }
 
@@ -1144,7 +1144,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <remarks>Same method as in Traveller.cs, but that one is not public</remarks>
         public static float GetLength(TrackSection trackSection)
         {
-            return trackSection.SectionCurve != null ? trackSection.SectionCurve.Radius * Math.Abs(MathHelper.ToRadians(trackSection.SectionCurve.Angle)) : trackSection.SectionSize.Length;
+            return trackSection.Curved ? trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle)) : trackSection.Length;
         }
 
         /// <summary>
@@ -1241,7 +1241,7 @@ namespace ORTS.TrackViewer.Drawing
 
             float cosA = (float)Math.Cos(tvs.AY);
             float sinA = (float)Math.Sin(tvs.AY);
-            if (trackSection.SectionCurve == null)
+            if (!trackSection.Curved)
             {
                 // note, angle is 90 degrees off, and different sign. 
                 // So Delta X = cos(90-A)=sin(A); Delta Y,Z = sin(90-A) = cos(A)    
@@ -1250,12 +1250,12 @@ namespace ORTS.TrackViewer.Drawing
             }
             else
             {
-                int sign = (trackSection.SectionCurve.Angle > 0) ? -1 : 1;
-                float angleRadians = -distanceAlongSection / trackSection.SectionCurve.Radius;
+                int sign = (trackSection.Angle > 0) ? -1 : 1;
+                float angleRadians = -distanceAlongSection / trackSection.Radius;
                 float cosArotated = (float)Math.Cos(tvs.AY + sign * angleRadians);
                 float sinArotated = (float)Math.Sin(tvs.AY + sign * angleRadians);
-                float deltaX = sign * trackSection.SectionCurve.Radius * (cosA - cosArotated);
-                float deltaZ = sign * trackSection.SectionCurve.Radius * (sinA - sinArotated);
+                float deltaX = sign * trackSection.Radius * (cosA - cosArotated);
+                float deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
                 location = new WorldLocation(location.TileX, location.TileZ,
                     location.Location.X - deltaX, location.Location.Y, location.Location.Z + deltaZ);
             }

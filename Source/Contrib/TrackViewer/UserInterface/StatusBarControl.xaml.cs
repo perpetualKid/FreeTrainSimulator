@@ -78,7 +78,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         /// <param name="trackViewer">trackViewer object that contains all relevant data</param>
         /// <param name="mouseLocation">The Worldlocation of the mouse pointer</param>
-        public void Update(TrackViewer trackViewer, WorldLocation mouseLocation)
+        public void Update(TrackViewer trackViewer, in WorldLocation mouseLocation)
         {
             ResetAdditionalText();
 
@@ -162,7 +162,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// Put the mouse location in the statusbar
         /// </summary>
         /// <param name="mouseLocation"></param>
-        private void SetMouseLocationStatus(WorldLocation mouseLocation)
+        private void SetMouseLocationStatus(in WorldLocation mouseLocation)
         {
             tileXZ.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture,
                 "{0,-7} {1,-7}", mouseLocation.TileX, mouseLocation.TileZ);
@@ -187,7 +187,7 @@ namespace ORTS.TrackViewer.UserInterface
                 try
                 {
                     // Try to find a fixed track
-                    TrackShape shape = trackViewer.RouteData.TsectionDat.TrackShapes.Get(shapeIndex);
+                    TrackShape shape = trackViewer.RouteData.TsectionDat.TrackShapes[shapeIndex];
                     shapeName = shape.FileName;
                 }
                 catch
@@ -195,7 +195,7 @@ namespace ORTS.TrackViewer.UserInterface
                     // try to find a dynamic track
                     try
                     {
-                        TrackPath trackPath = trackViewer.RouteData.TsectionDat.TSectionIdx.TrackPaths[tvs.ShapeIndex];
+                        TrackPath trackPath = trackViewer.RouteData.TsectionDat.TrackSectionIndex[tvs.ShapeIndex];
                         shapeName = "<dynamic ?>";
                         foreach (uint trackSection in trackPath.TrackSections)
                         {

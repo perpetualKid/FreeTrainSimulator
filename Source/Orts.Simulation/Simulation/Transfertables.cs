@@ -111,15 +111,15 @@ namespace Orts.Simulation
 
         protected void InitializeOffsetsAndTrackNodes()
         {
-            var trackShape = Simulator.TSectionDat.TrackShapes.Get((uint)TrackShapeIndex);
-            var nSections = trackShape.SectionIdxs[0].NoSections;
-            MyTrackNodesIndex = new int[trackShape.SectionIdxs.Length];
+            var trackShape = Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
+            var nSections = trackShape.SectionIndices[0].SectionsCount;
+            MyTrackNodesIndex = new int[trackShape.SectionIndices.Length];
             MyTrackNodesOrientation = new bool[MyTrackNodesIndex.Length];
             MyTrVectorSectionsIndex = new int[MyTrackNodesIndex.Length];
             var iMyTrackNodes = 0;
-            foreach (var sectionIdx in trackShape.SectionIdxs)
+            foreach (var sectionIdx in trackShape.SectionIndices)
             {
-                Offsets.Add((float)sectionIdx.X);
+                Offsets.Add(sectionIdx.Offset.X);
                 MyTrackNodesIndex[iMyTrackNodes] = -1;
                 MyTrVectorSectionsIndex[iMyTrackNodes] = -1;
                 iMyTrackNodes++;
@@ -147,7 +147,7 @@ namespace Orts.Simulation
             }
             XPos = CenterOffset.X;
             // Compute width of transfer table
-            Width = (float)(trackShape.SectionIdxs[trackShape.SectionIdxs.Length - 1].X - trackShape.SectionIdxs[0].X);
+            Width = trackShape.SectionIndices[trackShape.SectionIndices.Length - 1].Offset.X - trackShape.SectionIndices[0].Offset.X;
         }
 
         /// <summary>
