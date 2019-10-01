@@ -12,7 +12,7 @@ namespace Orts.Formats.Msts.Models
 
         public WaterLevelOffset(SBR block)
         {
-            block.VerifyID(TokenID.terrain_water_height_offset);
+            block.VerifyID(TokenID.Terrain_Water_Height_Offset);
             if (!block.EndOfBlock())
                 SW = block.ReadFloat();
             if (!block.EndOfBlock())
@@ -35,26 +35,26 @@ namespace Orts.Formats.Msts.Models
 
         public Terrain(SBR block)
         {
-            block.VerifyID(TokenID.terrain);
+            block.VerifyID(TokenID.Terrain);
             while (!block.EndOfBlock())
             {
                 using (var subBlock = block.ReadSubBlock())
                 {
                     switch (subBlock.ID)
                     {
-                        case TokenID.terrain_errthreshold_scale:
+                        case TokenID.Terrain_ErrThreshold_Scale:
                             ErrorThresholdScale = subBlock.ReadFloat();
                             break;
-                        case TokenID.terrain_water_height_offset:
+                        case TokenID.Terrain_Water_Height_Offset:
                             WaterLevelOffset = new WaterLevelOffset(subBlock);
                             break;
-                        case TokenID.terrain_alwaysselect_maxdist:
+                        case TokenID.Terrain_AlwaysSelect_MaxDist:
                             AlwaysSelectMaxDistance = subBlock.ReadFloat();
                             break;
-                        case TokenID.terrain_samples:
+                        case TokenID.Terrain_Samples:
                             Samples = new Samples(subBlock);
                             break;
-                        case TokenID.terrain_shaders:
+                        case TokenID.Terrain_Shaders:
                             Shaders = new Shader[subBlock.ReadInt()];
                             for (var i = 0; i < Shaders.Length; ++i)
                                 using (var terrain_shadersBlock = subBlock.ReadSubBlock())
@@ -62,7 +62,7 @@ namespace Orts.Formats.Msts.Models
                             if (!subBlock.EndOfBlock())
                                 subBlock.Skip();
                             break;
-                        case TokenID.terrain_patches:
+                        case TokenID.Terrain_Patches:
                             using (var patch_sets_Block = subBlock.ReadSubBlock())
                             {
                                 Patchsets = new PatchSet[patch_sets_Block.ReadInt()];
@@ -94,41 +94,41 @@ namespace Orts.Formats.Msts.Models
 
         public Samples(SBR block)
         {
-            block.VerifyID(TokenID.terrain_samples);
+            block.VerifyID(TokenID.Terrain_Samples);
             while (!block.EndOfBlock())
             {
                 using (var subBlock = block.ReadSubBlock())
                 {
                     switch (subBlock.ID)
                     {
-                        case TokenID.terrain_nsamples:
+                        case TokenID.Terrain_NSamples:
                             SampleCount = subBlock.ReadInt();
                             break;
-                        case TokenID.terrain_sample_rotation:
+                        case TokenID.Terrain_Sample_Rotation:
                             SampleRotation = subBlock.ReadFloat();
                             break;
-                        case TokenID.terrain_sample_floor:
+                        case TokenID.Terrain_Sample_Floor:
                             SampleFloor = subBlock.ReadFloat();
                             break;
-                        case TokenID.terrain_sample_scale:
+                        case TokenID.Terrain_Sample_Scale:
                             SampleScale = subBlock.ReadFloat();
                             break;
-                        case TokenID.terrain_sample_size:
+                        case TokenID.Terrain_Sample_Size:
                             SampleSize = subBlock.ReadFloat();
                             break;
-                        case TokenID.terrain_sample_ybuffer:
+                        case TokenID.Terrain_Sample_YBuffer:
                             SampleBufferY = subBlock.ReadString();
                             break;
-                        case TokenID.terrain_sample_ebuffer:
+                        case TokenID.Terrain_Sample_EBuffer:
                             SampleBufferE = subBlock.ReadString();
                             break;
-                        case TokenID.terrain_sample_nbuffer:
+                        case TokenID.Terrain_Sample_NBuffer:
                             SampleBufferN = subBlock.ReadString();
                             break;
-                        case TokenID.terrain_sample_asbuffer:
+                        case TokenID.Terrain_Sample_AsBuffer:
                             subBlock.Skip(); // TODO parse this
                             break;
-                        case TokenID.terrain_sample_fbuffer:
+                        case TokenID.Terrain_Sample_FBuffer:
                             subBlock.Skip(); // TODO parse this
                             break;
                         case (TokenID)282:  // TODO figure out what this is and handle it
@@ -150,7 +150,7 @@ namespace Orts.Formats.Msts.Models
 
         public TextureSlot(SBR block)
         {
-            block.VerifyID(TokenID.terrain_texslot);
+            block.VerifyID(TokenID.Terrain_TexSlot);
             Filename = block.ReadString();
             A = block.ReadInt();
             B = block.ReadInt();
@@ -167,7 +167,7 @@ namespace Orts.Formats.Msts.Models
 
         public UVCalc(SBR block)
         {
-            block.VerifyID(TokenID.terrain_uvcalc);
+            block.VerifyID(TokenID.Terrain_UVCalc);
             A = block.ReadInt();
             B = block.ReadInt();
             C = block.ReadInt();
@@ -198,7 +198,7 @@ namespace Orts.Formats.Msts.Models
 
         public Patch(SBR block)
         {
-            block.VerifyID(TokenID.terrain_patchset_patch);
+            block.VerifyID(TokenID.Terrain_PatchSet_Patch);
             Flags = block.ReadUInt();
             CenterX = block.ReadFloat();    // 64
             AverageY = block.ReadFloat();   // 299.9991
@@ -225,20 +225,20 @@ namespace Orts.Formats.Msts.Models
 
         public PatchSet(SBR block)
         {
-            block.VerifyID(TokenID.terrain_patchset);
+            block.VerifyID(TokenID.Terrain_PatchSet);
             while (!block.EndOfBlock())
             {
                 using (var subBlock = block.ReadSubBlock())
                 {
                     switch (subBlock.ID)
                     {
-                        case TokenID.terrain_patchset_distance:
+                        case TokenID.Terrain_PatchSet_Distance:
                             Distance = subBlock.ReadInt();
                             break;
-                        case TokenID.terrain_patchset_npatches:
+                        case TokenID.Terrain_PatchSet_NPatches:
                             PatchSize = subBlock.ReadInt();
                             break;
-                        case TokenID.terrain_patchset_patches:
+                        case TokenID.Terrain_PatchSet_Patches:
                             Patches = new Patch[PatchSize * PatchSize];
                             for (var i = 0; i < Patches.Length; ++i)
                                 Patches[i] = new Patch(subBlock.ReadSubBlock());
@@ -262,7 +262,7 @@ namespace Orts.Formats.Msts.Models
 
         public Shader(SBR block)
         {
-            block.VerifyID(TokenID.terrain_shader);
+            block.VerifyID(TokenID.Terrain_Shader);
             Name = block.ReadString();
             while (!block.EndOfBlock())
             {
@@ -270,12 +270,12 @@ namespace Orts.Formats.Msts.Models
                 {
                     switch (subBlock.ID)
                     {
-                        case TokenID.terrain_texslots:
+                        case TokenID.Terrain_TexSlots:
                             Textureslots = new TextureSlot[subBlock.ReadUInt()];
                             for (var i = 0; i < Textureslots.Length; ++i)
                                 Textureslots[i] = new TextureSlot(subBlock.ReadSubBlock());
                             break;
-                        case TokenID.terrain_uvcalcs:
+                        case TokenID.Terrain_UVCalcs:
                             UVCalcs = new UVCalc[subBlock.ReadUInt()];
                             for (var i = 0; i < UVCalcs.Length; ++i)
                                 UVCalcs[i] = new UVCalc(subBlock.ReadSubBlock());

@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+
 using Orts.Common;
 
 namespace Orts.Formats.Msts.Parsers
@@ -141,7 +142,7 @@ namespace Orts.Formats.Msts.Parsers
         /// <param name="block"></param>
         public void ExpectComment()
         {
-            if (ID == TokenID.comment)
+            if (ID == TokenID.Comment)
             {
                 Skip();
             }
@@ -256,7 +257,7 @@ namespace Orts.Formats.Msts.Parsers
             if (token == "(")
             {
                 // ie 310.eng Line 349  (#_fire temp, fire mass, water mass, boil ...
-                block.ID = TokenID.comment;
+                block.ID = TokenID.Comment;
                 return block;
             }
 
@@ -288,11 +289,11 @@ namespace Orts.Formats.Msts.Parsers
                 return tokenID;
             else if (string.Compare(token, "SKIP", true) == 0 || string.Compare(token, "COMMENT", true) == 0 
                 || token.StartsWith("#"))
-                return TokenID.comment;
+                return TokenID.Comment;
             else
             {
                 TraceWarning("Skipped unknown token " + token);
-                return TokenID.comment;
+                return TokenID.Comment;
             }
         }
 

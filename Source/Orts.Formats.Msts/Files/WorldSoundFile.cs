@@ -17,6 +17,7 @@
 
 using System.Diagnostics;
 using System.IO;
+
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 

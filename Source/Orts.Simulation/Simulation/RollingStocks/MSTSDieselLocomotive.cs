@@ -33,15 +33,19 @@
 using System;
 using System.IO;
 using System.Text;
+
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
+
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.RollingStocks
@@ -509,12 +513,12 @@ namespace Orts.Simulation.RollingStocks
 
             switch (cvc.ControlType)
             {
-                case CABViewControlTypes.GEARS:
+                case CabViewControlType.Gears:
                     if (DieselEngines.HasGearBox)
                         data = DieselEngines[0].GearBox.CurrentGearIndex + 1;
                     break;
-                case CABViewControlTypes.FUEL_GAUGE:
-                    if (cvc.Units == CABViewControlUnits.GALLONS)
+                case CabViewControlType.Fuel_Gauge:
+                    if (cvc.ControlUnit == CabViewControlUnit.Gallons)
                         data = Size.LiquidVolume.ToGallonUS(DieselLevelL);
                     else
                         data = DieselLevelL;
@@ -792,12 +796,13 @@ namespace Orts.Simulation.RollingStocks
                         {
                             foreach ( var control in cabView.CVFFile.CabViewControls)
                             {
-                                if (control is CVCDiscrete && control.ControlType == CABViewControlTypes.THROTTLE && (control as CVCDiscrete).Values.Count > 0 && (control as CVCDiscrete).Values[(control as CVCDiscrete).Values.Count - 1] > 1)
+                                if (control is CabViewDiscreteControl && control.ControlType == CabViewControlType.Throttle && (control as CabViewDiscreteControl).Values.Count > 0 && (control as CabViewDiscreteControl).Values[(control as CabViewDiscreteControl).Values.Count - 1] > 1)
                                 {
-                                    var discreteControl = (CVCDiscrete)control;
+                                    var discreteControl = (CabViewDiscreteControl)control;
                                     for (var i = 0; i < discreteControl.Values.Count; i++)
                                         discreteControl.Values[i] /= ThrottleController.MaximumValue;
-                                    if (discreteControl.MaxValue > 0) discreteControl.MaxValue = discreteControl.Values[discreteControl.Values.Count - 1];
+                                    if (discreteControl.ScaleRangeMax > 0)
+                                        discreteControl.ResetScaleRange(discreteControl.ScaleRangeMin, (float)discreteControl.Values[discreteControl.Values.Count - 1]);
                                 }
                             }
                         }

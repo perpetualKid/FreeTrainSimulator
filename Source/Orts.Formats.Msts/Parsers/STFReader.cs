@@ -21,7 +21,6 @@
 // Note:  the SBR classes are more general in that they are capable of reading
 //        both unicode and binary compressed data files.
 
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,6 +28,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+
+using Microsoft.Xna.Framework;
+
 using Orts.Common.Calc;
 
 #region Original STFreader

@@ -46,6 +46,7 @@
     <Compile Include="Files\ActivityFile.cs" />
     <Compile Include="Models\Ace.cs" />
     <Compile Include="Models\Activity.cs" />
+    <Compile Include="Models\CabViewControl.cs" />
     <Compile Include="Models\Camera.cs" />
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\Path.cs" />
@@ -58,7 +59,7 @@
     <Compile Include="Files\CameraConfigurationFile.cs" />
     <Compile Include="Files\CarSpawnerFile.cs" />
     <Compile Include="Files\ConsistFile.cs" />
-    <Compile Include="CabViewFile.cs" />
+    <Compile Include="Files\CabViewFile.cs" />
     <Compile Include="Models\Hazard.cs" />
     <Compile Include="Models\RoadTracks.cs" />
     <Compile Include="Models\Shape.cs" />

@@ -582,7 +582,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (CabCamera.IsAvailable)
             {
                 var i = ((PlayerLocomotive as MSTSLocomotive).UsingRearCab) ? 1 : 0;
-                var cabTextureFileName = (PlayerLocomotive as MSTSLocomotive).CabViewList[i].CVFFile.TwoDViews[0];
+                var cabTextureFileName = (PlayerLocomotive as MSTSLocomotive).CabViewList[i].CVFFile.Views2D[0];
                 var cabTextureInverseRatio = ComputeCabTextureInverseRatio(cabTextureFileName);
                 if (cabTextureInverseRatio != -1) CabTextureInverseRatio = cabTextureInverseRatio;
             }

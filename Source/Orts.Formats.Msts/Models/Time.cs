@@ -1,5 +1,4 @@
-﻿using System;
-using Orts.Formats.Msts.Parsers;
+﻿using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {

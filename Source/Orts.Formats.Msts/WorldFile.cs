@@ -825,7 +825,7 @@ namespace Orts.Formats.Msts
             case TokenID.Position: Position = new STFPositionItem(subBlock); break;
             case TokenID.QDirection: QDirection = new STFQDirectionItem(subBlock); break;
             case TokenID.VDbId: VDbId = subBlock.ReadUInt(); break;
-            case TokenID.ORTSSoundFileName: SoundFileName = subBlock.ReadString(); break;
+            case TokenID.OrtsSoundFileName: SoundFileName = subBlock.ReadString(); break;
             default: subBlock.Skip(); break;
         }
     }
@@ -941,7 +941,7 @@ namespace Orts.Formats.Msts
             {
                 case TokenID.CarFrequency: CarFrequency = subBlock.ReadFloat(); break;
                 case TokenID.CarAvSpeed: CarAvSpeed = subBlock.ReadFloat(); break;
-                case TokenID.ORTSListName: ListName = subBlock.ReadString(); break;
+                case TokenID.OrtsListName: ListName = subBlock.ReadString(); break;
                 case TokenID.TrItemId: trItemIDList.Add(new TrItemId(subBlock)); break;
                 case TokenID.StaticFlags: StaticFlags = subBlock.ReadFlags(); break;
                 case TokenID.Position: Position = new STFPositionItem(subBlock); break;

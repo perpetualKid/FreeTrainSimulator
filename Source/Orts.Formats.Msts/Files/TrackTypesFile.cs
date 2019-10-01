@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 

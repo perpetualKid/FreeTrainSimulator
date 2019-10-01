@@ -17,6 +17,7 @@
 
 using System;
 using System.IO;
+
 using Orts.Formats.Msts.Parsers;
 
 // <Comment> This file parses only the shape names for temporary speed restrictions; the other shape names are not needed

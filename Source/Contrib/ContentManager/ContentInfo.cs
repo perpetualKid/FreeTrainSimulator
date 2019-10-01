@@ -174,10 +174,10 @@ namespace Orts.ContentManager
                     default:
                         if (content is ContentMSTSCab)
                         {
-                            CabViewFile cabView = new CabViewFile(content.PathName, System.IO.Path.GetDirectoryName(content.PathName));
+                            CabViewFile cabView = new CabViewFile(content.PathName);
                             details.AppendLine($"Position:\tDimensions:\tStyle:\tType:\t");
                             foreach (var control in cabView.CabViewControls)
-                                details.AppendLine($"{control.PositionX},{control.PositionY}\t{control.Width}x{control.Height}\t{control.ControlStyle}\t{control.ControlType}");
+                                details.AppendLine(control.ToString());
                             details.AppendLine();
                         }
                         break;

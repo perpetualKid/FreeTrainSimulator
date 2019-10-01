@@ -1,8 +1,10 @@
-﻿using Microsoft.Xna.Framework;
-using Orts.Formats.Msts.Parsers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+
+using Microsoft.Xna.Framework;
+
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {

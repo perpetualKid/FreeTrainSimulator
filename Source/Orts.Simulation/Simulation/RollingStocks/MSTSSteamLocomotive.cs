@@ -70,14 +70,18 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
+
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.RollingStocks
@@ -5554,65 +5558,65 @@ namespace Orts.Simulation.RollingStocks
 
             switch (cvc.ControlType)
             {
-                case CABViewControlTypes.WHISTLE:
+                case CabViewControlType.Whistle:
                     data = Horn ? 1 : 0;
                     break;
-                case CABViewControlTypes.REGULATOR:
+                case CabViewControlType.Regulator:
                     data = ThrottlePercent / 100f;
                     break;
-                case CABViewControlTypes.BOILER_WATER:
+                case CabViewControlType.Boiler_Water:
                     data = waterGlassPercent; // Shows the level in the water glass
                     break;
-                case CABViewControlTypes.TENDER_WATER:
+                case CabViewControlType.Tender_Water:
                     data = CombinedTenderWaterVolumeUKG; // Looks like default locomotives need an absolute UK gallons value
                     break;
-                case CABViewControlTypes.STEAM_PR:
+                case CabViewControlType.Steam_Pr:
                     data = ConvertFromPSI(cvc, BoilerPressurePSI);
                     break;
-                case CABViewControlTypes.STEAMCHEST_PR:
+                case CabViewControlType.SteamChest_Pr:
                     data = ConvertFromPSI(cvc, SteamChestPressurePSI);
                     break;
-                case CABViewControlTypes.CUTOFF:
-                case CABViewControlTypes.REVERSER_PLATE:
+                case CabViewControlType.CutOff:
+                case CabViewControlType.Reverser_Plate:
                     data = Train.MUReverserPercent / 100f;
                     break;
-                case CABViewControlTypes.CYL_COCKS:
+                case CabViewControlType.Cyl_Cocks:
                     data = CylinderCocksAreOpen ? 1 : 0;
                     break;
-                case CABViewControlTypes.ORTS_CYL_COMP:
+                case CabViewControlType.Orts_Cyl_Comp:
                     data = CylinderCompoundOn ? 1 : 0;
                     break;
-                case CABViewControlTypes.BLOWER:
+                case CabViewControlType.Blower:
                     data = BlowerController.CurrentValue;
                     break;
-                case CABViewControlTypes.DAMPERS_FRONT:
+                case CabViewControlType.Dampers_Front:
                     data = DamperController.CurrentValue;
                     break;
-                case CABViewControlTypes.FIREBOX:
+                case CabViewControlType.FireBox:
                     data = FireMassKG / MaxFireMassKG;
                     break;
-                case CABViewControlTypes.FIREHOLE:
+                case CabViewControlType.FireHole:
                     data = FireboxDoorController.CurrentValue;
                     break;
-                case CABViewControlTypes.WATER_INJECTOR1:
+                case CabViewControlType.Water_Injector1:
                     data = Injector1Controller.CurrentValue;
                     break;
-                case CABViewControlTypes.WATER_INJECTOR2:
+                case CabViewControlType.Water_Injector2:
                     data = Injector2Controller.CurrentValue;
                     break;
-                case CABViewControlTypes.STEAM_INJ1:
+                case CabViewControlType.Steam_Inj1:
                     data = Injector1IsOn ? 1 : 0;
                     break;
-                case CABViewControlTypes.STEAM_INJ2:
+                case CabViewControlType.Steam_Inj2:
                     data = Injector2IsOn ? 1 : 0;
                     break;
-                case CABViewControlTypes.SMALL_EJECTOR:
+                case CabViewControlType.Small_Ejector:
                     {
                         data = SmallEjectorController.CurrentValue;
                         break;
                     }
-                case CABViewControlTypes.FUEL_GAUGE:
-                    if (cvc.Units == CABViewControlUnits.LBS)
+                case CabViewControlType.Fuel_Gauge:
+                    if (cvc.ControlUnit == CabViewControlUnit.Lbs)
                         data = Mass.Kilogram.ToLb(TenderCoalMassKG);
                     else
                         data = TenderCoalMassKG;
