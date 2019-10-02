@@ -34,6 +34,7 @@ using System.IO;
 using Event = Orts.Common.Event;
 using Events = Orts.Common.Events;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -126,7 +127,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 // Get the signal sub-object for this unit (head).
                 var mstsSignalSubObj = mstsSignalShape.SignalSubObjs[mstsSignal.SignalUnits.Units[i].SubObj];
-                if (mstsSignalSubObj.SignalSubType != 1) // SIGNAL_HEAD
+                if (mstsSignalSubObj.SignalSubType != SignalSubType.Signal_Head) // SIGNAL_HEAD
                 {
                     Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", WorldPosition.ToString(), mstsSignal.UID, i, mstsSignal.SignalUnits.Units[i].SubObj);
                     continue;
@@ -196,7 +197,7 @@ namespace Orts.ActivityRunner.Viewer3D
             int DisplayState = -1;
 
             public SignalShapeHead(Viewer viewer, SignalShape signalShape, int index, SignalHead signalHead,
-                        Orts.Formats.Msts.SignalItem mstsSignalItem, Orts.Formats.Msts.SignalShape.SignalSubObj mstsSignalSubObj)
+                        Orts.Formats.Msts.SignalItem mstsSignalItem, Orts.Formats.Msts.Models.SignalShape.SignalSubObject mstsSignalSubObj)
             {
                 Viewer = viewer;
                 SignalShape = signalShape;
@@ -423,7 +424,7 @@ namespace Orts.ActivityRunner.Viewer3D
             public readonly float SemaphoreAnimationTime;
             public bool AreSemaphoresReindexed;
 
-            public SignalTypeData(Viewer viewer, Orts.Formats.Msts.SignalType mstsSignalType)
+            public SignalTypeData(Viewer viewer, SignalType mstsSignalType)
             {
                 if (!viewer.SIGCFG.LightTextures.ContainsKey(mstsSignalType.LightTextureName))
                 {
@@ -454,7 +455,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                         if (mstsSignalType.Semaphore)
                             glowDay = 0.0f;
-                        if (mstsSignalType.FnType == MstsSignalFunction.INFO || mstsSignalType.FnType == MstsSignalFunction.SHUNTING) // These are good at identifying theatre boxes.
+                        if (mstsSignalType.FunctionType == SignalFunction.Info || mstsSignalType.FunctionType == SignalFunction.Shunting) // These are good at identifying theatre boxes.
                             glowDay = glowNight = 0.0f;
 
                         // use values from signal if defined
@@ -475,12 +476,12 @@ namespace Orts.ActivityRunner.Viewer3D
                                 continue;
                             }
                             var mstsLight = viewer.SIGCFG.LightsTable[mstsSignalLight.Name];
-                            Lights.Add(new SignalLightPrimitive(viewer, new Vector3(-mstsSignalLight.X, mstsSignalLight.Y, mstsSignalLight.Z), mstsSignalLight.Radius, new Color(mstsLight.r, mstsLight.g, mstsLight.b, mstsLight.a), glowDay, glowNight, mstsLightTexture.u0, mstsLightTexture.v0, mstsLightTexture.u1, mstsLightTexture.v1));
+                            Lights.Add(new SignalLightPrimitive(viewer, mstsSignalLight.Position, mstsSignalLight.Radius, mstsLight.Color, glowDay, glowNight, mstsLightTexture.TextureCoordinates));
                             LightsSemaphoreChange.Add(mstsSignalLight.SemaphoreChange);
                         }
                     }
 
-                    foreach (KeyValuePair<string, Orts.Formats.Msts.SignalDrawState> sdrawstate in mstsSignalType.DrawStates)
+                    foreach (KeyValuePair<string, SignalDrawState> sdrawstate in mstsSignalType.DrawStates)
                         DrawAspects.Add(sdrawstate.Value.Index, new SignalAspectData(mstsSignalType, sdrawstate.Value));
                     FlashTimeOn = mstsSignalType.FlashTimeOn;
                     FlashTimeTotal = mstsSignalType.FlashTimeOn + mstsSignalType.FlashTimeOff;
@@ -506,7 +507,7 @@ namespace Orts.ActivityRunner.Viewer3D
             public readonly bool[] FlashLights;
             public float SemaphorePos;
 
-            public SignalAspectData(Orts.Formats.Msts.SignalType mstsSignalType, Orts.Formats.Msts.SignalDrawState drawStateData)
+            public SignalAspectData(SignalType mstsSignalType, SignalDrawState drawStateData)
             {
                 if (mstsSignalType.Lights != null)
                 {
@@ -523,16 +524,16 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     foreach (var drawLight in drawStateData.DrawLights)
                     {
-                        if (drawLight.LightIndex < 0 || DrawLights == null || drawLight.LightIndex >= DrawLights.Length)
-                            Trace.TraceWarning("Skipped extra draw light {0}", drawLight.LightIndex);
+                        if (drawLight.Index < 0 || DrawLights == null || drawLight.Index >= DrawLights.Length)
+                            Trace.TraceWarning("Skipped extra draw light {0}", drawLight.Index);
                         else
                         {
-                            DrawLights[drawLight.LightIndex] = true;
-                            FlashLights[drawLight.LightIndex] = drawLight.Flashing;
+                            DrawLights[drawLight.Index] = true;
+                            FlashLights[drawLight.Index] = drawLight.Flashing;
                         }
                     }
                 }
-                SemaphorePos = drawStateData.SemaphorePos;
+                SemaphorePos = drawStateData.SemaphorePosition;
             }
         }
     }
@@ -544,18 +545,19 @@ namespace Orts.ActivityRunner.Viewer3D
         internal readonly float GlowIntensityNight;
         readonly VertexBuffer VertexBuffer;
 
-        public SignalLightPrimitive(Viewer viewer, Vector3 position, float radius, Color color, float glowDay, float glowNight, float u0, float v0, float u1, float v1)
+        public SignalLightPrimitive(Viewer viewer, in Vector3 position, float radius, Color color, float glowDay, float glowNight, in Matrix2x2 textureCoordinates)
         {
             Position = position;
+            Position.X *= -1;
             GlowIntensityDay = glowDay;
             GlowIntensityNight = glowNight;
 
             var verticies = new[] {
-				new VertexPositionColorTexture(new Vector3(-radius, +radius, 0), color, new Vector2(u1, v0)),
-				new VertexPositionColorTexture(new Vector3(+radius, +radius, 0), color, new Vector2(u0, v0)),
-				new VertexPositionColorTexture(new Vector3(-radius, -radius, 0), color, new Vector2(u1, v1)),
-				new VertexPositionColorTexture(new Vector3(+radius, -radius, 0), color, new Vector2(u0, v1)),
-			};
+                new VertexPositionColorTexture(new Vector3(-radius, +radius, 0), color, new Vector2(textureCoordinates.M10, textureCoordinates.M01)),
+                new VertexPositionColorTexture(new Vector3(+radius, +radius, 0), color, new Vector2(textureCoordinates.M00, textureCoordinates.M01)),
+                new VertexPositionColorTexture(new Vector3(-radius, -radius, 0), color, new Vector2(textureCoordinates.M10, textureCoordinates.M11)),
+                new VertexPositionColorTexture(new Vector3(+radius, -radius, 0), color, new Vector2(textureCoordinates.M00, textureCoordinates.M11)),
+            };
 
             VertexBuffer = new VertexBuffer(viewer.RenderProcess.GraphicsDevice, typeof(VertexPositionColorTexture), verticies.Length, BufferUsage.WriteOnly);
             VertexBuffer.SetData(verticies);

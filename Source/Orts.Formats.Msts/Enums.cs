@@ -44,14 +44,14 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Describe the various states a block (roughly a region between two signals) can be in.
     /// </summary>
-    public enum MstsBlockState
+    public enum SignalBlockState
     {
         /// <summary>Block ahead is clear and accesible</summary>
-        CLEAR,
+        Clear,
         /// <summary>Block ahead is occupied by one or more wagons/locos not moving in opposite direction</summary>
-        OCCUPIED,
+        Occupied,
         /// <summary>Block ahead is impassable due to the state of a switch or occupied by moving train or not accesible</summary>
-        JN_OBSTRUCTED,
+        Junction_Obstructed,
     }
 
     /// <summary>
@@ -59,26 +59,44 @@ namespace Orts.Formats.Msts
     /// Within MSTS known as SIGASP_ values.  
     /// Note: They are in order from most restrictive to least restrictive.
     /// </summary>
-    public enum MstsSignalAspect
+    public enum SignalAspectState
     {
         /// <summary>Stop (absolute)</summary>
-        STOP,
+        Stop,
         /// <summary>Stop and proceed</summary>
-        STOP_AND_PROCEED,
+        Stop_And_Proceed,
         /// <summary>Restricting</summary>
-        RESTRICTING,
+        Restricting,
         /// <summary>Final caution before 'stop' or 'stop and proceed'</summary>
-        APPROACH_1,
+        Approach_1,
         /// <summary>Advanced caution</summary>
-        APPROACH_2,
+        Approach_2,
         /// <summary>Least restrictive advanced caution</summary>
-        APPROACH_3,
+        Approach_3,
         /// <summary>Clear to next signal</summary>
-        CLEAR_1,
+        Clear_1,
         /// <summary>Clear to next signal (least restrictive)</summary>
-        CLEAR_2,
+        Clear_2,
         /// <summary>Signal aspect is unknown (possibly not yet defined)</summary>
-        UNKNOWN,
+        Unknown,
+    }
+
+    /// <summary>
+    /// List of allowed signal sub types, as defined by MSTS (SIGSUBT_ values)
+    /// </summary>
+    public enum SignalSubType
+    {
+        None = -1,
+        Decor,
+        Signal_Head,
+        Dummy1,
+        Dummy2,
+        Number_Plate,
+        Gradient_Plate,
+        User1,
+        User2,
+        User3,
+        User4,
     }
 
     /// <summary>
@@ -87,24 +105,24 @@ namespace Orts.Formats.Msts
     /// The other values act only as categories for signal types to belong to.
     /// Within MSTS known as SIGFN_ values.  
     /// </summary>
-    public enum MstsSignalFunction
+    public enum SignalFunction
     {
         /// <summary>Signal head showing primary indication</summary>
-        NORMAL,
+        Normal,
         /// <summary>Distance signal head</summary>
-        DISTANCE,
+        Distance,
         /// <summary>Repeater signal head</summary>
-        REPEATER,
+        Repeater,
         /// <summary>Shunting signal head</summary>
-        SHUNTING,
+        Shunting,
         /// <summary>Signal is informational only e.g. direction lights</summary>
-        INFO,
+        Info,
         /// <summary>Speedpost signal (not part of MSTS SIGFN_)</summary>
-        SPEED,
+        Speed,
         /// <summary>Alerting function not part of MSTS SIGFN_)</summary>
-        ALERT,
+        Alert,
         /// <summary>Unknown (or undefined) signal type</summary>
-        UNKNOWN, // needs to be last because some code depends this for looping. That should be changed of course.
+        Unknown, // needs to be last because some code depends this for looping. That should be changed of course.
     }
     #endregion
 

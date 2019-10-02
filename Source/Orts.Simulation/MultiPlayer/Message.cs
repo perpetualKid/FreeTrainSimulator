@@ -3114,7 +3114,7 @@ namespace Orts.MultiPlayer
             int i = 0;
             foreach (var t in signals)
             {
-                t.Value.state = (MstsSignalAspect)(signalsStates[2 * i] - 1); //we added 1 when build the message, need to subtract it out
+                t.Value.state = (SignalAspectState)(signalsStates[2 * i] - 1); //we added 1 when build the message, need to subtract it out
                 t.Value.draw_state = (int)(signalsStates[2 * i + 1] - 1);
                 //t.Value.draw_state = t.Value.def_draw_state(t.Value.state);
                 //System.Console.Write(msgx[i]-48);
@@ -3514,12 +3514,12 @@ namespace Orts.MultiPlayer
                     signal.holdState = SignalObject.HoldState.ManualApproach;
                     foreach (var sigHead in signal.SignalHeads)
                     {
-                        var drawstate1 = sigHead.def_draw_state(MstsSignalAspect.APPROACH_1);
-                        var drawstate2 = sigHead.def_draw_state(MstsSignalAspect.APPROACH_2);
-                        var drawstate3 = sigHead.def_draw_state(MstsSignalAspect.APPROACH_3);
-                        if (drawstate1 > 0) { sigHead.state = MstsSignalAspect.APPROACH_1; }
-                        else if (drawstate2 > 0) { sigHead.state = MstsSignalAspect.APPROACH_2; }
-                        else { sigHead.state = MstsSignalAspect.APPROACH_3; }
+                        var drawstate1 = sigHead.def_draw_state(SignalAspectState.Approach_1);
+                        var drawstate2 = sigHead.def_draw_state(SignalAspectState.Approach_2);
+                        var drawstate3 = sigHead.def_draw_state(SignalAspectState.Approach_3);
+                        if (drawstate1 > 0) { sigHead.state = SignalAspectState.Approach_1; }
+                        else if (drawstate2 > 0) { sigHead.state = SignalAspectState.Approach_2; }
+                        else { sigHead.state = SignalAspectState.Approach_3; }
                         sigHead.draw_state = sigHead.def_draw_state(sigHead.state);
                     }
                     break;

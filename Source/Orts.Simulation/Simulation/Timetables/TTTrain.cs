@@ -3370,12 +3370,12 @@ namespace Orts.Simulation.Timetables
 
             else if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
             {
-                MstsSignalAspect nextAspect = MstsSignalAspect.UNKNOWN;
+                SignalAspectState nextAspect = SignalAspectState.Unknown;
                 // there is a next item and it is the next signal
                 if (nextActionInfo != null && nextActionInfo.ActiveItem != null &&
                     nextActionInfo.ActiveItem.ObjectDetails == NextSignalObject[0])
                 {
-                    nextAspect = nextActionInfo.ActiveItem.ObjectDetails.this_sig_lr(MstsSignalFunction.NORMAL);
+                    nextAspect = nextActionInfo.ActiveItem.ObjectDetails.this_sig_lr(SignalFunction.Normal);
                 }
                 else
                 {
@@ -3388,8 +3388,8 @@ namespace Orts.Simulation.Timetables
                     NextStopDistanceM = DistanceToEndNodeAuthorityM[0];
                 }
 
-                else if (nextAspect > MstsSignalAspect.STOP &&
-                        nextAspect < MstsSignalAspect.APPROACH_1)
+                else if (nextAspect > SignalAspectState.Stop &&
+                        nextAspect < SignalAspectState.Approach_1)
                 {
                     // check if any other signals within clearing distance
                     bool signalCleared = true;
@@ -3406,7 +3406,7 @@ namespace Orts.Simulation.Timetables
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
-                                else if (nextObject.signal_state == MstsSignalAspect.STOP)
+                                else if (nextObject.signal_state == SignalAspectState.Stop)
                                 {
                                     signalCleared = false;   // signal is not clear
                                     NextSignalObject[0].ForcePropagation = true;
@@ -3422,7 +3422,7 @@ namespace Orts.Simulation.Timetables
                         DelayedStartMoving(AI_START_MOVEMENT.SIGNAL_RESTRICTED);
                     }
                 }
-                else if (nextAspect >= MstsSignalAspect.APPROACH_1)
+                else if (nextAspect >= SignalAspectState.Approach_1)
                 {
                     // check if any other signals within clearing distance
                     bool signalCleared = true;
@@ -3439,11 +3439,11 @@ namespace Orts.Simulation.Timetables
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
-                                else if (nextObject.signal_state == MstsSignalAspect.STOP)
+                                else if (nextObject.signal_state == SignalAspectState.Stop)
                                 {
                                     // set this signal as passed, and next signal as waiting
                                     signalCleared = false;   // signal is not clear
-                                    int nextSignalIndex = NextSignalObject[0].sigfound[(int)MstsSignalFunction.NORMAL];
+                                    int nextSignalIndex = NextSignalObject[0].sigfound[(int)SignalFunction.Normal];
                                     if (nextSignalIndex >= 0)
                                     {
                                         NextSignalObject[0] = signalRef.SignalObjects[nextSignalIndex];
@@ -3467,7 +3467,7 @@ namespace Orts.Simulation.Timetables
                     }
                 }
 
-                else if (nextAspect == MstsSignalAspect.STOP)
+                else if (nextAspect == SignalAspectState.Stop)
                 {
                     // if stop but train is well away from signal allow to close
                     if (DistanceToSignal.HasValue && DistanceToSignal.Value > 5 * signalApproachDistanceM)
@@ -3507,7 +3507,7 @@ namespace Orts.Simulation.Timetables
                 }
                 else if (nextActionInfo == null || nextActionInfo.NextAction != AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
                 {
-                    if (nextAspect != MstsSignalAspect.STOP)
+                    if (nextAspect != SignalAspectState.Stop)
                     {
                         DelayedStartMoving(AI_START_MOVEMENT.SIGNAL_CLEARED);
                     }
@@ -3960,8 +3960,8 @@ namespace Orts.Simulation.Timetables
             bool exitSignalStop = false;
             if (thisStation.ExitSignal >= 0 && NextSignalObject[0] != null && NextSignalObject[0].thisRef == thisStation.ExitSignal)
             {
-                MstsSignalAspect nextAspect = GetNextSignalAspect(0);
-                exitSignalStop = (nextAspect == MstsSignalAspect.STOP && !thisStation.NoWaitSignal);
+                SignalAspectState nextAspect = GetNextSignalAspect(0);
+                exitSignalStop = (nextAspect == SignalAspectState.Stop && !thisStation.NoWaitSignal);
             }
 
             // if not end of path, check if departure allowed
@@ -4223,7 +4223,7 @@ namespace Orts.Simulation.Timetables
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
 
-                if (nextActionInfo.ActiveItem.signal_state >= MstsSignalAspect.APPROACH_1)
+                if (nextActionInfo.ActiveItem.signal_state >= SignalAspectState.Approach_1)
                 {
                     clearAction = true;
 
@@ -4247,11 +4247,11 @@ namespace Orts.Simulation.Timetables
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
                     }
                 }
-                else if (nextActionInfo.ActiveItem.signal_state != MstsSignalAspect.STOP)
+                else if (nextActionInfo.ActiveItem.signal_state != SignalAspectState.Stop)
                 {
                     nextActionInfo.NextAction = AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED;
                     if (((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                         nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(MstsSignalFunction.NORMAL))
+                         nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
                     {
                         clearAction = true;
 #if DEBUG_REPORTS
@@ -4281,9 +4281,9 @@ namespace Orts.Simulation.Timetables
 
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED)
             {
-                if ((nextActionInfo.ActiveItem.signal_state >= MstsSignalAspect.APPROACH_1) ||
+                if ((nextActionInfo.ActiveItem.signal_state >= SignalAspectState.Approach_1) ||
                    ((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                   (nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(MstsSignalFunction.NORMAL)))
+                   (nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(SignalFunction.Normal)))
                 {
                     clearAction = true;
 #if DEBUG_REPORTS
@@ -4429,7 +4429,7 @@ namespace Orts.Simulation.Timetables
                     // check if station has exit signal and if signal is clear
                     // if signal is at stop, check if stop position is sufficiently clear of signal
 
-                    if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(MstsSignalFunction.NORMAL) == MstsSignalAspect.STOP)
+                    if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop)
                     {
                         float reqsignaldistance = StationStops[0].CloseupSignal ? keepDistanceCloseupSignalM : signalApproachDistanceM;
                         if (distanceToGoM > DistanceToSignal.Value - reqsignaldistance)
@@ -10594,7 +10594,7 @@ namespace Orts.Simulation.Timetables
                             else if (!MayDepart)
                             {
                                 // check if signal ahead is cleared - if not, and signal is station exit signal, do not allow depart
-                                if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(MstsSignalFunction.NORMAL) == MstsSignalAspect.STOP
+                                if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop
                                     && NextSignalObject[0].hasPermission != SignalObject.Permission.Granted && !StationStops[0].NoWaitSignal
                                     && NextSignalObject[0].thisRef == StationStops[0].ExitSignal)
                                 {

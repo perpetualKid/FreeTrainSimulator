@@ -51,6 +51,7 @@
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\Path.cs" />
     <Compile Include="Models\Route.cs" />
+    <Compile Include="Models\Signal.cs" />
     <Compile Include="Models\Terrain.cs" />
     <Compile Include="Models\Time.cs" />
     <Compile Include="Models\Track.cs" />
@@ -90,7 +91,7 @@
     <Compile Include="Files\RoadDatabaseFile.cs" />
     <Compile Include="Files\ShapeDescriptorFile.cs" />
     <Compile Include="Files\ShapeFile.cs" />
-    <Compile Include="SignalConfigurationFile.cs" />
+    <Compile Include="Files\SignalConfigurationFile.cs" />
     <Compile Include="Files\SpeedpostDatFile.cs" />
     <Compile Include="Files\SoundManagmentFile.cs" />
     <Compile Include="Files\ServiceFile.cs" />

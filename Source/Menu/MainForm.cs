@@ -402,6 +402,8 @@ namespace Orts.Menu
         #region Routes
         private async void ComboBoxRoute_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (comboBoxRoute.SelectedItem != null)
+                FolderStructure.InitializeFromRoute(((Route)comboBoxRoute.SelectedItem).Path);
             try
             {
                 await Task.WhenAll(

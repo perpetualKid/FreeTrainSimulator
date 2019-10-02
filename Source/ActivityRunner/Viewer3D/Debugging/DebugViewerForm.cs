@@ -1948,12 +1948,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                   signal.holdState = SignalObject.HoldState.ManualApproach;
                   foreach (var sigHead in signal.SignalHeads)
                   {
-                      var drawstate1 = sigHead.def_draw_state(MstsSignalAspect.APPROACH_1);
-                      var drawstate2 = sigHead.def_draw_state(MstsSignalAspect.APPROACH_2);
-                      var drawstate3 = sigHead.def_draw_state(MstsSignalAspect.APPROACH_3);
-                      if (drawstate1 > 0) { sigHead.state = MstsSignalAspect.APPROACH_1; }
-                      else if (drawstate2 > 0) { sigHead.state = MstsSignalAspect.APPROACH_2; }
-                      else { sigHead.state = MstsSignalAspect.APPROACH_3; }
+                      var drawstate1 = sigHead.def_draw_state(SignalAspectState.Approach_1);
+                      var drawstate2 = sigHead.def_draw_state(SignalAspectState.Approach_2);
+                      var drawstate3 = sigHead.def_draw_state(SignalAspectState.Approach_3);
+                      if (drawstate1 > 0) { sigHead.state = SignalAspectState.Approach_1; }
+                      else if (drawstate2 > 0) { sigHead.state = SignalAspectState.Approach_2; }
+                      else { sigHead.state = SignalAspectState.Approach_3; }
                       sigHead.draw_state = sigHead.def_draw_state(sigHead.state);
                   }
 				  break;
@@ -2121,13 +2121,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 			   foreach (var head in Signal.SignalHeads)
 			   {
-                   if (head.state == MstsSignalAspect.CLEAR_1 ||
-                       head.state == MstsSignalAspect.CLEAR_2)
+                   if (head.state == SignalAspectState.Clear_1 ||
+                       head.state == SignalAspectState.Clear_2)
 				   {
 					   returnValue = 0;
 				   }
-                   if (head.state == MstsSignalAspect.APPROACH_1 ||
-                       head.state == MstsSignalAspect.APPROACH_2 || head.state == MstsSignalAspect.APPROACH_3)
+                   if (head.state == SignalAspectState.Approach_1 ||
+                       head.state == SignalAspectState.Approach_2 || head.state == SignalAspectState.Approach_3)
 				   {
 					   returnValue = 1;
 				   }

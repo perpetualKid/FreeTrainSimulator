@@ -995,7 +995,7 @@ namespace Orts.Simulation
                     {
                         // check if signal ahead is cleared - if not, do not allow depart
                         if (distanceToNextSignal >= 0 && distanceToNextSignal < 300 && MyPlayerTrain.NextSignalObject[0] != null &&
-                            MyPlayerTrain.NextSignalObject[0].this_sig_lr(MstsSignalFunction.NORMAL) == MstsSignalAspect.STOP
+                            MyPlayerTrain.NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop
                             && MyPlayerTrain.NextSignalObject[0].hasPermission != SignalObject.Permission.Granted)
                         {
                             DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. Waiting for signal ahead to clear.");

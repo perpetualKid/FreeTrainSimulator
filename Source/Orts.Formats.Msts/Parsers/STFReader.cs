@@ -1528,8 +1528,8 @@ namespace Orts.Formats.Msts.Parsers
         {
             /// <summary>This constructor is used for the arguments to ParseFile and ParseBlock.
             /// </summary>
-            /// <param name="t">The lower case token.</param>
-            /// <param name="p">A lambda function or delegate that will be called from the Parse...() method.</param>
+            /// <param name="token">The lower case token.</param>
+            /// <param name="processor">A lambda function or delegate that will be called from the Parse...() method.</param>
             [DebuggerStepThrough]
             public TokenProcessor(string token, Processor processor)
             {
