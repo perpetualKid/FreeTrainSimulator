@@ -1204,9 +1204,6 @@ namespace Orts.Formats.Msts.Models
     public class LinearKey : KeyPosition
     {
         private Vector3 position;
-        public float X => position.X;
-        public float Y => position.Y;
-        public float Z => -position.Z;
         public ref Vector3 Position => ref position;
 
         public LinearKey(SBR block)
@@ -1232,10 +1229,6 @@ namespace Orts.Formats.Msts.Models
     public class TcbKey : KeyPosition
     {
         private Quaternion quaternion;
-        public float X => quaternion.X;
-        public float Y => quaternion.Y;
-        public float Z => -quaternion.Z;
-        public float W => quaternion.W;
         public ref Quaternion Quaternion => ref quaternion;
         public float Tension { get; private set; }
         public float Continuity { get; private set; }

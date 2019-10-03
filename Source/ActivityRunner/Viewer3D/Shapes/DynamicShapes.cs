@@ -120,7 +120,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                 if (position1 is SlerpRotation slerp1 && position2 is SlerpRotation slerp2)  // rotate the existing matrix
                 {
-                    Quaternion.Slerp(ref slerp1.Quaternion, ref slerp1.Quaternion, amount, out Quaternion q);
+                    Quaternion.Slerp(ref slerp1.Quaternion, ref slerp2.Quaternion, amount, out Quaternion q);
                     Vector3 location = xnaPose.Translation;
                     xnaPose = Matrix.CreateFromQuaternion(q);
                     xnaPose.Translation = location;
