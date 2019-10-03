@@ -1179,17 +1179,13 @@ namespace Orts.Formats.Msts.Models
     public class SlerpRotation : KeyPosition
     {
         private Quaternion quaternion;
-        public float X => quaternion.X;
-        public float Y => quaternion.Y;
-        public float Z => -quaternion.Z;
-        public float W => quaternion.W;
         public ref Quaternion Quaternion => ref quaternion; 
 
         public SlerpRotation(SBR block)
         {
             block.VerifyID(TokenID.Slerp_Rot);
             Frame = block.ReadInt();
-            Quaternion = new Quaternion(block.ReadFloat(), block.ReadFloat(), -block.ReadFloat(), block.ReadFloat());
+            quaternion = new Quaternion(block.ReadFloat(), block.ReadFloat(), -block.ReadFloat(), block.ReadFloat());
             block.VerifyEndOfBlock();
         }
     }
