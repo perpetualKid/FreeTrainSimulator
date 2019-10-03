@@ -417,10 +417,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             foreach (var pickup in worldFile.PickupList)
                             {
-                                if (pickup.Location == WorldLocation.None)
-                                    pickup.Location = new WorldLocation(
-                                        worldFile.TileX, worldFile.TileZ,
-                                        pickup.Position.X, pickup.Position.Y, pickup.Position.Z);
                                 if ((wagon.FreightAnimations != null && ((uint)wagon.FreightAnimations.FreightType == pickup.PickupType || wagon.FreightAnimations.FreightType == MSTSWagon.PickupType.None) &&
                                     (uint)intake.Type == pickup.PickupType)
                                  || ((uint)intake.Type == pickup.PickupType && (uint)intake.Type > (uint)MSTSWagon.PickupType.FreightSand && (wagon.WagonType == TrainCar.WagonTypes.Tender || wagon is MSTSLocomotive)))
@@ -431,7 +427,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                         car.WorldPosition.TileX, car.WorldPosition.TileZ,
                                         intakePosition.X, intakePosition.Y, -intakePosition.Z);
 
-                                    var d2 = WorldLocation.GetDistanceSquared(intakeLocation, pickup.Location);
+                                    var d2 = WorldLocation.GetDistanceSquared(intakeLocation, pickup.WorldPosition.WorldLocation);
                                     if (d2 < shortestD2)
                                     {
                                         shortestD2 = d2;
@@ -478,7 +474,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 match.Wagon.WorldPosition.TileX, match.Wagon.WorldPosition.TileZ,
                 intakePosition.X, intakePosition.Y, -intakePosition.Z);
 
-            return (float)Math.Sqrt(WorldLocation.GetDistanceSquared(intakeLocation, match.Pickup.Location));
+            return (float)Math.Sqrt(WorldLocation.GetDistanceSquared(intakeLocation, match.Pickup.WorldPosition.WorldLocation));
         }
 
         /// <summary>
@@ -530,7 +526,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 return;
             }
             if (distanceToPickupM <= match.IntakePoint.WidthM / 2)
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = (int)match.Pickup.UID;
+                MSTSWagon.RefillProcess.ActivePickupObjectUID = (int)match.Pickup.UiD;
             if (loco.SpeedMpS != 0 && match.Pickup.SpeedRange.MaxMpS == 0f)
             {
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: Loco must be stationary to refill {0}.",

@@ -487,7 +487,7 @@ namespace Orts.Simulation.Signalling
 
                 // loop through all signals
 
-                foreach (var worldObject in WFile.Tr_Worldfile)
+                foreach (var worldObject in WFile.Objects)
                 {
                     if (worldObject.GetType() == typeof(SignalObj))
                     {
@@ -8272,7 +8272,7 @@ namespace Orts.Simulation.Signalling
         {
             get
             {
-                SignalBlockState lstate = SignalBlockState.Junction_Obstructed;
+                SignalBlockState lstate = SignalBlockState.Jn_Obstructed;
                 switch (internalBlockState)
                 {
                     case InternalBlockstate.Reserved:
@@ -8283,7 +8283,7 @@ namespace Orts.Simulation.Signalling
                         lstate = SignalBlockState.Occupied;
                         break;
                     default:
-                        lstate = SignalBlockState.Junction_Obstructed;
+                        lstate = SignalBlockState.Jn_Obstructed;
                         break;
                 }
 
@@ -12187,7 +12187,7 @@ namespace Orts.Simulation.Signalling
 
         public SignalBlockState RouteClearedToSignal(int req_signalid, bool allowCallOn, string dumpfile)
         {
-            SignalBlockState routeState = SignalBlockState.Junction_Obstructed;
+            SignalBlockState routeState = SignalBlockState.Jn_Obstructed;
             if (enabledTrain != null && req_signalid >= 0 && req_signalid < signalRef.SignalObjects.Length)
             {
                 SignalObject otherSignal = signalRef.SignalObjects[req_signalid];
@@ -12262,7 +12262,7 @@ namespace Orts.Simulation.Signalling
 
                     if (!routeCleared)
                     {
-                        routeState = SignalBlockState.Junction_Obstructed;
+                        routeState = SignalBlockState.Jn_Obstructed;
                         if (!String.IsNullOrEmpty(dumpfile))
                         {
                             var sob = new StringBuilder();

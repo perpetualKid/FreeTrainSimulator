@@ -284,15 +284,12 @@ namespace Orts.ActivityRunner.Viewer3D
             var WFile = new Orts.Formats.Msts.WorldFile(WFilePath);
 
             // check for existence of world file in OpenRails subfolder
-
             WFilePath = viewer.Simulator.RoutePath + @"\World\Openrails\" + WFileName;
             if (File.Exists(WFilePath))
             {
                 // We have an OR-specific addition to world file
                 WFile.InsertORSpecificData(WFilePath);
             }
-
-
 
             // to avoid loop checking for every object this pre-check is performed
             bool containsMovingTable = false;
@@ -307,7 +304,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             // create all the individual scenery objects specified in the WFile
-            foreach (var worldObject in WFile.Tr_Worldfile)
+            foreach (var worldObject in WFile.Objects)
             {
                 if (worldObject.StaticDetailLevel > viewer.Settings.WorldObjectDensity)
                     continue;
@@ -317,16 +314,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     break;
 
                 // Get the position of the scenery object into ORTS coordinate space.
-                WorldPosition worldMatrix;
-                if (worldObject.Matrix3x3.IsSet && worldObject.Position != null)
-                    worldMatrix = WorldPositionFromMSTSLocation(WFile.TileX, WFile.TileZ, worldObject.Position, worldObject.Matrix3x3);
-                else if (worldObject.QDirection != null && worldObject.Position != null)
-                    worldMatrix = WorldPositionFromMSTSLocation(WFile.TileX, WFile.TileZ, worldObject.Position, worldObject.QDirection);
-                else
-                {
-                    Trace.TraceWarning("{0} scenery object {1} is missing Matrix3x3 and QDirection", WFileName, worldObject.UID);
-                    continue;
-                }
+                ref WorldPosition worldMatrix = ref worldObject.WorldPosition;
 
                 var shadowCaster = (worldObject.StaticFlags & (uint)StaticFlag.AnyShadow) != 0 || viewer.Settings.ShadowAllShapes;
                 var animated = (worldObject.StaticFlags & (uint)StaticFlag.Animate) != 0;
@@ -342,7 +330,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     shapeFilePath = Path.GetFullPath(shapeFilePath);
                     if (!File.Exists(shapeFilePath))
                     {
-                        Trace.TraceWarning("{0} scenery object {1} with StaticFlags {3:X8} references non-existent {2}", WFileName, worldObject.UID, shapeFilePath, worldObject.StaticFlags);
+                        Trace.TraceWarning("{0} scenery object {1} with StaticFlags {3:X8} references non-existent {2}", WFileName, worldObject.UiD, shapeFilePath, worldObject.StaticFlags);
                         shapeFilePath = null;
                     }
                 }
@@ -369,7 +357,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         var trackObj = (TrackObj)worldObject;
                         // Switch tracks need a link to the simulator engine so they can animate the points.
-                        var trJunctionNode = trackObj.JNodePosn != null ? viewer.Simulator.TDB.GetTrJunctionNode(TileX, TileZ, (int)trackObj.UID) : null;
+                        var trJunctionNode = trackObj.JNodePosn != null ? viewer.Simulator.TDB.GetTrJunctionNode(TileX, TileZ, (int)trackObj.UiD) : null;
                         // We might not have found the junction node; if so, fall back to the static track shape.
                         if (trJunctionNode != null)
                         {
@@ -392,14 +380,17 @@ namespace Orts.ActivityRunner.Viewer3D
                                 var found = false;
                                 foreach (var movingTable in Program.Simulator.MovingTables)
                                 {
-                                    if (worldObject.UID == movingTable.UID && WFileName == movingTable.WFile)
+                                    if (worldObject.UiD == movingTable.UID && WFileName == movingTable.WFile)
                                     {
                                         found = true;
                                         if (movingTable is Simulation.Turntable)
                                         {
                                             var turntable = movingTable as Simulation.Turntable;
                                             turntable.ComputeCenter(worldMatrix);
-                                            var startingY = Math.Asin(-2 * (worldObject.QDirection.A * worldObject.QDirection.C - worldObject.QDirection.B * worldObject.QDirection.D));
+                                            Quaternion quaternion = Quaternion.CreateFromRotationMatrix(worldObject.WorldPosition.XNAMatrix);
+                                            //quaternion.Z *= -1;
+                                            var startingY = Math.Asin(-2 * (quaternion.X * quaternion.Z - quaternion.Y * quaternion.W));
+                                            //var startingY = Math.Asin(-2 * (worldObject.QDirection.A * worldObject.QDirection.C - worldObject.QDirection.B * worldObject.QDirection.D));
                                             sceneryObjects.Add(new TurntableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, turntable, startingY));
                                         }
                                         else
@@ -500,7 +491,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 catch (Exception error)
                 {
-                    Trace.WriteLine(new FileLoadException(String.Format("{0} scenery object {1} failed to load", worldMatrix, worldObject.UID), error));
+                    Trace.WriteLine(new FileLoadException(String.Format("{0} scenery object {1} failed to load", worldMatrix, worldObject.UiD), error));
                 }
             }
 
@@ -616,36 +607,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 dTrack.PrepareFrame(frame, elapsedTime);
             foreach (var forest in forestList)
                 forest.PrepareFrame(frame, elapsedTime);
-        }
-
-        /// <summary>
-        /// MSTS WFiles represent some location with a position, quaternion and tile coordinates
-        /// This converts it to the ORTS WorldPosition representation
-        /// </summary>
-        static WorldPosition WorldPositionFromMSTSLocation(int tileX, int tileZ, STFPositionItem MSTSPosition, STFQDirectionItem MSTSQuaternion)
-        {
-            var XNAQuaternion = new Quaternion((float)MSTSQuaternion.A, (float)MSTSQuaternion.B, -(float)MSTSQuaternion.C, (float)MSTSQuaternion.D);
-            var XNAPosition = new Vector3((float)MSTSPosition.X, (float)MSTSPosition.Y, -(float)MSTSPosition.Z);
-            var XNAMatrix = Matrix.CreateFromQuaternion(XNAQuaternion);
-            XNAMatrix *= Matrix.CreateTranslation(XNAPosition);
-
-            return new WorldPosition(tileX, tileZ, XNAMatrix);
-        }
-
-        /// <summary>
-        /// MSTS WFiles represent some location with a position, 3x3 matrix and tile coordinates
-        /// This converts it to the ORTS WorldPosition representation
-        /// </summary>
-        static WorldPosition WorldPositionFromMSTSLocation(int tileX, int tileZ, STFPositionItem mstsPosition, in Matrix3x3 mstsMatrix)
-        {
-            Vector3 xnaPosition = new Vector3(mstsPosition.X, mstsPosition.Y, -mstsPosition.Z);
-            Matrix xnaMatrix = new Matrix (
-                mstsMatrix.AX, mstsMatrix.AY, -mstsMatrix.AZ, 0, 
-                mstsMatrix.BX, mstsMatrix.BY, -mstsMatrix.BZ, 0,
-                -mstsMatrix.CX, -mstsMatrix.CY, mstsMatrix.CZ, 0,
-                0, 0, 0, 1);
-
-            return new WorldPosition(tileX, tileZ, MatrixExtension.Multiply(xnaMatrix, Matrix.CreateTranslation(xnaPosition)));
         }
 
         /// <summary>

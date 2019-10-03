@@ -51,7 +51,7 @@ namespace Orts.Formats.Msts
         /// <summary>Block ahead is occupied by one or more wagons/locos not moving in opposite direction</summary>
         Occupied,
         /// <summary>Block ahead is impassable due to the state of a switch or occupied by moving train or not accesible</summary>
-        Junction_Obstructed,
+        Jn_Obstructed,
     }
 
     /// <summary>
@@ -450,5 +450,27 @@ namespace Orts.Formats.Msts
         Rpm,
         Lbs,
     }
+    #endregion
+
+    #region WorldFile
+    // These relate to the general properties settable for scenery objects in RE
+    public enum StaticFlag
+    {
+        RoundShadow = 0x00002000,
+        RectangularShadow = 0x00004000,
+        TreelineShadow = 0x00008000,
+        DynamicShadow = 0x00010000,
+        AnyShadow = 0x0001E000,
+        Terrain = 0x00040000,
+        Animate = 0x00080000,
+        Global = 0x00200000,
+    }
+
+    public enum PlatformDataFlag
+    {
+        PlatformLeft = 0x00000002,
+        PlatformRight = 0x00000004,
+    }
+
     #endregion
 }

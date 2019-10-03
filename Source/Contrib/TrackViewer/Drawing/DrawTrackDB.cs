@@ -146,7 +146,7 @@ namespace ORTS.TrackViewer.Drawing
 
                     // loop through all signals
 
-                    foreach (var worldObject in WFile.Tr_Worldfile)
+                    foreach (var worldObject in WFile.Objects)
                     {
                         if (worldObject.GetType() != typeof(SignalObj)) continue;
 

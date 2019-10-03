@@ -76,7 +76,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Traveller.ReverseDirection();
                 Length = Traveller.DistanceTo(endLocation.TileX, endLocation.TileZ, endLocation.Location.X, endLocation.Location.Y, endLocation.Location.Z);
                 if (Length < 0)
-                    Trace.TraceWarning("{0} car spawner {1} doesn't have connected road route between {2} and {3}", position, carSpawnerObj.UID, startLocation, endLocation);
+                    Trace.TraceWarning("{0} car spawner {1} doesn't have connected road route between {2} and {3}", position, carSpawnerObj.UiD, startLocation, endLocation);
             }
 
             var sortedLevelCrossings = new SortedList<float, LevelCrossingItem>();

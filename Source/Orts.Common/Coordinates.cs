@@ -91,6 +91,11 @@ namespace Orts.Common
             XNAMatrix = MatrixExtension.SetTranslation(Matrix.Identity, x, y, -z);
         }
 
+        public WorldPosition ChangeTranslation(float x, float y, float z)
+        {
+            return new WorldPosition(TileX, TileZ, MatrixExtension.ChangeTranslation(XNAMatrix, x, y, z));
+        }
+
         public WorldPosition SetTranslation(Vector3 translation)
         {
             return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, translation));

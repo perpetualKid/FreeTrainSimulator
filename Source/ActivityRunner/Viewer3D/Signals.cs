@@ -56,7 +56,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var signalShape = Path.GetFileName(path).ToUpper();
             if (!viewer.SIGCFG.SignalShapes.ContainsKey(signalShape))
             {
-                Trace.TraceWarning("{0} signal {1} has invalid shape {2}.", WorldPosition.ToString(), mstsSignal.UID, signalShape);
+                Trace.TraceWarning("{0} signal {1} has invalid shape {2}.", WorldPosition.ToString(), mstsSignal.UiD, signalShape);
                 return;
             }
             var mstsSignalShape = viewer.SIGCFG.SignalShapes[signalShape];
@@ -109,7 +109,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (mstsSignal.SignalUnits == null)
             {
-                Trace.TraceWarning("{0} signal {1} has no SignalUnits.", WorldPosition.ToString(), mstsSignal.UID);
+                Trace.TraceWarning("{0} signal {1} has no SignalUnits.", WorldPosition.ToString(), mstsSignal.UiD);
                 return;
             }
 
@@ -122,14 +122,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 var signalAndHead = viewer.Simulator.Signals.FindByTrItem(mstsSignal.SignalUnits.Units[i].TrItem);
                 if (!signalAndHead.HasValue)
                 {
-                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid TrItem {3}", WorldPosition.ToString(), mstsSignal.UID, i, mstsSignal.SignalUnits.Units[i].TrItem);
+                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid TrItem {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits.Units[i].TrItem);
                     continue;
                 }
                 // Get the signal sub-object for this unit (head).
                 var mstsSignalSubObj = mstsSignalShape.SignalSubObjs[mstsSignal.SignalUnits.Units[i].SubObj];
                 if (mstsSignalSubObj.SignalSubType != SignalSubType.Signal_Head) // SIGNAL_HEAD
                 {
-                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", WorldPosition.ToString(), mstsSignal.UID, i, mstsSignal.SignalUnits.Units[i].SubObj);
+                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits.Units[i].SubObj);
                     continue;
                 }
                 var mstsSignalItem = (SignalItem)(viewer.Simulator.TDB.TrackDB.TrItemTable[mstsSignal.SignalUnits.Units[i].TrItem]);

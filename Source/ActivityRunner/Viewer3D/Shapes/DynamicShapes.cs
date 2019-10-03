@@ -604,10 +604,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     {
                         var m = hazard.HazFile.Hazard.Speed * elapsedTime.ClockSeconds;
                         moved += m;
-                        hazardObject.Position.Move(hazardObject.QDirection, m);
                         // Shape's position isn't stored but only calculated dynamically as it's passed to PrepareFrame further down
                         // this seems acceptable as the number of Hazardous objects is rather small
                         //WorldPosition.SetLocation(HazardObj.Position.X, HazardObj.Position.Y, HazardObj.Position.Z);
+                        hazardObject.UpdatePosition(m);
                     }
                     else
                     {
@@ -655,7 +655,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 AnimateMatrix(i, animationKey);
 
             //SharedShape.PrepareFrame(frame, WorldPosition, XNAMatrices, Flags);
-            SharedShape.PrepareFrame(frame, WorldPosition.SetMstsTranslation(hazardObject.Position.X, hazardObject.Position.Y, hazardObject.Position.Z), XNAMatrices, Flags);
+//            SharedShape.PrepareFrame(frame, WorldPosition.SetMstsTranslation(hazardObject.Position.X, hazardObject.Position.Y, hazardObject.Position.Z), XNAMatrices, Flags);
+            SharedShape.PrepareFrame(frame, hazardObject.WorldPosition, XNAMatrices, Flags);
         }
     }
 
@@ -771,7 +772,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         {
 
             // 0 can be used as a setting for instant animation.
-            if (fuelPickupItem.ReFill() && fuelPickupItemObject.UID == MSTSWagon.RefillProcess.ActivePickupObjectUID)
+            if (fuelPickupItem.ReFill() && fuelPickupItemObject.UiD == MSTSWagon.RefillProcess.ActivePickupObjectUID)
             {
                 if (animationKey == 0 && soundSource != null) soundSource.HandleEvent(Event.FuelTowerDown);
                 if (fuelPickupItemObject.PickupAnimData.AnimationSpeed == 0) animationKey = 1.0f;

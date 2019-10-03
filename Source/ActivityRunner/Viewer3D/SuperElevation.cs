@@ -81,7 +81,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         //with strait track, will remove all related sections later
                     }
                     TrVectorSection tmp = null;
-                    tmp = FindSectionValue(shape, viewer.Simulator, section, TileX, TileZ, trackObj.UID);
+                    tmp = FindSectionValue(shape, viewer.Simulator, section, TileX, TileZ, trackObj.UiD);
 
                     if (tmp == null) //cannot find the track for super elevation, will return 0;
                     {
