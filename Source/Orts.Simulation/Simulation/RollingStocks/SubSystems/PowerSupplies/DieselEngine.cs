@@ -31,7 +31,7 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
     public class DieselEngines : IEnumerable
-    {
+    {       
         /// <summary>
         /// A list of auxiliaries
         /// </summary>
@@ -690,7 +690,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public float InitialMagnitude = 1.5f;        
         public float MaxMagnitude = 1.5f;
         public float MagnitudeRange;
-        public float ExhaustMagnitude = 1.5f;   
+        public float ExhaustMagnitude = 1.5f;
+        
+        public bool DieselEngineConfigured = false; // flag to indicate that the user has configured a diesel engine in the ENG file
 
         public float InitialExhaust = 0.7f;
         public float MaxExhaust = 2.8f;
@@ -698,8 +700,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public float ExhaustDecelReduction = 0.75f; //Represents the percentage that exhaust will be reduced while engine is decreasing RPMs.
         public float ExhaustAccelIncrease = 2.0f; //Represents the percentage that exhaust will be increased while engine is increasing RPMs.
-
-        public bool DieselEngineConfigured = false; // flag to indicate that the user has configured a diesel engine in the ENG file
 
         /// <summary>
         /// Current Engine oil pressure in PSI
@@ -1143,6 +1143,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 if (DieselEngineConfigured)
                     Trace.TraceInformation("MaxRpM not found in Diesel Engine Config, set at default value = {0}", MaxRPM);
             }
+                
             InitialMagnitude = loco.InitialMagnitude;
             MaxMagnitude = loco.MaxMagnitude;
             if ((initLevel & SettingsFlags.MaxExhaust) == 0)
@@ -1162,11 +1163,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             if ((initLevel & SettingsFlags.ExhaustTransientColor) == 0)
             {
-
                 ExhaustTransientColor = loco.ExhaustTransientColor;
                 if (DieselEngineConfigured)
                     Trace.TraceInformation("ExhaustTransientColour not found in Diesel Engine Config, set at default value = {0}", ExhaustTransientColor);
             }
+
             if ((initLevel & SettingsFlags.StartingRPM) == 0)
             {
                 StartingRPM = loco.IdleRPM * 2.0f / 3.0f;
@@ -1209,7 +1210,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     Trace.TraceInformation("RateofChangeDownRpMpS not found in Diesel Engine Config, set at default value = {0}", RateOfChangeDownRPMpSS);
             }
 
-            if ((initLevel & SettingsFlags.MaximalDieselPowerW) == 0)
+            if ((initLevel & SettingsFlags.MaximalDieselPowerW) == 0 )
             {
                 if (loco.MaximumDieselEnginePowerW != 0)
                 {
@@ -1227,8 +1228,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     MaximumDieselPowerW = loco.MaxPowerW;
                     Trace.TraceInformation("MaximalPower not found in Diesel Engine Config, set at default value = {0}", MaximumDieselPowerW);
                 }
-
             }
+
 
             if ((initLevel & SettingsFlags.MaxOilPressure) == 0)
             {
@@ -1264,6 +1265,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 if (DieselEngineConfigured)
                     Trace.TraceInformation("TempTimeConstant not found in Diesel Engine Config, set at default value = {0}", DieselTempTimeConstantSec);
             }
+
+
 
             if ((initLevel & SettingsFlags.DieselConsumptionTab) == 0)
             {
@@ -1334,15 +1337,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 if (DieselEngineConfigured)
                     Trace.TraceInformation("DieselPowerTab not found in Diesel Engine Config, set at default value");
             }
-
             if (MaximumRailOutputPowerW == 0)
             {
-                MaximumRailOutputPowerW = 0.8f * MaximumDieselPowerW; // set rail power to a default value on the basis that it is about 80% of the prime mover output power
+                    MaximumRailOutputPowerW = 0.8f * MaximumDieselPowerW; // set rail power on the basis that it is about 80% of the prime mover output power
             }
 
             InitialExhaust = loco.InitialExhaust;
             MaxExhaust = loco.MaxExhaust;
             locomotive = loco;
+
         }
 
     }
