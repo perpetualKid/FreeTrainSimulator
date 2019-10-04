@@ -48,13 +48,16 @@ namespace Orts.Formats.Msts.Models
 
     public class EsdBoundingBox
     {
-        public TWorldPosition Min { get; private set; }
-        public TWorldPosition Max { get; private set; }
+        private Vector3 min;
+        private Vector3 max;
+
+        public ref Vector3 Min => ref min;
+        public ref Vector3 Max => ref max;
 
         public EsdBoundingBox() // default used for files with no SD file
         {
-            Min = new TWorldPosition(0, 0, 0);
-            Max = new TWorldPosition(0, 0, 0);
+            Min = new Vector3();
+            Max = new Vector3();
         }
 
         public EsdBoundingBox(STFReader stf)
@@ -63,14 +66,8 @@ namespace Orts.Formats.Msts.Models
             string item = stf.ReadString();
             if (item == ")") return;    // quietly return on ESD_Bounding_Box()
             stf.StepBackOneItem();
-            float X = stf.ReadFloat(STFReader.Units.None, null);
-            float Y = stf.ReadFloat(STFReader.Units.None, null);
-            float Z = stf.ReadFloat(STFReader.Units.None, null);
-            Min = new TWorldPosition(X, Y, Z);
-            X = stf.ReadFloat(STFReader.Units.None, null);
-            Y = stf.ReadFloat(STFReader.Units.None, null);
-            Z = stf.ReadFloat(STFReader.Units.None, null);
-            Max = new TWorldPosition(X, Y, Z);
+            min = new Vector3(stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
+            max = new Vector3(stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
             // JP2indirt.sd has extra parameters
             stf.SkipRestOfBlock();
         }

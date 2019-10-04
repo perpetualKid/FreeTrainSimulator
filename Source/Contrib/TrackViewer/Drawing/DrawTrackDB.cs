@@ -148,14 +148,14 @@ namespace ORTS.TrackViewer.Drawing
 
                     foreach (var worldObject in WFile.Objects)
                     {
-                        if (worldObject.GetType() != typeof(SignalObj)) continue;
+                        if (worldObject.GetType() != typeof(SignalObject)) continue;
 
-                        var thisWorldObject = worldObject as SignalObj;
+                        var thisWorldObject = worldObject as SignalObject;
                         if (thisWorldObject.SignalUnits == null) continue; //this has no unit, will ignore it and treat it as static in scenary.cs
 
-                        foreach (var si in thisWorldObject.SignalUnits.Units)
+                        foreach (var si in thisWorldObject.SignalUnits)
                         {
-                            uint trItemId = si.TrItem;
+                            uint trItemId = si.TrackItem;
                             this.signalFileNames[trItemId] = thisWorldObject.FileName;
                         }
                     }

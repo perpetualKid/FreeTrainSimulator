@@ -56,6 +56,43 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
+        /// <summary>
+        /// TrackSection from WorldFile
+        /// </summary>
+        /// <param name="block"></param>
+        public TrackSection(SBR block)
+        {
+            // TrackSection  ==> :SectionCurve :uint,UiD :float,param1 :float,param2
+            // SectionCurve  ==> :uint,isCurved
+            // eg:  TrackSection (
+            //	       SectionCurve ( 1 ) 40002 -0.3 120
+            //      )
+            // isCurve = 0 for straight, 1 for curved
+            // param1 = length (m) for straight, arc (radians) for curved
+            // param2 = 0 for straight, radius (m) for curved
+
+            block.VerifyID(TokenID.TrackSection);
+            using (var subBlock = block.ReadSubBlock())
+            {
+                subBlock.VerifyID(TokenID.SectionCurve);
+                Curved = subBlock.ReadUInt() != 0;
+                subBlock.VerifyEndOfBlock();
+            }
+            SectionIndex = block.ReadUInt();
+            if (Curved)
+            {
+                Angle = block.ReadFloat();
+                Radius = block.ReadFloat();
+            }
+            else
+            {
+                Length = block.ReadFloat();
+                block.ReadFloat();
+                Radius = -1f;
+            }
+            block.VerifyEndOfBlock();
+        }
+
         private void ReadSectionSize(STFReader stf)
         {
             stf.MustMatch("(");
@@ -72,7 +109,6 @@ namespace Orts.Formats.Msts.Models
             Angle = stf.ReadFloat(STFReader.Units.None, null);
             stf.SkipRestOfBlock();
         }
-
     }
 
     public class TrackSections : Dictionary<uint, TrackSection>

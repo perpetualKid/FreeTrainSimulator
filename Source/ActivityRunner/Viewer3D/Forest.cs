@@ -42,7 +42,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public float MaximumCenterlineOffset = 0.0f;
         public bool CheckRoadsToo = false;
 
-        public ForestViewer(Viewer viewer, ForestObj forest, in WorldPosition position)
+        public ForestViewer(Viewer viewer, ForestObject forest, in WorldPosition position)
         {
             Viewer = viewer;
             Position = position;
@@ -84,7 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public readonly float ObjectRadius;
 
-        public ForestPrimitive(Viewer viewer, ForestObj forest, in WorldPosition position, float maximumCenterlineOffset, bool checkRoadsToo)
+        public ForestPrimitive(Viewer viewer, ForestObject forest, in WorldPosition position, float maximumCenterlineOffset, bool checkRoadsToo)
         {
             Viewer = viewer;
             MaximumCenterlineOffset = maximumCenterlineOffset;
@@ -101,12 +101,12 @@ namespace Orts.ActivityRunner.Viewer3D
             PrimitiveCount = trees.Count / 3;
         }
 
-        private List<VertexPositionNormalTexture> CalculateTrees(TileManager tiles, ForestObj forest, in WorldPosition position, out float objectRadius)
+        private List<VertexPositionNormalTexture> CalculateTrees(TileManager tiles, ForestObject forest, in WorldPosition position, out float objectRadius)
         {
             // To get consistent tree placement between sessions, derive the seed from the location.
             var random = new Random((int)(1000.0 * (position.Location.X + position.Location.Z + position.Location.Y)));
             List<TrVectorSection> sections = new List<TrVectorSection>();
-            objectRadius = (float)Math.Sqrt(forest.forestArea.X * forest.forestArea.X + forest.forestArea.Z * forest.forestArea.Z) / 2;
+            objectRadius = (float)Math.Sqrt(forest.ForestArea.Width * forest.ForestArea.Width + forest.ForestArea.Height * forest.ForestArea.Height) / 2;
 
             if (MaximumCenterlineOffset > 0)
             {
@@ -125,13 +125,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
 
                 // Check for cross-tile forests
-                VectorExtension.Transform(new Vector3(-forest.forestArea.X / 2, 0, -forest.forestArea.Z / 2), position.XNAMatrix, out Vector3 forestVertex);
+                VectorExtension.Transform(new Vector3(-forest.ForestArea.Width / 2, 0, -forest.ForestArea.Height / 2), position.XNAMatrix, out Vector3 forestVertex);
                 UpdateIncludedTiles(forestVertex);
-                VectorExtension.Transform(new Vector3(forest.forestArea.X / 2, 0, -forest.forestArea.Z / 2), position.XNAMatrix, out forestVertex);
+                VectorExtension.Transform(new Vector3(forest.ForestArea.Width / 2, 0, -forest.ForestArea.Height / 2), position.XNAMatrix, out forestVertex);
                 UpdateIncludedTiles(forestVertex);
-                VectorExtension.Transform(new Vector3(-forest.forestArea.X / 2, 0, forest.forestArea.Z / 2), position.XNAMatrix, out forestVertex);
+                VectorExtension.Transform(new Vector3(-forest.ForestArea.Width / 2, 0, forest.ForestArea.Height / 2), position.XNAMatrix, out forestVertex);
                 UpdateIncludedTiles(forestVertex);
-                VectorExtension.Transform(new Vector3(forest.forestArea.X / 2, 0, forest.forestArea.Z / 2), position.XNAMatrix, out forestVertex);
+                VectorExtension.Transform(new Vector3(forest.ForestArea.Width / 2, 0, forest.ForestArea.Height / 2), position.XNAMatrix, out forestVertex);
                 UpdateIncludedTiles(forestVertex);
 
                 // add sections in nearby tiles for cross-tile forests
@@ -181,12 +181,12 @@ namespace Orts.ActivityRunner.Viewer3D
             for (var i = 0; i < forest.Population; i++)
             {
                 VectorExtension.Transform(
-                    new Vector3((0.5f - (float)random.NextDouble()) * forest.forestArea.X, 0, (0.5f - (float)random.NextDouble()) * forest.forestArea.Z), 
+                    new Vector3((0.5f - (float)random.NextDouble()) * forest.ForestArea.Width, 0, (0.5f - (float)random.NextDouble()) * forest.ForestArea.Height), 
                     position.XNAMatrix, out Vector3 xnaTreePosition);
 
                 bool onTrack = false;
-                var scale = MathHelper.Lerp(forest.scaleRange.Minimum, forest.scaleRange.Maximum, (float)random.NextDouble());
-                var treeSize = new Vector3(forest.treeSize.Width * scale, forest.treeSize.Height * scale, 1);
+                var scale = MathHelper.Lerp(forest.ScaleRange.LowerLimit, forest.ScaleRange.UpperLimit, (float)random.NextDouble());
+                var treeSize = new Vector3(forest.TreeSize.Width * scale, forest.TreeSize.Height * scale, 1);
                 var heightComputed = false;
                 if (MaximumCenterlineOffset > 0 && sections != null && sections.Count > 0)
                 {
@@ -290,12 +290,12 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // don't consider track sections outside the forest boundaries
-        public void FindTracksAndRoadsMoreClose(ref List<TrVectorSection> sections, List<TrVectorSection> allSections, ForestObj forest, in WorldPosition position, Matrix invForestXNAMatrix)
+        public void FindTracksAndRoadsMoreClose(ref List<TrVectorSection> sections, List<TrVectorSection> allSections, ForestObject forest, in WorldPosition position, Matrix invForestXNAMatrix)
         {
             if (allSections != null && allSections.Count > 0)
             {
-                var toAddX = MaximumCenterlineOffset + forest.forestArea.X / 2 + forest.scaleRange.Maximum * forest.treeSize.Width;
-                var toAddZ = MaximumCenterlineOffset + forest.forestArea.Z / 2 + forest.scaleRange.Maximum * forest.treeSize.Width;
+                var toAddX = MaximumCenterlineOffset + forest.ForestArea.Width / 2 + forest.ScaleRange.UpperLimit * forest.TreeSize.Width;
+                var toAddZ = MaximumCenterlineOffset + forest.ForestArea.Height / 2 + forest.ScaleRange.UpperLimit * forest.TreeSize.Width;
                 foreach (TrVectorSection section in allSections)
                 {
                     Vector3 sectPosition;

@@ -2503,7 +2503,7 @@ namespace Orts.Simulation.RollingStocks
             return;
         }
 
-        public virtual float GetFilledFraction(uint pickupType)
+        public virtual float GetFilledFraction(PickupType pickupType)
         {
             return 0f;
         }

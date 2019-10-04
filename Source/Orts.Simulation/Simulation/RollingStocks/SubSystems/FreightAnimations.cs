@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 
@@ -35,7 +36,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public List<FreightAnimation> Animations = new List<FreightAnimation>();
         public float FreightWeight = 0;
         public float StaticFreightWeight = 0;
-        public MSTSWagon.PickupType FreightType = MSTSWagon.PickupType.None;
+        public PickupType FreightType;
         public bool MSTSFreightAnimEnabled = true;
         public float WagonEmptyWeight = -1;
         public FreightAnimationContinuous LoadedOne = null;
@@ -147,7 +148,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             FreightWeight = inf.ReadSingle();
             var fType = inf.ReadInt32();
-            FreightType = (MSTSWagon.PickupType)fType;
+            FreightType = (PickupType)fType;
             LoadedOne = null;
             foreach (var freightAnim in Animations)
             {

@@ -324,7 +324,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return rv;
         }
 
-        static DebugWindowSignalAspect GetAspect(SignalObject signal)
+        static DebugWindowSignalAspect GetAspect(Signal signal)
         {
             var aspect = signal.this_sig_lr(SignalFunction.Normal);
 
@@ -367,7 +367,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public class TrackSectionSignal : TrackSectionObject
         {
-            public SignalObject Signal;
+            public Signal Signal;
         }
     }
 

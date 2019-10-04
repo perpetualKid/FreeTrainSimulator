@@ -17,15 +17,17 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Orts.Formats.Msts;
-using Orts.Simulation;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
+using Microsoft.Xna.Framework;
+
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -40,7 +42,7 @@ namespace Orts.ActivityRunner.Viewer3D
         const float TrainRailHeightMaximum = 1;
 
         readonly Viewer Viewer;
-        public readonly CarSpawnerObj CarSpawnerObj;
+        public readonly CarSpawnerObject CarSpawnerObj;
 
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
@@ -54,7 +56,7 @@ namespace Orts.ActivityRunner.Viewer3D
         float LastSpawnedTime;
         float NextSpawnTime;
 
-        public RoadCarSpawner(Viewer viewer, in WorldPosition position, CarSpawnerObj carSpawnerObj)
+        public RoadCarSpawner(Viewer viewer, in WorldPosition position, CarSpawnerObject carSpawnerObj)
         {
             Debug.Assert(TrackMergeDistance >= 2 * (RampLength + TrackHalfWidth), "TrackMergeDistance is less than 2 * (RampLength + TrackHalfWidth); vertical inconsistencies will occur at close, but not merged, tracks.");
             Viewer = viewer;
@@ -63,8 +65,8 @@ namespace Orts.ActivityRunner.Viewer3D
             if (viewer.Simulator.RDB == null || viewer.Simulator.CarSpawnerLists == null)
                 throw new InvalidOperationException("RoadCarSpawner requires a RDB and CARSPAWN.DAT");
 
-            var start = CarSpawnerObj.getTrItemID(0);
-            var end = CarSpawnerObj.getTrItemID(1);
+            var start = CarSpawnerObj.GetTrackItemId(0);
+            var end = CarSpawnerObj.GetTrackItemId(1);
             var trItems = viewer.Simulator.RDB.RoadTrackDB.TrItemTable;
             var startLocation = new WorldLocation(trItems[start].TileX, trItems[start].TileZ, trItems[start].X, trItems[start].Y, trItems[start].Z);
             var endLocation = new WorldLocation(trItems[end].TileX, trItems[end].TileZ, trItems[end].X, trItems[end].Y, trItems[end].Z);
@@ -100,7 +102,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Length > 0 && LastSpawnedTime >= NextSpawnTime && (cars.Count == 0 || cars.Last().Travelled > cars.Last().Length))
             {
                 var newCars = new List<RoadCar>(cars);
-                newCars.Add(new RoadCar(Viewer, this, CarSpawnerObj.CarAvSpeed, CarSpawnerObj.CarSpawnerListIdx));
+                newCars.Add(new RoadCar(Viewer, this, CarSpawnerObj.CarAverageSpeed, CarSpawnerObj.CarSpawnerListIndex));
                 Cars = cars = newCars;
 
                 LastSpawnedTime = 0;
@@ -324,11 +326,11 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (speed > 0)
             {
-                if (SpeedMax < Spawner.CarSpawnerObj.CarAvSpeed * 1.25f) SpeedMax = Math.Min(SpeedMax + speed * 2, Spawner.CarSpawnerObj.CarAvSpeed * 1.25f);
+                if (SpeedMax < Spawner.CarSpawnerObj.CarAverageSpeed * 1.25f) SpeedMax = Math.Min(SpeedMax + speed * 2, Spawner.CarSpawnerObj.CarAverageSpeed * 1.25f);
             }
             else if (speed < 0)
             {
-                if (SpeedMax > Spawner.CarSpawnerObj.CarAvSpeed * 0.25f) SpeedMax = Math.Max(SpeedMax + speed * 2, Spawner.CarSpawnerObj.CarAvSpeed * 0.25f);
+                if (SpeedMax > Spawner.CarSpawnerObj.CarAverageSpeed * 0.25f) SpeedMax = Math.Max(SpeedMax + speed * 2, Spawner.CarSpawnerObj.CarAverageSpeed * 0.25f);
             }
         }
     }

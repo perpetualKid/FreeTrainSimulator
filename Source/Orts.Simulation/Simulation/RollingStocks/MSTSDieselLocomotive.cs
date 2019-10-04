@@ -613,10 +613,10 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         /// <param name="type">Pickup type</param>
         /// <returns>Matching controller or null</returns>
-        public override MSTSNotchController GetRefillController(uint type)
+        public override MSTSNotchController GetRefillController(PickupType type)
         {
             MSTSNotchController controller = null;
-            if (type == (uint)PickupType.FuelDiesel) return FuelController;
+            if (type == PickupType.FuelDiesel) return FuelController;
             return controller;
         }
 
@@ -625,10 +625,10 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         /// <param name="type">Pickup</param>
 
-        public override void SetStepSize(PickupObj matchPickup)
+        public override void SetStepSize(PickupObject matchPickup)
         {
             if (MaxDieselLevelL != 0)
-                FuelController.SetStepSize(matchPickup.PickupCapacity.FeedRateKGpS / MSTSNotchController.StandardBoost / (MaxDieselLevelL * DieselWeightKgpL)); 
+                FuelController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / (MaxDieselLevelL * DieselWeightKgpL)); 
         }
 
         /// <summary>
@@ -645,9 +645,9 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         /// <param name="pickupType">Pickup type</param>
         /// <returns>0.0 to 1.0. If type is unknown, returns 0.0</returns>
-        public override float GetFilledFraction(uint pickupType)
+        public override float GetFilledFraction(PickupType pickupType)
         {
-            if (pickupType == (uint)PickupType.FuelDiesel)
+            if (pickupType == PickupType.FuelDiesel)
             {
                 return FuelController.CurrentValue;
             }

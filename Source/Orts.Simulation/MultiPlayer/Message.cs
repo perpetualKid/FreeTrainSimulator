@@ -921,7 +921,7 @@ namespace Orts.MultiPlayer
             {
                 foreach (int thisSignalIndex in switchSection.LinkedSignals)
                 {
-                    SignalObject thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
+                    Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
                     thisSignal.Update();
                 }
             }
@@ -1040,7 +1040,7 @@ namespace Orts.MultiPlayer
             {
                 foreach (int thisSignalIndex in switchSection.LinkedSignals)
                 {
-                    SignalObject thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
+                    Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
                     thisSignal.Update();
                 }
             }
@@ -1171,7 +1171,7 @@ namespace Orts.MultiPlayer
             {
                 foreach (int thisSignalIndex in switchSection.LinkedSignals)
                 {
-                    SignalObject thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
+                    Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
                     thisSignal.Update();
                 }
             }
@@ -3480,7 +3480,7 @@ namespace Orts.MultiPlayer
         int pick;
         string sender;
         //constructor to create a message from signal data
-        public MSGSignalChange(SignalObject signal, int p)
+        public MSGSignalChange(Signal signal, int p)
         {
             index = signal.thisRef;
             pick = p;
@@ -3505,13 +3505,13 @@ namespace Orts.MultiPlayer
             switch (pick)
             {
                 case 0:
-                    signal.holdState = SignalObject.HoldState.None;
+                    signal.holdState = Signal.HoldState.None;
                     break;
                 case 1:
-                    signal.holdState = SignalObject.HoldState.ManualLock;
+                    signal.holdState = Signal.HoldState.ManualLock;
                     break;
                 case 2:
-                    signal.holdState = SignalObject.HoldState.ManualApproach;
+                    signal.holdState = Signal.HoldState.ManualApproach;
                     foreach (var sigHead in signal.SignalHeads)
                     {
                         var drawstate1 = sigHead.def_draw_state(SignalAspectState.Approach_1);
@@ -3524,7 +3524,7 @@ namespace Orts.MultiPlayer
                     }
                     break;
                 case 3:
-                    signal.holdState = SignalObject.HoldState.ManualPass;
+                    signal.holdState = Signal.HoldState.ManualPass;
                     foreach (var sigHead in signal.SignalHeads)
                     {
                         sigHead.SetLeastRestrictiveAspect();

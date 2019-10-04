@@ -514,7 +514,7 @@ namespace Orts.Simulation.AIs
         protected int TriggerDistance = 0;
         public bool LinkedAuxAction = false;
         protected List<KeyValuePair<int, WorldLocation>> AskingTrain;
-        public SignalObject SignalReferenced = null;
+        public Signal SignalReferenced = null;
         public float RequiredSpeedMpS;
         public float RequiredDistance;
         public int Delay;
@@ -676,7 +676,7 @@ namespace Orts.Simulation.AIs
             return true;
         }
 
-        public void SetSignalObject(SignalObject signal)
+        public void SetSignalObject(Signal signal)
         {
             SignalReferenced = signal;
         }
@@ -872,7 +872,7 @@ namespace Orts.Simulation.AIs
         {
             List<KeyValuePair<System.Type, AuxActionRef>> listInfo = new List<KeyValuePair<System.Type, AuxActionRef>>();
 
-            System.Type managed  = typeof(SignalObject);
+            System.Type managed  = typeof(Signal);
             KeyValuePair<System.Type, AuxActionRef> info = new KeyValuePair<System.Type, AuxActionRef>(managed, this);
             listInfo.Add(info);
             return listInfo;
@@ -1170,7 +1170,7 @@ namespace Orts.Simulation.AIs
         public bool Triggered = false;
         public bool Processing = false;
         public AITrain.AI_MOVEMENT_STATE currentMvmtState = AITrain.AI_MOVEMENT_STATE.INIT_ACTION;
-        public SignalObject SignalReferenced { get { return ((AIAuxActionsRef)ActionRef).SignalReferenced; } set {} }
+        public Signal SignalReferenced { get { return ((AIAuxActionsRef)ActionRef).SignalReferenced; } set {} }
 
         //================================================================================================//
         /// <summary>

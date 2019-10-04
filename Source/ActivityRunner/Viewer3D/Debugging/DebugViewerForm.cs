@@ -328,7 +328,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					  
 					  if (si.SigObj >=0  && si.SigObj < simulator.Signals.SignalObjects.Length)
 					  {
-						  SignalObject s = simulator.Signals.SignalObjects[si.SigObj];
+						  Signal s = simulator.Signals.SignalObjects[si.SigObj];
 						  if (s != null && s.isSignal && s.isSignalNormal()) signals.Add(new SignalWidget(si, s));
 					  }
 				  }
@@ -1945,7 +1945,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                   signal.requestHoldSignalDispatcher(true);
 				  break;
 			  case 2:
-                  signal.holdState = SignalObject.HoldState.ManualApproach;
+                  signal.holdState = Signal.HoldState.ManualApproach;
                   foreach (var sigHead in signal.SignalHeads)
                   {
                       var drawstate1 = sigHead.def_draw_state(SignalAspectState.Approach_1);
@@ -1958,7 +1958,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                   }
 				  break;
 			  case 3:
-                  signal.holdState = SignalObject.HoldState.ManualPass;
+                  signal.holdState = Signal.HoldState.ManualPass;
                   foreach (var sigHead in signal.SignalHeads)
                   {
                       sigHead.SetLeastRestrictiveAspect();
@@ -2105,7 +2105,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	   /// <summary>
 	   /// The underlying signal object as referenced by the TrItem.
 	   /// </summary>
-	   public SignalObject Signal;
+	   public Signal Signal;
 
 	   public PointF Dir;
        public bool hasDir;
@@ -2142,7 +2142,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	   /// </summary>
 	   /// <param name="item"></param>
 	   /// <param name="signal"></param>
-	   public SignalWidget(SignalItem item, SignalObject signal)
+	   public SignalWidget(SignalItem item, Signal signal)
 	   {
 		   Item = item;
 		   Signal = signal;

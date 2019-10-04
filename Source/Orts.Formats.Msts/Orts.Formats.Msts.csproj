@@ -40,6 +40,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Files\AceFile.cs" />
@@ -73,6 +77,7 @@
     <Compile Include="Enums.cs" />
     <Compile Include="Files\EnvironmentFile.cs" />
     <Compile Include="FolderStructure.cs" />
+    <Compile Include="Models\World.cs" />
     <Compile Include="Parsers\SBR.cs" />
     <Compile Include="Parsers\StfInterpolatorExtension.cs" />
     <Compile Include="Parsers\STFReader.cs" />
@@ -103,7 +108,7 @@
     <Compile Include="Files\TrackSectionsFile.cs" />
     <Compile Include="Files\TrackTypesFile.cs" />
     <Compile Include="Files\WagonFile.cs" />
-    <Compile Include="WorldFile.cs" />
+    <Compile Include="Files\WorldFile.cs" />
     <Compile Include="Files\WorldSoundFile.cs" />
     <Compile Include="Files\TerrainAltitudeFile.cs" />
   </ItemGroup>

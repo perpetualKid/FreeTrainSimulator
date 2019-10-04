@@ -2163,7 +2163,7 @@ namespace Orts.Simulation.RollingStocks
         {
         
 
-            var fraction = GetFilledFraction((uint)MSTSWagon.PickupType.FuelWater);
+            var fraction = GetFilledFraction(PickupType.FuelWater);
 
             if (!HasWaterScoop)
             {
@@ -4272,7 +4272,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// To be overridden by MSTSSteamLocomotive and MSTSDieselLocomotive.
         /// </summary>
-        public virtual MSTSNotchController GetRefillController(uint type)
+        public virtual MSTSNotchController GetRefillController(PickupType type)
         {
             return null;
         }
@@ -4280,14 +4280,14 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// To be overridden by MSTSSteamLocomotive and MSTSDieselLocomotive.
         /// </summary>
-        public virtual void SetStepSize(PickupObj matchPickup)
+        public virtual void SetStepSize(PickupObject matchPickup)
         {
         }
 
         /// <summary>
         /// To be overridden by MSTSSteamLocomotive and MSTSDieselLocomotive.
         /// </summary>
-        public override float GetFilledFraction(uint pickupType)
+        public override float GetFilledFraction(PickupType pickupType)
         {
             return 0f;
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace Orts.Formats.Msts
 {
@@ -472,5 +473,32 @@ namespace Orts.Formats.Msts
         PlatformRight = 0x00000004,
     }
 
+    /// <summary>
+    /// Supply types for freight wagons and locos
+    /// </summary>
+    public enum PickupType
+    {
+        [Description("none")]               None = 0,
+        [Description("freight-grain")]      FreightGrain = 1,
+        [Description("freight-coal")]       FreightCoal = 2,
+        [Description("freight-gravel")]     FreightGravel = 3,
+        [Description("freight-sand")]       FreightSand = 4,
+        [Description("water")]              FuelWater = 5,
+        [Description("coal")]               FuelCoal = 6,
+        [Description("diesel oil")]         FuelDiesel = 7,
+        [Description("wood")]               FuelWood = 8,    // Think this is new to OR and not recognised by MSTS
+        [Description("sand")]               FuelSand = 9,  // New to OR
+        [Description("freight-general")]    FreightGeneral = 10, // New to OR
+        [Description("freight-livestock")]  FreightLivestock = 11,  // New to OR
+        [Description("freight-fuel")]       FreightFuel = 12,  // New to OR
+        [Description("freight-milk")]       FreightMilk = 13,   // New to OR
+        [Description("mail")]               SpecialMail = 14  // New to OR
+    }
+
+    public enum TrackItemDatabase
+    {
+        Track,
+        Road,
+    }
     #endregion
 }

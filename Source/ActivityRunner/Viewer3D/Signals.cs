@@ -46,7 +46,7 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly bool[] SubObjVisible;
         readonly List<SignalShapeHead> Heads = new List<SignalShapeHead>();
 
-        public SignalShape(SignalObj mstsSignal, string path, IWorldPosition positionSource, ShapeFlags flags)
+        public SignalShape(SignalObject mstsSignal, string path, IWorldPosition positionSource, ShapeFlags flags)
             : base(path, positionSource, flags)
         {
 #if DEBUG_SIGNAL_SHAPES
@@ -68,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // mstsSignal.SignalSubObj, which is mapped to names through mstsSignalShape.SignalSubObjs.
             var visibleMatrixNames = new bool[SharedShape.MatrixNames.Count];
             for (var i = 0; i < mstsSignalShape.SignalSubObjs.Count; i++)
-                if ((((mstsSignal.SignalSubObj >> i) & 0x1) == 1) && (SharedShape.MatrixNames.Contains(mstsSignalShape.SignalSubObjs[i].MatrixName)))
+                if ((((mstsSignal.SignalSubObject >> i) & 0x1) == 1) && (SharedShape.MatrixNames.Contains(mstsSignalShape.SignalSubObjs[i].MatrixName)))
                     visibleMatrixNames[SharedShape.MatrixNames.IndexOf(mstsSignalShape.SignalSubObjs[i].MatrixName)] = true;
 
             // All sub-objects except the one pointing to the first matrix (99.00% times it is the first one, but not always, see Protrain) are hidden by default.
@@ -113,26 +113,26 @@ namespace Orts.ActivityRunner.Viewer3D
                 return;
             }
 
-            for (var i = 0; i < mstsSignal.SignalUnits.Units.Length; i++)
+            for (var i = 0; i < mstsSignal.SignalUnits.Count; i++)
             {
 #if DEBUG_SIGNAL_SHAPES
                 Console.Write("  UNIT {0}: TrItem={1,-5} SubObj={2,-2}", i, mstsSignal.SignalUnits.Units[i].TrItem, mstsSignal.SignalUnits.Units[i].SubObj);
 #endif
                 // Find the simulation SignalObject for this shape.
-                var signalAndHead = viewer.Simulator.Signals.FindByTrItem(mstsSignal.SignalUnits.Units[i].TrItem);
+                var signalAndHead = viewer.Simulator.Signals.FindByTrItem(mstsSignal.SignalUnits[i].TrackItem);
                 if (!signalAndHead.HasValue)
                 {
-                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid TrItem {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits.Units[i].TrItem);
+                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid TrItem {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits[i].TrackItem);
                     continue;
                 }
                 // Get the signal sub-object for this unit (head).
-                var mstsSignalSubObj = mstsSignalShape.SignalSubObjs[mstsSignal.SignalUnits.Units[i].SubObj];
+                var mstsSignalSubObj = mstsSignalShape.SignalSubObjs[mstsSignal.SignalUnits[i].SubObject];
                 if (mstsSignalSubObj.SignalSubType != SignalSubType.Signal_Head) // SIGNAL_HEAD
                 {
-                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits.Units[i].SubObj);
+                    Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits[i].SubObject);
                     continue;
                 }
-                var mstsSignalItem = (SignalItem)(viewer.Simulator.TDB.TrackDB.TrItemTable[mstsSignal.SignalUnits.Units[i].TrItem]);
+                var mstsSignalItem = (SignalItem)(viewer.Simulator.TDB.TrackDB.TrItemTable[mstsSignal.SignalUnits[i].TrackItem]);
                 try
                 {
                     // Go create the shape head.

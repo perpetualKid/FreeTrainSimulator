@@ -7100,10 +7100,10 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         /// <param name="type">Pickup type</param>
         /// <returns>Matching controller or null</returns>
-        public override MSTSNotchController GetRefillController(uint type)
+        public override MSTSNotchController GetRefillController(PickupType type)
         {
-            if (type == (uint)PickupType.FuelCoal) return FuelController;
-            if (type == (uint)PickupType.FuelWater) return WaterController;
+            if (type == PickupType.FuelCoal) return FuelController;
+            if (type == PickupType.FuelWater) return WaterController;
             return null;
         }
 
@@ -7111,13 +7111,12 @@ namespace Orts.Simulation.RollingStocks
         /// Sets step size for the fuel controller basing on pickup feed rate and engine fuel capacity
         /// </summary>
         /// <param name="type">Pickup</param>
-        public override void SetStepSize(PickupObj matchPickup)
+        public override void SetStepSize(PickupObject matchPickup)
         {
-            uint type = matchPickup.PickupType;
-            if (type == (uint)PickupType.FuelCoal && MaxTenderCoalMassKG != 0)
-                FuelController.SetStepSize(matchPickup.PickupCapacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxTenderCoalMassKG);
-            else if (type == (uint)PickupType.FuelWater && MaxLocoTenderWaterMassKG != 0)
-                WaterController.SetStepSize(matchPickup.PickupCapacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxLocoTenderWaterMassKG); 
+            if (matchPickup.PickupType == PickupType.FuelCoal && MaxTenderCoalMassKG != 0)
+                FuelController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxTenderCoalMassKG);
+            else if (matchPickup.PickupType == PickupType.FuelWater && MaxLocoTenderWaterMassKG != 0)
+                WaterController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxLocoTenderWaterMassKG); 
         }
 
         /// <summary>
@@ -7135,13 +7134,13 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         /// <param name="pickupType">Pickup type</param>
         /// <returns>0.0 to 1.0. If type is unknown, returns 0.0</returns>
-        public override float GetFilledFraction(uint pickupType)
+        public override float GetFilledFraction(PickupType pickupType)
         {
-            if (pickupType == (uint)PickupType.FuelWater)
+            if (pickupType == PickupType.FuelWater)
             {
                 return WaterController.CurrentValue;
             }
-            if (pickupType == (uint)PickupType.FuelCoal)
+            if (pickupType == PickupType.FuelCoal)
             {
                 return FuelController.CurrentValue;
             }

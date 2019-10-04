@@ -226,7 +226,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public class SpeedPostShape : PoseableShape
     {
-        private readonly SpeedPostObj speedPostObject;  // has data on current aligment for the switch
+        private readonly SpeedPostObject speedPostObject;  // has data on current aligment for the switch
         private readonly VertexPositionNormalTexture[] vertices;
         private readonly int numberVertices;
         private readonly int numberIndices;
@@ -235,20 +235,20 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         protected readonly float animationKey;  // tracks position of points as they move left and right
         private ShapePrimitive shapePrimitive;
 
-        public SpeedPostShape(string path, IWorldPosition positionSource, SpeedPostObj speedPostObject)
+        public SpeedPostShape(string path, IWorldPosition positionSource, SpeedPostObject speedPostObject)
             : base(path, positionSource, ShapeFlags.None)
         {
 
             this.speedPostObject = speedPostObject;
-            int maxVertex = speedPostObject.Sign_Shape.NumShapes * 48;// every face has max 7 digits, each has 2 triangles
-            Material material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, speedPostObject.Speed_Digit_Tex), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
+            int maxVertex = speedPostObject.SignShapes.Count * 48;// every face has max 7 digits, each has 2 triangles
+            Material material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, speedPostObject.TextureFile), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
 
             // Create and populate a new ShapePrimitive
             int i = 0;
             int id = -1;
-            float size = speedPostObject.Text_Size.Size;
+            float size = speedPostObject.TextSize.Size;
             int idlocation = 0;
-            id = speedPostObject.GetTrItemID(idlocation);
+            id = speedPostObject.GetTrackItemID(idlocation);
             while (id >= 0)
             {
 //                SpeedPostItem item;
@@ -278,21 +278,20 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 vertices = new VertexPositionNormalTexture[maxVertex];
                 triangleListIndices = new short[maxVertex / 2 * 3]; // as is NumIndices
 
-                for (i = 0; i < speedPostObject.Sign_Shape.NumShapes; i++)
+                for (i = 0; i < speedPostObject.SignShapes.Count; i++)
                 {
                     //start position is the center of the text
-                    Vector3 start = new Vector3(speedPostObject.Sign_Shape.ShapesInfo[4 * i + 0], speedPostObject.Sign_Shape.ShapesInfo[4 * i + 1], speedPostObject.Sign_Shape.ShapesInfo[4 * i + 2]);
-                    float rotation = speedPostObject.Sign_Shape.ShapesInfo[4 * i + 3];
+                    Vector3 start = new Vector3(speedPostObject.SignShapes[i].X, speedPostObject.SignShapes[i].Y, speedPostObject.SignShapes[i].Z);                    float rotation = speedPostObject.SignShapes[i].W;
 
                     //find the left-most of text
                     Vector3 offset;
-                    if (Math.Abs(speedPostObject.Text_Size.DY) > 0.01)
+                    if (Math.Abs(speedPostObject.TextSize.Offset.Y) > 0.01)
                         offset = new Vector3(0 - size / 2, 0, 0);
                     else
                         offset = new Vector3(0, 0 - size / 2, 0);
 
-                    offset.X -= speed.Length * speedPostObject.Text_Size.DX / 2;
-                    offset.Y -= speed.Length * speedPostObject.Text_Size.DY / 2;
+                    offset.X -= speed.Length * speedPostObject.TextSize.Offset.X / 2;
+                    offset.Y -= speed.Length * speedPostObject.TextSize.Offset.Y / 2;
 
                     for (int j = 0; j < speed.Length; j++)
                     {
@@ -349,12 +348,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         vertices[numberVertices + 2].Position = v3.Position; vertices[numberVertices + 2].Normal = v3.Normal; vertices[numberVertices + 2].TextureCoordinate = v3.TexCoord;
                         vertices[numberVertices + 3].Position = v4.Position; vertices[numberVertices + 3].Normal = v4.Normal; vertices[numberVertices + 3].TextureCoordinate = v4.TexCoord;
                         numberVertices += 4;
-                        offset.X += speedPostObject.Text_Size.DX; offset.Y += speedPostObject.Text_Size.DY; //move to next digit
+                        offset.X += speedPostObject.TextSize.Offset.X; offset.Y += speedPostObject.TextSize.Offset.Y; //move to next digit
                     }
 
                 }
                 idlocation++;
-                id = speedPostObject.GetTrItemID(idlocation);
+                id = speedPostObject.GetTrackItemID(idlocation);
             }
             //create the shape primitive
             short[] newTList = new short[numberIndices];
@@ -434,7 +433,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public class LevelCrossingShape : PoseableShape
     {
-        private readonly LevelCrossingObj levelCrossingObject;
+        private readonly LevelCrossingObject levelCrossingObject;
         private readonly SoundSource soundSource;
         private readonly LevelCrossing levelCrossing;
 
@@ -443,11 +442,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private bool opening = true;
         private float animationKey;
 
-        public LevelCrossingShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, LevelCrossingObj crossingObj)
+        public LevelCrossingShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, LevelCrossingObject crossingObj)
             : base(path, positionSource, shapeFlags)
         {
             levelCrossingObject = crossingObj;
-            if (!levelCrossingObject.silent)
+            if (!levelCrossingObject.Silent)
             {
                 string soundFileName = null;
                 if (!string.IsNullOrEmpty(levelCrossingObject.SoundFileName))
@@ -481,10 +480,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
             levelCrossing = viewer.Simulator.LevelCrossings.CreateLevelCrossing(
                 WorldPosition,
-                from tid in levelCrossingObject.trItemIDList where tid.db == 0 select tid.dbID,
-                from tid in levelCrossingObject.trItemIDList where tid.db == 1 select tid.dbID,
-                levelCrossingObject.levelCrParameters.warningTime,
-                levelCrossingObject.levelCrParameters.minimumDistance);
+                from tid in levelCrossingObject.TrackItemIds where tid.DB == 0 select tid.DBId,
+                from tid in levelCrossingObject.TrackItemIds where tid.DB == 1 select tid.DBId,
+                levelCrossingObject.WarningTime,
+                levelCrossingObject.MinimumDistance);
             // If there are no animations, we leave the frame count and speed at 0 and nothing will try to animate.
             if (SharedShape.Animations != null && SharedShape.Animations.Count > 0)
             {
@@ -496,8 +495,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 //     MSTS plays through the first 1.0 seconds of the animation forwards for closing and backwards for
                 //     opening. The number of frames defined doesn't matter; the animation is limited by time so the frame
                 //     rate (based on 30FPS) is what's needed.
-                animationFrames = levelCrossingObject.levelCrTiming.animTiming < 0 ? SharedShape.Animations[0].FrameCount : SharedShape.Animations[0].FrameRate / 30f;
-                animationSpeed = SharedShape.Animations[0].FrameRate / 30f / levelCrossingObject.levelCrTiming.animTiming;
+                animationFrames = levelCrossingObject.AnimationTiming < 0 ? SharedShape.Animations[0].FrameCount : SharedShape.Animations[0].FrameRate / 30f;
+                animationSpeed = SharedShape.Animations[0].FrameRate / 30f / levelCrossingObject.AnimationTiming;
             }
         }
 
@@ -513,7 +512,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (!levelCrossingObject.visible)
+            if (!levelCrossingObject.Visible)
                 return;
 
             if (opening == levelCrossing.HasTrain)
@@ -527,7 +526,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             else
                 animationKey += elapsedTime.ClockSeconds * animationSpeed;
 
-            if (levelCrossingObject.levelCrTiming.animTiming < 0)
+            if (levelCrossingObject.AnimationTiming < 0)
             {
                 // Stick to frame 0 for "open" and loop for "closed".
                 if (opening)
@@ -549,7 +548,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public class HazardShape : PoseableShape
     {
-        readonly HazardObj hazardObject;
+        readonly HazardObject hazardObject;
         readonly Hazzard hazard;
 
         private readonly int animationFrames;
@@ -557,16 +556,16 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private float animationKey;
         private float delayHazAnimation;
 
-        public static HazardShape CreateHazzard(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObj hazardObject)
+        public static HazardShape CreateHazzard(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject)
         {
-            var h = viewer.Simulator.HazzardManager.AddHazzardIntoGame(hazardObject.itemId, hazardObject.FileName);
+            var h = viewer.Simulator.HazzardManager.AddHazzardIntoGame(hazardObject.TrackItemId.DBId, hazardObject.FileName);
             if (h == null)
                 return null;
             return new HazardShape(viewer.Simulator.BasePath + @"\Global\Shapes\" + h.HazFile.Hazard.FileName + "\0" + viewer.Simulator.BasePath + @"\Global\Textures", positionSource, shapeFlags, hazardObject, h);
 
         }
 
-        public HazardShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObj hazardObject, Hazzard h)
+        public HazardShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject, Hazzard h)
             : base(path, positionSource, shapeFlags)
         {
             this.hazardObject = hazardObject;
@@ -576,7 +575,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void Unload()
         {
-            viewer.Simulator.HazzardManager.RemoveHazzardFromGame(hazardObject.itemId);
+            viewer.Simulator.HazzardManager.RemoveHazzardFromGame(hazardObject.TrackItemId.DBId);
             base.Unload();
         }
 
@@ -662,7 +661,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public class FuelPickupItemShape : PoseableShape
     {
-        private readonly PickupObj fuelPickupItemObject;
+        private readonly PickupObject fuelPickupItemObject;
         private readonly FuelPickupItem fuelPickupItem;
         private readonly SoundSource soundSource;
         private readonly float frameRate;
@@ -671,13 +670,13 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         protected float animationKey;
 
 
-        public FuelPickupItemShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, PickupObj fuelpickupitemObj)
+        public FuelPickupItemShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, PickupObject fuelpickupitemObj)
             : base(path, positionSource, shapeFlags)
         {
             fuelPickupItemObject = fuelpickupitemObj;
 
 
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultDieselTowerSMS != null && fuelPickupItemObject.PickupType == 7) // Testing for Diesel PickupType
+            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultDieselTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelDiesel) // Testing for Diesel PickupType
             {
                 var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultDieselTowerSMS;
                 try
@@ -699,7 +698,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultWaterTowerSMS != null && fuelPickupItemObject.PickupType == 5) // Testing for Water PickupType
+            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultWaterTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelWater) // Testing for Water PickupType
             {
                 var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultWaterTowerSMS;
                 try
@@ -721,7 +720,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultCoalTowerSMS != null && (fuelPickupItemObject.PickupType == 6 || fuelPickupItemObject.PickupType == 2))
+            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultCoalTowerSMS != null && (fuelPickupItemObject.PickupType == PickupType.FuelCoal || fuelPickupItemObject.PickupType == PickupType.FreightCoal))
             {
                 var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultCoalTowerSMS;
                 try
@@ -743,12 +742,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            fuelPickupItem = viewer.Simulator.FuelManager.CreateFuelStation(WorldPosition, from tid in fuelPickupItemObject.TrItemIDList where tid.db == 0 select tid.dbID);
+            fuelPickupItem = viewer.Simulator.FuelManager.CreateFuelStation(WorldPosition, from tid in fuelPickupItemObject.TrackItemIds where tid.DB == 0 select tid.DBId);
             animationFrames = 1;
             frameRate = 1;
             if (SharedShape.Animations != null && SharedShape.Animations.Count > 0 && SharedShape.Animations[0].AnimationNodes != null && SharedShape.Animations[0].AnimationNodes.Count > 0)
             {
-                frameRate = SharedShape.Animations[0].FrameCount / fuelPickupItemObject.PickupAnimData.AnimationSpeed;
+                frameRate = SharedShape.Animations[0].FrameCount / fuelPickupItemObject.Options.AnimationSpeed;
                 foreach (var anim_node in SharedShape.Animations[0].AnimationNodes)
                     if (anim_node.Name == "ANIMATED_PARTS")
                     {
@@ -775,7 +774,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (fuelPickupItem.ReFill() && fuelPickupItemObject.UiD == MSTSWagon.RefillProcess.ActivePickupObjectUID)
             {
                 if (animationKey == 0 && soundSource != null) soundSource.HandleEvent(Event.FuelTowerDown);
-                if (fuelPickupItemObject.PickupAnimData.AnimationSpeed == 0) animationKey = 1.0f;
+                if (fuelPickupItemObject.Options.AnimationSpeed == 0) animationKey = 1.0f;
                 else if (animationKey < animationFrames)
                     animationKey += elapsedTime.ClockSeconds * frameRate;
             }
