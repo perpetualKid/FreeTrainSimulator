@@ -572,13 +572,14 @@ namespace Orts.Formats.Msts
 #endif
                 #endregion
 
-                while ((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "EXTERN" || (script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "FLOAT")
+                while (statementLine < maxCount && (((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "EXTERN" && (script.Tokens[statementLine] as Statement)?.Tokens[1].Token == "FLOAT")
+                    || (script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "FLOAT"))
                 {
                     // Skip external floats (exist automatically)
-                    while ((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "EXTERN" && (script.Tokens[statementLine] as Statement)?.Tokens[1].Token == "FLOAT" && statementLine++ < maxCount) ;
+                    while (statementLine < maxCount && (script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "EXTERN" && (script.Tokens[statementLine++] as Statement)?.Tokens[1].Token == "FLOAT") ;
 
                     //// Process floats : build list with internal floats
-                    while (((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "FLOAT") && statementLine < maxCount)
+                    while (statementLine < maxCount && ((script.Tokens[statementLine] as Statement)?.Tokens[0].Token == "FLOAT"))
                     {
                         string floatString = (script.Tokens[statementLine] as Statement)?.Tokens[1].Token;
                         if (!localFloats.ContainsKey(floatString))
