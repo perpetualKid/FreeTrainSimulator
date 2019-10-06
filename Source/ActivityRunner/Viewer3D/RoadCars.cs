@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 
@@ -65,8 +66,8 @@ namespace Orts.ActivityRunner.Viewer3D
             if (viewer.Simulator.RDB == null || viewer.Simulator.CarSpawnerLists == null)
                 throw new InvalidOperationException("RoadCarSpawner requires a RDB and CARSPAWN.DAT");
 
-            var start = CarSpawnerObj.GetTrackItemId(0);
-            var end = CarSpawnerObj.GetTrackItemId(1);
+            var start = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 0 ? CarSpawnerObj.TrackItemIds.RoadDbItems[0] : -1;
+            var end = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 1 ? CarSpawnerObj.TrackItemIds.RoadDbItems[1] : -1;
             var trItems = viewer.Simulator.RDB.RoadTrackDB.TrItemTable;
             var startLocation = new WorldLocation(trItems[start].TileX, trItems[start].TileZ, trItems[start].X, trItems[start].Y, trItems[start].Z);
             var endLocation = new WorldLocation(trItems[end].TileX, trItems[end].TileZ, trItems[end].X, trItems[end].Y, trItems[end].Z);

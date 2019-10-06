@@ -494,11 +494,5 @@ namespace Orts.Formats.Msts
         [Description("freight-milk")]       FreightMilk = 13,   // New to OR
         [Description("mail")]               SpecialMail = 14  // New to OR
     }
-
-    public enum TrackItemDatabase
-    {
-        Track,
-        Road,
-    }
     #endregion
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -406,7 +407,7 @@ namespace Orts.Formats.Msts.Models
         /// </summary>
         public Range SpeedRange { get; private set; }
         public CapacityData Capacity { get; private set; }
-        public List<TrackItemId> TrackItemIds { get; } = new List<TrackItemId>();
+        public TrackItems TrackItemIds { get; } = new TrackItems();
         public uint CollideFlags { get; private set; }
 
         /// <summary>
@@ -429,7 +430,7 @@ namespace Orts.Formats.Msts.Models
                     break;
                 case TokenID.PickupAnimData: Options = new AnimationData(subBlock); break;
                 case TokenID.PickupCapacity: Capacity = new CapacityData(subBlock); break;
-                case TokenID.TrItemId: TrackItemIds.Add(new TrackItemId(subBlock)); break;
+                case TokenID.TrItemId: TrackItemIds.Add(subBlock); break;
                 case TokenID.CollideFlags: CollideFlags = subBlock.ReadUInt(); break;
                 default: base.AddOrModifyObj(subBlock, holder); break;
             }
@@ -646,7 +647,7 @@ namespace Orts.Formats.Msts.Models
         public string TextureFile { get; private set; } //ace
         public TextData TextSize { get; private set; }// ( 0.08 0.06 0 )
         public List<Vector4> SignShapes { get; } = new List<Vector4>();
-        public List<TrackItemId> TrackItemIds { get; } = new List<TrackItemId>();
+        public TrackItems TrackItemIds { get; } = new TrackItems();
 
         public SpeedPostObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
@@ -663,7 +664,7 @@ namespace Orts.Formats.Msts.Models
                 case TokenID.Speed_Digit_Tex: TextureFile = subBlock.ReadString(); break;
                 case TokenID.Speed_Sign_Shape: ReadSpeedSignShape(subBlock); break;
                 case TokenID.Speed_Text_Size: TextSize = new TextData(subBlock); break;
-                case TokenID.TrItemId: TrackItemIds.Add(new TrackItemId(subBlock)); break;
+                case TokenID.TrItemId: TrackItemIds.Add(subBlock); break;
                 default: base.AddOrModifyObj(subBlock, holder); break;
             }
         }
@@ -692,40 +693,31 @@ namespace Orts.Formats.Msts.Models
                 block.VerifyEndOfBlock();
             }
         }
-
-        public int GetTrackItemID(int index)
-        {
-            var i = 0;
-            foreach (var trackItem in TrackItemIds)
-            {
-                if (trackItem.DB == 0)
-                {
-                    if (index == i)
-                        return trackItem.DBId;
-                    i++;
-                }
-            }
-            return -1;
-        }
     }
 
-    public class TrackItemId
+    public class TrackItems
     {
-        public int DB { get; private set; }
-        public int DBId { get; private set; }
-
-        public TrackItemId(SBR block)
+        internal void Add(SBR block)
         {
             block.VerifyID(TokenID.TrItemId);
-            DB = block.ReadInt();
-            DBId = block.ReadInt();
+            if (block.ReadInt() == 0)
+            {
+                TrackDbItems.Add(block.ReadInt());
+            }
+            else
+            {
+                RoadDbItems.Add(block.ReadInt());
+            }
             block.VerifyEndOfBlock();
         }
+
+        public List<int> RoadDbItems { get; } = new List<int>();
+        public List<int> TrackDbItems { get; } = new List<int>();
     }
 
     public class LevelCrossingObject : WorldObject
     {
-        public List<TrackItemId> TrackItemIds { get; } = new List<TrackItemId>();
+        public TrackItems TrackItemIds { get; } = new TrackItems();
         public int CrashProbability { get; private set; }
         public bool Visible { get; private set; } = true;
         public bool Silent { get; private set; } = false;
@@ -751,7 +743,7 @@ namespace Orts.Formats.Msts.Models
                 case TokenID.CrashProbability: CrashProbability = subBlock.ReadInt(); break;
                 case TokenID.LevelCrData: ReadCrossingData(subBlock); break;
                 case TokenID.LevelCrTiming: ReadCrossingTiming(subBlock); break;
-                case TokenID.TrItemId: TrackItemIds.Add(new TrackItemId(subBlock)); break;
+                case TokenID.TrItemId: TrackItemIds.Add(subBlock); break;
                 case TokenID.OrtsSoundFileName: SoundFileName = subBlock.ReadString(); break;
                 default: base.AddOrModifyObj(subBlock, holder); break;
             }
@@ -789,7 +781,7 @@ namespace Orts.Formats.Msts.Models
     public class HazardObject : WorldObject
     {
         private Vector3 euler;
-        public TrackItemId TrackItemId { get; private set; }
+        public int ItemId { get; private set; }
 
         internal Quaternion Direction
         {
@@ -813,9 +805,17 @@ namespace Orts.Formats.Msts.Models
         {
             switch (subBlock.ID)
             {
-                case TokenID.TrItemId: TrackItemId = new TrackItemId(subBlock); break;
+                case TokenID.TrItemId: ReadTrackItemId(subBlock); break;
                 default: base.AddOrModifyObj(subBlock, holder); break;
             }
+        }
+
+        private void ReadTrackItemId(SBR block)
+        {
+            block.VerifyID(TokenID.TrItemId);
+            block.ReadInt();    //don't mind the database id, should be 0 always (TrackDB)
+            ItemId = block.ReadInt();
+            block.VerifyEndOfBlock();
         }
 
         public void UpdatePosition(float distance)
@@ -826,7 +826,7 @@ namespace Orts.Formats.Msts.Models
 
     public class CarSpawnerObject : WorldObject
     {
-        public List<TrackItemId> TrackItemIds { get; } = new List<TrackItemId>();
+        public TrackItems TrackItemIds { get; } = new TrackItems();
         public float CarFrequency { get; private set; }
         public float CarAverageSpeed { get; private set; }
         public string ListName { get; private set; } // name of car list associated to this car spawner
@@ -847,25 +847,9 @@ namespace Orts.Formats.Msts.Models
                 case TokenID.CarFrequency: CarFrequency = subBlock.ReadFloat(); break;
                 case TokenID.CarAvSpeed: CarAverageSpeed = subBlock.ReadFloat(); break;
                 case TokenID.OrtsListName: ListName = subBlock.ReadString(); break;
-                case TokenID.TrItemId: TrackItemIds.Add(new TrackItemId(subBlock)); break;
+                case TokenID.TrItemId: TrackItemIds.Add(subBlock); break;
                 default: base.AddOrModifyObj(subBlock, holder); break;
             }
-        }
-
-
-        public int GetTrackItemId(int index)
-        {
-            var i = 0;
-            foreach (var tID in TrackItemIds)
-            {
-                if (tID.DB == 1)
-                {
-                    if (index == i)
-                        return tID.DBId;
-                    i++;
-                }
-            }
-            return -1;
         }
     }
 
@@ -874,7 +858,7 @@ namespace Orts.Formats.Msts.Models
     /// </summary>
     public abstract class StationObject : WorldObject
     {
-        public List<TrackItemId> TrackItemIds { get; } = new List<TrackItemId>();
+        public TrackItems TrackItemIds { get; } = new TrackItems();
 
         // this one called by PlatformObj
         public StationObject()
@@ -892,24 +876,9 @@ namespace Orts.Formats.Msts.Models
         {
             switch (subBlock.ID)
             {
-                case TokenID.TrItemId: TrackItemIds.Add(new TrackItemId(subBlock)); break;
+                case TokenID.TrItemId: TrackItemIds.Add(subBlock); break;
                 default: base.AddOrModifyObj(subBlock, holder); break;
             }
-        }
-
-        public int GetTrItemId(int index)
-        {
-            var i = 0;
-            foreach (var tID in TrackItemIds)
-            {
-                if (tID.DB == 0)
-                {
-                    if (index == i)
-                        return tID.DBId;
-                    i++;
-                }
-            }
-            return -1;
         }
     }
 

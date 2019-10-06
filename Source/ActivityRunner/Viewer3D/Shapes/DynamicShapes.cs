@@ -248,7 +248,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             int id = -1;
             float size = speedPostObject.TextSize.Size;
             int idlocation = 0;
-            id = speedPostObject.GetTrackItemID(idlocation);
+            id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
             while (id >= 0)
             {
 //                SpeedPostItem item;
@@ -353,7 +353,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                 }
                 idlocation++;
-                id = speedPostObject.GetTrackItemID(idlocation);
+                id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
             }
             //create the shape primitive
             short[] newTList = new short[numberIndices];
@@ -478,12 +478,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            levelCrossing = viewer.Simulator.LevelCrossings.CreateLevelCrossing(
-                WorldPosition,
-                from tid in levelCrossingObject.TrackItemIds where tid.DB == 0 select tid.DBId,
-                from tid in levelCrossingObject.TrackItemIds where tid.DB == 1 select tid.DBId,
-                levelCrossingObject.WarningTime,
-                levelCrossingObject.MinimumDistance);
+            levelCrossing = viewer.Simulator.LevelCrossings.CreateLevelCrossing(WorldPosition,
+                levelCrossingObject.TrackItemIds.TrackDbItems, levelCrossingObject.TrackItemIds.RoadDbItems,
+                levelCrossingObject.WarningTime, levelCrossingObject.MinimumDistance);
             // If there are no animations, we leave the frame count and speed at 0 and nothing will try to animate.
             if (SharedShape.Animations != null && SharedShape.Animations.Count > 0)
             {
@@ -558,7 +555,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public static HazardShape CreateHazzard(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject)
         {
-            var h = viewer.Simulator.HazzardManager.AddHazzardIntoGame(hazardObject.TrackItemId.DBId, hazardObject.FileName);
+            var h = viewer.Simulator.HazzardManager.AddHazzardIntoGame(hazardObject.ItemId, hazardObject.FileName);
             if (h == null)
                 return null;
             return new HazardShape(viewer.Simulator.BasePath + @"\Global\Shapes\" + h.HazFile.Hazard.FileName + "\0" + viewer.Simulator.BasePath + @"\Global\Textures", positionSource, shapeFlags, hazardObject, h);
@@ -575,7 +572,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void Unload()
         {
-            viewer.Simulator.HazzardManager.RemoveHazzardFromGame(hazardObject.TrackItemId.DBId);
+            viewer.Simulator.HazzardManager.RemoveHazzardFromGame(hazardObject.ItemId);
             base.Unload();
         }
 
@@ -742,7 +739,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            fuelPickupItem = viewer.Simulator.FuelManager.CreateFuelStation(WorldPosition, from tid in fuelPickupItemObject.TrackItemIds where tid.DB == 0 select tid.DBId);
+            fuelPickupItem = viewer.Simulator.FuelManager.CreateFuelStation(WorldPosition, fuelPickupItemObject.TrackItemIds.TrackDbItems);
             animationFrames = 1;
             frameRate = 1;
             if (SharedShape.Animations != null && SharedShape.Animations.Count > 0 && SharedShape.Animations[0].AnimationNodes != null && SharedShape.Animations[0].AnimationNodes.Count > 0)

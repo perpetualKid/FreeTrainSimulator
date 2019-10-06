@@ -529,11 +529,12 @@ namespace Orts.Simulation.Signalling
                             }
                         }
                     }
-                    else  if (worldObject.GetType() == typeof(PlatformObject))
+                    else  if (worldObject is PlatformObject platformObject)
                     {
-                        var thisWorldObj = worldObject as PlatformObject;
-                        if (!PlatformSidesList.ContainsKey(thisWorldObj.TrackItemIds[0].DBId)) PlatformSidesList.Add(thisWorldObj.TrackItemIds[0].DBId, thisWorldObj.PlatformData);
-                        if (!PlatformSidesList.ContainsKey(thisWorldObj.TrackItemIds[0].DBId)) PlatformSidesList.Add(thisWorldObj.TrackItemIds[1].DBId, thisWorldObj.PlatformData);
+                        if (!PlatformSidesList.ContainsKey(platformObject.TrackItemIds.TrackDbItems[0])) 
+                            PlatformSidesList.Add(platformObject.TrackItemIds.TrackDbItems[0], platformObject.PlatformData);
+                        if (!PlatformSidesList.ContainsKey(platformObject.TrackItemIds.TrackDbItems[1])) //this was [0] but presumably wrong
+                            PlatformSidesList.Add(platformObject.TrackItemIds.TrackDbItems[1], platformObject.PlatformData);
                     }
                 }
             }
