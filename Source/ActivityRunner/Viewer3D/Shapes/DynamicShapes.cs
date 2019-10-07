@@ -245,12 +245,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
             // Create and populate a new ShapePrimitive
             int i = 0;
-            int id = -1;
             float size = speedPostObject.TextSize.Size;
             int idlocation = 0;
-            id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
-            while (id >= 0)
+            while (idlocation < speedPostObject.TrackItemIds.TrackDbItems.Count)
             {
+                int id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
 //                SpeedPostItem item;
                 string speed = string.Empty;
                     if (!(viewer.Simulator.TDB.TrackDB.TrItemTable[id] is SpeedPostItem item))
@@ -353,7 +352,6 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                 }
                 idlocation++;
-                id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
             }
             //create the shape primitive
             short[] newTList = new short[numberIndices];

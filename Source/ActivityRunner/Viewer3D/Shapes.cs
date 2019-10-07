@@ -217,9 +217,9 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Location = position;
             var i = 0;
-            while (true)
+            while (i < trObj.TrackItemIds.TrackDbItems.Count)
             {
-                var trID = trObj.GetTrItemId(i);
+                var trID = trObj.TrackItemIds.TrackDbItems[i];
                 if (trID < 0)
                     break;
                 var trItem = viewer.Simulator.TDB.TrackDB.TrItemTable[trID];
