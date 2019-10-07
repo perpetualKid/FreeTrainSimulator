@@ -330,30 +330,30 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             var result = new StringBuilder();
 
-            result.AppendFormat(Simulator.Catalog.GetString("Status"));
+            //result.AppendFormat(Simulator.Catalog.GetString("Status"));
             foreach (var eng in DEList)
                 result.AppendFormat("\t{0}", Simulator.Catalog.GetString(GetStringAttribute.GetPrettyName(eng.EngineStatus)));
 
-            result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), FormatStrings.FormatPower(MaxOutputPowerW, Locomotive.IsMetric, false, false));
+            //result.AppendFormat("\t{0}\t{1}", Simulator.Catalog.GetParticularString("HUD", "Power"), FormatStrings.FormatPower(MaxOutputPowerW, Locomotive.IsMetric, false, false));
             foreach (var eng in DEList)
                 result.AppendFormat("\t{0}", FormatStrings.FormatPower(eng.CurrentDieselOutputPowerW, Locomotive.IsMetric, false, false));
 
-            result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Load"));
+            //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Load"));
             foreach (var eng in DEList)
                 result.AppendFormat("\t{0:F1}%", eng.LoadPercent);
 
             foreach (var eng in DEList)
                 result.AppendFormat("\t{0:F0} {1}", eng.RealRPM, FormatStrings.rpm);
 
-            result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Flow"));
+            //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Flow"));
             foreach (var eng in DEList)
                 result.AppendFormat("\t{0}/{1}", FormatStrings.FormatFuelVolume(pS.TopH(eng.DieselFlowLps), Locomotive.IsMetric, Locomotive.IsUK), FormatStrings.h);
 
-            result.Append("\t");
+            //result.Append("\t");
             foreach (var eng in DEList)
                 result.AppendFormat("\t{0}", FormatStrings.FormatTemperature(eng.DieselTemperatureDeg, Locomotive.IsMetric, false));
 
-            result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Oil"));
+            //result.AppendFormat("\t{0}", Simulator.Catalog.GetString("Oil"));
             foreach (var eng in DEList)
                 result.AppendFormat("\t{0}", FormatStrings.FormatPressure(eng.DieselOilPressurePSI, PressureUnit.PSI, Locomotive.MainPressureUnit, true));
 
@@ -514,7 +514,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             locomotive = loco;
         }
 
-        #region Parameters and variables
+#region Parameters and variables
         float dRPM;
         /// <summary>
         /// Actual change rate of the engine's RPM - useful for exhaust effects
@@ -770,7 +770,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// The engine is connected to the gearbox
         /// </summary>
         public bool HasGearBox { get { return GearBox != null; } }
-        #endregion
+#endregion
 
         /// <summary>
         /// Parses parameters from the stf reader

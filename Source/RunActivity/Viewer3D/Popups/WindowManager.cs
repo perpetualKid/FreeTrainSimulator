@@ -52,7 +52,7 @@ namespace Orts.Viewer3D.Popups
         public readonly WindowTextManager TextManager;
         public readonly WindowTextFont TextFontDefault;
         public readonly WindowTextFont TextFontDefaultOutlined;
-
+        public readonly WindowTextFont TextFontMonoSpacedOutlined;
         public readonly WindowTextFont TextFontSmall;
         public readonly WindowTextFont TextFontSmallOutlined;
 
@@ -77,6 +77,7 @@ namespace Orts.Viewer3D.Popups
             TextManager = new WindowTextManager();
             TextFontDefault = TextManager.GetScaled("Arial", 10, System.Drawing.FontStyle.Regular);
             TextFontDefaultOutlined = TextManager.GetScaled("Arial", 10, System.Drawing.FontStyle.Regular, 1);
+            TextFontMonoSpacedOutlined = TextManager.GetScaled("Consolas", 10, System.Drawing.FontStyle.Regular, 1);
             TextFontSmall = TextManager.GetScaled("Arial", 8, System.Drawing.FontStyle.Regular);
             TextFontSmallOutlined = TextManager.GetScaled("Arial", 8, System.Drawing.FontStyle.Regular, 1);
 

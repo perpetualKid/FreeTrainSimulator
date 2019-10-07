@@ -359,6 +359,8 @@ namespace ORTS.Settings
         public int[] WindowPosition_DriverAid { get; set; }
         [Default(new[] { 50, 50 })]
         public int[] WindowPosition_Help { get; set; }
+        [Default(new[] { 75, 0 })]
+        public int[] WindowPosition_HUDScroll { get; set; }
         [Default(new[] { 0, 100 })]
         public int[] WindowPosition_NextStation { get; set; }
         [Default(new[] { 50, 50 })]

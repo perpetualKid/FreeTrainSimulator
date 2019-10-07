@@ -133,7 +133,7 @@ namespace ORTS.Settings
                 Reset(command.ToString());
         }
 
-        #region External APIs
+#region External APIs
         enum MapVirtualKeyType
         {
             VirtualToCharacter = 2,
@@ -148,7 +148,7 @@ namespace ORTS.Settings
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         static extern int GetKeyNameText(int scanCode, [Out] string name, int nameLength);
-        #endregion
+#endregion
 
         // Keyboard scancodes are basically constant; some keyboards have extra buttons (e.g. UK ones tend to have an
         // extra button next to Left Shift) or move one or two around (e.g. UK ones tend to move 0x2B down one row)
@@ -289,7 +289,7 @@ namespace ORTS.Settings
             rectangle.Height *= scaleY;
         }
 
-        #region Default Input Settings
+#region Default Input Settings
         static void InitializeCommands(UserCommandInput[] Commands)
         {
             // All UserCommandModifierInput commands go here.
@@ -452,6 +452,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommand.DisplayCompassWindow] = new UserCommandKeyInput(0x0B);
             Commands[(int)UserCommand.DisplayHelpWindow] = new UserCommandModifiableKeyInput(0x3B, Commands[(int)UserCommand.DisplayNextWindowTab]);
             Commands[(int)UserCommand.DisplayHUD] = new UserCommandModifiableKeyInput(0x3F, Commands[(int)UserCommand.DisplayNextWindowTab]);
+            Commands[(int)UserCommand.DisplayHUDScrollWindow] = new UserCommandModifiableKeyInput(0x3F, KeyModifiers.Control);
             Commands[(int)UserCommand.DisplayNextStationWindow] = new UserCommandKeyInput(0x44);
             Commands[(int)UserCommand.DisplayStationLabels] = new UserCommandModifiableKeyInput(0x40, Commands[(int)UserCommand.DisplayNextWindowTab]);
             Commands[(int)UserCommand.DisplaySwitchWindow] = new UserCommandKeyInput(0x42);

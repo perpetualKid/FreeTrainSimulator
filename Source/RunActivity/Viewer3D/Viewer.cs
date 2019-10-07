@@ -82,6 +82,7 @@ namespace Orts.Viewer3D
         public HelpWindow HelpWindow { get; private set; } // F1 window
         public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
+        public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
         public SwitchWindow SwitchWindow { get; private set; } // F8 window
@@ -410,6 +411,7 @@ namespace Orts.Viewer3D
             HelpWindow = new HelpWindow(WindowManager);
             TrackMonitorWindow = new TrackMonitorWindow(WindowManager);
             HUDWindow = new HUDWindow(WindowManager);
+            HUDScrollWindow = new HUDScrollWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
             OSDCars = new OSDCars(WindowManager);
             SwitchWindow = new SwitchWindow(WindowManager);
@@ -893,7 +895,23 @@ namespace Orts.Viewer3D
             if (UserInput.IsPressed(UserCommand.GameSave)) { GameStateRunActivity.Save(); }
             if (UserInput.IsPressed(UserCommand.DisplayHelpWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) HelpWindow.TabAction(); else HelpWindow.Visible = !HelpWindow.Visible;
             if (UserInput.IsPressed(UserCommand.DisplayTrackMonitorWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) TrackMonitorWindow.TabAction(); else TrackMonitorWindow.Visible = !TrackMonitorWindow.Visible;
-            if (UserInput.IsPressed(UserCommand.DisplayHUD)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) HUDWindow.TabAction(); else HUDWindow.Visible = !HUDWindow.Visible;
+            if (UserInput.IsPressed(UserCommand.DisplayHUD)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) HUDWindow.TabAction();
+            else
+            {
+                HUDWindow.Visible = !HUDWindow.Visible;
+                if (!HUDWindow.Visible) HUDScrollWindow.Visible = false;
+            }
+            if (UserInput.IsPressed(UserCommand.DisplayHUDScrollWindow))
+            {
+                if (HUDWindow.Visible)
+                {
+                    if (UserInput.IsDown(UserCommand.DisplayNextWindowTab))
+                        HUDScrollWindow.TabAction();
+                    else
+                        HUDScrollWindow.Visible = !HUDScrollWindow.Visible;
+                }
+            }
+
             if (UserInput.IsPressed(UserCommand.DisplayStationLabels))
             {
                 if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) OSDLocations.TabAction(); else OSDLocations.Visible = !OSDLocations.Visible;
