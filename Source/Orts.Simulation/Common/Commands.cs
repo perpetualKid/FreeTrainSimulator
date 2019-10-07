@@ -944,6 +944,7 @@ namespace Orts.Common
         }
      }
 
+
     [Serializable()]
     public sealed class ContinuousSmallEjectorCommand : ContinuousCommand
     {
@@ -1241,7 +1242,6 @@ namespace Orts.Common
         }
     }
 
-    // Cylinder Cocks command
     [Serializable()]
     public sealed class ToggleWaterScoopCommand : Command
     {
@@ -1260,6 +1260,7 @@ namespace Orts.Common
         }
     }
 
+    // Cylinder Cocks command
     [Serializable()]
     public sealed class ToggleCylinderCocksCommand : Command {
         public static MSTSSteamLocomotive Receiver { get; set; }

@@ -1,17 +1,17 @@
 ﻿// COPYRIGHT 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
-// 
+//
 // This file is part of Open Rails.
-// 
+//
 // Open Rails is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Open Rails is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -44,7 +44,7 @@ namespace Orts.Viewer3D.Popups
             : base(owner, Window.DecorationSize.X + owner.TextFontDefault.Height * 8, Window.DecorationSize.Y + owner.TextFontDefault.Height * 9 + ControlLayout.SeparatorSize * 2, Viewer.Catalog.GetString("HUD Scroll"))
         {
         }
-        
+
         private void ScreenMode_Click(Control arg1, Point arg2)
         {
             screenMode.Color = Color.White;
@@ -53,7 +53,7 @@ namespace Orts.Viewer3D.Popups
                 HUDWindow.hudWindowColumnsActualPage = 0;
                 HUDWindow.hudWindowLinesActualPage = 1;
                 HUDWindow.hudWindowFullScreen = true;
-                
+
             }
             else
             {
@@ -84,7 +84,7 @@ namespace Orts.Viewer3D.Popups
 
         private void PageUp_Click(Control arg1, Point arg2)
         {
-            if (HUDWindow.hudWindowLinesActualPage > 1)
+            if (!HUDWindow.BrakeInfoVisible && HUDWindow.hudWindowLinesActualPage > 1)
             {
                 HUDWindow.hudWindowLinesActualPage -= 1;
                 pageUp.Color = Color.White;
@@ -93,7 +93,7 @@ namespace Orts.Viewer3D.Popups
 
         private void PageDown_Click(Control arg1, Point arg2)
         {
-            if (HUDWindow.hudWindowLinesPagesCount > 1 && HUDWindow.hudWindowLinesPagesCount > HUDWindow.hudWindowLinesActualPage)
+            if (!HUDWindow.BrakeInfoVisible && HUDWindow.hudWindowLinesPagesCount > 1 && HUDWindow.hudWindowLinesPagesCount > HUDWindow.hudWindowLinesActualPage)
             {
                 HUDWindow.hudWindowLinesActualPage += 1;
                 pageDown.Color = Color.White;
@@ -134,11 +134,11 @@ namespace Orts.Viewer3D.Popups
             var vbox = base.Layout(layout).AddLayoutVertical();
             {
                 var hbox = vbox.AddLayoutHorizontalLineOfText();
-                pageDown = new Label(hbox.RemainingWidth, hbox.RemainingHeight, HUDWindow.hudWindowLinesPagesCount > 1 ? Viewer.Catalog.GetString("▼ Page Down (") + HUDWindow.hudWindowLinesActualPage + "/" + HUDWindow.hudWindowLinesPagesCount + ")" : Viewer.Catalog.GetString("▼ Page Down")) { Color = (HUDWindow.hudWindowLinesPagesCount > HUDWindow.hudWindowLinesActualPage) ? Color.Gray : Color.Black };
+                pageDown = new Label(hbox.RemainingWidth, hbox.RemainingHeight, HUDWindow.hudWindowLinesPagesCount > 1 ? Viewer.Catalog.GetString("▼ Page Down (" + HUDWindow.hudWindowLinesActualPage + "/" + HUDWindow.hudWindowLinesPagesCount + ")") : Viewer.Catalog.GetString("▼ Page Down")) { Color = (HUDWindow.hudWindowLinesPagesCount > HUDWindow.hudWindowLinesActualPage && !HUDWindow.BrakeInfoVisible) ? Color.Gray : Color.Black };
                 pageDown.Click += PageDown_Click;
                 vbox.Add(pageDown);
-                
-                pageUp = new Label(hbox.RemainingWidth, hbox.RemainingHeight, HUDWindow.hudWindowLinesPagesCount > 1 ? Viewer.Catalog.GetString("▲ Page Up (") + HUDWindow.hudWindowLinesActualPage + " / " + HUDWindow.hudWindowLinesPagesCount + ")" : Viewer.Catalog.GetString("▲ Page Up")) { Color = HUDWindow.hudWindowLinesActualPage > 1 ? Color.Gray : Color.Black };
+
+                pageUp = new Label(hbox.RemainingWidth, hbox.RemainingHeight, HUDWindow.hudWindowLinesPagesCount > 1 ? Viewer.Catalog.GetString("▲ Page Up (" + HUDWindow.hudWindowLinesActualPage + " / " + HUDWindow.hudWindowLinesPagesCount + ")") : Viewer.Catalog.GetString("▲ Page Up")) { Color = HUDWindow.hudWindowLinesActualPage > 1 && !HUDWindow.BrakeInfoVisible ? Color.Gray : Color.Black };
                 pageUp.Click += PageUp_Click;
                 vbox.Add(pageUp);
 
@@ -152,7 +152,7 @@ namespace Orts.Viewer3D.Popups
                 vbox.Add(pageRight);
 
                 vbox.AddHorizontalSeparator();
-                nextLoco = new Label(hbox.RemainingWidth, hbox.RemainingHeight, !HUDWindow.hudWindowSteamLocoLead && HUDWindow.hudWindowLocoActualPage > 0 ? Viewer.Catalog.GetString("▼ Next Loco (") + HUDWindow.hudWindowLocoActualPage + "/" + HUDWindow.hudWindowLocoPagesCount + ")" : Viewer.Catalog.GetPluralStringFmt("= One Locomotive.", "= All Locomotives.", (long)HUDWindow.hudWindowLocoPagesCount), LabelAlignment.Left) { Color = HUDWindow.hudWindowSteamLocoLead || HUDWindow.hudWindowLocoPagesCount > HUDWindow.hudWindowLocoActualPage ? Color.Gray : Color.Black };
+                nextLoco = new Label(hbox.RemainingWidth, hbox.RemainingHeight, !HUDWindow.hudWindowSteamLocoLead && HUDWindow.hudWindowLocoActualPage > 0 ? Viewer.Catalog.GetString("▼ Next Loco (" + HUDWindow.hudWindowLocoActualPage + "/" + HUDWindow.hudWindowLocoPagesCount + ")") : Viewer.Catalog.GetPluralStringFmt("= One Locomotive.", "= All Locomotives.", (long)HUDWindow.hudWindowLocoPagesCount), LabelAlignment.Left) { Color = HUDWindow.hudWindowSteamLocoLead || HUDWindow.hudWindowLocoPagesCount > HUDWindow.hudWindowLocoActualPage ? Color.Gray : Color.Black };
                 nextLoco.Click += NextLoco_Click;
                 vbox.Add(nextLoco);
 
@@ -161,7 +161,7 @@ namespace Orts.Viewer3D.Popups
                 vbox.Add(prevLoco);
 
                 vbox.AddHorizontalSeparator();
-                screenMode = new Label(hbox.RemainingWidth, hbox.RemainingHeight, (HUDWindow.hudWindowFullScreen? Viewer.Catalog.GetString("Screen: Normal"): Viewer.Catalog.GetString("Screen: Full")), LabelAlignment.Center) { Color = Color.Gray };
+                screenMode = new Label(hbox.RemainingWidth, hbox.RemainingHeight, (HUDWindow.hudWindowFullScreen?"Screen: Normal": "Screen: Full"), LabelAlignment.Center) { Color = Color.Gray };
                 screenMode.Click += ScreenMode_Click;
                 vbox.Add(screenMode);
             }

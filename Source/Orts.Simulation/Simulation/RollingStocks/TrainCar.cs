@@ -35,6 +35,7 @@
 
 using Microsoft.Xna.Framework;
 using Orts.Formats.Msts;
+using Orts.Parsers.Msts;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems;
@@ -180,6 +181,7 @@ namespace Orts.Simulation.RollingStocks
         public bool WheelSkid;  // True if wagon wheels lock up.
         public float _AccelerationMpSS;
         protected IIRFilter AccelerationFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, 1.0f, 0.1f);
+
         // Wheel Bearing Temperature parameters
         public float WheelBearingTemperatureDegC = 40.0f;
         public string DisplayWheelBearingTemperatureStatus;

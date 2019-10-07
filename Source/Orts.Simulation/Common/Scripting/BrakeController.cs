@@ -246,7 +246,7 @@ namespace ORTS.Scripting.Api
             {ControllerState.TCSEmergency, Catalog.GetString("TCS Emergency Braking")},
             {ControllerState.TCSFullServ, Catalog.GetString("TCS Full Service Braking")},
             {ControllerState.VacContServ, Catalog.GetString("Vac. Cont. Service")},
-            {ControllerState.VacApplyContServ, Catalog.GetString("Vac. Apply Cont. Service")},
+            {ControllerState.VacApplyContServ, Catalog.GetString("Vac. Apply Cont. Service")}
         };
     }
 }

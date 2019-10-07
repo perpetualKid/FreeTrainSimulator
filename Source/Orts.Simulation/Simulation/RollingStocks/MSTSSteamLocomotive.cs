@@ -819,7 +819,6 @@ namespace Orts.Simulation.RollingStocks
                     IsSelectGeared = String.Compare(typeString2, "Select") == 0;
                     break;
                 case "engine(enginecontrollers(ortslargeejector": HasLargeEjector = true; break;
-                case "engine(enginecontrollers(waterscoop": HasWaterScoop = true; break;
 
                 default: base.Parse(lowercasetoken, stf); break;
             }
@@ -5587,7 +5586,7 @@ namespace Orts.Simulation.RollingStocks
                 case CABViewControlTypes.CYL_COCKS:
                     data = CylinderCocksAreOpen ? 1 : 0;
                     break;
-                    case CABViewControlTypes.ORTS_LARGE_EJECTOR:
+                case CABViewControlTypes.ORTS_LARGE_EJECTOR:
                     data = LargeEjectorEnabled ? 1 : 0;
                     break;
                 case CABViewControlTypes.ORTS_CYL_COMP:

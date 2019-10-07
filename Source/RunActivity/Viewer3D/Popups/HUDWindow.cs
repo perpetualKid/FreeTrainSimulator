@@ -546,10 +546,9 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Control Mode"),// "",
                 Viewer.Catalog.GetString("Out of Control"),// "",
                 Viewer.Catalog.GetString("Cab Aspect")
-
                 //Add new header data here, if adding additional column.
-
                 ));
+
             //Consist information. Data.
             statusConsist.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t\t{5}\t{6}\t\t{7}\t\t{8}",
                 locomotive.CarID + " " + (mstsLocomotive == null ? "" : mstsLocomotive.UsingRearCab ? Viewer.Catalog.GetString("R") : Viewer.Catalog.GetString("F")),
@@ -561,9 +560,7 @@ namespace Orts.Viewer3D.Popups
                 train.ControlMode.ToString(),
                 train.OutOfControlReason.ToString(),
                 mstsLocomotive.TrainControlSystem.CabSignalAspect.ToString()
-
                 //Add new data here, if adding additional column.
-
                 ));
 
             //Car information
@@ -575,9 +572,7 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Weight"),
                 Viewer.Catalog.GetString("Drv/Cabs"),
                 Viewer.Catalog.GetString("Wheels")
-
                 //Add new header data here, if adding additional column.
-
                 ));
 
             //Pages count from number of nLinesShow.
@@ -596,9 +591,7 @@ namespace Orts.Viewer3D.Popups
                     FormatStrings.FormatLargeMass(car.MassKG, locomotive.IsMetric, locomotive.IsUK) + "\t" +
                     (car.IsDriveable ? "D" : "") + (car.HasFrontCab || car.HasFront3DCab ? "F" : "") + (car.HasRearCab || car.HasRear3DCab ? "R" : "") + "\t" +
                     GetCarWhyteLikeNotation(car) + "\t");
-
-                //Add new data here, if adding additional column.
-
+                    //Add new data here, if adding additional column.
             }
 
             DrawScrollArrows(statusConsist, table, false);
@@ -678,8 +671,10 @@ namespace Orts.Viewer3D.Popups
                 //7
                 train.MUDynamicBrakePercent >= 0 ? string.Format("{0:F0}%", train.MUDynamicBrakePercent) : Viewer.Catalog.GetString("off"),
                 //8
-                Viewer.Catalog.GetString("PlayerLoco")));
-
+            Viewer.Catalog.GetString("PlayerLoco")
+            //Add new Header data here, if adding additional column.
+            ));
+            
             foreach (var car in train.Cars)
             {
                 if (car is MSTSLocomotive && (hudWindowLocoActualPage > 0 ? car.CarID == LocomotiveID[hudWindowLocoActualPage - 1] : true))
@@ -690,61 +685,59 @@ namespace Orts.Viewer3D.Popups
                         {
                             //Header. Supports different types of locomotives.
                             statusHeader.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t\t{6}\t{7}\t{8}\t{9}\t\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}",
-                                //00
-                                Viewer.Catalog.GetString("Loco"),
-                                //01
-                                Viewer.Catalog.GetString("Direction"),
-                                //02
-                                Viewer.Catalog.GetString("Flipped"),
-                                //03
-                                Viewer.Catalog.GetString("MU'd"),
-                                //04
-                                Viewer.Catalog.GetString("Throttle"),
-                                //05
-                                Viewer.Catalog.GetString("Speed"),
-                                //06
-                                Viewer.Catalog.GetString("Power"),
-                                //07
-                                Viewer.Catalog.GetString("Force"),
-                                //08
-                                car is MSTSDieselLocomotive && (car as MSTSDieselLocomotive).DieselEngines[0].HasGearBox ?
-                                Viewer.Catalog.GetString("Gear") : Viewer.Catalog.GetString(""),
-                                //09
-                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
-                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Fuel") :
-                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("Circuit breaker") : Viewer.Catalog.GetString(""),
-                                //10
-                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
-                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Status") :
-                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("TCS") : Viewer.Catalog.GetString(""),
-                                //11
-                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
-                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Power") :
-                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("Driver") : Viewer.Catalog.GetString(""),
-                                //12
-                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
-                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Load") :
-                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("Auxiliar power") : Viewer.Catalog.GetString(""),
-                                //13
-                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
-                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Rpm") :
-                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString(""),
-                                //14
-                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
-                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Flow") :
-                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString(""),
-                                //15
-                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
-                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Temperature") :
-                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString(""),
-                                //16
-                                car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
-                                car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Oil") :
-                                car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString("")
-
-                                //Add new Locomotive header here, if required.
-
-                                ));
+                            //00
+                            Viewer.Catalog.GetString("Loco"),
+                            //01
+                            Viewer.Catalog.GetString("Direction"),
+                            //02
+                            Viewer.Catalog.GetString("Flipped"),
+                            //03
+                            Viewer.Catalog.GetString("MU'd"),
+                            //04
+                            Viewer.Catalog.GetString("Throttle"),
+                            //05
+                            Viewer.Catalog.GetString("Speed"),
+                            //06
+                            Viewer.Catalog.GetString("Power"),
+                            //07
+                            Viewer.Catalog.GetString("Force"),
+                            //08
+                            car is MSTSDieselLocomotive && (car as MSTSDieselLocomotive).DieselEngines[0].HasGearBox ?
+                            Viewer.Catalog.GetString("Gear") : Viewer.Catalog.GetString(""),
+                            //09
+                            car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                            car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Fuel") :
+                            car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("Circuit breaker") : Viewer.Catalog.GetString(""),
+                            //10
+                            car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                            car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Status") :
+                            car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("TCS") : Viewer.Catalog.GetString(""),
+                            //11
+                            car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                            car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Power") :
+                            car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("Driver") : Viewer.Catalog.GetString(""),
+                            //12
+                            car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                            car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Load") :
+                            car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("Auxiliar power") : Viewer.Catalog.GetString(""),
+                            //13
+                            car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                            car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Rpm") :
+                            car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString(""),
+                            //14
+                            car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                            car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Flow") :
+                            car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString(""),
+                            //15
+                            car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                            car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Temperature") :
+                            car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString(""),
+                            //16
+                            car is MSTSSteamLocomotive ? Viewer.Catalog.GetString("") :
+                            car is MSTSDieselLocomotive ? Viewer.Catalog.GetString("Oil") :
+                            car is MSTSElectricLocomotive ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString("")
+                            //Add new Locomotive header here, if required.
+                            ));
 
                             statusHeader.Add(line);
                         }
@@ -790,13 +783,13 @@ namespace Orts.Viewer3D.Popups
                         sectionsLocomotive.Add(cLine, nLine);
                         nLine = 0;
                     }
-                }
+               }
             }
             //Last section header.
             sectionsLocomotive[cLine] = nLine;
-
+ 
             //Lines that fit by pages.
-            TextLineNumber(hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : statusData.Count, hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : table.CurrentRow, maxColumns); //hudWindowLocoActualPage == 0 ? 1 : maxColumns);
+            TextLineNumber(hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : statusData.Count, hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : table.CurrentRow, maxColumns);
 
             var CurrentFirstLine = (hudWindowLinesActualPage * nLinesShow) - nLinesShow;
             var CurrentLastLine = hudWindowLinesActualPage * nLinesShow;
@@ -804,14 +797,14 @@ namespace Orts.Viewer3D.Popups
             for (var i = CurrentFirstLine; i < CurrentLastLine + 1; i++)
             {
                 //Locomotive info, line limit.
-                if ((CurrentFirstLine >= nLinesShow ? hudWindowLocoActualPage == 0 || hudWindowLinesActualPage > 1 ? i - lineOffsetLocoInfo[hudWindowLinesActualPage] : i - 1 : i) > statusData.Count - 1)
+               if ((CurrentFirstLine >= nLinesShow ? hudWindowLocoActualPage == 0 || hudWindowLinesActualPage > 1 ? i - lineOffsetLocoInfo[hudWindowLinesActualPage] : i - 1 : i) > statusData.Count - 1)
                     break;
                 //Locomotive, line limit.
                 if (hudWindowLocoActualPage == 0 && i > HeaderRows - 3)
                     break;
 
                 if (i - CurrentFirstLine < (hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : 1))
-                {
+               {
                     int index = statusData.FindIndex(x => x.Contains(LocomotiveName[i - CurrentFirstLine]));
                     TextColNumber(statusData[index], 0, IsSteamLocomotive);//Horizontal string width to display Locomotives.
                 }
@@ -859,7 +852,7 @@ namespace Orts.Viewer3D.Popups
                     else
                     {
                         if (i - CurrentFirstLine < (hudWindowLocoActualPage == 0 ? hudWindowLocoPagesCount : 1) && hudWindowColumnsActualPage == 0)
-                        {}
+                        { }
                         else
                         {   //Display other locomotive info data.
                             var x = 0;
@@ -959,11 +952,11 @@ namespace Orts.Viewer3D.Popups
             else  // Default to air or electronically braked, use this display
             {
                 TableAddLines(table, String.Format("{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
-                    Viewer.Catalog.GetString("PlayerLoco"),
-                    Viewer.Catalog.GetString("Main reservoir"),
-                    FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
-                    Viewer.Catalog.GetString("Compressor"),
-                    (Viewer.PlayerLocomotive as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
+                Viewer.Catalog.GetString("PlayerLoco"),
+                Viewer.Catalog.GetString("Main reservoir"),
+                FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI, PressureUnit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
+                Viewer.Catalog.GetString("Compressor"),
+                (Viewer.PlayerLocomotive as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
             }
 
             // Display data for other locomotives
@@ -1014,9 +1007,7 @@ namespace Orts.Viewer3D.Popups
                         Viewer.Catalog.GetString("Conn"),
                         //7
                         Viewer.Catalog.GetString("AnglCock")
-
                         //Add new header data here, if addining additional column.
-
                         ));
                 }
                 else // default air braked
@@ -1050,9 +1041,7 @@ namespace Orts.Viewer3D.Popups
                     Viewer.Catalog.GetString("AnglCock"),
                     //13
                     Viewer.Catalog.GetString("BleedOff")
-
                     //Add new header data here, if addining additional column.
-
                     ));
                 }
             }
@@ -1254,9 +1243,7 @@ namespace Orts.Viewer3D.Popups
                         Viewer.Catalog.GetString("Train Direction:"), train.PhysicsTrainLocoDirectionDeg,
                         Viewer.Catalog.GetString("ResWind:"), train.ResultantWindComponentDeg,
                         Viewer.Catalog.GetString("ResSpeed:"), Me.ToMi(pS.TopH(train.WindResultantSpeedMpS))
-
                         //Add new header + data here, if required.
-
                         );
                     }
                     TableAddLines(table, status.ToString());
@@ -1274,11 +1261,13 @@ namespace Orts.Viewer3D.Popups
                 Viewer.Catalog.GetString("Gradient"),
                 Viewer.Catalog.GetString("Curve"),
                 Viewer.Catalog.GetString("Brk Frict."),
-                Viewer.Catalog.GetString("Brk Slide"),
-                Viewer.Catalog.GetString("Bear Temp")
-
+                Viewer.Catalog.GetString("Brk Slide")
                 //Add new header data here, if adding additional column.
-
+                // Possibly needed for buffing forces
+                //                Viewer.Catalog.GetString("VertD"),
+                //                Viewer.Catalog.GetString("VertL"),
+                //                Viewer.Catalog.GetString("BuffExc"),
+                //                Viewer.Catalog.GetString("CplAng")
                 );
             }
             else
@@ -1393,7 +1382,7 @@ namespace Orts.Viewer3D.Popups
             TextPageHeading(table, Viewer.Catalog.GetString("DISPATCHER INFORMATION : active trains : " + totalactive));
 
             ResetHudScroll();//Reset HudScroll
-            
+
             if (hudWindowColumnsActualPage > 0)
             {
                 //HudScroll
@@ -1401,7 +1390,6 @@ namespace Orts.Viewer3D.Popups
                     Viewer.Catalog.GetString("Train"),
                     Viewer.Catalog.GetString("Consist"),
                     Viewer.Catalog.GetString("Path"));
-
                 //Add new header data here, if adding additional column.
 
             }
@@ -1422,17 +1410,16 @@ namespace Orts.Viewer3D.Popups
                     Viewer.Catalog.GetString("Distance"),
                     Viewer.Catalog.GetString("Consist"),
                     Viewer.Catalog.GetString("Path"));
-
-                //Add new header data here, if adding additional column.
+                //New added items, here
 
                 //Find 'Path' header column
                 //Requiered to avoid conflict with human dispatcher code.
-                PathHeaderColumn = ColumnsCount(table, true); 
+                PathHeaderColumn = ColumnsCount(table, true);
             }
 
             //HudScroll. Columns
             var columnsCount = ColumnsCount(table, false);
-            
+
             List<string[]> statusDispatcher = new List<string[]>();
             statusDispatcher.Clear();
             var TextToYellowColor = "#";
@@ -1515,7 +1502,7 @@ namespace Orts.Viewer3D.Popups
 
             //HudScroll. Pages count from nLinesShow number.
             TextLineNumber(statusDispatcher.Count, table.CurrentRow, columnsCount);
-            
+
             //Number of lines to show. HudScroll
             for (var i = (hudWindowLinesActualPage * nLinesShow) - nLinesShow; i < (Viewer.Simulator.Trains.Count > hudWindowLinesActualPage * nLinesShow ? hudWindowLinesActualPage * nLinesShow : Viewer.Simulator.Trains.Count); i++)
             {
@@ -1565,11 +1552,12 @@ namespace Orts.Viewer3D.Popups
                     }
                     else
                         for (int iCell = 0; iCell < statusDispatcher[0].Length; iCell++)
-                            TableSetCell(table, table.CurrentRow, iCell, statusDispatcher[i][iCell] + (iCell == PathHeaderColumn && !statusDispatcher[i][PathHeaderColumn].EndsWith("???")? "" : EndText));//Avoid yellow color for Path info
+                            TableSetCell(table, table.CurrentRow, iCell, statusDispatcher[i][iCell] + (iCell == PathHeaderColumn && !statusDispatcher[i][PathHeaderColumn].EndsWith("???") ? "" : EndText));//Avoid yellow color for Path info
 
                     TableAddLine(table);
                 }
             }           
+
 
 
 
@@ -1635,7 +1623,7 @@ namespace Orts.Viewer3D.Popups
 
             //Disable Hudscroll.
             Viewer.HUDScrollWindow.Visible = false;//HudScroll
-         
+
             TableAddLabelValue(table, Viewer.Catalog.GetString("Visibility"), Viewer.Catalog.GetStringFmt("{0:N0} m", Viewer.Simulator.Weather.FogDistance));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Cloud cover"), Viewer.Catalog.GetStringFmt("{0:F0} %", Viewer.Simulator.Weather.OvercastFactor * 100));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Intensity"), Viewer.Catalog.GetStringFmt("{0:F4} p/s/m^2", Viewer.Simulator.Weather.PricipitationIntensityPPSPM2));
@@ -1695,12 +1683,12 @@ namespace Orts.Viewer3D.Popups
             for (int i = 0; i < table.Cells.GetLength(1); i++)
             {
                 if (table.Cells[table.CurrentRow, i] != null)
-                {                    
+                {
                     //Search Path column position. Dispatcher Information
                     //Avoid conflict with human dispatcher
                     var dato = table.Cells[table.CurrentRow, i].ToString();
                     if (PathColumn && table.Cells[table.CurrentRow, i].ToString() == Viewer.Catalog.GetString("Path")) break;
-                    
+
                     nColumnsCount++;
                 }
             }
@@ -1909,9 +1897,9 @@ namespace Orts.Viewer3D.Popups
                 }
 
                 //Add '\n' to all stringStatus when 'PlayerLoco' Header
-                if (stringStatus.Count > 0 && stringStatus[0].Contains(Viewer.Catalog.GetString("PlayerLoco")) && stringStatus[stringStatus.Count-1].EndsWith("\n"))
+                if (stringStatus.Count > 0 && stringStatus[0].Contains(Viewer.Catalog.GetString("PlayerLoco")) && stringStatus[stringStatus.Count - 1].EndsWith("\n"))
                 {//TO DO: rewrite this code using LINQ
-                    for (int n = 0; n < stringStatus.Count-1 ;n++)
+                    for (int n = 0; n < stringStatus.Count - 1; n++)
                     {
                         if (!stringStatus[n].EndsWith("\n"))
                             stringStatus[n] = stringStatus[n] + "\n";
@@ -1933,7 +1921,7 @@ namespace Orts.Viewer3D.Popups
                 for (i = 0; i < StringStatusLength; i += charFitPerLine)
                 {
                     if (StringStatusLength - i > charFitPerLine)
-                        stringStatus.Add(StringStatus.Substring(i, charFitPerLine) + (StringStatus.EndsWith("???")? "???" : ""));//Required by human dispacher path data
+                        stringStatus.Add(StringStatus.Substring(i, charFitPerLine) + (StringStatus.EndsWith("???") ? "???" : ""));//Required by human dispacher path data
                     else
                         stringStatus.Add(StringStatus.Substring(i, StringStatus.Length - i));
                     n++;
@@ -2042,7 +2030,6 @@ namespace Orts.Viewer3D.Popups
                 }
                 else
                     TableAddLines(table, statusConsist[i]);
-
             }
         }
 
