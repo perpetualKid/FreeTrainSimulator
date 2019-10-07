@@ -24,7 +24,6 @@ using Orts.Formats.Msts.Parsers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Orts.Formats.Msts
 {
@@ -32,8 +31,6 @@ namespace Orts.Formats.Msts
     /// TDBFile is a representation of the .tdb file, that contains the track data base.
     /// The database contains two kinds of items: TrackNodes and TrItems (Track Items).
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
-    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable", Justification = "Disposable only used in using statement, known FcCop bug")]
     public class TrackDatabaseFile
     {
         /// <summary>
@@ -63,7 +60,6 @@ namespace Orts.Formats.Msts
         /// <param name="tileZ">Z-value of the current Tile</param>
         /// <param name="worldId">world ID as defined in world file</param>
         /// <returns>The TrJunctionNode corresponding the the tile and worldID, null if not found</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         public TrJunctionNode GetTrJunctionNode(int tileX, int tileZ, int worldId)
         {
             foreach (TrackNode tn in TrackDB.TrackNodes)
@@ -163,7 +159,6 @@ namespace Orts.Formats.Msts
         /// This will also set the ID of the TrItems (since that gives the index in that array)
         /// </summary>
         /// <param name="newTrItems">The array of new items.</param>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         public void AddTrItems(TrItem[] newTrItems)
         {
             TrItem[] newTrItemTable;
@@ -199,25 +194,21 @@ namespace Orts.Formats.Msts
         /// If this is a junction, this contains a link to a TrJunctionNode that contains the details about the junction.
         /// null otherwise.
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         public TrJunctionNode TrJunctionNode { get; set; }
 
         /// <summary>
         /// If this is a vector nodes, this contains a link to a TrVectorNode that contains the details about the vector
         /// null otherwise.
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         public TrVectorNode TrVectorNode { get; set; }
         
         /// <summary>
         /// True when this TrackNode has nothing else connected to it (that is, it is
         /// a buffer end or an unfinished track) and trains cannot proceed beyond here.
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         public bool TrEndNode { get; set; }
 
         /// <summary>'Universal Id', containing location information. Only provided for TrJunctionNode and TrEndNode type of TrackNodes</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         public UiD UiD { get; set; }
         /// <summary>The array containing the TrPins (Track pins), which are connections to other tracknodes</summary>
         public TrPin[] TrPins;
@@ -310,7 +301,6 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Represents a pin, being the link from a tracknode to another. 
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
     [DebuggerDisplay("\\{MSTS.TrPin\\} Link={Link}, Dir={Direction}")]
     public class TrPin
     {
@@ -351,7 +341,6 @@ namespace Orts.Formats.Msts
     /// Contains the location and initial direction (as an angle in 3 dimensions) of a node (junction or end),
     /// as well as a cross reference to the entry in the world file
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
     [DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldID}, TileX={TileX}, TileZ={TileZ}, X={X}, Y={Y}, Z={Z}, AX={AX}, AY={AY}, AZ={AZ}, WorldX={WorldTileX}, WorldZ={WorldTileZ}")]
     public class UiD
     {
@@ -360,13 +349,10 @@ namespace Orts.Formats.Msts
         /// <summary>Z-value of the tile where the node is located</summary>
         public int TileZ { get; set; }
         /// <summary>X-value within the tile where the node is located</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "Name is meaningful enough")]
         public float X { get; set; }
         /// <summary>Y-value (height) within the tile where the node is located</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "Name is meaningful enough")]
         public float Y { get; set; }
         /// <summary>Z-value within the tile where the node is located</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "Name is meaningful enough")]
         public float Z { get; set; }
         /// <summary>Angle around X-axis for describing initial direction of the node</summary>
         public float AX { get; set; }
@@ -427,7 +413,6 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Describes details of a junction
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
     [DebuggerDisplay("\\{MSTS.TrJunctionNode\\} SelectedRoute={SelectedRoute}, ShapeIndex={ShapeIndex}")]
     public class TrJunctionNode
     {
@@ -531,7 +516,6 @@ namespace Orts.Formats.Msts
     /// is stored (as well as its direction). As a result, VectorNodes have a direction.
     /// Furthermore, a number of TrItems (Track Items) can be located on the vector nodes.
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
     public class TrVectorNode
     {
         /// <summary>Array of sections that together form the vectorNode</summary>
@@ -596,7 +580,6 @@ namespace Orts.Formats.Msts
         /// </summary>
         /// <param name="targetTvs">The vector section for which the index is needed</param>
         /// <returns>the index of the vector section</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         public int TrVectorSectionsIndexOf(TrVectorSection targetTvs)
         {
             for (int i = 0; i < TrVectorSections.Length; ++i)
@@ -613,7 +596,6 @@ namespace Orts.Formats.Msts
         /// Add a reference to a new TrItem to the already existing TrItemRefs.
         /// </summary>
         /// <param name="newTrItemRef">The reference to the new TrItem</param>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         public void AddTrItemRef(int newTrItemRef)
         {
             int[] newTrItemRefs = new int[NoItemRefs + 1];
@@ -627,7 +609,6 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Describes a single section in a vector node. 
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
     public class TrVectorSection
     {
         /// <summary>First flag. Not completely clear, usually 0, - may point to the connecting pin entry in a junction. Sometimes 2</summary>
@@ -643,13 +624,10 @@ namespace Orts.Formats.Msts
         /// <summary>Z-value of the location-tile</summary>
         public int TileZ { get; set; }
         /// <summary>X-value within the tile where the node is located</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "Name is meaningful enough")]
         public float X { get; set; }
         /// <summary>Y-value (height) within the tile where the node is located</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "Name is meaningful enough")]
         public float Y { get; set; }
         /// <summary>Z-value within the tile where the node is located</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "Name is meaningful enough")]
         public float Z { get; set; }
         /// <summary>Angle around X-axis for describing initial direction of the node</summary>
         public float AX { get; set; }
@@ -660,7 +638,6 @@ namespace Orts.Formats.Msts
 
         //The following items are related to super elevation
         /// <summary>The index to the worldFile</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         public uint WorldFileUiD { get; set; }
         /// <summary>The TileX in the WorldFile</summary>
         public int WFNameX { get; set; }
@@ -715,7 +692,6 @@ namespace Orts.Formats.Msts
     /// Describes a Track Item, that is an item located on the track that interacts with the train or train operations
     /// This is a base class. 
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
     public abstract class TrItem
     {
         /// <summary>
@@ -760,20 +736,16 @@ namespace Orts.Formats.Msts
         /// <summary>Type of track item</summary>
         public trItemType ItemType { get; set; }
         /// <summary>Id if track item</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         public uint TrItemId { get; set; }
         /// <summary>X-value of world tile</summary>
         public int TileX { get; set; }
         /// <summary>Z-value of world tile</summary>
         public int TileZ { get; set; }
         /// <summary>X-location within world tile (tracknode, not shape)</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "Name is meaningful enough")]
         public float X { get; set; }
         /// <summary>X-location within world tile (tracknode, not shape)</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "Name is meaningful enough")]
         public float Y { get; set; }
         /// <summary>X-location within world tile (tracknode, not shape)</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", Justification = "Name is meaningful enough")]
         public float Z { get; set; }
         /// <summary>Appears to be a copy of tileX in Sdata, but only for X and Z</summary>
         public int TilePX { get; set; }
@@ -801,7 +773,6 @@ namespace Orts.Formats.Msts
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         protected void ParseTrItemID(STFReader stf, int idx)
         {
             stf.MustMatch("(");
@@ -814,7 +785,6 @@ namespace Orts.Formats.Msts
         /// Reads the Rdata from filestream
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         protected void TrItemRData(STFReader stf)
         {
             stf.MustMatch("(");
@@ -830,7 +800,6 @@ namespace Orts.Formats.Msts
         /// Reads the PData from filestream
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         protected void TrItemPData(STFReader stf)
         {
             stf.MustMatch("(");
@@ -845,7 +814,6 @@ namespace Orts.Formats.Msts
         /// Reads the SData from filestream
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         protected void TrItemSData(STFReader stf)
         {
             stf.MustMatch("(");
@@ -910,7 +878,6 @@ namespace Orts.Formats.Msts
         }
 
         /// <summary>Set to  00000001 if junction link set</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", Justification = "It simply describesr real flags in MSTS file")]
         public string Flags1 { get; set; }
         /// <summary>0 or 1 depending on which way signal is facing</summary>
         public uint Direction { get; set; }
@@ -1006,7 +973,6 @@ namespace Orts.Formats.Msts
         /// <summary>is freight speed limit</summary>
         public bool IsFreight { get; set; }
         /// <summary>is the digit in MPH or KPH</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Preference to keep units in capitals")]
         public bool IsMPH { get; set; }
         /// <summary>show numbers instead of KPH, like 5 means 50KMH</summary>
         public bool ShowNumber { get; set; }
@@ -1214,7 +1180,6 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Representa a level Crossing item (so track crossing road)
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification="Keeping identifier consistent to use in MSTS")]
     public class LevelCrItem : TrItem
     {
         /// <summary>
@@ -1241,7 +1206,6 @@ namespace Orts.Formats.Msts
     public class SidingItem : TrItem
     {
         /// <summary>Flags 1 for a siding ???</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", Justification = "It simply describesr real flags in MSTS file")]
         public string Flags1 { get; set; }
         /// <summary>Flags 2 for a siding, probably the index of the other end of the siding.</summary>
         public uint LinkedSidingId { get; set; }
@@ -1281,7 +1245,6 @@ namespace Orts.Formats.Msts
         /// <summary>Name of the station where the platform is</summary>
         public string Station { get; set; }
         /// <summary>Flags 1 for a platform ???</summary>
-        [SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", Justification = "It simply describesr real flags in MSTS file")]
         public string Flags1 { get; set; }
         /// <summary>Minimum waiting time at the platform</summary>
         public uint PlatformMinWaitingTime { get; set; }
