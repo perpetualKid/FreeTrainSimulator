@@ -322,6 +322,7 @@ namespace Orts.Simulation.RollingStocks
         public bool HasSmoothStruc;
 
         public float MaxContinuousForceN;
+        public float SpeedOfMaxContinuousForceMpS;  // Speed where maximum tractive effort occurs
         public float ContinuousForceTimeFactor = 1800;
         public bool AntiSlip;
         public bool AdvancedAdhesionModel = false; // flag set depending upon adhesion model used.
@@ -700,6 +701,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(maxcurrent": MaxCurrentA = stf.ReadFloatBlock(STFReader.Units.Current, null); break;
                 case "engine(maxcontinuousforce": MaxContinuousForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
                 case "engine(maxvelocity": MaxSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
+                case "engine(ortsspeedofmaxcontinuousforce": SpeedOfMaxContinuousForceMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
 
                 case "engine(type":
                     stf.MustMatch("(");
@@ -874,6 +876,7 @@ namespace Orts.Simulation.RollingStocks
             EngineType = locoCopy.EngineType;
             TractiveForceCurves = locoCopy.TractiveForceCurves;
             MaxContinuousForceN = locoCopy.MaxContinuousForceN;
+            SpeedOfMaxContinuousForceMpS = locoCopy.SpeedOfMaxContinuousForceMpS;
             ContinuousForceTimeFactor = locoCopy.ContinuousForceTimeFactor;
             DynamicBrakeForceCurves = locoCopy.DynamicBrakeForceCurves;
             DynamicBrakeAutoBailOff = locoCopy.DynamicBrakeAutoBailOff;
