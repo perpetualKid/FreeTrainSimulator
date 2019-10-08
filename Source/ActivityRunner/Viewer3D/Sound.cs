@@ -2359,7 +2359,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         foreach (int trNode in wsr.TrackNodes)
                         {
-                            if (trItems[trNode].ItemType == Orts.Formats.Msts.TrItem.trItemType.trSOUNDREGION)
+                            if (trItems[trNode] is SoundRegionItem)
                             {
                                 tmp = new Traveller(traveller);
 

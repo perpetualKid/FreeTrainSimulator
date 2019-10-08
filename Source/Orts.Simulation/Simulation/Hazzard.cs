@@ -49,7 +49,7 @@ namespace Orts.Simulation
 			return (from trackNode in trackNodes
 					where trackNode != null && trackNode.TrVectorNode != null && trackNode.TrVectorNode.NoItemRefs > 0
 					from itemRef in trackNode.TrVectorNode.TrItemRefs.Distinct()
-					where trItemTable[itemRef] != null && trItemTable[itemRef].ItemType == TrItem.trItemType.trHAZZARD
+					where trItemTable[itemRef] != null && trItemTable[itemRef] is HazzardItem
 					select new KeyValuePair<int, Hazzard>(itemRef, new Hazzard(trackNode, trItemTable[itemRef])))
 					.ToDictionary(_ => _.Key, _ => _.Value);
 		}

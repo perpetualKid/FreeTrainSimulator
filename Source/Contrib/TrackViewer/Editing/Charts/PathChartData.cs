@@ -582,8 +582,6 @@ namespace ORTS.TrackViewer.Editing.Charts
         private TrackSectionsFile tsectionDat;
         private Dictionary<TrackNode, IEnumerable<ChartableTrackItem>> cachedItems;
 
-        private HashSet<TrItem.trItemType> supportedTrackTypes;
-
         /// <summary>
         /// Constructor
         /// </summary>
@@ -594,11 +592,6 @@ namespace ORTS.TrackViewer.Editing.Charts
             this.tsectionDat = routeData.TsectionDat;
 
             cachedItems = new Dictionary<TrackNode, IEnumerable<ChartableTrackItem>>();
-
-            supportedTrackTypes = new HashSet<TrItem.trItemType> {
-                TrItem.trItemType.trPLATFORM,
-                TrItem.trItemType.trSPEEDPOST,
-            };
         }
 
         /// <summary>
@@ -620,7 +613,7 @@ namespace ORTS.TrackViewer.Editing.Charts
             foreach (int trackItemIndex in vectorNode.TrItemRefs)
             {
                 TrItem trItem = trackDB.TrItemTable[trackItemIndex];
-                if (supportedTrackTypes.Contains(trItem.ItemType))
+                if (trItem is PlatformItem || trItem is SpeedPostItem)
                 {
                     var travellerAtItem = new Traveller(tsectionDat, trackDB.TrackNodes, tn,
                         trItem.TileX, trItem.TileZ, trItem.X, trItem.Z, Traveller.TravellerDirection.Forward);
@@ -685,24 +678,21 @@ namespace ORTS.TrackViewer.Editing.Charts
             this.Height = item.Y;
             this.ItemText = string.Empty;
             this.ItemType = ChartableTrackItemType.Station;
-            switch (item.ItemType)
+            switch (item)
             {
-                case TrItem.trItemType.trEMPTY:
+                case PlatformItem platformItem:
+                    ItemText = platformItem.Station;
+                    ItemType = ChartableTrackItemType.Station;
                     break;
-                case TrItem.trItemType.trCROSSOVER:
-                    break;
-                case TrItem.trItemType.trSIGNAL:
-                    break;
-                case TrItem.trItemType.trSPEEDPOST:
-                    SpeedPostItem speedPost = item as SpeedPostItem;
-                    this.ItemText = speedPost.SpeedInd.ToString(System.Globalization.CultureInfo.CurrentCulture);
-                    if (speedPost.IsMilePost)
+                case SpeedPostItem speedPostItem:
+                    this.ItemText = speedPostItem.SpeedInd.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                    if (speedPostItem.IsMilePost)
                     {
                         this.ItemType = ChartableTrackItemType.MilePost;
                     }
-                    if (speedPost.IsLimit)
+                    if (speedPostItem.IsLimit)
                     {
-                        float relativeAngle = Microsoft.Xna.Framework.MathHelper.WrapAngle(travellerAtItem.RotY + speedPost.Angle - (float)Math.PI / 2);
+                        float relativeAngle = Microsoft.Xna.Framework.MathHelper.WrapAngle(travellerAtItem.RotY + speedPostItem.Angle - (float)Math.PI / 2);
                         bool inSameDirection = Math.Abs(relativeAngle) < Math.PI / 2;
                         if (inSameDirection)
                         {
@@ -714,26 +704,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                         }
                     }
                     break;
-                case TrItem.trItemType.trPLATFORM:
-                    this.ItemText = (item as PlatformItem).Station;
-                    this.ItemType = ChartableTrackItemType.Station;
-                    break;
-                case TrItem.trItemType.trSOUNDREGION:
-                    break;
-                case TrItem.trItemType.trXING:
-                    break;
-                case TrItem.trItemType.trSIDING:
-                    break;
-                case TrItem.trItemType.trHAZZARD:
-                    break;
-                case TrItem.trItemType.trPICKUP:
-                    break;
-                case TrItem.trItemType.trCARSPAWNER:
-                    break;
-                default:
-                    break;
             }
-
 
             this.TrackVectorSectionIndex = travellerAtItem.TrackVectorSectionIndex;
             var travellerAtSectionStart = new Traveller(travellerAtItem);

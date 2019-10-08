@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation
 {
@@ -53,7 +54,7 @@ namespace Orts.Simulation
             return (from trackNode in trackNodes
                     where trackNode != null && trackNode.TrVectorNode != null && trackNode.TrVectorNode.NoItemRefs > 0
                     from itemRef in trackNode.TrVectorNode.TrItemRefs.Distinct()
-                    where trItemTable[itemRef] != null && trItemTable[itemRef].ItemType == TrItem.trItemType.trXING
+                    where trItemTable[itemRef] != null && (trItemTable[itemRef] is LevelCrItem || trItemTable[itemRef] is RoadLevelCrossingItem)
                     select new KeyValuePair<int, LevelCrossingItem>(itemRef, new LevelCrossingItem(trackNode, trItemTable[itemRef])))
                     .ToDictionary(_ => _.Key, _ => _.Value);
         }

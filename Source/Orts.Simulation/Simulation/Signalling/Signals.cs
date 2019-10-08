@@ -618,11 +618,11 @@ namespace Orts.Simulation.Signalling
             {
                 if (trItem != null)
                 {
-                    if (trItem.ItemType == TrItem.trItemType.trSIGNAL)
+                    if (trItem is SignalItem)
                     {
                         noSignals++;
                     }
-                    else if (trItem.ItemType == TrItem.trItemType.trSPEEDPOST)
+                    else if (trItem is SpeedPostItem)
                     {
                         SpeedPostItem Speedpost = (SpeedPostItem)trItem;
                         if (Speedpost.IsLimit)
@@ -845,7 +845,7 @@ namespace Orts.Simulation.Signalling
                             int TDBRef = TrackNodes[newSignal.trackNode].TrVectorNode.TrItemRefs[i];
                             if (TrItems[TDBRef] != null)
                             {
-                                if (TrItems[TDBRef].ItemType == TrItem.trItemType.trSIGNAL)
+                                if (TrItems[TDBRef] is SignalItem)
                                 {
                                     foreach (SignalHead thisHead in newSignal.SignalHeads)
                                     {
@@ -873,7 +873,7 @@ namespace Orts.Simulation.Signalling
                             int TDBRef = TrackNodes[newSignal.trackNode].TrVectorNode.TrItemRefs[i];
                             if (TrItems[TDBRef] != null)
                             {
-                                if (TrItems[TDBRef].ItemType == TrItem.trItemType.trSIGNAL)
+                                if (TrItems[TDBRef] is SignalItem)
                                 {
                                     foreach (SignalHead thisHead in singleSignal.SignalHeads)
                                     {
@@ -951,7 +951,7 @@ namespace Orts.Simulation.Signalling
                         int TDBRef = trackNodes[index].TrVectorNode.TrItemRefs[i];
 
                         // Track Item is signal
-                        if (TrItems[TDBRef].ItemType == TrItem.trItemType.trSIGNAL)
+                        if (TrItems[TDBRef] is SignalItem)
                         {
                             SignalItem sigItem = (SignalItem)TrItems[TDBRef];
                             sigItem.SigObj = foundSignals;
@@ -970,7 +970,7 @@ namespace Orts.Simulation.Signalling
                         }
 
         // Track Item is speedpost - check if really limit
-                        else if (TrItems[TDBRef].ItemType == TrItem.trItemType.trSPEEDPOST)
+                        else if (TrItems[TDBRef] is SpeedPostItem)
                         {
                             SpeedPostItem speedItem = (SpeedPostItem)TrItems[TDBRef];
                             if (speedItem.IsLimit)
@@ -988,7 +988,7 @@ namespace Orts.Simulation.Signalling
                                 speedItem.SigObj = lastMilepost;
                             }
                         }
-                        else if (TrItems[TDBRef].ItemType == TrItem.trItemType.trPLATFORM)
+                        else if (TrItems[TDBRef] is PlatformItem)
                         {
                             if (platformList.ContainsKey(TDBRef))
                             {
@@ -999,7 +999,7 @@ namespace Orts.Simulation.Signalling
                                 platformList.Add(TDBRef, index);
                             }
                         }
-                        else if (TrItems[TDBRef].ItemType == TrItem.trItemType.trSIDING)
+                        else if (TrItems[TDBRef] is SidingItem)
                         {
                             if (platformList.ContainsKey(TDBRef))
                             {
@@ -2019,7 +2019,7 @@ namespace Orts.Simulation.Signalling
             // Insert signal
             //
 
-            if (thisItem.ItemType == TrItem.trItemType.trSIGNAL)
+            if (thisItem is SignalItem)
             {
                 try
                 {
@@ -2094,7 +2094,7 @@ namespace Orts.Simulation.Signalling
             // Insert speedpost
             //
 
-            else if (thisItem.ItemType == TrItem.trItemType.trSPEEDPOST)
+            else if (thisItem is SpeedPostItem)
             {
                 SpeedPostItem speedItem = (SpeedPostItem)thisItem;
                 if (speedItem.SigObj >= 0)
@@ -2153,16 +2153,14 @@ namespace Orts.Simulation.Signalling
             // Insert crossover in special crossover list
             //
 
-            else if (thisItem.ItemType == TrItem.trItemType.trCROSSOVER)
+            else if (thisItem is CrossoverItem crossOver)
             {
-                CrossoverItem crossItem = (CrossoverItem)thisItem;
-
                 float cdist = TDBTrav.DistanceTo(trackNodes[thisCircuit.OriginalIndex],
-                crossItem.TileX, crossItem.TileZ,
-                                crossItem.X, crossItem.Y, crossItem.Z);
+                crossOver.TileX, crossOver.TileZ,
+                                crossOver.X, crossOver.Y, crossOver.Z);
 
-                int thisId = (int)crossItem.TrItemId;
-                int crossId = (int)crossItem.TrackNode;
+                int thisId = (int)crossOver.TrItemId;
+                int crossId = (int)crossOver.TrackNode;
                 CrossOverItem exItem = null;
 
                 // search in Dictionary for combined item //
@@ -2183,7 +2181,7 @@ namespace Orts.Simulation.Signalling
                     exItem.ItemIndex[0] = thisId;
                     exItem.ItemIndex[1] = crossId;
 
-                    exItem.TrackShape = crossItem.ShapeId;
+                    exItem.TrackShape = crossOver.ShapeId;
 
                     CrossoverList.Add(thisId, exItem);
                 }

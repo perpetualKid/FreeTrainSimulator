@@ -319,22 +319,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 		  foreach (var item in simulator.TDB.TrackDB.TrItemTable)
 		  {
-			  if (item.ItemType == TrItem.trItemType.trSIGNAL)
-			  {
-				  if (item is SignalItem)
-				  {
+                if (item is SignalItem)
+                {
+                    SignalItem si = item as SignalItem;
 
-					  SignalItem si = item as SignalItem;
-					  
-					  if (si.SigObj >=0  && si.SigObj < simulator.Signals.SignalObjects.Length)
-					  {
-						  Signal s = simulator.Signals.SignalObjects[si.SigObj];
-						  if (s != null && s.isSignal && s.isSignalNormal()) signals.Add(new SignalWidget(si, s));
-					  }
-				  }
-
-			  }
-			  if (item.ItemType == TrItem.trItemType.trSIDING || item.ItemType == TrItem.trItemType.trPLATFORM)
+                    if (si.SigObj >= 0 && si.SigObj < simulator.Signals.SignalObjects.Length)
+                    {
+                        Signal s = simulator.Signals.SignalObjects[si.SigObj];
+                        if (s != null && s.isSignal && s.isSignalNormal()) signals.Add(new SignalWidget(si, s));
+                    }
+                }
+			  if (item is SidingItem || item is PlatformItem)
 			  {
 				  sidings.Add(new SidingWidget(item));
 			  }

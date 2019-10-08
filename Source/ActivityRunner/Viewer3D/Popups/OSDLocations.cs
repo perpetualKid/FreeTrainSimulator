@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 
@@ -78,7 +79,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     foreach (var stop in stationStops)
                     {
                         var platformId = stop.PlatformReference;
-                        if (0 <= platformId && platformId < tdb.TrItemTable.Length && tdb.TrItemTable[platformId].ItemType == Formats.Msts.TrItem.trItemType.trPLATFORM)
+                        if (0 <= platformId && platformId < tdb.TrItemTable.Length && tdb.TrItemTable[platformId] is PlatformItem)
                         {
                             platforms[tdb.TrItemTable[platformId].ItemName] = true;
                         }
@@ -94,7 +95,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 var sidingId1 = eventAction.SidingId;
                                 var sidingId2 = eventAction.WorkOrderWagons != null && eventAction.WorkOrderWagons.Count > 0 ? eventAction.WorkOrderWagons[0].SidingId : default(uint?);
                                 var sidingId = sidingId1.HasValue ? sidingId1.Value : sidingId2.HasValue ? sidingId2.Value : uint.MaxValue;
-                                if (0 <= sidingId && sidingId < tdb.TrItemTable.Length && tdb.TrItemTable[sidingId].ItemType == Formats.Msts.TrItem.trItemType.trSIDING)
+                                if (0 <= sidingId && sidingId < tdb.TrItemTable.Length && tdb.TrItemTable[sidingId] is SidingItem)
                                 {
                                     sidings[tdb.TrItemTable[sidingId].ItemName] = true;
                                 }

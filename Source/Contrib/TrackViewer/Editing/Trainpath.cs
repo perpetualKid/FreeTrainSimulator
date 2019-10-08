@@ -619,7 +619,7 @@ namespace ORTS.TrackViewer.Editing
             foreach (int trackItemIndex in tvn.TrItemRefs)
             {
                 TrItem trItem = trackDB.TrItemTable[trackItemIndex];
-                if (trItem.ItemType == TrItem.trItemType.trPLATFORM)
+                if (trItem is PlatformItem)
                 {
                     var traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, 
                         trItem.TileX, trItem.TileZ, trItem.X, trItem.Z, Traveller.TravellerDirection.Forward);

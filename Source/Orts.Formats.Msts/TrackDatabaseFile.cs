@@ -699,42 +699,6 @@ namespace Orts.Formats.Msts
         /// </summary>
         public string ItemName { get; set; }
 
-        //todo. 4 things: first the enum should be outside of the class. second, the casing of the names is really wrong.
-        //third, since it is already a TrItemType (note casing, corresponding to MSTS), 'Empty' should be enough, no need for an additional tr.
-        //fourth, since the subclass is already a type definition, it is not needed to have an enum on top of it. It should be doable by 
-        //using syntax like "trItem is SignalItem" instead of "trItem.ItemType == TrItem.trItemType.trSIGNAL" or other 
-        //decent object-oriented inheritance features.
-        /// <summary>
-        /// Describes the various types of Track Items
-        /// </summary>
-        public enum trItemType
-        {   
-            /// <summary>empty item</summary>
-            trEMPTY, // the first, so translates to '0', so this is the default.
-            /// <summary>A place where two tracks cross over each other</summary>
-            trCROSSOVER,
-            /// <summary>A signal</summary>
-            trSIGNAL,
-            /// <summary>A post with either speed or distance along track</summary>
-            trSPEEDPOST,
-            /// <summary>A platform</summary>
-            trPLATFORM,
-            /// <summary>A location where a sound can be triggerd</summary>
-            trSOUNDREGION,
-            /// <summary>A crossing between rail and road</summary>
-            trXING,
-            /// <summary>A siding</summary>
-            trSIDING,
-            /// <summary>A hazard, meaning something dangerous on or next to track</summary>
-            trHAZZARD,
-            /// <summary>A pickup of fuel, water, ...</summary>
-            trPICKUP,
-            /// <summary>The place where cars are appear of disappear</summary>
-            trCARSPAWNER
-        }
-
-        /// <summary>Type of track item</summary>
-        public trItemType ItemType { get; set; }
         /// <summary>Id if track item</summary>
         public uint TrItemId { get; set; }
         /// <summary>X-value of world tile</summary>
@@ -765,7 +729,6 @@ namespace Orts.Formats.Msts
         /// </summary>
         protected TrItem()
         {
-            ItemType = trItemType.trEMPTY;
         }
 
         /// <summary>
@@ -825,6 +788,7 @@ namespace Orts.Formats.Msts
 
     /// <summary>
     /// Describes a cross-over track item
+    /// <summary>A place where two tracks cross over each other</summary>
     /// </summary>
     public class CrossoverItem : TrItem
     {
@@ -839,7 +803,6 @@ namespace Orts.Formats.Msts
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         public CrossoverItem(STFReader stf, int idx)
         {
-            ItemType = trItemType.trCROSSOVER;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
@@ -906,7 +869,6 @@ namespace Orts.Formats.Msts
         public SignalItem(STFReader stf, int idx)
         {
             SigObj = -1;
-            ItemType = trItemType.trSIGNAL;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
@@ -1004,7 +966,6 @@ namespace Orts.Formats.Msts
         public SpeedPostItem(STFReader stf, int idx)
         {
             SigObj = -1;
-            ItemType = trItemType.trSPEEDPOST;
             stf.MustMatch("(");
 			stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
@@ -1078,7 +1039,6 @@ namespace Orts.Formats.Msts
         public TempSpeedPostItem(Tr_RouteFile routeFile, in WorldLocation location,  bool isStart, in WorldPosition worldPosition, bool isWarning)
         {
             // TrItemId needs to be set later
-            ItemType = trItemType.trSPEEDPOST;
             WorldPosition = worldPosition;
             CreateRPData(location);
 
@@ -1138,7 +1098,6 @@ namespace Orts.Formats.Msts
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         public SoundRegionItem(STFReader stf, int idx)
         {
-            ItemType = trItemType.trSOUNDREGION;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
@@ -1169,7 +1128,6 @@ namespace Orts.Formats.Msts
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         public EmptyItem(STFReader stf, int idx)
         {
-            ItemType = trItemType.trEMPTY;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
@@ -1189,7 +1147,6 @@ namespace Orts.Formats.Msts
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         public LevelCrItem(STFReader stf, int idx)
         {
-            ItemType = trItemType.trXING;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
@@ -1217,7 +1174,6 @@ namespace Orts.Formats.Msts
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         public SidingItem(STFReader stf, int idx)
         {
-            ItemType = trItemType.trSIDING;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
@@ -1260,7 +1216,6 @@ namespace Orts.Formats.Msts
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         public PlatformItem(STFReader stf, int idx)
         {
-            ItemType = trItemType.trPLATFORM;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
@@ -1309,7 +1264,6 @@ namespace Orts.Formats.Msts
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         public HazzardItem(STFReader stf, int idx)
         {
-            ItemType = trItemType.trHAZZARD;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
@@ -1333,7 +1287,6 @@ namespace Orts.Formats.Msts
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         public PickupItem(STFReader stf, int idx)
         {
-            ItemType = trItemType.trPICKUP;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),

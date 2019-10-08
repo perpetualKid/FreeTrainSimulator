@@ -495,4 +495,8 @@ namespace Orts.Formats.Msts
         [Description("mail")]               SpecialMail = 14  // New to OR
     }
     #endregion
+
+    #region TrackItem
+
+    #endregion
 }

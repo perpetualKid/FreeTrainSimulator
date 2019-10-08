@@ -68,7 +68,6 @@ namespace Orts.Formats.Msts.Models
         public RoadLevelCrossingItem(STFReader stf, int idx)
         {
             SignalObject = -1;
-            ItemType = trItemType.trXING;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
@@ -91,7 +90,6 @@ namespace Orts.Formats.Msts.Models
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
 		public RoadCarSpawner(STFReader stf, int idx)
         {
-            ItemType = trItemType.trCARSPAWNER;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
