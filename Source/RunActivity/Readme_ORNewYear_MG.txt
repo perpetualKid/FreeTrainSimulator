@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.33
-September 16th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.34
+October 10th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -12,9 +12,8 @@ INSTALLATION
 you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails unstable revision U2019.09.16-0636.
+This unofficial version has been derived from the official Open Rails unstable revision U2019.10.07-0751 (which includes Monogame).
 It includes some features not (yet) available in the Open Rails unstable official version, that is:
-- Monogame adaptations, based on Peter Gulyas' work, and then updated and completed by dennisat, perpetualKid and myself; already present as PR for the official OR version
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
 - checkbox in General Options tab to enable or disable watchdog
@@ -24,7 +23,8 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
 - addition of visual effects for rolling stock (by steamer_ctn), already present as PR for the official OR version
 - additional features for vacuum brakes (by steamer_ctn), already present as PR for the official OR version
-- turntables operating in timetable mode (by roeter), already present as PR for the official OR version.
+- turntables operating in timetable mode (by roeter), already present as PR for the official OR version
+- setting of activity options by activity creator (by steamer_ctn), already present as PR for the official OR version.
 
 
 
