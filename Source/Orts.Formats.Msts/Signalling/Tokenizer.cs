@@ -137,6 +137,8 @@ namespace Orts.Formats.Msts.Signalling
                                 case CommentParserState.OpenComment:
                                     state = CommentParserState.EndComment;
                                     continue;
+                                case CommentParserState.EndComment:
+                                    continue;
                                 case CommentParserState.Operator:
                                     if (value.Length == 1 && value.ToString() == "/")
                                     {
@@ -173,6 +175,9 @@ namespace Orts.Formats.Msts.Signalling
                             {
                                 case CommentParserState.OpenComment:
                                     continue;
+                                case CommentParserState.EndComment:
+                                    state = CommentParserState.OpenComment;
+                                    continue;
                                 default:
                                     if (value.Length > 0)
                                     {
@@ -199,6 +204,9 @@ namespace Orts.Formats.Msts.Signalling
                             {
                                 case CommentParserState.OpenComment:
                                     continue;
+                                case CommentParserState.EndComment:
+                                    state = CommentParserState.OpenComment;
+                                    continue;
                                 case CommentParserState.Operator:
                                     if (!OperatorTokenExtension.ValidateOperator(value.ToString(), c))
                                     {
@@ -222,6 +230,9 @@ namespace Orts.Formats.Msts.Signalling
                             {
                                 case CommentParserState.OpenComment:
                                     continue;
+                                case CommentParserState.EndComment:
+                                    state = CommentParserState.OpenComment;
+                                    continue;
                                 case CommentParserState.Operator:
                                     if (value.Length > 0)
                                     {
@@ -238,7 +249,9 @@ namespace Orts.Formats.Msts.Signalling
                             }
                     }
                 }
-                SkipLineComment:
+            SkipLineComment:
+                if (state == CommentParserState.EndComment)
+                    state = CommentParserState.OpenComment;
                 if (state != CommentParserState.OpenComment)
                 {
                     if (value.Length > 0)
