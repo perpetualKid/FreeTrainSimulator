@@ -1,4 +1,4 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.34
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.35
 October 10th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
@@ -24,7 +24,8 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - addition of visual effects for rolling stock (by steamer_ctn), already present as PR for the official OR version
 - additional features for vacuum brakes (by steamer_ctn), already present as PR for the official OR version
 - turntables operating in timetable mode (by roeter), already present as PR for the official OR version
-- setting of activity options by activity creator (by steamer_ctn), already present as PR for the official OR version.
+- setting of activity options by activity creator (by steamer_ctn), already present as PR for the official OR version
+- correction of a bug in signal script parser misinterpreting comment lines.
 
 
 
