@@ -250,7 +250,7 @@ namespace Orts.Simulation
             if (startTrackNode.TrVectorNode.TrVectorSections == null) throw new ArgumentException("Track node has no vector section data.", "startTrackNode");
             if (startTrackNode.TrVectorNode.TrVectorSections.Length == 0) throw new ArgumentException("Track node has no vector sections.", "startTrackNode");
             var tvs = startTrackNode.TrVectorNode.TrVectorSections[0];
-            if (!InitTrackNode(startTrackNodeIndex, tvs.TileX, tvs.TileZ, tvs.X, tvs.Z))
+            if (!InitTrackNode(startTrackNodeIndex, tvs.Location))
             {
                 if (TrackSections.MissingTrackSectionWarnings == 0)
                     throw new InvalidDataException(String.Format("Track node {0} could not be found in the track database.", startTrackNode.UiD));
@@ -268,23 +268,21 @@ namespace Orts.Simulation
         /// <param name="tSectionDat">Provides vector track sections.</param>
         /// <param name="trackNodes">Provides track nodes.</param>
         /// <param name="startTrackNode">Starting track node.</param>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, TrackNode startTrackNode, int tileX, int tileZ, float x, float z)
+        /// <param name="location">Starting coordinate.</param>
+        Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, TrackNode startTrackNode, in WorldLocation location)
             : this(tSectionDat, trackNodes)
         {
+            Debug.Assert(location.Location.Y == 0);
             if (startTrackNode == null) throw new ArgumentNullException("startTrackNode");
             var startTrackNodeIndex = Array.IndexOf(trackNodes, startTrackNode);
             if (startTrackNodeIndex == -1) throw new ArgumentException("Track node is not in track nodes array.", "startTrackNode");
-            if (!InitTrackNode(startTrackNodeIndex, tileX, tileZ, x, z))
+            if (!InitTrackNode(startTrackNodeIndex, location))
             {
                 if (startTrackNode.TrVectorNode == null) throw new ArgumentException("Track node is not a vector node.", "startTrackNode");
                 if (startTrackNode.TrVectorNode.TrVectorSections == null) throw new ArgumentException("Track node has no vector section data.", "startTrackNode");
                 if (startTrackNode.TrVectorNode.TrVectorSections.Length == 0) throw new ArgumentException("Track node has no vector sections.", "startTrackNode");
                 var tvs = startTrackNode.TrVectorNode.TrVectorSections[0];
-                if (!InitTrackNode(startTrackNodeIndex, tvs.TileX, tvs.TileZ, tvs.X, tvs.Z))
+                if (!InitTrackNode(startTrackNodeIndex, tvs.Location))
                 {
                     if (TrackSections.MissingTrackSectionWarnings == 0)
                         throw new InvalidDataException(String.Format("Track node {0} could not be found in the track database.", startTrackNode.UiD));
@@ -292,15 +290,14 @@ namespace Orts.Simulation
                     {
                         throw new MissingTrackNodeException();
                     }
-                    
+
                 }
 
                 // Figure out which end of the track node is closest and use that.
-                var target = new WorldLocation(tileX, tileZ, x, 0, z);
-                var startDistance = WorldLocation.GetDistance2D(WorldLocation, target).Length();
+                var startDistance = WorldLocation.GetDistance2D(WorldLocation, location).Length();
                 Direction = TravellerDirection.Backward;
                 NextTrackVectorSection(startTrackNode.TrVectorNode.TrVectorSections.Length - 1);
-                var endDistance = WorldLocation.GetDistance2D(WorldLocation, target).Length();
+                var endDistance = WorldLocation.GetDistance2D(WorldLocation, location).Length();
                 if (startDistance < endDistance)
                 {
                     Direction = TravellerDirection.Forward;
@@ -321,7 +318,7 @@ namespace Orts.Simulation
         /// <param name="z">Starting coordinate.</param>
         /// <param name="direction">Starting direction.</param>
         public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, TrackNode startTrackNode, int tileX, int tileZ, float x, float z, TravellerDirection direction)
-            : this(tSectionDat, trackNodes, startTrackNode, tileX, tileZ, x, z)
+            : this(tSectionDat, trackNodes, startTrackNode, new WorldLocation(tileX, tileZ, x, 0, z))
         {
             Direction = direction;
         }
@@ -392,14 +389,9 @@ namespace Orts.Simulation
         /// </summary>
         /// <param name="tni">The index of the trackNode for which we test the location</param>
         /// <returns>boolean describing whether the location is indeed on the given tracknode and initialization is done</returns>
-        bool InitTrackNode(int tni, int tileX, int tileZ, float wx, float wz)
+        private bool InitTrackNode(int tni, in WorldLocation location)
         {
-            //In contrast to an earlier implementaion there are no side-effects meaning a change in the traveller
-            //even though the initializatin did not succeed. In particular, 
-            //      tracksection, TrackVectorSectionIndex, trackVectorSection, tracknode, tracknodeindex
-            //will only be set on successfull initialization
-            WorldLocation loc = new WorldLocation(tileX, tileZ, wx, 0, wz);
-            TrackNodeCandidate candidate = TryTrackNode(tni, loc, TSectionDat, TrackNodes);
+            TrackNodeCandidate candidate = TryTrackNode(tni, location, TSectionDat, TrackNodes);
             if (candidate == null) return false;
 
             InitFromCandidate(candidate);

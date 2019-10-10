@@ -2468,8 +2468,7 @@ namespace Orts.Simulation.RollingStocks
                         {
 
                         // train is on a switch; let's see if car is on a switch too
-                        WorldLocation switchLocation = TileLocation(Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD);
-                        var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
+                        var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location);
                             if (distanceFromSwitch<CarLengthM* CarLengthM + Math.Min(SpeedMpS* 3, 150))
                             {
                                 isOverJunction = true;
@@ -2485,12 +2484,6 @@ namespace Orts.Simulation.RollingStocks
             }
 
             return isOverJunction;
-        }
-
-
-        public static WorldLocation TileLocation(UiD uid)
-        {
-            return new WorldLocation(uid.TileX, uid.TileZ, uid.X, uid.Y, uid.Z);
         }
 
         public virtual void SwitchToPlayerControl()

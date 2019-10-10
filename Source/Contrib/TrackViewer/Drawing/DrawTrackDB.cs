@@ -467,7 +467,7 @@ namespace ORTS.TrackViewer.Drawing
 
                 if (tn.TrVectorNode == null)
                 {   // so junction or endnode
-                    AddLocationToAvailableList(UidLocation(tn.UiD), availablePointNodeIndexes, tn);
+                    AddLocationToAvailableList(tn.UiD.Location, availablePointNodeIndexes, tn);
                 }
                 else if (tn.TrVectorNode.TrVectorSections != null)
                 {   // vector nodes
@@ -883,9 +883,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="colors">The colorscheme to use for drawing the activeNodeAsJunction</param>
         private void DrawJunctionNode(DrawArea drawArea, TrackNode tn, ColorScheme colors)
         {
-            WorldLocation thisLocation = UidLocation(tn.UiD);
-            ClosestJunctionOrEnd.CheckMouseDistance(thisLocation, drawArea.MouseLocation, tn, "junction");
-            drawArea.DrawTexture(thisLocation, "disc", 3f, 2, colors.Junction);
+            ClosestJunctionOrEnd.CheckMouseDistance(tn.UiD.Location, drawArea.MouseLocation, tn, "junction");
+            drawArea.DrawTexture(tn.UiD.Location, "disc", 3f, 2, colors.Junction);
         }
 
         /// <summary>
@@ -896,10 +895,9 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="colors">The colorscheme to use for drawing the activeNodeAsJunction</param>
         private void DrawEndNode(DrawArea drawArea, TrackNode tn, ColorScheme colors)
         {
-            WorldLocation thisLocation = UidLocation(tn.UiD);
-            ClosestJunctionOrEnd.CheckMouseDistance(thisLocation, drawArea.MouseLocation, tn, "endnode");
+            ClosestJunctionOrEnd.CheckMouseDistance(tn.UiD.Location, drawArea.MouseLocation, tn, "endnode");
             float angle = endnodeAngles[tn.Index];
-            drawArea.DrawLine(3f, colors.EndNode, thisLocation, 2f, angle, 0);
+            drawArea.DrawLine(3f, colors.EndNode, tn.UiD.Location, 2f, angle, 0);
         }
 
         /// <summary>
@@ -966,13 +964,13 @@ namespace ORTS.TrackViewer.Drawing
             if (tn.TrJunctionNode != null )
             {
                 searchJunctionOrEnd = new CloseToMouseJunctionOrEnd(tn, "junction");
-                return UidLocation(tn.UiD);
+                return tn.UiD.Location;
             }
 
             if (tn.TrEndNode )
             {
                 searchJunctionOrEnd = new CloseToMouseJunctionOrEnd(tn, "endnode");
-                return UidLocation(tn.UiD);
+                return tn.UiD.Location;
             }
 
 
@@ -1001,7 +999,7 @@ namespace ORTS.TrackViewer.Drawing
             if (tn.TrEndNode)
             {
                 searchJunctionOrEnd = new CloseToMouseJunctionOrEnd(tn, "endnode");
-                return UidLocation(tn.UiD);
+                return tn.UiD.Location;
             }
 
             //vector node
@@ -1129,16 +1127,6 @@ namespace ORTS.TrackViewer.Drawing
         }
 
         /// <summary>
-        /// Utility method to translate the various coordinates within an Uid into a worldLocation
-        /// </summary>
-        /// <param name="uid">The MSTS Universal Identifier</param>
-        /// <returns>The single-object worldLocation</returns>
-        public static WorldLocation UidLocation(UiD uid)
-        {
-            return new WorldLocation(uid.TileX, uid.TileZ, uid.X, uid.Y, uid.Z);
-        }
-
-        /// <summary>
         /// Returns length of a tracksection. 
         /// </summary>
         /// <remarks>Same method as in Traveller.cs, but that one is not public</remarks>
@@ -1169,18 +1157,18 @@ namespace ORTS.TrackViewer.Drawing
                 }
                 else
                 {
-                    return UidLocation(nodeAhead.UiD);
+                    return nodeAhead.UiD.Location;
                 }
             }
             else
             {
                 if (nodeAhead == null)
                 {
-                    return UidLocation(nodeBehind.UiD);
+                    return nodeBehind.UiD.Location;
                 }
                 else
                 {
-                    return MiddleLocation(UidLocation(nodeBehind.UiD), UidLocation(nodeAhead.UiD));
+                    return MiddleLocation(nodeBehind.UiD.Location, nodeAhead.UiD.Location);
                 }
             }
 

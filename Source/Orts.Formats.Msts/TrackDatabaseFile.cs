@@ -341,19 +341,12 @@ namespace Orts.Formats.Msts
     /// Contains the location and initial direction (as an angle in 3 dimensions) of a node (junction or end),
     /// as well as a cross reference to the entry in the world file
     /// </summary>
-    [DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldID}, TileX={TileX}, TileZ={TileZ}, X={X}, Y={Y}, Z={Z}, AX={AX}, AY={AY}, AZ={AZ}, WorldX={WorldTileX}, WorldZ={WorldTileZ}")]
+    [DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldID}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}, AX={AX}, AY={AY}, AZ={AZ}, WorldX={WorldTileX}, WorldZ={WorldTileZ}")]
     public class UiD
     {
-        /// <summary>X-value of the tile where the node is located</summary>
-        public int TileX { get; set; }
-        /// <summary>Z-value of the tile where the node is located</summary>
-        public int TileZ { get; set; }
-        /// <summary>X-value within the tile where the node is located</summary>
-        public float X { get; set; }
-        /// <summary>Y-value (height) within the tile where the node is located</summary>
-        public float Y { get; set; }
-        /// <summary>Z-value within the tile where the node is located</summary>
-        public float Z { get; set; }
+        private readonly WorldLocation location;
+        public ref readonly WorldLocation Location => ref location;
+
         /// <summary>Angle around X-axis for describing initial direction of the node</summary>
         public float AX { get; set; }
         /// <summary>Angle around Y-axis for describing initial direction of the node</summary>
@@ -379,11 +372,7 @@ namespace Orts.Formats.Msts
             WorldTileZ = stf.ReadInt(null);
             WorldId = stf.ReadInt(null);
             stf.ReadInt(null);
-            TileX = stf.ReadInt(null);
-            TileZ = stf.ReadInt(null);
-            X = stf.ReadFloat(STFReader.Units.None, null);
-            Y = stf.ReadFloat(STFReader.Units.None, null);
-            Z = stf.ReadFloat(STFReader.Units.None, null);
+            location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
             AX = stf.ReadFloat(STFReader.Units.None, null);
             AY = stf.ReadFloat(STFReader.Units.None, null);
             AZ = stf.ReadFloat(STFReader.Units.None, null);
@@ -399,11 +388,7 @@ namespace Orts.Formats.Msts
             WorldTileX = vectorSection.TileX;
             WorldTileZ = vectorSection.TileZ;
             WorldId = (int)vectorSection.SectionIndex;
-            TileX = vectorSection.TileX;
-            TileZ = vectorSection.TileZ;
-            X = vectorSection.X;
-            Y = vectorSection.Y;
-            Z = vectorSection.Z;
+            location = vectorSection.Location;
             AX = vectorSection.AX;
             AY = vectorSection.AY;
             AZ = vectorSection.AZ;
@@ -611,6 +596,7 @@ namespace Orts.Formats.Msts
     /// </summary>
     public class TrVectorSection
     {
+        public WorldLocation Location => new WorldLocation(TileX, TileZ, X, Y, Z);//TODO
         /// <summary>First flag. Not completely clear, usually 0, - may point to the connecting pin entry in a junction. Sometimes 2</summary>
         public int Flag1 { get; set; }
         /// <summary>Second flag. Not completely clear, usually 1, but set to 0 when curve track is flipped around. Sometimes 2</summary>

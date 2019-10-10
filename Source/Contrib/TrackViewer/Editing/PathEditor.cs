@@ -677,7 +677,7 @@ namespace ORTS.TrackViewer.Editing
                     TrainpathJunctionNode sidingNodeAsJunction = sidingNode as TrainpathJunctionNode;
                     if ((sidingNodeAsJunction != null) && !sidingNode.IsBroken)
                     {
-                        sidingNode.Location = DrawTrackDB.UidLocation(trackDB.TrackNodes[sidingNodeAsJunction.JunctionIndex].UiD);
+                        sidingNode.Location = trackDB.TrackNodes[sidingNodeAsJunction.JunctionIndex].UiD.Location;
                     }
                     sidingNode = sidingNode.NextSidingNode;
                 }
@@ -685,7 +685,7 @@ namespace ORTS.TrackViewer.Editing
                 TrainpathJunctionNode mainNodeAsJunction = mainNode as TrainpathJunctionNode;
                 if ((mainNodeAsJunction != null) && !mainNode.IsBroken)
                 {
-                    mainNode.Location = DrawTrackDB.UidLocation(trackDB.TrackNodes[mainNodeAsJunction.JunctionIndex].UiD);
+                    mainNode.Location = trackDB.TrackNodes[mainNodeAsJunction.JunctionIndex].UiD.Location;
                 }
                 mainNode = mainNode.NextMainNode;
             }

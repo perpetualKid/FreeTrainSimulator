@@ -105,9 +105,9 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>The index of the original item in whatever table it was defined</summary>
         public override uint Index { get { return JunctionOrEndNode.Index; } }
         /// <summary>The X-coordinate within a tile of the original item in the track database</summary>
-        public override float X { get { return JunctionOrEndNode.UiD.X; } }
+        public override float X { get { return JunctionOrEndNode.UiD.Location.Location.X; } }
         /// <summary>The Z-coordinate within a tile of the original item in the track database</summary>
-        public override float Z { get { return JunctionOrEndNode.UiD.Z; } }
+        public override float Z { get { return JunctionOrEndNode.UiD.Location.Location.Z; } }
 
         /// <summary>
         /// Reset the calculation of which item (junction) is closest to the mouse

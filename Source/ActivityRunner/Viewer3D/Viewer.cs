@@ -1101,7 +1101,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         if (Program.DebugViewer.switchPickedItem != null)
                         {
                             TrJunctionNode nextSwitchTrack = Program.DebugViewer.switchPickedItem.Item.TrJunctionNode;
-                            wos = new WorldLocation(nextSwitchTrack.TN.UiD.TileX, nextSwitchTrack.TN.UiD.TileZ, nextSwitchTrack.TN.UiD.X, nextSwitchTrack.TN.UiD.Y + 8, nextSwitchTrack.TN.UiD.Z);
+                            wos = nextSwitchTrack.TN.UiD.Location.ChangeElevation(8); 
                         }
                         else
                         {
@@ -1673,7 +1673,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (tn != null && tn.TrJunctionNode != null)
                 {
 
-                    Vector3 xnaCenter = Camera.XnaLocation(new WorldLocation(tn.UiD.TileX, tn.UiD.TileZ, tn.UiD.X, tn.UiD.Y, tn.UiD.Z));
+                    Vector3 xnaCenter = Camera.XnaLocation(tn.UiD.Location);
                     float d = xnaCenter.LineSegmentDistanceSquare(NearPoint, FarPoint);
 
                     if (bestD > d)

@@ -495,13 +495,13 @@ namespace Orts.Simulation.AIs
                 if (tn == null) continue;
                 if (wantJunctionNode && (tn.TrJunctionNode == null)) continue;
                 if (!wantJunctionNode && !tn.TrEndNode) continue;
-                if (tn.UiD.TileX != location.TileX || tn.UiD.TileZ != location.TileZ) continue;
+                if (tn.UiD.Location.TileX != location.TileX || tn.UiD.Location.TileZ != location.TileZ) continue;
 
-                float dx = tn.UiD.X - location.Location.X;
-                dx += (tn.UiD.TileX - location.TileX) * 2048;
-                float dz = tn.UiD.Z - location.Location.Z;
-                dz += (tn.UiD.TileZ - location.TileZ) * 2048;
-                float dy = tn.UiD.Y - location.Location.Y;
+                float dx = tn.UiD.Location.Location.X - location.Location.X;
+                dx += (tn.UiD.Location.TileX - location.TileX) * 2048;
+                float dz = tn.UiD.Location.Location.Z - location.Location.Z;
+                dz += (tn.UiD.Location.TileZ - location.TileZ) * 2048;
+                float dy = tn.UiD.Location.Location.Y - location.Location.Y;
                 float d = dx * dx + dy * dy + dz * dz;
                 if (bestDistance2 > d)
                 {

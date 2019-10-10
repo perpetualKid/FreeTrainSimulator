@@ -278,8 +278,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 							  //if (currNode.UiD == null)
 							  //{
-							  dVector A = new dVector(s.TileX, s.X, s.TileZ, + s.Z);
-							  dVector B = new dVector(connectedNode.UiD.TileX, connectedNode.UiD.X, connectedNode.UiD.TileZ, connectedNode.UiD.Z);
+							  DebugVector A = new DebugVector(s.TileX, s.X, s.TileZ, + s.Z);
+							  DebugVector B = new DebugVector(connectedNode.UiD.Location);
 								  segments.Add(new LineSegment(A, B, /*s.InterlockingTrack.IsOccupied*/ false, null));
 							  //}
 						  }
@@ -299,9 +299,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 							  else item = nodes[pin.Link].TrVectorNode.TrVectorSections.Last();
 						  }
 						  catch { continue; }
-						  dVector A = new dVector(currNode.UiD.TileX, currNode.UiD.X, currNode.UiD.TileZ, + currNode.UiD.Z);
-						  dVector B = new dVector(item.TileX, + item.X, item.TileZ, + item.Z);
-                          var x = dVector.DistanceSqr(A, B);
+						  DebugVector A = new DebugVector(currNode.UiD.Location);
+						  DebugVector B = new DebugVector(item.TileX, + item.X, item.TileZ, + item.Z);
+                          var x = DebugVector.DistanceSqr(A, B);
 						  if (x < 0.1) continue;
 						  segments.Add(new LineSegment(B, A, /*s.InterlockingTrack.IsOccupied*/ false, item));
 					  }
@@ -661,9 +661,14 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 			foreach (var line in segments)
             {
-
-                scaledA.X = (line.A.TileX * 2048 - subX + (float)line.A.X) * xScale; scaledA.Y = pictureBox1.Height - (line.A.TileZ * 2048 - subY + (float)line.A.Z) * yScale;
-                scaledB.X = (line.B.TileX * 2048 - subX + (float)line.B.X) * xScale; scaledB.Y = pictureBox1.Height - (line.B.TileZ * 2048 - subY + (float)line.B.Z) * yScale;
+                    scaledA = line.A.Scale(xScale, yScale, subX, subY);
+                    scaledA.Y = pictureBox1.Height - scaledA.Y;
+                    scaledB = line.B.Scale(xScale, yScale, subX, subY);
+                    scaledB.Y = pictureBox1.Height - scaledB.Y;
+                //scaledA.X = (line.A.TileX * 2048 - subX + (float)line.A.X) * xScale; 
+                //    scaledA.Y = pictureBox1.Height - (line.A.TileZ * 2048 - subY + (float)line.A.Z) * yScale;
+                //scaledB.X = (line.B.TileX * 2048 - subX + (float)line.B.X) * xScale; 
+                //    scaledB.Y = pictureBox1.Height - (line.B.TileZ * 2048 - subY + (float)line.B.Z) * yScale;
 
 
 				if ((scaledA.X < 0 && scaledB.X < 0) || (scaledA.X > IM_Width && scaledB.X > IM_Width) || (scaledA.Y > IM_Height && scaledB.Y > IM_Height) || (scaledA.Y < 0 && scaledB.Y < 0)) continue;
@@ -679,7 +684,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 			   if (line.isCurved == true)
 			   {
-				   scaledC.X = ((float)line.C.X - subX) * xScale; scaledC.Y = pictureBox1.Height - ((float)line.C.Z - subY) * yScale;
+                        scaledC.X = (line.C.Location.Location.X - subX) * xScale;
+                        scaledC.Y = pictureBox1.Height - (line.C.Location.Location.Z - subY) * yScale;
 				   points[0] = scaledA; points[1] = scaledC; points[2] = scaledB;
 				   g.DrawCurve(p, points);
 			   }
@@ -1253,11 +1259,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
          for (int i = 0; i < items.Length - 1; i++)
          {
-			 dVector A = new dVector(items[i].TileX , items[i].X, items[i].TileZ, items[i].Z);
-			 dVector B = new dVector(items[i + 1].TileX, items[i + 1].X, items[i + 1].TileZ, items[i + 1].Z);
+			 DebugVector A = new DebugVector(items[i].TileX , items[i].X, items[i].TileZ, items[i].Z);
+			 DebugVector B = new DebugVector(items[i + 1].TileX, items[i + 1].X, items[i + 1].TileZ, items[i + 1].Z);
 
-             tempX1 = A.TileX * 2048 + A.X; tempX2 = B.TileX * 2048 + B.X;
-             tempZ1 = A.TileZ * 2048 + A.Z; tempZ2 = B.TileZ * 2048 + B.Z; 
+                tempX1 = A.Location.TileX * 2048 + A.Location.Location.X; 
+                tempX2 = B.Location.TileX * 2048 + B.Location.Location.X;
+                tempZ1 = A.Location.TileZ * 2048 + A.Location.Location.Z; 
+                tempZ2 = B.Location.TileZ * 2048 + B.Location.Location.Z; 
              CalcBounds(ref maxX, tempX1, true);
             CalcBounds(ref maxY, tempZ1, true);
             CalcBounds(ref maxX, tempX2, true);
@@ -2148,7 +2156,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			   var node = Program.Simulator.TDB.TrackDB.TrackNodes[signal.trackNode];
 			   Vector2 v2;
 			   if (node.TrVectorNode != null) { var ts = node.TrVectorNode.TrVectorSections[0]; v2 = new Vector2(ts.TileX * 2048 + ts.X, ts.TileZ * 2048 + ts.Z); }
-			   else if (node.TrJunctionNode != null) { var ts = node.UiD; v2 = new Vector2(ts.TileX * 2048 + ts.X, ts.TileZ * 2048 + ts.Z); }
+			   else if (node.TrJunctionNode != null) { var ts = node.UiD; v2 = new Vector2(ts.Location.TileX * 2048 + ts.Location.Location.X, ts.Location.TileZ * 2048 + ts.Location.Location.Z); }
 			   else throw new Exception();
 			   var v1 = new Vector2(Location.X, Location.Y); var v3 = v1 - v2; v3.Normalize(); v2 = v1 - Vector2.Multiply(v3, signal.direction == 0 ? 12f : -12f);
 			   Dir.X = v2.X; Dir.Y = v2.Y;
@@ -2207,7 +2215,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		   }
 		   catch { mainEnd = null; }
 #endif
-		   Location.X = Item.UiD.TileX * 2048 + Item.UiD.X; Location.Y = Item.UiD.TileZ * 2048 + Item.UiD.Z;
+            Location.X = Item.UiD.Location.TileX * 2048 + Item.UiD.Location.Location.X; 
+            Location.Y = Item.UiD.Location.TileZ * 2048 + Item.UiD.Location.Location.Z;
 	   }
    }
 
@@ -2227,7 +2236,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	   {
 		   Item = item;
 
-		   Location.X = Item.UiD.TileX * 2048 + Item.UiD.X; Location.Y = Item.UiD.TileZ * 2048 + Item.UiD.Z;
+            Location.X = Item.UiD.Location.TileX * 2048 + Item.UiD.Location.Location.X; 
+            Location.Y = Item.UiD.Location.TileZ * 2048 + Item.UiD.Location.Location.Z;
 	   }
    }
    #endregion
@@ -2274,16 +2284,16 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
    /// </summary>
    public class LineSegment
    {
-	   public dVector A;
-	   public dVector B;
-	   public dVector C;
+	   public DebugVector A;
+	   public DebugVector B;
+	   public DebugVector C;
 	   //public float radius;
        public bool isCurved;
 
 	   public float angle1, angle2;
 	   //public SectionCurve curve = null;
        //public TrVectorSection MySection;
-	   public LineSegment(dVector A, dVector B, bool Occupied, TrVectorSection Section)
+	   public LineSegment(DebugVector A, DebugVector B, bool Occupied, TrVectorSection Section)
 	   {
 		   this.A = A;
 		   this.B = B;
@@ -2300,16 +2310,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				   float diff = (float) (ts.Radius * (1 - Math.Cos(ts.Angle * 3.14f / 360)));
 				   if (diff < 3) return; //not need to worry, curve too small
 				   //curve = ts.SectionCurve;
-				   Vector3 v = new Vector3((float)((B.TileX-A.TileX)*2048 + B.X - A.X), 0, (float)((B.TileZ - A.TileZ)*2048 + B.Z - A.Z));
+				   Vector3 v = new Vector3(((B.Location.TileX-A.Location.TileX)*2048 + B.Location.Location.X - A.Location.Location.X), 0, ((B.Location.TileZ - A.Location.TileZ)*2048 + B.Location.Location.Z - A.Location.Location.Z));
 				   isCurved = true;
 				   Vector3 v2 = Vector3.Cross(Vector3.Up, v); v2.Normalize();
-                   v = v / 2; v.X += A.TileX * 2048 + (float)A.X; v.Z += A.TileZ * 2048 + (float)A.Z;
+                   v = v / 2; v.X += A.Location.TileX * 2048 + A.Location.Location.X; 
+                    v.Z += A.Location.TileZ * 2048 + A.Location.Location.Z;
 				   if (ts.Angle > 0)
 				   {
 					   v = v2*-diff + v;
 				   }
 				   else v = v2*diff + v;
-				   C = new dVector(0, v.X, 0, v.Z);
+				   C = new DebugVector(0, v.X, 0, v.Z);
 			   }
 		   }
 
@@ -2346,15 +2357,35 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		   Location = new PointF(item.TileX * 2048 + item.X, item.TileZ * 2048 + item.Z);
 	   }
    }
-   #endregion
+    #endregion
 
-   public class dVector
-   {
-       public int TileX, TileZ;
-	   public double X, Z;
-       public dVector(int tilex1, double x1, int tilez1, double z1) { TileX = tilex1; TileZ = tilez1; X = x1; Z = z1; }
-       static public double DistanceSqr(dVector v1, dVector v2) { return Math.Pow((v1.TileX - v2.TileX)*2048 + v1.X - v2.X, 2)
-           + Math.Pow((v1.TileZ - v2.TileZ) * 2048 + v1.Z - v2.Z, 2);
-       }
-   }
+    public class DebugVector
+    {
+        private readonly WorldLocation location;
+        public ref readonly WorldLocation Location => ref location;
+
+        public DebugVector(int tileX, float x, int tileZ, float z) :
+            this(new WorldLocation(tileX, tileZ, x, 0, z))
+        { }        
+
+        public DebugVector(in WorldLocation location)
+        {
+            this.location = location;
+        }
+
+        static public double DistanceSqr(DebugVector v1, DebugVector v2)
+        {
+            return Math.Pow((v1.location.TileX - v2.location.TileX) * 2048 + v1.location.Location.X - v2.location.Location.X, 2)
+                + Math.Pow((v1.location.TileZ - v2.location.TileZ) * 2048 + v1.location.Location.Z - v2.location.Location.Z, 2);
+        }
+
+        public PointF Scale(float xScale, float yScale, float subX, float subY)
+        {
+            return new PointF()
+            {
+                X = (location.TileX * 2048 - subX + location.Location.X) * xScale,
+                Y = (location.TileZ * 2048 - subY + location.Location.Z) * yScale
+            };
+        }
+    }
 }
