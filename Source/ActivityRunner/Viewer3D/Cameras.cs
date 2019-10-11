@@ -2513,7 +2513,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     // shortTrav is used to state directions, to correctly identify in which direction (left or right) to move
                                     //the camera from center of track to the platform at its side
                                     Traveller shortTrav;
-                                    if (!(Viewer.Simulator.TDB.TrackDB.TrItemTable[thisPlatform.PlatformFrontUiD] is PlatformItem platformItem)) 
+                                    if (!(Viewer.Simulator.TDB.TrackDB.TrackItems[thisPlatform.PlatformFrontUiD] is PlatformItem platformItem)) 
                                         continue;
                                     shortTrav = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.TDB.TrackDB.TrackNodes, platformItem.TileX,
                                         platformItem.TileZ, platformItem.X, platformItem.Z, Traveller.TravellerDirection.Forward);

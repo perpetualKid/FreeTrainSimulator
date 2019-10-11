@@ -16,7 +16,7 @@ namespace Orts.Formats.Msts.Models
         /// <summary>
         /// Array of all Track Items (TrItem) in the road database
         /// </summary>
-        public TrItem[] TrItemTable { get; private set; }
+        public TrackItem[] TrItemTable { get; private set; }
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -38,7 +38,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("tritemtable", ()=>{
                     stf.MustMatch("(");
                     int count = stf.ReadInt(null);
-                    TrItemTable = new TrItem[count];
+                    TrItemTable = new TrackItem[count];
                     int idx = -1;
                     stf.ParseBlock(()=> ++idx == -1, new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("levelcritem", ()=>{ TrItemTable[idx] = new RoadLevelCrossingItem(stf,idx); }),
@@ -53,7 +53,7 @@ namespace Orts.Formats.Msts.Models
     /// <summary>
     /// Represents a Level crossing Item on the road (i.e. where cars must stop when a train is passing).
     /// </summary>
-    public class RoadLevelCrossingItem : TrItem
+    public class RoadLevelCrossingItem : TrackItem
     {
         /// <summary>Direction along track: 0 or 1 depending on which way signal is facing</summary>
         public uint Direction { get; private set; }
@@ -70,8 +70,8 @@ namespace Orts.Formats.Msts.Models
             SignalObject = -1;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
                 new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); })
             });
@@ -81,7 +81,7 @@ namespace Orts.Formats.Msts.Models
     /// <summary>
     /// Represent a Car Spawner: the place where cars start to appear or disappear again
     /// </summary>
-	public class RoadCarSpawner : TrItem
+	public class RoadCarSpawner : TrackItem
     {
         /// <summary>
         /// Default constructor used during file parsing.
@@ -92,8 +92,8 @@ namespace Orts.Formats.Msts.Models
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); })
             });
         }

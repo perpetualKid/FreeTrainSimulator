@@ -43,10 +43,10 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        protected DrawableTrackItem(TrItem originalTrItem)
+        protected DrawableTrackItem(TrackItem originalTrItem)
         {
             this.Index = originalTrItem.TrItemId;
-            this.WorldLocation = new WorldLocation(originalTrItem.TileX, originalTrItem.TileZ, originalTrItem.X, originalTrItem.Y, originalTrItem.Z);
+            this.WorldLocation = originalTrItem.Location;
             this.Description = "unknown";
         }
 
@@ -55,7 +55,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="originalTrItem">The original track item that needs to be represented while drawing</param>
         /// <returns>A drawable trackitem, with proper subclass</returns>
-        public static DrawableTrackItem CreateDrawableTrItem(TrItem originalTrItem)
+        public static DrawableTrackItem CreateDrawableTrItem(TrackItem originalTrItem)
         {
             if (originalTrItem is SignalItem)     { return new DrawableSignalItem(originalTrItem); }
             if (originalTrItem is PlatformItem)   { return new DrawablePlatformItem(originalTrItem); }
@@ -104,7 +104,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableSignalItem(TrItem originalTrItem)
+        public DrawableSignalItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             this.Description = "signal";
@@ -189,7 +189,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableLevelCrItem(TrItem originalTrItem)
+        public DrawableLevelCrItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "crossing";
@@ -223,7 +223,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableRoadLevelCrItem(TrItem originalTrItem)
+        public DrawableRoadLevelCrItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "crossing (road)";
@@ -259,7 +259,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableSidingItem(TrItem originalTrItem)
+        public DrawableSidingItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "siding";
@@ -304,7 +304,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawablePlatformItem(TrItem originalTrItem)
+        public DrawablePlatformItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "platform";
@@ -357,7 +357,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawablePickupItem(TrItem originalTrItem)
+        public DrawablePickupItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "pickup";
@@ -393,7 +393,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableHazardItem(TrItem originalTrItem)
+        public DrawableHazardItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "hazard";
@@ -429,7 +429,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableCarSpawnerItem(TrItem originalTrItem)
+        public DrawableCarSpawnerItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "carspawner";
@@ -465,7 +465,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableEmptyItem(TrItem originalTrItem)
+        public DrawableEmptyItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "empty";
@@ -495,7 +495,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableCrossoverItem(TrItem originalTrItem)
+        public DrawableCrossoverItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "crossover";
@@ -531,7 +531,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableSpeedPostItem(TrItem originalTrItem)
+        public DrawableSpeedPostItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "speedpost";
@@ -578,7 +578,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableSoundRegionItem(TrItem originalTrItem)
+        public DrawableSoundRegionItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "soundregion";

@@ -333,7 +333,7 @@ namespace ORTS.TrackViewer.UserInterface
             if (!Properties.Settings.Default.statusShowNames) return;
             if (!String.Equals(description, "platform")) return;
 
-            TrItem item = trackViewer.RouteData.TrackDB.TrItemTable[index];
+            TrackItem item = trackViewer.RouteData.TrackDB.TrackItems[index];
             PlatformItem platform = item as PlatformItem;
             if (platform == null) return;
             statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,

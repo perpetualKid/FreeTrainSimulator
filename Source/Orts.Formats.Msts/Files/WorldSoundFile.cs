@@ -27,7 +27,7 @@ namespace Orts.Formats.Msts.Files
     {
         public TrackItemSound TrackItemSound { get; private set; }
 
-        public WorldSoundFile(string fileName, TrItem[] trItems)
+        public WorldSoundFile(string fileName, TrackItem[] trItems)
         {
             if (File.Exists(fileName))
             {

@@ -357,7 +357,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         var trackObj = (TrackObject)worldObject;
                         // Switch tracks need a link to the simulator engine so they can animate the points.
-                        var trJunctionNode = trackObj.WorldLocation != WorldLocation.None ? viewer.Simulator.TDB.GetTrJunctionNode(TileX, TileZ, (int)trackObj.UiD) : null;
+                        var trJunctionNode = trackObj.WorldLocation != WorldLocation.None ? viewer.Simulator.TDB.TrackDB.GetTrJunctionNode(TileX, TileZ, (int)trackObj.UiD) : null;
                         // We might not have found the junction node; if so, fall back to the static track shape.
                         if (trJunctionNode != null)
                         {

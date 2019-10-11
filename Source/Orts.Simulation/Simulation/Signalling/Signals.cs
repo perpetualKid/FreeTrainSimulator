@@ -127,7 +127,7 @@ namespace Orts.Simulation.Signalling
 
             // build list of signals in TDB file
 
-            BuildSignalList(trackDB.TrItemTable, trackDB.TrackNodes, tsectiondat, tdbfile, platformList, MilepostList);
+            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, tdbfile, platformList, MilepostList);
 
             if (foundSignals > 0)
             {
@@ -142,7 +142,7 @@ namespace Orts.Simulation.Signalling
                 // check for any backfacing heads in signals
                 // if found, split signal
 
-                SplitBackfacing(trackDB.TrItemTable, trackDB.TrackNodes);
+                SplitBackfacing(trackDB.TrackItems, trackDB.TrackNodes);
             }
 
             if (SignalObjects != null)
@@ -151,13 +151,13 @@ namespace Orts.Simulation.Signalling
             //
             // Create trackcircuit database
             //
-            CreateTrackCircuits(trackDB.TrItemTable, trackDB.TrackNodes, tsectiondat);
+            CreateTrackCircuits(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat);
 
             //
             // Process platform information
             //
 
-            ProcessPlatforms(platformList, trackDB.TrItemTable, trackDB.TrackNodes, PlatformSidesList);
+            ProcessPlatforms(platformList, trackDB.TrackItems, trackDB.TrackNodes, PlatformSidesList);
 
             //
             // Process tunnel information
@@ -497,12 +497,12 @@ namespace Orts.Simulation.Signalling
                         uint? BadSignal = null;
                         foreach (var si in signalObject.SignalUnits)
                         {
-                            if (this.trackDB.TrItemTable == null || si.TrackItem >= this.trackDB.TrItemTable.Count())
+                            if (this.trackDB.TrackItems == null || si.TrackItem >= this.trackDB.TrackItems.Count())
                             {
                                 BadSignal = si.TrackItem;
                                 break;
                             }
-                            var item = this.trackDB.TrItemTable[si.TrackItem];
+                            var item = this.trackDB.TrackItems[si.TrackItem];
                             if (Math.Abs(item.TileX - worldObject.WorldPosition.TileX) > 1 || Math.Abs(item.TileZ - worldObject.WorldPosition.TileZ) > 1)
                             {
                                 BadSignal = si.TrackItem;
@@ -605,7 +605,7 @@ namespace Orts.Simulation.Signalling
         /// Build signal list from TDB
         /// </summary>
 
-        private void BuildSignalList(TrItem[] TrItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat,
+        private void BuildSignalList(TrackItem[] TrItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat,
                 TrackDatabaseFile tdbfile, Dictionary<int, int> platformList, List<Milepost> milepostList)
         {
 
@@ -614,7 +614,7 @@ namespace Orts.Simulation.Signalling
             noSignals = 0;
             if (TrItems == null)
                 return;                // No track Objects in route.
-            foreach (TrItem trItem in TrItems)
+            foreach (TrackItem trItem in TrItems)
             {
                 if (trItem != null)
                 {
@@ -719,7 +719,7 @@ namespace Orts.Simulation.Signalling
         /// Split backfacing signals
         /// </summary>
 
-        private void SplitBackfacing(TrItem[] TrItems, TrackNode[] TrackNodes)
+        private void SplitBackfacing(TrackItem[] TrItems, TrackNode[] TrackNodes)
         {
 
             List<Signal> newSignals = new List<Signal>();
@@ -931,7 +931,7 @@ namespace Orts.Simulation.Signalling
         /// ScanSection : This method checks a section in the TDB for signals or speedposts
         /// </summary>
 
-        private void ScanSection(TrItem[] TrItems, TrackNode[] trackNodes, int index,
+        private void ScanSection(TrackItem[] TrItems, TrackNode[] trackNodes, int index,
                                TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile, Dictionary<int, int> platformList, List <Milepost> milepostList)
         {
             int lastSignal = -1;                // Index to last signal found in path; -1 if none
@@ -1609,7 +1609,7 @@ namespace Orts.Simulation.Signalling
         /// Create Track Circuits
         /// <summary>
 
-        private void CreateTrackCircuits(TrItem[] TrItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat)
+        private void CreateTrackCircuits(TrackItem[] TrItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat)
         {
 
             //
@@ -1966,7 +1966,7 @@ namespace Orts.Simulation.Signalling
         /// ProcessNodes
         /// </summary>
 
-        public void ProcessNodes(int iNode, TrItem[] TrItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat)
+        public void ProcessNodes(int iNode, TrackItem[] TrItems, TrackNode[] trackNodes, TrackSectionsFile tsectiondat)
         {
 
             //
@@ -2008,7 +2008,7 @@ namespace Orts.Simulation.Signalling
         /// InsertNode
         /// </summary>
 
-        public float[] InsertNode(TrackCircuitSection thisCircuit, TrItem thisItem,
+        public float[] InsertNode(TrackCircuitSection thisCircuit, TrackItem thisItem,
                         Traveller TDBTrav, TrackNode[] trackNodes, float[] lastDistance)
         {
 
@@ -2136,7 +2136,7 @@ namespace Orts.Simulation.Signalling
                     else if (speedItem.IsMilePost)
                     {
                         Milepost thisMilepost = MilepostList[speedItem.SigObj];
-                        TrItem milepostTrItem = Simulator.TDB.TrackDB.TrItemTable[thisMilepost.TrItemId];
+                        TrackItem milepostTrItem = Simulator.TDB.TrackDB.TrackItems[thisMilepost.TrItemId];
                         float milepostDistance = TDBTrav.DistanceTo(milepostTrItem.TileX, milepostTrItem.TileZ, milepostTrItem.X, milepostTrItem.Y, milepostTrItem.Z);
 
                         TrackCircuitMilepost thisTCItem =
@@ -4091,7 +4091,7 @@ namespace Orts.Simulation.Signalling
         /// Process Platforms
         /// </summary>
 
-        private void ProcessPlatforms(Dictionary<int, int> platformList, TrItem[] TrItems,
+        private void ProcessPlatforms(Dictionary<int, int> platformList, TrackItem[] TrItems,
                 TrackNode[] trackNodes, Dictionary<int, uint> platformSidesList)
         {
             foreach (KeyValuePair<int, int> thisPlatformIndex in platformList)
@@ -4413,7 +4413,7 @@ namespace Orts.Simulation.Signalling
 
         public void ResolveSplitPlatform(ref PlatformDetails thisDetails, int secondSectionIndex,
                 PlatformItem secondPlatform, TrackNode secondNode,
-                    TrItem[] TrItems, TrackNode[] trackNodes)
+                    TrackItem[] TrItems, TrackNode[] trackNodes)
         {
             // get all positions related to tile of first platform item
 
@@ -8193,7 +8193,7 @@ namespace Orts.Simulation.Signalling
         public Signals signalRef;               // reference to overlaying Signal class
         public static Signal[] signalObjects;
         public static TrackNode[] trackNodes;
-        public static TrItem[] trItems;
+        public static TrackItem[] trItems;
         public SignalWorldObject WorldObject;   // Signal World Object information
 
         public int trackNode;                   // Track node which contains this signal
@@ -12589,7 +12589,7 @@ namespace Orts.Simulation.Signalling
         /// Set the signal type object from the CIGCFG file
         /// </summary>
 
-        public void SetSignalType(TrItem[] TrItems, SignalConfigurationFile sigCFG)
+        public void SetSignalType(TrackItem[] TrItems, SignalConfigurationFile sigCFG)
         {
             SignalItem sigItem = (SignalItem)TrItems[TDBIndex];
 

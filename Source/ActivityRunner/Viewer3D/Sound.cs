@@ -2282,8 +2282,8 @@ namespace Orts.ActivityRunner.Viewer3D
                                     from i in wsr.TrackNodes
                                     select i).Distinct().ToList();
 
-            TrItem prev = tdbObjs.FindPrevItem<SoundRegionItem>(out prevDist, validitems);
-            TrItem next = tdbObjs.FindNextItem<SoundRegionItem>(out nextDist, validitems);
+            TrackItem prev = tdbObjs.FindPrevItem<SoundRegionItem>(out prevDist, validitems);
+            TrackItem next = tdbObjs.FindNextItem<SoundRegionItem>(out nextDist, validitems);
 
             if (prev != null)
             {
@@ -2334,7 +2334,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             Orts.Formats.Msts.TrackDB trackDB = Viewer.Simulator.TDB.TrackDB;
-            Orts.Formats.Msts.TrItem[] trItems = trackDB.TrItemTable;
+            Orts.Formats.Msts.TrackItem[] trItems = trackDB.TrackItems;
 
             WorldSoundRegion prevItem = null;
             WorldSoundRegion nextItem = null;
@@ -2459,7 +2459,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void AddByTile(int TileX, int TileZ)
         {
             string name = Viewer.Simulator.RoutePath + @"\WORLD\" + WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s";
-            WorldSoundFile wf = new WorldSoundFile(name, Viewer.Simulator.TDB.TrackDB.TrItemTable);
+            WorldSoundFile wf = new WorldSoundFile(name, Viewer.Simulator.TDB.TrackDB.TrackItems);
             if (wf.TrackItemSound != null)
             {
                 string[] pathArray = { Path.Combine(Viewer.Simulator.RoutePath, "SOUND"), Path.Combine(Viewer.Simulator.BasePath, "SOUND") };
@@ -2506,13 +2506,13 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         private MSTSWagon _car;
         TrackNode[] trackNodes;
-        TrItem[] trItems;
+        TrackItem[] trItems;
 
         public TDBObjects(MSTSWagon Car, Viewer Viewer)
         {
             _car = Car;
             trackNodes = Viewer.Simulator.TDB.TrackDB.TrackNodes;
-            trItems = Viewer.Simulator.TDB.TrackDB.TrItemTable;
+            trItems = Viewer.Simulator.TDB.TrackDB.TrackItems;
         }
 
         private AIPathNode FindNode()
@@ -2547,36 +2547,36 @@ namespace Orts.ActivityRunner.Viewer3D
                 return node.NextMainTVNIndex;
         }
 
-        public TrItem FindNextItem<T>(out float distance)
-            where T : TrItem
+        public TrackItem FindNextItem<T>(out float distance)
+            where T : TrackItem
         {
             Traveller traveller = _car.Train.FrontTDBTraveller;
             return FindItem<T>(traveller, GetNextNode, out distance, null);
         }
 
-        public TrItem FindNextItem<T>(out float distance, List<int> validitems)
-            where T : TrItem
+        public TrackItem FindNextItem<T>(out float distance, List<int> validitems)
+            where T : TrackItem
         {
             Traveller traveller = _car.Train.FrontTDBTraveller;
             return FindItem<T>(traveller, GetNextNode, out distance, validitems);
         }
 
-        public TrItem FindPrevItem<T>(out float distance)
-            where T : TrItem
+        public TrackItem FindPrevItem<T>(out float distance)
+            where T : TrackItem
         {
             Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
             return FindItem<T>(traveller, GetPrevNode, out distance, null);
         }
 
-        public TrItem FindPrevItem<T>(out float distance, List<int> validitems)
-            where T : TrItem
+        public TrackItem FindPrevItem<T>(out float distance, List<int> validitems)
+            where T : TrackItem
         {
             Traveller traveller = new Traveller(_car.Train.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
             return FindItem<T>(traveller, GetPrevNode, out distance, validitems);
         }
 
-        private TrItem FindItem<T>(Traveller traveller, Func<AIPathNode, AIPathNode> move, out float distance, List<int> validitems)
-            where T : TrItem
+        private TrackItem FindItem<T>(Traveller traveller, Func<AIPathNode, AIPathNode> move, out float distance, List<int> validitems)
+            where T : TrackItem
         {
             T Item = null;
             int currentNode;

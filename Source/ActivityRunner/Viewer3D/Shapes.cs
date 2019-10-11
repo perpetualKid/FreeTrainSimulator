@@ -222,7 +222,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var trID = trObj.TrackItemIds.TrackDbItems[i];
                 if (trID < 0)
                     break;
-                var trItem = viewer.Simulator.TDB.TrackDB.TrItemTable[trID];
+                var trItem = viewer.Simulator.TDB.TrackDB.TrackItems[trID];
                 if (trItem == null)
                     continue;
                 ItemName = trItem.ItemName;

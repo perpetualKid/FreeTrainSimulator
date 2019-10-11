@@ -252,8 +252,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 int id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
 //                SpeedPostItem item;
                 string speed = string.Empty;
-                    if (!(viewer.Simulator.TDB.TrackDB.TrItemTable[id] is SpeedPostItem item))
-                        throw new InvalidCastException(viewer.Simulator.TDB.TrackDB.TrItemTable[id].ItemName);  // Error to be handled in Scenery.cs
+                    if (!(viewer.Simulator.TDB.TrackDB.TrackItems[id] is SpeedPostItem item))
+                        throw new InvalidCastException(viewer.Simulator.TDB.TrackDB.TrackItems[id].ItemName);  // Error to be handled in Scenery.cs
 
                 //determine what to show: speed or number used in German routes
                 if (item.ShowNumber)

@@ -890,7 +890,7 @@ namespace Orts.MultiPlayer
                     MPManager.BroadCast((new MSGMessage(user, "SwitchWarning", "Server does not allow hand thrown of switch")).ToString());
                     return;
                 }
-                TrJunctionNode trj = MPManager.Simulator.TDB.GetTrJunctionNode(TileX, TileZ, WorldID);
+                TrJunctionNode trj = MPManager.Simulator.TDB.TrackDB.GetTrJunctionNode(TileX, TileZ, WorldID);
                 bool state = MPManager.Simulator.Signals.RequestSetSwitch(trj.TN, this.Selection);
                 if (state == false)
                     MPManager.BroadCast((new MSGMessage(user, "Warning", "Train on the switch, cannot throw")).ToString());
@@ -898,7 +898,7 @@ namespace Orts.MultiPlayer
             }
             else
             {
-                TrJunctionNode trj = MPManager.Simulator.TDB.GetTrJunctionNode(TileX, TileZ, WorldID);
+                TrJunctionNode trj = MPManager.Simulator.TDB.TrackDB.GetTrJunctionNode(TileX, TileZ, WorldID);
                 SetSwitch(trj.TN, Selection);
                 //trj.SelectedRoute = Selection; //although the new signal system request Signals.RequestSetSwitch, client may just change
                 if (user == MPManager.GetUserName() && HandThrown == true)//got the message with my name, will confirm with the player

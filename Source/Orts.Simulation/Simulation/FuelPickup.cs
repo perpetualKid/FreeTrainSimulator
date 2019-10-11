@@ -33,10 +33,10 @@ namespace Orts.Simulation
         public FuelManager(Simulator simulator)
         {
             Simulator = simulator;
-            FuelPickupItems = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetFuelPickupItemsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrItemTable) : new Dictionary<int, FuelPickupItem>();
+            FuelPickupItems = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetFuelPickupItemsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackItems) : new Dictionary<int, FuelPickupItem>();
         }
 
-        static Dictionary<int, FuelPickupItem> GetFuelPickupItemsFromDB(TrackNode[] trackNodes, TrItem[] trItemTable)
+        static Dictionary<int, FuelPickupItem> GetFuelPickupItemsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
         {
             return (from trackNode in trackNodes
                     where trackNode != null && trackNode.TrVectorNode != null && trackNode.TrVectorNode.NoItemRefs > 0
@@ -60,10 +60,10 @@ namespace Orts.Simulation
         internal WorldLocation Location;
         readonly TrackNode TrackNode;
 
-        public FuelPickupItem(TrackNode trackNode, TrItem trItem)
+        public FuelPickupItem(TrackNode trackNode, TrackItem trItem)
         {
             TrackNode = trackNode;
-            Location = new WorldLocation(trItem.TileX, trItem.TileZ, trItem.X, trItem.Y, trItem.Z);
+            Location = trItem.Location;
         }
 
         public FuelPickupItem(IEnumerable<FuelPickupItem> items) { }

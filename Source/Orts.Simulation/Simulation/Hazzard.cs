@@ -41,10 +41,10 @@ namespace Orts.Simulation
 			InterestedHazzards = new List<int>();
 			CurrentHazzards = new Dictionary<int, Hazzard>();
 			HazFiles = new Dictionary<string, HazardFile>();
-			Hazzards = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetHazardsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrItemTable) : new Dictionary<int, Hazzard>();
+			Hazzards = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetHazardsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackItems) : new Dictionary<int, Hazzard>();
 		}
 
-		static Dictionary<int, Hazzard> GetHazardsFromDB(TrackNode[] trackNodes, TrItem[] trItemTable)
+		static Dictionary<int, Hazzard> GetHazardsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
 		{
 			return (from trackNode in trackNodes
 					where trackNode != null && trackNode.TrVectorNode != null && trackNode.TrVectorNode.NoItemRefs > 0
@@ -137,10 +137,10 @@ namespace Orts.Simulation
 		public State state;
 		public bool animal = true;
 
-		public Hazzard(TrackNode trackNode, TrItem trItem)
+		public Hazzard(TrackNode trackNode, TrackItem trItem)
         {
             TrackNode = trackNode;
-            Location = new WorldLocation(trItem.TileX, trItem.TileZ, trItem.X, trItem.Y, trItem.Z);
+            Location = trItem.Location;
 			state = State.Idle1;
         }
 

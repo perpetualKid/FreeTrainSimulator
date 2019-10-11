@@ -36,45 +36,20 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Contains the Database with all the  tracks.
         /// </summary>
-        public TrackDB TrackDB { get; set; }
+        public TrackDB TrackDB { get; private set; }
 
         /// <summary>
         /// Constructor from file
         /// </summary>
         /// <param name="filenamewithpath">Full file name of the .rdb file</param>
-        public TrackDatabaseFile(string filenamewithpath)
-        {        
-            using (STFReader stf = new STFReader(filenamewithpath, false))
+        public TrackDatabaseFile(string fileName)
+        {
+            using (STFReader stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("trackdb", ()=>{ TrackDB = new TrackDB(stf); }),
                 });
         }
 
-        /// <summary>
-        /// Provide a link to the TrJunctionNode for the switch track with 
-        /// the specified UiD on the specified tile.
-        /// 
-        /// Called by switch track shapes to determine the correct position of the points.
-        /// </summary>
-        /// <param name="tileX">X-value of the current Tile</param>
-        /// <param name="tileZ">Z-value of the current Tile</param>
-        /// <param name="worldId">world ID as defined in world file</param>
-        /// <returns>The TrJunctionNode corresponding the the tile and worldID, null if not found</returns>
-        public TrJunctionNode GetTrJunctionNode(int tileX, int tileZ, int worldId)
-        {
-            foreach (TrackNode tn in TrackDB.TrackNodes)
-            {
-                if (tn != null && tn.TrJunctionNode != null)
-                {
-                    if (tileX == tn.UiD.WorldTileX && tileZ == tn.UiD.WorldTileZ && worldId == tn.UiD.WorldId)
-                    {
-                        return tn.TrJunctionNode;
-                    }
-                }
-            }
-            Trace.TraceWarning("{{TileX:{0} TileZ:{1}}} track node {2} could not be found in TDB", tileX, tileZ, worldId);
-            return null;
-        }
     }
 
     /// <summary>
@@ -82,16 +57,18 @@ namespace Orts.Formats.Msts
     /// </summary>
     public class TrackDB
     {
+        private readonly Dictionary<string, TrackNode> sortedNodes = new Dictionary<string, TrackNode>();
+
         /// <summary>
         /// Array of all TrackNodes in the track database
         /// Warning, the first TrackNode is always null.
         /// </summary>
-        public TrackNode[] TrackNodes;
-
+        public TrackNode[] TrackNodes { get; private set; }
+        
         /// <summary>
-        /// Array of all Track Items (TrItem) in the road database
+        /// Array of all Track Items (TrItem) in the track database
         /// </summary>
-        public TrItem[] TrItemTable;
+        public TrackItem[] TrackItems { get; private set; }
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -107,80 +84,79 @@ namespace Orts.Formats.Msts
                     TrackNodes = new TrackNode[numberOfTrackNodes + 1];
                     int idx = 1;
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("tracknode", ()=>{ TrackNodes[idx] = new TrackNode(stf, idx, numberOfTrackNodes); ++idx; }),
+                        new STFReader.TokenProcessor("tracknode", ()=>{ 
+                            TrackNodes[idx] = new TrackNode(stf, idx, numberOfTrackNodes); 
+                            if (TrackNodes[idx].UiD != null && TrackNodes[idx].TrJunctionNode != null)
+                                sortedNodes.Add($"{TrackNodes[idx].UiD.WorldId}-{TrackNodes[idx].UiD.Location.TileX}-{TrackNodes[idx].UiD.Location.TileZ}", TrackNodes[idx]);
+                            ++idx;
+                        }),
                     });
                 }),
                 new STFReader.TokenProcessor("tritemtable", ()=>{
                     stf.MustMatch("(");
                     int numberOfTrItems = stf.ReadInt(null);
-                    TrItemTable = new TrItem[numberOfTrItems];
+                    TrackItems = new TrackItem[numberOfTrItems];
                     int idx = -1;
                     stf.ParseBlock(()=> ++idx == -1, new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("crossoveritem", ()=>{ TrItemTable[idx] = new CrossoverItem(stf,idx); }),
-                        new STFReader.TokenProcessor("signalitem", ()=>{ TrItemTable[idx] = new SignalItem(stf,idx); }),
-                        new STFReader.TokenProcessor("speedpostitem", ()=>{ TrItemTable[idx] = new SpeedPostItem(stf,idx); }),
-                        new STFReader.TokenProcessor("platformitem", ()=>{ TrItemTable[idx] = new PlatformItem(stf,idx); }),
-                        new STFReader.TokenProcessor("soundregionitem", ()=>{ TrItemTable[idx] = new SoundRegionItem(stf,idx); }),
-                        new STFReader.TokenProcessor("emptyitem", ()=>{ TrItemTable[idx] = new EmptyItem(stf,idx); }),
-                        new STFReader.TokenProcessor("levelcritem", ()=>{ TrItemTable[idx] = new LevelCrItem(stf,idx); }),
-                        new STFReader.TokenProcessor("sidingitem", ()=>{ TrItemTable[idx] = new SidingItem(stf,idx); }),
-                        new STFReader.TokenProcessor("hazzarditem", ()=>{ TrItemTable[idx] = new HazzardItem(stf,idx); }),
-                        new STFReader.TokenProcessor("pickupitem", ()=>{ TrItemTable[idx] = new PickupItem(stf,idx); }),
+                        new STFReader.TokenProcessor("crossoveritem", ()=>{ TrackItems[idx] = new CrossoverItem(stf,idx); }),
+                        new STFReader.TokenProcessor("signalitem", ()=>{ TrackItems[idx] = new SignalItem(stf,idx); }),
+                        new STFReader.TokenProcessor("speedpostitem", ()=>{ TrackItems[idx] = new SpeedPostItem(stf,idx); }),
+                        new STFReader.TokenProcessor("platformitem", ()=>{ TrackItems[idx] = new PlatformItem(stf,idx); }),
+                        new STFReader.TokenProcessor("soundregionitem", ()=>{ TrackItems[idx] = new SoundRegionItem(stf,idx); }),
+                        new STFReader.TokenProcessor("emptyitem", ()=>{ TrackItems[idx] = new EmptyItem(stf,idx); }),
+                        new STFReader.TokenProcessor("levelcritem", ()=>{ TrackItems[idx] = new LevelCrItem(stf,idx); }),
+                        new STFReader.TokenProcessor("sidingitem", ()=>{ TrackItems[idx] = new SidingItem(stf,idx); }),
+                        new STFReader.TokenProcessor("hazzarditem", ()=>{ TrackItems[idx] = new HazzardItem(stf,idx); }),
+                        new STFReader.TokenProcessor("pickupitem", ()=>{ TrackItems[idx] = new PickupItem(stf,idx); }),
                     });
                 }),
             });
         }
         
         /// <summary>
-        /// Find the index of the TrackNode
-        /// </summary>
-        /// <param name="targetTN">TrackNode for which you want the index</param>
-        /// <returns>The index of the targetTN</returns>
-        public int TrackNodesIndexOf(TrackNode targetTN)
-        {
-            for (int i = 0; i < TrackNodes.Length; ++i)
-            {
-                if (TrackNodes[i] == targetTN)
-                {
-                    //todo. This is only temporary. If we do not find an issue here soon, this whole method can be
-                    //removed. Instead of a call to this method, we can simply used targetTN.Index instead.
-                    if (i != targetTN.Index)
-                    {
-                        throw new InvalidOperationException("Program Bug: Index mismatch in track database");
-                    }
-                    return i;
-                }
-            }
-            throw new InvalidOperationException("Program Bug: Can't Find Track Node");
-        }
-
-        /// <summary>
         /// Add a number of TrItems (Track Items), created outside of the file, to the table of TrItems.
         /// This will also set the ID of the TrItems (since that gives the index in that array)
         /// </summary>
-        /// <param name="newTrItems">The array of new items.</param>
-        public void AddTrItems(TrItem[] newTrItems)
+        /// <param name="trackItems">The array of new items.</param>
+        public void AddTrackItems(TrackItem[] trackItems)
         {
-            TrItem[] newTrItemTable;
+            TrackItem[] tempTrackItems;
 
-            if (TrItemTable == null)
+            if (TrackItems == null)
             {
-                newTrItemTable = new TrItem[newTrItems.Length];
+                tempTrackItems = new TrackItem[trackItems.Length];
             }
             else
             {
-                newTrItemTable = new TrItem[TrItemTable.Length + newTrItems.Length];
-                TrItemTable.CopyTo(newTrItemTable, 0);
+                tempTrackItems = new TrackItem[TrackItems.Length + trackItems.Length];
+                TrackItems.CopyTo(tempTrackItems, 0);
             }
 
-            for (int i = 0; i < newTrItems.Length; i++)
+            for (int i = 0; i < trackItems.Length; i++)
             {
-                int newId = i + TrItemTable.Length;
-                newTrItems[i].TrItemId = (uint) newId;
-                newTrItemTable[newId] = newTrItems[i];
+                int newId = i + TrackItems.Length;
+                trackItems[i].TrItemId = (uint)newId;
+                tempTrackItems[newId] = trackItems[i];
             }
 
-            TrItemTable = newTrItemTable;
+            TrackItems = tempTrackItems;
+        }
+
+        /// <summary>
+        /// Provide a link to the TrJunctionNode for the switch track with 
+        /// the specified UiD on the specified tile.
+        /// 
+        /// Called by switch track shapes to determine the correct position of the points.
+        /// </summary>
+        /// <param name="tileX">X-value of the current Tile</param>
+        /// <param name="tileZ">Z-value of the current Tile</param>
+        /// <param name="worldId">world ID as defined in world file</param>
+        /// <returns>The TrJunctionNode corresponding the the tile and worldID, null if not found</returns>
+        public TrJunctionNode GetTrJunctionNode(int tileX, int tileZ, int worldId)
+        {
+            if (!sortedNodes.TryGetValue($"{worldId}-{tileX}-{tileZ}", out TrackNode result))
+                Trace.TraceWarning("{{TileX:{0} TileZ:{1}}} track node {2} could not be found in TDB", tileX, tileZ, worldId);
+            return result?.TrJunctionNode;
         }
     }
 
@@ -194,49 +170,49 @@ namespace Orts.Formats.Msts
         /// If this is a junction, this contains a link to a TrJunctionNode that contains the details about the junction.
         /// null otherwise.
         /// </summary>
-        public TrJunctionNode TrJunctionNode { get; set; }
+        public TrJunctionNode TrJunctionNode { get; private set; }
 
         /// <summary>
         /// If this is a vector nodes, this contains a link to a TrVectorNode that contains the details about the vector
         /// null otherwise.
         /// </summary>
-        public TrVectorNode TrVectorNode { get; set; }
+        public TrVectorNode TrVectorNode { get; private set; }
         
         /// <summary>
         /// True when this TrackNode has nothing else connected to it (that is, it is
         /// a buffer end or an unfinished track) and trains cannot proceed beyond here.
         /// </summary>
-        public bool TrEndNode { get; set; }
+        public bool TrEndNode { get; private set; }
 
         /// <summary>'Universal Id', containing location information. Only provided for TrJunctionNode and TrEndNode type of TrackNodes</summary>
-        public UiD UiD { get; set; }
+        public UiD UiD { get; private set; }
         /// <summary>The array containing the TrPins (Track pins), which are connections to other tracknodes</summary>
         public TrPin[] TrPins;
         /// <summary>Number of outgoing pins (connections to other tracknodes)</summary>
-        public uint Inpins { get; set; }
+        public uint Inpins { get; private set; }
         /// <summary>Number of outgoing pins (connections to other tracknodes)</summary>
-        public uint Outpins { get; set; }
+        public uint Outpins { get; private set; }
 
         /// <summary>The index in the array of tracknodes.</summary>
-        public uint Index { get; set; }
+        public uint Index { get; private set; }
 
         /// <summary>??? (needed for ActivityEditor, but not used here, so why is it defined here?)</summary>
-        public bool Reduced { get; set; }
+        public bool Reduced { get; private set; }
 
         /// <summary>
         /// Default constructor used during file parsing.
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
-        /// <param name="idx">The index of this node in the list of TrackNodes</param>
+        /// <param name="index">The index of this node in the list of TrackNodes</param>
         /// <param name="numberOfTrackNodes">The number of Tracknodes that we should have, to make sure we do not overstep bounds</param>
-        public TrackNode(STFReader stf, int idx, int numberOfTrackNodes)
+        public TrackNode(STFReader stf, int index, int numberOfTrackNodes)
         {
             stf.MustMatch("(");
             Index = stf.ReadUInt(null);
-            Debug.Assert(idx == Index, "TrackNode Index Mismatch");
+            Debug.Assert(index == Index, "TrackNode Index Mismatch");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("uid", ()=>{ UiD = new UiD(stf); }),
-                new STFReader.TokenProcessor("trjunctionnode", ()=>{ TrJunctionNode = new TrJunctionNode(stf, idx); TrJunctionNode.TN = this; }),
+                new STFReader.TokenProcessor("trjunctionnode", ()=>{ TrJunctionNode = new TrJunctionNode(stf, index); TrJunctionNode.TN = this; }),
                 new STFReader.TokenProcessor("trvectornode", ()=>{ TrVectorNode = new TrVectorNode(stf); }),
                 new STFReader.TokenProcessor("trendnode", ()=>{ TrEndNode = true; stf.SkipBlock(); }),
                 new STFReader.TokenProcessor("trpins", ()=>{
@@ -341,23 +317,24 @@ namespace Orts.Formats.Msts
     /// Contains the location and initial direction (as an angle in 3 dimensions) of a node (junction or end),
     /// as well as a cross reference to the entry in the world file
     /// </summary>
-    [DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldID}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}, AX={AX}, AY={AY}, AZ={AZ}, WorldX={WorldTileX}, WorldZ={WorldTileZ}")]
+    //[DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldID}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}, AX={AX}, AY={AY}, AZ={AZ}, WorldX={WorldTileX}, WorldZ={WorldTileZ}")]
+    [DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldId}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}")]
     public class UiD
     {
         private readonly WorldLocation location;
         public ref readonly WorldLocation Location => ref location;
 
-        /// <summary>Angle around X-axis for describing initial direction of the node</summary>
-        public float AX { get; set; }
-        /// <summary>Angle around Y-axis for describing initial direction of the node</summary>
-        public float AY { get; set; }
-        /// <summary>Angle around Z-axis for describing initial direction of the node</summary>
-        public float AZ { get; set; }
+        ///// <summary>Angle around X-axis for describing initial direction of the node</summary>
+        //public float AX { get; set; }
+        ///// <summary>Angle around Y-axis for describing initial direction of the node</summary>
+        //public float AY { get; set; }
+        ///// <summary>Angle around Z-axis for describing initial direction of the node</summary>
+        //public float AZ { get; set; }
 
-        /// <summary>Cross-reference to worldFile: X-value of the tile</summary>
-        public int WorldTileX { get; set; }
-        /// <summary>Cross-reference to worldFile: Y-value of the tile</summary>
-        public int WorldTileZ { get; set; }
+        ///// <summary>Cross-reference to worldFile: X-value of the tile</summary>
+        //public int WorldTileX { get; set; }
+        ///// <summary>Cross-reference to worldFile: Y-value of the tile</summary>
+        //public int WorldTileZ { get; set; }
         /// <summary>Cross-reference to worldFile: World ID</summary>
         public int WorldId { get; set; }
 
@@ -368,31 +345,18 @@ namespace Orts.Formats.Msts
         public UiD(STFReader stf)
         {
             stf.MustMatch("(");
-            WorldTileX = stf.ReadInt(null);
-            WorldTileZ = stf.ReadInt(null);
+            int worldTileX = stf.ReadInt(null);
+            int worldTileZ = stf.ReadInt(null);
             WorldId = stf.ReadInt(null);
             stf.ReadInt(null);
             location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
-            AX = stf.ReadFloat(STFReader.Units.None, null);
-            AY = stf.ReadFloat(STFReader.Units.None, null);
-            AZ = stf.ReadFloat(STFReader.Units.None, null);
+            if (worldTileX != location.TileX || worldTileZ != location.TileZ)
+                STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldId}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
+            //AX = stf.ReadFloat(STFReader.Units.None, null);
+            //AY = stf.ReadFloat(STFReader.Units.None, null);
+            //AZ = stf.ReadFloat(STFReader.Units.None, null);
             stf.SkipRestOfBlock();
-        }
-        
-        /// <summary>
-        /// Constructor from a vector section
-        /// </summary>
-        /// <param name="vectorSection">The vectorSection that is used to define the UiD (a.o. location)</param>
-        public UiD(TrVectorSection vectorSection)
-        {
-            WorldTileX = vectorSection.TileX;
-            WorldTileZ = vectorSection.TileZ;
-            WorldId = (int)vectorSection.SectionIndex;
-            location = vectorSection.Location;
-            AX = vectorSection.AX;
-            AY = vectorSection.AY;
-            AZ = vectorSection.AZ;
-        }
+        }        
     }
 
     /// <summary>
@@ -678,42 +642,45 @@ namespace Orts.Formats.Msts
     /// Describes a Track Item, that is an item located on the track that interacts with the train or train operations
     /// This is a base class. 
     /// </summary>
-    public abstract class TrItem
+    public abstract class TrackItem
     {
+        protected WorldLocation location;
         /// <summary>
         /// The name of the item (used for the label shown by F6)
         /// </summary>
-        public string ItemName { get; set; }
+        public string ItemName { get; protected set; }
+
+        public ref readonly WorldLocation Location => ref location;
 
         /// <summary>Id if track item</summary>
-        public uint TrItemId { get; set; }
+        public uint TrItemId { get; protected internal set; }
         /// <summary>X-value of world tile</summary>
-        public int TileX { get; set; }
+        public int TileX => location.TileX;
         /// <summary>Z-value of world tile</summary>
-        public int TileZ { get; set; }
+        public int TileZ => location.TileZ;
         /// <summary>X-location within world tile (tracknode, not shape)</summary>
-        public float X { get; set; }
+        public float X => location.Location.X;
         /// <summary>X-location within world tile (tracknode, not shape)</summary>
-        public float Y { get; set; }
+        public float Y => location.Location.Y;
         /// <summary>X-location within world tile (tracknode, not shape)</summary>
-        public float Z { get; set; }
+        public float Z => location.Location.Z;
         /// <summary>Appears to be a copy of tileX in Sdata, but only for X and Z</summary>
-        public int TilePX { get; set; }
+        public int TilePX { get; protected set; }
         /// <summary>Appears to be a copy of tileZ in Sdata, but only for X and Z</summary>
-        public int TilePZ { get; set; }
+        public int TilePZ { get; protected set; }
         /// <summary>Appears to be a copy of X in Sdata, but only for X and Z</summary>
-        public float PX { get; set; }
+        public float PX { get; protected set; }
         /// <summary>Appears to be a copy of X in Sdata, but only for X and Z</summary>
-        public float PZ { get; set; }
+        public float PZ { get; protected set; }
         /// <summary>Extra data 1, related to location along section</summary>
-        public float SData1 { get; set; }
+        public float SData1 { get; protected set; }
         /// <summary>Extra data 2</summary>
-        public string SData2 { get; set; }
+        public string SData2 { get; protected set; }
 
         /// <summary>
         /// Base constructor
         /// </summary>
-        protected TrItem()
+        protected TrackItem()
         {
         }
 
@@ -721,12 +688,12 @@ namespace Orts.Formats.Msts
         /// Reads the ID from filestream
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
-        /// <param name="idx">The index of this TrItem in the list of TrItems</param>
-        protected void ParseTrItemID(STFReader stf, int idx)
+        /// <param name="index">The index of this TrItem in the list of TrItems</param>
+        protected void ParseTrackItemId(STFReader stf, int index)
         {
             stf.MustMatch("(");
             TrItemId = stf.ReadUInt(null);
-            Debug.Assert(idx == TrItemId, "Index Mismatch");
+            Debug.Assert(index == TrItemId, "Index Mismatch");
             stf.SkipRestOfBlock();
         }
         
@@ -734,14 +701,13 @@ namespace Orts.Formats.Msts
         /// Reads the Rdata from filestream
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
-        protected void TrItemRData(STFReader stf)
+        protected void TrackItemRData(STFReader stf)
         {
             stf.MustMatch("(");
-            X = stf.ReadFloat(STFReader.Units.None, null);
-            Y = stf.ReadFloat(STFReader.Units.None, null);
-            Z = stf.ReadFloat(STFReader.Units.None, null);
-            TileX = stf.ReadInt(null);
-            TileZ = stf.ReadInt(null);
+            float x = stf.ReadFloat(null);
+            float y = stf.ReadFloat(null);
+            float z = stf.ReadFloat(null);
+            location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), x, y, z);
             stf.SkipRestOfBlock();
         }
 
@@ -776,7 +742,7 @@ namespace Orts.Formats.Msts
     /// Describes a cross-over track item
     /// <summary>A place where two tracks cross over each other</summary>
     /// </summary>
-    public class CrossoverItem : TrItem
+    public class CrossoverItem : TrackItem
     {
         /// <summary>Index to the tracknode</summary>
         public uint TrackNode { get; set; }
@@ -791,8 +757,8 @@ namespace Orts.Formats.Msts
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
                 new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); }),
 
@@ -809,7 +775,7 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Describes a signal item
     /// </summary>
-    public class SignalItem : TrItem
+    public class SignalItem : TrackItem
     {
         /// <summary>
         /// Struct to describe details of the signal for junctions
@@ -857,8 +823,8 @@ namespace Orts.Formats.Msts
             SigObj = -1;
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
                 new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); }),
 
@@ -904,7 +870,7 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Describes SpeedPost of MilePost (could be Kilometer post as well)
     /// </summary>
-    public class SpeedPostItem : TrItem
+    public class SpeedPostItem : TrackItem
     {
         /// <summary>Flags from raw file describing exactly what this is.</summary>
         private uint Flags { get; set; }
@@ -954,8 +920,8 @@ namespace Orts.Formats.Msts
             SigObj = -1;
             stf.MustMatch("(");
 			stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
                 new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); }),
 
@@ -1056,19 +1022,25 @@ namespace Orts.Formats.Msts
         /// <param name="position">Position of the speedpost</param>
         private void CreateRPData(in WorldLocation location)
         {
-            X = PX = location.Location.X;
-            Z = PZ = location.Location.Z;
-            Y = location.Location.Y;
-            TileX = TilePX = location.TileX;
-            TileZ = TilePZ = location.TileZ;
+            this.location = location;
+            PX = location.Location.X;
+            PZ = location.Location.Z;
+            TilePX = location.TileX;
+            TilePZ = location.TileZ;
         }
 
+        public void Update(float y, float angle, in WorldPosition position)
+        {
+            this.location = location.SetElevation(y);
+            Angle = angle;
+            WorldPosition = position;
+        }
     }
 
     /// <summary>
     /// Represents a region where a sound can be played.
     /// </summary>
-    public class SoundRegionItem : TrItem
+    public class SoundRegionItem : TrackItem
     {
         /// <summary>Sound region data 1</summary>
         public uint SRData1 { get; set; }
@@ -1086,8 +1058,8 @@ namespace Orts.Formats.Msts
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
                 new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); }),
 
@@ -1105,7 +1077,7 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// represent an empty item (which probably should only happen for badly defined routes?)
     /// </summary>
-    public class EmptyItem : TrItem
+    public class EmptyItem : TrackItem
     {
         /// <summary>
         /// Default constructor used during file parsing.
@@ -1116,7 +1088,7 @@ namespace Orts.Formats.Msts
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
             });
         }
     }
@@ -1124,7 +1096,7 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Representa a level Crossing item (so track crossing road)
     /// </summary>
-    public class LevelCrItem : TrItem
+    public class LevelCrItem : TrackItem
     {
         /// <summary>
         /// Default constructor used during file parsing.
@@ -1135,8 +1107,8 @@ namespace Orts.Formats.Msts
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
                 new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); }),
             });
@@ -1146,7 +1118,7 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Represents either start or end of a siding.
     /// </summary>
-    public class SidingItem : TrItem
+    public class SidingItem : TrackItem
     {
         /// <summary>Flags 1 for a siding ???</summary>
         public string Flags1 { get; set; }
@@ -1162,8 +1134,8 @@ namespace Orts.Formats.Msts
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
                 new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); }),
 
@@ -1181,7 +1153,7 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Represents either start or end of a platform (a place where trains can stop).
     /// </summary>
-    public class PlatformItem : TrItem
+    public class PlatformItem : TrackItem
     {
 
         /// <summary>Name of the station where the platform is</summary>
@@ -1204,8 +1176,8 @@ namespace Orts.Formats.Msts
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
                 new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); }),
 
@@ -1241,7 +1213,7 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Represends a hazard, a place where something more or less dangerous happens
     /// </summary>
-    public class HazzardItem : TrItem
+    public class HazzardItem : TrackItem
     {
         /// <summary>
         /// Default constructor used during file parsing.
@@ -1252,8 +1224,8 @@ namespace Orts.Formats.Msts
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
                 new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); }),
 
@@ -1264,7 +1236,7 @@ namespace Orts.Formats.Msts
     /// <summary>
     /// Represents a pickup, a place to pickup fuel, water, ...
     /// </summary>
-    public class PickupItem : TrItem
+    public class PickupItem : TrackItem
     {
         /// <summary>
         /// Default constructor used during file parsing.
@@ -1275,8 +1247,8 @@ namespace Orts.Formats.Msts
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrItemID(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
                 new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); }),
 

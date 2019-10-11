@@ -74,14 +74,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var platforms = new Dictionary<string, bool>();
                 var sidings = new Dictionary<string, bool>();
 
-                if (tdb.TrItemTable != null)
+                if (tdb.TrackItems != null)
                 {
                     foreach (var stop in stationStops)
                     {
                         var platformId = stop.PlatformReference;
-                        if (0 <= platformId && platformId < tdb.TrItemTable.Length && tdb.TrItemTable[platformId] is PlatformItem)
+                        if (0 <= platformId && platformId < tdb.TrackItems.Length && tdb.TrackItems[platformId] is PlatformItem)
                         {
-                            platforms[tdb.TrItemTable[platformId].ItemName] = true;
+                            platforms[tdb.TrackItems[platformId].ItemName] = true;
                         }
                     }
 
@@ -95,9 +95,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 var sidingId1 = eventAction.SidingId;
                                 var sidingId2 = eventAction.WorkOrderWagons != null && eventAction.WorkOrderWagons.Count > 0 ? eventAction.WorkOrderWagons[0].SidingId : default(uint?);
                                 var sidingId = sidingId1.HasValue ? sidingId1.Value : sidingId2.HasValue ? sidingId2.Value : uint.MaxValue;
-                                if (0 <= sidingId && sidingId < tdb.TrItemTable.Length && tdb.TrItemTable[sidingId] is SidingItem)
+                                if (0 <= sidingId && sidingId < tdb.TrackItems.Length && tdb.TrackItems[sidingId] is SidingItem)
                                 {
-                                    sidings[tdb.TrItemTable[sidingId].ItemName] = true;
+                                    sidings[tdb.TrackItems[sidingId].ItemName] = true;
                                 }
                             }
                         }

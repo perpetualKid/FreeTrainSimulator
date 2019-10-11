@@ -106,9 +106,9 @@ namespace Orts.Simulation
 
                     foreach (var i in sd.PlayerTraffics)
                     {
-                        if (i.PlatformStartID < Simulator.TDB.TrackDB.TrItemTable.Length && i.PlatformStartID >= 0 &&
-                            Simulator.TDB.TrackDB.TrItemTable[i.PlatformStartID] is PlatformItem)
-                            Platform = Simulator.TDB.TrackDB.TrItemTable[i.PlatformStartID] as PlatformItem;
+                        if (i.PlatformStartID < Simulator.TDB.TrackDB.TrackItems.Length && i.PlatformStartID >= 0 &&
+                            Simulator.TDB.TrackDB.TrackItems[i.PlatformStartID] is PlatformItem)
+                            Platform = Simulator.TDB.TrackDB.TrackItems[i.PlatformStartID] as PlatformItem;
                         else
                         {
                             Trace.TraceWarning("PlatformStartID {0} is not present in TDB file", i.PlatformStartID);
@@ -116,9 +116,9 @@ namespace Orts.Simulation
                         }
                         if (Platform != null)
                         {
-                            if (Simulator.TDB.TrackDB.TrItemTable[Platform.LinkedPlatformItemId] is PlatformItem)
+                            if (Simulator.TDB.TrackDB.TrackItems[Platform.LinkedPlatformItemId] is PlatformItem)
                             {
-                                PlatformItem Platform2 = Simulator.TDB.TrackDB.TrItemTable[Platform.LinkedPlatformItemId] as PlatformItem;
+                                PlatformItem Platform2 = Simulator.TDB.TrackDB.TrackItems[Platform.LinkedPlatformItemId] as PlatformItem;
                                 Tasks.Add(task = new ActivityTaskPassengerStopAt(simulator,
                                     task,
                                     new DateTime().AddSeconds(i.ArrivalTime),
@@ -517,7 +517,7 @@ namespace Orts.Simulation
 
             TempSpeedPostItems = new List<TempSpeedPostItem>();
 
-            TrItem[] newSpeedPostItems = new TempSpeedPostItem[2];
+            TrackItem[] newSpeedPostItems = new TempSpeedPostItem[2];
 
             Traveller traveller;
 
@@ -531,7 +531,7 @@ namespace Orts.Simulation
                     zones[idxZone].EndPosition, false, WorldPosition.None, false);
 
                 // Add the speedposts to the track database. This will set the TrItemId's of all speedposts
-                trackDB.AddTrItems(newSpeedPostItems);
+                trackDB.AddTrackItems(newSpeedPostItems);
 
                 // And now update the various (vector) tracknodes (this needs the TrItemIds.
                 var endOffset = AddItemIdToTrackNode(zones[idxZone].EndPosition,
@@ -541,11 +541,11 @@ namespace Orts.Simulation
                 float distanceOfWarningPost = 0;
                 TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
-			{
+                {
                     FlipRestrSpeedPost((TempSpeedPostItem)newSpeedPostItems[0]);
                     FlipRestrSpeedPost((TempSpeedPostItem)newSpeedPostItems[1]);
                     distanceOfWarningPost = (float)Math.Min(MaxDistanceOfWarningPost, traveller.TrackNodeLength - (double)startOffset);
-            }
+                }
                 else if (startOffset != null && endOffset != null && startOffset <= endOffset)
                     distanceOfWarningPost = (float)Math.Max(-MaxDistanceOfWarningPost, -(double)startOffset);
                 traveller.Move(distanceOfWarningPost);
@@ -556,7 +556,7 @@ namespace Orts.Simulation
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                 {
                     FlipRestrSpeedPost((TempSpeedPostItem)speedWarningPostItem);
-        }
+                }
                 ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[0]);
                 TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[0]);
                 ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[1]);
@@ -574,7 +574,7 @@ namespace Orts.Simulation
         /// <param name="trackDB">track database to be modified</param>
         /// <param name="newTrItemRef">The Id of the new TrItem to add to the tracknode</param>
         /// <param name="traveller">The computed traveller to the speedPost position</param>
-        static float? AddItemIdToTrackNode(in WorldLocation location, TrackSectionsFile tsectionDat, TrackDB trackDB, TrItem newTrItem, out Traveller traveller)
+        static float? AddItemIdToTrackNode(in WorldLocation location, TrackSectionsFile tsectionDat, TrackDB trackDB, TrackItem newTrItem, out Traveller traveller)
         {
             float? offset = 0.0f;
             traveller = new Traveller(tsectionDat, trackDB.TrackNodes, location.TileX, location.TileZ, location.Location.X, location.Location.Z);
@@ -596,9 +596,7 @@ namespace Orts.Simulation
         /// 
         static void SpeedPostPosition(TempSpeedPostItem restrSpeedPost, ref Traveller traveller)
         {
-            restrSpeedPost.Y = traveller.Y;
-            restrSpeedPost.Angle = -traveller.RotY + (float)Math.PI / 2;
-            restrSpeedPost.WorldPosition = new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z));
+            restrSpeedPost.Update(traveller.Y, -traveller.RotY + (float)Math.PI / 2, new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z)));
         }
 
         /// <summary>
@@ -647,7 +645,7 @@ namespace Orts.Simulation
                 for (int iTrItems = thisVectorNode.NoItemRefs - 1; iTrItems >= 0; iTrItems--)
                 {
                     var currTrItemID = newTrItemRefs[iTrItems];
-                    var currTrItem = trackDB.TrItemTable[currTrItemID];
+                    var currTrItem = trackDB.TrackItems[currTrItemID];
                     Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, currTrItem.TileX, currTrItem.TileZ, currTrItem.X, currTrItem.Z);
                     if (offset >= traveller.TrackNodeOffset)
                     {
@@ -1123,8 +1121,8 @@ namespace Orts.Simulation
             ActArrive = rdval == -1 ? (DateTime?)null : new DateTime(rdval);
             rdval = inf.ReadInt64();
             ActDepart = rdval == -1 ? (DateTime?)null : new DateTime(rdval);
-            PlatformEnd1 = Simulator.TDB.TrackDB.TrItemTable[inf.ReadInt32()] as PlatformItem;
-            PlatformEnd2 = Simulator.TDB.TrackDB.TrItemTable[inf.ReadInt32()] as PlatformItem;
+            PlatformEnd1 = Simulator.TDB.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
+            PlatformEnd2 = Simulator.TDB.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
             BoardingEndS = inf.ReadDouble();
             TimerChk = inf.ReadInt32();
             arrived = inf.ReadBoolean();
@@ -1274,9 +1272,9 @@ namespace Orts.Simulation
                 var i = e.SidingId.Value;
                 try
                 {
-                    SidingEnd1 = Simulator.TDB.TrackDB.TrItemTable[i] as SidingItem;
+                    SidingEnd1 = Simulator.TDB.TrackDB.TrackItems[i] as SidingItem;
                     i = SidingEnd1.LinkedSidingId;
-                    SidingEnd2 = Simulator.TDB.TrackDB.TrItemTable[i] as SidingItem;
+                    SidingEnd2 = Simulator.TDB.TrackDB.TrackItems[i] as SidingItem;
                 }
                 catch (IndexOutOfRangeException)
                 {

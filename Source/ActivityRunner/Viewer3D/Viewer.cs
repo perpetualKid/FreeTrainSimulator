@@ -1106,7 +1106,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         else
                         {
                             var s = Program.DebugViewer.signalPickedItem.Item;
-                            wos = new WorldLocation(s.TileX, s.TileZ, s.X, s.Y + 8, s.Z);
+                            wos = s.Location.ChangeElevation(8);
                         }
                         if (FreeRoamCameraList.Count == 0)
                         {

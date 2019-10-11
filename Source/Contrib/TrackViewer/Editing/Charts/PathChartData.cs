@@ -612,7 +612,7 @@ namespace ORTS.TrackViewer.Editing.Charts
 
             foreach (int trackItemIndex in vectorNode.TrItemRefs)
             {
-                TrItem trItem = trackDB.TrItemTable[trackItemIndex];
+                TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem || trItem is SpeedPostItem)
                 {
                     var travellerAtItem = new Traveller(tsectionDat, trackDB.TrackNodes, tn,
@@ -673,7 +673,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="item">The original track item</param>
         /// <param name="travellerAtItem">The traveller located at the location of the track item</param>
-        public ChartableTrackItem(TrItem item, Traveller travellerAtItem)
+        public ChartableTrackItem(TrackItem item, Traveller travellerAtItem)
         {
             this.Height = item.Y;
             this.ItemText = string.Empty;

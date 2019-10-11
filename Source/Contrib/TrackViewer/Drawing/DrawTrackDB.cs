@@ -385,17 +385,17 @@ namespace ORTS.TrackViewer.Drawing
             PlatformLocations = new Dictionary<string, WorldLocation>();
             StationLocations = new Dictionary<string, WorldLocation>();
 
-            foreach (TrItem trackItem in trackDB.TrItemTable)
+            foreach (TrackItem trackItem in trackDB.TrackItems)
             {
                 if (trackItem is SidingItem)
                 {
-                    SidingLocations[trackItem.ItemName] = new WorldLocation(trackItem.TileX, trackItem.TileZ, trackItem.X, trackItem.Y, trackItem.Z);
+                    SidingLocations[trackItem.ItemName] = trackItem.Location;
                 }
 
                 PlatformItem platform = trackItem as PlatformItem;
                 if (platform != null)
                 {
-                    PlatformLocations[platform.ItemName] = new WorldLocation(trackItem.TileX, trackItem.TileZ, trackItem.X, trackItem.Y, trackItem.Z);
+                    PlatformLocations[platform.ItemName] = trackItem.Location;
                     StationLocations[platform.Station] = PlatformLocations[platform.ItemName];
                 }     
             }
@@ -507,13 +507,13 @@ namespace ORTS.TrackViewer.Drawing
             }
 
             // First force TrItemTable to exist in case it was not defined in the .tdb file
-            trackDB.AddTrItems(new TrItem[0]);
+            trackDB.AddTrackItems(new TrackItem[0]);
 
             // find rail track items
-            railTrackItemTable = new DrawableTrackItem[trackDB.TrItemTable.Count()];
-            for (int i = 0; i < trackDB.TrItemTable.Count(); i++)
+            railTrackItemTable = new DrawableTrackItem[trackDB.TrackItems.Count()];
+            for (int i = 0; i < trackDB.TrackItems.Count(); i++)
             {
-                TrItem trackItem = trackDB.TrItemTable[i];
+                TrackItem trackItem = trackDB.TrackItems[i];
                 DrawableTrackItem drawableTrackItem = DrawableTrackItem.CreateDrawableTrItem(trackItem);
                 railTrackItemTable[i] = drawableTrackItem;
                 AddLocationToAvailableList(drawableTrackItem.WorldLocation, availableRailItemIndexes, drawableTrackItem);
@@ -525,7 +525,7 @@ namespace ORTS.TrackViewer.Drawing
                 roadTrackItemTable = new DrawableTrackItem[roadTrackDB.TrItemTable.Count()];
                 for (int i = 0; i < roadTrackDB.TrItemTable.Count(); i++)
                 {
-                    TrItem trackItem = roadTrackDB.TrItemTable[i];
+                    TrackItem trackItem = roadTrackDB.TrItemTable[i];
                     DrawableTrackItem drawableTrackItem = DrawableTrackItem.CreateDrawableTrItem(trackItem);
                     roadTrackItemTable[i] = drawableTrackItem;
                     AddLocationToAvailableList(drawableTrackItem.WorldLocation, availableRoadItemIndexes, drawableTrackItem);

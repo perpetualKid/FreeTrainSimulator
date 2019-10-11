@@ -618,7 +618,7 @@ namespace ORTS.TrackViewer.Editing
 
             foreach (int trackItemIndex in tvn.TrItemRefs)
             {
-                TrItem trItem = trackDB.TrItemTable[trackItemIndex];
+                TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem)
                 {
                     var traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, 

@@ -259,7 +259,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
                                                 || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation
                                                 ? (uint)eventAction.SidingId : wagonItem.SidingId;
-                                            foreach (var item in owner.Viewer.Simulator.TDB.TrackDB.TrItemTable)
+                                            foreach (var item in owner.Viewer.Simulator.TDB.TrackDB.TrackItems)
                                             {
                                                 var siding = item as Orts.Formats.Msts.SidingItem;
                                                 if (siding != null && siding.TrItemId == sidingId)
@@ -473,7 +473,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
                                                 || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation
                                                 ? (uint)eventAction.SidingId : wagonItem.SidingId;
-                                            foreach (var item in owner.Viewer.Simulator.TDB.TrackDB.TrItemTable)
+                                            foreach (var item in owner.Viewer.Simulator.TDB.TrackDB.TrackItems)
                                             {
                                                 var siding = item as Orts.Formats.Msts.SidingItem;
                                                 if (siding != null && siding.TrItemId == sidingId)

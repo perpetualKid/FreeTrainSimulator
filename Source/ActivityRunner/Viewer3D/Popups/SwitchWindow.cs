@@ -132,7 +132,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Debug.Assert(SwitchNode.TrJunctionNode != null);
             Debug.Assert(SwitchNode.TrJunctionNode.SelectedRoute == 0 || SwitchNode.TrJunctionNode.SelectedRoute == 1);
 
-            var switchPreviousNodeID = Owner.Viewer.Simulator.TDB.TrackDB.TrackNodesIndexOf(SwitchPreviousNode);
+            var switchPreviousNodeID = SwitchPreviousNode.Index;
             var switchBranchesAwayFromUs = SwitchNode.TrPins[0].Link == switchPreviousNodeID;
             var switchTrackSection = Owner.Viewer.Simulator.TSectionDat.TrackShapes[SwitchNode.TrJunctionNode.ShapeIndex];  // TSECTION.DAT tells us which is the main route
             var switchMainRouteIsLeft = SwitchNode.TrJunctionNode.GetAngle(Owner.Viewer.Simulator.TSectionDat) > 0;  // align the switch

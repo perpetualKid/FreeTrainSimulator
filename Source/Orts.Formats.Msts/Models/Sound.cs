@@ -13,7 +13,7 @@ namespace Orts.Formats.Msts.Models
         public List<WorldSoundSource> SoundSources { get; private set; } = new List<WorldSoundSource>();
         public List<WorldSoundRegion> SoundRegions { get; private set; } = new List<WorldSoundRegion>();
 
-        public TrackItemSound(STFReader stf, TrItem[] trItems)
+        public TrackItemSound(STFReader stf, TrackItem[] trItems)
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -53,7 +53,7 @@ namespace Orts.Formats.Msts.Models
         public float RotY { get; private set; }
         public List<int> TrackNodes { get; private set; }
 
-        public WorldSoundRegion(STFReader stf, TrItem[] trItems)
+        public WorldSoundRegion(STFReader stf, TrackItem[] trItems)
         {
             TrackNodes = new List<int>();
             stf.MustMatch("(");
