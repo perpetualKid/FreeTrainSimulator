@@ -1683,7 +1683,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (bestTn != null)
             {
-                new ToggleAnySwitchCommand(Log, bestTn.TCCrossReference[0].Index);
+                new ToggleAnySwitchCommand(Log, bestTn.TrackCircuitCrossReferences[0].Index);
             }
         }
 

@@ -218,7 +218,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 float sectionOffsetNext = sectionOffsetStop;
                 for (int tvsi = tvsiStop; tvsi > tvsiStart; tvsi--)
                 {
-                    height = vectorNode.TrVectorSections[tvsi].Y;
+                    height = vectorNode.TrackVectorSections[tvsi].Y;
                     AddPointAndTrackItems(newPoints, vectorNode, trackItemsInTracknode, isForward, height, tvsi, 0, sectionOffsetNext);
 
                     sectionOffsetNext = SectionLengthAlongTrack(vectorNode, tvsi-1);
@@ -235,7 +235,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 for (int tvsi = tvsiStop; tvsi < tvsiStart; tvsi++)
                 {
                     // The height needs to come from the end of the section, so the where the next section starts. And we only know the height at the start.
-                    height = vectorNode.TrVectorSections[tvsi+1].Y;
+                    height = vectorNode.TrackVectorSections[tvsi+1].Y;
                     AddPointAndTrackItems(newPoints, vectorNode, trackItemsInTracknode, isForward, height, tvsi, sectionOffsetNext, SectionLengthAlongTrack(vectorNode, tvsi));
 
                     sectionOffsetNext = 0;
@@ -280,7 +280,7 @@ namespace ORTS.TrackViewer.Editing.Charts
             var additionalPoints = new List<PathChartPoint>();
 
             // not a percentage. We can safely assume the pitch is small enough so we do not to take tan(pitch)
-            float gradeFromPitch = -vectorNode.TrVectorSections[tvsi].AX * (isForward ? 1 : -1);
+            float gradeFromPitch = -vectorNode.TrackVectorSections[tvsi].AX * (isForward ? 1 : -1);
             float curvature = GetCurvature(vectorNode, tvsi, isForward);
 
             List<ChartableTrackItem> items_local = trackItems.ToList();
@@ -329,7 +329,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="isForward">Is the path in the same direction as the vector track node?</param>
         private float GetCurvature(TrackVectorNode vectorNode, int tvsi, bool isForward)
         {
-            TrVectorSection tvs = vectorNode.TrVectorSections[tvsi];
+            TrVectorSection tvs = vectorNode.TrackVectorSections[tvsi];
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
 
             float curvature = 0;
@@ -369,7 +369,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 else
                 {
                     TrackVectorNode tvn = tn as TrackVectorNode;
-                    tvsiStart = tvn.TrVectorSections.Length - 1;
+                    tvsiStart = tvn.TrackVectorSections.Length - 1;
                     sectionOffsetStart = SectionLengthAlongTrack(tvn, tvsiStart);
                 }
             }
@@ -389,7 +389,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         private float SectionLengthAlongTrack(TrackVectorNode tn, int tvsi)
         {
             float fullSectionLength;
-            TrVectorSection tvs = tn.TrVectorSections[tvsi];
+            TrVectorSection tvs = tn.TrackVectorSections[tvsi];
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
             if (trackSection == null)
             {
@@ -444,7 +444,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                     return 0;
                 }
                 else{
-                    return (trackDB.TrackNodes[node.NextMainTvnIndex] as TrackVectorNode).TrVectorSections.Length - 1;
+                    return (trackDB.TrackNodes[node.NextMainTvnIndex] as TrackVectorNode).TrackVectorSections.Length - 1;
                 }
             }
         }
@@ -602,9 +602,9 @@ namespace ORTS.TrackViewer.Editing.Charts
 
             List<ChartableTrackItem> tracknodeItems = new List<ChartableTrackItem>();
             TrackVectorNode vectorNode = tn as TrackVectorNode;
-            if (vectorNode?.TrItemRefs == null) return tracknodeItems;
+            if (vectorNode?.TrackItemIndices == null) return tracknodeItems;
 
-            foreach (int trackItemIndex in vectorNode.TrItemRefs)
+            foreach (int trackItemIndex in vectorNode.TrackItemIndices)
             {
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem || trItem is SpeedPostItem)

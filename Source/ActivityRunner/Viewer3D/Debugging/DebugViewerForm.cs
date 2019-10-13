@@ -250,15 +250,15 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 else if (nodes[i] is TrackVectorNode trackVectorNode)
                 {
 
-                    if (trackVectorNode.TrVectorSections.Length > 1)
+                    if (trackVectorNode.TrackVectorSections.Length > 1)
                     {
-                        AddSegments(segments, trackVectorNode, trackVectorNode.TrVectorSections, ref minX, ref minY, ref maxX, ref maxY, simulator);
+                        AddSegments(segments, trackVectorNode, trackVectorNode.TrackVectorSections, ref minX, ref minY, ref maxX, ref maxY, simulator);
                     }
                     else
                     {
-                        TrVectorSection s = trackVectorNode.TrVectorSections[0];
+                        TrVectorSection s = trackVectorNode.TrackVectorSections[0];
 
-                        foreach (TrackPin pin in trackVectorNode.TrPins)
+                        foreach (TrackPin pin in trackVectorNode.TrackPins)
                         {
 
                             TrackNode connectedNode = nodes[pin.Link];
@@ -284,17 +284,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
                 else if (nodes[i] is TrackJunctionNode trackJunctionNode)
                 {
-                    foreach (TrackPin pin in trackJunctionNode.TrPins)
+                    foreach (TrackPin pin in trackJunctionNode.TrackPins)
                     {
                         TrVectorSection item = null;
                         TrackVectorNode vectorNode = nodes[pin.Link] as TrackVectorNode;
                         try
                         {
-                            if (vectorNode == null || vectorNode.TrVectorSections.Length < 1) continue;
+                            if (vectorNode == null || vectorNode.TrackVectorSections.Length < 1) continue;
                             if (pin.Direction == 1)
-                                item = vectorNode.TrVectorSections.First();
+                                item = vectorNode.TrackVectorSections.First();
                             else
-                                item = vectorNode.TrVectorSections.Last();
+                                item = vectorNode.TrackVectorSections.Last();
                         }
                         catch { continue; }
                         DebugVector A = new DebugVector(trackJunctionNode.UiD.Location);
@@ -1117,7 +1117,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					{
 						for (var pin = switchObj.JunctionNode.InPins; pin < switchObj.JunctionNode.InPins + switchObj.JunctionNode.OutPins; pin++)
 						{
-							if (switchObj.JunctionNode.TrPins[pin].Link == switchObj.NodeIndex)
+							if (switchObj.JunctionNode.TrackPins[pin].Link == switchObj.NodeIndex)
 							{
 								if (pin - switchObj.JunctionNode.InPins != switchObj.JunctionNode.SelectedRoute)
 									switchErrorDistance = objDistance;
@@ -1190,7 +1190,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					{
 						for (var pin = switchObj.JunctionNode.InPins; pin < switchObj.JunctionNode.InPins + switchObj.JunctionNode.OutPins; pin++)
 						{
-							if (switchObj.JunctionNode.TrPins[pin].Link == switchObj.NodeIndex && pin - switchObj.JunctionNode.InPins != switchObj.JunctionNode.SelectedRoute)
+							if (switchObj.JunctionNode.TrackPins[pin].Link == switchObj.NodeIndex && pin - switchObj.JunctionNode.InPins != switchObj.JunctionNode.SelectedRoute)
 							{
 								foreach (var sw in switchItemsDrawn)
 								{
@@ -2161,7 +2161,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 Vector2 v2;
                 if (node is TrackVectorNode trackVectorNode) 
                 { 
-                    var ts = trackVectorNode.TrVectorSections[0]; 
+                    var ts = trackVectorNode.TrackVectorSections[0]; 
                     v2 = new Vector2(ts.TileX * 2048 + ts.X, ts.TileZ * 2048 + ts.Z); 
                 }
                 else if (node is TrackJunctionNode) 

@@ -39,8 +39,8 @@ namespace Orts.Simulation
         static Dictionary<int, FuelPickupItem> GetFuelPickupItemsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
         {
             return (from trackNode in trackNodes
-                    where trackNode is TrackVectorNode tvn && tvn.NoItemRefs > 0
-                    from itemRef in (trackNode as TrackVectorNode)?.TrItemRefs.Distinct()
+                    where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
+                    from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
                     where trItemTable[itemRef] != null && trItemTable[itemRef] is PickupItem
                     select new KeyValuePair<int, FuelPickupItem>(itemRef, new FuelPickupItem(trackNode, trItemTable[itemRef])))
                     .ToDictionary(_ => _.Key, _ => _.Value);

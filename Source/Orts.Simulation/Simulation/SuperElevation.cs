@@ -48,8 +48,8 @@ namespace Orts.Simulation
                     continue;
                 var StartCurve = false; var CurveDir = 0; var Len = 0.0f;
                 SectionList.Clear();
-                int i = 0; int count = trackVectorNode.TrVectorSections.Length;
-                foreach (var section in trackVectorNode.TrVectorSections)//loop all curves
+                int i = 0; int count = trackVectorNode.TrackVectorSections.Length;
+                foreach (var section in trackVectorNode.TrackVectorSections)//loop all curves
                 {
                     i++;
                     var sec = simulator.TSectionDat.TrackSections.Get(section.SectionIndex);

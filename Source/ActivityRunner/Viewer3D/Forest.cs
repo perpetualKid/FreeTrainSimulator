@@ -246,7 +246,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         if (!(node is TrackVectorNode trackVectorNode))
                             continue;
-                        foreach (var section in trackVectorNode.TrVectorSections)
+                        foreach (var section in trackVectorNode.TrackVectorSections)
                         {
                             var key = "" + section.WFNameX + "." + section.WFNameZ;
                             if (!SectionMap.ContainsKey(key)) SectionMap.Add(key, new List<TrVectorSection>());
@@ -262,7 +262,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             if (!(node is TrackVectorNode trackVectorNode))
                                 continue;
-                            foreach (var section in trackVectorNode.TrVectorSections)
+                            foreach (var section in trackVectorNode.TrackVectorSections)
                             {
                                 var key = "" + section.WFNameX + "." + section.WFNameZ;
                                 if (!SectionMap.ContainsKey(key)) SectionMap.Add(key, new List<TrVectorSection>());

@@ -30,9 +30,9 @@ namespace ORTS.TrackViewer.Editing
         //methods in one class, without having to drag along the databases.
 
         /// <summary>The TrPin index of the main route of a junction node</summary>
-        private static uint[] mainRouteIndex;
+        private static int[] mainRouteIndex;
         /// <summary>The TrPin index of the siding route of a junction node</summary>
-        private static uint[] sidingRouteIndex;
+        private static int[] sidingRouteIndex;
 
         private static TrackNode[] trackNodes;
         private static TrackSectionsFile tsectionDat;
@@ -48,20 +48,20 @@ namespace ORTS.TrackViewer.Editing
             trackNodes = trackNodesIn;
             tsectionDat = tsectionDatIn;
             
-            mainRouteIndex = new uint[trackNodes.Length];
-            sidingRouteIndex = new uint[trackNodes.Length];
+            mainRouteIndex = new int[trackNodes.Length];
+            sidingRouteIndex = new int[trackNodes.Length];
             for (int tni = 0; tni < trackNodes.Length; tni++)
             {
                 TrackJunctionNode tn = trackNodes[tni] as TrackJunctionNode;
                 if (tn == null) continue;
 
-                uint mainRoute = 0;
+                int mainRoute = 0;
 
                 uint trackShapeIndex = tn.ShapeIndex;
                 try
                 {
                     TrackShape trackShape = tsectionDat.TrackShapes[trackShapeIndex];
-                    mainRoute = trackShape.MainRoute;
+                    mainRoute = (int)trackShape.MainRoute;
                 }
                 catch (System.IO.InvalidDataException exception)
                 {
@@ -81,16 +81,16 @@ namespace ORTS.TrackViewer.Editing
         }
 
         /// <summary>Return the vector node index of the trailing path leaving this junction.</summary>
-        public static int TrailingTvn(this TrackNode trackNode) { return trackNode.TrPins[0].Link; }
+        public static int TrailingTvn(this TrackNode trackNode) { return trackNode.TrackPins[0].Link; }
         /// <summary>Return the vector node index of the main path leaving this junction (main being defined as the first one defined)</summary>
-        public static int MainTvn(this TrackNode trackNode) { return trackNode.TrPins[mainRouteIndex[trackNode.Index]].Link; }
+        public static int MainTvn(this TrackNode trackNode) { return trackNode.TrackPins[mainRouteIndex[trackNode.Index]].Link; }
         /// <summary>Return the vector node index of the siding path leaving this junction (siding being defined as the second one defined)</summary>
-        public static int SidingTvn(this TrackNode trackNode) { return trackNode.TrPins[sidingRouteIndex[trackNode.Index]].Link; }
+        public static int SidingTvn(this TrackNode trackNode) { return trackNode.TrackPins[sidingRouteIndex[trackNode.Index]].Link; }
 
         /// <summary>Return the vector node index at the begin of this vector node</summary>
-        public static int JunctionIndexAtStart(this TrackNode trackNode) { return trackNode.TrPins[0].Link; }
+        public static int JunctionIndexAtStart(this TrackNode trackNode) { return trackNode.TrackPins[0].Link; }
         /// <summary>Return the vector node index at the end of this vector node</summary>
-        public static int JunctionIndexAtEnd(this TrackNode trackNode) { return trackNode.TrPins[1].Link; }
+        public static int JunctionIndexAtEnd(this TrackNode trackNode) { return trackNode.TrackPins[1].Link; }
 
         /// <summary>Return the tracknode corresponding the given index</summary>
         public static TrackNode TrackNode(int tvnIndex) { return trackNodes[tvnIndex]; }

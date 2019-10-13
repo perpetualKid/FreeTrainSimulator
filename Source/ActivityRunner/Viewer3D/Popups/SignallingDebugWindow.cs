@@ -134,7 +134,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             {
                                 for (var pin = switchObj.JunctionNode.InPins; pin < switchObj.JunctionNode.InPins + switchObj.JunctionNode.OutPins; pin++)
                                 {
-                                    if (switchObj.JunctionNode.TrPins[pin].Link == switchObj.NodeIndex)
+                                    if (switchObj.JunctionNode.TrackPins[pin].Link == switchObj.NodeIndex)
                                     {
                                         if (pin - switchObj.JunctionNode.InPins != switchObj.JunctionNode.SelectedRoute)
                                             switchErrorDistance = objDistance;
@@ -288,7 +288,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 float offset = trackNode.TrackNodeOffset;
                 int direction = (int)trackNode.Direction;
 
-                thisPosition.SetTCPosition(tn.TCCrossReference, offset, direction);
+                thisPosition.SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
                 Train.TCSubpathRoute tempRoute = Owner.Viewer.Simulator.Signals.BuildTempRoute(null, thisPosition.TCSectionIndex, thisPosition.TCOffset, thisPosition.TCDirection, 5000.0f, true, false, false);
 
                 ObjectItemInfo thisInfo = Owner.Viewer.Simulator.Signals.GetNextObject_InRoute(null, tempRoute, 0,

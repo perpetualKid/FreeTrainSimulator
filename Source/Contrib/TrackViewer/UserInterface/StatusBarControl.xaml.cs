@@ -215,7 +215,7 @@ namespace ORTS.TrackViewer.UserInterface
                     " VectorSection ({3}/{4}) filename={2} Index={0} shapeIndex={1}",
                     tvs.SectionIndex, shapeIndex, shapeName,
                         trackViewer.DrawTrackDB.ClosestTrack.TrackVectorSectionIndex + 1,
-                        (trackViewer.DrawTrackDB.ClosestTrack.TrackNode as TrackVectorNode).TrVectorSections.Length);
+                        (trackViewer.DrawTrackDB.ClosestTrack.TrackNode as TrackVectorNode).TrackVectorSections.Length);
             }
         }
 

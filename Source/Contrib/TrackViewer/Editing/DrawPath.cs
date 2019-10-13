@@ -276,7 +276,7 @@ namespace ORTS.TrackViewer.Editing
 
             //Default situation (and most occuring) is to draw the complete vector node 
             int tvsiStart = 0;
-            int tvsiStop = tvn.TrVectorSections.Length-1;
+            int tvsiStop = tvn.TrackVectorSections.Length-1;
             float sectionOffsetStart = 0;
             float sectionOffsetStop = -1;
             if (currentNode is TrainpathJunctionNode)
@@ -354,24 +354,24 @@ namespace ORTS.TrackViewer.Editing
             TrVectorSection tvs;
             if (tvsiStart == tvsiStop)
             {
-                tvs = trackVectorNode.TrVectorSections[tvsiStart];
+                tvs = trackVectorNode.TrackVectorSections[tvsiStart];
                 DrawTrackSection(drawArea, tvs, colors, sectionOffsetStart, sectionOffsetStop);
             }
             else
             {
                 // first section
-                tvs = trackVectorNode.TrVectorSections[tvsiStart];
+                tvs = trackVectorNode.TrackVectorSections[tvsiStart];
                 DrawTrackSection(drawArea, tvs, colors, sectionOffsetStart, -1);
 
                 // all intermediate sections
                 for (int tvsi = tvsiStart + 1; tvsi <= tvsiStop - 1; tvsi++)
                 {
-                    tvs = trackVectorNode.TrVectorSections[tvsi];
+                    tvs = trackVectorNode.TrackVectorSections[tvsi];
                     DrawTrackSection(drawArea, tvs, colors, 0, -1);
                 }
 
                 // last section
-                tvs = trackVectorNode.TrVectorSections[tvsiStop];
+                tvs = trackVectorNode.TrackVectorSections[tvsiStop];
                 DrawTrackSection(drawArea, tvs, colors, 0, sectionOffsetStop);
             }
         }

@@ -4395,14 +4395,14 @@ namespace Orts.Simulation.AIs
                 float offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
                 int direction = (int)attachTrain.FrontTDBTraveller.Direction;
 
-                attachTrain.PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+                attachTrain.PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
                 attachTrain.PresentPosition[0].CopyTo(ref attachTrain.PreviousPosition[0]);
 
                 tn = attachTrain.RearTDBTraveller.TN;
                 offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
                 direction = (int)attachTrain.RearTDBTraveller.Direction;
 
-                attachTrain.PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+                attachTrain.PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
                 // set various items
                 attachTrain.CheckFreight();
                 attachTrain.activityClearingDistanceM = attachTrain.Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
@@ -4510,14 +4510,14 @@ namespace Orts.Simulation.AIs
             float offset = FrontTDBTraveller.TrackNodeOffset;
             int direction = (int)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PresentPosition[0].CopyTo(ref PreviousPosition[0]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (int)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             // set various items
             CheckFreight();
             activityClearingDistanceM = Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
@@ -4736,28 +4736,28 @@ namespace Orts.Simulation.AIs
             float offset = FrontTDBTraveller.TrackNodeOffset;
             int direction = (int)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PresentPosition[0].CopyTo(ref PreviousPosition[0]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (int)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             // update positions of coupled train
             tn = attachTrain.FrontTDBTraveller.TN;
             offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
             direction = (int)attachTrain.FrontTDBTraveller.Direction;
 
-            attachTrain.PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            attachTrain.PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             attachTrain.PresentPosition[0].CopyTo(ref PreviousPosition[0]);
 
             tn = attachTrain.RearTDBTraveller.TN;
             offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
             direction = (int)attachTrain.RearTDBTraveller.Direction;
 
-            attachTrain.PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            attachTrain.PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             // set various items
             CheckFreight();
             activityClearingDistanceM = Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;

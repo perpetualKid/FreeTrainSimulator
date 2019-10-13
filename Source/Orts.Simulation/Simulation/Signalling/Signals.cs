@@ -841,9 +841,9 @@ namespace Orts.Simulation.Signalling
                         //
 
                         TrackVectorNode tvn = TrackNodes[newSignal.trackNode] as TrackVectorNode;
-                        for (int i = 0; i < tvn.NoItemRefs; i++)
+                        for (int i = 0; i < tvn.TrackItemIndices.Length; i++)
                         {
-                            int TDBRef = tvn.TrItemRefs[i];
+                            int TDBRef = tvn.TrackItemIndices[i];
                             if (TrItems[TDBRef] != null)
                             {
                                 if (TrItems[TDBRef] is SignalItem)
@@ -869,9 +869,9 @@ namespace Orts.Simulation.Signalling
                         // reset cross-references for original signal (it may have been set for a backfacing head)
                         //
                         tvn = TrackNodes[newSignal.trackNode] as TrackVectorNode;
-                        for (int i = 0; i < tvn.NoItemRefs; i++)
+                        for (int i = 0; i < tvn.TrackItemIndices.Length; i++)
                         {
-                            int TDBRef = tvn.TrItemRefs[i];
+                            int TDBRef = tvn.TrackItemIndices[i];
                             if (TrItems[TDBRef] != null)
                             {
                                 if (TrItems[TDBRef] is SignalItem)
@@ -942,14 +942,14 @@ namespace Orts.Simulation.Signalling
                 return;
 
             //  Is it a vector node then it may contain objects.
-            if (trackNodes[index] is TrackVectorNode tvn && tvn.NoItemRefs > 0)
+            if (trackNodes[index] is TrackVectorNode tvn)
             {
                 // Any objects ?
-                for (int i = 0; i < tvn.NoItemRefs; i++)
+                for (int i = 0; i < tvn.TrackItemIndices.Length; i++)
                 {
-                    if (TrItems[tvn.TrItemRefs[i]] != null)
+                    if (TrItems[tvn.TrackItemIndices[i]] != null)
                     {
-                        int TDBRef = tvn.TrItemRefs[i];
+                        int TDBRef = tvn.TrackItemIndices[i];
 
                         // Track Item is signal
                         if (TrItems[TDBRef] is SignalItem)
@@ -1255,7 +1255,7 @@ namespace Orts.Simulation.Signalling
             foreach (var signal in signalObjects)
                 if (signal != null)
                     foreach (var head in signal.SignalHeads)
-                        if ((Signal.trackNodes[signal.trackNode] as TrackVectorNode).TrItemRefs[head.trItemIndex] == (int)trItem)
+                        if ((Signal.trackNodes[signal.trackNode] as TrackVectorNode).TrackItemIndices[head.trItemIndex] == (int)trItem)
                             return new KeyValuePair<Signal, SignalHead>(signal, head);
             return null;
         }//FindByTrItem
@@ -1974,13 +1974,13 @@ namespace Orts.Simulation.Signalling
 
             TrackCircuitSection thisCircuit = TrackCircuitList[iNode];
 
-            if (trackNodes[thisCircuit.OriginalIndex] is TrackVectorNode tvn && tvn.NoItemRefs > 0)
+            if (trackNodes[thisCircuit.OriginalIndex] is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0)
             {
                 //
                 // Create TDBtraveller at start of section to calculate distances
                 //
 
-                TrVectorSection firstSection = tvn.TrVectorSections[0];
+                TrVectorSection firstSection = tvn.TrackVectorSections[0];
                 Traveller TDBTrav = new Traveller(tsectiondat, trackNodes, tvn, firstSection.TileX, firstSection.TileZ, firstSection.X, firstSection.Z, (Traveller.TravellerDirection)1);
 
                 //
@@ -1988,9 +1988,9 @@ namespace Orts.Simulation.Signalling
                 //
 
                 float[] lastDistance = new float[2] { -1.0f, -1.0f };
-                for (int iRef = 0; iRef < tvn.NoItemRefs; iRef++)
+                for (int iRef = 0; iRef < tvn.TrackItemIndices.Length; iRef++)
                 {
-                    int TDBRef = tvn.TrItemRefs[iRef];
+                    int TDBRef = tvn.TrackItemIndices[iRef];
                     if (TrItems[TDBRef] != null)
                     {
                         lastDistance = InsertNode(thisCircuit, TrItems[TDBRef], TDBTrav, trackNodes, lastDistance);
@@ -2811,14 +2811,14 @@ namespace Orts.Simulation.Signalling
 
                 bool inserted = false;
 
-                if (thisTrack.TCCrossReference == null)
+                if (thisTrack.TrackCircuitCrossReferences == null)
                 {
-                    thisTrack.TCCrossReference = new TrackCircuitXRefList();
-                    TrackCircuitXRefList thisXRef = thisTrack.TCCrossReference;
+                    thisTrack.TrackCircuitCrossReferences = new TrackCircuitXRefList();
+                    TrackCircuitXRefList thisXRef = thisTrack.TrackCircuitCrossReferences;
                 }
                 else
                 {
-                    TrackCircuitXRefList thisXRef = thisTrack.TCCrossReference;
+                    TrackCircuitXRefList thisXRef = thisTrack.TrackCircuitCrossReferences;
                     for (int iPart = 0; iPart < thisXRef.Count && !inserted; iPart++)
                     {
                         TrackCircuitSectionXref thisReference = thisXRef[iPart];
@@ -2837,7 +2837,7 @@ namespace Orts.Simulation.Signalling
 
                 if (!inserted)
                 {
-                    TrackCircuitXRefList thisXRef = thisTrack.TCCrossReference;
+                    TrackCircuitXRefList thisXRef = thisTrack.TrackCircuitCrossReferences;
                     thisXRef.Add(newReference);
                 }
             }
@@ -2860,7 +2860,7 @@ namespace Orts.Simulation.Signalling
 
                     TrackCircuitSectionXref newReference = new TrackCircuitSectionXref(thisSection.Index, thisSection.Length, thisSection.OffsetLength);
                     TrackNode thisTrack = trackNodes[prevSection.OriginalIndex];
-                    TrackCircuitXRefList thisXRef = thisTrack.TCCrossReference;
+                    TrackCircuitXRefList thisXRef = thisTrack.TrackCircuitCrossReferences;
 
                     bool inserted = false;
                     for (int iPart = 0; iPart < thisXRef.Count && !inserted; iPart++)
@@ -4150,12 +4150,12 @@ namespace Orts.Simulation.Signalling
                 int TCSectionIndex = -1;
                 int TCXRefIndex = -1;
 
-                for (int iXRef = thisNode.TCCrossReference.Count - 1; iXRef >= 0 && TCSectionIndex < 0; iXRef--)
+                for (int iXRef = thisNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0 && TCSectionIndex < 0; iXRef--)
                 {
                     if (thisPlatform.SData1 <
-                     (thisNode.TCCrossReference[iXRef].OffsetLength[1] + thisNode.TCCrossReference[iXRef].Length))
+                     (thisNode.TrackCircuitCrossReferences[iXRef].OffsetLength[1] + thisNode.TrackCircuitCrossReferences[iXRef].Length))
                     {
-                        TCSectionIndex = thisNode.TCCrossReference[iXRef].Index;
+                        TCSectionIndex = thisNode.TrackCircuitCrossReferences[iXRef].Index;
                         TCXRefIndex = iXRef;
                     }
                 }
@@ -4163,7 +4163,7 @@ namespace Orts.Simulation.Signalling
                 if (TCSectionIndex < 0)
                 {
                     Trace.TraceInformation("Cannot locate TCSection for platform {0}", thisIndex);
-                    TCSectionIndex = thisNode.TCCrossReference[0].Index;
+                    TCSectionIndex = thisNode.TrackCircuitCrossReferences[0].Index;
                     TCXRefIndex = 0;
                 }
 
@@ -4181,9 +4181,9 @@ namespace Orts.Simulation.Signalling
                     if (TCSectionIndex != thisDetails.TCSectionIndex[0])
                     {
                         int firstXRef = -1;
-                        for (int iXRef = thisNode.TCCrossReference.Count - 1; iXRef >= 0 && firstXRef < 0; iXRef--)
+                        for (int iXRef = thisNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0 && firstXRef < 0; iXRef--)
                         {
-                            if (thisNode.TCCrossReference[iXRef].Index == thisDetails.TCSectionIndex[0])
+                            if (thisNode.TrackCircuitCrossReferences[iXRef].Index == thisDetails.TCSectionIndex[0])
                             {
                                 firstXRef = iXRef;
                             }
@@ -4200,7 +4200,7 @@ namespace Orts.Simulation.Signalling
                             thisDetails.TCSectionIndex.Clear();
                             for (int iXRef = TCXRefIndex; iXRef <= firstXRef; iXRef++)
                             {
-                                thisDetails.TCSectionIndex.Add(thisNode.TCCrossReference[iXRef].Index);
+                                thisDetails.TCSectionIndex.Add(thisNode.TrackCircuitCrossReferences[iXRef].Index);
                             }
                         }
                         else
@@ -4208,7 +4208,7 @@ namespace Orts.Simulation.Signalling
                             thisDetails.TCSectionIndex.Clear();
                             for (int iXRef = firstXRef; iXRef <= TCXRefIndex; iXRef++)
                             {
-                                thisDetails.TCSectionIndex.Add(thisNode.TCCrossReference[iXRef].Index);
+                                thisDetails.TCSectionIndex.Add(thisNode.TrackCircuitCrossReferences[iXRef].Index);
                             }
                         }
                     }
@@ -4272,18 +4272,18 @@ namespace Orts.Simulation.Signalling
                     int lastSection = thisDetails.TCSectionIndex[thisDetails.TCSectionIndex.Count - 1];
                     int lastSectionXRef = -1;
 
-                    for (int iXRef = 0; iXRef < thisNode.TCCrossReference.Count; iXRef++)
+                    for (int iXRef = 0; iXRef < thisNode.TrackCircuitCrossReferences.Count; iXRef++)
                     {
-                        if (lastSection == thisNode.TCCrossReference[iXRef].Index)
+                        if (lastSection == thisNode.TrackCircuitCrossReferences[iXRef].Index)
                         {
                             lastSectionXRef = iXRef;
                             break;
                         }
                     }
 
-                    for (int iXRef = lastSectionXRef; iXRef < thisNode.TCCrossReference.Count; iXRef++)
+                    for (int iXRef = lastSectionXRef; iXRef < thisNode.TrackCircuitCrossReferences.Count; iXRef++)
                     {
-                        int sectionIndex = thisNode.TCCrossReference[iXRef].Index;
+                        int sectionIndex = thisNode.TrackCircuitCrossReferences[iXRef].Index;
                         TrackCircuitSection thisSection = TrackCircuitList[sectionIndex];
 
                         distToSignal += thisSection.Length - offset;
@@ -4325,9 +4325,9 @@ namespace Orts.Simulation.Signalling
 
                     if (lastSection != firstSection)
                     {
-                        for (int iXRef = 0; iXRef < thisNode.TCCrossReference.Count; iXRef++)
+                        for (int iXRef = 0; iXRef < thisNode.TrackCircuitCrossReferences.Count; iXRef++)
                         {
-                            if (firstSection == thisNode.TCCrossReference[iXRef].Index)
+                            if (firstSection == thisNode.TrackCircuitCrossReferences[iXRef].Index)
                             {
                                 firstSectionXRef = iXRef;
                                 break;
@@ -4337,7 +4337,7 @@ namespace Orts.Simulation.Signalling
 
                     for (int iXRef = firstSectionXRef; iXRef >= 0; iXRef--)
                     {
-                        int sectionIndex = thisNode.TCCrossReference[iXRef].Index;
+                        int sectionIndex = thisNode.TrackCircuitCrossReferences[iXRef].Index;
                         TrackCircuitSection thisSection = TrackCircuitList[sectionIndex];
 
                         distToSignal += thisSection.Length - offset;
@@ -4427,10 +4427,10 @@ namespace Orts.Simulation.Signalling
             float Z1 = firstPlatform.Z;
 
             // start node position
-            int TS1TileX = firstNode.TrVectorSections[0].TileX;
-            int TS1TileZ = firstNode.TrVectorSections[0].TileZ;
-            float TS1X = firstNode.TrVectorSections[0].X;
-            float TS1Z = firstNode.TrVectorSections[0].Z;
+            int TS1TileX = firstNode.TrackVectorSections[0].TileX;
+            int TS1TileZ = firstNode.TrackVectorSections[0].TileZ;
+            float TS1X = firstNode.TrackVectorSections[0].X;
+            float TS1Z = firstNode.TrackVectorSections[0].Z;
 
             float TS1Xc = TS1X + (TS1TileX - TileX1) * 2048;
             float TS1Zc = TS1Z + (TS1TileZ - TileZ1) * 2048;
@@ -4444,10 +4444,10 @@ namespace Orts.Simulation.Signalling
             float X2c = X2 + (TileX2 - TileX1) * 2048;
             float Z2c = Z2 + (TileZ2 - TileZ1) * 2048;
 
-            int TS2TileX = secondNode.TrVectorSections[0].TileX;
-            int TS2TileZ = secondNode.TrVectorSections[0].TileZ;
-            float TS2X = secondNode.TrVectorSections[0].X;
-            float TS2Z = secondNode.TrVectorSections[0].Z;
+            int TS2TileX = secondNode.TrackVectorSections[0].TileX;
+            int TS2TileZ = secondNode.TrackVectorSections[0].TileZ;
+            float TS2X = secondNode.TrackVectorSections[0].X;
+            float TS2Z = secondNode.TrackVectorSections[0].Z;
 
             float TS2Xc = TS2X + (TS2TileX - TileX1) * 2048;
             float TS2Zc = TS2Z + (TS2TileZ - TileZ1) * 2048;
@@ -4471,9 +4471,9 @@ namespace Orts.Simulation.Signalling
 
             if (Math.Sign(dplatform) == Math.Sign(dnode))
             {
-                for (int iXRef = firstNode.TCCrossReference.Count - 1; iXRef >= 0 && !reqSectionFound; iXRef--)
+                for (int iXRef = firstNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0 && !reqSectionFound; iXRef--)
                 {
-                    int thisIndex = firstNode.TCCrossReference[iXRef].Index;
+                    int thisIndex = firstNode.TrackCircuitCrossReferences[iXRef].Index;
                     PlSections1.Add(thisIndex);
                     totalLength1 += TrackCircuitList[thisIndex].Length;
                     reqSectionFound = (thisIndex == firstSectionIndex);
@@ -4482,9 +4482,9 @@ namespace Orts.Simulation.Signalling
             }
             else
             {
-                for (int iXRef = 0; iXRef < firstNode.TCCrossReference.Count && !reqSectionFound; iXRef++)
+                for (int iXRef = 0; iXRef < firstNode.TrackCircuitCrossReferences.Count && !reqSectionFound; iXRef++)
                 {
-                    int thisIndex = firstNode.TCCrossReference[iXRef].Index;
+                    int thisIndex = firstNode.TrackCircuitCrossReferences[iXRef].Index;
                     PlSections1.Add(thisIndex);
                     totalLength1 += TrackCircuitList[thisIndex].Length;
                     reqSectionFound = (thisIndex == firstSectionIndex);
@@ -4512,9 +4512,9 @@ namespace Orts.Simulation.Signalling
 
             if (Math.Sign(dplatform) == Math.Sign(dnode))
             {
-                for (int iXRef = secondNode.TCCrossReference.Count - 1; iXRef >= 0 && !reqSectionFound; iXRef--)
+                for (int iXRef = secondNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0 && !reqSectionFound; iXRef--)
                 {
-                    int thisIndex = secondNode.TCCrossReference[iXRef].Index;
+                    int thisIndex = secondNode.TrackCircuitCrossReferences[iXRef].Index;
                     PlSections2.Add(thisIndex);
                     totalLength2 += TrackCircuitList[thisIndex].Length;
                     reqSectionFound = (thisIndex == secondSectionIndex);
@@ -4523,9 +4523,9 @@ namespace Orts.Simulation.Signalling
             }
             else
             {
-                for (int iXRef = 0; iXRef < secondNode.TCCrossReference.Count && !reqSectionFound; iXRef++)
+                for (int iXRef = 0; iXRef < secondNode.TrackCircuitCrossReferences.Count && !reqSectionFound; iXRef++)
                 {
-                    int thisIndex = secondNode.TCCrossReference[iXRef].Index;
+                    int thisIndex = secondNode.TrackCircuitCrossReferences[iXRef].Index;
                     PlSections2.Add(thisIndex);
                     totalLength2 += TrackCircuitList[thisIndex].Length;
                     reqSectionFound = (thisIndex == secondSectionIndex);
@@ -4709,7 +4709,7 @@ namespace Orts.Simulation.Signalling
                     int numPaths = -1;
 
                     // loop through all sections in node
-                    foreach (TrVectorSection thisSection in tvn.TrVectorSections)
+                    foreach (TrVectorSection thisSection in tvn.TrackVectorSections)
                     {
                         if (!tsectiondat.TrackSections.ContainsKey(thisSection.SectionIndex))
                         {
@@ -4782,9 +4782,9 @@ namespace Orts.Simulation.Signalling
                         float[] tunnelData = tunnelInfo[0];
                         float processedLength = 0;
 
-                        for (int iXRef = thisNode.TCCrossReference.Count - 1; iXRef >= 0; iXRef--)
+                        for (int iXRef = thisNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0; iXRef--)
                         {
-                            TrackCircuitSectionXref TCSXRef = thisNode.TCCrossReference[iXRef];
+                            TrackCircuitSectionXref TCSXRef = thisNode.TrackCircuitCrossReferences[iXRef];
                             // forward direction
                             float TCSStartOffset = TCSXRef.OffsetLength[1];
                             float TCSLength = TCSXRef.Length;
@@ -4903,7 +4903,7 @@ namespace Orts.Simulation.Signalling
                     int numPaths = -1;
 
                     // loop through all sections in node
-                    foreach (TrVectorSection thisSection in tvn.TrVectorSections)
+                    foreach (TrVectorSection thisSection in tvn.TrackVectorSections)
                     {
                         if (!tsectiondat.TrackSections.ContainsKey(thisSection.SectionIndex))
                         {
@@ -4979,9 +4979,9 @@ namespace Orts.Simulation.Signalling
                         float[] troughData = troughInfo[0];
                         float processedLength = 0;
 
-                        for (int iXRef = thisNode.TCCrossReference.Count - 1; iXRef >= 0; iXRef--)
+                        for (int iXRef = thisNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0; iXRef--)
                         {
-                            TrackCircuitSectionXref TCSXRef = thisNode.TCCrossReference[iXRef];
+                            TrackCircuitSectionXref TCSXRef = thisNode.TrackCircuitCrossReferences[iXRef];
                             // forward direction
                             float TCSStartOffset = TCSXRef.OffsetLength[1];
                             float TCSLength = TCSXRef.Length;
@@ -5117,7 +5117,7 @@ namespace Orts.Simulation.Signalling
 
         public bool RequestSetSwitch(TrackNode switchNode)
         {
-            return RequestSetSwitch(switchNode.TCCrossReference[0].Index);
+            return RequestSetSwitch(switchNode.TrackCircuitCrossReferences[0].Index);
         }
 
         public bool RequestSetSwitch(int trackCircuitIndex)
@@ -5160,7 +5160,7 @@ namespace Orts.Simulation.Signalling
         //only used by MP to manually set a switch to a desired position
         public bool RequestSetSwitch(TrackJunctionNode switchNode, int desiredState)
         {
-            TrackCircuitSection switchSection = TrackCircuitList[switchNode.TCCrossReference[0].Index];
+            TrackCircuitSection switchSection = TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
             bool switchReserved = (switchSection.CircuitState.SignalReserved >= 0 || switchSection.CircuitState.TrainClaimed.Count > 0);
             bool switchSet = false;
 
@@ -5345,13 +5345,13 @@ namespace Orts.Simulation.Signalling
             int PinNo = 0;
             for (int pin = 0; pin < Math.Min(thisNode.InPins, Pins.GetLength(1)); pin++)
             {
-                Pins[0, pin] = new TrackPin(thisNode.TrPins[PinNo].Link, thisNode.TrPins[PinNo].Direction);
+                Pins[0, pin] = new TrackPin(thisNode.TrackPins[PinNo].Link, thisNode.TrackPins[PinNo].Direction);
                 PinNo++;
             }
             if (PinNo < thisNode.InPins) PinNo = (int)thisNode.InPins;
             for (int pin = 0; pin < Math.Min(thisNode.OutPins, Pins.GetLength(1)); pin++)
             {
-                Pins[1, pin] = new TrackPin(thisNode.TrPins[PinNo].Link, thisNode.TrPins[PinNo].Direction);
+                Pins[1, pin] = new TrackPin(thisNode.TrackPins[PinNo].Link, thisNode.TrackPins[PinNo].Direction);
                 PinNo++;
             }
 
@@ -5374,9 +5374,9 @@ namespace Orts.Simulation.Signalling
 
             float totalLength = 0.0f;
 
-            if (thisNode is TrackVectorNode tvn && tvn.TrVectorSections != null)
+            if (thisNode is TrackVectorNode tvn && tvn.TrackVectorSections != null)
             {
-                foreach (TrVectorSection thisSection in tvn.TrVectorSections)
+                foreach (TrVectorSection thisSection in tvn.TrackVectorSections)
                 {
                     float thisLength = 0.0f;
 
@@ -8286,7 +8286,7 @@ namespace Orts.Simulation.Signalling
         {
             get
             {
-                return (trackNodes[trackNode] as TrackVectorNode).TrItemRefs[trRefIndex];
+                return (trackNodes[trackNode] as TrackVectorNode).TrackItemIndices[trRefIndex];
             }
         }
 
@@ -9409,9 +9409,9 @@ namespace Orts.Simulation.Signalling
                 TrackNode thisNode = signalRef.trackDB.TrackNodes[req_mainnode];
                 if (RoutePart != null)
                 {
-                    for (int iSection = 0; iSection <= thisNode.TCCrossReference.Count - 1 && !routeset; iSection++)
+                    for (int iSection = 0; iSection <= thisNode.TrackCircuitCrossReferences.Count - 1 && !routeset; iSection++)
                     {
-                        int sectionIndex = thisNode.TCCrossReference[iSection].Index;
+                        int sectionIndex = thisNode.TrackCircuitCrossReferences[iSection].Index;
 
                         for (int iElement = 0; iElement < RoutePart.Count && !routeset; iElement++)
                         {
@@ -9994,7 +9994,7 @@ namespace Orts.Simulation.Signalling
 
         public float DistanceTo(Traveller tdbTraveller)
         {
-            int trItem = (trackNodes[trackNode] as TrackVectorNode).TrItemRefs[trRefIndex];
+            int trItem = (trackNodes[trackNode] as TrackVectorNode).TrackItemIndices[trRefIndex];
             return tdbTraveller.DistanceTo(trItems[trItem].TileX, trItems[trItem].TileZ, trItems[trItem].X, trItems[trItem].Y, trItems[trItem].Z);
         }//DistanceTo
 
@@ -10005,7 +10005,7 @@ namespace Orts.Simulation.Signalling
 
         public float ObjectDistance(Signal nextObject)
         {
-            int nextTrItem = (trackNodes[nextObject.trackNode] as TrackVectorNode).TrItemRefs[nextObject.trRefIndex];
+            int nextTrItem = (trackNodes[nextObject.trackNode] as TrackVectorNode).TrackItemIndices[nextObject.trRefIndex];
             return this.tdbtraveller.DistanceTo(
                                     trItems[nextTrItem].TileX, trItems[nextTrItem].TileZ,
                                     trItems[nextTrItem].X, trItems[nextTrItem].Y, trItems[nextTrItem].Z);
@@ -10050,12 +10050,12 @@ namespace Orts.Simulation.Signalling
                 if (head.JunctionPath == 0)
                 {
                     head.JunctionMainNode =
-                       trackNodes[head.TrackJunctionNode].TrPins[trackNodes[head.TrackJunctionNode].InPins].Link;
+                       trackNodes[head.TrackJunctionNode].TrackPins[trackNodes[head.TrackJunctionNode].InPins].Link;
                 }
                 else
                 {
                     head.JunctionMainNode =
-                       trackNodes[head.TrackJunctionNode].TrPins[trackNodes[head.TrackJunctionNode].InPins + 1].Link;
+                       trackNodes[head.TrackJunctionNode].TrackPins[trackNodes[head.TrackJunctionNode].InPins + 1].Link;
                 }
             }
             SignalHeads.Add(head);
@@ -13077,13 +13077,13 @@ namespace Orts.Simulation.Signalling
             else if (MPManager.IsMultiPlayer())
             {
                 TrackNode node = mainSignal.signalRef.trackDB.TrackNodes[mainSignal.trackNode];
-                if (!(node is TrackJunctionNode) && node.TrPins != null && mainSignal.TCDirection < node.TrPins.Length)
+                if (!(node is TrackJunctionNode) && node.TrackPins != null && mainSignal.TCDirection < node.TrackPins.Length)
                 {
-                    node = mainSignal.signalRef.trackDB.TrackNodes[node.TrPins[mainSignal.TCDirection].Link];
+                    node = mainSignal.signalRef.trackDB.TrackNodes[node.TrackPins[mainSignal.TCDirection].Link];
                     if (!(node is TrackJunctionNode junctionNode)) return 0;
                     for (var pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
                     {
-                        if (junctionNode.TrPins[pin].Link == mainSignal.trackNode && pin - junctionNode.InPins != junctionNode.SelectedRoute)
+                        if (junctionNode.TrackPins[pin].Link == mainSignal.trackNode && pin - junctionNode.InPins != junctionNode.SelectedRoute)
                         {
                             juncfound = false;
                             break;

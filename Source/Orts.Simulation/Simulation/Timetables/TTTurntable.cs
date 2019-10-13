@@ -573,9 +573,9 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath[0].TCSectionIndex];
             TrackVectorNode thisTDBsection = Simulatorref.Signals.trackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode;
 
-            for (int iVector = 0; iVector < thisTDBsection.TrVectorSections.Length; iVector++)
+            for (int iVector = 0; iVector < thisTDBsection.TrackVectorSections.Length; iVector++)
             {
-                Formats.Msts.TrVectorSection thisVector = thisTDBsection.TrVectorSections[iVector];
+                Formats.Msts.TrVectorSection thisVector = thisTDBsection.TrackVectorSections[iVector];
                 if (thisVector.ShapeIndex == turntableTrackShape)
                 {
                     vectorIndex = iVector;
@@ -629,7 +629,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.AccessPath[0].TCSectionIndex];
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            TrVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrVectorSections;
+            TrVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -709,7 +709,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.StoragePath[0].TCSectionIndex];
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            TrVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrVectorSections;
+            TrVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
 
             // check if path is in front or behind turntable
 

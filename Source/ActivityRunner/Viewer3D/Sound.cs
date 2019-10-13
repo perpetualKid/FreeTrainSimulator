@@ -2588,9 +2588,9 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 if (trackNodes[currentNode] is TrackVectorNode trackVectorNode)
                 {
-                    for (int i = 0; i < trackVectorNode.NoItemRefs; i++)
+                    for (int i = 0; i < trackVectorNode.TrackItemIndices.Length; i++)
                     {
-                        if ((trItems[trackVectorNode.TrItemRefs[i]]) is T item && validitems != null && validitems.Contains((int)item.TrItemId))
+                        if ((trItems[trackVectorNode.TrackItemIndices[i]]) is T item && validitems != null && validitems.Contains((int)item.TrItemId))
                         {
                             float dist = traveller.DistanceTo(item.TileX, item.TileZ, item.X, item.Y, item.Z);
                             if (dist > 0)

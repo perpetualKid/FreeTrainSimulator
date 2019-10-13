@@ -128,17 +128,17 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Debug.Assert(SwitchPreviousNode != null);
             Debug.Assert(SwitchNode.InPins == 1);
             Debug.Assert(SwitchNode.OutPins == 2 || SwitchNode.OutPins == 3);  // allow for 3-way switch
-            Debug.Assert(SwitchNode.TrPins.Count() == 3 || SwitchNode.TrPins.Count() == 4);  // allow for 3-way switch
+            Debug.Assert(SwitchNode.TrackPins.Count() == 3 || SwitchNode.TrackPins.Count() == 4);  // allow for 3-way switch
 
             var switchPreviousNodeID = SwitchPreviousNode.Index;
-            var switchBranchesAwayFromUs = SwitchNode.TrPins[0].Link == switchPreviousNodeID;
+            var switchBranchesAwayFromUs = SwitchNode.TrackPins[0].Link == switchPreviousNodeID;
             var switchTrackSection = Owner.Viewer.Simulator.TSectionDat.TrackShapes[SwitchNode.ShapeIndex];  // TSECTION.DAT tells us which is the main route
             var switchMainRouteIsLeft = SwitchNode.GetAngle(Owner.Viewer.Simulator.TSectionDat) > 0;  // align the switch
 
             image.Source.X = ((switchBranchesAwayFromUs == front ? 1 : 3) + (switchMainRouteIsLeft ? 1 : 0)) * SwitchImageSize;
             image.Source.Y = SwitchNode.SelectedRoute * SwitchImageSize;
 
-            TrackCircuitSection switchSection = Owner.Viewer.Simulator.Signals.TrackCircuitList[SwitchNode.TCCrossReference[0].Index];
+            TrackCircuitSection switchSection = Owner.Viewer.Simulator.Signals.TrackCircuitList[SwitchNode.TrackCircuitCrossReferences[0].Index];
             if (switchSection.CircuitState.HasTrainsOccupying() || switchSection.CircuitState.SignalReserved >= 0 ||
                 (switchSection.CircuitState.TrainReserved != null && switchSection.CircuitState.TrainReserved.Train.ControlMode != Train.TRAIN_CONTROL.MANUAL))
                 image.Source.Y += 2 * SwitchImageSize;

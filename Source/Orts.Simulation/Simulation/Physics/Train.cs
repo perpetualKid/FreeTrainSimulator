@@ -4759,7 +4759,7 @@ namespace Orts.Simulation.Physics
             float offset = RearTDBTraveller.TrackNodeOffset;
             int direction = (int)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             TrackCircuitSection thisSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
             offset = PresentPosition[1].TCOffset;
 
@@ -4888,7 +4888,7 @@ namespace Orts.Simulation.Physics
             float offset = FrontTDBTraveller.TrackNodeOffset;
             int direction = (int)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PresentPosition[0].CopyTo(ref PreviousPosition[0]);
 
             DistanceTravelledM = 0.0f;
@@ -4897,7 +4897,7 @@ namespace Orts.Simulation.Physics
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (int)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             // check if train has route, if not create dummy
 
@@ -5154,7 +5154,7 @@ namespace Orts.Simulation.Physics
             int direction = (int)FrontTDBTraveller.Direction;
             int routeIndex;
 
-            PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
             PresentPosition[0].RouteListIndex = routeIndex;
 
@@ -5162,7 +5162,7 @@ namespace Orts.Simulation.Physics
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (int)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TCSectionIndex, 0);
             PresentPosition[1].RouteListIndex = routeIndex;
 
@@ -10184,14 +10184,14 @@ namespace Orts.Simulation.Physics
             float offset = FrontTDBTraveller.TrackNodeOffset;
             int direction = (int)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PresentPosition[0].CopyTo(ref PreviousPosition[0]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (int)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             PresentPosition[0].DistanceTravelledM = DistanceTravelledM;
             PresentPosition[1].DistanceTravelledM = oldRearPosition.DistanceTravelledM;
@@ -10535,14 +10535,14 @@ namespace Orts.Simulation.Physics
             float offset = FrontTDBTraveller.TrackNodeOffset;
             int direction = (int)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PresentPosition[0].CopyTo(ref PreviousPosition[0]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (int)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             PresentPosition[0].DistanceTravelledM = DistanceTravelledM;
             PresentPosition[1].DistanceTravelledM = DistanceTravelledM - Length;
@@ -15364,11 +15364,11 @@ namespace Orts.Simulation.Physics
                         {
                             TrackNode jn = aiPath.TrackDB.TrackNodes[pNode.JunctionIndex];
                             firstSwitch = true;
-                            for (int iPin = 0; iPin < jn.TrPins.Length; iPin++)
+                            for (int iPin = 0; iPin < jn.TrackPins.Length; iPin++)
                             {
-                                if (jn.TrPins[iPin].Link == prevTNode)
+                                if (jn.TrackPins[iPin].Link == prevTNode)
                                 {
-                                    jnDir = jn.TrPins[iPin].Direction == 1 ? 0 : 1;
+                                    jnDir = jn.TrackPins[iPin].Direction == 1 ? 0 : 1;
                                 }
                             }
                         }
@@ -15405,7 +15405,7 @@ namespace Orts.Simulation.Physics
                     if (thisPathNode.Type == AIPathNodeType.SidingStart)
                     {
                         TrackNode sidingNode = aiPath.TrackDB.TrackNodes[thisPathNode.JunctionIndex];
-                        int startTCSectionIndex = sidingNode.TCCrossReference[0].Index;
+                        int startTCSectionIndex = sidingNode.TrackCircuitCrossReferences[0].Index;
                         int[] altRouteReference = new int[3];
                         altRouteReference[0] = sublist;
                         altRouteReference[1] = thisPathNode.Index;
@@ -15418,7 +15418,7 @@ namespace Orts.Simulation.Physics
                     else if (thisPathNode.Type == AIPathNodeType.SidingEnd)
                     {
                         TrackNode sidingNode = aiPath.TrackDB.TrackNodes[thisPathNode.JunctionIndex];
-                        int endTCSectionIndex = sidingNode.TCCrossReference[0].Index;
+                        int endTCSectionIndex = sidingNode.TrackCircuitCrossReferences[0].Index;
 
                         int refStartIndex = ActiveAlternativeRoutes.Dequeue();
                         int[] altRouteReference = AlternativeRoutes[refStartIndex];
@@ -15438,26 +15438,26 @@ namespace Orts.Simulation.Physics
                         //  SPA:    Subpath:    Add TCRouteElement for each TrackCircuitsection in node
                         if (currentDir == 0)
                         {
-                            for (int iTC = 0; iTC < thisNode.TCCrossReference.Count; iTC++)
+                            for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
                             {
                                 TCRouteElement thisElement =
                                     new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
                                 thisSubpath.Add(thisElement);
                                 SetStationReference(TCRouteSubpaths, thisElement.TCSectionIndex, orgSignals);
                             }
-                            newDir = thisNode.TrPins[currentDir].Direction;
+                            newDir = thisNode.TrackPins[currentDir].Direction;
 
                         }
                         else
                         {
-                            for (int iTC = thisNode.TCCrossReference.Count - 1; iTC >= 0; iTC--)
+                            for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
                             {
                                 TCRouteElement thisElement =
                                     new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
                                 thisSubpath.Add(thisElement);
                                 SetStationReference(TCRouteSubpaths, thisElement.TCSectionIndex, orgSignals);
                             }
-                            newDir = thisNode.TrPins[currentDir].Direction;
+                            newDir = thisNode.TrackPins[currentDir].Direction;
                         }
 
                         if (reversal > 0)
@@ -15530,23 +15530,23 @@ namespace Orts.Simulation.Physics
 
                             if (thisPathNode.IsFacingPoint)   // exit is one of two switch paths //
                             {
-                                uint firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
-                                if (junctionNode.TrPins[firstpin].Link == trackNodeIndex)
+                                int firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
+                                if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
                                 {
-                                    newDir = junctionNode.TrPins[firstpin].Direction;
+                                    newDir = junctionNode.TrackPins[firstpin].Direction;
                                     thisElement.OutPin[1] = 0;
                                 }
                                 else
                                 {
                                     firstpin++;
-                                    newDir = junctionNode.TrPins[firstpin].Direction;
+                                    newDir = junctionNode.TrackPins[firstpin].Direction;
                                     thisElement.OutPin[1] = 1;
                                 }
                             }
                             else  // exit is single path //
                             {
-                                uint firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
-                                newDir = junctionNode.TrPins[firstpin].Direction;
+                                int firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
+                                newDir = junctionNode.TrackPins[firstpin].Direction;
                             }
                         }
                         //
@@ -15570,7 +15570,7 @@ namespace Orts.Simulation.Physics
                         if (nextPathNode.Type == AIPathNodeType.Reverse)
                         {
                             TrackVectorNode reversalNode = aiPath.TrackDB.TrackNodes[nextPathNode.NextMainTVNIndex] as TrackVectorNode;
-                            TrVectorSection firstSection = reversalNode.TrVectorSections[0];
+                            TrVectorSection firstSection = reversalNode.TrackVectorSections[0];
                             Traveller TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, reversalNode,
                                             firstSection.TileX, firstSection.TileZ,
                                             firstSection.X, firstSection.Z, (Traveller.TravellerDirection)1);
@@ -15586,10 +15586,10 @@ namespace Orts.Simulation.Physics
                             if (validDir == 0)
                             {
                                 reverseOffset = -offset;
-                                for (int i = reversalNode.TCCrossReference.Count - 1; i >= 0 && reverseOffset <= 0; i--)
+                                for (int i = reversalNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseOffset <= 0; i--)
                                 {
-                                    reverseOffset += reversalNode.TCCrossReference[i].Length;
-                                    sectionIndex = reversalNode.TCCrossReference[i].Index;
+                                    reverseOffset += reversalNode.TrackCircuitCrossReferences[i].Length;
+                                    sectionIndex = reversalNode.TrackCircuitCrossReferences[i].Index;
 
                                 }
                             }
@@ -15597,13 +15597,13 @@ namespace Orts.Simulation.Physics
                             {
                                 int exti = 0;
                                 reverseOffset = offset;
-                                for (int i = reversalNode.TCCrossReference.Count - 1; i >= 0 && reverseOffset >= 0; i--)
+                                for (int i = reversalNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseOffset >= 0; i--)
                                 {
-                                    reverseOffset -= reversalNode.TCCrossReference[i].Length;
-                                    sectionIndex = reversalNode.TCCrossReference[i].Index;
+                                    reverseOffset -= reversalNode.TrackCircuitCrossReferences[i].Length;
+                                    sectionIndex = reversalNode.TrackCircuitCrossReferences[i].Index;
                                     exti = i;
                                 }
-                                reverseOffset += reversalNode.TCCrossReference[exti].Length;
+                                reverseOffset += reversalNode.TrackCircuitCrossReferences[exti].Length;
                             }
                             RoughReversalInfo roughReversalInfo = new RoughReversalInfo(sublist + reversal, reverseOffset, sectionIndex);
                             RoughReversalInfos.Add(roughReversalInfo);
@@ -15643,35 +15643,35 @@ namespace Orts.Simulation.Physics
                         thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
                         if (currentDir == 0)
                         {
-                            for (int iTC = 0; iTC < thisNode.TCCrossReference.Count; iTC++)
+                            for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
                             {
                                 TCRouteElement thisElement =
                                   new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
                                 thisSubpath.Add(thisElement);
                                 //  SPA:    Station:    A adapter, 
                                 SetStationReference(TCRouteSubpaths, thisElement.TCSectionIndex, orgSignals);
-                                if (thisNode.TCCrossReference[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
+                                if (thisNode.TrackCircuitCrossReferences[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
                                 {
                                     break;
                                 }
                             }
-                            newDir = thisNode.TrPins[currentDir].Direction;
+                            newDir = thisNode.TrackPins[currentDir].Direction;
 
                         }
                         else
                         {
-                            for (int iTC = thisNode.TCCrossReference.Count - 1; iTC >= 0; iTC--)
+                            for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
                             {
                                 TCRouteElement thisElement =
                                     new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
                                 thisSubpath.Add(thisElement);
                                 SetStationReference(TCRouteSubpaths, thisElement.TCSectionIndex, orgSignals);
-                                if (thisNode.TCCrossReference[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
+                                if (thisNode.TrackCircuitCrossReferences[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
                                 {
                                     break;
                                 }
                             }
-                            newDir = thisNode.TrPins[currentDir].Direction;
+                            newDir = thisNode.TrackPins[currentDir].Direction;
                         }
                         sublist++;
                         thisSubpath = new TCSubpathRoute();
@@ -15685,7 +15685,7 @@ namespace Orts.Simulation.Physics
                 //
 
                 thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
-                TrVectorSection endFirstSection = (thisNode as TrackVectorNode).TrVectorSections[0];
+                TrVectorSection endFirstSection = (thisNode as TrackVectorNode).TrackVectorSections[0];
                 Traveller TDBEndTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, thisNode,
                                 endFirstSection.TileX, endFirstSection.TileZ,
                                 endFirstSection.X, endFirstSection.Z, (Traveller.TravellerDirection)1);
@@ -15701,10 +15701,10 @@ namespace Orts.Simulation.Physics
                 if (currentDir == 0)
                 {
                     reverseEndOffset = -endOffset;
-                    for (int i = thisNode.TCCrossReference.Count - 1; i >= 0 && reverseEndOffset <= 0; i--)
+                    for (int i = thisNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseEndOffset <= 0; i--)
                     {
-                        reverseEndOffset += thisNode.TCCrossReference[i].Length;
-                        endNodeSectionIndex = thisNode.TCCrossReference[i].Index;
+                        reverseEndOffset += thisNode.TrackCircuitCrossReferences[i].Length;
+                        endNodeSectionIndex = thisNode.TrackCircuitCrossReferences[i].Index;
 
                     }
                 }
@@ -15712,13 +15712,13 @@ namespace Orts.Simulation.Physics
                 {
                     int exti = 0;
                     reverseEndOffset = endOffset;
-                    for (int i = thisNode.TCCrossReference.Count - 1; i >= 0 && reverseEndOffset >= 0; i--)
+                    for (int i = thisNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseEndOffset >= 0; i--)
                     {
-                        reverseEndOffset -= thisNode.TCCrossReference[i].Length;
-                        endNodeSectionIndex = thisNode.TCCrossReference[i].Index;
+                        reverseEndOffset -= thisNode.TrackCircuitCrossReferences[i].Length;
+                        endNodeSectionIndex = thisNode.TrackCircuitCrossReferences[i].Index;
                         exti = i;
                     }
-                    reverseEndOffset += thisNode.TCCrossReference[exti].Length;
+                    reverseEndOffset += thisNode.TrackCircuitCrossReferences[exti].Length;
                 }
                 RoughReversalInfo lastReversalInfo = new RoughReversalInfo(sublist, reverseEndOffset, endNodeSectionIndex);
                 RoughReversalInfos.Add(lastReversalInfo);
@@ -15729,9 +15729,9 @@ namespace Orts.Simulation.Physics
                 {
                     if (currentDir == 0)
                     {
-                        for (int iTC = 0; iTC < thisNode.TCCrossReference.Count; iTC++)
+                        for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
                         {
-                            if ((thisNode.TCCrossReference[iTC].OffsetLength[1] + thisNode.TCCrossReference[iTC].Length) > endOffset)
+                            if ((thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[1] + thisNode.TrackCircuitCrossReferences[iTC].Length) > endOffset)
                             //                      if (thisNode.TCCrossReference[iTC].Position[0] < endOffset)
                             {
                                 TCRouteElement thisElement =
@@ -15746,9 +15746,9 @@ namespace Orts.Simulation.Physics
                     }
                     else
                     {
-                        for (int iTC = thisNode.TCCrossReference.Count - 1; iTC >= 0; iTC--)
+                        for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
                         {
-                            if (thisNode.TCCrossReference[iTC].OffsetLength[1] < endOffset)
+                            if (thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[1] < endOffset)
                             {
                                 TCRouteElement thisElement =
                                 new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
@@ -16202,7 +16202,7 @@ namespace Orts.Simulation.Physics
 
                 WPNode = aiPath.TrackDB.TrackNodes[pathNode.NextMainTVNIndex];
                 int idxSectionWP = ConvertWaitingPoint(pathNode, aiPath.TrackDB, aiPath.TSectionDat, direction);
-                firstSection = (WPNode as TrackVectorNode).TrVectorSections[0];
+                firstSection = (WPNode as TrackVectorNode).TrackVectorSections[0];
                 Traveller TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, WPNode,
                     firstSection.TileX, firstSection.TileZ,
                     firstSection.X, firstSection.Z, (Traveller.TravellerDirection)NodeDir);
@@ -16217,13 +16217,13 @@ namespace Orts.Simulation.Physics
                         pathNode.Location.Location.X,
                         pathNode.Location.Location.Y,
                         pathNode.Location.Location.Z);
-                    for (int idx = 0; idx < WPNode.TCCrossReference.Count(); idx++)
+                    for (int idx = 0; idx < WPNode.TrackCircuitCrossReferences.Count(); idx++)
                     {
-                        int TCSectionIndex = WPNode.TCCrossReference[idx].Index;
+                        int TCSectionIndex = WPNode.TrackCircuitCrossReferences[idx].Index;
                         if (TCSectionIndex == idxSectionWP)
                         {
-                            float sectionOffset = offset - WPNode.TCCrossReference[idx].OffsetLength[NodeDir];
-                            offset = WPNode.TCCrossReference[idx].Length - sectionOffset;
+                            float sectionOffset = offset - WPNode.TrackCircuitCrossReferences[idx].OffsetLength[NodeDir];
+                            offset = WPNode.TrackCircuitCrossReferences[idx].Length - sectionOffset;
                             break;
                         }
                     }
@@ -16236,12 +16236,12 @@ namespace Orts.Simulation.Physics
                         pathNode.Location.Location.X,
                         pathNode.Location.Location.Y,
                         pathNode.Location.Location.Z);
-                    for (int idx = 0; idx < WPNode.TCCrossReference.Count(); idx++)
+                    for (int idx = 0; idx < WPNode.TrackCircuitCrossReferences.Count(); idx++)
                     {
-                        int TCSectionIndex = WPNode.TCCrossReference[idx].Index;
+                        int TCSectionIndex = WPNode.TrackCircuitCrossReferences[idx].Index;
                         if (TCSectionIndex == idxSectionWP)
                         {
-                            offset = offset - WPNode.TCCrossReference[idx].OffsetLength[NodeDir];
+                            offset = offset - WPNode.TrackCircuitCrossReferences[idx].OffsetLength[NodeDir];
                             break;
                         }
                     }
@@ -16383,16 +16383,16 @@ namespace Orts.Simulation.Physics
 
                         int trackNodeIndex = thisPathNode.NextSidingTVNIndex;
 
-                        uint firstJunctionPin = (firstJunctionNode.InPins > 1) ? 0 : firstJunctionNode.InPins;
-                        if (firstJunctionNode.TrPins[firstJunctionPin].Link == trackNodeIndex)
+                        int firstJunctionPin = (firstJunctionNode.InPins > 1) ? 0 : firstJunctionNode.InPins;
+                        if (firstJunctionNode.TrackPins[firstJunctionPin].Link == trackNodeIndex)
                         {
-                            currentDir = firstJunctionNode.TrPins[firstJunctionPin].Direction;
+                            currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
                             thisJunctionElement.OutPin[1] = 0;
                         }
                         else
                         {
                             firstJunctionPin++;
-                            currentDir = firstJunctionNode.TrPins[firstJunctionPin].Direction;
+                            currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
                             thisJunctionElement.OutPin[1] = 1;
                         }
 
@@ -16416,24 +16416,24 @@ namespace Orts.Simulation.Physics
 
                                     if (currentDir == 0)
                                     {
-                                        for (int iTC = 0; iTC < thisNode.TCCrossReference.Count; iTC++)
+                                        for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
                                         {
                                             TCRouteElement thisElement =
                                                 new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
                                             thisAltpath.Add(thisElement);
                                         }
-                                        newDir = thisNode.TrPins[currentDir].Direction;
+                                        newDir = thisNode.TrackPins[currentDir].Direction;
 
                                     }
                                     else
                                     {
-                                        for (int iTC = thisNode.TCCrossReference.Count - 1; iTC >= 0; iTC--)
+                                        for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
                                         {
                                             TCRouteElement thisElement =
                                                 new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
                                             thisAltpath.Add(thisElement);
                                         }
-                                        newDir = thisNode.TrPins[currentDir].Direction;
+                                        newDir = thisNode.TrackPins[currentDir].Direction;
                                     }
                                     trackNodeIndex = -1;
                                 }
@@ -16453,23 +16453,23 @@ namespace Orts.Simulation.Physics
 
                                     if (thisPathNode.IsFacingPoint)   // exit is one of two switch paths //
                                     {
-                                        uint firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
-                                        if (junctionNode.TrPins[firstpin].Link == trackNodeIndex)
+                                        int firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
+                                        if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
                                         {
-                                            newDir = junctionNode.TrPins[firstpin].Direction;
+                                            newDir = junctionNode.TrackPins[firstpin].Direction;
                                             thisElement.OutPin[1] = 0;
                                         }
                                         else
                                         {
                                             firstpin++;
-                                            newDir = junctionNode.TrPins[firstpin].Direction;
+                                            newDir = junctionNode.TrackPins[firstpin].Direction;
                                             thisElement.OutPin[1] = 1;
                                         }
                                     }
                                     else  // exit is single path //
                                     {
-                                        uint firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
-                                        newDir = junctionNode.TrPins[firstpin].Direction;
+                                        int firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
+                                        newDir = junctionNode.TrackPins[firstpin].Direction;
                                     }
                                 }
 
@@ -16504,7 +16504,7 @@ namespace Orts.Simulation.Physics
 
                             if (currentDir == 0)
                             {
-                                for (int iTC = 0; iTC < thisNode.TCCrossReference.Count; iTC++)
+                                for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
                                 {
                                     TCRouteElement thisElement =
                                         new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
@@ -16513,7 +16513,7 @@ namespace Orts.Simulation.Physics
                             }
                             else
                             {
-                                for (int iTC = thisNode.TCCrossReference.Count - 1; iTC >= 0; iTC--)
+                                for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
                                 {
                                     TCRouteElement thisElement =
                                         new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
@@ -16585,16 +16585,16 @@ namespace Orts.Simulation.Physics
 
                         int trackNodeIndex = thisPathNode.NextSidingTVNIndex;
 
-                        uint firstJunctionPin = (firstJunctionNode.InPins > 1) ? 0 : firstJunctionNode.InPins;
-                        if (firstJunctionNode.TrPins[firstJunctionPin].Link == trackNodeIndex)
+                        int firstJunctionPin = (firstJunctionNode.InPins > 1) ? 0 : firstJunctionNode.InPins;
+                        if (firstJunctionNode.TrackPins[firstJunctionPin].Link == trackNodeIndex)
                         {
-                            currentDir = firstJunctionNode.TrPins[firstJunctionPin].Direction;
+                            currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
                             thisJunctionElement.OutPin[1] = 0;
                         }
                         else
                         {
                             firstJunctionPin++;
-                            currentDir = firstJunctionNode.TrPins[firstJunctionPin].Direction;
+                            currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
                             thisJunctionElement.OutPin[1] = 1;
                         }
 
@@ -16618,24 +16618,24 @@ namespace Orts.Simulation.Physics
 
                                     if (currentDir == 0)
                                     {
-                                        for (int iTC = 0; iTC < thisNode.TCCrossReference.Count; iTC++)
+                                        for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
                                         {
                                             TCRouteElement thisElement =
                                                 new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
                                             thisAltpath.Add(thisElement);
                                         }
-                                        newDir = thisNode.TrPins[currentDir].Direction;
+                                        newDir = thisNode.TrackPins[currentDir].Direction;
 
                                     }
                                     else
                                     {
-                                        for (int iTC = thisNode.TCCrossReference.Count - 1; iTC >= 0; iTC--)
+                                        for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
                                         {
                                             TCRouteElement thisElement =
                                                 new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
                                             thisAltpath.Add(thisElement);
                                         }
-                                        newDir = thisNode.TrPins[currentDir].Direction;
+                                        newDir = thisNode.TrackPins[currentDir].Direction;
                                     }
                                     trackNodeIndex = -1;
                                 }
@@ -16655,23 +16655,23 @@ namespace Orts.Simulation.Physics
 
                                     if (thisPathNode.IsFacingPoint)   // exit is one of two switch paths //
                                     {
-                                        uint firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
-                                        if (junctionNode.TrPins[firstpin].Link == trackNodeIndex)
+                                        int firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
+                                        if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
                                         {
-                                            newDir = junctionNode.TrPins[firstpin].Direction;
+                                            newDir = junctionNode.TrackPins[firstpin].Direction;
                                             thisElement.OutPin[1] = 0;
                                         }
                                         else
                                         {
                                             firstpin++;
-                                            newDir = junctionNode.TrPins[firstpin].Direction;
+                                            newDir = junctionNode.TrackPins[firstpin].Direction;
                                             thisElement.OutPin[1] = 1;
                                         }
                                     }
                                     else  // exit is single path //
                                     {
-                                        uint firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
-                                        newDir = junctionNode.TrPins[firstpin].Direction;
+                                        int firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
+                                        newDir = junctionNode.TrackPins[firstpin].Direction;
                                     }
                                 }
 
@@ -16706,7 +16706,7 @@ namespace Orts.Simulation.Physics
 
                             if (currentDir == 0)
                             {
-                                for (int iTC = 0; iTC < thisNode.TCCrossReference.Count; iTC++)
+                                for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
                                 {
                                     TCRouteElement thisElement =
                                         new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
@@ -16715,7 +16715,7 @@ namespace Orts.Simulation.Physics
                             }
                             else
                             {
-                                for (int iTC = thisNode.TCCrossReference.Count - 1; iTC >= 0; iTC--)
+                                for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
                                 {
                                     TCRouteElement thisElement =
                                         new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
@@ -17231,7 +17231,7 @@ namespace Orts.Simulation.Physics
             static int ConvertWaitingPoint(AIPathNode stopPathNode, TrackDB TrackDB, TrackSectionsFile TSectionDat, int direction)
             {
                 TrackVectorNode waitingNode = TrackDB.TrackNodes[stopPathNode.NextMainTVNIndex] as TrackVectorNode;
-                TrVectorSection firstSection = waitingNode.TrVectorSections[0];
+                TrVectorSection firstSection = waitingNode.TrackVectorSections[0];
                 Traveller TDBTrav = new Traveller(TSectionDat, TrackDB.TrackNodes, waitingNode,
                                 firstSection.TileX, firstSection.TileZ,
                                 firstSection.X, firstSection.Z, (Traveller.TravellerDirection)1);
@@ -17243,18 +17243,18 @@ namespace Orts.Simulation.Physics
 
                 int TCSectionIndex = -1;
 
-                for (int iXRef = waitingNode.TCCrossReference.Count - 1; iXRef >= 0 && TCSectionIndex < 0; iXRef--)
+                for (int iXRef = waitingNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0 && TCSectionIndex < 0; iXRef--)
                 {
                     if (offset <
-                     (waitingNode.TCCrossReference[iXRef].OffsetLength[1] + waitingNode.TCCrossReference[iXRef].Length))
+                     (waitingNode.TrackCircuitCrossReferences[iXRef].OffsetLength[1] + waitingNode.TrackCircuitCrossReferences[iXRef].Length))
                     {
-                        TCSectionIndex = waitingNode.TCCrossReference[iXRef].Index;
+                        TCSectionIndex = waitingNode.TrackCircuitCrossReferences[iXRef].Index;
                     }
                 }
 
                 if (TCSectionIndex < 0)
                 {
-                    TCSectionIndex = waitingNode.TCCrossReference[0].Index;
+                    TCSectionIndex = waitingNode.TrackCircuitCrossReferences[0].Index;
                 }
 
                 return TCSectionIndex;
@@ -17559,7 +17559,7 @@ namespace Orts.Simulation.Physics
 
             public TCRouteElement(TrackNode thisNode, int TCIndex, int direction, Signals mySignals)
             {
-                TCSectionIndex = thisNode.TCCrossReference[TCIndex].Index;
+                TCSectionIndex = thisNode.TrackCircuitCrossReferences[TCIndex].Index;
                 Direction = direction;
                 OutPin[0] = direction;
                 OutPin[1] = 0;           // always 0 for NORMAL sections, updated for JUNCTION sections
@@ -17568,10 +17568,10 @@ namespace Orts.Simulation.Physics
                 if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
                 {
                     int outPinLink = direction;
-                    int nextIndex = thisNode.TCCrossReference[TCIndex + 1].Index;
+                    int nextIndex = thisNode.TrackCircuitCrossReferences[TCIndex + 1].Index;
                     if (direction == 1)
                     {
-                        nextIndex = thisNode.TCCrossReference[TCIndex - 1].Index;
+                        nextIndex = thisNode.TrackCircuitCrossReferences[TCIndex - 1].Index;
                     }
                     OutPin[1] = (thisSection.Pins[outPinLink, 0].Link == nextIndex) ? 0 : 1;
                 }
@@ -18270,7 +18270,7 @@ namespace Orts.Simulation.Physics
                 int direction = (int)train.FrontTDBTraveller.Direction;
 
                 TCPosition tempPosition = new TCPosition();
-                tempPosition.SetTCPosition(tn.TCCrossReference, offset, direction);
+                tempPosition.SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
                 TCSectionIndex = inf.ReadInt32();
                 TCDirection = inf.ReadInt32();
@@ -18297,7 +18297,7 @@ namespace Orts.Simulation.Physics
                 int direction = (int)train.RearTDBTraveller.Direction;
 
                 TCPosition tempPosition = new TCPosition();
-                tempPosition.SetTCPosition(tn.TCCrossReference, offset, direction);
+                tempPosition.SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
                 TCSectionIndex = inf.ReadInt32();
                 TCDirection = inf.ReadInt32();
@@ -20262,7 +20262,7 @@ namespace Orts.Simulation.Physics
             float offset = FrontTDBTraveller.TrackNodeOffset;
             int direction1 = (int)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction1);
+            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction1);
             PresentPosition[0].CopyTo(ref PreviousPosition[0]);
         }
     }// class Train

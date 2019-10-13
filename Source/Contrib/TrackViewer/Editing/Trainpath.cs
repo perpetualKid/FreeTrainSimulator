@@ -613,9 +613,9 @@ namespace ORTS.TrackViewer.Editing
 
             TrackVectorNode tvn = trackDB.TrackNodes[tvnIndex] as TrackVectorNode;
             if (tvn == null) return stationNames;
-            if (tvn.TrItemRefs == null) return stationNames;
+            if (tvn.TrackItemIndices == null) return stationNames;
 
-            foreach (int trackItemIndex in tvn.TrItemRefs)
+            foreach (int trackItemIndex in tvn.TrackItemIndices)
             {
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem)

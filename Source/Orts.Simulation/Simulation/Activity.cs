@@ -637,28 +637,20 @@ namespace Orts.Simulation
         [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
         static void InsertTrItemRef(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackVectorNode thisVectorNode, int newTrItemId, float offset)
         {
-            int[] newTrItemRefs = new int[thisVectorNode.NoItemRefs + 1];
-            if (thisVectorNode.NoItemRefs > 0)
+            int index = 0;
+            // insert the new TrItemRef accordingly to its offset
+            for (int iTrItems = thisVectorNode.TrackItemIndices.Length - 1; iTrItems >= 0; iTrItems--)
             {
-                thisVectorNode.TrItemRefs.CopyTo(newTrItemRefs, 0);
-                // insert the new TrItemRef accordingly to its offset
-                for (int iTrItems = thisVectorNode.NoItemRefs - 1; iTrItems >= 0; iTrItems--)
+                int currTrItemID = thisVectorNode.TrackItemIndices[iTrItems];
+                TrackItem currTrItem = trackDB.TrackItems[currTrItemID];
+                Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, currTrItem.TileX, currTrItem.TileZ, currTrItem.X, currTrItem.Z);
+                if (offset >= traveller.TrackNodeOffset)
                 {
-                    var currTrItemID = newTrItemRefs[iTrItems];
-                    var currTrItem = trackDB.TrackItems[currTrItemID];
-                    Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, currTrItem.TileX, currTrItem.TileZ, currTrItem.X, currTrItem.Z);
-                    if (offset >= traveller.TrackNodeOffset)
-                    {
-                        newTrItemRefs[iTrItems + 1] = newTrItemId;
-                        break;
-                    }
-                    else newTrItemRefs[iTrItems + 1] = currTrItemID;
-                    if (iTrItems == 0) newTrItemRefs[0] = newTrItemId;
+                    index = iTrItems + 1;
+                    break;
                 }
             }
-            else newTrItemRefs[0] = newTrItemId;
-            thisVectorNode.TrItemRefs = newTrItemRefs; //use the new item lists for the track node
-            thisVectorNode.NoItemRefs++;
+            thisVectorNode.InsertTrackItemIndex(newTrItemId, index);
         }
 
         public void AssociateEvents(Train train)

@@ -84,8 +84,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
             var sortedLevelCrossings = new SortedList<float, LevelCrossingItem>();
             for (var crossingTraveller = new Traveller(Traveller); crossingTraveller.NextSection(); )
-                if (crossingTraveller.IsTrack && (crossingTraveller.TN as TrackVectorNode).TrItemRefs != null)
-                    foreach (var trItemRef in (crossingTraveller.TN as TrackVectorNode).TrItemRefs)
+                if (crossingTraveller.IsTrack && (crossingTraveller.TN as TrackVectorNode).TrackItemIndices != null)
+                    foreach (var trItemRef in (crossingTraveller.TN as TrackVectorNode).TrackItemIndices)
                         if (Viewer.Simulator.LevelCrossings.RoadCrossingItems.ContainsKey(trItemRef))
                             sortedLevelCrossings[Viewer.Simulator.LevelCrossings.RoadCrossingItems[trItemRef].DistanceTo(Traveller)] = Viewer.Simulator.LevelCrossings.RoadCrossingItems[trItemRef];
 

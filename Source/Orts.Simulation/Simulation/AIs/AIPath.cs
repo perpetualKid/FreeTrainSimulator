@@ -239,7 +239,7 @@ namespace Orts.Simulation.AIs
             if (junctionIndex < 0 || vectorIndex < 0)
                 return false;
             TrackJunctionNode tn = TrackDB.TrackNodes[junctionIndex] as TrackJunctionNode;
-            if (tn == null || tn.TrPins[0].Link == vectorIndex)
+            if (tn == null || tn.TrackPins[0].Link == vectorIndex)
                 return false;
             return true;
         }
@@ -447,13 +447,13 @@ namespace Orts.Simulation.AIs
             {
                 if (!(TDB.TrackDB.TrackNodes[i] is TrackVectorNode tn))
                     continue;
-                if (tn.TrPins[0].Link == junctionIndexThis && tn.TrPins[1].Link == junctionIndexNext)
+                if (tn.TrackPins[0].Link == junctionIndexThis && tn.TrackPins[1].Link == junctionIndexNext)
                 {
                     iCand = i;
                     if (i != previousNextMainTVNIndex) break;
                     Trace.TraceInformation("Managing rocket loop at trackNode {0}", iCand);
                 }
-                else if (tn.TrPins[1].Link == junctionIndexThis && tn.TrPins[0].Link == junctionIndexNext)
+                else if (tn.TrackPins[1].Link == junctionIndexThis && tn.TrackPins[0].Link == junctionIndexNext)
                 {
                     iCand = i;
                     if (i != previousNextMainTVNIndex) break;
