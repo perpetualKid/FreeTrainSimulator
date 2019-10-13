@@ -188,10 +188,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     {
         protected float animationKey;  // tracks position of points as they move left and right
 
-        private readonly TrJunctionNode trackJunctionNode;  // has data on current aligment for the switch
+        private readonly TrackJunctionNode trackJunctionNode;  // has data on current aligment for the switch
         private readonly uint mainRoute;                  // 0 or 1 - which route is considered the main route
 
-        public SwitchTrackShape(string path, IWorldPosition positionSource, TrJunctionNode trackJunctionNode)
+        public SwitchTrackShape(string path, IWorldPosition positionSource, TrackJunctionNode trackJunctionNode)
             : base(path, positionSource, ShapeFlags.AutoZBias)
         {
             this.trackJunctionNode = trackJunctionNode;

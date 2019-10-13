@@ -310,7 +310,7 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>true if this node entered from the facing point end</summary>
         public bool IsFacingPoint { get; set; }
         /// <summary>Does the current junction node happen to be an end-node (so not a real junction)</summary>
-        public bool IsEndNode { get { return (TrackDB.TrackNodes[JunctionIndex].TrEndNode); } }
+        public bool IsEndNode { get { return (TrackDB.TrackNodes[JunctionIndex] is TrackEndNode); } }
         /// <summary>Return the vector node index of the main path leaving this junction (main being defined as the first one defined)</summary>
         public int MainTvn { get { return TrackDB.TrackNodes[JunctionIndex].MainTvn(); } }
         /// <summary>Return the vector node index of the siding path leaving this junction (siding being defined as the second one defined)</summary>
@@ -368,8 +368,9 @@ namespace ORTS.TrackViewer.Editing
             {
                 TrackNode tn = TrackDB.TrackNodes[j];
                 if (tn == null) continue;
-                if (wantJunctionNode && (tn.TrJunctionNode == null)) continue;
-                if (!wantJunctionNode && !tn.TrEndNode) continue;
+
+                if (wantJunctionNode && !(tn is TrackJunctionNode)) continue;
+                if (!wantJunctionNode && !(tn is TrackEndNode)) continue;
                 if (tn.UiD.Location.TileX != Location.TileX || tn.UiD.Location.TileZ != Location.TileZ) continue;
 
                 float dx = tn.UiD.Location.Location.X - Location.Location.X;
@@ -399,9 +400,8 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public void SetFacingPoint()
         {
-            TrackNode tn = TrackDB.TrackNodes[JunctionIndex];
+            TrackJunctionNode tn = TrackDB.TrackNodes[JunctionIndex] as TrackJunctionNode;
             if (tn == null) return;  // Leave IsFacingPoint to what it is.
-            if (tn.TrJunctionNode == null) return;  // Leave IsFacingPoint to what it is.
                 
             //First try using the next main index
             if (NextMainNode != null && NextMainTvnIndex >= 0)
@@ -441,10 +441,9 @@ namespace ORTS.TrackViewer.Editing
             //Probably this can be faster, by just finding the TrPins from this and next junction and find the common one.
             int nextJunctionIndex = (nextNode as TrainpathJunctionNode).JunctionIndex;
 
-            for (int i = 0; i < TrackDB.TrackNodes.Count(); i++)
+            for (int i = 0; i < TrackDB.TrackNodes.Length; i++)
             {
-                TrackNode tn = TrackDB.TrackNodes[i];
-                if (tn == null || tn.TrVectorNode == null)
+                if (!(TrackDB.TrackNodes[i] is TrackVectorNode tn))
                     continue;
                 if ((tn.JunctionIndexAtStart() == this.JunctionIndex && tn.JunctionIndexAtEnd() == nextJunctionIndex)
                    || (tn.JunctionIndexAtEnd() == this.JunctionIndex && tn.JunctionIndexAtStart() == nextJunctionIndex))
@@ -543,7 +542,7 @@ namespace ORTS.TrackViewer.Editing
             TrackNode tn = TrackDB.TrackNodes[JunctionIndex];
             if (tn == null) return false;
 
-            foreach (TrPin pin in tn.TrPins)
+            foreach (TrackPin pin in tn.TrPins)
             {
                 if (pin.Link == trackIndex)
                 {
@@ -770,14 +769,14 @@ namespace ORTS.TrackViewer.Editing
         private float GetSectionStartDistance()
         {
             float distanceFromStart = 0;
-            TrackNode tn = TrackDB.TrackNodes[TvnIndex];
+            TrackVectorNode tn = TrackDB.TrackNodes[TvnIndex] as TrackVectorNode;
             for (int tvsi = 0; tvsi < TrackVectorSectionIndex; tvsi++)
             {
-                TrVectorSection tvs = tn.TrVectorNode.TrVectorSections[tvsi];
+                TrVectorSection tvs = tn.TrVectorSections[tvsi];
                 TrackSection trackSection = TsectionDat.TrackSections.Get(tvs.SectionIndex);
                 if (trackSection != null)  // if trackSection is missing somehow, well, do without.
                 {
-                    distanceFromStart += ORTS.TrackViewer.Drawing.DrawTrackDB.GetLength(trackSection);
+                    distanceFromStart += DrawTrackDB.GetLength(trackSection);
                 }
             }
             return distanceFromStart;

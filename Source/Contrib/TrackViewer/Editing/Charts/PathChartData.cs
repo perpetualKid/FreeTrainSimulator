@@ -204,19 +204,12 @@ namespace ORTS.TrackViewer.Editing.Charts
 
             TrackNode tn = trackDB.TrackNodes[thisNode.NextMainTvnIndex];
 
-            TrVectorNode vectorNode = tn.TrVectorNode;
+            TrackVectorNode vectorNode = tn as TrackVectorNode;
             var trackItemsInTracknode = trackItems.GetItemsInTracknode(tn);
 
 
-            bool isForward;
-            bool isReverse; // only dummy out argument
-            int tvsiStart;
-            int tvsiStop;
-            float sectionOffsetStart;
-            float sectionOffsetStop;
-
-            DetermineSectionDetails(thisNode, nextNode, tn, out isForward, out tvsiStart, out sectionOffsetStart);
-            DetermineSectionDetails(nextNode, thisNode, tn, out isReverse, out tvsiStop,  out sectionOffsetStop);
+            DetermineSectionDetails(thisNode, nextNode, tn, out bool isForward, out int tvsiStart, out float sectionOffsetStart);
+            DetermineSectionDetails(nextNode, thisNode, tn, out bool isReverse, out int tvsiStop,  out float sectionOffsetStop);
 
             float height;
             if (isForward)
@@ -228,7 +221,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                     height = vectorNode.TrVectorSections[tvsi].Y;
                     AddPointAndTrackItems(newPoints, vectorNode, trackItemsInTracknode, isForward, height, tvsi, 0, sectionOffsetNext);
 
-                    sectionOffsetNext = SectionLengthAlongTrack(tn, tvsi-1);
+                    sectionOffsetNext = SectionLengthAlongTrack(vectorNode, tvsi-1);
                 }
 
                 //Also works in case this is the only point we are adding
@@ -243,7 +236,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 {
                     // The height needs to come from the end of the section, so the where the next section starts. And we only know the height at the start.
                     height = vectorNode.TrVectorSections[tvsi+1].Y;
-                    AddPointAndTrackItems(newPoints, vectorNode, trackItemsInTracknode, isForward, height, tvsi, sectionOffsetNext, SectionLengthAlongTrack(tn, tvsi));
+                    AddPointAndTrackItems(newPoints, vectorNode, trackItemsInTracknode, isForward, height, tvsi, sectionOffsetNext, SectionLengthAlongTrack(vectorNode, tvsi));
 
                     sectionOffsetNext = 0;
                 }
@@ -279,7 +272,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="tvsi">The section index in the track vector node</param>
         /// <param name="sectionOffsetStart">Offset of the start of this section (in forward direction of track, not of path)</param>
         /// <param name="sectionOffsetEnd">Offset of the end of this section (in forward direction of track, not of path)</param>
-        private void AddPointAndTrackItems(List<PathChartPoint> newPoints, TrVectorNode vectorNode, IEnumerable<ChartableTrackItem> trackItems,
+        private void AddPointAndTrackItems(List<PathChartPoint> newPoints, TrackVectorNode vectorNode, IEnumerable<ChartableTrackItem> trackItems,
             bool isForward, float height, int tvsi, float sectionOffsetStart, float sectionOffsetEnd)
         {
             //Note, we are adding points in in reverse direction
@@ -334,7 +327,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="vectorNode">The vector track node</param>
         /// <param name="tvsi">The tracknode vector section index in the given verctor track node</param>
         /// <param name="isForward">Is the path in the same direction as the vector track node?</param>
-        private float GetCurvature(TrVectorNode vectorNode, int tvsi, bool isForward)
+        private float GetCurvature(TrackVectorNode vectorNode, int tvsi, bool isForward)
         {
             TrVectorSection tvs = vectorNode.TrVectorSections[tvsi];
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
@@ -375,8 +368,9 @@ namespace ORTS.TrackViewer.Editing.Charts
                 }
                 else
                 {
-                    tvsiStart = tn.TrVectorNode.TrVectorSections.Count() - 1;
-                    sectionOffsetStart = SectionLengthAlongTrack(tn, tvsiStart);
+                    TrackVectorNode tvn = tn as TrackVectorNode;
+                    tvsiStart = tvn.TrVectorSections.Length - 1;
+                    sectionOffsetStart = SectionLengthAlongTrack(tvn, tvsiStart);
                 }
             }
             else
@@ -392,10 +386,10 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="tn">The current tracknode, which needs to be a vector node</param>
         /// <param name="tvsi">The track vector section index</param>
-        private float SectionLengthAlongTrack(TrackNode tn, int tvsi)
+        private float SectionLengthAlongTrack(TrackVectorNode tn, int tvsi)
         {
             float fullSectionLength;
-            TrVectorSection tvs = tn.TrVectorNode.TrVectorSections[tvsi];
+            TrVectorSection tvs = tn.TrVectorSections[tvsi];
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
             if (trackSection == null)
             {
@@ -450,7 +444,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                     return 0;
                 }
                 else{
-                    return trackDB.TrackNodes[node.NextMainTvnIndex].TrVectorNode.TrVectorSections.Count() - 1;
+                    return (trackDB.TrackNodes[node.NextMainTvnIndex] as TrackVectorNode).TrVectorSections.Length - 1;
                 }
             }
         }
@@ -607,8 +601,8 @@ namespace ORTS.TrackViewer.Editing.Charts
             }
 
             List<ChartableTrackItem> tracknodeItems = new List<ChartableTrackItem>();
-            TrVectorNode vectorNode = tn.TrVectorNode;
-            if (vectorNode.TrItemRefs == null) return tracknodeItems;
+            TrackVectorNode vectorNode = tn as TrackVectorNode;
+            if (vectorNode?.TrItemRefs == null) return tracknodeItems;
 
             foreach (int trackItemIndex in vectorNode.TrItemRefs)
             {

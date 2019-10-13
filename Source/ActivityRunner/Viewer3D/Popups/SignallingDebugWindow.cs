@@ -132,11 +132,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             var signalObj = obj as TrackSectionSignal;
                             if (switchObj != null)
                             {
-                                for (var pin = switchObj.TrackNode.Inpins; pin < switchObj.TrackNode.Inpins + switchObj.TrackNode.Outpins; pin++)
+                                for (var pin = switchObj.JunctionNode.InPins; pin < switchObj.JunctionNode.InPins + switchObj.JunctionNode.OutPins; pin++)
                                 {
-                                    if (switchObj.TrackNode.TrPins[pin].Link == switchObj.NodeIndex)
+                                    if (switchObj.JunctionNode.TrPins[pin].Link == switchObj.NodeIndex)
                                     {
-                                        if (pin - switchObj.TrackNode.Inpins != switchObj.TrackNode.TrJunctionNode.SelectedRoute)
+                                        if (pin - switchObj.JunctionNode.InPins != switchObj.JunctionNode.SelectedRoute)
                                             switchErrorDistance = objDistance;
                                         break;
                                     }
@@ -211,7 +211,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             }
                             else if (switchObj != null)
                             {
-								primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, objDistance >= switchErrorDistance ? Color.Red : Color.White, String.Format("Switch ({0}, {1}-way, {2} set)", switchObj.TrackNode.Index, switchObj.TrackNode.Outpins, switchObj.TrackNode.TrJunctionNode.SelectedRoute + 1), Owner.TextFontDefaultOutlined));
+								primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, objDistance >= switchErrorDistance ? Color.Red : Color.White, 
+                                    $"Switch ({switchObj.JunctionNode.Index}, {switchObj.JunctionNode.OutPins}-way, {switchObj.JunctionNode.SelectedRoute + 1} set)", Owner.TextFontDefaultOutlined));
                             }
                             else if (signalObj != null)
                             {
@@ -272,7 +273,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (trackNode.IsEnd)
                     rv.Objects.Add(new TrackSectionEndOfLine() { Distance = rv.Length });
                 else if (trackNode.IsJunction)
-                    rv.Objects.Add(new TrackSectionSwitch() { Distance = rv.Length, TrackNode = trackNode.TN, NodeIndex = nodeIndex });
+                    rv.Objects.Add(new TrackSectionSwitch() { Distance = rv.Length, JunctionNode = trackNode.TN as TrackJunctionNode, NodeIndex = nodeIndex });
                 else
                     rv.Objects.Add(new TrackSectionObject() { Distance = rv.Length }); // Always have an object at the end.
                 if (trackNode.TrackNodeIndex != nodeIndex)
@@ -361,7 +362,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public class TrackSectionSwitch : TrackSectionObject
         {
-            public TrackNode TrackNode;
+            public TrackJunctionNode JunctionNode;
             public int NodeIndex;
         }
 

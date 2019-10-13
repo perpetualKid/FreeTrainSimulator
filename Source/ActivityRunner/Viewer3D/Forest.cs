@@ -244,8 +244,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     foreach (var node in Viewer.Simulator.TDB.TrackDB.TrackNodes)
                     {
-                        if (node == null || node.TrVectorNode == null) continue;
-                        foreach (var section in node.TrVectorNode.TrVectorSections)
+                        if (!(node is TrackVectorNode trackVectorNode))
+                            continue;
+                        foreach (var section in trackVectorNode.TrVectorSections)
                         {
                             var key = "" + section.WFNameX + "." + section.WFNameZ;
                             if (!SectionMap.ContainsKey(key)) SectionMap.Add(key, new List<TrVectorSection>());
@@ -259,8 +260,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         foreach (var node in Viewer.Simulator.RDB.RoadTrackDB.TrackNodes)
                         {
-                            if (node == null || node.TrVectorNode == null) continue;
-                            foreach (var section in node.TrVectorNode.TrVectorSections)
+                            if (!(node is TrackVectorNode trackVectorNode))
+                                continue;
+                            foreach (var section in trackVectorNode.TrVectorSections)
                             {
                                 var key = "" + section.WFNameX + "." + section.WFNameZ;
                                 if (!SectionMap.ContainsKey(key)) SectionMap.Add(key, new List<TrVectorSection>());

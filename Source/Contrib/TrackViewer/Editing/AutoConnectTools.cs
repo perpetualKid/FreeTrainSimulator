@@ -376,7 +376,7 @@ namespace ORTS.TrackViewer.Editing
 
             // Search further along the next Tvns that we can try.
             Orts.Formats.Msts.TrackNode tn = TrackExtensions.TrackNode(currentJunctionIndex);
-            if (tn.TrEndNode)
+            if (tn is Orts.Formats.Msts.TrackEndNode)
             {
                 return false;
             }

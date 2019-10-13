@@ -47,8 +47,8 @@ namespace Orts.Simulation
 		static Dictionary<int, Hazzard> GetHazardsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
 		{
 			return (from trackNode in trackNodes
-					where trackNode != null && trackNode.TrVectorNode != null && trackNode.TrVectorNode.NoItemRefs > 0
-					from itemRef in trackNode.TrVectorNode.TrItemRefs.Distinct()
+					where trackNode is TrackVectorNode tvn && tvn.NoItemRefs > 0
+					from itemRef in (trackNode as TrackVectorNode)?.TrItemRefs.Distinct()
 					where trItemTable[itemRef] != null && trItemTable[itemRef] is HazzardItem
 					select new KeyValuePair<int, Hazzard>(itemRef, new Hazzard(trackNode, trItemTable[itemRef])))
 					.ToDictionary(_ => _.Key, _ => _.Value);

@@ -66,10 +66,9 @@
     <Compile Include="Files\ConsistFile.cs" />
     <Compile Include="Files\CabViewFile.cs" />
     <Compile Include="Models\Hazard.cs" />
-    <Compile Include="Models\RoadTracks.cs" />
+    <Compile Include="Models\RoadTrack.cs" />
     <Compile Include="Models\Shape.cs" />
     <Compile Include="Models\TimeTable.cs" />
-    <Compile Include="Models\TrackType.cs" />
     <Compile Include="Models\CarSpawner.cs" />
     <Compile Include="Files\EngineFile.cs" />
     <Compile Include="Models\EnvironmentLayer.cs" />

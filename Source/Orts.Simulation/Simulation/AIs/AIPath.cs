@@ -238,8 +238,8 @@ namespace Orts.Simulation.AIs
         {
             if (junctionIndex < 0 || vectorIndex < 0)
                 return false;
-            TrackNode tn = TrackDB.TrackNodes[junctionIndex];
-            if (tn.TrJunctionNode == null || tn.TrPins[0].Link == vectorIndex)
+            TrackJunctionNode tn = TrackDB.TrackNodes[junctionIndex] as TrackJunctionNode;
+            if (tn == null || tn.TrPins[0].Link == vectorIndex)
                 return false;
             return true;
         }
@@ -445,8 +445,7 @@ namespace Orts.Simulation.AIs
             var iCand = -1;
             for (int i = 0; i < TDB.TrackDB.TrackNodes.Count(); i++)
             {
-                TrackNode tn = TDB.TrackDB.TrackNodes[i];
-                if (tn == null || tn.TrVectorNode == null)
+                if (!(TDB.TrackDB.TrackNodes[i] is TrackVectorNode tn))
                     continue;
                 if (tn.TrPins[0].Link == junctionIndexThis && tn.TrPins[1].Link == junctionIndexNext)
                 {
@@ -493,8 +492,8 @@ namespace Orts.Simulation.AIs
             {
                 TrackNode tn = trackDB.TrackNodes[j];
                 if (tn == null) continue;
-                if (wantJunctionNode && (tn.TrJunctionNode == null)) continue;
-                if (!wantJunctionNode && !tn.TrEndNode) continue;
+                if (wantJunctionNode && !(tn is TrackJunctionNode)) continue;
+                if (!wantJunctionNode && !(tn is TrackEndNode)) continue;
                 if (tn.UiD.Location.TileX != location.TileX || tn.UiD.Location.TileZ != location.TileZ) continue;
 
                 float dx = tn.UiD.Location.Location.X - location.Location.X;

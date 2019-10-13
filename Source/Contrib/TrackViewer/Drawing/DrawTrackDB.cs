@@ -291,19 +291,15 @@ namespace ORTS.TrackViewer.Drawing
             MaxTileZ = -1000000;
             for (int tni = 0; tni < trackDB.TrackNodes.Length; tni++)
             {
-                TrackNode tn = trackDB.TrackNodes[tni];
-                if (tn == null) continue;
+                if (!(trackDB.TrackNodes[tni] is TrackVectorNode tn)) continue;
 
-                if (tn.TrVectorNode != null)
+                for (int tvsi = 0; tvsi < tn.TrVectorSections.Length; tvsi++)
                 {
-                    for (int tvsi = 0; tvsi < tn.TrVectorNode.TrVectorSections.Length; tvsi++)
-                    {
-                        TrVectorSection tvs = tn.TrVectorNode.TrVectorSections[tvsi];
-                        if (tvs.TileX < MinTileX) { MinTileX = tvs.TileX; };
-                        if (tvs.TileZ < MinTileZ) { MinTileZ = tvs.TileZ; };
-                        if (tvs.TileX > MaxTileX) { MaxTileX = tvs.TileX; };
-                        if (tvs.TileZ > MaxTileZ) { MaxTileZ = tvs.TileZ; };
-                    }
+                    TrVectorSection tvs = tn.TrVectorSections[tvsi];
+                    if (tvs.TileX < MinTileX) { MinTileX = tvs.TileX; };
+                    if (tvs.TileZ < MinTileZ) { MinTileZ = tvs.TileZ; };
+                    if (tvs.TileX > MaxTileX) { MaxTileX = tvs.TileX; };
+                    if (tvs.TileZ > MaxTileZ) { MaxTileZ = tvs.TileZ; };
                 }
             }
         }
@@ -315,16 +311,14 @@ namespace ORTS.TrackViewer.Drawing
         {
             foreach (TrackNode tn in trackDB.TrackNodes)
             {
-                if (tn == null) continue;
-                TrVectorNode tvn= tn.TrVectorNode;
-                if (tvn == null) continue;
-                if (tvn.TrItemRefs == null) continue;
+                if (!(tn is TrackVectorNode trackVectorNode))
+                    continue;
+                if (trackVectorNode.TrItemRefs == null) continue;
 
-                foreach (int trackItemIndex in tvn.TrItemRefs)
+                foreach (int trackItemIndex in trackVectorNode.TrItemRefs)
                 {
                     DrawableTrackItem trackItem = railTrackItemTable[trackItemIndex];
-                    DrawableSignalItem signalItem = trackItem as DrawableSignalItem;
-                    if (signalItem != null)
+                    if (trackItem is DrawableSignalItem signalItem)
                     {
                         signalItem.FindAngle(tsectionDat, trackDB, tn);
                         signalItem.DetermineIfNormal(sigcfgFile);
@@ -344,23 +338,21 @@ namespace ORTS.TrackViewer.Drawing
                 if (tn == null) continue;
                 endnodeAngles[tn.Index] = 0;//default value in case we cannot find a better one
 
-                if (tn.TrEndNode)
+                if (tn is TrackEndNode)
                 {
                     int connectedVectorNodeIndex = tn.TrPins[0].Link;
-                    TrackNode connectedVectorNode = trackDB.TrackNodes[connectedVectorNodeIndex];
-                    if (connectedVectorNode == null) continue;
-                    if (connectedVectorNode.TrVectorNode == null) continue;
+                    if (!(trackDB.TrackNodes[connectedVectorNodeIndex] is TrackVectorNode connectedVectorNode)) continue;
 
                     if (connectedVectorNode.TrPins[0].Link == tni)
                     {
                         //find angle at beginning of vector node
-                        TrVectorSection tvs = connectedVectorNode.TrVectorNode.TrVectorSections[0];
+                        TrVectorSection tvs = connectedVectorNode.TrVectorSections[0];
                         endnodeAngles[tn.Index] = tvs.AY;
                     }
                     else
                     {
                         //find angle at end of vector node
-                        TrVectorSection tvs = connectedVectorNode.TrVectorNode.TrVectorSections.Last();
+                        TrVectorSection tvs = connectedVectorNode.TrVectorSections.Last();
                         endnodeAngles[tn.Index] = tvs.AY;
                         try
                         { // try to get even better in case the last section is curved
@@ -435,8 +427,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>
         /// For each of the various types of tracknodes we list the ones per tile.
         /// </summary>
-        List<TrackNode>[][] availableRailVectorNodeIndexes;
-        List<TrackNode>[][] availableRoadVectorNodeIndexes;
+        List<TrackVectorNode>[][] availableRailVectorNodeIndexes;
+        List<TrackVectorNode>[][] availableRoadVectorNodeIndexes;
         List<TrackNode>[][] availablePointNodeIndexes;
         List<DrawableTrackItem>[][] availableRailItemIndexes;
         List<DrawableTrackItem>[][] availableRoadItemIndexes;
@@ -448,8 +440,8 @@ namespace ORTS.TrackViewer.Drawing
         void FillAvailableIndexes()
         {
             SetTileIndexes(MinTileX, MaxTileX, MinTileZ, MaxTileZ);
-            availableRailVectorNodeIndexes = new List<TrackNode>[tileXIndexStop + 1][];
-            availableRoadVectorNodeIndexes = new List<TrackNode>[tileXIndexStop + 1][];
+            availableRailVectorNodeIndexes = new List<TrackVectorNode>[tileXIndexStop + 1][];
+            availableRoadVectorNodeIndexes = new List<TrackVectorNode>[tileXIndexStop + 1][];
             availablePointNodeIndexes      = new List<TrackNode>[tileXIndexStop + 1][];
             availableRailItemIndexes       = new List<DrawableTrackItem>   [tileXIndexStop + 1][];
             availableRoadItemIndexes       = new List<DrawableTrackItem>   [tileXIndexStop + 1][];
@@ -462,21 +454,22 @@ namespace ORTS.TrackViewer.Drawing
             // find rail track tracknodes
             for (uint tni = 0; tni < trackDB.TrackNodes.Length; tni++)
             {
-                TrackNode tn = trackDB.TrackNodes[tni];
-                if (tn == null) continue;
+                TrackVectorNode tn = trackDB.TrackNodes[tni] as TrackVectorNode;
 
-                if (tn.TrVectorNode == null)
-                {   // so junction or endnode
+                if (tn == null && trackDB.TrackNodes[tni] != null)
+                {
+                    // so junction or endnode
                     AddLocationToAvailableList(tn.UiD.Location, availablePointNodeIndexes, tn);
                 }
-                else if (tn.TrVectorNode.TrVectorSections != null)
+                else if (tn.TrVectorSections != null)
                 {   // vector nodes
-                    for (int tvsi = 0; tvsi < tn.TrVectorNode.TrVectorSections.Length; tvsi++)
+                    for (int tvsi = 0; tvsi < tn.TrVectorSections.Length; tvsi++)
                     {
-                        TrVectorSection tvs = tn.TrVectorNode.TrVectorSections[tvsi];
+                        TrVectorSection tvs = tn.TrVectorSections[tvsi];
                         if (tvs == null) continue;
                         List<WorldLocation> locationList = FindLocationList(tni, tvsi, true);
-                        foreach (WorldLocation location in locationList) {
+                        foreach (WorldLocation location in locationList)
+                        {
                             AddLocationToAvailableList(location, availableRailVectorNodeIndexes, tn);
                         }
                     }
@@ -487,14 +480,13 @@ namespace ORTS.TrackViewer.Drawing
             {
                 for (uint tni = 0; tni < roadTrackDB.TrackNodes.Length; tni++)
                 {
-                    TrackNode tn = roadTrackDB.TrackNodes[tni];
-                    if (tn == null) continue;
+                    if (!(trackDB.TrackNodes[tni] is TrackVectorNode tn)) continue;
 
-                    if (tn.TrVectorNode != null && tn.TrVectorNode.TrVectorSections != null)
+                    if (tn.TrVectorSections != null)
                     {
-                        for (int tvsi = 0; tvsi < tn.TrVectorNode.TrVectorSections.Length; tvsi++)
+                        for (int tvsi = 0; tvsi < tn.TrVectorSections.Length; tvsi++)
                         {
-                            TrVectorSection tvs = tn.TrVectorNode.TrVectorSections[tvsi];
+                            TrVectorSection tvs = tn.TrVectorSections[tvsi];
                             if (tvs == null) continue;
                             List<WorldLocation> locationList = FindLocationList(tni, tvsi, false);
                             foreach (WorldLocation location in locationList)
@@ -602,10 +594,10 @@ namespace ORTS.TrackViewer.Drawing
         {
             List<WorldLocation> resultList = new List<WorldLocation>();
 
-            TrackNode tn = useRailTracks ? trackDB.TrackNodes[trackNodeIndex] : roadTrackDB.TrackNodes[trackNodeIndex];
-            if (tn == null) return resultList;
-            
-            TrVectorSection tvs = tn.TrVectorNode.TrVectorSections[trackVectorSectionIndex];
+            if (!((useRailTracks ? trackDB.TrackNodes[trackNodeIndex] : roadTrackDB.TrackNodes[trackNodeIndex]) is TrackVectorNode tn))
+                return resultList;
+
+            TrVectorSection tvs = tn.TrVectorSections[trackVectorSectionIndex];
             if (tvs == null) return resultList;
 
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
@@ -685,7 +677,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 for (int zindex = tileZIndexStart; zindex <= tileZIndexStop; zindex++)
                 {
-                    foreach (TrackNode tn in availableRailVectorNodeIndexes[xindex][zindex])
+                    foreach (TrackVectorNode tn in availableRailVectorNodeIndexes[xindex][zindex])
                     {
                         if (hasBeenDrawn[tn.Index]) continue;
                         DrawVectorNode(drawArea, tn, DrawColors.colorsNormal, closestRailTrack);
@@ -710,7 +702,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 for (int zindex = tileZIndexStart; zindex <= tileZIndexStop; zindex++)
                 {
-                    foreach (TrackNode tn in availableRoadVectorNodeIndexes[xindex][zindex])
+                    foreach (TrackVectorNode tn in availableRoadVectorNodeIndexes[xindex][zindex])
                     {
                         DrawVectorNode(drawArea, tn, DrawColors.colorsRoads, ClosestRoadTrack);
                     }
@@ -789,10 +781,10 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="hotColors">Colorscheme for hotlights</param>
         private void DrawHighlightTracks(DrawArea drawArea, CloseToMouseTrack closeToMouseTrack, ColorScheme highColors, ColorScheme hotColors)
         {
-            DrawVectorNode(drawArea, closeToMouseTrack.TrackNode, highColors, null);
+            DrawVectorNode(drawArea, closeToMouseTrack.TrackNode as TrackVectorNode, highColors, null);
             if (Properties.Settings.Default.statusShowVectorSections)
             {
-                DrawTrackSection(drawArea, closeToMouseTrack.TrackNode, closeToMouseTrack.VectorSection, hotColors, null, -1);
+                DrawTrackSection(drawArea, closeToMouseTrack.TrackNode as TrackVectorNode, closeToMouseTrack.VectorSection, hotColors, null, -1);
             }
         }
 
@@ -803,12 +795,12 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tn">The tracknode from track database (assumed to be a vector node)</param>
         /// <param name="colors">Colorscheme to use</param>
         /// <param name="closeToMouseTrack">The object to track which vector node is closest to the mouse</param>
-        void DrawVectorNode(DrawArea drawArea, TrackNode tn, ColorScheme colors, CloseToMouseTrack closeToMouseTrack)
+        void DrawVectorNode(DrawArea drawArea, TrackVectorNode tn, ColorScheme colors, CloseToMouseTrack closeToMouseTrack)
         {
             if (tn == null) return;
-            for (int tvsi = 0; tvsi < tn.TrVectorNode.TrVectorSections.Length; tvsi++)
+            for (int tvsi = 0; tvsi < tn.TrVectorSections.Length; tvsi++)
             {
-                TrVectorSection tvs = tn.TrVectorNode.TrVectorSections[tvsi];
+                TrVectorSection tvs = tn.TrVectorSections[tvsi];
                 DrawTrackSection(drawArea, tn, tvs, colors, closeToMouseTrack, tvsi);
             }
         }
@@ -824,7 +816,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tvsi">The index of the trackvector section, needed only for closeToMouseTrack</param>
         /// <remarks>Note that his is very similar to DrawTrackSection in class DrawPath, but this one always
         /// draws the whole section and it checks the distance to the mouse</remarks>
-        private void DrawTrackSection(DrawArea drawArea, TrackNode tn, TrVectorSection tvs, ColorScheme colors, CloseToMouseTrack closeToMouseTrack, int tvsi)
+        private void DrawTrackSection(DrawArea drawArea, TrackVectorNode tn, TrVectorSection tvs, ColorScheme colors, CloseToMouseTrack closeToMouseTrack, int tvsi)
         {
             if (tvs == null) return;
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
@@ -861,12 +853,11 @@ namespace ORTS.TrackViewer.Drawing
                 {
                     foreach (TrackNode tn in availablePointNodeIndexes[xindex][zindex])
                     {
-                        if (tn.TrJunctionNode != null && Properties.Settings.Default.showJunctionNodes)
+                        if (tn is TrackJunctionNode && Properties.Settings.Default.showJunctionNodes)
                         {
                             DrawJunctionNode(drawArea, tn, DrawColors.colorsNormal);
                         }
-
-                        if (tn.TrEndNode && Properties.Settings.Default.showEndNodes)
+                        else if (tn is TrackEndNode && Properties.Settings.Default.showEndNodes)
                         {
                             DrawEndNode(drawArea, tn, DrawColors.colorsNormal);
                         }
@@ -958,16 +949,16 @@ namespace ORTS.TrackViewer.Drawing
         {
             if ((tni < 0) || (tni >= trackDB.TrackNodes.Length)) return WorldLocation.None;
             TrackNode tn = trackDB.TrackNodes[tni];
-            if (tn == null) return WorldLocation.None;
+            if (tn == null)
+                return WorldLocation.None;
 
             IsHighlightOverridden = true;
-            if (tn.TrJunctionNode != null )
+            if (tn is TrackJunctionNode)
             {
                 searchJunctionOrEnd = new CloseToMouseJunctionOrEnd(tn, "junction");
                 return tn.UiD.Location;
             }
-
-            if (tn.TrEndNode )
+            else if (tn is TrackEndNode)
             {
                 searchJunctionOrEnd = new CloseToMouseJunctionOrEnd(tn, "endnode");
                 return tn.UiD.Location;
@@ -996,7 +987,7 @@ namespace ORTS.TrackViewer.Drawing
 
             IsHighlightOverridden = true;
             
-            if (tn.TrEndNode)
+            if (tn is TrackEndNode)
             {
                 searchJunctionOrEnd = new CloseToMouseJunctionOrEnd(tn, "endnode");
                 return tn.UiD.Location;
@@ -1145,13 +1136,14 @@ namespace ORTS.TrackViewer.Drawing
         /// <remarks>Obviously, a single location is always an estimate. Currently tries to find middle of end points</remarks>
         static private WorldLocation TrackLocation(TrackNode tn, TrackNode nodeBehind, TrackNode nodeAhead)
         {
-            if (tn.TrVectorNode == null) return WorldLocation.None;
+            if (!(tn is TrackVectorNode tvn))
+                return WorldLocation.None;
             if (nodeBehind == null)
             {
                 if (nodeAhead == null)
                 {
                     // no junctions or end node at both sides. Oh, well, just take the first point
-                    TrVectorSection tvs = tn.TrVectorNode.TrVectorSections[0];
+                    TrVectorSection tvs = tvn.TrVectorSections[0];
                     if (tvs == null) return WorldLocation.None;
                     return new WorldLocation(tvs.TileX, tvs.TileZ, tvs.X, 0, tvs.Z);
                 }
@@ -1201,10 +1193,10 @@ namespace ORTS.TrackViewer.Drawing
         {
             try
             {
-                TrackNode tn = useRailTracks ?              
-                    trackDB.TrackNodes[trackNodeIndex]: roadTrackDB.TrackNodes[trackNodeIndex];
+                TrackVectorNode tn = (useRailTracks ?              
+                    trackDB.TrackNodes[trackNodeIndex]: roadTrackDB.TrackNodes[trackNodeIndex]) as TrackVectorNode;
                 
-                TrVectorSection tvs = tn.TrVectorNode.TrVectorSections[trackVectorSectionIndex];
+                TrVectorSection tvs = tn.TrVectorSections[trackVectorSectionIndex];
 
                 TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
 

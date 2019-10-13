@@ -579,11 +579,11 @@ namespace Orts.Simulation
             float? offset = 0.0f;
             traveller = new Traveller(tsectionDat, trackDB.TrackNodes, location.TileX, location.TileZ, location.Location.X, location.Location.Z);
             TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];//find the track node
-            if (trackNode.TrVectorNode != null)
+            if (trackNode is TrackVectorNode trackVectorNode)
             {
                 offset = traveller.TrackNodeOffset;
                 SpeedPostPosition((TempSpeedPostItem)newTrItem, ref traveller);
-                InsertTrItemRef(tsectionDat, trackDB, trackNode.TrVectorNode, (int)newTrItem.TrItemId, (float)offset);
+                InsertTrItemRef(tsectionDat, trackDB, trackVectorNode, (int)newTrItem.TrItemId, (float)offset);
             }
             return offset;
         }
@@ -635,7 +635,7 @@ namespace Orts.Simulation
         /// </summary>
         /// 
         [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
-        static void InsertTrItemRef(TrackSectionsFile tsectionDat, TrackDB trackDB, TrVectorNode thisVectorNode, int newTrItemId, float offset)
+        static void InsertTrItemRef(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackVectorNode thisVectorNode, int newTrItemId, float offset)
         {
             int[] newTrItemRefs = new int[thisVectorNode.NoItemRefs + 1];
             if (thisVectorNode.NoItemRefs > 0)

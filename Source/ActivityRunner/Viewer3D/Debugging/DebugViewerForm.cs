@@ -241,74 +241,71 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  switchItemsDrawn = new List<SwitchWidget>();
 		  signalItemsDrawn = new List<SignalWidget>();
 		  switches = new List<SwitchWidget>();
-		  for (int i = 0; i < nodes.Length; i++)
-		  {
-			  TrackNode currNode = nodes[i];
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                if (nodes[i] is TrackEndNode)
+                {
+                    //buffers.Add(new PointF(currNode.UiD.TileX * 2048 + currNode.UiD.X, currNode.UiD.TileZ * 2048 + currNode.UiD.Z));
+                }
+                else if (nodes[i] is TrackVectorNode trackVectorNode)
+                {
 
-			  if (currNode != null)
-			  {
+                    if (trackVectorNode.TrVectorSections.Length > 1)
+                    {
+                        AddSegments(segments, trackVectorNode, trackVectorNode.TrVectorSections, ref minX, ref minY, ref maxX, ref maxY, simulator);
+                    }
+                    else
+                    {
+                        TrVectorSection s = trackVectorNode.TrVectorSections[0];
 
-				  if (currNode.TrEndNode)
-				  {
-					  //buffers.Add(new PointF(currNode.UiD.TileX * 2048 + currNode.UiD.X, currNode.UiD.TileZ * 2048 + currNode.UiD.Z));
-				  }
-				  else if (currNode.TrVectorNode != null)
-				  {
+                        foreach (TrackPin pin in trackVectorNode.TrPins)
+                        {
 
-					  if (currNode.TrVectorNode.TrVectorSections.Length > 1)
-					  {
-						  AddSegments(segments, currNode, currNode.TrVectorNode.TrVectorSections, ref minX, ref minY, ref maxX, ref maxY, simulator);
-					  }
-					  else
-					  {
-						  TrVectorSection s = currNode.TrVectorNode.TrVectorSections[0];
-
-						  foreach (TrPin pin in currNode.TrPins)
-						  {
-
-							  TrackNode connectedNode = nodes[pin.Link];
+                            TrackNode connectedNode = nodes[pin.Link];
 
 
-							  //bool occupied = false;
+                            //bool occupied = false;
 
-							  //if (simulator.InterlockingSystem.Tracks.ContainsKey(connectedNode))
-							  //{
-							  //occupied = connectedNode   
-							  //}
+                            //if (simulator.InterlockingSystem.Tracks.ContainsKey(connectedNode))
+                            //{
+                            //occupied = connectedNode   
+                            //}
 
-							  //if (currNode.UiD == null)
-							  //{
-							  DebugVector A = new DebugVector(s.TileX, s.X, s.TileZ, + s.Z);
-							  DebugVector B = new DebugVector(connectedNode.UiD.Location);
-								  segments.Add(new LineSegment(A, B, /*s.InterlockingTrack.IsOccupied*/ false, null));
-							  //}
-						  }
+                            //if (currNode.UiD == null)
+                            //{
+                            DebugVector A = new DebugVector(s.TileX, s.X, s.TileZ, +s.Z);
+                            DebugVector B = new DebugVector(connectedNode.UiD.Location);
+                            segments.Add(new LineSegment(A, B, /*s.InterlockingTrack.IsOccupied*/ false, null));
+                            //}
+                        }
 
 
-					  }
-				  }
-				  else if (currNode.TrJunctionNode != null)
-				  {
-					  foreach (TrPin pin in currNode.TrPins)
-					  {
-						  TrVectorSection item = null;
-						  try
-						  {
-							  if (nodes[pin.Link].TrVectorNode == null || nodes[pin.Link].TrVectorNode.TrVectorSections.Length < 1) continue;
-							  if (pin.Direction == 1) item = nodes[pin.Link].TrVectorNode.TrVectorSections.First();
-							  else item = nodes[pin.Link].TrVectorNode.TrVectorSections.Last();
-						  }
-						  catch { continue; }
-						  DebugVector A = new DebugVector(currNode.UiD.Location);
-						  DebugVector B = new DebugVector(item.TileX, + item.X, item.TileZ, + item.Z);
-                          var x = DebugVector.DistanceSqr(A, B);
-						  if (x < 0.1) continue;
-						  segments.Add(new LineSegment(B, A, /*s.InterlockingTrack.IsOccupied*/ false, item));
-					  }
-					  switches.Add(new SwitchWidget(currNode));
-				  }
-			  }
-		  }
+                    }
+                }
+                else if (nodes[i] is TrackJunctionNode trackJunctionNode)
+                {
+                    foreach (TrackPin pin in trackJunctionNode.TrPins)
+                    {
+                        TrVectorSection item = null;
+                        TrackVectorNode vectorNode = nodes[pin.Link] as TrackVectorNode;
+                        try
+                        {
+                            if (vectorNode == null || vectorNode.TrVectorSections.Length < 1) continue;
+                            if (pin.Direction == 1)
+                                item = vectorNode.TrVectorSections.First();
+                            else
+                                item = vectorNode.TrVectorSections.Last();
+                        }
+                        catch { continue; }
+                        DebugVector A = new DebugVector(trackJunctionNode.UiD.Location);
+                        DebugVector B = new DebugVector(item.TileX, +item.X, item.TileZ, +item.Z);
+                        var x = DebugVector.DistanceSqr(A, B);
+                        if (x < 0.1) continue;
+                        segments.Add(new LineSegment(B, A, /*s.InterlockingTrack.IsOccupied*/ false, item));
+                    }
+                    switches.Add(new SwitchWidget(trackJunctionNode));
+                }
+            }
 
           var maxsize = maxX - minX > maxY - minY ? maxX - minX : maxY - minY;
           maxsize = (int)(maxsize / 100 +1 ) * 100;
@@ -710,7 +707,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 				 if (scaledItem.X < 0 || scaledItem.X > IM_Width || scaledItem.Y > IM_Height || scaledItem.Y < 0) continue;
 
-				 if (sw.Item.TrJunctionNode.SelectedRoute == sw.main) g.FillEllipse(Brushes.Black, GetRect(scaledItem, width));
+				 if (sw.Item.SelectedRoute == sw.main) g.FillEllipse(Brushes.Black, GetRect(scaledItem, width));
 				 else g.FillEllipse(Brushes.Gray, GetRect(scaledItem, width));
 
                  //g.DrawString("" + sw.Item.TrJunctionNode.SelectedRoute, trainFont, trainBrush, scaledItem);
@@ -1044,7 +1041,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 if (trackNode.IsEnd)
                     rv.Objects.Add(new SignallingDebugWindow.TrackSectionEndOfLine() { Distance = rv.Length });
                 else if (trackNode.IsJunction)
-                    rv.Objects.Add(new SignallingDebugWindow.TrackSectionSwitch() { Distance = rv.Length, TrackNode = trackNode.TN, NodeIndex = nodeIndex });
+                    rv.Objects.Add(new SignallingDebugWindow.TrackSectionSwitch() { Distance = rv.Length, JunctionNode = trackNode.TN as TrackJunctionNode, NodeIndex = nodeIndex });
                 else
                     rv.Objects.Add(new SignallingDebugWindow.TrackSectionObject() { Distance = rv.Length }); // Always have an object at the end.
                 if (trackNode.TrackNodeIndex != nodeIndex)
@@ -1118,11 +1115,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					var switchObj = obj as SignallingDebugWindow.TrackSectionSwitch;
 					if (switchObj != null)
 					{
-						for (var pin = switchObj.TrackNode.Inpins; pin < switchObj.TrackNode.Inpins + switchObj.TrackNode.Outpins; pin++)
+						for (var pin = switchObj.JunctionNode.InPins; pin < switchObj.JunctionNode.InPins + switchObj.JunctionNode.OutPins; pin++)
 						{
-							if (switchObj.TrackNode.TrPins[pin].Link == switchObj.NodeIndex)
+							if (switchObj.JunctionNode.TrPins[pin].Link == switchObj.NodeIndex)
 							{
-								if (pin - switchObj.TrackNode.Inpins != switchObj.TrackNode.TrJunctionNode.SelectedRoute)
+								if (pin - switchObj.JunctionNode.InPins != switchObj.JunctionNode.SelectedRoute)
 									switchErrorDistance = objDistance;
 								break;
 							}
@@ -1191,13 +1188,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					var switchObj = obj as SignallingDebugWindow.TrackSectionSwitch;
 					if (switchObj != null)
 					{
-						for (var pin = switchObj.TrackNode.Inpins; pin < switchObj.TrackNode.Inpins + switchObj.TrackNode.Outpins; pin++)
+						for (var pin = switchObj.JunctionNode.InPins; pin < switchObj.JunctionNode.InPins + switchObj.JunctionNode.OutPins; pin++)
 						{
-							if (switchObj.TrackNode.TrPins[pin].Link == switchObj.NodeIndex && pin - switchObj.TrackNode.Inpins != switchObj.TrackNode.TrJunctionNode.SelectedRoute)
+							if (switchObj.JunctionNode.TrPins[pin].Link == switchObj.NodeIndex && pin - switchObj.JunctionNode.InPins != switchObj.JunctionNode.SelectedRoute)
 							{
 								foreach (var sw in switchItemsDrawn)
 								{
-									if (sw.Item.TrJunctionNode == switchObj.TrackNode.TrJunctionNode)
+									if (sw.Item == switchObj.JunctionNode)
 									{
 										var r = 6 * greenPen.Width;
 										g.DrawLine(pathPen, new PointF(sw.Location2D.X - r, sw.Location2D.Y - r), new PointF(sw.Location2D.X + r, sw.Location2D.Y + r));
@@ -1985,7 +1982,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  {
 			  UnHandleItemPick(); return;
 		  }
-		  var sw = switchPickedItem.Item.TrJunctionNode;
+		  TrackJunctionNode sw = switchPickedItem.Item as TrackJunctionNode;
 		  var type = boxSetSwitch.SelectedIndex;
 
 		  //aider can send message to the server for a switch
@@ -2004,7 +2001,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  }
 			  //aider selects and throws the switch, but need to confirm by the dispatcher
 			  MultiPlayer.MPManager.Notify((new MultiPlayer.MSGSwitch(MultiPlayer.MPManager.GetUserName(),
-				  nextSwitchTrack.TN.UiD.Location.TileX, nextSwitchTrack.TN.UiD.Location.TileZ, nextSwitchTrack.TN.UiD.WorldId, Selected, true)).ToString());
+				  nextSwitchTrack.UiD.Location.TileX, nextSwitchTrack.UiD.Location.TileZ, nextSwitchTrack.UiD.WorldId, Selected, true)).ToString());
 			  Program.Simulator.Confirmer.Information(Viewer.Catalog.GetString("Switching Request Sent to the Server"));
 
 		  }
@@ -2014,11 +2011,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  switch (type)
 			  {
 				  case 0:
-                      Program.Simulator.Signals.RequestSetSwitch(sw.TN, (int)switchPickedItem.main);
+                      Program.Simulator.Signals.RequestSetSwitch(sw, (int)switchPickedItem.main);
 					  //sw.SelectedRoute = (int)switchPickedItem.main;
 					  break;
 				  case 1:
-                      Program.Simulator.Signals.RequestSetSwitch(sw.TN, 1 - (int)switchPickedItem.main);
+                      Program.Simulator.Signals.RequestSetSwitch(sw, 1 - (int)switchPickedItem.main);
                       //sw.SelectedRoute = 1 - (int)switchPickedItem.main;
 					  break;
 			  }
@@ -2162,12 +2159,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             {
                 var node = Program.Simulator.TDB.TrackDB.TrackNodes[signal.trackNode];
                 Vector2 v2;
-                if (node.TrVectorNode != null) 
+                if (node is TrackVectorNode trackVectorNode) 
                 { 
-                    var ts = node.TrVectorNode.TrVectorSections[0]; 
+                    var ts = trackVectorNode.TrVectorSections[0]; 
                     v2 = new Vector2(ts.TileX * 2048 + ts.X, ts.TileZ * 2048 + ts.Z); 
                 }
-                else if (node.TrJunctionNode != null) 
+                else if (node is TrackJunctionNode) 
                 { 
                     var ts = node.UiD; 
                     v2 = new Vector2(ts.Location.TileX * 2048 + ts.Location.Location.X, ts.Location.TileZ * 2048 + ts.Location.Location.Z); 
@@ -2196,46 +2193,20 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
     /// </summary>
     public class SwitchWidget : ItemWidget
     {
-        public TrackNode Item;
+        public TrackJunctionNode Item;
         public uint main;
-#if false
-	   public dVector mainEnd;
-#endif
         /// <summary>
         /// 
         /// </summary>
         /// <param name="item"></param>
         /// <param name="signal"></param>
-        public SwitchWidget(TrackNode item)
+        public SwitchWidget(TrackJunctionNode item)
         {
             Item = item;
-            var TS = Program.Simulator.TSectionDat.TrackShapes[item.TrJunctionNode.ShapeIndex];  // TSECTION.DAT tells us which is the main route
+            var TS = Program.Simulator.TSectionDat.TrackShapes[item.ShapeIndex];  // TSECTION.DAT tells us which is the main route
 
             if (TS != null) { main = TS.MainRoute; }
             else main = 0;
-#if false
-		   try
-		   {
-			   var pin = item.TrPins[1];
-			   TrVectorSection tn;
-
-			   if (pin.Direction == 1) tn = Program.Simulator.TDB.TrackDB.TrackNodes[pin.Link].TrVectorNode.TrVectorSections.First();
-			   else tn = Program.Simulator.TDB.TrackDB.TrackNodes[pin.Link].TrVectorNode.TrVectorSections.Last();
-
-			   if (tn.SectionIndex == TS.SectionIdxs[TS.MainRoute].TrackSections[0]) { mainEnd = new dVector(tn.TileX * 2048 + tn.X, tn.TileZ * 2048 + tn.Z); }
-			   else
-			   {
-				   var pin2 = item.TrPins[2];
-				   TrVectorSection tn2;
-
-				   if (pin2.Direction == 1) tn2 = Program.Simulator.TDB.TrackDB.TrackNodes[pin2.Link].TrVectorNode.TrVectorSections.First();
-				   else tn2 = Program.Simulator.TDB.TrackDB.TrackNodes[pin2.Link].TrVectorNode.TrVectorSections.Last();
-				   if (tn2.SectionIndex == TS.SectionIdxs[TS.MainRoute].TrackSections[0]) { mainEnd = new dVector(tn.TileX * 2048 + tn.X, tn.TileZ * 2048 + tn.Z); }
-			   }
-			  
-		   }
-		   catch { mainEnd = null; }
-#endif
             Location = VectorFromLocation(Item.UiD.Location);
         }
     }

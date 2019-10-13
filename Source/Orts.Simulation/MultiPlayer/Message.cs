@@ -890,16 +890,16 @@ namespace Orts.MultiPlayer
                     MPManager.BroadCast((new MSGMessage(user, "SwitchWarning", "Server does not allow hand thrown of switch")).ToString());
                     return;
                 }
-                TrJunctionNode trj = MPManager.Simulator.TDB.TrackDB.GetTrJunctionNode(TileX, TileZ, WorldID);
-                bool state = MPManager.Simulator.Signals.RequestSetSwitch(trj.TN, this.Selection);
+                TrackJunctionNode trj = MPManager.Simulator.TDB.TrackDB.GetJunctionNode(TileX, TileZ, WorldID);
+                bool state = MPManager.Simulator.Signals.RequestSetSwitch(trj, this.Selection);
                 if (state == false)
                     MPManager.BroadCast((new MSGMessage(user, "Warning", "Train on the switch, cannot throw")).ToString());
                 else MPManager.BroadCast(this.ToString()); //server will tell others
             }
             else
             {
-                TrJunctionNode trj = MPManager.Simulator.TDB.TrackDB.GetTrJunctionNode(TileX, TileZ, WorldID);
-                SetSwitch(trj.TN, Selection);
+                TrackJunctionNode trj = MPManager.Simulator.TDB.TrackDB.GetJunctionNode(TileX, TileZ, WorldID);
+                SetSwitch(trj, Selection);
                 //trj.SelectedRoute = Selection; //although the new signal system request Signals.RequestSetSwitch, client may just change
                 if (user == MPManager.GetUserName() && HandThrown == true)//got the message with my name, will confirm with the player
                 {
@@ -913,7 +913,7 @@ namespace Orts.MultiPlayer
         public static void SetSwitch(TrackNode switchNode, int desiredState)
         {
             TrackCircuitSection switchSection = MPManager.Simulator.Signals.TrackCircuitList[switchNode.TCCrossReference[0].Index];
-            MPManager.Simulator.Signals.trackDB.TrackNodes[switchSection.OriginalIndex].TrJunctionNode.SelectedRoute = switchSection.JunctionSetManual = desiredState;
+            (MPManager.Simulator.Signals.trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
             // update linked signals
@@ -967,7 +967,7 @@ namespace Orts.MultiPlayer
 #region MSGOrgSwitch
     public class MSGOrgSwitch : MSGRequired
     {
-        SortedList<uint, TrJunctionNode> SwitchState;
+        SortedList<uint, TrackJunctionNode> SwitchState;
         public string msgx = "";
         string user = "";
         byte[] switchStatesArray;
@@ -1001,27 +1001,27 @@ namespace Orts.MultiPlayer
         {
             if (MPManager.IsServer() || user != MPManager.GetUserName()) return; //server will ignore it
             uint key = 0;
-            SwitchState = new SortedList<uint, TrJunctionNode>();
+            SwitchState = new SortedList<uint, TrackJunctionNode>();
             try
             {
                 foreach (TrackNode t in MPManager.Simulator.TDB.TrackDB.TrackNodes)
                 {
-                    if (t != null && t.TrJunctionNode != null)
+                    if (t is TrackJunctionNode trackJunctionNode)
                     {
                         key = t.Index;
-                        SwitchState.Add(key, t.TrJunctionNode);
+                        SwitchState.Add(key, trackJunctionNode);
                     }
                 }
             }
             catch (Exception e) { SwitchState = null; throw e; } //if error, clean the list and wait for the next signal
 
             int i = 0, state = 0;
-            foreach (System.Collections.Generic.KeyValuePair<uint, TrJunctionNode> t in SwitchState)
+            foreach (KeyValuePair<uint, TrackJunctionNode> t in SwitchState)
             {
                 state = (int)switchStatesArray[i];
                 if (t.Value.SelectedRoute != state)
                 {
-                    SetSwitch(t.Value.TN, state);
+                    SetSwitch(t.Value, state);
                     //t.Value.SelectedRoute = state;
                 }
                 i++;
@@ -1032,7 +1032,7 @@ namespace Orts.MultiPlayer
         public static void SetSwitch(TrackNode switchNode, int desiredState)
         {
             TrackCircuitSection switchSection = MPManager.Simulator.Signals.TrackCircuitList[switchNode.TCCrossReference[0].Index];
-            MPManager.Simulator.Signals.trackDB.TrackNodes[switchSection.OriginalIndex].TrJunctionNode.SelectedRoute = switchSection.JunctionSetManual = desiredState;
+            (MPManager.Simulator.Signals.trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
             // update linked signals
@@ -1058,7 +1058,7 @@ namespace Orts.MultiPlayer
     public class MSGSwitchStatus : Message
     {
         static byte[] preState;
-        static SortedList<uint, TrJunctionNode> SwitchState;
+        static SortedList<uint, TrackJunctionNode> SwitchState;
         public bool OKtoSend = false;
         static byte[] switchStatesArray;
         public MSGSwitchStatus()
@@ -1066,14 +1066,14 @@ namespace Orts.MultiPlayer
             var i = 0;
             if (SwitchState == null)
             {
-                SwitchState = new SortedList<uint, TrJunctionNode>();
+                SwitchState = new SortedList<uint, TrackJunctionNode>();
                 uint key = 0;
                 foreach (TrackNode t in MPManager.Simulator.TDB.TrackDB.TrackNodes)
                 {
-                    if (t != null && t.TrJunctionNode != null)
+                    if (t is TrackJunctionNode trackJunctionNode)
                     {
                         key = t.Index;
-                        SwitchState.Add(key, t.TrJunctionNode);
+                        SwitchState.Add(key, trackJunctionNode);
                     }
                 }
                 switchStatesArray = new byte[SwitchState.Count() + 2];
@@ -1084,7 +1084,7 @@ namespace Orts.MultiPlayer
                 for (i = 0; i < preState.Length; i++) preState[i] = 0;
             }
             i = 0;
-            foreach (System.Collections.Generic.KeyValuePair<uint, TrJunctionNode> t in SwitchState)
+            foreach (KeyValuePair<uint, TrackJunctionNode> t in SwitchState)
             {
                 switchStatesArray[i] = (byte)t.Value.SelectedRoute;
                 i++;
@@ -1107,15 +1107,15 @@ namespace Orts.MultiPlayer
             if (SwitchState == null)
             {
                 uint key = 0;
-                SwitchState = new SortedList<uint, TrJunctionNode>();
+                SwitchState = new SortedList<uint, TrackJunctionNode>();
                 try
                 {
                     foreach (TrackNode t in MPManager.Simulator.TDB.TrackDB.TrackNodes)
                     {
-                        if (t != null && t.TrJunctionNode != null)
+                        if (t is TrackJunctionNode trackJunctionNode)
                         {
                             key = t.Index;
-                            SwitchState.Add(key, t.TrJunctionNode);
+                            SwitchState.Add(key, trackJunctionNode);
                         }
                     }
                     switchStatesArray = new byte[SwitchState.Count + 128];//a bit more for safety
@@ -1144,14 +1144,14 @@ namespace Orts.MultiPlayer
 
 
             int i = 0, state = 0;
-            foreach (System.Collections.Generic.KeyValuePair<uint, TrJunctionNode> t in SwitchState)
+            foreach (KeyValuePair<uint, TrackJunctionNode> t in SwitchState)
             {
                 state = (int)switchStatesArray[i];
                 if (t.Value.SelectedRoute != state)
                 {
                     if (!SwitchOccupiedByPlayerTrain(t.Value))
                     {
-                        SetSwitch(t.Value.TN, state);
+                        SetSwitch(t.Value, state);
                         //t.Value.SelectedRoute = state;
                     }
                 }
@@ -1163,7 +1163,7 @@ namespace Orts.MultiPlayer
         public static void SetSwitch(TrackNode switchNode, int desiredState)
         {
             TrackCircuitSection switchSection = MPManager.Simulator.Signals.TrackCircuitList[switchNode.TCCrossReference[0].Index];
-            MPManager.Simulator.Signals.trackDB.TrackNodes[switchSection.OriginalIndex].TrJunctionNode.SelectedRoute = switchSection.JunctionSetManual = desiredState;
+            (MPManager.Simulator.Signals.trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
             // update linked signals
@@ -1177,7 +1177,7 @@ namespace Orts.MultiPlayer
             }
         }
 
-        static bool SwitchOccupiedByPlayerTrain(TrJunctionNode junctionNode)
+        static bool SwitchOccupiedByPlayerTrain(TrackJunctionNode junctionNode)
         {
             if (MPManager.Simulator.PlayerLocomotive == null) return false;
             Train train = MPManager.Simulator.PlayerLocomotive.Train;
@@ -1189,7 +1189,7 @@ namespace Orts.MultiPlayer
             {
                 if (traveller.TrackNodeIndex == train.FrontTDBTraveller.TrackNodeIndex)
                     break;
-                if (traveller.TN.TrJunctionNode == junctionNode)
+                if (traveller.TN == junctionNode)
                     return true;
             }
             return false;

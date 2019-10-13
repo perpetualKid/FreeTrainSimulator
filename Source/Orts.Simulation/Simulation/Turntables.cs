@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.IO;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Parsers;
+using Orts.Formats.Msts;
 
 namespace Orts.Simulation
 {
@@ -446,18 +447,18 @@ namespace Orts.Simulation
             int iTrackNode = 0;
             for (iTrackNode = 1; iTrackNode < trackNodes.Length; iTrackNode++)
             {
-                if (trackNodes[iTrackNode].TrVectorNode != null && trackNodes[iTrackNode].TrVectorNode.TrVectorSections != null)
+                if (trackNodes[iTrackNode] is TrackVectorNode tvn && tvn.TrVectorSections != null)
                 {
-                    var iTrVectorSection = Array.FindIndex(trackNodes[iTrackNode].TrVectorNode.TrVectorSections, trVectorSection =>
+                    var iTrVectorSection = Array.FindIndex(tvn.TrVectorSections, trVectorSection =>
                         (trVectorSection.WFNameX == WorldPosition.TileX && trVectorSection.WFNameZ == WorldPosition.TileZ && trVectorSection.WorldFileUiD == UID));
                     if (iTrVectorSection >= 0)
                     {
-                        if (trackNodes[iTrackNode].TrVectorNode.TrVectorSections.Length > (int)nSections)
+                        if (tvn.TrVectorSections.Length > (int)nSections)
                         {
-                            iMyTrackNodes = trackNodes[iTrackNode].TrVectorNode.TrVectorSections[iTrVectorSection].Flag1 / 2;
+                            iMyTrackNodes = tvn.TrVectorSections[iTrVectorSection].Flag1 / 2;
                             MyTrackNodesIndex[iMyTrackNodes] = iTrackNode;
                             MyTrVectorSectionsIndex[iMyTrackNodes] = iTrVectorSection;
-                            MyTrackNodesOrientation[iMyTrackNodes] = trackNodes[iTrackNode].TrVectorNode.TrVectorSections[iTrVectorSection].Flag1 % 2 == 0 ? true : false;
+                            MyTrackNodesOrientation[iMyTrackNodes] = tvn.TrVectorSections[iTrVectorSection].Flag1 % 2 == 0 ? true : false;
 
                         }
                     }

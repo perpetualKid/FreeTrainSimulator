@@ -12516,9 +12516,9 @@ namespace Orts.Simulation.Timetables
             {
                 DetachSection = signalRef.TrackCircuitList[DetachSection.Pins[0, 0].Link];
             }
-            TrackNode DetachNode = train.Simulator.TDB.TrackDB.TrackNodes[DetachSection.OriginalIndex];
+            TrackVectorNode detachNode = train.Simulator.TDB.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
-            formedTrain.RearTDBTraveller = new Traveller(train.Simulator.TSectionDat, train.Simulator.TDB.TrackDB.TrackNodes, DetachNode);
+            formedTrain.RearTDBTraveller = new Traveller(train.Simulator.TSectionDat, train.Simulator.TDB.TrackDB.TrackNodes, detachNode);
 
             trainlist.Add(formedTrain);
 
@@ -12538,7 +12538,7 @@ namespace Orts.Simulation.Timetables
         {
             TTTrain formedTrain = new TTTrain(train.Simulator, train);
             TrackCircuitSection DetachSection = signalRef.TrackCircuitList[sectionInfo];
-            TrackNode DetachNode = train.Simulator.TDB.TrackDB.TrackNodes[DetachSection.OriginalIndex];
+            TrackVectorNode DetachNode = train.Simulator.TDB.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
             formedTrain.RearTDBTraveller = new Traveller(train.Simulator.TSectionDat, train.Simulator.TDB.TrackDB.TrackNodes, DetachNode);
             train.PresentPosition[0].CopyTo(ref formedTrain.PresentPosition[0]);

@@ -611,8 +611,7 @@ namespace ORTS.TrackViewer.Editing
             int tvnIndex = firstNode.NextMainTvnIndex;
             if (tvnIndex < 0) return stationNames;
 
-            TrackNode tn = trackDB.TrackNodes[tvnIndex];
-            TrVectorNode tvn = tn.TrVectorNode;
+            TrackVectorNode tvn = trackDB.TrackNodes[tvnIndex] as TrackVectorNode;
             if (tvn == null) return stationNames;
             if (tvn.TrItemRefs == null) return stationNames;
 
@@ -621,7 +620,7 @@ namespace ORTS.TrackViewer.Editing
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem)
                 {
-                    var traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, 
+                    var traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tvn, 
                         trItem.TileX, trItem.TileZ, trItem.X, trItem.Z, Traveller.TravellerDirection.Forward);
                     if (traveller != null)
                     {

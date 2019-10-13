@@ -13547,7 +13547,7 @@ namespace Orts.Simulation.Physics
                         if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction && (thisSection.Pins[sectionDirection, 1].Link != -1) && sectionStart < 7000)
                         {
                             bool isRightSwitch = true;
-                            TrJunctionNode junctionNode = Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].TrJunctionNode;
+                            TrackJunctionNode junctionNode = Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackJunctionNode;
                             var isDiverging = false;
                             if ((thisSection.ActivePins[sectionDirection, 1].Link > 0 && thisSection.JunctionDefaultRoute == 0) ||
                                 (thisSection.ActivePins[sectionDirection, 0].Link > 0 && thisSection.JunctionDefaultRoute > 0))
@@ -15530,7 +15530,7 @@ namespace Orts.Simulation.Physics
 
                             if (thisPathNode.IsFacingPoint)   // exit is one of two switch paths //
                             {
-                                uint firstpin = (junctionNode.Inpins > 1) ? 0 : junctionNode.Inpins;
+                                uint firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
                                 if (junctionNode.TrPins[firstpin].Link == trackNodeIndex)
                                 {
                                     newDir = junctionNode.TrPins[firstpin].Direction;
@@ -15545,7 +15545,7 @@ namespace Orts.Simulation.Physics
                             }
                             else  // exit is single path //
                             {
-                                uint firstpin = (junctionNode.Inpins > 1) ? junctionNode.Inpins : 0;
+                                uint firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
                                 newDir = junctionNode.TrPins[firstpin].Direction;
                             }
                         }
@@ -15569,8 +15569,8 @@ namespace Orts.Simulation.Physics
 
                         if (nextPathNode.Type == AIPathNodeType.Reverse)
                         {
-                            TrackNode reversalNode = aiPath.TrackDB.TrackNodes[nextPathNode.NextMainTVNIndex];
-                            TrVectorSection firstSection = reversalNode.TrVectorNode.TrVectorSections[0];
+                            TrackVectorNode reversalNode = aiPath.TrackDB.TrackNodes[nextPathNode.NextMainTVNIndex] as TrackVectorNode;
+                            TrVectorSection firstSection = reversalNode.TrVectorSections[0];
                             Traveller TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, reversalNode,
                                             firstSection.TileX, firstSection.TileZ,
                                             firstSection.X, firstSection.Z, (Traveller.TravellerDirection)1);
@@ -15685,7 +15685,7 @@ namespace Orts.Simulation.Physics
                 //
 
                 thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
-                TrVectorSection endFirstSection = thisNode.TrVectorNode.TrVectorSections[0];
+                TrVectorSection endFirstSection = (thisNode as TrackVectorNode).TrVectorSections[0];
                 Traveller TDBEndTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, thisNode,
                                 endFirstSection.TileX, endFirstSection.TileZ,
                                 endFirstSection.X, endFirstSection.Z, (Traveller.TravellerDirection)1);
@@ -16202,7 +16202,7 @@ namespace Orts.Simulation.Physics
 
                 WPNode = aiPath.TrackDB.TrackNodes[pathNode.NextMainTVNIndex];
                 int idxSectionWP = ConvertWaitingPoint(pathNode, aiPath.TrackDB, aiPath.TSectionDat, direction);
-                firstSection = WPNode.TrVectorNode.TrVectorSections[0];
+                firstSection = (WPNode as TrackVectorNode).TrVectorSections[0];
                 Traveller TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, WPNode,
                     firstSection.TileX, firstSection.TileZ,
                     firstSection.X, firstSection.Z, (Traveller.TravellerDirection)NodeDir);
@@ -16383,7 +16383,7 @@ namespace Orts.Simulation.Physics
 
                         int trackNodeIndex = thisPathNode.NextSidingTVNIndex;
 
-                        uint firstJunctionPin = (firstJunctionNode.Inpins > 1) ? 0 : firstJunctionNode.Inpins;
+                        uint firstJunctionPin = (firstJunctionNode.InPins > 1) ? 0 : firstJunctionNode.InPins;
                         if (firstJunctionNode.TrPins[firstJunctionPin].Link == trackNodeIndex)
                         {
                             currentDir = firstJunctionNode.TrPins[firstJunctionPin].Direction;
@@ -16453,7 +16453,7 @@ namespace Orts.Simulation.Physics
 
                                     if (thisPathNode.IsFacingPoint)   // exit is one of two switch paths //
                                     {
-                                        uint firstpin = (junctionNode.Inpins > 1) ? 0 : junctionNode.Inpins;
+                                        uint firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
                                         if (junctionNode.TrPins[firstpin].Link == trackNodeIndex)
                                         {
                                             newDir = junctionNode.TrPins[firstpin].Direction;
@@ -16468,7 +16468,7 @@ namespace Orts.Simulation.Physics
                                     }
                                     else  // exit is single path //
                                     {
-                                        uint firstpin = (junctionNode.Inpins > 1) ? junctionNode.Inpins : 0;
+                                        uint firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
                                         newDir = junctionNode.TrPins[firstpin].Direction;
                                     }
                                 }
@@ -16585,7 +16585,7 @@ namespace Orts.Simulation.Physics
 
                         int trackNodeIndex = thisPathNode.NextSidingTVNIndex;
 
-                        uint firstJunctionPin = (firstJunctionNode.Inpins > 1) ? 0 : firstJunctionNode.Inpins;
+                        uint firstJunctionPin = (firstJunctionNode.InPins > 1) ? 0 : firstJunctionNode.InPins;
                         if (firstJunctionNode.TrPins[firstJunctionPin].Link == trackNodeIndex)
                         {
                             currentDir = firstJunctionNode.TrPins[firstJunctionPin].Direction;
@@ -16655,7 +16655,7 @@ namespace Orts.Simulation.Physics
 
                                     if (thisPathNode.IsFacingPoint)   // exit is one of two switch paths //
                                     {
-                                        uint firstpin = (junctionNode.Inpins > 1) ? 0 : junctionNode.Inpins;
+                                        uint firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
                                         if (junctionNode.TrPins[firstpin].Link == trackNodeIndex)
                                         {
                                             newDir = junctionNode.TrPins[firstpin].Direction;
@@ -16670,7 +16670,7 @@ namespace Orts.Simulation.Physics
                                     }
                                     else  // exit is single path //
                                     {
-                                        uint firstpin = (junctionNode.Inpins > 1) ? junctionNode.Inpins : 0;
+                                        uint firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
                                         newDir = junctionNode.TrPins[firstpin].Direction;
                                     }
                                 }
@@ -17230,8 +17230,8 @@ namespace Orts.Simulation.Physics
 
             static int ConvertWaitingPoint(AIPathNode stopPathNode, TrackDB TrackDB, TrackSectionsFile TSectionDat, int direction)
             {
-                TrackNode waitingNode = TrackDB.TrackNodes[stopPathNode.NextMainTVNIndex];
-                TrVectorSection firstSection = waitingNode.TrVectorNode.TrVectorSections[0];
+                TrackVectorNode waitingNode = TrackDB.TrackNodes[stopPathNode.NextMainTVNIndex] as TrackVectorNode;
+                TrVectorSection firstSection = waitingNode.TrVectorSections[0];
                 Traveller TDBTrav = new Traveller(TSectionDat, TrackDB.TrackNodes, waitingNode,
                                 firstSection.TileX, firstSection.TileZ,
                                 firstSection.X, firstSection.Z, (Traveller.TravellerDirection)1);

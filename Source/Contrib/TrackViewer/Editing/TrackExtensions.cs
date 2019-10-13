@@ -52,12 +52,12 @@ namespace ORTS.TrackViewer.Editing
             sidingRouteIndex = new uint[trackNodes.Length];
             for (int tni = 0; tni < trackNodes.Length; tni++)
             {
-                TrackNode tn = trackNodes[tni];
+                TrackJunctionNode tn = trackNodes[tni] as TrackJunctionNode;
                 if (tn == null) continue;
-                if (tn.TrJunctionNode == null) continue;
+
                 uint mainRoute = 0;
 
-                uint trackShapeIndex = tn.TrJunctionNode.ShapeIndex;
+                uint trackShapeIndex = tn.ShapeIndex;
                 try
                 {
                     TrackShape trackShape = tsectionDat.TrackShapes[trackShapeIndex];
@@ -68,14 +68,14 @@ namespace ORTS.TrackViewer.Editing
                     exception.ToString(); 
                 }
 
-                mainRouteIndex[tni] = tn.Inpins + mainRoute;
+                mainRouteIndex[tni] = tn.InPins + mainRoute;
                 if (mainRoute == 0)
                 {   // sidingRouteIndex is simply the next
-                    sidingRouteIndex[tni] = tn.Inpins + 1;
+                    sidingRouteIndex[tni] = tn.InPins + 1;
                 }
                 else
                 {   // sidingRouteIndex is the first
-                    sidingRouteIndex[tni] = tn.Inpins;
+                    sidingRouteIndex[tni] = tn.InPins;
                 }
             }
         }
@@ -136,7 +136,7 @@ namespace ORTS.TrackViewer.Editing
                 return 0;
             }
 
-            if (junctionTrackNode.TrEndNode)
+            if (junctionTrackNode is TrackEndNode)
             {
                 return 0;
             }

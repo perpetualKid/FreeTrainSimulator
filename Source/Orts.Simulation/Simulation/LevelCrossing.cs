@@ -52,8 +52,8 @@ namespace Orts.Simulation
         static Dictionary<int, LevelCrossingItem> GetLevelCrossingsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
         {
             return (from trackNode in trackNodes
-                    where trackNode != null && trackNode.TrVectorNode != null && trackNode.TrVectorNode.NoItemRefs > 0
-                    from itemRef in trackNode.TrVectorNode.TrItemRefs.Distinct()
+                    where trackNode is TrackVectorNode tvn && tvn.NoItemRefs > 0
+                    from itemRef in (trackNode as TrackVectorNode)?.TrItemRefs.Distinct()
                     where trItemTable[itemRef] != null && (trItemTable[itemRef] is LevelCrItem || trItemTable[itemRef] is RoadLevelCrossingItem)
                     select new KeyValuePair<int, LevelCrossingItem>(itemRef, new LevelCrossingItem(trackNode, trItemTable[itemRef])))
                     .ToDictionary(_ => _.Key, _ => _.Value);

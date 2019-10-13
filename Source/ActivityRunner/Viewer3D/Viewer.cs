@@ -1100,13 +1100,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         if (Program.DebugViewer.switchPickedItem != null)
                         {
-                            TrJunctionNode nextSwitchTrack = Program.DebugViewer.switchPickedItem.Item.TrJunctionNode;
-                            wos = nextSwitchTrack.TN.UiD.Location.ChangeElevation(8); 
+                            wos = Program.DebugViewer.switchPickedItem.Item.UiD.Location.ChangeElevation(8); 
                         }
                         else
                         {
-                            var s = Program.DebugViewer.signalPickedItem.Item;
-                            wos = s.Location.ChangeElevation(8);
+                            wos = Program.DebugViewer.signalPickedItem.Item.Location.ChangeElevation(8);
                         }
                         if (FreeRoamCameraList.Count == 0)
                         {
@@ -1670,7 +1668,7 @@ namespace Orts.ActivityRunner.Viewer3D
             for (int j = 0; j < Simulator.TDB.TrackDB.TrackNodes.Count(); j++)
             {
                 TrackNode tn = Simulator.TDB.TrackDB.TrackNodes[j];
-                if (tn != null && tn.TrJunctionNode != null)
+                if (tn is TrackJunctionNode)
                 {
 
                     Vector3 xnaCenter = Camera.XnaLocation(tn.UiD.Location);

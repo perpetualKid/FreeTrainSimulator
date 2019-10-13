@@ -269,14 +269,14 @@ namespace ORTS.TrackViewer.Editing
                 DrawPathBrokenNode(drawArea, colors, currentNode, nextNode);
                 return;
             }
-            TrackNode tn = trackDB.TrackNodes[TvnIndex];
+            TrackVectorNode tvn = trackDB.TrackNodes[TvnIndex] as TrackVectorNode;
 
             TrainpathJunctionNode nextJunctionNode = nextNode as TrainpathJunctionNode;
             TrainpathVectorNode nextVectorNode = nextNode as TrainpathVectorNode;
 
             //Default situation (and most occuring) is to draw the complete vector node 
             int tvsiStart = 0;
-            int tvsiStop = tn.TrVectorNode.TrVectorSections.Length-1;
+            int tvsiStop = tvn.TrVectorSections.Length-1;
             float sectionOffsetStart = 0;
             float sectionOffsetStop = -1;
             if (currentNode is TrainpathJunctionNode)
@@ -334,44 +334,44 @@ namespace ORTS.TrackViewer.Editing
                     }
                 }
             }
-            DrawVectorNode(drawArea, tn, colors, tvsiStart, tvsiStop, sectionOffsetStart, sectionOffsetStop);
+            DrawVectorNode(drawArea, tvn, colors, tvsiStart, tvsiStop, sectionOffsetStart, sectionOffsetStop);
         }
 
         /// <summary>
         /// Draw (possibly part of) the track of a MSTS vectorNode (from track database)
         /// </summary>
         /// <param name="drawArea">Area to draw upon</param>
-        /// <param name="tn">The tracknode from track database (assumed to be a vector node)</param>
+        /// <param name="trackVectorNode">The tracknode from track database (assumed to be a vector node)</param>
         /// <param name="colors">Colorscheme to use</param>
         /// <param name="tvsiStart">Index of first track vector section to draw (at least partially)</param>
         /// <param name="tvsiStop">Index of last track vector section to draw (at least partially)</param>
         /// <param name="sectionOffsetStart">start-offset in the first track section to draw</param>
         /// <param name="sectionOffsetStop">stop-offset in the last track section to draw</param>
         /// <remarks>Very similar to DrawVectorNode in class DrawTrackDB, but this one allows to draw partial vector nodes.</remarks>
-        private void DrawVectorNode(DrawArea drawArea, TrackNode tn, ColorScheme colors, int tvsiStart, int tvsiStop,
+        private void DrawVectorNode(DrawArea drawArea, TrackVectorNode trackVectorNode, ColorScheme colors, int tvsiStart, int tvsiStop,
                 float sectionOffsetStart, float sectionOffsetStop)
         {
             TrVectorSection tvs;
             if (tvsiStart == tvsiStop)
             {
-                tvs = tn.TrVectorNode.TrVectorSections[tvsiStart];
+                tvs = trackVectorNode.TrVectorSections[tvsiStart];
                 DrawTrackSection(drawArea, tvs, colors, sectionOffsetStart, sectionOffsetStop);
             }
             else
             {
                 // first section
-                tvs = tn.TrVectorNode.TrVectorSections[tvsiStart];
+                tvs = trackVectorNode.TrVectorSections[tvsiStart];
                 DrawTrackSection(drawArea, tvs, colors, sectionOffsetStart, -1);
 
                 // all intermediate sections
                 for (int tvsi = tvsiStart + 1; tvsi <= tvsiStop - 1; tvsi++)
                 {
-                    tvs = tn.TrVectorNode.TrVectorSections[tvsi];
+                    tvs = trackVectorNode.TrVectorSections[tvsi];
                     DrawTrackSection(drawArea, tvs, colors, 0, -1);
                 }
 
                 // last section
-                tvs = tn.TrVectorNode.TrVectorSections[tvsiStop];
+                tvs = trackVectorNode.TrVectorSections[tvsiStop];
                 DrawTrackSection(drawArea, tvs, colors, 0, sectionOffsetStop);
             }
         }

@@ -2586,38 +2586,26 @@ namespace Orts.ActivityRunner.Viewer3D
 
             while (aiNode != null && currentNode != -1)
             {
-                if (trackNodes[currentNode].TrVectorNode != null)
+                if (trackNodes[currentNode] is TrackVectorNode trackVectorNode)
                 {
-                    if (trackNodes[currentNode].TrVectorNode.NoItemRefs > 0)
+                    for (int i = 0; i < trackVectorNode.NoItemRefs; i++)
                     {
-                        for (int i = 0; i < trackNodes[currentNode].TrVectorNode.NoItemRefs; i++)
+                        if ((trItems[trackVectorNode.TrItemRefs[i]]) is T item && validitems != null && validitems.Contains((int)item.TrItemId))
                         {
-                            //if (trItems[trackNodes[currenNode].TrVectorNode.TrItemRefs[i]].ItemType == TrItem.trItemType.trSIGNAL)
-                            //{
-                            T item = (trItems[trackNodes[currentNode].TrVectorNode.TrItemRefs[i]]) as T;
-                            if (item != null && validitems != null && validitems.Contains((int)item.TrItemId))
+                            float dist = traveller.DistanceTo(item.TileX, item.TileZ, item.X, item.Y, item.Z);
+                            if (dist > 0)
                             {
-                                float dist = traveller.DistanceTo(item.TileX, item.TileZ, item.X, item.Y, item.Z);
-                                if (dist > 0)
+                                if (dist < distance)
                                 {
-                                    if (dist < distance)
-                                    {
-                                        distance = dist;
-                                        Item = item;
-                                    }
+                                    distance = dist;
+                                    Item = item;
                                 }
                             }
-                            /*
-                                }
-                                     
                         }
-                             */
-                            //}
-                        }
-
-                        if (Item != null) return Item;
                     }
 
+                    if (Item != null)
+                        return Item;
                 }
 
                 aiNode = move(aiNode);
