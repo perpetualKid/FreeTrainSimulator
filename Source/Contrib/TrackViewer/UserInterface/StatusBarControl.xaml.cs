@@ -180,7 +180,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             if (Properties.Settings.Default.statusShowVectorSections)
             {
-                TrVectorSection tvs = trackViewer.DrawTrackDB.ClosestTrack.VectorSection;
+                TrackVectorSection tvs = trackViewer.DrawTrackDB.ClosestTrack.VectorSection;
                 if (tvs == null) return;
                 uint shapeIndex = tvs.ShapeIndex;
                 string shapeName = "Unknown:" + shapeIndex.ToString(System.Globalization.CultureInfo.CurrentCulture);

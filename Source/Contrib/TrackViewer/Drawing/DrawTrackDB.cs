@@ -295,11 +295,11 @@ namespace ORTS.TrackViewer.Drawing
 
                 for (int tvsi = 0; tvsi < tn.TrackVectorSections.Length; tvsi++)
                 {
-                    TrVectorSection tvs = tn.TrackVectorSections[tvsi];
-                    if (tvs.TileX < MinTileX) { MinTileX = tvs.TileX; };
-                    if (tvs.TileZ < MinTileZ) { MinTileZ = tvs.TileZ; };
-                    if (tvs.TileX > MaxTileX) { MaxTileX = tvs.TileX; };
-                    if (tvs.TileZ > MaxTileZ) { MaxTileZ = tvs.TileZ; };
+                    TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
+                    if (tvs.Location.TileX < MinTileX) { MinTileX = tvs.Location.TileX; };
+                    if (tvs.Location.TileZ < MinTileZ) { MinTileZ = tvs.Location.TileZ; };
+                    if (tvs.Location.TileX > MaxTileX) { MaxTileX = tvs.Location.TileX; };
+                    if (tvs.Location.TileZ > MaxTileZ) { MaxTileZ = tvs.Location.TileZ; };
                 }
             }
         }
@@ -346,13 +346,13 @@ namespace ORTS.TrackViewer.Drawing
                     if (connectedVectorNode.TrackPins[0].Link == tni)
                     {
                         //find angle at beginning of vector node
-                        TrVectorSection tvs = connectedVectorNode.TrackVectorSections[0];
+                        TrackVectorSection tvs = connectedVectorNode.TrackVectorSections[0];
                         endnodeAngles[tn.Index] = tvs.AY;
                     }
                     else
                     {
                         //find angle at end of vector node
-                        TrVectorSection tvs = connectedVectorNode.TrackVectorSections.Last();
+                        TrackVectorSection tvs = connectedVectorNode.TrackVectorSections.Last();
                         endnodeAngles[tn.Index] = tvs.AY;
                         try
                         { // try to get even better in case the last section is curved
@@ -459,13 +459,13 @@ namespace ORTS.TrackViewer.Drawing
                 if (tn == null && trackDB.TrackNodes[tni] != null)
                 {
                     // so junction or endnode
-                    AddLocationToAvailableList(tn.UiD.Location, availablePointNodeIndexes, tn);
+                    AddLocationToAvailableList(trackDB.TrackNodes[tni].UiD.Location, availablePointNodeIndexes, trackDB.TrackNodes[tni]);
                 }
-                else if (tn.TrackVectorSections != null)
+                else if (tn?.TrackVectorSections != null)
                 {   // vector nodes
                     for (int tvsi = 0; tvsi < tn.TrackVectorSections.Length; tvsi++)
                     {
-                        TrVectorSection tvs = tn.TrackVectorSections[tvsi];
+                        TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
                         if (tvs == null) continue;
                         List<WorldLocation> locationList = FindLocationList(tni, tvsi, true);
                         foreach (WorldLocation location in locationList)
@@ -480,13 +480,13 @@ namespace ORTS.TrackViewer.Drawing
             {
                 for (uint tni = 0; tni < roadTrackDB.TrackNodes.Length; tni++)
                 {
-                    if (!(trackDB.TrackNodes[tni] is TrackVectorNode tn)) continue;
+                    if (!(roadTrackDB.TrackNodes[tni] is TrackVectorNode tn)) continue;
 
                     if (tn.TrackVectorSections != null)
                     {
                         for (int tvsi = 0; tvsi < tn.TrackVectorSections.Length; tvsi++)
                         {
-                            TrVectorSection tvs = tn.TrackVectorSections[tvsi];
+                            TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
                             if (tvs == null) continue;
                             List<WorldLocation> locationList = FindLocationList(tni, tvsi, false);
                             foreach (WorldLocation location in locationList)
@@ -597,7 +597,7 @@ namespace ORTS.TrackViewer.Drawing
             if (!((useRailTracks ? trackDB.TrackNodes[trackNodeIndex] : roadTrackDB.TrackNodes[trackNodeIndex]) is TrackVectorNode tn))
                 return resultList;
 
-            TrVectorSection tvs = tn.TrackVectorSections[trackVectorSectionIndex];
+            TrackVectorSection tvs = tn.TrackVectorSections[trackVectorSectionIndex];
             if (tvs == null) return resultList;
 
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
@@ -800,7 +800,7 @@ namespace ORTS.TrackViewer.Drawing
             if (tn == null) return;
             for (int tvsi = 0; tvsi < tn.TrackVectorSections.Length; tvsi++)
             {
-                TrVectorSection tvs = tn.TrackVectorSections[tvsi];
+                TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
                 DrawTrackSection(drawArea, tn, tvs, colors, closeToMouseTrack, tvsi);
             }
         }
@@ -816,13 +816,13 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tvsi">The index of the trackvector section, needed only for closeToMouseTrack</param>
         /// <remarks>Note that his is very similar to DrawTrackSection in class DrawPath, but this one always
         /// draws the whole section and it checks the distance to the mouse</remarks>
-        private void DrawTrackSection(DrawArea drawArea, TrackVectorNode tn, TrVectorSection tvs, ColorScheme colors, CloseToMouseTrack closeToMouseTrack, int tvsi)
+        private void DrawTrackSection(DrawArea drawArea, TrackVectorNode tn, TrackVectorSection tvs, ColorScheme colors, CloseToMouseTrack closeToMouseTrack, int tvsi)
         {
             if (tvs == null) return;
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
             if (trackSection == null) return;
 
-            WorldLocation thisLocation = DrawTrackDB.TvsLocation(tvs);
+            ref readonly WorldLocation thisLocation = ref tvs.Location;
             if (closeToMouseTrack != null)
             {
                 closeToMouseTrack.CheckMouseDistance(thisLocation, drawArea.MouseLocation, tn, tvs, tvsi, drawArea.Scale);
@@ -1108,16 +1108,6 @@ namespace ORTS.TrackViewer.Drawing
 
         #region Utilities
         /// <summary>
-        /// Utility method to translate the various coordinates within an tvs into a worldLocation
-        /// </summary>
-        /// <param name="tvs">The MSTS Track vector section</param>
-        /// <returns>The single-object worldLocation</returns>
-        public static WorldLocation TvsLocation(TrVectorSection tvs)
-        {
-            return new WorldLocation(tvs.TileX, tvs.TileZ, tvs.X, tvs.Y, tvs.Z);
-        }
-
-        /// <summary>
         /// Returns length of a tracksection. 
         /// </summary>
         /// <remarks>Same method as in Traveller.cs, but that one is not public</remarks>
@@ -1143,9 +1133,10 @@ namespace ORTS.TrackViewer.Drawing
                 if (nodeAhead == null)
                 {
                     // no junctions or end node at both sides. Oh, well, just take the first point
-                    TrVectorSection tvs = tvn.TrackVectorSections[0];
-                    if (tvs == null) return WorldLocation.None;
-                    return new WorldLocation(tvs.TileX, tvs.TileZ, tvs.X, 0, tvs.Z);
+                    TrackVectorSection tvs = tvn.TrackVectorSections[0];
+                    if (tvs == null)
+                        return WorldLocation.None;
+                    return tvs.Location.SetElevation(0);
                 }
                 else
                 {
@@ -1196,7 +1187,7 @@ namespace ORTS.TrackViewer.Drawing
                 TrackVectorNode tn = (useRailTracks ?              
                     trackDB.TrackNodes[trackNodeIndex]: roadTrackDB.TrackNodes[trackNodeIndex]) as TrackVectorNode;
                 
-                TrVectorSection tvs = tn.TrackVectorSections[trackVectorSectionIndex];
+                TrackVectorSection tvs = tn.TrackVectorSections[trackVectorSectionIndex];
 
                 TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
 
@@ -1215,9 +1206,9 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="trackSection">Track section corresponding to the track vector section. Could in principle be found from tvs, but if it is given, this is faster.</param>
         /// <param name="distanceAlongSection">Distance along the track</param>
         /// <returns></returns>
-        private static WorldLocation FindLocationInSection(TrVectorSection tvs, TrackSection trackSection, float distanceAlongSection)
+        private static WorldLocation FindLocationInSection(TrackVectorSection tvs, TrackSection trackSection, float distanceAlongSection)
         {
-            WorldLocation location = DrawTrackDB.TvsLocation(tvs);
+            ref readonly WorldLocation location = ref tvs.Location;
 
             float cosA = (float)Math.Cos(tvs.AY);
             float sinA = (float)Math.Sin(tvs.AY);
@@ -1225,7 +1216,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 // note, angle is 90 degrees off, and different sign. 
                 // So Delta X = cos(90-A)=sin(A); Delta Y,Z = sin(90-A) = cos(A)    
-                location = new WorldLocation(location.TileX, location.TileZ,
+                return new WorldLocation(location.TileX, location.TileZ,
                     location.Location.X + sinA * distanceAlongSection, location.Location.Y, location.Location.Z + cosA * distanceAlongSection);
             }
             else
@@ -1236,10 +1227,9 @@ namespace ORTS.TrackViewer.Drawing
                 float sinArotated = (float)Math.Sin(tvs.AY + sign * angleRadians);
                 float deltaX = sign * trackSection.Radius * (cosA - cosArotated);
                 float deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
-                location = new WorldLocation(location.TileX, location.TileZ,
+                return new WorldLocation(location.TileX, location.TileZ,
                     location.Location.X - deltaX, location.Location.Y, location.Location.Z + deltaZ);
             }
-            return location;
         }
         #endregion
     }

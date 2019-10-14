@@ -28,19 +28,19 @@ namespace Orts.Simulation
 {
     public class SuperElevation
     {
-        public List<List<TrVectorSection>> Curves;
-        public Dictionary<int, List<TrVectorSection>> Sections;
+        public List<List<TrackVectorSection>> Curves;
+        public Dictionary<int, List<TrackVectorSection>> Sections;
         public float MaximumAllowedM;
 
         //check TDB for long curves and determine each section's position/elev in the curve
         public SuperElevation(Simulator simulator)
         {
-            Curves = new List<List<TrVectorSection>>();
-            Sections = new Dictionary<int, List<TrVectorSection>>();
+            Curves = new List<List<TrackVectorSection>>();
+            Sections = new Dictionary<int, List<TrackVectorSection>>();
 
             MaximumAllowedM = 0.07f + simulator.UseSuperElevation / 100f;//max allowed elevation controlled by user setting
 
-            var SectionList = new List<TrVectorSection>();
+            var SectionList = new List<TrackVectorSection>();
             foreach (var node in simulator.TDB.TrackDB.TrackNodes)
             {
                 TrackVectorNode trackVectorNode = node as TrackVectorNode;
@@ -98,7 +98,7 @@ namespace Orts.Simulation
             }
         }
 
-        void MarkSections(Simulator simulator, List<TrVectorSection> SectionList, float Len)
+        void MarkSections(Simulator simulator, List<TrackVectorSection> SectionList, float Len)
         {
             if (Len < simulator.SuperElevationMinLen || SectionList.Count == 0) return;//too short a curve or the list is empty
             var tSection = simulator.TSectionDat.TrackSections;
@@ -113,7 +113,7 @@ namespace Orts.Simulation
             if (Max > MaximumAllowedM) Max = MaximumAllowedM;//max
             Max = (float)Math.Atan(Max / 1.44f); //now change to rotation in radius by quick estimation as the angle is small
 
-            Curves.Add(new List<TrVectorSection>(SectionList)); //add the curve
+            Curves.Add(new List<TrackVectorSection>(SectionList)); //add the curve
             MapWFiles2Sections(SectionList);//map these sections to tiles, so we can compute it quicker later
             if (SectionList.Count == 1)//only one section in the curve
             {
@@ -134,15 +134,15 @@ namespace Orts.Simulation
         }
 
         //find all sections in a tile, save the info to a look-up table
-        void MapWFiles2Sections(List<TrVectorSection> sections)
+        void MapWFiles2Sections(List<TrackVectorSection> sections)
         {
             foreach (var section in sections)
             {
-                var key = (int)(Math.Abs(section.WFNameX) + Math.Abs(section.WFNameZ));
+                var key = Math.Abs(section.Location.TileX) + Math.Abs(section.Location.TileZ);
                 if (Sections.ContainsKey(key)) Sections[key].Add(section);
                 else
                 {
-                    List<TrVectorSection> tmpSections = new List<TrVectorSection>();
+                    List<TrackVectorSection> tmpSections = new List<TrackVectorSection>();
                     tmpSections.Add(section);
                     Sections.Add(key, tmpSections);
                 }

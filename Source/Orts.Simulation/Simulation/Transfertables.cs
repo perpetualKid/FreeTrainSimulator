@@ -133,7 +133,7 @@ namespace Orts.Simulation
                 if (trackNodes[iTrackNode] is TrackVectorNode tvn && tvn.TrackVectorSections != null)
                 {
                     var iTrVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection =>
-                        (trVectorSection.WFNameX == WorldPosition.TileX && trVectorSection.WFNameZ == WorldPosition.TileZ && trVectorSection.WorldFileUiD == UID));
+                        (trVectorSection.Location.TileX == WorldPosition.TileX && trVectorSection.Location.TileZ == WorldPosition.TileZ && trVectorSection.WorldFileUiD == UID));
                     if (iTrVectorSection >= 0)
                     {
                         if (tvn.TrackVectorSections.Length > (int)nSections)

@@ -577,7 +577,7 @@ namespace Orts.Simulation
         static float? AddItemIdToTrackNode(in WorldLocation location, TrackSectionsFile tsectionDat, TrackDB trackDB, TrackItem newTrItem, out Traveller traveller)
         {
             float? offset = 0.0f;
-            traveller = new Traveller(tsectionDat, trackDB.TrackNodes, location.TileX, location.TileZ, location.Location.X, location.Location.Z);
+            traveller = new Traveller(tsectionDat, trackDB.TrackNodes, location);
             TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];//find the track node
             if (trackNode is TrackVectorNode trackVectorNode)
             {
@@ -643,7 +643,7 @@ namespace Orts.Simulation
             {
                 int currTrItemID = thisVectorNode.TrackItemIndices[iTrItems];
                 TrackItem currTrItem = trackDB.TrackItems[currTrItemID];
-                Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, currTrItem.TileX, currTrItem.TileZ, currTrItem.X, currTrItem.Z);
+                Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, currTrItem.Location);
                 if (offset >= traveller.TrackNodeOffset)
                 {
                     index = iTrItems + 1;

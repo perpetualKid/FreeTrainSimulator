@@ -88,9 +88,12 @@ namespace Orts.Formats.Msts
                             TrackNodes[idx] = TrackNode.ReadTrackNode(stf, idx, numberOfTrackNodes);
                             if (TrackNodes[idx] is TrackJunctionNode junctionNode)
                             {
-                                junctionNodes.Add($"{junctionNode.UiD.WorldId}-{junctionNode.UiD.Location.TileX}-{junctionNode.UiD.Location.TileZ}", junctionNode);
+                                string key = $"{junctionNode.UiD.WorldId}-{junctionNode.UiD.Location.TileX}-{junctionNode.UiD.Location.TileZ}";
+                                if (!junctionNodes.ContainsKey(key))
+                                    junctionNodes.Add(key, junctionNode);
+                                else
+                                    STFException.TraceWarning(stf, $"Duplicate Junction Node with UiD {key} Index {junctionNode.Index}. Previously seen at {junctionNodes[key].Index}");
                             }
-                            //TrackNodes[idx] = new TrackNode(stf, idx, numberOfTrackNodes); 
                             ++idx;
                         }),
                     });
@@ -164,107 +167,15 @@ namespace Orts.Formats.Msts
     }
 
     /// <summary>
-    /// Describes the details of a vectorNode, a connection between two junctions (or endnodes).
-    /// A vectorNode itself is made up of various sections. The begin point of each of these sections
-    /// is stored (as well as its direction). As a result, VectorNodes have a direction.
-    /// Furthermore, a number of TrItems (Track Items) can be located on the vector nodes.
-    /// </summary>
-    public class TrVectorNode
-    {
-        /// <summary>Array of sections that together form the vectorNode</summary>
-        public TrVectorSection[] TrVectorSections;
-        /// <summary>Array of indexes of TrItems (track items) that are located on this vectorNode</summary>
-        public int[] TrItemRefs;
-        /// <summary>The amount of TrItems in TrItemRefs</summary>
-        public int NoItemRefs { get; set; } // it would have been better to use TrItemRefs.Length instead of keeping count ourselve
-
-        /// <summary>
-        /// Default constructor used during file parsing.
-        /// </summary>
-        /// <param name="stf">The STFreader containing the file stream</param>
-        public TrVectorNode(STFReader stf)
-        {
-            stf.MustMatch("(");
-            stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("trvectorsections", ()=>{
-                    stf.MustMatch("(");
-                    int numberOfVectorSections = stf.ReadInt(null);
-                    TrVectorSections = new TrVectorSection[numberOfVectorSections];
-                    for (int i = 0; i < numberOfVectorSections; ++i)
-                        TrVectorSections[i] = new TrVectorSection(stf);
-                    stf.SkipRestOfBlock();
-                }),
-                new STFReader.TokenProcessor("tritemrefs", ()=>{
-                    stf.MustMatch("(");
-                    NoItemRefs = stf.ReadInt(null);
-                    TrItemRefs = new int[NoItemRefs];
-                    int refidx = 0;
-                    stf.ParseBlock(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("tritemref", ()=>{
-                            if (refidx >= NoItemRefs)
-                                STFException.TraceWarning(stf, "Skipped extra TrItemRef");
-                            else
-                                TrItemRefs[refidx++] = stf.ReadIntBlock(null);
-                        }),
-                    });
-                    if (refidx < NoItemRefs)
-                        STFException.TraceWarning(stf, (NoItemRefs - refidx).ToString(System.Globalization.CultureInfo.CurrentCulture)
-                            + " missing TrItemRef(s)");
-                }),
-            });
-        }
-
-        /// <summary>
-        /// Create a vectorNode from a another VectorNode, by copying all members and arrays.
-        /// Not a deep copy, because the arrays are copied shallow.
-        /// </summary>
-        /// <param name="otherNode">The other node to copy from.</param>
-        public TrVectorNode(TrVectorNode otherNode)
-        {
-            this.NoItemRefs = otherNode.NoItemRefs;
-            if (otherNode.TrItemRefs != null)
-                this.TrItemRefs = (int[])otherNode.TrItemRefs.Clone();
-            if (otherNode.TrVectorSections != null)
-                this.TrVectorSections = (TrVectorSection[])otherNode.TrVectorSections.Clone();
-        }
-
-        /// <summary>
-        /// Get the index of a vector section in the array of vectorsections 
-        /// </summary>
-        /// <param name="targetTvs">The vector section for which the index is needed</param>
-        /// <returns>the index of the vector section</returns>
-        public int TrVectorSectionsIndexOf(TrVectorSection targetTvs)
-        {
-            for (int i = 0; i < TrVectorSections.Length; ++i)
-            {
-                if (TrVectorSections[i] == targetTvs)
-                {
-                    return i;
-                }
-            }
-            throw new InvalidOperationException("Program Bug: Can't Find TVS");
-        }
-
-        /// <summary>
-        /// Add a reference to a new TrItem to the already existing TrItemRefs.
-        /// </summary>
-        /// <param name="newTrItemRef">The reference to the new TrItem</param>
-        public void AddTrItemRef(int newTrItemRef)
-        {
-            int[] newTrItemRefs = new int[NoItemRefs + 1];
-            TrItemRefs.CopyTo(newTrItemRefs, 0);
-            newTrItemRefs[NoItemRefs] = newTrItemRef;
-            TrItemRefs = newTrItemRefs; //use the new item lists for the track node
-            NoItemRefs++;
-        }
-    }
-
-    /// <summary>
     /// Describes a single section in a vector node. 
     /// </summary>
-    public class TrVectorSection
+    public class TrackVectorSection
     {
-        public WorldLocation Location => new WorldLocation(TileX, TileZ, X, Y, Z);//TODO
+        private WorldLocation location;
+        private Vector3 direction;
+
+        public ref readonly WorldLocation Location => ref location;
+        public ref readonly Vector3 Direction => ref direction;
         /// <summary>First flag. Not completely clear, usually 0, - may point to the connecting pin entry in a junction. Sometimes 2</summary>
         public int Flag1 { get; set; }
         /// <summary>Second flag. Not completely clear, usually 1, but set to 0 when curve track is flipped around. Sometimes 2</summary>
@@ -273,30 +184,16 @@ namespace Orts.Formats.Msts
         public uint SectionIndex { get; set; }
         /// <summary>Index to the shape from Tsection.dat</summary>
         public uint ShapeIndex { get; set; }
-        /// <summary>X-value of the location-tile</summary>
-        public int TileX { get; set; }
-        /// <summary>Z-value of the location-tile</summary>
-        public int TileZ { get; set; }
-        /// <summary>X-value within the tile where the node is located</summary>
-        public float X { get; set; }
-        /// <summary>Y-value (height) within the tile where the node is located</summary>
-        public float Y { get; set; }
-        /// <summary>Z-value within the tile where the node is located</summary>
-        public float Z { get; set; }
         /// <summary>Angle around X-axis for describing initial direction of the node</summary>
-        public float AX { get; set; }
+        public float AX => direction.X;
         /// <summary>Angle around Y-axis for describing initial direction of the node</summary>
-        public float AY { get; set; }
+        public float AY => direction.Y;
         /// <summary>Angle around Z-axis for describing initial direction of the node</summary>
-        public float AZ { get; set; }
+        public float AZ => direction.Z;
 
         //The following items are related to super elevation
-        /// <summary>The index to the worldFile</summary>
+        /// <summary>Cross-reference to worldFile: World ID</summary>
         public uint WorldFileUiD { get; set; }
-        /// <summary>The TileX in the WorldFile</summary>
-        public int WFNameX { get; set; }
-        /// <summary>The TileZ in the WorldFile</summary>
-        public int WFNameZ { get; set; }
         /// <summary>The (super)elevation at the start</summary>
         public float StartElev { get; set; }
         /// <summary>The (super)elevation at the end</summary>
@@ -304,31 +201,26 @@ namespace Orts.Formats.Msts
         /// <summary>The maximum (super) elevation</summary>
         public float MaxElev { get; set; }
 
-        /// <summary>??? (needed for ActivityEditor, but not used here, so why is it defined here?)</summary>
-        public bool Reduced { get; set; }
-
         /// <summary>
         /// Default constructor used during file parsing.
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
-        public TrVectorSection(STFReader stf)
+        public TrackVectorSection(STFReader stf)
         {
             SectionIndex = stf.ReadUInt(null);
             ShapeIndex = stf.ReadUInt(null);
-            WFNameX = stf.ReadInt(null);// worldfilenamex
-            WFNameZ = stf.ReadInt(null);// worldfilenamez
+            int worldTileX = stf.ReadInt(null);// worldfilenamex
+            int worldTileZ = stf.ReadInt(null);// worldfilenamez
             WorldFileUiD = stf.ReadUInt(null); // UID in worldfile
             Flag1 = stf.ReadInt(null); // 0
             Flag2 = stf.ReadInt(null); // 1
             stf.ReadString(); // 00 
-            TileX = stf.ReadInt(null);
-            TileZ = stf.ReadInt(null);
-            X = stf.ReadFloat(STFReader.Units.None, null);
-            Y = stf.ReadFloat(STFReader.Units.None, null);
-            Z = stf.ReadFloat(STFReader.Units.None, null);
-            AX = stf.ReadFloat(STFReader.Units.None, null);
-            AY = stf.ReadFloat(STFReader.Units.None, null);
-            AZ = stf.ReadFloat(STFReader.Units.None, null);
+            location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
+            direction = new Vector3(stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
+
+            if (worldTileX != location.TileX || worldTileZ != location.TileZ)
+                STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldFileUiD}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
+
         }
 
         /// <summary>
@@ -337,8 +229,7 @@ namespace Orts.Formats.Msts
         /// <returns>String giving info on this section</returns>
         public override string ToString()
         {
-            return String.Format(System.Globalization.CultureInfo.CurrentCulture,
-                "{{TileX:{0} TileZ:{1} X:{2} Y:{3} Z:{4} UiD:{5} Section:{6} Shape:{7}}}", WFNameX, WFNameZ, X, Y, Z, WorldFileUiD, SectionIndex, ShapeIndex);
+            return $"{{TileX:{location.TileX} TileZ:{location.TileZ} X:{location.Location.X} Y:{location.Location.Y} Z:{location.Location.Z} UiD:{WorldFileUiD} Section:{SectionIndex} Shape:{ShapeIndex}}}";
         }
     }
 

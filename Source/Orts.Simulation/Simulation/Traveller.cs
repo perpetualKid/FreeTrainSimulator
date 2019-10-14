@@ -27,6 +27,7 @@ using System.Linq;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Common.Xna;
 
 namespace Orts.Simulation
 {
@@ -55,7 +56,7 @@ namespace Orts.Simulation
         TravellerDirection direction = TravellerDirection.Forward;
         float trackOffset; // Offset into track (vector) section; meters for straight sections, radians for curved sections.
         TrackNode trackNode;
-        TrVectorSection trackVectorSection;
+        TrackVectorSection trackVectorSection;
         TrackSection trackSection;
 
         // Location and directionVector are only valid if locationSet == true.
@@ -235,6 +236,22 @@ namespace Orts.Simulation
         }
 
         /// <summary>
+        /// Creates a traveller starting at a specific location, facing in the specified direction.
+        /// </summary>
+        /// <param name="tSectionDat">Provides vector track sections.</param>
+        /// <param name="trackNodes">Provides track nodes.</param>
+        /// <param name="tileX">Starting tile coordinate.</param>
+        /// <param name="tileZ">Starting tile coordinate.</param>
+        /// <param name="x">Starting coordinate.</param>
+        /// <param name="z">Starting coordinate.</param>
+        /// <param name="direction">Starting direction.</param>
+        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, in WorldLocation location, TravellerDirection direction)
+            : this(tSectionDat, trackNodes, location)
+        {
+            Direction = direction;
+        }
+
+        /// <summary>
         /// Creates a traveller starting at the beginning of the specified track node, facing with the track node.
         /// </summary>
         /// <param name="tSectionDat">Provides vector track sections.</param>
@@ -272,7 +289,7 @@ namespace Orts.Simulation
             : this(tSectionDat, trackNodes)
         {
             if (startTrackNode == null) throw new ArgumentException("Track node is not a vector node.", "startTrackNode");
-            Debug.Assert(location.Location.Y == 0);
+
             if (startTrackNode == null) throw new ArgumentNullException("startTrackNode");
             var startTrackNodeIndex = Array.IndexOf(trackNodes, startTrackNode);
             if (startTrackNodeIndex == -1) throw new ArgumentException("Track node is not in track nodes array.", "startTrackNode");
@@ -321,6 +338,24 @@ namespace Orts.Simulation
         {
             Direction = direction;
         }
+
+        /// <summary>
+        /// Creates a traveller starting at a specific location within a specified track node, facing in the specified direction.
+        /// </summary>
+        /// <param name="tSectionDat">Provides vector track sections.</param>
+        /// <param name="trackNodes">Provides track nodes.</param>
+        /// <param name="startTrackNode">Starting track node.</param>
+        /// <param name="tileX">Starting tile coordinate.</param>
+        /// <param name="tileZ">Starting tile coordinate.</param>
+        /// <param name="x">Starting coordinate.</param>
+        /// <param name="z">Starting coordinate.</param>
+        /// <param name="direction">Starting direction.</param>
+        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, TrackVectorNode startTrackNode, in WorldLocation location, TravellerDirection direction)
+            : this(tSectionDat, trackNodes, startTrackNode, location)
+        {
+            Direction = direction;
+        }
+
 
         /// <summary>
         /// Creates a copy of another traveller, starting in the same location and with the same direction.
@@ -408,8 +443,7 @@ namespace Orts.Simulation
         /// <returns>Details on where exactly the location is on the track.</returns>
         static TrackNodeCandidate TryTrackNode(int tni, in WorldLocation loc, TrackSectionsFile TSectionDat, TrackNode[] TrackNodes)
         {
-            TrackVectorNode trackVectorNode = TrackNodes[tni] as TrackVectorNode;
-            if (trackVectorNode == null)
+            if (!(TrackNodes[tni] is TrackVectorNode trackVectorNode))
                 return null;
             // TODO, we could do an additional cull here by calculating a bounding sphere for each node as they are being read.
             for (var tvsi = 0; tvsi < trackVectorNode.TrackVectorSections.Length; tvsi++)
@@ -436,7 +470,7 @@ namespace Orts.Simulation
         /// <returns>Details on where exactly the location is on the track.</returns>
         static TrackNodeCandidate TryTrackVectorSection(int tvsi, in WorldLocation loc, TrackSectionsFile TSectionDat, TrackVectorNode trackNode)
         {
-            TrVectorSection trackVectorSection = trackNode.TrackVectorSections[tvsi];
+            TrackVectorSection trackVectorSection = trackNode.TrackVectorSections[tvsi];
             if (trackVectorSection == null)
                 return null;
             TrackNodeCandidate candidate = TryTrackSection(trackVectorSection.SectionIndex, loc, TSectionDat, trackVectorSection);
@@ -456,7 +490,7 @@ namespace Orts.Simulation
         /// <param name="TSectionDat">Database with track sections</param>
         /// <param name="trackVectorSection">The parent track vector section</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        static TrackNodeCandidate TryTrackSection(uint tsi, in WorldLocation loc, TrackSectionsFile TSectionDat, TrVectorSection trackVectorSection)
+        static TrackNodeCandidate TryTrackSection(uint tsi, in WorldLocation loc, TrackSectionsFile TSectionDat, TrackVectorSection trackVectorSection)
         {
             TrackSection trackSection = TSectionDat.TrackSections.Get(tsi);
             if (trackSection == null)
@@ -484,14 +518,14 @@ namespace Orts.Simulation
         /// <param name="trackVectorSection">The trackvector section that is parent of the tracksection</param>
         /// <param name="trackSection">the specific tracksection we want to try</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        static TrackNodeCandidate TryTrackSectionCurved(in WorldLocation loc, TrVectorSection trackVectorSection, TrackSection trackSection)
+        static TrackNodeCandidate TryTrackSectionCurved(in WorldLocation loc, TrackVectorSection trackVectorSection, TrackSection trackSection)
         {// TODO: Add y component.
             var l = loc.Location;
             // We're working relative to the track section, so offset as needed.
-            l.X += (loc.TileX - trackVectorSection.TileX) * 2048;
-            l.Z += (loc.TileZ - trackVectorSection.TileZ) * 2048;
-            var sx = trackVectorSection.X;
-            var sz = trackVectorSection.Z;
+            l.X += (loc.TileX - trackVectorSection.Location.TileX) * 2048;
+            l.Z += (loc.TileZ - trackVectorSection.Location.TileZ) * 2048;
+            var sx = trackVectorSection.Location.Location.X;
+            var sz = trackVectorSection.Location.Location.Z;
 
             // Do a preliminary cull based on a bounding square around the track section.
             // Bounding distance is (radius * angle + error) by (radius * angle + error) around starting coordinates but no more than 2 for angle.
@@ -539,15 +573,15 @@ namespace Orts.Simulation
         /// <param name="trackVectorSection">The trackvector section that is parent of the tracksection</param>
         /// <param name="trackSection">the specific tracksection we want to try</param>
         /// <returns>Details on where exactly the location is on the track.</returns>
-        static TrackNodeCandidate TryTrackSectionStraight(in WorldLocation loc, TrVectorSection trackVectorSection, TrackSection trackSection)
+        static TrackNodeCandidate TryTrackSectionStraight(in WorldLocation loc, TrackVectorSection trackVectorSection, TrackSection trackSection)
         { // TODO: Add y component.
             float x = loc.Location.X;
             float z = loc.Location.Z;
             // We're working relative to the track section, so offset as needed.
-            x += (loc.TileX - trackVectorSection.TileX) * 2048;
-            z += (loc.TileZ - trackVectorSection.TileZ) * 2048;
-            var sx = trackVectorSection.X;
-            var sz = trackVectorSection.Z;
+            x += (loc.TileX - trackVectorSection.Location.TileX) * 2048;
+            z += (loc.TileZ - trackVectorSection.Location.TileZ) * 2048;
+            var sx = trackVectorSection.Location.Location.X;
+            var sz = trackVectorSection.Location.Location.Z;
 
             // Do a preliminary cull based on a bounding square around the track section.
             // Bounding distance is (length + error) by (length + error) around starting coordinates.
@@ -753,7 +787,7 @@ namespace Orts.Simulation
             return -1;
         }
 
-        public TrVectorSection GetCurrentSection()
+        public TrackVectorSection GetCurrentSection()
         {
             if (TrackNodes[TrackNodeIndex] is TrackVectorNode trackVectorNode)
                 return trackVectorNode.TrackVectorSections[TrackVectorSectionIndex];
@@ -861,10 +895,8 @@ namespace Orts.Simulation
                 to = pin.Direction > 0 ? -trackOffset : GetLength(ts) + trackOffset;
             }
 
-            location = new WorldLocation(tvs.TileX, tvs.TileZ, tvs.X, tvs.Y, tvs.Z);
-            directionVector.X = tvs.AX;
-            directionVector.Y = tvs.AY;
-            directionVector.Z = tvs.AZ;
+            location = tvs.Location;
+            directionVector = tvs.Direction;
 
             if (ts.Curved)
             {
@@ -873,16 +905,14 @@ namespace Orts.Simulation
                 var sign = -Math.Sign(ts.Angle);
                 var vectorCurveStartToCenter = Vector3.Left * ts.Radius * sign;
                 var curveRotation = Matrix.CreateRotationY(to * sign);
-                var XNAMatrix = Matrix.CreateFromYawPitchRoll(-tvs.AY, -tvs.AX, tvs.AZ);
-                var displacement = MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, XNAMatrix, out Vector3 vP);
+                VectorExtension.InterpolateAlongCurveLine(Vector3.Zero, vectorCurveStartToCenter, curveRotation, tvs.Direction, out _, out Vector3 displacement);
                 displacement.Z *= -1;
                 location = new WorldLocation(location.TileX, location.TileZ, location.Location + displacement);
                 directionVector.Y -= to * sign;
             }
             else
             {
-                var XNAMatrix = Matrix.CreateFromYawPitchRoll(tvs.AY, tvs.AX, tvs.AZ);
-                var displacement = MSTSInterpolateAlongStraight(Vector3.Zero, Vector3.UnitZ, to, XNAMatrix, out Vector3 vP);
+                VectorExtension.InterpolateAlongStraightLine(Vector3.Zero, Vector3.UnitZ, to, tvs.Direction, out _, out Vector3 displacement);
                 location = new WorldLocation(location.TileX, location.TileZ, location.Location + displacement);
             }
 
@@ -895,7 +925,7 @@ namespace Orts.Simulation
             directionVector.Y = MathHelper.WrapAngle(directionVector.Y);
 
             if (trackVectorSection != null)
-                location = location.NormalizeTo(trackVectorSection.TileX, trackVectorSection.TileZ);
+                location = location.NormalizeTo(trackVectorSection.Location.TileX, trackVectorSection.Location.TileZ);
         }
 
         void SetLength()
@@ -1284,7 +1314,7 @@ namespace Orts.Simulation
         public bool isCurved;           // Whether the tracksection is curved or not.  
         public TrackNode trackNode;     // the trackNode object
         public int TrackNodeIndex = -1; // the index of the tracknode
-        public TrVectorSection trackVectorSection; // the trackvectorSection within the tracknode
+        public TrackVectorSection trackVectorSection; // the trackvectorSection within the tracknode
         public int TrackVectorSectionIndex = -1;   // the corresponding index of the trackvectorsection
         public TrackSection trackSection;          // the tracksection within the trackvectorsection
 
@@ -1315,10 +1345,10 @@ namespace Orts.Simulation
         public readonly float X;
         public readonly float Y;
         public readonly float Z;
-        public readonly TrVectorSection TVS;
+        public readonly TrackVectorSection TVS;
         public readonly float ErrorLimit;
 
-        protected TravellerInitializationException(Exception innerException, int tileX, int tileZ, float x, float y, float z, TrVectorSection tvs, float errorLimit, string format, params object[] args)
+        protected TravellerInitializationException(Exception innerException, int tileX, int tileZ, float x, float y, float z, TrackVectorSection tvs, float errorLimit, string format, params object[] args)
             : base(String.Format(format, args), innerException)
         {
             TileX = tileX;
@@ -1336,7 +1366,7 @@ namespace Orts.Simulation
         public readonly float DistanceX;
         public readonly float DistanceZ;
 
-        public TravellerOutsideBoundingAreaException(int tileX, int tileZ, float x, float y, float z, TrVectorSection tvs, float errorLimit, float dx, float dz)
+        public TravellerOutsideBoundingAreaException(int tileX, int tileZ, float x, float y, float z, TrackVectorSection tvs, float errorLimit, float dx, float dz)
             : base(null, tileX, tileZ, x, y, z, tvs, errorLimit, "{0} is ({3} > {2} or {4} > {2}) outside the bounding area of track vector section {1}", new WorldLocation(tileX, tileZ, x, y, z), tvs, errorLimit, dx, dz)
         {
             DistanceX = dx;
@@ -1348,7 +1378,7 @@ namespace Orts.Simulation
     {
         public readonly float Distance;
 
-        public TravellerOutsideCenterlineException(int tileX, int tileZ, float x, float y, float z, TrVectorSection tvs, float errorLimit, float distance)
+        public TravellerOutsideCenterlineException(int tileX, int tileZ, float x, float y, float z, TrackVectorSection tvs, float errorLimit, float distance)
             : base(null, tileX, tileZ, x, y, z, tvs, errorLimit, "{0} is ({2} > {3}) from the centerline of track vector section {1}", new WorldLocation(tileX, tileZ, x, y, z), tvs, distance, errorLimit)
         {
             Distance = distance;
@@ -1360,7 +1390,7 @@ namespace Orts.Simulation
         public readonly float Length;
         public readonly float Distance;
 
-        public TravellerBeyondTrackLengthException(int tileX, int tileZ, float x, float y, float z, TrVectorSection tvs, float errorLimit, float length, float distance)
+        public TravellerBeyondTrackLengthException(int tileX, int tileZ, float x, float y, float z, TrackVectorSection tvs, float errorLimit, float length, float distance)
             : base(null, tileX, tileZ, x, y, z, tvs, errorLimit, "{0} is ({2} < {3} or {2} > {4}) beyond the extents of track vector section {1}", new WorldLocation(tileX, tileZ, x, y, z), tvs, distance, -errorLimit, length + errorLimit)
         {
             Length = length;

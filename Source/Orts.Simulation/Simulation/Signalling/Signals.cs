@@ -1980,8 +1980,8 @@ namespace Orts.Simulation.Signalling
                 // Create TDBtraveller at start of section to calculate distances
                 //
 
-                TrVectorSection firstSection = tvn.TrackVectorSections[0];
-                Traveller TDBTrav = new Traveller(tsectiondat, trackNodes, tvn, firstSection.TileX, firstSection.TileZ, firstSection.X, firstSection.Z, (Traveller.TravellerDirection)1);
+                TrackVectorSection firstSection = tvn.TrackVectorSections[0];
+                Traveller TDBTrav = new Traveller(tsectiondat, trackNodes, tvn, firstSection.Location, (Traveller.TravellerDirection)1);
 
                 //
                 // Process all items (do not split yet)
@@ -4426,11 +4426,12 @@ namespace Orts.Simulation.Signalling
             float X1 = firstPlatform.X;
             float Z1 = firstPlatform.Z;
 
+            ref readonly WorldLocation location1 = ref firstNode.TrackVectorSections[0].Location;
             // start node position
-            int TS1TileX = firstNode.TrackVectorSections[0].TileX;
-            int TS1TileZ = firstNode.TrackVectorSections[0].TileZ;
-            float TS1X = firstNode.TrackVectorSections[0].X;
-            float TS1Z = firstNode.TrackVectorSections[0].Z;
+            int TS1TileX = location1.TileX;
+            int TS1TileZ = location1.TileZ;
+            float TS1X = location1.Location.X;
+            float TS1Z = location1.Location.Z;
 
             float TS1Xc = TS1X + (TS1TileX - TileX1) * 2048;
             float TS1Zc = TS1Z + (TS1TileZ - TileZ1) * 2048;
@@ -4444,10 +4445,11 @@ namespace Orts.Simulation.Signalling
             float X2c = X2 + (TileX2 - TileX1) * 2048;
             float Z2c = Z2 + (TileZ2 - TileZ1) * 2048;
 
-            int TS2TileX = secondNode.TrackVectorSections[0].TileX;
-            int TS2TileZ = secondNode.TrackVectorSections[0].TileZ;
-            float TS2X = secondNode.TrackVectorSections[0].X;
-            float TS2Z = secondNode.TrackVectorSections[0].Z;
+            ref readonly WorldLocation location2 = ref secondNode.TrackVectorSections[0].Location;
+            int TS2TileX = location2.TileX;
+            int TS2TileZ = location2.TileZ;
+            float TS2X = location2.Location.X;
+            float TS2Z = location2.Location.Z;
 
             float TS2Xc = TS2X + (TS2TileX - TileX1) * 2048;
             float TS2Zc = TS2Z + (TS2TileZ - TileZ1) * 2048;
@@ -4709,7 +4711,7 @@ namespace Orts.Simulation.Signalling
                     int numPaths = -1;
 
                     // loop through all sections in node
-                    foreach (TrVectorSection thisSection in tvn.TrackVectorSections)
+                    foreach (TrackVectorSection thisSection in tvn.TrackVectorSections)
                     {
                         if (!tsectiondat.TrackSections.ContainsKey(thisSection.SectionIndex))
                         {
@@ -4903,7 +4905,7 @@ namespace Orts.Simulation.Signalling
                     int numPaths = -1;
 
                     // loop through all sections in node
-                    foreach (TrVectorSection thisSection in tvn.TrackVectorSections)
+                    foreach (TrackVectorSection thisSection in tvn.TrackVectorSections)
                     {
                         if (!tsectiondat.TrackSections.ContainsKey(thisSection.SectionIndex))
                         {
@@ -5376,7 +5378,7 @@ namespace Orts.Simulation.Signalling
 
             if (thisNode is TrackVectorNode tvn && tvn.TrackVectorSections != null)
             {
-                foreach (TrVectorSection thisSection in tvn.TrackVectorSections)
+                foreach (TrackVectorSection thisSection in tvn.TrackVectorSections)
                 {
                     float thisLength = 0.0f;
 

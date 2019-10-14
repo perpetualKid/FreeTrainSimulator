@@ -351,7 +351,7 @@ namespace ORTS.TrackViewer.Editing
         private void DrawVectorNode(DrawArea drawArea, TrackVectorNode trackVectorNode, ColorScheme colors, int tvsiStart, int tvsiStop,
                 float sectionOffsetStart, float sectionOffsetStop)
         {
-            TrVectorSection tvs;
+            TrackVectorSection tvs;
             if (tvsiStart == tvsiStop)
             {
                 tvs = trackVectorNode.TrackVectorSections[tvsiStart];
@@ -385,13 +385,13 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="startOffset">Do not draw the first startOffset meters in the section</param>
         /// <param name="stopOffset">Do not draw past stopOffset meters (draw all if stopOffset less than 0)</param>
         /// <remarks>Note that his is very similar to DrawTrackSection in class DrawTrackDB, but this one allows to draw partial sections</remarks>
-        private void DrawTrackSection(DrawArea drawArea, TrVectorSection tvs, ColorScheme colors,
+        private void DrawTrackSection(DrawArea drawArea, TrackVectorSection tvs, ColorScheme colors,
             float startOffset, float stopOffset)
         {
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
             if (trackSection == null) return;
 
-            WorldLocation thisLocation = new WorldLocation(tvs.TileX, tvs.TileZ, tvs.X, 0, tvs.Z);
+            ref readonly WorldLocation thisLocation = ref tvs.Location;
             
             if (trackSection.Curved)
             {   //curved section

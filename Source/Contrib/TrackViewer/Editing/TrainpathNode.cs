@@ -772,7 +772,7 @@ namespace ORTS.TrackViewer.Editing
             TrackVectorNode tn = TrackDB.TrackNodes[TvnIndex] as TrackVectorNode;
             for (int tvsi = 0; tvsi < TrackVectorSectionIndex; tvsi++)
             {
-                TrVectorSection tvs = tn.TrackVectorSections[tvsi];
+                TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
                 TrackSection trackSection = TsectionDat.TrackSections.Get(tvs.SectionIndex);
                 if (trackSection != null)  // if trackSection is missing somehow, well, do without.
                 {

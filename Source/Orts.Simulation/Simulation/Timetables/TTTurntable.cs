@@ -575,7 +575,7 @@ namespace Orts.Simulation.Timetables
 
             for (int iVector = 0; iVector < thisTDBsection.TrackVectorSections.Length; iVector++)
             {
-                Formats.Msts.TrVectorSection thisVector = thisTDBsection.TrackVectorSections[iVector];
+                Formats.Msts.TrackVectorSection thisVector = thisTDBsection.TrackVectorSections[iVector];
                 if (thisVector.ShapeIndex == turntableTrackShape)
                 {
                     vectorIndex = iVector;
@@ -629,7 +629,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.AccessPath[0].TCSectionIndex];
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            TrVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
+            TrackVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -709,7 +709,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.StoragePath[0].TCSectionIndex];
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            TrVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
+            TrackVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -771,7 +771,7 @@ namespace Orts.Simulation.Timetables
         /// Calculate length of section connected to turntable
         /// </summary>
 
-        private float CalculateVectorLength(int firstIndex, int LastIndex, int connectIndex, Formats.Msts.TrVectorSection[] vectors)
+        private float CalculateVectorLength(int firstIndex, int LastIndex, int connectIndex, Formats.Msts.TrackVectorSection[] vectors)
         {
             float returnLength = 0.0f;
 
@@ -779,7 +779,7 @@ namespace Orts.Simulation.Timetables
             {
                 float thisLength = 0.0f;
 
-                Formats.Msts.TrVectorSection thisVector = vectors[iVector];
+                Formats.Msts.TrackVectorSection thisVector = vectors[iVector];
 
                 if (Simulatorref.TSectionDat.TrackSections.ContainsKey(thisVector.SectionIndex))
                 {

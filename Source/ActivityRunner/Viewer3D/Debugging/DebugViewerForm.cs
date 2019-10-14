@@ -256,7 +256,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     }
                     else
                     {
-                        TrVectorSection s = trackVectorNode.TrackVectorSections[0];
+                        TrackVectorSection s = trackVectorNode.TrackVectorSections[0];
 
                         foreach (TrackPin pin in trackVectorNode.TrackPins)
                         {
@@ -273,7 +273,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                             //if (currNode.UiD == null)
                             //{
-                            DebugVector A = new DebugVector(s.TileX, s.X, s.TileZ, +s.Z);
+                            DebugVector A = new DebugVector(s.Location);
                             DebugVector B = new DebugVector(connectedNode.UiD.Location);
                             segments.Add(new LineSegment(A, B, /*s.InterlockingTrack.IsOccupied*/ false, null));
                             //}
@@ -286,7 +286,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 {
                     foreach (TrackPin pin in trackJunctionNode.TrackPins)
                     {
-                        TrVectorSection item = null;
+                        TrackVectorSection item = null;
                         TrackVectorNode vectorNode = nodes[pin.Link] as TrackVectorNode;
                         try
                         {
@@ -298,7 +298,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                         }
                         catch { continue; }
                         DebugVector A = new DebugVector(trackJunctionNode.UiD.Location);
-                        DebugVector B = new DebugVector(item.TileX, +item.X, item.TileZ, +item.Z);
+                        DebugVector B = new DebugVector(item.Location);
                         var x = DebugVector.DistanceSqr(A, B);
                         if (x < 0.1) continue;
                         segments.Add(new LineSegment(B, A, /*s.InterlockingTrack.IsOccupied*/ false, item));
@@ -1248,7 +1248,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// <param name="maxX"></param>
         /// <param name="maxY"></param>
         /// <param name="simulator"></param>
-        private static void AddSegments(List<LineSegment> segments, TrackNode node, TrVectorSection[] items,  ref float minX, ref float minY, ref float maxX, ref float maxY, Simulator simulator)
+        private static void AddSegments(List<LineSegment> segments, TrackNode node, TrackVectorSection[] items,  ref float minX, ref float minY, ref float maxX, ref float maxY, Simulator simulator)
       {
 
          bool occupied = false;
@@ -1263,8 +1263,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
          for (int i = 0; i < items.Length - 1; i++)
          {
-			 DebugVector A = new DebugVector(items[i].TileX , items[i].X, items[i].TileZ, items[i].Z);
-			 DebugVector B = new DebugVector(items[i + 1].TileX, items[i + 1].X, items[i + 1].TileZ, items[i + 1].Z);
+			 DebugVector A = new DebugVector(items[i].Location);
+			 DebugVector B = new DebugVector(items[i + 1].Location);
 
                 tempX1 = A.Location.TileX * 2048 + A.Location.Location.X; 
                 tempX2 = B.Location.TileX * 2048 + B.Location.Location.X;
@@ -2162,12 +2162,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 if (node is TrackVectorNode trackVectorNode) 
                 { 
                     var ts = trackVectorNode.TrackVectorSections[0]; 
-                    v2 = new Vector2(ts.TileX * 2048 + ts.X, ts.TileZ * 2048 + ts.Z); 
+                    v2 = VectorFromLocation(ts.Location); 
                 }
                 else if (node is TrackJunctionNode) 
                 { 
                     var ts = node.UiD; 
-                    v2 = new Vector2(ts.Location.TileX * 2048 + ts.Location.Location.X, ts.Location.TileZ * 2048 + ts.Location.Location.Z); 
+                    v2 = VectorFromLocation(ts.Location); 
                 }
                 else 
                     throw new Exception();
@@ -2290,7 +2290,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	   public float angle1, angle2;
 	   //public SectionCurve curve = null;
        //public TrVectorSection MySection;
-	   public LineSegment(DebugVector A, DebugVector B, bool Occupied, TrVectorSection Section)
+	   public LineSegment(DebugVector A, DebugVector B, bool Occupied, TrackVectorSection Section)
 	   {
 		   this.A = A;
 		   this.B = B;

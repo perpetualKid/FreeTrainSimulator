@@ -218,7 +218,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 float sectionOffsetNext = sectionOffsetStop;
                 for (int tvsi = tvsiStop; tvsi > tvsiStart; tvsi--)
                 {
-                    height = vectorNode.TrackVectorSections[tvsi].Y;
+                    height = vectorNode.TrackVectorSections[tvsi].Location.Location.Y;
                     AddPointAndTrackItems(newPoints, vectorNode, trackItemsInTracknode, isForward, height, tvsi, 0, sectionOffsetNext);
 
                     sectionOffsetNext = SectionLengthAlongTrack(vectorNode, tvsi-1);
@@ -235,7 +235,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 for (int tvsi = tvsiStop; tvsi < tvsiStart; tvsi++)
                 {
                     // The height needs to come from the end of the section, so the where the next section starts. And we only know the height at the start.
-                    height = vectorNode.TrackVectorSections[tvsi+1].Y;
+                    height = vectorNode.TrackVectorSections[tvsi+1].Location.Location.Y;
                     AddPointAndTrackItems(newPoints, vectorNode, trackItemsInTracknode, isForward, height, tvsi, sectionOffsetNext, SectionLengthAlongTrack(vectorNode, tvsi));
 
                     sectionOffsetNext = 0;
@@ -329,7 +329,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="isForward">Is the path in the same direction as the vector track node?</param>
         private float GetCurvature(TrackVectorNode vectorNode, int tvsi, bool isForward)
         {
-            TrVectorSection tvs = vectorNode.TrackVectorSections[tvsi];
+            TrackVectorSection tvs = vectorNode.TrackVectorSections[tvsi];
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
 
             float curvature = 0;
@@ -389,7 +389,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         private float SectionLengthAlongTrack(TrackVectorNode tn, int tvsi)
         {
             float fullSectionLength;
-            TrVectorSection tvs = tn.TrackVectorSections[tvsi];
+            TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
             if (trackSection == null)
             {

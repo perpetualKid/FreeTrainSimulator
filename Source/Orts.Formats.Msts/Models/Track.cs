@@ -508,7 +508,7 @@ namespace Orts.Formats.Msts.Models
     {
         private static readonly int[] emptyTrackItemIndices = new int[0];
         /// <summary>Array of sections that together form the vectorNode</summary>
-        public TrVectorSection[] TrackVectorSections { get; private set; }
+        public TrackVectorSection[] TrackVectorSections { get; private set; }
         /// <summary>Array of indexes of TrItems (track items) that are located on this vectorNode</summary>
         public int[] TrackItemIndices { get; private set; } = emptyTrackItemIndices;
         /// <summary>The amount of TrItems in TrItemRefs</summary>
@@ -525,9 +525,9 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("trvectorsections", ()=>{
                     stf.MustMatch("(");
                     int numberOfVectorSections = stf.ReadInt(null);
-                    TrackVectorSections = new TrVectorSection[numberOfVectorSections];
+                    TrackVectorSections = new TrackVectorSection[numberOfVectorSections];
                     for (int i = 0; i < numberOfVectorSections; ++i)
-                        TrackVectorSections[i] = new TrVectorSection(stf);
+                        TrackVectorSections[i] = new TrackVectorSection(stf);
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("tritemrefs", ()=>{
