@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
-
+using Orts.Common;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
@@ -317,4 +318,341 @@ namespace Orts.Formats.Msts.Models
         }
     } // TrackType
 
+    #region TrackDataBase
+    /// <summary>
+    /// Represents a TrackNode. This is either an endNode, a junctionNode, or a vectorNode. 
+    /// A VectorNode is a connection between two junctions or endnodes.
+    /// </summary>
+    public abstract class TrackNode
+    {
+        //only used to determine the node type during parsing
+        private enum NodeType
+        {
+            TrJunctionNode,
+            TrVectorNode,
+            TrEndNode,
+        }
+
+        /// <summary>'Universal Id', containing location information. Only provided for TrJunctionNode and TrEndNode type of TrackNodes</summary>
+        public UiD UiD { get; private set; }
+        /// <summary>The array containing the TrPins (Track pins), which are connections to other tracknodes</summary>
+        public TrackPin[] TrackPins;
+        /// <summary>Number of outgoing pins (connections to other tracknodes)</summary>
+        public int InPins { get; private set; }
+        /// <summary>Number of outgoing pins (connections to other tracknodes)</summary>
+        public int OutPins { get; private set; }
+
+        /// <summary>The index in the array of tracknodes.</summary>
+        public uint Index { get; private set; }
+
+        /// <summary>
+        /// List of references to Track Circuit sections
+        /// </summary>
+        public TrackCircuitXRefList TrackCircuitCrossReferences { get; set; }
+
+        protected TrackNode(STFReader stf, uint index, int maxTrackNode, int expectedPins)
+        {
+            Index = index;
+            stf.ParseBlock(new STFReader.TokenProcessor[] {
+                new STFReader.TokenProcessor("uid", ()=>{ UiD = ReadUiD(stf); }),
+                new STFReader.TokenProcessor("trjunctionnode", ()=>{ ReadNodeData(stf); }),
+                new STFReader.TokenProcessor("trvectornode", ()=>{ ReadNodeData(stf); }),
+                new STFReader.TokenProcessor("trendnode", ()=>{ ReadNodeData(stf); }),
+                new STFReader.TokenProcessor("trpins", () => ReadPins(stf, maxTrackNode)),
+            });
+            if (TrackPins.Length < expectedPins)
+                Trace.TraceWarning("Track node {0} has unexpected number of pins; expected {1}, got {2}", Index, expectedPins, TrackPins.Length);
+        }
+
+        protected abstract void ReadNodeData(STFReader stf);
+
+        protected UiD ReadUiD(STFReader stf)
+        {
+            return new UiD(stf);
+        }
+
+        protected void ReadPins(STFReader stf, int maxTrackNode)
+        {
+            stf.MustMatch("(");
+            InPins = stf.ReadInt(null);
+            OutPins = stf.ReadInt(null);
+            TrackPins = new TrackPin[InPins + OutPins];
+            for (int i = 0; i < TrackPins.Length; ++i)
+            {
+                stf.MustMatch("TrPin");
+                TrackPins[i] = new TrackPin(stf);
+                if (TrackPins[i].Link <= 0 || TrackPins[i].Link > maxTrackNode)
+                    STFException.TraceWarning(stf, $"Track node {Index} pin {i} has invalid link to track node {TrackPins[i].Link}");
+            }
+            stf.SkipRestOfBlock();
+        }
+
+        internal static TrackNode ReadTrackNode(STFReader stf, int expectedIndex, int maxNodeIndex)
+        {
+            stf.MustMatch("(");
+            uint index = stf.ReadUInt(null);
+            Debug.Assert(index == expectedIndex, "TrackNode Index Mismatch");
+            if (!EnumExtension.GetValue(stf.ReadString(), out NodeType nodeType))
+            {
+                throw new STFException(stf, "Unknown TrackNode type");
+            }
+            stf.StepBackOneItem();
+            switch (nodeType)
+            {
+                case NodeType.TrEndNode:
+                    return new TrackEndNode(stf, index, maxNodeIndex);
+                case NodeType.TrJunctionNode:
+                    return new TrackJunctionNode(stf, index, maxNodeIndex);
+                case NodeType.TrVectorNode:
+                    return new TrackVectorNode(stf, index, maxNodeIndex);
+            }
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// This TrackNode has nothing else connected to it (that is, it is
+    /// a buffer end or an unfinished track) and trains cannot proceed beyond here.
+    /// </summary>
+    [DebuggerDisplay("\\{MSTS.TrEndNode\\}")]
+    public class TrackEndNode : TrackNode
+    {
+        public TrackEndNode(STFReader stf, uint index, int maxTrackNode) :
+            base(stf, index, maxTrackNode, 1)
+        {
+        }
+
+        protected override void ReadNodeData(STFReader stf)
+        {
+            stf.MustMatch("(");
+            stf.SkipRestOfBlock();
+        }
+    }
+
+    [DebuggerDisplay("\\{MSTS.TrJunctionNode\\} SelectedRoute={SelectedRoute}, ShapeIndex={ShapeIndex}")]
+    public class TrackJunctionNode : TrackNode
+    {
+        /// <summary>
+        /// The route of a switch that is currently in use.
+        /// </summary>
+        public int SelectedRoute { get; set; }
+
+        /// <summary>
+        /// Index to the shape that actually describes the looks of this switch
+        /// </summary>
+        public uint ShapeIndex { get; private set; }
+
+        /// <summary>The angle of this junction</summary>
+        private float angle = float.MaxValue;
+
+        public TrackJunctionNode(STFReader stf, uint index, int maxTrackNode) :
+            base(stf, index, maxTrackNode, 3)
+        {
+        }
+
+        protected override void ReadNodeData(STFReader stf)
+        {
+            stf.MustMatch("(");
+            stf.ReadString();
+            ShapeIndex = stf.ReadUInt(null);
+            stf.SkipRestOfBlock();
+        }
+
+        /// <summary>
+        /// Calculate the angle (direction in 2D) of the current junction (result will be cached).
+        /// </summary>
+        /// <param name="tsectionDat">The datafile with all the track sections</param>
+        /// <returns>The angle calculated</returns>
+        public float GetAngle(TrackSectionsFile tsectionDat)
+        {
+            if (angle != float.MaxValue)
+                return angle;
+
+            try //so many things can be in conflict for trackshapes, tracksections etc.
+            {
+                TrackShape trackShape = tsectionDat.TrackShapes[ShapeIndex];
+                SectionIndex[] sectionIndices = trackShape.SectionIndices;
+
+                for (int index = 0; index < sectionIndices.Length; index++)
+                {
+                    if (index == trackShape.MainRoute)
+                        continue;
+                    uint[] sections = sectionIndices[index].TrackSections;
+
+                    for (int i = 0; i < sections.Length; i++)
+                    {
+                        uint sid = sectionIndices[index].TrackSections[i];
+                        TrackSection section = tsectionDat.TrackSections[sid];
+
+                        if (section.Curved)
+                        {
+                            angle = section.Angle;
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+            return angle;
+        }
+    }
+
+    /// <summary>
+    /// Describes the details of a vectorNode, a connection between two junctions (or endnodes).
+    /// A vectorNode itself is made up of various sections. The begin point of each of these sections
+    /// is stored (as well as its direction). As a result, VectorNodes have a direction.
+    /// Furthermore, a number of TrItems (Track Items) can be located on the vector nodes.
+    /// </summary>
+    [DebuggerDisplay("\\{MSTS.TrVectorNode\\} TrVectorSections={TrackVectorSections?.Length ?? null}, TrItemsRefs={TrackItemIndices?.Length ?? null}")]
+    public class TrackVectorNode : TrackNode
+    {
+        private static readonly int[] emptyTrackItemIndices = new int[0];
+        /// <summary>Array of sections that together form the vectorNode</summary>
+        public TrVectorSection[] TrackVectorSections { get; private set; }
+        /// <summary>Array of indexes of TrItems (track items) that are located on this vectorNode</summary>
+        public int[] TrackItemIndices { get; private set; } = emptyTrackItemIndices;
+        /// <summary>The amount of TrItems in TrItemRefs</summary>
+
+        public TrackVectorNode(STFReader stf, uint index, int maxTrackNode) :
+            base(stf, index, maxTrackNode, 2)
+        {
+        }
+
+        protected override void ReadNodeData(STFReader stf)
+        {
+            stf.MustMatch("(");
+            stf.ParseBlock(new STFReader.TokenProcessor[] {
+                new STFReader.TokenProcessor("trvectorsections", ()=>{
+                    stf.MustMatch("(");
+                    int numberOfVectorSections = stf.ReadInt(null);
+                    TrackVectorSections = new TrVectorSection[numberOfVectorSections];
+                    for (int i = 0; i < numberOfVectorSections; ++i)
+                        TrackVectorSections[i] = new TrVectorSection(stf);
+                    stf.SkipRestOfBlock();
+                }),
+                new STFReader.TokenProcessor("tritemrefs", ()=>{
+                    stf.MustMatch("(");
+                    int expectedItems = stf.ReadInt(null);
+                    TrackItemIndices = new int[expectedItems];
+                    int index = 0;
+                    stf.ParseBlock(new STFReader.TokenProcessor[] {
+                        new STFReader.TokenProcessor("tritemref", ()=>{
+                            if (index >= TrackItemIndices.Length)
+                            {
+                                STFException.TraceWarning(stf, $"Adding extra TrItemRef in TrVectorNode {Index}. Expected Items: {expectedItems}");
+                                int[] temp = new int[index+1];
+                                TrackItemIndices.CopyTo(temp,0);
+                                TrackItemIndices = temp;
+                            }
+                            TrackItemIndices[index++] = stf.ReadIntBlock(null);
+                        }),
+                    });
+                    if (index < expectedItems)
+                        STFException.TraceWarning(stf, $"{(expectedItems - index)} missing TrItemRef(s) in TrVectorNode {Index}");
+                }),
+            });
+        }
+
+        /// <summary>
+        /// Add a reference to a new TrItem to the already existing TrItemRefs.
+        /// </summary>
+        /// <param name="newTrItemRef">The reference to the new TrItem</param>
+        public void AddTrackItemIndex(int trackItemIndex)
+        {
+            int[] temp = new int[TrackItemIndices.Length + 1];
+            TrackItemIndices.CopyTo(temp, 0);
+            temp[temp.Length - 1] = trackItemIndex;
+            TrackItemIndices = temp; //use the new item lists for the track node
+        }
+
+        /// <summary>
+        /// Insert a reference to a new TrItem to the already existing TrItemRefs.
+        /// </summary>
+        /// <param name="newTrItemRef">The reference to the new TrItem</param>
+        public void InsertTrackItemIndex(int trackItemIndex, int index)
+        {
+            List<int> temp = new List<int>(TrackItemIndices);
+            temp.Insert(index, trackItemIndex);
+            TrackItemIndices = temp.ToArray(); //use the new item lists for the track node
+        }
+    }
+
+    #region class TrackPin
+    /// <summary>
+    /// Represents a pin, being the link from a tracknode to another. 
+    /// </summary>
+    [DebuggerDisplay("\\{MSTS.TrPin\\} Link={Link}, Dir={Direction}")]
+    public class TrackPin
+    {
+        /// <summary>Index of the tracknode connected to the parent of this pin</summary>
+        public int Link { get; set; }
+        /// <summary>In case a connection is made to a vector node this determines the side of the vector node that is connected to</summary>
+        public int Direction { get; set; }
+
+        /// <summary>
+        /// Default constructor used during file parsing.
+        /// </summary>
+        /// <param name="stf">The STFreader containing the file stream</param>
+        public TrackPin(STFReader stf)
+        {
+            stf.MustMatch("(");
+            Link = stf.ReadInt(null);
+            Direction = stf.ReadInt(null);
+            stf.SkipRestOfBlock();
+        }
+
+        public TrackPin(int link, int direction)
+        {
+            Link = link;
+            Direction = direction;
+        }
+    }
+    #endregion
+
+    /// <summary>
+    /// Contains the location and initial direction (as an angle in 3 dimensions) of a node (junction or end),
+    /// as well as a cross reference to the entry in the world file
+    /// </summary>
+    //[DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldID}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}, AX={AX}, AY={AY}, AZ={AZ}, WorldX={WorldTileX}, WorldZ={WorldTileZ}")]
+    [DebuggerDisplay("\\{MSTS.UiD\\} ID={WorldId}, TileX={location.TileX}, TileZ={location.TileZ}, X={location.Location.X}, Y={location.Location.Y}, Z={location.Location.Z}")]
+    public class UiD
+    {
+        private readonly WorldLocation location;
+        public ref readonly WorldLocation Location => ref location;
+
+        ///// <summary>Angle around X-axis for describing initial direction of the node</summary>
+        //public float AX { get; set; }
+        ///// <summary>Angle around Y-axis for describing initial direction of the node</summary>
+        //public float AY { get; set; }
+        ///// <summary>Angle around Z-axis for describing initial direction of the node</summary>
+        //public float AZ { get; set; }
+
+        ///// <summary>Cross-reference to worldFile: X-value of the tile</summary>
+        //public int WorldTileX { get; set; }
+        ///// <summary>Cross-reference to worldFile: Y-value of the tile</summary>
+        //public int WorldTileZ { get; set; }
+        /// <summary>Cross-reference to worldFile: World ID</summary>
+        public int WorldId { get; set; }
+
+        /// <summary>
+        /// Default constructor used during file parsing.
+        /// </summary>
+        /// <param name="stf">The STFreader containing the file stream</param>
+        public UiD(STFReader stf)
+        {
+            stf.MustMatch("(");
+            int worldTileX = stf.ReadInt(null);
+            int worldTileZ = stf.ReadInt(null);
+            WorldId = stf.ReadInt(null);
+            stf.ReadInt(null);
+            location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
+            if (worldTileX != location.TileX || worldTileZ != location.TileZ)
+                STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldId}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
+            //AX = stf.ReadFloat(STFReader.Units.None, null);
+            //AY = stf.ReadFloat(STFReader.Units.None, null);
+            //AZ = stf.ReadFloat(STFReader.Units.None, null);
+            stf.SkipRestOfBlock();
+        }
+    }
+    #endregion
 }

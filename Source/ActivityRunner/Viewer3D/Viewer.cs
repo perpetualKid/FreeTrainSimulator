@@ -47,6 +47,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common.Calc;
 using Orts.Settings.Util;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

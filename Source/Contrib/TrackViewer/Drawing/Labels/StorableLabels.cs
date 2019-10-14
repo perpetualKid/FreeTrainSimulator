@@ -48,7 +48,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         /// </summary>
         /// <param name="location">The location in MSTS coordinates of the label</param>
         /// <param name="text">The text of the label</param>
-        public void Add(WorldLocation location, string text)
+        public void Add(in WorldLocation location, string text)
         {
             var newLabel = new StorableLabel(location, text);
             _labels.Add(newLabel);

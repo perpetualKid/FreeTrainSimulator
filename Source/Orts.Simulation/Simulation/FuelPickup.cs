@@ -17,11 +17,13 @@
 
 // This file is the responsibility of the 3D & Environment Team.
 
-using Orts.Formats.Msts;
-using Orts.Simulation.RollingStocks;
-using Orts.Common;
 using System.Collections.Generic;
 using System.Linq;
+
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.Simulation
 {
