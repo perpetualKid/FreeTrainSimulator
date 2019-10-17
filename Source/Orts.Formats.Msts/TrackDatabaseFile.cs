@@ -91,8 +91,7 @@ namespace Orts.Formats.Msts
                                 string key = $"{junctionNode.UiD.WorldId}-{junctionNode.UiD.Location.TileX}-{junctionNode.UiD.Location.TileZ}";
                                 if (!junctionNodes.ContainsKey(key))
                                     junctionNodes.Add(key, junctionNode);
-                                else
-                                    STFException.TraceWarning(stf, $"Duplicate Junction Node with UiD {key} Index {junctionNode.Index}. Previously seen at {junctionNodes[key].Index}");
+                                // only need any (first) junction node with that key here to relate back to ShapeIndex
                             }
                             ++idx;
                         }),
@@ -233,6 +232,7 @@ namespace Orts.Formats.Msts
         }
     }
 
+    #region TrackItem
     /// <summary>
     /// Describes a Track Item, that is an item located on the track that interacts with the train or train operations
     /// This is a base class. 
@@ -850,6 +850,7 @@ namespace Orts.Formats.Msts
             });
         }
     }
+    #endregion
 
     #region CrossReference to TrackCircuitSection
     /// <summary>

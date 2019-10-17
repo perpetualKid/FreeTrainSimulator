@@ -102,12 +102,5 @@ namespace Orts.Common.Xna
             else            // singularity at poles
                 return (float)Math.Atan2(m.M13, m.M33);
         }
-
-        public static Matrix CreateFromYawPitchRoll(in Vector3 pitchYawRoll)
-        {
-            Quaternion.CreateFromYawPitchRoll(-pitchYawRoll.Y, -pitchYawRoll.X, pitchYawRoll.Z, out Quaternion quaternion);
-            Matrix.CreateFromQuaternion(ref quaternion, out Matrix matrix);
-            return matrix;
-        }
     }
 }

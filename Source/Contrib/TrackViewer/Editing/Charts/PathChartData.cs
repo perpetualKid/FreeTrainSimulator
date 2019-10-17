@@ -280,7 +280,7 @@ namespace ORTS.TrackViewer.Editing.Charts
             var additionalPoints = new List<PathChartPoint>();
 
             // not a percentage. We can safely assume the pitch is small enough so we do not to take tan(pitch)
-            float gradeFromPitch = -vectorNode.TrackVectorSections[tvsi].AX * (isForward ? 1 : -1);
+            float gradeFromPitch = -vectorNode.TrackVectorSections[tvsi].Direction.X * (isForward ? 1 : -1);
             float curvature = GetCurvature(vectorNode, tvsi, isForward);
 
             List<ChartableTrackItem> items_local = trackItems.ToList();

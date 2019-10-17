@@ -133,7 +133,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             Vector3 trackLocation = location.Location;
             trackLocation.Z *= -1;
-            WorldPosition root = new WorldPosition(ts.Location.TileX, ts.Location.TileZ, Matrix.CreateFromYawPitchRoll(-ts.AY, -ts.AX, ts.AZ)).SetTranslation(Vector3.Transform(trackLocation, Matrix.Identity));
+            WorldPosition root = new WorldPosition(ts.Location.TileX, ts.Location.TileZ, MstsUtility.CreateFromYawPitchRoll(ts.Direction)).SetTranslation(Vector3.Transform(trackLocation, Matrix.Identity));
 
             var sign = -Math.Sign(tss.Angle); var to = Math.Abs(tss.Angle * 0.0174f);
             var vectorCurveStartToCenter = Vector3.Left * tss.Radius * sign;
@@ -166,7 +166,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Vector3 trackLoc = ts.Location.Location;
                 trackLoc.Z *= - 1;
 
-                WorldPosition root = new WorldPosition(ts.Location.TileX, ts.Location.TileZ, Matrix.CreateFromYawPitchRoll(-ts.AY, -ts.AX, ts.AZ)).SetTranslation(Vector3.Transform(trackLoc, Matrix.Identity));
+                WorldPosition root = new WorldPosition(ts.Location.TileX, ts.Location.TileZ, MstsUtility.CreateFromYawPitchRoll(ts.Direction)).SetTranslation(Vector3.Transform(trackLoc, Matrix.Identity));
 
                 var sign = -Math.Sign(tss.Angle); var to = Math.Abs(tss.Angle * 0.0174f);
                 var vectorCurveStartToCenter = Vector3.Left * tss.Radius * sign;
