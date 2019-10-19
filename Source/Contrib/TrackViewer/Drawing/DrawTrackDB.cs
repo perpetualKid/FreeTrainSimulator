@@ -320,7 +320,7 @@ namespace ORTS.TrackViewer.Drawing
                     DrawableTrackItem trackItem = railTrackItemTable[trackItemIndex];
                     if (trackItem is DrawableSignalItem signalItem)
                     {
-                        signalItem.FindAngle(tsectionDat, trackDB, tn);
+                        signalItem.FindAngle(tsectionDat, trackDB, trackVectorNode);
                         signalItem.DetermineIfNormal(sigcfgFile);
                     }
                 }
@@ -347,13 +347,13 @@ namespace ORTS.TrackViewer.Drawing
                     {
                         //find angle at beginning of vector node
                         TrackVectorSection tvs = connectedVectorNode.TrackVectorSections[0];
-                        endnodeAngles[tn.Index] = tvs.AY;
+                        endnodeAngles[tn.Index] = tvs.Direction.Y;
                     }
                     else
                     {
                         //find angle at end of vector node
                         TrackVectorSection tvs = connectedVectorNode.TrackVectorSections.Last();
-                        endnodeAngles[tn.Index] = tvs.AY;
+                        endnodeAngles[tn.Index] = tvs.Direction.Y;
                         try
                         { // try to get even better in case the last section is curved
                             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
@@ -831,12 +831,12 @@ namespace ORTS.TrackViewer.Drawing
             if (trackSection.Curved)
             {
                 drawArea.DrawArc(trackSection.Width, colors.TrackCurved, thisLocation,
-                    trackSection.Radius, tvs.AY, trackSection.Angle, 0);
+                    trackSection.Radius, tvs.Direction.Y, trackSection.Angle, 0);
             }
             else
             {
                 drawArea.DrawLine(trackSection.Width, colors.TrackStraight, thisLocation,
-                    trackSection.Length, tvs.AY, 0);
+                    trackSection.Length, tvs.Direction.Y, 0);
             }
         }
 
@@ -1210,8 +1210,8 @@ namespace ORTS.TrackViewer.Drawing
         {
             ref readonly WorldLocation location = ref tvs.Location;
 
-            float cosA = (float)Math.Cos(tvs.AY);
-            float sinA = (float)Math.Sin(tvs.AY);
+            float cosA = (float)Math.Cos(tvs.Direction.Y);
+            float sinA = (float)Math.Sin(tvs.Direction.Y);
             if (!trackSection.Curved)
             {
                 // note, angle is 90 degrees off, and different sign. 
@@ -1223,8 +1223,8 @@ namespace ORTS.TrackViewer.Drawing
             {
                 int sign = (trackSection.Angle > 0) ? -1 : 1;
                 float angleRadians = -distanceAlongSection / trackSection.Radius;
-                float cosArotated = (float)Math.Cos(tvs.AY + sign * angleRadians);
-                float sinArotated = (float)Math.Sin(tvs.AY + sign * angleRadians);
+                float cosArotated = (float)Math.Cos(tvs.Direction.Y + sign * angleRadians);
+                float sinArotated = (float)Math.Sin(tvs.Direction.Y + sign * angleRadians);
                 float deltaX = sign * trackSection.Radius * (cosA - cosArotated);
                 float deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
                 return new WorldLocation(location.TileX, location.TileZ,

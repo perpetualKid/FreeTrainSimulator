@@ -71,9 +71,8 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
-                new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); }),
-                new STFReader.TokenProcessor("tritempdata", ()=>{ TrItemPData(stf); })
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemsdata", ()=>{ ParseTrackItemSData(stf); }),
             });
         }
     }
@@ -93,8 +92,8 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
-                new STFReader.TokenProcessor("tritemrdata", ()=>{ TrackItemRData(stf); }),
-                new STFReader.TokenProcessor("tritemsdata", ()=>{ TrItemSData(stf); })
+                new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
+                new STFReader.TokenProcessor("tritemsdata", ()=>{ ParseTrackItemSData(stf); })
             });
         }
     }

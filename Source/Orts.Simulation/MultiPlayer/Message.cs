@@ -263,6 +263,8 @@ namespace Orts.MultiPlayer
 #region MSGPlayer
     public class MSGPlayer : MSGRequired
     {
+        private WorldLocation location;
+        public ref readonly WorldLocation Location => ref location;
         public string user = "";
         public string code = "";
         public int num; //train number
@@ -270,8 +272,7 @@ namespace Orts.MultiPlayer
         public string path; //path consist and path will always be double quoted
         public string route;
         public int dir; //direction
-        public int TileX, TileZ;
-        public float X, Z, Travelled;
+        public float Travelled;
         public double seconds;
         public int season, weather;
         public int pantofirst, pantosecond, pantothird, pantofourth;
@@ -306,10 +307,7 @@ namespace Orts.MultiPlayer
                 }
                 code = data[1];
                 num = int.Parse(data[2]);
-                TileX = int.Parse(data[3]);
-                TileZ = int.Parse(data[4]);
-                X = float.Parse(data[5], CultureInfo.InvariantCulture);
-                Z = float.Parse(data[6], CultureInfo.InvariantCulture);
+                location = new WorldLocation(int.Parse(data[3]), int.Parse(data[4]), float.Parse(data[5], CultureInfo.InvariantCulture), 0, float.Parse(data[6], CultureInfo.InvariantCulture));
                 Travelled = float.Parse(data[7], CultureInfo.InvariantCulture);
                 trainmaxspeed = float.Parse(data[8], CultureInfo.InvariantCulture);
                 seconds = double.Parse(data[9], CultureInfo.InvariantCulture);
@@ -396,8 +394,9 @@ namespace Orts.MultiPlayer
             user = n; code = cd; con = c; path = p;
             if (t != null)
             {
-                dir = (int)t.RearTDBTraveller.Direction; num = tn; TileX = t.RearTDBTraveller.TileX;
-                TileZ = t.RearTDBTraveller.TileZ; X = t.RearTDBTraveller.X; Z = t.RearTDBTraveller.Z; Travelled = t.DistanceTravelledM;
+                dir = (int)t.RearTDBTraveller.Direction; num = tn;
+                location = t.RearTDBTraveller.WorldLocation;
+                Travelled = t.DistanceTravelledM;
                 trainmaxspeed = t.TrainMaxSpeedMpS;
             }
             seconds = (int)MPManager.Simulator.ClockTime; season = (int)MPManager.Simulator.Season; weather = (int)MPManager.Simulator.WeatherType;
@@ -435,7 +434,7 @@ namespace Orts.MultiPlayer
         }
         public override string ToString()
         {
-            string tmp = "PLAYER " + user + " " + code + " " + num + " " + TileX + " " + TileZ + " " + X.ToString(CultureInfo.InvariantCulture) + " " + Z.ToString(CultureInfo.InvariantCulture)
+            string tmp = "PLAYER " + user + " " + code + " " + num + " " + location.TileX + " " + location.TileZ + " " + location.Location.X.ToString(CultureInfo.InvariantCulture) + " " + location.Location.Z.ToString(CultureInfo.InvariantCulture)
                 + " " + Travelled.ToString(CultureInfo.InvariantCulture) + " " + trainmaxspeed.ToString(CultureInfo.InvariantCulture) + " " + seconds.ToString(CultureInfo.InvariantCulture) + " " + season + " " + weather + " " + pantofirst + " " + pantosecond + " " + pantothird + " " + pantofourth + " " + frontorrearcab + " " + headlight + " \r" +
                 leadingID + "\r" + con + "\r" + route + "\r" + path + "\r" + dir + "\r" + url + "\r";
             for (var i = 0; i < cars.Length; i++)
@@ -521,8 +520,7 @@ namespace Orts.MultiPlayer
 
                     //if distance is higher than 1 Km from starting point of path
 
-                    if (WorldLocation.GetDistanceSquared(new WorldLocation(this.TileX, this.TileZ, this.X, 0, this.Z),
-                            new WorldLocation(p1Train.RearTDBTraveller.TileX, p1Train.RearTDBTraveller.TileZ, p1Train.RearTDBTraveller.X, 0, p1Train.RearTDBTraveller.Z)) > 1000000)
+                    if (WorldLocation.GetDistanceSquared2D(location, p1Train.RearTDBTraveller.WorldLocation) > 1000000)
                     {
                         MPManager.OnlineTrains.Players.Add(user, p1);
                         p1.CreatedTime = MPManager.Simulator.GameTime;
@@ -552,10 +550,9 @@ namespace Orts.MultiPlayer
                         if (MPManager.Simulator.PlayerLocomotive == null) t = MPManager.Simulator.Trains[0];
                         else t = MPManager.Simulator.PlayerLocomotive.Train;
                         t.Number = this.num;
-                        if (WorldLocation.GetDistanceSquared(new WorldLocation(this.TileX, this.TileZ, this.X, 0, this.Z),
-                            new WorldLocation(t.RearTDBTraveller.TileX, t.RearTDBTraveller.TileZ, t.RearTDBTraveller.X, 0, t.RearTDBTraveller.Z)) > 1000000)
+                        if (WorldLocation.GetDistanceSquared2D(location, t.RearTDBTraveller.WorldLocation) > 1000000)
                         {
-                            t.expectedTileX = this.TileX; t.expectedTileZ = this.TileZ; t.expectedX = this.X; t.expectedZ = this.Z;
+                            t.expectedTileX = this.location.TileX; t.expectedTileZ = this.location.TileZ; t.expectedX = this.location.Location.X; t.expectedZ = this.location.Location.Z;
                             t.expectedTDir = this.dir; t.expectedDIr = (int)t.MUDirection;
                             t.expectedTravelled = t.DistanceTravelledM = t.travelled = this.Travelled;
                             t.TrainMaxSpeedMpS = this.trainmaxspeed;
@@ -669,8 +666,7 @@ namespace Orts.MultiPlayer
                 }
 
                 //if the client player run already for more than 1 Km, we acknowledge him that run
-                if (WorldLocation.GetDistanceSquared(new WorldLocation(this.TileX, this.TileZ, this.X, 0, this.Z),
-                            new WorldLocation(p1Train.RearTDBTraveller.TileX, p1Train.RearTDBTraveller.TileZ, p1Train.RearTDBTraveller.X, 0, p1Train.RearTDBTraveller.Z)) > 1000000)
+                if (WorldLocation.GetDistanceSquared2D(location, p1Train.RearTDBTraveller.WorldLocation) > 1000000)
                 {
                     p.Train = p1Train; p.url = p1.url;
                     p.LeadingLocomotiveID = p1.LeadingLocomotiveID;
@@ -1232,10 +1228,11 @@ namespace Orts.MultiPlayer
         int[] lengths;
         int TrainNum;
         int direction;
-        int TileX, TileZ;
-        float X, Z, Travelled;
+        float Travelled;
         int mDirection;
         string name;
+
+        private WorldLocation location;
 
         public MSGTrain(string m)
         {
@@ -1247,18 +1244,19 @@ namespace Orts.MultiPlayer
             direction = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            TileX = int.Parse(m.Substring(0, index + 1));
+            int tileX = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            TileZ = int.Parse(m.Substring(0, index + 1));
+            int tileZ = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            X = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
+            float x = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            Z = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
+            float z = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
+            location = new WorldLocation(tileX, tileZ, x, 0, z);
             Travelled = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
@@ -1305,10 +1303,7 @@ namespace Orts.MultiPlayer
             }
             TrainNum = n;
             direction = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 1 : 0;
-            TileX = t.RearTDBTraveller.TileX;
-            TileZ = t.RearTDBTraveller.TileZ;
-            X = t.RearTDBTraveller.X;
-            Z = t.RearTDBTraveller.Z;
+            location = t.RearTDBTraveller.WorldLocation;
             Travelled = t.travelled;
             mDirection = (int)t.MUDirection;
             name = t.Name;
@@ -1326,7 +1321,7 @@ namespace Orts.MultiPlayer
             train.TrainType = Train.TRAINTYPE.REMOTE;
             train.travelled = Travelled;
             train.MUDirection = (Direction)this.mDirection;
-            train.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, TileX, TileZ, X, Z, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+            train.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
             //if (consistDirection != 1)
             //	train.RearTDBTraveller.ReverseDirection();
             for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
@@ -1389,7 +1384,7 @@ namespace Orts.MultiPlayer
 
         public override string ToString()
         {
-            string tmp = "TRAIN " + TrainNum + " " + direction + " " + TileX + " " + TileZ + " " + X.ToString(CultureInfo.InvariantCulture) + " " + Z.ToString(CultureInfo.InvariantCulture) + " " + Travelled.ToString(CultureInfo.InvariantCulture) + " " + mDirection + " ";
+            string tmp = "TRAIN " + TrainNum + " " + direction + " " + location.TileX + " " + location.TileZ + " " + location.Location.X.ToString(CultureInfo.InvariantCulture) + " " + location.Location.Z.ToString(CultureInfo.InvariantCulture) + " " + Travelled.ToString(CultureInfo.InvariantCulture) + " " + mDirection + " ";
             for (var i = 0; i < cars.Length; i++)
             {
                 var c = cars[i];
@@ -1419,10 +1414,11 @@ namespace Orts.MultiPlayer
         int[] lengths; //if a wagon is engine
         int TrainNum;
         int direction;
-        int TileX, TileZ;
-        float X, Z, Travelled;
+        float Travelled;
         int mDirection;
         string user;
+        private WorldLocation location;
+
         public MSGUpdateTrain(string m)
         {
             //System.Console.WriteLine(m);
@@ -1438,18 +1434,19 @@ namespace Orts.MultiPlayer
             direction = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            TileX = int.Parse(m.Substring(0, index + 1));
+            int tileX = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            TileZ = int.Parse(m.Substring(0, index + 1));
+            int tileZ = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            X = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
+            float x = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            Z = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
+            float z = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
+            location = new WorldLocation(tileX, tileZ, x, 0, z);
             Travelled = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
@@ -1493,10 +1490,7 @@ namespace Orts.MultiPlayer
             }
             TrainNum = n;
             direction = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 1 : 0;
-            TileX = t.RearTDBTraveller.TileX;
-            TileZ = t.RearTDBTraveller.TileZ;
-            X = t.RearTDBTraveller.X;
-            Z = t.RearTDBTraveller.Z;
+            location = t.RearTDBTraveller.WorldLocation;
             Travelled = t.travelled;
             mDirection = (int)t.MUDirection;
         }
@@ -1535,7 +1529,7 @@ namespace Orts.MultiPlayer
             }
             if (found)
             {
-                Traveller traveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, TileX, TileZ, X, Z, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+                Traveller traveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
                 List<TrainCar> tmpCars = new List<TrainCar>();
                 for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
                 {
@@ -1573,7 +1567,7 @@ namespace Orts.MultiPlayer
             }
             train1.TrainType = Train.TRAINTYPE.REMOTE;
             train1.travelled = Travelled;
-            train1.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, TileX, TileZ, X, Z, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+            train1.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
             for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
             {
                 string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\" + cars[i];
@@ -1620,8 +1614,8 @@ namespace Orts.MultiPlayer
 
         public override string ToString()
         {
-            string tmp = "UPDATETRAIN " + user + " " + TrainNum + " " + direction + " " + TileX + " " + TileZ + " " + X.ToString(CultureInfo.InvariantCulture)
-                + " " + Z.ToString(CultureInfo.InvariantCulture) + " " + Travelled.ToString(CultureInfo.InvariantCulture) + " " + mDirection + " ";
+            string tmp = "UPDATETRAIN " + user + " " + TrainNum + " " + direction + " " + location.TileX + " " + location.TileZ + " " + location.Location.X.ToString(CultureInfo.InvariantCulture)
+                + " " + location.Location.Z.ToString(CultureInfo.InvariantCulture) + " " + Travelled.ToString(CultureInfo.InvariantCulture) + " " + mDirection + " ";
             for (var i = 0; i < cars.Length; i++)
             {
                 var c = cars[i];
@@ -2344,11 +2338,11 @@ namespace Orts.MultiPlayer
     public class MSGUncouple : Message
     {
         public string user, newTrainName, carID, firstCarIDOld, firstCarIDNew;
-        public int TileX1, TileZ1, mDirection1;
-        public float X1, Z1, Travelled1, Speed1;
+        public int mDirection1;
+        public float Travelled1, Speed1;
         public int trainDirection;
-        public int TileX2, TileZ2, mDirection2;
-        public float X2, Z2, Travelled2, Speed2;
+        public int mDirection2;
+        public float Travelled2, Speed2;
         public int train2Direction;
         public int newTrainNumber;
         public int oldTrainNumber;
@@ -2357,6 +2351,9 @@ namespace Orts.MultiPlayer
         string[] ids2;
         int[] flipped1;
         int[] flipped2;
+
+        private WorldLocation location1;
+        private WorldLocation location2;
 
         static TrainCar FindCar(List<TrainCar> list, string id)
         {
@@ -2375,8 +2372,8 @@ namespace Orts.MultiPlayer
             firstCarIDNew = areas[3].Trim();
 
             string[] tmp = areas[4].Split(' ');
-            TileX1 = int.Parse(tmp[0]); TileZ1 = int.Parse(tmp[1]);
-            X1 = float.Parse(tmp[2], CultureInfo.InvariantCulture); Z1 = float.Parse(tmp[3], CultureInfo.InvariantCulture); Travelled1 = float.Parse(tmp[4], CultureInfo.InvariantCulture); Speed1 = float.Parse(tmp[5], CultureInfo.InvariantCulture); trainDirection = int.Parse(tmp[6]);
+            location1 = new WorldLocation(int.Parse(tmp[0]), int.Parse(tmp[1]), float.Parse(tmp[2], CultureInfo.InvariantCulture), 0, float.Parse(tmp[3], CultureInfo.InvariantCulture));
+            Travelled1 = float.Parse(tmp[4], CultureInfo.InvariantCulture); Speed1 = float.Parse(tmp[5], CultureInfo.InvariantCulture); trainDirection = int.Parse(tmp[6]);
             oldTrainNumber = int.Parse(tmp[7]);
             mDirection1 = int.Parse(tmp[8]);
             tmp = areas[5].Split('\n');
@@ -2390,8 +2387,8 @@ namespace Orts.MultiPlayer
             }
 
             tmp = areas[6].Split(' ');
-            TileX2 = int.Parse(tmp[0]); TileZ2 = int.Parse(tmp[1]);
-            X2 = float.Parse(tmp[2], CultureInfo.InvariantCulture); Z2 = float.Parse(tmp[3], CultureInfo.InvariantCulture); Travelled2 = float.Parse(tmp[4], CultureInfo.InvariantCulture); Speed2 = float.Parse(tmp[5], CultureInfo.InvariantCulture); train2Direction = int.Parse(tmp[6]);
+            location2 = new WorldLocation(int.Parse(tmp[0]), int.Parse(tmp[1]), float.Parse(tmp[2], CultureInfo.InvariantCulture), 0, float.Parse(tmp[3], CultureInfo.InvariantCulture));
+            Travelled2 = float.Parse(tmp[4], CultureInfo.InvariantCulture); Speed2 = float.Parse(tmp[5], CultureInfo.InvariantCulture); train2Direction = int.Parse(tmp[6]);
             newTrainNumber = int.Parse(tmp[7]);
             mDirection2 = int.Parse(tmp[8]);
 
@@ -2417,10 +2414,12 @@ namespace Orts.MultiPlayer
             }
             carID = ID;
             user = u;
-            TileX1 = t.RearTDBTraveller.TileX; TileZ1 = t.RearTDBTraveller.TileZ; X1 = t.RearTDBTraveller.X; Z1 = t.RearTDBTraveller.Z; Travelled1 = t.travelled; Speed1 = t.SpeedMpS;
+            //TileX1 = t.RearTDBTraveller.TileX; TileZ1 = t.RearTDBTraveller.TileZ; X1 = t.RearTDBTraveller.X; Z1 = t.RearTDBTraveller.Z;
+            Travelled1 = t.travelled; Speed1 = t.SpeedMpS;
             trainDirection = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 0 : 1;//0 forward, 1 backward
             mDirection1 = (int)t.MUDirection;
-            TileX2 = newT.RearTDBTraveller.TileX; TileZ2 = newT.RearTDBTraveller.TileZ; X2 = newT.RearTDBTraveller.X; Z2 = newT.RearTDBTraveller.Z; Travelled2 = newT.travelled; Speed2 = newT.SpeedMpS;
+            //TileX2 = newT.RearTDBTraveller.TileX; TileZ2 = newT.RearTDBTraveller.TileZ; X2 = newT.RearTDBTraveller.X; Z2 = newT.RearTDBTraveller.Z;
+            Travelled2 = newT.travelled; Speed2 = newT.SpeedMpS;
             train2Direction = newT.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 0 : 1;//0 forward, 1 backward
             mDirection2 = (int)newT.MUDirection;
 
@@ -2537,9 +2536,9 @@ namespace Orts.MultiPlayer
         {
             if (user == "") return "5: ALIVE"; //wrong, so just return an ALIVE string
             string tmp = "UNCOUPLE " + user + "\t" + whichIsPlayer + "\t" + firstCarIDOld + "\t" + firstCarIDNew
-                + "\t" + TileX1 + " " + TileZ1 + " " + X1.ToString(CultureInfo.InvariantCulture) + " " + Z1.ToString(CultureInfo.InvariantCulture) + " " + Travelled1.ToString(CultureInfo.InvariantCulture) + " " + Speed1.ToString(CultureInfo.InvariantCulture) + " " + trainDirection + " " + oldTrainNumber + " " + mDirection1 + "\t"
+                + "\t" + location1.TileX + " " + location1.TileZ + " " + location1.Location.X.ToString(CultureInfo.InvariantCulture) + " " + location1.Location.Z.ToString(CultureInfo.InvariantCulture) + " " + Travelled1.ToString(CultureInfo.InvariantCulture) + " " + Speed1.ToString(CultureInfo.InvariantCulture) + " " + trainDirection + " " + oldTrainNumber + " " + mDirection1 + "\t"
                 + FillInString(1)
-                + "\t" + TileX2 + " " + TileZ2 + " " + X2.ToString(CultureInfo.InvariantCulture) + " " + Z2.ToString(CultureInfo.InvariantCulture) + " " + Travelled2.ToString(CultureInfo.InvariantCulture) + " " + Speed2.ToString(CultureInfo.InvariantCulture) + " " + train2Direction + " " + newTrainNumber + " " + mDirection2 + "\t"
+                + "\t" + location2.TileX + " " + location2.TileZ + " " + location2.Location.X.ToString(CultureInfo.InvariantCulture) + " " + location2.Location.Z.ToString(CultureInfo.InvariantCulture) + " " + Travelled2.ToString(CultureInfo.InvariantCulture) + " " + Speed2.ToString(CultureInfo.InvariantCulture) + " " + train2Direction + " " + newTrainNumber + " " + mDirection2 + "\t"
                 + FillInString(2);
             return " " + tmp.Length + ": " + tmp;
         }
@@ -2616,7 +2615,7 @@ namespace Orts.MultiPlayer
                         t.Cars = tmpcars;
                         Traveller.TravellerDirection d1 = Traveller.TravellerDirection.Forward;
                         if (trainDirection == 1) d1 = Traveller.TravellerDirection.Backward;
-                        t.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, TileX1, TileZ1, X1, Z1, d1);
+                        t.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, location1, d1);
                         t.travelled = Travelled1;
                         t.SpeedMpS = Speed1;
                         t.LeadLocomotive = lead;
@@ -2689,7 +2688,7 @@ namespace Orts.MultiPlayer
                 if (train2Direction == 1) d2 = Traveller.TravellerDirection.Backward;
 
                 // and fix up the travellers
-                train2.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, TileX2, TileZ2, X2, Z2, d2);
+                train2.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, location2, d2);
                 train2.travelled = Travelled2;
                 train2.SpeedMpS = Speed2;
                 train2.MUDirection = (Direction)mDirection2;
@@ -2776,9 +2775,11 @@ namespace Orts.MultiPlayer
         int TrainNum;
         int RemovedTrainNum;
         int direction;
-        int TileX, TileZ, Lead, mDirection;
-        float X, Z, Travelled;
+        int Lead, mDirection;
+        float Travelled;
         string whoControls;
+
+        private WorldLocation location;
 
         public MSGCouple(string m)
         {
@@ -2793,18 +2794,19 @@ namespace Orts.MultiPlayer
             direction = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            TileX = int.Parse(m.Substring(0, index + 1));
+            int tileX = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            TileZ = int.Parse(m.Substring(0, index + 1));
+            int tileZ = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            X = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
+            float x = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
-            Z = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
+            float z = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
+            location = new WorldLocation(tileX, tileZ, x, 0, z);
             Travelled = float.Parse(m.Substring(0, index + 1), CultureInfo.InvariantCulture);
             m = m.Remove(0, index + 1);
             index = m.IndexOf(' ');
@@ -2851,10 +2853,7 @@ namespace Orts.MultiPlayer
             TrainNum = t.Number;
             RemovedTrainNum = oldT.Number;
             direction = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 0 : 1;
-            TileX = t.RearTDBTraveller.TileX;
-            TileZ = t.RearTDBTraveller.TileZ;
-            X = t.RearTDBTraveller.X;
-            Z = t.RearTDBTraveller.Z;
+            location = t.RearTDBTraveller.WorldLocation;
             Travelled = t.travelled;
             MPManager.Instance().RemoveUncoupledTrains(t); //remove the trains from uncoupled train lists
             MPManager.Instance().RemoveUncoupledTrains(oldT);
@@ -2904,7 +2903,7 @@ namespace Orts.MultiPlayer
 
         public override string ToString()
         {
-            string tmp = "COUPLE " + TrainNum + " " + RemovedTrainNum + " " + direction + " " + TileX + " " + TileZ + " " + X.ToString(CultureInfo.InvariantCulture) + " " + Z.ToString(CultureInfo.InvariantCulture) + " " + Travelled.ToString(CultureInfo.InvariantCulture) + " " + Lead + " " + whoControls + " " + mDirection + " ";
+            string tmp = "COUPLE " + TrainNum + " " + RemovedTrainNum + " " + direction + " " + location.TileX + " " + location.TileZ + " " + location.Location.X.ToString(CultureInfo.InvariantCulture) + " " + location.Location.Z.ToString(CultureInfo.InvariantCulture) + " " + Travelled.ToString(CultureInfo.InvariantCulture) + " " + Lead + " " + whoControls + " " + mDirection + " ";
             for (var i = 0; i < cars.Length; i++)
             {
                 var c = cars[i];
@@ -2967,7 +2966,7 @@ namespace Orts.MultiPlayer
 
             train.travelled = Travelled;
             train.MUDirection = (Direction)mDirection;
-            train.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, TileX, TileZ, X, Z, direction == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+            train.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, location, direction == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
             train.CheckFreight();
             train.CalculatePositionOfCars();
             train.LeadLocomotive = null; train2.LeadLocomotive = null;

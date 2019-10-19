@@ -503,7 +503,7 @@ namespace Orts.Simulation.Signalling
                                 break;
                             }
                             var item = this.trackDB.TrackItems[si.TrackItem];
-                            if (Math.Abs(item.TileX - worldObject.WorldPosition.TileX) > 1 || Math.Abs(item.TileZ - worldObject.WorldPosition.TileZ) > 1)
+                            if (Math.Abs(item.Location.TileX - worldObject.WorldPosition.TileX) > 1 || Math.Abs(item.Location.TileZ - worldObject.WorldPosition.TileZ) > 1)
                             {
                                 BadSignal = si.TrackItem;
                                 break;
@@ -1094,7 +1094,7 @@ namespace Orts.Simulation.Signalling
             else
             {
                 signalObjects[foundSignals].tdbtraveller =
-                new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tvn, sigItem.TileX, sigItem.TileZ, sigItem.X, sigItem.Z, (Traveller.TravellerDirection)(1 - sigItem.Direction));
+                new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tvn, sigItem.Location, (Traveller.TravellerDirection)(1 - sigItem.Direction));
             }
 
             signalObjects[foundSignals].WorldObject = null;
@@ -1137,9 +1137,7 @@ namespace Orts.Simulation.Signalling
             signalObjects[foundSignals].signalRef = this;
 
             signalObjects[foundSignals].tdbtraveller =
-            new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tdbfile.TrackDB.TrackNodes[trackNode],
-                    speedItem.TileX, speedItem.TileZ, speedItem.X, speedItem.Z,
-                    (Traveller.TravellerDirection)signalObjects[foundSignals].direction);
+            new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tdbfile.TrackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, (Traveller.TravellerDirection)signalObjects[foundSignals].direction);
 
             double delta_angle = signalObjects[foundSignals].tdbtraveller.RotY - ((Math.PI / 2) - speedItem.Angle);
             float delta_float = MathHelper.WrapAngle((float)delta_angle);
@@ -2133,7 +2131,7 @@ namespace Orts.Simulation.Signalling
                     {
                         Milepost thisMilepost = MilepostList[speedItem.SigObj];
                         TrackItem milepostTrItem = Simulator.TDB.TrackDB.TrackItems[thisMilepost.TrItemId];
-                        float milepostDistance = TDBTrav.DistanceTo(milepostTrItem.TileX, milepostTrItem.TileZ, milepostTrItem.X, milepostTrItem.Y, milepostTrItem.Z);
+                        float milepostDistance = TDBTrav.DistanceTo(milepostTrItem.Location);
 
                         TrackCircuitMilepost thisTCItem =
                                 new TrackCircuitMilepost(thisMilepost, milepostDistance, thisCircuit.Length - milepostDistance);
@@ -2151,9 +2149,7 @@ namespace Orts.Simulation.Signalling
 
             else if (thisItem is CrossoverItem crossOver)
             {
-                float cdist = TDBTrav.DistanceTo(trackNodes[thisCircuit.OriginalIndex],
-                crossOver.TileX, crossOver.TileZ,
-                                crossOver.X, crossOver.Y, crossOver.Z);
+                float cdist = TDBTrav.DistanceTo(trackNodes[thisCircuit.OriginalIndex], crossOver.Location);
 
                 int thisId = (int)crossOver.TrItemId;
                 int crossId = (int)crossOver.TrackNode;
@@ -2807,38 +2803,29 @@ namespace Orts.Simulation.Signalling
                 float offset0 = thisSection.OffsetLength[0];
                 float offset1 = thisSection.OffsetLength[1];
 
-                TrackCircuitSectionXref newReference = new TrackCircuitSectionXref(thisSection.Index, thisSection.Length, thisSection.OffsetLength);
+                TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(thisSection.Index, thisSection.Length, thisSection.OffsetLength);
 
                 bool inserted = false;
 
-                if (thisTrack.TrackCircuitCrossReferences == null)
+                TrackCircuitCrossReferences thisXRef = thisTrack.TrackCircuitCrossReferences;
+                for (int iPart = 0; iPart < thisXRef.Count && !inserted; iPart++)
                 {
-                    thisTrack.TrackCircuitCrossReferences = new TrackCircuitXRefList();
-                    TrackCircuitXRefList thisXRef = thisTrack.TrackCircuitCrossReferences;
-                }
-                else
-                {
-                    TrackCircuitXRefList thisXRef = thisTrack.TrackCircuitCrossReferences;
-                    for (int iPart = 0; iPart < thisXRef.Count && !inserted; iPart++)
+                    TrackCircuitSectionCrossReference thisReference = thisXRef[iPart];
+                    if (offset0 < thisReference.OffsetLength[0])
                     {
-                        TrackCircuitSectionXref thisReference = thisXRef[iPart];
-                        if (offset0 < thisReference.OffsetLength[0])
-                        {
-                            thisXRef.Insert(iPart, newReference);
-                            inserted = true;
-                        }
-                        else if (offset1 > thisReference.OffsetLength[1])
-                        {
-                            thisXRef.Insert(iPart, newReference);
-                            inserted = true;
-                        }
+                        thisXRef.Insert(iPart, newReference);
+                        inserted = true;
+                    }
+                    else if (offset1 > thisReference.OffsetLength[1])
+                    {
+                        thisXRef.Insert(iPart, newReference);
+                        inserted = true;
                     }
                 }
 
                 if (!inserted)
                 {
-                    TrackCircuitXRefList thisXRef = thisTrack.TrackCircuitCrossReferences;
-                    thisXRef.Add(newReference);
+                    thisTrack.TrackCircuitCrossReferences.Add(newReference);
                 }
             }
         }
@@ -2858,14 +2845,14 @@ namespace Orts.Simulation.Signalling
                     int prevIndex = thisSection.Pins[0, iPin].Link;
                     TrackCircuitSection prevSection = TrackCircuitList[prevIndex];
 
-                    TrackCircuitSectionXref newReference = new TrackCircuitSectionXref(thisSection.Index, thisSection.Length, thisSection.OffsetLength);
+                    TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(thisSection.Index, thisSection.Length, thisSection.OffsetLength);
                     TrackNode thisTrack = trackNodes[prevSection.OriginalIndex];
-                    TrackCircuitXRefList thisXRef = thisTrack.TrackCircuitCrossReferences;
+                    TrackCircuitCrossReferences thisXRef = thisTrack.TrackCircuitCrossReferences;
 
                     bool inserted = false;
                     for (int iPart = 0; iPart < thisXRef.Count && !inserted; iPart++)
                     {
-                        TrackCircuitSectionXref thisReference = thisXRef[iPart];
+                        TrackCircuitSectionCrossReference thisReference = thisXRef[iPart];
                         if (thisReference.Index == prevIndex)
                         {
                             newReference.OffsetLength[0] = thisReference.OffsetLength[0];
@@ -4421,10 +4408,10 @@ namespace Orts.Simulation.Signalling
             TrackVectorNode firstNode = trackNodes[thisSection.OriginalIndex] as TrackVectorNode;
 
             // first platform
-            int TileX1 = firstPlatform.TileX;
-            int TileZ1 = firstPlatform.TileZ;
-            float X1 = firstPlatform.X;
-            float Z1 = firstPlatform.Z;
+            int TileX1 = firstPlatform.Location.TileX;
+            int TileZ1 = firstPlatform.Location.TileZ;
+            float X1 = firstPlatform.Location.Location.X;
+            float Z1 = firstPlatform.Location.Location.Z;
 
             ref readonly WorldLocation location1 = ref firstNode.TrackVectorSections[0].Location;
             // start node position
@@ -4437,10 +4424,10 @@ namespace Orts.Simulation.Signalling
             float TS1Zc = TS1Z + (TS1TileZ - TileZ1) * 2048;
 
             // second platform
-            int TileX2 = secondPlatform.TileX;
-            int TileZ2 = secondPlatform.TileZ;
-            float X2 = secondPlatform.X;
-            float Z2 = secondPlatform.Z;
+            int TileX2 = secondPlatform.Location.TileX;
+            int TileZ2 = secondPlatform.Location.TileZ;
+            float X2 = secondPlatform.Location.Location.X;
+            float Z2 = secondPlatform.Location.Location.Z;
 
             float X2c = X2 + (TileX2 - TileX1) * 2048;
             float Z2c = Z2 + (TileZ2 - TileZ1) * 2048;
@@ -4786,7 +4773,7 @@ namespace Orts.Simulation.Signalling
 
                         for (int iXRef = thisNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0; iXRef--)
                         {
-                            TrackCircuitSectionXref TCSXRef = thisNode.TrackCircuitCrossReferences[iXRef];
+                            TrackCircuitSectionCrossReference TCSXRef = thisNode.TrackCircuitCrossReferences[iXRef];
                             // forward direction
                             float TCSStartOffset = TCSXRef.OffsetLength[1];
                             float TCSLength = TCSXRef.Length;
@@ -4983,7 +4970,7 @@ namespace Orts.Simulation.Signalling
 
                         for (int iXRef = thisNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0; iXRef--)
                         {
-                            TrackCircuitSectionXref TCSXRef = thisNode.TrackCircuitCrossReferences[iXRef];
+                            TrackCircuitSectionCrossReference TCSXRef = thisNode.TrackCircuitCrossReferences[iXRef];
                             // forward direction
                             float TCSStartOffset = TCSXRef.OffsetLength[1];
                             float TCSLength = TCSXRef.Length;
@@ -9997,7 +9984,7 @@ namespace Orts.Simulation.Signalling
         public float DistanceTo(Traveller tdbTraveller)
         {
             int trItem = (trackNodes[trackNode] as TrackVectorNode).TrackItemIndices[trRefIndex];
-            return tdbTraveller.DistanceTo(trItems[trItem].TileX, trItems[trItem].TileZ, trItems[trItem].X, trItems[trItem].Y, trItems[trItem].Z);
+            return tdbTraveller.DistanceTo(trItems[trItem].Location);
         }//DistanceTo
 
         //================================================================================================//
@@ -10008,9 +9995,7 @@ namespace Orts.Simulation.Signalling
         public float ObjectDistance(Signal nextObject)
         {
             int nextTrItem = (trackNodes[nextObject.trackNode] as TrackVectorNode).TrackItemIndices[nextObject.trRefIndex];
-            return this.tdbtraveller.DistanceTo(
-                                    trItems[nextTrItem].TileX, trItems[nextTrItem].TileZ,
-                                    trItems[nextTrItem].X, trItems[nextTrItem].Y, trItems[nextTrItem].Z);
+            return this.tdbtraveller.DistanceTo(trItems[nextTrItem].Location);
         }//ObjectDistance
 
         //================================================================================================//
@@ -10023,12 +10008,12 @@ namespace Orts.Simulation.Signalling
             // Tritem for this signal
             SignalItem thisSignalItem = (SignalItem)trItems[this.trItem];
             // Same Tile
-            if (signalItem.TileX == thisSignalItem.TileX && signalItem.TileZ == thisSignalItem.TileZ)
+            if (signalItem.Location.TileX == thisSignalItem.Location.TileX && signalItem.Location.TileZ == thisSignalItem.Location.TileZ)
             {
                 // Same position
-                if ((Math.Abs(signalItem.X - thisSignalItem.X) < 0.01) &&
-                    (Math.Abs(signalItem.Y - thisSignalItem.Y) < 0.01) &&
-                    (Math.Abs(signalItem.Z - thisSignalItem.Z) < 0.01))
+                if ((Math.Abs(signalItem.Location.Location.X - thisSignalItem.Location.Location.X) < 0.01) &&
+                    (Math.Abs(signalItem.Location.Location.Y - thisSignalItem.Location.Location.Y) < 0.01) &&
+                    (Math.Abs(signalItem.Location.Location.Z - thisSignalItem.Location.Location.Z) < 0.01))
                 {
                     return true;
                 }

@@ -73,11 +73,11 @@ namespace Orts.ActivityRunner.Viewer3D
             ref readonly WorldLocation endLocation = ref trItems[end].Location;
 
             Traveller = new Traveller(viewer.Simulator.TSectionDat, viewer.Simulator.RDB.RoadTrackDB.TrackNodes, startLocation);
-            Length = Traveller.DistanceTo(endLocation.TileX, endLocation.TileZ, endLocation.Location.X, endLocation.Location.Y, endLocation.Location.Z);
+            Length = Traveller.DistanceTo(endLocation);
             if (Length < 0)
             {
                 Traveller.ReverseDirection();
-                Length = Traveller.DistanceTo(endLocation.TileX, endLocation.TileZ, endLocation.Location.X, endLocation.Location.Y, endLocation.Location.Z);
+                Length = Traveller.DistanceTo(endLocation);
                 if (Length < 0)
                     Trace.TraceWarning("{0} car spawner {1} doesn't have connected road route between {2} and {3}", position, carSpawnerObj.UiD, startLocation, endLocation);
             }

@@ -2357,7 +2357,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 tmp = new Traveller(traveller);
 
                                 // Try to find forward
-                                d = tmp.DistanceTo(trItems[trNode].TileX, trItems[trNode].TileZ, trItems[trNode].X, trItems[trNode].Y, trItems[trNode].Z, 8192);
+                                d = tmp.DistanceTo(trItems[trNode].Location, 8192);
                                 
                                 if (d != -1)
                                 {
@@ -2386,7 +2386,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     // Not found forward, check backward
                                     tmp = new Traveller(traveller, Traveller.TravellerDirection.Backward);
 
-                                    d = tmp.DistanceTo(trItems[trNode].TileX, trItems[trNode].TileZ, trItems[trNode].X, trItems[trNode].Y, trItems[trNode].Z, 8192);
+                                    d = tmp.DistanceTo(trItems[trNode].Location, 8192);
                                     if (d != -1)
                                     {
                                         // It is nearer than previous
@@ -2592,7 +2592,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         if ((trItems[trackVectorNode.TrackItemIndices[i]]) is T item && validitems != null && validitems.Contains((int)item.TrItemId))
                         {
-                            float dist = traveller.DistanceTo(item.TileX, item.TileZ, item.X, item.Y, item.Z);
+                            float dist = traveller.DistanceTo(item.Location);
                             if (dist > 0)
                             {
                                 if (dist < distance)

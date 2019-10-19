@@ -725,13 +725,13 @@ namespace Orts.Simulation
             refTraveller = traveller;
         }
 
-        public DistanceResult CalculateToPoint(int TileX, int TileZ, float X, float Y, float Z)
+        public DistanceResult CalculateToPoint(in WorldLocation location)
         {
             Traveller poiTraveller;
             poiTraveller = new Traveller(refTraveller);
 
             // Find distance once
-            Distance = poiTraveller.DistanceTo(TileX, TileZ, X, Y, Z, maxPlatformOrStationSize);
+            Distance = poiTraveller.DistanceTo(location, maxPlatformOrStationSize);
 
             // If valid
             if (Distance > 0)
@@ -743,7 +743,7 @@ namespace Orts.Simulation
                 // Go to opposite direction
                 poiTraveller = new Traveller(refTraveller, Traveller.TravellerDirection.Backward);
 
-                Distance = poiTraveller.DistanceTo(TileX, TileZ, X, Y, Z, maxPlatformOrStationSize);
+                Distance = poiTraveller.DistanceTo(location, maxPlatformOrStationSize);
                 // If valid, it is behind us
                 if (Distance > 0)
                 {
@@ -1465,10 +1465,8 @@ namespace Orts.Simulation
             // Front calcs
             helper = new TDBTravellerDistanceCalculatorHelper(frontPosition);
 
-            distanceEnd1 = helper.CalculateToPoint(sidingEnd1.TileX,
-                    sidingEnd1.TileZ, sidingEnd1.X, sidingEnd1.Y, sidingEnd1.Z);
-            distanceEnd2 = helper.CalculateToPoint(sidingEnd2.TileX,
-                    sidingEnd2.TileZ, sidingEnd2.X, sidingEnd2.Y, sidingEnd2.Z);
+            distanceEnd1 = helper.CalculateToPoint(sidingEnd1.Location);
+            distanceEnd2 = helper.CalculateToPoint(sidingEnd2.Location);
 
             // If front between the ends of the siding
             if (((distanceEnd1 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Behind
@@ -1482,10 +1480,8 @@ namespace Orts.Simulation
             // Rear calcs
             helper = new TDBTravellerDistanceCalculatorHelper(rearPosition);
 
-            distanceEnd1 = helper.CalculateToPoint(sidingEnd1.TileX,
-                    sidingEnd1.TileZ, sidingEnd1.X, sidingEnd1.Y, sidingEnd1.Z);
-            distanceEnd2 = helper.CalculateToPoint(sidingEnd2.TileX,
-                    sidingEnd2.TileZ, sidingEnd2.X, sidingEnd2.Y, sidingEnd2.Z);
+            distanceEnd1 = helper.CalculateToPoint(sidingEnd1.Location);
+            distanceEnd2 = helper.CalculateToPoint(sidingEnd2.Location);
 
             // If rear between the ends of the siding
             if (((distanceEnd1 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Behind
@@ -1528,11 +1524,11 @@ namespace Orts.Simulation
             }
             var trainFrontPosition = new Traveller(train.nextRouteReady && train.TCRoute.activeSubpath > 0 && train.TCRoute.ReversalInfo[train.TCRoute.activeSubpath - 1].Valid ?
                 train.RearTDBTraveller : train.FrontTDBTraveller); // just after reversal the old train front position must be considered
-            var distance = trainFrontPosition.DistanceTo(e.Location.TileX, e.Location.TileZ, e.Location.Location.X, trainFrontPosition.Y, e.Location.Location.Z, e.RadiusM);
+            var distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
             if (distance == -1)
             {
                 trainFrontPosition.ReverseDirection();
-                distance = trainFrontPosition.DistanceTo(e.Location.TileX, e.Location.TileZ, e.Location.Location.X, trainFrontPosition.Y, e.Location.Location.Z, e.RadiusM);
+                distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
                 if (distance == -1)
                     return triggered;
             }

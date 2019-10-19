@@ -427,7 +427,7 @@ namespace Orts.Simulation
 
         public float DistanceTo(Traveller traveller, float maxDistance)
         {
-            return traveller.DistanceTo(TrackNode, Location.TileX, Location.TileZ, Location.Location.X, Location.Location.Y, Location.Location.Z, maxDistance);
+            return traveller.DistanceTo(TrackNode, Location, maxDistance);
         }
     }
 

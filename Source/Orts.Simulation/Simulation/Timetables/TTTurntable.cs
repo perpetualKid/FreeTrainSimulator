@@ -575,7 +575,7 @@ namespace Orts.Simulation.Timetables
 
             for (int iVector = 0; iVector < thisTDBsection.TrackVectorSections.Length; iVector++)
             {
-                Formats.Msts.TrackVectorSection thisVector = thisTDBsection.TrackVectorSections[iVector];
+                TrackVectorSection thisVector = thisTDBsection.TrackVectorSections[iVector];
                 if (thisVector.ShapeIndex == turntableTrackShape)
                 {
                     vectorIndex = iVector;
@@ -771,7 +771,7 @@ namespace Orts.Simulation.Timetables
         /// Calculate length of section connected to turntable
         /// </summary>
 
-        private float CalculateVectorLength(int firstIndex, int LastIndex, int connectIndex, Formats.Msts.TrackVectorSection[] vectors)
+        private float CalculateVectorLength(int firstIndex, int LastIndex, int connectIndex, TrackVectorSection[] vectors)
         {
             float returnLength = 0.0f;
 
@@ -779,7 +779,7 @@ namespace Orts.Simulation.Timetables
             {
                 float thisLength = 0.0f;
 
-                Formats.Msts.TrackVectorSection thisVector = vectors[iVector];
+                TrackVectorSection thisVector = vectors[iVector];
 
                 if (Simulatorref.TSectionDat.TrackSections.ContainsKey(thisVector.SectionIndex))
                 {

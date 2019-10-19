@@ -104,7 +104,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     cacheNode.MoveInSection(MaximumSectionDistance);
                     // Now back facing the right way, calculate the distance to the train location.
                     cacheNode.ReverseDirection();
-                    var initialNodeOffset = cacheNode.DistanceTo(position.TileX, position.TileZ, position.X, position.Y, position.Z);
+                    var initialNodeOffset = cacheNode.DistanceTo(position.WorldLocation);
                     // Go and collect all the cache entries for the visible range of vector nodes (straights, curves).
                     var totalDistance = 0f;
                     while (!cacheNode.IsEnd && totalDistance - initialNodeOffset < DisplayDistance)

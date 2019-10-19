@@ -392,7 +392,7 @@ namespace ORTS.TrackViewer.Drawing
             vectorToMouse.Z += (storedMouseLocation.TileZ - trackVectorSection.Location.TileZ) * 2048;
 
             //Now rotate the vector such that a direction along the track is in a direction (x=0, z=1)
-            vectorToMouse = Vector3.Transform(vectorToMouse, Matrix.CreateRotationY(-trackVectorSection.AY));
+            vectorToMouse = Vector3.Transform(vectorToMouse, Matrix.CreateRotationY(-trackVectorSection.Direction.Y));
 
             float lon, lat;
             if (!trackSection.Curved)

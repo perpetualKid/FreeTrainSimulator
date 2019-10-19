@@ -15572,11 +15572,7 @@ namespace Orts.Simulation.Physics
                             TrackVectorNode reversalNode = aiPath.TrackDB.TrackNodes[nextPathNode.NextMainTVNIndex] as TrackVectorNode;
                             TrackVectorSection firstSection = reversalNode.TrackVectorSections[0];
                             Traveller TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, reversalNode, firstSection.Location, (Traveller.TravellerDirection)1);
-                            offset = TDBTrav.DistanceTo(reversalNode,
-                                nextPathNode.Location.TileX, nextPathNode.Location.TileZ,
-                                nextPathNode.Location.Location.X,
-                                nextPathNode.Location.Location.Y,
-                                nextPathNode.Location.Location.Z);
+                            offset = TDBTrav.DistanceTo(reversalNode, nextPathNode.Location);
                             float reverseOffset = 0;
                             int sectionIndex = -1;
                             int validDir = currentDir;
@@ -15685,11 +15681,7 @@ namespace Orts.Simulation.Physics
                 thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
                 TrackVectorSection endFirstSection = (thisNode as TrackVectorNode).TrackVectorSections[0];
                 Traveller TDBEndTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, thisNode as TrackVectorNode, endFirstSection.Location, (Traveller.TravellerDirection)1);
-                float endOffset = TDBEndTrav.DistanceTo(thisNode,
-                    lastPathNode.Location.TileX, lastPathNode.Location.TileZ,
-                    lastPathNode.Location.Location.X,
-                    lastPathNode.Location.Location.Y,
-                    lastPathNode.Location.Location.Z);
+                float endOffset = TDBEndTrav.DistanceTo(thisNode, lastPathNode.Location);
 
                 // Prepare info about route end point
                 float reverseEndOffset = 0;
@@ -16204,11 +16196,7 @@ namespace Orts.Simulation.Physics
                 {
                     NodeDir = 1 - direction;
                     TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, WPNode, firstSection.Location, (Traveller.TravellerDirection)NodeDir);
-                    offset = TDBTrav.DistanceTo(WPNode,
-                        pathNode.Location.TileX, pathNode.Location.TileZ,
-                        pathNode.Location.Location.X,
-                        pathNode.Location.Location.Y,
-                        pathNode.Location.Location.Z);
+                    offset = TDBTrav.DistanceTo(WPNode, pathNode.Location);
                     for (int idx = 0; idx < WPNode.TrackCircuitCrossReferences.Count(); idx++)
                     {
                         int TCSectionIndex = WPNode.TrackCircuitCrossReferences[idx].Index;
@@ -16223,11 +16211,7 @@ namespace Orts.Simulation.Physics
                 else
                 {
                     //Trace.TraceInformation("no reverse");
-                    offset = TDBTrav.DistanceTo(WPNode,
-                        pathNode.Location.TileX, pathNode.Location.TileZ,
-                        pathNode.Location.Location.X,
-                        pathNode.Location.Location.Y,
-                        pathNode.Location.Location.Z);
+                    offset = TDBTrav.DistanceTo(WPNode, pathNode.Location);
                     for (int idx = 0; idx < WPNode.TrackCircuitCrossReferences.Count(); idx++)
                     {
                         int TCSectionIndex = WPNode.TrackCircuitCrossReferences[idx].Index;
@@ -17225,11 +17209,7 @@ namespace Orts.Simulation.Physics
                 TrackVectorNode waitingNode = TrackDB.TrackNodes[stopPathNode.NextMainTVNIndex] as TrackVectorNode;
                 TrackVectorSection firstSection = waitingNode.TrackVectorSections[0];
                 Traveller TDBTrav = new Traveller(TSectionDat, TrackDB.TrackNodes, waitingNode, firstSection.Location, (Traveller.TravellerDirection)1);
-                float offset = TDBTrav.DistanceTo(waitingNode,
-                    stopPathNode.Location.TileX, stopPathNode.Location.TileZ,
-                    stopPathNode.Location.Location.X,
-                    stopPathNode.Location.Location.Y,
-                    stopPathNode.Location.Location.Z);
+                float offset = TDBTrav.DistanceTo(waitingNode, stopPathNode.Location);
 
                 int TCSectionIndex = -1;
 
@@ -18415,13 +18395,13 @@ namespace Orts.Simulation.Physics
             /// <param name="trackCircuitXRefList">List of cross-references from tracknode to trackcircuitsection</param>
             /// <param name="offset">Offset along the tracknode</param>
             /// <param name="direction">direction along the tracknode (1 is forward)</param>
-            public void SetTCPosition(TrackCircuitXRefList trackCircuitXRefList, float offset, int direction)
+            public void SetTCPosition(TrackCircuitCrossReferences trackCircuitXRefList, float offset, int direction)
             {
-                int XRefIndex = trackCircuitXRefList.GetXRefIndex(offset, direction);
+                int XRefIndex = trackCircuitXRefList.GetCrossReferenceIndex(offset, direction);
 
                 if (XRefIndex < 0) return;
 
-                TrackCircuitSectionXref thisReference = trackCircuitXRefList[XRefIndex];
+                TrackCircuitSectionCrossReference thisReference = trackCircuitXRefList[XRefIndex];
                 this.TCSectionIndex = thisReference.Index;
                 this.TCDirection = direction;
                 this.TCOffset = offset - thisReference.OffsetLength[direction];
@@ -20058,11 +20038,11 @@ namespace Orts.Simulation.Physics
                                 Traveller t = null;
                                 if (expectedTracIndex <= 0)
                                 {
-                                    t = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, expectedTileX, expectedTileZ, expectedX, expectedZ, (Traveller.TravellerDirection)expectedTDir);
+                                    t = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
                                 }
                                 else
                                 {
-                                    t = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, Simulator.TDB.TrackDB.TrackNodes[expectedTracIndex], expectedTileX, expectedTileZ, expectedX, expectedZ, (Traveller.TravellerDirection)expectedTDir);
+                                    t = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, Simulator.TDB.TrackDB.TrackNodes[expectedTracIndex] as TrackVectorNode, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
                                 }
                                 //move = SpeedMpS > 0 ? 0.001f : -0.001f;
                                 this.travelled = expectedTravelled;

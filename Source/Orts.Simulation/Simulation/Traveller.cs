@@ -206,36 +206,6 @@ namespace Orts.Simulation
         }
 
         /// <summary>
-        /// Creates a traveller starting at a specific location, facing with the track node.
-        /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, int tileX, int tileZ, float x, float z)
-            : this(tSectionDat, trackNodes, new WorldLocation(tileX, tileZ, x, 0, z))
-        {
-        }
-
-        /// <summary>
-        /// Creates a traveller starting at a specific location, facing in the specified direction.
-        /// </summary>
-        /// <param name="tSectionDat">Provides vector track sections.</param>
-        /// <param name="trackNodes">Provides track nodes.</param>
-        /// <param name="tileX">Starting tile coordinate.</param>
-        /// <param name="tileZ">Starting tile coordinate.</param>
-        /// <param name="x">Starting coordinate.</param>
-        /// <param name="z">Starting coordinate.</param>
-        /// <param name="direction">Starting direction.</param>
-        public Traveller(TrackSectionsFile tSectionDat, TrackNode[] trackNodes, int tileX, int tileZ, float x, float z, TravellerDirection direction)
-            : this(tSectionDat, trackNodes, tileX, tileZ, x, z)
-        {
-            Direction = direction;
-        }
-
-        /// <summary>
         /// Creates a traveller starting at a specific location, facing in the specified direction.
         /// </summary>
         /// <param name="tSectionDat">Provides vector track sections.</param>
@@ -538,7 +508,7 @@ namespace Orts.Simulation
             // To simplify the math, center around the start of the track section, rotate such that the track section starts out pointing north (+z) and flip so the track curves to the right.
             l.X -= sx;
             l.Z -= sz;
-            l = Vector3.Transform(l, Matrix.CreateRotationY(-trackVectorSection.AY));
+            l = Vector3.Transform(l, Matrix.CreateRotationY(-trackVectorSection.Direction.Y));
             if (trackSection.Angle < 0)
                 l.X *= -1;
 
@@ -596,7 +566,7 @@ namespace Orts.Simulation
 
             // Calculate distance along and away from the track centerline.
             float lat, lon;
-            MstsUtility.Survey(sx, sz, trackVectorSection.AY, x, z, out lon, out lat);
+            MstsUtility.Survey(sx, sz, trackVectorSection.Direction.Y, x, z, out lon, out lat);
             if (Math.Abs(lat) > MaximumCenterlineOffset)
                 return null;
             if (lon < -InitErrorMargin || lon > GetLength(trackSection) + InitErrorMargin)
@@ -659,92 +629,48 @@ namespace Orts.Simulation
         /// <returns>f the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
         public float DistanceTo(in WorldLocation location)
         {
-            return DistanceTo(location.TileX, location.TileZ,
-                location.Location.X, location.Location.Y, location.Location.Z);
+            return DistanceTo(new Traveller(this), null, location, float.MaxValue);
         }
 
         /// <summary>
         /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
         /// </summary>
-        /// <param name="tileX">Target tile coordinate.</param>
-        /// <param name="tileZ">Target tile coordinate.</param>
-        /// <param name="x">Target coordinate.</param>
-        /// <param name="y">Target coordinate.</param>
-        /// <param name="z">Target coordinate.</param>
-        /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(int tileX, int tileZ, float x, float y, float z)
-        {
-            return DistanceTo(new Traveller(this), null, tileX, tileZ, x, y, z, float.MaxValue);
-        }
-
-        /// <summary>
-        /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
-        /// </summary>
-        /// <param name="tileX">Target tile coordinate.</param>
-        /// <param name="tileZ">Target tile coordinate.</param>
-        /// <param name="x">Target coordinate.</param>
-        /// <param name="y">Target coordinate.</param>
-        /// <param name="z">Target coordinate.</param>
-        /// <param name="destination">Traveller at the destination</param>
-        /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(int tileX, int tileZ, float x, float y, float z, out Traveller destination)
-        {
-            destination = new Traveller(this);
-            return DistanceTo(destination, null, tileX, tileZ, x, y, z, float.MaxValue);
-        }
-
-        /// <summary>
-        /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
-        /// </summary>
-        /// <param name="tileX">Target tile coordinate.</param>
-        /// <param name="tileZ">Target tile coordinate.</param>
-        /// <param name="x">Target coordinate.</param>
-        /// <param name="y">Target coordinate.</param>
-        /// <param name="z">Target coordinate.</param>
+        /// <param name="location">Target location</param>
         /// <param name="maxDistance">MAximum distance to search for specified location.</param>
         /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(int tileX, int tileZ, float x, float y, float z, float maxDistance)
+        public float DistanceTo(in WorldLocation location, float maxDistance)
         {
-            return DistanceTo(new Traveller(this), null, tileX, tileZ, x, y, z, maxDistance);
+            return DistanceTo(new Traveller(this), null, location, maxDistance);
         }
 
         /// <summary>
         /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
         /// </summary>
         /// <param name="trackNode">Target track node.</param>
-        /// <param name="tileX">Target tile coordinate.</param>
-        /// <param name="tileZ">Target tile coordinate.</param>
-        /// <param name="x">Target coordinate.</param>
-        /// <param name="y">Target coordinate.</param>
-        /// <param name="z">Target coordinate.</param>
+        /// <param name="location">Target location</param>
         /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(TrackNode trackNode, int tileX, int tileZ, float x, float y, float z)
+        public float DistanceTo(TrackNode trackNode, in WorldLocation location)
         {
-            return DistanceTo(new Traveller(this), trackNode, tileX, tileZ, x, y, z, float.MaxValue);
+            return DistanceTo(new Traveller(this), trackNode, location, float.MaxValue);
         }
 
         /// <summary>
         /// Returns the distance from the traveller's current location, in its current direction, to the location specified.
         /// </summary>
         /// <param name="trackNode">Target track node.</param>
-        /// <param name="tileX">Target tile coordinate.</param>
-        /// <param name="tileZ">Target tile coordinate.</param>
-        /// <param name="x">Target coordinate.</param>
-        /// <param name="y">Target coordinate.</param>
-        /// <param name="z">Target coordinate.</param>
+        /// <param name="location">Target location</param>
         /// <param name="maxDistance">MAximum distance to search for specified location.</param>
         /// <returns>If the target is found, the distance from the traveller's current location, along the track nodes, to the specified location. If the target is not found, <c>-1</c>.</returns>
-        public float DistanceTo(TrackNode trackNode, int tileX, int tileZ, float x, float y, float z, float maxDistance)
+        public float DistanceTo(TrackNode trackNode, in WorldLocation location, float maxDistance)
         {
-            return DistanceTo(new Traveller(this), trackNode, tileX, tileZ, x, y, z, maxDistance);
+            return DistanceTo(new Traveller(this), trackNode, location, maxDistance);
         }
 
         /// <summary>
         /// This is the actual routine that calculates the Distance To a given location along the track.
         /// </summary>
-        static float DistanceTo(Traveller traveller, TrackNode trackNode, int tileX, int tileZ, float x, float y, float z, float maxDistance)
+        static float DistanceTo(Traveller traveller, TrackNode trackNode, in WorldLocation location, float maxDistance)
         {
-            var targetLocation = new WorldLocation(tileX, tileZ, x, y, z);
             var accumulatedDistance = 0f;
             while (accumulatedDistance < maxDistance)
             {
@@ -755,7 +681,7 @@ namespace Orts.Simulation
                     if (traveller.TN == trackNode || trackNode == null)
                     {
                         var direction = traveller.Direction == TravellerDirection.Forward ? 1 : -1;
-                        if (InitTrackSectionSucceeded(traveller, targetLocation))
+                        if (InitTrackSectionSucceeded(traveller, location))
                         {
                             // If the new offset is EARLIER, the target is behind us!
                             if (traveller.trackOffset * direction < initialOffset * direction)
@@ -775,7 +701,7 @@ namespace Orts.Simulation
                 if (traveller.IsJunction)
                 {
                     // Junctions have no actual location but check the current traveller position against the target.
-                    if (WorldLocation.GetDistanceSquared(traveller.WorldLocation, targetLocation) < 0.1)
+                    if (WorldLocation.GetDistanceSquared(traveller.WorldLocation, location) < 0.1)
                         return accumulatedDistance;
                     // No match; move past the junction node so we're on track again.
                     traveller.NextSection();

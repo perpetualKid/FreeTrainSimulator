@@ -515,9 +515,8 @@ namespace ORTS.TrackViewer.Editing
             // it is a junction. Place a traveller onto the tracknode and find the orientation from it.
             try
             {   //for broken paths the tracknode doesn't exit or the traveller cannot be placed.
-                TrackNode linkingTN = TrackDB.TrackNodes[linkingTvnIndex];
-                Traveller traveller = new Traveller(TsectionDat, TrackDB.TrackNodes, linkingTN,
-                                            Location.TileX, Location.TileZ, Location.Location.X, Location.Location.Z, Traveller.TravellerDirection.Forward);
+                TrackVectorNode linkingTN = TrackDB.TrackNodes[linkingTvnIndex] as TrackVectorNode;
+                Traveller traveller = new Traveller(TsectionDat, TrackDB.TrackNodes, linkingTN, Location, Traveller.TravellerDirection.Forward);
                 if (linkingTN.JunctionIndexAtStart() != this.JunctionIndex)
                 {   // the tracknode is oriented in the other direction.
                     traveller.ReverseDirection();
@@ -705,9 +704,8 @@ namespace ORTS.TrackViewer.Editing
 
             ForwardOriented = true; // only initial setting
 
-            TrackNode tn = TrackDB.TrackNodes[TvnIndex];
-            Traveller traveller = new Traveller(TsectionDat, TrackDB.TrackNodes, tn,
-                                        Location.TileX, Location.TileZ, Location.Location.X, Location.Location.Z, Traveller.TravellerDirection.Forward);
+            TrackVectorNode tn = TrackDB.TrackNodes[TvnIndex] as TrackVectorNode;
+            Traveller traveller = new Traveller(TsectionDat, TrackDB.TrackNodes, tn, Location, Traveller.TravellerDirection.Forward);
             CopyDataFromTraveller(traveller);
             trackAngleForward = traveller.RotY; // traveller also has TvnIndex, tvs, offset, etc, but we are not using that (should be consistent though)
         }

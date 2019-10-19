@@ -120,15 +120,12 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tsectionDat">Database with track sections</param>
         /// <param name="trackDB">Database with tracks</param>
         /// <param name="tn">TrackNode on which the signal actually is</param>
-        public void FindAngle(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackNode tn)
+        public void FindAngle(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackVectorNode tn)
         {
             this.angle = 0;
             try
             {
-                Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn,
-                    this.WorldLocation.TileX, this.WorldLocation.TileZ,
-                    this.WorldLocation.Location.X, this.WorldLocation.Location.Z,
-                    this.direction);
+                Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, WorldLocation, this.direction);
                 this.angle = signalTraveller.RotY;
 
                 // Shift signal a little bit to be able to distinguish backfacing from normal facing

@@ -339,20 +339,20 @@ namespace Orts.ActivityRunner.Viewer3D
             // To simplify the math, center around the start of the track section, rotate such that the track section starts out pointing north (+z) and flip so the track curves to the right.
             x -= sx;
             z -= sz;
-            MstsUtility.Rotate2D(trackVectorSection.AY, ref x, ref z);
+            var rotated = MstsUtility.Rotate2D(trackVectorSection.Direction.Y, x, z);
             if (trackSection.Angle < 0)
-                x *= -1;
+                rotated.x *= -1;
 
             // Compute distance to curve's center at (radius,0) then adjust to get distance from centerline.
-            dx = x - trackSection.Radius;
-            var lat = Math.Sqrt(dx * dx + z * z) - trackSection.Radius;
+            dx = rotated.x - trackSection.Radius;
+            var lat = Math.Sqrt(dx * dx + rotated.z * rotated.z) - trackSection.Radius;
             if (Math.Abs(lat) > MaximumCenterlineOffset + treeWidth)
                 return false;
 
             // Compute distance along curve (ensure we are in the top right quadrant, otherwise our math goes wrong).
-            if (z < -InitErrorMargin || x > trackSection.Radius + InitErrorMargin || z > trackSection.Radius + InitErrorMargin)
+            if (rotated.z < -InitErrorMargin || rotated.x > trackSection.Radius + InitErrorMargin || rotated.z > trackSection.Radius + InitErrorMargin)
                 return false;
-            var radiansAlongCurve = (float)Math.Asin(z / trackSection.Radius);
+            var radiansAlongCurve = (float)Math.Asin(rotated.z / trackSection.Radius);
             var lon = radiansAlongCurve * trackSection.Radius;
             var trackSectionLength = GetLength(trackSection);
             if (lon < -InitErrorMargin || lon > trackSectionLength + InitErrorMargin)
@@ -379,7 +379,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Calculate distance along and away from the track centerline.
             float lat, lon;
-            MstsUtility.Survey(sx, sz, trackVectorSection.AY, x, z, out lon, out lat);
+            MstsUtility.Survey(sx, sz, trackVectorSection.Direction.Y, x, z, out lon, out lat);
             var trackSectionLength = GetLength(trackSection);
             if (Math.Abs(lat) > MaximumCenterlineOffset + treeWidth)
                 return false;

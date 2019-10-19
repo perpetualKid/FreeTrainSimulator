@@ -620,8 +620,7 @@ namespace ORTS.TrackViewer.Editing
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem)
                 {
-                    var traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tvn, 
-                        trItem.TileX, trItem.TileZ, trItem.X, trItem.Z, Traveller.TravellerDirection.Forward);
+                    var traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tvn, trItem.Location, Traveller.TravellerDirection.Forward);
                     if (traveller != null)
                     {
                         var platformNode = new TrainpathVectorNode(firstNode, traveller);

@@ -609,8 +609,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem || trItem is SpeedPostItem)
                 {
-                    var travellerAtItem = new Traveller(tsectionDat, trackDB.TrackNodes, tn,
-                        trItem.TileX, trItem.TileZ, trItem.X, trItem.Z, Traveller.TravellerDirection.Forward);
+                    var travellerAtItem = new Traveller(tsectionDat, trackDB.TrackNodes, vectorNode, trItem.Location, Traveller.TravellerDirection.Forward);
                     
                     if (travellerAtItem != null)
                     {
@@ -669,7 +668,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="travellerAtItem">The traveller located at the location of the track item</param>
         public ChartableTrackItem(TrackItem item, Traveller travellerAtItem)
         {
-            this.Height = item.Y;
+            this.Height = item.Location.Location.Y;
             this.ItemText = string.Empty;
             this.ItemType = ChartableTrackItemType.Station;
             switch (item)

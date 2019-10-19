@@ -319,6 +319,108 @@ namespace Orts.Formats.Msts.Models
     } // TrackType
 
     #region TrackDataBase
+    #region CrossReference to TrackCircuitSection
+    /// <summary>
+    /// To make it possible for a MSTS (vector) TrackNode to have information about the TrackCircuitSections that
+    /// represent that TrackNode, this class defines the basic information of a single of these TrackCircuitSections.
+    /// </summary>
+    public class TrackCircuitSectionCrossReference
+    {
+        /// <summary>full length</summary>
+        public float Length { get; private set; }
+        /// <summary>Offset length in orig track section, for either forward or backward direction</summary>
+        /// Offset indicates length from end of original tracknode, Index 0 is forward, index 1 is backward wrt original tracknode direction.
+        public float[] OffsetLength { get; } = new float[2];
+        /// <summary>index of TrackCircuitSection</summary>
+        public int Index { get; private set; }
+
+        /// <summary>
+        /// Constructor and setting reference, length and offset length from section
+        /// </summary>
+        /// <param name="sectionIndex"></param>
+        /// <param name="sectionLength"></param>
+        public TrackCircuitSectionCrossReference(int sectionIndex, float sectionLength, float[] sectionOffsetLength)
+        {
+            Index = sectionIndex;
+            Length = sectionLength;
+            OffsetLength[0] = sectionOffsetLength[0];
+            OffsetLength[1] = sectionOffsetLength[1];
+        }
+    }
+
+    /// <summary>
+    /// Class to make it possible for a MSTS (vector) TrackNode to have information about the TrackCircuitSections that
+    /// represent that TrackNode.
+    /// </summary>
+    public class TrackCircuitCrossReferences : List<TrackCircuitSectionCrossReference>
+    {
+        /// <summary>
+        /// The tracksections form together a representation of a vector node. Once you give a direction along that vector
+        /// and the offset from the start, get the index of the TrackCircuitSectionXref at that location
+        /// </summary>
+        /// <param name="offset">Offset along the vector node where we want to find the tracksection</param>
+        /// <param name="direction">Direction where we start measuring along the vector node</param>
+        /// <returns>Index in the current list of crossreferences</returns>
+        public int GetCrossReferenceIndex(float offset, int direction)
+        {
+            if (direction == 0)
+            {   // search forward, start at the second one (first one should have offsetlength zero
+                for (int trackCircuit = 1; trackCircuit < Count; trackCircuit++)
+                {
+                    if (this[trackCircuit].OffsetLength[direction] > offset)
+                    {
+                        return (trackCircuit - 1);
+                    }
+                }
+
+                // not yet found, try the last one
+                TrackCircuitSectionCrossReference thisReference = this[Count - 1];
+                if (offset <= (thisReference.OffsetLength[direction] + thisReference.Length))
+                {
+                    return (Count - 1);
+                }
+
+                //really not found, return the first one
+                return (0);
+            }
+            else
+            {   // search backward, start at last -1 (because last should end at vector node end anyway
+                for (int trackCircuit = Count - 2; trackCircuit >= 0; trackCircuit--)
+                {
+                    if (this[trackCircuit].OffsetLength[direction] > offset)
+                    {
+                        return (trackCircuit + 1);
+                    }
+                }
+
+                //not yet found, try the first one.
+                TrackCircuitSectionCrossReference thisReference = this[0];
+                if (offset <= (thisReference.OffsetLength[direction] + thisReference.Length))
+                {
+                    return (0);
+                }
+
+                //really not found, return the last one
+                return (Count - 1);
+            }
+        }
+
+        /// <summary>
+        /// The tracksections form together a representation of a vector node. Once you give a direction along that vector
+        /// and the offset from the start, get the index of the TrackCircuitSection at that location
+        /// </summary>
+        /// <param name="offset">Offset along the vector node where we want to find the tracksection</param>
+        /// <param name="direction">Direction where we start measuring along the vector node</param>
+        /// <returns>Index of the section that is at the wanted location</returns>
+        public int GetSectionIndex(float offset, int direction)
+        {
+            int index = GetCrossReferenceIndex(offset, direction);
+
+            return index >= 0 ? this[index].Index : -1;
+        }
+    } // class TrackCircuitXRefList
+    #endregion
+
     /// <summary>
     /// Represents a TrackNode. This is either an endNode, a junctionNode, or a vectorNode. 
     /// A VectorNode is a connection between two junctions or endnodes.
@@ -345,10 +447,19 @@ namespace Orts.Formats.Msts.Models
         /// <summary>The index in the array of tracknodes.</summary>
         public uint Index { get; private set; }
 
+        private TrackCircuitCrossReferences circuitCrossReferences;
         /// <summary>
         /// List of references to Track Circuit sections
         /// </summary>
-        public TrackCircuitXRefList TrackCircuitCrossReferences { get; set; }
+        public TrackCircuitCrossReferences TrackCircuitCrossReferences
+        {
+            get
+            {
+                if (null == circuitCrossReferences)
+                    circuitCrossReferences = new TrackCircuitCrossReferences();
+                return circuitCrossReferences;
+            }
+        }
 
         protected TrackNode(STFReader stf, uint index, int maxTrackNode, int expectedPins)
         {
@@ -652,6 +763,69 @@ namespace Orts.Formats.Msts.Models
             //AY = stf.ReadFloat(STFReader.Units.None, null);
             //AZ = stf.ReadFloat(STFReader.Units.None, null);
             stf.SkipRestOfBlock();
+        }
+    }
+    #endregion
+
+    #region TrackVectorSection
+    /// <summary>
+    /// Describes a single section in a vector node. 
+    /// </summary>
+    public class TrackVectorSection
+    {
+        private WorldLocation location;
+        private Vector3 direction;
+
+        public ref readonly WorldLocation Location => ref location;
+        public ref readonly Vector3 Direction => ref direction;
+        /// <summary>First flag. Not completely clear, usually 0, - may point to the connecting pin entry in a junction. Sometimes 2</summary>
+        public int Flag1 { get; set; }
+        /// <summary>Second flag. Not completely clear, usually 1, but set to 0 when curve track is flipped around. Sometimes 2</summary>
+        public int Flag2 { get; set; }
+        /// <summary>Index of the track section in Tsection.dat</summary>
+        public uint SectionIndex { get; set; }
+        /// <summary>Index to the shape from Tsection.dat</summary>
+        public uint ShapeIndex { get; set; }
+
+        //The following items are related to super elevation
+        /// <summary>Cross-reference to worldFile: World ID</summary>
+        public uint WorldFileUiD { get; set; }
+        /// <summary>The (super)elevation at the start</summary>
+        public float StartElev { get; set; }
+        /// <summary>The (super)elevation at the end</summary>
+        public float EndElev { get; set; }
+        /// <summary>The maximum (super) elevation</summary>
+        public float MaxElev { get; set; }
+
+        /// <summary>
+        /// Default constructor used during file parsing.
+        /// </summary>
+        /// <param name="stf">The STFreader containing the file stream</param>
+        public TrackVectorSection(STFReader stf)
+        {
+            SectionIndex = stf.ReadUInt(null);
+            ShapeIndex = stf.ReadUInt(null);
+            int worldTileX = stf.ReadInt(null);// worldfilenamex
+            int worldTileZ = stf.ReadInt(null);// worldfilenamez
+            WorldFileUiD = stf.ReadUInt(null); // UID in worldfile
+            Flag1 = stf.ReadInt(null); // 0
+            Flag2 = stf.ReadInt(null); // 1
+            stf.ReadString(); // 00 
+            location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
+            direction = new Vector3(stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
+
+            if (worldTileX != location.TileX || worldTileZ != location.TileZ)
+                STFException.TraceInformation(stf, $"Inconsistent WorldTile information in UiD node {WorldFileUiD}: WorldTileX({worldTileX}), WorldTileZ({worldTileZ}), Location.TileX({location.TileX}), Location.TileZ({location.TileZ})");
+
+        }
+
+        /// <summary>
+        /// Overriding the ToString, which makes it easier to debug
+        /// </summary>
+        /// <returns>String giving info on this section</returns>
+        public override string ToString()
+        {
+            return $"{{TileX:{location.TileX} TileZ:{location.TileZ} X:{location.Location.X} Y:{location.Location.Y} Z:{location.Location.Z} UiD:{WorldFileUiD} Section:{SectionIndex} Shape:{ShapeIndex}}}";
         }
     }
     #endregion

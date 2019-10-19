@@ -402,14 +402,14 @@ namespace ORTS.TrackViewer.Editing
                 angleLength -= angleStart;
 
                 drawArea.DrawArc(trackSection.Width, colors.TrackCurved, thisLocation,
-                    radius, tvs.AY, angleLength, angleStart);
+                    radius, tvs.Direction.Y, angleLength, angleStart);
             }
             else
             {   // straight section
                 float length = (stopOffset < 0) ? trackSection.Length : stopOffset;
                 length -= startOffset;
                 drawArea.DrawLine(trackSection.Width, colors.TrackStraight, thisLocation,
-                    length, tvs.AY, startOffset);
+                    length, tvs.Direction.Y, startOffset);
             }
         }
 

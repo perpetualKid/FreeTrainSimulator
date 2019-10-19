@@ -34,10 +34,10 @@ namespace Orts.Formats.Msts
             z -= pZ;
 
             // rotate the coordinates relative to a track section that is pointing due north ( +z in MSTS coordinate system )
-            Rotate2D(rad, ref x, ref z);
+            var result = Rotate2D(rad, x, z);
 
-            lat = x;
-            lon = z;
+            lat = result.x;
+            lon = result.z;
         }
 
         //  2D Rotation
@@ -45,7 +45,7 @@ namespace Orts.Formats.Msts
         //    x' = cos(theta)*x - sin(theta)*y 
         //    y' = sin(theta)*x + cos(theta)*y        
         //where theta is the angle by which to rotate the point.
-        public static void Rotate2D(float radians, ref float x, ref float z)
+        public static (float x, float z) Rotate2D(float radians, float x, float z)
         {
             double cos = Math.Cos(radians);
             double sin = Math.Sin(radians);
@@ -53,21 +53,7 @@ namespace Orts.Formats.Msts
             double xp = cos * x - sin * z;
             double zp = sin * x + cos * z;
 
-            x = (float)xp;
-            z = (float)zp;
-        }
-
-        //  2D Rotation
-        //    A point<x, y> can be rotated around the origin<0,0> by running it through the following equations to get the new point<x',y'> :        
-        //    x' = cos(theta)*x - sin(theta)*y 
-        //    y' = sin(theta)*x + cos(theta)*y        
-        //where theta is the angle by which to rotate the point.
-        public static Vector2 Rotate2D(float radians, Vector2 point)
-        {
-            double cos = Math.Cos(radians);
-            double sin = Math.Sin(radians);
-
-            return new Vector2((float)(cos * point.X - sin * point.Y), (float)(sin * point.X + cos * point.Y));
+            return ((float)xp, (float)zp);
         }
 
         public static Matrix CreateFromYawPitchRoll(in Vector3 pitchYawRoll)
