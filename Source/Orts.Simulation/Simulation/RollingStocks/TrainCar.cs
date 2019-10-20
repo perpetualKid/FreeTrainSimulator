@@ -35,6 +35,7 @@
 
 using Microsoft.Xna.Framework;
 using Orts.Formats.Msts;
+using Orts.Parsers.Msts;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems;
@@ -122,7 +123,7 @@ namespace Orts.Simulation.RollingStocks
         public bool HasFreightAnim = false;
         public bool HasPassengerCapacity = false;
         public bool HasInsideView = false;
-        public float CarHeightAboveGroundM;
+        public float CarHeightAboveSeaLevelM;
 
         public float MaxHandbrakeForceN;
         public float MaxBrakeForceN = 89e3f;
@@ -135,6 +136,7 @@ namespace Orts.Simulation.RollingStocks
         public float CarHeatPipeAreaM2;  // Area of surface of car pipe
         public float CarOutsideTempC;   // Ambient temperature outside of car
         public float InitialCarOutsideTempC;
+        public bool IsTrainHeatingBoilerInitialised { get { return Train.TrainHeatingBoilerInitialised; } set { Train.TrainHeatingBoilerInitialised = value; } }
 
         // Used to calculate wheel sliding for locked brake
         public bool BrakeSkid = false;
@@ -169,8 +171,9 @@ namespace Orts.Simulation.RollingStocks
         public float _PrevSpeedMpS;
         public float AbsSpeedMpS; // Math.Abs(SpeedMps) expression is repeated many times in the subclasses, maybe this deserves a class variable
         public float CouplerSlackM;  // extra distance between cars (calculated based on relative speeds)
+        public float CouplerDampingSpeedMpS; // Dampening applied to coupler																			
         public int HUDCouplerForceIndication = 0; // Flag to indicate whether coupler is 1 - pulling, 2 - pushing or 0 - neither
-        public bool HUDCouplerRigidIndication = false; // flag to indicate whether coupler is rigid or flexible. fasle indicates that coupler is flexible, true indicates that coupler is rigid
+        public int HUDCouplerRigidIndication = 0; // flag to indicate whether coupler is rigid or flexible. False indicates that coupler is flexible
         public float CouplerSlack2M;  // slack calculated using draft gear force
         public bool IsAdvancedCoupler = false; // Flag to indicate that coupler is to be treated as an advanced coupler
         public bool WheelSlip;  // true if locomotive wheels slipping
@@ -178,8 +181,8 @@ namespace Orts.Simulation.RollingStocks
         public bool WheelSkid;  // True if wagon wheels lock up.
         public float _AccelerationMpSS;
         protected IIRFilter AccelerationFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, 1.0f, 0.1f);
-        public float HUDMaximumCouplerForceN;
 
+        // Wheel Bearing Temperature parameters
         public float WheelBearingTemperatureDegC = 40.0f;
         public string DisplayWheelBearingTemperatureStatus;
         public float WheelBearingTemperatureRiseTimeS = 0;
@@ -355,8 +358,7 @@ namespace Orts.Simulation.RollingStocks
         public float GravityForceN;  // Newtons  - signed relative to direction of car.
         public float CurveForceN;   // Resistive force due to curve, in Newtons
         public float WindForceN;  // Resistive force due to wind
-
-        //private float _prevCurveForceN=0f;
+        public float DynamicBrakeForceN = 0f; // Raw dynamic brake force for diesel and electric locomotives
 
         // Derailment variables
         public float WagonVerticalDerailForceN; // Vertical force of wagon/car - essentially determined by the weight
@@ -572,7 +574,6 @@ namespace Orts.Simulation.RollingStocks
                     DoubleTunnelCrossSectAreaM2 = 41.8f;  // Typically older slower speed designed tunnels
                     DoubleTunnelPerimeterM = 25.01f;
                 }
-
             }
 
 #if DEBUG_TUNNEL_RESISTANCE
@@ -593,7 +594,7 @@ namespace Orts.Simulation.RollingStocks
                 InitializeCarTemperatures();
                 AmbientTemperatureInitialised = true;
             }
-
+            
             // Update temperature variation for height of car above sea level
             // Typically in clear conditions there is a 9.8 DegC variation for every 1000m (1km) rise, in snow/rain there is approx 5.5 DegC variation for every 1000m (1km) rise
             float TemperatureHeightVariationDegC = 0;
@@ -602,15 +603,15 @@ namespace Orts.Simulation.RollingStocks
 
             if (Simulator.WeatherType == WeatherType.Rain || Simulator.WeatherType == WeatherType.Snow) // Apply snow/rain height variation
             {
-                TemperatureHeightVariationDegC = Me.ToKiloM(CarHeightAboveGroundM) * WetLapseTemperatureC;
+                TemperatureHeightVariationDegC = Me.ToKiloM(CarHeightAboveSeaLevelM) * WetLapseTemperatureC;
             }
             else  // Apply dry height variation
             {
-                TemperatureHeightVariationDegC = Me.ToKiloM(CarHeightAboveGroundM) * DryLapseTemperatureC;
+                TemperatureHeightVariationDegC = Me.ToKiloM(CarHeightAboveSeaLevelM) * DryLapseTemperatureC;
             }
-
+            
             TemperatureHeightVariationDegC = MathHelper.Clamp(TemperatureHeightVariationDegC, 0.00f, 30.0f);
-
+            
             CarOutsideTempC = InitialCarOutsideTempC - TemperatureHeightVariationDegC;
 
             // gravity force, M32 is up component of forward vector
@@ -651,7 +652,6 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-
         /// <summary>
         /// Initialise Train Temperatures
         /// <\summary>           
@@ -668,8 +668,8 @@ namespace Orts.Simulation.RollingStocks
 
             new Orts.Common.WorldLatLon().ConvertWTC(WorldPosition.TileX, WorldPosition.TileZ, WorldPosition.Location, ref latitude, ref longitude);
             
-            
             float LatitudeDeg = MathHelper.ToDegrees((float)latitude);
+                      
 
             // Sets outside temperature dependent upon the season
             if (Simulator.Season == SeasonType.Winter)
@@ -1513,8 +1513,9 @@ namespace Orts.Simulation.RollingStocks
                 AcceptMUSignals ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 ThrottlePercent,
                 String.Format("{0}{1}", FormatStrings.FormatSpeedDisplay(SpeedMpS, IsMetric), WheelSlip ? "!!!" : ""),
-                FormatStrings.FormatPower(MotiveForceN * SpeedMpS, IsMetric, false, false),
-                String.Format("{0}{1}", FormatStrings.FormatForce(MotiveForceN, IsMetric), CouplerExceedBreakLimit ? "???" : ""));
+                // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
+                FormatStrings.FormatPower((MotiveForceN - DynamicBrakeForceN) * SpeedMpS, IsMetric, false, false),   
+                String.Format("{0}{1}", FormatStrings.FormatForce((MotiveForceN - DynamicBrakeForceN), IsMetric), CouplerExceedBreakLimit ? "???" : ""));
         }
         public virtual string GetTrainBrakeStatus() { return null; }
         public virtual string GetEngineBrakeStatus() { return null; }
@@ -1648,86 +1649,55 @@ namespace Orts.Simulation.RollingStocks
             return 2e7f;
         }
 
-        public virtual float GetCouplerTensionStiffness1N()
+        public virtual float GetCouplerStiffness1NpM()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerTensionStiffness2N()
+        public virtual float GetCouplerStiffness2NpM()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerCompressionStiffness1N()
+        public virtual float GetCouplerDamping1NMpS()
         {
             return 1e7f;
         }
 
-        public virtual float GetCouplerCompressionStiffness2N()
+        public virtual float GetCouplerDamping2NMpS()
         {
             return 1e7f;
         }
 
-        public virtual float GetTensionCouplerSlackAM()
+        public virtual float GetCouplerSlackAM()
         {
             return 0;
         }
 
-        public virtual float GetTensionCouplerSlackBM()
+        public virtual float GetCouplerSlackBM()
         {
             return 0.1f;
         }
 
-        public virtual float GetCouplerCompressionSlackAM()
+        public virtual int GetCouplerRigidIndication()
         {
             return 0;
         }
 
-        public virtual float GetCouplerCompressionSlackBM()
-        {
-            return 0.1f;
-        }
-
-        public virtual bool GetCouplerRigidIndication()
-        {
-            return false;
-        }
-
-        public virtual float GetMaximumSimpleCouplerSlack1M()
-        {
-            return 0.012f;
-        }
-
-        public virtual float GetMaximumCouplerSlack1M()
+        public virtual float GetMaximumCouplerSlack0M()
         {
             return 0.005f;
         }
-
-        public virtual float GetMaximumCouplerSlack2M()
+		
+        public virtual float GetMaximumCouplerSlack1M()
         {
             return 0.012f;
         }
         
-        public virtual float GetMaximumCouplerSlack3M()
+        public virtual float GetMaximumCouplerSlack2M()
         {
-            return 0.13f;
+            return 0.12f;
         }
-
-        public virtual float GetMaximumCouplerCompressionSlack1M()
-        {
-            return 0.005f;
-        }
-
-        public virtual float GetMaximumCouplerCompressionSlack2M()
-        {
-            return 0.012f;
-        }
-
-        public virtual float GetMaximumCouplerCompressionSlack3M()
-        {
-            return 0.13f;
-        }
-
 
         public virtual float GetMaximumCouplerForceN()
         {
@@ -2438,7 +2408,6 @@ namespace Orts.Simulation.RollingStocks
             return isOverTrough;
         }
 
-
         /// <summary>
         /// Checks if traincar is over junction or crossover. Used to check if water scoop breaks
         /// </summary>
@@ -2465,15 +2434,15 @@ namespace Orts.Simulation.RollingStocks
                     foreach (var thisSection in copyOccupiedTrack)
                     {
 
-//                    Trace.TraceInformation(" Track Section - Index {0} Ciruit Type {1}", thisSectionIndex, thisSection.CircuitType);
+                        //                    Trace.TraceInformation(" Track Section - Index {0} Ciruit Type {1}", thisSectionIndex, thisSection.CircuitType);
 
-                    if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                        if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
                         {
 
-                        // train is on a switch; let's see if car is on a switch too
-                        WorldLocation switchLocation = TileLocation(Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD);
-                        var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
-                            if (distanceFromSwitch<CarLengthM* CarLengthM + Math.Min(SpeedMpS* 3, 150))
+                            // train is on a switch; let's see if car is on a switch too
+                            WorldLocation switchLocation = TileLocation(Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD);
+                            var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
+                            if (distanceFromSwitch < CarLengthM * CarLengthM + Math.Min(SpeedMpS * 3, 150))
                             {
                                 isOverJunction = true;
                                 return isOverJunction;

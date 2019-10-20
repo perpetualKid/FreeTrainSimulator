@@ -71,6 +71,7 @@ namespace Orts.Viewer3D.RollingStock
         // Create viewers for special steam/smoke effects on car
         List<ParticleEmitterViewer> HeatingHose = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WaterScoop = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> WaterScoopReverse = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> TenderWaterOverflow = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WagonSmoke = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> HeatingSteamBoiler = new List<ParticleEmitterViewer>();
@@ -105,7 +106,15 @@ namespace Orts.Viewer3D.RollingStock
 
                 // Exhaust for steam heating boiler
                 if (emitter.Key.ToLowerInvariant() == "heatingsteamboilerfx")
+                {
                     HeatingSteamBoiler.AddRange(emitter.Value);
+                    // set flag to indicate that heating boiler is active on this car only - only sets first boiler steam effect found in the train
+                    if (!car.IsTrainHeatingBoilerInitialised && !car.HeatingBoilerSet)
+                    {
+                        car.HeatingBoilerSet = true;
+                        car.IsTrainHeatingBoilerInitialised = true;
+                    }
+                }
 
                 foreach (var drawer in HeatingSteamBoiler)
                 {
@@ -132,11 +141,11 @@ namespace Orts.Viewer3D.RollingStock
 
                 // Smoke for bearing hot box
                 if (emitter.Key.ToLowerInvariant() == "bearinghotboxfx")
-                   BearingHotBox.AddRange(emitter.Value);
+                    BearingHotBox.AddRange(emitter.Value);
 
                 foreach (var drawer in BearingHotBox)
                 {
-                   drawer.Initialize(steamTexture);
+                    drawer.Initialize(steamTexture);
                 }
 
                 // Steam leak in heating hose 
@@ -149,9 +158,8 @@ namespace Orts.Viewer3D.RollingStock
                     drawer.Initialize(steamTexture);
                 }
 
-
-                // Water spray for when water scoop is in use (use steam effects for the time being)
-
+                // Water spray for when water scoop is in use (use steam effects for the time being) 
+                // Forward motion
                 if (emitter.Key.ToLowerInvariant() == "waterscoopfx")
                     WaterScoop.AddRange(emitter.Value);
 
@@ -160,14 +168,24 @@ namespace Orts.Viewer3D.RollingStock
                     drawer.Initialize(steamTexture);
                 }
 
+                // Reverse motion
+
+                if (emitter.Key.ToLowerInvariant() == "waterscoopreversefx")
+                    WaterScoopReverse.AddRange(emitter.Value);
+
+                foreach (var drawer in WaterScoopReverse)
+                {
+                    drawer.Initialize(steamTexture);
+                }
+
                 // Water overflow when tender is over full during water trough filling (use steam effects for the time being) 
 
                 if (emitter.Key.ToLowerInvariant() == "tenderwateroverflowfx")
-                   TenderWaterOverflow.AddRange(emitter.Value);
-                
+                    TenderWaterOverflow.AddRange(emitter.Value);
+
                 foreach (var drawer in TenderWaterOverflow)
                 {
-                   drawer.Initialize(steamTexture);
+                    drawer.Initialize(steamTexture);
                 }
 
             }
@@ -508,31 +526,45 @@ namespace Orts.Viewer3D.RollingStock
             // Exhaust for HEP/Electrical Generator
             foreach (var drawer in WagonGenerator)
             {
-               drawer.SetOutput(car.WagonGeneratorVolumeM3pS, car.WagonGeneratorDurationS, car.WagonGeneratorSteadyColor);
+                drawer.SetOutput(car.WagonGeneratorVolumeM3pS, car.WagonGeneratorDurationS, car.WagonGeneratorSteadyColor);
             }
 
             // Wagon fire smoke
             foreach (var drawer in WagonSmoke)
             {
-                  drawer.SetOutput(car.WagonSmokeVelocityMpS, car.WagonSmokeVolumeM3pS, car.WagonSmokeDurationS, car.WagonSmokeSteadyColor);
+                drawer.SetOutput(car.WagonSmokeVelocityMpS, car.WagonSmokeVolumeM3pS, car.WagonSmokeDurationS, car.WagonSmokeSteadyColor);
             }
 
-            // Bearing Hot box smoke
-            foreach (var drawer in BearingHotBox)
+            if (car.Train != null) // only process this visual feature if this is a valid car in the train
             {
-               drawer.SetOutput(car.BearingHotBoxSmokeVelocityMpS, car.BearingHotBoxSmokeVolumeM3pS, car.BearingHotBoxSmokeDurationS, car.BearingHotBoxSmokeSteadyColor);
-            }
-
-            // Water spray for water sccop (uses steam effects currently)
-            foreach (var drawer in WaterScoop)
-            {
-                drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+                // Water spray for water scoop (uses steam effects currently) - Forward direction
+                if (car.Direction == Direction.Forward)
+                {
+                    foreach (var drawer in WaterScoop)
+                    {
+                        drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+                    }
+                }
+                // If travelling in reverse turn on rearward facing effect
+                else if (car.Direction == Direction.Reverse)
+                {
+                    foreach (var drawer in WaterScoopReverse)
+                    {
+                        drawer.SetOutput(car.WaterScoopWaterVelocityMpS, car.WaterScoopWaterVolumeM3pS, car.WaterScoopParticleDurationS);
+                    }
+                }
             }
 
             // Water overflow from tender (uses steam effects currently)
             foreach (var drawer in TenderWaterOverflow)
             {
                 drawer.SetOutput(car.TenderWaterOverflowVelocityMpS, car.TenderWaterOverflowVolumeM3pS, car.TenderWaterOverflowParticleDurationS);
+            }
+
+            // Bearing Hot box smoke
+            foreach (var drawer in BearingHotBox)
+            {
+                drawer.SetOutput(car.BearingHotBoxSmokeVelocityMpS, car.BearingHotBoxSmokeVolumeM3pS, car.BearingHotBoxSmokeDurationS, car.BearingHotBoxSmokeSteadyColor);
             }
 
             foreach (List<ParticleEmitterViewer> drawers in ParticleDrawers.Values)
@@ -706,8 +738,15 @@ namespace Orts.Viewer3D.RollingStock
                 foreach (var freightAnim in FreightAnimations.Animations)
                 {
                     if (freightAnim.Animation is FreightAnimationStatic)
-                        if ((freightAnim.Animation as FreightAnimationStatic).Cab3DFreightAnim ^
-                            (Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab)) continue;
+                    {
+                        var animation = freightAnim.Animation as FreightAnimationStatic;
+                        if (!((animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Cab3D] &&
+                            Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab) ||
+                            (animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Cab2D] &&
+                            Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.Cab) ||
+                            (animation.Visibility[(int)FreightAnimationStatic.VisibleFrom.Outside] && (Viewer.Camera.AttachedCar != this.MSTSWagon ||
+                            (Viewer.Camera.Style != Camera.Styles.ThreeDimCab && Viewer.Camera.Style != Camera.Styles.Cab))))) continue;
+                    }
                     if (freightAnim.FreightShape != null && !((freightAnim.Animation is FreightAnimationContinuous) && (freightAnim.Animation as FreightAnimationContinuous).LoadPerCent == 0))
                     {
                         freightAnim.FreightShape.Location.XNAMatrix = Car.WorldPosition.XNAMatrix;
@@ -737,7 +776,7 @@ namespace Orts.Viewer3D.RollingStock
             }
 
             // Get the current height above "sea level" for the relevant car
-            Car.CarHeightAboveGroundM = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
+            Car.CarHeightAboveSeaLevelM = Viewer.Tiles.GetElevation(Car.WorldPosition.WorldLocation);
 
             // Control visibility of passenger cabin when inside it
             if (Viewer.Camera.AttachedCar == this.MSTSWagon

@@ -66,6 +66,7 @@ namespace Orts.Simulation.RollingStocks
         public float EngineRPMderivation;
         float EngineRPMold;
         float EngineRPMRatio; // used to compute Variable1 and Variable2
+        public float MaximumDieselEnginePowerW;
 
         public MSTSNotchController FuelController = new MSTSNotchController(0, 1, 0.0025f);
         public float MaxDieselLevelL = 5000.0f;
@@ -123,7 +124,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(dieselengineidlerpm": IdleRPM = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
                 case "engine(dieselenginemaxrpm": MaxRPM = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
                 case "engine(dieselenginemaxrpmchangerate": MaxRPMChangeRate = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
-
+                case "engine(ortsdieselenginemaxpower": MaximumDieselEnginePowerW = stf.ReadFloatBlock(STFReader.UNITS.Power, null); break;
                 case "engine(effects(dieselspecialeffects": ParseEffects(lowercasetoken, stf); break;
                 case "engine(dieselsmokeeffectinitialsmokerate": InitialExhaust = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
                 case "engine(dieselsmokeeffectinitialmagnitude": InitialMagnitude = stf.ReadFloatBlock(STFReader.UNITS.None, null); break;
@@ -205,7 +206,7 @@ namespace Orts.Simulation.RollingStocks
             IdleRPM = locoCopy.IdleRPM;
             MaxRPM = locoCopy.MaxRPM;
             MaxRPMChangeRate = locoCopy.MaxRPMChangeRate;
-
+            MaximumDieselEnginePowerW = locoCopy.MaximumDieselEnginePowerW;
             PercentChangePerSec = locoCopy.PercentChangePerSec;
 
             EngineRPMderivation = locoCopy.EngineRPMderivation;
@@ -256,6 +257,27 @@ namespace Orts.Simulation.RollingStocks
             {
                 DrvWheelWeightKg = MassKG; // set Drive wheel weight to total wagon mass if not in ENG file
                 InitialDrvWheelWeightKg = MassKG; // // set Initial Drive wheel weight as well, as it is used as a reference
+            }
+
+            // Check force assumptions set for diesel
+            if (EngineType == EngineTypes.Diesel && SpeedOfMaxContinuousForceMpS != 0)
+            {
+
+                float ThrottleSetting = 1.0f; // Must be at full throttle for these calculations
+                if (TractiveForceCurves == null)  // Basic configuration - ie no force and Power tables, etc
+                {
+                    float CalculatedMaxContinuousForceN = ThrottleSetting * DieselEngines.MaximumRailOutputPowerW / SpeedOfMaxContinuousForceMpS;
+                    Trace.TraceInformation("Diesel Force Settings (BASIC Config):Max Starting Force {0}, Max Continuous Force {1} @ speed of {2}", FormatStrings.FormatForce(MaxForceN, IsMetric), FormatStrings.FormatForce(CalculatedMaxContinuousForceN, IsMetric), FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, IsMetric));
+                    Trace.TraceInformation("Diesel Power Settings (BASIC Config):Prime Mover {0}, Rail Output Power {1}", FormatStrings.FormatPower(MaximumDieselEnginePowerW, IsMetric, false, false), FormatStrings.FormatPower(DieselEngines.MaximumRailOutputPowerW, IsMetric, false, false));
+                }
+                else // Advanced configuration - 
+                {
+                    float StartingSpeedMpS = 0.1f; // Assumed starting speed for diesel - can't be zero otherwise error will occurr
+                    float StartingForceN = TractiveForceCurves.Get(ThrottleSetting, StartingSpeedMpS);
+                    float CalculatedMaxContinuousForceN = TractiveForceCurves.Get(ThrottleSetting, SpeedOfMaxContinuousForceMpS);
+                    Trace.TraceInformation("Diesel Force Settings (ADVANCED Config): Max Starting Force {0} Max Continuous Force {1}, @ speed of {2}", FormatStrings.FormatForce(StartingForceN, IsMetric), FormatStrings.FormatForce(CalculatedMaxContinuousForceN, IsMetric), FormatStrings.FormatSpeedDisplay(SpeedOfMaxContinuousForceMpS, IsMetric));
+                    Trace.TraceInformation("Diesel Power Settings (ADVANCED Config):Prime Mover {0}, Rail Output Power {1} @ {2} rpm", FormatStrings.FormatPower(MaximumDieselEnginePowerW, IsMetric, false, false), FormatStrings.FormatPower(DieselEngines.MaximumRailOutputPowerW, IsMetric, false, false), MaxRPM);
+                }
             }
 
         }
@@ -381,8 +403,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (TractiveForceCurves == null)
                 {
-                    float maxForceN = Math.Min(t * MaxForceN * (1 - PowerReduction), AbsWheelSpeedMpS == 0.0f ? (t * MaxForceN * (1 - PowerReduction)) : (t * DieselEngines.MaxOutputPowerW / AbsWheelSpeedMpS));
-                    float maxPowerW = 0.98f * DieselEngines.MaxOutputPowerW;      //0.98 added to let the diesel engine handle the adhesion-caused jittering
+                    float maxForceN = Math.Min(t * MaxForceN * (1 - PowerReduction), AbsWheelSpeedMpS == 0.0f ? (t * MaxForceN * (1 - PowerReduction)) : (t * DieselEngines.CurrentRailOutputPowerW / AbsWheelSpeedMpS));
+                    float maxPowerW = 0.98f * DieselEngines.MaximumRailOutputPowerW;      //0.98 added to let the diesel engine handle the adhesion-caused jittering
 
                     if (DieselEngines.HasGearBox)
                     {
@@ -703,19 +725,10 @@ namespace Orts.Simulation.RollingStocks
                     if (CurrentSteamHeatPressurePSI <= MaxSteamHeatPressurePSI)      // Don't let steam heat pressure exceed the maximum value
                     {
                         CurrentSteamHeatPressurePSI = SteamHeatController.CurrentValue * MaxSteamHeatPressurePSI;
-
-                        // Set values for visible exhaust based upon setting of steam controller
-                        HeatingSteamBoilerVolumeM3pS = 1.5f * SteamHeatController.CurrentValue;
-                        HeatingSteamBoilerDurationS = 1.0f * SteamHeatController.CurrentValue;
-
-                        // Calculate fuel usage for steam heat boiler
-                        float FuelUsageL = SteamHeatController.CurrentValue * pS.FrompH(SteamHeatBoilerFuelUsageLpH) * elapsedClockSeconds;
-                        CurrentSteamHeatFuelCapacityL -= FuelUsageL; // Reduce Tank capacity as fuel used.
-                        MassKG -= FuelUsageL * 0.85f; // Reduce locomotive weight as Steam heat boiler uses fuel.
-
                     }
 
                     CurrentSteamHeatPressurePSI = MathHelper.Clamp(CurrentSteamHeatPressurePSI, 0.0f, MaxSteamHeatPressurePSI);  // Clamp steam heat pressure within bounds
+
 
                     if (CurrentSteamHeatPressurePSI < 0.1)
                     {
@@ -725,10 +738,12 @@ namespace Orts.Simulation.RollingStocks
                     }
                     else
                     {
+
                         Train.TrainCurrentSteamHeatPipeTempC = C.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]);
                         Train.CarSteamHeatOn = true; // turn on steam effects on wagons
                     }
                 }
+
             }
         }
 

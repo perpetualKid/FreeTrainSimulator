@@ -350,7 +350,6 @@ namespace Orts.Common
 
                         case 173: return Event.HotBoxBearingOn;
                         case 174: return Event.HotBoxBearingOff;
-
                         //
 
                         default: return 0;

@@ -121,7 +121,6 @@ namespace Orts.Simulation.RollingStocks
         public bool Wiper;
         public bool BailOff;
         public bool DynamicBrake;
-        public float DynamicBrakeForceN = 0f; // Raw dynamic brake force for diesel and electric sound variable3
         public float MaxPowerW;
         public float MaxForceN;
         public float TractiveForceN = 0f; // Raw tractive force for electric sound variable2
@@ -142,11 +141,8 @@ namespace Orts.Simulation.RollingStocks
         public string OnLineCabRadioURL;
 
         // Water trough filling
-        public bool WaterScoopDown;
         public bool HasWaterScoop = false; // indicates whether loco + tender have a water scoop or not
-                                           //        public float ScoopMinPickupSpeedMpS = 0.0f; // Minimum scoop pickup speed
         public float ScoopMaxPickupSpeedMpS = 200.0f; // Maximum scoop pickup speed - used in steam locomotive viewer
-                                                      //        public float ScoopResistanceN = 0.0f; // Scoop resistance
         public bool ScoopIsBroken = false; // becomes broken if activated where there is no trough
         public bool RefillingFromTrough = false; // refilling from through is ongoing
         public float WaterScoopFillElevationM; // height water has to be raised to fill tender
@@ -158,6 +154,7 @@ namespace Orts.Simulation.RollingStocks
         public float WaterScoopInputAmountL; // Water scooped in elapsed time
         public float WaterScoopMinSpeedMpS; // Minimum speed for water pickup
         public bool IsWaterScoopDown = false;
+        public bool WaterScoopDown;
         public const float GravitationalAccelerationFtpSpS = 32.26f;
         public float TenderWaterLevelFraction;
         public float WaterScoopTotalWaterL;
@@ -168,20 +165,18 @@ namespace Orts.Simulation.RollingStocks
         public bool IsWaterScoopPlayerLocomotive = false;
         public float MaxTotalCombinedWaterVolumeUKG;
         public MSTSNotchController WaterController = new MSTSNotchController(0, 1, 0.01f);
-
         public float CombinedTenderWaterVolumeUKG          // Decreased by running injectors and increased by refilling
         {
-            get { return WaterController.CurrentValue* MaxTotalCombinedWaterVolumeUKG;
-        }
+            get { return WaterController.CurrentValue* MaxTotalCombinedWaterVolumeUKG; }
             set { WaterController.CurrentValue = value / MaxTotalCombinedWaterVolumeUKG; }
         }
 
         public float IsTenderRequired = 1.0f;  // Flag indicates that a tender is required for operation of the locomotive. Typically tank locomotives do not require a tender. Assume by default that tender is required.
 
-// Vacuum Reservoir and Exhauster Settings
+        // Vacuum Reservoir and Exhauster Settings
 
-// Steam heating Flags
-public bool IsSteamInitial = true;        // To initialise steam heat
+        // Steam heating Flags
+        public bool IsSteamInitial = true;        // To initialise steam heat
         public bool IsSteamHeatFirstTime = true;  // Flag for first pass at steam heating.
         public bool IsSteamHeatFitted = false;    // Is steam heating fitted to locomotive
         public float CurrentSteamHeatPressurePSI = 0.0f;   // Current pressure in steam heat system
@@ -220,6 +215,7 @@ public bool IsSteamInitial = true;        // To initialise steam heat
         readonly static float OneAtmospherePSI = Bar.ToPSI(1);
         public bool SmallSteamEjectorIsOn = false;
         public bool LargeSteamEjectorIsOn = false;
+        public bool VacConServLargeSteamEjectorIsOn = false;
         public bool VacuumPumpOperating = false;
         public float SteamEjectorSmallPressurePSI = 0.0f;
         public bool VacuumPumpFitted;
@@ -231,6 +227,8 @@ public bool IsSteamInitial = true;        // To initialise steam heat
         public float MaxVaccuumMaxPressurePSI = 110.0f;  // Value for the boiler pressure when maximum vacuum will be produced for the steam ejector 
         public float SmallEjectorFeedFraction = 0.35f;
         public float LargeEjectorFeedFraction = 1.0f;
+        public bool HasLargeEjector = false;
+        public bool LargeEjectorEnabled = true;
         public float VacuumPumpChargingRateInHgpS = 0.0f;
         public bool VacuumBrakeEQFitted = false;  // Flag to indicate that equalising resevoir fitted to vacuum brakes
         public float HUDNetBPLossGainPSI;
@@ -322,6 +320,7 @@ public bool IsSteamInitial = true;        // To initialise steam heat
         public bool HasSmoothStruc;
 
         public float MaxContinuousForceN;
+        public float SpeedOfMaxContinuousForceMpS;  // Speed where maximum tractive effort occurs
         public float ContinuousForceTimeFactor = 1800;
         public bool AntiSlip;
         public bool AdvancedAdhesionModel = false; // flag set depending upon adhesion model used.
@@ -702,6 +701,7 @@ public bool IsSteamInitial = true;        // To initialise steam heat
                 case "engine(maxforce": MaxForceN = stf.ReadFloatBlock(STFReader.UNITS.Force, null); break;
                 case "engine(maxcurrent": MaxCurrentA = stf.ReadFloatBlock(STFReader.UNITS.Current, null); break;
                 case "engine(maxcontinuousforce": MaxContinuousForceN = stf.ReadFloatBlock(STFReader.UNITS.Force, null); break;
+                case "engine(ortsspeedofmaxcontinuousforce": SpeedOfMaxContinuousForceMpS = stf.ReadFloatBlock(STFReader.UNITS.Speed, null); break;
                 case "engine(maxvelocity": MaxSpeedMpS = stf.ReadFloatBlock(STFReader.UNITS.Speed, null); break;
 
                 case "engine(type":
@@ -877,6 +877,7 @@ public bool IsSteamInitial = true;        // To initialise steam heat
             EngineType = locoCopy.EngineType;
             TractiveForceCurves = locoCopy.TractiveForceCurves;
             MaxContinuousForceN = locoCopy.MaxContinuousForceN;
+            SpeedOfMaxContinuousForceMpS = locoCopy.SpeedOfMaxContinuousForceMpS;
             ContinuousForceTimeFactor = locoCopy.ContinuousForceTimeFactor;
             DynamicBrakeForceCurves = locoCopy.DynamicBrakeForceCurves;
             DynamicBrakeAutoBailOff = locoCopy.DynamicBrakeAutoBailOff;
@@ -989,6 +990,8 @@ public bool IsSteamInitial = true;        // To initialise steam heat
             ControllerFactory.Save(SteamHeatController, outf);
             outf.Write(AcceptMUSignals);
             outf.Write(PowerReduction);
+            outf.Write(ScoopIsBroken);
+            outf.Write(IsWaterScoopDown);
 
             base.Save(outf);
         }
@@ -1022,6 +1025,9 @@ public bool IsSteamInitial = true;        // To initialise steam heat
             ControllerFactory.Restore(SteamHeatController, inf);
             AcceptMUSignals = inf.ReadBoolean();
             PowerReduction = inf.ReadSingle();
+            ScoopIsBroken = inf.ReadBoolean();
+            IsWaterScoopDown = inf.ReadBoolean();
+
             AdhesionFilter.Reset(0.5f);
 
             base.Restore(inf);
@@ -1120,13 +1126,13 @@ public bool IsSteamInitial = true;        // To initialise steam heat
             if (WaterScoopFillElevationM == 0)
             {
                 WaterScoopFillElevationM = 2.7432f; // Set to default of 9 ft
-            }
-            
+            } 
+
             if (WaterScoopDepthM == 0)
             {
                 WaterScoopDepthM = 0.0889f; // Set to default of 3.5 ins
             }
-            
+
             if (WaterScoopWidthM == 0)
             {
                 WaterScoopWidthM = 0.3048f; // Set to default of 1 ft
@@ -1211,10 +1217,11 @@ public bool IsSteamInitial = true;        // To initialise steam heat
             }
 
             // Check TrainBrakesControllerMaxSystemPressure parameter for "correct" value 
-            // This is only done for vacuum brakes as the UoM can be confusing - it defaults to psi, and if no units are entered then a InHG value can be incorrectly converted.
-            if ((BrakeSystem is VacuumSinglePipe) && TrainBrakeController.MaxPressurePSI > 12.5)
+            // This is only done for vacuum brakes as the UoM can be confusing - it defaults to psi due to way parameter is read, and if units are entered then a InHG value can be incorrectly converted.
+            if ((BrakeSystem is VacuumSinglePipe) && TrainBrakeController.MaxPressurePSI > 10 && TrainBrakeController.MaxPressurePSI < 15)
             {
-                Trace.TraceInformation("TrainBrakeController.MaxPressurePSI being read as {0} Inhg, - defaulted to value of 21 InHg", Bar.ToInHg(Bar.FromPSI(TrainBrakeController.MaxPressurePSI)));
+                Trace.TraceInformation("TrainBrakeController.MaxPressurePSI being incorrectly read as {0} Inhg, - set to value of {1} InHg", TrainBrakeController.MaxPressurePSI, Bar.ToInHg(Bar.FromPSI(TrainBrakeController.MaxPressurePSI)));
+                TrainBrakeController.MaxPressurePSI = Bar.ToInHg(Bar.FromPSI(TrainBrakeController.MaxPressurePSI));
             }
 
             // Initialise Brake Time Factor
@@ -1403,12 +1410,11 @@ public bool IsSteamInitial = true;        // To initialise steam heat
 
             ApplyDirectionToMotiveForce();
 
-            if (DynamicBrakePercent > 0 && DynamicBrakeForceCurves != null)
+            if (DynamicBrakePercent > 0 && DynamicBrakeForceCurves != null && AbsSpeedMpS > 0)
             {
                 float f = DynamicBrakeForceCurves.Get(.01f * DynamicBrakePercent, AbsSpeedMpS);
                 if (f > 0 && PowerOn)
                 {
-                    MotiveForceN -= (SpeedMpS > 0 ? 1 : SpeedMpS < 0 ? -1 : Direction == Direction.Reverse ? -1 : 1) * f * (1 - PowerReduction);
                     DynamicBrakeForceN = f * (1 - PowerReduction);
                 }
                 else
@@ -1875,11 +1881,11 @@ public bool IsSteamInitial = true;        // To initialise steam heat
         }
 
         /// <summary>
-        /// This function updates periodically the state of the steam ejector on a vacuum braked system.
+        /// This function updates periodically the state of the steam ejector or vacuum pump on a vacuum braked system.
         /// </summary>
         protected virtual void UpdateSteamEjector(float elapsedClockSeconds)
         {
-            if (TrainBrakeController.TrainBrakeControllerState == ControllerState.Release || TrainBrakeController.TrainBrakeControllerState == ControllerState.FullQuickRelease )
+            if (LargeEjectorEnabled && (TrainBrakeController.TrainBrakeControllerState == ControllerState.Release || TrainBrakeController.TrainBrakeControllerState == ControllerState.FullQuickRelease || (TrainBrakeController.TrainBrakeControllerState == ControllerState.VacContServ && VacConServLargeSteamEjectorIsOn)))
             {
                 LargeSteamEjectorIsOn = true;  // If brake is set to a release controller, then turn ejector on
             }
@@ -1909,8 +1915,6 @@ public bool IsSteamInitial = true;        // To initialise steam heat
             else if ((VacuumMainResVacuumPSIAorInHg < VacuumBrakesMainResMaxVacuumPSIAorInHg || !AuxPowerOn) && VacuumExhausterIsOn)
                 SignalEvent(Event.VacuumExhausterOff);
 
-            if (VacuumExhausterIsOn)
-                VacuumMainResVacuumPSIAorInHg -= elapsedClockSeconds * VacuumBrakesMainResChargingRatePSIAorInHgpS;
         }
 
         /// <summary>
@@ -2733,8 +2737,6 @@ public bool IsSteamInitial = true;        // To initialise steam heat
                     Simulator.Confirmer.Confirm(CabControl.WaterScoop, WaterScoopDown? CabSetting.On : CabSetting.Off);
             }
         }
-
-
 
         #endregion
 
@@ -3706,7 +3708,7 @@ public bool IsSteamInitial = true;        // To initialise steam heat
                         break;
                     }
 
-                case CABViewControlTypes.ORTS_WATER_SCOOP:
+                 case CABViewControlTypes.ORTS_WATER_SCOOP:
                     data = WaterScoopDown ? 1 : 0;
                     break;
 
@@ -3752,11 +3754,7 @@ public bool IsSteamInitial = true;        // To initialise steam heat
                                     else
                                         rangeFactor = direction == 0 ? -DynamicBrakeMaxCurrentA : (float)cvc.MaxValue;
                                 }
-                                if (FilteredMotiveForceN != 0)
-                                    data = this.FilteredMotiveForceN / MaxDynamicBrakeForceN * rangeFactor;
-                                else
-                                    data = this.LocomotiveAxle.AxleForceN / MaxDynamicBrakeForceN * rangeFactor;
-                                data = -Math.Abs(data);
+                                data = DynamicBrakeForceN / MaxDynamicBrakeForceN * rangeFactor;
                             }
                             if (direction == 1)
                                 data = -data;
@@ -3787,11 +3785,8 @@ public bool IsSteamInitial = true;        // To initialise steam heat
                         }
                         if (DynamicBrakePercent > 0 && MaxDynamicBrakeForceN > 0)
                         {
-                             if (FilteredMotiveForceN != 0)
-                                data = this.FilteredMotiveForceN / MaxDynamicBrakeForceN * DynamicBrakeMaxCurrentA;
-                            else
-                                data = this.LocomotiveAxle.AxleForceN / MaxDynamicBrakeForceN * DynamicBrakeMaxCurrentA;
-                            data = -Math.Abs(data);
+                            data = DynamicBrakeForceN / MaxDynamicBrakeForceN * DynamicBrakeMaxCurrentA;
+                            data = -Math.Abs(data); // Ensure that dynamic force is seen as a "-ve force", changes colour on the load meter
                         }
                         if (direction == 1)
                             data = -data;
@@ -3821,7 +3816,7 @@ public bool IsSteamInitial = true;        // To initialise steam heat
                                  }
                                 if (DynamicBrakePercent > 0)
                                 {
-                                    data = (data / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
+                                    data = (DynamicBrakeForceN / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
                                 }
                                 data = Math.Abs(data);
                                 break;
@@ -3847,10 +3842,7 @@ public bool IsSteamInitial = true;        // To initialise steam heat
                         if (cvc is CVCGauge && ((CVCGauge)cvc).Orientation == 0)
                             direction = ((CVCGauge)cvc).Direction;
                         data = 0.0f;
-                        if (FilteredMotiveForceN != 0)
-                            data = this.FilteredMotiveForceN;
-                        else
-                            data = this.LocomotiveAxle.AxleForceN;
+                        data = DynamicBrakeForceN;
                         if (data > 0 && SpeedMpS > 0 || data < 0 && SpeedMpS < 0)
                         {
                             data = 0;
@@ -3870,7 +3862,7 @@ public bool IsSteamInitial = true;        // To initialise steam heat
                                 }
                                 if (DynamicBrakePercent > 0)
                                 {
-                                    data = (data / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
+                                    data = (DynamicBrakeForceN / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
                                 }
                                 data = Math.Abs(data);
                                 break;
@@ -4223,6 +4215,25 @@ public bool IsSteamInitial = true;        // To initialise steam heat
                 case CABViewControlTypes.ORTS_MIRRORS:
                     data = MirrorOpen ? 1 : 0;
                     break;
+                case CABViewControlTypes.ORTS_HOURDIAL:
+                    float hour = (float)(Simulator.ClockTime / 3600) % 12;
+                    if (hour < 0)
+                        hour += 12;
+                    data = hour;
+                    break;
+                case CABViewControlTypes.ORTS_MINUTEDIAL:
+                    float minute = (float)(Simulator.ClockTime / 60) % 60;
+                    if (minute < 0)
+                        minute += 60;
+                    data = minute;
+                    break;
+                case CABViewControlTypes.ORTS_SECONDDIAL:
+                    int seconds = (int)Simulator.ClockTime % 60;
+                    if (seconds < 0)
+                        seconds += 60;
+                    data = seconds;
+                    break;
+
                 default:
                     {
                         data = 0;
