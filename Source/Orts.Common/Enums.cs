@@ -547,7 +547,9 @@ namespace Orts.Common
         [Description("Vac. Cont. Service")]
         VacContServ,         // VacuumContinuousServiceStart
         [Description("Vac. Apply Cont.Service")]
-        VacApplyContServ    // TrainBrakesControllerVacuumApplyContinuousServiceStart
+        VacApplyContServ,    // TrainBrakesControllerVacuumApplyContinuousServiceStart
+        [Description("Notch")]
+        BrakeNotch           // EngineBrakesControllerBrakeNotchStart
     }
 
 
