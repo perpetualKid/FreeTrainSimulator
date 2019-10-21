@@ -24,7 +24,7 @@ namespace Orts.Formats.Msts.Files
 {
     public class RouteFile
     {
-        public Tr_RouteFile Tr_RouteFile { get; private set; }
+        public Route Tr_RouteFile { get; private set; }
         public ORTRKData ORTRKData { get; private set; }
 
         public RouteFile(string fileName)
@@ -39,7 +39,7 @@ namespace Orts.Formats.Msts.Files
                 using (STFReader stf = new STFReader(fileName, false))
                 {
                     stf.ParseFile(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("tr_routefile", ()=>{ Tr_RouteFile = new Tr_RouteFile(stf); }),
+                        new STFReader.TokenProcessor("tr_routefile", ()=>{ Tr_RouteFile = new Route(stf); }),
                         new STFReader.TokenProcessor("_OpenRails", ()=>{ ORTRKData = new ORTRKData(stf); }),
                     });
                     //TODO This should be changed to STFException.TraceError() with defaults values created

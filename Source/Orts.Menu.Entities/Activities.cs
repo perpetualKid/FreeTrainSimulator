@@ -55,7 +55,7 @@ namespace Orts.Menu.Entities
             {
                 // ITR activities are excluded.
                 Name = activityFile.Activity.Header.Name.Trim();
-                if (activityFile.Activity.Header.Mode == ActivityMode.IntroductoryTrainRide)
+                if (activityFile.Activity.Header.Mode == ActivityMode.Introductory)
                     Name = "Introductory Train Ride";
                 Description = activityFile.Activity.Header.Description;
                 Briefing = activityFile.Activity.Header.Briefing;

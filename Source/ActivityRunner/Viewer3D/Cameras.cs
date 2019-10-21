@@ -2608,10 +2608,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (!SpecialPointFound)
                 {
                     // try to find near level crossing then
-                    LevelCrossingItem newLevelCrossingItem = LevelCrossingItem.None;
+                    Simulation.LevelCrossingItem newLevelCrossingItem = Simulation.LevelCrossingItem.None;
                     float FrontDist = -1;
                     newLevelCrossingItem = Viewer.Simulator.LevelCrossings.SearchNearLevelCrossing(train, MaximumSpecialPointDistance * 0.7f, trainForwards, out FrontDist);
-                    if (newLevelCrossingItem != LevelCrossingItem.None)
+                    if (newLevelCrossingItem != Simulation.LevelCrossingItem.None)
                     {
                         SpecialPointFound = true;
                         trainClose = false;

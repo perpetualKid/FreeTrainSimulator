@@ -693,11 +693,11 @@ namespace Orts.Simulation.Signalling
                             var speedItem = trackItem as SpeedPostItem;
                             if (sigItem != null)
                             {
-                                sigItem.SigObj = thisObject.thisRef;
+                                sigItem.SignalObject = thisObject.thisRef;
                             }
                             else if (speedItem != null)
                             {
-                                speedItem.SigObj = thisObject.thisRef;
+                                speedItem.SignalObject = thisObject.thisRef;
                             }
                         }
                     }
@@ -853,7 +853,7 @@ namespace Orts.Simulation.Signalling
                                         if (TDBRef == thisHead.TDBIndex)
                                         {
                                             SignalItem sigItem = (SignalItem)TrItems[TDBRef];
-                                            sigItem.SigObj = newSignal.thisRef;
+                                            sigItem.SignalObject = newSignal.thisRef;
                                             newSignal.trRefIndex = i;
 
                                             // remove this key from the original signal //
@@ -881,7 +881,7 @@ namespace Orts.Simulation.Signalling
                                         if (TDBRef == thisHead.TDBIndex)
                                         {
                                             SignalItem sigItem = (SignalItem)TrItems[TDBRef];
-                                            sigItem.SigObj = singleSignal.thisRef;
+                                            sigItem.SignalObject = singleSignal.thisRef;
                                             singleSignal.trRefIndex = i;
 
                                             // remove this key from the new signal //
@@ -955,18 +955,18 @@ namespace Orts.Simulation.Signalling
                         if (TrItems[TDBRef] is SignalItem)
                         {
                             SignalItem sigItem = (SignalItem)TrItems[TDBRef];
-                            sigItem.SigObj = foundSignals;
+                            sigItem.SignalObject = foundSignals;
 
                             bool validSignal = true;
                             lastSignal = AddSignal(index, i, sigItem, TDBRef, tsectiondat, tdbfile, ref validSignal);
 
                             if (validSignal)
                             {
-                                sigItem.SigObj = lastSignal;
+                                sigItem.SignalObject = lastSignal;
                             }
                             else
                             {
-                                sigItem.SigObj = -1;
+                                sigItem.SignalObject = -1;
                             }
                         }
 
@@ -976,17 +976,17 @@ namespace Orts.Simulation.Signalling
                             SpeedPostItem speedItem = (SpeedPostItem)TrItems[TDBRef];
                             if (speedItem.IsLimit)
                             {
-                                speedItem.SigObj = foundSignals;
+                                speedItem.SignalObject = foundSignals;
 
                                 lastSignal = AddSpeed(index, i, speedItem, TDBRef, tsectiondat, tdbfile, ORTSSignalTypeCount);
-                                speedItem.SigObj = lastSignal;
+                                speedItem.SignalObject = lastSignal;
 
                             }
                             else if (speedItem.IsMilePost)
                             {
-                                speedItem.SigObj = foundMileposts;
+                                speedItem.SignalObject = foundMileposts;
                                 lastMilepost = AddMilepost(index, i, speedItem, TDBRef, tsectiondat, tdbfile);
-                                speedItem.SigObj = lastMilepost;
+                                speedItem.SignalObject = lastMilepost;
                             }
                         }
                         else if (TrItems[TDBRef] is PlatformItem)
@@ -1174,7 +1174,7 @@ namespace Orts.Simulation.Signalling
         {
             Milepost milepost = new Milepost();
             milepost.TrItemId = (uint)TDBRef;
-            milepost.MilepostValue = speedItem.SpeedInd;
+            milepost.MilepostValue = speedItem.Distance;
             MilepostList.Add(milepost);
  
 #if DEBUG_PRINT
@@ -2027,12 +2027,12 @@ namespace Orts.Simulation.Signalling
                 }
 
                 SignalItem sigItem = (SignalItem)thisItem;
-                if (sigItem.SigObj >= 0)
+                if (sigItem.SignalObject >= 0)
                 {
-                    Signal thisSignal = SignalObjects[sigItem.SigObj];
+                    Signal thisSignal = SignalObjects[sigItem.SignalObject];
                     if (thisSignal == null)
                     {
-                        Trace.TraceWarning("Signal item with TrItemID = {0} not consistent with signal database", sigItem.TrItemId);
+                        Trace.TraceWarning("Signal item with TrItemID = {0} not consistent with signal database", sigItem.TrackItemId);
                         return newLastDistance;
                     }
                     float signalDistance = thisSignal.DistanceTo(TDBTrav);
@@ -2091,11 +2091,11 @@ namespace Orts.Simulation.Signalling
             else if (thisItem is SpeedPostItem)
             {
                 SpeedPostItem speedItem = (SpeedPostItem)thisItem;
-                if (speedItem.SigObj >= 0)
+                if (speedItem.SignalObject >= 0)
                 {
                     if (!speedItem.IsMilePost)
                     { 
-                        Signal thisSpeedpost = SignalObjects[speedItem.SigObj];
+                        Signal thisSpeedpost = SignalObjects[speedItem.SignalObject];
                         float speedpostDistance = thisSpeedpost.DistanceTo(TDBTrav);
                         if (thisSpeedpost.direction == 1)
                         {
@@ -2129,7 +2129,7 @@ namespace Orts.Simulation.Signalling
                     // Milepost
                     else if (speedItem.IsMilePost)
                     {
-                        Milepost thisMilepost = MilepostList[speedItem.SigObj];
+                        Milepost thisMilepost = MilepostList[speedItem.SignalObject];
                         TrackItem milepostTrItem = Simulator.TDB.TrackDB.TrackItems[thisMilepost.TrItemId];
                         float milepostDistance = TDBTrav.DistanceTo(milepostTrItem.Location);
 
@@ -2151,7 +2151,7 @@ namespace Orts.Simulation.Signalling
             {
                 float cdist = TDBTrav.DistanceTo(trackNodes[thisCircuit.OriginalIndex], crossOver.Location);
 
-                int thisId = (int)crossOver.TrItemId;
+                int thisId = (int)crossOver.TrackItemId;
                 int crossId = (int)crossOver.TrackNode;
                 CrossOverItem exItem = null;
 
@@ -12527,10 +12527,10 @@ namespace Orts.Simulation.Signalling
             trItemIndex = trItem;
             TDBIndex = TDBRef;
 
-            if (sigItem.NoSigDirs > 0)
+            if (sigItem.SignalDirections?.Length > 0)
             {
-                TrackJunctionNode = sigItem.TrSignalDirs[0].TrackNode;
-                JunctionPath = sigItem.TrSignalDirs[0].LinkLRPath;
+                TrackJunctionNode = sigItem.SignalDirections[0].TrackNode;
+                JunctionPath = sigItem.SignalDirections[0].LinkLRPath;
             }
 
             var sigasp_values = Enum.GetValues(typeof(SignalAspectState));
@@ -12554,7 +12554,7 @@ namespace Orts.Simulation.Signalling
             var sigasp_values = Enum.GetValues(typeof(SignalAspectState));
             speed_info = new ObjectSpeedInfo[sigasp_values.Length];
 
-            float speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.SpeedInd, !speedItem.IsMPH);
+            float speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
             if (speedItem.IsResume)
                 speedMpS = 999f;
 

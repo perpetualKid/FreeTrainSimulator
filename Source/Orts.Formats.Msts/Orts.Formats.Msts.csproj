@@ -59,6 +59,7 @@
     <Compile Include="Models\Terrain.cs" />
     <Compile Include="Models\Time.cs" />
     <Compile Include="Models\Track.cs" />
+    <Compile Include="Models\TrackItem.cs" />
     <Compile Include="Models\Traffic.cs" />
     <Compile Include="Models\TrainCar.cs" />
     <Compile Include="Files\CameraConfigurationFile.cs" />
@@ -100,7 +101,7 @@
     <Compile Include="Files\SoundManagmentFile.cs" />
     <Compile Include="Files\ServiceFile.cs" />
     <Compile Include="TileHelper.cs" />
-    <Compile Include="TrackDatabaseFile.cs" />
+    <Compile Include="Files\TrackDatabaseFile.cs" />
     <Compile Include="Files\TerrainFile.cs" />
     <Compile Include="Files\TrafficFile.cs" />
     <Compile Include="Files\RouteFile.cs" />

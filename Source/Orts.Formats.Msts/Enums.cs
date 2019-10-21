@@ -17,7 +17,7 @@ namespace Orts.Formats.Msts
 
     public enum ActivityMode
     {
-        IntroductoryTrainRide = 0,
+        Introductory = 0,
         Player = 2,
         Tutorial = 3,
     }

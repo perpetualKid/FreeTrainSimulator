@@ -261,8 +261,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                                 ? (uint)eventAction.SidingId : wagonItem.SidingId;
                                             foreach (var item in owner.Viewer.Simulator.TDB.TrackDB.TrackItems)
                                             {
-                                                var siding = item as Orts.Formats.Msts.SidingItem;
-                                                if (siding != null && siding.TrItemId == sidingId)
+                                                var siding = item as SidingItem;
+                                                if (siding != null && siding.TrackItemId == sidingId)
                                                 {
                                                     location = siding.ItemName;
                                                     break;
@@ -475,8 +475,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                                 ? (uint)eventAction.SidingId : wagonItem.SidingId;
                                             foreach (var item in owner.Viewer.Simulator.TDB.TrackDB.TrackItems)
                                             {
-                                                var siding = item as Orts.Formats.Msts.SidingItem;
-                                                if (siding != null && siding.TrItemId == sidingId)
+                                                var siding = item as SidingItem;
+                                                if (siding != null && siding.TrackItemId == sidingId)
                                                 {
                                                     location = siding.ItemName;
                                                     break;

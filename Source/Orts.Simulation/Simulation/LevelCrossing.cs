@@ -51,12 +51,12 @@ namespace Orts.Simulation
 
         static Dictionary<int, LevelCrossingItem> GetLevelCrossingsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
         {
-            return (from trackNode in trackNodes
-                    where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
-                    from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
-                    where trItemTable[itemRef] != null && (trItemTable[itemRef] is LevelCrItem || trItemTable[itemRef] is RoadLevelCrossingItem)
-                    select new KeyValuePair<int, LevelCrossingItem>(itemRef, new LevelCrossingItem(trackNode, trItemTable[itemRef])))
-                    .ToDictionary(_ => _.Key, _ => _.Value);
+            return Enumerable.ToDictionary((from trackNode in trackNodes
+                                            where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
+                                            from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
+                                            where trItemTable[itemRef] != null && (trItemTable[itemRef] is Orts.Formats.Msts.Models.LevelCrossingItem || trItemTable[itemRef] is RoadLevelCrossingItem)
+                                            select new KeyValuePair<int, LevelCrossingItem>(itemRef, new LevelCrossingItem(trackNode, trItemTable[itemRef])))
+, (KeyValuePair<int, LevelCrossingItem> _) => _.Key, (KeyValuePair<int, LevelCrossingItem> _) => _.Value);
         }
 
         /// <summary>

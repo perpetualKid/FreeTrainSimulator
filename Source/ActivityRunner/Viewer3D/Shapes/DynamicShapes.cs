@@ -258,7 +258,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 //determine what to show: speed or number used in German routes
                 if (item.ShowNumber)
                 {
-                    speed += item.DisplayNumber;
+                    speed += item.NumberShown;
                     if (!item.ShowDot)
                         speed = speed.Replace(".", "");
                 }
@@ -271,7 +271,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         speed += "P";
 
                     if (item != null)
-                        speed += item.SpeedInd;
+                        speed += item.Distance;
                 }
 
                 vertices = new VertexPositionNormalTexture[maxVertex];

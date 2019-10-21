@@ -82,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Trace.TraceWarning("{0} car spawner {1} doesn't have connected road route between {2} and {3}", position, carSpawnerObj.UiD, startLocation, endLocation);
             }
 
-            var sortedLevelCrossings = new SortedList<float, LevelCrossingItem>();
+            var sortedLevelCrossings = new SortedList<float, Simulation.LevelCrossingItem>();
             for (var crossingTraveller = new Traveller(Traveller); crossingTraveller.NextSection(); )
                 if (crossingTraveller.IsTrack && (crossingTraveller.TN as TrackVectorNode).TrackItemIndices != null)
                     foreach (var trItemRef in (crossingTraveller.TN as TrackVectorNode).TrackItemIndices)
@@ -162,14 +162,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public class Crossing
         {
-            public readonly LevelCrossingItem Item;
+            public readonly Simulation.LevelCrossingItem Item;
             public readonly float Distance;
             public readonly float DistanceAdjust1;
             public readonly float DistanceAdjust2;
             public readonly float DistanceAdjust3;
             public readonly float DistanceAdjust4;
             public readonly float TrackHeight;
-            internal Crossing(LevelCrossingItem item, float distance, float trackHeight)
+            internal Crossing(Simulation.LevelCrossingItem item, float distance, float trackHeight)
             {
                 Item = item;
                 Distance = distance;

@@ -511,7 +511,7 @@ namespace Orts.Simulation
         /// <param name="tsectionDat">track sections containing the details of the various sections</param>
         /// <param name="trackDB">The track Database that needs to be updated</param>
         /// <param name="zones">List of speed restriction zones</param>
-        public void AddRestrictZones(Tr_RouteFile routeFile, TrackSectionsFile tsectionDat, TrackDB trackDB, RestrictedSpeedZones zones)
+        public void AddRestrictZones(Route routeFile, TrackSectionsFile tsectionDat, TrackDB trackDB, RestrictedSpeedZones zones)
         {
             if (zones.Count < 1) return;
 
@@ -542,8 +542,8 @@ namespace Orts.Simulation
                 TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                 {
-                    FlipRestrSpeedPost((TempSpeedPostItem)newSpeedPostItems[0]);
-                    FlipRestrSpeedPost((TempSpeedPostItem)newSpeedPostItems[1]);
+                    ((TempSpeedPostItem)newSpeedPostItems[0]).Flip();
+                    ((TempSpeedPostItem)newSpeedPostItems[1]).Flip();
                     distanceOfWarningPost = (float)Math.Min(MaxDistanceOfWarningPost, traveller.TrackNodeLength - (double)startOffset);
                 }
                 else if (startOffset != null && endOffset != null && startOffset <= endOffset)
@@ -555,14 +555,14 @@ namespace Orts.Simulation
                 SpeedPostPosition(speedWarningPostItem, ref traveller);
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                 {
-                    FlipRestrSpeedPost((TempSpeedPostItem)speedWarningPostItem);
+                    speedWarningPostItem.Flip();
                 }
-                ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[0]);
+                ((TempSpeedPostItem)newSpeedPostItems[0]).ComputeTablePosition();
                 TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[0]);
-                ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[1]);
+                ((TempSpeedPostItem)newSpeedPostItems[1]).ComputeTablePosition();
                 TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[1]);
-                ComputeTablePosition((TempSpeedPostItem)speedWarningPostItem);
-                TempSpeedPostItems.Add((TempSpeedPostItem)speedWarningPostItem);
+                speedWarningPostItem.ComputeTablePosition();
+                TempSpeedPostItems.Add(speedWarningPostItem);
             }
         }
 
@@ -583,7 +583,7 @@ namespace Orts.Simulation
             {
                 offset = traveller.TrackNodeOffset;
                 SpeedPostPosition((TempSpeedPostItem)newTrItem, ref traveller);
-                InsertTrItemRef(tsectionDat, trackDB, trackVectorNode, (int)newTrItem.TrItemId, (float)offset);
+                InsertTrItemRef(tsectionDat, trackDB, trackVectorNode, (int)newTrItem.TrackItemId, (float)offset);
             }
             return offset;
         }
@@ -598,37 +598,6 @@ namespace Orts.Simulation
         {
             restrSpeedPost.Update(traveller.Y, -traveller.RotY + (float)Math.PI / 2, new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z)));
         }
-
-        /// <summary>
-        /// Flip restricted speedpost 
-        /// </summary>
-        /// <param name="restrSpeedPost">The Id of the restricted speedpost to flip</param>
-        /// 
-        static void FlipRestrSpeedPost(TempSpeedPostItem restrSpeedPost)
-        {
-            restrSpeedPost.Angle += (float)Math.PI;
-            restrSpeedPost.WorldPosition = new WorldPosition(restrSpeedPost.WorldPosition.TileX, restrSpeedPost.WorldPosition.TileZ, new Matrix(
-                -restrSpeedPost.WorldPosition.XNAMatrix.M11, restrSpeedPost.WorldPosition.XNAMatrix.M12, -restrSpeedPost.WorldPosition.XNAMatrix.M13, restrSpeedPost.WorldPosition.XNAMatrix.M14,
-                restrSpeedPost.WorldPosition.XNAMatrix.M21, restrSpeedPost.WorldPosition.XNAMatrix.M22, restrSpeedPost.WorldPosition.XNAMatrix.M23, restrSpeedPost.WorldPosition.XNAMatrix.M24,
-                -restrSpeedPost.WorldPosition.XNAMatrix.M31, restrSpeedPost.WorldPosition.XNAMatrix.M32, -restrSpeedPost.WorldPosition.XNAMatrix.M33, restrSpeedPost.WorldPosition.XNAMatrix.M34,
-                restrSpeedPost.WorldPosition.XNAMatrix.M41, restrSpeedPost.WorldPosition.XNAMatrix.M42, restrSpeedPost.WorldPosition.XNAMatrix.M43, restrSpeedPost.WorldPosition.XNAMatrix.M44));
-        }
-
-        /// <summary>
-        /// Compute position of restricted speedpost table
-        /// </summary>
-        /// <param name="restrSpeedPost">The Id of the restricted speed post to flip</param>
-        /// 
-        static void ComputeTablePosition(TempSpeedPostItem restrSpeedPost)
-        {
-            var speedPostTablePosition = new Vector3(2.2f, 0, 0);
-            speedPostTablePosition = Vector3.Transform(speedPostTablePosition, restrSpeedPost.WorldPosition.XNAMatrix);
-            
-            restrSpeedPost.WorldPosition = restrSpeedPost.WorldPosition.SetMstsTranslation(speedPostTablePosition).Normalize();
-
-            restrSpeedPost.WorldPosition = restrSpeedPost.WorldPosition.SetMstsTranslation(restrSpeedPost.WorldPosition.XNAMatrix.Translation);
-        }
-
 
         /// <summary>
         /// Insert a reference to a new TrItem to the already existing TrItemRefs basing on its offset within the track node.
@@ -1092,8 +1061,8 @@ namespace Orts.Simulation
             outf.Write((Int64)SchDepart.Ticks);
             if (ActArrive == null) outf.Write(noval); else outf.Write((Int64)ActArrive.Value.Ticks);
             if (ActDepart == null) outf.Write(noval); else outf.Write((Int64)ActDepart.Value.Ticks);
-            outf.Write((Int32)PlatformEnd1.TrItemId);
-            outf.Write((Int32)PlatformEnd2.TrItemId);
+            outf.Write((Int32)PlatformEnd1.TrackItemId);
+            outf.Write((Int32)PlatformEnd2.TrackItemId);
             outf.Write((double)BoardingEndS);
             outf.Write((Int32)TimerChk);
             outf.Write(arrived);

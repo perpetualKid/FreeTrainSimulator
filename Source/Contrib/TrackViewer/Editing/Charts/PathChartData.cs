@@ -678,7 +678,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                     ItemType = ChartableTrackItemType.Station;
                     break;
                 case SpeedPostItem speedPostItem:
-                    this.ItemText = speedPostItem.SpeedInd.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                    this.ItemText = speedPostItem.Distance.ToString(System.Globalization.CultureInfo.CurrentCulture);
                     if (speedPostItem.IsMilePost)
                     {
                         this.ItemType = ChartableTrackItemType.MilePost;

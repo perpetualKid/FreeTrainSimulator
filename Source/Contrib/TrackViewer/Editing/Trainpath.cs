@@ -146,7 +146,7 @@ namespace ORTS.TrackViewer.Editing
 
         #region private members
 
-        Orts.Formats.Msts.TrackDB trackDB;
+        TrackDB trackDB;
         TrackSectionsFile tsectionDat;
 
 

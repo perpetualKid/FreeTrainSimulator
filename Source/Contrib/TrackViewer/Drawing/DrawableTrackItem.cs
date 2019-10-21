@@ -45,7 +45,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
         protected DrawableTrackItem(TrackItem originalTrItem)
         {
-            this.Index = originalTrItem.TrItemId;
+            this.Index = originalTrItem.TrackItemId;
             this.WorldLocation = originalTrItem.Location;
             this.Description = "unknown";
         }
@@ -61,9 +61,9 @@ namespace ORTS.TrackViewer.Drawing
             if (originalTrItem is PlatformItem)   { return new DrawablePlatformItem(originalTrItem); }
             if (originalTrItem is SidingItem)     { return new DrawableSidingItem(originalTrItem); }
             if (originalTrItem is SpeedPostItem)  { return new DrawableSpeedPostItem(originalTrItem); }
-            if (originalTrItem is HazzardItem)    { return new DrawableHazardItem(originalTrItem); }
+            if (originalTrItem is HazardItem)    { return new DrawableHazardItem(originalTrItem); }
             if (originalTrItem is PickupItem)     { return new DrawablePickupItem(originalTrItem); }
-            if (originalTrItem is LevelCrItem)    { return new DrawableLevelCrItem(originalTrItem); }
+            if (originalTrItem is Orts.Formats.Msts.Models.LevelCrossingItem)    { return new DrawableLevelCrItem(originalTrItem); }
             if (originalTrItem is SoundRegionItem){ return new DrawableSoundRegionItem(originalTrItem); }
             if (originalTrItem is RoadLevelCrossingItem){ return new DrawableRoadLevelCrItem(originalTrItem); }
             if (originalTrItem is RoadCarSpawner) { return new DrawableCarSpawnerItem(originalTrItem); }
@@ -548,14 +548,14 @@ namespace ORTS.TrackViewer.Drawing
             if (originalItem.IsLimit && (Properties.Settings.Default.showSpeedLimits || drawAlways))
             {
                 drawArea.DrawTexture(this.WorldLocation, "disc", 6f, 0, colors.Speedpost);
-                string speed = originalItem.SpeedInd.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                string speed = originalItem.Distance.ToString(System.Globalization.CultureInfo.CurrentCulture);
                 drawArea.DrawExpandingString(this.WorldLocation, speed);
                 returnValue = true;
             }
             if (originalItem.IsMilePost && (Properties.Settings.Default.showMileposts || drawAlways))
             {
                 drawArea.DrawTexture(this.WorldLocation, "disc", 6f, 0, colors.Speedpost);
-                string distance = originalItem.SpeedInd.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                string distance = originalItem.Distance.ToString(System.Globalization.CultureInfo.CurrentCulture);
                 drawArea.DrawExpandingString(this.WorldLocation, distance);
                 returnValue = true;
             }

@@ -197,7 +197,7 @@ namespace Orts.ActivityRunner.Viewer3D
             int DisplayState = -1;
 
             public SignalShapeHead(Viewer viewer, SignalShape signalShape, int index, SignalHead signalHead,
-                        Orts.Formats.Msts.SignalItem mstsSignalItem, Orts.Formats.Msts.Models.SignalShape.SignalSubObject mstsSignalSubObj)
+                        SignalItem mstsSignalItem, Orts.Formats.Msts.Models.SignalShape.SignalSubObject mstsSignalSubObj)
             {
                 Viewer = viewer;
                 SignalShape = signalShape;

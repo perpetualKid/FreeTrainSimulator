@@ -320,9 +320,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 {
                     SignalItem si = item as SignalItem;
 
-                    if (si.SigObj >= 0 && si.SigObj < simulator.Signals.SignalObjects.Length)
+                    if (si.SignalObject >= 0 && si.SignalObject < simulator.Signals.SignalObjects.Length)
                     {
-                        Signal s = simulator.Signals.SignalObjects[si.SigObj];
+                        Signal s = simulator.Signals.SignalObjects[si.SignalObject];
                         if (s != null && s.isSignal && s.isSignalNormal()) signals.Add(new SignalWidget(si, s));
                     }
                 }

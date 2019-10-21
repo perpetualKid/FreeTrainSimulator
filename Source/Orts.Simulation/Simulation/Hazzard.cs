@@ -51,7 +51,7 @@ namespace Orts.Simulation
 			return (from trackNode in trackNodes
 					where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
 					from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
-					where trItemTable[itemRef] != null && trItemTable[itemRef] is HazzardItem
+					where trItemTable[itemRef] != null && trItemTable[itemRef] is HazardItem
 					select new KeyValuePair<int, Hazzard>(itemRef, new Hazzard(trackNode, trItemTable[itemRef])))
 					.ToDictionary(_ => _.Key, _ => _.Value);
 		}

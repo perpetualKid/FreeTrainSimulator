@@ -2289,7 +2289,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 prevItem = (from lwsr in SoundRegions.Values
                             from wsr in lwsr
-                            where wsr.TrackNodes.Contains((int)prev.TrItemId)
+                            where wsr.TrackNodes.Contains((int)prev.TrackItemId)
                             select wsr).FirstOrDefault();
             }
 
@@ -2297,7 +2297,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 nextItem = (from lwsr in SoundRegions.Values
                             from wsr in lwsr
-                            where wsr.TrackNodes.Contains((int)next.TrItemId)
+                            where wsr.TrackNodes.Contains((int)next.TrackItemId)
                             select wsr).FirstOrDefault();
             }
 
@@ -2333,8 +2333,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 traveller = new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward);
             }
 
-            Orts.Formats.Msts.TrackDB trackDB = Viewer.Simulator.TDB.TrackDB;
-            Orts.Formats.Msts.TrackItem[] trItems = trackDB.TrackItems;
+            TrackDB trackDB = Viewer.Simulator.TDB.TrackDB;
+            TrackItem[] trItems = trackDB.TrackItems;
 
             WorldSoundRegion prevItem = null;
             WorldSoundRegion nextItem = null;
@@ -2590,7 +2590,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     for (int i = 0; i < trackVectorNode.TrackItemIndices.Length; i++)
                     {
-                        if ((trItems[trackVectorNode.TrackItemIndices[i]]) is T item && validitems != null && validitems.Contains((int)item.TrItemId))
+                        if ((trItems[trackVectorNode.TrackItemIndices[i]]) is T item && validitems != null && validitems.Contains((int)item.TrackItemId))
                         {
                             float dist = traveller.DistanceTo(item.Location);
                             if (dist > 0)

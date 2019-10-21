@@ -91,7 +91,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         currentPosition = new Traveller(tSectionDat, tdb.TrackDB.TrackNodes, trackNode);
                         currentPosition.Move(trItem.SData1);
                         primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightBlue,
-                            $"{trItem.TrItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
+                            $"{trItem.TrackItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
                     }
                 }
                 if (rdb != null && rdb.RoadTrackDB.TrackNodes != null)
@@ -117,7 +117,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 var trItem = rdb.RoadTrackDB.TrItemTable[trItemID];
                                 currentPosition = new Traveller(tSectionDat, rdb.RoadTrackDB.TrackNodes, trackNode);
                                 currentPosition.Move(trItem.SData1);
-                                primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightSalmon, String.Format("{0} {1} {2}", trItem.TrItemId, trItem.GetType().Name.Replace("Item", string.Empty), trItem.ItemName), Owner.TextFontDefaultOutlined));
+                                primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightSalmon, String.Format("{0} {1} {2}", trItem.TrackItemId, trItem.GetType().Name.Replace("Item", string.Empty), trItem.ItemName), Owner.TextFontDefaultOutlined));
                             }
                         }
                     }
