@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Formats.Msts.Files;
+using Orts.Formats.OR.Parsers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Orts.Formats.Msts;
-using Orts.Formats.OR.Parsers;
 
 namespace Orts.ContentManager.Models
 {
@@ -39,13 +39,13 @@ namespace Orts.ContentManager.Models
             if (System.IO.Path.GetExtension(content.PathName).Equals(".act", StringComparison.OrdinalIgnoreCase))
             {
                 var file = new ActivityFile(content.PathName);
-                Name = file.Tr_Activity.Tr_Activity_Header.Name;
-                Description = file.Tr_Activity.Tr_Activity_Header.Description;
-                Briefing = file.Tr_Activity.Tr_Activity_Header.Briefing;
-                PlayerServices = new[] { String.Format("Player|{0}", file.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Name) };
-                if (file.Tr_Activity.Tr_Activity_File.Traffic_Definition != null)
-                    Services = file.Tr_Activity.Tr_Activity_File.Traffic_Definition.ServiceDefinitionList.Select((service, index) =>
-                        String.Format("AI|{0}|{1}|{2}", service.Name, file.Tr_Activity.Tr_Activity_File.Traffic_Definition.Name, index)
+                Name = file.Activity.Header.Name;
+                Description = file.Activity.Header.Description;
+                Briefing = file.Activity.Header.Briefing;
+                PlayerServices = new[] { String.Format("Player|{0}", file.Activity.PlayerServices.Name) };
+                if (file.Activity.Traffic != null)
+                    Services = file.Activity.Traffic.Services.Select((service, index) =>
+                        String.Format("AI|{0}|{1}|{2}", service.Name, file.Activity.Traffic.Name, index)
                     );
                 else
                     Services = new string[0];

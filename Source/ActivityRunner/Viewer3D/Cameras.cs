@@ -27,6 +27,7 @@ using Orts.Common;
 using Orts.Common.Input;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -2513,17 +2514,14 @@ namespace Orts.ActivityRunner.Viewer3D
                                     // shortTrav is used to state directions, to correctly identify in which direction (left or right) to move
                                     //the camera from center of track to the platform at its side
                                     Traveller shortTrav;
-                                    if (!(Viewer.Simulator.TDB.TrackDB.TrItemTable[thisPlatform.PlatformFrontUiD] is PlatformItem platformItem)) 
+                                    if (!(Viewer.Simulator.TDB.TrackDB.TrackItems[thisPlatform.PlatformFrontUiD] is PlatformItem platformItem)) 
                                         continue;
-                                    shortTrav = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.TDB.TrackDB.TrackNodes, platformItem.TileX,
-                                        platformItem.TileZ, platformItem.X, platformItem.Z, Traveller.TravellerDirection.Forward);
-                                    var distanceToViewingPoint1 = shortTrav.DistanceTo(tdb.WorldLocation.TileX, tdb.WorldLocation.TileZ,
-                                        tdb.WorldLocation.Location.X, tdb.WorldLocation.Location.Y, tdb.WorldLocation.Location.Z, thisPlatform.Length);
+                                    shortTrav = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.TDB.TrackDB.TrackNodes, platformItem.Location, Traveller.TravellerDirection.Forward);
+                                    var distanceToViewingPoint1 = shortTrav.DistanceTo(tdb.WorldLocation, thisPlatform.Length);
                                     if (distanceToViewingPoint1 == -1) //try other direction
                                     {
                                         shortTrav.ReverseDirection();
-                                        distanceToViewingPoint1 = shortTrav.DistanceTo(tdb.WorldLocation.TileX, tdb.WorldLocation.TileZ,
-                                        tdb.WorldLocation.Location.X, tdb.WorldLocation.Location.Y, tdb.WorldLocation.Location.Z, thisPlatform.Length);
+                                        distanceToViewingPoint1 = shortTrav.DistanceTo(tdb.WorldLocation, thisPlatform.Length);
                                         if (distanceToViewingPoint1 == -1) continue;
                                     }
                                     platformFound = true;
@@ -2610,10 +2608,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (!SpecialPointFound)
                 {
                     // try to find near level crossing then
-                    LevelCrossingItem newLevelCrossingItem = LevelCrossingItem.None;
+                    Simulation.LevelCrossingItem newLevelCrossingItem = Simulation.LevelCrossingItem.None;
                     float FrontDist = -1;
                     newLevelCrossingItem = Viewer.Simulator.LevelCrossings.SearchNearLevelCrossing(train, MaximumSpecialPointDistance * 0.7f, trainForwards, out FrontDist);
-                    if (newLevelCrossingItem != LevelCrossingItem.None)
+                    if (newLevelCrossingItem != Simulation.LevelCrossingItem.None)
                     {
                         SpecialPointFound = true;
                         trainClose = false;
@@ -2621,8 +2619,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         TrackCameraLocation = newLevelCrossingItem.Location;
                         Traveller roadTraveller;
                         // decide randomly at which side of the level crossing the camera will be located
-                        roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex],
-                            TrackCameraLocation.TileX, TrackCameraLocation.TileZ, TrackCameraLocation.Location.X, TrackCameraLocation.Location.Z, Viewer.Random.Next(2) == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+                        roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex] as TrackVectorNode,
+                            TrackCameraLocation, Viewer.Random.Next(2) == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
                         roadTraveller.Move(12.5f);
                         tdb.Move(FrontDist);
                         TrackCameraLocation = roadTraveller.WorldLocation;

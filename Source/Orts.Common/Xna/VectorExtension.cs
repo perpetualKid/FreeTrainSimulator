@@ -12,6 +12,7 @@ namespace Orts.Common.Xna
             result.Y = (position.X * matrix.M12) + (position.Y * matrix.M22) + (position.Z * matrix.M32) + matrix.M42;
             result.Z = (position.X * matrix.M13) + (position.Y * matrix.M23) + (position.Z * matrix.M33) + matrix.M43;
         }
+
         public static float LineSegmentDistanceSquare(this in Vector3 start, in Vector3 end1, in Vector3 end2)
         {
             float dx = end2.X - end1.X;

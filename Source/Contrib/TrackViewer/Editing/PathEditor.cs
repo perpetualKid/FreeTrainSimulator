@@ -16,18 +16,16 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-using System;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ORTS.TrackViewer.Drawing;
-
-using Orts.Formats.Msts;
 using Orts.Common;
-using System.Windows.Controls;
-using System.Windows;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Menu.Entities;
+using ORTS.TrackViewer.Drawing;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -679,7 +677,7 @@ namespace ORTS.TrackViewer.Editing
                     TrainpathJunctionNode sidingNodeAsJunction = sidingNode as TrainpathJunctionNode;
                     if ((sidingNodeAsJunction != null) && !sidingNode.IsBroken)
                     {
-                        sidingNode.Location = DrawTrackDB.UidLocation(trackDB.TrackNodes[sidingNodeAsJunction.JunctionIndex].UiD);
+                        sidingNode.Location = trackDB.TrackNodes[sidingNodeAsJunction.JunctionIndex].UiD.Location;
                     }
                     sidingNode = sidingNode.NextSidingNode;
                 }
@@ -687,7 +685,7 @@ namespace ORTS.TrackViewer.Editing
                 TrainpathJunctionNode mainNodeAsJunction = mainNode as TrainpathJunctionNode;
                 if ((mainNodeAsJunction != null) && !mainNode.IsBroken)
                 {
-                    mainNode.Location = DrawTrackDB.UidLocation(trackDB.TrackNodes[mainNodeAsJunction.JunctionIndex].UiD);
+                    mainNode.Location = trackDB.TrackNodes[mainNodeAsJunction.JunctionIndex].UiD.Location;
                 }
                 mainNode = mainNode.NextMainNode;
             }

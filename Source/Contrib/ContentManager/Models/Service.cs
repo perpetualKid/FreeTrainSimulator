@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 using Orts.Formats.OR.Parsers;
 
 namespace Orts.ContentManager.Models
@@ -43,30 +44,30 @@ namespace Orts.ContentManager.Models
             {
                 var file = new ServiceFile(content.PathName);
                 Name = file.Name;
-                Consist = file.Train_Config;
-                Path = file.PathID;
+                Consist = file.TrainConfig;
+                Path = file.PathId;
 
                 Debug.Assert(content is ContentMSTSService);
                 var msts = content as ContentMSTSService;
                 var actFile = new ActivityFile(content.Parent.PathName);
                 if (msts.IsPlayer)
                 {
-                    var activityTraffic = actFile.Tr_Activity.Tr_Activity_File.Player_Service_Definition.Player_Traffic_Definition;
+                    var activityTraffic = actFile.Activity.PlayerServices.PlayerTraffics;
 
                     ID = "0";
                     StartTime = MSTSTimeToDateTime(activityTraffic.Time);
-                    Stops = from stop in activityTraffic.Player_Traffic_List
+                    Stops = from stop in activityTraffic
                             select new Stop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(stop.ArrivalTime), MSTSTimeToDateTime(stop.DepartTime));
                 }
                 else
                 {
                     var trfFile = new TrafficFile(msts.TrafficPathName);
-                    var activityService = actFile.Tr_Activity.Tr_Activity_File.Traffic_Definition.ServiceDefinitionList[msts.TrafficIndex];
-                    var trafficService = trfFile.TrafficDefinition.TrafficItems[msts.TrafficIndex];
+                    var activityService = actFile.Activity.Traffic.Services[msts.TrafficIndex];
+                    var trafficService = trfFile.TrafficDefinition.ServiceTraffics[msts.TrafficIndex];
 
                     ID = activityService.UiD.ToString();
                     StartTime = MSTSTimeToDateTime(activityService.Time);
-                    Stops = trafficService.TrafficDetails.Zip(activityService.ServiceList, (tt, stop) => new Stop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(tt.ArrivalTime), MSTSTimeToDateTime(tt.DepartTime)));
+                    Stops = trafficService.Zip(activityService, (tt, stop) => new Stop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(tt.ArrivalTime), MSTSTimeToDateTime(tt.DepartTime)));
                 }
             }
             else if (System.IO.Path.GetExtension(content.PathName).Equals(".timetable_or", StringComparison.OrdinalIgnoreCase))

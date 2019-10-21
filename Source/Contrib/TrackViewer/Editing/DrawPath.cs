@@ -14,17 +14,16 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-using System;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
-using Orts.Formats.Msts;
 using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using ORTS.TrackViewer.Drawing;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -270,14 +269,14 @@ namespace ORTS.TrackViewer.Editing
                 DrawPathBrokenNode(drawArea, colors, currentNode, nextNode);
                 return;
             }
-            TrackNode tn = trackDB.TrackNodes[TvnIndex];
+            TrackVectorNode tvn = trackDB.TrackNodes[TvnIndex] as TrackVectorNode;
 
             TrainpathJunctionNode nextJunctionNode = nextNode as TrainpathJunctionNode;
             TrainpathVectorNode nextVectorNode = nextNode as TrainpathVectorNode;
 
             //Default situation (and most occuring) is to draw the complete vector node 
             int tvsiStart = 0;
-            int tvsiStop = tn.TrVectorNode.TrVectorSections.Length-1;
+            int tvsiStop = tvn.TrackVectorSections.Length-1;
             float sectionOffsetStart = 0;
             float sectionOffsetStop = -1;
             if (currentNode is TrainpathJunctionNode)
@@ -335,44 +334,44 @@ namespace ORTS.TrackViewer.Editing
                     }
                 }
             }
-            DrawVectorNode(drawArea, tn, colors, tvsiStart, tvsiStop, sectionOffsetStart, sectionOffsetStop);
+            DrawVectorNode(drawArea, tvn, colors, tvsiStart, tvsiStop, sectionOffsetStart, sectionOffsetStop);
         }
 
         /// <summary>
         /// Draw (possibly part of) the track of a MSTS vectorNode (from track database)
         /// </summary>
         /// <param name="drawArea">Area to draw upon</param>
-        /// <param name="tn">The tracknode from track database (assumed to be a vector node)</param>
+        /// <param name="trackVectorNode">The tracknode from track database (assumed to be a vector node)</param>
         /// <param name="colors">Colorscheme to use</param>
         /// <param name="tvsiStart">Index of first track vector section to draw (at least partially)</param>
         /// <param name="tvsiStop">Index of last track vector section to draw (at least partially)</param>
         /// <param name="sectionOffsetStart">start-offset in the first track section to draw</param>
         /// <param name="sectionOffsetStop">stop-offset in the last track section to draw</param>
         /// <remarks>Very similar to DrawVectorNode in class DrawTrackDB, but this one allows to draw partial vector nodes.</remarks>
-        private void DrawVectorNode(DrawArea drawArea, TrackNode tn, ColorScheme colors, int tvsiStart, int tvsiStop,
+        private void DrawVectorNode(DrawArea drawArea, TrackVectorNode trackVectorNode, ColorScheme colors, int tvsiStart, int tvsiStop,
                 float sectionOffsetStart, float sectionOffsetStop)
         {
-            TrVectorSection tvs;
+            TrackVectorSection tvs;
             if (tvsiStart == tvsiStop)
             {
-                tvs = tn.TrVectorNode.TrVectorSections[tvsiStart];
+                tvs = trackVectorNode.TrackVectorSections[tvsiStart];
                 DrawTrackSection(drawArea, tvs, colors, sectionOffsetStart, sectionOffsetStop);
             }
             else
             {
                 // first section
-                tvs = tn.TrVectorNode.TrVectorSections[tvsiStart];
+                tvs = trackVectorNode.TrackVectorSections[tvsiStart];
                 DrawTrackSection(drawArea, tvs, colors, sectionOffsetStart, -1);
 
                 // all intermediate sections
                 for (int tvsi = tvsiStart + 1; tvsi <= tvsiStop - 1; tvsi++)
                 {
-                    tvs = tn.TrVectorNode.TrVectorSections[tvsi];
+                    tvs = trackVectorNode.TrackVectorSections[tvsi];
                     DrawTrackSection(drawArea, tvs, colors, 0, -1);
                 }
 
                 // last section
-                tvs = tn.TrVectorNode.TrVectorSections[tvsiStop];
+                tvs = trackVectorNode.TrackVectorSections[tvsiStop];
                 DrawTrackSection(drawArea, tvs, colors, 0, sectionOffsetStop);
             }
         }
@@ -386,31 +385,31 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="startOffset">Do not draw the first startOffset meters in the section</param>
         /// <param name="stopOffset">Do not draw past stopOffset meters (draw all if stopOffset less than 0)</param>
         /// <remarks>Note that his is very similar to DrawTrackSection in class DrawTrackDB, but this one allows to draw partial sections</remarks>
-        private void DrawTrackSection(DrawArea drawArea, TrVectorSection tvs, ColorScheme colors,
+        private void DrawTrackSection(DrawArea drawArea, TrackVectorSection tvs, ColorScheme colors,
             float startOffset, float stopOffset)
         {
             TrackSection trackSection = tsectionDat.TrackSections.Get(tvs.SectionIndex);
             if (trackSection == null) return;
 
-            WorldLocation thisLocation = new WorldLocation(tvs.TileX, tvs.TileZ, tvs.X, 0, tvs.Z);
+            ref readonly WorldLocation thisLocation = ref tvs.Location;
             
-            if (trackSection.SectionCurve != null)
+            if (trackSection.Curved)
             {   //curved section
-                float radius = trackSection.SectionCurve.Radius;
-                int sign = (trackSection.SectionCurve.Angle < 0) ? -1 : 1;
-                float angleLength = (stopOffset < 0) ? trackSection.SectionCurve.Angle : sign*MathHelper.ToDegrees(stopOffset/radius);
+                float radius = trackSection.Radius;
+                int sign = (trackSection.Angle < 0) ? -1 : 1;
+                float angleLength = (stopOffset < 0) ? trackSection.Angle : sign*MathHelper.ToDegrees(stopOffset/radius);
                 float angleStart = sign*MathHelper.ToDegrees(startOffset / radius);
                 angleLength -= angleStart;
 
-                drawArea.DrawArc(trackSection.SectionSize.Width, colors.TrackCurved, thisLocation,
-                    radius, tvs.AY, angleLength, angleStart);
+                drawArea.DrawArc(trackSection.Width, colors.TrackCurved, thisLocation,
+                    radius, tvs.Direction.Y, angleLength, angleStart);
             }
             else
             {   // straight section
-                float length = (stopOffset < 0) ? trackSection.SectionSize.Length : stopOffset;
+                float length = (stopOffset < 0) ? trackSection.Length : stopOffset;
                 length -= startOffset;
-                drawArea.DrawLine(trackSection.SectionSize.Width, colors.TrackStraight, thisLocation,
-                    length, tvs.AY, startOffset);
+                drawArea.DrawLine(trackSection.Width, colors.TrackStraight, thisLocation,
+                    length, tvs.Direction.Y, startOffset);
             }
         }
 

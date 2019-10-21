@@ -17,11 +17,13 @@
 
 // This file is the responsibility of the 3D & Environment Team.
 
-using Orts.Formats.Msts;
-using Orts.Simulation.RollingStocks;
-using Orts.Common;
 using System.Collections.Generic;
 using System.Linq;
+
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.Simulation
 {
@@ -33,15 +35,15 @@ namespace Orts.Simulation
         public FuelManager(Simulator simulator)
         {
             Simulator = simulator;
-            FuelPickupItems = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetFuelPickupItemsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrItemTable) : new Dictionary<int, FuelPickupItem>();
+            FuelPickupItems = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetFuelPickupItemsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackItems) : new Dictionary<int, FuelPickupItem>();
         }
 
-        static Dictionary<int, FuelPickupItem> GetFuelPickupItemsFromDB(TrackNode[] trackNodes, TrItem[] trItemTable)
+        static Dictionary<int, FuelPickupItem> GetFuelPickupItemsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
         {
             return (from trackNode in trackNodes
-                    where trackNode != null && trackNode.TrVectorNode != null && trackNode.TrVectorNode.NoItemRefs > 0
-                    from itemRef in trackNode.TrVectorNode.TrItemRefs.Distinct()
-                    where trItemTable[itemRef] != null && trItemTable[itemRef].ItemType == TrItem.trItemType.trPICKUP
+                    where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
+                    from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
+                    where trItemTable[itemRef] != null && trItemTable[itemRef] is PickupItem
                     select new KeyValuePair<int, FuelPickupItem>(itemRef, new FuelPickupItem(trackNode, trItemTable[itemRef])))
                     .ToDictionary(_ => _.Key, _ => _.Value);
         }
@@ -60,10 +62,10 @@ namespace Orts.Simulation
         internal WorldLocation Location;
         readonly TrackNode TrackNode;
 
-        public FuelPickupItem(TrackNode trackNode, TrItem trItem)
+        public FuelPickupItem(TrackNode trackNode, TrackItem trItem)
         {
             TrackNode = trackNode;
-            Location = new WorldLocation(trItem.TileX, trItem.TileZ, trItem.X, trItem.Y, trItem.Z);
+            Location = trItem.Location;
         }
 
         public FuelPickupItem(IEnumerable<FuelPickupItem> items) { }

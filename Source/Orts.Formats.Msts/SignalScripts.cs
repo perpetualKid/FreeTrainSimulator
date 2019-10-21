@@ -28,7 +28,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
+
+using Orts.Common;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Signalling;
 
 namespace Orts.Formats.Msts
@@ -209,7 +211,7 @@ namespace Orts.Formats.Msts
         // Constructor
         //
         //================================================================================================//
-        public SignalScripts(string routePath, IList<string> scriptFiles, IDictionary<string, SignalType> signalTypes, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+        public SignalScripts(string routePath, IList<string> scriptFiles, IDictionary<string, SignalType> signalTypes)
         {
             Scripts = new Dictionary<SignalType, SCRScripts>();
 
@@ -252,8 +254,7 @@ namespace Orts.Formats.Msts
                             File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "\nNew Script : " + script.ScriptName + "\n");
 #endif
                             #endregion
-                            AssignScriptToSignalType(new SCRScripts(script, orSignalTypes, orNormalSubtypes),
-                                signalTypes, parser.LineNumber, fileName);
+                            AssignScriptToSignalType(new SCRScripts(script), signalTypes, parser.LineNumber, fileName);
 
                             Trace.Write("s");
                         }
@@ -557,7 +558,7 @@ namespace Orts.Formats.Msts
 
             public string ScriptName { get; private set; }
 
-            internal SCRScripts(Script script, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            internal SCRScripts(Script script)
             {
                 localFloats = new Dictionary<string, int>();
                 Statements = new ArrayList();
@@ -603,10 +604,10 @@ namespace Orts.Formats.Msts
                 #endregion
                 script.Tokens.RemoveRange(0, statementLine);
 
-                ProcessBlock(script, Statements, localFloats, orSignalTypes, orNormalSubtypes);
+                ProcessBlock(script, Statements, localFloats);
             }// constructor
 
-            internal static SCRParameterType ParameterFromToken(ScriptToken token, int lineNumber, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            internal static SCRParameterType ParameterFromToken(ScriptToken token, int lineNumber, IDictionary<string, int> localFloats)
             {
 
                 int index;
@@ -632,7 +633,7 @@ namespace Orts.Formats.Msts
                     {
                         // try blockstate
                         case "BLOCK":
-                            if (Enum.TryParse(definitions[1], out MstsBlockState blockstate))
+                            if (EnumExtension.GetValue(definitions[1], out SignalBlockState blockstate))
                             {
                                 return new SCRParameterType(SCRTermType.Block, (int)blockstate);
                             }
@@ -646,7 +647,7 @@ namespace Orts.Formats.Msts
                             break;
                         // try SIGASP definition
                         case "SIGASP":
-                            if (Enum.TryParse(definitions[1], out MstsSignalAspect aspect))
+                            if (EnumExtension.GetValue(definitions[1], out SignalAspectState aspect))
                             {
                                 return new SCRParameterType(SCRTermType.Sigasp, (int)aspect);
                             }
@@ -660,7 +661,7 @@ namespace Orts.Formats.Msts
                             break;
                         // try SIGFN definition
                         case "SIGFN":
-                            index = orSignalTypes.IndexOf(definitions[1]);
+                            index = OrSignalTypes.Instance.FunctionTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, definitions[1]));
                             if (index != -1)
                             {
                                 return new SCRParameterType(SCRTermType.Sigfn, index);
@@ -675,7 +676,7 @@ namespace Orts.Formats.Msts
                             break;
                         // try ORSubtype definition
                         case "ORSUBTYPE":
-                            index = orNormalSubtypes.IndexOf(definitions[1]);
+                            index = OrSignalTypes.Instance.NormalSubTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, definitions[1]));
                             if (index != -1)
                             {
                                 return new SCRParameterType(SCRTermType.ORNormalSubtype, index);
@@ -690,10 +691,9 @@ namespace Orts.Formats.Msts
                             break;
                         // try SIGFEAT definition
                         case "SIGFEAT":
-                            index = SignalShape.SignalSubObj.SignalSubTypes.IndexOf(definitions[1]);
-                            if (index != -1)
+                            if (EnumExtension.GetValue(definitions[1], out SignalSubType signalSubType))
                             {
-                                return new SCRParameterType(SCRTermType.Sigfeat, index);
+                                return new SCRParameterType(SCRTermType.Sigfeat, (int)signalSubType);
                             }
                             else
                             {
@@ -719,7 +719,7 @@ namespace Orts.Formats.Msts
             // process IF condition line - split into logic parts
             //
             //================================================================================================//
-            internal static ArrayList ParseConditions(Enclosure condition, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            internal static ArrayList ParseConditions(Enclosure condition, IDictionary<string, int> localFloats)
             {
                 ArrayList result = new ArrayList();
                 SCRAndOr logicalOperator = SCRAndOr.NONE;
@@ -745,13 +745,13 @@ namespace Orts.Formats.Msts
                     //Conditions are dedicated blocks, but always separated by logical operators
                     else if (condition.Tokens[0] is Enclosure) //process sub block
                     {
-                        result.Add(ParseConditions((condition.Tokens[0] as Enclosure), localFloats, orSignalTypes, orNormalSubtypes));
+                        result.Add(ParseConditions((condition.Tokens[0] as Enclosure), localFloats));
                         //recurse in the block
                         condition.Tokens.RemoveAt(0);
                     }
                     else //single term
                     {
-                        result.Add(new SCRConditions(condition, localFloats, orSignalTypes, orNormalSubtypes));
+                        result.Add(new SCRConditions(condition, localFloats));
                     }
                 }
                 // TODO: This may be removed, only for debug output compatibility
@@ -780,7 +780,7 @@ namespace Orts.Formats.Msts
 
                 private int termNumber;
 
-                internal SCRStatement(BlockBase statementBlock, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                internal SCRStatement(BlockBase statementBlock, IDictionary<string, int> localFloats)
                 {
                     AssignType = SCRTermType.Invalid;
 
@@ -815,10 +815,10 @@ namespace Orts.Formats.Msts
                         // Assignment term
                         statement.Tokens.RemoveRange(0, 2);
                     }
-                    ProcessScriptStatement(statementBlock, 0, localFloats, orSignalTypes, orNormalSubtypes);
+                    ProcessScriptStatement(statementBlock, 0, localFloats);
                 }
 
-                private void ProcessScriptStatement(BlockBase statementBlock, int level, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                private void ProcessScriptStatement(BlockBase statementBlock, int level, IDictionary<string, int> localFloats)
                 {
                     string operatorString = string.Empty;
                     bool negated = false;
@@ -847,7 +847,7 @@ namespace Orts.Formats.Msts
                             SCRStatTerm term = new SCRStatTerm(termNumber, level, operatorString);
                             StatementTerms.Add(term);
 
-                            ProcessScriptStatement(statementBlock.Tokens[0] as Enclosure, level + 1, localFloats, orSignalTypes, orNormalSubtypes);
+                            ProcessScriptStatement(statementBlock.Tokens[0] as Enclosure, level + 1, localFloats);
                         }
                         else
                         {
@@ -859,13 +859,13 @@ namespace Orts.Formats.Msts
                             if (statementBlock.Tokens.Count > 1 && Enum.TryParse(statementBlock.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statementBlock.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
                             {
                                 StatementTerms.Add(
-                                    new SCRStatTerm(externalFunctionsResult, statementBlock.Tokens[1] as Enclosure, level, operatorString, negated, localFloats, orSignalTypes, orNormalSubtypes));
+                                    new SCRStatTerm(externalFunctionsResult, statementBlock.Tokens[1] as Enclosure, level, operatorString, negated, localFloats));
                                 statementBlock.Tokens.RemoveAt(0);
                             }
                             else
                             {
                                 StatementTerms.Add(
-                                    new SCRStatTerm(statementBlock.Tokens[0], level, operatorString, statementBlock.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes));
+                                    new SCRStatTerm(statementBlock.Tokens[0], level, operatorString, statementBlock.LineNumber, negated, localFloats));
                             }
 
                         }
@@ -905,7 +905,7 @@ namespace Orts.Formats.Msts
                 } // constructor
 
                 // Function term
-                internal SCRStatTerm(SCRExternalFunctions externalFunction, BlockBase block, int subLevel, string operatorTerm, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                internal SCRStatTerm(SCRExternalFunctions externalFunction, BlockBase block, int subLevel, string operatorTerm, bool negated, IDictionary<string, int> localFloats)
                 {
                     Negated = negated;
                     TermLevel = subLevel;
@@ -933,7 +933,7 @@ namespace Orts.Formats.Msts
                                 block.Tokens[1].Token = block.Tokens[0].Token + block.Tokens[1].Token;
                                 block.Tokens.RemoveAt(0);
                             }
-                            SCRParameterType parameter = ParameterFromToken(block.Tokens[0], block.LineNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                            SCRParameterType parameter = ParameterFromToken(block.Tokens[0], block.LineNumber, localFloats);
                             result.Add(parameter);
                         }
                         block.Tokens.RemoveAt(0);
@@ -941,7 +941,7 @@ namespace Orts.Formats.Msts
                     PartParameter = result.Count > 0 ? result.ToArray() : null;
                 }
 
-                internal SCRStatTerm(ScriptToken token, int subLevel, string operatorTerm, int lineNumber, bool negated, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                internal SCRStatTerm(ScriptToken token, int subLevel, string operatorTerm, int lineNumber, bool negated, IDictionary<string, int> localFloats)
                 {
                     TermLevel = subLevel;
                     Negated = negated;
@@ -954,7 +954,7 @@ namespace Orts.Formats.Msts
                     {
                         Function = SCRExternalFunctions.NONE;
                         PartParameter = new SCRParameterType[1];
-                        PartParameter[0] = ParameterFromToken(token, lineNumber, localFloats, orSignalTypes, orNormalSubtypes);
+                        PartParameter[0] = ParameterFromToken(token, lineNumber, localFloats);
                         TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator tempOperator) ? tempOperator : SCRTermOperator.NONE;
                     }
                 } // constructor
@@ -993,11 +993,11 @@ namespace Orts.Formats.Msts
 
                 public SCRBlock ElseBlock { get; private set; }
 
-                internal SCRConditionBlock(ConditionalBlock conditionalBlock, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                internal SCRConditionBlock(ConditionalBlock conditionalBlock, IDictionary<string, int> localFloats)
                 {
                     //IF-Term
-                    Conditions = ParseConditions(conditionalBlock.Tokens[0] as Enclosure, localFloats, orSignalTypes, orNormalSubtypes);
-                    IfBlock = new SCRBlock(conditionalBlock.Tokens[1] as BlockBase, localFloats, orSignalTypes, orNormalSubtypes);
+                    Conditions = ParseConditions(conditionalBlock.Tokens[0] as Enclosure, localFloats);
+                    IfBlock = new SCRBlock(conditionalBlock.Tokens[1] as BlockBase, localFloats);
                     conditionalBlock.Tokens.RemoveRange(0, 2);
 
                     //ElseIf-Term
@@ -1005,14 +1005,14 @@ namespace Orts.Formats.Msts
                     {
                         if (ElseIfBlock == null)
                             ElseIfBlock = new List<SCRBlock>();
-                        ElseIfBlock.Add(new SCRBlock(conditionalBlock.Tokens[0] as ConditionalBlock, localFloats, orSignalTypes, orNormalSubtypes));
+                        ElseIfBlock.Add(new SCRBlock(conditionalBlock.Tokens[0] as ConditionalBlock, localFloats));
                         conditionalBlock.Tokens.RemoveAt(0);
                     }
 
                     // Else-Block
                     if (conditionalBlock.Tokens.Count > 0 && conditionalBlock.HasAlternate)
                     {
-                        ElseBlock = new SCRBlock(conditionalBlock.Tokens[0] as BlockBase, localFloats, orSignalTypes, orNormalSubtypes);
+                        ElseBlock = new SCRBlock(conditionalBlock.Tokens[0] as BlockBase, localFloats);
                         conditionalBlock.Tokens.RemoveAt(0);
                     }
                 }
@@ -1031,7 +1031,7 @@ namespace Orts.Formats.Msts
 
                 public SCRTermCondition Condition { get; private set; }
 
-                internal SCRConditions(Enclosure statement, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                internal SCRConditions(Enclosure statement, IDictionary<string, int> localFloats)
                 {
                     bool negated = false;
 
@@ -1048,12 +1048,12 @@ namespace Orts.Formats.Msts
                     }
                     if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
                     {
-                        Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                        Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats);
                         statement.Tokens.RemoveAt(0);
                     }
                     else
                     {
-                        Term1 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                        Term1 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats);
                     }
                     statement.Tokens.RemoveAt(0);
 
@@ -1093,12 +1093,12 @@ namespace Orts.Formats.Msts
                             }
                             if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
                             {
-                                Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                                Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats);
                                 statement.Tokens.RemoveAt(0);
                             }
                             else
                             {
-                                Term2 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats, orSignalTypes, orNormalSubtypes);
+                                Term2 = new SCRStatTerm(statement.Tokens[0], 0, string.Empty, statement.LineNumber, negated, localFloats);
                             }
                             statement.Tokens.RemoveAt(0);
                         }
@@ -1110,21 +1110,21 @@ namespace Orts.Formats.Msts
                 }
             } // class SCRConditions
 
-            internal static void ProcessBlock(BlockBase block, ArrayList statements, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+            internal static void ProcessBlock(BlockBase block, ArrayList statements, IDictionary<string, int> localFloats)
             {
                 foreach (BlockBase statementBlock in block.Tokens)
                 {
                     switch (statementBlock)
                     {
                         case ConditionalBlock nestedCondition:
-                            SCRConditionBlock condition = new SCRConditionBlock(nestedCondition, localFloats, orSignalTypes, orNormalSubtypes);
+                            SCRConditionBlock condition = new SCRConditionBlock(nestedCondition, localFloats);
                             statements.Add(condition);
                             break;
                         case Block nestedBlock:
-                            ProcessBlock(nestedBlock, statements, localFloats, orSignalTypes, orNormalSubtypes);
+                            ProcessBlock(nestedBlock, statements, localFloats);
                             break;
                         default:
-                            SCRStatement scrStatement = new SCRStatement(statementBlock, localFloats, orSignalTypes, orNormalSubtypes);
+                            SCRStatement scrStatement = new SCRStatement(statementBlock, localFloats);
                             statements.Add(scrStatement);
                             break;
                     }
@@ -1140,7 +1140,7 @@ namespace Orts.Formats.Msts
             {
                 public ArrayList Statements { get; private set; }
 
-                internal SCRBlock(BlockBase block, IDictionary<string, int> localFloats, IList<string> orSignalTypes, IList<string> orNormalSubtypes)
+                internal SCRBlock(BlockBase block, IDictionary<string, int> localFloats)
                 {
                     List<ScriptToken> statements;
 
@@ -1152,7 +1152,7 @@ namespace Orts.Formats.Msts
 
                     Statements = new ArrayList();
 
-                    ProcessBlock(block, Statements, localFloats, orSignalTypes, orNormalSubtypes);
+                    ProcessBlock(block, Statements, localFloats);
                 }
             } // class SCRBlock
         } // class Scripts

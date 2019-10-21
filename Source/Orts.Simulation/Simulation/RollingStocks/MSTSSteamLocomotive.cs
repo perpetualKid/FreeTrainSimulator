@@ -70,14 +70,18 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
+
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.RollingStocks
@@ -5554,65 +5558,65 @@ namespace Orts.Simulation.RollingStocks
 
             switch (cvc.ControlType)
             {
-                case CABViewControlTypes.WHISTLE:
+                case CabViewControlType.Whistle:
                     data = Horn ? 1 : 0;
                     break;
-                case CABViewControlTypes.REGULATOR:
+                case CabViewControlType.Regulator:
                     data = ThrottlePercent / 100f;
                     break;
-                case CABViewControlTypes.BOILER_WATER:
+                case CabViewControlType.Boiler_Water:
                     data = waterGlassPercent; // Shows the level in the water glass
                     break;
-                case CABViewControlTypes.TENDER_WATER:
+                case CabViewControlType.Tender_Water:
                     data = CombinedTenderWaterVolumeUKG; // Looks like default locomotives need an absolute UK gallons value
                     break;
-                case CABViewControlTypes.STEAM_PR:
+                case CabViewControlType.Steam_Pr:
                     data = ConvertFromPSI(cvc, BoilerPressurePSI);
                     break;
-                case CABViewControlTypes.STEAMCHEST_PR:
+                case CabViewControlType.SteamChest_Pr:
                     data = ConvertFromPSI(cvc, SteamChestPressurePSI);
                     break;
-                case CABViewControlTypes.CUTOFF:
-                case CABViewControlTypes.REVERSER_PLATE:
+                case CabViewControlType.CutOff:
+                case CabViewControlType.Reverser_Plate:
                     data = Train.MUReverserPercent / 100f;
                     break;
-                case CABViewControlTypes.CYL_COCKS:
+                case CabViewControlType.Cyl_Cocks:
                     data = CylinderCocksAreOpen ? 1 : 0;
                     break;
-                case CABViewControlTypes.ORTS_CYL_COMP:
+                case CabViewControlType.Orts_Cyl_Comp:
                     data = CylinderCompoundOn ? 1 : 0;
                     break;
-                case CABViewControlTypes.BLOWER:
+                case CabViewControlType.Blower:
                     data = BlowerController.CurrentValue;
                     break;
-                case CABViewControlTypes.DAMPERS_FRONT:
+                case CabViewControlType.Dampers_Front:
                     data = DamperController.CurrentValue;
                     break;
-                case CABViewControlTypes.FIREBOX:
+                case CabViewControlType.FireBox:
                     data = FireMassKG / MaxFireMassKG;
                     break;
-                case CABViewControlTypes.FIREHOLE:
+                case CabViewControlType.FireHole:
                     data = FireboxDoorController.CurrentValue;
                     break;
-                case CABViewControlTypes.WATER_INJECTOR1:
+                case CabViewControlType.Water_Injector1:
                     data = Injector1Controller.CurrentValue;
                     break;
-                case CABViewControlTypes.WATER_INJECTOR2:
+                case CabViewControlType.Water_Injector2:
                     data = Injector2Controller.CurrentValue;
                     break;
-                case CABViewControlTypes.STEAM_INJ1:
+                case CabViewControlType.Steam_Inj1:
                     data = Injector1IsOn ? 1 : 0;
                     break;
-                case CABViewControlTypes.STEAM_INJ2:
+                case CabViewControlType.Steam_Inj2:
                     data = Injector2IsOn ? 1 : 0;
                     break;
-                case CABViewControlTypes.SMALL_EJECTOR:
+                case CabViewControlType.Small_Ejector:
                     {
                         data = SmallEjectorController.CurrentValue;
                         break;
                     }
-                case CABViewControlTypes.FUEL_GAUGE:
-                    if (cvc.Units == CABViewControlUnits.LBS)
+                case CabViewControlType.Fuel_Gauge:
+                    if (cvc.ControlUnit == CabViewControlUnit.Lbs)
                         data = Mass.Kilogram.ToLb(TenderCoalMassKG);
                     else
                         data = TenderCoalMassKG;
@@ -7096,10 +7100,10 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         /// <param name="type">Pickup type</param>
         /// <returns>Matching controller or null</returns>
-        public override MSTSNotchController GetRefillController(uint type)
+        public override MSTSNotchController GetRefillController(PickupType type)
         {
-            if (type == (uint)PickupType.FuelCoal) return FuelController;
-            if (type == (uint)PickupType.FuelWater) return WaterController;
+            if (type == PickupType.FuelCoal) return FuelController;
+            if (type == PickupType.FuelWater) return WaterController;
             return null;
         }
 
@@ -7107,13 +7111,12 @@ namespace Orts.Simulation.RollingStocks
         /// Sets step size for the fuel controller basing on pickup feed rate and engine fuel capacity
         /// </summary>
         /// <param name="type">Pickup</param>
-        public override void SetStepSize(PickupObj matchPickup)
+        public override void SetStepSize(PickupObject matchPickup)
         {
-            uint type = matchPickup.PickupType;
-            if (type == (uint)PickupType.FuelCoal && MaxTenderCoalMassKG != 0)
-                FuelController.SetStepSize(matchPickup.PickupCapacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxTenderCoalMassKG);
-            else if (type == (uint)PickupType.FuelWater && MaxLocoTenderWaterMassKG != 0)
-                WaterController.SetStepSize(matchPickup.PickupCapacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxLocoTenderWaterMassKG); 
+            if (matchPickup.PickupType == PickupType.FuelCoal && MaxTenderCoalMassKG != 0)
+                FuelController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxTenderCoalMassKG);
+            else if (matchPickup.PickupType == PickupType.FuelWater && MaxLocoTenderWaterMassKG != 0)
+                WaterController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxLocoTenderWaterMassKG); 
         }
 
         /// <summary>
@@ -7131,13 +7134,13 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         /// <param name="pickupType">Pickup type</param>
         /// <returns>0.0 to 1.0. If type is unknown, returns 0.0</returns>
-        public override float GetFilledFraction(uint pickupType)
+        public override float GetFilledFraction(PickupType pickupType)
         {
-            if (pickupType == (uint)PickupType.FuelWater)
+            if (pickupType == PickupType.FuelWater)
             {
                 return WaterController.CurrentValue;
             }
-            if (pickupType == (uint)PickupType.FuelCoal)
+            if (pickupType == PickupType.FuelCoal)
             {
                 return FuelController.CurrentValue;
             }

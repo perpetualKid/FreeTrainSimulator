@@ -30,11 +30,15 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+
 using Orts.Common;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
+
 using ORTS.Scripting.Api;
+
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.RollingStocks
@@ -277,34 +281,34 @@ namespace Orts.Simulation.RollingStocks
 
             switch (cvc.ControlType)
             {
-                case CABViewControlTypes.LINE_VOLTAGE:
+                case CabViewControlType.Line_Voltage:
                     data = PowerSupply.PantographVoltageV;
-                    if (cvc.Units == CABViewControlUnits.KILOVOLTS)
+                    if (cvc.ControlUnit == CabViewControlUnit.KiloVolts)
                         data /= 1000;
                     break;
 
-                case CABViewControlTypes.PANTO_DISPLAY:
+                case CabViewControlType.Panto_Display:
                     data = Pantographs.State == PantographState.Up ? 1 : 0;
                     break;
 
-                case CABViewControlTypes.PANTOGRAPH:
+                case CabViewControlType.Pantograph:
                     data = Pantographs[1].CommandUp ? 1 : 0;
                     break;
 
-                case CABViewControlTypes.PANTOGRAPH2:
+                case CabViewControlType.Pantograph2:
                     data = Pantographs[2].CommandUp ? 1 : 0;
                     break;
 
-                case CABViewControlTypes.ORTS_PANTOGRAPH3:
+                case CabViewControlType.Orts_Pantograph3:
                     data = Pantographs.List.Count > 2 && Pantographs[3].CommandUp ? 1 : 0;
                     break;
 
-                case CABViewControlTypes.ORTS_PANTOGRAPH4:
+                case CabViewControlType.Orts_Pantograph4:
                     data = Pantographs.List.Count > 3 && Pantographs[4].CommandUp ? 1 : 0;
                     break;
 
-                case CABViewControlTypes.PANTOGRAPHS_4:
-                case CABViewControlTypes.PANTOGRAPHS_4C:
+                case CabViewControlType.Pantographs_4:
+                case CabViewControlType.Pantographs_4C:
                     if (Pantographs[1].CommandUp && Pantographs[2].CommandUp)
                         data = 2;
                     else if (Pantographs[1].CommandUp)
@@ -315,7 +319,7 @@ namespace Orts.Simulation.RollingStocks
                         data = 0;
                     break;
 
-                case CABViewControlTypes.PANTOGRAPHS_5:
+                case CabViewControlType.Pantographs_5:
                     if (Pantographs[1].CommandUp && Pantographs[2].CommandUp)
                         data = 0; // TODO: Should be 0 if the previous state was Pan2Up, and 4 if that was Pan1Up
                     else if (Pantographs[2].CommandUp)
@@ -326,19 +330,19 @@ namespace Orts.Simulation.RollingStocks
                         data = 2;
                     break;
 
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_DRIVER_CLOSING_ORDER:
+                case CabViewControlType.Orts_Circuit_Breaker_Driver_Closing_Order:
                     data = PowerSupply.CircuitBreaker.DriverClosingOrder ? 1 : 0;
                     break;
 
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_DRIVER_OPENING_ORDER:
+                case CabViewControlType.Orts_Circuit_Breaker_Driver_Opening_Order:
                     data = PowerSupply.CircuitBreaker.DriverOpeningOrder ? 1 : 0;
                     break;
 
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_DRIVER_CLOSING_AUTHORIZATION:
+                case CabViewControlType.Orts_Circuit_Breaker_Driver_Closing_Authorization:
                     data = PowerSupply.CircuitBreaker.DriverClosingAuthorization ? 1 : 0;
                     break;
 
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_STATE:
+                case CabViewControlType.Orts_Circuit_Breaker_State:
                     switch (PowerSupply.CircuitBreaker.State)
                     {
                         case CircuitBreakerState.Open:
@@ -353,7 +357,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     break;
 
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_CLOSED:
+                case CabViewControlType.Orts_Circuit_Breaker_Closed:
                     switch (PowerSupply.CircuitBreaker.State)
                     {
                         case CircuitBreakerState.Open:
@@ -366,7 +370,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     break;
 
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_OPEN:
+                case CabViewControlType.Orts_Circuit_Breaker_Open:
                     switch (PowerSupply.CircuitBreaker.State)
                     {
                         case CircuitBreakerState.Open:
@@ -379,11 +383,11 @@ namespace Orts.Simulation.RollingStocks
                     }
                     break;
 
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_AUTHORIZED:
+                case CabViewControlType.Orts_Circuit_Breaker_Authorized:
                     data = PowerSupply.CircuitBreaker.ClosingAuthorization ? 1 : 0;
                     break;
 
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_OPEN_AND_AUTHORIZED:
+                case CabViewControlType.Orts_Circuit_Breaker_Open_And_Authorized:
                     data = (PowerSupply.CircuitBreaker.State < CircuitBreakerState.Closed && PowerSupply.CircuitBreaker.ClosingAuthorization) ? 1 : 0;
                     break;
 

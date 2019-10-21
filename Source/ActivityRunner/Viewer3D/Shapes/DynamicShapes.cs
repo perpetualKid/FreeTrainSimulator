@@ -9,6 +9,7 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.Common;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Event = Orts.Common.Event;
@@ -81,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 return;  // animation is missing
             }
 
-            if (iMatrix < 0 || iMatrix >= SharedShape.Animations[0].anim_nodes.Count || iMatrix >= XNAMatrices.Length)
+            if (iMatrix < 0 || iMatrix >= SharedShape.Animations[0].AnimationNodes.Count || iMatrix >= XNAMatrices.Length)
             {
                 if (!SeenShapeAnimationError.ContainsKey(SharedShape.FilePath))
                     Trace.TraceInformation("Ignored out of bounds matrix {1} in shape {0}", SharedShape.FilePath, iMatrix);
@@ -89,14 +90,14 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 return;  // mismatched matricies
             }
 
-            var anim_node = SharedShape.Animations[0].anim_nodes[iMatrix];
-            if (anim_node.controllers.Count == 0)
+            var anim_node = SharedShape.Animations[0].AnimationNodes[iMatrix];
+            if (anim_node.Controllers.Count == 0)
                 return;  // missing controllers
 
             // Start with the intial pose in the shape file.
             var xnaPose = SharedShape.Matrices[iMatrix];
 
-            foreach (controller controller in anim_node.controllers)
+            foreach (Controller controller in anim_node.Controllers)
             {
                 // Determine the frame index from the current frame ('key'). We will be interpolating between two key
                 // frames (the items in 'controller') so we need to find the last one LESS than the current frame
@@ -117,33 +118,25 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 // difference between frame1 and frame2 or we'll crash.
                 var amount = frame1 < frame2 ? MathHelper.Clamp((key - frame1) / (frame2 - frame1), 0, 1) : 0;
 
-                if (position1.GetType() == typeof(slerp_rot))  // rotate the existing matrix
+                if (position1 is SlerpRotation slerp1 && position2 is SlerpRotation slerp2)  // rotate the existing matrix
                 {
-                    slerp_rot MSTS1 = (slerp_rot)position1;
-                    slerp_rot MSTS2 = (slerp_rot)position2;
-                    Quaternion XNA1 = new Quaternion(MSTS1.X, MSTS1.Y, -MSTS1.Z, MSTS1.W);
-                    Quaternion XNA2 = new Quaternion(MSTS2.X, MSTS2.Y, -MSTS2.Z, MSTS2.W);
-                    Quaternion q = Quaternion.Slerp(XNA1, XNA2, amount);
+
+                    ref readonly Quaternion slerp1Quaternion = ref slerp1.Quaternion;
+                    ref readonly Quaternion slerp2Quaternion = ref slerp2.Quaternion;
+                    Quaternion q = Quaternion.Slerp(slerp1Quaternion, slerp2Quaternion, amount);
                     Vector3 location = xnaPose.Translation;
                     xnaPose = Matrix.CreateFromQuaternion(q);
                     xnaPose.Translation = location;
                 }
-                else if (position1.GetType() == typeof(linear_key))  // a key sets an absolute position, vs shifting the existing matrix
+                else if (position1 is LinearKey key1 && position2 is LinearKey key2)  // a key sets an absolute position, vs shifting the existing matrix
                 {
-                    linear_key MSTS1 = (linear_key)position1;
-                    linear_key MSTS2 = (linear_key)position2;
-                    Vector3 XNA1 = new Vector3(MSTS1.X, MSTS1.Y, -MSTS1.Z);
-                    Vector3 XNA2 = new Vector3(MSTS2.X, MSTS2.Y, -MSTS2.Z);
-                    Vector3 v = Vector3.Lerp(XNA1, XNA2, amount);
-                    xnaPose.Translation = v;
+                    xnaPose.Translation = Vector3.Lerp(key1.Position, key2.Position, amount);
                 }
-                else if (position1.GetType() == typeof(tcb_key)) // a tcb_key sets an absolute rotation, vs rotating the existing matrix
+                else if (position1 is TcbKey tcbkey1 && position2 is TcbKey tcbkey2) // a tcb_key sets an absolute rotation, vs rotating the existing matrix
                 {
-                    tcb_key MSTS1 = (tcb_key)position1;
-                    tcb_key MSTS2 = (tcb_key)position2;
-                    Quaternion XNA1 = new Quaternion(MSTS1.X, MSTS1.Y, -MSTS1.Z, MSTS1.W);
-                    Quaternion XNA2 = new Quaternion(MSTS2.X, MSTS2.Y, -MSTS2.Z, MSTS2.W);
-                    Quaternion q = Quaternion.Slerp(XNA1, XNA2, amount);
+                    ref readonly Quaternion tcb1Quaternion = ref tcbkey1.Quaternion;
+                    ref readonly Quaternion tcb2Quaternion = ref tcbkey2.Quaternion;
+                    Quaternion q = Quaternion.Slerp(tcb1Quaternion, tcb2Quaternion, amount);
                     Vector3 location = xnaPose.Translation;
                     xnaPose = Matrix.CreateFromQuaternion(q);
                     xnaPose.Translation = location;
@@ -199,14 +192,14 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     {
         protected float animationKey;  // tracks position of points as they move left and right
 
-        private readonly TrJunctionNode trackJunctionNode;  // has data on current aligment for the switch
+        private readonly TrackJunctionNode trackJunctionNode;  // has data on current aligment for the switch
         private readonly uint mainRoute;                  // 0 or 1 - which route is considered the main route
 
-        public SwitchTrackShape(string path, IWorldPosition positionSource, TrJunctionNode trackJunctionNode)
+        public SwitchTrackShape(string path, IWorldPosition positionSource, TrackJunctionNode trackJunctionNode)
             : base(path, positionSource, ShapeFlags.AutoZBias)
         {
             this.trackJunctionNode = trackJunctionNode;
-            mainRoute = viewer.Simulator.TSectionDat.TrackShapes.Get(trackJunctionNode.ShapeIndex).MainRoute;
+            mainRoute = viewer.Simulator.TSectionDat.TrackShapes[trackJunctionNode.ShapeIndex].MainRoute;
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
@@ -237,7 +230,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public class SpeedPostShape : PoseableShape
     {
-        private readonly SpeedPostObj speedPostObject;  // has data on current aligment for the switch
+        private readonly SpeedPostObject speedPostObject;  // has data on current aligment for the switch
         private readonly VertexPositionNormalTexture[] vertices;
         private readonly int numberVertices;
         private readonly int numberIndices;
@@ -246,31 +239,30 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         protected readonly float animationKey;  // tracks position of points as they move left and right
         private ShapePrimitive shapePrimitive;
 
-        public SpeedPostShape(string path, IWorldPosition positionSource, SpeedPostObj speedPostObject)
+        public SpeedPostShape(string path, IWorldPosition positionSource, SpeedPostObject speedPostObject)
             : base(path, positionSource, ShapeFlags.None)
         {
 
             this.speedPostObject = speedPostObject;
-            int maxVertex = speedPostObject.Sign_Shape.NumShapes * 48;// every face has max 7 digits, each has 2 triangles
-            Material material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, speedPostObject.Speed_Digit_Tex), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
+            int maxVertex = speedPostObject.SignShapes.Count * 48;// every face has max 7 digits, each has 2 triangles
+            Material material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, speedPostObject.TextureFile), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
 
             // Create and populate a new ShapePrimitive
             int i = 0;
-            int id = -1;
-            float size = speedPostObject.Text_Size.Size;
+            float size = speedPostObject.TextSize.Size;
             int idlocation = 0;
-            id = speedPostObject.GetTrItemID(idlocation);
-            while (id >= 0)
+            while (idlocation < speedPostObject.TrackItemIds.TrackDbItems.Count)
             {
+                int id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
 //                SpeedPostItem item;
                 string speed = string.Empty;
-                    if (!(viewer.Simulator.TDB.TrackDB.TrItemTable[id] is SpeedPostItem item))
-                        throw new InvalidCastException(viewer.Simulator.TDB.TrackDB.TrItemTable[id].ItemName);  // Error to be handled in Scenery.cs
+                    if (!(viewer.Simulator.TDB.TrackDB.TrackItems[id] is SpeedPostItem item))
+                        throw new InvalidCastException(viewer.Simulator.TDB.TrackDB.TrackItems[id].ItemName);  // Error to be handled in Scenery.cs
 
                 //determine what to show: speed or number used in German routes
                 if (item.ShowNumber)
                 {
-                    speed += item.DisplayNumber;
+                    speed += item.NumberShown;
                     if (!item.ShowDot)
                         speed = speed.Replace(".", "");
                 }
@@ -283,27 +275,26 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         speed += "P";
 
                     if (item != null)
-                        speed += item.SpeedInd;
+                        speed += item.Distance;
                 }
 
                 vertices = new VertexPositionNormalTexture[maxVertex];
                 triangleListIndices = new short[maxVertex / 2 * 3]; // as is NumIndices
 
-                for (i = 0; i < speedPostObject.Sign_Shape.NumShapes; i++)
+                for (i = 0; i < speedPostObject.SignShapes.Count; i++)
                 {
                     //start position is the center of the text
-                    Vector3 start = new Vector3(speedPostObject.Sign_Shape.ShapesInfo[4 * i + 0], speedPostObject.Sign_Shape.ShapesInfo[4 * i + 1], speedPostObject.Sign_Shape.ShapesInfo[4 * i + 2]);
-                    float rotation = speedPostObject.Sign_Shape.ShapesInfo[4 * i + 3];
+                    Vector3 start = new Vector3(speedPostObject.SignShapes[i].X, speedPostObject.SignShapes[i].Y, speedPostObject.SignShapes[i].Z);                    float rotation = speedPostObject.SignShapes[i].W;
 
                     //find the left-most of text
                     Vector3 offset;
-                    if (Math.Abs(speedPostObject.Text_Size.DY) > 0.01)
+                    if (Math.Abs(speedPostObject.TextSize.Offset.Y) > 0.01)
                         offset = new Vector3(0 - size / 2, 0, 0);
                     else
                         offset = new Vector3(0, 0 - size / 2, 0);
 
-                    offset.X -= speed.Length * speedPostObject.Text_Size.DX / 2;
-                    offset.Y -= speed.Length * speedPostObject.Text_Size.DY / 2;
+                    offset.X -= speed.Length * speedPostObject.TextSize.Offset.X / 2;
+                    offset.Y -= speed.Length * speedPostObject.TextSize.Offset.Y / 2;
 
                     for (int j = 0; j < speed.Length; j++)
                     {
@@ -360,12 +351,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         vertices[numberVertices + 2].Position = v3.Position; vertices[numberVertices + 2].Normal = v3.Normal; vertices[numberVertices + 2].TextureCoordinate = v3.TexCoord;
                         vertices[numberVertices + 3].Position = v4.Position; vertices[numberVertices + 3].Normal = v4.Normal; vertices[numberVertices + 3].TextureCoordinate = v4.TexCoord;
                         numberVertices += 4;
-                        offset.X += speedPostObject.Text_Size.DX; offset.Y += speedPostObject.Text_Size.DY; //move to next digit
+                        offset.X += speedPostObject.TextSize.Offset.X; offset.Y += speedPostObject.TextSize.Offset.Y; //move to next digit
                     }
 
                 }
                 idlocation++;
-                id = speedPostObject.GetTrItemID(idlocation);
             }
             //create the shape primitive
             short[] newTList = new short[numberIndices];
@@ -445,7 +435,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public class LevelCrossingShape : PoseableShape
     {
-        private readonly LevelCrossingObj levelCrossingObject;
+        private readonly LevelCrossingObject levelCrossingObject;
         private readonly SoundSource soundSource;
         private readonly LevelCrossing levelCrossing;
 
@@ -454,11 +444,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private bool opening = true;
         private float animationKey;
 
-        public LevelCrossingShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, LevelCrossingObj crossingObj)
+        public LevelCrossingShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, LevelCrossingObject crossingObj)
             : base(path, positionSource, shapeFlags)
         {
             levelCrossingObject = crossingObj;
-            if (!levelCrossingObject.silent)
+            if (!levelCrossingObject.Silent)
             {
                 string soundFileName = null;
                 if (!string.IsNullOrEmpty(levelCrossingObject.SoundFileName))
@@ -490,12 +480,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            levelCrossing = viewer.Simulator.LevelCrossings.CreateLevelCrossing(
-                WorldPosition,
-                from tid in levelCrossingObject.trItemIDList where tid.db == 0 select tid.dbID,
-                from tid in levelCrossingObject.trItemIDList where tid.db == 1 select tid.dbID,
-                levelCrossingObject.levelCrParameters.warningTime,
-                levelCrossingObject.levelCrParameters.minimumDistance);
+            levelCrossing = viewer.Simulator.LevelCrossings.CreateLevelCrossing(WorldPosition,
+                levelCrossingObject.TrackItemIds.TrackDbItems, levelCrossingObject.TrackItemIds.RoadDbItems,
+                levelCrossingObject.WarningTime, levelCrossingObject.MinimumDistance);
             // If there are no animations, we leave the frame count and speed at 0 and nothing will try to animate.
             if (SharedShape.Animations != null && SharedShape.Animations.Count > 0)
             {
@@ -507,8 +494,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 //     MSTS plays through the first 1.0 seconds of the animation forwards for closing and backwards for
                 //     opening. The number of frames defined doesn't matter; the animation is limited by time so the frame
                 //     rate (based on 30FPS) is what's needed.
-                animationFrames = levelCrossingObject.levelCrTiming.animTiming < 0 ? SharedShape.Animations[0].FrameCount : SharedShape.Animations[0].FrameRate / 30f;
-                animationSpeed = SharedShape.Animations[0].FrameRate / 30f / levelCrossingObject.levelCrTiming.animTiming;
+                animationFrames = levelCrossingObject.AnimationTiming < 0 ? SharedShape.Animations[0].FrameCount : SharedShape.Animations[0].FrameRate / 30f;
+                animationSpeed = SharedShape.Animations[0].FrameRate / 30f / levelCrossingObject.AnimationTiming;
             }
         }
 
@@ -524,7 +511,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (!levelCrossingObject.visible)
+            if (!levelCrossingObject.Visible)
                 return;
 
             if (opening == levelCrossing.HasTrain)
@@ -538,7 +525,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             else
                 animationKey += elapsedTime.ClockSeconds * animationSpeed;
 
-            if (levelCrossingObject.levelCrTiming.animTiming < 0)
+            if (levelCrossingObject.AnimationTiming < 0)
             {
                 // Stick to frame 0 for "open" and loop for "closed".
                 if (opening)
@@ -560,7 +547,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public class HazardShape : PoseableShape
     {
-        readonly HazardObj hazardObject;
+        readonly HazardObject hazardObject;
         readonly Hazzard hazard;
 
         private readonly int animationFrames;
@@ -568,16 +555,16 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private float animationKey;
         private float delayHazAnimation;
 
-        public static HazardShape CreateHazzard(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObj hazardObject)
+        public static HazardShape CreateHazzard(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject)
         {
-            var h = viewer.Simulator.HazzardManager.AddHazzardIntoGame(hazardObject.itemId, hazardObject.FileName);
+            var h = viewer.Simulator.HazzardManager.AddHazzardIntoGame(hazardObject.ItemId, hazardObject.FileName);
             if (h == null)
                 return null;
-            return new HazardShape(viewer.Simulator.BasePath + @"\Global\Shapes\" + h.HazFile.Tr_HazardFile.FileName + "\0" + viewer.Simulator.BasePath + @"\Global\Textures", positionSource, shapeFlags, hazardObject, h);
+            return new HazardShape(viewer.Simulator.BasePath + @"\Global\Shapes\" + h.HazFile.Hazard.FileName + "\0" + viewer.Simulator.BasePath + @"\Global\Textures", positionSource, shapeFlags, hazardObject, h);
 
         }
 
-        public HazardShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObj hazardObject, Hazzard h)
+        public HazardShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject, Hazzard h)
             : base(path, positionSource, shapeFlags)
         {
             this.hazardObject = hazardObject;
@@ -587,7 +574,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void Unload()
         {
-            viewer.Simulator.HazzardManager.RemoveHazzardFromGame(hazardObject.itemId);
+            viewer.Simulator.HazzardManager.RemoveHazzardFromGame(hazardObject.ItemId);
             base.Unload();
         }
 
@@ -601,24 +588,24 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             switch (hazard.state)
             {
                 case Hazzard.State.Idle1:
-                    currentRange = hazard.HazFile.Tr_HazardFile.Idle_Key; break;
+                    currentRange = hazard.HazFile.Hazard.IdleKey; break;
                 case Hazzard.State.Idle2:
-                    currentRange = hazard.HazFile.Tr_HazardFile.Idle_Key2; break;
+                    currentRange = hazard.HazFile.Hazard.IdleKey2; break;
                 case Hazzard.State.LookLeft:
-                    currentRange = hazard.HazFile.Tr_HazardFile.Surprise_Key_Left; break;
+                    currentRange = hazard.HazFile.Hazard.SurpriseKeyLeft; break;
                 case Hazzard.State.LookRight:
-                    currentRange = hazard.HazFile.Tr_HazardFile.Surprise_Key_Right; break;
+                    currentRange = hazard.HazFile.Hazard.SurpriseKeyRight; break;
                 case Hazzard.State.Scared:
                 default:
-                    currentRange = hazard.HazFile.Tr_HazardFile.Success_Scarper_Key;
-                    if (moved < hazard.HazFile.Tr_HazardFile.Distance)
+                    currentRange = hazard.HazFile.Hazard.SuccessScarperKey;
+                    if (moved < hazard.HazFile.Hazard.Distance)
                     {
-                        var m = hazard.HazFile.Tr_HazardFile.Speed * elapsedTime.ClockSeconds;
+                        var m = hazard.HazFile.Hazard.Speed * elapsedTime.ClockSeconds;
                         moved += m;
-                        hazardObject.Position.Move(hazardObject.QDirection, m);
                         // Shape's position isn't stored but only calculated dynamically as it's passed to PrepareFrame further down
                         // this seems acceptable as the number of Hazardous objects is rather small
                         //WorldPosition.SetLocation(HazardObj.Position.X, HazardObj.Position.Y, HazardObj.Position.Z);
+                        hazardObject.UpdatePosition(m);
                     }
                     else
                     {
@@ -666,13 +653,14 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 AnimateMatrix(i, animationKey);
 
             //SharedShape.PrepareFrame(frame, WorldPosition, XNAMatrices, Flags);
-            SharedShape.PrepareFrame(frame, WorldPosition.SetMstsTranslation(hazardObject.Position.X, hazardObject.Position.Y, hazardObject.Position.Z), XNAMatrices, Flags);
+//            SharedShape.PrepareFrame(frame, WorldPosition.SetMstsTranslation(hazardObject.Position.X, hazardObject.Position.Y, hazardObject.Position.Z), XNAMatrices, Flags);
+            SharedShape.PrepareFrame(frame, hazardObject.WorldPosition, XNAMatrices, Flags);
         }
     }
 
     public class FuelPickupItemShape : PoseableShape
     {
-        private readonly PickupObj fuelPickupItemObject;
+        private readonly PickupObject fuelPickupItemObject;
         private readonly FuelPickupItem fuelPickupItem;
         private readonly SoundSource soundSource;
         private readonly float frameRate;
@@ -681,13 +669,13 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         protected float animationKey;
 
 
-        public FuelPickupItemShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, PickupObj fuelpickupitemObj)
+        public FuelPickupItemShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, PickupObject fuelpickupitemObj)
             : base(path, positionSource, shapeFlags)
         {
             fuelPickupItemObject = fuelpickupitemObj;
 
 
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultDieselTowerSMS != null && fuelPickupItemObject.PickupType == 7) // Testing for Diesel PickupType
+            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultDieselTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelDiesel) // Testing for Diesel PickupType
             {
                 var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultDieselTowerSMS;
                 try
@@ -709,7 +697,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultWaterTowerSMS != null && fuelPickupItemObject.PickupType == 5) // Testing for Water PickupType
+            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultWaterTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelWater) // Testing for Water PickupType
             {
                 var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultWaterTowerSMS;
                 try
@@ -731,7 +719,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultCoalTowerSMS != null && (fuelPickupItemObject.PickupType == 6 || fuelPickupItemObject.PickupType == 2))
+            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultCoalTowerSMS != null && (fuelPickupItemObject.PickupType == PickupType.FuelCoal || fuelPickupItemObject.PickupType == PickupType.FreightCoal))
             {
                 var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultCoalTowerSMS;
                 try
@@ -753,13 +741,13 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            fuelPickupItem = viewer.Simulator.FuelManager.CreateFuelStation(WorldPosition, from tid in fuelPickupItemObject.TrItemIDList where tid.db == 0 select tid.dbID);
+            fuelPickupItem = viewer.Simulator.FuelManager.CreateFuelStation(WorldPosition, fuelPickupItemObject.TrackItemIds.TrackDbItems);
             animationFrames = 1;
             frameRate = 1;
-            if (SharedShape.Animations != null && SharedShape.Animations.Count > 0 && SharedShape.Animations[0].anim_nodes != null && SharedShape.Animations[0].anim_nodes.Count > 0)
+            if (SharedShape.Animations != null && SharedShape.Animations.Count > 0 && SharedShape.Animations[0].AnimationNodes != null && SharedShape.Animations[0].AnimationNodes.Count > 0)
             {
-                frameRate = SharedShape.Animations[0].FrameCount / fuelPickupItemObject.PickupAnimData.AnimationSpeed;
-                foreach (var anim_node in SharedShape.Animations[0].anim_nodes)
+                frameRate = SharedShape.Animations[0].FrameCount / fuelPickupItemObject.Options.AnimationSpeed;
+                foreach (var anim_node in SharedShape.Animations[0].AnimationNodes)
                     if (anim_node.Name == "ANIMATED_PARTS")
                     {
                         animationFrames = SharedShape.Animations[0].FrameCount;
@@ -782,10 +770,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         {
 
             // 0 can be used as a setting for instant animation.
-            if (fuelPickupItem.ReFill() && fuelPickupItemObject.UID == MSTSWagon.RefillProcess.ActivePickupObjectUID)
+            if (fuelPickupItem.ReFill() && fuelPickupItemObject.UiD == MSTSWagon.RefillProcess.ActivePickupObjectUID)
             {
                 if (animationKey == 0 && soundSource != null) soundSource.HandleEvent(Event.FuelTowerDown);
-                if (fuelPickupItemObject.PickupAnimData.AnimationSpeed == 0) animationKey = 1.0f;
+                if (fuelPickupItemObject.Options.AnimationSpeed == 0) animationKey = 1.0f;
                 else if (animationKey < animationFrames)
                     animationKey += elapsedTime.ClockSeconds * frameRate;
             }

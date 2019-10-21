@@ -15,13 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
-using Orts.Formats.Msts;
-using Orts.Menu.Entities;
 using Orts.Common;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts.Files;
+using Orts.Menu.Entities;
 using ORTS.TrackViewer.Drawing;
 
 namespace ORTS.TrackViewer.Editing
@@ -51,11 +49,10 @@ namespace ORTS.TrackViewer.Editing
         private int currentMainNodeIndex;
 
         /// <summary>Return the last drawn node</summary>
-        public TrPathNode CurrentNode { get { return patFile.TrPathNodes[currentMainNodeIndex]; } }
+        public PathNode CurrentNode { get { return patFile.PathNodes[currentMainNodeIndex]; } }
         /// <summary>return the (Path Data Point?) belonging to the last drawn node</summary>
-        public TrackPDP CurrentPdp { get { return patFile.TrackPDPs[(int)CurrentNode.fromPDP]; } }
+        public PathDataPoint CurrentPdp { get { return patFile.DataPoints[(int)CurrentNode.PathDataPoint]; } }
         /// <summary>Return the location of the last drawn node</summary>
-        public WorldLocation CurrentLocation { get { return GetPdpLocation(CurrentPdp); } }
 
         /// <summary>
         /// Constructor
@@ -77,49 +74,49 @@ namespace ORTS.TrackViewer.Editing
             //draw actual path
             currentMainNodeIndex = 0; // starting point
             int currentSidingNodeIndex = -1; // we start without siding path
-            for (int i = 0; i < Math.Min(patFile.TrPathNodes.Count - 1, numberToDraw); i++)
+            for (int i = 0; i < Math.Min(patFile.PathNodes.Count - 1, numberToDraw); i++)
             {
 
                 // If we have a current siding track, we draw it step to the next main line first.
                 if (currentSidingNodeIndex > 0)
                 {
                     //while tracking a siding, it has its own main node
-                    int nextNodeIndexOnSiding = (int)patFile.TrPathNodes[currentSidingNodeIndex].nextSidingNode;
+                    int nextNodeIndexOnSiding = (int)patFile.PathNodes[currentSidingNodeIndex].NextSidingNode;
                     if (nextNodeIndexOnSiding > 0) // because also this path can run off at the end
                     {
-                        TrPathNode curNode = patFile.TrPathNodes[currentSidingNodeIndex];
-                        WorldLocation curLoc = GetPdpLocation(patFile.TrackPDPs[(int)curNode.fromPDP]);
-                        TrPathNode nextNode = patFile.TrPathNodes[nextNodeIndexOnSiding];
-                        WorldLocation nextLoc = GetPdpLocation(patFile.TrackPDPs[(int)nextNode.fromPDP]);
+                        PathNode curNode = patFile.PathNodes[currentSidingNodeIndex];
+                        ref readonly WorldLocation curLoc = ref patFile.DataPoints[(int)curNode.PathDataPoint].Location;
+                        PathNode nextNode = patFile.PathNodes[nextNodeIndexOnSiding];
+                        ref readonly WorldLocation nextLoc = ref patFile.DataPoints[(int)nextNode.PathDataPoint].Location;
 
                         drawArea.DrawLine(1, DrawColors.colorsPathSiding.TrackStraight, curLoc, nextLoc);
                     }
                     currentSidingNodeIndex = nextNodeIndexOnSiding;
                 }
 
-                TrPathNode curMainNode = patFile.TrPathNodes[currentMainNodeIndex];
-                WorldLocation curMainLoc = GetPdpLocation(patFile.TrackPDPs[(int)curMainNode.fromPDP]);
+                PathNode curMainNode = patFile.PathNodes[currentMainNodeIndex];
+                ref readonly WorldLocation curMainLoc = ref patFile.DataPoints[(int)curMainNode.PathDataPoint].Location;
                 
                 // from this main line point to the next siding node.
                 // If there is a next siding node, we also reset the currentSidingNodeIndex
                 // but probably it is not allowed to have siding
-                int nextSidingNodeIndex = (int)curMainNode.nextSidingNode;             
+                int nextSidingNodeIndex = (int)curMainNode.NextSidingNode;             
                 if (nextSidingNodeIndex >= 0)
                 {
                     // draw the start of a siding path
-                    TrPathNode nextNode = patFile.TrPathNodes[nextSidingNodeIndex];
-                    WorldLocation nextLoc = GetPdpLocation(patFile.TrackPDPs[(int)nextNode.fromPDP]);
+                    PathNode nextNode = patFile.PathNodes[nextSidingNodeIndex];
+                    ref readonly WorldLocation nextLoc = ref patFile.DataPoints[(int)nextNode.PathDataPoint].Location;
 
                     drawArea.DrawLine(1, DrawColors.colorsPathSiding.TrackStraight, curMainLoc, nextLoc);
                     currentSidingNodeIndex = nextSidingNodeIndex;
                 }
 
                 // From this main line point to the next
-                int nextMainNodeIndex = (int)curMainNode.nextMainNode; 
+                int nextMainNodeIndex = (int)curMainNode.NextMainNode; 
                 if (nextMainNodeIndex >= 0)
                 {
-                    TrPathNode nextNode = patFile.TrPathNodes[nextMainNodeIndex];
-                    WorldLocation nextLoc = GetPdpLocation(patFile.TrackPDPs[(int)nextNode.fromPDP]);
+                    PathNode nextNode = patFile.PathNodes[nextMainNodeIndex];
+                    ref readonly WorldLocation nextLoc = ref patFile.DataPoints[(int)nextNode.PathDataPoint].Location;
 
                     drawArea.DrawLine(1, DrawColors.colorsPathMain.TrackStraight, curMainLoc, nextLoc);
                     currentMainNodeIndex = nextMainNodeIndex;
@@ -129,21 +126,11 @@ namespace ORTS.TrackViewer.Editing
         }
 
         /// <summary>
-        /// Convert a PDP with raw coordinates numbers to a world location
-        /// </summary>
-        /// <param name="pdp">The trackPDP</param>
-        /// <returns>The corresponding world location</returns>
-        private static WorldLocation GetPdpLocation(TrackPDP pdp)
-        {
-            return new WorldLocation(pdp.TileX, pdp.TileZ, pdp.X, pdp.Y, pdp.Z);
-        }
-
-        /// <summary>
         /// Draw more sections of the path
         /// </summary>
         public void ExtendPath()
         {
-            int maxNumber = patFile.TrPathNodes.Count-1;
+            int maxNumber = patFile.PathNodes.Count-1;
             if (++numberToDraw > maxNumber) numberToDraw = maxNumber;
         }
 
@@ -152,7 +139,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public void ExtendPathFull()
         {
-            numberToDraw = patFile.TrPathNodes.Count - 1;
+            numberToDraw = patFile.PathNodes.Count - 1;
         }
 
         /// <summary>

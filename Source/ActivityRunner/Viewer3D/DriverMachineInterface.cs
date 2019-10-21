@@ -17,16 +17,19 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using System;
+using System.Collections.Generic;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.Formats.Msts;
-using Orts.Simulation.RollingStocks;
+
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
-using System;
-using System.Collections.Generic;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -523,17 +526,17 @@ namespace Orts.ActivityRunner.Viewer3D
         float PrevScale = 1;
 
         //[CallOnThread("Loader")]
-        public CabViewCircularSpeedGaugeRenderer(Viewer viewer, MSTSLocomotive locomotive, CVCDigital control, CabShader shader)
+        public CabViewCircularSpeedGaugeRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewDigitalControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
             CircularSpeedGauge = new CircularSpeedGauge(
-                (int)Control.Width,
-                (int)Control.Height,
-                (int)Control.MaxValue,
-                Control.Units == CABViewControlUnits.KM_PER_HOUR,
+                control.Bounds.Width,
+                Control.Bounds.Height,
+                (int)Control.ScaleRangeMax,
+                Control.ControlUnit == CabViewControlUnit.Km_Per_Hour,
                 true,
-                Control.MaxValue == 240 || Control.MaxValue == 260,
-                (int)Control.MinValue,
+                Control.ScaleRangeMax == 240 || Control.ScaleRangeMax == 260,
+                (int)Control.ScaleRangeMin,
                 Locomotive,
                 Viewer,
                 shader

@@ -17,11 +17,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using Path = System.IO.Path;
-
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Path = System.IO.Path;
 
 namespace Orts.ContentChecker
 {
@@ -65,7 +64,7 @@ namespace Orts.ContentChecker
             {
                 foreach (WeatherType weather in Enum.GetValues(typeof(WeatherType)))
                 {
-                    string environmentFile = TRK.Tr_RouteFile.Environment.ENVFileName(season, weather);
+                    string environmentFile = TRK.Tr_RouteFile.Environment.GetEnvironmentFileName(season, weather);
                     string envFileFull = Path.Combine(Path.Combine(routePath, "ENVFILES"), environmentFile);
                     AddAdditionalFileAction.Invoke(envFileFull, new EnvironmentFileLoader());
                 }

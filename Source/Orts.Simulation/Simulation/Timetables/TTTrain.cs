@@ -29,21 +29,25 @@
 // #define DEBUG_TTANALYSIS
 // DEBUG flag for debug prints
 
-using Microsoft.Xna.Framework;
-using Orts.Formats.Msts;
-using Orts.Simulation.AIs;
-using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
-using Orts.Simulation.Signalling;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Event = Orts.Common.Event;
+
+using Microsoft.Xna.Framework;
+
+using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation.AIs;
+using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
+using Orts.Simulation.Signalling;
+
+using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.Timetables
 {
@@ -3370,12 +3374,12 @@ namespace Orts.Simulation.Timetables
 
             else if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
             {
-                MstsSignalAspect nextAspect = MstsSignalAspect.UNKNOWN;
+                SignalAspectState nextAspect = SignalAspectState.Unknown;
                 // there is a next item and it is the next signal
                 if (nextActionInfo != null && nextActionInfo.ActiveItem != null &&
                     nextActionInfo.ActiveItem.ObjectDetails == NextSignalObject[0])
                 {
-                    nextAspect = nextActionInfo.ActiveItem.ObjectDetails.this_sig_lr(MstsSignalFunction.NORMAL);
+                    nextAspect = nextActionInfo.ActiveItem.ObjectDetails.this_sig_lr(SignalFunction.Normal);
                 }
                 else
                 {
@@ -3388,8 +3392,8 @@ namespace Orts.Simulation.Timetables
                     NextStopDistanceM = DistanceToEndNodeAuthorityM[0];
                 }
 
-                else if (nextAspect > MstsSignalAspect.STOP &&
-                        nextAspect < MstsSignalAspect.APPROACH_1)
+                else if (nextAspect > SignalAspectState.Stop &&
+                        nextAspect < SignalAspectState.Approach_1)
                 {
                     // check if any other signals within clearing distance
                     bool signalCleared = true;
@@ -3406,7 +3410,7 @@ namespace Orts.Simulation.Timetables
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
-                                else if (nextObject.signal_state == MstsSignalAspect.STOP)
+                                else if (nextObject.signal_state == SignalAspectState.Stop)
                                 {
                                     signalCleared = false;   // signal is not clear
                                     NextSignalObject[0].ForcePropagation = true;
@@ -3422,7 +3426,7 @@ namespace Orts.Simulation.Timetables
                         DelayedStartMoving(AI_START_MOVEMENT.SIGNAL_RESTRICTED);
                     }
                 }
-                else if (nextAspect >= MstsSignalAspect.APPROACH_1)
+                else if (nextAspect >= SignalAspectState.Approach_1)
                 {
                     // check if any other signals within clearing distance
                     bool signalCleared = true;
@@ -3439,11 +3443,11 @@ namespace Orts.Simulation.Timetables
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
-                                else if (nextObject.signal_state == MstsSignalAspect.STOP)
+                                else if (nextObject.signal_state == SignalAspectState.Stop)
                                 {
                                     // set this signal as passed, and next signal as waiting
                                     signalCleared = false;   // signal is not clear
-                                    int nextSignalIndex = NextSignalObject[0].sigfound[(int)MstsSignalFunction.NORMAL];
+                                    int nextSignalIndex = NextSignalObject[0].sigfound[(int)SignalFunction.Normal];
                                     if (nextSignalIndex >= 0)
                                     {
                                         NextSignalObject[0] = signalRef.SignalObjects[nextSignalIndex];
@@ -3467,7 +3471,7 @@ namespace Orts.Simulation.Timetables
                     }
                 }
 
-                else if (nextAspect == MstsSignalAspect.STOP)
+                else if (nextAspect == SignalAspectState.Stop)
                 {
                     // if stop but train is well away from signal allow to close
                     if (DistanceToSignal.HasValue && DistanceToSignal.Value > 5 * signalApproachDistanceM)
@@ -3507,7 +3511,7 @@ namespace Orts.Simulation.Timetables
                 }
                 else if (nextActionInfo == null || nextActionInfo.NextAction != AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
                 {
-                    if (nextAspect != MstsSignalAspect.STOP)
+                    if (nextAspect != SignalAspectState.Stop)
                     {
                         DelayedStartMoving(AI_START_MOVEMENT.SIGNAL_CLEARED);
                     }
@@ -3960,8 +3964,8 @@ namespace Orts.Simulation.Timetables
             bool exitSignalStop = false;
             if (thisStation.ExitSignal >= 0 && NextSignalObject[0] != null && NextSignalObject[0].thisRef == thisStation.ExitSignal)
             {
-                MstsSignalAspect nextAspect = GetNextSignalAspect(0);
-                exitSignalStop = (nextAspect == MstsSignalAspect.STOP && !thisStation.NoWaitSignal);
+                SignalAspectState nextAspect = GetNextSignalAspect(0);
+                exitSignalStop = (nextAspect == SignalAspectState.Stop && !thisStation.NoWaitSignal);
             }
 
             // if not end of path, check if departure allowed
@@ -4223,7 +4227,7 @@ namespace Orts.Simulation.Timetables
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
 
-                if (nextActionInfo.ActiveItem.signal_state >= MstsSignalAspect.APPROACH_1)
+                if (nextActionInfo.ActiveItem.signal_state >= SignalAspectState.Approach_1)
                 {
                     clearAction = true;
 
@@ -4247,11 +4251,11 @@ namespace Orts.Simulation.Timetables
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
                     }
                 }
-                else if (nextActionInfo.ActiveItem.signal_state != MstsSignalAspect.STOP)
+                else if (nextActionInfo.ActiveItem.signal_state != SignalAspectState.Stop)
                 {
                     nextActionInfo.NextAction = AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED;
                     if (((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                         nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(MstsSignalFunction.NORMAL))
+                         nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
                     {
                         clearAction = true;
 #if DEBUG_REPORTS
@@ -4281,9 +4285,9 @@ namespace Orts.Simulation.Timetables
 
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED)
             {
-                if ((nextActionInfo.ActiveItem.signal_state >= MstsSignalAspect.APPROACH_1) ||
+                if ((nextActionInfo.ActiveItem.signal_state >= SignalAspectState.Approach_1) ||
                    ((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                   (nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(MstsSignalFunction.NORMAL)))
+                   (nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(SignalFunction.Normal)))
                 {
                     clearAction = true;
 #if DEBUG_REPORTS
@@ -4429,7 +4433,7 @@ namespace Orts.Simulation.Timetables
                     // check if station has exit signal and if signal is clear
                     // if signal is at stop, check if stop position is sufficiently clear of signal
 
-                    if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(MstsSignalFunction.NORMAL) == MstsSignalAspect.STOP)
+                    if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop)
                     {
                         float reqsignaldistance = StationStops[0].CloseupSignal ? keepDistanceCloseupSignalM : signalApproachDistanceM;
                         if (distanceToGoM > DistanceToSignal.Value - reqsignaldistance)
@@ -5943,7 +5947,7 @@ namespace Orts.Simulation.Timetables
             float offset = RearTDBTraveller.TrackNodeOffset;
             int direction = (int)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             TrackCircuitSection thisSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
             offset = PresentPosition[1].TCOffset;
 
@@ -6038,7 +6042,7 @@ namespace Orts.Simulation.Timetables
             float offset = FrontTDBTraveller.TrackNodeOffset;
             int direction = (int)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PresentPosition[0].CopyTo(ref PreviousPosition[0]);
 
             DistanceTravelledM = 0.0f;
@@ -6047,7 +6051,7 @@ namespace Orts.Simulation.Timetables
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (int)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             // create route to cover all train sections
 
@@ -6789,7 +6793,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="thisRoute"></param>
         /// <param name="dumpfile"></param>
         /// <returns></returns>
-        public override bool TestCallOn(SignalObject thisSignal, bool allowOnNonePlatform, TCSubpathRoute thisRoute, string dumpfile)
+        public override bool TestCallOn(Signal thisSignal, bool allowOnNonePlatform, TCSubpathRoute thisRoute, string dumpfile)
         {
             // always allow if set for stable working
             if (Stable_CallOn)
@@ -8845,7 +8849,7 @@ namespace Orts.Simulation.Timetables
 
         public override bool TrainGetSectionStateClearNode(int elementDirection, Train.TCSubpathRoute routePart, TrackCircuitSection thisSection)
         {
-            return (thisSection.getSectionState(routedForward, elementDirection, SignalObject.InternalBlockstate.Reserved, routePart, -1) <= SignalObject.InternalBlockstate.OccupiedSameDirection);
+            return (thisSection.getSectionState(routedForward, elementDirection, Signal.InternalBlockstate.Reserved, routePart, -1) <= Signal.InternalBlockstate.OccupiedSameDirection);
         }
 
         //================================================================================================//
@@ -9021,7 +9025,7 @@ namespace Orts.Simulation.Timetables
         /// <returns></returns>
         private bool CheckRouteWait(TCSubpathRoute thisRoute, bool sameDirection)
         {
-            SignalObject.InternalBlockstate blockstate = SignalObject.InternalBlockstate.Reserved;  // preset to lowest possible state //
+            Signal.InternalBlockstate blockstate = Signal.InternalBlockstate.Reserved;  // preset to lowest possible state //
 
             // loop through all sections in route list
 
@@ -9034,11 +9038,11 @@ namespace Orts.Simulation.Timetables
                 int direction = sameDirection ? thisElement.Direction : thisElement.Direction == 0 ? 1 : 0;
 
                 blockstate = thisSection.getSectionState(routedForward, direction, blockstate, thisRoute, -1);
-                if (blockstate > SignalObject.InternalBlockstate.Reservable)
+                if (blockstate > Signal.InternalBlockstate.Reservable)
                     break;     // exit on first none-available section
             }
 
-            return (blockstate < SignalObject.InternalBlockstate.OccupiedSameDirection);
+            return (blockstate < Signal.InternalBlockstate.OccupiedSameDirection);
         }
 
         //================================================================================================//
@@ -10577,7 +10581,7 @@ namespace Orts.Simulation.Timetables
 
                             if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
                             {
-                                SignalObject nextSignal = signalRef.SignalObjects[StationStops[0].ExitSignal];
+                                Signal nextSignal = signalRef.SignalObjects[StationStops[0].ExitSignal];
                                 nextSignal.requestClearSignal(ValidRoute[0], routedForward, 0, false, null);
                             }
                         }
@@ -10594,8 +10598,8 @@ namespace Orts.Simulation.Timetables
                             else if (!MayDepart)
                             {
                                 // check if signal ahead is cleared - if not, and signal is station exit signal, do not allow depart
-                                if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(MstsSignalFunction.NORMAL) == MstsSignalAspect.STOP
-                                    && NextSignalObject[0].hasPermission != SignalObject.Permission.Granted && !StationStops[0].NoWaitSignal
+                                if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop
+                                    && NextSignalObject[0].hasPermission != Signal.Permission.Granted && !StationStops[0].NoWaitSignal
                                     && NextSignalObject[0].thisRef == StationStops[0].ExitSignal)
                                 {
                                     DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. Waiting for signal ahead to clear.");
@@ -10828,7 +10832,7 @@ namespace Orts.Simulation.Timetables
 
                     if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
                     {
-                        SignalObject nextSignal = signalRef.SignalObjects[thisStation.ExitSignal];
+                        Signal nextSignal = signalRef.SignalObjects[thisStation.ExitSignal];
                         nextSignal.requestClearSignal(ValidRoute[0], routedForward, 0, false, null);
                     }
                 }
@@ -11618,14 +11622,14 @@ namespace Orts.Simulation.Timetables
             float offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
             int direction = (int)attachTrain.FrontTDBTraveller.Direction;
 
-            attachTrain.PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            attachTrain.PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             attachTrain.PresentPosition[0].CopyTo(ref attachTrain.PreviousPosition[0]);
 
             tn = attachTrain.RearTDBTraveller.TN;
             offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
             direction = (int)attachTrain.RearTDBTraveller.Direction;
 
-            attachTrain.PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            attachTrain.PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             // set new track sections occupied
             TCSubpathRoute tempRoute = signalRef.BuildTempRoute(attachTrain, attachTrain.PresentPosition[1].TCSectionIndex,
@@ -12075,7 +12079,7 @@ namespace Orts.Simulation.Timetables
             float offset = FrontTDBTraveller.TrackNodeOffset;
             int direction = (int)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
             PresentPosition[0].CopyTo(ref PreviousPosition[0]);
 
@@ -12088,7 +12092,7 @@ namespace Orts.Simulation.Timetables
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (int)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TCSectionIndex, 0);
 
             // get new track sections occupied
@@ -12128,7 +12132,7 @@ namespace Orts.Simulation.Timetables
             offset = newTrain.FrontTDBTraveller.TrackNodeOffset;
             direction = (int)newTrain.FrontTDBTraveller.Direction;
 
-            newTrain.PresentPosition[0].SetTCPosition(tn.TCCrossReference, offset, direction);
+            newTrain.PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             newTrain.PresentPosition[0].RouteListIndex = newTrain.ValidRoute[0].GetRouteIndex(newTrain.PresentPosition[0].TCSectionIndex, 0);
             newTrain.PresentPosition[0].CopyTo(ref newTrain.PreviousPosition[0]);
 
@@ -12138,7 +12142,7 @@ namespace Orts.Simulation.Timetables
             offset = newTrain.RearTDBTraveller.TrackNodeOffset;
             direction = (int)newTrain.RearTDBTraveller.Direction;
 
-            newTrain.PresentPosition[1].SetTCPosition(tn.TCCrossReference, offset, direction);
+            newTrain.PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             newTrain.PresentPosition[1].RouteListIndex = newTrain.ValidRoute[0].GetRouteIndex(newTrain.PresentPosition[1].TCSectionIndex, 0);
             newTrain.PresentPosition[1].CopyTo(ref newTrain.PreviousPosition[1]);
 
@@ -12516,9 +12520,9 @@ namespace Orts.Simulation.Timetables
             {
                 DetachSection = signalRef.TrackCircuitList[DetachSection.Pins[0, 0].Link];
             }
-            TrackNode DetachNode = train.Simulator.TDB.TrackDB.TrackNodes[DetachSection.OriginalIndex];
+            TrackVectorNode detachNode = train.Simulator.TDB.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
-            formedTrain.RearTDBTraveller = new Traveller(train.Simulator.TSectionDat, train.Simulator.TDB.TrackDB.TrackNodes, DetachNode);
+            formedTrain.RearTDBTraveller = new Traveller(train.Simulator.TSectionDat, train.Simulator.TDB.TrackDB.TrackNodes, detachNode);
 
             trainlist.Add(formedTrain);
 
@@ -12538,7 +12542,7 @@ namespace Orts.Simulation.Timetables
         {
             TTTrain formedTrain = new TTTrain(train.Simulator, train);
             TrackCircuitSection DetachSection = signalRef.TrackCircuitList[sectionInfo];
-            TrackNode DetachNode = train.Simulator.TDB.TrackDB.TrackNodes[DetachSection.OriginalIndex];
+            TrackVectorNode DetachNode = train.Simulator.TDB.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 
             formedTrain.RearTDBTraveller = new Traveller(train.Simulator.TSectionDat, train.Simulator.TDB.TrackDB.TrackNodes, DetachNode);
             train.PresentPosition[0].CopyTo(ref formedTrain.PresentPosition[0]);

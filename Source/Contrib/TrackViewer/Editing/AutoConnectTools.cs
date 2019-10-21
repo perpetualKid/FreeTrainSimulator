@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -375,8 +376,8 @@ namespace ORTS.TrackViewer.Editing
             }
 
             // Search further along the next Tvns that we can try.
-            Orts.Formats.Msts.TrackNode tn = TrackExtensions.TrackNode(currentJunctionIndex);
-            if (tn.TrEndNode)
+            TrackNode tn = TrackExtensions.TrackNode(currentJunctionIndex);
+            if (tn is TrackEndNode)
             {
                 return false;
             }

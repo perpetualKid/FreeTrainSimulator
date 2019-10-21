@@ -168,7 +168,7 @@ namespace Orts.Simulation.AIs
 #endif
         protected void SetGenAuxActions(AITrain thisTrain)  //  Add here the new Generic Action
         {
-            if (!thisTrain.Simulator.TimetableMode && thisTrain.Simulator.Activity.Tr_Activity.Tr_Activity_File.ORTSAIHornAtCrossings > 0 && SpecAuxActions.Count == 0)
+            if (!thisTrain.Simulator.TimetableMode && thisTrain.Simulator.Activity.Activity.AIHornAtCrossings > 0 && SpecAuxActions.Count == 0)
             {
                 AuxActionHorn auxActionHorn = new AuxActionHorn(true);
                 AIActionHornRef horn = new AIActionHornRef(thisTrain, auxActionHorn, 0);
@@ -514,7 +514,7 @@ namespace Orts.Simulation.AIs
         protected int TriggerDistance = 0;
         public bool LinkedAuxAction = false;
         protected List<KeyValuePair<int, WorldLocation>> AskingTrain;
-        public SignalObject SignalReferenced = null;
+        public Signal SignalReferenced = null;
         public float RequiredSpeedMpS;
         public float RequiredDistance;
         public int Delay;
@@ -676,7 +676,7 @@ namespace Orts.Simulation.AIs
             return true;
         }
 
-        public void SetSignalObject(SignalObject signal)
+        public void SetSignalObject(Signal signal)
         {
             SignalReferenced = signal;
         }
@@ -872,7 +872,7 @@ namespace Orts.Simulation.AIs
         {
             List<KeyValuePair<System.Type, AuxActionRef>> listInfo = new List<KeyValuePair<System.Type, AuxActionRef>>();
 
-            System.Type managed  = typeof(SignalObject);
+            System.Type managed  = typeof(Signal);
             KeyValuePair<System.Type, AuxActionRef> info = new KeyValuePair<System.Type, AuxActionRef>(managed, this);
             listInfo.Add(info);
             return listInfo;
@@ -1170,7 +1170,7 @@ namespace Orts.Simulation.AIs
         public bool Triggered = false;
         public bool Processing = false;
         public AITrain.AI_MOVEMENT_STATE currentMvmtState = AITrain.AI_MOVEMENT_STATE.INIT_ACTION;
-        public SignalObject SignalReferenced { get { return ((AIAuxActionsRef)ActionRef).SignalReferenced; } set {} }
+        public Signal SignalReferenced { get { return ((AIAuxActionsRef)ActionRef).SignalReferenced; } set {} }
 
         //================================================================================================//
         /// <summary>
@@ -1798,7 +1798,7 @@ namespace Orts.Simulation.AIs
                         SignalReferenced.trItem, SignalReferenced.trackNode, thisTrain.Number);
                 }
             }
-            if (ClearSignal(thisTrain) || (thisTrain.NextSignalObject[0] != null && (thisTrain.NextSignalObject[0].this_sig_lr(MstsSignalFunction.NORMAL) > MstsSignalAspect.STOP)) ||
+            if (ClearSignal(thisTrain) || (thisTrain.NextSignalObject[0] != null && (thisTrain.NextSignalObject[0].this_sig_lr(SignalFunction.Normal) > SignalAspectState.Stop)) ||
                 thisTrain.NextSignalObject[0] == null || SignalReferenced != thisTrain.NextSignalObject[0] ||
                 thisTrain.PresentPosition[0].TCSectionIndex == thisTrain.ValidRoute[0][thisTrain.ValidRoute[0].Count - 1].TCSectionIndex)
             {

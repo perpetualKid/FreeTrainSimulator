@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using Microsoft.Xna.Framework;
 
 namespace Orts.Formats.Msts
 {
@@ -33,30 +34,43 @@ namespace Orts.Formats.Msts
             z -= pZ;
 
             // rotate the coordinates relative to a track section that is pointing due north ( +z in MSTS coordinate system )
-            Rotate2D(rad, ref x, ref z);
+            var result = Rotate2D(rad, x, z);
 
-            lat = x;
-            lon = z;
+            lat = result.x;
+            lon = result.z;
         }
 
-        //            2D Rotation
-        //
-        //              A point <x,y> can be rotated around the origin <0,0> by running it through the following equations to get the new point <x',y'> :
-        //
-        //              x' = cos(theta)*x - sin(theta)*y 
-        //              y' = sin(theta)*x + cos(theta)*y
-        //
-        //          where theta is the angle by which to rotate the point.
-        public static void Rotate2D(float radians, ref float x, ref float z)
+        //  2D Rotation
+        //    A point<x, y> can be rotated around the origin<0,0> by running it through the following equations to get the new point<x',y'> :        
+        //    x' = cos(theta)*x - sin(theta)*y 
+        //    y' = sin(theta)*x + cos(theta)*y        
+        //where theta is the angle by which to rotate the point.
+        public static (float x, float z) Rotate2D(float radians, float x, float z)
         {
-            float cos = (float)Math.Cos(radians);
-            float sin = (float)Math.Sin(radians);
+            double cos = Math.Cos(radians);
+            double sin = Math.Sin(radians);
 
-            float xp = cos * x - sin * z;
-            float zp = sin * x + cos * z;
+            double xp = cos * x - sin * z;
+            double zp = sin * x + cos * z;
 
-            x = (float)xp;
-            z = (float)zp;
+            return ((float)xp, (float)zp);
+        }
+
+        public static Matrix CreateFromYawPitchRoll(in Vector3 pitchYawRoll)
+        {
+            Quaternion.CreateFromYawPitchRoll(-pitchYawRoll.Y, -pitchYawRoll.X, pitchYawRoll.Z, out Quaternion quaternion);
+            Matrix.CreateFromQuaternion(ref quaternion, out Matrix matrix);
+            return matrix;
+        }
+
+        public static Matrix CreateFromYawPitchRoll(in Vector3 pitchYawRoll, in Vector3 translation)
+        {
+            Quaternion.CreateFromYawPitchRoll(-pitchYawRoll.Y, -pitchYawRoll.X, pitchYawRoll.Z, out Quaternion quaternion);
+            Matrix.CreateFromQuaternion(ref quaternion, out Matrix matrix);
+            matrix.M41 = translation.X;
+            matrix.M42 = translation.Y;
+            matrix.M43 = translation.Z;
+            return matrix;
         }
 
         /// <summary>

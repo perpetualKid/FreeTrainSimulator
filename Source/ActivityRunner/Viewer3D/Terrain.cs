@@ -29,6 +29,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -208,7 +210,7 @@ namespace Orts.ActivityRunner.Viewer3D
         // These are only used while the contructor runs and are discarded after.
         readonly TileManager TileManager;
         readonly Tile Tile;
-        readonly terrain_patchset_patch Patch;
+        readonly Patch Patch;
 
         public TerrainPrimitive(Viewer viewer, TileManager tileManager, Tile tile, int x, int z)
         {
@@ -232,8 +234,8 @@ namespace Orts.ActivityRunner.Viewer3D
             PatchIndexBuffer = GetIndexBuffer(out PatchPrimitiveCount);
 
             var terrainMaterial = tile.Size > 2 ? "TerrainSharedDistantMountain" : PatchIndexBuffer == null ? "TerrainShared" : "Terrain";
-            var ts = Tile.Shaders[Patch.ShaderIndex].terrain_texslots;
-            var uv = Tile.Shaders[Patch.ShaderIndex].terrain_uvcalcs;
+            var ts = Tile.Shaders[Patch.ShaderIndex].Textureslots;
+            var uv = Tile.Shaders[Patch.ShaderIndex].UVCalcs;
             if (ts.Length > 1)
                 PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(viewer.Simulator, ts[0].Filename) + "\0" + Helpers.GetTerrainTextureFile(viewer.Simulator, ts[1].Filename) +
                     (uv[1].D != 0 && uv[1].D != 32 ? "\0" + uv[1].D.ToString(): ""));

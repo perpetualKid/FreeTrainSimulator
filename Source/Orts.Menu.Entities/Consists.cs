@@ -22,6 +22,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Menu.Entities
 {
@@ -122,7 +123,7 @@ namespace Orts.Menu.Entities
 
         private static Locomotive GetLocomotive(ConsistFile conFile, Folder folder)
         {
-            foreach (var wagon in conFile.Train.TrainCfg.WagonList.Where(w => w.IsEngine))
+            foreach (var wagon in conFile.Train.Wagons.Where(w => w.IsEngine))
             {
                 try
                 {
@@ -135,7 +136,7 @@ namespace Orts.Menu.Entities
 
         private static Locomotive GetLocomotiveReverse(ConsistFile conFile, Folder folder)
         {
-            foreach (var wagon in conFile.Train.TrainCfg.WagonList.Where(w => w.IsEngine))
+            foreach (var wagon in conFile.Train.Wagons.Where(w => w.IsEngine))
             {
                 try
                 {

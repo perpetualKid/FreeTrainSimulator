@@ -21,6 +21,8 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -103,9 +105,9 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>The index of the original item in whatever table it was defined</summary>
         public override uint Index { get { return JunctionOrEndNode.Index; } }
         /// <summary>The X-coordinate within a tile of the original item in the track database</summary>
-        public override float X { get { return JunctionOrEndNode.UiD.X; } }
+        public override float X { get { return JunctionOrEndNode.UiD.Location.Location.X; } }
         /// <summary>The Z-coordinate within a tile of the original item in the track database</summary>
-        public override float Z { get { return JunctionOrEndNode.UiD.Z; } }
+        public override float Z { get { return JunctionOrEndNode.UiD.Location.Location.Z; } }
 
         /// <summary>
         /// Reset the calculation of which item (junction) is closest to the mouse
@@ -233,7 +235,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>Tracknode that is closest</summary>
         public TrackNode TrackNode { get { CalcRealDistances(); return sortedTrackCandidates.Last().Value.trackNode; } }
         /// <summary>Vectorsection within the tracnode</summary>
-        public TrVectorSection VectorSection { get { CalcRealDistances(); return sortedTrackCandidates.Last().Value.vectorSection; } }
+        public TrackVectorSection VectorSection { get { CalcRealDistances(); return sortedTrackCandidates.Last().Value.vectorSection; } }
         /// <summary>Index of vector section that is closest to the mouse</summary>
         public int TrackVectorSectionIndex { get { CalcRealDistances(); return sortedTrackCandidates.Last().Value.trackVectorSectionIndex; } }
         /// <summary>Distance along the track describing precisely where the mouse is</summary>
@@ -314,7 +316,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tvsi">Current index of the trackvectorsection</param>
         /// <param name="pixelsPerMeter"></param>
         public void CheckMouseDistance(in WorldLocation location, in WorldLocation mouseLocation, 
-            TrackNode trackNode, TrVectorSection vectorSection, int tvsi, double pixelsPerMeter)
+            TrackNode trackNode, TrackVectorSection vectorSection, int tvsi, double pixelsPerMeter)
         {
             storedMouseLocation = mouseLocation;
             float distanceSquared = CloseToMouse.GetGroundDistanceSquared(location, mouseLocation);
@@ -378,22 +380,22 @@ namespace ORTS.TrackViewer.Drawing
         /// The math here is not perfect (it is quite difficult to calculate the distances to a curved line 
         /// for all possibilities) but good enough. The math was designed (in Traveller.cs) to work well for close distances.
         /// Math is modified to prevent NaN and to combine straight and curved tracks.</remarks>
-        DistanceLon CalcRealDistanceSquared(TrVectorSection trackVectorSection, TrackSection trackSection)
+        DistanceLon CalcRealDistanceSquared(TrackVectorSection trackVectorSection, TrackSection trackSection)
         {
             //Calculate the vector from start of track to the mouse
             Vector3 vectorToMouse = new Vector3
             {
-                X = storedMouseLocation.Location.X - trackVectorSection.X,
-                Z = storedMouseLocation.Location.Z - trackVectorSection.Z
+                X = storedMouseLocation.Location.X - trackVectorSection.Location.Location.X,
+                Z = storedMouseLocation.Location.Z - trackVectorSection.Location.Location.Z
             };
-            vectorToMouse.X += (storedMouseLocation.TileX - trackVectorSection.TileX) * 2048;
-            vectorToMouse.Z += (storedMouseLocation.TileZ - trackVectorSection.TileZ) * 2048;
+            vectorToMouse.X += (storedMouseLocation.TileX - trackVectorSection.Location.TileX) * 2048;
+            vectorToMouse.Z += (storedMouseLocation.TileZ - trackVectorSection.Location.TileZ) * 2048;
 
             //Now rotate the vector such that a direction along the track is in a direction (x=0, z=1)
-            vectorToMouse = Vector3.Transform(vectorToMouse, Matrix.CreateRotationY(-trackVectorSection.AY));
+            vectorToMouse = Vector3.Transform(vectorToMouse, Matrix.CreateRotationY(-trackVectorSection.Direction.Y));
 
             float lon, lat;
-            if (trackSection.SectionCurve == null)
+            if (!trackSection.Curved)
             {
                 //Track is straight. In this coordinate system, the distance along track (lon) and orthogonal to track (lat) are easy.
                 lon = vectorToMouse.Z;
@@ -403,18 +405,18 @@ namespace ORTS.TrackViewer.Drawing
             {
                 // make sure the vector is as if the vector section turns to the left.
                 // The center of the curved track is now a (x=-radius, z=0), track starting at (0,0), pointing in positive Z
-                if (trackSection.SectionCurve.Angle > 0)
+                if (trackSection.Angle > 0)
                     vectorToMouse.X *= -1;
 
                 //make vector relative to center of curve. Track now starts at (radius,0)
-                vectorToMouse.X += trackSection.SectionCurve.Radius;
+                vectorToMouse.X += trackSection.Radius;
 
                 float radiansAlongCurve = (float)Math.Atan2(vectorToMouse.Z, vectorToMouse.X);
 
                 //The following calculations make sense when close to the track. Otherwise they are not necessarily sensible, but at least well-defined.
                 // Distance from mouse to circle through track section.
-                lat = (float)Math.Sqrt(vectorToMouse.X * vectorToMouse.X + vectorToMouse.Z * vectorToMouse.Z) - trackSection.SectionCurve.Radius;
-                lon = radiansAlongCurve * trackSection.SectionCurve.Radius;
+                lat = (float)Math.Sqrt(vectorToMouse.X * vectorToMouse.X + vectorToMouse.Z * vectorToMouse.Z) - trackSection.Radius;
+                lon = radiansAlongCurve * trackSection.Radius;
             }
 
 
@@ -438,11 +440,11 @@ namespace ORTS.TrackViewer.Drawing
     /// </summary>
     struct TrackCandidate {
         public TrackNode trackNode;
-        public TrVectorSection vectorSection;
+        public TrackVectorSection vectorSection;
         public int trackVectorSectionIndex;  // which section within a trackNode that is a vector node
         public float distanceAlongSection;
 
-        public TrackCandidate(TrackNode node, TrVectorSection section, int tvsi, float lon)
+        public TrackCandidate(TrackNode node, TrackVectorSection section, int tvsi, float lon)
         {
             trackNode = node;
             vectorSection = section;

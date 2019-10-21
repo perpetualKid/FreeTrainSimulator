@@ -17,15 +17,18 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Orts.Formats.Msts;
-using Orts.Simulation;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
+using Microsoft.Xna.Framework;
+
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -40,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D
         const float TrainRailHeightMaximum = 1;
 
         readonly Viewer Viewer;
-        public readonly CarSpawnerObj CarSpawnerObj;
+        public readonly CarSpawnerObject CarSpawnerObj;
 
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
@@ -54,35 +57,35 @@ namespace Orts.ActivityRunner.Viewer3D
         float LastSpawnedTime;
         float NextSpawnTime;
 
-        public RoadCarSpawner(Viewer viewer, in WorldPosition position, CarSpawnerObj carSpawnerObj)
+        public RoadCarSpawner(Viewer viewer, in WorldPosition position, CarSpawnerObject carSpawnerObj)
         {
             Debug.Assert(TrackMergeDistance >= 2 * (RampLength + TrackHalfWidth), "TrackMergeDistance is less than 2 * (RampLength + TrackHalfWidth); vertical inconsistencies will occur at close, but not merged, tracks.");
             Viewer = viewer;
             CarSpawnerObj = carSpawnerObj;
 
-            if (viewer.Simulator.RDB == null || viewer.Simulator.CarSpawnerFile == null)
+            if (viewer.Simulator.RDB == null || viewer.Simulator.CarSpawnerLists == null)
                 throw new InvalidOperationException("RoadCarSpawner requires a RDB and CARSPAWN.DAT");
 
-            var start = CarSpawnerObj.getTrItemID(0);
-            var end = CarSpawnerObj.getTrItemID(1);
+            var start = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 0 ? CarSpawnerObj.TrackItemIds.RoadDbItems[0] : -1;
+            var end = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 1 ? CarSpawnerObj.TrackItemIds.RoadDbItems[1] : -1;
             var trItems = viewer.Simulator.RDB.RoadTrackDB.TrItemTable;
-            var startLocation = new WorldLocation(trItems[start].TileX, trItems[start].TileZ, trItems[start].X, trItems[start].Y, trItems[start].Z);
-            var endLocation = new WorldLocation(trItems[end].TileX, trItems[end].TileZ, trItems[end].X, trItems[end].Y, trItems[end].Z);
+            ref readonly WorldLocation startLocation = ref trItems[start].Location;
+            ref readonly WorldLocation endLocation = ref trItems[end].Location;
 
-            Traveller = new Traveller(viewer.Simulator.TSectionDat, viewer.Simulator.RDB.RoadTrackDB.TrackNodes, startLocation.TileX, startLocation.TileZ, startLocation.Location.X, startLocation.Location.Z);
-            Length = Traveller.DistanceTo(endLocation.TileX, endLocation.TileZ, endLocation.Location.X, endLocation.Location.Y, endLocation.Location.Z);
+            Traveller = new Traveller(viewer.Simulator.TSectionDat, viewer.Simulator.RDB.RoadTrackDB.TrackNodes, startLocation);
+            Length = Traveller.DistanceTo(endLocation);
             if (Length < 0)
             {
                 Traveller.ReverseDirection();
-                Length = Traveller.DistanceTo(endLocation.TileX, endLocation.TileZ, endLocation.Location.X, endLocation.Location.Y, endLocation.Location.Z);
+                Length = Traveller.DistanceTo(endLocation);
                 if (Length < 0)
-                    Trace.TraceWarning("{0} car spawner {1} doesn't have connected road route between {2} and {3}", position, carSpawnerObj.UID, startLocation, endLocation);
+                    Trace.TraceWarning("{0} car spawner {1} doesn't have connected road route between {2} and {3}", position, carSpawnerObj.UiD, startLocation, endLocation);
             }
 
-            var sortedLevelCrossings = new SortedList<float, LevelCrossingItem>();
+            var sortedLevelCrossings = new SortedList<float, Simulation.LevelCrossingItem>();
             for (var crossingTraveller = new Traveller(Traveller); crossingTraveller.NextSection(); )
-                if (crossingTraveller.IsTrack && crossingTraveller.TN.TrVectorNode.TrItemRefs != null)
-                    foreach (var trItemRef in crossingTraveller.TN.TrVectorNode.TrItemRefs)
+                if (crossingTraveller.IsTrack && (crossingTraveller.TN as TrackVectorNode).TrackItemIndices != null)
+                    foreach (var trItemRef in (crossingTraveller.TN as TrackVectorNode).TrackItemIndices)
                         if (Viewer.Simulator.LevelCrossings.RoadCrossingItems.ContainsKey(trItemRef))
                             sortedLevelCrossings[Viewer.Simulator.LevelCrossings.RoadCrossingItems[trItemRef].DistanceTo(Traveller)] = Viewer.Simulator.LevelCrossings.RoadCrossingItems[trItemRef];
 
@@ -100,7 +103,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Length > 0 && LastSpawnedTime >= NextSpawnTime && (cars.Count == 0 || cars.Last().Travelled > cars.Last().Length))
             {
                 var newCars = new List<RoadCar>(cars);
-                newCars.Add(new RoadCar(Viewer, this, CarSpawnerObj.CarAvSpeed, CarSpawnerObj.CarSpawnerListIdx));
+                newCars.Add(new RoadCar(Viewer, this, CarSpawnerObj.CarAverageSpeed, CarSpawnerObj.CarSpawnerListIndex));
                 Cars = cars = newCars;
 
                 LastSpawnedTime = 0;
@@ -159,14 +162,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public class Crossing
         {
-            public readonly LevelCrossingItem Item;
+            public readonly Simulation.LevelCrossingItem Item;
             public readonly float Distance;
             public readonly float DistanceAdjust1;
             public readonly float DistanceAdjust2;
             public readonly float DistanceAdjust3;
             public readonly float DistanceAdjust4;
             public readonly float TrackHeight;
-            internal Crossing(LevelCrossingItem item, float distance, float trackHeight)
+            internal Crossing(Simulation.LevelCrossingItem item, float distance, float trackHeight)
             {
                 Item = item;
                 Distance = distance;
@@ -255,8 +258,8 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Spawner = spawner;
             CarSpawnerListIdx = carSpawnerListIdx;
-            Type = Viewer.Random.Next() % viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].shapeNames.Length;
-            Length = viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].distanceFrom[Type];
+            Type = Viewer.Random.Next() % viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].Count;
+            Length = viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx][Type].Distance;
             // Front and rear travellers approximate wheel positions at 25% and 75% along vehicle.
             FrontTraveller = new Traveller(spawner.Traveller);
             FrontTraveller.Move(Length * 0.15f);
@@ -324,11 +327,11 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (speed > 0)
             {
-                if (SpeedMax < Spawner.CarSpawnerObj.CarAvSpeed * 1.25f) SpeedMax = Math.Min(SpeedMax + speed * 2, Spawner.CarSpawnerObj.CarAvSpeed * 1.25f);
+                if (SpeedMax < Spawner.CarSpawnerObj.CarAverageSpeed * 1.25f) SpeedMax = Math.Min(SpeedMax + speed * 2, Spawner.CarSpawnerObj.CarAverageSpeed * 1.25f);
             }
             else if (speed < 0)
             {
-                if (SpeedMax > Spawner.CarSpawnerObj.CarAvSpeed * 0.25f) SpeedMax = Math.Max(SpeedMax + speed * 2, Spawner.CarSpawnerObj.CarAvSpeed * 0.25f);
+                if (SpeedMax > Spawner.CarSpawnerObj.CarAverageSpeed * 0.25f) SpeedMax = Math.Max(SpeedMax + speed * 2, Spawner.CarSpawnerObj.CarAverageSpeed * 0.25f);
             }
         }
     }
@@ -412,7 +415,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public RoadCarPrimitive(Viewer viewer, RoadCar car)
         {
             Car = car;
-            CarShape = new RoadCarShape(viewer.Simulator.CarSpawnerLists[Car.CarSpawnerListIdx].shapeNames[car.Type], car);
+            CarShape = new RoadCarShape(viewer.Simulator.CarSpawnerLists[Car.CarSpawnerListIdx][car.Type].Name, car);
         }
 
         //[CallOnThread("Updater")]

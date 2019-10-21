@@ -19,13 +19,13 @@
 // Hence a different class
 
 using System;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts.Files;
 using Orts.Simulation;
 
 namespace ORTS.TrackViewer.Editing
@@ -146,7 +146,7 @@ namespace ORTS.TrackViewer.Editing
 
         #region private members
 
-        Orts.Formats.Msts.TrackDB trackDB;
+        TrackDB trackDB;
         TrackSectionsFile tsectionDat;
 
 
@@ -217,8 +217,8 @@ namespace ORTS.TrackViewer.Editing
             if (patFile.PathID == null) { return true; }
             if (patFile.Start == null) { return true; }
             if (patFile.End == null) { return true; }
-            if (patFile.TrackPDPs.Count == 0) { return true; }
-            if (patFile.TrPathNodes.Count == 0) { return true; }
+            if (patFile.DataPoints.Count == 0) { return true; }
+            if (patFile.PathNodes.Count == 0) { return true; }
             
             return false;
         }
@@ -230,8 +230,8 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="Nodes">The list that is going to be filled with as-of-yet unlinked and almost unprocessed path nodes</param>
         private void CreateNodes(PathFile patFile, List<TrainpathNode> Nodes)
         {
-            foreach (TrPathNode tpn in patFile.TrPathNodes)
-                Nodes.Add(TrainpathNode.CreatePathNode(tpn, patFile.TrackPDPs[(int)tpn.fromPDP], trackDB, tsectionDat));
+            foreach (PathNode tpn in patFile.PathNodes)
+                Nodes.Add(TrainpathNode.CreatePathNode(tpn, patFile.DataPoints[(int)tpn.PathDataPoint], trackDB, tsectionDat));
             FirstNode = Nodes[0];
             FirstNode.NodeType = TrainpathNodeType.Start;
         }
@@ -248,12 +248,12 @@ namespace ORTS.TrackViewer.Editing
             for (int i = 0; i < Nodes.Count; i++)
             {
                 TrainpathNode node = Nodes[i];
-                TrPathNode tpn = patFile.TrPathNodes[i];
+                PathNode tpn = patFile.PathNodes[i];
 
                 // find TvnIndex to next main node.
                 if (tpn.HasNextMainNode)
                 {
-                    node.NextMainNode = Nodes[(int)tpn.nextMainNode];
+                    node.NextMainNode = Nodes[(int)tpn.NextMainNode];
                     node.NextMainNode.PrevNode = node;
                     node.NextMainTvnIndex = node.FindTvnIndex(node.NextMainNode);
                 }
@@ -261,7 +261,7 @@ namespace ORTS.TrackViewer.Editing
                 // find TvnIndex to next siding node
                 if (tpn.HasNextSidingNode)
                 {
-                    node.NextSidingNode = Nodes[(int)tpn.nextSidingNode];
+                    node.NextSidingNode = Nodes[(int)tpn.NextSidingNode];
                     if (node.NextSidingNode.PrevNode == null)
                     {
                         node.NextSidingNode.PrevNode = node;
@@ -611,18 +611,16 @@ namespace ORTS.TrackViewer.Editing
             int tvnIndex = firstNode.NextMainTvnIndex;
             if (tvnIndex < 0) return stationNames;
 
-            TrackNode tn = trackDB.TrackNodes[tvnIndex];
-            TrVectorNode tvn = tn.TrVectorNode;
+            TrackVectorNode tvn = trackDB.TrackNodes[tvnIndex] as TrackVectorNode;
             if (tvn == null) return stationNames;
-            if (tvn.TrItemRefs == null) return stationNames;
+            if (tvn.TrackItemIndices == null) return stationNames;
 
-            foreach (int trackItemIndex in tvn.TrItemRefs)
+            foreach (int trackItemIndex in tvn.TrackItemIndices)
             {
-                TrItem trItem = trackDB.TrItemTable[trackItemIndex];
-                if (trItem.ItemType == TrItem.trItemType.trPLATFORM)
+                TrackItem trItem = trackDB.TrackItems[trackItemIndex];
+                if (trItem is PlatformItem)
                 {
-                    var traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, 
-                        trItem.TileX, trItem.TileZ, trItem.X, trItem.Z, Traveller.TravellerDirection.Forward);
+                    var traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tvn, trItem.Location, Traveller.TravellerDirection.Forward);
                     if (traveller != null)
                     {
                         var platformNode = new TrainpathVectorNode(firstNode, traveller);

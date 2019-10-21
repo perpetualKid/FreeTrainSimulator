@@ -25,6 +25,7 @@ using System.Text;
 using Orts.Formats.Msts;
 using Orts.ContentManager.Models;
 using Path = Orts.ContentManager.Models.Path;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ContentManager
 {
@@ -116,7 +117,7 @@ namespace Orts.ContentManager
                             line.Append(" ");
                             for (var i = 0; i < tracks.Count; i++)
                                 line.Append(i == activeTrack ? " |" : " .");
-                            if ((node.Flags & Path.Flags.Wait) != 0)
+                            if ((node.Flags & PathFlags.WaitPoint) != 0)
                                 line.AppendLine($"\t{node.Location}\t{node.Flags} (wait for {node.WaitTime} seconds)");
                             else
                                 line.AppendLine($"\t{node.Location}\t{node.Flags}");
@@ -173,10 +174,10 @@ namespace Orts.ContentManager
                     default:
                         if (content is ContentMSTSCab)
                         {
-                            CabViewFile cabView = new CabViewFile(content.PathName, System.IO.Path.GetDirectoryName(content.PathName));
+                            CabViewFile cabView = new CabViewFile(content.PathName);
                             details.AppendLine($"Position:\tDimensions:\tStyle:\tType:\t");
                             foreach (var control in cabView.CabViewControls)
-                                details.AppendLine($"{control.PositionX},{control.PositionY}\t{control.Width}x{control.Height}\t{control.ControlStyle}\t{control.ControlType}");
+                                details.AppendLine(control.ToString());
                             details.AppendLine();
                         }
                         break;

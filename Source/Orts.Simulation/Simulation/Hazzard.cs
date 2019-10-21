@@ -17,10 +17,13 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Orts.Formats.Msts;
-using Orts.Common;
 using System.Collections.Generic;
 using System.Linq;
+
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation
 {
@@ -40,15 +43,15 @@ namespace Orts.Simulation
 			InterestedHazzards = new List<int>();
 			CurrentHazzards = new Dictionary<int, Hazzard>();
 			HazFiles = new Dictionary<string, HazardFile>();
-			Hazzards = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetHazardsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrItemTable) : new Dictionary<int, Hazzard>();
+			Hazzards = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetHazardsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackItems) : new Dictionary<int, Hazzard>();
 		}
 
-		static Dictionary<int, Hazzard> GetHazardsFromDB(TrackNode[] trackNodes, TrItem[] trItemTable)
+		static Dictionary<int, Hazzard> GetHazardsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
 		{
 			return (from trackNode in trackNodes
-					where trackNode != null && trackNode.TrVectorNode != null && trackNode.TrVectorNode.NoItemRefs > 0
-					from itemRef in trackNode.TrVectorNode.TrItemRefs.Distinct()
-					where trItemTable[itemRef] != null && trItemTable[itemRef].ItemType == TrItem.trItemType.trHAZZARD
+					where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
+					from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
+					where trItemTable[itemRef] != null && trItemTable[itemRef] is HazardItem
 					select new KeyValuePair<int, Hazzard>(itemRef, new Hazzard(trackNode, trItemTable[itemRef])))
 					.ToDictionary(_ => _.Key, _ => _.Value);
 		}
@@ -70,11 +73,11 @@ namespace Orts.Simulation
 					//based on act setting for frequency
                     if (Hazzards[itemID].animal == true && Simulator.Activity != null)
                     {
-                        if (Simulator.Random.Next(100) > Simulator.Activity.Tr_Activity.Tr_Activity_Header.Animals) return null;
+                        if (Simulator.Random.Next(100) > Simulator.Activity.Activity.Header.Animals) return null;
                     }
 					else if (Simulator.Activity != null)
 					{
-						if (Simulator.Random.Next(100) > Simulator.Activity.Tr_Activity.Tr_Activity_Header.Animals) return null;
+						if (Simulator.Random.Next(100) > Simulator.Activity.Activity.Header.Animals) return null;
 					}
 					else //in explore mode
 					{
@@ -130,16 +133,16 @@ namespace Orts.Simulation
         readonly TrackNode TrackNode;
 
         internal WorldLocation Location;
-		public HazardFile HazFile { get { return hazF; } set { hazF = value; if (hazF.Tr_HazardFile.Workers != null) animal = false; else animal = true; } }
+		public HazardFile HazFile { get { return hazF; } set { hazF = value; if (hazF.Hazard.Workers != null) animal = false; else animal = true; } }
 		public HazardFile hazF;
 		public enum State { Idle1, Idle2, LookLeft, LookRight, Scared };
 		public State state;
 		public bool animal = true;
 
-		public Hazzard(TrackNode trackNode, TrItem trItem)
+		public Hazzard(TrackNode trackNode, TrackItem trItem)
         {
             TrackNode = trackNode;
-            Location = new WorldLocation(trItem.TileX, trItem.TileZ, trItem.X, trItem.Y, trItem.Z);
+            Location = trItem.Location;
 			state = State.Idle1;
         }
 

@@ -22,8 +22,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.Shapes;
@@ -32,11 +34,15 @@ using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
+
 using ORTS.Scripting.Api;
+
 using Event = Orts.Common.Event;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock
@@ -280,7 +286,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 if (Locomotive.CabViewList.Count > 0)
                 {
-                    if (Locomotive.CabViewList[(int)CabViewType.Front].CVFFile != null && Locomotive.CabViewList[(int)CabViewType.Front].CVFFile.TwoDViews.Count > 0)
+                    if (Locomotive.CabViewList[(int)CabViewType.Front].CVFFile != null && Locomotive.CabViewList[(int)CabViewType.Front].CVFFile.Views2D.Count > 0)
                         _CabRenderer = new CabRenderer(Viewer, Locomotive);
                     _hasCabRenderer = true;
                 }
@@ -347,33 +353,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         WagonAndMatchingPickup MatchedWagonAndPickup;
 
-        /// <summary>
-        /// Converts from enum to words for user messages.  
-        /// </summary>
-        public Dictionary<uint, string> PickupTypeDictionary = new Dictionary<uint, string>()
-        {
-            {(uint)MSTSWagon.PickupType.FreightGrain, Viewer.Catalog.GetString("freight-grain")},
-            {(uint)MSTSWagon.PickupType.FreightCoal, Viewer.Catalog.GetString("freight-coal")},
-            {(uint)MSTSWagon.PickupType.FreightGravel, Viewer.Catalog.GetString("freight-gravel")},
-            {(uint)MSTSWagon.PickupType.FreightSand, Viewer.Catalog.GetString("freight-sand")},
-            {(uint)MSTSWagon.PickupType.FuelWater, Viewer.Catalog.GetString("water")},
-            {(uint)MSTSWagon.PickupType.FuelCoal, Viewer.Catalog.GetString("coal")},
-            {(uint)MSTSWagon.PickupType.FuelDiesel, Viewer.Catalog.GetString("diesel oil")},
-            {(uint)MSTSWagon.PickupType.FuelWood, Viewer.Catalog.GetString("wood")},
-            {(uint)MSTSWagon.PickupType.FuelSand, Viewer.Catalog.GetString("sand")},
-            {(uint)MSTSWagon.PickupType.FreightGeneral, Viewer.Catalog.GetString("freight-general")},
-            {(uint)MSTSWagon.PickupType.FreightLivestock, Viewer.Catalog.GetString("freight-livestock")},
-            {(uint)MSTSWagon.PickupType.FreightFuel, Viewer.Catalog.GetString("freight-fuel")},
-            {(uint)MSTSWagon.PickupType.FreightMilk, Viewer.Catalog.GetString("freight-milk")},
-            {(uint)MSTSWagon.PickupType.SpecialMail, Viewer.Catalog.GetString("mail")}
-        };
 
         /// <summary>
         /// Holds data for an intake point on a wagon (e.g. tender) or loco and a pickup point which can supply that intake. 
         /// </summary>
         public class WagonAndMatchingPickup
         {
-            public PickupObj Pickup;
+            public PickupObject Pickup;
             public MSTSWagon Wagon;
             public MSTSLocomotive SteamLocomotiveWithTender;
             public IntakePoint IntakePoint;
@@ -411,13 +397,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             foreach (var pickup in worldFile.PickupList)
                             {
-                                if (pickup.Location == WorldLocation.None)
-                                    pickup.Location = new WorldLocation(
-                                        worldFile.TileX, worldFile.TileZ,
-                                        pickup.Position.X, pickup.Position.Y, pickup.Position.Z);
-                                if ((wagon.FreightAnimations != null && ((uint)wagon.FreightAnimations.FreightType == pickup.PickupType || wagon.FreightAnimations.FreightType == MSTSWagon.PickupType.None) &&
-                                    (uint)intake.Type == pickup.PickupType)
-                                 || ((uint)intake.Type == pickup.PickupType && (uint)intake.Type > (uint)MSTSWagon.PickupType.FreightSand && (wagon.WagonType == TrainCar.WagonTypes.Tender || wagon is MSTSLocomotive)))
+                                if ((wagon.FreightAnimations != null && (wagon.FreightAnimations.FreightType == pickup.PickupType || 
+                                    wagon.FreightAnimations.FreightType == PickupType.None) &&
+                                    intake.Type == pickup.PickupType)
+                                 || (intake.Type == pickup.PickupType && intake.Type > PickupType.FreightSand && (wagon.WagonType == TrainCar.WagonTypes.Tender || wagon is MSTSLocomotive)))
                                 {
                                     VectorExtension.Transform(new Vector3(0, 0, -intake.OffsetM), car.WorldPosition.XNAMatrix, out Vector3 intakePosition);
 
@@ -425,7 +408,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                         car.WorldPosition.TileX, car.WorldPosition.TileZ,
                                         intakePosition.X, intakePosition.Y, -intakePosition.Z);
 
-                                    var d2 = WorldLocation.GetDistanceSquared(intakeLocation, pickup.Location);
+                                    var d2 = WorldLocation.GetDistanceSquared(intakeLocation, pickup.WorldPosition.WorldLocation);
                                     if (d2 < shortestD2)
                                     {
                                         shortestD2 = d2;
@@ -472,7 +455,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 match.Wagon.WorldPosition.TileX, match.Wagon.WorldPosition.TileZ,
                 intakePosition.X, intakePosition.Y, -intakePosition.Z);
 
-            return (float)Math.Sqrt(WorldLocation.GetDistanceSquared(intakeLocation, match.Pickup.Location));
+            return (float)Math.Sqrt(WorldLocation.GetDistanceSquared(intakeLocation, match.Pickup.WorldPosition.WorldLocation));
         }
 
         /// <summary>
@@ -520,28 +503,28 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (distanceToPickupM > match.IntakePoint.WidthM / 2)
             {
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: Distance to {0} supply is {1}.",
-                    PickupTypeDictionary[(uint)match.Pickup.PickupType], Viewer.Catalog.GetPluralStringFmt("{0} meter", "{0} meters", (long)(distanceToPickupM+1f))));
+                    Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription()), Viewer.Catalog.GetPluralStringFmt("{0} meter", "{0} meters", (long)(distanceToPickupM+1f))));
                 return;
             }
             if (distanceToPickupM <= match.IntakePoint.WidthM / 2)
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = (int)match.Pickup.UID;
-            if (loco.SpeedMpS != 0 && match.Pickup.SpeedRange.MaxMpS == 0f)
+                MSTSWagon.RefillProcess.ActivePickupObjectUID = (int)match.Pickup.UiD;
+            if (loco.SpeedMpS != 0 && match.Pickup.SpeedRange.UpperLimit == 0f)
             {
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: Loco must be stationary to refill {0}.",
-                    PickupTypeDictionary[(uint)match.Pickup.PickupType]));
+                    Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription())));
                 return;
             }
-            if (loco.SpeedMpS < match.Pickup.SpeedRange.MinMpS)
+            if (loco.SpeedMpS < match.Pickup.SpeedRange.LowerLimit)
             {
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: Loco speed must exceed {0}.",
-                    FormatStrings.FormatSpeedLimit(match.Pickup.SpeedRange.MinMpS, Viewer.MilepostUnitsMetric)));
+                    FormatStrings.FormatSpeedLimit(match.Pickup.SpeedRange.LowerLimit, Viewer.MilepostUnitsMetric)));
                 return;
             }
-            if (loco.SpeedMpS > match.Pickup.SpeedRange.MaxMpS)
+            if (loco.SpeedMpS > match.Pickup.SpeedRange.UpperLimit)
             {
-                var speedLimitMpH = Speed.MeterPerSecond.ToMpH(match.Pickup.SpeedRange.MaxMpS);
+                var speedLimitMpH = Speed.MeterPerSecond.ToMpH(match.Pickup.SpeedRange.UpperLimit);
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: Loco speed must not exceed {0}.",
-                    FormatStrings.FormatSpeedLimit(match.Pickup.SpeedRange.MaxMpS, Viewer.MilepostUnitsMetric)));
+                    FormatStrings.FormatSpeedLimit(match.Pickup.SpeedRange.UpperLimit, Viewer.MilepostUnitsMetric)));
                 return;
             }
             if (match.Wagon is MSTSDieselLocomotive || match.Wagon is MSTSSteamLocomotive || (match.Wagon.WagonType == TrainCar.WagonTypes.Tender && match.SteamLocomotiveWithTender != null))
@@ -559,7 +542,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (fraction > 0.99)
                 {
                     Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: {0} supply now replenished.",
-                        PickupTypeDictionary[match.Pickup.PickupType]));
+                        Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription())));
                     return;
                 }
                 else
@@ -577,22 +560,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 // freight wagon animation
                 var fraction = match.Wagon.GetFilledFraction(match.Pickup.PickupType);
-                if (fraction > 0.99 && match.Pickup.PickupCapacity.FeedRateKGpS >= 0)
+                if (fraction > 0.99 && match.Pickup.Capacity.FeedRateKGpS >= 0)
                 {
                     Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Refill: {0} supply now replenished.",
-                        PickupTypeDictionary[match.Pickup.PickupType]));
+                        Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription())));
                     return;
                 }
-                else if (fraction < 0.01 && match.Pickup.PickupCapacity.FeedRateKGpS < 0)
+                else if (fraction < 0.01 && match.Pickup.Capacity.FeedRateKGpS < 0)
                 {
                     Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetStringFmt("Unload: {0} fuel or freight now unloaded.",
-                        PickupTypeDictionary[match.Pickup.PickupType]));
+                        Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription())));
                     return;
                 }
                 else
                 {
                     MSTSWagon.RefillProcess.OkToRefill = true;
-                    MSTSWagon.RefillProcess.Unload = match.Pickup.PickupCapacity.FeedRateKGpS < 0;
+                    MSTSWagon.RefillProcess.Unload = match.Pickup.Capacity.FeedRateKGpS < 0;
                     match.Wagon.StartRefillingOrUnloading(match.Pickup, match.IntakePoint, fraction, MSTSWagon.RefillProcess.Unload);
                     MatchedWagonAndPickup = match;  // Save away for HandleUserInput() to use when key is released.
                 }
@@ -611,9 +594,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (matchedWagonAndPickup != null)
             {
                 if (matchedWagonAndPickup.SteamLocomotiveWithTender != null)
-                    controller = matchedWagonAndPickup.SteamLocomotiveWithTender.GetRefillController((uint)matchedWagonAndPickup.Pickup.PickupType);
+                    controller = matchedWagonAndPickup.SteamLocomotiveWithTender.GetRefillController(matchedWagonAndPickup.Pickup.PickupType);
                 else
-                    controller = (matchedWagonAndPickup.Wagon as MSTSLocomotive).GetRefillController((uint)matchedWagonAndPickup.Pickup.PickupType);
+                    controller = (matchedWagonAndPickup.Wagon as MSTSLocomotive).GetRefillController(matchedWagonAndPickup.Pickup.PickupType);
                 controller.StartIncrease(target);
             }
         }
@@ -622,7 +605,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// Starts a continuous increase in controlled value. This method also receives TrainCar car to process individual locomotives for refueling.
         /// </summary>
         /// <param name="type">Pickup point</param>
-        public void StartRefilling(PickupObj matchPickup, float fraction, TrainCar car)
+        public void StartRefilling(PickupObject matchPickup, float fraction, TrainCar car)
         {
             var controller = (car as MSTSLocomotive).GetRefillController(matchPickup.PickupType);
 
@@ -642,7 +625,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// Starts a continuous increase in controlled value.
         /// </summary>
         /// <param name="type">Pickup point</param>
-        public void StartRefilling(uint type, float fraction)
+        public void StartRefilling(PickupType type, float fraction)
         {
             var controller = Locomotive.GetRefillController(type);
             if (controller == null)
@@ -1051,7 +1034,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (cabView.CVFFile != null)
                 {
                     // Loading ACE files, skip displaying ERROR messages
-                    foreach (var cabfile in cabView.CVFFile.TwoDViews)
+                    foreach (var cabfile in cabView.CVFFile.Views2D)
                     {
                         HasCabLightDirectory = CABTextureManager.LoadTextures(viewer, cabfile);
                     }
@@ -1066,7 +1049,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     {
                         controlSortIndex++;
                         int key = 1000 * (int)cvc.ControlType + count[(int)cvc.ControlType];
-                        CVCDial dial = cvc as CVCDial;
+                        CabViewDialControl dial = cvc as CabViewDialControl;
                         if (dial != null)
                         {
                             CabViewDialRenderer cvcr = new CabViewDialRenderer(viewer, car, dial, _Shader);
@@ -1076,7 +1059,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             count[(int)cvc.ControlType]++;
                             continue;
                         }
-                        CVCFirebox firebox = cvc as CVCFirebox;
+                        CabViewFireboxControl firebox = cvc as CabViewFireboxControl;
                         if (firebox != null)
                         {
                             CabViewGaugeRenderer cvgrFire = new CabViewGaugeRenderer(viewer, car, firebox, _Shader);
@@ -1084,7 +1067,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             CabViewControlRenderersList[i].Add(cvgrFire);
                             // don't "continue", because this cvc has to be also recognized as CVCGauge
                         }
-                        CVCGauge gauge = cvc as CVCGauge;
+                        CabViewGaugeControl gauge = cvc as CabViewGaugeControl;
                         if (gauge != null)
                         {
                             CabViewGaugeRenderer cvgr = new CabViewGaugeRenderer(viewer, car, gauge, _Shader);
@@ -1094,7 +1077,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             count[(int)cvc.ControlType]++;
                             continue;
                         }
-                        CVCSignal asp = cvc as CVCSignal;
+                        CabViewSignalControl asp = cvc as CabViewSignalControl;
                         if (asp != null)
                         {
                             CabViewDiscreteRenderer aspr = new CabViewDiscreteRenderer(viewer, car, asp, _Shader);
@@ -1104,7 +1087,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             count[(int)cvc.ControlType]++;
                             continue;
                         }
-                        CVCMultiStateDisplay multi = cvc as CVCMultiStateDisplay;
+                        CabViewMultiStateDisplayControl multi = cvc as CabViewMultiStateDisplayControl;
                         if (multi != null)
                         {
                             CabViewDiscreteRenderer mspr = new CabViewDiscreteRenderer(viewer, car, multi, _Shader);
@@ -1114,7 +1097,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             count[(int)cvc.ControlType]++;
                             continue;
                         }
-                        CVCDiscrete disc = cvc as CVCDiscrete;
+                        CabViewDiscreteControl disc = cvc as CabViewDiscreteControl;
                         if (disc != null)
                         {
                             CabViewDiscreteRenderer cvdr = new CabViewDiscreteRenderer(viewer, car, disc, _Shader);
@@ -1124,11 +1107,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             count[(int)cvc.ControlType]++;
                             continue;
                         }
-                        CVCDigital digital = cvc as CVCDigital;
+                        CabViewDigitalControl digital = cvc as CabViewDigitalControl;
                         if (digital != null)
                         {
                             CabViewDigitalRenderer cvdr;
-                            if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CABViewControlStyles.NEEDLE)
+                            if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CabViewControlStyle.Needle)
                                 cvdr = new CabViewCircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
                             else
                                 cvdr = new CabViewDigitalRenderer(viewer, car, digital, _Shader);
@@ -1163,7 +1146,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 controlSortIndex++;
                 int key = 1000 * (int)cvc.ControlType + count[(int)cvc.ControlType];
-                CVCDial dial = cvc as CVCDial;
+                CabViewDialControl dial = cvc as CabViewDialControl;
                 if (dial != null)
                 {
                     CabViewDialRenderer cvcr = new CabViewDialRenderer(viewer, car, dial, _Shader);
@@ -1173,7 +1156,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     count[(int)cvc.ControlType]++;
                     continue;
                 }
-                CVCFirebox firebox = cvc as CVCFirebox;
+                CabViewFireboxControl firebox = cvc as CabViewFireboxControl;
                 if (firebox != null)
                 {
                     CabViewGaugeRenderer cvgrFire = new CabViewGaugeRenderer(viewer, car, firebox, _Shader);
@@ -1181,7 +1164,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     CabViewControlRenderersList[i].Add(cvgrFire);
                     // don't "continue", because this cvc has to be also recognized as CVCGauge
                 }
-                CVCGauge gauge = cvc as CVCGauge;
+                CabViewGaugeControl gauge = cvc as CabViewGaugeControl;
                 if (gauge != null)
                 {
                     CabViewGaugeRenderer cvgr = new CabViewGaugeRenderer(viewer, car, gauge, _Shader);
@@ -1191,7 +1174,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     count[(int)cvc.ControlType]++;
                     continue;
                 }
-                CVCSignal asp = cvc as CVCSignal;
+                CabViewSignalControl asp = cvc as CabViewSignalControl;
                 if (asp != null)
                 {
                     CabViewDiscreteRenderer aspr = new CabViewDiscreteRenderer(viewer, car, asp, _Shader);
@@ -1201,7 +1184,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     count[(int)cvc.ControlType]++;
                     continue;
                 }
-                CVCMultiStateDisplay multi = cvc as CVCMultiStateDisplay;
+                CabViewMultiStateDisplayControl multi = cvc as CabViewMultiStateDisplayControl;
                 if (multi != null)
                 {
                     CabViewDiscreteRenderer mspr = new CabViewDiscreteRenderer(viewer, car, multi, _Shader);
@@ -1211,7 +1194,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     count[(int)cvc.ControlType]++;
                     continue;
                 }
-                CVCDiscrete disc = cvc as CVCDiscrete;
+                CabViewDiscreteControl disc = cvc as CabViewDiscreteControl;
                 if (disc != null)
                 {
                     CabViewDiscreteRenderer cvdr = new CabViewDiscreteRenderer(viewer, car, disc, _Shader);
@@ -1221,11 +1204,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     count[(int)cvc.ControlType]++;
                     continue;
                 }
-                CVCDigital digital = cvc as CVCDigital;
+                CabViewDigitalControl digital = cvc as CabViewDigitalControl;
                 if (digital != null)
                 {
                     CabViewDigitalRenderer cvdr;
-                    if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CABViewControlStyles.NEEDLE)
+                    if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CabViewControlStyle.Needle)
                         cvdr = new CabViewCircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
                     else
                         cvdr = new CabViewDigitalRenderer(viewer, car, digital, _Shader);
@@ -1258,7 +1241,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             var i = (_Locomotive.UsingRearCab) ? 1 : 0;
-            _CabTexture = CABTextureManager.GetTexture(_Locomotive.CabViewList[i].CVFFile.TwoDViews[_Location], Dark, CabLight, out _isNightTexture, HasCabLightDirectory);
+            _CabTexture = CABTextureManager.GetTexture(_Locomotive.CabViewList[i].CVFFile.Views2D[_Location], Dark, CabLight, out _isNightTexture, HasCabLightDirectory);
             if (_CabTexture == SharedMaterialManager.MissingTexture)
                 return;
 
@@ -1361,10 +1344,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             CabShaderControlView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, ShaderKey, Shader);
 
-            HasCabLightDirectory = CABTextureManager.LoadTextures(Viewer, Control.ACEFile);
+            HasCabLightDirectory = CABTextureManager.LoadTextures(Viewer, Control.AceFile);
         }
 
-        public CABViewControlTypes GetControlType()
+        public CabViewControlType GetControlType()
         {
             return Control.ControlType;
         }
@@ -1375,18 +1358,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public float GetRangeFraction()
         {
             var data = Locomotive.GetDataOf(Control);
-            if (data < Control.MinValue)
+            if (data < Control.ScaleRangeMin)
                 return 0;
-            if (data > Control.MaxValue)
+            if (data > Control.ScaleRangeMax)
                 return 1;
 
-            if (Control.MaxValue == Control.MinValue)
+            if (Control.ScaleRangeMax == Control.ScaleRangeMin)
                 return 0;
 
-            return (float)((data - Control.MinValue) / (Control.MaxValue - Control.MinValue));
+            return (float)((data - Control.ScaleRangeMin) / (Control.ScaleRangeMax - Control.ScaleRangeMin));
         }
 
-        public CABViewControlStyles GetStyle()
+        public CabViewControlStyle GetStyle()
         {
             return Control.ControlStyle;
         }
@@ -1409,7 +1392,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     /// </summary>
     public class CabViewDialRenderer : CabViewControlRenderer
     {
-        readonly CVCDial ControlDial;
+        readonly CabViewDialControl ControlDial;
         /// <summary>
         /// Rotation center point, in unscaled texture coordinates
         /// </summary>
@@ -1424,14 +1407,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         float Rotation;
         float ScaleToScreen = 1;
 
-        public CabViewDialRenderer(Viewer viewer, MSTSLocomotive locomotive, CVCDial control, CabShader shader)
+        public CabViewDialRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewDialControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
             ControlDial = control;
 
-            Texture = CABTextureManager.GetTexture(Control.ACEFile, false, false, out IsNightTexture, HasCabLightDirectory);
-            if (ControlDial.Height < Texture.Height)
-                Scale = (float)(ControlDial.Height / Texture.Height);
+            Texture = CABTextureManager.GetTexture(Control.AceFile, false, false, out IsNightTexture, HasCabLightDirectory);
+            if (ControlDial.Bounds.Height < Texture.Height)
+                Scale = ((float)ControlDial.Bounds.Height / Texture.Height);
             Origin = new Vector2((float)Texture.Width / 2, ControlDial.Center / Scale);
         }
 
@@ -1439,23 +1422,23 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             var dark = Viewer.MaterialManager.sunDirection.Y <= -0.085f || Viewer.Camera.IsUnderground;
 
-            Texture = CABTextureManager.GetTexture(Control.ACEFile, dark, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
+            Texture = CABTextureManager.GetTexture(Control.AceFile, dark, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
             if (Texture == SharedMaterialManager.MissingTexture)
                 return;
 
             base.PrepareFrame(frame, elapsedTime);
 
             // Cab view height and vertical position adjusted to allow for clip or stretch.
-            Position.X = (float)Viewer.CabWidthPixels / 640 * ((float)Control.PositionX + Origin.X * Scale) - Viewer.CabXOffsetPixels;
-            Position.Y = (float)Viewer.CabHeightPixels / 480 * ((float)Control.PositionY + Origin.Y * Scale) + Viewer.CabYOffsetPixels;
+            Position.X = (float)Viewer.CabWidthPixels / 640 * ((float)Control.Bounds.X + Origin.X * Scale) - Viewer.CabXOffsetPixels;
+            Position.Y = (float)Viewer.CabHeightPixels / 480 * ((float)Control.Bounds.Y + Origin.Y * Scale) + Viewer.CabYOffsetPixels;
             ScaleToScreen = (float)Viewer.DisplaySize.X / 640 * Scale;
 
             var rangeFraction = GetRangeFraction();
             var direction = ControlDial.Direction == 0 ? 1 : -1;
-            var rangeDegrees = direction * (ControlDial.ToDegree - ControlDial.FromDegree);
+            var rangeDegrees = (int)ControlDial.Direction * (ControlDial.EndAngle - ControlDial.StartAngle);
             while (rangeDegrees <= 0)
                 rangeDegrees += 360;
-            Rotation = MathHelper.WrapAngle(MathHelper.ToRadians(ControlDial.FromDegree + direction * rangeDegrees * rangeFraction));
+            Rotation = MathHelper.WrapAngle(MathHelper.ToRadians(ControlDial.StartAngle + (int)ControlDial.Direction * rangeDegrees * rangeFraction));
         }
 
         public override void Draw()
@@ -1475,7 +1458,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     /// </summary>
     public class CabViewGaugeRenderer : CabViewControlRenderer
     {
-        readonly CVCGauge Gauge;
+        readonly CabViewGaugeControl Gauge;
         readonly Rectangle SourceRectangle;
 
         Rectangle DestinationRectangle = new Rectangle();
@@ -1484,50 +1467,58 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         Double Num;
         bool IsFire;
 
-        public CabViewGaugeRenderer(Viewer viewer, MSTSLocomotive locomotive, CVCGauge control, CabShader shader)
+        public CabViewGaugeRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewGaugeControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
             Gauge = control;
-            if ((Control.ControlType == CABViewControlTypes.REVERSER_PLATE) || (Gauge.ControlStyle == CABViewControlStyles.POINTER))
+            if ((Control.ControlType == CabViewControlType.Reverser_Plate) || (Gauge.ControlStyle == CabViewControlStyle.Pointer))
             {
                 DrawColor = Color.White;
-                Texture = CABTextureManager.GetTexture(Control.ACEFile, false, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
+                Texture = CABTextureManager.GetTexture(Control.AceFile, false, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
                 SourceRectangle.Width = (int)Texture.Width;
                 SourceRectangle.Height = (int)Texture.Height;
             }
             else
             {
-                DrawColor = new Color(Gauge.PositiveColor.R, Gauge.PositiveColor.G, Gauge.PositiveColor.B);
+                DrawColor = Gauge.PositiveColors[0];
                 SourceRectangle = Gauge.Area;
             }
         }
 
-        public CabViewGaugeRenderer(Viewer viewer, MSTSLocomotive locomotive, CVCFirebox control, CabShader shader)
+        public CabViewGaugeRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewFireboxControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
             Gauge = control;
-            HasCabLightDirectory = CABTextureManager.LoadTextures(Viewer, control.FireACEFile);
-            Texture = CABTextureManager.GetTexture(control.FireACEFile, false, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
+            HasCabLightDirectory = CABTextureManager.LoadTextures(Viewer, control.FireBoxAceFile);
+            Texture = CABTextureManager.GetTexture(control.FireBoxAceFile, false, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
             DrawColor = Color.White;
             SourceRectangle.Width = (int)Texture.Width;
             SourceRectangle.Height = (int)Texture.Height;
             IsFire = true;
         }
 
-        public color GetColor(out bool positive)
+        public Color GetColor(out bool positive)
         {
-            if (Locomotive.GetDataOf(Control) < 0) { positive = false; return Gauge.NegativeColor; }
-            else { positive = true; return Gauge.PositiveColor; }
+            if (Locomotive.GetDataOf(Control) < 0)
+            {
+                positive = false;
+                return Gauge.NegativeColors[0];
+            }
+            else
+            {
+                positive = true;
+                return Gauge.PositiveColors[0];
+            }
         }
 
-        public CVCGauge GetGauge() { return Gauge; }
+        public CabViewGaugeControl GetGauge() { return Gauge; }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (!(Gauge is CVCFirebox))
+            if (!(Gauge is CabViewFireboxControl))
             {
                 var dark = Viewer.MaterialManager.sunDirection.Y <= -0.085f || Viewer.Camera.IsUnderground;
-                Texture = CABTextureManager.GetTexture(Control.ACEFile, dark, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
+                Texture = CABTextureManager.GetTexture(Control.AceFile, dark, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
             }
             if (Texture == SharedMaterialManager.MissingTexture)
                 return;
@@ -1546,47 +1537,47 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             if (Gauge.Orientation == 0)  // gauge horizontal
             {
-                ypos = (float)Gauge.Height;
-                zeropos = (float)(Gauge.Width * -Control.MinValue / (Control.MaxValue - Control.MinValue));
-                xpos = (float)Gauge.Width * percent;
+                ypos = Gauge.Bounds.Height;
+                zeropos = (float)(Gauge.Bounds.Width * -Control.ScaleRangeMin / (Control.ScaleRangeMax - Control.ScaleRangeMin));
+                xpos = Gauge.Bounds.Width * percent;
             }
             else  // gauge vertical
             {
-                xpos = (float)Gauge.Width;
-                zeropos = (float)(Gauge.Height * -Control.MinValue / (Control.MaxValue - Control.MinValue));
-                ypos = (float)Gauge.Height * percent;
+                xpos = Gauge.Bounds.Width;
+                zeropos = (float)(Gauge.Bounds.Height * -Control.ScaleRangeMin / (Control.ScaleRangeMax - Control.ScaleRangeMin));
+                ypos = Gauge.Bounds.Height * percent;
             }
 
-            if (Gauge.ControlStyle == CABViewControlStyles.SOLID || Gauge.ControlStyle == CABViewControlStyles.LIQUID)
+            if (Gauge.ControlStyle == CabViewControlStyle.Solid || Gauge.ControlStyle == CabViewControlStyle.Liquid)
             {
-                if (Control.MinValue < 0)
+                if (Control.ScaleRangeMin < 0)
                 {
                     if (Gauge.Orientation == 0)
                     {
-                        DestinationRectangle.X = (int)(xratio * (Control.PositionX + (zeropos < xpos ? zeropos : xpos))) - Viewer.CabXOffsetPixels;
-                        DestinationRectangle.Y = (int)(yratio * Control.PositionY) + Viewer.CabYOffsetPixels;
+                        DestinationRectangle.X = (int)(xratio * (Control.Bounds.X + (zeropos < xpos ? zeropos : xpos))) - Viewer.CabXOffsetPixels;
+                        DestinationRectangle.Y = (int)(yratio * Control.Bounds.Y) + Viewer.CabYOffsetPixels;
                         DestinationRectangle.Width = (int)(xratio * (xpos > zeropos ? xpos - zeropos : zeropos - xpos));
                         DestinationRectangle.Height = (int)(yratio * ypos);
                     }
                     else
                     {
-                        DestinationRectangle.X = (int)(xratio * Control.PositionX) - Viewer.CabXOffsetPixels;
+                        DestinationRectangle.X = (int)(xratio * Control.Bounds.X) - Viewer.CabXOffsetPixels;
                         if (Gauge.Direction != 1 && !IsFire)
-                        DestinationRectangle.Y = (int)(yratio * (Control.PositionY + (zeropos > ypos ? zeropos : 2 * zeropos - ypos))) - Viewer.CabYOffsetPixels;
+                        DestinationRectangle.Y = (int)(yratio * (Control.Bounds.Y + (zeropos > ypos ? zeropos : 2 * zeropos - ypos))) - Viewer.CabYOffsetPixels;
                         else
-                        DestinationRectangle.Y = (int)(yratio * (Control.PositionY + (zeropos < ypos ? zeropos : ypos))) + Viewer.CabYOffsetPixels;
+                        DestinationRectangle.Y = (int)(yratio * (Control.Bounds.Y + (zeropos < ypos ? zeropos : ypos))) + Viewer.CabYOffsetPixels;
                         DestinationRectangle.Width = (int)(xratio * xpos);
                         DestinationRectangle.Height = (int)(yratio * (ypos > zeropos ? ypos - zeropos : zeropos - ypos));
                     }
                 }
                 else
                 {
-                    DestinationRectangle.X = (int)(xratio * Control.PositionX) - Viewer.CabXOffsetPixels;
-                    var topY = Control.PositionY;  // top of visible column. +ve Y is downwards
+                    DestinationRectangle.X = (int)(xratio * Control.Bounds.X) - Viewer.CabXOffsetPixels;
+                    var topY = Control.Bounds.Y;  // top of visible column. +ve Y is downwards
                     if (Gauge.Direction != 0)  // column grows from bottom or from right
                     {
-                        DestinationRectangle.X = (int)(xratio * (Control.PositionX + Gauge.Width - xpos)) - Viewer.CabXOffsetPixels;
-                        if (Gauge.Orientation != 0) topY += Gauge.Height * (1 - percent);
+                        DestinationRectangle.X = (int)(xratio * (Control.Bounds.X + Gauge.Bounds.Width - xpos)) - Viewer.CabXOffsetPixels;
+                        if (Gauge.Orientation != 0) topY += (int)(Gauge.Bounds.Height * (1 - percent));
                     }
                     // Cab view vertical position adjusted to allow for clip or stretch.
                     DestinationRectangle.Y = (int)(yratio * topY) + Viewer.CabYOffsetPixels;
@@ -1596,19 +1587,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
             else // pointer gauge using texture
             {
-                var topY = Control.PositionY;  // top of visible column. +ve Y is downwards
+                var topY = Control.Bounds.Y;  // top of visible column. +ve Y is downwards
                 if (Gauge.Orientation == 0) // gauge horizontal
                 {
-                    DestinationRectangle.X = (int)(xratio * (Control.PositionX - 0.5 * Gauge.Area.Width + xpos)) - Viewer.CabXOffsetPixels;
+                    DestinationRectangle.X = (int)(xratio * (Control.Bounds.X - 0.5 * Gauge.Area.Width + xpos)) - Viewer.CabXOffsetPixels;
                     if (Gauge.Direction != 0)  // column grows from right
-                        DestinationRectangle.X = (int)(xratio * (Control.PositionX + Gauge.Width - 0.5 * Gauge.Area.Width - xpos)) - Viewer.CabXOffsetPixels;
+                        DestinationRectangle.X = (int)(xratio * (Control.Bounds.X + Gauge.Bounds.Width - 0.5 * Gauge.Area.Width - xpos)) - Viewer.CabXOffsetPixels;
                 }
                 else // gauge vertical
                 {
-                    topY += ypos - 0.5 * Gauge.Area.Height;
-                    DestinationRectangle.X = (int)(xratio * Control.PositionX) - Viewer.CabXOffsetPixels;
+                    topY += (int)(ypos - 0.5 * Gauge.Area.Height);
+                    DestinationRectangle.X = (int)(xratio * Control.Bounds.X) - Viewer.CabXOffsetPixels;
                     if (Gauge.Direction != 0)  // column grows from bottom
-                        topY += Gauge.Height - 2 * ypos;
+                        topY += (int)(Gauge.Bounds.Height - 2 * ypos);
                 }
                 // Cab view vertical position adjusted to allow for clip or stretch.
                 DestinationRectangle.Y = (int)(yratio * topY) + Viewer.CabYOffsetPixels;
@@ -1617,22 +1608,24 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Adjust coal texture height, because it mustn't show up at the bottom of door (see Scotsman)
                 // TODO: cut the texture at the bottom instead of stretching
-                if (Gauge is CVCFirebox)
-                    DestinationRectangle.Height = Math.Min(DestinationRectangle.Height, (int)(yratio * (Control.PositionY + 0.5 * Gauge.Area.Height)) - DestinationRectangle.Y);
+                if (Gauge is CabViewFireboxControl)
+                    DestinationRectangle.Height = Math.Min(DestinationRectangle.Height, (int)(yratio * (Control.Bounds.Y + 0.5 * Gauge.Area.Height)) - DestinationRectangle.Y);
             }
-            if (Control.MinValue < 0 && Control.ControlType != CABViewControlTypes.REVERSER_PLATE && Gauge.ControlStyle != CABViewControlStyles.POINTER)
+            if (Control.ScaleRangeMin < 0 && Control.ControlType != CabViewControlType.Reverser_Plate && Gauge.ControlStyle != CabViewControlStyle.Pointer)
             {
-                if (Num < 0 && Gauge.NegativeColor.A != 0)
+                if (Num < 0 && Gauge.NegativeColors[0].A != 0)
                 {
-                    if ((Gauge.NumNegativeColors >= 2) && (Num < Gauge.NegativeSwitchVal))
-                        DrawColor = new Color(Gauge.SecondNegativeColor.R, Gauge.SecondNegativeColor.G, Gauge.SecondNegativeColor.B, Gauge.SecondNegativeColor.A);
-                    else DrawColor = new Color(Gauge.NegativeColor.R, Gauge.NegativeColor.G, Gauge.NegativeColor.B, Gauge.NegativeColor.A);
+                    if ((Gauge.NegativeColors.Length >= 2) && (Num < Gauge.NegativeTrigger))
+                        DrawColor = Gauge.NegativeColors[1];
+                    else
+                        DrawColor = Gauge.NegativeColors[0];
                 }
                 else
                 {
-                    if ((Gauge.NumPositiveColors >= 2) && (Num > Gauge.PositiveSwitchVal))
-                        DrawColor = new Color(Gauge.SecondPositiveColor.R, Gauge.SecondPositiveColor.G, Gauge.SecondPositiveColor.B, Gauge.SecondPositiveColor.A);
-                    else DrawColor = new Color(Gauge.PositiveColor.R, Gauge.PositiveColor.G, Gauge.PositiveColor.B, Gauge.PositiveColor.A);
+                    if ((Gauge.PositiveColors.Length >= 2) && (Num > Gauge.PositiveTrigger))
+                        DrawColor = Gauge.PositiveColors[1];
+                    else
+                        DrawColor = Gauge.PositiveColors[0];
                 }
             }
         }
@@ -1652,7 +1645,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     /// </summary>
     public class CabViewDiscreteRenderer : CabViewControlRenderer
     {
-        readonly CVCWithFrames ControlDiscrete;
+        readonly CabViewFramedControl ControlDiscrete;
         readonly Rectangle SourceRectangle;
         Rectangle DestinationRectangle = new Rectangle();
         public readonly float CVCFlashTimeOn = 0.75f;
@@ -1670,21 +1663,21 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         readonly Func<float, float> ChangedValue;
 
-        public CabViewDiscreteRenderer(Viewer viewer, MSTSLocomotive locomotive, CVCWithFrames control, CabShader shader)
+        public CabViewDiscreteRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewFramedControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
             ControlDiscrete = control;
-            CABTextureManager.DisassembleTexture(viewer.RenderProcess.GraphicsDevice, Control.ACEFile, (int)Control.Width, (int)Control.Height, ControlDiscrete.FramesCount, ControlDiscrete.FramesX, ControlDiscrete.FramesY);
-            Texture = CABTextureManager.GetTextureByIndexes(Control.ACEFile, 0, false, false, out IsNightTexture, HasCabLightDirectory);
+            CABTextureManager.DisassembleTexture(viewer.RenderProcess.GraphicsDevice, Control.AceFile, Control.Bounds.Width, Control.Bounds.Height, ControlDiscrete.FramesCount, ControlDiscrete.FramesX, ControlDiscrete.FramesY);
+            Texture = CABTextureManager.GetTextureByIndexes(Control.AceFile, 0, false, false, out IsNightTexture, HasCabLightDirectory);
             SourceRectangle = new Rectangle(0, 0, Texture.Width, Texture.Height);
-            Scale = (float)(Math.Min(Control.Height, Texture.Height) / Texture.Height); // Allow only downscaling of the texture, and not upscaling
+            Scale = (float)(Math.Min(Control.Bounds.Height, Texture.Height) / Texture.Height); // Allow only downscaling of the texture, and not upscaling
 
             switch (ControlDiscrete.ControlStyle)
             {
-                case CABViewControlStyles.ONOFF: ChangedValue = (value) => UserInput.IsMouseLeftButtonPressed ? 1 - value : value; break;
-                case CABViewControlStyles.WHILE_PRESSED:
-                case CABViewControlStyles.PRESSED: ChangedValue = (value) => UserInput.IsMouseLeftButtonDown ? 1 : 0; break;
-                case CABViewControlStyles.NONE:
+                case CabViewControlStyle.OnOff: ChangedValue = (value) => UserInput.IsMouseLeftButtonPressed ? 1 - value : value; break;
+                case CabViewControlStyle.While_Pressed:
+                case CabViewControlStyle.Pressed: ChangedValue = (value) => UserInput.IsMouseLeftButtonDown ? 1 : 0; break;
+                case CabViewControlStyle.None:
                     ChangedValue = (value) =>
                     {
                         IntermediateValue %= 0.5f;
@@ -1700,18 +1693,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             var index = GetDrawIndex();
 
-            var mS = Control as CVCMultiStateDisplay;
+            var mS = Control as CabViewMultiStateDisplayControl;
             if (mS != null)
             {
                 CumulativeTime += elapsedTime.ClockSeconds;
                 while (CumulativeTime > CVCFlashTimeTotal)
                     CumulativeTime -= CVCFlashTimeTotal;
-                if ((mS.MSStyles.Count > index) && (mS.MSStyles[index] == 1) && (CumulativeTime > CVCFlashTimeOn))
+                if ((mS.Styles.Count > index) && (mS.Styles[index] == 1) && (CumulativeTime > CVCFlashTimeOn))
                     return;
             }
             var dark = Viewer.MaterialManager.sunDirection.Y <= -0.085f || Viewer.Camera.IsUnderground;
 
-            Texture = CABTextureManager.GetTextureByIndexes(Control.ACEFile, index, dark, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
+            Texture = CABTextureManager.GetTextureByIndexes(Control.AceFile, index, dark, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
             if (Texture == SharedMaterialManager.MissingTexture)
                 return;
 
@@ -1720,10 +1713,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // Cab view height and vertical position adjusted to allow for clip or stretch.
             var xratio = (float)Viewer.CabWidthPixels / 640;
             var yratio = (float)Viewer.CabHeightPixels / 480;
-            DestinationRectangle.X = (int)(xratio * Control.PositionX * 1.0001) - Viewer.CabXOffsetPixels;
-            DestinationRectangle.Y = (int)(yratio * Control.PositionY * 1.0001) + Viewer.CabYOffsetPixels;
-            DestinationRectangle.Width = (int)(xratio * Math.Min(Control.Width, Texture.Width));  // Allow only downscaling of the texture, and not upscaling
-            DestinationRectangle.Height = (int)(yratio * Math.Min(Control.Height, Texture.Height));  // Allow only downscaling of the texture, and not upscaling
+            DestinationRectangle.X = (int)(xratio * Control.Bounds.X * 1.0001) - Viewer.CabXOffsetPixels;
+            DestinationRectangle.Y = (int)(yratio * Control.Bounds.Y * 1.0001) + Viewer.CabYOffsetPixels;
+            DestinationRectangle.Width = (int)(xratio * Math.Min(Control.Bounds.Width, Texture.Width));  // Allow only downscaling of the texture, and not upscaling
+            DestinationRectangle.Height = (int)(yratio * Math.Min(Control.Bounds.Height, Texture.Height));  // Allow only downscaling of the texture, and not upscaling
         }
 
         public override void Draw()
@@ -1746,28 +1739,28 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             var index = 0;
             switch (ControlDiscrete.ControlType)
             {
-                case CABViewControlTypes.ENGINE_BRAKE:
-                case CABViewControlTypes.TRAIN_BRAKE:
-                case CABViewControlTypes.REGULATOR:
-                case CABViewControlTypes.CUTOFF:
-                case CABViewControlTypes.BLOWER:
-                case CABViewControlTypes.DAMPERS_FRONT:
-                case CABViewControlTypes.STEAM_HEAT:
-                case CABViewControlTypes.ORTS_WATER_SCOOP:
-                case CABViewControlTypes.WATER_INJECTOR1:
-                case CABViewControlTypes.WATER_INJECTOR2:
-                case CABViewControlTypes.FIREHOLE:
+                case CabViewControlType.Engine_Brake:
+                case CabViewControlType.Train_Brake:
+                case CabViewControlType.Regulator:
+                case CabViewControlType.CutOff:
+                case CabViewControlType.Blower:
+                case CabViewControlType.Dampers_Front:
+                case CabViewControlType.Steam_Heat:
+                case CabViewControlType.Orts_Water_Scoop:
+                case CabViewControlType.Water_Injector1:
+                case CabViewControlType.Water_Injector2:
+                case CabViewControlType.FireHole:
                     index = PercentToIndex(data);
                     break;
-                case CABViewControlTypes.THROTTLE:
-                case CABViewControlTypes.THROTTLE_DISPLAY:
+                case CabViewControlType.Throttle:
+                case CabViewControlType.Throttle_Display:
                     index = PercentToIndex(data);
                     break;
-                case CABViewControlTypes.FRICTION_BRAKING:
+                case CabViewControlType.Friction_Braking:
                     index = data > 0.001 ? 1 : 0;
                     break;
-                case CABViewControlTypes.DYNAMIC_BRAKE:
-                case CABViewControlTypes.DYNAMIC_BRAKE_DISPLAY:
+                case CabViewControlType.Dynamic_Brake:
+                case CabViewControlType.Dynamic_Brake_Display:
                     if (Locomotive.DynamicBrakeController != null)
                     {
                         if (Locomotive.DynamicBrakePercent == -1)
@@ -1782,7 +1775,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         index = PercentToIndex(Locomotive.DynamicBrakePercent);
                     }
                     break;
-                case CABViewControlTypes.CPH_DISPLAY:
+                case CabViewControlType.Cph_Display:
                     if (Locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic && Locomotive.DynamicBrakePercent >= 0)
                         // TODO <CSComment> This is a sort of hack to allow MSTS-compliant operation of Dynamic brake indications in the standard USA case with 8 steps (e.g. Dash9)
                         // This hack returns to code of previous OR versions (e.g. release 1.0).
@@ -1792,74 +1785,74 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     else
                         index = PercentToIndex(Locomotive.GetCombinedHandleValue(false));
                     break;
-                case CABViewControlTypes.CP_HANDLE:
+                case CabViewControlType.Cp_Handle:
                     if (Locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic && Locomotive.DynamicBrakePercent >= 0
                         || Locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleAir && Locomotive.TrainBrakeController.CurrentValue > 0)
                         index = PercentToIndex(Locomotive.GetCombinedHandleValue(false));
                     else
                         index = PercentToIndex(Locomotive.GetCombinedHandleValue(false));
                     break;
-                case CABViewControlTypes.ALERTER_DISPLAY:
-                case CABViewControlTypes.RESET:
-                case CABViewControlTypes.WIPERS:
-                case CABViewControlTypes.EXTERNALWIPERS:
-                case CABViewControlTypes.LEFTDOOR:
-                case CABViewControlTypes.RIGHTDOOR:
-                case CABViewControlTypes.MIRRORS:
-                case CABViewControlTypes.HORN:
-                case CABViewControlTypes.WHISTLE:
-                case CABViewControlTypes.BELL:
-                case CABViewControlTypes.SANDERS:
-                case CABViewControlTypes.SANDING:
-                case CABViewControlTypes.WHEELSLIP:
-                case CABViewControlTypes.FRONT_HLIGHT:
-                case CABViewControlTypes.PANTOGRAPH:
-                case CABViewControlTypes.PANTOGRAPH2:
-                case CABViewControlTypes.ORTS_PANTOGRAPH3:
-                case CABViewControlTypes.ORTS_PANTOGRAPH4:
-                case CABViewControlTypes.PANTOGRAPHS_4:
-                case CABViewControlTypes.PANTOGRAPHS_4C:
-                case CABViewControlTypes.PANTOGRAPHS_5:
-                case CABViewControlTypes.PANTO_DISPLAY:
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_DRIVER_CLOSING_ORDER:
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_DRIVER_OPENING_ORDER:
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_DRIVER_CLOSING_AUTHORIZATION:
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_STATE:
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_CLOSED:
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_OPEN:
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_AUTHORIZED:
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_OPEN_AND_AUTHORIZED:
-                case CABViewControlTypes.DIRECTION:
-                case CABViewControlTypes.DIRECTION_DISPLAY:
-                case CABViewControlTypes.ASPECT_DISPLAY:
-                case CABViewControlTypes.GEARS:
-                case CABViewControlTypes.OVERSPEED:
-                case CABViewControlTypes.PENALTY_APP:
-                case CABViewControlTypes.EMERGENCY_BRAKE:
-                case CABViewControlTypes.DOORS_DISPLAY:
-                case CABViewControlTypes.CYL_COCKS:
-                case CABViewControlTypes.ORTS_CYL_COMP:
-                case CABViewControlTypes.STEAM_INJ1:
-                case CABViewControlTypes.STEAM_INJ2:
-                case CABViewControlTypes.SMALL_EJECTOR:
-                case CABViewControlTypes.GEARS_DISPLAY:
-                case CABViewControlTypes.CAB_RADIO:
-                case CABViewControlTypes.ORTS_PLAYER_DIESEL_ENGINE:
-                case CABViewControlTypes.ORTS_HELPERS_DIESEL_ENGINES:
-                case CABViewControlTypes.ORTS_PLAYER_DIESEL_ENGINE_STATE:
-                case CABViewControlTypes.ORTS_PLAYER_DIESEL_ENGINE_STARTER:
-                case CABViewControlTypes.ORTS_PLAYER_DIESEL_ENGINE_STOPPER:
-                case CABViewControlTypes.ORTS_CABLIGHT:
-                case CABViewControlTypes.ORTS_LEFTDOOR:
-                case CABViewControlTypes.ORTS_RIGHTDOOR:
-                case CABViewControlTypes.ORTS_MIRRORS:
+                case CabViewControlType.Alerter_Display:
+                case CabViewControlType.Reset:
+                case CabViewControlType.Wipers:
+                case CabViewControlType.ExternalWipers:
+                case CabViewControlType.LeftDoor:
+                case CabViewControlType.RightDoor:
+                case CabViewControlType.Mirrors:
+                case CabViewControlType.Horn:
+                case CabViewControlType.Whistle:
+                case CabViewControlType.Bell:
+                case CabViewControlType.Sanders:
+                case CabViewControlType.Sanding:
+                case CabViewControlType.WheelSlip:
+                case CabViewControlType.Front_HLight:
+                case CabViewControlType.Pantograph:
+                case CabViewControlType.Pantograph2:
+                case CabViewControlType.Orts_Pantograph3:
+                case CabViewControlType.Orts_Pantograph4:
+                case CabViewControlType.Pantographs_4:
+                case CabViewControlType.Pantographs_4C:
+                case CabViewControlType.Pantographs_5:
+                case CabViewControlType.Panto_Display:
+                case CabViewControlType.Orts_Circuit_Breaker_Driver_Closing_Order:
+                case CabViewControlType.Orts_Circuit_Breaker_Driver_Opening_Order:
+                case CabViewControlType.Orts_Circuit_Breaker_Driver_Closing_Authorization:
+                case CabViewControlType.Orts_Circuit_Breaker_State:
+                case CabViewControlType.Orts_Circuit_Breaker_Closed:
+                case CabViewControlType.Orts_Circuit_Breaker_Open:
+                case CabViewControlType.Orts_Circuit_Breaker_Authorized:
+                case CabViewControlType.Orts_Circuit_Breaker_Open_And_Authorized:
+                case CabViewControlType.Direction:
+                case CabViewControlType.Direction_Display:
+                case CabViewControlType.Aspect_Display:
+                case CabViewControlType.Gears:
+                case CabViewControlType.OverSpeed:
+                case CabViewControlType.Penalty_App:
+                case CabViewControlType.Emergency_Brake:
+                case CabViewControlType.Doors_Display:
+                case CabViewControlType.Cyl_Cocks:
+                case CabViewControlType.Orts_Cyl_Comp:
+                case CabViewControlType.Steam_Inj1:
+                case CabViewControlType.Steam_Inj2:
+                case CabViewControlType.Small_Ejector:
+                case CabViewControlType.Gears_Display:
+                case CabViewControlType.Cab_Radio:
+                case CabViewControlType.Orts_Player_Diesel_Engine:
+                case CabViewControlType.Orts_Helpers_Diesel_Engines:
+                case CabViewControlType.Orts_Player_Diesel_Engine_State:
+                case CabViewControlType.Orts_Player_Diesel_Engine_Starter:
+                case CabViewControlType.Orts_Player_Diesel_Engine_Stopper:
+                case CabViewControlType.Orts_CabLight:
+                case CabViewControlType.Orts_LeftDoor:
+                case CabViewControlType.Orts_RightDoor:
+                case CabViewControlType.Orts_Mirros:
                     index = (int)data;
                     break;
             }
             // If it is a control with NumPositions and NumValues, the index becomes the reference to the Positions entry, which in turn is the frame index within the .ace file
-            if (ControlDiscrete is CVCDiscrete && !(ControlDiscrete is CVCSignal) && (ControlDiscrete as CVCDiscrete).Positions.Count > index &&
-                (ControlDiscrete as CVCDiscrete).Positions.Count == ControlDiscrete.Values.Count && index >= 0)
-                index = (ControlDiscrete as CVCDiscrete).Positions[index];
+            if (ControlDiscrete is CabViewDiscreteControl && !(ControlDiscrete is CabViewSignalControl) && (ControlDiscrete as CabViewDiscreteControl).Positions.Count > index &&
+                (ControlDiscrete as CabViewDiscreteControl).Positions.Count == ControlDiscrete.Values.Count && index >= 0)
+                index = (ControlDiscrete as CabViewDiscreteControl).Positions[index];
 
             if (index >= ControlDiscrete.FramesCount) index = ControlDiscrete.FramesCount - 1;
             if (index < 0) index = 0;
@@ -1872,8 +1865,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         float NormalizedMouseMovement()
         {
             return (ControlDiscrete.Orientation > 0
-                ? (float)UserInput.MouseMoveY / (float)Control.Height
-                : (float)UserInput.MouseMoveX / (float)Control.Width)
+                ? (float)UserInput.MouseMoveY / Control.Bounds.Height
+                : (float)UserInput.MouseMoveX / Control.Bounds.Width)
                 * (ControlDiscrete.Direction > 0 ? -1 : 1);
         }
 
@@ -1889,32 +1882,32 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             switch (Control.ControlType)
             {
-                case CABViewControlTypes.REGULATOR:
-                case CABViewControlTypes.THROTTLE: Locomotive.SetThrottleValue(ChangedValue(Locomotive.ThrottleController.IntermediateValue)); break;
-                case CABViewControlTypes.ENGINE_BRAKE: Locomotive.SetEngineBrakeValue(ChangedValue(Locomotive.EngineBrakeController.IntermediateValue)); break;
-                case CABViewControlTypes.TRAIN_BRAKE: Locomotive.SetTrainBrakeValue(ChangedValue(Locomotive.TrainBrakeController.IntermediateValue)); break;
-                case CABViewControlTypes.DYNAMIC_BRAKE: Locomotive.SetDynamicBrakeValue(ChangedValue(Locomotive.DynamicBrakeController.IntermediateValue)); break;
-                case CABViewControlTypes.GEARS: Locomotive.SetGearBoxValue(ChangedValue(Locomotive.GearBoxController.IntermediateValue)); break;
-                case CABViewControlTypes.DIRECTION: var dir = ChangedValue(0); if (dir != 0) new ReverserCommand(Viewer.Log, dir > 0); break;
-                case CABViewControlTypes.FRONT_HLIGHT: var hl = ChangedValue(0); if (hl != 0) new HeadlightCommand(Viewer.Log, hl > 0); break;
-                case CABViewControlTypes.WHISTLE:
-                case CABViewControlTypes.HORN: new HornCommand(Viewer.Log, ChangedValue(Locomotive.Horn ? 1 : 0) > 0); break;
-                case CABViewControlTypes.BELL: new BellCommand(Viewer.Log, ChangedValue(Locomotive.Bell ? 1 : 0) > 0); break;
-                case CABViewControlTypes.SANDERS:
-                case CABViewControlTypes.SANDING: new SanderCommand(Viewer.Log, ChangedValue(Locomotive.Sander ? 1 : 0) > 0); break;
-                case CABViewControlTypes.PANTOGRAPH: new PantographCommand(Viewer.Log, 1, ChangedValue(Locomotive.Pantographs[1].CommandUp ? 1 : 0) > 0); break;
-                case CABViewControlTypes.PANTOGRAPH2: new PantographCommand(Viewer.Log, 2, ChangedValue(Locomotive.Pantographs[2].CommandUp ? 1 : 0) > 0); break;
-                case CABViewControlTypes.ORTS_PANTOGRAPH3: new PantographCommand(Viewer.Log, 3, ChangedValue(Locomotive.Pantographs[3].CommandUp ? 1 : 0) > 0); break;
-                case CABViewControlTypes.ORTS_PANTOGRAPH4: new PantographCommand(Viewer.Log, 4, ChangedValue(Locomotive.Pantographs[4].CommandUp ? 1 : 0) > 0); break;
-                case CABViewControlTypes.PANTOGRAPHS_4C:
-                case CABViewControlTypes.PANTOGRAPHS_4:
+                case CabViewControlType.Regulator:
+                case CabViewControlType.Throttle: Locomotive.SetThrottleValue(ChangedValue(Locomotive.ThrottleController.IntermediateValue)); break;
+                case CabViewControlType.Engine_Brake: Locomotive.SetEngineBrakeValue(ChangedValue(Locomotive.EngineBrakeController.IntermediateValue)); break;
+                case CabViewControlType.Train_Brake: Locomotive.SetTrainBrakeValue(ChangedValue(Locomotive.TrainBrakeController.IntermediateValue)); break;
+                case CabViewControlType.Dynamic_Brake: Locomotive.SetDynamicBrakeValue(ChangedValue(Locomotive.DynamicBrakeController.IntermediateValue)); break;
+                case CabViewControlType.Gears: Locomotive.SetGearBoxValue(ChangedValue(Locomotive.GearBoxController.IntermediateValue)); break;
+                case CabViewControlType.Direction: var dir = ChangedValue(0); if (dir != 0) new ReverserCommand(Viewer.Log, dir > 0); break;
+                case CabViewControlType.Front_HLight: var hl = ChangedValue(0); if (hl != 0) new HeadlightCommand(Viewer.Log, hl > 0); break;
+                case CabViewControlType.Whistle:
+                case CabViewControlType.Horn: new HornCommand(Viewer.Log, ChangedValue(Locomotive.Horn ? 1 : 0) > 0); break;
+                case CabViewControlType.Bell: new BellCommand(Viewer.Log, ChangedValue(Locomotive.Bell ? 1 : 0) > 0); break;
+                case CabViewControlType.Sanders:
+                case CabViewControlType.Sanding: new SanderCommand(Viewer.Log, ChangedValue(Locomotive.Sander ? 1 : 0) > 0); break;
+                case CabViewControlType.Pantograph: new PantographCommand(Viewer.Log, 1, ChangedValue(Locomotive.Pantographs[1].CommandUp ? 1 : 0) > 0); break;
+                case CabViewControlType.Pantograph2: new PantographCommand(Viewer.Log, 2, ChangedValue(Locomotive.Pantographs[2].CommandUp ? 1 : 0) > 0); break;
+                case CabViewControlType.Orts_Pantograph3: new PantographCommand(Viewer.Log, 3, ChangedValue(Locomotive.Pantographs[3].CommandUp ? 1 : 0) > 0); break;
+                case CabViewControlType.Orts_Pantograph4: new PantographCommand(Viewer.Log, 4, ChangedValue(Locomotive.Pantographs[4].CommandUp ? 1 : 0) > 0); break;
+                case CabViewControlType.Pantographs_4C:
+                case CabViewControlType.Pantographs_4:
                     var pantos = ChangedValue(0);
                     if (pantos != 0)
                     {
                         if (Locomotive.Pantographs[1].State == PantographState.Down && Locomotive.Pantographs[2].State == PantographState.Down)
                         {
                             if (pantos > 0) new PantographCommand(Viewer.Log, 1, true);
-                            else if (Control.ControlType == CABViewControlTypes.PANTOGRAPHS_4C) new PantographCommand(Viewer.Log, 2, true);
+                            else if (Control.ControlType == CabViewControlType.Pantographs_4C) new PantographCommand(Viewer.Log, 2, true);
                         }
                         else if (Locomotive.Pantographs[1].State == PantographState.Up && Locomotive.Pantographs[2].State == PantographState.Down)
                         {
@@ -1929,43 +1922,43 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         else if (Locomotive.Pantographs[1].State == PantographState.Down && Locomotive.Pantographs[2].State == PantographState.Up)
                         {
                             if (pantos < 0) new PantographCommand(Viewer.Log, 1, true);
-                            else if (Control.ControlType == CABViewControlTypes.PANTOGRAPHS_4C) new PantographCommand(Viewer.Log, 2, false);
+                            else if (Control.ControlType == CabViewControlType.Pantographs_4C) new PantographCommand(Viewer.Log, 2, false);
                         }
                     }
                     break;
-                case CABViewControlTypes.STEAM_HEAT: Locomotive.SetSteamHeatValue(ChangedValue(Locomotive.SteamHeatController.IntermediateValue)); break;
-                case CABViewControlTypes.ORTS_WATER_SCOOP: if (((Locomotive as MSTSSteamLocomotive).WaterScoopDown ? 1 : 0) != ChangedValue(Locomotive.WaterScoopDown ? 1 : 0)) ; break;
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_DRIVER_CLOSING_ORDER:
+                case CabViewControlType.Steam_Heat: Locomotive.SetSteamHeatValue(ChangedValue(Locomotive.SteamHeatController.IntermediateValue)); break;
+                case CabViewControlType.Orts_Water_Scoop: if (((Locomotive as MSTSSteamLocomotive).WaterScoopDown ? 1 : 0) != ChangedValue(Locomotive.WaterScoopDown ? 1 : 0)) ; break;
+                case CabViewControlType.Orts_Circuit_Breaker_Driver_Closing_Order:
                     new CircuitBreakerClosingOrderCommand(Viewer.Log, ChangedValue((Locomotive as MSTSElectricLocomotive).PowerSupply.CircuitBreaker.DriverClosingOrder ? 1 : 0) > 0);
                     new CircuitBreakerClosingOrderButtonCommand(Viewer.Log, ChangedValue(UserInput.IsMouseLeftButtonPressed ? 1 : 0) > 0);
                     break;
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_DRIVER_OPENING_ORDER: new CircuitBreakerOpeningOrderButtonCommand(Viewer.Log, ChangedValue(UserInput.IsMouseLeftButtonPressed ? 1 : 0) > 0); break;
-                case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_DRIVER_CLOSING_AUTHORIZATION: new CircuitBreakerClosingAuthorizationCommand(Viewer.Log, ChangedValue((Locomotive as MSTSElectricLocomotive).PowerSupply.CircuitBreaker.DriverClosingAuthorization ? 1 : 0) > 0); break;
-                case CABViewControlTypes.EMERGENCY_BRAKE: if ((Locomotive.EmergencyButtonPressed ? 1 : 0) != ChangedValue(Locomotive.EmergencyButtonPressed ? 1 : 0)) new EmergencyPushButtonCommand(Viewer.Log); break;
-                case CABViewControlTypes.RESET: new AlerterCommand(Viewer.Log, ChangedValue(Locomotive.TrainControlSystem.AlerterButtonPressed ? 1 : 0) > 0); break;
-                case CABViewControlTypes.CP_HANDLE: Locomotive.SetCombinedHandleValue(ChangedValue(Locomotive.GetCombinedHandleValue(true))); break;
+                case CabViewControlType.Orts_Circuit_Breaker_Driver_Opening_Order: new CircuitBreakerOpeningOrderButtonCommand(Viewer.Log, ChangedValue(UserInput.IsMouseLeftButtonPressed ? 1 : 0) > 0); break;
+                case CabViewControlType.Orts_Circuit_Breaker_Driver_Closing_Authorization: new CircuitBreakerClosingAuthorizationCommand(Viewer.Log, ChangedValue((Locomotive as MSTSElectricLocomotive).PowerSupply.CircuitBreaker.DriverClosingAuthorization ? 1 : 0) > 0); break;
+                case CabViewControlType.Emergency_Brake: if ((Locomotive.EmergencyButtonPressed ? 1 : 0) != ChangedValue(Locomotive.EmergencyButtonPressed ? 1 : 0)) new EmergencyPushButtonCommand(Viewer.Log); break;
+                case CabViewControlType.Reset: new AlerterCommand(Viewer.Log, ChangedValue(Locomotive.TrainControlSystem.AlerterButtonPressed ? 1 : 0) > 0); break;
+                case CabViewControlType.Cp_Handle: Locomotive.SetCombinedHandleValue(ChangedValue(Locomotive.GetCombinedHandleValue(true))); break;
  
              // Steam locomotives only:
-                case CABViewControlTypes.CUTOFF: (Locomotive as MSTSSteamLocomotive).SetCutoffValue(ChangedValue((Locomotive as MSTSSteamLocomotive).CutoffController.IntermediateValue)); break;
-                case CABViewControlTypes.BLOWER: (Locomotive as MSTSSteamLocomotive).SetBlowerValue(ChangedValue((Locomotive as MSTSSteamLocomotive).BlowerController.IntermediateValue)); break;
-                case CABViewControlTypes.DAMPERS_FRONT: (Locomotive as MSTSSteamLocomotive).SetDamperValue(ChangedValue((Locomotive as MSTSSteamLocomotive).DamperController.IntermediateValue)); break;
-                case CABViewControlTypes.FIREHOLE: (Locomotive as MSTSSteamLocomotive).SetFireboxDoorValue(ChangedValue((Locomotive as MSTSSteamLocomotive).FireboxDoorController.IntermediateValue)); break;
-                case CABViewControlTypes.WATER_INJECTOR1: (Locomotive as MSTSSteamLocomotive).SetInjector1Value(ChangedValue((Locomotive as MSTSSteamLocomotive).Injector1Controller.IntermediateValue)); break;
-                case CABViewControlTypes.WATER_INJECTOR2: (Locomotive as MSTSSteamLocomotive).SetInjector2Value(ChangedValue((Locomotive as MSTSSteamLocomotive).Injector2Controller.IntermediateValue)); break;
-                case CABViewControlTypes.CYL_COCKS: if (((Locomotive as MSTSSteamLocomotive).CylinderCocksAreOpen ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).CylinderCocksAreOpen ? 1 : 0)) new ToggleCylinderCocksCommand(Viewer.Log); break;
-                case CABViewControlTypes.ORTS_CYL_COMP: if (((Locomotive as MSTSSteamLocomotive).CylinderCompoundOn ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).CylinderCompoundOn ? 1 : 0)) new ToggleCylinderCompoundCommand(Viewer.Log); break;
-                case CABViewControlTypes.STEAM_INJ1: if (((Locomotive as MSTSSteamLocomotive).Injector1IsOn ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).Injector1IsOn ? 1 : 0)) new ToggleInjectorCommand(Viewer.Log, 1); break;
-                case CABViewControlTypes.STEAM_INJ2: if (((Locomotive as MSTSSteamLocomotive).Injector2IsOn ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).Injector2IsOn ? 1 : 0)) new ToggleInjectorCommand(Viewer.Log, 2); break;
-                case CABViewControlTypes.SMALL_EJECTOR: (Locomotive as MSTSSteamLocomotive).SetSmallEjectorValue(ChangedValue((Locomotive as MSTSSteamLocomotive).SmallEjectorController.IntermediateValue)); break;
+                case CabViewControlType.CutOff: (Locomotive as MSTSSteamLocomotive).SetCutoffValue(ChangedValue((Locomotive as MSTSSteamLocomotive).CutoffController.IntermediateValue)); break;
+                case CabViewControlType.Blower: (Locomotive as MSTSSteamLocomotive).SetBlowerValue(ChangedValue((Locomotive as MSTSSteamLocomotive).BlowerController.IntermediateValue)); break;
+                case CabViewControlType.Dampers_Front: (Locomotive as MSTSSteamLocomotive).SetDamperValue(ChangedValue((Locomotive as MSTSSteamLocomotive).DamperController.IntermediateValue)); break;
+                case CabViewControlType.FireHole: (Locomotive as MSTSSteamLocomotive).SetFireboxDoorValue(ChangedValue((Locomotive as MSTSSteamLocomotive).FireboxDoorController.IntermediateValue)); break;
+                case CabViewControlType.Water_Injector1: (Locomotive as MSTSSteamLocomotive).SetInjector1Value(ChangedValue((Locomotive as MSTSSteamLocomotive).Injector1Controller.IntermediateValue)); break;
+                case CabViewControlType.Water_Injector2: (Locomotive as MSTSSteamLocomotive).SetInjector2Value(ChangedValue((Locomotive as MSTSSteamLocomotive).Injector2Controller.IntermediateValue)); break;
+                case CabViewControlType.Cyl_Cocks: if (((Locomotive as MSTSSteamLocomotive).CylinderCocksAreOpen ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).CylinderCocksAreOpen ? 1 : 0)) new ToggleCylinderCocksCommand(Viewer.Log); break;
+                case CabViewControlType.Orts_Cyl_Comp: if (((Locomotive as MSTSSteamLocomotive).CylinderCompoundOn ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).CylinderCompoundOn ? 1 : 0)) new ToggleCylinderCompoundCommand(Viewer.Log); break;
+                case CabViewControlType.Steam_Inj1: if (((Locomotive as MSTSSteamLocomotive).Injector1IsOn ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).Injector1IsOn ? 1 : 0)) new ToggleInjectorCommand(Viewer.Log, 1); break;
+                case CabViewControlType.Steam_Inj2: if (((Locomotive as MSTSSteamLocomotive).Injector2IsOn ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).Injector2IsOn ? 1 : 0)) new ToggleInjectorCommand(Viewer.Log, 2); break;
+                case CabViewControlType.Small_Ejector: (Locomotive as MSTSSteamLocomotive).SetSmallEjectorValue(ChangedValue((Locomotive as MSTSSteamLocomotive).SmallEjectorController.IntermediateValue)); break;
                 //
-                case CABViewControlTypes.CAB_RADIO: new CabRadioCommand(Viewer.Log, ChangedValue(Locomotive.CabRadioOn ? 1 : 0) > 0); break;
-                case CABViewControlTypes.WIPERS: new WipersCommand(Viewer.Log, ChangedValue(Locomotive.Wiper ? 1 : 0) > 0); break;
-                case CABViewControlTypes.ORTS_PLAYER_DIESEL_ENGINE:
+                case CabViewControlType.Cab_Radio: new CabRadioCommand(Viewer.Log, ChangedValue(Locomotive.CabRadioOn ? 1 : 0) > 0); break;
+                case CabViewControlType.Wipers: new WipersCommand(Viewer.Log, ChangedValue(Locomotive.Wiper ? 1 : 0) > 0); break;
+                case CabViewControlType.Orts_Player_Diesel_Engine:
                     var dieselLoco = Locomotive as MSTSDieselLocomotive;
                     if ((dieselLoco.DieselEngines[0].EngineStatus == Orts.Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running ||
                                 dieselLoco.DieselEngines[0].EngineStatus == Orts.Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Stopped) &&
                                 ChangedValue(1) == 0) new TogglePlayerEngineCommand(Viewer.Log); break;
-                case CABViewControlTypes.ORTS_HELPERS_DIESEL_ENGINES:
+                case CabViewControlType.Orts_Helpers_Diesel_Engines:
                     foreach (var car in Locomotive.Train.Cars)
                     {
                         dieselLoco = car as MSTSDieselLocomotive;
@@ -1988,23 +1981,23 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         }
                     }
                     break;
-                case CABViewControlTypes.ORTS_PLAYER_DIESEL_ENGINE_STARTER:
+                case CabViewControlType.Orts_Player_Diesel_Engine_Starter:
                     dieselLoco = Locomotive as MSTSDieselLocomotive;
                     if (dieselLoco.DieselEngines[0].EngineStatus == Orts.Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Stopped &&
                                 ChangedValue(1) == 0) new TogglePlayerEngineCommand(Viewer.Log); break;
-                case CABViewControlTypes.ORTS_PLAYER_DIESEL_ENGINE_STOPPER:
+                case CabViewControlType.Orts_Player_Diesel_Engine_Stopper:
                     dieselLoco = Locomotive as MSTSDieselLocomotive;
                     if (dieselLoco.DieselEngines[0].EngineStatus == Orts.Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running &&
                                 ChangedValue(1) == 0) new TogglePlayerEngineCommand(Viewer.Log); break;
-                case CABViewControlTypes.ORTS_CABLIGHT:
+                case CabViewControlType.Orts_CabLight:
                     if ((Locomotive.CabLightOn ? 1 : 0) != ChangedValue(Locomotive.CabLightOn ? 1 : 0)) new ToggleCabLightCommand(Viewer.Log); break;
-                case CABViewControlTypes.ORTS_LEFTDOOR:
+                case CabViewControlType.Orts_LeftDoor:
                     if ((Locomotive.GetCabFlipped() ? (Locomotive.DoorRightOpen ? 1 : 0) : Locomotive.DoorLeftOpen ? 1 : 0)
                         != ChangedValue(Locomotive.GetCabFlipped() ? (Locomotive.DoorRightOpen ? 1 : 0) : Locomotive.DoorLeftOpen ? 1 : 0)) new ToggleDoorsLeftCommand(Viewer.Log); break;
-                case CABViewControlTypes.ORTS_RIGHTDOOR:
+                case CabViewControlType.Orts_RightDoor:
                     if ((Locomotive.GetCabFlipped() ? (Locomotive.DoorLeftOpen ? 1 : 0) : Locomotive.DoorRightOpen ? 1 : 0)
                          != ChangedValue(Locomotive.GetCabFlipped() ? (Locomotive.DoorLeftOpen ? 1 : 0) : Locomotive.DoorRightOpen ? 1 : 0)) new ToggleDoorsRightCommand(Viewer.Log); break;
-                case CABViewControlTypes.ORTS_MIRRORS:
+                case CabViewControlType.Orts_Mirros:
                     if ((Locomotive.MirrorOpen ? 1 : 0) != ChangedValue(Locomotive.MirrorOpen ? 1 : 0)) new ToggleMirrorsCommand(Viewer.Log); break;
             }
 
@@ -2022,8 +2015,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (percent > 1)
                 percent /= 100f;
 
-            if (ControlDiscrete.MinValue != ControlDiscrete.MaxValue && !(ControlDiscrete.MinValue == 0 && ControlDiscrete.MaxValue == 0))
-                percent = MathHelper.Clamp(percent, (float)ControlDiscrete.MinValue, (float)ControlDiscrete.MaxValue);
+            if (ControlDiscrete.ScaleRangeMin != ControlDiscrete.ScaleRangeMax && !(ControlDiscrete.ScaleRangeMin == 0 && ControlDiscrete.ScaleRangeMax == 0))
+                percent = MathHelper.Clamp(percent, (float)ControlDiscrete.ScaleRangeMin, (float)ControlDiscrete.ScaleRangeMax);
 
             if (ControlDiscrete.Values.Count > 1)
             {
@@ -2039,9 +2032,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     index = ControlDiscrete.Values.IndexOf(val);
                 }
             }
-            else if (ControlDiscrete.MaxValue != ControlDiscrete.MinValue)
+            else if (ControlDiscrete.ScaleRangeMax != ControlDiscrete.ScaleRangeMin)
             {
-                index = (int)(percent / (ControlDiscrete.MaxValue - ControlDiscrete.MinValue) * ControlDiscrete.FramesCount);
+                index = (int)(percent / (ControlDiscrete.ScaleRangeMax - ControlDiscrete.ScaleRangeMin) * ControlDiscrete.FramesCount);
             }
 
             return index;
@@ -2066,14 +2059,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         Color DrawColor;
 
         //[CallOnThread("Loader")]
-        public CabViewDigitalRenderer(Viewer viewer, MSTSLocomotive car, CVCDigital digital, CabShader shader)
+        public CabViewDigitalRenderer(Viewer viewer, MSTSLocomotive car, CabViewDigitalControl digital, CabShader shader)
             : base(viewer, car, digital, shader)
         {
-            Position.X = (float)Control.PositionX;
-            Position.Y = (float)Control.PositionY;
+            Position.X = Control.Bounds.X;
+            Position.Y = Control.Bounds.Y;
 
             // Clock defaults to centered.
-            if (Control.ControlType == CABViewControlTypes.CLOCK)
+            if (Control.ControlType == CabViewControlType.Clock)
                 Alignment = LabelAlignment.Center;
             Alignment = digital.Justification == 1 ? LabelAlignment.Center : digital.Justification == 2 ? LabelAlignment.Left : digital.Justification == 3 ? LabelAlignment.Right : Alignment;
 
@@ -2083,7 +2076,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            var digital = Control as CVCDigital;
+            var digital = Control as CabViewDigitalControl;
 
             Num = Locomotive.GetDataOf(Control);
             if (Math.Abs(Num) < digital.AccuracySwitch)
@@ -2092,11 +2085,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 Format = Format1;
             DrawFont = Viewer.WindowManager.TextManager.GetExact(digital.FontFamily, Viewer.CabHeightPixels * digital.FontSize / 480, digital.FontStyle == 0 ? System.Drawing.FontStyle.Regular : System.Drawing.FontStyle.Bold);
             DrawPosition.X = (int)(Position.X * Viewer.CabWidthPixels / 640) + (Viewer.CabExceedsDisplayHorizontally > 0 ? DrawFont.Height / 4 : 0) - Viewer.CabXOffsetPixels;
-            DrawPosition.Y = (int)((Position.Y + Control.Height / 2) * Viewer.CabHeightPixels / 480) - DrawFont.Height / 2 + Viewer.CabYOffsetPixels;
-            DrawPosition.Width = (int)(Control.Width * Viewer.DisplaySize.X / 640);
-            DrawPosition.Height = (int)(Control.Height * Viewer.DisplaySize.Y / 480);
+            DrawPosition.Y = (int)((Position.Y + Control.Bounds.Height / 2) * Viewer.CabHeightPixels / 480) - DrawFont.Height / 2 + Viewer.CabYOffsetPixels;
+            DrawPosition.Width = (int)(Control.Bounds.Width * Viewer.DisplaySize.X / 640);
+            DrawPosition.Height = (int)(Control.Bounds.Height * Viewer.DisplaySize.Y / 480);
 
-            if (Control.ControlType == CABViewControlTypes.CLOCK)
+            if (Control.ControlType == CabViewControlType.Clock)
             {
                 // Clock is drawn specially.
                 var clockSeconds = Locomotive.Simulator.ClockTime;
@@ -2111,33 +2104,35 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (seconds < 0)
                     seconds += 60;
 
-                if (digital.ControlStyle == CABViewControlStyles._12HOUR)
+                if (digital.ControlStyle == CabViewControlStyle.Hour12)
                 {
                     hour %= 12;
                     if (hour == 0)
                         hour = 12;
                 }
                 DrawText = String.Format(digital.Accuracy > 0 ? "{0:D2}:{1:D2}:{2:D2}" : "{0:D2}:{1:D2}", hour, minute, seconds);
-                DrawColor = new Color(digital.PositiveColor.R, digital.PositiveColor.G, digital.PositiveColor.B);
+                DrawColor = digital.PositiveColors[0];
             }
-            else if (digital.OldValue != 0 && digital.OldValue > Num && digital.DecreaseColor.A != 0)
+            else if (digital.PreviousValue != 0 && digital.PreviousValue > Num && digital.DecreaseColor.A != 0)
             {
                 DrawText = String.Format(Format, Math.Abs(Num));
                 DrawColor = new Color(digital.DecreaseColor.R, digital.DecreaseColor.G, digital.DecreaseColor.B, digital.DecreaseColor.A);
             }
-            else if (Num < 0 && digital.NegativeColor.A != 0)
+            else if (Num < 0 && digital.NegativeColors[0].A != 0)
             {
                 DrawText = String.Format(Format, Math.Abs(Num));
-                if ((digital.NumNegativeColors >= 2) && (Num < digital.NegativeSwitchVal))
-                    DrawColor = new Color(digital.SecondNegativeColor.R, digital.SecondNegativeColor.G, digital.SecondNegativeColor.B, digital.SecondNegativeColor.A);
-                else DrawColor = new Color(digital.NegativeColor.R, digital.NegativeColor.G, digital.NegativeColor.B, digital.NegativeColor.A);
+                if ((digital.NegativeColors.Length >= 2) && (Num < digital.NegativeTrigger))
+                    DrawColor = digital.NegativeColors[1];
+                else
+                    DrawColor = digital.NegativeColors[0];
             }
-            else if (digital.PositiveColor.A != 0)
+            else if (digital.PositiveColors[0].A != 0)
             {
                 DrawText = String.Format(Format, Num);
-                if ((digital.NumPositiveColors >= 2) && (Num > digital.PositiveSwitchVal))
-                    DrawColor = new Color(digital.SecondPositiveColor.R, digital.SecondPositiveColor.G, digital.SecondPositiveColor.B, digital.SecondPositiveColor.A);
-                else DrawColor = new Color(digital.PositiveColor.R, digital.PositiveColor.G, digital.PositiveColor.B, digital.PositiveColor.A);
+                if ((digital.PositiveColors.Length >= 2) && (Num > digital.PositiveTrigger))
+                    DrawColor = digital.PositiveColors[1];
+                else
+                    DrawColor = digital.PositiveColors[0];
             }
             else
             {
@@ -2158,7 +2153,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             try
             {
-                var digital = Control as CVCDigital;
+                var digital = Control as CabViewDigitalControl;
                 string displayedText = "";
                 Num = Locomotive.GetDataOf(Control);
                 if (Math.Abs(Num) < digital.AccuracySwitch)
@@ -2166,7 +2161,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 else
                     Format = Format1;
 
-                if (Control.ControlType == CABViewControlTypes.CLOCK)
+                if (Control.ControlType == CabViewControlType.Clock)
                 {
                     // Clock is drawn specially.
                     var clockSeconds = Locomotive.Simulator.ClockTime;
@@ -2181,33 +2176,34 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (seconds < 0)
                         seconds += 60;
 
-                    if (digital.ControlStyle == CABViewControlStyles._12HOUR)
+                    if (digital.ControlStyle == CabViewControlStyle.Hour12)
                     {
                         hour %= 12;
                         if (hour == 0)
                             hour = 12;
                     }
                     displayedText = String.Format(digital.Accuracy > 0 ? "{0:D2}:{1:D2}:{2:D2}" : "{0:D2}:{1:D2}", hour, minute, seconds);
-                    DrawColor = new Color(digital.PositiveColor.R, digital.PositiveColor.G, digital.PositiveColor.B);
+                    DrawColor = digital.PositiveColors[0];
                 }
-                else if (digital.OldValue != 0 && digital.OldValue > Num && digital.DecreaseColor.A != 0)
+                else if (digital.PreviousValue != 0 && digital.PreviousValue > Num && digital.DecreaseColor.A != 0)
                 {
                     displayedText = String.Format(Format, Math.Abs(Num));
                     DrawColor = new Color(digital.DecreaseColor.R, digital.DecreaseColor.G, digital.DecreaseColor.B, digital.DecreaseColor.A);
                 }
-                else if (Num < 0 && digital.NegativeColor.A != 0)
+                else if (Num < 0 && digital.NegativeColors[0].A != 0)
                 {
                     displayedText = String.Format(Format, Math.Abs(Num));
-                    if ((digital.NumNegativeColors >= 2) && (Num < digital.NegativeSwitchVal))
-                        DrawColor = new Color(digital.SecondNegativeColor.R, digital.SecondNegativeColor.G, digital.SecondNegativeColor.B, digital.SecondNegativeColor.A);
-                    else DrawColor = new Color(digital.NegativeColor.R, digital.NegativeColor.G, digital.NegativeColor.B, digital.NegativeColor.A);
+                    if ((digital.NegativeColors.Length >= 2) && (Num < digital.NegativeTrigger))
+                        DrawColor = digital.NegativeColors[1];
+                    else
+                        DrawColor = digital.NegativeColors[0];
                 }
-                else if (digital.PositiveColor.A != 0)
+                else if (digital.PositiveColors[0].A != 0)
                 {
                     displayedText = String.Format(Format, Num);
-                    if ((digital.NumPositiveColors >= 2) && (Num > digital.PositiveSwitchVal))
-                        DrawColor = new Color(digital.SecondPositiveColor.R, digital.SecondPositiveColor.G, digital.SecondPositiveColor.B, digital.SecondPositiveColor.A);
-                    else DrawColor = new Color(digital.PositiveColor.R, digital.PositiveColor.G, digital.PositiveColor.B, digital.PositiveColor.A);
+                    if ((digital.PositiveColors.Length >= 2) && (Num > digital.PositiveTrigger))
+                        DrawColor = digital.PositiveColors[1];
+                    else DrawColor = digital.PositiveColors[0];
                 }
                 else
                 {
@@ -2231,7 +2227,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Alert = false;
             try
             {
-                var digital = Control as CVCDigital;
+                var digital = Control as CabViewDigitalControl;
                 string displayedText = "";
                 Num = Locomotive.GetDataOf(Control);
                 if (Math.Abs(Num) < digital.AccuracySwitch)
@@ -2239,7 +2235,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 else
                     Format = Format1;
 
-                if (Control.ControlType == CABViewControlTypes.CLOCK)
+                if (Control.ControlType == CabViewControlType.Clock)
                 {
                     // Clock is drawn specially.
                     var clockSeconds = Locomotive.Simulator.ClockTime;
@@ -2254,7 +2250,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (seconds < 0)
                         seconds += 60;
 
-                    if (digital.ControlStyle == CABViewControlStyles._12HOUR)
+                    if (digital.ControlStyle == CabViewControlStyle.Hour12)
                     {
                         if (hour < 12) displayedText = "a";
                         else displayedText = "p";
@@ -2264,20 +2260,20 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     }
                     displayedText = String.Format(digital.Accuracy > 0 ? "{0:D2}:{1:D2}:{2:D2}" : "{0:D2}:{1:D2}", hour, minute, seconds) + displayedText;
                 }
-                else if (digital.OldValue != 0 && digital.OldValue > Num && digital.DecreaseColor.A != 0)
+                else if (digital.PreviousValue != 0 && digital.PreviousValue > Num && digital.DecreaseColor.A != 0)
                 {
                     displayedText = String.Format(Format, Math.Abs(Num));
                 }
-                else if (Num < 0 && digital.NegativeColor.A != 0)
+                else if (Num < 0 && digital.NegativeColors[0].A != 0)
                 {
                     displayedText = String.Format(Format, Math.Abs(Num));
-                    if ((digital.NumNegativeColors >= 2) && (Num < digital.NegativeSwitchVal))
+                    if ((digital.NegativeColors.Length >= 2) && (Num < digital.NegativeTrigger))
                         Alert = true;
                 }
-                else if (digital.PositiveColor.A != 0)
+                else if (digital.PositiveColors[0].A != 0)
                 {
                     displayedText = String.Format(Format, Num);
-                    if ((digital.NumPositiveColors >= 2) && (Num > digital.PositiveSwitchVal))
+                    if ((digital.PositiveColors.Length >= 2) && (Num > digital.PositiveTrigger))
                         Alert = true;
                 }
                 else
@@ -2334,7 +2330,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             DigitParts3D = new Dictionary<int, ThreeDimCabDigit>();
             Gauges = new Dictionary<int, ThreeDimCabGaugeNative>();
             OnDemandAnimateParts = new Dictionary<int, AnimatedPart>();
-            CABViewControlTypes type;
+            CabViewControlType type;
             // Find the animated parts
             if (TrainCarShape != null && TrainCarShape.SharedShape.Animations != null)
             {
@@ -2348,7 +2344,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     //     ASPECT_SIGNAL:0:0-2: first ASPECT_SIGNAL, parameter is 0, this component is part 2 of this cab control
                     //     ASPECT_SIGNAL:1:0  second ASPECT_SIGNAL, parameter is 0, this component is the only one for this cab control
                     typeName = matrixName.Split('-')[0]; //a part may have several sub-parts, like ASPECT_SIGNAL:0:0-1, ASPECT_SIGNAL:0:0-2
-                    type = CABViewControlTypes.NONE;
+                    type = CabViewControlType.None;
                     tmpPart = null;
                     int order, key;
                     string parameter1 = "0", parameter2 = "";
@@ -2364,14 +2360,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     catch { continue; }
                     try
                     {
-                        type = (CABViewControlTypes)Enum.Parse(typeof(CABViewControlTypes), tmp[0].Trim(), true); //convert from string to enum
+                        type = (CabViewControlType)Enum.Parse(typeof(CabViewControlType), tmp[0].Trim(), true); //convert from string to enum
                         key = 1000 * (int)type + order;
-                        if (type != CABViewControlTypes.EXTERNALWIPERS && type != CABViewControlTypes.MIRRORS && type != CABViewControlTypes.LEFTDOOR && type != CABViewControlTypes.RIGHTDOOR)
+                        if (type != CabViewControlType.ExternalWipers && type != CabViewControlType.Mirrors && type != CabViewControlType.LeftDoor && type != CabViewControlType.RightDoor)
                             style = locoViewer.ThreeDimentionCabRenderer.ControlMap[key]; //cvf file has no external wipers, left door, right door and mirrors key word
                     }
                     catch
                     {
-                        type = CABViewControlTypes.NONE;
+                        type = CabViewControlType.None;
                         continue;
                     }
 
@@ -2386,7 +2382,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     {
                         var CVFR = (CabViewGaugeRenderer)style;
 
-                        if (CVFR.GetGauge().ControlStyle != CABViewControlStyles.POINTER) //pointer will be animated, others will be drawn dynamicaly
+                        if (CVFR.GetGauge().ControlStyle != CabViewControlStyle.Pointer) //pointer will be animated, others will be drawn dynamicaly
                         {
                             Gauges.Add(key, new ThreeDimCabGaugeNative(viewer, iMatrix, parameter1, parameter2, this.TrainCarShape, locoViewer.ThreeDimentionCabRenderer.ControlMap[key]));
                         }
@@ -2445,20 +2441,20 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             foreach (var p in AnimateParts)
             {
-                if (p.Value.Type >= CABViewControlTypes.EXTERNALWIPERS) //for wipers, doors and mirrors
+                if (p.Value.Type >= CabViewControlType.ExternalWipers) //for wipers, doors and mirrors
                 {
                     switch (p.Value.Type)
                     {
-                        case CABViewControlTypes.EXTERNALWIPERS:
+                        case CabViewControlType.ExternalWipers:
                             p.Value.UpdateLoop(Locomotive.Wiper, elapsedTime);
                             break;
-                        case CABViewControlTypes.LEFTDOOR:
+                        case CabViewControlType.LeftDoor:
                             p.Value.UpdateState(Locomotive.DoorLeftOpen, elapsedTime);
                             break;
-                        case CABViewControlTypes.RIGHTDOOR:
+                        case CabViewControlType.RightDoor:
                             p.Value.UpdateState(Locomotive.DoorRightOpen, elapsedTime);
                             break;
-                        case CABViewControlTypes.MIRRORS:
+                        case CabViewControlType.Mirrors:
                             p.Value.UpdateState(Locomotive.MirrorOpen, elapsedTime);
                             break;
                         default:
@@ -2604,7 +2600,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             string imageName = "";
             string globalText = Viewer.Simulator.BasePath + @"\GLOBAL\TEXTURES\";
-            CABViewControlTypes controltype = CVFR.GetControlType();
+            CabViewControlType controltype = CVFR.GetControlType();
             Material material = null;
 
             if (AceFile != "")
@@ -2616,15 +2612,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 switch (controltype)
                 {
-                    case CABViewControlTypes.CLOCK:
+                    case CabViewControlType.Clock:
                         imageName = "clock.ace";
                         break;
-                    case CABViewControlTypes.SPEEDLIMIT:
-                    case CABViewControlTypes.SPEEDLIM_DISPLAY:
+                    case CabViewControlType.SpeedLimit:
+                    case CabViewControlType.SpeedLim_Display:
                         imageName = "speedlim.ace";
                         break;
-                    case CABViewControlTypes.SPEED_PROJECTED:
-                    case CABViewControlTypes.SPEEDOMETER:
+                    case CabViewControlType.Speed_Projected:
+                    case CabViewControlType.Speedometer:
                     default:
                         imageName = "speed.ace";
                         break;
@@ -2781,13 +2777,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer = viewer;
             TrainCarShape = trainCarShape;
             XNAMatrix = TrainCarShape.SharedShape.Matrices[iMatrix];
-            CVCGauge gauge = CVFR.GetGauge();
+            CabViewGaugeControl gauge = CVFR.GetGauge();
             var maxVertex = 4;// a rectangle
             //Material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, texture), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
 
             // Create and populate a new ShapePrimitive
             NumVertices = NumIndices = 0;
-            var Size = (float)gauge.Width;
+            var Size = gauge.Bounds.Width;
 
             VertexList = new VertexPositionNormalTexture[maxVertex];
             TriangleListIndices = new short[maxVertex / 2 * 3]; // as is NumIndices
@@ -2837,7 +2833,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         Material FindMaterial()
         {
             bool Positive;
-            color c = this.CVFR.GetColor(out Positive);
+            Color c = this.CVFR.GetColor(out Positive);
             if (Positive)
             {
                 if (PositiveMaterial == null)
@@ -2862,7 +2858,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             float length = CVFR.GetRangeFraction();
 
-            CVCGauge gauge = CVFR.GetGauge();
+            CabViewGaugeControl gauge = CVFR.GetGauge();
 
             var len = maxLen * length;
             Vertex v1, v2, v3, v4;
@@ -3000,7 +2996,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             var scale = CVFR.GetRangeFraction();
 
-            if (CVFR.GetStyle() == CABViewControlStyles.POINTER)
+            if (CVFR.GetStyle() == CabViewControlStyle.Pointer)
             {
                 this.TrainCarShape.XNAMatrices[matrixIndex] = Matrix.CreateTranslation(scale * this.GaugeSize, 0, 0) * this.TrainCarShape.SharedShape.Matrices[matrixIndex];
             }
@@ -3065,12 +3061,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     // On Update( position ) it slowly moves the parts towards the specified position
     public class AnimatedPartMultiState : AnimatedPart
     {
-        public CABViewControlTypes Type;
+        public CabViewControlType Type;
         public int Key;
         /// <summary>
         /// Construct with a link to the shape that contains the animated parts 
         /// </summary>
-        public AnimatedPartMultiState(PoseableShape poseableShape, CABViewControlTypes t, int k)
+        public AnimatedPartMultiState(PoseableShape poseableShape, CabViewControlType t, int k)
             : base(poseableShape)
         {
             Type = t;

@@ -44,6 +44,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
@@ -251,28 +252,6 @@ namespace Orts.Simulation.RollingStocks
 
 
         public List<IntakePoint> IntakePointList = new List<IntakePoint>();
-
-        /// <summary>
-        /// Supply types for freight wagons and locos
-        /// </summary>
-        public enum PickupType
-        {
-            None = 0,
-            FreightGrain = 1,
-            FreightCoal = 2,
-            FreightGravel = 3,
-            FreightSand = 4,
-            FuelWater = 5,
-            FuelCoal = 6,
-            FuelDiesel = 7,
-            FuelWood = 8,    // Think this is new to OR and not recognised by MSTS
-            FuelSand = 9,  // New to OR
-            FreightGeneral = 10, // New to OR
-            FreightLivestock = 11,  // New to OR
-            FreightFuel = 12,  // New to OR
-            FreightMilk = 13,   // New to OR
-            SpecialMail = 14  // New to OR
-        }
 
         public class RefillProcess
         {
@@ -1050,7 +1029,7 @@ namespace Orts.Simulation.RollingStocks
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(lights":
-                    Lights = new LightCollection(stf);
+                    Lights = new Lights(stf);
                     break;
                 case "wagon(inside": HasInsideView = true; ParseWagonInside(stf); break;
                 case "wagon(orts3dcab": Parse3DCab(stf); break;
@@ -3120,7 +3099,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         /// <param name="pickupType">Pickup type</param>
         /// <returns>0.0 to 1.0. If type is unknown, returns 0.0</returns>
-        public override float GetFilledFraction(uint pickupType)
+        public override float GetFilledFraction(PickupType pickupType)
         {
             var fraction = 0.0f;
             if (FreightAnimations.LoadedOne != null) fraction = FreightAnimations.LoadedOne.LoadPerCent / 100;
@@ -3170,10 +3149,8 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Starts a continuous increase in controlled value.
         /// </summary>
-        /// <param name="type">Pickup point</param>
-        public void StartRefillingOrUnloading(PickupObj matchPickup, IntakePoint intakePoint, float fraction, bool unload)
+        public void StartRefillingOrUnloading(PickupObject matchPickup, IntakePoint intakePoint, float fraction, bool unload)
         {
-            var type = matchPickup.PickupType;
             var controller = WeightLoadController;
             if (controller == null)
             {
@@ -3185,18 +3162,18 @@ namespace Orts.Simulation.RollingStocks
 
             if (FreightAnimations.LoadedOne == null)
             {
-                FreightAnimations.FreightType = (MSTSWagon.PickupType)type;
+                FreightAnimations.FreightType = matchPickup.PickupType; ;
                 FreightAnimations.LoadedOne = intakePoint.LinkedFreightAnim;
             }
             if (!unload)
             {
-                controller.SetStepSize(matchPickup.PickupCapacity.FeedRateKGpS/ MSTSNotchController.StandardBoost / FreightAnimations.LoadedOne.FreightWeightWhenFull);
+                controller.SetStepSize(matchPickup.Capacity.FeedRateKGpS/ MSTSNotchController.StandardBoost / FreightAnimations.LoadedOne.FreightWeightWhenFull);
                 Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Starting refill"));
                 controller.StartIncrease(controller.MaximumValue);
             }
             else
             {
-                controller.SetStepSize(-matchPickup.PickupCapacity.FeedRateKGpS / MSTSNotchController.StandardBoost / FreightAnimations.LoadedOne.FreightWeightWhenFull);
+                controller.SetStepSize(-matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / FreightAnimations.LoadedOne.FreightWeightWhenFull);
                 WaitForAnimationReady = true;
                 UnloadingPartsOpen = true;
                 if (FreightAnimations.UnloadingStartDelay > 0)
@@ -3218,7 +3195,7 @@ namespace Orts.Simulation.RollingStocks
     {
         public float OffsetM = 0f;   // distance forward? from the centre of the vehicle as defined by LengthM/2.
         public float WidthM = 10f;   // of the filling point. Is the maximum positioning error allowed equal to this or half this value? 
-        public MSTSWagon.PickupType Type;          // 'freightgrain', 'freightcoal', 'freightgravel', 'freightsand', 'fuelcoal', 'fuelwater', 'fueldiesel', 'fuelwood', freightgeneral, freightlivestock, specialmail
+        public PickupType Type;          // 'freightgrain', 'freightcoal', 'freightgravel', 'freightsand', 'fuelcoal', 'fuelwater', 'fueldiesel', 'fuelwood', freightgeneral, freightlivestock, specialmail
         public float? DistanceFromFrontOfTrainM;
         public FreightAnimationContinuous LinkedFreightAnim = null;
 
@@ -3231,7 +3208,7 @@ namespace Orts.Simulation.RollingStocks
             stf.MustMatch("(");
             OffsetM = stf.ReadFloat(STFReader.Units.None, 0f);
             WidthM = stf.ReadFloat(STFReader.Units.None, 10f);
-            Type = (MSTSWagon.PickupType)Enum.Parse(typeof(MSTSWagon.PickupType), stf.ReadString().ToLower(), true);
+            EnumExtension.GetValue(stf.ReadString(), out PickupType Type);
             stf.SkipRestOfBlock();
         }
 
@@ -3441,7 +3418,7 @@ namespace Orts.Simulation.RollingStocks
         public static Dictionary<string, MSTSWagon> LoadedCars = new Dictionary<string, MSTSWagon>();
     }
 
-    public struct ParticleEmitterData
+    public readonly struct ParticleEmitterData
     {
         public readonly Vector3 XNALocation;
         public readonly Vector3 XNADirection;

@@ -35,6 +35,7 @@ using System.Diagnostics;
 using System.IO;
 using Orts.Common.Xna;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -47,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="trackList">DynamicTrackViewer list.</param>
         /// <param name="trackObj">Dynamic track section to decompose.</param>
         /// <param name="worldMatrixInput">Position matrix.</param>
-        public static int DecomposeStaticWire(Viewer viewer, List<DynamicTrackViewer> trackList, TrackObj trackObj, in WorldPosition worldMatrixInput)
+        public static int DecomposeStaticWire(Viewer viewer, List<DynamicTrackViewer> trackList, TrackObject trackObj, in WorldPosition worldMatrixInput)
         {
             // The following vectors represent local positioning relative to root of original (5-part) section:
             Vector3 localV = Vector3.Zero; // Local position (in x-z plane)
@@ -62,15 +63,15 @@ namespace Orts.ActivityRunner.Viewer3D
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
             try
             {
-                if (viewer.Simulator.TSectionDat.TrackShapes.Get(trackObj.SectionIdx).RoadShape == true) return 1;
+                if (viewer.Simulator.TSectionDat.TrackShapes[trackObj.SectionIndex].RoadShape == true) return 1;
             }
             catch (Exception)
             {
                 return 0;
             }
-            SectionIdx[] SectionIdxs = viewer.Simulator.TSectionDat.TrackShapes.Get(trackObj.SectionIdx).SectionIdxs;
+            SectionIndex[] SectionIdxs = viewer.Simulator.TSectionDat.TrackShapes[trackObj.SectionIndex].SectionIndices;
 
-            foreach (SectionIdx id in SectionIdxs)
+            foreach (SectionIndex id in SectionIdxs)
             {
                 nextRoot = wcopy; // Will become initial root
                 sectionOrigin = nextRoot.XNAMatrix.Translation;
@@ -79,8 +80,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 localV = Vector3.Zero; // Local position (in x-z plane)
 
 
-                Vector3 trackLoc = new Vector3((float)id.X, (float)id.Y, -(float)id.Z);// +new Vector3(3, 0, 0);
-                Matrix trackRot = Matrix.CreateRotationY(-(float)id.A * 3.1416f / 180);
+                ref readonly Vector3 trackLoc = ref id.Offset;
+                Matrix trackRot = Matrix.CreateRotationY(-MathHelper.ToRadians(id.AngularOffset));
 
                 heading = Vector3.Transform(heading, trackRot); // Heading change
                 nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
@@ -94,9 +95,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     WorldPosition root = nextRoot;
                     nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
-                    if (section.SectionCurve == null)
+                    if (!section.Curved)
                     {
-                        length = section.SectionSize.Length;
+                        length = section.Length;
                         radius = -1;
                         localProjectedV = localV + length * heading;
                         displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length,
@@ -104,13 +105,13 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else
                     {
-                        length = section.SectionCurve.Angle * 3.1416f / 180;
-                        radius = section.SectionCurve.Radius; // meters
+                        length = MathHelper.ToRadians(section.Angle);
+                        radius = section.Radius; // meters
 
                         Vector3 left;
-                        if (section.SectionCurve.Angle > 0) left = radius * Vector3.Cross(Vector3.Down, heading); // Vector from PC to O
+                        if (section.Angle > 0) left = radius * Vector3.Cross(Vector3.Down, heading); // Vector from PC to O
                         else left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
-                        Matrix rot = Matrix.CreateRotationY(-section.SectionCurve.Angle * 3.1416f / 180); // Heading change (rotation about O)
+                        Matrix rot = Matrix.CreateRotationY(-MathHelper.ToRadians(section.Angle)); // Heading change (rotation about O)
 
                         displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
                                                 worldMatrix.XNAMatrix, out localProjectedV);
@@ -136,7 +137,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="trackList">DynamicTrackViewer list.</param>
         /// <param name="trackObj">Dynamic track section to decompose.</param>
         /// <param name="worldMatrixInput">Position matrix.</param>
-        public static void DecomposeConvertedDynamicWire(Viewer viewer, List<DynamicTrackViewer> trackList, TrackObj trackObj, in WorldPosition worldMatrixInput)
+        public static void DecomposeConvertedDynamicWire(Viewer viewer, List<DynamicTrackViewer> trackList, TrackObject trackObj, in WorldPosition worldMatrixInput)
         {
             // The following vectors represent local positioning relative to root of original (5-part) section:
             Vector3 localV = Vector3.Zero; // Local position (in x-z plane)
@@ -154,7 +155,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             try
             {
-                path = viewer.Simulator.TSectionDat.TSectionIdx.TrackPaths[trackObj.SectionIdx];
+                path = viewer.Simulator.TSectionDat.TrackSectionIndex[trackObj.SectionIndex];
             }
             catch (Exception)
             {
@@ -183,9 +184,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 WorldPosition root = nextRoot;
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
-                if (section.SectionCurve == null)
+                if (!section.Curved)
                 {
-                    length = section.SectionSize.Length;
+                    length = section.Length;
                     radius = -1;
                     localProjectedV = localV + length * heading;
                     displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length,
@@ -193,13 +194,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 else
                 {
-                    length = section.SectionCurve.Angle * 3.1416f / 180;
-                    radius = section.SectionCurve.Radius; // meters
+                    length = MathHelper.ToRadians(section.Angle);
+                    radius = section.Radius; // meters
 
                     Vector3 left;
-                    if (section.SectionCurve.Angle > 0) left = radius * Vector3.Cross(Vector3.Down, heading); // Vector from PC to O
+                    if (section.Angle > 0) left = radius * Vector3.Cross(Vector3.Down, heading); // Vector from PC to O
                     else left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
-                    Matrix rot = Matrix.CreateRotationY(-section.SectionCurve.Angle * 3.1416f / 180); // Heading change (rotation about O)
+                    Matrix rot = Matrix.CreateRotationY(-MathHelper.ToRadians(section.Angle)); // Heading change (rotation about O)
 
                     displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
@@ -223,7 +224,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="trackList">DynamicTrackViewer list.</param>
         /// <param name="trackObj">Dynamic track section to decompose.</param>
         /// <param name="worldMatrixInput">Position matrix.</param>
-        public static void DecomposeDynamicWire(Viewer viewer, List<DynamicTrackViewer> trackList, DyntrackObj trackObj, in WorldPosition worldMatrixInput)
+        public static void DecomposeDynamicWire(Viewer viewer, List<DynamicTrackViewer> trackList, DynamicTrackObject trackObj, in WorldPosition worldMatrixInput)
         {
             // DYNAMIC WIRE
             // ============
@@ -249,15 +250,13 @@ namespace Orts.ActivityRunner.Viewer3D
             WorldPosition worldMatrix = worldMatrixInput.SetTranslation(Vector3.Zero); // worldMatrix now rotation-only
 
             // Iterate through all subsections
-            for (int iTkSection = 0; iTkSection < trackObj.trackSections.Count; iTkSection++)
+            for (int iTkSection = 0; iTkSection < trackObj.TrackSections.Count; iTkSection++)
             {
-                float length = 0, radius = -1;
-
-                length = trackObj.trackSections[iTkSection].param1; // meters if straight; radians if curved
-                if (length == 0.0 || trackObj.trackSections[iTkSection].UiD == UInt32.MaxValue) continue; // Consider zero-length subsections vacuous
+                if ((trackObj.TrackSections[iTkSection].Length == 0f && trackObj.TrackSections[iTkSection].Angle == 0f) 
+                    || trackObj.TrackSections[iTkSection].SectionIndex == uint.MaxValue) continue; // Consider zero-length subsections vacuous
 
                 // Create new DT object copy; has only one meaningful subsection
-                DyntrackObj subsection = new DyntrackObj(trackObj, iTkSection);
+                DynamicTrackObject subsection = new DynamicTrackObject(trackObj, iTkSection);
 
                 // Create a new WorldPosition for this subsection, initialized to nextRoot,
                 // which is the WorldPosition for the end of the last subsection.
@@ -271,20 +270,19 @@ namespace Orts.ActivityRunner.Viewer3D
                 nextRoot = nextRoot.SetTranslation(Vector3.Zero);
 
                 // Straight or curved subsection?
-                if (subsection.trackSections[0].isCurved == 0) // Straight section
+                if (!subsection.TrackSections[0].Curved) // Straight section
                 {   // Heading stays the same; translation changes in the direction oriented
                     // Rotate Vector3.Forward to orient the displacement vector
-                    localProjectedV = localV + length * heading;
-                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, length,
+                    localProjectedV = localV + subsection.TrackSections[0].Length * heading;
+                    displacement = Traveller.MSTSInterpolateAlongStraight(localV, heading, subsection.TrackSections[0].Length,
                                                             worldMatrix.XNAMatrix, out localProjectedV);
                 }
                 else // Curved section
                 {   // Both heading and translation change 
                     // nextRoot is found by moving from Point-of-Curve (PC) to
                     // center (O)to Point-of-Tangent (PT).
-                    radius = subsection.trackSections[0].param2; // meters
-                    Vector3 left = radius * Vector3.Cross(Vector3.Up, heading) * Math.Sign(-subsection.trackSections[0].param1); // Vector from PC to O
-                    Matrix rot = Matrix.CreateRotationY(-length); // Heading change (rotation about O)
+                    Vector3 left = subsection.TrackSections[0].Radius * Vector3.Cross(Vector3.Up, heading) * Math.Sign(-subsection.TrackSections[0].Angle); // Vector from PC to O
+                    Matrix rot = Matrix.CreateRotationY(-subsection.TrackSections[0].Angle); // Heading change (rotation about O)
                     // Shared method returns displacement from present world position and, by reference,
                     // local position in x-z plane of end of this section
                     displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
@@ -299,7 +297,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
 
                 // Create a new WireViewer for the subsection
-                trackList.Add(new WireViewer(viewer, root, nextRoot, radius, length));
+                trackList.Add(new WireViewer(viewer, root, nextRoot, subsection.TrackSections[0].Radius, subsection.TrackSections[0].Angle));
                 localV = localProjectedV; // Next subsection
             }
         }
@@ -509,7 +507,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // TODO: Read this stuff from a file. Provide the ability to use alternative profiles.
 
             // Initialize a scalar DtrackData object
-            DTrackData = new DtrackData(radius >= 0, angle, Math.Max(0, radius), 0);
+            DTrackData = new DtrackData(radius >= 0, angle, Math.Max(0, radius));
 
             if (WireProfile == null)
             {
@@ -734,7 +732,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (NumSections < 1) NumSections = 1;
 
             SegmentLength = DTrackData.Length / NumSections; // Length of each mesh segment (meters)
-            DDY = new Vector3(0, DTrackData.DeltaElevation / NumSections, 0); // Incremental elevation change
+            DDY = new Vector3(); // new Vector3(0, DTrackData.DeltaElevation / NumSections, 0); // Incremental elevation change
         }
 
         /// <summary>
@@ -765,7 +763,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // TODO: Generalize count to profile file specification
 
             SegmentLength = DTrackData.Length / NumSections; // Length of each mesh segment (radians)
-            DDY = new Vector3(0, DTrackData.DeltaElevation / NumSections, 0); // Incremental elevation change
+            DDY = new Vector3();// new Vector3(0, DTrackData.DeltaElevation / NumSections, 0); // Incremental elevation change
 
             // The approach here is to replicate the previous cross section, 
             // rotated into its position on the curve and vertically displaced if on grade.

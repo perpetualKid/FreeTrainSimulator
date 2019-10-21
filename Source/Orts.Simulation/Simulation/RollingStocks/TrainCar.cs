@@ -43,6 +43,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -151,7 +152,7 @@ namespace Orts.Simulation.RollingStocks
         public float AuxTenderWaterMassKG;    // Water mass in auxiliary tender
         public string AuxWagonType;           // Store wagon type for use with auxilary tender calculations
 
-        public LightCollection Lights;
+        public Lights Lights;
         public FreightAnimations FreightAnimations;
         public int Headlight;
 
@@ -2467,8 +2468,7 @@ namespace Orts.Simulation.RollingStocks
                         {
 
                         // train is on a switch; let's see if car is on a switch too
-                        WorldLocation switchLocation = TileLocation(Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD);
-                        var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
+                        var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location);
                             if (distanceFromSwitch<CarLengthM* CarLengthM + Math.Min(SpeedMpS* 3, 150))
                             {
                                 isOverJunction = true;
@@ -2486,12 +2486,6 @@ namespace Orts.Simulation.RollingStocks
             return isOverJunction;
         }
 
-
-        public static WorldLocation TileLocation(UiD uid)
-        {
-            return new WorldLocation(uid.TileX, uid.TileZ, uid.X, uid.Y, uid.Z);
-        }
-
         public virtual void SwitchToPlayerControl()
         {
             return;
@@ -2502,7 +2496,7 @@ namespace Orts.Simulation.RollingStocks
             return;
         }
 
-        public virtual float GetFilledFraction(uint pickupType)
+        public virtual float GetFilledFraction(PickupType pickupType)
         {
             return 0f;
         }

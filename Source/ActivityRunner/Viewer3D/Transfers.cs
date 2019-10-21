@@ -19,12 +19,14 @@
 
 using System;
 using System.Collections.Generic;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
-using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -34,7 +36,7 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly TransferPrimitive Primitive;
         readonly float Radius;
 
-        public TransferShape(TransferObj transfer, in WorldPosition position)
+        public TransferShape(TransferObject transfer, in WorldPosition position)
             : base(null, RemoveRotation(position), ShapeFlags.AutoZBias)
         {
             Material = viewer.MaterialManager.Load("Transfer", Helpers.GetTransferTextureFile(viewer.Simulator, transfer.FileName));

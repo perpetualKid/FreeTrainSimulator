@@ -15,14 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Orts.Formats.Msts;
 using Orts.Common;
-using ORTS.TrackViewer.Properties;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using Orts.Simulation;
+using System;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -45,10 +43,10 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        protected DrawableTrackItem(TrItem originalTrItem)
+        protected DrawableTrackItem(TrackItem originalTrItem)
         {
-            this.Index = originalTrItem.TrItemId;
-            this.WorldLocation = new WorldLocation(originalTrItem.TileX, originalTrItem.TileZ, originalTrItem.X, originalTrItem.Y, originalTrItem.Z);
+            this.Index = originalTrItem.TrackItemId;
+            this.WorldLocation = originalTrItem.Location;
             this.Description = "unknown";
         }
 
@@ -57,18 +55,18 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="originalTrItem">The original track item that needs to be represented while drawing</param>
         /// <returns>A drawable trackitem, with proper subclass</returns>
-        public static DrawableTrackItem CreateDrawableTrItem(TrItem originalTrItem)
+        public static DrawableTrackItem CreateDrawableTrItem(TrackItem originalTrItem)
         {
             if (originalTrItem is SignalItem)     { return new DrawableSignalItem(originalTrItem); }
             if (originalTrItem is PlatformItem)   { return new DrawablePlatformItem(originalTrItem); }
             if (originalTrItem is SidingItem)     { return new DrawableSidingItem(originalTrItem); }
             if (originalTrItem is SpeedPostItem)  { return new DrawableSpeedPostItem(originalTrItem); }
-            if (originalTrItem is HazzardItem)    { return new DrawableHazardItem(originalTrItem); }
+            if (originalTrItem is HazardItem)    { return new DrawableHazardItem(originalTrItem); }
             if (originalTrItem is PickupItem)     { return new DrawablePickupItem(originalTrItem); }
-            if (originalTrItem is LevelCrItem)    { return new DrawableLevelCrItem(originalTrItem); }
+            if (originalTrItem is Orts.Formats.Msts.Models.LevelCrossingItem)    { return new DrawableLevelCrItem(originalTrItem); }
             if (originalTrItem is SoundRegionItem){ return new DrawableSoundRegionItem(originalTrItem); }
-            if (originalTrItem is RoadLevelCrItem){ return new DrawableRoadLevelCrItem(originalTrItem); }
-            if (originalTrItem is CarSpawnerItem) { return new DrawableCarSpawnerItem(originalTrItem); }
+            if (originalTrItem is RoadLevelCrossingItem){ return new DrawableRoadLevelCrItem(originalTrItem); }
+            if (originalTrItem is RoadCarSpawner) { return new DrawableCarSpawnerItem(originalTrItem); }
             if (originalTrItem is CrossoverItem)  { return new DrawableCrossoverItem(originalTrItem); }
             return new DrawableEmptyItem(originalTrItem);
         }
@@ -106,7 +104,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableSignalItem(TrItem originalTrItem)
+        public DrawableSignalItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             this.Description = "signal";
@@ -122,15 +120,12 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tsectionDat">Database with track sections</param>
         /// <param name="trackDB">Database with tracks</param>
         /// <param name="tn">TrackNode on which the signal actually is</param>
-        public void FindAngle(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackNode tn)
+        public void FindAngle(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackVectorNode tn)
         {
             this.angle = 0;
             try
             {
-                Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn,
-                    this.WorldLocation.TileX, this.WorldLocation.TileZ,
-                    this.WorldLocation.Location.X, this.WorldLocation.Location.Z,
-                    this.direction);
+                Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, WorldLocation, this.direction);
                 this.angle = signalTraveller.RotY;
 
                 // Shift signal a little bit to be able to distinguish backfacing from normal facing
@@ -154,7 +149,7 @@ namespace ORTS.TrackViewer.Drawing
             }
             if (sigcfgFile.SignalTypes.ContainsKey(this.signalType))
             {
-                this.isNormal = (sigcfgFile.SignalTypes[this.signalType].FnType == MstsSignalFunction.NORMAL);
+                this.isNormal = (sigcfgFile.SignalTypes[this.signalType].FunctionType == SignalFunction.Normal);
             }
         }
 
@@ -191,7 +186,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableLevelCrItem(TrItem originalTrItem)
+        public DrawableLevelCrItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "crossing";
@@ -225,7 +220,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableRoadLevelCrItem(TrItem originalTrItem)
+        public DrawableRoadLevelCrItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "crossing (road)";
@@ -261,7 +256,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableSidingItem(TrItem originalTrItem)
+        public DrawableSidingItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "siding";
@@ -306,7 +301,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawablePlatformItem(TrItem originalTrItem)
+        public DrawablePlatformItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "platform";
@@ -359,7 +354,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawablePickupItem(TrItem originalTrItem)
+        public DrawablePickupItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "pickup";
@@ -395,7 +390,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableHazardItem(TrItem originalTrItem)
+        public DrawableHazardItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "hazard";
@@ -431,7 +426,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableCarSpawnerItem(TrItem originalTrItem)
+        public DrawableCarSpawnerItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "carspawner";
@@ -467,7 +462,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableEmptyItem(TrItem originalTrItem)
+        public DrawableEmptyItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "empty";
@@ -497,7 +492,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableCrossoverItem(TrItem originalTrItem)
+        public DrawableCrossoverItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "crossover";
@@ -533,7 +528,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableSpeedPostItem(TrItem originalTrItem)
+        public DrawableSpeedPostItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "speedpost";
@@ -553,14 +548,14 @@ namespace ORTS.TrackViewer.Drawing
             if (originalItem.IsLimit && (Properties.Settings.Default.showSpeedLimits || drawAlways))
             {
                 drawArea.DrawTexture(this.WorldLocation, "disc", 6f, 0, colors.Speedpost);
-                string speed = originalItem.SpeedInd.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                string speed = originalItem.Distance.ToString(System.Globalization.CultureInfo.CurrentCulture);
                 drawArea.DrawExpandingString(this.WorldLocation, speed);
                 returnValue = true;
             }
             if (originalItem.IsMilePost && (Properties.Settings.Default.showMileposts || drawAlways))
             {
                 drawArea.DrawTexture(this.WorldLocation, "disc", 6f, 0, colors.Speedpost);
-                string distance = originalItem.SpeedInd.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                string distance = originalItem.Distance.ToString(System.Globalization.CultureInfo.CurrentCulture);
                 drawArea.DrawExpandingString(this.WorldLocation, distance);
                 returnValue = true;
             }
@@ -580,7 +575,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Default constructor
         /// </summary>
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
-        public DrawableSoundRegionItem(TrItem originalTrItem)
+        public DrawableSoundRegionItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
             Description = "soundregion";

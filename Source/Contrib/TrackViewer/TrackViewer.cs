@@ -371,7 +371,7 @@ namespace ORTS.TrackViewer
                 if (TVUserInput.IsPressed(TVUserCommands.ExtendPathFull)) DrawPATfile.ExtendPathFull();
                 if (TVUserInput.IsPressed(TVUserCommands.ReducePath))     DrawPATfile.ReducePath();
                 if (TVUserInput.IsPressed(TVUserCommands.ReducePathFull)) DrawPATfile.ReducePathFull();
-                if (TVUserInput.IsDown(TVUserCommands.ShiftToPathLocation)) DrawArea.ShiftToLocation(DrawPATfile.CurrentLocation);
+                if (TVUserInput.IsDown(TVUserCommands.ShiftToPathLocation)) DrawArea.ShiftToLocation(DrawPATfile.CurrentPdp.Location);
             }
 
             if (PathEditor != null && Properties.Settings.Default.showTrainpath)
@@ -1064,7 +1064,7 @@ namespace ORTS.TrackViewer
         /// To be used from additional windows (like search).
         /// </summary>
         /// <param name="centerLocation">Location to center the view window around</param>
-        public void CenterAround(WorldLocation centerLocation)
+        public void CenterAround(in WorldLocation centerLocation)
         {
             if (centerLocation == WorldLocation.None) return;
 

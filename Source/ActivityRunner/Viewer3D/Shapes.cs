@@ -27,23 +27,15 @@
 // Adds bright green arrows to all normal shapes indicating the direction of their normals.
 //#define DEBUG_SHAPE_NORMALS
 
+using System.Collections.Generic;
+using System.Linq;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.Formats.Msts;
-using Orts.Simulation;
-using Orts.Simulation.RollingStocks;
-using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.Common;
-using Orts.Common.Xna;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using Event = Orts.Common.Event;
-using Events = Orts.Common.Events;
+
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -221,16 +213,16 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Construct and initialize the class.
         /// This constructor is for the labels of track items in TDB and W Files such as sidings and platforms.
         /// </summary>
-        public TrItemLabel(Viewer viewer, in WorldPosition position, TrObject trObj)
+        public TrItemLabel(Viewer viewer, in WorldPosition position, StationObject trObj)
         {
             Location = position;
             var i = 0;
-            while (true)
+            while (i < trObj.TrackItemIds.TrackDbItems.Count)
             {
-                var trID = trObj.getTrItemID(i);
+                var trID = trObj.TrackItemIds.TrackDbItems[i];
                 if (trID < 0)
                     break;
-                var trItem = viewer.Simulator.TDB.TrackDB.TrItemTable[trID];
+                var trItem = viewer.Simulator.TDB.TrackDB.TrackItems[trID];
                 if (trItem == null)
                     continue;
                 ItemName = trItem.ItemName;

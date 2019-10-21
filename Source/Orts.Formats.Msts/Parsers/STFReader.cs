@@ -21,7 +21,6 @@
 // Note:  the SBR classes are more general in that they are capable of reading
 //        both unicode and binary compressed data files.
 
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,6 +28,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+
+using Microsoft.Xna.Framework;
+
 using Orts.Common.Calc;
 
 #region Original STFreader
@@ -576,6 +578,16 @@ namespace Orts.Formats.Msts.Parsers
             if (item == ")") StepBackOneItem();
             return defaultValue.GetValueOrDefault(0);
         }
+
+        /// <summary>Read an double precision floating point number {constant_item}
+        /// </summary>
+        /// <param name="defaultValue">the default value if an unexpected ')' token is found</param>
+        /// <returns>The next {constant_item} from the STF file.</returns>
+        public float ReadFloat(float? defaultValue)
+        {
+            return ReadFloat(Units.None, defaultValue);
+        }
+
         /// <summary>Read an single precision floating point number {constant_item}
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
@@ -1342,33 +1354,55 @@ namespace Orts.Formats.Msts.Parsers
             return defaultValue;
         }
 
-        /// <summary>Read a Vector3 object in the STF format '( {X} {Y} ... )'
+        /// <summary>Read a Vector3 object in the STF format '( {X} {Y} {Z} ... )'
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">The default vector if any of the values are not specified</param>
-        /// <returns>The STF block as a Vector2</returns>
-        public Vector2 ReadVector2Block(Units validUnits, Vector2 defaultValue)
+        /// <returns>The STF block as a Vector3</returns>
+        public void ReadVector3Block(Units validUnits, ref Vector3 defaultValue)
         {
             if (Eof)
             {
                 STFException.TraceWarning(this, "Unexpected end of file");
-                return defaultValue;
             }
             string s = ReadItem();
             if (s == ")")
             {
                 StepBackOneItem();
-                return defaultValue;
+            }
+            if (s == "(")
+            {
+                defaultValue.X = ReadFloat(validUnits, defaultValue.X);
+                defaultValue.Y = ReadFloat(validUnits, defaultValue.Y);
+                defaultValue.Z = ReadFloat(validUnits, defaultValue.Z);
+                SkipRestOfBlock(); // <CJComment> This call seems poor practice as it discards any tokens _including mistakes_ up to the matching ")". </CJComment>  
+            }
+            STFException.TraceWarning(this, "Block Not Found - instead found " + s);
+        }
+
+        /// <summary>Read a Vector2 object in the STF format '( {X} {Y} ... )'
+        /// </summary>
+        /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
+        /// <param name="defaultValue">The default vector if any of the values are not specified</param>
+        /// <returns>The STF block as a Vector2</returns>
+        public void ReadVector2Block(Units validUnits, ref Vector2 defaultValue)
+        {
+            if (Eof)
+            {
+                STFException.TraceWarning(this, "Unexpected end of file");
+            }
+            string s = ReadItem();
+            if (s == ")")
+            {
+                StepBackOneItem();
             }
             if (s == "(")
             {
                 defaultValue.X = ReadFloat(validUnits, defaultValue.X);
                 defaultValue.Y = ReadFloat(validUnits, defaultValue.Y);
                 SkipRestOfBlock(); // <CJComment> This call seems poor practice as it discards any tokens _including mistakes_ up to the matching ")". </CJComment>  
-                return defaultValue;
             }
             STFException.TraceWarning(this, "Block Not Found - instead found " + s);
-            return defaultValue;
         }
 
         /// <summary>Read a Vector4 object in the STF format '( {X} {Y} {Z} {W} ... )'
@@ -1413,9 +1447,9 @@ namespace Orts.Formats.Msts.Parsers
                 string token = ReadItem().ToLower();
                 if (token == "(") { SkipRestOfBlock(); continue; }
                 foreach (TokenProcessor tp in processors)
-                    if (tp.token == token)
+                    if (tp.Token == token)
 #line default
-                        tp.processor(); // Press F11 'Step Into' to debug the Processor delegate
+                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
             } // Press F10 'Step Over' to jump to the next token
         }
         /// <summary>Parse an STF file until the EOF, using the array of lower case tokens, with a processor delegate/lambda
@@ -1436,9 +1470,9 @@ namespace Orts.Formats.Msts.Parsers
                 string token = ReadItem().ToLower();
                 if (token == "(") { SkipRestOfBlock(); continue; }
                 foreach (TokenProcessor tp in processors)
-                    if (tp.token == token)
+                    if (tp.Token == token)
 #line default
-                        tp.processor(); // Press F11 'Step Into' to debug the Processor delegate
+                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
             } // Press F10 'Step Over' to jump to the next token
         }
         /// <summary>Parse an STF file until the end of block ')' marker, using the array of lower case tokens, with a processor delegate/lambda
@@ -1452,9 +1486,9 @@ namespace Orts.Formats.Msts.Parsers
                 string token = ReadItem().ToLower();
                 if (token == "(") { SkipRestOfBlock(); continue; }
                 foreach (TokenProcessor tp in processors)
-                    if (tp.token == token)
+                    if (tp.Token == token)
 #line default
-                        tp.processor(); // Press F11 'Step Into' to debug the Processor delegate
+                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
             } // Press F10 'Step Over' to jump to the next token
         }
         /// <summary>Parse an STF file until the end of block ')' marker, using the array of lower case tokens, with a processor delegate/lambda
@@ -1475,9 +1509,9 @@ namespace Orts.Formats.Msts.Parsers
                 string token = ReadItem().ToLower();
                 if (token == "(") { SkipRestOfBlock(); continue; }
                 foreach (TokenProcessor tp in processors)
-                    if (tp.token == token)
+                    if (tp.Token == token)
 #line default
-                        tp.processor(); // Press F11 'Step Into' to debug the Processor delegate
+                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
             } // Press F10 'Step Over' to jump to the next token
         }
         #region *** Delegate and Structure definitions used by the Parse...() methods.
@@ -1490,15 +1524,21 @@ namespace Orts.Formats.Msts.Parsers
         public delegate bool ParsingBreak();
         /// <summary>A structure used to index lambda functions to a lower cased token.
         /// </summary>
-        public struct TokenProcessor
+        public readonly struct TokenProcessor
         {
             /// <summary>This constructor is used for the arguments to ParseFile and ParseBlock.
             /// </summary>
-            /// <param name="t">The lower case token.</param>
-            /// <param name="p">A lambda function or delegate that will be called from the Parse...() method.</param>
+            /// <param name="token">The lower case token.</param>
+            /// <param name="processor">A lambda function or delegate that will be called from the Parse...() method.</param>
             [DebuggerStepThrough]
-            public TokenProcessor(string t, Processor p) { token = t; processor = p; }
-            public string token; public Processor processor;
+            public TokenProcessor(string token, Processor processor)
+            {
+                Token = token;
+                Processor = processor;
+            }
+
+            public readonly string Token;
+            public readonly Processor Processor;
         }
         #endregion
 
@@ -1835,6 +1875,7 @@ namespace Orts.Formats.Msts.Parsers
         #endregion
     }
 
+    [Serializable]
     public class STFException : Exception
     {
         public static void TraceWarning(STFReader stf, string message)

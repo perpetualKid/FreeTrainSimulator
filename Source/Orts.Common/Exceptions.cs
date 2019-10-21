@@ -3,6 +3,7 @@ using System.Diagnostics;
 
 namespace Orts.Common
 {
+    [Serializable]
     public sealed class FatalException : Exception
     {
         public FatalException(Exception innerException)
@@ -12,6 +13,7 @@ namespace Orts.Common
         }
     }
 
+    [Serializable]
     public sealed class IncompatibleSaveException : Exception
     {
         public readonly string SaveFile;
@@ -30,6 +32,7 @@ namespace Orts.Common
         }
     }
 
+    [Serializable]
     public sealed class InvalidCommandLine : Exception
     {
         public InvalidCommandLine(string message)

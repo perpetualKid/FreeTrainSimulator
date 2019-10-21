@@ -61,6 +61,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Formats.Msts;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.Common;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -298,12 +300,12 @@ namespace ORTS.TrackViewer.Drawing
         /// <returns>The tile information as a 'Tile' object</returns>
         private Tile LoadTile(int tileX, int tileZ, bool loTiles)
         {
-            TileName.Zoom zoom = loTiles ? TileName.Zoom.DMSmall : TileName.Zoom.Small;
+            TileHelper.Zoom zoom = loTiles ? TileHelper.Zoom.DMSmall : TileHelper.Zoom.Small;
             string path = loTiles ? this.lotilesPath : this.tilesPath;
 
             // Note, code is similar to ORTS.Viewer3D.TileManager.Load
             // Check for 1x1 or 8x8 tiles.
-            TileName.Snap(ref tileX, ref tileZ, zoom);
+            TileHelper.Snap(ref tileX, ref tileZ, zoom);
 
             // we set visible to false to make sure errors are loaded
             Tile newTile = new Tile(path, tileX, tileZ, zoom, false);
@@ -314,7 +316,7 @@ namespace ORTS.TrackViewer.Drawing
             else
             {
                 // Check for 2x2 or 16x16 tiles.
-                TileName.Snap(ref tileX, ref tileZ, zoom - 1);
+                TileHelper.Snap(ref tileX, ref tileZ, zoom - 1);
                 newTile = new Tile(tilesPath, tileX, tileZ, zoom - 1, false);
                 if (newTile.Loaded)
                 {
@@ -508,8 +510,8 @@ namespace ORTS.TrackViewer.Drawing
         private int referenceTileX;
         private int referenceTileZ;
 
-        static Dictionary<int, TileName.Zoom> zoomFromInt = new Dictionary<int, TileName.Zoom> {
-            {1, TileName.Zoom.Small}, {2, TileName.Zoom.Large}, {8, TileName.Zoom.DMSmall}, {16, TileName.Zoom.DMLarge}
+        static Dictionary<int, TileHelper.Zoom> zoomFromInt = new Dictionary<int, TileHelper.Zoom> {
+            {1, TileHelper.Zoom.Small}, {2, TileHelper.Zoom.Large}, {8, TileHelper.Zoom.DMSmall}, {16, TileHelper.Zoom.DMLarge}
         };
 
         /// <summary>
@@ -559,7 +561,7 @@ namespace ORTS.TrackViewer.Drawing
             // Basically, this means routes that can have relative tiles ranging from about -4000 to + 4000, or 8000 * 2km = 16000 km. More than enough.
 
             // We also snap the tileX and tileZ to multiples of the size.
-            TileName.Snap(ref tileX, ref tileZ, zoomFromInt[zoomSize]);
+            TileHelper.Snap(ref tileX, ref tileZ, zoomFromInt[zoomSize]);
 
             uint index = ((uint)zoomSize << 26) + ((uint)(tileX - referenceTileX + 4096) << 13) + (uint)(tileZ - this.referenceTileZ + 4096);
 
@@ -630,7 +632,7 @@ namespace ORTS.TrackViewer.Drawing
                     messageDelegate(String.Format(TrackViewer.catalog.GetString("Loading terrain ace-files {0}-{1} (scaled down with a factor {2})"), loadedAceFilesCounter, loadedAceFilesCounter + 99, CurrentScaleFactor));
                 }
                 loadedAceFilesCounter++;
-                var originalTexture = Orts.Formats.Msts.AceFile.Texture2DFromFile(this.device, path);
+                var originalTexture = AceFile.Texture2DFromFile(this.device, path);
                 var reducableTexture = new ReducableTexture2D(device, originalTexture);
                 reducableTexture.ReduceToFactor(CurrentScaleFactor);
                 this[filename] = reducableTexture;
@@ -734,7 +736,7 @@ namespace ORTS.TrackViewer.Drawing
 
             this.snappedTileX = tile.TileX;
             this.snappedTileZ = tile.TileZ;
-            TileName.Snap(ref snappedTileX, ref snappedTileZ, zoomFromInt[this.TileSize]);
+            TileHelper.Snap(ref snappedTileX, ref snappedTileZ, zoomFromInt[this.TileSize]);
 
             verticesFull = CreateVerticesFromTile(tile);
         }
@@ -790,9 +792,9 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tile">The tile (parsed .t-file)</param>
         /// <param name="patch">The terrain patch (one of the patches in the tile)</param>
         /// <returns>The texture name</returns>
-        private string CreateVerticesFromPatch(Tile tile, terrain_patchset_patch patch)
+        private string CreateVerticesFromPatch(Tile tile, Patch patch)
         {
-            var ts = tile.Shaders[patch.ShaderIndex].terrain_texslots;
+            var ts = tile.Shaders[patch.ShaderIndex].Textureslots;
             string textureName = ts[0].Filename;
 
             if (!textureManager.TextureIsLoaded(textureName))
@@ -825,7 +827,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="cornerIndexX">Defines the x-value of the corner (0 or 1)</param>
         /// <param name="cornerIndexZ">Defines the z-value of the corner (0 or 1)</param>
         /// <param name="textureName">The name of the texture</param>
-        private void CreateSingleCornerVertex(Tile tile, terrain_patchset_patch patch, float cornerIndexX, float cornerIndexZ, string textureName)
+        private void CreateSingleCornerVertex(Tile tile, Patch patch, float cornerIndexX, float cornerIndexZ, string textureName)
         {
             int squaresPerPatch = 16;
             cornerIndexX *= squaresPerPatch;
@@ -860,8 +862,8 @@ namespace ORTS.TrackViewer.Drawing
                 "({1}, {2}) for {3}x{3} tile: {0}", textureNames[patchIndexX, patchIndexZ], patchIndexX, patchIndexZ, this.TileSize);
         }
 
-        static Dictionary<int, TileName.Zoom> zoomFromInt = new Dictionary<int, TileName.Zoom> {
-            {1, TileName.Zoom.Small}, {2, TileName.Zoom.Large}, {8, TileName.Zoom.DMSmall}, {16, TileName.Zoom.DMLarge}
+        static Dictionary<int, TileHelper.Zoom> zoomFromInt = new Dictionary<int, TileHelper.Zoom> {
+            {1, TileHelper.Zoom.Small}, {2, TileHelper.Zoom.Large}, {8, TileHelper.Zoom.DMSmall}, {16, TileHelper.Zoom.DMLarge}
         };
 
         public void DrawPatchLines(DrawArea drawArea)

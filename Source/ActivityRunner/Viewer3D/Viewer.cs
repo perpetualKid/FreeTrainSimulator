@@ -46,6 +46,8 @@ using Event = Orts.Common.Event;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common.Calc;
 using Orts.Settings.Util;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -264,7 +266,7 @@ namespace Orts.ActivityRunner.Viewer3D
             string ORfilepath = System.IO.Path.Combine(Simulator.RoutePath, "OpenRails");
             ContentPath = Game.ContentPath;
             Trace.Write(" ENV");
-            ENVFile = new EnvironmentFile(Simulator.RoutePath + @"\ENVFILES\" + Simulator.TRK.Tr_RouteFile.Environment.ENVFileName(Simulator.Season, Simulator.WeatherType));
+            ENVFile = new EnvironmentFile(Simulator.RoutePath + @"\ENVFILES\" + Simulator.TRK.Tr_RouteFile.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType));
 
             Trace.Write(" SIGCFG");
             if (File.Exists(ORfilepath + @"\sigcfg.dat"))
@@ -301,7 +303,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // The speedpost.dat file is needed only to derive the shape names for the temporary speed restriction zones,
             // so it is opened only in activity mode
-            if (Simulator.ActivityRun != null && Simulator.Activity.Tr_Activity.Tr_Activity_File.ActivityRestrictedSpeedZones != null)
+            if (Simulator.ActivityRun != null && Simulator.Activity.Activity.ActivityRestrictedSpeedZones != null)
             {
                 var speedpostDatFile = Simulator.RoutePath + @"\speedpost.dat";
                 if (File.Exists(speedpostDatFile))
@@ -393,7 +395,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Simulator.Trains[0].LeadLocomotiveIndex = -1;
             }
 
-            InitializeAutomaticTrackSounds();
+            SharedSMSFileManager.Initialize(TrackTypes.Count, Simulator.TRK.Tr_RouteFile.SwitchSMSNumber, Simulator.TRK.Tr_RouteFile.CurveSMSNumber, Simulator.TRK.Tr_RouteFile.CurveSwitchSMSNumber);
 
             TextureManager = new SharedTextureManager(this, Game.GraphicsDevice);
 
@@ -562,37 +564,6 @@ namespace Orts.ActivityRunner.Viewer3D
             FreeRoamCameraList.RemoveAt(0);
         }
 
-
-        public void InitializeAutomaticTrackSounds()
-        {
-            SharedSMSFileManager.AutoTrackSound = false;
-            SharedSMSFileManager.SwitchSMSNumber = Simulator.TRK.Tr_RouteFile.SwitchSMSNumber;
-
-            if (SharedSMSFileManager.SwitchSMSNumber < -1 || SharedSMSFileManager.SwitchSMSNumber >= TrackTypes.Count)
-            {
-                SharedSMSFileManager.SwitchSMSNumber = -1;
-                Trace.TraceInformation("Switch SMS Number out of range");
-            }
-            if (SharedSMSFileManager.SwitchSMSNumber != -1) SharedSMSFileManager.AutoTrackSound = true;
-
-            SharedSMSFileManager.CurveSMSNumber = Simulator.TRK.Tr_RouteFile.CurveSMSNumber;
-            if (SharedSMSFileManager.CurveSMSNumber < -1 || SharedSMSFileManager.CurveSMSNumber >= TrackTypes.Count)
-            {
-                SharedSMSFileManager.CurveSMSNumber = -1;
-                Trace.TraceInformation("Curve SMS Number out of range");
-            }
-            if (SharedSMSFileManager.CurveSMSNumber != -1) SharedSMSFileManager.AutoTrackSound = true;
-
-            SharedSMSFileManager.CurveSwitchSMSNumber = Simulator.TRK.Tr_RouteFile.CurveSwitchSMSNumber;
-            if (SharedSMSFileManager.CurveSwitchSMSNumber < -1 || SharedSMSFileManager.CurveSwitchSMSNumber >= TrackTypes.Count)
-            {
-                SharedSMSFileManager.CurveSwitchSMSNumber = SharedSMSFileManager.CurveSMSNumber;
-                Trace.TraceInformation("CurveSwitch SMS Number out of range, replaced with curve SMS number");
-            }
-            if (SharedSMSFileManager.CurveSwitchSMSNumber != -1) SharedSMSFileManager.AutoTrackSound = true;
-
-        }
-
         public void ChangeSelectedTrain(Train selectedTrain)
         {
             SelectedTrain = selectedTrain;
@@ -612,7 +583,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (CabCamera.IsAvailable)
             {
                 var i = ((PlayerLocomotive as MSTSLocomotive).UsingRearCab) ? 1 : 0;
-                var cabTextureFileName = (PlayerLocomotive as MSTSLocomotive).CabViewList[i].CVFFile.TwoDViews[0];
+                var cabTextureFileName = (PlayerLocomotive as MSTSLocomotive).CabViewList[i].CVFFile.Views2D[0];
                 var cabTextureInverseRatio = ComputeCabTextureInverseRatio(cabTextureFileName);
                 if (cabTextureInverseRatio != -1) CabTextureInverseRatio = cabTextureInverseRatio;
             }
@@ -1130,13 +1101,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         if (Program.DebugViewer.switchPickedItem != null)
                         {
-                            TrJunctionNode nextSwitchTrack = Program.DebugViewer.switchPickedItem.Item.TrJunctionNode;
-                            wos = new WorldLocation(nextSwitchTrack.TN.UiD.TileX, nextSwitchTrack.TN.UiD.TileZ, nextSwitchTrack.TN.UiD.X, nextSwitchTrack.TN.UiD.Y + 8, nextSwitchTrack.TN.UiD.Z);
+                            wos = Program.DebugViewer.switchPickedItem.Item.UiD.Location.ChangeElevation(8); 
                         }
                         else
                         {
-                            var s = Program.DebugViewer.signalPickedItem.Item;
-                            wos = new WorldLocation(s.TileX, s.TileZ, s.X, s.Y + 8, s.Z);
+                            wos = Program.DebugViewer.signalPickedItem.Item.Location.ChangeElevation(8);
                         }
                         if (FreeRoamCameraList.Count == 0)
                         {
@@ -1700,10 +1669,10 @@ namespace Orts.ActivityRunner.Viewer3D
             for (int j = 0; j < Simulator.TDB.TrackDB.TrackNodes.Count(); j++)
             {
                 TrackNode tn = Simulator.TDB.TrackDB.TrackNodes[j];
-                if (tn != null && tn.TrJunctionNode != null)
+                if (tn is TrackJunctionNode)
                 {
 
-                    Vector3 xnaCenter = Camera.XnaLocation(new WorldLocation(tn.UiD.TileX, tn.UiD.TileZ, tn.UiD.X, tn.UiD.Y, tn.UiD.Z));
+                    Vector3 xnaCenter = Camera.XnaLocation(tn.UiD.Location);
                     float d = xnaCenter.LineSegmentDistanceSquare(NearPoint, FarPoint);
 
                     if (bestD > d)
@@ -1715,7 +1684,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (bestTn != null)
             {
-                new ToggleAnySwitchCommand(Log, bestTn.TCCrossReference[0].Index);
+                new ToggleAnySwitchCommand(Log, bestTn.TrackCircuitCrossReferences[0].Index);
             }
         }
 

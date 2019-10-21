@@ -17,17 +17,20 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Formats.Msts;
-using Orts.Simulation;
-using Orts.Simulation.Physics;
-using Orts.Simulation.Signalling;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation;
+using Orts.Simulation.Physics;
+using Orts.Simulation.Signalling;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -101,7 +104,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     cacheNode.MoveInSection(MaximumSectionDistance);
                     // Now back facing the right way, calculate the distance to the train location.
                     cacheNode.ReverseDirection();
-                    var initialNodeOffset = cacheNode.DistanceTo(position.TileX, position.TileZ, position.X, position.Y, position.Z);
+                    var initialNodeOffset = cacheNode.DistanceTo(position.WorldLocation);
                     // Go and collect all the cache entries for the visible range of vector nodes (straights, curves).
                     var totalDistance = 0f;
                     while (!cacheNode.IsEnd && totalDistance - initialNodeOffset < DisplayDistance)
@@ -132,11 +135,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             var signalObj = obj as TrackSectionSignal;
                             if (switchObj != null)
                             {
-                                for (var pin = switchObj.TrackNode.Inpins; pin < switchObj.TrackNode.Inpins + switchObj.TrackNode.Outpins; pin++)
+                                for (var pin = switchObj.JunctionNode.InPins; pin < switchObj.JunctionNode.InPins + switchObj.JunctionNode.OutPins; pin++)
                                 {
-                                    if (switchObj.TrackNode.TrPins[pin].Link == switchObj.NodeIndex)
+                                    if (switchObj.JunctionNode.TrackPins[pin].Link == switchObj.NodeIndex)
                                     {
-                                        if (pin - switchObj.TrackNode.Inpins != switchObj.TrackNode.TrJunctionNode.SelectedRoute)
+                                        if (pin - switchObj.JunctionNode.InPins != switchObj.JunctionNode.SelectedRoute)
                                             switchErrorDistance = objDistance;
                                         break;
                                     }
@@ -211,7 +214,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             }
                             else if (switchObj != null)
                             {
-								primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, objDistance >= switchErrorDistance ? Color.Red : Color.White, String.Format("Switch ({0}, {1}-way, {2} set)", switchObj.TrackNode.Index, switchObj.TrackNode.Outpins, switchObj.TrackNode.TrJunctionNode.SelectedRoute + 1), Owner.TextFontDefaultOutlined));
+								primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, objDistance >= switchErrorDistance ? Color.Red : Color.White, 
+                                    $"Switch ({switchObj.JunctionNode.Index}, {switchObj.JunctionNode.OutPins}-way, {switchObj.JunctionNode.SelectedRoute + 1} set)", Owner.TextFontDefaultOutlined));
                             }
                             else if (signalObj != null)
                             {
@@ -219,7 +223,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                            GetAspect(signalObj.Signal) == DebugWindowSignalAspect.Stop ? Color.Red :
                                                GetAspect(signalObj.Signal) == DebugWindowSignalAspect.Warning ? Color.Yellow :
                                                Color.Green,
-                                           String.Format("Signal ({0})", signalObj.Signal.this_sig_lr(MstsSignalFunction.NORMAL)),
+                                           String.Format("Signal ({0})", signalObj.Signal.this_sig_lr(SignalFunction.Normal)),
                                            Owner.TextFontDefaultOutlined));
                             }
 
@@ -272,7 +276,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (trackNode.IsEnd)
                     rv.Objects.Add(new TrackSectionEndOfLine() { Distance = rv.Length });
                 else if (trackNode.IsJunction)
-                    rv.Objects.Add(new TrackSectionSwitch() { Distance = rv.Length, TrackNode = trackNode.TN, NodeIndex = nodeIndex });
+                    rv.Objects.Add(new TrackSectionSwitch() { Distance = rv.Length, JunctionNode = trackNode.TN as TrackJunctionNode, NodeIndex = nodeIndex });
                 else
                     rv.Objects.Add(new TrackSectionObject() { Distance = rv.Length }); // Always have an object at the end.
                 if (trackNode.TrackNodeIndex != nodeIndex)
@@ -287,7 +291,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 float offset = trackNode.TrackNodeOffset;
                 int direction = (int)trackNode.Direction;
 
-                thisPosition.SetTCPosition(tn.TCCrossReference, offset, direction);
+                thisPosition.SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
                 Train.TCSubpathRoute tempRoute = Owner.Viewer.Simulator.Signals.BuildTempRoute(null, thisPosition.TCSectionIndex, thisPosition.TCOffset, thisPosition.TCDirection, 5000.0f, true, false, false);
 
                 ObjectItemInfo thisInfo = Owner.Viewer.Simulator.Signals.GetNextObject_InRoute(null, tempRoute, 0,
@@ -296,7 +300,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var signal = thisInfo.ObjectDetails;
                 if (signal == null)
                     break;
-                if (signal.this_sig_lr(MstsSignalFunction.NORMAL) == MstsSignalAspect.UNKNOWN)
+                if (signal.this_sig_lr(SignalFunction.Normal) == SignalAspectState.Unknown)
                     break;
                 var signalDistance = thisInfo.distance_found;
 
@@ -324,13 +328,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return rv;
         }
 
-        static DebugWindowSignalAspect GetAspect(SignalObject signal)
+        static DebugWindowSignalAspect GetAspect(Signal signal)
         {
-            var aspect = signal.this_sig_lr(MstsSignalFunction.NORMAL);
+            var aspect = signal.this_sig_lr(SignalFunction.Normal);
 
-            if (aspect >= MstsSignalAspect.CLEAR_1)
+            if (aspect >= SignalAspectState.Clear_1)
                 return DebugWindowSignalAspect.Clear;
-            if (aspect >= MstsSignalAspect.STOP_AND_PROCEED)
+            if (aspect >= SignalAspectState.Stop_And_Proceed)
                 return DebugWindowSignalAspect.Warning;
             return DebugWindowSignalAspect.Stop;
         }
@@ -361,13 +365,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public class TrackSectionSwitch : TrackSectionObject
         {
-            public TrackNode TrackNode;
+            public TrackJunctionNode JunctionNode;
             public int NodeIndex;
         }
 
         public class TrackSectionSignal : TrackSectionObject
         {
-            public SignalObject Signal;
+            public Signal Signal;
         }
     }
 

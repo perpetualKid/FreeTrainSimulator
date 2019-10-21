@@ -17,23 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Forms.Integration;
-
-using Orts.Formats.Msts;
 using Orts.Common;
-using ORTS.TrackViewer.Properties;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts.Files;
 using ORTS.TrackViewer.Editing;
-
 
 namespace ORTS.TrackViewer.UserInterface
 {
@@ -88,7 +78,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         /// <param name="trackViewer">trackViewer object that contains all relevant data</param>
         /// <param name="mouseLocation">The Worldlocation of the mouse pointer</param>
-        public void Update(TrackViewer trackViewer, WorldLocation mouseLocation)
+        public void Update(TrackViewer trackViewer, in WorldLocation mouseLocation)
         {
             ResetAdditionalText();
 
@@ -172,7 +162,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// Put the mouse location in the statusbar
         /// </summary>
         /// <param name="mouseLocation"></param>
-        private void SetMouseLocationStatus(WorldLocation mouseLocation)
+        private void SetMouseLocationStatus(in WorldLocation mouseLocation)
         {
             tileXZ.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture,
                 "{0,-7} {1,-7}", mouseLocation.TileX, mouseLocation.TileZ);
@@ -190,14 +180,14 @@ namespace ORTS.TrackViewer.UserInterface
         {
             if (Properties.Settings.Default.statusShowVectorSections)
             {
-                TrVectorSection tvs = trackViewer.DrawTrackDB.ClosestTrack.VectorSection;
+                TrackVectorSection tvs = trackViewer.DrawTrackDB.ClosestTrack.VectorSection;
                 if (tvs == null) return;
                 uint shapeIndex = tvs.ShapeIndex;
                 string shapeName = "Unknown:" + shapeIndex.ToString(System.Globalization.CultureInfo.CurrentCulture);
                 try
                 {
                     // Try to find a fixed track
-                    TrackShape shape = trackViewer.RouteData.TsectionDat.TrackShapes.Get(shapeIndex);
+                    TrackShape shape = trackViewer.RouteData.TsectionDat.TrackShapes[shapeIndex];
                     shapeName = shape.FileName;
                 }
                 catch
@@ -205,7 +195,7 @@ namespace ORTS.TrackViewer.UserInterface
                     // try to find a dynamic track
                     try
                     {
-                        TrackPath trackPath = trackViewer.RouteData.TsectionDat.TSectionIdx.TrackPaths[tvs.ShapeIndex];
+                        TrackPath trackPath = trackViewer.RouteData.TsectionDat.TrackSectionIndex[tvs.ShapeIndex];
                         shapeName = "<dynamic ?>";
                         foreach (uint trackSection in trackPath.TrackSections)
                         {
@@ -225,7 +215,7 @@ namespace ORTS.TrackViewer.UserInterface
                     " VectorSection ({3}/{4}) filename={2} Index={0} shapeIndex={1}",
                     tvs.SectionIndex, shapeIndex, shapeName,
                         trackViewer.DrawTrackDB.ClosestTrack.TrackVectorSectionIndex + 1,
-                        trackViewer.DrawTrackDB.ClosestTrack.TrackNode.TrVectorNode.TrVectorSections.Count());
+                        (trackViewer.DrawTrackDB.ClosestTrack.TrackNode as TrackVectorNode).TrackVectorSections.Length);
             }
         }
 
@@ -285,12 +275,12 @@ namespace ORTS.TrackViewer.UserInterface
         {
             if (Properties.Settings.Default.statusShowPATfile && (trackViewer.DrawPATfile != null))
             {
-                TrPathNode curNode = trackViewer.DrawPATfile.CurrentNode;
-                TrackPDP curPDP = trackViewer.DrawPATfile.CurrentPdp;
+                PathNode curNode = trackViewer.DrawPATfile.CurrentNode;
+                PathDataPoint curPDP = trackViewer.DrawPATfile.CurrentPdp;
                 statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                     " {7}: {3}, {4} [{1} {2}] [{5} {6}] <{0}>",
-                    curNode.pathFlags, (int)curNode.nextMainNode, (int)curNode.nextSidingNode,
-                    curPDP.X, curPDP.Z, curPDP.junctionFlag, curPDP.invalidFlag, trackViewer.DrawPATfile.FileName);
+                    curNode.PathFlags, (int)curNode.NextMainNode, (int)curNode.NextSidingNode,
+                    curPDP.Location.Location.X, curPDP.Location.Location.Z, curPDP.JunctionFlag, curPDP.InvalidFlag, trackViewer.DrawPATfile.FileName);
             }
         }
 
@@ -343,7 +333,7 @@ namespace ORTS.TrackViewer.UserInterface
             if (!Properties.Settings.Default.statusShowNames) return;
             if (!String.Equals(description, "platform")) return;
 
-            TrItem item = trackViewer.RouteData.TrackDB.TrItemTable[index];
+            TrackItem item = trackViewer.RouteData.TrackDB.TrackItems[index];
             PlatformItem platform = item as PlatformItem;
             if (platform == null) return;
             statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,

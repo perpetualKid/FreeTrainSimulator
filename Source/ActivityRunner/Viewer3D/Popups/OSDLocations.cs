@@ -17,12 +17,13 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Simulation;
-using Orts.Common;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -73,14 +74,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var platforms = new Dictionary<string, bool>();
                 var sidings = new Dictionary<string, bool>();
 
-                if (tdb.TrItemTable != null)
+                if (tdb.TrackItems != null)
                 {
                     foreach (var stop in stationStops)
                     {
                         var platformId = stop.PlatformReference;
-                        if (0 <= platformId && platformId < tdb.TrItemTable.Length && tdb.TrItemTable[platformId].ItemType == Formats.Msts.TrItem.trItemType.trPLATFORM)
+                        if (0 <= platformId && platformId < tdb.TrackItems.Length && tdb.TrackItems[platformId] is PlatformItem)
                         {
-                            platforms[tdb.TrItemTable[platformId].ItemName] = true;
+                            platforms[tdb.TrackItems[platformId].ItemName] = true;
                         }
                     }
 
@@ -88,15 +89,15 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         foreach (var @event in activity.EventList)
                         {
-                            var eventAction = @event.ParsedObject as Orts.Formats.Msts.EventCategoryAction;
+                            var eventAction = @event.ParsedObject as EventCategoryAction;
                             if (eventAction != null)
                             {
                                 var sidingId1 = eventAction.SidingId;
-                                var sidingId2 = eventAction.WagonList != null && eventAction.WagonList.WorkOrderWagonList.Count > 0 ? eventAction.WagonList.WorkOrderWagonList[0].SidingId : default(uint?);
+                                var sidingId2 = eventAction.WorkOrderWagons != null && eventAction.WorkOrderWagons.Count > 0 ? eventAction.WorkOrderWagons[0].SidingId : default(uint?);
                                 var sidingId = sidingId1.HasValue ? sidingId1.Value : sidingId2.HasValue ? sidingId2.Value : uint.MaxValue;
-                                if (0 <= sidingId && sidingId < tdb.TrItemTable.Length && tdb.TrItemTable[sidingId].ItemType == Formats.Msts.TrItem.trItemType.trSIDING)
+                                if (0 <= sidingId && sidingId < tdb.TrackItems.Length && tdb.TrackItems[sidingId] is SidingItem)
                                 {
-                                    sidings[tdb.TrItemTable[sidingId].ItemName] = true;
+                                    sidings[tdb.TrackItems[sidingId].ItemName] = true;
                                 }
                             }
                         }

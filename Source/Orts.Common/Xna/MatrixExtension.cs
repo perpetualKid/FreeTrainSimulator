@@ -102,6 +102,5 @@ namespace Orts.Common.Xna
             else            // singularity at poles
                 return (float)Math.Atan2(m.M13, m.M33);
         }
-
     }
 }

@@ -56,9 +56,9 @@
 //coment this if you want to save color textures as ABGR.
 #define COLOR_SAVE_TO_ARGB 
 
-using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.IO;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -905,7 +905,7 @@ namespace Orts.ActivityRunner.Viewer3D
             SurfaceFormat surfaceFormat = SurfaceFormatFromLoadFormat(loadSurfaceFormat, compressionFormat, pixelFlags, rgbBitCount);
 
             Texture2D tx = new Texture2D(device, width, height, hasMipMaps, surfaceFormat);
-            tx.Tag = new Orts.Formats.Msts.AceInfo() { AlphaBits = XNATextureNumAlphaBits(tx) };
+            tx.Tag = new Formats.Msts.Models.AceInfo() { AlphaBits = XNATextureNumAlphaBits(tx) };
 
             if (tx.Format != surfaceFormat)
             {

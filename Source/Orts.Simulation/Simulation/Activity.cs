@@ -32,6 +32,8 @@ using Event = Orts.Common.Event;
 using Orts.Common.Xna;
 using Orts.Common.Calc;
 using Orts.Common.Logging;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Simulation
 {
@@ -93,20 +95,20 @@ namespace Orts.Simulation
         public Activity(ActivityFile actFile, Simulator simulator)
         {
             Simulator = simulator;  // Save for future use.
-            Player_Service_Definition sd;
-            sd = actFile.Tr_Activity.Tr_Activity_File.Player_Service_Definition;
+            PlayerServices sd;
+            sd = actFile.Activity.PlayerServices;
             if (sd != null)
             {
-                if (sd.Player_Traffic_Definition.Player_Traffic_List.Count > 0)
+                if (sd.PlayerTraffics.Count > 0)
                 {
                     PlatformItem Platform = null;
                     ActivityTask task = null;
 
-                    foreach (var i in sd.Player_Traffic_Definition.Player_Traffic_List)
+                    foreach (var i in sd.PlayerTraffics)
                     {
-                        if (i.PlatformStartID < Simulator.TDB.TrackDB.TrItemTable.Length && i.PlatformStartID >= 0 &&
-                            Simulator.TDB.TrackDB.TrItemTable[i.PlatformStartID] is PlatformItem)
-                            Platform = Simulator.TDB.TrackDB.TrItemTable[i.PlatformStartID] as PlatformItem;
+                        if (i.PlatformStartID < Simulator.TDB.TrackDB.TrackItems.Length && i.PlatformStartID >= 0 &&
+                            Simulator.TDB.TrackDB.TrackItems[i.PlatformStartID] is PlatformItem)
+                            Platform = Simulator.TDB.TrackDB.TrackItems[i.PlatformStartID] as PlatformItem;
                         else
                         {
                             Trace.TraceWarning("PlatformStartID {0} is not present in TDB file", i.PlatformStartID);
@@ -114,13 +116,13 @@ namespace Orts.Simulation
                         }
                         if (Platform != null)
                         {
-                            if (Simulator.TDB.TrackDB.TrItemTable[Platform.LinkedPlatformItemId] is PlatformItem)
+                            if (Simulator.TDB.TrackDB.TrackItems[Platform.LinkedPlatformItemId] is PlatformItem)
                             {
-                                PlatformItem Platform2 = Simulator.TDB.TrackDB.TrItemTable[Platform.LinkedPlatformItemId] as PlatformItem;
+                                PlatformItem Platform2 = Simulator.TDB.TrackDB.TrackItems[Platform.LinkedPlatformItemId] as PlatformItem;
                                 Tasks.Add(task = new ActivityTaskPassengerStopAt(simulator,
                                     task,
-                                    i.ArrivalTime,
-                                    i.DepartTime,
+                                    new DateTime().AddSeconds(i.ArrivalTime),
+                                    new DateTime().AddSeconds(i.DepartTime),
                                     Platform, Platform2));
                             }
                         }
@@ -130,11 +132,7 @@ namespace Orts.Simulation
             }
 
             // Compile list of freight events, if any, from the parsed ACT file.
-            if (actFile.Tr_Activity == null) { return; }
-            if (actFile.Tr_Activity.Tr_Activity_File == null) { return; }
-            if (actFile.Tr_Activity.Tr_Activity_File.Events == null) { return; }
-            var parsedEventList = actFile.Tr_Activity.Tr_Activity_File.Events.EventList;
-            foreach (var i in parsedEventList)
+            foreach (var i in actFile?.Activity?.Events?.AsEnumerable())
             {
                 if (i is EventCategoryAction)
                 {
@@ -149,8 +147,8 @@ namespace Orts.Simulation
                     EventList.Add(new EventCategoryTimeWrapper(i, Simulator));
                 }
                 EventWrapper eventAdded = EventList.Last();
-                eventAdded.OriginalActivationLevel = i.Activation_Level;
-                if (i.ORTSWeatherChange != null || i.Outcomes.ORTSWeatherChange != null) WeatherChangesPresent = true;
+                eventAdded.OriginalActivationLevel = i.ActivationLevel;
+                if (i.WeatherChange != null || i.Outcomes.WeatherChange != null) WeatherChangesPresent = true;
             }
 
             StationStopLogActive = false;
@@ -197,7 +195,7 @@ namespace Orts.Simulation
                     // so this line needs to be inside the EventList loop.
                     if (this.TriggeredEvent != null) { break; }
 
-                    if (i != null && i.ParsedObject.Activation_Level > 0)
+                    if (i != null && i.ParsedObject.ActivationLevel > 0)
                     {
                         if (i.TimesTriggered < 1 || i.ParsedObject.Reversible)
                         {
@@ -513,81 +511,79 @@ namespace Orts.Simulation
         /// <param name="tsectionDat">track sections containing the details of the various sections</param>
         /// <param name="trackDB">The track Database that needs to be updated</param>
         /// <param name="zones">List of speed restriction zones</param>
-        public void AddRestrictZones(Tr_RouteFile routeFile, TrackSectionsFile tsectionDat, TrackDB trackDB, ActivityRestrictedSpeedZones zones)
+        public void AddRestrictZones(Route routeFile, TrackSectionsFile tsectionDat, TrackDB trackDB, RestrictedSpeedZones zones)
         {
-            if (zones.ActivityRestrictedSpeedZoneList.Count < 1) return;
+            if (zones.Count < 1) return;
 
             TempSpeedPostItems = new List<TempSpeedPostItem>();
 
-            TrItem[] newSpeedPostItems = new TempSpeedPostItem[2];
+            TrackItem[] newSpeedPostItems = new TempSpeedPostItem[2];
 
             Traveller traveller;
 
             const float MaxDistanceOfWarningPost = 2000;
 
-            for (int idxZone = 0; idxZone < zones.ActivityRestrictedSpeedZoneList.Count; idxZone++)
+            for (int idxZone = 0; idxZone < zones.Count; idxZone++)
             {
-                var worldPosition1 = WorldPosition.None;
                 newSpeedPostItems[0] = new TempSpeedPostItem(routeFile,
-                    zones.ActivityRestrictedSpeedZoneList[idxZone].StartPosition, true, worldPosition1, false);
-                var worldPosition2 = WorldPosition.None;
+                    zones[idxZone].StartPosition, true, WorldPosition.None, false);
                 newSpeedPostItems[1] = new TempSpeedPostItem(routeFile,
-                    zones.ActivityRestrictedSpeedZoneList[idxZone].EndPosition, false, worldPosition2, false);
+                    zones[idxZone].EndPosition, false, WorldPosition.None, false);
 
                 // Add the speedposts to the track database. This will set the TrItemId's of all speedposts
-                trackDB.AddTrItems(newSpeedPostItems);
+                trackDB.AddTrackItems(newSpeedPostItems);
 
                 // And now update the various (vector) tracknodes (this needs the TrItemIds.
-                var endOffset = AddItemIdToTrackNode(ref zones.ActivityRestrictedSpeedZoneList[idxZone].EndPosition,
+                var endOffset = AddItemIdToTrackNode(zones[idxZone].EndPosition,
                     tsectionDat, trackDB, newSpeedPostItems[1], out traveller);
-                var startOffset = AddItemIdToTrackNode(ref zones.ActivityRestrictedSpeedZoneList[idxZone].StartPosition,
+                var startOffset = AddItemIdToTrackNode(zones[idxZone].StartPosition,
                     tsectionDat, trackDB, newSpeedPostItems[0], out traveller);
                 float distanceOfWarningPost = 0;
                 TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
-			{
-                    FlipRestrSpeedPost((TempSpeedPostItem)newSpeedPostItems[0]);
-                    FlipRestrSpeedPost((TempSpeedPostItem)newSpeedPostItems[1]);
+                {
+                    ((TempSpeedPostItem)newSpeedPostItems[0]).Flip();
+                    ((TempSpeedPostItem)newSpeedPostItems[1]).Flip();
                     distanceOfWarningPost = (float)Math.Min(MaxDistanceOfWarningPost, traveller.TrackNodeLength - (double)startOffset);
-            }
+                }
                 else if (startOffset != null && endOffset != null && startOffset <= endOffset)
                     distanceOfWarningPost = (float)Math.Max(-MaxDistanceOfWarningPost, -(double)startOffset);
                 traveller.Move(distanceOfWarningPost);
                 var worldPosition3 = WorldPosition.None;
                 var speedWarningPostItem = new TempSpeedPostItem(routeFile,
-                    zones.ActivityRestrictedSpeedZoneList[idxZone].StartPosition, false, worldPosition3, true);
+                    zones[idxZone].StartPosition, false, worldPosition3, true);
                 SpeedPostPosition(speedWarningPostItem, ref traveller);
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                 {
-                    FlipRestrSpeedPost((TempSpeedPostItem)speedWarningPostItem);
-        }
-                ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[0]);
+                    speedWarningPostItem.Flip();
+                }
+                ((TempSpeedPostItem)newSpeedPostItems[0]).ComputeTablePosition();
                 TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[0]);
-                ComputeTablePosition((TempSpeedPostItem)newSpeedPostItems[1]);
+                ((TempSpeedPostItem)newSpeedPostItems[1]).ComputeTablePosition();
                 TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[1]);
-                ComputeTablePosition((TempSpeedPostItem)speedWarningPostItem);
-                TempSpeedPostItems.Add((TempSpeedPostItem)speedWarningPostItem);
+                speedWarningPostItem.ComputeTablePosition();
+                TempSpeedPostItems.Add(speedWarningPostItem);
             }
         }
 
         /// <summary>
         /// Add a reference to a new TrItemId to the correct trackNode (which needs to be determined from the position)
         /// </summary>
-        /// <param name="position">Position of the new </param>
+        /// <param name="location">Position of the new </param>
         /// <param name="tsectionDat">track sections containing the details of the various sections</param>
         /// <param name="trackDB">track database to be modified</param>
         /// <param name="newTrItemRef">The Id of the new TrItem to add to the tracknode</param>
         /// <param name="traveller">The computed traveller to the speedPost position</param>
-        static float? AddItemIdToTrackNode(ref Position position, TrackSectionsFile tsectionDat, TrackDB trackDB, TrItem newTrItem, out Traveller traveller)
+        static float? AddItemIdToTrackNode(in WorldLocation location, TrackSectionsFile tsectionDat, TrackDB trackDB, TrackItem newTrItem, out Traveller traveller)
         {
             float? offset = 0.0f;
-            traveller = new Traveller(tsectionDat, trackDB.TrackNodes, position.TileX, position.TileZ, position.X, position.Z);
+            traveller = new Traveller(tsectionDat, trackDB.TrackNodes, location);
             TrackNode trackNode = trackDB.TrackNodes[traveller.TrackNodeIndex];//find the track node
-            if (trackNode.TrVectorNode != null)
+            if (trackNode is TrackVectorNode trackVectorNode)
             {
                 offset = traveller.TrackNodeOffset;
                 SpeedPostPosition((TempSpeedPostItem)newTrItem, ref traveller);
-                InsertTrItemRef(tsectionDat, trackDB, trackNode.TrVectorNode, (int)newTrItem.TrItemId, (float)offset);
+                InsertTrItemRef(tsectionDat, trackDB, trackVectorNode, (int)newTrItem.TrackItemId, (float)offset);
             }
             return offset;
         }
@@ -600,71 +596,30 @@ namespace Orts.Simulation
         /// 
         static void SpeedPostPosition(TempSpeedPostItem restrSpeedPost, ref Traveller traveller)
         {
-            restrSpeedPost.Y = traveller.Y;
-            restrSpeedPost.Angle = -traveller.RotY + (float)Math.PI / 2;
-            restrSpeedPost.WorldPosition = new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z));
+            restrSpeedPost.Update(traveller.Y, -traveller.RotY + (float)Math.PI / 2, new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z)));
         }
-
-        /// <summary>
-        /// Flip restricted speedpost 
-        /// </summary>
-        /// <param name="restrSpeedPost">The Id of the restricted speedpost to flip</param>
-        /// 
-        static void FlipRestrSpeedPost(TempSpeedPostItem restrSpeedPost)
-        {
-            restrSpeedPost.Angle += (float)Math.PI;
-            restrSpeedPost.WorldPosition = new WorldPosition(restrSpeedPost.WorldPosition.TileX, restrSpeedPost.WorldPosition.TileZ, new Matrix(
-                -restrSpeedPost.WorldPosition.XNAMatrix.M11, restrSpeedPost.WorldPosition.XNAMatrix.M12, -restrSpeedPost.WorldPosition.XNAMatrix.M13, restrSpeedPost.WorldPosition.XNAMatrix.M14,
-                restrSpeedPost.WorldPosition.XNAMatrix.M21, restrSpeedPost.WorldPosition.XNAMatrix.M22, restrSpeedPost.WorldPosition.XNAMatrix.M23, restrSpeedPost.WorldPosition.XNAMatrix.M24,
-                -restrSpeedPost.WorldPosition.XNAMatrix.M31, restrSpeedPost.WorldPosition.XNAMatrix.M32, -restrSpeedPost.WorldPosition.XNAMatrix.M33, restrSpeedPost.WorldPosition.XNAMatrix.M34,
-                restrSpeedPost.WorldPosition.XNAMatrix.M41, restrSpeedPost.WorldPosition.XNAMatrix.M42, restrSpeedPost.WorldPosition.XNAMatrix.M43, restrSpeedPost.WorldPosition.XNAMatrix.M44));
-        }
-
-        /// <summary>
-        /// Compute position of restricted speedpost table
-        /// </summary>
-        /// <param name="restrSpeedPost">The Id of the restricted speed post to flip</param>
-        /// 
-        static void ComputeTablePosition(TempSpeedPostItem restrSpeedPost)
-        {
-            var speedPostTablePosition = new Vector3(2.2f, 0, 0);
-            speedPostTablePosition = Vector3.Transform(speedPostTablePosition, restrSpeedPost.WorldPosition.XNAMatrix);
-            
-            restrSpeedPost.WorldPosition = restrSpeedPost.WorldPosition.SetMstsTranslation(speedPostTablePosition).Normalize();
-
-            restrSpeedPost.WorldPosition = restrSpeedPost.WorldPosition.SetMstsTranslation(restrSpeedPost.WorldPosition.XNAMatrix.Translation);
-        }
-
 
         /// <summary>
         /// Insert a reference to a new TrItem to the already existing TrItemRefs basing on its offset within the track node.
         /// </summary>
         /// 
         [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
-        static void InsertTrItemRef(TrackSectionsFile tsectionDat, TrackDB trackDB, TrVectorNode thisVectorNode, int newTrItemId, float offset)
+        static void InsertTrItemRef(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackVectorNode thisVectorNode, int newTrItemId, float offset)
         {
-            int[] newTrItemRefs = new int[thisVectorNode.NoItemRefs + 1];
-            if (thisVectorNode.NoItemRefs > 0)
+            int index = 0;
+            // insert the new TrItemRef accordingly to its offset
+            for (int iTrItems = thisVectorNode.TrackItemIndices.Length - 1; iTrItems >= 0; iTrItems--)
             {
-                thisVectorNode.TrItemRefs.CopyTo(newTrItemRefs, 0);
-                // insert the new TrItemRef accordingly to its offset
-                for (int iTrItems = thisVectorNode.NoItemRefs - 1; iTrItems >= 0; iTrItems--)
+                int currTrItemID = thisVectorNode.TrackItemIndices[iTrItems];
+                TrackItem currTrItem = trackDB.TrackItems[currTrItemID];
+                Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, currTrItem.Location);
+                if (offset >= traveller.TrackNodeOffset)
                 {
-                    var currTrItemID = newTrItemRefs[iTrItems];
-                    var currTrItem = trackDB.TrItemTable[currTrItemID];
-                    Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, currTrItem.TileX, currTrItem.TileZ, currTrItem.X, currTrItem.Z);
-                    if (offset >= traveller.TrackNodeOffset)
-                    {
-                        newTrItemRefs[iTrItems + 1] = newTrItemId;
-                        break;
-                    }
-                    else newTrItemRefs[iTrItems + 1] = currTrItemID;
-                    if (iTrItems == 0) newTrItemRefs[0] = newTrItemId;
+                    index = iTrItems + 1;
+                    break;
                 }
             }
-            else newTrItemRefs[0] = newTrItemId;
-            thisVectorNode.TrItemRefs = newTrItemRefs; //use the new item lists for the track node
-            thisVectorNode.NoItemRefs++;
+            thisVectorNode.InsertTrackItemIndex(newTrItemId, index);
         }
 
         public void AssociateEvents(Train train)
@@ -739,13 +694,13 @@ namespace Orts.Simulation
             refTraveller = traveller;
         }
 
-        public DistanceResult CalculateToPoint(int TileX, int TileZ, float X, float Y, float Z)
+        public DistanceResult CalculateToPoint(in WorldLocation location)
         {
             Traveller poiTraveller;
             poiTraveller = new Traveller(refTraveller);
 
             // Find distance once
-            Distance = poiTraveller.DistanceTo(TileX, TileZ, X, Y, Z, maxPlatformOrStationSize);
+            Distance = poiTraveller.DistanceTo(location, maxPlatformOrStationSize);
 
             // If valid
             if (Distance > 0)
@@ -757,7 +712,7 @@ namespace Orts.Simulation
                 // Go to opposite direction
                 poiTraveller = new Traveller(refTraveller, Traveller.TravellerDirection.Backward);
 
-                Distance = poiTraveller.DistanceTo(TileX, TileZ, X, Y, Z, maxPlatformOrStationSize);
+                Distance = poiTraveller.DistanceTo(location, maxPlatformOrStationSize);
                 // If valid, it is behind us
                 if (Distance > 0)
                 {
@@ -999,8 +954,8 @@ namespace Orts.Simulation
                     {
                         // check if signal ahead is cleared - if not, do not allow depart
                         if (distanceToNextSignal >= 0 && distanceToNextSignal < 300 && MyPlayerTrain.NextSignalObject[0] != null &&
-                            MyPlayerTrain.NextSignalObject[0].this_sig_lr(MstsSignalFunction.NORMAL) == MstsSignalAspect.STOP
-                            && MyPlayerTrain.NextSignalObject[0].hasPermission != SignalObject.Permission.Granted)
+                            MyPlayerTrain.NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop
+                            && MyPlayerTrain.NextSignalObject[0].hasPermission != Signal.Permission.Granted)
                         {
                             DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. Waiting for signal ahead to clear.");
                         }
@@ -1106,8 +1061,8 @@ namespace Orts.Simulation
             outf.Write((Int64)SchDepart.Ticks);
             if (ActArrive == null) outf.Write(noval); else outf.Write((Int64)ActArrive.Value.Ticks);
             if (ActDepart == null) outf.Write(noval); else outf.Write((Int64)ActDepart.Value.Ticks);
-            outf.Write((Int32)PlatformEnd1.TrItemId);
-            outf.Write((Int32)PlatformEnd2.TrItemId);
+            outf.Write((Int32)PlatformEnd1.TrackItemId);
+            outf.Write((Int32)PlatformEnd2.TrackItemId);
             outf.Write((double)BoardingEndS);
             outf.Write((Int32)TimerChk);
             outf.Write(arrived);
@@ -1127,8 +1082,8 @@ namespace Orts.Simulation
             ActArrive = rdval == -1 ? (DateTime?)null : new DateTime(rdval);
             rdval = inf.ReadInt64();
             ActDepart = rdval == -1 ? (DateTime?)null : new DateTime(rdval);
-            PlatformEnd1 = Simulator.TDB.TrackDB.TrItemTable[inf.ReadInt32()] as PlatformItem;
-            PlatformEnd2 = Simulator.TDB.TrackDB.TrItemTable[inf.ReadInt32()] as PlatformItem;
+            PlatformEnd1 = Simulator.TDB.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
+            PlatformEnd2 = Simulator.TDB.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
             BoardingEndS = inf.ReadDouble();
             TimerChk = inf.ReadInt32();
             arrived = inf.ReadBoolean();
@@ -1144,14 +1099,14 @@ namespace Orts.Simulation
     /// </summary>
     public abstract class EventWrapper
     {
-        public Orts.Formats.Msts.Event ParsedObject;     // Points to object parsed from file *.act
+        public Orts.Formats.Msts.Models.Event ParsedObject;     // Points to object parsed from file *.act
         public int OriginalActivationLevel; // Needed to reset .ActivationLevel
         public int TimesTriggered;          // Needed for evaluation after activity ends
         public Boolean IsDisabled;          // Used for a reversible event to prevent it firing again until after it has been reset.
         protected Simulator Simulator;
         public Train Train;              // Train involved in event; if null actual or original player train
 
-        public EventWrapper(Orts.Formats.Msts.Event @event, Simulator simulator)
+        public EventWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
         {
             ParsedObject = @event;
             Simulator = simulator;
@@ -1162,14 +1117,14 @@ namespace Orts.Simulation
         {
             outf.Write(TimesTriggered);
             outf.Write(IsDisabled);
-            outf.Write(ParsedObject.Activation_Level);
+            outf.Write(ParsedObject.ActivationLevel);
         }
 
         public virtual void Restore(BinaryReader inf)
         {
             TimesTriggered = inf.ReadInt32();
             IsDisabled = inf.ReadBoolean();
-            ParsedObject.Activation_Level = inf.ReadInt32();
+            ParsedObject.ActivationLevel = inf.ReadInt32();
         }
 
         /// <summary>
@@ -1198,7 +1153,7 @@ namespace Orts.Simulation
             else
             {
                 // Stop this event being monitored
-                this.ParsedObject.Activation_Level = 0;
+                this.ParsedObject.ActivationLevel = 0;
             }
             // No further action if this reversible event has been triggered before
             if (this.TimesTriggered > 1) { return false; }
@@ -1210,34 +1165,34 @@ namespace Orts.Simulation
             foreach (int eventId in ParsedObject.Outcomes.ActivateList)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
-                    item.ParsedObject.Activation_Level = 1;
+                    item.ParsedObject.ActivationLevel = 1;
             }
-            foreach (int eventId in ParsedObject.Outcomes.RestoreActLevelList)
+            foreach (int eventId in ParsedObject.Outcomes.RestoreActivityLevels)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
-                    item.ParsedObject.Activation_Level = item.OriginalActivationLevel;
+                    item.ParsedObject.ActivationLevel = item.OriginalActivationLevel;
             }
-            foreach (int eventId in ParsedObject.Outcomes.DecActLevelList)
+            foreach (int eventId in ParsedObject.Outcomes.DecrementActivityLevels)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
-                    item.ParsedObject.Activation_Level += -1;
+                    item.ParsedObject.ActivationLevel += -1;
             }
-            foreach (int eventId in ParsedObject.Outcomes.IncActLevelList)
+            foreach (int eventId in ParsedObject.Outcomes.IncrementActivityLevels)
             {
                 foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
                 {
-                    item.ParsedObject.Activation_Level += +1;
+                    item.ParsedObject.ActivationLevel += +1;
                 }
             }
 
             // Activity sound management
 
-            if (this.ParsedObject.ORTSActSoundFile != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.ActivitySound != null))
+            if (this.ParsedObject.SoundFile != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.ActivitySound != null))
             {
                 if (activity.triggeredEventWrapper == null) activity.triggeredEventWrapper = this;
             }
 
-            if (this.ParsedObject.ORTSWeatherChange != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.ORTSWeatherChange != null))
+            if (this.ParsedObject.WeatherChange != null || (this.ParsedObject.Outcomes != null && this.ParsedObject.Outcomes.WeatherChange != null))
             {
                 if (activity.triggeredEventWrapper == null) activity.triggeredEventWrapper = this;
             }
@@ -1269,7 +1224,7 @@ namespace Orts.Simulation
         SidingItem SidingEnd2;
         List<string> ChangeWagonIdList;   // Wagons to be assembled, picked up or dropped off.
 
-        public EventCategoryActionWrapper(Orts.Formats.Msts.Event @event, Simulator simulator)
+        public EventCategoryActionWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
             : base(@event, simulator)
         {
             var e = this.ParsedObject as EventCategoryAction;
@@ -1278,9 +1233,9 @@ namespace Orts.Simulation
                 var i = e.SidingId.Value;
                 try
                 {
-                    SidingEnd1 = Simulator.TDB.TrackDB.TrItemTable[i] as SidingItem;
+                    SidingEnd1 = Simulator.TDB.TrackDB.TrackItems[i] as SidingItem;
                     i = SidingEnd1.LinkedSidingId;
-                    SidingEnd2 = Simulator.TDB.TrackDB.TrItemTable[i] as SidingItem;
+                    SidingEnd2 = Simulator.TDB.TrackDB.TrackItems[i] as SidingItem;
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -1297,14 +1252,14 @@ namespace Orts.Simulation
         {
             Train OriginalPlayerTrain = Simulator.OriginalPlayerTrain;
             var e = this.ParsedObject as EventCategoryAction;
-            if (e.WagonList != null)
+            if (e.WorkOrderWagons != null)
             {                     // only if event involves wagons
                 if (ChangeWagonIdList == null)
                 {           // populate the list only once - the first time that ActivationLevel > 0 and so this method is called.
                     ChangeWagonIdList = new List<string>();
-                    foreach (var item in e.WagonList.WorkOrderWagonList)
+                    foreach (var item in e.WorkOrderWagons)
                     {
-                        ChangeWagonIdList.Add(String.Format("{0} - {1}", ((int)item.UID & 0xFFFF0000) >> 16, (int)item.UID & 0x0000FFFF)); // form the .CarID
+                        ChangeWagonIdList.Add(String.Format("{0} - {1}", ((int)item.UiD & 0xFFFF0000) >> 16, (int)item.UiD & 0x0000FFFF)); // form the .CarID
                     }
                 }
             }
@@ -1479,10 +1434,8 @@ namespace Orts.Simulation
             // Front calcs
             helper = new TDBTravellerDistanceCalculatorHelper(frontPosition);
 
-            distanceEnd1 = helper.CalculateToPoint(sidingEnd1.TileX,
-                    sidingEnd1.TileZ, sidingEnd1.X, sidingEnd1.Y, sidingEnd1.Z);
-            distanceEnd2 = helper.CalculateToPoint(sidingEnd2.TileX,
-                    sidingEnd2.TileZ, sidingEnd2.X, sidingEnd2.Y, sidingEnd2.Z);
+            distanceEnd1 = helper.CalculateToPoint(sidingEnd1.Location);
+            distanceEnd2 = helper.CalculateToPoint(sidingEnd2.Location);
 
             // If front between the ends of the siding
             if (((distanceEnd1 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Behind
@@ -1496,10 +1449,8 @@ namespace Orts.Simulation
             // Rear calcs
             helper = new TDBTravellerDistanceCalculatorHelper(rearPosition);
 
-            distanceEnd1 = helper.CalculateToPoint(sidingEnd1.TileX,
-                    sidingEnd1.TileZ, sidingEnd1.X, sidingEnd1.Y, sidingEnd1.Z);
-            distanceEnd2 = helper.CalculateToPoint(sidingEnd2.TileX,
-                    sidingEnd2.TileZ, sidingEnd2.X, sidingEnd2.Y, sidingEnd2.Z);
+            distanceEnd1 = helper.CalculateToPoint(sidingEnd1.Location);
+            distanceEnd2 = helper.CalculateToPoint(sidingEnd2.Location);
 
             // If rear between the ends of the siding
             if (((distanceEnd1 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Behind
@@ -1516,7 +1467,7 @@ namespace Orts.Simulation
 
     public class EventCategoryLocationWrapper : EventWrapper
     {
-        public EventCategoryLocationWrapper(Orts.Formats.Msts.Event @event, Simulator simulator)
+        public EventCategoryLocationWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
             : base(@event, simulator)
         {
         }
@@ -1524,7 +1475,7 @@ namespace Orts.Simulation
         override public Boolean Triggered(Activity activity)
         {
             var triggered = false;
-            var e = this.ParsedObject as Orts.Formats.Msts.EventCategoryLocation;
+            var e = this.ParsedObject as Orts.Formats.Msts.Models.EventCategoryLocation;
             var train = Simulator.PlayerLocomotive.Train;
             if (ParsedObject.TrainService != "" && Train != null)
             {
@@ -1542,11 +1493,11 @@ namespace Orts.Simulation
             }
             var trainFrontPosition = new Traveller(train.nextRouteReady && train.TCRoute.activeSubpath > 0 && train.TCRoute.ReversalInfo[train.TCRoute.activeSubpath - 1].Valid ?
                 train.RearTDBTraveller : train.FrontTDBTraveller); // just after reversal the old train front position must be considered
-            var distance = trainFrontPosition.DistanceTo(e.TileX, e.TileZ, e.X, trainFrontPosition.Y, e.Z, e.RadiusM);
+            var distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
             if (distance == -1)
             {
                 trainFrontPosition.ReverseDirection();
-                distance = trainFrontPosition.DistanceTo(e.TileX, e.TileZ, e.X, trainFrontPosition.Y, e.Z, e.RadiusM);
+                distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
                 if (distance == -1)
                     return triggered;
             }
@@ -1558,14 +1509,14 @@ namespace Orts.Simulation
     public class EventCategoryTimeWrapper : EventWrapper
     {
 
-        public EventCategoryTimeWrapper(Orts.Formats.Msts.Event @event, Simulator simulator)
+        public EventCategoryTimeWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
             : base(@event, simulator)
         {
         }
 
         override public Boolean Triggered(Activity activity)
         {
-            var e = this.ParsedObject as Orts.Formats.Msts.EventCategoryTime;
+            var e = this.ParsedObject as Orts.Formats.Msts.Models.EventCategoryTime;
             if (e == null) return false;
             Train = Simulator.PlayerLocomotive.Train;
             var triggered = (e.Time <= (int)Simulator.ClockTime - activity.StartTimeS);

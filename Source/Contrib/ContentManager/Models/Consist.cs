@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Formats.Msts;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ContentManager.Models
 {
@@ -38,7 +38,7 @@ namespace Orts.ContentManager.Models
                 var file = new ConsistFile(content.PathName);
                 Name = file.Name;
 
-                Cars = from car in file.Train.TrainCfg.WagonList
+                Cars = from car in file.Train.Wagons
                            select new Car(car);
             }
         }

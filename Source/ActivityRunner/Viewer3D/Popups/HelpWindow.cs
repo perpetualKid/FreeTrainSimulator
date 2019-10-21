@@ -31,6 +31,7 @@ using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings;
 using Orts.Settings.Util;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -106,11 +107,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     var scrollbox = cl.AddLayoutScrollboxVertical(cl.RemainingWidth);
                     if (owner.Viewer.Simulator.Activity != null &&
-                        owner.Viewer.Simulator.Activity.Tr_Activity != null &&
-                        owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header != null &&
-                        owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.Briefing.Length > 0)
+                        owner.Viewer.Simulator.Activity.Activity != null &&
+                        owner.Viewer.Simulator.Activity.Activity.Header != null &&
+                        owner.Viewer.Simulator.Activity.Activity.Header.Briefing.Length > 0)
                     {
-                        scrollbox.Add(new TextFlow(scrollbox.RemainingWidth, owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.Briefing));
+                        scrollbox.Add(new TextFlow(scrollbox.RemainingWidth, owner.Viewer.Simulator.Activity.Activity.Header.Briefing));
                     }
                 }));
                 Tabs.Add(new TabData(Tab.ActivityTimetable, Viewer.Catalog.GetString("Timetable"), (cl) =>
@@ -163,7 +164,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         foreach (var @event in owner.Viewer.Simulator.ActivityRun.EventList)
                         {
-                            var eventAction = @event.ParsedObject as Orts.Formats.Msts.EventCategoryAction;
+                            var eventAction = @event.ParsedObject as EventCategoryAction;
                             if (eventAction != null)
                             {
                                 if (separatorShown)
@@ -189,13 +190,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                         line.Add(new Label(colWidth * 4, line.RemainingHeight, Viewer.Catalog.GetString("Pick Up")));
                                         break;
                                 }
-                                if (eventAction.WagonList != null)
+                                if (eventAction.WorkOrderWagons != null)
                                 {
                                     var location = "";
                                     var locationShown = false;
                                     var wagonIdx = 0;
                                     var locationFirst = "";
-                                    foreach (Orts.Formats.Msts.WorkOrderWagon wagonItem in eventAction.WagonList.WorkOrderWagonList)
+                                    foreach (WorkOrderWagon wagonItem in eventAction.WorkOrderWagons)
                                     {
                                         if (locationShown)
                                         {
@@ -205,18 +206,18 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                                         // Car(s) column
                                         // Wagon.UiD contains train and wagon indexes packed into single 32-bit value, e.g. 32678 - 0
-                                        var trainIndex = wagonItem.UID >> 16;         // Extract upper 16 bits
-                                        var wagonIndex = wagonItem.UID & 0x0000FFFF;  // Extract lower 16 bits
+                                        var trainIndex = wagonItem.UiD >> 16;         // Extract upper 16 bits
+                                        var wagonIndex = wagonItem.UiD & 0x0000FFFF;  // Extract lower 16 bits
                                         var wagonName = trainIndex.ToString() + " - " + wagonIndex.ToString();
                                         var wagonType = "";
                                         var wagonFound = false;
-                                        if (owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_File.ActivityObjects != null)
+                                        if (owner.Viewer.Simulator.Activity.Activity.ActivityObjects != null)
                                         {
-                                            foreach (Orts.Formats.Msts.ActivityObject activityObject in owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_File.ActivityObjects.ActivityObjectList)
+                                            foreach (ActivityObject activityObject in owner.Viewer.Simulator.Activity.Activity.ActivityObjects)
                                             {
                                                 if (activityObject.ID == trainIndex)
                                                 {
-                                                    foreach (Orts.Formats.Msts.Wagon trainWagon in activityObject.Train_Config.TrainCfg.WagonList)
+                                                    foreach (Wagon trainWagon in activityObject.TrainSet.Wagons)
                                                     {
                                                         if (trainWagon.UiD == wagonIndex)
                                                         {
@@ -233,7 +234,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             {
                                                 foreach (var car in owner.Viewer.PlayerTrain.Cars)
                                                 {
-                                                    if (car.UiD == wagonItem.UID)
+                                                    if (car.UiD == wagonItem.UiD)
                                                     {
                                                         wagonType = Path.GetFileNameWithoutExtension(car.WagFilePath);
                                                         wagonFound = true;
@@ -258,10 +259,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
                                                 || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation
                                                 ? (uint)eventAction.SidingId : wagonItem.SidingId;
-                                            foreach (var item in owner.Viewer.Simulator.TDB.TrackDB.TrItemTable)
+                                            foreach (var item in owner.Viewer.Simulator.TDB.TrackDB.TrackItems)
                                             {
-                                                var siding = item as Orts.Formats.Msts.SidingItem;
-                                                if (siding != null && siding.TrItemId == sidingId)
+                                                var siding = item as SidingItem;
+                                                if (siding != null && siding.TrackItemId == sidingId)
                                                 {
                                                     location = siding.ItemName;
                                                     break;
@@ -295,7 +296,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                 Tabs.Add(new TabData(Tab.ActivityEvaluation, Viewer.Catalog.GetString("Evaluation"), (cl) =>
                 {
-                    if (owner.Viewer.Simulator.ActivityRun.EventList != null && owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.Name != null)
+                    if (owner.Viewer.Simulator.ActivityRun.EventList != null && owner.Viewer.Simulator.Activity.Activity.Header.Name != null)
                     {
                         var txtinfo = "";
                         var locomotive = Owner.Viewer.Simulator.PlayerLocomotive;
@@ -306,7 +307,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                         // Detect at arrival              
                         int dbfstationstopsremaining = 0;
-                        Train playerTrain = Owner.Viewer.Simulator.PlayerLocomotive.Train;
+                        Simulation.Physics.Train playerTrain = Owner.Viewer.Simulator.PlayerLocomotive.Train;
 
                         scrollbox = cl.AddLayoutScrollboxVertical(cl.RemainingWidth);
                         var colWidth = (cl.RemainingWidth - cl.TextHeight) / 7;
@@ -315,12 +316,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         if (!actualStatusVisible)
                         {
                             //Activity name
-                            txtinfo = "Activity: " + owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.Name.ToString();
+                            txtinfo = "Activity: " + owner.Viewer.Simulator.Activity.Activity.Header.Name.ToString();
                             line.Add(new Label(colWidth, line.RemainingHeight, txtinfo));
                             line = scrollbox.AddLayoutHorizontalLineOfText();
-                            labeltext = "Startime: " + owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.StartTime.FormattedStartTime();
+                            labeltext = "Startime: " + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.FormattedStartTime();
                             line.Add(new Label(colWidth * 2, line.RemainingHeight, labeltext));
-                            labeltext = "Estimated time to complete: " + owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.Duration.FormattedDurationTimeHMS();
+                            labeltext = "Estimated time to complete: " + owner.Viewer.Simulator.Activity.Activity.Header.Duration.FormattedDurationTimeHMS();
                             line.Add(new Label(colWidth * 2, line.RemainingHeight, labeltext));
                             line = scrollbox.AddLayoutHorizontalLineOfText();
                         }
@@ -439,7 +440,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 dbfevaltaskname = "";
                                 dbfevaltasklocation = "";
                                 dbfevaltaskstatus = "";
-                                var eventAction = @event.ParsedObject as Orts.Formats.Msts.EventCategoryAction;
+                                var eventAction = @event.ParsedObject as EventCategoryAction;
                                 if (eventAction != null)
                                 {
 
@@ -463,19 +464,19 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                             dbfevaltaskname = Viewer.Catalog.GetString("Pick Up"); dbfevalexist = true;
                                             break;
                                     }
-                                    if (eventAction.WagonList != null)
+                                    if (eventAction.WorkOrderWagons != null)
                                     {
                                         var location = "";
                                         var locationFirst = "";
-                                        foreach (Orts.Formats.Msts.WorkOrderWagon wagonItem in eventAction.WagonList.WorkOrderWagonList)
+                                        foreach (WorkOrderWagon wagonItem in eventAction.WorkOrderWagons)
                                         {
                                             var sidingId = eventAction.Type == Orts.Formats.Msts.EventType.AssembleTrainAtLocation
                                                 || eventAction.Type == Orts.Formats.Msts.EventType.DropOffWagonsAtLocation
                                                 ? (uint)eventAction.SidingId : wagonItem.SidingId;
-                                            foreach (var item in owner.Viewer.Simulator.TDB.TrackDB.TrItemTable)
+                                            foreach (var item in owner.Viewer.Simulator.TDB.TrackDB.TrackItems)
                                             {
-                                                var siding = item as Orts.Formats.Msts.SidingItem;
-                                                if (siding != null && siding.TrItemId == sidingId)
+                                                var siding = item as SidingItem;
+                                                if (siding != null && siding.TrackItemId == sidingId)
                                                 {
                                                     location = siding.ItemName;
                                                     break;
@@ -556,7 +557,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 DbfEvalValues.Add("Train Overturned", TrainCar.DbfEvalTrainOverturned);
                                 DbfEvalValues.Add("Alerter applications above 10MPH/16KMH", Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
                                 DbfEvalValues.Add("Auto pilot (Time)", Viewer.DbfEvalAutoPilotTimeS);
-                                DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", Train.NumOfCouplerBreaks);
+                                DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", Simulation.Physics.Train.NumOfCouplerBreaks);
                                 DbfEvalValues.Add("Coupling speed limits", Simulator.DbfEvalOverSpeedCoupling);
                                 DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? TrainCar.DbfEvalTravellingTooFast : 0);
                                 if (playerTrain.Delay != null) DbfEvalValues.Add("Activity, current delay", (long)playerTrain.Delay.Value.TotalMinutes);
@@ -608,7 +609,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             dbfevalActivityEnded = true;
 
                             //If Autopilot control then update recorded time
-                            if (!ldbfevalupdateautopilottime && owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
+                            if (!ldbfevalupdateautopilottime && owner.Viewer.PlayerLocomotive.Train.TrainType == Simulation.Physics.Train.TRAINTYPE.AI_PLAYERHOSTING)
                             {
                                 Viewer.DbfEvalAutoPilotTimeS = Viewer.DbfEvalAutoPilotTimeS + (owner.Viewer.Simulator.ClockTime - Viewer.DbfEvalIniAutoPilotTimeS);
                                 ldbfevalupdateautopilottime = true;
@@ -623,14 +624,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 File.Delete(files);//Delete all debrief eval files previously saved, for the same activity.
 
                             //Activity name
-                            var activityname = owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.Name.ToString().Trim();
+                            var activityname = owner.Viewer.Simulator.Activity.Activity.Header.Name.ToString().Trim();
 
                             foreach (var ch in Path.GetInvalidFileNameChars())
                                 activityname = activityname.Replace(ch, ' ');
 
                             filename = new string(activityname.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray()) + ".";
 
-                            var dbfevalDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Application.ProductName);
+                            var dbfevalDataFolder = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), Application.ProductName);
 
                             if (!Directory.Exists(dbfevalDataFolder))
                                 Directory.CreateDirectory(dbfevalDataFolder);
@@ -688,18 +689,18 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             outmesssage(labeltext, colWidth * 3, true, 0);
                             labeltext = "  Activity=" + activityname;
                             outmesssage(labeltext, colWidth * 3, true, 0);
-                            labeltext = "  Difficulty=" + owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.Difficulty.ToString();
+                            labeltext = "  Difficulty=" + owner.Viewer.Simulator.Activity.Activity.Header.Difficulty.ToString();
                             outmesssage(labeltext, colWidth * 3, true, 0);
-                            labeltext = "  Startime=" + owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.StartTime.FormattedStartTime().ToString();
+                            labeltext = "  Startime=" + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.FormattedStartTime().ToString();
                             outmesssage(labeltext, colWidth * 3, true, 0);
-                            string sEstimatedTime = owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.Duration.FormattedDurationTimeHMS().ToString();
+                            string sEstimatedTime = owner.Viewer.Simulator.Activity.Activity.Header.Duration.FormattedDurationTimeHMS().ToString();
                             double estimatedTime = TimeSpan.Parse(sEstimatedTime).TotalSeconds;
                             labeltext = "  Estimated Time=" + sEstimatedTime;
                             outmesssage(labeltext, colWidth * 3, true, 0);
                             //TODO: find an existing function to do it.
-                            double iniTime = owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.StartTime.Hour * 3600;
-                            iniTime = iniTime + owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.StartTime.Minute * 60;
-                            iniTime = iniTime + owner.Viewer.Simulator.Activity.Tr_Activity.Tr_Activity_Header.StartTime.Second;
+                            double iniTime = owner.Viewer.Simulator.Activity.Activity.Header.StartTime.Hour * 3600;
+                            iniTime = iniTime + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.Minute * 60;
+                            iniTime = iniTime + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.Second;
                             double elapsedTime = Owner.Viewer.Simulator.ClockTime - iniTime;
                             labeltext = "  Elapsed Time=" + FormatStrings.FormatTime(elapsedTime);
                             outmesssage(labeltext, colWidth * 3, true, 0);
@@ -930,7 +931,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             nhosebreaks = 7 * nhosebreaks;
 
                             //Coupler Breaks. -10.
-                            int ncouplerbreaks = Train.NumOfCouplerBreaks;
+                            int ncouplerbreaks = Simulation.Physics.Train.NumOfCouplerBreaks;
                             labeltext = (lbreakcouplers ? "  Coupler breaks=" : "  Coupler overloaded=") + ncouplerbreaks;
                             outmesssage(labeltext, colWidth * 4, true, 4);
                             ncouplerbreaks = 10 * ncouplerbreaks;

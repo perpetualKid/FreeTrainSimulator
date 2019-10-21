@@ -15,12 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Formats.Msts;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.ContentManager.Models
 {
@@ -42,57 +41,37 @@ namespace Orts.ContentManager.Models
                 StartName = file.Start;
                 EndName = file.End;
 
-                var nodes = new List<Node>(file.TrPathNodes.Count);
-                var nodeNexts = new List<List<Node>>(file.TrPathNodes.Count);
-                foreach (var node in file.TrPathNodes)
+                var nodes = new List<Node>(file.PathNodes.Count);
+                var nodeNexts = new List<List<Node>>(file.PathNodes.Count);
+                foreach (var node in file.PathNodes)
                 {
-                    var pdp = file.TrackPDPs[(int)node.fromPDP];
-                    var location = String.Format("{0:D} {1:D} ({2:F0},{3:F0},{4:F0})", pdp.TileX, pdp.TileZ, pdp.X, pdp.Y, pdp.Z);
-                    var flags = Flags.None;
-                    if ((node.pathFlags & 0x01) != 0) flags |= Flags.Reverse;
-                    if ((node.pathFlags & 0x02) != 0) flags |= Flags.Wait;
-                    if ((node.pathFlags & 0x04) != 0) flags |= Flags.Intermediate;
-                    if ((node.pathFlags & 0x08) != 0) flags |= Flags.OtherExit;
-                    if ((node.pathFlags & 0x10) != 0) flags |= Flags.Optional;
-                    var waitTime = (int)((node.pathFlags >> 16) & 0xFFFF);
+                    var pdp = file.DataPoints[(int)node.PathDataPoint];
                     var next = new List<Node>();
-                    nodes.Add(new Node(location, flags, waitTime, next));
+                    nodes.Add(new Node(pdp.Location.ToString(), node.PathFlags, node.WaitTime, next));
                     nodeNexts.Add(next);
                 }
-                for (var i = 0; i < file.TrPathNodes.Count; i++)
+                for (var i = 0; i < file.PathNodes.Count; i++)
                 {
-                    if (file.TrPathNodes[i].HasNextMainNode)
-                        nodeNexts[i].Add(nodes[(int)file.TrPathNodes[i].nextMainNode]);
-                    if (file.TrPathNodes[i].HasNextSidingNode)
-                        nodeNexts[i].Add(nodes[(int)file.TrPathNodes[i].nextSidingNode]);
+                    if (file.PathNodes[i].HasNextMainNode)
+                        nodeNexts[i].Add(nodes[(int)file.PathNodes[i].NextMainNode]);
+                    if (file.PathNodes[i].HasNextSidingNode)
+                        nodeNexts[i].Add(nodes[(int)file.PathNodes[i].NextSidingNode]);
                 }
                 Nodes = nodes;
             }
         }
 
-        // Values must not overlap in binary, so always use powers of 2.
-        [Flags]
-        public enum Flags
-        {
-            None = 0,
-            Reverse = 1,
-            Wait = 2,
-            Intermediate = 4,
-            OtherExit = 8,
-            Optional = 16,
-        }
-
         public class Node
         {
             public readonly string Location;
-            public readonly Flags Flags;
+            public readonly PathFlags Flags;
             public readonly int WaitTime;
             public readonly IEnumerable<Node> Next;
 
-            internal Node(string location, Flags flags, int waitTime, IEnumerable<Node> next)
+            internal Node(string location, PathFlags flags, int waitTime, IEnumerable<Node> next)
             {
                 Location = location;
-                Flags = flags;
+                Flags = (PathFlags)((int)flags & 0xFFFF);
                 WaitTime = waitTime;
                 Next = next;
             }

@@ -44,6 +44,8 @@ using System.Diagnostics;
 using System.IO;
 using Orts.Common.Threading;
 using Orts.Common.Calc;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.AIs
 {
@@ -79,12 +81,12 @@ namespace Orts.Simulation.AIs
 
 
 #endif
-            if (simulator.Activity != null && simulator.Activity.Tr_Activity.Tr_Activity_File.Traffic_Definition != null)
+            if (simulator.Activity != null && simulator.Activity.Activity.Traffic != null)
             {
-                foreach (var sd in simulator.Activity.Tr_Activity.Tr_Activity_File.Traffic_Definition.ServiceDefinitionList)
+                foreach (var sd in simulator.Activity.Activity.Traffic.Services)
                 {
                     AITrain train = CreateAITrain(sd,
-                    simulator.Activity.Tr_Activity.Tr_Activity_File.Traffic_Definition.TrafficFile.TrafficDefinition, simulator.TimetableMode);
+                    simulator.Activity.Activity.Traffic.TrafficFile.TrafficDefinition, simulator.TimetableMode);
                     if (cancellation.IsCancellationRequested) // ping loader watchdog
                         return;
                 }
@@ -105,19 +107,19 @@ namespace Orts.Simulation.AIs
 
             foreach (var train in allTrains)
             {
-                if (train.TrainType == Train.TRAINTYPE.PLAYER)
+                if (train.TrainType == Physics.Train.TRAINTYPE.PLAYER)
                 {
                     train.AI = this;
                     AITrains.Add(train);
                     aiListChanged = true;
                 }
-                else if (train.TrainType == Train.TRAINTYPE.INTENDED_PLAYER)
+                else if (train.TrainType == Physics.Train.TRAINTYPE.INTENDED_PLAYER)
                 {
                     train.AI = this;
                     StartList.InsertTrain(train);
                     Simulator.StartReference.Add(train.Number);
                 }
-                else if (train.TrainType == Train.TRAINTYPE.AI_AUTOGENERATE)
+                else if (train.TrainType == Physics.Train.TRAINTYPE.AI_AUTOGENERATE)
                 {
                     train.AI = this;
                     train.BrakeLine3PressurePSI = 0;
@@ -128,7 +130,7 @@ namespace Orts.Simulation.AIs
                 // set train details
                 else
                 {
-                    train.TrainType = Train.TRAINTYPE.AI_NOTSTARTED;
+                    train.TrainType = Physics.Train.TRAINTYPE.AI_NOTSTARTED;
                     train.AI = this;
 
                     if (train.Cars.Count > 0) train.Cars[0].Headlight = 2;//AI train always has light on
@@ -178,7 +180,7 @@ namespace Orts.Simulation.AIs
                 // timetable mode trains
                 else {
                     TTTrain aiTrain = new TTTrain(Simulator, inf, this);
-                    if (aiTrain.TrainType != Train.TRAINTYPE.PLAYER) // add to AITrains except when it is player train
+                    if (aiTrain.TrainType != Physics.Train.TRAINTYPE.PLAYER) // add to AITrains except when it is player train
                     {
                         AITrains.Add(aiTrain);
                     }
@@ -314,7 +316,7 @@ namespace Orts.Simulation.AIs
         }
 
         // Saves train in autopilot mode
-        public void SaveAutopil(Train train, BinaryWriter outf)
+        public void SaveAutopil(Physics.Train train, BinaryWriter outf)
         {
             ((AITrain)train).Save(outf);
             if (Simulator.PlayerLocomotive != null)
@@ -404,7 +406,7 @@ namespace Orts.Simulation.AIs
                     // train exists - set as player train
                     if (PlayTrain != null)
                     {
-                        PlayTrain.TrainType = Train.TRAINTYPE.PLAYER;
+                        PlayTrain.TrainType = Physics.Train.TRAINTYPE.PLAYER;
                         PlayTrain.MovementState = AITrain.AI_MOVEMENT_STATE.INIT;
                     }
                     else
@@ -482,7 +484,7 @@ namespace Orts.Simulation.AIs
                     // train exists - set as player train
                     if (PlayTrain != null)
                     {
-                        PlayTrain.TrainType = Train.TRAINTYPE.PLAYER;
+                        PlayTrain.TrainType = Physics.Train.TRAINTYPE.PLAYER;
                         PlayTrain.MovementState = AITrain.AI_MOVEMENT_STATE.INIT;
                     }
                     else
@@ -670,7 +672,7 @@ namespace Orts.Simulation.AIs
             }
             foreach (AITrain train in AITrains)
             {
-                if (train.TrainType != Train.TRAINTYPE.AI_INCORPORATED && (train.Cars.Count == 0 && train.TrainType != Train.TRAINTYPE.AI_INCORPORATED || train.Cars[0].Train != train))
+                if (train.TrainType != Physics.Train.TRAINTYPE.AI_INCORPORATED && (train.Cars.Count == 0 && train.TrainType != Physics.Train.TRAINTYPE.AI_INCORPORATED || train.Cars[0].Train != train))
                     TrainsToRemove.Add(train);
                 else
                     train.AIUpdate(elapsedClockSeconds, clockTime, preUpdate);
@@ -708,7 +710,7 @@ namespace Orts.Simulation.AIs
                 foreach (TTTrain thisTrain in newTrains)
                 {
                     Simulator.StartReference.Remove(thisTrain.Number);
-                    if (thisTrain.TrainType == Train.TRAINTYPE.AI_NOTSTARTED) thisTrain.TrainType = Train.TRAINTYPE.AI;
+                    if (thisTrain.TrainType == Physics.Train.TRAINTYPE.AI_NOTSTARTED) thisTrain.TrainType = Physics.Train.TRAINTYPE.AI;
                     endPreRun = AddToWorldTT(thisTrain, newTrains);
                     if (endPreRun) break;
                 }
@@ -721,7 +723,7 @@ namespace Orts.Simulation.AIs
                 foreach (AITrain acttrain in AITrains)
                 {
                     TTTrain actTTTrain = acttrain as TTTrain;
-                    if (acttrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && acttrain.TrainType != Train.TRAINTYPE.PLAYER)
+                    if (acttrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && acttrain.TrainType != Physics.Train.TRAINTYPE.PLAYER)
                     {
                         activeTrains = true;
                         break;
@@ -751,7 +753,7 @@ namespace Orts.Simulation.AIs
                             foreach (TTTrain thisTrain in newTrains)
                             {
                                 Simulator.StartReference.Remove(thisTrain.Number);
-                                if (thisTrain.TrainType == Train.TRAINTYPE.AI_NOTSTARTED) thisTrain.TrainType = Train.TRAINTYPE.AI;
+                                if (thisTrain.TrainType == Physics.Train.TRAINTYPE.AI_NOTSTARTED) thisTrain.TrainType = Physics.Train.TRAINTYPE.AI;
                                 endPreRun = AddToWorldTT(thisTrain, newTrains);
                                 if (endPreRun) break;
                             }
@@ -759,7 +761,7 @@ namespace Orts.Simulation.AIs
 
                         foreach (var train in AITrains)
                         {
-                            if (train.TrainType != Train.TRAINTYPE.PLAYER && train.TrainType != Train.TRAINTYPE.INTENDED_PLAYER)
+                            if (train.TrainType != Physics.Train.TRAINTYPE.PLAYER && train.TrainType != Physics.Train.TRAINTYPE.INTENDED_PLAYER)
                             {
                                 if (train.Cars.Count == 0 || train.Cars[0].Train != train)
                                 {
@@ -770,7 +772,7 @@ namespace Orts.Simulation.AIs
                                     train.AIUpdate(intervalTime, clockTime, preUpdate);
                                 }
                             }
-                            else if (train.TrainType == Train.TRAINTYPE.INTENDED_PLAYER && train.MovementState == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+                            else if (train.TrainType == Physics.Train.TRAINTYPE.INTENDED_PLAYER && train.MovementState == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
                             {
                                 TTTrain trainTT = train as TTTrain;
                                 int presentTime = Convert.ToInt32(Math.Floor(clockTime));
@@ -787,7 +789,7 @@ namespace Orts.Simulation.AIs
                 {
                     foreach (var train in AITrains)
                     {
-                        if (train.TrainType != Train.TRAINTYPE.PLAYER)
+                        if (train.TrainType != Physics.Train.TRAINTYPE.PLAYER)
                         {
                             if (train.Cars.Count == 0 || train.Cars[0].Train != train)
                             {
@@ -810,7 +812,7 @@ namespace Orts.Simulation.AIs
         /// <summary>
         /// Creates an AI train
         /// </summary>
-        private AITrain CreateAITrain(Service_Definition sd, Traffic_Traffic_Definition trd, bool isTimetableMode)
+        private AITrain CreateAITrain(Services sd, ServiceTraffic trd, bool isTimetableMode)
         {
             // set up a new AI train
             // first extract the service definition from the activity file
@@ -818,10 +820,10 @@ namespace Orts.Simulation.AIs
 
             // find related traffic definition
 
-            Traffic_Service_Definition trfDef = null;
-            foreach (Traffic_Service_Definition thisDef in trd.TrafficItems)
+            ServiceTraffics trfDef = null;
+            foreach (ServiceTraffics thisDef in trd.ServiceTraffics)
             {
-                if (String.Compare(thisDef.Service_Definition, sd.Name) == 0 &&
+                if (String.Compare(thisDef.Name, sd.Name) == 0 &&
                 thisDef.Time == sd.Time)
                 {
                     trfDef = thisDef;
@@ -845,13 +847,13 @@ namespace Orts.Simulation.AIs
         /// Moves the models down 1000M to make them invisible.
         /// called also in case of autopilot mode
         /// </summary>
-        public AITrain CreateAITrainDetail(Service_Definition sd, Traffic_Service_Definition trfDef, ServiceFile srvFile, bool isTimetableMode, bool isInitialPlayerTrain)
+        public AITrain CreateAITrainDetail(Services sd, ServiceTraffics trfDef, ServiceFile srvFile, bool isTimetableMode, bool isInitialPlayerTrain)
         {
             // read consist file
 
-            string consistFileName = Simulator.BasePath + @"\TRAINS\CONSISTS\" + srvFile.Train_Config + ".CON";
+            string consistFileName = Simulator.BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
             ConsistFile conFile = new ConsistFile(consistFileName);
-            string pathFileName = Simulator.RoutePath + @"\PATHS\" + srvFile.PathID + ".PAT";
+            string pathFileName = Simulator.RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
 
             // Patch Placingproblem - JeroenP
             // 
@@ -864,7 +866,7 @@ namespace Orts.Simulation.AIs
                 return null;
             }
 
-            float maxVelocityA = conFile.Train.TrainCfg.MaxVelocity.A;
+            float maxVelocityA = conFile.Train.MaxVelocity.A;
             // sd.Name is the name of the service file.
             // srvFile.Name points to the name of the service within the Name() category such as Name ( "Eastbound Freight Train" ) in the service file.
             AITrain train = new AITrain(Simulator, sd, this, aiPath, srvFile.Efficiency, srvFile.Name, trfDef, maxVelocityA);
@@ -888,7 +890,7 @@ namespace Orts.Simulation.AIs
 
             // add wagons
             train.Length = 0.0f;
-            foreach (Wagon wagon in conFile.Train.TrainCfg.WagonList)
+            foreach (Wagon wagon in conFile.Train.Wagons)
             {
 
                 string wagonFolder = Simulator.BasePath + @"\trains\trainset\" + wagon.Folder;
@@ -918,13 +920,13 @@ namespace Orts.Simulation.AIs
                         else car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
                         var mstsDieselLocomotive = car as MSTSDieselLocomotive;
                         if (Simulator.Activity != null && mstsDieselLocomotive != null)
-                            mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * Simulator.Activity.Tr_Activity.Tr_Activity_Header.FuelDiesel / 100.0f;
+                            mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * Simulator.Activity.Activity.Header.FuelDiesel / 100.0f;
 
                         var mstsSteamLocomotive = car as MSTSSteamLocomotive;
                         if (Simulator.Activity != null && mstsSteamLocomotive != null)
                         {
-                            mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0f) * Simulator.Activity.Tr_Activity.Tr_Activity_Header.FuelWater / 100.0f;
-                            mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * Simulator.Activity.Tr_Activity.Tr_Activity_Header.FuelCoal / 100.0f;
+                            mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0f) * Simulator.Activity.Activity.Header.FuelWater / 100.0f;
+                            mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * Simulator.Activity.Activity.Header.FuelCoal / 100.0f;
                         }
                         if (train.InitialSpeed != 0)
                             car.SignalEvent(PowerSupplyEvent.RaisePantograph, 1);
@@ -982,7 +984,7 @@ namespace Orts.Simulation.AIs
             // clear track and align switches - check state
 
             bool validPosition = true;
-            Train.TCSubpathRoute tempRoute = thisTrain.CalculateInitialTrainPosition(ref validPosition);
+            Physics.Train.TCSubpathRoute tempRoute = thisTrain.CalculateInitialTrainPosition(ref validPosition);
 
             if (validPosition)
             {
@@ -1001,7 +1003,7 @@ namespace Orts.Simulation.AIs
             if (validPosition)
             {
                 thisTrain.actualWaitTimeS = 0; // reset wait counter //
-                thisTrain.TrainType = Train.TRAINTYPE.AI;
+                thisTrain.TrainType = Physics.Train.TRAINTYPE.AI;
                 AITrains.Add(thisTrain);
                 aiListChanged = true;
                 Simulator.Trains.Add(thisTrain);
@@ -1069,7 +1071,7 @@ namespace Orts.Simulation.AIs
         {
             bool endPreRun = false;
             bool validPosition = true;
-            Train.TCSubpathRoute tempRoute = null;
+            Physics.Train.TCSubpathRoute tempRoute = null;
 
             // create from pool
             if (!String.IsNullOrEmpty(thisTrain.CreateFromPool))
@@ -1141,7 +1143,7 @@ namespace Orts.Simulation.AIs
 
                 int PoolStorageState = (int)TTTrain.PoolAccessState.PoolInvalid;
                 thisTrain.TCRoute.TCRouteSubpaths[0] = thisPool.CreateInPool(thisTrain, out PoolStorageState, false);
-                thisTrain.ValidRoute[0] = new Train.TCSubpathRoute(thisTrain.TCRoute.TCRouteSubpaths[0]);
+                thisTrain.ValidRoute[0] = new Physics.Train.TCSubpathRoute(thisTrain.TCRoute.TCRouteSubpaths[0]);
                 thisTrain.TCRoute.activeSubpath = 0;
 
                 // if no storage available - abondone train
@@ -1229,14 +1231,14 @@ namespace Orts.Simulation.AIs
                     AITrains.Add(thisTrain);
                 }
 
-                if (thisTrain.TrainType != Train.TRAINTYPE.INTENDED_PLAYER && thisTrain.TrainType != Train.TRAINTYPE.PLAYER) // player train allready exists
+                if (thisTrain.TrainType != Physics.Train.TRAINTYPE.INTENDED_PLAYER && thisTrain.TrainType != Physics.Train.TRAINTYPE.PLAYER) // player train allready exists
                 {
                     Simulator.Trains.Add(thisTrain);
                 }
 
-                if (thisTrain.TrainType == Train.TRAINTYPE.INTENDED_PLAYER)
+                if (thisTrain.TrainType == Physics.Train.TRAINTYPE.INTENDED_PLAYER)
                 {
-                    thisTrain.TrainType = Train.TRAINTYPE.PLAYER;
+                    thisTrain.TrainType = Physics.Train.TRAINTYPE.PLAYER;
                 }
 
                 if (Simulator.TrainDictionary.ContainsKey(thisTrain.Number)) Simulator.TrainDictionary.Remove(thisTrain.Number); // clear existing entry
@@ -1293,7 +1295,7 @@ namespace Orts.Simulation.AIs
         /// </summary>
         private void RemoveTrains()
         {
-            List<Train> removeList = new List<Train>();
+            List<Physics.Train> removeList = new List<Physics.Train>();
 
             foreach (AITrain train in TrainsToRemove)
             {
@@ -1355,7 +1357,7 @@ namespace Orts.Simulation.AIs
                 Simulator.NameDictionary.Add(train.Name.ToLower(), train);
                 AITrains.Add(train);
                 aiListChanged = true;
-                if (train.TrainType != Train.TRAINTYPE.INTENDED_PLAYER && train.TrainType != Train.TRAINTYPE.PLAYER) Simulator.Trains.Add(train);
+                if (train.TrainType != Physics.Train.TRAINTYPE.INTENDED_PLAYER && train.TrainType != Physics.Train.TRAINTYPE.PLAYER) Simulator.Trains.Add(train);
             }
             TrainsToAdd.Clear();
         }
@@ -1368,7 +1370,7 @@ namespace Orts.Simulation.AIs
                 Simulator.TrainDictionary.Add(train.Number, train);
                 if (Simulator.NameDictionary.ContainsKey(train.Name.ToLower())) Simulator.NameDictionary.Remove(train.Name.ToLower());
                 Simulator.NameDictionary.Add(train.Name.ToLower(), train);
-                if (train.TrainType == Train.TRAINTYPE.PLAYER || train.TrainType == Train.TRAINTYPE.INTENDED_PLAYER)
+                if (train.TrainType == Physics.Train.TRAINTYPE.PLAYER || train.TrainType == Physics.Train.TRAINTYPE.INTENDED_PLAYER)
                 {
                     AITrains.Insert(0, train);
                 }
@@ -1486,7 +1488,7 @@ namespace Orts.Simulation.AIs
                 if (nextNode.Value.StartTime.Value <= reqTime)
                 {
                     TTTrain nextTrain = nextNode.Value as TTTrain;
-                    if (nextTrain.FormedOf < 0 && nextTrain.TrainType != Train.TRAINTYPE.PLAYER)
+                    if (nextTrain.FormedOf < 0 && nextTrain.TrainType != Physics.Train.TRAINTYPE.PLAYER)
                     {
                         itemList.Add(nextTrain);
                         prevNode = nextNode;
@@ -1515,7 +1517,7 @@ namespace Orts.Simulation.AIs
 
             while (nextNode != null && !playerFound)
             {
-                if (nextNode.Value.TrainType == Train.TRAINTYPE.PLAYER || nextNode.Value.TrainType == Train.TRAINTYPE.INTENDED_PLAYER)
+                if (nextNode.Value.TrainType == Physics.Train.TRAINTYPE.PLAYER || nextNode.Value.TrainType == Physics.Train.TRAINTYPE.INTENDED_PLAYER)
                 {
                     prevNode = nextNode;
                     nextNode = prevNode.Next;

@@ -29,6 +29,8 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -569,11 +571,11 @@ namespace Orts.Simulation.Timetables
             // check if turntable track section is in path - must be in first element (path must start at turntable end)
             int vectorIndex = -1;
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath[0].TCSectionIndex];
-            Formats.Msts.TrackNode thisTDBsection = Simulatorref.Signals.trackDB.TrackNodes[thisSection.OriginalIndex];
+            TrackVectorNode thisTDBsection = Simulatorref.Signals.trackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode;
 
-            for (int iVector = 0; iVector < thisTDBsection.TrVectorNode.TrVectorSections.Length; iVector++)
+            for (int iVector = 0; iVector < thisTDBsection.TrackVectorSections.Length; iVector++)
             {
-                Formats.Msts.TrVectorSection thisVector = thisTDBsection.TrVectorNode.TrVectorSections[iVector];
+                TrackVectorSection thisVector = thisTDBsection.TrackVectorSections[iVector];
                 if (thisVector.ShapeIndex == turntableTrackShape)
                 {
                     vectorIndex = iVector;
@@ -627,7 +629,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.AccessPath[0].TCSectionIndex];
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            Formats.Msts.TrVectorSection[] trackVectors = Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex].TrVectorNode.TrVectorSections;
+            TrackVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -707,7 +709,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.StoragePath[0].TCSectionIndex];
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            Formats.Msts.TrVectorSection[] trackVectors = Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex].TrVectorNode.TrVectorSections;
+            TrackVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -769,7 +771,7 @@ namespace Orts.Simulation.Timetables
         /// Calculate length of section connected to turntable
         /// </summary>
 
-        private float CalculateVectorLength(int firstIndex, int LastIndex, int connectIndex, Formats.Msts.TrVectorSection[] vectors)
+        private float CalculateVectorLength(int firstIndex, int LastIndex, int connectIndex, TrackVectorSection[] vectors)
         {
             float returnLength = 0.0f;
 
@@ -777,21 +779,19 @@ namespace Orts.Simulation.Timetables
             {
                 float thisLength = 0.0f;
 
-                Formats.Msts.TrVectorSection thisVector = vectors[iVector];
+                TrackVectorSection thisVector = vectors[iVector];
 
                 if (Simulatorref.TSectionDat.TrackSections.ContainsKey(thisVector.SectionIndex))
                 {
-                    Orts.Formats.Msts.TrackSection TS = Simulatorref.TSectionDat.TrackSections[thisVector.SectionIndex];
+                    TrackSection TS = Simulatorref.TSectionDat.TrackSections[thisVector.SectionIndex];
 
-                    if (TS.SectionCurve != null)
+                    if (TS.Curved)
                     {
-                        thisLength =
-                                MathHelper.ToRadians(Math.Abs(TS.SectionCurve.Angle)) *
-                                TS.SectionCurve.Radius;
+                        thisLength = MathHelper.ToRadians(Math.Abs(TS.Angle)) * TS.Radius;
                     }
                     else
                     {
-                        thisLength = TS.SectionSize.Length;
+                        thisLength = TS.Length;
                     }
                 }
 
@@ -2420,7 +2420,7 @@ namespace Orts.Simulation.Timetables
 
             // get traveller at start of path tracknode
             TrackCircuitSection thisSection = parentTrain.signalRef.TrackCircuitList[parentTrain.ValidRoute[0][0].TCSectionIndex];
-            Traveller middlePosition = new Traveller(parentPool.Simulatorref.TSectionDat, parentPool.Simulatorref.TDB.TrackDB.TrackNodes, parentPool.Simulatorref.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex]);
+            Traveller middlePosition = new Traveller(parentPool.Simulatorref.TSectionDat, parentPool.Simulatorref.TDB.TrackDB.TrackNodes, parentPool.Simulatorref.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode);
 
 #if DEBUG_TURNTABLEINFO
             Trace.TraceInformation("Pool {0} - Train {1} [{2}] : calculating middle position for state : {3} , orientation : {4}",

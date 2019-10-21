@@ -16,12 +16,10 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ContentChecker
 {
@@ -57,17 +55,17 @@ namespace Orts.ContentChecker
         /// <param name="file">The file that needs to be loaded</param>
         public override void TryLoading(string file)
         {
-            TrItem[] items;
+            TrackItem[] items;
             if (_TDB == null)
             {
                 //It is not clear that 10000 items is enough, which would give wrong warnings
                 Console.WriteLine("");
                 Console.Write("  Not using the proper .tdb, but just an empty array of TrItems for loading the .ws file: ");
-                items = new TrItem[100000];
+                items = new TrackItem[100000];
             }
             else
             {
-                items = _TDB.TrItemTable;
+                items = _TDB.TrackItems;
             }
             var wf = new WorldSoundFile(file, items);
         }

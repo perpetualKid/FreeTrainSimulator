@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.DataCollector
 {
@@ -84,19 +85,19 @@ namespace Orts.DataCollector
                             try
                             {
                                 var t = new TerrainFile(file);
-                                if (t.terrain.terrain_patchsets.Length != 1)
-                                    throw new InvalidDataException(String.Format("Tile has {0} patch sets; expected 1.", t.terrain.terrain_patchsets.Length));
-                                if (t.terrain.terrain_patchsets[0].terrain_patchset_npatches != 16)
-                                    throw new InvalidDataException(String.Format("Tile has {0} patches; expected 16.", t.terrain.terrain_patchsets[0].terrain_patchset_npatches));
-                                if (t.terrain.terrain_patchsets[0].terrain_patchset_patches.Length != 256)
-                                    throw new InvalidDataException(String.Format("Tile has {0} patches; expected 256.", t.terrain.terrain_patchsets[0].terrain_patchset_patches.Length));
+                                if (t.Terrain.Patchsets.Length != 1)
+                                    throw new InvalidDataException(String.Format("Tile has {0} patch sets; expected 1.", t.Terrain.Patchsets.Length));
+                                if (t.Terrain.Patchsets[0].PatchSize != 16)
+                                    throw new InvalidDataException(String.Format("Tile has {0} patches; expected 16.", t.Terrain.Patchsets[0].PatchSize));
+                                if (t.Terrain.Patchsets[0].Patches.Length != 256)
+                                    throw new InvalidDataException(String.Format("Tile has {0} patches; expected 256.", t.Terrain.Patchsets[0].Patches.Length));
 
                                 data.TileCount++;
-                                var patchset = t.terrain.terrain_patchsets[0];
-                                var textures = new List<string>(patchset.terrain_patchset_npatches * patchset.terrain_patchset_npatches);
-                                foreach (var patch in patchset.terrain_patchset_patches)
+                                var patchset = t.Terrain.Patchsets[0];
+                                var textures = new List<string>(patchset.PatchSize * patchset.PatchSize);
+                                foreach (var patch in patchset.Patches)
                                 {
-                                    textures.Add(String.Join("|", (from ts in t.terrain.terrain_shaders[patch.ShaderIndex].terrain_texslots
+                                    textures.Add(String.Join("|", (from ts in t.Terrain.Shaders[patch.ShaderIndex].Textureslots
                                                                    select ts.Filename).ToArray()));
                                 }
 

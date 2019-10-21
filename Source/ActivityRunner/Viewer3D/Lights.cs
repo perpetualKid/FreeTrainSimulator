@@ -35,6 +35,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Orts.Common.Xna;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -82,7 +83,7 @@ namespace Orts.ActivityRunner.Viewer3D
             UpdateState();
             if (Car.Lights != null)
             {
-                foreach (var light in Car.Lights.Lights)
+                foreach (var light in Car.Lights)
                 {
                     switch (light.Type)
                     {

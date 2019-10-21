@@ -43,13 +43,13 @@ namespace Orts.Common
                     Cast<DescriptionAttribute>().
                     Select(x => x.Description).
                     FirstOrDefault();
-                foreach (T value in (T[])Enum.GetValues(typeof(T)))
+                foreach (T value in Values)//(T[])Enum.GetValues(typeof(T)))
                 {
                     ValueToDescriptionMap[value] = GetDescription(value);
                 }
 
                 NameValuePairs = Names.Zip(Values, (k, v) => new { k, v })
-                              .ToDictionary(x => x.k, x => x.v);
+                              .ToDictionary(x => x.k, x => x.v, StringComparer.OrdinalIgnoreCase);
             }
 
             private static string GetDescription(T value)
@@ -139,6 +139,13 @@ namespace Orts.Common
         [Description("N")] N
     }
 
+    [Description("Rotation")]
+    public enum Rotation
+    {
+        CounterClockwise = -1,
+        None = 0,
+        Clockwise = 1,
+    }
     public class DirectionControl
     {
         public static Direction Flip(Direction direction)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+
 using Microsoft.Win32;
 
 namespace Orts.Formats.Msts
@@ -34,6 +35,20 @@ namespace Orts.Formats.Msts
             }
             else
                 throw new FileNotFoundException($"Could not parse root directory for {path}");
+            if (!rootFolder.Exists)
+                throw new FileNotFoundException($"Root folder for {path} does not exist");
+        }
+
+        public static void InitializeFromRoot(string path)
+        {
+            rootFolder = new DirectoryInfo(path);
+            if (!rootFolder.Exists)
+                throw new FileNotFoundException($"Root folder for {path} does not exist");
+        }
+        public static void InitializeFromRoute(string path)
+        {
+            routeFolder = new DirectoryInfo(path);
+            rootFolder = routeFolder.Parent.Parent;
             if (!rootFolder.Exists)
                 throw new FileNotFoundException($"Root folder for {path} does not exist");
         }
@@ -86,7 +101,7 @@ namespace Orts.Formats.Msts
 
         public static string TrafficFile(string trafficName)
         {
-            return Path.Combine(RouteFolder, "TRAFFIC", trafficName, ".trf");
+            return Path.Combine(RouteFolder, "TRAFFIC", trafficName + ".trf");
         }
 
         public static string PathFile(string pathName)

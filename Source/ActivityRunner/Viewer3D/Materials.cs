@@ -23,6 +23,8 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common;
 using Orts.Common.Xna;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -79,7 +81,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             var aceTexture = Path.ChangeExtension(path, ".ace");
                             if (File.Exists(aceTexture))
                             {
-                                texture = Orts.Formats.Msts.AceFile.Texture2DFromFile(GraphicsDevice, aceTexture);
+                                texture = AceFile.Texture2DFromFile(GraphicsDevice, aceTexture);
                                 Trace.TraceWarning("Required texture {1} not existing; using existing texture {2}", path, aceTexture);
                             }
                             else texture = defaultTexture;
@@ -95,7 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         }
                         else if (File.Exists(path))
                         {
-                            texture = Orts.Formats.Msts.AceFile.Texture2DFromFile(GraphicsDevice, path);
+                            texture = AceFile.Texture2DFromFile(GraphicsDevice, path);
                         }
                         else
                         {
@@ -107,7 +109,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 var s = p.FullName + "\\" + Path.GetFileName(path);
                                 if (File.Exists(s) &&  s.ToLower().Contains("texture")) //in texure and exists
                                 {
-                                    texture = Orts.Formats.Msts.AceFile.Texture2DFromFile(GraphicsDevice, s);
+                                    texture = AceFile.Texture2DFromFile(GraphicsDevice, s);
                                 }
                                 else {
                                     if (required)
@@ -153,7 +155,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var ext = Path.GetExtension(path);
 
             if (ext == ".ace")
-                return Orts.Formats.Msts.AceFile.Texture2DFromFile(graphicsDevice, path);
+                return AceFile.Texture2DFromFile(graphicsDevice, path);
 
             using (var stream = File.OpenRead(path))
             {
@@ -239,7 +241,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 try
                 {
-                    SceneryShader.OverlayTexture = Orts.Formats.Msts.AceFile.Texture2DFromFile(viewer.RenderProcess.GraphicsDevice, microtexPath);
+                    SceneryShader.OverlayTexture = AceFile.Texture2DFromFile(viewer.RenderProcess.GraphicsDevice, microtexPath);
                 }
                 catch (InvalidDataException error)
                 {
@@ -796,8 +798,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 missingTexture = dayTexture;
             else if (nightTexture != null && nightTexture != SharedMaterialManager.MissingTexture)
                 missingTexture = nightTexture;
-            if (missingTexture.Tag?.GetType() == typeof(Orts.Formats.Msts.AceInfo))
-                aceAlphaBits = ((Orts.Formats.Msts.AceInfo)missingTexture.Tag).AlphaBits;
+            if (missingTexture.Tag is AceInfo aceInfo)
+                aceAlphaBits = aceInfo.AlphaBits;
             else
                 aceAlphaBits = 0;
 

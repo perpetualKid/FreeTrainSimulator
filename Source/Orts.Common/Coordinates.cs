@@ -91,6 +91,11 @@ namespace Orts.Common
             XNAMatrix = MatrixExtension.SetTranslation(Matrix.Identity, x, y, -z);
         }
 
+        public WorldPosition ChangeTranslation(float x, float y, float z)
+        {
+            return new WorldPosition(TileX, TileZ, MatrixExtension.ChangeTranslation(XNAMatrix, x, y, z));
+        }
+
         public WorldPosition SetTranslation(Vector3 translation)
         {
             return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, translation));
@@ -281,6 +286,17 @@ namespace Orts.Common
             return dx * dx + dy * dy + dz * dz;
         }
 
+        /// <summary>
+        /// Get squared distance between two world locations (in meters), neglecting elevation (y) information
+        /// </summary>
+        public static float GetDistanceSquared2D(in WorldLocation location1, in WorldLocation location2)
+        {
+            float dx = location1.Location.X - location2.Location.X;
+            float dz = location1.Location.Z - location2.Location.Z;
+            dx += TileSize * (location1.TileX - location2.TileX);
+            dz += TileSize * (location1.TileZ - location2.TileZ);
+            return dx * dx + dz * dz;
+        }
         /// <summary>
         /// Get a (3D) vector pointing locationFrom to locationTo
         /// </summary>

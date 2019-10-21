@@ -15,11 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -32,9 +30,9 @@ namespace ORTS.TrackViewer.Editing
         //methods in one class, without having to drag along the databases.
 
         /// <summary>The TrPin index of the main route of a junction node</summary>
-        private static uint[] mainRouteIndex;
+        private static int[] mainRouteIndex;
         /// <summary>The TrPin index of the siding route of a junction node</summary>
-        private static uint[] sidingRouteIndex;
+        private static int[] sidingRouteIndex;
 
         private static TrackNode[] trackNodes;
         private static TrackSectionsFile tsectionDat;
@@ -50,49 +48,49 @@ namespace ORTS.TrackViewer.Editing
             trackNodes = trackNodesIn;
             tsectionDat = tsectionDatIn;
             
-            mainRouteIndex = new uint[trackNodes.Length];
-            sidingRouteIndex = new uint[trackNodes.Length];
+            mainRouteIndex = new int[trackNodes.Length];
+            sidingRouteIndex = new int[trackNodes.Length];
             for (int tni = 0; tni < trackNodes.Length; tni++)
             {
-                TrackNode tn = trackNodes[tni];
+                TrackJunctionNode tn = trackNodes[tni] as TrackJunctionNode;
                 if (tn == null) continue;
-                if (tn.TrJunctionNode == null) continue;
-                uint mainRoute = 0;
 
-                uint trackShapeIndex = tn.TrJunctionNode.ShapeIndex;
+                int mainRoute = 0;
+
+                uint trackShapeIndex = tn.ShapeIndex;
                 try
                 {
-                    TrackShape trackShape = tsectionDat.TrackShapes.Get(trackShapeIndex);
-                    mainRoute = trackShape.MainRoute;
+                    TrackShape trackShape = tsectionDat.TrackShapes[trackShapeIndex];
+                    mainRoute = (int)trackShape.MainRoute;
                 }
                 catch (System.IO.InvalidDataException exception)
                 {
                     exception.ToString(); 
                 }
 
-                mainRouteIndex[tni] = tn.Inpins + mainRoute;
+                mainRouteIndex[tni] = tn.InPins + mainRoute;
                 if (mainRoute == 0)
                 {   // sidingRouteIndex is simply the next
-                    sidingRouteIndex[tni] = tn.Inpins + 1;
+                    sidingRouteIndex[tni] = tn.InPins + 1;
                 }
                 else
                 {   // sidingRouteIndex is the first
-                    sidingRouteIndex[tni] = tn.Inpins;
+                    sidingRouteIndex[tni] = tn.InPins;
                 }
             }
         }
 
         /// <summary>Return the vector node index of the trailing path leaving this junction.</summary>
-        public static int TrailingTvn(this TrackNode trackNode) { return trackNode.TrPins[0].Link; }
+        public static int TrailingTvn(this TrackNode trackNode) { return trackNode.TrackPins[0].Link; }
         /// <summary>Return the vector node index of the main path leaving this junction (main being defined as the first one defined)</summary>
-        public static int MainTvn(this TrackNode trackNode) { return trackNode.TrPins[mainRouteIndex[trackNode.Index]].Link; }
+        public static int MainTvn(this TrackNode trackNode) { return trackNode.TrackPins[mainRouteIndex[trackNode.Index]].Link; }
         /// <summary>Return the vector node index of the siding path leaving this junction (siding being defined as the second one defined)</summary>
-        public static int SidingTvn(this TrackNode trackNode) { return trackNode.TrPins[sidingRouteIndex[trackNode.Index]].Link; }
+        public static int SidingTvn(this TrackNode trackNode) { return trackNode.TrackPins[sidingRouteIndex[trackNode.Index]].Link; }
 
         /// <summary>Return the vector node index at the begin of this vector node</summary>
-        public static int JunctionIndexAtStart(this TrackNode trackNode) { return trackNode.TrPins[0].Link; }
+        public static int JunctionIndexAtStart(this TrackNode trackNode) { return trackNode.TrackPins[0].Link; }
         /// <summary>Return the vector node index at the end of this vector node</summary>
-        public static int JunctionIndexAtEnd(this TrackNode trackNode) { return trackNode.TrPins[1].Link; }
+        public static int JunctionIndexAtEnd(this TrackNode trackNode) { return trackNode.TrackPins[1].Link; }
 
         /// <summary>Return the tracknode corresponding the given index</summary>
         public static TrackNode TrackNode(int tvnIndex) { return trackNodes[tvnIndex]; }
@@ -138,7 +136,7 @@ namespace ORTS.TrackViewer.Editing
                 return 0;
             }
 
-            if (junctionTrackNode.TrEndNode)
+            if (junctionTrackNode is TrackEndNode)
             {
                 return 0;
             }

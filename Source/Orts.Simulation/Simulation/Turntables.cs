@@ -15,17 +15,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
-using Orts.Common;
-using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
-using Orts.Simulation.Signalling;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+
+using Microsoft.Xna.Framework;
+
+using Orts.Common;
 using Orts.Common.Xna;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
+using Orts.Simulation.Signalling;
 
 namespace Orts.Simulation
 {
@@ -429,15 +432,15 @@ namespace Orts.Simulation
 
         protected void InitializeAnglesAndTrackNodes()
         {
-            var trackShape = Simulator.TSectionDat.TrackShapes.Get((uint)TrackShapeIndex);
-            var nSections = Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIdxs[0].NoSections;
-            MyTrackNodesIndex = new int[Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIdxs.Length];
+            var trackShape = Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
+            var nSections = Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices[0].SectionsCount;
+            MyTrackNodesIndex = new int[Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex].SectionIndices.Length];
             MyTrackNodesOrientation = new bool[MyTrackNodesIndex.Length];
             MyTrVectorSectionsIndex = new int[MyTrackNodesIndex.Length];
             var iMyTrackNodes = 0;
-            foreach (var sectionIdx in trackShape.SectionIdxs)
+            foreach (var sectionIdx in trackShape.SectionIndices)
             {
-                Angles.Add(MathHelper.ToRadians((float)sectionIdx.A));
+                Angles.Add(MathHelper.ToRadians((float)sectionIdx.AngularOffset));
                 MyTrackNodesIndex[iMyTrackNodes] = -1;
                 MyTrVectorSectionsIndex[iMyTrackNodes] = -1;
                 iMyTrackNodes++;
@@ -446,18 +449,18 @@ namespace Orts.Simulation
             int iTrackNode = 0;
             for (iTrackNode = 1; iTrackNode < trackNodes.Length; iTrackNode++)
             {
-                if (trackNodes[iTrackNode].TrVectorNode != null && trackNodes[iTrackNode].TrVectorNode.TrVectorSections != null)
+                if (trackNodes[iTrackNode] is TrackVectorNode tvn && tvn.TrackVectorSections != null)
                 {
-                    var iTrVectorSection = Array.FindIndex(trackNodes[iTrackNode].TrVectorNode.TrVectorSections, trVectorSection =>
-                        (trVectorSection.WFNameX == WorldPosition.TileX && trVectorSection.WFNameZ == WorldPosition.TileZ && trVectorSection.WorldFileUiD == UID));
+                    var iTrVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection =>
+                        (trVectorSection.Location.TileX == WorldPosition.TileX && trVectorSection.Location.TileZ == WorldPosition.TileZ && trVectorSection.WorldFileUiD == UID));
                     if (iTrVectorSection >= 0)
                     {
-                        if (trackNodes[iTrackNode].TrVectorNode.TrVectorSections.Length > (int)nSections)
+                        if (tvn.TrackVectorSections.Length > (int)nSections)
                         {
-                            iMyTrackNodes = trackNodes[iTrackNode].TrVectorNode.TrVectorSections[iTrVectorSection].Flag1 / 2;
+                            iMyTrackNodes = tvn.TrackVectorSections[iTrVectorSection].Flag1 / 2;
                             MyTrackNodesIndex[iMyTrackNodes] = iTrackNode;
                             MyTrVectorSectionsIndex[iMyTrackNodes] = iTrVectorSection;
-                            MyTrackNodesOrientation[iMyTrackNodes] = trackNodes[iTrackNode].TrVectorNode.TrVectorSections[iTrVectorSection].Flag1 % 2 == 0 ? true : false;
+                            MyTrackNodesOrientation[iMyTrackNodes] = tvn.TrackVectorSections[iTrVectorSection].Flag1 % 2 == 0 ? true : false;
 
                         }
                     }

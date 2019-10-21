@@ -113,7 +113,7 @@ namespace Orts.Simulation.Signalling
 
         public void SH_update_basic(SignalHead thisHead)
         {
-            if (thisHead.mainSignal.block_state() == MstsBlockState.CLEAR)
+            if (thisHead.mainSignal.block_state() == SignalBlockState.Clear)
             {
                 thisHead.SetLeastRestrictiveAspect();
             }
@@ -305,7 +305,7 @@ namespace Orts.Simulation.Signalling
                     switch (FloatType)
                     {
                         case SignalScripts.SCRExternalFloats.STATE:
-                            thisHead.state = (MstsSignalAspect)tempvalue;
+                            thisHead.state = (SignalAspectState)tempvalue;
                             break;
 
                         case SignalScripts.SCRExternalFloats.DRAW_STATE:
@@ -624,7 +624,7 @@ namespace Orts.Simulation.Signalling
 
                 case (SignalScripts.SCRExternalFunctions.THIS_SIG_LR):
                     bool sigfound_lr = false;
-                    MstsSignalAspect returnState_lr = thisHead.this_sig_lr(parameter1_value, ref sigfound_lr);
+                    SignalAspectState returnState_lr = thisHead.this_sig_lr(parameter1_value, ref sigfound_lr);
                     return_value = sigfound_lr ? (int)returnState_lr : -1;
                     break;
 
@@ -632,7 +632,7 @@ namespace Orts.Simulation.Signalling
 
                 case (SignalScripts.SCRExternalFunctions.THIS_SIG_MR):
                     bool sigfound_mr = false;
-                    MstsSignalAspect returnState_mr = thisHead.this_sig_mr(parameter1_value, ref sigfound_mr);
+                    SignalAspectState returnState_mr = thisHead.this_sig_mr(parameter1_value, ref sigfound_mr);
                     return_value = sigfound_mr ? (int)returnState_mr : -1;
                     break;
 
@@ -1354,7 +1354,7 @@ namespace Orts.Simulation.Signalling
                 // def_draw_state
 
                 case (SignalScripts.SCRExternalFunctions.DEF_DRAW_STATE):
-                    return_value = thisHead.def_draw_state((MstsSignalAspect)parameter1_value);
+                    return_value = thisHead.def_draw_state((SignalAspectState)parameter1_value);
                     break;
 
                 // DEBUG routine : to be implemented later

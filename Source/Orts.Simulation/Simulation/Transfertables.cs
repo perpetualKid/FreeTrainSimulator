@@ -21,6 +21,8 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Xna;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -111,15 +113,15 @@ namespace Orts.Simulation
 
         protected void InitializeOffsetsAndTrackNodes()
         {
-            var trackShape = Simulator.TSectionDat.TrackShapes.Get((uint)TrackShapeIndex);
-            var nSections = trackShape.SectionIdxs[0].NoSections;
-            MyTrackNodesIndex = new int[trackShape.SectionIdxs.Length];
+            var trackShape = Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
+            var nSections = trackShape.SectionIndices[0].SectionsCount;
+            MyTrackNodesIndex = new int[trackShape.SectionIndices.Length];
             MyTrackNodesOrientation = new bool[MyTrackNodesIndex.Length];
             MyTrVectorSectionsIndex = new int[MyTrackNodesIndex.Length];
             var iMyTrackNodes = 0;
-            foreach (var sectionIdx in trackShape.SectionIdxs)
+            foreach (var sectionIdx in trackShape.SectionIndices)
             {
-                Offsets.Add((float)sectionIdx.X);
+                Offsets.Add(sectionIdx.Offset.X);
                 MyTrackNodesIndex[iMyTrackNodes] = -1;
                 MyTrVectorSectionsIndex[iMyTrackNodes] = -1;
                 iMyTrackNodes++;
@@ -128,18 +130,18 @@ namespace Orts.Simulation
             int iTrackNode = 0;
             for (iTrackNode = 1; iTrackNode < trackNodes.Length; iTrackNode++)
             {
-                if (trackNodes[iTrackNode].TrVectorNode != null && trackNodes[iTrackNode].TrVectorNode.TrVectorSections != null)
+                if (trackNodes[iTrackNode] is TrackVectorNode tvn && tvn.TrackVectorSections != null)
                 {
-                    var iTrVectorSection = Array.FindIndex(trackNodes[iTrackNode].TrVectorNode.TrVectorSections, trVectorSection =>
-                        (trVectorSection.WFNameX == WorldPosition.TileX && trVectorSection.WFNameZ == WorldPosition.TileZ && trVectorSection.WorldFileUiD == UID));
+                    var iTrVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection =>
+                        (trVectorSection.Location.TileX == WorldPosition.TileX && trVectorSection.Location.TileZ == WorldPosition.TileZ && trVectorSection.WorldFileUiD == UID));
                     if (iTrVectorSection >= 0)
                     {
-                        if (trackNodes[iTrackNode].TrVectorNode.TrVectorSections.Length > (int)nSections)
+                        if (tvn.TrackVectorSections.Length > (int)nSections)
                         {
-                            iMyTrackNodes = trackNodes[iTrackNode].TrVectorNode.TrVectorSections[iTrVectorSection].Flag1 / 2;
+                            iMyTrackNodes = tvn.TrackVectorSections[iTrVectorSection].Flag1 / 2;
                             MyTrackNodesIndex[iMyTrackNodes] = iTrackNode;
                             MyTrVectorSectionsIndex[iMyTrackNodes] = iTrVectorSection;
-                            MyTrackNodesOrientation[iMyTrackNodes] = trackNodes[iTrackNode].TrVectorNode.TrVectorSections[iTrVectorSection].Flag1 % 2 == 0 ? true : false;
+                            MyTrackNodesOrientation[iMyTrackNodes] = tvn.TrackVectorSections[iTrVectorSection].Flag1 % 2 == 0 ? true : false;
 
                         }
                     }
@@ -147,7 +149,7 @@ namespace Orts.Simulation
             }
             XPos = CenterOffset.X;
             // Compute width of transfer table
-            Width = (float)(trackShape.SectionIdxs[trackShape.SectionIdxs.Length - 1].X - trackShape.SectionIdxs[0].X);
+            Width = trackShape.SectionIndices[trackShape.SectionIndices.Length - 1].Offset.X - trackShape.SectionIndices[0].Offset.X;
         }
 
         /// <summary>

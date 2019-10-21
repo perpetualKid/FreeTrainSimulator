@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 using Orts.Common.Calc;
 
 namespace Orts.Formats.Msts.Parsers
@@ -139,7 +140,7 @@ namespace Orts.Formats.Msts.Parsers
                         {
                             for (float x = checkMe.MinX(); x <= checkMe.MaxX(); x += dx)
                             {
-                                if ((checkMe[x] == float.NaN))
+                                if (float.IsNaN(checkMe[x]))
                                 {
                                     STFException.TraceWarning(stf, "Interpolator has found X data error - x values must be increasing. (Possible row number mismatch)");
                                     errorFound = true;

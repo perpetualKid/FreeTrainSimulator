@@ -17,13 +17,16 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Simulation;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Orts.Common;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -68,31 +71,35 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var tSectionDat = Owner.Viewer.Simulator.TSectionDat;
                 var tdb = Owner.Viewer.Simulator.TDB;
                 var rdb = Owner.Viewer.Simulator.RDB;
-                foreach (var trackNode in tdb.TrackDB.TrackNodes.Where(tn => tn != null && tn.TrVectorNode != null && Math.Abs(tn.TrVectorNode.TrVectorSections[0].TileX - camera.TileX) <= 1 && Math.Abs(tn.TrVectorNode.TrVectorSections[0].TileZ - camera.TileZ) <= 1))
+                foreach (var trackNode in tdb.TrackDB.TrackNodes.Where(
+                    tn => tn is TrackVectorNode trackVectorNode
+                    && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - camera.TileX) <= 1
+                    && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileZ - camera.TileZ) <= 1).Cast<TrackVectorNode>())
                 {
                     var currentPosition = new Traveller(tSectionDat, tdb.TrackDB.TrackNodes, trackNode);
                     while (true)
                     {
                         var previousLocation = currentPosition.WorldLocation;
                         var remaining = currentPosition.MoveInSection(DisplaySegmentLength);
-                        if ((Math.Abs(remaining - DisplaySegmentLength ) < Tolerance) && !currentPosition.NextVectorSection())
+                        if ((Math.Abs(remaining - DisplaySegmentLength) < Tolerance) && !currentPosition.NextVectorSection())
                             break;
                         primitives.Add(new DispatcherLineSegment(previousLocation, currentPosition.WorldLocation, Color.LightBlue, 2));
                     }
-                    if (trackNode.TrVectorNode.TrItemRefs != null)
+                    foreach (var trItemID in trackNode.TrackItemIndices)
                     {
-                        foreach (var trItemID in trackNode.TrVectorNode.TrItemRefs)
-                        {
-                            var trItem = tdb.TrackDB.TrItemTable[trItemID];
-                            currentPosition = new Traveller(tSectionDat, tdb.TrackDB.TrackNodes, trackNode);
-                            currentPosition.Move(trItem.SData1);
-                            primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightBlue, String.Format("{0} {1} {2}", trItem.TrItemId, trItem.ItemType.ToString().Replace("tr", "").ToUpperInvariant(), trItem.ItemName), Owner.TextFontDefaultOutlined));
-                        }
+                        var trItem = tdb.TrackDB.TrackItems[trItemID];
+                        currentPosition = new Traveller(tSectionDat, tdb.TrackDB.TrackNodes, trackNode);
+                        currentPosition.Move(trItem.SData1);
+                        primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightBlue,
+                            $"{trItem.TrackItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
                     }
                 }
                 if (rdb != null && rdb.RoadTrackDB.TrackNodes != null)
                 {
-                    foreach (var trackNode in rdb.RoadTrackDB.TrackNodes.Where(tn => tn != null && tn.TrVectorNode != null && Math.Abs(tn.TrVectorNode.TrVectorSections[0].TileX - camera.TileX) <= 1 && Math.Abs(tn.TrVectorNode.TrVectorSections[0].TileZ - camera.TileZ) <= 1))
+                    foreach (var trackNode in rdb.RoadTrackDB.TrackNodes.Where(
+                        tn => tn is TrackVectorNode trackVectorNode 
+                        && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - camera.TileX) <= 1 
+                        && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileZ - camera.TileZ) <= 1).Cast<TrackVectorNode>())
                     {
                         var currentPosition = new Traveller(tSectionDat, rdb.RoadTrackDB.TrackNodes, trackNode);
                         while (true)
@@ -103,14 +110,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 break;
                             primitives.Add(new DispatcherLineSegment(previousLocation, currentPosition.WorldLocation, Color.LightSalmon, 2));
                         }
-                        if (trackNode.TrVectorNode.TrItemRefs != null)
+                        if (trackNode.TrackItemIndices != null)
                         {
-                            foreach (var trItemID in trackNode.TrVectorNode.TrItemRefs)
+                            foreach (var trItemID in trackNode.TrackItemIndices)
                             {
                                 var trItem = rdb.RoadTrackDB.TrItemTable[trItemID];
                                 currentPosition = new Traveller(tSectionDat, rdb.RoadTrackDB.TrackNodes, trackNode);
                                 currentPosition.Move(trItem.SData1);
-                                primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightSalmon, String.Format("{0} {1} {2}", trItem.TrItemId, trItem.ItemType.ToString().Replace("tr", "").ToUpperInvariant(), trItem.ItemName), Owner.TextFontDefaultOutlined));
+                                primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightSalmon, String.Format("{0} {1} {2}", trItem.TrackItemId, trItem.GetType().Name.Replace("Item", string.Empty), trItem.ItemName), Owner.TextFontDefaultOutlined));
                             }
                         }
                     }

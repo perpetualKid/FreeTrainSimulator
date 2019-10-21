@@ -29,6 +29,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.OR;
 using Orts.MultiPlayer;
 using Orts.Simulation;
@@ -503,7 +504,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
             if (Program.Simulator != null && Program.Simulator.ActivityRun != null && Program.Simulator.ActivityRun.triggeredEventWrapper != null &&
-               (Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.ORTSWeatherChange != null || Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ORTSWeatherChange != null))
+               (Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange != null || Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange != null))
                 // Start a weather change sequence in activity mode
             {
                 // if not yet weather changes, create the instance
@@ -511,8 +512,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     dynamicWeather = new DynamicWeather();
                 }
-                var weatherChange = Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ORTSWeatherChange != null ?
-                    Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ORTSWeatherChange : Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.ORTSWeatherChange;
+                var weatherChange = Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange != null ?
+                    Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange : Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange;
                 dynamicWeather.WeatherChange_Init(weatherChange, this);
                 Program.Simulator.ActivityRun.triggeredEventWrapper = null;               
             }
@@ -611,21 +612,21 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Check for correctness of parameters and initialize rates of change
 
-            public void WeatherChange_Init(ORTSWeatherChange eventWeatherChange, WeatherControl weatherControl)
+            public void WeatherChange_Init(OrtsWeatherChange eventWeatherChange, WeatherControl weatherControl)
             {
                 var wChangeOn = false;
-                if (eventWeatherChange.ORTSOvercast >= 0 && eventWeatherChange.ORTSOvercastTransitionTimeS >= 0)
+                if (eventWeatherChange.Overcast >= 0 && eventWeatherChange.OvercastTransitionTime >= 0)
                 {
-                    ORTSOvercast = eventWeatherChange.ORTSOvercast;
-                    ORTSOvercastTransitionTimeS = eventWeatherChange.ORTSOvercastTransitionTimeS;
+                    ORTSOvercast = eventWeatherChange.Overcast;
+                    ORTSOvercastTransitionTimeS = eventWeatherChange.OvercastTransitionTime;
                     overcastTimer = (float)ORTSOvercastTransitionTimeS;
                     overcastChangeRate = overcastTimer > 0 ? (MathHelper.Clamp(ORTSOvercast, 0, 1.0f) - weatherControl.Weather.OvercastFactor) / ORTSOvercastTransitionTimeS : 0;
                     wChangeOn = true;
                 }
-                if (eventWeatherChange.ORTSFog >= 0 && eventWeatherChange.ORTSFogTransitionTimeS >= 0)
+                if (eventWeatherChange.Fog >= 0 && eventWeatherChange.FogTransitionTime >= 0)
                 {
-                    ORTSFog = eventWeatherChange.ORTSFog;
-                    ORTSFogTransitionTimeS = eventWeatherChange.ORTSFogTransitionTimeS;
+                    ORTSFog = eventWeatherChange.Fog;
+                    ORTSFogTransitionTimeS = eventWeatherChange.FogTransitionTime;
                     fogTimer = (float)ORTSFogTransitionTimeS;
                     var fogFinalValue = MathHelper.Clamp(ORTSFog, 10, 100000);
                     fogDistanceIncreasing = false;
@@ -638,10 +639,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     wChangeOn = true;
                 }
-                if (eventWeatherChange.ORTSPrecipitationIntensity >= 0 && eventWeatherChange.ORTSPrecipitationIntensityTransitionTimeS >= 0)
+                if (eventWeatherChange.PrecipitationIntensity >= 0 && eventWeatherChange.PrecipitationIntensityTransitionTime >= 0)
                 {
-                    ORTSPrecipitationIntensity = eventWeatherChange.ORTSPrecipitationIntensity;
-                    ORTSPrecipitationIntensityTransitionTimeS = eventWeatherChange.ORTSPrecipitationIntensityTransitionTimeS;
+                    ORTSPrecipitationIntensity = eventWeatherChange.PrecipitationIntensity;
+                    ORTSPrecipitationIntensityTransitionTimeS = eventWeatherChange.PrecipitationIntensityTransitionTime;
                     precipitationIntensityTimer = (float)ORTSPrecipitationIntensityTransitionTimeS;
                     // Pricipitation ranges from 0 to max PrecipitationViewer.MaxIntensityPPSPM2 if 32bit.
                     // 16bit uses PrecipitationViewer.MaxIntensityPPSPM2_16
@@ -653,10 +654,10 @@ namespace Orts.ActivityRunner.Viewer3D
                             - weatherControl.Weather.PricipitationIntensityPPSPM2) / ORTSPrecipitationIntensityTransitionTimeS : 0;
                     wChangeOn = true;
                 }
-                if (eventWeatherChange.ORTSPrecipitationLiquidity >= 0 && eventWeatherChange.ORTSPrecipitationLiquidityTransitionTimeS >= 0)
+                if (eventWeatherChange.PrecipitationLiquidity >= 0 && eventWeatherChange.PrecipitationLiquidityTransitionTime >= 0)
                 {
-                    ORTSPrecipitationLiquidity = eventWeatherChange.ORTSPrecipitationLiquidity;
-                    ORTSPrecipitationLiquidityTransitionTimeS = eventWeatherChange.ORTSPrecipitationLiquidityTransitionTimeS;
+                    ORTSPrecipitationLiquidity = eventWeatherChange.PrecipitationLiquidity;
+                    ORTSPrecipitationLiquidityTransitionTimeS = eventWeatherChange.PrecipitationLiquidityTransitionTime;
                     precipitationLiquidityTimer = (float)ORTSPrecipitationLiquidityTransitionTimeS;
                     precipitationLiquidityChangeRate = precipitationLiquidityTimer > 0 ? (MathHelper.Clamp(ORTSPrecipitationLiquidity, 0, 1.0f)
                         - weatherControl.Weather.PrecipitationLiquidity) / ORTSPrecipitationLiquidityTransitionTimeS : 0;
