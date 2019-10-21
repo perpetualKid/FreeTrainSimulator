@@ -24,10 +24,10 @@ namespace Orts.Formats.Msts.Models
         /// <param name="stf">The STFreader containing the file stream</param>
         public RoadTrackDB(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tracknodes", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     int count = stf.ReadInt(null);
                     TrackNodes = new TrackNode[count + 1];
                     int idx = 1;
@@ -36,7 +36,7 @@ namespace Orts.Formats.Msts.Models
                     });
                 }),
                 new STFReader.TokenProcessor("tritemtable", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     int count = stf.ReadInt(null);
                     TrItemTable = new TrackItem[count];
                     int idx = -1;
@@ -68,7 +68,7 @@ namespace Orts.Formats.Msts.Models
         public RoadLevelCrossingItem(STFReader stf, int idx)
         {
             SignalObject = -1;
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
@@ -89,7 +89,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
 		public RoadCarSpawner(STFReader stf, int idx)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),

@@ -116,12 +116,12 @@ namespace Orts.Formats.Msts.Parsers
     //             new STFReader.TokenProcessor("item_single_speed", ()=>{ float iss_mps = stf.ReadFloat(STFReader.Units.Speed, 0); }),
     //             new STFReader.TokenProcessor("block_single_constant", ()=>{ float bsc = stf.ReadFloatBlock(STFReader.Units.None, 0); }),
     //             new STFReader.TokenProcessor("block_fixed_format", ()=>{
-    //                 stf.MustMatch("(");
+    //                 stf.MustMatchBlockStart();
     //                 int bff1 = stf.ReadInt(0);
     //                 string bff2 = stf.ReadString();
     //                 stf.SkipRestOfBlock();
     //             }),
-    //             new STFReader.TokenProcessor("block_variable_contents", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
+    //             new STFReader.TokenProcessor("block_variable_contents", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
     //                 new STFReader.TokenProcessor("subitem", ()=>{ string si = stf.ReadString(); }),
     //                 new STFReader.TokenProcessor("subblock", ()=>{ string sb = stf.ReadStringBlock(""); }),
     //             });}),
@@ -138,13 +138,13 @@ namespace Orts.Formats.Msts.Parsers
     //                    case "item_single_speed": float iss_mps = stf.ReadFloat(STFReader.Units.Speed, 0); break;
     //                    case "block_single_constant": float bsc = stf.ReadFloatBlock(STFReader.Units.None, 0); break;
     //                    case "block_fixed_format":
-    //                        stf.MustMatch("(");
+    //                        stf.MustMatchBlockStart();
     //                        int bff1 = stf.ReadInt(0);
     //                        string bff2 = stf.ReadString();
     //                        stf.SkipRestOfBlock();
     //                        break;
     //                    case "block_variable_contents":
-    //                        stf.MustMatch("(");
+    //                        stf.MustMatchBlockStart();
     //                        while (!stf.EndOfBlock())
     //                            switch (stf.ReadItem().ToLower())
     //                            {
@@ -311,6 +311,24 @@ namespace Orts.Formats.Msts.Parsers
         {
             Debug.Assert(!stepbackoneitemFlag, "You must called at least one ReadItem() between StepBackOneItem() calls", "The current step back functionality only allows for a single step");
             stepbackoneitemFlag = true;
+        }
+
+        public void MustMatchBlockStart()
+        {
+            if (Eof)
+                STFException.TraceWarning(this, "Unexpected end of file instead of '('");
+            else
+            {
+                string s1 = ReadItem();
+                // A single unexpected token leads to a warning; two leads to a fatal error.
+                if (s1.Length == 0 || s1[0] != 40)   // (
+                {
+                    STFException.TraceWarning(this, $"Opening bracket '(' not found - instead found \"{s1}\"");
+                    string s2 = ReadItem();
+                    if (s2.Length == 0 || s1[0] != 40)
+                        throw new STFException(this, $"Opening bracket '(' not found - instead found \"{s1}\"");
+                }
+            }
         }
 
         /// <summary>Reports a critical error if the next {item} does not match the target.
@@ -1620,7 +1638,7 @@ namespace Orts.Formats.Msts.Parsers
 
         public void VerifyStartOfBlock()
         {
-            MustMatch("(");
+            MustMatchBlockStart();
         }
 
         public bool EOF() { return PeekChar() == -1; }
@@ -2497,7 +2515,7 @@ namespace Orts.Parsers.Msts
 
         void HandleInclude()
         {
-            MustMatch("(");
+            MustMatchBlockStart();
             StfToken token = NextToken();
             MustMatch(")");
             if (CurrentTokenFromSource.IsEOF)
@@ -3740,7 +3758,7 @@ namespace Orts.Parsers.Msts
         public bool EOF() { return Eof; }
         public void VerifyStartOfBlock()
         {
-            MustMatch("(");
+            MustMatchBlockStart();
         }
 
         public int PeekPastWhitespace()

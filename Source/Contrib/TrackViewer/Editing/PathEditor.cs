@@ -19,6 +19,7 @@
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using Orts.Menu.Entities;
 using ORTS.TrackViewer.Drawing;
 using System.Collections.Generic;

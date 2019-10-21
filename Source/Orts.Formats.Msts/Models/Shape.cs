@@ -62,7 +62,7 @@ namespace Orts.Formats.Msts.Models
 
         public EsdBoundingBox(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             string item = stf.ReadString();
             if (item == ")") return;    // quietly return on ESD_Bounding_Box()
             stf.StepBackOneItem();

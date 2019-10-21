@@ -563,7 +563,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Name = "Default Dynatrack profile";
 
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("lodmethod", ()=> { LODMethod = GetLODMethod(stf.ReadStringBlock(null)); }),
@@ -729,7 +729,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public LOD(Viewer viewer, STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("cutoffradius", ()=>{ CutoffRadius = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("loditem", ()=>{
@@ -781,7 +781,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public LODItem(Viewer viewer, STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("texname", ()=>{ TexName = stf.ReadStringBlock(null); }),
@@ -839,12 +839,12 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public Polyline(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("vertex", ()=>{ Vertices.Add(new Vertex(stf)); }),
                 new STFReader.TokenProcessor("deltatexcoord", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     DeltaTexCoord.X = stf.ReadFloat(STFReader.Units.None, null);
                     DeltaTexCoord.Y = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
@@ -893,24 +893,24 @@ namespace Orts.ActivityRunner.Viewer3D
             v.Position = new Vector3();
             v.Normal = new Vector3();
             v.TexCoord = new Vector2();
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("position", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     v.Position.X = stf.ReadFloat(STFReader.Units.None, null);
                     v.Position.Y = stf.ReadFloat(STFReader.Units.None, null);
                     v.Position.Z = 0.0f;
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("normal", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     v.Normal.X = stf.ReadFloat(STFReader.Units.None, null);
                     v.Normal.Y = stf.ReadFloat(STFReader.Units.None, null);
                     v.Normal.Z = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("texcoord", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     v.TexCoord.X = stf.ReadFloat(STFReader.Units.None, null);
                     v.TexCoord.Y = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();

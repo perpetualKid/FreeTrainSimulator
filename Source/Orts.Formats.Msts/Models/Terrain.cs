@@ -144,14 +144,14 @@ namespace Orts.Formats.Msts.Models
 
     public class TextureSlot
     {
-        public string Filename { get; private set; }
+        public string FileName { get; private set; }
         public int A { get; private set; }
         public int B { get; private set; }
 
         public TextureSlot(SBR block)
         {
             block.VerifyID(TokenID.Terrain_TexSlot);
-            Filename = block.ReadString();
+            FileName = block.ReadString();
             A = block.ReadInt();
             B = block.ReadInt();
             block.Skip();

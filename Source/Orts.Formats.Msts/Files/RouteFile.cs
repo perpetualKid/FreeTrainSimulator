@@ -64,7 +64,7 @@ namespace Orts.Formats.Msts.Files
 
         public ORTRKData(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortsmaxviewingdistance", ()=>{ MaxViewingDistance = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
             });

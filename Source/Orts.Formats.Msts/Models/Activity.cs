@@ -47,7 +47,7 @@ namespace Orts.Formats.Msts.Models
 
         public Activity(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tr_activity_file", ()=>{ ParseActivityDetails(stf); }),
                 new STFReader.TokenProcessor("serial", ()=>{ Serial = stf.ReadIntBlock(null); }),
@@ -57,7 +57,7 @@ namespace Orts.Formats.Msts.Models
 
         private void ParseActivityHeader(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("routeid", ()=>{ Header.RouteID = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("name", ()=>{ Header.Name = stf.ReadStringBlock(null); }),
@@ -83,7 +83,7 @@ namespace Orts.Formats.Msts.Models
 
         private void ParseActivityDetails(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("player_service_definition",()=>{ PlayerServices = new PlayerServices(stf); }),
                 new STFReader.TokenProcessor("nextserviceuid",()=>{ NextServiceUiD = stf.ReadIntBlock(null); }),
@@ -114,7 +114,7 @@ namespace Orts.Formats.Msts.Models
     {
         public ActivityObjects(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("activityobject", ()=>{ Add(new ActivityObject(stf)); }),
             });
@@ -131,14 +131,14 @@ namespace Orts.Formats.Msts.Models
 
         public ActivityObject(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("objecttype", ()=>{ stf.MustMatch("("); stf.MustMatch("WagonsList"); stf.MustMatch(")"); }),
+                new STFReader.TokenProcessor("objecttype", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch("WagonsList"); stf.MustMatch(")"); }),
                 new STFReader.TokenProcessor("train_config", ()=>{ TrainSet = new TrainSet(stf); }),
                 new STFReader.TokenProcessor("direction", ()=>{ Direction = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("id", ()=>{ ID = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("tile", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
                         stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
                     stf.MustMatch(")");
@@ -154,7 +154,7 @@ namespace Orts.Formats.Msts.Models
 
         public MaxVelocity(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             A = stf.ReadFloat(STFReader.Units.Speed, null);
             B = stf.ReadFloat(STFReader.Units.Speed, null);
             stf.MustMatch(")");
@@ -166,7 +166,7 @@ namespace Orts.Formats.Msts.Models
 
         public PlatformPassengersWaiting(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("platformdata", ()=>{ Add(new PlatformData(stf)); }),
             });
@@ -186,7 +186,7 @@ namespace Orts.Formats.Msts.Models
 
         public PlatformData(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             ID = stf.ReadInt(null);
             PassengerCount = stf.ReadInt(null);
             stf.MustMatch(")");
@@ -198,7 +198,7 @@ namespace Orts.Formats.Msts.Models
 
         public FailedSignals(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("activityfailedsignal", ()=>{ Add(stf.ReadIntBlock(null)); }),
             });
@@ -210,7 +210,7 @@ namespace Orts.Formats.Msts.Models
 
         public RestrictedSpeedZones(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("activityrestrictedspeedzone", ()=>{ Add(new RestrictedSpeedZone(stf)); }),
             });
@@ -227,16 +227,16 @@ namespace Orts.Formats.Msts.Models
 
         public RestrictedSpeedZone(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("startposition", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     startPosition = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
                         stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
                     stf.MustMatch(")");
                 }),
                 new STFReader.TokenProcessor("endposition", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     endPosition = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
                         stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
                     stf.MustMatch(")");
@@ -254,10 +254,10 @@ namespace Orts.Formats.Msts.Models
 
         public RestartWaitingTrain(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortswaitingtraintorestart", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     WaitingTrainToRestart = stf.ReadString();
                     WaitingTrainStartingTime = stf.ReadInt(-1);
                     stf.SkipRestOfBlock();

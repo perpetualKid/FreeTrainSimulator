@@ -130,17 +130,17 @@ namespace Orts.Formats.Msts.Files
             {
                 using (STFReader stf = new STFReader(fileName, false))
                     stf.ParseFile(new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("trackpdps", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
+                    new STFReader.TokenProcessor("trackpdps", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("trackpdp", ()=>{ DataPoints.Add(new PathDataPoint(stf)); }),
                     });}),
-                    new STFReader.TokenProcessor("trackpath", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
+                    new STFReader.TokenProcessor("trackpath", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
 						new STFReader.TokenProcessor("trpathname", ()=>{ PathID = stf.ReadStringBlock(null); }),
                         new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
 						new STFReader.TokenProcessor("trpathflags", ()=>{ Flags = (PathFlags)stf.ReadHexBlock(null); }),
 						new STFReader.TokenProcessor("trpathstart", ()=>{ Start = stf.ReadStringBlock(null); }),
 						new STFReader.TokenProcessor("trpathend", ()=>{ End = stf.ReadStringBlock(null); }),
                         new STFReader.TokenProcessor("trpathnodes", ()=>{
-                            stf.MustMatch("(");
+                            stf.MustMatchBlockStart();
                             var count = stf.ReadInt(null);
                             stf.ParseBlock(new STFReader.TokenProcessor[] {
                                 new STFReader.TokenProcessor("trpathnode", ()=>{

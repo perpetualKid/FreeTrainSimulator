@@ -15,7 +15,7 @@ namespace Orts.Formats.Msts.Models
     {
         public Events(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("eventcategorylocation", ()=>{ Add(new EventCategoryLocation(stf)); }),
                 new STFReader.TokenProcessor("eventcategoryaction", ()=>{ Add(new EventCategoryAction(stf)); }),
@@ -25,7 +25,7 @@ namespace Orts.Formats.Msts.Models
 
         public void UpdateORActivtyData(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("eventcategorylocation", ()=>{ TryModify(0, stf); }),
                 new STFReader.TokenProcessor("eventcategoryaction", ()=>{ TryModify(1, stf); }),
@@ -40,9 +40,9 @@ namespace Orts.Formats.Msts.Models
             int modifiedID = -1;
             try
             {
-                stf.MustMatch("(");
+                stf.MustMatchBlockStart();
                 stf.MustMatch("id");
-                stf.MustMatch("(");
+                stf.MustMatchBlockStart();
                 modifiedID = stf.ReadInt(null);
                 stf.MustMatch(")");
                 origEvent = Find(x => x.ID == modifiedID);
@@ -105,7 +105,7 @@ namespace Orts.Formats.Msts.Models
 
         protected void OrtsActivitySoundProcessor(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             string soundFile = stf.ReadString();
             SoundFile = Path.Combine(FolderStructure.RouteSoundsFolder, soundFile);
             if (!EnumExtension.GetValue(stf.ReadString(), out OrtsActivitySoundFileType soundFileType))
@@ -129,14 +129,14 @@ namespace Orts.Formats.Msts.Models
 
         public EventCategoryLocation(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Update(stf);
         }
 
         public override void Update(STFReader stf)
         {
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("eventtypelocation", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); }),
+                new STFReader.TokenProcessor("eventtypelocation", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); }),
                 new STFReader.TokenProcessor("id", ()=>{ ID = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("ortstriggeringtrain", ()=>{ ParseTrain(stf); }),
                 new STFReader.TokenProcessor("activation_level", ()=>{ ActivationLevel = stf.ReadIntBlock(null); }),
@@ -151,7 +151,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("texttodisplayoncompletionifnottriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("triggeronstop", ()=>{ TriggerOnStop = stf.ReadBoolBlock(true); }),
                 new STFReader.TokenProcessor("location", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
                         stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
                     RadiusM = stf.ReadFloat(STFReader.Units.Distance, null);
@@ -165,7 +165,7 @@ namespace Orts.Formats.Msts.Models
 
         private void ParseTrain(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             TrainService = stf.ReadString();
             TrainStartingTime = stf.ReadInt(-1);
             stf.SkipRestOfBlock();
@@ -185,20 +185,20 @@ namespace Orts.Formats.Msts.Models
 
         public EventCategoryAction(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Update(stf);
         }
 
         public override void Update(STFReader stf)
         {
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("eventtypeallstops", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Type = EventType.AllStops; }),
-                new STFReader.TokenProcessor("eventtypeassembletrain", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Type = EventType.AssembleTrain; }),
-                new STFReader.TokenProcessor("eventtypeassembletrainatlocation", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Type = EventType.AssembleTrainAtLocation; }),
-                new STFReader.TokenProcessor("eventtypedropoffwagonsatlocation", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Type = EventType.DropOffWagonsAtLocation; }),
-                new STFReader.TokenProcessor("eventtypepickuppassengers", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Type = EventType.PickUpPassengers; }),
-                new STFReader.TokenProcessor("eventtypepickupwagons", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Type = EventType.PickUpWagons; }),
-                new STFReader.TokenProcessor("eventtypereachspeed", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Type = EventType.ReachSpeed; }),
+                new STFReader.TokenProcessor("eventtypeallstops", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); Type = EventType.AllStops; }),
+                new STFReader.TokenProcessor("eventtypeassembletrain", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); Type = EventType.AssembleTrain; }),
+                new STFReader.TokenProcessor("eventtypeassembletrainatlocation", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); Type = EventType.AssembleTrainAtLocation; }),
+                new STFReader.TokenProcessor("eventtypedropoffwagonsatlocation", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); Type = EventType.DropOffWagonsAtLocation; }),
+                new STFReader.TokenProcessor("eventtypepickuppassengers", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); Type = EventType.PickUpPassengers; }),
+                new STFReader.TokenProcessor("eventtypepickupwagons", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); Type = EventType.PickUpWagons; }),
+                new STFReader.TokenProcessor("eventtypereachspeed", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); Type = EventType.ReachSpeed; }),
                 new STFReader.TokenProcessor("id", ()=>{ ID = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("activation_level", ()=>{ ActivationLevel = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("outcomes", ()=>
@@ -213,9 +213,9 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("wagon_list", ()=>{ WorkOrderWagons = new WorkOrderWagons(stf, Type); }),
                 new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = (uint)stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("speed", ()=>{ SpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); }),
-                new STFReader.TokenProcessor("reversable_event", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Reversible = true; }),
+                new STFReader.TokenProcessor("reversable_event", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); Reversible = true; }),
                 // Also support the correct spelling !
-                new STFReader.TokenProcessor("reversible_event", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Reversible = true; }),
+                new STFReader.TokenProcessor("reversible_event", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); Reversible = true; }),
                 new STFReader.TokenProcessor("ortscontinue", ()=>{ OrtsContinue = stf.ReadIntBlock(0); }),
                 new STFReader.TokenProcessor("ortsactsoundfile", ()=> OrtsActivitySoundProcessor(stf)),
             });
@@ -228,7 +228,7 @@ namespace Orts.Formats.Msts.Models
 
         public EventCategoryTime(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Update(stf);
         }
 
@@ -267,32 +267,32 @@ namespace Orts.Formats.Msts.Models
 
         public OrtsWeatherChange(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortsovercast", ()=>
                 {
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     Overcast = stf.ReadFloat(STFReader.Units.None, -1);
                     OvercastTransitionTime = stf.ReadInt(-1);
                     stf.MustMatch(")");
                 }),
                 new STFReader.TokenProcessor("ortsfog", ()=>
                 {
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     Fog = stf.ReadFloat(STFReader.Units.None, -1);
                     FogTransitionTime = stf.ReadInt(-1);
                     stf.MustMatch(")");
                 }),
                 new STFReader.TokenProcessor("ortsprecipitationintensity", ()=>
                 {
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     PrecipitationIntensity = stf.ReadFloat(STFReader.Units.None, -1);
                     PrecipitationIntensityTransitionTime = stf.ReadInt(-1);
                     stf.MustMatch(")");
                 }),
                                new STFReader.TokenProcessor("ortsprecipitationliquidity", ()=>
                 {
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     PrecipitationLiquidity = stf.ReadFloat(STFReader.Units.None, -1);
                     PrecipitationLiquidityTransitionTime = stf.ReadInt(-1);
                     stf.MustMatch(")");
@@ -323,9 +323,9 @@ namespace Orts.Formats.Msts.Models
 
         public void Update(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("activitysuccess", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); ActivitySuccess = true; }),
+                new STFReader.TokenProcessor("activitysuccess", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); ActivitySuccess = true; }),
                 new STFReader.TokenProcessor("activityfail", ()=>{ ActivityFail = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("activateevent", ()=>{ ActivateList.Add(stf.ReadIntBlock(null)); }),
                 new STFReader.TokenProcessor("restoreactlevel", ()=>{ RestoreActivityLevels.Add(stf.ReadIntBlock(null)); }),

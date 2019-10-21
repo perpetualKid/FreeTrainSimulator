@@ -19,7 +19,7 @@ namespace Orts.Formats.Msts.Models
 
         public ServiceTraffic(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Name = stf.ReadString();
             stf.MustMatch("serial");
             Serial = stf.ReadIntBlock(null);
@@ -50,7 +50,7 @@ namespace Orts.Formats.Msts.Models
             float distanceDownPath = 0f;
             int platformStartID = 0;
 
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Name = stf.ReadString();
             Time = stf.ReadInt(null);   // Cannot use stt.ReadFloat(STFReader.Units.Time, null) as number will be followed by "arrivaltime"
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -143,7 +143,7 @@ namespace Orts.Formats.Msts.Models
 
         public Services(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Name = stf.ReadString();
             Time = (int)stf.ReadFloat(STFReader.Units.Time, null);
             stf.MustMatch("uid");
@@ -201,7 +201,7 @@ namespace Orts.Formats.Msts.Models
 
         public Traffic(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Name = stf.ReadString();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("service_definition", ()=>{ Services.Add(new Services(stf)); }),
@@ -224,7 +224,7 @@ namespace Orts.Formats.Msts.Models
             float distanceDownPath = 0f;
             int platformStartID;
 
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Time = (int)stf.ReadFloat(STFReader.Units.Time, null);
             // Clumsy parsing. You only get a new Player_Traffic_Item in the list after a PlatformStartId is met.
             // Blame lies with Microsoft for poor design of syntax.
@@ -252,7 +252,7 @@ namespace Orts.Formats.Msts.Models
 
         public PlayerServices(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Name = stf.ReadString();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("player_traffic_definition", ()=>{ PlayerTraffics = new PlayerTraffics(stf); }),

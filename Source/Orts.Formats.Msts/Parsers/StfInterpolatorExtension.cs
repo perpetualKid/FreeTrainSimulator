@@ -9,7 +9,7 @@ namespace Orts.Formats.Msts.Parsers
         public static Interpolator CreateInterpolator(this STFReader reader)
         {
             List<float> list = new List<float>();
-            reader.MustMatch("(");
+            reader.MustMatchBlockStart();
             while (!reader.EndOfBlock())
                 list.Add(reader.ReadFloat(STFReader.Units.Any, null));
             if (list.Count % 2 == 1)
@@ -33,7 +33,7 @@ namespace Orts.Formats.Msts.Parsers
         {
             List<float> xlist = new List<float>();
             List<Interpolator> ilist = new List<Interpolator>();
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             while (!stf.EndOfBlock())
             {
                 xlist.Add(stf.ReadFloat(STFReader.Units.Any, null));
@@ -63,7 +63,7 @@ namespace Orts.Formats.Msts.Parsers
             bool errorFound = false;
             if (tab)
             {
-                stf.MustMatch("(");
+                stf.MustMatchBlockStart();
                 int numOfRows = stf.ReadInt(0);
                 if (numOfRows < 2)
                 {
@@ -74,7 +74,7 @@ namespace Orts.Formats.Msts.Parsers
                 string header = stf.ReadString().ToLower();
                 if (header == "throttle")
                 {
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     int numOfThrottleValues = 0;
                     while (!stf.EndOfBlock())
                     {
@@ -98,7 +98,7 @@ namespace Orts.Formats.Msts.Parsers
                     string tableLabel = stf.ReadString().ToLower();
                     if (tableLabel == "table")
                     {
-                        stf.MustMatch("(");
+                        stf.MustMatchBlockStart();
                         for (int i = 0; i < numOfRows; i++)
                         {
                             float x = stf.ReadFloat(STFReader.Units.SpeedDefaultMPH, 0);
@@ -165,7 +165,7 @@ namespace Orts.Formats.Msts.Parsers
             }
             else
             {
-                stf.MustMatch("(");
+                stf.MustMatchBlockStart();
                 while (!stf.EndOfBlock())
                 {
                     xlist.Add(stf.ReadFloat(STFReader.Units.Any, null));

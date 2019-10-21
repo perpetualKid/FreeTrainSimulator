@@ -106,7 +106,7 @@ namespace Orts.Formats.Msts.Signalling
                                     state = CommentParserState.Operator;
                                     continue;
                                 case CommentParserState.Operator:
-                                    if (value.Length == 1 && value.ToString() == "/")
+                                    if (value.Length == 1 && value[0] == '/')
                                     {
                                         state = CommentParserState.None;
                                         value.Length = value.Length - 1;
@@ -140,7 +140,7 @@ namespace Orts.Formats.Msts.Signalling
                                 case CommentParserState.EndComment:
                                     continue;
                                 case CommentParserState.Operator:
-                                    if (value.Length == 1 && value.ToString() == "/")
+                                    if (value.Length == 1 && value[0] == '/')
                                     {
                                         value.Length = value.Length - 1;
                                         state = CommentParserState.OpenComment;

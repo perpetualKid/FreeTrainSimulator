@@ -8,7 +8,7 @@ namespace Orts.Formats.Msts.Models
     {
         public Hazard(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("filename", ()=>{ FileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("workers", ()=>{ Workers = stf.ReadStringBlock(null); }),

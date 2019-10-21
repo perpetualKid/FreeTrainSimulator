@@ -9,7 +9,7 @@ namespace Orts.Formats.Msts.Models
 
         public WorkOrderWagons(STFReader stf, EventType eventType)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             // "Drop Off" Wagon_List sometimes lacks a Description attribute, so we create the wagon _before_ description
             // is parsed. 
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -50,7 +50,7 @@ namespace Orts.Formats.Msts.Models
 
         public TrainSet(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("traincfg", ()=>{ ParseTrainConfig(stf); }),
             });
@@ -58,7 +58,7 @@ namespace Orts.Formats.Msts.Models
 
         private void ParseTrainConfig(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Name = stf.ReadString();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
@@ -82,12 +82,12 @@ namespace Orts.Formats.Msts.Models
 
         public Wagon(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("uid", ()=>{ UiD = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("flip", ()=>{ stf.MustMatch("("); stf.MustMatch(")"); Flip = true; }),
-                new STFReader.TokenProcessor("enginedata", ()=>{ stf.MustMatch("("); Name = stf.ReadString(); Folder = stf.ReadString(); stf.MustMatch(")"); IsEngine = true; }),
-                new STFReader.TokenProcessor("wagondata", ()=>{ stf.MustMatch("("); Name = stf.ReadString(); Folder = stf.ReadString(); stf.MustMatch(")"); }),
+                new STFReader.TokenProcessor("flip", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch(")"); Flip = true; }),
+                new STFReader.TokenProcessor("enginedata", ()=>{ stf.MustMatchBlockStart(); Name = stf.ReadString(); Folder = stf.ReadString(); stf.MustMatch(")"); IsEngine = true; }),
+                new STFReader.TokenProcessor("wagondata", ()=>{ stf.MustMatchBlockStart(); Name = stf.ReadString(); Folder = stf.ReadString(); stf.MustMatch(")"); }),
             });
         }
 

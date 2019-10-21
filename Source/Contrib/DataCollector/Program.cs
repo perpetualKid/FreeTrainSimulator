@@ -98,7 +98,7 @@ namespace Orts.DataCollector
                                 foreach (var patch in patchset.Patches)
                                 {
                                     textures.Add(String.Join("|", (from ts in t.Terrain.Shaders[patch.ShaderIndex].Textureslots
-                                                                   select ts.Filename).ToArray()));
+                                                                   select ts.FileName).ToArray()));
                                 }
 
                                 // 1th

@@ -18,7 +18,7 @@ namespace Orts.Formats.Msts.Models
 
         public PathDataPoint(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
                 stf.ReadFloat(STFReader.Units.None, null), stf.ReadFloat(STFReader.Units.None, null), stf.ReadFloat(STFReader.Units.None, null));
             JunctionFlag = stf.ReadInt(null);
@@ -42,7 +42,7 @@ namespace Orts.Formats.Msts.Models
 
         public PathNode(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             PathFlags = (PathFlags)stf.ReadHex(0);
             NextMainNode = stf.ReadUInt(null);
             NextSidingNode = stf.ReadUInt(null);

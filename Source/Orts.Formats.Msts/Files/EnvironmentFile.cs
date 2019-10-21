@@ -35,8 +35,8 @@ namespace Orts.Formats.Msts.Files
         {
             using (STFReader stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("world", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("world_water", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
+                    new STFReader.TokenProcessor("world", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
+                        new STFReader.TokenProcessor("world_water", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
                             new STFReader.TokenProcessor("world_water_wave_height", ()=>{ WaterWaveHeight = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                             new STFReader.TokenProcessor("world_water_wave_speed", ()=>{ WaterWaveSpeed = stf.ReadFloatBlock(STFReader.Units.Speed, null); }),
                             new STFReader.TokenProcessor("world_water_layers", ()=>{ ParseWaterLayers(stf); }),
@@ -46,8 +46,8 @@ namespace Orts.Formats.Msts.Files
 
             using (STFReader stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("world", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("world_sky", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
+                    new STFReader.TokenProcessor("world", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
+                        new STFReader.TokenProcessor("world_sky", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
                                new STFReader.TokenProcessor("worldskynlayers_behind_satellites", ()=>{ WorldSkynLayers = stf.ReadFloatBlock( STFReader.Units.Any, null ); }),
                                new STFReader.TokenProcessor("world_sky_layers", ()=>{ ParseSkyLayers(stf); }),
                                new STFReader.TokenProcessor("world_sky_satellites", ()=>{ ParseWorldSkySatellites(stf); }),
@@ -58,7 +58,7 @@ namespace Orts.Formats.Msts.Files
 
         private void ParseWaterLayers(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int texturelayers = stf.ReadInt(null);
             WaterLayers = new List<WaterLayer>(texturelayers);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -68,7 +68,7 @@ namespace Orts.Formats.Msts.Files
 
         private void ParseSkyLayers(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int skylayers = stf.ReadInt(null);
             SkyLayers = new List<SkyLayer>(skylayers);
 
@@ -79,7 +79,7 @@ namespace Orts.Formats.Msts.Files
 
         private void ParseWorldSkySatellites(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int skysatellite = stf.ReadInt(null);
             SkySatellites = new List<SkySatellite>(skysatellite);
 

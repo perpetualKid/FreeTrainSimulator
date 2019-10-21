@@ -11,7 +11,7 @@ namespace Orts.Formats.Msts.Models
     {
         public Camera(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("camtype", ()=>{ CameraType = stf.ReadStringBlock(null); CameraControl = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("cameraoffset", ()=>{ stf.ReadVector3Block(STFReader.Units.None, ref cameraOffset); }),

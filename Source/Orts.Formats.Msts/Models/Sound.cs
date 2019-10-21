@@ -15,7 +15,7 @@ namespace Orts.Formats.Msts.Models
 
         public TrackItemSound(STFReader stf, TrackItem[] trItems)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("soundsource", ()=>{ SoundSources.Add(new WorldSoundSource(stf)); }),
                 new STFReader.TokenProcessor("soundregion", ()=>{ SoundRegions.Add(new WorldSoundRegion(stf, trItems)); }),
@@ -35,11 +35,11 @@ namespace Orts.Formats.Msts.Models
 
         public WorldSoundSource(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("filename", ()=>{ FileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("position", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     stf.ReadVector3Block(STFReader.Units.None, ref position);
                     stf.SkipRestOfBlock();
                 }),
@@ -56,12 +56,12 @@ namespace Orts.Formats.Msts.Models
         public WorldSoundRegion(STFReader stf, TrackItem[] trItems)
         {
             TrackNodes = new List<int>();
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("soundregiontracktype", ()=>{ TrackType = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("soundregionroty", ()=>{ RotY = stf.ReadFloatBlock(STFReader.Units.None, float.MaxValue); }),
                 new STFReader.TokenProcessor("tritemid", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     stf.ReadInt(0);//dummy read
                     var trItemId = stf.ReadInt(-1);
                     if (trItemId != -1) {
@@ -86,11 +86,11 @@ namespace Orts.Formats.Msts.Models
         public ref readonly WorldLocation Location => ref location;
         public ActivitySound(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortsactsoundfile", ()=>
                 {
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     string soundFile = stf.ReadString();
                     SoundFile = Path.Combine(FolderStructure.RouteSoundsFolder, soundFile);
                     if (!EnumExtension.GetValue(stf.ReadString(), out OrtsActivitySoundFileType soundFileType))
@@ -104,7 +104,7 @@ namespace Orts.Formats.Msts.Models
                     stf.MustMatch(")");
                     }),
                 new STFReader.TokenProcessor("ortssoundlocation", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), 
                         stf.ReadFloat(STFReader.Units.None, null), stf.ReadFloat(STFReader.Units.None, null), stf.ReadFloat(STFReader.Units.None, null));
                     stf.MustMatch(")");
@@ -124,7 +124,7 @@ namespace Orts.Formats.Msts.Models
 
         public SoundActivationCondition(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("externalcam", ()=>{ ExternalCam = stf.ReadBoolBlock(true); }),
                 new STFReader.TokenProcessor("cabcam", ()=>{ CabCam = stf.ReadBoolBlock(true); }),
@@ -181,7 +181,7 @@ namespace Orts.Formats.Msts.Models
 
         public ScalabiltyGroup(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             DetailLevel = stf.ReadInt(null);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("activation", ()=>{ Activation = new SoundActivationCondition(stf); }),
@@ -198,7 +198,7 @@ namespace Orts.Formats.Msts.Models
     {
         public SmsStreams(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             var count = stf.ReadInt(null);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("stream", ()=>{
@@ -223,7 +223,7 @@ namespace Orts.Formats.Msts.Models
 
         public SmsStream(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("priority", ()=>{ Priority = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("triggers", ()=>{ Triggers = new Triggers(stf); }),
@@ -268,7 +268,7 @@ namespace Orts.Formats.Msts.Models
 
         public Curve(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             var type = stf.ReadString();
             switch (type.ToLower())
             {
@@ -284,7 +284,7 @@ namespace Orts.Formats.Msts.Models
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("granularity", ()=>{ Granularity = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("curvepoints", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     int count = stf.ReadInt(null);
                     CurvePoints = new CurvePoint[count];
                     for (int i = 0; i < count; ++i)
@@ -310,7 +310,7 @@ namespace Orts.Formats.Msts.Models
     {
         public Triggers(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("dist_travelled_trigger", ()=>{ Add(new DistanceTravelledTrigger(stf)); }),
@@ -371,7 +371,7 @@ namespace Orts.Formats.Msts.Models
 
         public InitialTrigger(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             while (!stf.EndOfBlock())
                 ParsePlayCommand(stf, stf.ReadString().ToLower());
         }
@@ -384,7 +384,7 @@ namespace Orts.Formats.Msts.Models
 
         public DiscreteTrigger(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             TriggerId = stf.ReadInt(null);
             while (!stf.EndOfBlock())
                 ParsePlayCommand(stf, stf.ReadString().ToLower());
@@ -416,7 +416,7 @@ namespace Orts.Formats.Msts.Models
 
         public VariableTrigger(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
 
             string eventString = stf.ReadString();
             Threshold = stf.ReadFloat(STFReader.Units.None, null);
@@ -463,14 +463,14 @@ namespace Orts.Formats.Msts.Models
 
         public DistanceTravelledTrigger(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             while (!stf.EndOfBlock())
             {
                 string token = stf.ReadString().ToLower();
                 switch (token)
                 {
-                    case "dist_min_max": stf.MustMatch("("); MinimumDistance = stf.ReadFloat(STFReader.Units.Distance, null); MaximumDistance = stf.ReadFloat(STFReader.Units.Distance, null); stf.SkipRestOfBlock(); break;
-                    case "volume_min_max": stf.MustMatch("("); MinimumVolume = stf.ReadFloat(STFReader.Units.None, null); MaximumVolume = stf.ReadFloat(STFReader.Units.None, null); stf.SkipRestOfBlock(); break;
+                    case "dist_min_max": stf.MustMatchBlockStart(); MinimumDistance = stf.ReadFloat(STFReader.Units.Distance, null); MaximumDistance = stf.ReadFloat(STFReader.Units.Distance, null); stf.SkipRestOfBlock(); break;
+                    case "volume_min_max": stf.MustMatchBlockStart(); MinimumVolume = stf.ReadFloat(STFReader.Units.None, null); MaximumVolume = stf.ReadFloat(STFReader.Units.None, null); stf.SkipRestOfBlock(); break;
                     default: ParsePlayCommand(stf, token); break;
                 }
             }
@@ -486,14 +486,14 @@ namespace Orts.Formats.Msts.Models
 
         public RandomTrigger(STFReader f)
         {
-            f.MustMatch("(");
+            f.MustMatchBlockStart();
             while (!f.EndOfBlock())
             {
                 string token = f.ReadString().ToLower();
                 switch (token)
                 {
-                    case "delay_min_max": f.MustMatch("("); MinimumDelay = f.ReadFloat(STFReader.Units.None, null); MaximumDelay = f.ReadFloat(STFReader.Units.None, null); f.SkipRestOfBlock(); break;
-                    case "volume_min_max": f.MustMatch("("); MinimumVolume = f.ReadFloat(STFReader.Units.None, null); MaximumVolume = f.ReadFloat(STFReader.Units.None, null); f.SkipRestOfBlock(); break;
+                    case "delay_min_max": f.MustMatchBlockStart(); MinimumDelay = f.ReadFloat(STFReader.Units.None, null); MaximumDelay = f.ReadFloat(STFReader.Units.None, null); f.SkipRestOfBlock(); break;
+                    case "volume_min_max": f.MustMatchBlockStart(); MinimumVolume = f.ReadFloat(STFReader.Units.None, null); MaximumVolume = f.ReadFloat(STFReader.Units.None, null); f.SkipRestOfBlock(); break;
                     default: ParsePlayCommand(f, token); break;
                 }
             }
@@ -510,7 +510,7 @@ namespace Orts.Formats.Msts.Models
 
         public StreamVolumeCommand(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Volume = stf.ReadFloat(STFReader.Units.None, null);
             stf.SkipRestOfBlock();
         }
@@ -531,7 +531,7 @@ namespace Orts.Formats.Msts.Models
         public TriggerCommand(STFReader stf, TriggerType trigger)
         {
             Trigger = trigger;
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             TriggerId = stf.ReadInt(null);
             stf.SkipRestOfBlock();
         }
@@ -550,7 +550,7 @@ namespace Orts.Formats.Msts.Models
         public LoopRelease(STFReader stf, ReleaseType mode)
         {
             ReleaseMode = mode;
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.SkipRestOfBlock();
         }
     }
@@ -578,7 +578,7 @@ namespace Orts.Formats.Msts.Models
         public SoundPlayCommand(STFReader stf, SoundCommandType commandType)
         {
             CommandType = commandType;
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             Files = new string[count];
             int fileIndex = 0;
@@ -588,7 +588,7 @@ namespace Orts.Formats.Msts.Models
                     case "file":
                         if (fileIndex < count)
                         {
-                            stf.MustMatch("(");
+                            stf.MustMatchBlockStart();
                             Files[fileIndex++] = stf.ReadString();
                             stf.ReadInt(null);
                             stf.SkipRestOfBlock();
@@ -600,7 +600,7 @@ namespace Orts.Formats.Msts.Models
                         }
                         break;
                     case "selectionmethod":
-                        stf.MustMatch("(");
+                        stf.MustMatchBlockStart();
                         string s = stf.ReadString();
                         switch (s.ToLower())
                         {

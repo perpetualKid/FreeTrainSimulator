@@ -8,7 +8,7 @@ namespace Orts.Formats.Msts.Models
 
         public TimeTable(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("startingspeed", ()=>{ InitialSpeed = stf.ReadFloatBlock(STFReader.Units.Any, null); }),
             });

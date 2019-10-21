@@ -795,7 +795,7 @@ namespace ORTS.TrackViewer.Drawing
         private string CreateVerticesFromPatch(Tile tile, Patch patch)
         {
             var ts = tile.Shaders[patch.ShaderIndex].Textureslots;
-            string textureName = ts[0].Filename;
+            string textureName = ts[0].FileName;
 
             if (!textureManager.TextureIsLoaded(textureName))
             {   // apparently the texture was not found earlier on, so no use bothering about vertices

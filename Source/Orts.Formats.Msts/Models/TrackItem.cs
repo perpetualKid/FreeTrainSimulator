@@ -45,7 +45,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="index">The index of this TrItem in the list of TrItems</param>
         protected void ParseTrackItemId(STFReader stf, int index)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             TrackItemId = stf.ReadUInt(null);
             Debug.Assert(index == TrackItemId, "Index Mismatch");
             stf.SkipRestOfBlock();
@@ -57,7 +57,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="stf">The STFreader containing the file stream</param>
         protected void ParseTrackItemRData(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             float x = stf.ReadFloat(null);
             float y = stf.ReadFloat(null);
             float z = stf.ReadFloat(null);
@@ -71,7 +71,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="stf">The STFreader containing the file stream</param>
         protected void ParseTrackItemSData(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             SData1 = stf.ReadFloat(STFReader.Units.None, null);
             SData2 = stf.ReadString();
             stf.SkipRestOfBlock();
@@ -95,14 +95,14 @@ namespace Orts.Formats.Msts.Models
         /// <param name="index">The index of this TrItem in the list of TrItems</param>
         public CrossoverItem(STFReader stf, int index)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, index); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ ParseTrackItemSData(stf); }),
 
                 new STFReader.TokenProcessor("crossovertritemdata", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     TrackNode = stf.ReadUInt(null);
                     ShapeId = stf.ReadUInt(null);
                     stf.SkipRestOfBlock();
@@ -132,7 +132,7 @@ namespace Orts.Formats.Msts.Models
 
             public TrackItemSignalDirection(STFReader stf)
             {
-                stf.MustMatch("(");
+                stf.MustMatchBlockStart();
                 TrackNode = stf.ReadUInt(null);
                 //SData1 = stf.ReadUInt(null);
                 stf.ReadUInt(null);
@@ -164,14 +164,14 @@ namespace Orts.Formats.Msts.Models
         public SignalItem(STFReader stf, int index)
         {
             SignalObject = -1;
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, index); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ ParseTrackItemSData(stf); }),
 
                 new STFReader.TokenProcessor("trsignaltype", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     Flags1 = stf.ReadUInt(null);
                     Direction = stf.ReadUInt(null);
                     SignalData = stf.ReadFloat(STFReader.Units.None, null);
@@ -180,7 +180,7 @@ namespace Orts.Formats.Msts.Models
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("trsignaldirs", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     uint signalDirs = stf.ReadUInt(null);
                     SignalDirections = new TrackItemSignalDirection[signalDirs];
                     int i = 0;
@@ -254,14 +254,14 @@ namespace Orts.Formats.Msts.Models
         public SpeedPostItem(STFReader stf, int idx)
         {
             SignalObject = -1;
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ ParseTrackItemSData(stf); }),
 
                 new STFReader.TokenProcessor("speedposttritemdata", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     flags = stf.ReadUInt(null);
                     if (!IsWarning && !IsLimit) {
                         IsMilePost = true;
@@ -390,14 +390,14 @@ namespace Orts.Formats.Msts.Models
         /// <param name="index">The index of this TrItem in the list of TrItems</param>
         public SoundRegionItem(STFReader stf, int index)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, index); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
                 new STFReader.TokenProcessor("tritemsdata", ()=>{ ParseTrackItemSData(stf); }),
 
                 new STFReader.TokenProcessor("tritemsrdata", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     SoundRegionData1 = stf.ReadUInt(null);
                     SoundRegionData2 = stf.ReadUInt(null);
                     SoundRegionData3 = stf.ReadFloat(STFReader.Units.None, null);
@@ -419,7 +419,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         public EmptyItem(STFReader stf, int idx)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
             });
@@ -438,7 +438,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="index">The index of this TrItem in the list of TrItems</param>
         public LevelCrossingItem(STFReader stf, int index)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, index); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
@@ -464,7 +464,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="index">The index of this TrItem in the list of TrItems</param>
         public SidingItem(STFReader stf, int index)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, index); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
@@ -472,7 +472,7 @@ namespace Orts.Formats.Msts.Models
 
                 new STFReader.TokenProcessor("sidingname", ()=>{ ItemName = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("sidingtritemdata", ()=> {
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     Flags1 = stf.ReadString();
                     LinkedSidingId = stf.ReadUInt(null);
                     stf.SkipRestOfBlock();
@@ -505,7 +505,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="idx">The index of this TrItem in the list of TrItems</param>
         public PlatformItem(STFReader stf, int idx)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, idx); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
@@ -516,7 +516,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("platformminwaitingtime", ()=>{ PlatformMinWaitingTime = stf.ReadUIntBlock(null); }),
                 new STFReader.TokenProcessor("platformnumpassengerswaiting", ()=>{ PlatformNumPassengersWaiting = stf.ReadUIntBlock(null); }),
                 new STFReader.TokenProcessor("platformtritemdata", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     Flags1 = stf.ReadString();
                     LinkedPlatformItemId = stf.ReadUInt(null);
                     stf.SkipRestOfBlock();
@@ -552,7 +552,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="index">The index of this TrItem in the list of TrItems</param>
         public HazardItem(STFReader stf, int index)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, index); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),
@@ -573,7 +573,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="index">The index of this TrItem in the list of TrItems</param>
         public PickupItem(STFReader stf, int index)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tritemid", ()=>{ ParseTrackItemId(stf, index); }),
                 new STFReader.TokenProcessor("tritemrdata", ()=>{ ParseTrackItemRData(stf); }),

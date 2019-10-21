@@ -44,7 +44,7 @@ namespace Orts.Formats.Msts.Files
 		{
             using (STFReader stf = new STFReader(Path.GetFullPath(Path.Combine(basePath, fileName)), false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("tr_cabviewfile", ()=>{ stf.MustMatch("("); stf.ParseBlock(new STFReader.TokenProcessor[] {
+                    new STFReader.TokenProcessor("tr_cabviewfile", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("position", ()=>{ Locations.Add(stf.ReadVector3Block(STFReader.Units.None, new Vector3())); }),
                         new STFReader.TokenProcessor("direction", ()=>{ Directions.Add(stf.ReadVector3Block(STFReader.Units.None, new Vector3())); }),
                         new STFReader.TokenProcessor("cabviewfile", ()=>{

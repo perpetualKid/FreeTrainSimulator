@@ -11,7 +11,7 @@ namespace Orts.Formats.Msts.Models
     {
         public Route(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("routeid", ()=>{ RouteID = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(null); }),
@@ -128,7 +128,7 @@ namespace Orts.Formats.Msts.Models
 
         public RouteStart(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), stf.ReadFloat(null), 0f, stf.ReadFloat(null));
             stf.SkipRestOfBlock();
         }
@@ -143,7 +143,7 @@ namespace Orts.Formats.Msts.Models
 
         public Environment(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             for (int i = 0; i < 12; ++i)
             {
                 var envfilekey = stf.ReadString();

@@ -34,7 +34,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="stf">The STFreader containing the file stream</param>
         public LightTexture(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Name = stf.ReadString().ToLowerInvariant();
             TextureFile = stf.ReadString();
             uv = new Matrix2x2(stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
@@ -60,11 +60,11 @@ namespace Orts.Formats.Msts.Models
         /// <param name="stf">The STFreader containing the file stream</param>
         public LightTableEntry(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Name = stf.ReadString().ToLowerInvariant();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("colour", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     int alpha = stf.ReadInt(null);
                     Color = new Color(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null), alpha);
                     stf.SkipRestOfBlock();
@@ -200,7 +200,7 @@ namespace Orts.Formats.Msts.Models
         public SignalType(STFReader stf, bool orMode)
             : this()
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Name = stf.ReadString().ToLowerInvariant();
             int numClearAhead = -2;
             int numdefs = 0;
@@ -227,13 +227,13 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("ortsdaylight", ()=>{ DayLight = stf.ReadBoolBlock(true); }),
                 new STFReader.TokenProcessor("ortsnormalsubtype", ()=>{ ortsNormalSubType = ReadOrtsNormalSubType(stf); }),
                 new STFReader.TokenProcessor("sigflashduration", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     FlashTimeOn = stf.ReadFloat(STFReader.Units.None, null);
                     FlashTimeOff = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("signalflags", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     while (!stf.EndOfBlock())
                         switch (stf.ReadString().ToLower())
                         {
@@ -313,7 +313,7 @@ namespace Orts.Formats.Msts.Models
 
         static List<SignalLight> ReadLights(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             List<SignalLight> lights = new List<SignalLight>(count);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -333,7 +333,7 @@ namespace Orts.Formats.Msts.Models
 
         private Dictionary<string, SignalDrawState> ReadDrawStates(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             Dictionary<string, SignalDrawState> drawStates = new Dictionary<string, SignalDrawState>(count);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -363,7 +363,7 @@ namespace Orts.Formats.Msts.Models
 
         private List<SignalAspect> ReadAspects(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             List<SignalAspect> aspects = new List<SignalAspect>(count);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -385,7 +385,7 @@ namespace Orts.Formats.Msts.Models
 
         private ApproachControlLimits ReadApproachControlDetails(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             return new ApproachControlLimits(stf);
         }
 
@@ -485,18 +485,18 @@ namespace Orts.Formats.Msts.Models
         /// <param name="stf">The STFreader containing the file stream</param>
         public SignalLight(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Index = stf.ReadInt(null);
             Name = stf.ReadString().ToLowerInvariant();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("radius", ()=>{ Radius = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("position", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     position = new Vector3(stf.ReadFloat(null), stf.ReadFloat(null), stf.ReadFloat(null));
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("signalflags", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     while (!stf.EndOfBlock())
                         switch (stf.ReadString().ToLower())
                         {
@@ -557,7 +557,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="stf">The STFreader containing the file stream</param>
         public SignalDrawState(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Index = stf.ReadInt(null);
             Name = stf.ReadString().ToLowerInvariant();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -568,7 +568,7 @@ namespace Orts.Formats.Msts.Models
 
         static List<SignalDrawLight> ReadDrawLights(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             List<SignalDrawLight> drawLights = new List<SignalDrawLight>(count);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -612,11 +612,11 @@ namespace Orts.Formats.Msts.Models
         /// <param name="stf">The STFreader containing the file stream</param>
         public SignalDrawLight(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Index = stf.ReadInt(null);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("signalflags", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     while (!stf.EndOfBlock())
                         switch (stf.ReadString().ToLower())
                         {
@@ -672,7 +672,7 @@ namespace Orts.Formats.Msts.Models
         public SignalAspect(STFReader stf)
         {
             SpeedLimit = -1;
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             string aspectName = stf.ReadString();
             if (!EnumExtension.GetValue(aspectName, out SignalAspectState aspect))
             {
@@ -686,7 +686,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("speedmph", ()=>{ SpeedLimit = Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
                 new STFReader.TokenProcessor("speedkph", ()=>{ SpeedLimit = Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
                 new STFReader.TokenProcessor("signalflags", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     while (!stf.EndOfBlock())
                         switch (stf.ReadString().ToLower())
                         {
@@ -748,7 +748,7 @@ namespace Orts.Formats.Msts.Models
         /// <param name="stf">The STFreader containing the file stream</param>
         public SignalShape(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             ShapeFileName = Path.GetFileName(stf.ReadString());
             Description = stf.ReadString();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -758,7 +758,7 @@ namespace Orts.Formats.Msts.Models
 
         static List<SignalSubObject> ReadSignalSubObjects(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             List<SignalSubObject> signalSubObjects = new List<SignalSubObject>(count);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -812,7 +812,7 @@ namespace Orts.Formats.Msts.Models
             public SignalSubObject(STFReader stf)
             {
                 SignalSubType = SignalSubType.None;
-                stf.MustMatch("(");
+                stf.MustMatchBlockStart();
                 Index = stf.ReadInt(null);
                 MatrixName = stf.ReadString().ToUpper();
                 Description = stf.ReadString();
@@ -823,7 +823,7 @@ namespace Orts.Formats.Msts.Models
                     }),
                     new STFReader.TokenProcessor("sigsubstype", ()=>{ SignalSubSignalType = stf.ReadStringBlock(null).ToLowerInvariant(); }),
                     new STFReader.TokenProcessor("signalflags", ()=>{
-                        stf.MustMatch("(");
+                        stf.MustMatchBlockStart();
                         while (!stf.EndOfBlock())
                             switch (stf.ReadString().ToLower())
                             {

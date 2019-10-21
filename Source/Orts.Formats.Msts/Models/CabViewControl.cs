@@ -14,7 +14,7 @@ namespace Orts.Formats.Msts.Models
     {
         public CabViewControls(STFReader stf, string basePath)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
 
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -39,7 +39,7 @@ namespace Orts.Formats.Msts.Models
 
         private void ProcessDialClock(STFReader stf, string basePath)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[]
             {
                 new STFReader.TokenProcessor("hours", ()=>{ Add(new CabViewDialControl(CabViewControlType.Orts_HourDial, 12, stf, basePath));  }),
@@ -67,7 +67,7 @@ namespace Orts.Formats.Msts.Models
 
         protected void ParseType(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             if (!EnumExtension.GetValue(stf.ReadString(), out CabViewControlType type))
             {
                 stf.StepBackOneItem();
@@ -81,7 +81,7 @@ namespace Orts.Formats.Msts.Models
 
         protected void ParsePosition(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             bounds = new Rectangle(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
 
             // skipping additional values in between
@@ -95,7 +95,7 @@ namespace Orts.Formats.Msts.Models
 
         protected void ParseScaleRange(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             ScaleRangeMin = stf.ReadFloat(null);
             ScaleRangeMax = stf.ReadFloat(null);
             stf.SkipRestOfBlock();
@@ -108,7 +108,7 @@ namespace Orts.Formats.Msts.Models
 
         protected void ParseStyle(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             string styleTemp = stf.ReadString();
             if (char.IsDigit(styleTemp[0]))
             {
@@ -126,7 +126,7 @@ namespace Orts.Formats.Msts.Models
 
         protected void ParseUnits(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             string units = stf.ReadItem().Replace('/', '_');
             if (!EnumExtension.GetValue(units, out CabViewControlUnit unit))
             {
@@ -141,7 +141,7 @@ namespace Orts.Formats.Msts.Models
         // Used by subclasses Gauge and Digital
         protected virtual Color ParseControlColor(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Color colour = new Color(stf.ReadInt(0) / 255f, stf.ReadInt(0) / 255f, stf.ReadInt(0) / 255f, 1.0f);
             stf.SkipRestOfBlock();
             return colour;
@@ -162,7 +162,7 @@ namespace Orts.Formats.Msts.Models
 
         protected virtual float ParseSwitchVal(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             var switchVal = stf.ReadFloat(0);
             stf.SkipRestOfBlock();
             return switchVal;
@@ -186,7 +186,7 @@ namespace Orts.Formats.Msts.Models
         // constructor for clock dials
         public CabViewDialControl(CabViewControlType dialtype, int maxValue, STFReader stf, string basePath)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("position", ()=>{ ParsePosition(stf);  }),
                 new STFReader.TokenProcessor("graphic", ()=>{ ParseGraphic(stf, basePath); }),
@@ -204,7 +204,7 @@ namespace Orts.Formats.Msts.Models
         // constructor for standard dials
         public CabViewDialControl(STFReader stf, string basePath)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("type", ()=>{ ParseType(stf); }),
                 new STFReader.TokenProcessor("position", ()=>{ ParsePosition(stf);  }),
@@ -216,7 +216,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("pivot", ()=>{ Center = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("dirincrease", ()=>{ Direction = stf.ReadIntBlock(null) == 0 ? Rotation.Clockwise : Rotation.CounterClockwise; }),
                 new STFReader.TokenProcessor("scalepos", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     StartAngle = stf.ReadFloat(STFReader.Units.None, null);
                     EndAngle = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
@@ -245,7 +245,7 @@ namespace Orts.Formats.Msts.Models
 
         public CabViewGaugeControl(STFReader stf, string basePath)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("type", ()=>{ ParseType(stf); }),
                 new STFReader.TokenProcessor("position", ()=>{ ParsePosition(stf);  }),
@@ -258,20 +258,20 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("orientation", ()=>{ Orientation = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("dirincrease", ()=>{ Direction = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("area", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     area = new Rectangle(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("positivecolour", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     (PositiveColors, PositiveTrigger) = ParseControlColors(stf);
                 }),
                 new STFReader.TokenProcessor("negativecolour", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     (NegativeColors, NegativeTrigger) = ParseControlColors(stf);
                 }),
                 new STFReader.TokenProcessor("decreasecolour", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     stf.ReadInt(0);
                     if(!stf.EndOfBlock())
                     {
@@ -289,7 +289,7 @@ namespace Orts.Formats.Msts.Models
 
         public CabViewFireboxControl(STFReader stf, string basePath)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("type", ()=>{ ParseType(stf); }),
                 new STFReader.TokenProcessor("position", ()=>{ ParsePosition(stf); }),
@@ -336,7 +336,7 @@ namespace Orts.Formats.Msts.Models
             FontStyle = 0;
             FontFamily = "Lucida Sans";
 
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("type", ()=>{ ParseType(stf); }),
                 new STFReader.TokenProcessor("position", ()=>{ ParsePosition(stf);  }),
@@ -349,15 +349,15 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("accuracyswitch", ()=>{ ParseAccuracySwitch(stf); }),
                 new STFReader.TokenProcessor("justification", ()=>{ ParseJustification(stf); }),
                 new STFReader.TokenProcessor("positivecolour", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     (PositiveColors, PositiveTrigger) = ParseControlColors(stf);
                 }),
                 new STFReader.TokenProcessor("negativecolour", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     (NegativeColors, NegativeTrigger) = ParseControlColors(stf);
                 }),
                 new STFReader.TokenProcessor("decreasecolour", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     stf.ReadInt(0);
                     if(stf.EndOfBlock() == false)
                     {
@@ -371,35 +371,35 @@ namespace Orts.Formats.Msts.Models
 
         protected virtual void ParseLeadingZeros(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             LeadingZeros = stf.ReadInt(0);
             stf.SkipRestOfBlock();
         }
 
         protected virtual void ParseAccuracy(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Accuracy = stf.ReadFloat(0);
             stf.SkipRestOfBlock();
         }
 
         protected virtual void ParseAccuracySwitch(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             AccuracySwitch = stf.ReadFloat(0);
             stf.SkipRestOfBlock();
         }
 
         protected virtual void ParseJustification(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             Justification = stf.ReadInt(3);
             stf.SkipRestOfBlock();
         }
 
         protected void ParseFont(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             FontSize = (float)stf.ReadFloat(10);
             FontStyle = stf.ReadInt(0);
             FontFamily = stf.ReadString() ?? string.Empty;
@@ -415,7 +415,7 @@ namespace Orts.Formats.Msts.Models
             FontSize = 8;
             FontStyle = 0;
             FontFamily = "Lucida Sans";
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("type", ()=>{ ParseType(stf); }),
                 new STFReader.TokenProcessor("position", ()=>{ ParsePosition(stf);  }),
@@ -451,7 +451,7 @@ namespace Orts.Formats.Msts.Models
 
         public CabViewDiscreteControl(STFReader stf, string basePath)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("type", ()=>{ ParseType(stf); }),
                     new STFReader.TokenProcessor("position", ()=>{ ParsePosition(stf);  }),
@@ -464,7 +464,7 @@ namespace Orts.Formats.Msts.Models
                     new STFReader.TokenProcessor("dirincrease", ()=>{ Direction = stf.ReadIntBlock(null); }),
 
                     new STFReader.TokenProcessor("numframes", ()=>{
-                        stf.MustMatch("(");
+                        stf.MustMatchBlockStart();
                         FramesCount = stf.ReadInt(null);
                         FramesX = stf.ReadInt(null);
                         FramesY = stf.ReadInt(null);
@@ -479,7 +479,7 @@ namespace Orts.Formats.Msts.Models
                     // Max and min NumValues which don't match the ScaleRange are ignored - perhaps unwise.
 
                     new STFReader.TokenProcessor("numpositions", ()=>{
-                        stf.MustMatch("(");
+                        stf.MustMatchBlockStart();
                         numPositions = stf.ReadInt(null); // Number of Positions
 
                         // only Add if this wasn't read before 
@@ -540,7 +540,7 @@ namespace Orts.Formats.Msts.Models
                         }
                     }),
                     new STFReader.TokenProcessor("numvalues", ()=>{
-                        stf.MustMatch("(");
+                        stf.MustMatchBlockStart();
                         int numValues = stf.ReadInt(null); // Number of Values
                         while (!stf.EndOfBlock())
                         {
@@ -764,7 +764,7 @@ namespace Orts.Formats.Msts.Models
         public CabViewMultiStateDisplayControl(STFReader stf, string basePath)
         {
 
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("type", ()=>{ ParseType(stf); }),
                 new STFReader.TokenProcessor("position", ()=>{ ParsePosition(stf);  }),
@@ -773,13 +773,13 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("units", ()=>{ ParseUnits(stf); }),
 
                 new STFReader.TokenProcessor("states", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     FramesCount = stf.ReadInt(null);
                     FramesX = stf.ReadInt(null);
                     FramesY = stf.ReadInt(null);
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("state", ()=>{
-                            stf.MustMatch("(");
+                            stf.MustMatchBlockStart();
                             stf.ParseBlock( new STFReader.TokenProcessor[] {
                                 new STFReader.TokenProcessor("style", ()=>{ Styles.Add(ParseNumStyle(stf)); }),
                                 new STFReader.TokenProcessor("switchval", ()=>{ Values.Add(ParseSwitchVal(stf)); }),    // stf.ReadFloatBlock(STFReader.Units.None, null)); }),
@@ -796,7 +796,7 @@ namespace Orts.Formats.Msts.Models
 
         protected int ParseNumStyle(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             var style = stf.ReadInt(0);
             stf.SkipRestOfBlock();
             return style;

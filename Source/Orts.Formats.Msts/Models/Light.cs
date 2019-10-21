@@ -40,7 +40,7 @@ namespace Orts.Formats.Msts.Models
 
         public LightState(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new[] {
                 new STFReader.TokenProcessor("duration", ()=>{ Duration = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("lightcolour", ()=>{ Color = stf.ReadHexBlock(null); }),
@@ -104,10 +104,10 @@ namespace Orts.Formats.Msts.Models
         public Light(int index, STFReader stf)
         {
             Index = index;
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new[] {
                 new STFReader.TokenProcessor("type", ()=>{ Type = (LightType)stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("conditions", ()=>{ stf.MustMatch("("); stf.ParseBlock(new[] {
+                new STFReader.TokenProcessor("conditions", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new[] {
                     new STFReader.TokenProcessor("headlight", ()=>{ Headlight = (LightHeadlightCondition)stf.ReadIntBlock(null); }),
                     new STFReader.TokenProcessor("unit", ()=>{ Unit = (LightUnitCondition)stf.ReadIntBlock(null); }),
                     new STFReader.TokenProcessor("penalty", ()=>{ Penalty = (LightPenaltyCondition)stf.ReadIntBlock(null); }),
@@ -121,7 +121,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("fadein", ()=>{ FadeIn = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("fadeout", ()=>{ FadeOut = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("states", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     var count = stf.ReadInt(null);
                     stf.ParseBlock(new[] {
                         new STFReader.TokenProcessor("state", ()=>{
@@ -175,7 +175,7 @@ namespace Orts.Formats.Msts.Models
         { 
         public Lights(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ReadInt(null); // count; ignore this because its not always correct
             stf.ParseBlock(new[] {
                 new STFReader.TokenProcessor("light", ()=>{ Add(new Light(Count, stf)); }),

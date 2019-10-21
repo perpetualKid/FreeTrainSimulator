@@ -42,7 +42,7 @@ namespace Orts.Formats.Msts.Models
 
         public CarSpawner(STFReader stf, string shapePath)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             //pre fit in the shape path so no need to do it again and again later
             Name = shapePath + stf.ReadString();
             Distance = stf.ReadFloat(STFReader.Units.Distance, null);

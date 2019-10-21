@@ -109,13 +109,13 @@ namespace Orts.Formats.Msts.Files
 
         private void ReadOrtsSignalFunctionTypes(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             int tokensRead = 0;
 
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortssignalfunctiontype", ()=> {
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     if (tokensRead >= count)
                     {
                         STFException.TraceWarning(stf, "Skipped extra ORTSFunctionType");
@@ -150,13 +150,13 @@ namespace Orts.Formats.Msts.Files
 
         private void ReadOrtsNormalSubtypes(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             int tokensRead = 0;
 
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortsnormalsubtype", ()=> {
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     if (tokensRead >= count)
                     {
                         STFException.TraceWarning(stf, "Skipped extra ORTSNormalSubtype");
@@ -181,7 +181,7 @@ namespace Orts.Formats.Msts.Files
 
         private Dictionary<string, LightTexture> ReadLightTextures(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             Dictionary<string, LightTexture> lightTextures = new Dictionary<string, LightTexture>(count, StringComparer.OrdinalIgnoreCase);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -205,7 +205,7 @@ namespace Orts.Formats.Msts.Files
 
         private Dictionary<string, LightTableEntry> ReadLightsTable(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             Dictionary<string, LightTableEntry> lightsTable = new Dictionary<string, LightTableEntry>(count, StringComparer.OrdinalIgnoreCase);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -229,7 +229,7 @@ namespace Orts.Formats.Msts.Files
 
         private Dictionary<string, SignalType> ReadSignalTypes(STFReader stf, bool orMode)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             Dictionary<string, SignalType> signalTypes = new Dictionary<string, SignalType>(count, StringComparer.OrdinalIgnoreCase);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -253,7 +253,7 @@ namespace Orts.Formats.Msts.Files
 
         private Dictionary<string, SignalShape> ReadSignalShapes(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
             Dictionary<string, SignalShape> signalShapes = new Dictionary<string, SignalShape>(count, StringComparer.OrdinalIgnoreCase);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -277,7 +277,7 @@ namespace Orts.Formats.Msts.Files
 
         private List<string> ReadScriptFiles(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             List<string> scriptFiles = new List<string>();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("scriptfile", ()=>{ scriptFiles.Add(stf.ReadStringBlock(null)); }),
