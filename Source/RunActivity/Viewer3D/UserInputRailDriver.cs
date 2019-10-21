@@ -69,7 +69,10 @@ namespace Orts.Viewer3D
         {
             try
             {
-                Device = RailDriverBase.GetInstance();
+                if (Environment.Is64BitProcess)
+                    Device = RailDriverBase.GetInstance64();
+                else
+                    Device = RailDriverBase.GetInstance32();
                 if (Device != null)
                 {
                     WriteBuffer = new byte[Device.WriteBufferSize];

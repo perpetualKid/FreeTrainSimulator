@@ -26,18 +26,20 @@ namespace Orts.ExternalDevices
     {
         private static RailDriverBase instance;
 
-        public static RailDriverBase GetInstance()
+        public static RailDriverBase GetInstance32()
         {
             if (null == instance)
             {
-                if (Environment.Is64BitProcess)
-                {
-                    instance = new RailDriver64();
-                }
-                else
-                {
-                    instance = new RailDriver32();
-                }
+                instance = new RailDriver32();
+            }
+            return instance.WriteBufferSize == 0 ? null : instance;
+        }
+
+        public static RailDriverBase GetInstance64()
+        {
+            if (null == instance)
+            {
+                instance = new RailDriver64();
             }
             return instance.WriteBufferSize == 0 ? null : instance;
         }
