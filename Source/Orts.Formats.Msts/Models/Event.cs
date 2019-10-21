@@ -124,7 +124,7 @@ namespace Orts.Formats.Msts.Models
     {
         private WorldLocation location;
         public bool TriggerOnStop { get; private set; } // Value assumed if property not found.
-        public ref WorldLocation Location => ref location;
+        public ref readonly WorldLocation Location => ref location;
         public float RadiusM { get; private set; }
 
         public EventCategoryLocation(STFReader stf)

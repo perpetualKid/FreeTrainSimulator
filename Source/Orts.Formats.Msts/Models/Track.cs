@@ -162,7 +162,7 @@ namespace Orts.Formats.Msts.Models
     {
         private Vector3 offset;
         public uint SectionsCount { get; private set; }
-        public ref Vector3 Offset => ref offset;
+        public ref readonly Vector3 Offset => ref offset;
         public float AngularOffset { get; private set; }  // Angular offset 
         public uint[] TrackSections { get; private set; }
 

@@ -80,7 +80,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 localV = Vector3.Zero; // Local position (in x-z plane)
 
 
-                ref Vector3 trackLoc = ref id.Offset;
+                ref readonly Vector3 trackLoc = ref id.Offset;
                 Matrix trackRot = Matrix.CreateRotationY(-MathHelper.ToRadians(id.AngularOffset));
 
                 heading = Vector3.Transform(heading, trackRot); // Heading change

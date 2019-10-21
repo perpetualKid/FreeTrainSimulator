@@ -29,13 +29,13 @@ namespace Orts.Formats.Msts.Models
 
         public string CameraType { get; private set; }
         public string CameraControl { get; private set; }
-        public ref Vector3 CameraOffset => ref cameraOffset;
-        public ref Vector3 Direction => ref direction;
+        public ref readonly Vector3 CameraOffset => ref cameraOffset;
+        public ref readonly Vector3 Direction => ref direction;
         public float Fov { get; private set; } = 55f;
         public float ZClip { get; private set; } = 0.1f;
         public int WagonNumber { get; private set; } = -1;
-        public ref Vector3 ObjectOffset => ref objectOffset;
-        public ref Vector3 RotationLimit => ref rotationLimit;
+        public ref readonly Vector3 ObjectOffset => ref objectOffset;
+        public ref readonly Vector3 RotationLimit => ref rotationLimit;
         public string Description { get; private set; } = "";
 
     }

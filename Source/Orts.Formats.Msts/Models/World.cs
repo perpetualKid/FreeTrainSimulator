@@ -59,14 +59,14 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        private WorldPosition worldPosition;
+        protected WorldPosition worldPosition;
         public string FileName { get; protected set; }
         public uint UiD { get; protected set; }
         public int DetailLevel { get; protected set; }
         public uint StaticFlags { get; protected set; }
         public uint ViewDbId { get; protected set; }
 
-        public ref WorldPosition WorldPosition => ref worldPosition;
+        public ref readonly WorldPosition WorldPosition => ref worldPosition;
 
         internal void AddOrModifyObj(SBR subBlock)
         {
@@ -504,7 +504,7 @@ namespace Orts.Formats.Msts.Models
         public uint SectionIndex { get; private set; }
         public float Elevation { get; private set; }
         public uint CollideFlags { get; private set; }
-        public ref WorldLocation WorldLocation => ref location;
+        public ref readonly WorldLocation WorldLocation => ref location;
 
         public TrackObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
@@ -570,7 +570,7 @@ namespace Orts.Formats.Msts.Models
             FileName = source.FileName;
             DetailLevel = source.DetailLevel;
             UiD = source.UiD;
-            WorldPosition = source.WorldPosition;
+            worldPosition = source.WorldPosition;
             TrackSections = new List<TrackSection>() { source.TrackSections[trackSetionIndex] };
         }
 
@@ -820,7 +820,7 @@ namespace Orts.Formats.Msts.Models
 
         public void UpdatePosition(float distance)
         {
-            WorldPosition = WorldPosition.ChangeTranslation(euler.X * distance, euler.Y * distance, euler.Z * distance);
+            worldPosition = WorldPosition.ChangeTranslation(euler.X * distance, euler.Y * distance, euler.Z * distance);
         }
     }
 

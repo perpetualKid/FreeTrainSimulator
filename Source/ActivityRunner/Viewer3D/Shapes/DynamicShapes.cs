@@ -120,19 +120,23 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                 if (position1 is SlerpRotation slerp1 && position2 is SlerpRotation slerp2)  // rotate the existing matrix
                 {
-                    Quaternion.Slerp(ref slerp1.Quaternion, ref slerp2.Quaternion, amount, out Quaternion q);
+
+                    ref readonly Quaternion slerp1Quaternion = ref slerp1.Quaternion;
+                    ref readonly Quaternion slerp2Quaternion = ref slerp2.Quaternion;
+                    Quaternion q = Quaternion.Slerp(slerp1Quaternion, slerp2Quaternion, amount);
                     Vector3 location = xnaPose.Translation;
                     xnaPose = Matrix.CreateFromQuaternion(q);
                     xnaPose.Translation = location;
                 }
                 else if (position1 is LinearKey key1 && position2 is LinearKey key2)  // a key sets an absolute position, vs shifting the existing matrix
                 {
-                    Vector3.Lerp(ref key1.Position, ref key2.Position, amount, out Vector3 v);
-                    xnaPose.Translation = v;
+                    xnaPose.Translation = Vector3.Lerp(key1.Position, key2.Position, amount);
                 }
                 else if (position1 is TcbKey tcbkey1 && position2 is TcbKey tcbkey2) // a tcb_key sets an absolute rotation, vs rotating the existing matrix
                 {
-                    Quaternion.Slerp(ref tcbkey1.Quaternion, ref tcbkey2.Quaternion, amount, out Quaternion q);
+                    ref readonly Quaternion tcb1Quaternion = ref tcbkey1.Quaternion;
+                    ref readonly Quaternion tcb2Quaternion = ref tcbkey2.Quaternion;
+                    Quaternion q = Quaternion.Slerp(tcb1Quaternion, tcb2Quaternion, amount);
                     Vector3 location = xnaPose.Translation;
                     xnaPose = Matrix.CreateFromQuaternion(q);
                     xnaPose.Translation = location;

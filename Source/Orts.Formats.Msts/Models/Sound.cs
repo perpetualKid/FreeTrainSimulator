@@ -30,7 +30,7 @@ namespace Orts.Formats.Msts.Models
         public float X => position.X;
         public float Y => position.Y;
         public float Z => position.Z;
-        public ref Vector3 Position => ref position;
+        public ref readonly Vector3 Position => ref position;
         public string FileName { get; private set; }
 
         public WorldSoundSource(STFReader stf)
@@ -83,7 +83,7 @@ namespace Orts.Formats.Msts.Models
 
         public string SoundFile { get; private set; }
         public OrtsActivitySoundFileType SoundFileType { get; private set; }
-        public ref WorldLocation Location => ref location;
+        public ref readonly WorldLocation Location => ref location;
         public ActivitySound(STFReader stf)
         {
             stf.MustMatch("(");

@@ -6,7 +6,7 @@ namespace Orts.Formats.Msts.Models
     public class PathDataPoint
     {
         private WorldLocation location;
-        public ref WorldLocation Location => ref location;
+        public ref readonly WorldLocation Location => ref location;
         public int JunctionFlag { get; private set; }
         public int InvalidFlag { get; private set; }
 

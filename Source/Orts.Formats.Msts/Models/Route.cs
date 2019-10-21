@@ -124,7 +124,7 @@ namespace Orts.Formats.Msts.Models
     {
         private WorldLocation location;
 
-        public ref WorldLocation Location => ref location;
+        public ref readonly WorldLocation Location => ref location;
 
         public RouteStart(STFReader stf)
         {

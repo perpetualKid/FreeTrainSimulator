@@ -26,7 +26,7 @@ namespace Orts.Formats.Msts.Models
         /// <summary>Filename of the texture</summary>
         public string TextureFile { get; private set; }
         /// <summary>coordinates within texture (0.0 to 1.0) U-horizontally left to right, V-Vertically top to bottom</summary>
-        public ref Matrix2x2 TextureCoordinates => ref uv;
+        public ref readonly Matrix2x2 TextureCoordinates => ref uv;
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -473,7 +473,7 @@ namespace Orts.Formats.Msts.Models
         public int Index { get; private set; }
         /// <summary>Name of the reference light from the lights table</summary>
         public string Name { get; private set; }
-        public ref Vector3 Position => ref position;
+        public ref readonly Vector3 Position => ref position;
         /// <summary>Radius of the light</summary>
         public float Radius { get; private set; }
         /// <summary>is the SIGLIGHT flag SEMAPHORE_CHANGE set?</summary>

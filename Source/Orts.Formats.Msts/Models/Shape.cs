@@ -51,13 +51,13 @@ namespace Orts.Formats.Msts.Models
         private Vector3 min;
         private Vector3 max;
 
-        public ref Vector3 Min => ref min;
-        public ref Vector3 Max => ref max;
+        public ref readonly Vector3 Min => ref min;
+        public ref readonly Vector3 Max => ref max;
 
         public EsdBoundingBox() // default used for files with no SD file
         {
-            Min = new Vector3();
-            Max = new Vector3();
+            min = new Vector3();
+            max = new Vector3();
         }
 
         public EsdBoundingBox(STFReader stf)
@@ -1176,7 +1176,7 @@ namespace Orts.Formats.Msts.Models
     public class SlerpRotation : KeyPosition
     {
         private Quaternion quaternion;
-        public ref Quaternion Quaternion => ref quaternion; 
+        public ref readonly Quaternion Quaternion => ref quaternion; 
 
         public SlerpRotation(SBR block)
         {
@@ -1201,7 +1201,7 @@ namespace Orts.Formats.Msts.Models
     public class LinearKey : KeyPosition
     {
         private Vector3 position;
-        public ref Vector3 Position => ref position;
+        public ref readonly Vector3 Position => ref position;
 
         public LinearKey(SBR block)
         {
@@ -1226,7 +1226,7 @@ namespace Orts.Formats.Msts.Models
     public class TcbKey : KeyPosition
     {
         private Quaternion quaternion;
-        public ref Quaternion Quaternion => ref quaternion;
+        public ref readonly Quaternion Quaternion => ref quaternion;
         public float Tension { get; private set; }
         public float Continuity { get; private set; }
         public float Bias { get; private set; }
@@ -1237,7 +1237,7 @@ namespace Orts.Formats.Msts.Models
         {
             block.VerifyID(TokenID.Tcb_Key);
             Frame = block.ReadInt();
-            Quaternion = new Quaternion(block.ReadFloat(), block.ReadFloat(), -block.ReadFloat(), block.ReadFloat());
+            quaternion = new Quaternion(block.ReadFloat(), block.ReadFloat(), -block.ReadFloat(), block.ReadFloat());
             Tension = block.ReadFloat();
             Continuity = block.ReadFloat();
             Bias = block.ReadFloat();

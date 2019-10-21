@@ -85,9 +85,9 @@ namespace ORTS.TrackViewer.Editing
                     if (nextNodeIndexOnSiding > 0) // because also this path can run off at the end
                     {
                         PathNode curNode = patFile.PathNodes[currentSidingNodeIndex];
-                        ref WorldLocation curLoc = ref patFile.DataPoints[(int)curNode.PathDataPoint].Location;
+                        ref readonly WorldLocation curLoc = ref patFile.DataPoints[(int)curNode.PathDataPoint].Location;
                         PathNode nextNode = patFile.PathNodes[nextNodeIndexOnSiding];
-                        ref WorldLocation nextLoc = ref patFile.DataPoints[(int)nextNode.PathDataPoint].Location;
+                        ref readonly WorldLocation nextLoc = ref patFile.DataPoints[(int)nextNode.PathDataPoint].Location;
 
                         drawArea.DrawLine(1, DrawColors.colorsPathSiding.TrackStraight, curLoc, nextLoc);
                     }
@@ -95,7 +95,7 @@ namespace ORTS.TrackViewer.Editing
                 }
 
                 PathNode curMainNode = patFile.PathNodes[currentMainNodeIndex];
-                ref WorldLocation curMainLoc = ref patFile.DataPoints[(int)curMainNode.PathDataPoint].Location;
+                ref readonly WorldLocation curMainLoc = ref patFile.DataPoints[(int)curMainNode.PathDataPoint].Location;
                 
                 // from this main line point to the next siding node.
                 // If there is a next siding node, we also reset the currentSidingNodeIndex
@@ -105,7 +105,7 @@ namespace ORTS.TrackViewer.Editing
                 {
                     // draw the start of a siding path
                     PathNode nextNode = patFile.PathNodes[nextSidingNodeIndex];
-                    ref WorldLocation nextLoc = ref patFile.DataPoints[(int)nextNode.PathDataPoint].Location;
+                    ref readonly WorldLocation nextLoc = ref patFile.DataPoints[(int)nextNode.PathDataPoint].Location;
 
                     drawArea.DrawLine(1, DrawColors.colorsPathSiding.TrackStraight, curMainLoc, nextLoc);
                     currentSidingNodeIndex = nextSidingNodeIndex;
@@ -116,7 +116,7 @@ namespace ORTS.TrackViewer.Editing
                 if (nextMainNodeIndex >= 0)
                 {
                     PathNode nextNode = patFile.PathNodes[nextMainNodeIndex];
-                    ref WorldLocation nextLoc = ref patFile.DataPoints[(int)nextNode.PathDataPoint].Location;
+                    ref readonly WorldLocation nextLoc = ref patFile.DataPoints[(int)nextNode.PathDataPoint].Location;
 
                     drawArea.DrawLine(1, DrawColors.colorsPathMain.TrackStraight, curMainLoc, nextLoc);
                     currentMainNodeIndex = nextMainNodeIndex;

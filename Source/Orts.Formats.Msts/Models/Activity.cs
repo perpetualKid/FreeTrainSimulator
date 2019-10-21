@@ -127,7 +127,7 @@ namespace Orts.Formats.Msts.Models
         public TrainSet TrainSet { get; private set; }
         public int Direction { get; private set; }  // 0 means forwards and anything != 0 means reverse
         public int ID { get; private set; }
-        public ref WorldLocation Location => ref location;
+        public ref readonly WorldLocation Location => ref location;
 
         public ActivityObject(STFReader stf)
         {
@@ -222,8 +222,8 @@ namespace Orts.Formats.Msts.Models
         private WorldLocation startPosition;
         private WorldLocation endPosition;
 
-        public ref WorldLocation StartPosition => ref startPosition;
-        public ref WorldLocation EndPosition => ref endPosition;
+        public ref readonly WorldLocation StartPosition => ref startPosition;
+        public ref readonly WorldLocation EndPosition => ref endPosition;
 
         public RestrictedSpeedZone(STFReader stf)
         {

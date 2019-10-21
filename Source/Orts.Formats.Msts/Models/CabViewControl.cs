@@ -52,8 +52,8 @@ namespace Orts.Formats.Msts.Models
     #region CabViewControl
     public abstract class CabViewControl
     {
-        private Rectangle bounds;
-        public ref Rectangle Bounds => ref bounds;
+        protected Rectangle bounds;
+        public ref readonly Rectangle Bounds => ref bounds;
 
         public float ScaleRangeMin { get; protected set; }
         public float ScaleRangeMax { get; protected set; }
@@ -229,9 +229,9 @@ namespace Orts.Formats.Msts.Models
     #region Gauges
     public class CabViewGaugeControl : CabViewControl
     {
-        private Rectangle area;
+        protected Rectangle area;
 
-        public ref Rectangle Area => ref area;
+        public ref readonly Rectangle Area => ref area;
         public int ZeroPos { get; private set; }
         public int Orientation { get; protected set; }
         public int Direction { get; protected set; }
@@ -259,7 +259,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("dirincrease", ()=>{ Direction = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("area", ()=>{
                     stf.MustMatch("(");
-                    Area = new Rectangle(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
+                    area = new Rectangle(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
                     stf.SkipRestOfBlock();
                 }),
                 new STFReader.TokenProcessor("positivecolour", ()=>{
@@ -302,8 +302,8 @@ namespace Orts.Formats.Msts.Models
             ScaleRangeMax = 1;
             ScaleRangeMin = 0;
             ControlStyle = CabViewControlStyle.Pointer;
-            Area = new Rectangle(Point.Zero, Bounds.Size);
-            Bounds.Y += Bounds.Height / 2;
+            area = new Rectangle(Point.Zero, Bounds.Size);
+            bounds.Y += Bounds.Height / 2;
         }
     }
     #endregion

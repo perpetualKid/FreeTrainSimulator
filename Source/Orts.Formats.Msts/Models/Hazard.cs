@@ -30,11 +30,11 @@ namespace Orts.Formats.Msts.Models
         public string Workers { get; private set; }
         public float Distance { get; private set; }
         public float Speed { get; private set; }
-        public ref Vector2 IdleKey => ref idleKey;
-        public ref Vector2 IdleKey2 => ref idleKey2;
-        public ref Vector2 SurpriseKeyLeft => ref surpriseKeyLeft;
-        public ref Vector2 SurpriseKeyRight => ref surpriseKeyRight;
-        public ref Vector2 SuccessScarperKey => ref successScarperKey;
+        public ref readonly Vector2 IdleKey => ref idleKey;
+        public ref readonly Vector2 IdleKey2 => ref idleKey2;
+        public ref readonly Vector2 SurpriseKeyLeft => ref surpriseKeyLeft;
+        public ref readonly Vector2 SurpriseKeyRight => ref surpriseKeyRight;
+        public ref readonly Vector2 SuccessScarperKey => ref successScarperKey;
 
     }
 }

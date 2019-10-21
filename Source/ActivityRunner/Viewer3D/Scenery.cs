@@ -314,7 +314,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     break;
 
                 // Get the position of the scenery object into ORTS coordinate space.
-                ref WorldPosition worldMatrix = ref worldObject.WorldPosition;
+                ref readonly WorldPosition worldMatrix = ref worldObject.WorldPosition;
 
                 var shadowCaster = (worldObject.StaticFlags & (uint)StaticFlag.AnyShadow) != 0 || viewer.Settings.ShadowAllShapes;
                 var animated = (worldObject.StaticFlags & (uint)StaticFlag.Animate) != 0;
