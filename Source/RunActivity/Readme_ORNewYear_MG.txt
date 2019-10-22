@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.35
-October 10th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.36
+October 22nd, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -12,7 +12,7 @@ INSTALLATION
 you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails unstable revision U2019.10.07-0751 (which includes Monogame).
+This unofficial version has been derived from the official Open Rails unstable revision U2019.10.20-0936 (which includes Monogame).
 It includes some features not (yet) available in the Open Rails unstable official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
@@ -21,15 +21,7 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - when car is ( cted through the F9 window, the car's brake line in the extended brake HUD is highlighted in yellow (by mbm_or)
 - improved distance management in roadcar camera
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
-- addition of visual effects for rolling stock (by steamer_ctn), already present as PR for the official OR version
-- additional features for vacuum brakes (by steamer_ctn), already present as PR for the official OR version
-- turntables operating in timetable mode (by roeter), already present as PR for the official OR version
-- setting of activity options by activity creator (by steamer_ctn), already present as PR for the official OR version
-- correction of a bug in signal script parser misinterpreting comment lines.
-
-
-
-
+- NEW: true 64-bit management, allowing to use more than 4 GB of memory, if available, in Win64 systems (mainly by perpetualKid).
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
