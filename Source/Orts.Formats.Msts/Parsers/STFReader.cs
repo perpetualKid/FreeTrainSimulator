@@ -1808,14 +1808,14 @@ namespace Orts.Formats.Msts.Parsers
                 {
                     #region Process special token - include
                     case "include":
-                        var filename = ReadItem(skip_mode, string_mode);
-                        if (filename == "(")
+                        string fileName = ReadItem(skip_mode, string_mode);
+                        if (fileName.Length > 0 && fileName[0] == '(')
                         {
-                            filename = ReadItem(skip_mode, string_mode);
+                            fileName = ReadItem(skip_mode, string_mode);
                             SkipRestOfBlock();
                         }
-                        var includeFileName = Path.GetDirectoryName(FileName) + @"\" + filename;
-                        if (!File.Exists(includeFileName))
+                        string includeFileName = Path.Combine(Path.GetDirectoryName(FileName), fileName);
+                        if (!System.IO.File.Exists(includeFileName))
                             STFException.TraceWarning(this, string.Format("'{0}' not found", includeFileName));
                         includeReader = new STFReader(includeFileName, false);
                         return ReadItem(skip_mode, string_mode); // Which will recurse down when includeReader is tested

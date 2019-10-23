@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
@@ -26,7 +24,7 @@ namespace Orts.Formats.Msts.Models
                         if (File.Exists(dataItem.Name))
                             Add(dataItem);
                         else
-                            STFException.TraceWarning(stf, String.Format("Non-existent shape file {0} referenced", dataItem.Name));
+                            STFException.TraceWarning(stf, $"Non-existent shape file {dataItem.Name} referenced");
                     }
                     }),
                 });

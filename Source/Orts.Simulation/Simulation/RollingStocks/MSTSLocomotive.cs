@@ -386,7 +386,7 @@ namespace Orts.Simulation.RollingStocks
         {
           //  BrakePipeChargingRatePSIpS = Simulator.Settings.BrakePipeChargingRate;
                         
-            MilepostUnitsMetric = Simulator.TRK.Tr_RouteFile.MilepostUnitsMetric;
+            MilepostUnitsMetric = Simulator.TRK.Route.MilepostUnitsMetric;
             BrakeCutsPowerAtBrakeCylinderPressurePSI = 4.0f;
 
             LocomotiveAxle = new Axle();
@@ -599,7 +599,7 @@ namespace Orts.Simulation.RollingStocks
             bool noseAhead = false;
 
             string basePath = Path.Combine(Path.GetDirectoryName(wagFilePath), "CABVIEW");
-            if (!File.Exists(Path.Combine(basePath, cvfFileName)))
+            if (!File.Exists(Path.GetFullPath(Path.Combine(basePath, cvfFileName))))
                 return null;
 
             var cvfFile = new CabViewFile(basePath, cvfFileName);

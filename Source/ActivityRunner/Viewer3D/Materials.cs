@@ -39,10 +39,9 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         readonly Viewer Viewer;
         readonly GraphicsDevice GraphicsDevice;
-        Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>();
+        Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>(StringComparer.InvariantCultureIgnoreCase);
         Dictionary<string, bool> TextureMarks;
 
-        //[CallOnThread("Render")]
         internal SharedTextureManager(Viewer viewer, GraphicsDevice graphicsDevice)
         {
             Viewer = viewer;
@@ -56,13 +55,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public Texture2D Get(string path, Texture2D defaultTexture, bool required = false)
         {
-            if (Thread.CurrentThread.Name != "Loader Process")
-                Trace.TraceError("SharedTextureManager.Get incorrectly called by {0}; must be Loader Process or crashes will occur.", Thread.CurrentThread.Name);
 
-            if (path == null || path == "")
+            if (string.IsNullOrEmpty(path))
                 return defaultTexture;
 
-            path = path.ToLowerInvariant();
+            path = Path.GetFullPath(path);
             if (!Textures.ContainsKey(path))
             {
                 try
@@ -103,13 +100,10 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             try //in case of no texture in wintersnow etc, go up one level
                             {
-                                var p = System.IO.Directory.GetParent(path);//returns the current level of dir
-
-                                p = System.IO.Directory.GetParent(p.FullName);//go up one level
-                                var s = p.FullName + "\\" + Path.GetFileName(path);
-                                if (File.Exists(s) &&  s.ToLower().Contains("texture")) //in texure and exists
+                                string parentPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "..", Path.GetFileName(path)));
+                                if (File.Exists(parentPath) && parentPath.ToLower().Contains("texture")) //in texure and exists
                                 {
-                                    texture = AceFile.Texture2DFromFile(GraphicsDevice, s);
+                                    texture = AceFile.Texture2DFromFile(GraphicsDevice, parentPath);
                                 }
                                 else {
                                     if (required)
@@ -236,7 +230,7 @@ namespace Orts.ActivityRunner.Viewer3D
             PopupWindowShader = new PopupWindowShader(viewer, viewer.RenderProcess.GraphicsDevice);
             PrecipitationShader = new PrecipitationShader(viewer.RenderProcess.GraphicsDevice);
             SceneryShader = new SceneryShader(viewer.RenderProcess.GraphicsDevice);
-            var microtexPath = viewer.Simulator.RoutePath + @"\TERRTEX\microtex.ace";
+            var microtexPath = Path.Combine(viewer.Simulator.RoutePath,"TERRTEX", "microtex.ace");
             if (File.Exists(microtexPath))
             {
                 try

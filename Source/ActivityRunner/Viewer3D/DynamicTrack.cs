@@ -249,12 +249,12 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             string path = routePath + @"\TrackProfiles";
             //Establish default track profile
-            if (Directory.Exists(path) && File.Exists(path + @"\TrProfile.xml"))
+            if (File.Exists(path + @"\TrProfile.xml"))
             {
                 // XML-style
                 trpFile = new TRPFile(viewer, path + @"\TrProfile.xml");
             }
-            else if (Directory.Exists(path) && File.Exists(path + @"\TrProfile.stf"))
+            else if (File.Exists(path + @"\TrProfile.stf"))
             {
                 // MSTS-style
                 trpFile = new TRPFile(viewer, path + @"\TrProfile.stf");

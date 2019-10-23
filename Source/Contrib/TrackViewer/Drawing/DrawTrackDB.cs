@@ -59,10 +59,10 @@ namespace ORTS.TrackViewer.Drawing
 
             messageDelegate(TrackViewer.catalog.GetString("Loading trackfile .trk ..."));
             RouteFile TRK = new RouteFile(FolderStructure.TrackFileName(routePath));
-            RouteName = TRK.Tr_RouteFile.Name;
+            RouteName = TRK.Route.Name;
 
             messageDelegate(TrackViewer.catalog.GetString("Loading track database .tdb ..."));
-            TrackDatabaseFile TDB = new TrackDatabaseFile(routePath + @"\" + TRK.Tr_RouteFile.FileName + ".tdb");
+            TrackDatabaseFile TDB = new TrackDatabaseFile(routePath + @"\" + TRK.Route.FileName + ".tdb");
             this.TrackDB = TDB.TrackDB;
 
             messageDelegate(TrackViewer.catalog.GetString("Loading tsection.dat ..."));
@@ -76,7 +76,7 @@ namespace ORTS.TrackViewer.Drawing
             if (File.Exists(routePath + @"\TSECTION.DAT"))
                 TsectionDat.AddRouteTSectionDatFile(routePath + @"\TSECTION.DAT");
 
-            string roadTrackFileName = routePath + @"\" + TRK.Tr_RouteFile.FileName + ".rdb";
+            string roadTrackFileName = routePath + @"\" + TRK.Route.FileName + ".rdb";
             try
             {
                 messageDelegate(TrackViewer.catalog.GetString("Loading road track database .rdb ..."));

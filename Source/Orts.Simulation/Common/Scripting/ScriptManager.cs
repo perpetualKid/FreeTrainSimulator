@@ -23,7 +23,9 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+
 using Microsoft.CSharp;
+
 using Orts.Simulation;
 
 namespace Orts.Common.Scripting

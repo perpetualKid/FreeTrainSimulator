@@ -455,8 +455,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     soundFileName = levelCrossingObject.SoundFileName;
                 else if (!string.IsNullOrEmpty(SharedShape.SoundFileName))
                     soundFileName = SharedShape.SoundFileName;
-                else if (!string.IsNullOrEmpty(viewer.Simulator.TRK.Tr_RouteFile.DefaultCrossingSMS))
-                    soundFileName = viewer.Simulator.TRK.Tr_RouteFile.DefaultCrossingSMS;
+                else if (!string.IsNullOrEmpty(viewer.Simulator.TRK.Route.DefaultCrossingSMS))
+                    soundFileName = viewer.Simulator.TRK.Route.DefaultCrossingSMS;
                 if (!string.IsNullOrEmpty(soundFileName))
                 {
                     var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + soundFileName;
@@ -675,9 +675,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             fuelPickupItemObject = fuelpickupitemObj;
 
 
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultDieselTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelDiesel) // Testing for Diesel PickupType
+            if (viewer.Simulator.TRK.Route.DefaultDieselTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelDiesel) // Testing for Diesel PickupType
             {
-                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultDieselTowerSMS;
+                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultDieselTowerSMS;
                 try
                 {
                     soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.MSTSFuelTower, soundPath);
@@ -685,7 +685,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 }
                 catch
                 {
-                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultDieselTowerSMS;
+                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultDieselTowerSMS;
                     try
                     {
                         soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.MSTSFuelTower, soundPath);
@@ -697,9 +697,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultWaterTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelWater) // Testing for Water PickupType
+            if (viewer.Simulator.TRK.Route.DefaultWaterTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelWater) // Testing for Water PickupType
             {
-                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultWaterTowerSMS;
+                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultWaterTowerSMS;
                 try
                 {
                     soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.MSTSFuelTower, soundPath);
@@ -707,7 +707,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 }
                 catch
                 {
-                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultWaterTowerSMS;
+                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultWaterTowerSMS;
                     try
                     {
                         soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.MSTSFuelTower, soundPath);
@@ -719,9 +719,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultCoalTowerSMS != null && (fuelPickupItemObject.PickupType == PickupType.FuelCoal || fuelPickupItemObject.PickupType == PickupType.FreightCoal))
+            if (viewer.Simulator.TRK.Route.DefaultCoalTowerSMS != null && (fuelPickupItemObject.PickupType == PickupType.FuelCoal || fuelPickupItemObject.PickupType == PickupType.FreightCoal))
             {
-                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultCoalTowerSMS;
+                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultCoalTowerSMS;
                 try
                 {
                     soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.MSTSFuelTower, soundPath);
@@ -729,7 +729,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 }
                 catch
                 {
-                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultCoalTowerSMS;
+                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultCoalTowerSMS;
                     try
                     {
                         soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.MSTSFuelTower, soundPath);

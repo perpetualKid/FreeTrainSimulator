@@ -34,9 +34,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     break;
                 }
             }
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultTurntableSMS != null)
+            if (viewer.Simulator.TRK.Route.DefaultTurntableSMS != null)
             {
-                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultTurntableSMS;
+                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
                 try
                 {
                     Sound = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.ORTSTurntable, soundPath);
@@ -44,7 +44,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 }
                 catch
                 {
-                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultTurntableSMS;
+                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
                     try
                     {
                         Sound = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.ORTSTurntable, soundPath);
@@ -129,9 +129,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     break;
                 }
             }
-            if (viewer.Simulator.TRK.Tr_RouteFile.DefaultTurntableSMS != null)
+            if (viewer.Simulator.TRK.Route.DefaultTurntableSMS != null)
             {
-                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultTurntableSMS;
+                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
                 try
                 {
                     Sound = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.ORTSTurntable, soundPath);
@@ -139,7 +139,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 }
                 catch
                 {
-                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Tr_RouteFile.DefaultTurntableSMS;
+                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
                     try
                     {
                         Sound = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.ORTSTurntable, soundPath);

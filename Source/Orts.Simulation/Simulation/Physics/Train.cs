@@ -533,7 +533,7 @@ namespace Orts.Simulation.Physics
         void Init(Simulator simulator)
         {
             Simulator = simulator;
-            allowedAbsoluteMaxSpeedSignalMpS = (float)Simulator.TRK.Tr_RouteFile.SpeedLimit;
+            allowedAbsoluteMaxSpeedSignalMpS = (float)Simulator.TRK.Route.SpeedLimit;
             allowedAbsoluteMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
             allowedAbsoluteMaxTempSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
         }
@@ -2901,7 +2901,7 @@ namespace Orts.Simulation.Physics
                     var temp1MaxSpeedMpS = IsFreight ? firstObject.speed_freight : firstObject.speed_passenger;
                     if (firstObject.ObjectDetails.isSignal)
                     {
-                        allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? (float)Simulator.TRK.Tr_RouteFile.SpeedLimit : temp1MaxSpeedMpS;
+                        allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? (float)Simulator.TRK.Route.SpeedLimit : temp1MaxSpeedMpS;
                     }
                     else if (firstObject.speed_reset == 0)
                     {
@@ -3476,7 +3476,7 @@ namespace Orts.Simulation.Physics
                 {
                     if (actualSpeedMpS > 998f)
                     {
-                        actualSpeedMpS = (float)Simulator.TRK.Tr_RouteFile.SpeedLimit;
+                        actualSpeedMpS = (float)Simulator.TRK.Route.SpeedLimit;
                     }
 
                     if (actualSpeedMpS > 0)
@@ -12546,7 +12546,7 @@ namespace Orts.Simulation.Physics
             allowedMaxSpeedSignalMpS = allowedAbsoluteMaxSpeedSignalMpS;
             allowedMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedLimitMpS;
             allowedMaxTempSpeedLimitMpS = allowedAbsoluteMaxTempSpeedLimitMpS;
-            TrainMaxSpeedMpS = Math.Min((float)Simulator.TRK.Tr_RouteFile.SpeedLimit, ((MSTSLocomotive)Simulator.PlayerLocomotive).MaxSpeedMpS);
+            TrainMaxSpeedMpS = Math.Min((float)Simulator.TRK.Route.SpeedLimit, ((MSTSLocomotive)Simulator.PlayerLocomotive).MaxSpeedMpS);
         }
 
         /// <summary>

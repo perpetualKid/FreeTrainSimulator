@@ -71,8 +71,8 @@ namespace Orts.Formats.Msts.Models
         {
             PositionHolder holder = new PositionHolder()
             {
-                TileX = this.WorldPosition.TileX,
-                TileZ = this.WorldPosition.TileZ,
+                TileX = worldPosition.TileX,
+                TileZ = worldPosition.TileZ,
             };
             AddOrModifyObj(subBlock, holder);
 

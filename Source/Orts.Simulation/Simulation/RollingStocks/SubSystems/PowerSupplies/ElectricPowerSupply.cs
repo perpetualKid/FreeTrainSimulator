@@ -39,14 +39,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             get
             {
-                return Simulator.TRK.Tr_RouteFile.Electrified || Simulator.Settings.OverrideNonElectrifiedRoutes;
+                return Simulator.TRK.Route.Electrified || Simulator.Settings.OverrideNonElectrifiedRoutes;
             }
         }
 
         public float LineVoltageV {
             get
             {
-                return (float)Simulator.TRK.Tr_RouteFile.MaxLineVoltage;
+                return (float)Simulator.TRK.Route.MaxLineVoltage;
             }
         }
         public float PantographVoltageV { get; set; }

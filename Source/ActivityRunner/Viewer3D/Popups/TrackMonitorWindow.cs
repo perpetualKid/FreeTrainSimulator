@@ -833,7 +833,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     if (!Program.Simulator.TimetableMode)
                     {
-                        allowedSpeed = (float)Program.Simulator.TRK.Tr_RouteFile.SpeedLimit;
+                        allowedSpeed = (float)Program.Simulator.TRK.Route.SpeedLimit;
                     }
                 }
 

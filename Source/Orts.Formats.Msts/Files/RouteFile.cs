@@ -24,14 +24,14 @@ namespace Orts.Formats.Msts.Files
 {
     public class RouteFile
     {
-        public Route Tr_RouteFile { get; private set; }
-        public ORTRKData ORTRKData { get; private set; }
+        public Route Route { get; private set; }
+        public ORTrackData TrackData { get; private set; }
 
         public RouteFile(string fileName)
         {
             string dir = Path.GetDirectoryName(fileName);
             string file = Path.GetFileName(fileName);
-            string orFile = dir + @"\openrails\" + file;
+            string orFile = Path.Combine(dir, "openrails", file);
             if (File.Exists(orFile))
                 fileName = orFile;
             try
@@ -39,30 +39,30 @@ namespace Orts.Formats.Msts.Files
                 using (STFReader stf = new STFReader(fileName, false))
                 {
                     stf.ParseFile(new STFReader.TokenProcessor[] {
-                        new STFReader.TokenProcessor("tr_routefile", ()=>{ Tr_RouteFile = new Route(stf); }),
-                        new STFReader.TokenProcessor("_OpenRails", ()=>{ ORTRKData = new ORTRKData(stf); }),
+                        new STFReader.TokenProcessor("tr_routefile", ()=>{ Route = new Route(stf); }),
+                        new STFReader.TokenProcessor("_OpenRails", ()=>{ TrackData = new ORTrackData(stf); }),
                     });
-                    //TODO This should be changed to STFException.TraceError() with defaults values created
-                    if (Tr_RouteFile == null) throw new STFException(stf, "Missing Tr_RouteFile");
+                    if (Route == null)
+                        throw new STFException(stf, "Missing Tr_RouteFile");
                 }
             }
             finally
             {
-                if (ORTRKData == null)
-                    ORTRKData = new ORTRKData();
+                if (TrackData == null)
+                    TrackData = new ORTrackData();
             }
         }
     }
 
-    public class ORTRKData
+    public class ORTrackData
     {
-        public float MaxViewingDistance = float.MaxValue;  // disables local route override
+        public float MaxViewingDistance { get; private set; } = float.MaxValue;  // disables local route override
 
-        public ORTRKData()
+        public ORTrackData()
         {
         }
 
-        public ORTRKData(STFReader stf)
+        public ORTrackData(STFReader stf)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {

@@ -25,29 +25,32 @@ using System.Linq;
 using System.Management;
 using System.Threading;
 using System.Windows.Forms;
+
 using GNU.Gettext;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+
+using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.ActivityRunner.Viewer3D.RollingStock;
+using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Xna;
-using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using Orts.MultiPlayer;
+using Orts.Settings;
+using Orts.Settings.Util;
 using Orts.Simulation;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using Orts.ActivityRunner.Viewer3D.Popups;
-using Orts.ActivityRunner.Viewer3D.Processes;
-using Orts.ActivityRunner.Viewer3D.RollingStock;
-using Orts.Settings;
+
 using Event = Orts.Common.Event;
-using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common.Calc;
-using Orts.Settings.Util;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -266,7 +269,7 @@ namespace Orts.ActivityRunner.Viewer3D
             string ORfilepath = System.IO.Path.Combine(Simulator.RoutePath, "OpenRails");
             ContentPath = Game.ContentPath;
             Trace.Write(" ENV");
-            ENVFile = new EnvironmentFile(Simulator.RoutePath + @"\ENVFILES\" + Simulator.TRK.Tr_RouteFile.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType));
+            ENVFile = new EnvironmentFile(Simulator.RoutePath + @"\ENVFILES\" + Simulator.TRK.Route.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType));
 
             Trace.Write(" SIGCFG");
             if (File.Exists(ORfilepath + @"\sigcfg.dat"))
@@ -285,7 +288,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             Tiles = new TileManager(Simulator.RoutePath + @"\TILES\", false);
             LoTiles = new TileManager(Simulator.RoutePath + @"\LO_TILES\", true);
-            MilepostUnitsMetric = Simulator.TRK.Tr_RouteFile.MilepostUnitsMetric;
+            MilepostUnitsMetric = Simulator.TRK.Route.MilepostUnitsMetric;
 
             Simulator.AllowedSpeedRaised += (object sender, EventArgs e) =>
             {
@@ -395,7 +398,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Simulator.Trains[0].LeadLocomotiveIndex = -1;
             }
 
-            SharedSMSFileManager.Initialize(TrackTypes.Count, Simulator.TRK.Tr_RouteFile.SwitchSMSNumber, Simulator.TRK.Tr_RouteFile.CurveSMSNumber, Simulator.TRK.Tr_RouteFile.CurveSwitchSMSNumber);
+            SharedSMSFileManager.Initialize(TrackTypes.Count, Simulator.TRK.Route.SwitchSMSNumber, Simulator.TRK.Route.CurveSMSNumber, Simulator.TRK.Route.CurveSwitchSMSNumber);
 
             TextureManager = new SharedTextureManager(this, Game.GraphicsDevice);
 

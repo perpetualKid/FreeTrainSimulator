@@ -829,9 +829,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (filename == null)
                 return;
-            string smsFilePath = wagonFolderSlash + @"sound\" + filename;
+            string smsFilePath = Path.GetFullPath(Path.Combine(wagonFolderSlash,"sound",filename));
             if (!File.Exists(smsFilePath))
-                smsFilePath = Viewer.Simulator.BasePath + @"\sound\" + filename;
+                smsFilePath = Path.GetFullPath(Path.Combine(Viewer.Simulator.BasePath,"sound",filename));
             if (!File.Exists(smsFilePath))
             {
                 Trace.TraceWarning("Cannot find {1} car sound file {0}", filename, wagonFolderSlash);

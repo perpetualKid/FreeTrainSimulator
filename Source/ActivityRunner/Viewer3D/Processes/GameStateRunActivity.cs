@@ -700,7 +700,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     {
                         // Route, Activity, Passed, Errors, Warnings, Infos, Load Time, Frame Rate
                         writer.WriteLine("{0},{1},{2},{3},{4},{5},{6:F1},{7:F1}",
-                            Simulator != null && Simulator.TRK != null && Simulator.TRK.Tr_RouteFile != null ? Simulator.TRK.Tr_RouteFile.Name.Replace(",", ";") : "",
+                            Simulator != null && Simulator.TRK != null && Simulator.TRK.Route != null ? Simulator.TRK.Route.Name.Replace(",", ";") : "",
                             Simulator != null && Simulator.Activity != null && Simulator.Activity.Activity != null && Simulator.Activity.Activity.Header != null ? Simulator.Activity.Activity.Header.Name.Replace(",", ";") : "",
                             passed ? "Yes" : "No",
                             traceListener?.EventCount(TraceEventType.Critical) ?? 0 + traceListener?.EventCount(TraceEventType.Error) ?? 0,
@@ -1083,7 +1083,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             try
             {
                 {
-                    return new RouteFile(FolderStructure.TrackFile).Tr_RouteFile.Name;
+                    return new RouteFile(FolderStructure.TrackFile).Route.Name;
                 }
             }
             catch { }
@@ -1395,10 +1395,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 GraphicsDevice gd = game.RenderProcess.GraphicsDevice;
                 string defaultScreen = "load.ace";
 
-                string loadingScreen = Simulator.TRK.Tr_RouteFile.LoadingScreen;
+                string loadingScreen = Simulator.TRK.Route.LoadingScreen;
                 if (IsWideScreen(game))
                 {
-                    string loadingScreenWide = Simulator.TRK.Tr_RouteFile.LoadingScreenWide;
+                    string loadingScreenWide = Simulator.TRK.Route.LoadingScreenWide;
                     loadingScreen = loadingScreenWide ?? loadingScreen;
                 }
                 loadingScreen = loadingScreen ?? defaultScreen;

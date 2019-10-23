@@ -96,27 +96,27 @@ namespace Orts.ActivityRunner.Viewer3D.Common
 
         public static string GetTextureFile(Simulator simulator, TextureFlags textureFlags, string texturePath, string textureName)
         {
-            var alternativePath = @"\";
+            string alternativePath = null;
             if ((textureFlags & TextureFlags.Snow) != 0 || (textureFlags & TextureFlags.SnowTrack) != 0)
                 if (IsSnow(simulator))
-                    alternativePath = @"\Snow\";
-                else
-                    alternativePath = @"\";
+                    alternativePath = "Snow";
             else if ((textureFlags & TextureFlags.Spring) != 0 && simulator.Season == SeasonType.Spring && simulator.WeatherType != WeatherType.Snow)
-                alternativePath = @"\Spring\";
+                alternativePath = "Spring";
             else if ((textureFlags & TextureFlags.Autumn) != 0 && simulator.Season == SeasonType.Autumn && simulator.WeatherType != WeatherType.Snow)
-                alternativePath = @"\Autumn\";
+                alternativePath = "Autumn";
             else if ((textureFlags & TextureFlags.Winter) != 0 && simulator.Season == SeasonType.Winter && simulator.WeatherType != WeatherType.Snow)
-                alternativePath = @"\Winter\";
+                alternativePath = "Winter";
             else if ((textureFlags & TextureFlags.SpringSnow) != 0 && simulator.Season == SeasonType.Spring && simulator.WeatherType == WeatherType.Snow)
-                alternativePath = @"\SpringSnow\";
+                alternativePath = "SpringSnow";
             else if ((textureFlags & TextureFlags.AutumnSnow) != 0 && simulator.Season == SeasonType.Autumn && simulator.WeatherType == WeatherType.Snow)
-                alternativePath = @"\AutumnSnow\";
+                alternativePath = "AutumnSnow";
             else if ((textureFlags & TextureFlags.WinterSnow) != 0 && simulator.Season == SeasonType.Winter && simulator.WeatherType == WeatherType.Snow)
-                alternativePath = @"\WinterSnow\";
+                alternativePath = "WinterSnow";
 
-            if (alternativePath.Length > 0) return texturePath + alternativePath + textureName;
-            return texturePath + @"\" + textureName;
+            if (!string.IsNullOrEmpty(alternativePath))
+                return Path.Combine(texturePath, alternativePath, textureName);
+            else
+                return Path.Combine(texturePath, textureName);
         }
 
         public static bool IsSnow(Simulator simulator)

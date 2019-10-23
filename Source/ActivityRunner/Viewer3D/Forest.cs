@@ -46,8 +46,8 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Viewer = viewer;
             Position = position;
-            MaximumCenterlineOffset = Viewer.Simulator.TRK.Tr_RouteFile.ForestClearDistance;
-            CheckRoadsToo = Viewer.Simulator.TRK.Tr_RouteFile.RemoveForestTreesFromRoads;
+            MaximumCenterlineOffset = Viewer.Simulator.TRK.Route.ForestClearDistance;
+            CheckRoadsToo = Viewer.Simulator.TRK.Route.RemoveForestTreesFromRoads;
 
             Material = viewer.MaterialManager.Load("Forest", Helpers.GetForestTextureFile(viewer.Simulator, forest.TreeTexture));
             Primitive = new ForestPrimitive(Viewer, forest, position, MaximumCenterlineOffset, CheckRoadsToo);

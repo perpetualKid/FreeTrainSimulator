@@ -21,10 +21,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
+
 using ORTS.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems

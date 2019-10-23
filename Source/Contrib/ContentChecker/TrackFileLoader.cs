@@ -48,23 +48,23 @@ namespace Orts.ContentChecker
         {
             routePath = Path.GetDirectoryName(loadedFile);
             basePath = Path.GetDirectoryName(Path.GetDirectoryName(routePath));
-            string loadingScreen = Path.Combine(routePath, TRK.Tr_RouteFile.LoadingScreen);
+            string loadingScreen = Path.Combine(routePath, TRK.Route.LoadingScreen);
             AddAdditionalFileAction.Invoke(loadingScreen, new AceLoader());
-            string graphic = Path.Combine(routePath, TRK.Tr_RouteFile.Thumbnail);
+            string graphic = Path.Combine(routePath, TRK.Route.Thumbnail);
             AddAdditionalFileAction.Invoke(graphic, new AceLoader());
 
-            AddAdditionalSMS(TRK.Tr_RouteFile.DefaultCrossingSMS);
-            AddAdditionalSMS(TRK.Tr_RouteFile.DefaultCoalTowerSMS);
-            AddAdditionalSMS(TRK.Tr_RouteFile.DefaultDieselTowerSMS);
-            AddAdditionalSMS(TRK.Tr_RouteFile.DefaultSignalSMS);
-            AddAdditionalSMS(TRK.Tr_RouteFile.DefaultTurntableSMS);
-            AddAdditionalSMS(TRK.Tr_RouteFile.DefaultWaterTowerSMS);
+            AddAdditionalSMS(TRK.Route.DefaultCrossingSMS);
+            AddAdditionalSMS(TRK.Route.DefaultCoalTowerSMS);
+            AddAdditionalSMS(TRK.Route.DefaultDieselTowerSMS);
+            AddAdditionalSMS(TRK.Route.DefaultSignalSMS);
+            AddAdditionalSMS(TRK.Route.DefaultTurntableSMS);
+            AddAdditionalSMS(TRK.Route.DefaultWaterTowerSMS);
 
             foreach (SeasonType season in Enum.GetValues(typeof(SeasonType)))
             {
                 foreach (WeatherType weather in Enum.GetValues(typeof(WeatherType)))
                 {
-                    string environmentFile = TRK.Tr_RouteFile.Environment.GetEnvironmentFileName(season, weather);
+                    string environmentFile = TRK.Route.Environment.GetEnvironmentFileName(season, weather);
                     string envFileFull = Path.Combine(Path.Combine(routePath, "ENVFILES"), environmentFile);
                     AddAdditionalFileAction.Invoke(envFileFull, new EnvironmentFileLoader());
                 }
@@ -99,8 +99,8 @@ namespace Orts.ContentChecker
             string globalTsectionDat = Path.Combine(Path.Combine(basePath, "Global"), "tsection.dat");
             AddAdditionalFileAction.Invoke(globalTsectionDat, new TsectionGlobalLoader(routePath));
 
-            AddAdditionalFileAction.Invoke(Path.Combine(routePath, TRK.Tr_RouteFile.FileName + ".tdb"), new TrackDataBaseLoader());
-            AddAdditionalFileAction.Invoke(Path.Combine(routePath, TRK.Tr_RouteFile.FileName + ".rdb"), new RoadDataBaseLoader());
+            AddAdditionalFileAction.Invoke(Path.Combine(routePath, TRK.Route.FileName + ".tdb"), new TrackDataBaseLoader());
+            AddAdditionalFileAction.Invoke(Path.Combine(routePath, TRK.Route.FileName + ".rdb"), new RoadDataBaseLoader());
             AddAdditionalFileAction.Invoke(Path.Combine(routePath, "carspawn.dat"), new CarSpawnLoader());
             string ORfilepath = System.IO.Path.Combine(routePath, "OpenRails");
             if (File.Exists(ORfilepath + @"\sigcfg.dat"))

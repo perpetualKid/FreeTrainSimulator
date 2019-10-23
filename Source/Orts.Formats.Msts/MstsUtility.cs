@@ -63,16 +63,6 @@ namespace Orts.Formats.Msts
             return matrix;
         }
 
-        public static Matrix CreateFromYawPitchRoll(in Vector3 pitchYawRoll, in Vector3 translation)
-        {
-            Quaternion.CreateFromYawPitchRoll(-pitchYawRoll.Y, -pitchYawRoll.X, pitchYawRoll.Z, out Quaternion quaternion);
-            Matrix.CreateFromQuaternion(ref quaternion, out Matrix matrix);
-            matrix.M41 = translation.X;
-            matrix.M42 = translation.Y;
-            matrix.M43 = translation.Z;
-            return matrix;
-        }
-
         /// <summary>
         /// Compute the angle in radians resulting from these delta's
         /// 0 degrees is straight ahead - Dz = 0, Dx = 1;

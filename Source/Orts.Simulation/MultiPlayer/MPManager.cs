@@ -570,8 +570,8 @@ namespace Orts.MultiPlayer
 			}
 			if (metric == "")
 			{
-				metric = Simulator.TRK.Tr_RouteFile.MilepostUnitsMetric == true ? " m" : " yd";
-				metricbase = Simulator.TRK.Tr_RouteFile.MilepostUnitsMetric == true ? 1.0f : 1.0936133f;
+				metric = Simulator.TRK.Route.MilepostUnitsMetric == true ? " m" : " yd";
+				metricbase = Simulator.TRK.Route.MilepostUnitsMetric == true ? 1.0f : 1.0936133f;
 			}
 
 			int count = 0;
@@ -923,7 +923,7 @@ namespace Orts.MultiPlayer
 		{
 			try
 			{
-				string fileName = Simulator.RoutePath + @"\" + Simulator.TRK.Tr_RouteFile.FileName + ".tdb";
+				string fileName = Simulator.RoutePath + @"\" + Simulator.TRK.Route.FileName + ".tdb";
 				FileStream file = new FileStream(fileName, FileMode.Open);
 				MD5 md5 = new MD5CryptoServiceProvider();
 				byte[] retVal = md5.ComputeHash(file);

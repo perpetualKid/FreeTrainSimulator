@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
 using System.IO;
 
 using Orts.Formats.Msts.Parsers;
@@ -42,11 +41,11 @@ namespace Orts.Formats.Msts.Files
                              var dataItem = stf.ReadStringBlock(null);
                              if (dataItem != null)
                              {
-                                dataItem = shapePath + dataItem;
+                                dataItem = Path.Combine(shapePath, dataItem);
                                 if (File.Exists(dataItem))
                                     ShapeNames[0] = dataItem;
                                 else
-                                    STFException.TraceWarning(stf, String.Format("Non-existent shape file {0} referenced", dataItem));
+                                    STFException.TraceWarning(stf, $"Non-existent shape file {dataItem} referenced");
                              }
                          }
                          ),
@@ -55,11 +54,11 @@ namespace Orts.Formats.Msts.Files
                              var dataItem = stf.ReadStringBlock(null);
                              if (dataItem != null)
                              {
-                                dataItem = shapePath + dataItem;
+                                dataItem = Path.Combine(shapePath, dataItem);
                                 if (File.Exists(dataItem))
                                     ShapeNames[1] = dataItem;
                                 else
-                                    STFException.TraceWarning(stf, String.Format("Non-existent shape file {0} referenced", dataItem));
+                                    STFException.TraceWarning(stf, $"Non-existent shape file {dataItem} referenced");
                              }
                          }
                          ),
@@ -68,11 +67,11 @@ namespace Orts.Formats.Msts.Files
                              var dataItem = stf.ReadStringBlock(null);
                              if (dataItem != null)
                              {
-                                dataItem = shapePath + dataItem;
+                                dataItem = Path.Combine(shapePath, dataItem);
                                 if (File.Exists(dataItem))
                                     ShapeNames[2] = dataItem;
                                 else
-                                    STFException.TraceWarning(stf, String.Format("Non-existent shape file {0} referenced", dataItem));
+                                    STFException.TraceWarning(stf, $"Non-existent shape file {dataItem} referenced");
                              }
                          }
                          ),

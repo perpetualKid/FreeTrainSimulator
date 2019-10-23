@@ -20,25 +20,24 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 
-
 namespace Orts.Common
 {
     public static class ORTSPaths
     {
         //<CJComment> Cleaner to use GetFileFromFolders() instead, but not sure how to test this. </CJComment>
-        public static string FindTrainCarPlugin( string initialFolder, string filename )
+        public static string FindTrainCarPlugin(string initialFolder, string fileName)
         {
-            string dllPath = initialFolder + "\\" + filename;  // search in trainset folder
+            string dllPath = Path.Combine(initialFolder, fileName);  // search in trainset folder
             if (File.Exists(dllPath))
                 return dllPath;
-            string rootFolder = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(initialFolder)))+ "\\OpenRails";
-            if( Directory.Exists( rootFolder ) )
+            string rootFolder = Path.GetFullPath(Path.Combine(initialFolder, @"..\..\..", "OpenRails"));
+            if (Directory.Exists(rootFolder))
             {
-                dllPath = rootFolder + "\\" + filename;
+                dllPath = Path.Combine(rootFolder, fileName);
                 if (File.Exists(dllPath))
                     return dllPath;
             }
-            return filename;   // then search in OpenRails program folder
+            return fileName;   // then search in OpenRails program folder
         }
 
         /// <summary>

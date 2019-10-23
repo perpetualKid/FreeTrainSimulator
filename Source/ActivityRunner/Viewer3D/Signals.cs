@@ -278,9 +278,9 @@ namespace Orts.ActivityRunner.Viewer3D
                         SemaphoreParts.Add(SemaphorePart);
                     }
 
-                    if (Viewer.Simulator.TRK.Tr_RouteFile.DefaultSignalSMS != null)
+                    if (Viewer.Simulator.TRK.Route.DefaultSignalSMS != null)
                     {
-                        var soundPath = Viewer.Simulator.RoutePath + @"\\sound\\" + Viewer.Simulator.TRK.Tr_RouteFile.DefaultSignalSMS;
+                        var soundPath = Viewer.Simulator.RoutePath + @"\\sound\\" + Viewer.Simulator.TRK.Route.DefaultSignalSMS;
                         try
                         {
                             Sound = new SoundSource(Viewer, SignalShape.WorldPosition.WorldLocation, Events.Source.MSTSSignal, soundPath);

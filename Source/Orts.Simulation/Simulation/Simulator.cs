@@ -279,12 +279,12 @@ namespace Orts.Simulation
 
             Trace.Write(" TRK");
             TRK = new RouteFile(FolderStructure.TrackFileName(RoutePath));
-            RouteName = TRK.Tr_RouteFile.Name;
-            MilepostUnitsMetric = TRK.Tr_RouteFile.MilepostUnitsMetric;
-            OpenDoorsInAITrains = TRK.Tr_RouteFile.OpenDoorsInAITrains == null ? Settings.OpenDoorsInAITrains : (bool)TRK.Tr_RouteFile.OpenDoorsInAITrains;
+            RouteName = TRK.Route.Name;
+            MilepostUnitsMetric = TRK.Route.MilepostUnitsMetric;
+            OpenDoorsInAITrains = TRK.Route.OpenDoorsInAITrains == null ? Settings.OpenDoorsInAITrains : (bool)TRK.Route.OpenDoorsInAITrains;
 
             Trace.Write(" TDB");
-            TDB = new TrackDatabaseFile(RoutePath + @"\" + TRK.Tr_RouteFile.FileName + ".tdb");
+            TDB = new TrackDatabaseFile(RoutePath + @"\" + TRK.Route.FileName + ".tdb");
 
             if (File.Exists(ORfilepath + @"\sigcfg.dat"))
             {
@@ -298,9 +298,11 @@ namespace Orts.Simulation
             }
 
             Trace.Write(" DAT");
-            if (Directory.Exists(RoutePath + @"\Openrails") && File.Exists(RoutePath + @"\Openrails\TSECTION.DAT"))
+            if (File.Exists(RoutePath + @"\Openrails\TSECTION.DAT"))
+            {
                 TSectionDat = new TrackSectionsFile(RoutePath + @"\Openrails\TSECTION.DAT");
-            else if (Directory.Exists(RoutePath + @"\GLOBAL") && File.Exists(RoutePath + @"\GLOBAL\TSECTION.DAT"))
+            }
+            else if (File.Exists(RoutePath + @"\GLOBAL\TSECTION.DAT"))
                 TSectionDat = new TrackSectionsFile(RoutePath + @"\GLOBAL\TSECTION.DAT");
             else
                 TSectionDat = new TrackSectionsFile(BasePath + @"\GLOBAL\TSECTION.DAT");
@@ -311,7 +313,7 @@ namespace Orts.Simulation
 
             Trace.Write(" ACT");
 
-            var rdbFile = RoutePath + @"\" + TRK.Tr_RouteFile.FileName + ".rdb";
+            var rdbFile = RoutePath + @"\" + TRK.Route.FileName + ".rdb";
             if (File.Exists(rdbFile))
             {
                 Trace.Write(" RDB");
@@ -373,7 +375,7 @@ namespace Orts.Simulation
             WeatherType = Activity.Activity.Header.Weather;
             if (Activity.Activity.ActivityRestrictedSpeedZones != null)
             {
-                ActivityRun.AddRestrictZones(TRK.Tr_RouteFile, TSectionDat, TDB.TrackDB, Activity.Activity.ActivityRestrictedSpeedZones);
+                ActivityRun.AddRestrictZones(TRK.Route, TSectionDat, TDB.TrackDB, Activity.Activity.ActivityRestrictedSpeedZones);
             }
             IsAutopilotMode = Settings.Autopilot;
         }
@@ -1216,9 +1218,9 @@ namespace Orts.Simulation
             PlayerLocomotive = InitialPlayerLocomotive();
             if ((conFile.Train.MaxVelocity == null) ||
                 ((conFile.Train.MaxVelocity?.A <= 0f) || (conFile.Train.MaxVelocity?.A == 40f)))
-                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Tr_RouteFile.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
+                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
             else
-                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Tr_RouteFile.SpeedLimit, conFile.Train.MaxVelocity.A);
+                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Route.SpeedLimit, conFile.Train.MaxVelocity.A);
 
 
             train.AITrainBrakePercent = 100; //<CSComment> This seems a tricky way for the brake modules to test if it is an AI train or not
@@ -1279,9 +1281,9 @@ namespace Orts.Simulation
 
             PlayerLocomotive = InitialPlayerLocomotive();
             if (train.MaxVelocityA <= 0f || train.MaxVelocityA == 40f)
-                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Tr_RouteFile.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
+                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
             else
-                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Tr_RouteFile.SpeedLimit, train.MaxVelocityA);
+                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Route.SpeedLimit, train.MaxVelocityA);
             if (train.InitialSpeed > 0 && train.MovementState != AITrain.AI_MOVEMENT_STATE.STATION_STOP)
             {
                 train.InitializeMoving();

@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Orts.Formats.Msts;
+
 using Orts.Formats.Msts.Files;
 
 namespace Orts.Menu.Entities

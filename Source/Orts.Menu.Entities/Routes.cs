@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 
@@ -40,9 +41,9 @@ namespace Orts.Menu.Entities
                 try
                 {
 					var trkFile = new RouteFile(trkFilePath);
-                    Name = trkFile.Tr_RouteFile.Name.Trim();
-                    RouteID = trkFile.Tr_RouteFile.RouteID;
-                    Description = trkFile.Tr_RouteFile.Description.Trim();
+                    Name = trkFile.Route.Name.Trim();
+                    RouteID = trkFile.Route.RouteID;
+                    Description = trkFile.Route.Description.Trim();
                 }
                 catch
                 {

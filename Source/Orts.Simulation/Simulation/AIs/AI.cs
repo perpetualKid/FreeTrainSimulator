@@ -878,7 +878,7 @@ namespace Orts.Simulation.AIs
             if (consistFileName.Contains("tilted")) train.IsTilting = true;
 
             // also set Route max speed for speedpost-processing in train.cs
-            train.TrainMaxSpeedMpS = (float)Simulator.TRK.Tr_RouteFile.SpeedLimit;
+            train.TrainMaxSpeedMpS = (float)Simulator.TRK.Route.SpeedLimit;
 
             train.InitialSpeed = srvFile.TimeTable.InitialSpeed;
 

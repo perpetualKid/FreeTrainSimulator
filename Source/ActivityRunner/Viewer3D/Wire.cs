@@ -23,19 +23,20 @@
  * 
  */
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Formats.Msts;
-using Orts.Simulation;
-using Orts.Common;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Orts.Common.Xna;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common;
+using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -391,15 +392,15 @@ namespace Orts.ActivityRunner.Viewer3D
             lodItem.MipMapLevelOfDetailBias = 0;
             LODItem.LoadMaterial(viewer, lodItem);
 
-            bool drawTriphaseWire = (viewer.Simulator.TRK.Tr_RouteFile.TriphaseEnabled == "Off" ? false :
-    viewer.Simulator.TRK.Tr_RouteFile.TriphaseEnabled == "On");
-            bool drawDoubleWire = (viewer.Simulator.TRK.Tr_RouteFile.DoubleWireEnabled == "Off" ? false :
-                viewer.Simulator.TRK.Tr_RouteFile.DoubleWireEnabled == "On" || viewer.Settings.DoubleWire);
-            float topHeight = (float)viewer.Simulator.TRK.Tr_RouteFile.OverheadWireHeight;
-            float topWireOffset = (viewer.Simulator.TRK.Tr_RouteFile.DoubleWireHeight > 0 ?
-                viewer.Simulator.TRK.Tr_RouteFile.DoubleWireHeight : 1.0f);
-            float dist = (viewer.Simulator.TRK.Tr_RouteFile.TriphaseWidth > 0 ?
-                viewer.Simulator.TRK.Tr_RouteFile.TriphaseWidth : 1.0f);
+            bool drawTriphaseWire = (viewer.Simulator.TRK.Route.TriphaseEnabled == "Off" ? false :
+    viewer.Simulator.TRK.Route.TriphaseEnabled == "On");
+            bool drawDoubleWire = (viewer.Simulator.TRK.Route.DoubleWireEnabled == "Off" ? false :
+                viewer.Simulator.TRK.Route.DoubleWireEnabled == "On" || viewer.Settings.DoubleWire);
+            float topHeight = (float)viewer.Simulator.TRK.Route.OverheadWireHeight;
+            float topWireOffset = (viewer.Simulator.TRK.Route.DoubleWireHeight > 0 ?
+                viewer.Simulator.TRK.Route.DoubleWireHeight : 1.0f);
+            float dist = (viewer.Simulator.TRK.Route.TriphaseWidth > 0 ?
+                viewer.Simulator.TRK.Route.TriphaseWidth : 1.0f);
 
             if (drawTriphaseWire)
             {
@@ -515,8 +516,8 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             TrProfile = WireProfile;
 
-            topWireOffset = (viewer.Simulator.TRK.Tr_RouteFile.DoubleWireHeight > 0 ?
-                viewer.Simulator.TRK.Tr_RouteFile.DoubleWireHeight : 1.0f);
+            topWireOffset = (viewer.Simulator.TRK.Route.DoubleWireHeight > 0 ?
+                viewer.Simulator.TRK.Route.DoubleWireHeight : 1.0f);
 
             XNAEnd = endPosition.XNAMatrix.Translation;
 

@@ -36,21 +36,22 @@ namespace Orts.Formats.Msts
             else
                 throw new FileNotFoundException($"Could not parse root directory for {path}");
             if (!rootFolder.Exists)
-                throw new FileNotFoundException($"Root folder for {path} does not exist");
+                throw new FileNotFoundException($"Root folder for {rootFolder.FullName} does not exist");
         }
 
         public static void InitializeFromRoot(string path)
         {
             rootFolder = new DirectoryInfo(path);
             if (!rootFolder.Exists)
-                throw new FileNotFoundException($"Root folder for {path} does not exist");
+                throw new FileNotFoundException($"Root folder for {rootFolder.FullName} does not exist");
         }
+
         public static void InitializeFromRoute(string path)
         {
             routeFolder = new DirectoryInfo(path);
             rootFolder = routeFolder.Parent.Parent;
             if (!rootFolder.Exists)
-                throw new FileNotFoundException($"Root folder for {path} does not exist");
+                throw new FileNotFoundException($"Root folder for {rootFolder.FullName} does not exist");
         }
 
         /// <summary>

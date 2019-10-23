@@ -33,8 +33,8 @@ namespace Orts.ContentManager.Models
             if (System.IO.Path.GetExtension(content.PathName).Equals("", StringComparison.OrdinalIgnoreCase))
             {
                 var file = new RouteFile(GetTRKFileName(content.PathName));
-                Name = file.Tr_RouteFile.Name;
-                Description = file.Tr_RouteFile.Description;
+                Name = file.Route.Name;
+                Description = file.Route.Description;
             }
         }
 

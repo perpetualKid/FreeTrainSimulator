@@ -187,12 +187,14 @@ namespace Orts.Formats.Msts.Models
                     stf.ParseBlock(new STFReader.TokenProcessor[] {
                         new STFReader.TokenProcessor("trsignaldir", ()=>{
                             if (i >= signalDirs)
-                                STFException.TraceWarning(stf, $"Adding extra TrSignalDirs in SignalItem {TrackItemId}");
-                            else
                             {
-                                SignalDirections[i] = new TrackItemSignalDirection(stf);
-                                i++;
+                                STFException.TraceWarning(stf, $"Adding extra TrSignalDirs in SignalItem {TrackItemId}");
+                                var temp = new TrackItemSignalDirection[signalDirs+1];
+                                Array.Copy(SignalDirections, temp, SignalDirections.Length);
+                                SignalDirections = temp;
                             }
+                            SignalDirections[i] = new TrackItemSignalDirection(stf);
+                            i++;
                         }),
                     });
                     if (i < signalDirs)

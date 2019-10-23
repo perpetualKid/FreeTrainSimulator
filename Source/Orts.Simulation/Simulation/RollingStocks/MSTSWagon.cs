@@ -40,7 +40,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
@@ -50,7 +52,9 @@ using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
+
 using ORTS.Scripting.Api;
+
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.RollingStocks
@@ -326,20 +330,20 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
-            var wagonFolderSlash = Path.GetDirectoryName(WagFilePath) + @"\";
-            if (MainShapeFileName != null && !File.Exists(wagonFolderSlash + MainShapeFileName))
+            string wagonFolder = Path.GetDirectoryName(WagFilePath);
+            if (MainShapeFileName != null && !File.Exists(Path.GetFullPath(Path.Combine(wagonFolder, MainShapeFileName))))
             {
-                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, wagonFolderSlash + MainShapeFileName);
+                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, (Path.GetFullPath(Path.Combine(wagonFolder, MainShapeFileName))));
                 MainShapeFileName = string.Empty;
             }
-            if (FreightShapeFileName != null && !File.Exists(wagonFolderSlash + FreightShapeFileName))
+            if (FreightShapeFileName != null && !File.Exists(Path.GetFullPath(Path.Combine(wagonFolder,FreightShapeFileName))))
             {
-                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, wagonFolderSlash + FreightShapeFileName);
+                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, FreightShapeFileName)));
                 FreightShapeFileName = null;
             }
-            if (InteriorShapeFileName != null && !File.Exists(wagonFolderSlash + InteriorShapeFileName))
+            if (InteriorShapeFileName != null && !File.Exists(Path.GetFullPath(Path.Combine(wagonFolder, InteriorShapeFileName))))
             {
-                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, wagonFolderSlash + InteriorShapeFileName);
+                Trace.TraceWarning("{0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, InteriorShapeFileName)));
                 InteriorShapeFileName = null;
             }
 
@@ -403,9 +407,9 @@ namespace Orts.Simulation.RollingStocks
             {
                 foreach (var ortsFreightAnim in FreightAnimations.Animations)
                 {
-                    if (ortsFreightAnim.ShapeFileName != null && !File.Exists(wagonFolderSlash + ortsFreightAnim.ShapeFileName))
+                    if (ortsFreightAnim.ShapeFileName != null && !File.Exists(Path.GetFullPath(Path.Combine(wagonFolder, ortsFreightAnim.ShapeFileName))))
                     {
-                        Trace.TraceWarning("ORTS FreightAnim in trainset {0} references non-existent shape {1}", WagFilePath, wagonFolderSlash + ortsFreightAnim.ShapeFileName);
+                        Trace.TraceWarning("ORTS FreightAnim in trainset {0} references non-existent shape {1}", WagFilePath, Path.GetFullPath(Path.Combine(wagonFolder, ortsFreightAnim.ShapeFileName)));
                         ortsFreightAnim.ShapeFileName = null;
                     }
 
@@ -753,7 +757,7 @@ namespace Orts.Simulation.RollingStocks
         public void GetMeasurementUnits()
         {
             IsMetric = Simulator.Settings.Units == "Metric" || (Simulator.Settings.Units == "Automatic" && System.Globalization.RegionInfo.CurrentRegion.IsMetric) ||
-                (Simulator.Settings.Units == "Route" && Simulator.TRK.Tr_RouteFile.MilepostUnitsMetric);
+                (Simulator.Settings.Units == "Route" && Simulator.TRK.Route.MilepostUnitsMetric);
             IsUK = Simulator.Settings.Units == "UK";
         }
 

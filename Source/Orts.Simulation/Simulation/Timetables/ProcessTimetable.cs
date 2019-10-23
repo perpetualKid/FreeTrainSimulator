@@ -2383,7 +2383,7 @@ namespace Orts.Simulation.Timetables
                         }
                         else
                         {
-                            confMaxSpeed = Math.Min((float)simulator.TRK.Tr_RouteFile.SpeedLimit, conFile.Train.MaxVelocity.A);
+                            confMaxSpeed = Math.Min((float)simulator.TRK.Route.SpeedLimit, conFile.Train.MaxVelocity.A);
                         }
                     }
                 }
@@ -2396,7 +2396,7 @@ namespace Orts.Simulation.Timetables
 
                 // set train details
                 TTTrain.CheckFreight();
-                TTTrain.SpeedSettings.routeSpeedMpS = (float)simulator.TRK.Tr_RouteFile.SpeedLimit;
+                TTTrain.SpeedSettings.routeSpeedMpS = (float)simulator.TRK.Route.SpeedLimit;
 
                 if (!confMaxSpeed.HasValue || confMaxSpeed.Value <= 0f)
                 {
