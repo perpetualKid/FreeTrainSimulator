@@ -171,6 +171,7 @@ namespace Orts.Viewer3D.RollingStock
             UserInputCommands.Add(UserCommand.ControlLight, new Action[] { Noop, () => new ToggleCabLightCommand(Viewer.Log) });
             UserInputCommands.Add(UserCommand.ControlRefill, new Action[] { () => StopRefillingOrUnloading(Viewer.Log), () => AttemptToRefillOrUnload() });
             UserInputCommands.Add(UserCommand.ControlImmediateRefill, new Action[] { () => StopImmediateRefilling(Viewer.Log), () => ImmediateRefill() });
+            UserInputCommands.Add(UserCommand.ControlWaterScoop, new Action[] { Noop, () => new ToggleWaterScoopCommand(Viewer.Log) });
             UserInputCommands.Add(UserCommand.ControlOdoMeterShowHide, new Action[] { Noop, () => new ToggleOdometerCommand(Viewer.Log) });
             UserInputCommands.Add(UserCommand.ControlOdoMeterReset, new Action[] { Noop, () => new ResetOdometerCommand(Viewer.Log) });
             UserInputCommands.Add(UserCommand.ControlOdoMeterDirection, new Action[] { Noop, () => new ToggleOdometerDirectionCommand(Viewer.Log) });
@@ -796,8 +797,8 @@ namespace Orts.Viewer3D.RollingStock
                     if (frameIndex < frameCount)
                     {
                         texture.GetData(0, new Rectangle(x * frameSize.X, y * frameSize.Y, copySize.X, copySize.Y), buffer, 0, buffer.Length);
-                        var frame = frames[frameIndex++] = new Texture2D(graphicsDevice, controlSize.X, controlSize.Y, 1, TextureUsage.None, texture.Format);
-                        frame.SetData(0, new Rectangle(0, 0, copySize.X, copySize.Y), buffer, 0, buffer.Length, SetDataOptions.None);
+                        var frame = frames[frameIndex++] = new Texture2D(graphicsDevice, controlSize.X, controlSize.Y, false, texture.Format);
+                        frame.SetData(0, new Rectangle(0, 0, copySize.X, copySize.Y), buffer, 0, buffer.Length);
                     }
                 }
             }
@@ -1007,15 +1008,15 @@ namespace Orts.Viewer3D.RollingStock
 
     public class CabRenderer : RenderPrimitive
     {
-        private SpriteBatchMaterial _Sprite2DCabView;
+        private CabSpriteBatchMaterial _SpriteShader2DCabView;
         private Rectangle _CabRect = new Rectangle();
         private Matrix _Scale = Matrix.Identity;
         private Texture2D _CabTexture;
-        private CabShader _Shader;
+        private CabShader _Shader;  // Shaders must have unique Keys - below
+        private int ShaderKey = 1;  // Shader Key must refer to only o
 
         private Point _PrevScreenSize;
 
-        //private List<CabViewControls> CabViewControlsList = new List<CabViewControls>();
         private List<List<CabViewControlRenderer>> CabViewControlRenderersList = new List<List<CabViewControlRenderer>>();
         private Viewer _Viewer;
         private MSTSLocomotive _Locomotive;
@@ -1028,9 +1029,28 @@ namespace Orts.Viewer3D.RollingStock
         public CabRenderer(Viewer viewer, MSTSLocomotive car)
         {
             //Sequence = RenderPrimitiveSequence.CabView;
-            _Sprite2DCabView = (SpriteBatchMaterial)viewer.MaterialManager.Load("SpriteBatch");
             _Viewer = viewer;
             _Locomotive = car;
+
+            _Viewer.AdjustCabHeight(_Viewer.DisplaySize.X, _Viewer.DisplaySize.Y);
+            
+            _Viewer.CabCamera.ScreenChanged();
+            
+                        // _Viewer.DisplaySize intercepted to adjust cab view height
+            Point DisplaySize = _Viewer.DisplaySize;
+            DisplaySize.Y = _Viewer.CabHeightPixels;
+            
+            // Use same shader for both front-facing and rear-facing cabs.
+            if (_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF != null)
+            {
+                _Shader = new CabShader(viewer.GraphicsDevice,
+                ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
+                ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
+                ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Color),
+                ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Color));
+            }
+            _PrevScreenSize = DisplaySize;
+            _SpriteShader2DCabView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, ShaderKey, _Shader);
 
             #region Create Control renderers
             ControlMap = new Dictionary<int, CabViewControlRenderer>();
@@ -1133,26 +1153,6 @@ namespace Orts.Viewer3D.RollingStock
                 i++;
             }
             #endregion
-
-            _Viewer.AdjustCabHeight(_Viewer.DisplaySize.X, _Viewer.DisplaySize.Y);
-
-            _Viewer.CabCamera.ScreenChanged();
-
-            // _Viewer.DisplaySize intercepted to adjust cab view height
-            Point DisplaySize = _Viewer.DisplaySize;
-            DisplaySize.Y = _Viewer.CabHeightPixels;
-
-            // Use same shader for both front-facing and rear-facing cabs.
-            if (_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF != null)
-            {
-                _Shader = new CabShader(viewer.GraphicsDevice,
-                    ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
-                    ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
-                    ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Color),
-                    ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Color));
-            }
-
-            _PrevScreenSize = DisplaySize;
 
         }
 
@@ -1284,7 +1284,7 @@ namespace Orts.Viewer3D.RollingStock
                     ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[i].ExtendedCVF.Light2Position, _Viewer.DisplaySize));
             }
 
-            frame.AddPrimitive(_Sprite2DCabView, this, RenderPrimitiveGroup.Cab, ref _Scale);
+            frame.AddPrimitive(_SpriteShader2DCabView, this, RenderPrimitiveGroup.Cab, ref _Scale);
             //frame.AddPrimitive(Materials.SpriteBatchMaterial, this, RenderPrimitiveGroup.Cab, ref _Scale);
 
             if (_Location == 0)
@@ -1314,8 +1314,6 @@ namespace Orts.Viewer3D.RollingStock
                     _Shader.SetData(_Viewer.MaterialManager.sunDirection, _isNightTexture, false, _Viewer.World.MSTSSky.mstsskyovercastFactor);
 
                 _Shader.SetTextureData(stretchedCab.Left, stretchedCab.Top, stretchedCab.Width, stretchedCab.Height);
-                _Shader.Begin();
-                _Shader.CurrentTechnique.Passes[0].Begin();
             }
 
             if (_CabTexture != null)
@@ -1325,19 +1323,12 @@ namespace Orts.Viewer3D.RollingStock
                     var scale = new Vector2((float)_CabRect.Width / _CabTexture.Width, (float)_CabRect.Height / _CabTexture.Height);
                     var place = new Vector2(_CabRect.Width / 2 - _Viewer.CabXOffsetPixels - 50 * scale.X, _CabRect.Height / 2 + _Viewer.CabYOffsetPixels - 40 * scale.Y);
                     var place2 = new Vector2(_CabTexture.Width / 2, _CabTexture.Height / 2);
-                    _Sprite2DCabView.SpriteBatch.Draw(_CabTexture, place, stretchedCab, Color.White, 0, place2, scale, SpriteEffects.None, 0f);
+                    _SpriteShader2DCabView.SpriteBatch.Draw(_CabTexture, place, stretchedCab, Color.White, 0, place2, scale, SpriteEffects.None, 0f);
                 }
                 else
                 {
-                    _Sprite2DCabView.SpriteBatch.Draw(_CabTexture, stretchedCab, Color.White);
+                    _SpriteShader2DCabView.SpriteBatch.Draw(_CabTexture, stretchedCab, Color.White);
                 }
-            }
-            //Materials.SpriteBatchMaterial.SpriteBatch.Draw(_CabTexture, _CabRect, Color.White);
-
-            if (_Shader != null)
-            {
-                _Shader.CurrentTechnique.Passes[0].End();
-                _Shader.End();
             }
         }
 
@@ -1360,7 +1351,8 @@ namespace Orts.Viewer3D.RollingStock
         protected readonly MSTSLocomotive Locomotive;
         protected readonly CabViewControl Control;
         protected readonly CabShader Shader;
-        protected readonly SpriteBatchMaterial ControlView;
+        protected readonly int ShaderKey = 1;
+        protected readonly CabSpriteBatchMaterial CabShaderControlView;
 
         protected Vector2 Position;
         protected Texture2D Texture;
@@ -1376,7 +1368,7 @@ namespace Orts.Viewer3D.RollingStock
             Control = control;
             Shader = shader;
 
-            ControlView = (SpriteBatchMaterial)viewer.MaterialManager.Load("SpriteBatch");
+            CabShaderControlView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, ShaderKey, Shader);
 
             HasCabLightDirectory = CABTextureManager.LoadTextures(Viewer, Control.ACEFile);
         }
@@ -1411,7 +1403,7 @@ namespace Orts.Viewer3D.RollingStock
         [CallOnThread("Updater")]
         public virtual void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
         {
-            frame.AddPrimitive(ControlView, this, RenderPrimitiveGroup.Cab, ref Matrix);
+            frame.AddPrimitive(CabShaderControlView, this, RenderPrimitiveGroup.Cab, ref Matrix);
         }
 
         internal void Mark()
@@ -1480,15 +1472,8 @@ namespace Orts.Viewer3D.RollingStock
             if (Shader != null)
             {
                 Shader.SetTextureData(Position.X, Position.Y, Texture.Width * ScaleToScreen, Texture.Height * ScaleToScreen);
-                Shader.Begin();
-                Shader.CurrentTechnique.Passes[0].Begin();
             }
-            ControlView.SpriteBatch.Draw(Texture, Position, null, Color.White, Rotation, Origin, ScaleToScreen, SpriteEffects.None, 0);
-            if (Shader != null)
-            {
-                Shader.CurrentTechnique.Passes[0].End();
-                Shader.End();
-            }
+            CabShaderControlView.SpriteBatch.Draw(Texture, Position, null, Color.White, Rotation, Origin, ScaleToScreen, SpriteEffects.None, 0);
         }
     }
 
@@ -1666,15 +1651,8 @@ namespace Orts.Viewer3D.RollingStock
             if (Shader != null)
             {
                 Shader.SetTextureData(DestinationRectangle.Left, DestinationRectangle.Top, DestinationRectangle.Width, DestinationRectangle.Height);
-                Shader.Begin();
-                Shader.CurrentTechnique.Passes[0].Begin();
             }
-            ControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, DrawColor);
-            if (Shader != null)
-            {
-                Shader.CurrentTechnique.Passes[0].End();
-                Shader.End();
-            }
+            CabShaderControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, DrawColor);
         }
     }
 
@@ -1762,15 +1740,8 @@ namespace Orts.Viewer3D.RollingStock
             if (Shader != null)
             {
                 Shader.SetTextureData(DestinationRectangle.Left, DestinationRectangle.Top, DestinationRectangle.Width, DestinationRectangle.Height);
-                Shader.Begin();
-                Shader.CurrentTechnique.Passes[0].Begin();
             }
-            ControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, Color.White);
-            if (Shader != null)
-            {
-                Shader.CurrentTechnique.Passes[0].End();
-                Shader.End();
-            }
+            CabShaderControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, Color.White);
         }
 
         /// <summary>
@@ -1791,6 +1762,7 @@ namespace Orts.Viewer3D.RollingStock
                 case CABViewControlTypes.BLOWER:
                 case CABViewControlTypes.DAMPERS_FRONT:
                 case CABViewControlTypes.STEAM_HEAT:
+                case CABViewControlTypes.ORTS_WATER_SCOOP:
                 case CABViewControlTypes.WATER_INJECTOR1:
                 case CABViewControlTypes.WATER_INJECTOR2:
                 case CABViewControlTypes.FIREHOLE:
@@ -1875,6 +1847,7 @@ namespace Orts.Viewer3D.RollingStock
                 case CABViewControlTypes.EMERGENCY_BRAKE:
                 case CABViewControlTypes.DOORS_DISPLAY:
                 case CABViewControlTypes.CYL_COCKS:
+                case CABViewControlTypes.ORTS_LARGE_EJECTOR:
                 case CABViewControlTypes.ORTS_CYL_COMP:
                 case CABViewControlTypes.STEAM_INJ1:
                 case CABViewControlTypes.STEAM_INJ2:
@@ -1971,6 +1944,7 @@ namespace Orts.Viewer3D.RollingStock
                     }
                     break;
                 case CABViewControlTypes.STEAM_HEAT: Locomotive.SetSteamHeatValue(ChangedValue(Locomotive.SteamHeatController.IntermediateValue)); break;
+                case CABViewControlTypes.ORTS_WATER_SCOOP: if (((Locomotive as MSTSSteamLocomotive).WaterScoopDown ? 1 : 0) != ChangedValue(Locomotive.WaterScoopDown ? 1 : 0)) ; break;
                 case CABViewControlTypes.ORTS_CIRCUIT_BREAKER_DRIVER_CLOSING_ORDER:
                     new CircuitBreakerClosingOrderCommand(Viewer.Log, ChangedValue((Locomotive as MSTSElectricLocomotive).PowerSupply.CircuitBreaker.DriverClosingOrder ? 1 : 0) > 0);
                     new CircuitBreakerClosingOrderButtonCommand(Viewer.Log, ChangedValue(UserInput.IsMouseLeftButtonPressed ? 1 : 0) > 0);
@@ -1980,7 +1954,8 @@ namespace Orts.Viewer3D.RollingStock
                 case CABViewControlTypes.EMERGENCY_BRAKE: if ((Locomotive.EmergencyButtonPressed ? 1 : 0) != ChangedValue(Locomotive.EmergencyButtonPressed ? 1 : 0)) new EmergencyPushButtonCommand(Viewer.Log); break;
                 case CABViewControlTypes.RESET: new AlerterCommand(Viewer.Log, ChangedValue(Locomotive.TrainControlSystem.AlerterButtonPressed ? 1 : 0) > 0); break;
                 case CABViewControlTypes.CP_HANDLE: Locomotive.SetCombinedHandleValue(ChangedValue(Locomotive.GetCombinedHandleValue(true))); break;
-                // Steam locomotives only:
+ 
+             // Steam locomotives only:
                 case CABViewControlTypes.CUTOFF: (Locomotive as MSTSSteamLocomotive).SetCutoffValue(ChangedValue((Locomotive as MSTSSteamLocomotive).CutoffController.IntermediateValue)); break;
                 case CABViewControlTypes.BLOWER: (Locomotive as MSTSSteamLocomotive).SetBlowerValue(ChangedValue((Locomotive as MSTSSteamLocomotive).BlowerController.IntermediateValue)); break;
                 case CABViewControlTypes.DAMPERS_FRONT: (Locomotive as MSTSSteamLocomotive).SetDamperValue(ChangedValue((Locomotive as MSTSSteamLocomotive).DamperController.IntermediateValue)); break;
@@ -1992,6 +1967,7 @@ namespace Orts.Viewer3D.RollingStock
                 case CABViewControlTypes.STEAM_INJ1: if (((Locomotive as MSTSSteamLocomotive).Injector1IsOn ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).Injector1IsOn ? 1 : 0)) new ToggleInjectorCommand(Viewer.Log, 1); break;
                 case CABViewControlTypes.STEAM_INJ2: if (((Locomotive as MSTSSteamLocomotive).Injector2IsOn ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).Injector2IsOn ? 1 : 0)) new ToggleInjectorCommand(Viewer.Log, 2); break;
                 case CABViewControlTypes.SMALL_EJECTOR: (Locomotive as MSTSSteamLocomotive).SetSmallEjectorValue(ChangedValue((Locomotive as MSTSSteamLocomotive).SmallEjectorController.IntermediateValue)); break;
+                case CABViewControlTypes.ORTS_LARGE_EJECTOR: if (((Locomotive as MSTSSteamLocomotive).LargeEjectorEnabled ? 1 : 0) != ChangedValue((Locomotive as MSTSSteamLocomotive).LargeEjectorEnabled ? 1 : 0)) new ToggleLargeEjectorCommand(Viewer.Log); break;
                 //
                 case CABViewControlTypes.CAB_RADIO: new CabRadioCommand(Viewer.Log, ChangedValue(Locomotive.CabRadioOn ? 1 : 0) > 0); break;
                 case CABViewControlTypes.WIPERS: new WipersCommand(Viewer.Log, ChangedValue(Locomotive.Wiper ? 1 : 0) > 0); break;
@@ -2186,7 +2162,7 @@ namespace Orts.Viewer3D.RollingStock
 
         public override void Draw(GraphicsDevice graphicsDevice)
         {
-            DrawFont.Draw(ControlView.SpriteBatch, DrawPosition, Point.Zero, DrawText, Alignment, DrawColor);
+            DrawFont.Draw(CabShaderControlView.SpriteBatch, DrawPosition, Point.Zero, DrawText, Alignment, DrawColor);
         }
 
         public string GetDigits(out Color DrawColor)

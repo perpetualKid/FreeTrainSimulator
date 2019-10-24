@@ -921,8 +921,29 @@ namespace Orts.Common
                 Receiver.SteamHeatChangeTo(ToState, Target);
                            }
             // Report();
-        }   
+        }
     }
+
+    // Large Ejector command
+    [Serializable()]
+    public sealed class ToggleLargeEjectorCommand : Command
+    {
+        public static MSTSSteamLocomotive Receiver { get; set; }
+
+        public ToggleLargeEjectorCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver == null) return;
+            Receiver.ToggleLargeEjector();
+            // Report();
+        }
+     }
+
 
     [Serializable()]
     public sealed class ContinuousSmallEjectorCommand : ContinuousCommand
@@ -1221,6 +1242,25 @@ namespace Orts.Common
         }
     }
 
+    [Serializable()]
+    public sealed class ToggleWaterScoopCommand : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public ToggleWaterScoopCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver == null) return;
+            Receiver.ToggleWaterScoop();
+        }
+    }
+
+    // Cylinder Cocks command
     [Serializable()]
     public sealed class ToggleCylinderCocksCommand : Command {
         public static MSTSSteamLocomotive Receiver { get; set; }

@@ -45,6 +45,16 @@
   <PropertyGroup>
     <ApplicationManifest>..\Launcher\app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;WINDOWS;NEW_ACTION;WITH_NEW_SAVE;ACTIVITY_EDITOR</DefineConstants>
+    <OutputPath>..\..\Program\</OutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>..\..\Program\</OutputPath>
+    <DefineConstants>WINDOWS;NEW_ACTION;WITH_NEW_SAVE;ACTIVITY_EDITOR</DefineConstants>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="GNU.Gettext, Version=1.1.5151.39896, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -54,15 +64,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdPartyLibs\GNU.Gettext.WinForms.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Xna.Framework, Version=3.1.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=x86" />
-    <Reference Include="Microsoft.Xna.Framework.Game, Version=3.1.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d, processorArchitecture=x86" />
+    <Reference Include="MonoGame.Framework, Version=3.6.0.1625, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\3rdPartyLibs\Monogame\MonoGame.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoGame.Framework.Content.Pipeline, Version=3.6.0.1625, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\3rdPartyLibs\Monogame\MonoGame.Framework.Content.Pipeline.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdPartyLibs\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="PIEHidDotNet, Version=2.2.3.26389, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\3rdPartyLibs\PIEHidDotNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -116,6 +128,7 @@
     <Compile Include="Viewer3D\Popups\CarOperationsWindow.cs" />
     <Compile Include="Viewer3D\Popups\CompassWindow.cs" />
     <Compile Include="Viewer3D\Popups\ComposeMessage.cs" />
+    <Compile Include="Viewer3D\Popups\HUDScrollWindow.cs" />
     <Compile Include="Viewer3D\Popups\LabelPrimitive.cs" />
     <Compile Include="Viewer3D\Popups\NoticeWindow.cs" />
     <Compile Include="Viewer3D\Popups\HelpWindow.cs" />
@@ -323,8 +336,15 @@
     <Content Include="Version.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Readme_ORNewYear_MG.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Orts.ExternalDevices\Orts.ExternalDevices.csproj">
+      <Project>{0da86c52-ffb5-4cd6-a2c0-08f1610e6399}</Project>
+      <Name>Orts.ExternalDevices</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj">
       <Project>{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}</Project>
       <Name>Orts.Formats.Msts</Name>
@@ -373,11 +393,13 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

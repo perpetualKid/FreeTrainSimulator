@@ -128,19 +128,27 @@ namespace Orts.Viewer3D.Processes
 
                 if (hungTokens.Count > 0)
                 {
-                    // Report every hung thread as a fatal error.
-                    foreach (var token in hungTokens)
-                        Trace.WriteLine(new FatalException(new ThreadHangException(token.Thread, token.Stacks)));
+                    if (Game.Settings.EnableWatchdog)
+                        // Report every hung thread as a fatal error.
+                        foreach (var token in hungTokens)
+                            Trace.WriteLine(new FatalException(new ThreadHangException(token.Thread, token.Stacks)));
+                    else
+                        foreach (var token in hungTokens)
+                            Trace.WriteLine(new ThreadHangException(token.Thread, token.Stacks));
+
 
                     // Report every waiting thread as a warning (it might be relevant).
                     foreach (var token in waitTokens)
                         Trace.WriteLine(new ThreadWaitException(token.Thread, token.Stacks));
 
-                    // Abandon ship!
-                    if (Debugger.IsAttached)
-                        Debugger.Break();
-                    else
-                        Environment.Exit(1);
+                    if (Game.Settings.EnableWatchdog)
+                    {
+                        // Abandon ship!
+                        if (Debugger.IsAttached)
+                            Debugger.Break();
+                        else
+                            Environment.Exit(1);
+                    }
                 }
             }
         }

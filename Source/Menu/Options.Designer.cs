@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.buttonOK = new System.Windows.Forms.Button();
             this.numericBrakePipeChargingRate = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -46,7 +46,6 @@
             this.labelOtherUnits = new System.Windows.Forms.Label();
             this.labelPressureUnit = new System.Windows.Forms.Label();
             this.comboBoxOtherUnits = new System.Windows.Forms.ComboBox();
-            this.checkUseLargeAddressAware = new System.Windows.Forms.CheckBox();
             this.comboPressureUnit = new System.Windows.Forms.ComboBox();
             this.labelLanguage = new System.Windows.Forms.Label();
             this.comboLanguage = new System.Windows.Forms.ComboBox();
@@ -187,6 +186,10 @@
             this.ElevationText = new System.Windows.Forms.Label();
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.label28 = new System.Windows.Forms.Label();
+            this.trackMultiSampling = new System.Windows.Forms.TrackBar();
+            this.lblMSAACount = new System.Windows.Forms.Label();
+            this.checkEnableWatchdog = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -227,6 +230,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackMultiSampling)).BeginInit();
             this.SuspendLayout();
             // 
             // buttonOK
@@ -347,12 +351,12 @@
             // 
             // tabPageGeneral
             // 
+            this.tabPageGeneral.Controls.Add(this.checkEnableWatchdog);
             this.tabPageGeneral.Controls.Add(this.checkSpeedControl);
             this.tabPageGeneral.Controls.Add(this.checkDisableTCSScripts);
             this.tabPageGeneral.Controls.Add(this.labelOtherUnits);
             this.tabPageGeneral.Controls.Add(this.labelPressureUnit);
             this.tabPageGeneral.Controls.Add(this.comboBoxOtherUnits);
-            this.tabPageGeneral.Controls.Add(this.checkUseLargeAddressAware);
             this.tabPageGeneral.Controls.Add(this.comboPressureUnit);
             this.tabPageGeneral.Controls.Add(this.labelLanguage);
             this.tabPageGeneral.Controls.Add(this.comboLanguage);
@@ -420,16 +424,6 @@
             this.comboBoxOtherUnits.Name = "comboBoxOtherUnits";
             this.comboBoxOtherUnits.Size = new System.Drawing.Size(121, 21);
             this.comboBoxOtherUnits.TabIndex = 8;
-            // 
-            // checkUseLargeAddressAware
-            // 
-            this.checkUseLargeAddressAware.AutoSize = true;
-            this.checkUseLargeAddressAware.Location = new System.Drawing.Point(6, 98);
-            this.checkUseLargeAddressAware.Name = "checkUseLargeAddressAware";
-            this.checkUseLargeAddressAware.Size = new System.Drawing.Size(342, 17);
-            this.checkUseLargeAddressAware.TabIndex = 3;
-            this.checkUseLargeAddressAware.Text = "Large address aware binaries (for all 64bit and 3GB tuning on 32bit)";
-            this.checkUseLargeAddressAware.UseVisualStyleBackColor = true;
             // 
             // comboPressureUnit
             // 
@@ -592,6 +586,9 @@
             // 
             // tabPageVideo
             // 
+            this.tabPageVideo.Controls.Add(this.lblMSAACount);
+            this.tabPageVideo.Controls.Add(this.trackMultiSampling);
+            this.tabPageVideo.Controls.Add(this.label28);
             this.tabPageVideo.Controls.Add(this.checkShadowAllShapes);
             this.tabPageVideo.Controls.Add(this.checkDoubleWire);
             this.tabPageVideo.Controls.Add(this.label15);
@@ -1540,27 +1537,27 @@
             this.dataGridViewContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dataGridViewContent.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dataGridViewContent.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dataGridViewContent.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dataGridViewContent.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.nameDataGridViewTextBoxColumn,
             this.pathDataGridViewTextBoxColumn});
             this.dataGridViewContent.DataSource = this.bindingSourceContent;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridViewContent.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewContent.Location = new System.Drawing.Point(0, 0);
             this.dataGridViewContent.MultiSelect = false;
@@ -2241,6 +2238,50 @@
             this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
             this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(304, 56);
+            this.label28.Margin = new System.Windows.Forms.Padding(3);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(141, 13);
+            this.label28.TabIndex = 28;
+            this.label28.Text = "MultiSampling (Anti-Aliasing):";
+            // 
+            // trackMultiSampling
+            // 
+            this.trackMultiSampling.AutoSize = false;
+            this.trackMultiSampling.BackColor = System.Drawing.SystemColors.Window;
+            this.trackMultiSampling.LargeChange = 2;
+            this.trackMultiSampling.Location = new System.Drawing.Point(298, 75);
+            this.trackMultiSampling.Maximum = 5;
+            this.trackMultiSampling.Name = "trackMultiSampling";
+            this.trackMultiSampling.Size = new System.Drawing.Size(281, 45);
+            this.trackMultiSampling.TabIndex = 29;
+            this.trackMultiSampling.ValueChanged += new System.EventHandler(this.trackMultiSampling_ValueChanged);
+            // 
+            // lblMSAACount
+            // 
+            this.lblMSAACount.Location = new System.Drawing.Point(447, 56);
+            this.lblMSAACount.Margin = new System.Windows.Forms.Padding(3);
+            this.lblMSAACount.Name = "lblMSAACount";
+            this.lblMSAACount.Size = new System.Drawing.Size(129, 13);
+            this.lblMSAACount.TabIndex = 30;
+            this.lblMSAACount.Text = "0x";
+            this.lblMSAACount.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // checkEnableWatchdog
+            // 
+            this.checkEnableWatchdog.AutoSize = true;
+            this.checkEnableWatchdog.Checked = true;
+            this.checkEnableWatchdog.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkEnableWatchdog.Location = new System.Drawing.Point(6, 302);
+            this.checkEnableWatchdog.Name = "checkEnableWatchdog";
+            this.checkEnableWatchdog.Size = new System.Drawing.Size(76, 17);
+            this.checkEnableWatchdog.TabIndex = 15;
+            this.checkEnableWatchdog.Text = "Watchdog";
+            this.checkEnableWatchdog.UseVisualStyleBackColor = true;
+            // 
             // OptionsForm
             // 
             this.AcceptButton = this.buttonOK;
@@ -2308,6 +2349,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackMultiSampling)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -2419,7 +2461,6 @@
         private System.Windows.Forms.TrackBar trackAdhesionFactor;
         private System.Windows.Forms.CheckBox checkAdhesionPropToWeather;
         private System.Windows.Forms.CheckBox checkModelInstancing;
-        private System.Windows.Forms.CheckBox checkUseLargeAddressAware;
         private System.Windows.Forms.TrackBar trackDayAmbientLight;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.CheckBox checkConditionalLoadOfNightTextures;
@@ -2470,5 +2511,9 @@
         private System.Windows.Forms.NumericUpDown numericActWeatherRandomizationLevel;
         private System.Windows.Forms.Label label26;
         private System.Windows.Forms.CheckBox checkShadowAllShapes;
+        private System.Windows.Forms.Label lblMSAACount;
+        private System.Windows.Forms.TrackBar trackMultiSampling;
+        private System.Windows.Forms.Label label28;
+        private System.Windows.Forms.CheckBox checkEnableWatchdog;
     }
 }

@@ -124,8 +124,6 @@ namespace ORTS.Settings
         public bool GraduatedRelease { get; set; }
         [Default(false)]
         public bool RetainersOnAllCars { get; set; }
-        [Default(true)]
-        public bool UseLargeAddressAware { get; set; }
         [Default(false)]
         public bool SuppressConfirmations { get; set; }
         [Default(21)]
@@ -138,6 +136,8 @@ namespace ORTS.Settings
         public String Units { get; set; }
         [Default(false)]
         public bool DisableTCSScripts { get; set; }
+        [Default(true)]
+        public bool EnableWatchdog { get; set; }
 
         // Audio settings:
         [Default(true)]
@@ -164,6 +164,8 @@ namespace ORTS.Settings
         public bool Wire { get; set; }
         [Default(false)]
         public bool VerticalSync { get; set; }
+        [Default(4)]
+        public int MultisamplingCount { get; set; }
         [Default(0)]
         public int Cab2DStretch { get; set; }
         [Default(2000)]
@@ -313,8 +315,6 @@ namespace ORTS.Settings
         public string LoggingPath { get; set; }
         [Default("")]
         public string ScreenshotPath { get; set; }
-        [Default(0)]
-        public int ShaderModel { get; set; }
         [Default(true)]
         public bool ShadowMapBlur { get; set; }
         [Default(4)]
@@ -359,6 +359,8 @@ namespace ORTS.Settings
         public int[] WindowPosition_DriverAid { get; set; }
         [Default(new[] { 50, 50 })]
         public int[] WindowPosition_Help { get; set; }
+        [Default(new[] { 75, 0 })]
+        public int[] WindowPosition_HUDScroll { get; set; }
         [Default(new[] { 0, 100 })]
         public int[] WindowPosition_NextStation { get; set; }
         [Default(new[] { 50, 50 })]

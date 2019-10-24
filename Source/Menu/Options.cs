@@ -140,7 +140,6 @@ namespace ORTS
             checkSpeedControl.Checked = Settings.SpeedControl;
             checkConfirmations.Checked = !Settings.SuppressConfirmations;
             checkViewDispatcher.Checked = Settings.ViewDispatcher;
-            checkUseLargeAddressAware.Checked = Settings.UseLargeAddressAware;
             checkRetainers.Checked = Settings.RetainersOnAllCars;
             checkGraduatedRelease.Checked = Settings.GraduatedRelease;
             numericBrakePipeChargingRate.Value = Settings.BrakePipeChargingRate;
@@ -148,6 +147,7 @@ namespace ORTS
             comboPressureUnit.Text = Settings.PressureUnit;
             comboBoxOtherUnits.Text = settings.Units;
             checkDisableTCSScripts.Checked = Settings.DisableTCSScripts;
+            checkEnableWatchdog.Checked = Settings.EnableWatchdog;
 
 
             // Audio tab
@@ -164,6 +164,7 @@ namespace ORTS
             checkModelInstancing.Checked = Settings.ModelInstancing;
             checkWire.Checked = Settings.Wire;
             checkVerticalSync.Checked = Settings.VerticalSync;
+            trackMultiSampling.Value = (int)Math.Log(Settings.MultisamplingCount, 2);
             numericCab2DStretch.Value = Settings.Cab2DStretch;
             numericViewingDistance.Value = Settings.ViewingDistance;
             checkDistantMountains.Checked = Settings.DistantMountains;
@@ -428,7 +429,6 @@ namespace ORTS
             Settings.SpeedControl = checkSpeedControl.Checked;
             Settings.SuppressConfirmations = !checkConfirmations.Checked;
             Settings.ViewDispatcher = checkViewDispatcher.Checked;
-            Settings.UseLargeAddressAware = checkUseLargeAddressAware.Checked;
             Settings.RetainersOnAllCars = checkRetainers.Checked;
             Settings.GraduatedRelease = checkGraduatedRelease.Checked;
             Settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
@@ -436,6 +436,7 @@ namespace ORTS
             Settings.PressureUnit = comboPressureUnit.SelectedValue.ToString();
             Settings.Units = comboBoxOtherUnits.SelectedValue.ToString();
             Settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
+            Settings.EnableWatchdog = checkEnableWatchdog.Checked;
 
             // Audio tab
             Settings.MSTSBINSound = checkMSTSBINSound.Checked;
@@ -451,6 +452,7 @@ namespace ORTS
             Settings.ModelInstancing = checkModelInstancing.Checked;
             Settings.Wire = checkWire.Checked;
             Settings.VerticalSync = checkVerticalSync.Checked;
+            Settings.MultisamplingCount = 1 << trackMultiSampling.Value;
             Settings.Cab2DStretch = (int)numericCab2DStretch.Value;
             Settings.ViewingDistance = (int)numericViewingDistance.Value;
             Settings.DistantMountains = checkDistantMountains.Checked;
@@ -567,6 +569,12 @@ namespace ORTS
         {
             toolTip1.SetToolTip(trackDayAmbientLight, (trackDayAmbientLight.Value * 5).ToString() + " %");
         }
+
+        private void trackMultiSampling_ValueChanged(object sender, EventArgs e)
+        {
+            lblMSAACount.Text = trackMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetStringFmt($"{1 << trackMultiSampling.Value}x");
+        }
+
 
         private void trackAdhesionFactor_ValueChanged(object sender, EventArgs e)
         {

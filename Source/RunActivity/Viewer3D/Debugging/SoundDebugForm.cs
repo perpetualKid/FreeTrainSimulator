@@ -33,9 +33,11 @@ namespace Orts.Viewer3D.Debugging
         private Timer UITimer;
         private double lastUpdateTime = 0;
 
-        private List<SoundSource> ActiveSoundSources;
-        private List<SoundSource> InactiveSoundSources;
         private SoundSource selectedSoundSource;
+        private TreeNode node;
+        private TreeNode selectedNode = null;
+        private TreeNode lastActSelectedNode = null;
+        private TreeNode lastInActSelectedNode = null;
 
         public SoundDebugForm(Viewer viewer)
         {
@@ -47,9 +49,6 @@ namespace Orts.Viewer3D.Debugging
             Font = SystemFonts.MessageBoxFont;
 
             Viewer = viewer;
-
-            ActiveSoundSources = new List<SoundSource>();
-            InactiveSoundSources = new List<SoundSource>();
 
             //foreach (string eventName in Enum.GetNames(typeof(Event)))
             //    discreteTriggersList.Items.Add(eventName);
@@ -65,18 +64,19 @@ namespace Orts.Viewer3D.Debugging
         void UITimer_Tick(object sender, EventArgs e)
         {
             Visible = Viewer.SoundDebugFormEnabled;
-            if (!Visible || Program.Simulator.GameTime - lastUpdateTime < 0.1) return;
-            lastUpdateTime = Program.Simulator.GameTime;
+            if (!Visible || Viewer.RenderProcess.Viewer.RealTime - lastUpdateTime < 0.5 ) return;
+            lastUpdateTime = Viewer.RenderProcess.Viewer.RealTime;
 
             UpdateContent();
         }
 
         /// <summary>
-        /// Updates the form content. Warning: Creates garbage
+        /// Updates the form content. Warning: Creates garbage - Not any more I hope  - Dennis
         /// </summary>
         void UpdateContent()
         {
-            var soundSources = Viewer.SoundProcess.GetSoundSources();
+            var soundSources = Viewer.SoundProcess.SoundSources;
+
             activeSoundList.BeginUpdate();
             inactiveSoundList.BeginUpdate();
 
@@ -85,146 +85,178 @@ namespace Orts.Viewer3D.Debugging
             for (int i = 0; i < inactiveSoundList.Nodes.Count; i++)
                 inactiveSoundList.Nodes[i].Nodes.Clear();
 
-            foreach (var src in soundSources.Values)
-                foreach (var ssb in src)
-                {
-                    if (ssb is SoundSource)
+            lock (Viewer.SoundProcess.SoundSources)
+            {
+                foreach (var src in soundSources.Values)
+                    foreach (var ssb in src)
                     {
-                        var ss = (SoundSource)ssb;
-                        TreeNode node;
-
-                        var nodeString = String.Format("{0}: {1} ", ss.Car != null ? ss.Car.UiD.ToString() : "-", ss.SMSFileName);
-                        var nodeKey = nodeString + ss.GetHashCode().ToString();
-
-                        if (ss.Active)
-                        {
-                            int index = activeSoundList.Nodes.IndexOfKey(nodeKey);
-                            if (index == -1)
-                            {
-                                activeSoundList.Nodes.Add(nodeKey, nodeString);
-                                index = activeSoundList.Nodes.IndexOfKey(nodeKey);
-                            }
-                            node = activeSoundList.Nodes[index];
-                        }
+                        if (ssb is SoundSource)
+                            AddToForm((SoundSource)ssb);
                         else
-                        {
-                            int index = inactiveSoundList.Nodes.IndexOfKey(nodeKey);
-                            if (index == -1)
+                            if (ssb is TrackSoundSource)
                             {
-                                inactiveSoundList.Nodes.Add(nodeKey, nodeString);
-                                index = inactiveSoundList.Nodes.IndexOfKey(nodeKey);
+                                var ts = (TrackSoundSource)ssb;
+                                if (ts._activeInSource != null)
+                                    AddToForm (ts._activeInSource);
+                                if (ts._activeOutSource != null)
+                                    AddToForm(ts._activeOutSource);
                             }
-                            node = inactiveSoundList.Nodes[index];
-                        }
-                        node.Tag = ss;
+                    }
 
-                        var activeSS = 0;
-                        foreach (var soundStream in ss.SoundStreams)
+                CleanUp(activeSoundList.Nodes);
+                CleanUp(inactiveSoundList.Nodes);
+                activeSoundList.EndUpdate();
+                inactiveSoundList.EndUpdate();
+
+                // Fill selected node's data
+                if (activeSoundList.SelectedNode != lastActSelectedNode)
+                { 
+                    selectedNode = activeSoundList.SelectedNode;
+                    lastActSelectedNode = activeSoundList.SelectedNode;
+                    inactiveSoundList.SelectedNode = null;
+                    lastInActSelectedNode = null;
+                }
+                else
+                    if (inactiveSoundList.SelectedNode != lastInActSelectedNode)
+                    {
+                        selectedNode = inactiveSoundList.SelectedNode;
+                        lastInActSelectedNode = inactiveSoundList.SelectedNode;
+                        activeSoundList.SelectedNode = null;
+                        lastActSelectedNode = null;
+                    }
+
+                if (selectedNode != null && selectedNode.Tag is SoundSource && (SoundSource)selectedNode.Tag != null)
+                {
+                    selectedSoundSource = (SoundSource)selectedNode.Tag;
+
+                    int soundSourceID = -1;
+                    int i = -1;
+                    if (selectedSoundSource.SoundStreams.Count > 0)
+                        while (++i < selectedSoundSource.SoundStreams.Count)
                         {
-                            var playingData = soundStream.ALSoundSource.GetPlayingData();
-                            if (playingData[0] != "-1")
-                                activeSS++;
-                            var streamString = String.Format("{0} {1} (cue: {2}) {3}", playingData);
-                            var streamKey = streamString + soundStream.GetHashCode().ToString();
-                            node.Nodes.Add(streamKey, streamString);
-                            node.Nodes[streamKey].Tag = soundStream;
+                            soundSourceID = selectedSoundSource.SoundStreams[i].ALSoundSource.SoundSourceID;
+                            if (soundSourceID != -1)
+                                break;
                         }
-                        node.Text = string.Format("{0}({1}{2}", node.Text.Split('(')[0], activeSS, @"@");
+
+                    if (selectedSoundSource.WorldLocation != WorldLocation.None && selectedSoundSource.SoundStreams.Count > 0)
+                    {
+                        //Source distance:
+                        distance.Text = Math.Sqrt(selectedSoundSource.DistanceSquared).ToString("F1");
+
+                        //Stream distance:
+                        //float[] pos = new float[3];
+                        //OpenAL.alGetSource3f(soundSourceID, OpenAL.AL_POSITION, out pos[0], out pos[1], out pos[2]);
+                        //float[] lpos = new float[3];
+                        //OpenAL.alGetListener3f(OpenAL.AL_POSITION, out lpos[0], out lpos[1], out lpos[2]);
+                        //for (var j = 0; j < 3; j++)
+                        //    pos[j] -= lpos[j];
+                        //distance.Text = Math.Sqrt(pos[0] * pos[0] + pos[1] * pos[1] + pos[2] * pos[2]).ToString("F1");
                     }
                     else
                     {
+                        distance.Text = "-";
                     }
-                }
 
-            CleanUp(activeSoundList.Nodes);
-            CleanUp(inactiveSoundList.Nodes);
+                    int relative;
+                    OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_SOURCE_RELATIVE, out relative);
+                    sound3D.Checked = relative == OpenAL.AL_FALSE;
 
-            // Fill selected node's data
-            var selectedNode = activeSoundList.SelectedNode;
-            if (selectedNode == null)
-                selectedNode = inactiveSoundList.SelectedNode;
-
-            if (selectedNode != null && selectedNode.Tag is SoundSource)
-                selectedSoundSource = (SoundSource)selectedNode.Tag;
-            else
-                selectedSoundSource = null;
-
-            if (selectedSoundSource != null)
-            {
-                int soundSourceID = -1;
-                int i = -1;
-                if (selectedSoundSource.SoundStreams.Count > 0)
-                    while (++i < selectedSoundSource.SoundStreams.Count)
+                    if (selectedSoundSource.Car != null)
                     {
-                        soundSourceID = selectedSoundSource.SoundStreams[i].ALSoundSource.SoundSourceID;
-                        if (soundSourceID != -1)
-                            break;
+                        speed.Text = Math.Abs(selectedSoundSource.Car.SpeedMpS).ToString("F1");
+                        var Variable1 = selectedSoundSource.Car.Variable1;
+                        var Variable2 = selectedSoundSource.Car.Variable2;
+                        var Variable3 = selectedSoundSource.Car.Variable3;
+
+                        if (selectedSoundSource.Car is MSTSSteamLocomotive)
+                        {
+                            Variable1 /= 100f;
+                            Variable2 /= 100f;
+                            Variable3 /= 100f;
+                        }
+                        if (selectedSoundSource.Car is MSTSElectricLocomotive)
+                        {
+                            Variable1 /= 100f;
+                            Variable2 /= 100f;
+                        }
+
+                        variable1.Text = Variable1.ToString("0.#%");
+                        variable2.Text = Variable2.ToString("0.#%");
+                        variable3.Text = Variable3.ToString("0.#%");
+                    }
+                    else
+                    {
+                        speed.Text = "-";
+                        variable1.Text = "-";
+                        variable2.Text = "-";
+                        variable3.Text = "-";
                     }
 
-                if (selectedSoundSource.WorldLocation != WorldLocation.None && selectedSoundSource.SoundStreams.Count > 0)
-                {
-                    //Source distance:
-                    //distance.Text = Math.Sqrt(selectedSoundSource.DistanceSquared).ToString("F1");
-
-                    //Stream distance:
-                    float[] pos = new float[3];
-                    OpenAL.alGetSource3f(soundSourceID, OpenAL.AL_POSITION, out pos[0], out pos[1], out pos[2]);
-                    float[] lpos = new float[3];
-                    OpenAL.alGetListener3f(OpenAL.AL_POSITION, out lpos[0], out lpos[1], out lpos[2]);
-                    for (var j = 0; j < 3; j++)
-                        pos[j] -= lpos[j];
-                    distance.Text = Math.Sqrt(pos[0] * pos[0] + pos[1] * pos[1] + pos[2] * pos[2]).ToString("F1");
+                    float gain;
+                    OpenAL.alGetSourcef(soundSourceID, OpenAL.AL_GAIN, out gain);
+                    smsVolume.Text = gain.ToString("0.#%");
                 }
                 else
                 {
                     distance.Text = "-";
-                }
-
-                int relative;
-                OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_SOURCE_RELATIVE, out relative);
-                sound3D.Checked = relative == OpenAL.AL_FALSE;
-
-                if (selectedSoundSource.Car != null)
-                {
-                    speed.Text = Math.Abs(selectedSoundSource.Car.SpeedMpS).ToString("F1");
-                    var Variable1 = selectedSoundSource.Car.Variable1;
-                    var Variable2 = selectedSoundSource.Car.Variable2;
-                    var Variable3 = selectedSoundSource.Car.Variable3;
-
-                    if (selectedSoundSource.Car is MSTSSteamLocomotive)
-                    {
-                        Variable1 /= 100f;
-                        Variable2 /= 100f;
-                        Variable3 /= 100f;
-                    }
-                    if (selectedSoundSource.Car is MSTSElectricLocomotive)
-                    {
-                        Variable1 /= 100f;
-                        Variable2 /= 100f;
-                    }
-
-                    variable1.Text = Variable1.ToString("0.#%");
-                    variable2.Text = Variable2.ToString("0.#%");
-                    variable3.Text = Variable3.ToString("0.#%");
-                }
-                else
-                {
-                    speed.Text = "0";
+                    speed.Text = "-";
                     variable1.Text = "-";
                     variable2.Text = "-";
                     variable3.Text = "-";
+                    smsVolume.Text = "-";
+                    activeSoundList.SelectedNode = null;
+                    inactiveSoundList.SelectedNode = null;
                 }
 
-                float gain;
-                OpenAL.alGetSourcef(soundSourceID, OpenAL.AL_GAIN, out gain);
-                smsVolume.Text = gain.ToString("0.#%");
+                waves.Text = SoundItem.AllPieces.Count.ToString();
+                alSources.Text = ALSoundSource.ActiveCount.ToString();
+
             }
 
-            activeSoundList.EndUpdate();
-            inactiveSoundList.EndUpdate();
+        }
 
-            waves.Text = SoundItem.AllPieces.Count.ToString();
-            alSources.Text = ALSoundSource.ActiveCount.ToString();
+        private void AddToForm(SoundSource ss)
+        {
+
+            var nodeString = String.Format("{0}: {1} ", ss.Car != null ? ss.Car.UiD.ToString() : "-", ss.SMSFileName);
+            var nodeKey = nodeString + ss.GetHashCode().ToString();
+
+            if (ss.Active)
+            {
+                int index = activeSoundList.Nodes.IndexOfKey(nodeKey);
+                if (index == -1)
+                {
+                    activeSoundList.Nodes.Add(nodeKey, nodeString);
+                    index = activeSoundList.Nodes.IndexOfKey(nodeKey);
+                }
+                node = activeSoundList.Nodes[index];
+            }
+            else
+            {
+                int index = inactiveSoundList.Nodes.IndexOfKey(nodeKey);
+                if (index == -1)
+                {
+                    inactiveSoundList.Nodes.Add(nodeKey, nodeString);
+                    index = inactiveSoundList.Nodes.IndexOfKey(nodeKey);
+                }
+                node = inactiveSoundList.Nodes[index];
+            }
+            node.Tag = ss;
+
+            var activeSS = 0;
+            foreach (var soundStream in ss.SoundStreams)
+            {
+                var playingData = soundStream.ALSoundSource.GetPlayingData();
+                if (playingData[0] != "-1")
+                    activeSS++;
+                var streamString = String.Format("{0} {1} (cue: {2}) {3}", playingData);
+                var streamKey = streamString + soundStream.GetHashCode().ToString();
+                node.Nodes.Add(streamKey, streamString);
+                node.Nodes[streamKey].Tag = soundStream;
+            }
+            node.Text = string.Format("{0}({1}{2}", node.Text.Split('(')[0], activeSS, @"@");
+
         }
 
         private void CleanUp(TreeNodeCollection nodes)
