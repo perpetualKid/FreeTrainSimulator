@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Orts.Common;
-using Orts.Common.Input;
-using Orts.Settings;
+using Orts.ExternalDevices;
+using Orts.Menu;
+using ORTS.Settings;
 
 namespace ORTS
 {
@@ -163,15 +163,18 @@ namespace ORTS
 
         private async Task InitializeRailDriverSettingsAsync()
         {
-            instance = RailDriverBase.GetInstance();
-//#if !DEBUG
-/*            if (!instance.Enabled)
-            {
-                tabOptions.TabPages.Remove(tabPageRailDriver);
-                await Task.CompletedTask;
-                return;
-            }*/
-//#endif
+            if (Environment.Is64BitProcess)
+                instance = RailDriverBase.GetInstance64();
+            else
+                instance = RailDriverBase.GetInstance32();
+                //#if !DEBUG
+                /*            if (instance == null)
+                            {
+                                tabOptions.TabPages.Remove(tabPageRailDriver);
+                                await Task.CompletedTask;
+                                return;
+                            }*/
+                //#endif
             panelRDButtons.Width = panelRDSettings.Width / 2;
             panelRDButtons.Controls.Clear();
 
@@ -273,7 +276,7 @@ namespace ORTS
 
         private string CheckButtonAssignments()
         {
-            if (!instance.Enabled)
+            if (instance == null)
                 return string.Empty;
             byte[] buttons = new byte[EnumExtension.GetLength<UserCommand>()];
             foreach (Control control in panelRDButtons.Controls)

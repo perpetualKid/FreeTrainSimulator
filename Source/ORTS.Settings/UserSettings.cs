@@ -390,6 +390,7 @@ namespace ORTS.Settings
 
         public FolderSettings Folders { get; private set; }
         public InputSettings Input { get; private set; }
+        public RailDriverSettings RailDriver { get; private set; }
 
         public UserSettings(IEnumerable<string> options)
             : base(SettingsStore.GetSettingStore(SettingsFilePath, RegistryKey, null))
