@@ -62,6 +62,7 @@
     <Compile Include="Calc\Interpolator.cs" />
     <Compile Include="Calc\MovingAverage.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="IO\FileSystemCache.cs" />
     <Compile Include="Logging\FileTeeLogger.cs" />
     <Compile Include="Logging\ORTraceListener.cs" />
     <Compile Include="EarthCoordinates.cs" />
@@ -94,9 +95,7 @@
       <Version>3.7.1.189</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="IO\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
