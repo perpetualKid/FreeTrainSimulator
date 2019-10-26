@@ -24,6 +24,7 @@ using System.IO;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.IO;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 
@@ -212,7 +213,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     Path.Combine(Simulator.BasePath, "SOUND"),
                 };
                 var soundPath = ORTSPaths.GetFileFromFolders(soundPathArray, SoundFileName);
-                if (File.Exists(soundPath))
+                if (FileSystemCache.FileExists(soundPath))
                     Sounds.Add(Script, soundPath);
             }
 

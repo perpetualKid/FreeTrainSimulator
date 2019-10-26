@@ -22,6 +22,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common;
+using Orts.Common.IO;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -67,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Texture2D texture;
                     if (Path.GetExtension(path) == ".dds")
                     {
-                        if (File.Exists(path))
+                        if (FileSystemCache.FileExists(path))
                         {
                             DDSLib.DDSFromFile(path, GraphicsDevice, true, out texture);
                         }
@@ -76,7 +77,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         // therefore avoiding that routes providing .ace textures show blank global shapes
                         {
                             var aceTexture = Path.ChangeExtension(path, ".ace");
-                            if (File.Exists(aceTexture))
+                            if (FileSystemCache.FileExists(aceTexture))
                             {
                                 texture = AceFile.Texture2DFromFile(GraphicsDevice, aceTexture);
                                 Trace.TraceWarning("Required texture {1} not existing; using existing texture {2}", path, aceTexture);
@@ -88,11 +89,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         var alternativeTexture = Path.ChangeExtension(path, ".dds");
                         
-                        if (Viewer.Settings.PreferDDSTexture && File.Exists(alternativeTexture))
+                        if (Viewer.Settings.PreferDDSTexture && FileSystemCache.FileExists(alternativeTexture))
                         {
                             DDSLib.DDSFromFile(alternativeTexture, GraphicsDevice, true, out texture);
                         }
-                        else if (File.Exists(path))
+                        else if (FileSystemCache.FileExists(path))
                         {
                             texture = AceFile.Texture2DFromFile(GraphicsDevice, path);
                         }
@@ -100,8 +101,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             try //in case of no texture in wintersnow etc, go up one level
                             {
-                                string parentPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), "..", Path.GetFileName(path)));
-                                if (File.Exists(parentPath) && parentPath.ToLower().Contains("texture")) //in texure and exists
+                                string parentPath = Path.Combine(Path.GetDirectoryName(path), "..", Path.GetFileName(path));
+                                if (FileSystemCache.FileExists(parentPath) && parentPath.ToLower().Contains("texture")) //in texure and exists
                                 {
                                     texture = AceFile.Texture2DFromFile(GraphicsDevice, parentPath);
                                 }
@@ -127,7 +128,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 catch (Exception error)
                 {
-                    if (File.Exists(path))
+                    if (FileSystemCache.FileExists(path))
                         Trace.WriteLine(new FileLoadException(path, error));
                     else
                         Trace.TraceWarning("Ignored missing texture file {0}", path);
@@ -231,7 +232,7 @@ namespace Orts.ActivityRunner.Viewer3D
             PrecipitationShader = new PrecipitationShader(viewer.RenderProcess.GraphicsDevice);
             SceneryShader = new SceneryShader(viewer.RenderProcess.GraphicsDevice);
             var microtexPath = Path.Combine(viewer.Simulator.RoutePath,"TERRTEX", "microtex.ace");
-            if (File.Exists(microtexPath))
+            if (FileSystemCache.FileExists(microtexPath))
             {
                 try
                 {

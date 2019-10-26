@@ -31,6 +31,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
+using Orts.Common.IO;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
@@ -249,12 +250,12 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             string path = routePath + @"\TrackProfiles";
             //Establish default track profile
-            if (File.Exists(path + @"\TrProfile.xml"))
+            if (FileSystemCache.FileExists(path + @"\TrProfile.xml"))
             {
                 // XML-style
                 trpFile = new TRPFile(viewer, path + @"\TrProfile.xml");
             }
-            else if (File.Exists(path + @"\TrProfile.stf"))
+            else if (FileSystemCache.FileExists(path + @"\TrProfile.stf"))
             {
                 // MSTS-style
                 trpFile = new TRPFile(viewer, path + @"\TrProfile.stf");

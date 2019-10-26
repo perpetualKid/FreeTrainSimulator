@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Orts.Common.IO;
 using Orts.Formats.Msts.Files;
 
 namespace Orts.Menu.Entities
@@ -48,7 +48,7 @@ namespace Orts.Menu.Entities
         /// <param name="filePath">The full name of the .pat file</param>
         internal Path(string filePath)
         {
-            if (File.Exists(filePath))
+            if (FileSystemCache.FileExists(filePath))
             {
                 try
                 {

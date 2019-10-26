@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Orts.Common.IO;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 
@@ -65,7 +66,7 @@ namespace Orts.Menu.Entities
         {
             Consist result = null;
 
-            if (File.Exists(fileName))
+            if (FileSystemCache.FileExists(fileName))
             {
                 try
                 {
@@ -162,7 +163,7 @@ namespace Orts.Menu.Entities
             {
                 result = new Locomotive(catalog.GetString("- Any Locomotive -"), fileName);
             }
-            else if (File.Exists(fileName))
+            else if (FileSystemCache.FileExists(fileName))
             {
                 try
                 {

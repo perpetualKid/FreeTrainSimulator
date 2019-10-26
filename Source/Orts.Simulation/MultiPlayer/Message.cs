@@ -27,6 +27,7 @@ using System.IO.Compression;
 using System.Linq;
 
 using Orts.Common;
+using Orts.Common.IO;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
@@ -574,7 +575,7 @@ namespace Orts.MultiPlayer
                                 for (int i = 0; i < cars.Length; i++)
                                 {
                                     string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\" + cars[i];
-                                    if (!File.Exists(wagonFilePath))
+                                    if (!FileSystemCache.FileExists(wagonFilePath))
                                     {
                                         Trace.TraceWarning("Ignored missing wagon {0}", wagonFilePath);
                                         continue;

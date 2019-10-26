@@ -32,6 +32,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common.IO;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock
 {
@@ -830,9 +831,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (filename == null)
                 return;
             string smsFilePath = Path.GetFullPath(Path.Combine(wagonFolderSlash,"sound",filename));
-            if (!File.Exists(smsFilePath))
+            if (!FileSystemCache.FileExists(smsFilePath))
                 smsFilePath = Path.GetFullPath(Path.Combine(Viewer.Simulator.BasePath,"sound",filename));
-            if (!File.Exists(smsFilePath))
+            if (!FileSystemCache.FileExists(smsFilePath))
             {
                 Trace.TraceWarning("Cannot find {1} car sound file {0}", filename, wagonFolderSlash);
                 return;
@@ -872,9 +873,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (filename == null)
                 return;
             string path = Viewer.Simulator.RoutePath + @"\SOUND\" + filename;
-            if (!File.Exists(path))
+            if (!FileSystemCache.FileExists(path))
                 path = Viewer.Simulator.BasePath + @"\SOUND\" + filename;
-            if (!File.Exists(path))
+            if (!FileSystemCache.FileExists(path))
             {
                 Trace.TraceWarning("Cannot find track sound file {0}", filename);
                 return;

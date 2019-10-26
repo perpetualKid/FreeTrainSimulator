@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Microsoft.Xna.Framework;
+using Orts.Common.IO;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
@@ -55,7 +56,7 @@ namespace Orts.Formats.Msts.Files
                             if (!Path.GetFileNameWithoutExtension(cvfileName).EndsWith("1024"))
                             {
                                 string name1024 = Path.GetFileNameWithoutExtension(cvfileName) + "1024" + Path.GetExtension(cvfileName);
-                                if (File.Exists(Path.Combine(path, name1024)))
+                                if (FileSystemCache.FileExists(Path.Combine(path, name1024)))
                                     name = name1024;
                             }
 

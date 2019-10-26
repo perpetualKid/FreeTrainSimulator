@@ -129,7 +129,7 @@ namespace Orts.Formats.Msts
             string trainsetSoundPath = Path.Combine(Path.GetDirectoryName(waggonFile), "SOUND", soundFile);
             string globalSoundPath = Path.Combine(SoundsFolder, soundFile);
 
-            return File.Exists(trainsetSoundPath) ? trainsetSoundPath : globalSoundPath;
+            return FileSystemCache.FileExists(trainsetSoundPath) ? trainsetSoundPath : globalSoundPath;
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace Orts.Formats.Msts
             string smsSoundPath = Path.Combine(Path.GetDirectoryName(smsFile), soundFile);
             string globalSoundPath = Path.Combine(SoundsFolder, soundFile);
 
-            return File.Exists(smsSoundPath) ? smsSoundPath : globalSoundPath;
+            return FileSystemCache.FileExists(smsSoundPath) ? smsSoundPath : globalSoundPath;
         }
 
         public static string TrackFileName(string routeFolderPath)

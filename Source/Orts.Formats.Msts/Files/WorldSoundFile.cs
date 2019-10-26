@@ -17,6 +17,7 @@
 
 using System.Diagnostics;
 using System.IO;
+using Orts.Common.IO;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
@@ -28,7 +29,7 @@ namespace Orts.Formats.Msts.Files
 
         public WorldSoundFile(string fileName, TrackItem[] trItems)
         {
-            if (File.Exists(fileName))
+            if (FileSystemCache.FileExists(fileName))
             {
                 Trace.Write("$");
                 using (STFReader stf = new STFReader(fileName, false))

@@ -18,6 +18,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Orts.Common.IO;
 using Orts.Settings;
 
 namespace Orts.Menu.Entities
@@ -43,7 +44,7 @@ namespace Orts.Menu.Entities
             string folderDataFile = System.IO.Path.Combine(UserSettings.UserDataFolder, "folder.dat");
             List<Folder> folders = new List<Folder>();
 
-            if (settings.Folders.Folders.Count == 0 && File.Exists(folderDataFile))
+            if (settings.Folders.Folders.Count == 0 && FileSystemCache.FileExists(folderDataFile))
             {
                 try
                 {

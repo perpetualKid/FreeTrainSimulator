@@ -16,7 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System.IO;
-
+using Orts.Common.IO;
 using Orts.Formats.Msts.Parsers;
 
 // <Comment> This file parses only the shape names for temporary speed restrictions; the other shape names are not needed
@@ -35,50 +35,26 @@ namespace Orts.Formats.Msts.Files
 		{
 			using (STFReader stf = new STFReader(fileName, false))
 			{
-				stf.ParseBlock(new STFReader.TokenProcessor[] {
-                    new STFReader.TokenProcessor("speed_warning_sign_shape", ()=>
-                         {
-                             var dataItem = stf.ReadStringBlock(null);
-                             if (dataItem != null)
-                             {
-                                dataItem = Path.Combine(shapePath, dataItem);
-                                if (File.Exists(dataItem))
-                                    ShapeNames[0] = dataItem;
-                                else
-                                    STFException.TraceWarning(stf, $"Non-existent shape file {dataItem} referenced");
-                             }
-                         }
-                         ),
-                    new STFReader.TokenProcessor("restricted_shape", ()=>
-                         {
-                             var dataItem = stf.ReadStringBlock(null);
-                             if (dataItem != null)
-                             {
-                                dataItem = Path.Combine(shapePath, dataItem);
-                                if (File.Exists(dataItem))
-                                    ShapeNames[1] = dataItem;
-                                else
-                                    STFException.TraceWarning(stf, $"Non-existent shape file {dataItem} referenced");
-                             }
-                         }
-                         ),
-                    new STFReader.TokenProcessor("end_restricted_shape", ()=>
-                         {
-                             var dataItem = stf.ReadStringBlock(null);
-                             if (dataItem != null)
-                             {
-                                dataItem = Path.Combine(shapePath, dataItem);
-                                if (File.Exists(dataItem))
-                                    ShapeNames[2] = dataItem;
-                                else
-                                    STFException.TraceWarning(stf, $"Non-existent shape file {dataItem} referenced");
-                             }
-                         }
-                         ),
+                stf.ParseBlock(new STFReader.TokenProcessor[] {
+                    new STFReader.TokenProcessor("speed_warning_sign_shape", () => ReadShapeInfo(stf, 0, shapePath)),
+                    new STFReader.TokenProcessor("restricted_shape", () => ReadShapeInfo(stf, 1, shapePath)),
+                    new STFReader.TokenProcessor("end_restricted_shape", () => ReadShapeInfo(stf, 2, shapePath)),
                 });
 			}
 		}
 
+        private void ReadShapeInfo(STFReader stf, int index, string path)
+        {
+            string dataItem = stf.ReadStringBlock(null);
+            if (dataItem != null)
+            {
+                dataItem = Path.Combine(path, dataItem);
+                if (FileSystemCache.FileExists(dataItem))
+                    ShapeNames[index] = dataItem;
+                else
+                    STFException.TraceWarning(stf, $"Non-existent shape file {dataItem} referenced");
+            }
+        }
     } // class SpeedpostDatFile
 }
 

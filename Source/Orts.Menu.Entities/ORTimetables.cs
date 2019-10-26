@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Orts.Common.IO;
 using Orts.Formats.OR;
 
 namespace Orts.Menu.Entities
@@ -41,7 +42,7 @@ namespace Orts.Menu.Entities
 
         internal TimetableInfo(string filePath)
         {
-            if (File.Exists(filePath))
+            if (Common.IO.FileSystemCache.FileExists(filePath))
             {
                 try
                 {
@@ -63,7 +64,7 @@ namespace Orts.Menu.Entities
 
         protected TimetableInfo(string filePath, string directory)
         {
-            if (File.Exists(filePath))
+            if (FileSystemCache.FileExists(filePath))
             {
                 try
                 {

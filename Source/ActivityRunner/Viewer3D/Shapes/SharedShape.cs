@@ -11,6 +11,7 @@ using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
+using Orts.Common.IO;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
@@ -85,7 +86,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
 
             var textureFlags = Helpers.TextureFlags.None;
-            if (File.Exists(FilePath + "d"))
+            if (FileSystemCache.FileExists(FilePath + "d"))
             {
                 var sdFile = new ShapeDescriptorFile(FilePath + "d");
                 textureFlags = (Helpers.TextureFlags)sdFile.Shape.EsdAlternativeTexture;

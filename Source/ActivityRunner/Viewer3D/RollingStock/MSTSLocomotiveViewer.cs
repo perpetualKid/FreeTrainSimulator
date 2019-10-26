@@ -32,6 +32,7 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Input;
+using Orts.Common.IO;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -2631,7 +2632,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             if (String.IsNullOrEmpty(TrainCarShape.SharedShape.ReferencePath))
             {
-                if (!File.Exists(globalText + imageName))
+                if (!FileSystemCache.FileExists(globalText + imageName))
                 {
                     Trace.TraceInformation("Ignored missing " + imageName + " using default. You can copy the " + imageName + " from OR\'s AddOns folder to " + globalText +
                         ", or place it under " + TrainCarShape.SharedShape.ReferencePath);
@@ -2640,7 +2641,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
             else
             {
-                if (!File.Exists(TrainCarShape.SharedShape.ReferencePath + @"\" + imageName))
+                if (!FileSystemCache.FileExists(TrainCarShape.SharedShape.ReferencePath + @"\" + imageName))
                 {
                     Trace.TraceInformation("Ignored missing " + imageName + " using default. You can copy the " + imageName + " from OR\'s AddOns folder to " + globalText +
                         ", or place it under " + TrainCarShape.SharedShape.ReferencePath);

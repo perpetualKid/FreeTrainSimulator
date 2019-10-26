@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Orts.Common.IO;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -84,7 +85,7 @@ namespace Orts.Menu.Entities
         {
             Activity result;
 
-            if (File.Exists(filePath))
+            if (FileSystemCache.FileExists(filePath))
             {
                 try
                 {

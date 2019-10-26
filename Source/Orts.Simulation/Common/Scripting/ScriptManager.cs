@@ -25,7 +25,7 @@ using System.Text;
 using System.Threading;
 
 using Microsoft.CSharp;
-
+using Orts.Common.IO;
 using Orts.Simulation;
 
 namespace Orts.Common.Scripting
@@ -111,7 +111,7 @@ namespace Orts.Common.Scripting
             }
             catch (Exception error)
             {
-                if (File.Exists(path))
+                if (FileSystemCache.FileExists(path))
                     Trace.WriteLine(new FileLoadException(path, error));
                 else
                     Trace.TraceWarning("Ignored missing script file {0}", path);

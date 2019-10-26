@@ -54,6 +54,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.IO;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -599,7 +600,7 @@ namespace Orts.Simulation.RollingStocks
             bool noseAhead = false;
 
             string basePath = Path.Combine(Path.GetDirectoryName(wagFilePath), "CABVIEW");
-            if (!File.Exists(Path.GetFullPath(Path.Combine(basePath, cvfFileName))))
+            if (!FileSystemCache.FileExists(Path.Combine(basePath, cvfFileName)))
                 return null;
 
             var cvfFile = new CabViewFile(basePath, cvfFileName);
@@ -630,7 +631,7 @@ namespace Orts.Simulation.RollingStocks
             if (wag.FreightShapeFileName != null)
             {
                 shapeFilePath = wagFolderSlash + wag.FreightShapeFileName;
-                if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
+                if (shapeFilePath != null && FileSystemCache.FileExists(shapeFilePath + "d"))
                 {
                     shapeFile = new ShapeDescriptorFile(shapeFilePath + "d");
                     if (shapeFile.Shape.EsdBoundingBox != null) boundingLimitsFound = true;
@@ -639,7 +640,7 @@ namespace Orts.Simulation.RollingStocks
             if (!boundingLimitsFound)
             {
                 shapeFilePath = wagFolderSlash + wag.MainShapeFileName;
-                if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
+                if (shapeFilePath != null && FileSystemCache.FileExists(shapeFilePath + "d"))
                 {
                     shapeFile = new ShapeDescriptorFile(shapeFilePath + "d");
                     if (shapeFile.Shape.EsdBoundingBox != null) boundingLimitsFound = true;
@@ -669,17 +670,17 @@ namespace Orts.Simulation.RollingStocks
 
             var cab3dBasePath = Path.Combine(Path.GetDirectoryName(WagFilePath), "CABVIEW3D");
             var shapeFilePath = Path.Combine(cab3dBasePath, Cab3DShapeFileName);
-            if (!File.Exists(shapeFilePath))
+            if (!FileSystemCache.FileExists(shapeFilePath))
                 return null;
 
             string cvfFileName  = Path.ChangeExtension(Cab3DShapeFileName, "cvf");
             if (!File.Exists(Path.Combine(cab3dBasePath, cvfFileName)))
             {
                 cvfFileName = CVFFileName;
-                if (!File.Exists(Path.Combine(cab3dBasePath, cvfFileName)))
+                if (!FileSystemCache.FileExists(Path.Combine(cab3dBasePath, cvfFileName)))
                 {
                     cab3dBasePath = Path.Combine(Path.GetDirectoryName(WagFilePath), "CABVIEW");
-                    if (!File.Exists(Path.Combine(cab3dBasePath, cvfFileName)))
+                    if (!FileSystemCache.FileExists(Path.Combine(cab3dBasePath, cvfFileName)))
                         return null;
                 }
             }

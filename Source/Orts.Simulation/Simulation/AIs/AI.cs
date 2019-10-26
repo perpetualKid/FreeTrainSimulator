@@ -46,6 +46,7 @@ using Orts.Common.Threading;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Common.IO;
 
 namespace Orts.Simulation.AIs
 {
@@ -899,7 +900,7 @@ namespace Orts.Simulation.AIs
                 if (wagon.IsEngine)
                     wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
 
-                if (!File.Exists(wagonFilePath))
+                if (!FileSystemCache.FileExists(wagonFilePath))
                 {
                     Trace.TraceWarning("Ignored missing wagon {0} in consist {1}", wagonFilePath, consistFileName);
                     continue;

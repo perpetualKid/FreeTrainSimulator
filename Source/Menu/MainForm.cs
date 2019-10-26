@@ -780,12 +780,14 @@ namespace Orts.Menu
         private async Task LoadFolderListAsync()
         {
             folders.Clear();
-            ShowFolderList();
+//            ShowFolderList();
             try
             {
                 folders = (await Task.Run(() => Folder.GetFolders(settings))).OrderBy(f => f.Name).ToList();
             }
             catch (TaskCanceledException) { }
+
+            FolderStructure.InitializeFromRoot(settings.Menu_Selection[(int)Menu_SelectionIndex.Folder]);
             ShowFolderList();
             if (folders.Count > 0)
                 comboBoxFolder.Focus();
@@ -820,8 +822,6 @@ namespace Orts.Menu
                 comboBoxFolder.EndUpdate();
             }
             UpdateFromMenuSelection<Folder>(comboBoxFolder, Menu_SelectionIndex.Folder, f => f.Path);
-            if (comboBoxFolder.SelectedItem != null)
-                FolderStructure.InitializeFromRoot(((Folder)comboBoxFolder.SelectedItem).Path);
             UpdateEnabled();
         }
         #endregion
