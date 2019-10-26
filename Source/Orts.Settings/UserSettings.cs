@@ -177,6 +177,8 @@ namespace Orts.Settings
         [Default(true)]
         public bool HotStart { get; set; }
         [Default(false)]
+        public bool SimpleControlPhysics { get; set; }
+        [Default(false)]
         public bool Autopilot { get; set; }
 
         // Data logger settings:

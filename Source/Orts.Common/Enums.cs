@@ -320,9 +320,13 @@ namespace Orts.Common
         GearUp,
         HornOff,
         HornOn,
+        LargeEjectorChange,
         LightSwitchToggle,
         MirrorClose,
         MirrorOpen,
+        MovingTableMovingEmpty,
+        MovingTableMovingLoaded,
+        MovingTableStopped,
         Pantograph1Down,
         PantographToggle,
         Pantograph1Up,
@@ -379,9 +383,6 @@ namespace Orts.Common
         TrainControlSystemPenalty2,
         TrainControlSystemWarning1,
         TrainControlSystemWarning2,
-        MovingTableMovingEmpty,
-        MovingTableMovingLoaded,
-        MovingTableStopped,
         Uncouple,
         UncoupleB, // NOTE: Currently not used in Open Rails.
         UncoupleC, // NOTE: Currently not used in Open Rails.

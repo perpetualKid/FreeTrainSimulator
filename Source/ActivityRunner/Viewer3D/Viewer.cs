@@ -490,7 +490,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 ContinuousReverserCommand.Receiver = (MSTSSteamLocomotive)PlayerLocomotive;
                 ContinuousInjectorCommand.Receiver = (MSTSSteamLocomotive)PlayerLocomotive;
                 ContinuousSmallEjectorCommand.Receiver = (MSTSSteamLocomotive)PlayerLocomotive;
-                ToggleLargeEjectorCommand.Receiver = (MSTSSteamLocomotive)PlayerLocomotive;
+                ContinuousLargeEjectorCommand.Receiver = (MSTSSteamLocomotive)PlayerLocomotive;
                 ToggleInjectorCommand.Receiver = (MSTSSteamLocomotive)PlayerLocomotive;
                 ContinuousBlowerCommand.Receiver = (MSTSSteamLocomotive)PlayerLocomotive;
                 ContinuousDamperCommand.Receiver = (MSTSSteamLocomotive)PlayerLocomotive;

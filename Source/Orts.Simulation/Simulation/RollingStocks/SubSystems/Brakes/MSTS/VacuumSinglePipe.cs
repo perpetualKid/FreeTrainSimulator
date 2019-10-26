@@ -754,7 +754,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                                 lead.BrakeSystem.BrakeLine1PressurePSI *= (1 + TrainPipeTimeVariationS / AdjBrakeServiceTimeFactorS);
                                 if (lead.BrakeSystem.BrakeLine1PressurePSI > OneAtmospherePSI)
                                     lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI;
-                                lead.VacConServLargeSteamEjectorIsOn = false; // turn large steam ejector off
                             }
                             else if (lead.BrakeSystem.BrakeLine1PressurePSI > DesiredPipeVacuum)
                             {
@@ -763,11 +762,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                                 if (lead.BrakeSystem.BrakeLine1PressurePSI - TrainPipePressureDiffPSI < DesiredPipeVacuum)
                                     TrainPipePressureDiffPSI = lead.BrakeSystem.BrakeLine1PressurePSI - DesiredPipeVacuum;
                                 lead.BrakeSystem.BrakeLine1PressurePSI -= TrainPipePressureDiffPSI;
-                                lead.VacConServLargeSteamEjectorIsOn = true; // turn large steam ejector on
-                            }
-                            else
-                            {
-                                lead.VacConServLargeSteamEjectorIsOn = false; // turn large steam ejector off
+
                             }
                         }
                         else if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.VacApplyContServ)
