@@ -128,11 +128,11 @@ namespace Orts.Settings
 
         public override object GetDefaultValue(string name)
         {
-            if (Enum.TryParse(name, true, out RailDriverCalibrationSetting calibrationSetting))
+            if (EnumExtension.GetValue(name, out RailDriverCalibrationSetting calibrationSetting))
             {
                 return default0WhileSaving ? 0 : DefaultCalibrationSettings[(int)calibrationSetting];
             }
-            else if (Enum.TryParse(name, true, out UserCommand userCommand))
+            else if (EnumExtension.GetValue(name, out UserCommand userCommand))
             {
                 return GetDefaultValue(userCommand);
             }
@@ -170,11 +170,11 @@ namespace Orts.Settings
 
         protected override object GetValue(string name)
         {
-            if (Enum.TryParse(name, true, out RailDriverCalibrationSetting calibrationSetting))
+            if (EnumExtension.GetValue(name, out RailDriverCalibrationSetting calibrationSetting))
             {
                 return CalibrationSettings[(int)calibrationSetting];
             }
-            else if (Enum.TryParse(name, true, out UserCommand userCommand))
+            else if (EnumExtension.GetValue(name, out UserCommand userCommand))
             {
                 return UserCommands[(int)userCommand];
             }
@@ -193,13 +193,13 @@ namespace Orts.Settings
 
         protected override void SetValue(string name, object value)
         {
-            if (Enum.TryParse(name, true, out RailDriverCalibrationSetting calibrationSetting))
+            if (EnumExtension.GetValue(name, out RailDriverCalibrationSetting calibrationSetting))
             {
                 if (!byte.TryParse(value?.ToString(), out byte result))
                     result = 0;
                 CalibrationSettings[(int)calibrationSetting] = result;
             }
-            else if (Enum.TryParse(name, true, out UserCommand userCommand))
+            else if (EnumExtension.GetValue(name, out UserCommand userCommand))
             {
                 UserCommands[(int)userCommand] = (byte)value;
             }

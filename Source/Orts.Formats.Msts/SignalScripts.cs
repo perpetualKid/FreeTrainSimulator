@@ -618,7 +618,7 @@ namespace Orts.Formats.Msts
                     return new SCRParameterType(SCRTermType.Constant, constantInt);
                 }
                 // try external float
-                else if (Enum.TryParse(token.Token, true, out SCRExternalFloats externalFloat))
+                else if (EnumExtension.GetValue(token.Token, out SCRExternalFloats externalFloat))
                 {
                     return new SCRParameterType(SCRTermType.ExternalFloat, (int)externalFloat);
                 }
@@ -798,7 +798,7 @@ namespace Orts.Formats.Msts
                     }
                     if (statement?.Tokens.Count > 1 && (statement?.Tokens[1] as OperatorToken)?.OperatorType == OperatorType.Assignment)
                     {
-                        if (Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFloats result))
+                        if (EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFloats result))
                         {
                             AssignParameter = (int)result;
                             AssignType = SCRTermType.ExternalFloat;
@@ -856,7 +856,7 @@ namespace Orts.Formats.Msts
                                 statementBlock.Tokens.RemoveAt(0);
                                 negated = true;
                             }
-                            if (statementBlock.Tokens.Count > 1 && Enum.TryParse(statementBlock.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statementBlock.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
+                            if (statementBlock.Tokens.Count > 1 && EnumExtension.GetValue(statementBlock.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statementBlock.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
                             {
                                 StatementTerms.Add(
                                     new SCRStatTerm(externalFunctionsResult, statementBlock.Tokens[1] as Enclosure, level, operatorString, negated, localFloats));
@@ -916,7 +916,7 @@ namespace Orts.Formats.Msts
 
                     while (block.Tokens.Count > 0)
                     {
-                        if (block.Tokens.Count > 1 && Enum.TryParse(block.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && block.Tokens[1] is Enclosure)   //check if it is a Function ()
+                        if (block.Tokens.Count > 1 && EnumExtension.GetValue(block.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && block.Tokens[1] is Enclosure)   //check if it is a Function ()
                         {
                             // TODO Nested Function Call in Parameter not supported
                             throw new NotImplementedException($"Nested function call in parameter {block.Token} not supported at line {block.LineNumber}");
@@ -1046,7 +1046,7 @@ namespace Orts.Formats.Msts
                         statement.Tokens[1].Token = statement.Tokens[0].Token + statement.Tokens[1].Token;
                         statement.Tokens.RemoveAt(0);
                     }
-                    if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
+                    if (statement.Tokens.Count > 1 && EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
                     {
                         Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats);
                         statement.Tokens.RemoveAt(0);
@@ -1091,7 +1091,7 @@ namespace Orts.Formats.Msts
                                 statement.Tokens[1].Token = statement.Tokens[0].Token + statement.Tokens[1].Token;
                                 statement.Tokens.RemoveAt(0);
                             }
-                            if (statement.Tokens.Count > 1 && Enum.TryParse(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
+                            if (statement.Tokens.Count > 1 && EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
                             {
                                 Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats);
                                 statement.Tokens.RemoveAt(0);
