@@ -390,6 +390,8 @@ namespace Orts.Menu
         #region Folders
         private async void ComboBoxFolder_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (comboBoxFolder.SelectedItem != null)
+                FolderStructure.InitializeFromRoot(((Folder)comboBoxFolder.SelectedItem).Path);
             try
             {
                 await Task.WhenAll(LoadRouteListAsync(), LoadLocomotiveListAsync());
@@ -839,11 +841,11 @@ namespace Orts.Menu
             activities.Clear();
             paths.Clear();
 
-            //cleanout existing data
-            ShowRouteList();
-            ShowActivityList();
-            ShowStartAtList();
-            ShowHeadToList();
+            ////cleanout existing data
+            //ShowRouteList();
+            //ShowActivityList();
+            //ShowStartAtList();
+            //ShowHeadToList();
 
             Folder selectedFolder = SelectedFolder;
             try
@@ -851,7 +853,13 @@ namespace Orts.Menu
                 routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token))).OrderBy(r => r.Name).ToList();
             }
             catch (TaskCanceledException) { }
+//            ShowRouteList();
+            //cleanout existing data
             ShowRouteList();
+            ShowActivityList();
+            ShowStartAtList();
+            ShowHeadToList();
+
         }
 
         private void ShowRouteList()

@@ -160,6 +160,8 @@ namespace Orts.Menu.Entities
                         return Task.FromCanceled<List<Activity>>(token);
                 }
             }
+            foreach (var a in activities)
+                System.Diagnostics.Debug.Assert(a != null);
             return Task.FromResult(activities);
         }
     }

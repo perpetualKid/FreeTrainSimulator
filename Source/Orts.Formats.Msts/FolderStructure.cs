@@ -42,6 +42,7 @@ namespace Orts.Formats.Msts
         public static void InitializeFromRoot(string path)
         {
             rootFolder = new DirectoryInfo(path);
+            routeFolder = null;
             FileSystemCache.Initialize(rootFolder);
         }
 
