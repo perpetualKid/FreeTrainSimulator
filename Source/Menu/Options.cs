@@ -148,6 +148,7 @@ namespace ORTS
             comboBoxOtherUnits.Text = settings.Units;
             checkDisableTCSScripts.Checked = Settings.DisableTCSScripts;
             checkEnableWatchdog.Checked = Settings.EnableWatchdog;
+            checkRunAt32bit.Checked = Settings.RunAt32bit;
 
 
             // Audio tab
@@ -438,6 +439,7 @@ namespace ORTS
             Settings.Units = comboBoxOtherUnits.SelectedValue.ToString();
             Settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
             Settings.EnableWatchdog = checkEnableWatchdog.Checked;
+            Settings.RunAt32bit = checkRunAt32bit.Checked;
 
             // Audio tab
             Settings.MSTSBINSound = checkMSTSBINSound.Checked;

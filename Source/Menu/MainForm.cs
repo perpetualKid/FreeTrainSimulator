@@ -77,7 +77,11 @@ namespace ORTS
         {
             get
             {
-                return System.IO.Path.Combine(Application.StartupPath, "RunActivity.exe"); ;
+                var programNormal = System.IO.Path.Combine(Application.StartupPath, "RunActivity.exe");
+                var program32 = System.IO.Path.Combine(Application.StartupPath, "RunActivity32.exe");
+                if (Settings.RunAt32bit && File.Exists(program32))
+                    return program32;
+                return programNormal;
             }
         }
         
@@ -180,7 +184,7 @@ namespace ORTS
                     "OpenRails.exe",
                     "Menu.exe",
                     "RunActivity.exe",
-                    "RunActivityLAA.exe",
+                    "RunActivity32.exe",
                     "Updater.exe",
                 };
                 var tools = new List<ToolStripItem>();
