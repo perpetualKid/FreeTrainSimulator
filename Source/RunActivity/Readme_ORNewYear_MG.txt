@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.36
-October 22nd, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.37
+November 3rd, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -12,7 +12,7 @@ INSTALLATION
 you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails unstable revision U2019.10.20-0936 (which includes Monogame).
+This unofficial version has been derived from the official Open Rails unstable revision U2019.10.26-0321 (which includes Monogame).
 It includes some features not (yet) available in the Open Rails unstable official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
@@ -21,7 +21,8 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - when car is ( cted through the F9 window, the car's brake line in the extended brake HUD is highlighted in yellow (by mbm_or)
 - improved distance management in roadcar camera
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
-- NEW: true 64-bit management, allowing to use more than 4 GB of memory, if available, in Win64 systems (mainly by perpetualKid).
+- true 64-bit management, allowing to use more than 4 GB of memory, if available, in Win64 systems (mainly by perpetualKid)
+- NEW: general options checkbox for optional run at 32 bit on Win64 (to avoid slight train shaking bug).
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
