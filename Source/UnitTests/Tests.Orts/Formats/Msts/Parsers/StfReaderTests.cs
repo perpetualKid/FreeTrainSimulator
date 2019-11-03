@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,6 +10,537 @@ using Tests.Orts.Shared;
 
 namespace Tests.Orts.Formats.Msts.Parsers
 {
+    // General note on 'using new STFreader'
+    // In production code we want to use something like
+    // using (var reader = new STFReader()) {
+    //    ...
+    // } 
+    // This makes sure the reader is disposed of correctly.
+    // During testing, however, this has an unwanted side-effect. If a unit tests fails, and not everything has been read
+    // the rest of the code in the test is not executed. But the reader.Dispose will be called anyway at the end of the using block.
+    // reader.Dispose, however, will give a warning when it is called when the reader is not yet at the end of the file. This warning will 
+    // subsequently be catched, and give an failed assert. It is this failed assert that turns up in the test runner then, and not the initial failed assert
+    // This makes that the cause of the fail is not clear from the output window.
+    // Obviously, it is possible to refactor the tests such that the the asserts are either done after the dispose, 
+    // or the asserts are done when all reading is done anyway (possibly by really having only one assert). 
+    // Since most unit tests do not actually open a file, this is no big issue.
+
+    [TestClass]
+    public class StfReaderTests
+    {
+        #region constructor/destructor
+        /// <summary>
+        /// Test constructor
+        /// </summary>
+        [TestMethod]
+        public void ConstructableFromStreamTest()
+        {
+            AssertWarnings.NotExpected();
+            new STFReader(new MemoryStream(Encoding.ASCII.GetBytes("")), "emptyFile.stf", Encoding.ASCII, true);
+        }
+
+        /// <summary>
+        /// Test that Dispose is implemented (but not that it is fully functional)
+        /// </summary>
+        [TestMethod]
+        public void DisposableTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("");
+            reader.Dispose();
+        }
+
+        [TestMethod]
+        public void DisposeBeforeEOFWarnTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("lasttoken");
+            AssertWarnings.Matching("Expected.*end", () => reader.Dispose());
+        }
+
+        [TestMethod]
+        public void ThrowInConstructorOnMissingFileTest()
+        {
+            Assert.ThrowsException<FileNotFoundException>(() => new STFReader("somenonexistingfile", false));
+        }
+
+        [TestMethod]
+        public void StreamConstructorHasNullSimisSignatureTest()
+        {
+            AssertWarnings.NotExpected();
+            string firstToken = "firsttoken";
+            var reader = Create.Reader(firstToken);
+            Assert.IsNull(null, reader.SimisSignature);
+        }
+        #endregion
+
+        #region Tree
+        [TestMethod]
+        public void CallingTreeThrowSomethingTest()
+        {
+            AssertWarnings.Expected(); // there might be a debug.assert
+            var reader = Create.Reader("wagon(Lights");
+            reader.ReadItem();
+            Assert.ThrowsException<AssertFailedException>(() => { var dummy = reader.Tree; });
+        }
+
+        [TestMethod]
+        public void BuildTreeStringTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("wagon(Lights)engine", true);
+
+            reader.ReadItem();
+            Assert.AreEqual("wagon", reader.Tree.ToLower());
+            reader.ReadItem();
+            reader.ReadItem();
+            Assert.AreEqual("wagon(lights", reader.Tree.ToLower());
+            reader.ReadItem();
+            reader.ReadItem();
+            Assert.AreEqual("engine", reader.Tree.ToLower());
+        }
+        #endregion
+
+        [TestMethod]
+        public void ContainClosingBracketTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("wagon(Lights())engine", true);
+
+            reader.ReadItem(); // 'wagon'
+            reader.ReadItem(); // '('
+            reader.ReadItem(); // 'Lights'
+            reader.ReadItem(); // '('
+            reader.ReadItem(); // ')'
+            Assert.AreEqual("wagon()", reader.Tree.ToLower());
+            reader.ReadItem(); // ')'
+            Assert.AreEqual(")", reader.Tree.ToLower());
+            reader.ReadItem(); // ')'
+            Assert.AreEqual("engine", reader.Tree.ToLower());
+        }
+
+        #region Tokenizer
+        [TestMethod]
+        public void ReadSingleItemTest()
+        {
+            AssertWarnings.NotExpected();
+            string item = "sometoken";
+            var reader = Create.Reader(item);
+            Assert.AreEqual(item, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void ReadSingleItemsTest()
+        {
+            AssertWarnings.NotExpected();
+            var singleItems = new string[] { "a", "b", "c", "(", ")", "aa" };
+            foreach (string item in singleItems)
+            {
+                var reader = Create.Reader(item);
+                Assert.AreEqual(item, reader.ReadItem());
+            }
+        }
+
+        [TestMethod]
+        public void WhiteSpaceSeparateTokensTest()
+        {
+            AssertWarnings.NotExpected();
+            var tokenTesters = new List<TokenTester>
+            {
+                new TokenTester("a b", new string[] { "a", "b" }),
+                new TokenTester("a   b", new string[] { "a", "b" }),
+                new TokenTester("a\nb", new string[] { "a", "b" }),
+                new TokenTester("a \n\t b", new string[] { "a", "b" }),
+                new TokenTester("aa bb", new string[] { "aa", "bb" }),
+                new TokenTester("aa b\nc", new string[] { "aa", "b", "c" })
+            };
+
+            foreach (var tokenTester in tokenTesters)
+            {
+                var reader = Create.Reader(tokenTester.InputString);
+                foreach (string expectedToken in tokenTester.ExpectedTokens)
+                {
+                    Assert.AreEqual(expectedToken, reader.ReadItem());
+                }
+            }
+        }
+
+        [TestMethod]
+        public void RecognizeSpecialCharsTest()
+        {
+            AssertWarnings.NotExpected();
+            List<TokenTester> tokenTesters = new List<TokenTester>
+            {
+                new TokenTester("(a", new string[] { "(", "a" }),
+                new TokenTester(")a", new string[] { ")", "a" }),
+                new TokenTester("a(", new string[] { "a", "(" }),
+                new TokenTester("aa ( (", new string[] { "aa", "(", "(" }),
+                new TokenTester("(\ncc\n(", new string[] { "(", "cc", "(" })
+            };
+
+            foreach (var tokenTester in tokenTesters)
+            {
+                var reader = Create.Reader(tokenTester.InputString);
+                foreach (string expectedToken in tokenTester.ExpectedTokens)
+                {
+                    Assert.AreEqual(expectedToken, reader.ReadItem());
+                }
+            }
+        }
+
+        [TestMethod]
+        public void RecognizeLiteralStringsTest()
+        {
+            AssertWarnings.NotExpected();
+            List<TokenTester> tokenTesters = new List<TokenTester>
+            {
+                new TokenTester("\"a\"", new string[] { "a" }),
+                new TokenTester("\"aa\"", new string[] { "aa" }),
+                new TokenTester("\"a a\"", new string[] { "a a" }),
+                new TokenTester("\"a a\"b", new string[] { "a a", "b" }),
+                new TokenTester("\"a a\" b", new string[] { "a a", "b" }),
+                new TokenTester("\"a a\"\nb", new string[] { "a a", "b" }),
+                new TokenTester("\"a\na\"\nb", new string[] { "a\na", "b" }),
+                new TokenTester("\"a\ta\"\nb", new string[] { "a\ta", "b" }),
+                new TokenTester("\"\\\"\"b", new string[] { "\"", "b" })
+            };
+
+            foreach (var tokenTester in tokenTesters)
+            {
+                var reader = Create.Reader(tokenTester.InputString);
+                foreach (string expectedToken in tokenTester.ExpectedTokens)
+                {
+                    Assert.AreEqual(expectedToken, reader.ReadItem());
+                }
+            }
+        }
+
+        [TestMethod]
+        public void RecognizeEscapeCharInLiteralStringsTest()
+        {
+            AssertWarnings.NotExpected();
+            List<TokenTester> tokenTesters = new List<TokenTester>
+            {
+                new TokenTester(@"""a\na"" b", new string[] { "a\na", "b" }),
+                new TokenTester(@"""c\tc"" d", new string[] { "c\tc", "d" })
+            };
+
+            foreach (var tokenTester in tokenTesters)
+            {
+                var reader = Create.Reader(tokenTester.InputString);
+                foreach (string expectedToken in tokenTester.ExpectedTokens)
+                {
+                    Assert.AreEqual(expectedToken, reader.ReadItem());
+                }
+            }
+        }
+
+        [TestMethod]
+        public void IncompleteLiteralStringAtEOFWarnAndGiveResultTest()
+        {
+            AssertWarnings.NotExpected();
+            string tokenToBeRead = "sometoken";
+            string inputString = "\"" + tokenToBeRead;
+            string returnedItem = "needadefault";
+            AssertWarnings.Matching("unexpected.*EOF.*started.*double-quote", () =>
+            {
+                var reader = Create.Reader(inputString);
+                returnedItem = reader.ReadItem();
+            });
+            Assert.AreEqual(tokenToBeRead, returnedItem);
+        }
+
+        [TestMethod]
+        public void AllowTrailingDoubleQuoteTest()
+        {   // This fixes bug 1197917, even though it is a workaround for bad files
+            AssertWarnings.NotExpected();
+            string tokenToBeRead = "sometoken";
+            string followingToken = "following";
+            string inputString = String.Format(" {0}\" {1}", tokenToBeRead, followingToken);
+            var reader = Create.Reader(inputString);
+            Assert.AreEqual(tokenToBeRead, reader.ReadItem());
+            Assert.AreEqual(followingToken, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void FinalWhiteSpaceBeAtEOFTest()
+        {
+            AssertWarnings.NotExpected();
+            var inputStrings = new string[] { " " }; //, "\n  \n\t" };
+            foreach (string inputString in inputStrings)
+            {
+                var reader = Create.Reader("sometoken" + inputString);
+                {
+                    reader.ReadItem();
+                    Assert.IsTrue(reader.Eof);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void EOFKeepBeingAtEOFTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("lasttoken");
+            reader.ReadItem();
+            reader.ReadItem();
+            Assert.IsTrue(reader.Eof);
+        }
+
+        [TestMethod]
+        public void EOFKeepReturningEmptyStringTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("lasttoken");
+            reader.ReadItem();
+            Assert.AreEqual(string.Empty, reader.ReadItem());
+            Assert.AreEqual(string.Empty, reader.ReadItem());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>Old STFReader has a different way of reading lineNumbers and will fail here</remarks>
+        [TestMethod]
+        public void StoreSourceLineNumberOfLastReadTokenTest()
+        {
+            List<TokenTester> tokenTesters = new List<TokenTester>
+            {
+                new TokenTester("a b", new int[] { 1, 1 }),
+                new TokenTester("a\nb", new int[] { 2, 2 }),
+                //new TokenTester("a\nb", new int[] { 1, 2 }),
+                //new TokenTester("a\nb\nc", new int[] { 1, 2, 3 }),
+                //new TokenTester("a b\n\nc", new int[] { 1, 1, 3 }),
+                //new TokenTester("a(b(\nc)\nc)", new int[] { 1, 1, 1, 1, 2, 2, 3, 3 }),
+            };
+
+            foreach (var tokenTester in tokenTesters)
+            {
+                var reader = Create.Reader(tokenTester.InputString);
+                foreach (int expectedLineNumber in tokenTester.ExpectedLineNumbers)
+                {
+                    reader.ReadItem();
+                    Assert.AreEqual(expectedLineNumber, reader.LineNumber);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void StoreLastSourceLineNumberTest()
+        {
+            AssertWarnings.NotExpected();
+            List<TokenTester> tokenTesters = new List<TokenTester>
+            {
+                new TokenTester("a b", new int[2] { 1, 1 }),
+                new TokenTester("a\nb", new int[2] { 1, 2 }),
+                new TokenTester("a\nb\nc", new int[3] { 1, 2, 3 }),
+                new TokenTester("a b\n\nc", new int[3] { 1, 1, 3 }),
+                new TokenTester("a(b(\nc)\nc)", new int[8] { 1, 1, 1, 1, 2, 2, 3, 3 })
+            };
+
+            foreach (var tokenTester in tokenTesters)
+            {
+                var reader = Create.Reader(tokenTester.InputString);
+                foreach (int expectedLineNumber in tokenTester.ExpectedLineNumbers)
+                {
+                    reader.ReadItem();
+                }
+                int lastLineNumber = tokenTester.ExpectedLineNumbers[tokenTester.ExpectedLineNumbers.Length - 1];
+                Assert.AreEqual(lastLineNumber, reader.LineNumber);
+                reader.ReadItem();
+                Assert.AreEqual(lastLineNumber, reader.LineNumber);
+            }
+        }
+
+        [TestMethod]
+        public void StoreFileNameTest()
+        {
+            AssertWarnings.NotExpected();
+            string[] fileNames = new string[] { "test1", "otherfile.stf" };
+            string someThreeItemInput = "a b c";
+            foreach (string fileName in fileNames)
+            {
+                var reader = Create.Reader(someThreeItemInput, fileName);
+                reader.ReadItem();
+                Assert.AreEqual(fileName, reader.FileName);
+                reader.ReadItem();
+                Assert.AreEqual(fileName, reader.FileName);
+                reader.ReadItem();
+                Assert.AreEqual(fileName, reader.FileName);
+            }
+        }
+
+        #region Concatenation
+        [TestMethod]
+        public void ConcatenateTwoLiteralTokensTest()
+        {
+            AssertWarnings.NotExpected();
+            string inputString = "\"a\" + \"b\"";
+            var reader = Create.Reader(inputString);
+            Assert.AreEqual("ab", reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void NotConcatenateAfterNormalTokenTest()
+        {
+            AssertWarnings.NotExpected();
+            string inputString = "a + b";
+            var reader = Create.Reader(inputString);
+            Assert.AreEqual("a", reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void ConcatenateThreeLiteralTokens()
+        {
+            AssertWarnings.NotExpected();
+            string inputString = "\"a\" + \"b\" + \"c\"";
+            var reader = Create.Reader(inputString);
+            Assert.AreEqual("abc", reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void WarnOnNormalTokenAfterConcatenation()
+        {
+            AssertWarnings.NotExpected();
+            string result = String.Empty;
+            string inputString = "\"a\" + b";
+
+            AssertWarnings.Matching("started.*double.*quote.*next.*must", () =>
+            {
+                var reader = Create.Reader(inputString);
+                result = reader.ReadItem();
+            });
+            Assert.AreEqual("a", result);
+        }
+        #endregion
+
+        #endregion
+
+        #region Block handling
+        [TestMethod]
+        public void SkipRestOfBlockAtBlockCloseTest()
+        {
+            AssertWarnings.NotExpected();
+            string someTokenAfterBlock = "a";
+            var reader = Create.Reader(")" + someTokenAfterBlock);
+            reader.SkipRestOfBlock();
+            Assert.AreEqual(someTokenAfterBlock, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void SkipRestOfBlockBeforeBlockCloseTest()
+        {
+            AssertWarnings.NotExpected();
+            string someTokenAfterBlock = "a";
+            var reader = Create.Reader("b)" + someTokenAfterBlock);
+            reader.SkipRestOfBlock();
+            Assert.AreEqual(someTokenAfterBlock, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void SkipRestOfBlockForNestedblocksTest()
+        {
+            AssertWarnings.NotExpected();
+            string someTokenAfterBlock = "a";
+            var reader = Create.Reader("b(c))" + someTokenAfterBlock);
+            reader.SkipRestOfBlock();
+            Assert.AreEqual(someTokenAfterBlock, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void OnInclompleteRestOfBlockJustReturnTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("(b)");
+            reader.SkipRestOfBlock();
+            Assert.IsTrue(reader.Eof);
+        }
+
+        [TestMethod]
+        public void SkipBlockTest()
+        {
+            string someTokenAfterBlock = "a";
+            var reader = Create.Reader("(c)" + someTokenAfterBlock);
+            reader.SkipBlock();
+            Assert.AreEqual(someTokenAfterBlock, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void SkipNestedBlockTest()
+        {
+            string someTokenAfterBlock = "a";
+            var reader = Create.Reader("(c(b)d)" + someTokenAfterBlock);
+            reader.SkipBlock();
+            Assert.AreEqual(someTokenAfterBlock, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void SkipBlockGettingImmediateCloseWarningTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader(")");
+            AssertWarnings.Matching("Found a close.*expected block of data", () => reader.SkipBlock());
+            Assert.AreEqual(")", reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void SkipBlockNotStartingWithOpenThrowTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("a");
+            Assert.ThrowsException<STFException>(() => reader.SkipBlock(), "expected an open block");
+        }
+
+        [TestMethod]
+        public void IncompleteSkipBlockJustReturnTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("(a");
+            reader.SkipBlock();
+            Assert.IsTrue(reader.Eof);
+        }
+
+        [TestMethod]
+        public void NotAtEndOfBlockAfterNormalTokenTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("sometoken sometoken2");
+            Assert.IsFalse(reader.EndOfBlock());
+            reader.ReadItem();
+            Assert.IsFalse(reader.EndOfBlock());
+        }
+
+        [TestMethod]
+        public void AtEndOfBlockAtEOFTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader("");
+            Assert.IsTrue(reader.EndOfBlock());
+        }
+
+        [TestMethod]
+        public void AtEndOfBlockAtCloseTest()
+        {
+            AssertWarnings.NotExpected();
+            var reader = Create.Reader(") nexttoken");
+            Assert.IsTrue(reader.EndOfBlock());
+        }
+
+        [TestMethod]
+        public void EndOfBlockConsumeCloseMarkerTest()
+        {
+            AssertWarnings.NotExpected();
+            string followuptoken = "sometoken";
+            var reader = Create.Reader(")" + followuptoken + " " + followuptoken); // should be at EOF
+
+            Assert.IsTrue(reader.EndOfBlock());
+            Assert.AreEqual(followuptoken, reader.ReadItem());
+            Assert.IsFalse(reader.EndOfBlock());
+        }
+
+        #endregion
+    }
+
     [TestClass]
     public class StfReaderIntegrationTests
     {
@@ -276,7 +808,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
         const double TonneToKG = 1000;
         const double TonShortToKG = 907.18474;
 
-        static void UnitConversionTest(string input, double output, STFReader.Units unit)
+        private void UnitConversionTest(string input, double output, STFReader.Units unit)
         {
             using (var reader = new STFReader(new MemoryStream(Encoding.Unicode.GetBytes(input)), "", Encoding.Unicode, false))
             {

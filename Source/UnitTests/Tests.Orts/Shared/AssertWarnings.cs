@@ -25,7 +25,7 @@ namespace Tests.Orts.Shared
     public delegate void RunCode();
     /// <summary>
     /// This class can be used to test for Trace.TraceWarning() calls.
-    /// Instead of having the warnings go to the output window of xunit, they are captured by this class.
+    /// Instead of having the warnings go to the output window, they are captured by this class.
     /// This means that if a warning is not expected, a fail will result.
     /// And if you want to test that a warning is given, you can test for that also.
     /// Two methods are present that can be called from within a test:
@@ -39,8 +39,8 @@ namespace Tests.Orts.Shared
 
         static void Initialize()
         {
-            // Prevent warnings from going to xunit.
-            // We assume that xunit takes control back for the next unit test (meaning that the listener will be removed again for the next test).
+            // Prevent warnings from going to MsTest.
+            // We assume that MSTest takes control back for the next unit test (meaning that the listener will be removed again for the next test).
             Trace.Listeners.Clear();
             // We now intercept the trace warnings with our own listener.
             Trace.Listeners.Add(Listener);
