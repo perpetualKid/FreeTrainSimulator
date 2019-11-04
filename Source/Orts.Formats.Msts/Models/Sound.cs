@@ -101,13 +101,13 @@ namespace Orts.Formats.Msts.Models
                     }
                     else
                         SoundFileType = soundFileType;
-                    stf.MustMatch(")");
+                    stf.MustMatchBlockEnd();
                     }),
                 new STFReader.TokenProcessor("ortssoundlocation", ()=>{
                     stf.MustMatchBlockStart();
                     location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null), 
                         stf.ReadFloat(STFReader.Units.None, null), stf.ReadFloat(STFReader.Units.None, null), stf.ReadFloat(STFReader.Units.None, null));
-                    stf.MustMatch(")");
+                    stf.MustMatchBlockEnd();
                 }),
             });
         }

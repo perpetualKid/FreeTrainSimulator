@@ -278,7 +278,7 @@ namespace Orts.Formats.Msts.Parsers
             if (token != "(")
             {
                 block.Label = token;
-                stf.VerifyStartOfBlock();
+                stf.MustMatchBlockStart();
             }
 
             return block;

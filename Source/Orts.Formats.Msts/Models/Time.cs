@@ -21,7 +21,7 @@ namespace Orts.Formats.Msts.Models
             Hour = stf.ReadInt(null);
             Minute = stf.ReadInt(null);
             Second = stf.ReadInt(null);
-            stf.MustMatch(")");
+            stf.MustMatchBlockEnd();
         }
 
         public string FormattedStartTime()
@@ -46,7 +46,7 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatchBlockStart();
             hour = stf.ReadInt(null);
             minute = stf.ReadInt(null);
-            stf.MustMatch(")");
+            stf.MustMatchBlockEnd();
         }
 
         public int ActivityDuration()

@@ -705,6 +705,17 @@ namespace Tests.Orts.Formats.Msts.Parsers
         }
 
         [TestMethod]
+        public void MatchBlockStartTest()
+        {
+            AssertWarnings.NotExpected();
+            string someTokenAfterMatch = "b";
+
+            var reader = Create.Reader("(" + someTokenAfterMatch);
+            reader.MustMatchBlockStart();
+            Assert.AreEqual(someTokenAfterMatch, reader.ReadItem());
+        }
+
+        [TestMethod]
         public void MatchCloseBracketTest()
         {
             AssertWarnings.NotExpected();
@@ -1765,12 +1776,12 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.IsFalse(reader.EOF(), "STFReader.EOF()");
                 Assert.IsFalse(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
-                reader.VerifyStartOfBlock(); // Same as reader.MustMatch("(");
+                reader.MustMatchBlockStart(); // Same as reader.MustMatch("(");
                 Assert.IsFalse(reader.Eof, "STFReader.Eof");
                 Assert.IsFalse(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
                 Assert.AreEqual(1, reader.LineNumber);
-                reader.MustMatch(")");
+                reader.MustMatchBlockEnd();
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
                 Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");

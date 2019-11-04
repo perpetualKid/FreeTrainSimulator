@@ -346,11 +346,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             new STFReader.TokenProcessor("shape", ()=>{ ShapeFileName = stf.ReadStringBlock(null); }),
             new STFReader.TokenProcessor("freightweight", ()=>{ FreightWeight = stf.ReadFloatBlock(STFReader.Units.Mass, 0); }),
             new STFReader.TokenProcessor("offset", ()=>{
-                stf.MustMatch("(");
+                stf.MustMatchBlockStart();
                 XOffset = stf.ReadFloat(STFReader.Units.Distance, 0);
                 YOffset = stf.ReadFloat(STFReader.Units.Distance, 0);
                 ZOffset = stf.ReadFloat(STFReader.Units.Distance, 0);
-                stf.MustMatch(")");
+                stf.MustMatchBlockEnd();
             }),
             new STFReader.TokenProcessor("flip", ()=>{ Flipped = stf.ReadBoolBlock(true);}),
             new STFReader.TokenProcessor("visibility", ()=>{
@@ -441,11 +441,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 }),
                 new STFReader.TokenProcessor("shape", ()=>{ ShapeFileName = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("offset", ()=>{
-                    stf.MustMatch("(");
+                    stf.MustMatchBlockStart();
                     XOffset = stf.ReadFloat(STFReader.Units.Distance, 0);
                     YOffset = stf.ReadFloat(STFReader.Units.Distance, 0);
                     ZOffset = stf.ReadFloat(STFReader.Units.Distance, 0);
-                    stf.MustMatch(")");
+                    stf.MustMatchBlockEnd();
                 }),
                 new STFReader.TokenProcessor("loadweight", ()=>{ LoadWeight = stf.ReadFloatBlock(STFReader.Units.Mass, 0); }),
                 new STFReader.TokenProcessor("loadedatstart", ()=>{ LoadedAtStart = stf.ReadBoolBlock(true);}),

@@ -133,7 +133,7 @@ namespace Orts.Formats.Msts.Models
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("objecttype", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch("WagonsList"); stf.MustMatch(")"); }),
+                new STFReader.TokenProcessor("objecttype", ()=>{ stf.MustMatchBlockStart(); stf.MustMatch("WagonsList"); stf.MustMatchBlockEnd(); }),
                 new STFReader.TokenProcessor("train_config", ()=>{ TrainSet = new TrainSet(stf); }),
                 new STFReader.TokenProcessor("direction", ()=>{ Direction = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("id", ()=>{ ID = stf.ReadIntBlock(null); }),
@@ -141,7 +141,7 @@ namespace Orts.Formats.Msts.Models
                     stf.MustMatchBlockStart();
                     location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
                         stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
-                    stf.MustMatch(")");
+                    stf.MustMatchBlockEnd();
                 }),
             });
         }
@@ -157,7 +157,7 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatchBlockStart();
             A = stf.ReadFloat(STFReader.Units.Speed, null);
             B = stf.ReadFloat(STFReader.Units.Speed, null);
-            stf.MustMatch(")");
+            stf.MustMatchBlockEnd();
         }
     }
 
@@ -189,7 +189,7 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatchBlockStart();
             ID = stf.ReadInt(null);
             PassengerCount = stf.ReadInt(null);
-            stf.MustMatch(")");
+            stf.MustMatchBlockEnd();
         }
     }
 
@@ -233,13 +233,13 @@ namespace Orts.Formats.Msts.Models
                     stf.MustMatchBlockStart();
                     startPosition = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
                         stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
-                    stf.MustMatch(")");
+                    stf.MustMatchBlockEnd();
                 }),
                 new STFReader.TokenProcessor("endposition", ()=>{
                     stf.MustMatchBlockStart();
                     endPosition = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
                         stf.ReadFloat(STFReader.Units.None, null), 0f, stf.ReadFloat(STFReader.Units.None, null));
-                    stf.MustMatch(")");
+                    stf.MustMatchBlockEnd();
                 })
             });
         }

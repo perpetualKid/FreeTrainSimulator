@@ -315,18 +315,28 @@ namespace Orts.Formats.Msts.Parsers
 
         public void MustMatchBlockStart()
         {
+            MustMatch('(');
+        }
+
+        public void MustMatchBlockEnd()
+        {
+            MustMatch(')');
+        }
+
+        public void MustMatch(char target)
+        {
             if (Eof)
-                STFException.TraceWarning(this, "Unexpected end of file instead of '('");
+                STFException.TraceWarning(this, "Unexpected end of file instead of \")\"");
             else
             {
                 string s1 = ReadItem();
                 // A single unexpected token leads to a warning; two leads to a fatal error.
-                if (s1.Length == 0 || s1[0] != 40)   // (
+                if (s1?.Length < 1 || s1[0] != target)
                 {
-                    STFException.TraceWarning(this, $"Opening bracket '(' not found - instead found \"{s1}\"");
+                    STFException.TraceWarning(this, $"\"{target}\" not found - instead found \"{s1}\"");
                     string s2 = ReadItem();
-                    if (s2.Length == 0 || s1[0] != 40)
-                        throw new STFException(this, $"Opening bracket '(' not found - instead found \"{s1}\"");
+                    if (s2?.Length < 1 || s2[0] != target)
+                        throw new STFException(this, $"\"{target}\" not found - instead found \"{s1}\"");
                 }
             }
         }
@@ -1652,11 +1662,6 @@ namespace Orts.Formats.Msts.Parsers
             int c = streamSTF.Read();
             if (c == '\n') ++LineNumber;
             return c;
-        }
-
-        public void VerifyStartOfBlock()
-        {
-            MustMatchBlockStart();
         }
 
         public bool EOF() { return PeekChar() == -1; }
