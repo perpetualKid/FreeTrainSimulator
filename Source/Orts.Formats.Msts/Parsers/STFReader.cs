@@ -1503,7 +1503,9 @@ namespace Orts.Formats.Msts.Parsers
         /// <param name="breakout">A delegate that returns true, if the processing should be halted prematurely</param>
         /// <param name="processors">Array of lower case token, and the delegate/lambda to call when matched.</param>
         public void ParseFile(ParsingBreak breakout, TokenProcessor[] processors)
-        { // Press F10 'Step Over' to jump to the next token
+        {
+            Array.Sort(processors, TokenProcessorComparer.Instance);
+            // Press F10 'Step Over' to jump to the next token
 #line hidden
             while (!Eof)
             {
@@ -1512,37 +1514,38 @@ namespace Orts.Formats.Msts.Parsers
 #if DEBUG
                 else { } // Press F10 'Step Over' to jump to the next token
 #endif
-#line hidden
-                string token = ReadItem().ToLower();
-                if (token == "(") { SkipRestOfBlock(); continue; }
-                foreach (TokenProcessor tp in processors)
-                    if (tp.Token == token)
-#line default
-                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
+                string token = ReadItem();
+                if (token?.Length > 0 && token[0] == '(') { SkipRestOfBlock(); continue; }
+                int index = Array.BinarySearch(processors, token, TokenProcessorComparer.Instance);
+                if (index > -1)
+                    processors[index].Processor();
             } // Press F10 'Step Over' to jump to the next token
         }
         /// <summary>Parse an STF file until the end of block ')' marker, using the array of lower case tokens, with a processor delegate/lambda
         /// </summary>
         /// <param name="processors">Array of lower case token, and the delegate/lambda to call when matched.</param>
         public void ParseBlock(TokenProcessor[] processors)
-        { // Press F10 'Step Over' to jump to the next token
-#line hidden
+        {
+            Array.Sort(processors, TokenProcessorComparer.Instance);
+            // Press F10 'Step Over' to jump to the next token
             while (!EndOfBlock())
             {
-                string token = ReadItem().ToLower();
-                if (token == "(") { SkipRestOfBlock(); continue; }
-                foreach (TokenProcessor tp in processors)
-                    if (tp.Token == token)
-#line default
-                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
-            } // Press F10 'Step Over' to jump to the next token
+                string token = ReadItem();
+                if (token?.Length > 0 && token[0] == '(') { SkipRestOfBlock(); continue; }
+                int index = Array.BinarySearch(processors, token, TokenProcessorComparer.Instance);
+                if (index > -1)
+                    processors[index].Processor();
+            } 
         }
+
         /// <summary>Parse an STF file until the end of block ')' marker, using the array of lower case tokens, with a processor delegate/lambda
         /// </summary>
         /// <param name="breakout">A delegate that returns true, if the processing should be halted prematurely</param>
         /// <param name="processors">Array of lower case token, and the delegate/lambda to call when matched.</param>
         public void ParseBlock(ParsingBreak breakout, TokenProcessor[] processors)
-        { // Press F10 'Step Over' to jump to the next token
+        {
+            Array.Sort(processors, TokenProcessorComparer.Instance);
+            // Press F10 'Step Over' to jump to the next token
 #line hidden
             while (!EndOfBlock())
             {
@@ -1551,15 +1554,14 @@ namespace Orts.Formats.Msts.Parsers
 #if DEBUG
                 else { } // Press F10 'Step Over' to jump to the next token
 #endif
-#line hidden
-                string token = ReadItem().ToLower();
-                if (token == "(") { SkipRestOfBlock(); continue; }
-                foreach (TokenProcessor tp in processors)
-                    if (tp.Token == token)
-#line default
-                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
+                string token = ReadItem();
+                if (token?.Length > 0 && token[0] == '(') { SkipRestOfBlock(); continue; }
+                int index = Array.BinarySearch(processors, token, TokenProcessorComparer.Instance);
+                if (index > -1)
+                    processors[index].Processor();
             } // Press F10 'Step Over' to jump to the next token
         }
+
         #region *** Delegate and Structure definitions used by the Parse...() methods.
         /// <summary>This delegate definition is used by the ParseFile and ParseBlock methods, and is called when an associated matching token is found.
         /// </summary>
@@ -1570,6 +1572,7 @@ namespace Orts.Formats.Msts.Parsers
         public delegate bool ParsingBreak();
         /// <summary>A structure used to index lambda functions to a lower cased token.
         /// </summary>
+        [DebuggerDisplay("Token = {Token}")]
         public readonly struct TokenProcessor
         {
             /// <summary>This constructor is used for the arguments to ParseFile and ParseBlock.
@@ -1585,6 +1588,23 @@ namespace Orts.Formats.Msts.Parsers
 
             public readonly string Token;
             public readonly Processor Processor;
+        }
+
+        private class TokenProcessorComparer: IComparer<TokenProcessor>, System.Collections.IComparer
+        {
+            public int Compare(TokenProcessor x, TokenProcessor y)
+            {
+                return string.Compare(x.Token, y.Token, StringComparison.OrdinalIgnoreCase);
+            }
+
+            public int Compare(object x, object y)
+            {
+                if (x is TokenProcessor processor && y is string token)
+                    return string.Compare(processor.Token, token, StringComparison.OrdinalIgnoreCase);
+                return -1;
+            }
+
+            public static TokenProcessorComparer Instance = new TokenProcessorComparer();
         }
         #endregion
 
