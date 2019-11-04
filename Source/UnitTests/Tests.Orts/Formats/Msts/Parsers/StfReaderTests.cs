@@ -82,7 +82,11 @@ namespace Tests.Orts.Formats.Msts.Parsers
             AssertWarnings.Expected(); // there might be a debug.assert
             var reader = Create.Reader("wagon(Lights");
             reader.ReadItem();
+#if DEBUG
             Assert.ThrowsException<AssertFailedException>(() => { var dummy = reader.Tree; });
+#else
+            Assert.ThrowsException<NullReferenceException>(() => { var dummy = reader.Tree; });
+#endif
         }
 
         [TestMethod]
@@ -100,9 +104,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
             reader.ReadItem();
             Assert.AreEqual("engine", reader.Tree.ToLower());
         }
-        #endregion
+#endregion
 
-        #region Comments/skip
+#region Comments/skip
         [TestClass]
         public class PreprocessingTests
         {
@@ -225,7 +229,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.AreEqual(someFollowingToken, reader.ReadItem());
             }
         }
-        #endregion
+#endregion
 
         [TestMethod]
         public void ContainClosingBracketTest()
@@ -258,7 +262,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
             Assert.AreEqual(-1, reader.PeekPastWhitespace());
         }
 
-        #region Tokenizer
+#region Tokenizer
         [TestMethod]
         public void ReadSingleItemTest()
         {
@@ -509,7 +513,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
             }
         }
 
-        #region Concatenation
+#region Concatenation
         [TestMethod]
         public void ConcatenateTwoLiteralTokensTest()
         {
@@ -551,11 +555,11 @@ namespace Tests.Orts.Formats.Msts.Parsers
             });
             Assert.AreEqual("a", result);
         }
-        #endregion
+#endregion
 
-        #endregion
+#endregion
 
-        #region Block handling
+#region Block handling
         [TestMethod]
         public void SkipRestOfBlockAtBlockCloseTest()
         {
@@ -677,9 +681,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
             Assert.IsFalse(reader.EndOfBlock());
         }
 
-        #endregion
+#endregion
 
-        #region MustMatch
+#region MustMatch
         [TestMethod]
         public void MatchSimpleStringsTest()
         {
@@ -768,10 +772,10 @@ namespace Tests.Orts.Formats.Msts.Parsers
             var reader = Create.Reader("");
             AssertWarnings.Matching("Unexpected end of file instead", () => reader.MustMatch(tokenToMatch));
         }
-        #endregion
+#endregion
     }
 
-    #region TokenProcessor and Parseblock/File
+#region TokenProcessor and Parseblock/File
     [TestClass]
     public class TokenProcessingTests
     {
@@ -875,12 +879,12 @@ namespace Tests.Orts.Formats.Msts.Parsers
             Assert.IsTrue(reader.Eof);
         }
     }
-    #endregion
+#endregion
 
     [TestClass]
     public class StfReaderBlockTests
     {
-        #region bool
+#region bool
         // ReadBool is not supported.
         [TestClass]
         public class ReadBoolBlockTests
@@ -996,9 +1000,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 }
             }
         }
-        #endregion
+#endregion
 
-        #region double
+#region double
         [TestClass]
         public class ReadDoubleTests
         {
@@ -1080,9 +1084,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<double>(SOMEDEFAULTS, reader => reader.ReadDoubleBlock(null));
             }
         }
-        #endregion
+#endregion
 
-        #region float
+#region float
         [TestClass]
         public class ReadFloatTests
         {
@@ -1166,9 +1170,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
                     (SOMEDEFAULTS, reader => reader.ReadFloatBlock(STFReader.Units.None, null));
             }
         }
-        #endregion
+#endregion
 
-        #region hex
+#region hex
         [TestClass]
         public class ReadHexTests
         {
@@ -1251,9 +1255,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<uint>(SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadHexBlock(null));
             }
         }
-        #endregion
+#endregion
 
-        #region int
+#region int
         [TestClass]
         public class ReadIntTests
         {
@@ -1344,9 +1348,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
             }
 
         }
-        #endregion
+#endregion
 
-        #region uint
+#region uint
         [TestClass]
         public class ReadUIntTests
         {
@@ -1427,9 +1431,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<uint>(SOMEDEFAULTS, reader => reader.ReadUIntBlock(null));
             }
         }
-        #endregion
+#endregion
 
-        #region string
+#region string
         [TestClass]
         public class ReadStringTests
         {
@@ -1501,9 +1505,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<string>(SOMEDEFAULTS, reader => reader.ReadStringBlock(null));
             }
         }
-        #endregion
+#endregion
 
-        #region Vector2
+#region Vector2
         [TestClass]
         public class ReadVector2BlockTests
         {
@@ -1546,9 +1550,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock(SOMEDEFAULTS, STRINGDEFAULTS, (STFReader reader, ref Vector2 x) => reader.ReadVector2Block(STFReader.Units.None, ref zero));
             }
         }
-        #endregion
+#endregion
 
-        #region Vector3
+#region Vector3
         [TestClass]
         public class ReadVector3LegacyBlockTests
         {
@@ -1638,9 +1642,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
                     (SOMEDEFAULTS, STRINGDEFAULTS, (STFReader reader, ref Vector3 x) => reader.ReadVector3Block(STFReader.Units.None, ref zero));
             }
         }
-        #endregion
+#endregion
 
-        #region Vector4
+#region Vector4
         [TestClass]
         public class ReadVector4BlockTests
         {
@@ -1686,7 +1690,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
                     (SOMEDEFAULTS, STRINGDEFAULTS, (STFReader reader, ref Vector4 x) => reader.ReadVector4Block(STFReader.Units.None, ref vector4));
             }
         }
-        #endregion
+#endregion
 
     }
 
@@ -1721,8 +1725,11 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.AreEqual(null, reader.SimisSignature);
                 // Note, the Debug.Assert() in reader.Tree is already captured by AssertWarnings.Expected.
                 // For the rest, we do not care which exception is being thrown.
+#if DEBUG
                 Assert.ThrowsException<AssertFailedException>(() => reader.Tree);
-
+#else
+                Assert.ThrowsException<NullReferenceException>(() => reader.Tree);
+#endif
                 // All of the following will execute successfully at EOF..., although they might give warnings.
                 reader.MustMatch("ANYTHING GOES");
                 reader.ParseBlock(new STFReader.TokenProcessor[0]);
@@ -2408,7 +2415,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
 
     }
 
-    #region Test utilities
+#region Test utilities
     class Create
     {
         public static STFReader Reader(string source)
@@ -2452,7 +2459,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
             ExpectedLineNumbers = lineNumbers;
         }
     }
-    #endregion
+#endregion
 
     /// <summary>
     /// Class to help assert not only the type of exception being thrown, but also the message being generated
@@ -2471,10 +2478,10 @@ namespace Tests.Orts.Formats.Msts.Parsers
         }
     }
 
-    #region Common test utilities
+#region Common test utilities
     class StfTokenReaderCommon
     {
-        #region Value itself
+#region Value itself
         public static void OnNoValueWarnAndReturnDefault<T, nullableT>
             (T niceDefault, T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
         {
@@ -2574,9 +2581,9 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.AreEqual(resultDefault, result);
             }
         }
-        #endregion
+#endregion
 
-        #region Value in blocks
+#region Value in blocks
         private static T Wrapper<T>(STFReader innerReader, T input, ReadValueCodeByRef<T> codeDoingReading)
         {
             codeDoingReading(innerReader, ref input);
@@ -2791,12 +2798,12 @@ namespace Tests.Orts.Formats.Msts.Parsers
             }
         }
 
-        #endregion
+#endregion
 
         public delegate T ReadValueCode<T, nullableT>(STFReader reader, nullableT defaultValue);
         public delegate T ReadValueCode<T>(STFReader reader);
         public delegate void ReadValueCodeByRef<T>(STFReader reader, ref T defaultResult);
 
     }
-    #endregion
+#endregion
 }
