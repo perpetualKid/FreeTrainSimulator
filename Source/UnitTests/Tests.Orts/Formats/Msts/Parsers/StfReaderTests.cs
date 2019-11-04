@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -101,6 +102,131 @@ namespace Tests.Orts.Formats.Msts.Parsers
         }
         #endregion
 
+        #region Comments/skip
+        [TestClass]
+        public class PreprocessingTests
+        {
+            [TestMethod]
+            public void SkipBlockOnCommentTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("comment(a)" + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void SkipBlockOnCommentOtherCaseTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("Comment(a)" + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void WarnOnMissingBlockAfterCommentTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("comment a " + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void SkipBlockOnSkipTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("skip(a)" + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void SkipBlockOnSkipOtherCaseTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("Skip(a)" + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void WarnOnMissingBlockAfterSkipTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("skip a " + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void SkipBlockOnTokenStartingWithHashTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("#token(a)" + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void SkipSingleItemOnTokenStartingWithHashTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("#token a " + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void WarnOnEofAfterHashTokenTest()
+            {
+                AssertWarnings.NotExpected();
+                AssertWarnings.Matching("a # marker.*EOF", () =>
+                {
+                    var reader = Create.Reader("#sometoken");
+                    reader.ReadItem();
+                });
+            }
+
+            [TestMethod]
+            public void SkipBlockOnTokenStartingWithUnderscoreTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("_token(a)" + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void SkipSingleItemOnTokenStartingWithUnderscoreTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("_token a " + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void SkipBlockDisregardsNestedCommentTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("comment(a comment( c) skip _underscore #hash)" + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+
+            [TestMethod]
+            public void SkipBlockDisregardsNestedIncludeTest()
+            {
+                AssertWarnings.NotExpected();
+                string someFollowingToken = "b";
+                var reader = Create.Reader("comment(a include c )" + someFollowingToken);
+                Assert.AreEqual(someFollowingToken, reader.ReadItem());
+            }
+        }
+        #endregion
+
         [TestMethod]
         public void ContainClosingBracketTest()
         {
@@ -117,6 +243,19 @@ namespace Tests.Orts.Formats.Msts.Parsers
             Assert.AreEqual(")", reader.Tree.ToLower());
             reader.ReadItem(); // ')'
             Assert.AreEqual("engine", reader.Tree.ToLower());
+        }
+
+        [TestMethod]
+        public void PeekPastWhiteSpaceTest()
+        {   //testing only what is really needed right now.
+            var reader = Create.Reader("a  )  ");
+            Assert.IsFalse(')' == reader.PeekPastWhitespace());
+            Assert.IsFalse(-1 == reader.PeekPastWhitespace());
+
+            reader.ReadItem();
+            Assert.AreEqual(')', reader.PeekPastWhitespace());
+            reader.ReadItem();
+            Assert.AreEqual(-1, reader.PeekPastWhitespace());
         }
 
         #region Tokenizer
@@ -539,6 +678,1005 @@ namespace Tests.Orts.Formats.Msts.Parsers
         }
 
         #endregion
+
+        #region MustMatch
+        [TestMethod]
+        public void MatchSimpleStringsTest()
+        {
+            AssertWarnings.NotExpected();
+            string matchingToken = "a";
+            string someTokenAfterMatch = "b";
+
+            var reader = Create.Reader(matchingToken + " " + someTokenAfterMatch);
+            reader.MustMatch(matchingToken);
+            Assert.AreEqual(someTokenAfterMatch, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void MatchOpenBracketTest()
+        {
+            AssertWarnings.NotExpected();
+            string matchingToken = "(";
+            string someTokenAfterMatch = "b";
+
+            var reader = Create.Reader(matchingToken + someTokenAfterMatch);
+            reader.MustMatch(matchingToken);
+            Assert.AreEqual(someTokenAfterMatch, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void MatchCloseBracketTest()
+        {
+            AssertWarnings.NotExpected();
+            string matchingToken = ")";
+            string someTokenAfterMatch = "b";
+
+            var reader = Create.Reader(matchingToken + someTokenAfterMatch);
+            reader.MustMatch(matchingToken);
+            Assert.AreEqual(someTokenAfterMatch, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void MatchWhileIgnoringCaseTest()
+        {
+            AssertWarnings.NotExpected();
+            string matchingToken = "somecase";
+            string matchingTokenOtherCase = "SomeCase";
+            string someTokenAfterMatch = "b";
+
+            var reader = Create.Reader(matchingTokenOtherCase + " " + someTokenAfterMatch);
+            reader.MustMatch(matchingToken);
+            Assert.AreEqual(someTokenAfterMatch, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void WarnOnSingleMissingMatchTest()
+        {
+            AssertWarnings.NotExpected();
+            string tokenToMatch = "a";
+            string someotherToken = "b";
+            var reader = Create.Reader(someotherToken + " " + tokenToMatch);
+            AssertWarnings.Matching("not found.*instead", () => reader.MustMatch(tokenToMatch));
+        }
+
+        [TestMethod]
+        public void ThrowOnDoubleMissingMatchTest()
+        {
+            AssertWarnings.Expected();  // we first expect a warning, only after that an error
+            string tokenToMatch = "a";
+            string someotherToken = "b";
+            var reader = Create.Reader(someotherToken + " " + someotherToken);
+            Assert.ThrowsException<STFException>(() => reader.MustMatch(tokenToMatch), "not found.*instead");
+        }
+
+        [TestMethod]
+        public void WarnOnEofDuringMatchTest()
+        {
+            AssertWarnings.NotExpected();
+            string tokenToMatch = "a";
+            var reader = Create.Reader("");
+            AssertWarnings.Matching("Unexpected end of file instead", () => reader.MustMatch(tokenToMatch));
+        }
+        #endregion
+    }
+
+    #region TokenProcessor and Parseblock/File
+    [TestClass]
+    public class TokenProcessingTests
+    {
+        [TestMethod]
+        public void DefineTokenProcessorTest()
+        {
+            string sometoken = "sometoken";
+            int called = 0;
+            var tokenProcessor = new STFReader.TokenProcessor(sometoken, () => { called++; });
+            Assert.AreEqual(sometoken, tokenProcessor.Token);
+            tokenProcessor.Processor.Invoke();
+            Assert.AreEqual(1, called);
+        }
+
+        [TestMethod]
+        public void ParseABlockTest()
+        {
+            string source = "block1 block2()block1()";
+            var reader = Create.Reader(source);
+            int called1 = 0;
+            int called2 = 0;
+            reader.ParseBlock(new[] {
+                    new STFReader.TokenProcessor("block1", () => { called1++; }),
+                    new STFReader.TokenProcessor("block2", () => { called2++; })
+                });
+            Assert.AreEqual(2, called1);
+            Assert.AreEqual(1, called2);
+        }
+
+        [TestMethod]
+        public void ParseABlockWithBreakOutTest()
+        {
+            string source = "block1 block2()block1()";
+            var reader = Create.Reader(source);
+            int called1 = 0;
+            int called2 = 0;
+            reader.ParseBlock(() => called2 == 1, new[] {
+                    new STFReader.TokenProcessor("block1", () => { called1++; }),
+                    new STFReader.TokenProcessor("block2", () => { called2++; })
+                });
+            Assert.AreEqual(1, called1);
+            Assert.AreEqual(1, called2);
+        }
+
+        [TestMethod]
+        public void ParseABlockAndThenContinueTest()
+        {
+            string followingtoken = "sometoken";
+            string source = "block1())" + followingtoken;
+            var reader = Create.Reader(source);
+            int called1 = 0;
+            reader.ParseBlock(new[] {
+                    new STFReader.TokenProcessor("block1", () => { called1++; }),
+            });
+            Assert.AreEqual(followingtoken, reader.ReadItem());
+        }
+
+        [TestMethod]
+        public void ParseAFileTest()
+        {
+            string source = "block1 block2()block1()";
+            var reader = Create.Reader(source);
+            int called1 = 0;
+            int called2 = 0;
+            reader.ParseFile(new[] {
+                    new STFReader.TokenProcessor("block1", () => { called1++; }),
+                    new STFReader.TokenProcessor("block2", () => { called2++; })
+                });
+            Assert.AreEqual(2, called1);
+            Assert.AreEqual(1, called2);
+        }
+
+        [TestMethod]
+        public void ParseAFileWithBreakOutTest()
+        {
+            string source = "block1 block2()block1()";
+            var reader = Create.Reader(source);
+            int called1 = 0;
+            int called2 = 0;
+            reader.ParseFile(() => called2 == 1, new[] {
+                    new STFReader.TokenProcessor("block1", () => { called1++; }),
+                    new STFReader.TokenProcessor("block2", () => { called2++; })
+                });
+            Assert.AreEqual(1, called1);
+            Assert.AreEqual(1, called2);
+        }
+
+        [TestMethod]
+        public void ParseAFileTillEOFTest()
+        {
+            string followingtoken = "block2";
+            string source = "block1())" + followingtoken;
+            var reader = Create.Reader(source);
+            int called1 = 0;
+            int called2 = 0;
+            reader.ParseFile(new[] {
+                    new STFReader.TokenProcessor("block1", () => { called1++; }),
+                    new STFReader.TokenProcessor("block2", () => { called2++; })
+            });
+            Assert.AreEqual(1, called2);
+            Assert.IsTrue(reader.Eof);
+        }
+    }
+    #endregion
+
+    [TestClass]
+    public class StfReaderBlockTests
+    {
+        #region bool
+        // ReadBool is not supported.
+        [TestClass]
+        public class ReadBoolBlockTests
+        {
+            static readonly bool SOMEDEFAULT = false;
+            static readonly bool[] SOMEDEFAULTS1 = new bool[] { false, true, false, true, true, true, true };
+            static readonly string[] STRINGDEFAULTS1 = new string[] { "false", "true", "0", "1", "1.1", "-2.9e3", "non" };
+
+            [TestMethod]
+            public void EofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault<bool, bool>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadBoolBlock(x));
+            }
+
+            [TestMethod]
+            public void NoOpenReturnDefaultAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<bool, bool>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadBoolBlock(x));
+            }
+
+            [TestMethod]
+            public void OnBlockEndReturnGivenDefaultTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnGivenDefault<bool, bool>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadBoolBlock(x));
+            }
+
+            [TestMethod]
+            public void ReturnStringValueInBlockTest()
+            {
+                string[] inputValues = { "true", "false" };
+                bool[] expectedValues = { true, false };
+                StfTokenReaderCommon.ReturnValueInBlock<bool>(expectedValues, inputValues, reader => reader.ReadBoolBlock(false));
+            }
+
+            [TestMethod]
+            public void ReturnIntValueInBlockTest()
+            {
+                string[] inputValues = { "0", "1", "-2" };
+                bool[] expectedValues = { false, true, true };
+                StfTokenReaderCommon.ReturnValueInBlock<bool>(expectedValues, inputValues, reader => reader.ReadBoolBlock(false));
+            }
+
+            [TestMethod]
+            public void ReturnDefaultValueOtherwiseInBlockTest()
+            {
+                bool[] expectedValues;
+                string[] inputValues = { "0.1", "1.1", "something", "()" };
+                bool expectedValue = false;
+                expectedValues = new bool[] { expectedValue, expectedValue, expectedValue, expectedValue };
+                StfTokenReaderCommon.ReturnValueInBlock<bool>(expectedValues, inputValues, reader => reader.ReadBoolBlock(expectedValue));
+
+                expectedValue = true;
+                expectedValues = new bool[] { expectedValue, expectedValue, expectedValue, expectedValue };
+                StfTokenReaderCommon.ReturnValueInBlock<bool>(expectedValues, inputValues, reader => reader.ReadBoolBlock(expectedValue));
+            }
+
+            [TestMethod]
+            public void ReturnStringValueInBlockAndSkipRestOfBlockTest()
+            {
+                string[] inputValues = { "true next", "false next" };
+                bool[] expectedValues = { true, false };
+                StfTokenReaderCommon.ReturnValueInBlock<bool>(expectedValues, inputValues, reader => reader.ReadBoolBlock(false));
+            }
+
+            [TestMethod]
+            public void ReturnIntValueInBlockAndSkipRestOfBlockTest()
+            {
+                string[] inputValues = { "0 next", "1 some", "-2 thing" };
+                bool[] expectedValues = { false, true, true };
+                StfTokenReaderCommon.ReturnValueInBlock<bool>(expectedValues, inputValues, reader => reader.ReadBoolBlock(false));
+            }
+
+            [TestMethod]
+            public void ReturnDefaultValueOtherwiseInBlockAndSkipRestOfBlockTest()
+            {
+                string[] inputValues = { "0.1 x", "1.1 y", "something z", "()" };
+                bool[] expectedValues = { false, false, false, false };
+                StfTokenReaderCommon.ReturnValueInBlock<bool>(expectedValues, inputValues, reader => reader.ReadBoolBlock(false));
+            }
+            [TestMethod]
+            public void EmptyBlockReturnGivenDefaultTest()
+            {
+                StfTokenReaderCommon.OnEmptyBlockEndReturnGivenDefault<bool, bool>
+                   (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadBoolBlock(x));
+            }
+
+            [TestMethod]
+            public void NonBoolOrIntInBlockReturnFalseWithoutWarningTest()
+            {
+                AssertWarnings.NotExpected();
+                string[] testValues = new string[] { "(bool)", "(something)" };
+                string inputString = String.Join(" ", testValues);
+
+                bool expectedResult = false;
+                var reader = Create.Reader(inputString);
+                foreach (string testValue in testValues)
+                {
+                    bool result = !expectedResult;
+                    result = reader.ReadBoolBlock(expectedResult);
+                    Assert.AreEqual(expectedResult, result);
+                }
+
+                expectedResult = true;
+                reader = Create.Reader(inputString);
+                foreach (string testValue in testValues)
+                {
+                    bool result = !expectedResult;
+                    result = reader.ReadBoolBlock(expectedResult);
+                    Assert.AreEqual(expectedResult, result);
+                }
+            }
+        }
+        #endregion
+
+        #region double
+        [TestClass]
+        public class ReadDoubleTests
+        {
+            static readonly double NICEDEFAULT = default;
+            static readonly double SOMEDEFAULT = -2;
+            static readonly double[] SOMEDEFAULTS = new double[] { 3, 5, -6 };
+
+            [TestMethod]
+            public void OnNoValueWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnNoValueWarnAndReturnDefault<double, double?>
+                    (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadDouble(x));
+            }
+
+            [TestMethod]
+            public void ReturnValueTest()
+            {
+                StfTokenReaderCommon.ReturnValue<double>(SOMEDEFAULTS, reader => reader.ReadDouble(null));
+            }
+
+            [TestMethod]
+            public void WithCommaReturnValueTest()
+            {
+                StfTokenReaderCommon.WithCommaReturnValue<double>(SOMEDEFAULTS, reader => reader.ReadDouble(null));
+            }
+
+            [TestMethod]
+            public void ForEmptyStringReturnNiceDefaultTest()
+            {
+                StfTokenReaderCommon.ForEmptyStringReturnNiceDefault<double, double?>
+                    (NICEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadDouble(x));
+            }
+
+            [TestMethod]
+            public void ForNonNumbersReturnZeroAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNonNumbersReturnNiceDefaultAndWarn<double, double?>
+                    (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadDouble(x));
+            }
+
+        }
+
+        [TestClass]
+        public class ReadDoubleBlockTests
+        {
+            static readonly double SOMEDEFAULT = -2;
+            static readonly double[] SOMEDEFAULTS = new double[] { 3, 5, -6 };
+
+            [TestMethod]
+            public void EofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault<double, double?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadDoubleBlock(x));
+            }
+
+            [TestMethod]
+            public void ForNoOpenReturnDefaultAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<double, double?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadDoubleBlock(x));
+            }
+
+            [TestMethod]
+            public void BlockEndReturnDefaultOrWarnTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnDefaultOrWarn<double, double?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadDoubleBlock(x));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlock<double>(SOMEDEFAULTS, reader => reader.ReadDoubleBlock(null));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockAndSkipRestOfBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<double>(SOMEDEFAULTS, reader => reader.ReadDoubleBlock(null));
+            }
+        }
+        #endregion
+
+        #region float
+        [TestClass]
+        public class ReadFloatTests
+        {
+            static readonly float NICEDEFAULT = default;
+            static readonly float SOMEDEFAULT = 2.1f;
+            static readonly float[] SOMEDEFAULTS = new float[] { 1.1f, 4.5e6f, -0.01f };
+
+            [TestMethod]
+            public void OnNoValueWarnAndReturnDefault()
+            {
+                StfTokenReaderCommon.OnNoValueWarnAndReturnDefault<float, float?>
+                    (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloat(STFReader.Units.None, x));
+            }
+
+            [TestMethod]
+            public static void ReturnValueTest()
+            {
+                StfTokenReaderCommon.ReturnValue<float>(SOMEDEFAULTS, reader => reader.ReadFloat(STFReader.Units.None, null));
+            }
+
+            [TestMethod]
+            public void WithCommaReturnValueTest()
+            {
+                StfTokenReaderCommon.WithCommaReturnValue<float>(SOMEDEFAULTS, reader => reader.ReadFloat(STFReader.Units.None, null));
+            }
+
+            [TestMethod]
+            public void ForEmptyStringReturnNiceDefaultTest()
+            {
+                StfTokenReaderCommon.ForEmptyStringReturnNiceDefault<float, float?>
+                    (NICEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloat(STFReader.Units.None, x));
+            }
+
+            [TestMethod]
+            public void ForNonNumbersReturnZeroAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNonNumbersReturnNiceDefaultAndWarn<float, float?>
+                    (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloat(STFReader.Units.None, x));
+            }
+
+        }
+
+        [TestClass]
+        public class ReadFloatBlockTests
+        {
+            static readonly float SOMEDEFAULT = 2.1f;
+            static readonly float[] SOMEDEFAULTS = new float[] { 1.1f, 4.5e6f, -0.01f };
+
+            [TestMethod]
+            public void OnEofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault<float, float?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloatBlock(STFReader.Units.None, x));
+            }
+
+            [TestMethod]
+            public void ForNoOpenReturnDefaultAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<float, float?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloatBlock(STFReader.Units.None, x));
+            }
+
+            [TestMethod]
+            public void OnBlockEndReturnDefaultOrWarnTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnDefaultOrWarn<float, float?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadFloatBlock(STFReader.Units.None, x));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlock<float>
+                    (SOMEDEFAULTS, reader => reader.ReadFloatBlock(STFReader.Units.None, null));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockAndSkipRestOfBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<float>
+                    (SOMEDEFAULTS, reader => reader.ReadFloatBlock(STFReader.Units.None, null));
+            }
+        }
+        #endregion
+
+        #region hex
+        [TestClass]
+        public class ReadHexTests
+        {
+            static readonly uint NICEDEFAULT = default;
+            static readonly uint SOMEDEFAULT = 2;
+            static readonly uint[] SOMEDEFAULTS = new uint[] { 3, 5, 129 };
+            static readonly string[] STRINGDEFAULTS = new string[] { "0000003", "00000005", "00000081" };
+
+            [TestMethod]
+            public void NoValueWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnNoValueWarnAndReturnDefault<uint, uint?>
+                    (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadHex(x));
+            }
+
+            [TestMethod]
+            public void ReturnValueTest()
+            {
+                StfTokenReaderCommon.ReturnValue<uint>(SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadHex(null));
+            }
+
+            [TestMethod]
+            public void WithCommaReturnValueTest()
+            {
+                StfTokenReaderCommon.WithCommaReturnValue<uint>(SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadHex(null));
+            }
+
+            [TestMethod]
+            public void ForEmptyStringReturnNiceDefaultTest()
+            {
+                StfTokenReaderCommon.ForEmptyStringReturnNiceDefault<uint, uint?>
+                    (NICEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadHex(x));
+            }
+
+            [TestMethod]
+            public void ForNonNumbersReturnZeroAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNonNumbersReturnNiceDefaultAndWarn<uint, uint?>
+                    (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadHex(x));
+            }
+        }
+
+        [TestClass]
+        public class ReadHexBlockTests
+        {
+            static readonly uint SOMEDEFAULT = 4;
+            static readonly uint[] SOMEDEFAULTS = new uint[] { 3, 5, 20 };
+            static readonly string[] STRINGDEFAULTS = new string[] { "00000003", "00000005", "00000014" };
+
+            [TestMethod]
+            public void EofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault<uint, uint?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadHexBlock(x));
+            }
+
+            [TestMethod]
+            public void ForNoOpenReturnDefaultAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<uint, uint?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadHexBlock(x));
+            }
+
+            [TestMethod]
+            public void OnBlockEndReturnDefaultOrWarnTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnDefaultOrWarn<uint, uint?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadHexBlock(x));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlock<uint>(SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadHexBlock(null));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockAndSkipRestOfBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<uint>(SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadHexBlock(null));
+            }
+        }
+        #endregion
+
+        #region int
+        [TestClass]
+        public class ReadIntTests
+        {
+            static readonly int NICEDEFAULT = default;
+            static readonly int SOMEDEFAULT = -2;
+            static readonly int[] SOMEDEFAULTS = new int[] { 3, 5, -6 };
+
+            [TestMethod]
+            public void OnNoValueWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnNoValueWarnAndReturnDefault<int, int?>
+                    (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadInt(x));
+            }
+
+            [TestMethod]
+            public void ReturnValueTest()
+            {
+                StfTokenReaderCommon.ReturnValue<int>(SOMEDEFAULTS, reader => reader.ReadInt(null));
+            }
+
+            [TestMethod]
+            public void ReturnValueWithSignTest()
+            {
+                string[] inputs = { "+2", "-3" };
+                int[] expected = { 2, -3 };
+                StfTokenReaderCommon.ReturnValue<int>(expected, inputs, reader => reader.ReadInt(null));
+            }
+
+            [TestMethod]
+            public void WithCommaReturnValueTest()
+            {
+                StfTokenReaderCommon.WithCommaReturnValue<int>(SOMEDEFAULTS, reader => reader.ReadInt(null));
+            }
+
+            [TestMethod]
+            public void ForEmptyStringReturnNiceDefaultTest()
+            {
+                StfTokenReaderCommon.ForEmptyStringReturnNiceDefault<int, int?>
+                    (NICEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadInt(x));
+            }
+
+            [TestMethod]
+            public void ForNonNumbersReturnZeroAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNonNumbersReturnNiceDefaultAndWarn<int, int?>
+                    (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadInt(x));
+            }
+
+        }
+
+        [TestClass]
+        public class ReadIntBlockTests
+        {
+            static readonly int SOMEDEFAULT = -2;
+            static readonly int[] SOMEDEFAULTS = new int[] { 3, 5, -6 };
+
+            [TestMethod]
+            public void OnEofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault<int, int?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadIntBlock(x));
+            }
+
+            [TestMethod]
+            public void ForNoOpenReturnDefaultAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<int, int?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadIntBlock(x));
+            }
+
+            [TestMethod]
+            public void OnBlockEndReturnDefaultOrWarnTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnDefaultOrWarn<int, int?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadIntBlock(x));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlock<int>(SOMEDEFAULTS, reader => reader.ReadIntBlock(null));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockAndSkipRestOfBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<int>(SOMEDEFAULTS, reader => reader.ReadIntBlock(null));
+            }
+
+        }
+        #endregion
+
+        #region uint
+        [TestClass]
+        public class ReadUIntTests
+        {
+            static readonly uint NICEDEFAULT = default;
+            static readonly uint SOMEDEFAULT = 2;
+            static readonly uint[] SOMEDEFAULTS = new uint[] { 3, 5, 200 };
+
+            [TestMethod]
+            public void OnNoValueWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnNoValueWarnAndReturnDefault<uint, uint?>
+                    (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadUInt(x));
+            }
+
+            [TestMethod]
+            public void ReturnValueTest()
+            {
+                StfTokenReaderCommon.ReturnValue<uint>(SOMEDEFAULTS, reader => reader.ReadUInt(null));
+            }
+
+            [TestMethod]
+            public void WithCommaReturnValueTest()
+            {
+                StfTokenReaderCommon.WithCommaReturnValue<uint>(SOMEDEFAULTS, reader => reader.ReadUInt(null));
+            }
+
+            [TestMethod]
+            public void ForEmptyStringReturnNiceDefaultTest()
+            {
+                StfTokenReaderCommon.ForEmptyStringReturnNiceDefault<uint, uint?>
+                    (NICEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadUInt(x));
+            }
+
+            [TestMethod]
+            public void ForNonNumbersReturnZeroAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNonNumbersReturnNiceDefaultAndWarn<uint, uint?>
+                    (NICEDEFAULT, SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadUInt(x));
+            }
+        }
+
+        [TestClass]
+        public class ReadUIntBlockTests
+        {
+            static readonly uint SOMEDEFAULT = 4;
+            static readonly uint[] SOMEDEFAULTS = new uint[] { 3, 5, 20 };
+
+            [TestMethod]
+            public void OnEofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault<uint, uint?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadUIntBlock(x));
+            }
+
+            [TestMethod]
+            public void ForNoOpenReturnDefaultAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<uint, uint?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadUIntBlock(x));
+            }
+
+            [TestMethod]
+            public void OnBlockEndReturnDefaultOrWarnTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnDefaultOrWarn<uint, uint?>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadUIntBlock(x));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlock<uint>(SOMEDEFAULTS, reader => reader.ReadUIntBlock(null));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockAndSkipRestOfBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<uint>(SOMEDEFAULTS, reader => reader.ReadUIntBlock(null));
+            }
+        }
+        #endregion
+
+        #region string
+        [TestClass]
+        public class ReadStringTests
+        {
+            [TestMethod]
+            public static void ReturnValueTest()
+            {
+                AssertWarnings.NotExpected();
+                string[] testValues = new string[] { "token", "somestring", "lights" };
+                string inputString = string.Join(" ", testValues);
+                var reader = Create.Reader(inputString);
+
+                foreach (string testValue in testValues)
+                {
+                    Assert.AreEqual(testValue, reader.ReadString());
+                }
+            }
+
+            [TestMethod]
+            public void SkipValueStartingWithUnderscoreTest()
+            {
+                AssertWarnings.NotExpected();
+                string underscoreToken = "_underscore";
+                string toBeSkippedToken = "tobeskippedtoken";
+                string followingToken = "followingtoken";
+                string inputString = underscoreToken + " " + toBeSkippedToken + " " + followingToken;
+                var reader = Create.Reader(inputString);
+                Assert.AreEqual(underscoreToken, reader.ReadString());
+                Assert.AreEqual(toBeSkippedToken, reader.ReadString());
+                Assert.AreEqual(followingToken, reader.ReadString());
+            }
+        }
+
+        [TestClass]
+        public class ReadStringBlockTests
+        {
+            static readonly string SOMEDEFAULT = "a";
+            static readonly string[] SOMEDEFAULTS = new string[] { "ss", "SomeThing", "da" };
+
+            [TestMethod]
+            public void OnEofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault<string, string>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadStringBlock(x));
+            }
+
+            [TestMethod]
+            public void ForNoOpenWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<string, string>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadStringBlock(x));
+            }
+
+            [TestMethod]
+            public void OnBlockEndReturnDefaultOrWarnTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnDefaultOrWarn<string, string>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadStringBlock(x));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlock<string>(SOMEDEFAULTS, reader => reader.ReadStringBlock(null));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockAndSkipRestOfBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<string>(SOMEDEFAULTS, reader => reader.ReadStringBlock(null));
+            }
+        }
+        #endregion
+
+        #region Vector2
+        [TestClass]
+        public class ReadVector2BlockTests
+        {
+            static readonly Vector2 SOMEDEFAULT = new Vector2(1.1f, 1.2f);
+            static readonly Vector2[] SOMEDEFAULTS = new Vector2[] { new Vector2(1.3f, 1.5f), new Vector2(-2f, 1e6f) };
+            static readonly string[] STRINGDEFAULTS = new string[] { "1.3 1.5 ignore", "-2 1000000" };
+
+            [TestMethod]
+            public void OnEofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault
+                    (SOMEDEFAULT, SOMEDEFAULT, (STFReader reader, ref Vector2 x) => reader.ReadVector2Block(STFReader.Units.None, ref x));
+            }
+
+            [TestMethod]
+            public void ForNoOpenReturnDefaultAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault
+                    (SOMEDEFAULT, SOMEDEFAULT, (STFReader reader, ref Vector2 x) => reader.ReadVector2Block(STFReader.Units.None, ref x));
+            }
+
+            [TestMethod]
+            public void OnBlockEndReturnDefaultWhenGivenTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnGivenDefault
+                    (SOMEDEFAULT, SOMEDEFAULT, (STFReader reader, ref Vector2 x) => reader.ReadVector2Block(STFReader.Units.None, ref x));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockTest()
+            {
+                Vector2 zero = Vector2.Zero;
+                StfTokenReaderCommon.ReturnValueInBlock(SOMEDEFAULTS, STRINGDEFAULTS, (STFReader reader, ref Vector2 x) => reader.ReadVector2Block(STFReader.Units.None, ref zero));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockAndSkipRestOfBlockTest()
+            {
+                Vector2 zero = Vector2.Zero;
+                StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock(SOMEDEFAULTS, STRINGDEFAULTS, (STFReader reader, ref Vector2 x) => reader.ReadVector2Block(STFReader.Units.None, ref zero));
+            }
+        }
+        #endregion
+
+        #region Vector3
+        [TestClass]
+        public class ReadVector3LegacyBlockTests
+        {
+            static readonly Vector3 SOMEDEFAULT = new Vector3(1.1f, 1.2f, 1.3f);
+            static readonly Vector3[] SOMEDEFAULTS = new Vector3[] { new Vector3(1.3f, 1.5f, 1.8f), new Vector3(1e-3f, -2f, -1e3f) };
+            static readonly string[] STRINGDEFAULTS = new string[] { "1.3 1.5 1.8 ignore", "0.001, -2, -1000" };
+
+
+            [TestMethod]
+            public void OnEofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault<Vector3, Vector3>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector3Block(STFReader.Units.None, x));
+            }
+
+            [TestMethod]
+            public void ForNoOpenReturnDefaultAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<Vector3, Vector3>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector3Block(STFReader.Units.None, x));
+            }
+
+            [TestMethod]
+            public void OnBlockEndReturnDefaultWhenGivenTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnGivenDefault<Vector3, Vector3>
+                    (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector3Block(STFReader.Units.None, x));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlock<Vector3>
+                    (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector3Block(STFReader.Units.None, Vector3.Zero));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockAndSkipRestOfBlockTest()
+            {
+                StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<Vector3>
+                    (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector3Block(STFReader.Units.None, Vector3.Zero));
+            }
+        }
+
+        [TestClass]
+        public class ReadVector3BlockTests
+        {
+            static readonly Vector3 SOMEDEFAULT = new Vector3(1.1f, 1.2f, 1.3f);
+            static readonly Vector3[] SOMEDEFAULTS = new Vector3[] { new Vector3(1.3f, 1.5f, 1.8f), new Vector3(1e-3f, -2f, -1e3f) };
+            static readonly string[] STRINGDEFAULTS = new string[] { "1.3 1.5 1.8 ignore", "0.001, -2, -1000" };
+
+
+            [TestMethod]
+            public void OnEofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault
+                    (SOMEDEFAULT, SOMEDEFAULT, (STFReader reader, ref Vector3 x) => reader.ReadVector3Block(STFReader.Units.None, ref x));
+            }
+
+            [TestMethod]
+            public void ForNoOpenReturnDefaultAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault
+                    (SOMEDEFAULT, SOMEDEFAULT, (STFReader reader, ref Vector3 x) => reader.ReadVector3Block(STFReader.Units.None, ref x));
+            }
+
+            [TestMethod]
+            public void OnBlockEndReturnDefaultWhenGivenTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnGivenDefault
+                    (SOMEDEFAULT, SOMEDEFAULT, (STFReader reader, ref Vector3 x) => reader.ReadVector3Block(STFReader.Units.None, ref x));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockTest()
+            {
+                Vector3 zero = Vector3.Zero;
+                StfTokenReaderCommon.ReturnValueInBlock
+                    (SOMEDEFAULTS, STRINGDEFAULTS, (STFReader reader, ref Vector3 x) => reader.ReadVector3Block(STFReader.Units.None, ref zero));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockAndSkipRestOfBlockTest()
+            {
+                Vector3 zero = Vector3.Zero;
+                StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock
+                    (SOMEDEFAULTS, STRINGDEFAULTS, (STFReader reader, ref Vector3 x) => reader.ReadVector3Block(STFReader.Units.None, ref zero));
+            }
+        }
+        #endregion
+
+        #region Vector4
+        [TestClass]
+        public class ReadVector4BlockTests
+        {
+            static readonly Vector4 SOMEDEFAULT = new Vector4(1.1f, 1.2f, 1.3f, 1.4f);
+            static readonly Vector4[] SOMEDEFAULTS = new Vector4[] { new Vector4(1.3f, 1.5f, 1.7f, 1.9f) };
+            static readonly string[] STRINGDEFAULTS = new string[] { "1.3 1.5 1.7 1.9 ignore" };
+
+
+            [TestMethod]
+            public void OnEofWarnAndReturnDefaultTest()
+            {
+                StfTokenReaderCommon.OnEofWarnAndReturnDefault
+                    (SOMEDEFAULT, SOMEDEFAULT, (STFReader reader, ref Vector4 x) => reader.ReadVector4Block(STFReader.Units.None, ref x));
+            }
+
+            [TestMethod]
+            public void ForNoOpenReturnDefaultAndWarnTest()
+            {
+                StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault
+                    (SOMEDEFAULT, SOMEDEFAULT, (STFReader reader, ref Vector4 x) => reader.ReadVector4Block(STFReader.Units.None, ref x));
+            }
+
+            [TestMethod]
+            public void OnBlockEndReturnDefaultWhenGivenTest()
+            {
+                StfTokenReaderCommon.OnBlockEndReturnGivenDefault
+                    (SOMEDEFAULT, SOMEDEFAULT, (STFReader reader, ref Vector4 x) => reader.ReadVector4Block(STFReader.Units.None, ref x));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockTest()
+            {
+                Vector4 vector4 = Vector4.Zero;
+                StfTokenReaderCommon.ReturnValueInBlock
+                    (SOMEDEFAULTS, STRINGDEFAULTS, (STFReader reader, ref Vector4 x) => reader.ReadVector4Block(STFReader.Units.None, ref vector4));
+            }
+
+            [TestMethod]
+            public void ReturnValueInBlockAndSkipRestOfBlockTest()
+            {
+                Vector4 vector4 = Vector4.Zero;
+                StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock
+                    (SOMEDEFAULTS, STRINGDEFAULTS, (STFReader reader, ref Vector4 x) => reader.ReadVector4Block(STFReader.Units.None, ref vector4));
+            }
+        }
+        #endregion
+
     }
 
     [TestClass]
@@ -593,8 +1731,15 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 Assert.AreEqual(null, reader.ReadStringBlock(null));
                 Assert.AreEqual(0U, reader.ReadUInt(null));
                 Assert.AreEqual(0U, reader.ReadUIntBlock(null));
-                Assert.AreEqual(Vector3.Zero, reader.ReadVector3Block(STFReader.Units.None, Vector3.Zero));
-                Assert.AreEqual(Vector4.Zero, reader.ReadVector4Block(STFReader.Units.None, Vector4.Zero));
+                Vector2 vector2 = Vector2.Zero;
+                reader.ReadVector2Block(STFReader.Units.None, ref vector2);
+                Assert.AreEqual(Vector2.Zero, vector2);
+                Vector3 vector3 = Vector3.Zero;
+                reader.ReadVector3Block(STFReader.Units.None, ref vector3);
+                Assert.AreEqual(Vector3.Zero, vector3);
+                Vector4 vector4 = Vector4.Zero;
+                reader.ReadVector4Block(STFReader.Units.None, ref vector4);
+                Assert.AreEqual(Vector4.Zero, vector4);
             }
         }
 
@@ -739,13 +1884,17 @@ namespace Tests.Orts.Formats.Msts.Parsers
         [TestMethod]
         public void BlockVectorFormats()
         {
-            Vector2 vector2 = Vector2.Zero;
             using (var reader = new STFReader(new MemoryStream(Encoding.Unicode.GetBytes("(1.1 1.2 ignored) (1.1 1.2 1.3 ignored) (1.1 1.2 1.3 1.4 ignored)")), "", Encoding.Unicode, false))
             {
+                Vector2 vector2 = Vector2.Zero;
                 reader.ReadVector2Block(STFReader.Units.None, ref vector2);
                 Assert.AreEqual(new Vector2(1.1f, 1.2f), vector2);
-                Assert.AreEqual(new Vector3(1.1f, 1.2f, 1.3f), reader.ReadVector3Block(STFReader.Units.None, Vector3.Zero));
-                Assert.AreEqual(new Vector4(1.1f, 1.2f, 1.3f, 1.4f), reader.ReadVector4Block(STFReader.Units.None, Vector4.Zero));
+                Vector3 vector3 = Vector3.Zero;
+                reader.ReadVector3Block(STFReader.Units.None, ref vector3);
+                Assert.AreEqual(new Vector3(1.1f, 1.2f, 1.3f), vector3);
+                Vector4 vector4 = Vector4.Zero;
+                reader.ReadVector4Block(STFReader.Units.None, ref vector4);
+                Assert.AreEqual(new Vector4(1.1f, 1.2f, 1.3f, 1.4f), vector4);
                 Assert.IsTrue(reader.Eof, "STFReader.Eof");
                 Assert.IsTrue(reader.EOF(), "STFReader.EOF()");
                 Assert.IsTrue(reader.EndOfBlock(), "STFReader.EndOfBlock()");
@@ -1243,7 +2392,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
         {
             string filename = "somefile";
             string message = "some message";
-            AssertStfException.Throws(new STFException(new STFReader(new MemoryStream(), filename, Encoding.ASCII, true), message), message);
+            Assert.ThrowsException<STFException>(() => throw new STFException(new STFReader(new MemoryStream(), filename, Encoding.ASCII, true), message), message);
         }
 
     }
@@ -1314,300 +2463,329 @@ namespace Tests.Orts.Formats.Msts.Parsers
     #region Common test utilities
     class StfTokenReaderCommon
     {
-        //#region Value itself
-        //public static void OnNoValueWarnAndReturnDefault<T, nullableT>
-        //    (T niceDefault, T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    var inputString = ")";
-        //    T result = default(T);
+        #region Value itself
+        public static void OnNoValueWarnAndReturnDefault<T, nullableT>
+            (T niceDefault, T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            var inputString = ")";
+            T result = default;
 
-        //    var reader = Create.Reader(inputString);
-        //    AssertWarnings.Matching("Cannot parse|expecting.*found.*[)]", () => { result = codeDoingReading(reader, default(nullableT)); });
-        //    Assert.Equal(niceDefault, result);
-        //    Assert.Equal(")", reader.ReadItem());
+            var reader = Create.Reader(inputString);
+            AssertWarnings.Matching("Cannot parse|expecting.*found.*[)]", () => { result = codeDoingReading(reader, default); });
+            Assert.AreEqual(niceDefault, result);
+            Assert.AreEqual(")", reader.ReadItem());
 
-        //    reader = Create.Reader(inputString);
-        //    AssertWarnings.Matching("expecting.*found.*[)]", () => { result = codeDoingReading(reader, someDefault); });
-        //    Assert.Equal(resultDefault, result);
-        //    Assert.Equal(")", reader.ReadItem());
-        //}
+            reader = Create.Reader(inputString);
+            AssertWarnings.Matching("expecting.*found.*[)]", () => { result = codeDoingReading(reader, someDefault); });
+            Assert.AreEqual(resultDefault, result);
+            Assert.AreEqual(")", reader.ReadItem());
+        }
 
-        //public static void ReturnValue<T>
-        //    (T[] testValues, ReadValueCode<T> codeDoingReading)
-        //{
-        //    string[] inputValues = testValues.Select(
-        //        value => String.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}", value)).ToArray();
-        //    ReturnValue<T>(testValues, inputValues, codeDoingReading);
-        //}
+        public static void ReturnValue<T>
+            (T[] testValues, ReadValueCode<T> codeDoingReading)
+        {
+            string[] inputValues = testValues.Select(
+                value => string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}", value)).ToArray();
+            ReturnValue<T>(testValues, inputValues, codeDoingReading);
+        }
 
-        //public static void ReturnValue<T>
-        //    (T[] testValues, string[] inputValues, ReadValueCode<T> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    string inputString = String.Join(" ", inputValues);
-        //    var reader = Create.Reader(inputString);
-        //    foreach (T testValue in testValues)
-        //    {
-        //        T result = codeDoingReading(reader);
-        //        Assert.Equal(testValue, result);
-        //    }
-        //}
+        public static void ReturnValue<T>
+            (T[] testValues, string[] inputValues, ReadValueCode<T> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            string inputString = string.Join(" ", inputValues);
+            var reader = Create.Reader(inputString);
+            foreach (T testValue in testValues)
+            {
+                T result = codeDoingReading(reader);
+                Assert.AreEqual(testValue, result);
+            }
+        }
 
-        //public static void WithCommaReturnValue<T>
-        //    (T[] testValues, ReadValueCode<T> codeDoingReading)
-        //{
-        //    string[] inputValues = testValues.Select(
-        //        value => String.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}", value)).ToArray();
-        //    WithCommaReturnValue(testValues, inputValues, codeDoingReading);
-        //}
+        public static void WithCommaReturnValue<T>
+            (T[] testValues, ReadValueCode<T> codeDoingReading)
+        {
+            string[] inputValues = testValues.Select(
+                value => string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}", value)).ToArray();
+            WithCommaReturnValue(testValues, inputValues, codeDoingReading);
+        }
 
-        //public static void WithCommaReturnValue<T>
-        //    (T[] testValues, string[] inputValues, ReadValueCode<T> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    string inputString = String.Join(" ", inputValues);
-        //    var reader = Create.Reader(inputString);
-        //    foreach (T testValue in testValues)
-        //    {
-        //        T result = codeDoingReading(reader);
-        //        Assert.Equal(testValue, result);
-        //    }
-        //}
+        public static void WithCommaReturnValue<T>
+            (T[] testValues, string[] inputValues, ReadValueCode<T> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            string inputString = string.Join(" ", inputValues);
+            var reader = Create.Reader(inputString);
+            foreach (T testValue in testValues)
+            {
+                T result = codeDoingReading(reader);
+                Assert.AreEqual(testValue, result);
+            }
+        }
 
-        //public static void ForEmptyStringReturnNiceDefault<T, nullableT>
-        //    (T niceDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    string[] tokenValues = new string[] { "", "" };
-        //    string emptyQuotedString = "\"\"";
-        //    string inputString = emptyQuotedString + " " + emptyQuotedString;
-        //    var reader = Create.Reader(inputString);
+        public static void ForEmptyStringReturnNiceDefault<T, nullableT>
+            (T niceDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            string[] tokenValues = new string[] { "", "" };
+            string emptyQuotedString = "\"\"";
+            string inputString = emptyQuotedString + " " + emptyQuotedString;
+            var reader = Create.Reader(inputString);
 
-        //    T result = codeDoingReading(reader, default(nullableT));
-        //    Assert.Equal(niceDefault, result);
+            T result = codeDoingReading(reader, default);
+            Assert.AreEqual(niceDefault, result);
 
-        //    result = codeDoingReading(reader, someDefault);
-        //    Assert.Equal(niceDefault, result);
-        //}
+            result = codeDoingReading(reader, someDefault);
+            Assert.AreEqual(niceDefault, result);
+        }
 
-        //public static void ForNonNumbersReturnNiceDefaultAndWarn<T, nullableT>
-        //    (T niceDefault, T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    string[] testValues = new string[] { "noint", "sometoken", "(" };
-        //    string inputString = String.Join(" ", testValues);
+        public static void ForNonNumbersReturnNiceDefaultAndWarn<T, nullableT>
+            (T niceDefault, T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            string[] testValues = new string[] { "noint", "sometoken", "(" };
+            string inputString = string.Join(" ", testValues);
 
-        //    var reader = Create.Reader(inputString);
-        //    foreach (string testValue in testValues)
-        //    {
-        //        T result = default(T);
-        //        AssertWarnings.Matching("Cannot parse", () => { result = codeDoingReading(reader, default(nullableT)); });
-        //        Assert.Equal(niceDefault, result);
-        //    }
+            var reader = Create.Reader(inputString);
+            foreach (string testValue in testValues)
+            {
+                T result = default;
+                AssertWarnings.Matching("Cannot parse", () => { result = codeDoingReading(reader, default); });
+                Assert.AreEqual(niceDefault, result);
+            }
 
-        //    reader = Create.Reader(inputString);
-        //    foreach (string testValue in testValues)
-        //    {
-        //        T result = default(T);
-        //        AssertWarnings.Matching("Cannot parse", () => { result = codeDoingReading(reader, someDefault); });
-        //        Assert.Equal(resultDefault, result);
-
-        //    }
-        //}
-        //#endregion
+            reader = Create.Reader(inputString);
+            foreach (string testValue in testValues)
+            {
+                T result = default;
+                AssertWarnings.Matching("Cannot parse", () => { result = codeDoingReading(reader, someDefault); });
+                Assert.AreEqual(resultDefault, result);
+            }
+        }
+        #endregion
 
         #region Value in blocks
-        public static void OnEofWarnAndReturnDefault<T, nullableT>
-            (T resultDefault, ref nullableT someValue, ReadValueCodeByRef<T, nullableT> codeDoingReading)
+        private static T Wrapper<T>(STFReader innerReader, T input, ReadValueCodeByRef<T> codeDoingReading)
+        {
+            codeDoingReading(innerReader, ref input);
+            return input;
+        }
+
+
+        public static void OnEofWarnAndReturnDefault<T>(T resultDefault, T someValue, ReadValueCodeByRef<T> codeDoingReading)
         {
             AssertWarnings.NotExpected();
             var reader = Create.Reader(string.Empty);
-//            AssertWarnings.Matching("Unexpected end of file", () => codeDoingReading(reader, ref someValue));
-            //            AssertWarnings.Matching("Unexpected end of file", () => codeDoingReading(reader, ref someValue) );
-            //Assert.Equal(default(T), result);
-            //AssertWarnings.Matching("Unexpected end of file", () => { result = codeDoingReading(reader, ref someDefault); });
-            Assert.AreEqual(resultDefault, someValue);
+            T innerValue = someValue;
+            T result = default;
+            AssertWarnings.Matching("Unexpected end of file", () => result = Wrapper(reader, default, codeDoingReading));
+            Assert.AreEqual(default, result);
+            AssertWarnings.Matching("Unexpected end of file", () => { result = Wrapper(reader, innerValue, codeDoingReading); });
+            Assert.AreEqual(resultDefault, result);
         }
 
-        //public static void OnEofWarnAndReturnDefault<T, nullableT>
-        //    (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    var inputString = "";
-        //    var reader = Create.Reader(inputString);
-        //    T result = default(T);
-        //    AssertWarnings.Matching("Unexpected end of file", () => { result = codeDoingReading(reader, default(nullableT)); });
-        //    Assert.Equal(default(T), result);
-        //    AssertWarnings.Matching("Unexpected end of file", () => { result = codeDoingReading(reader, someDefault); });
-        //    Assert.Equal(resultDefault, result);
-        //}
+        public static void OnEofWarnAndReturnDefault<T, nullableT>
+            (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            var inputString = "";
+            var reader = Create.Reader(inputString);
+            T result = default;
+            AssertWarnings.Matching("Unexpected end of file", () => { result = codeDoingReading(reader, default); });
+            Assert.AreEqual(default, result);
+            AssertWarnings.Matching("Unexpected end of file", () => { result = codeDoingReading(reader, someDefault); });
+            Assert.AreEqual(resultDefault, result);
+        }
 
-        //public static void ForNoOpenWarnAndReturnDefault<T, nullableT>
-        //    (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    var inputString = "noblock";
-        //    T result = default(T);
+        public static void ForNoOpenWarnAndReturnDefault<T>(T resultDefault, T someDefault, ReadValueCodeByRef<T> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            var inputString = "noblock";
+            T result = default;
 
-        //    var reader = Create.Reader(inputString);
-        //    AssertWarnings.Matching("Block [nN]ot [fF]ound", () => { result = codeDoingReading(reader, default(nullableT)); });
-        //    Assert.Equal(default(T), result);
+            var reader = Create.Reader(inputString);
+            AssertWarnings.Matching("Block [nN]ot [fF]ound", () => { result = Wrapper(reader, default, codeDoingReading); });
+            Assert.AreEqual(default, result);
 
-        //    reader = Create.Reader(inputString);
-        //    AssertWarnings.Matching("Block [nN]ot [fF]ound", () => { result = codeDoingReading(reader, someDefault); });
-        //    Assert.Equal(resultDefault, result);
-        //}
+            reader = Create.Reader(inputString);
+            AssertWarnings.Matching("Block [nN]ot [fF]ound", () => { result = Wrapper(reader, someDefault, codeDoingReading); });
+            Assert.AreEqual(resultDefault, result);
+        }
 
-        //public static void OnBlockEndReturnDefaultOrWarn<T, nullableT>
-        //    (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
-        //{
-        //    OnBlockEndReturnNiceDefaultAndWarn(resultDefault, someDefault, codeDoingReading);
-        //    OnBlockEndReturnGivenDefault(resultDefault, someDefault, codeDoingReading);
-        //}
+        public static void ForNoOpenWarnAndReturnDefault<T, nullableT>
+            (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            var inputString = "noblock";
+            T result = default;
 
-        //public static void OnBlockEndReturnNiceDefaultAndWarn<T, nullableT>
-        //    (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    var inputString = ")";
-        //    T result = default(T);
+            var reader = Create.Reader(inputString);
+            AssertWarnings.Matching("Block [nN]ot [fF]ound", () => { result = codeDoingReading(reader, default); });
+            Assert.AreEqual(default, result);
 
-        //    var reader = Create.Reader(inputString);
-        //    AssertWarnings.Matching("Block [nN]ot [fF]ound", () => { result = codeDoingReading(reader, default(nullableT)); });
-        //    Assert.Equal(default(T), result);
-        //}
+            reader = Create.Reader(inputString);
+            AssertWarnings.Matching("Block [nN]ot [fF]ound", () => { result = codeDoingReading(reader, someDefault); });
+            Assert.AreEqual(resultDefault, result);
+        }
 
-        //public static void OnBlockEndReturnGivenDefault<T, nullableT>
-        //    (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    var inputString = ")";
-        //    T result = default(T);
+        public static void OnBlockEndReturnDefaultOrWarn<T, nullableT>
+            (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
+        {
+            OnBlockEndReturnNiceDefaultAndWarn(resultDefault, someDefault, codeDoingReading);
+            OnBlockEndReturnGivenDefault(resultDefault, someDefault, codeDoingReading);
+        }
 
-        //    var reader = Create.Reader(inputString);
-        //    result = codeDoingReading(reader, someDefault);
-        //    Assert.Equal(resultDefault, result);
-        //    Assert.Equal(")", reader.ReadItem());
-        //}
+        public static void OnBlockEndReturnNiceDefaultAndWarn<T, nullableT>
+            (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            var inputString = ")";
+            T result = default;
 
-        //public static void OnEmptyBlockEndReturnGivenDefault<T, nullableT>
-        //    (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    var inputString = "()a";
-        //    T result = default(T);
+            var reader = Create.Reader(inputString);
+            AssertWarnings.Matching("Block [nN]ot [fF]ound", () => { result = codeDoingReading(reader, default); });
+            Assert.AreEqual(default, result);
+        }
 
-        //    var reader = Create.Reader(inputString);
-        //    result = codeDoingReading(reader, someDefault);
-        //    Assert.Equal(resultDefault, result);
-        //    Assert.Equal("a", reader.ReadItem());
-        //}
+        public static void OnBlockEndReturnGivenDefault<T, nullableT>
+            (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            var inputString = ")";
+            T result = default;
 
-        //public static void ReturnValueInBlock<T>
-        //    (T[] testValues, ReadValueCode<T> codeDoingReading)
-        //{
-        //    string[] inputValues = testValues.Select(
-        //        value => String.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}", value)).ToArray();
-        //    ReturnValueInBlock<T>(testValues, inputValues, codeDoingReading);
-        //}
+            var reader = Create.Reader(inputString);
+            result = codeDoingReading(reader, someDefault);
+            Assert.AreEqual(resultDefault, result);
+            Assert.AreEqual(")", reader.ReadItem());
+        }
 
-        //public static void ReturnValueInBlock<T>
-        //    (T[] testValues, string[] inputValues, ReadValueCode<T> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    string[] tokenValues = inputValues.Select(
-        //        value => String.Format(System.Globalization.CultureInfo.InvariantCulture, "({0})", value)).ToArray();
-        //    string inputString = String.Join(" ", tokenValues);
-        //    var reader = Create.Reader(inputString);
+        public static void OnBlockEndReturnGivenDefault<T>(T resultDefault, T someDefault, ReadValueCodeByRef<T> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            var inputString = ")";
+            var reader = Create.Reader(inputString);
+            T result = default;
+            result = Wrapper(reader, default, codeDoingReading);
+            Assert.AreEqual(resultDefault, someDefault);
+            Assert.AreEqual(")", reader.ReadItem());
+        }
 
-        //    foreach (T testValue in testValues)
-        //    {
-        //        T result = codeDoingReading(reader);
-        //        Assert.Equal(testValue, result);
-        //    }
-        //}
+        public static void OnEmptyBlockEndReturnGivenDefault<T, nullableT>
+            (T resultDefault, nullableT someDefault, ReadValueCode<T, nullableT> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            var inputString = "()a";
+            T result = default;
 
-        //public static void ReturnValueInBlockAndSkipRestOfBlock<T>
-        //    (T[] testValues, ReadValueCode<T> codeDoingReading)
-        //{
-        //    string[] inputValues = testValues.Select(
-        //        value => String.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}", value)).ToArray();
-        //    ReturnValueInBlockAndSkipRestOfBlock<T>(testValues, inputValues, codeDoingReading);
-        //}
+            var reader = Create.Reader(inputString);
+            result = codeDoingReading(reader, someDefault);
+            Assert.AreEqual(resultDefault, result);
+            Assert.AreEqual("a", reader.ReadItem());
+        }
 
-        //public static void ReturnValueInBlockAndSkipRestOfBlock<T>
-        //    (T[] testValues, string[] inputValues, ReadValueCode<T> codeDoingReading)
-        //{
-        //    AssertWarnings.NotExpected();
-        //    string[] tokenValues = inputValues.Select(
-        //        value => String.Format(System.Globalization.CultureInfo.InvariantCulture, "({0} dummy_token(nested_token))", value)
-        //        ).ToArray();
-        //    string inputString = String.Join(" ", tokenValues);
-        //    var reader = Create.Reader(inputString);
+        public static void ReturnValueInBlock<T>
+            (T[] testValues, ReadValueCode<T> codeDoingReading)
+        {
+            string[] inputValues = testValues.Select(
+                value => string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}", value)).ToArray();
+            ReturnValueInBlock<T>(testValues, inputValues, codeDoingReading);
+        }
 
-        //    foreach (T testValue in testValues)
-        //    {
-        //        T result = codeDoingReading(reader);
-        //        Assert.Equal(testValue, result);
-        //    }
-        //}
+        public static void ReturnValueInBlock<T> (T[] testValues, ReadValueCodeByRef<T> codeDoingReading)
+        {
+            string[] inputValues = testValues.Select(
+                value => string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}", value)).ToArray();
+            ReturnValueInBlock<T>(testValues, inputValues, codeDoingReading);
+        }
+
+        public static void ReturnValueInBlock<T>
+            (T[] testValues, string[] inputValues, ReadValueCode<T> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            string[] tokenValues = inputValues.Select(
+                value => string.Format(System.Globalization.CultureInfo.InvariantCulture, "({0})", value)).ToArray();
+            string inputString = string.Join(" ", tokenValues);
+            var reader = Create.Reader(inputString);
+
+            foreach (T testValue in testValues)
+            {
+                T result = codeDoingReading(reader);
+                Assert.AreEqual(testValue, result);
+            }
+        }
+
+        public static void ReturnValueInBlock<T> (T[] testValues, string[] inputValues, ReadValueCodeByRef<T> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            string[] tokenValues = inputValues.Select(
+                value => string.Format(System.Globalization.CultureInfo.InvariantCulture, "({0})", value)).ToArray();
+            string inputString = string.Join(" ", tokenValues);
+            var reader = Create.Reader(inputString);
+
+            foreach (T testValue in testValues)
+            {
+                T result = Wrapper(reader, testValue, codeDoingReading);
+                Assert.AreEqual(testValue, result);
+            }
+        }
+
+        public static void ReturnValueInBlockAndSkipRestOfBlock<T>
+            (T[] testValues, ReadValueCode<T> codeDoingReading)
+        {
+            string[] inputValues = testValues.Select(
+                value => string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}", value)).ToArray();
+            ReturnValueInBlockAndSkipRestOfBlock<T>(testValues, inputValues, codeDoingReading);
+        }
+
+        public static void ReturnValueInBlockAndSkipRestOfBlock<T>
+            (T[] testValues, ReadValueCodeByRef<T> codeDoingReading)
+        {
+            string[] inputValues = testValues.Select(
+                value => string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}", value)).ToArray();
+            ReturnValueInBlockAndSkipRestOfBlock<T>(testValues, inputValues, codeDoingReading);
+        }
+
+        public static void ReturnValueInBlockAndSkipRestOfBlock<T>
+            (T[] testValues, string[] inputValues, ReadValueCode<T> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            string[] tokenValues = inputValues.Select(
+                value => string.Format(System.Globalization.CultureInfo.InvariantCulture, "({0} dummy_token(nested_token))", value)
+                ).ToArray();
+            string inputString = string.Join(" ", tokenValues);
+            var reader = Create.Reader(inputString);
+
+            foreach (T testValue in testValues)
+            {
+                T result = codeDoingReading(reader);
+                Assert.AreEqual(testValue, result);
+            }
+        }
+
+        public static void ReturnValueInBlockAndSkipRestOfBlock<T>(T[] testValues, string[] inputValues, ReadValueCodeByRef<T> codeDoingReading)
+        {
+            AssertWarnings.NotExpected();
+            string[] tokenValues = inputValues.Select(
+                value => string.Format(System.Globalization.CultureInfo.InvariantCulture, "({0} dummy_token(nested_token))", value)
+                ).ToArray();
+            string inputString = string.Join(" ", tokenValues);
+            var reader = Create.Reader(inputString);
+
+            foreach (T testValue in testValues)
+            {
+                T result = Wrapper(reader, testValue, codeDoingReading);
+                Assert.AreEqual(testValue, result);
+            }
+        }
 
         #endregion
 
         public delegate T ReadValueCode<T, nullableT>(STFReader reader, nullableT defaultValue);
         public delegate T ReadValueCode<T>(STFReader reader);
-        public delegate void ReadValueCodeByRef<T, nullableT>(STFReader reader, ref nullableT defaultResult);
+        public delegate void ReadValueCodeByRef<T>(STFReader reader, ref T defaultResult);
 
     }
     #endregion
-
-    #region Vector2
-    [TestClass]
-    public class ReadingVector2BlockTests
-    {
-        static readonly Vector2 SOMEDEFAULT = new Vector2(1.1f, 1.2f);
-        static readonly Vector2[] SOMEDEFAULTS = new Vector2[] { new Vector2(1.3f, 1.5f), new Vector2(-2f, 1e6f) };
-        static readonly string[] STRINGDEFAULTS = new string[] { "1.3 1.5 ignore", "-2 1000000" };
-
-        [TestMethod]
-        public void OnEofWarnAndReturnDefault()
-        {
-            Vector2 defaultResult = SOMEDEFAULT;
-            StfTokenReaderCommon.OnEofWarnAndReturnDefault<Vector2, Vector2>
-                (SOMEDEFAULT, ref defaultResult, (STFReader reader, ref Vector2 x) => reader.ReadVector2Block(STFReader.Units.None, ref x));
-        }
-
-        //[Fact]
-        //public static void ForNoOpenReturnDefaultAndWarn()
-        //{
-        //    StfTokenReaderCommon.ForNoOpenWarnAndReturnDefault<Vector2, Vector2>
-        //        (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector2Block(STFReader.Units.None, ref x));
-        //}
-
-        //[Fact]
-        //public static void OnBlockEndReturnDefaultWhenGiven()
-        //{
-        //    StfTokenReaderCommon.OnBlockEndReturnGivenDefault<Vector2, Vector2>
-        //        (SOMEDEFAULT, SOMEDEFAULT, (reader, x) => reader.ReadVector2Block(STFReader.Units.None, ref x));
-        //}
-
-        //[Fact]
-        //public static void ReturnValueInBlock()
-        //{
-        //    Vector2 zero = Vector2.Zero;
-        //    StfTokenReaderCommon.ReturnValueInBlock<Vector2>
-        //        (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector2Block(STFReader.Units.None, ref zero));
-        //}
-
-        //[Fact]
-        //public static void ReturnValueInBlockAndSkipRestOfBlock()
-        //{
-        //    Vector2 zero = Vector2.Zero;
-        //    StfTokenReaderCommon.ReturnValueInBlockAndSkipRestOfBlock<Vector2>
-        //        (SOMEDEFAULTS, STRINGDEFAULTS, reader => reader.ReadVector2Block(STFReader.Units.None, ref zero));
-        //}
-    }
-    #endregion
-
 }

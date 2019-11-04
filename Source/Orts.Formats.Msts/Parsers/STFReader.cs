@@ -544,6 +544,7 @@ namespace Orts.Formats.Msts.Parsers
             }
 
             uint val;
+            if (item.Length == 0) return 0;
             if (uint.TryParse(item, parseHex, parseNFI, out val)) return val;
             STFException.TraceWarning(this, "Cannot parse the constant hex string " + item);
             if (item == ")") StepBackOneItem();
@@ -1377,50 +1378,64 @@ namespace Orts.Formats.Msts.Parsers
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">The default vector if any of the values are not specified</param>
         /// <returns>The STF block as a Vector3</returns>
-        public void ReadVector3Block(Units validUnits, ref Vector3 defaultValue)
+        public void ReadVector3Block(Units validUnits, ref Vector3 initialValue)
         {
             if (Eof)
             {
                 STFException.TraceWarning(this, "Unexpected end of file");
             }
-            string s = ReadItem();
-            if (s == ")")
+            else
             {
-                StepBackOneItem();
+                string s = ReadItem();
+                if (s.Length == 1)
+                {
+                    if (s[0] == ')')
+                    {
+                        StepBackOneItem();
+                    }
+                    else if (s[0] == '(')
+                    {
+                        initialValue.X = ReadFloat(validUnits, initialValue.X);
+                        initialValue.Y = ReadFloat(validUnits, initialValue.Y);
+                        initialValue.Z = ReadFloat(validUnits, initialValue.Z);
+                        SkipRestOfBlock(); // <CJComment> This call seems poor practice as it discards any tokens _including mistakes_ up to the matching ")". </CJComment>  
+                    }
+                }
+                else
+                    STFException.TraceWarning(this, "Block Not Found - instead found " + s);
             }
-            if (s == "(")
-            {
-                defaultValue.X = ReadFloat(validUnits, defaultValue.X);
-                defaultValue.Y = ReadFloat(validUnits, defaultValue.Y);
-                defaultValue.Z = ReadFloat(validUnits, defaultValue.Z);
-                SkipRestOfBlock(); // <CJComment> This call seems poor practice as it discards any tokens _including mistakes_ up to the matching ")". </CJComment>  
-            }
-            STFException.TraceWarning(this, "Block Not Found - instead found " + s);
         }
 
         /// <summary>Read a Vector2 object in the STF format '( {X} {Y} ... )'
         /// </summary>
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
-        /// <param name="defaultValue">The default vector if any of the values are not specified</param>
+        /// <param name="initialValue">The default vector if any of the values are not specified</param>
         /// <returns>The STF block as a Vector2</returns>
-        public void ReadVector2Block(Units validUnits, ref Vector2 defaultValue)
+        public void ReadVector2Block(Units validUnits, ref Vector2 initialValue)
         {
             if (Eof)
             {
                 STFException.TraceWarning(this, "Unexpected end of file");
             }
-            string s = ReadItem();
-            if (s == ")")
+            else
             {
-                StepBackOneItem();
+                string s = ReadItem();
+                if (s.Length == 1)
+                {
+                    if (s[0] == ')')
+                    {
+                        StepBackOneItem();
+                    }
+                    else if (s[0] == '(')
+                    {
+                        initialValue.X = ReadFloat(validUnits, initialValue.X);
+                        initialValue.Y = ReadFloat(validUnits, initialValue.Y);
+                        SkipRestOfBlock(); // <CJComment> This call seems poor practice as it discards any tokens _including mistakes_ up to the matching ")". </CJComment>  
+                    }
+                }
+                else
+                    STFException.TraceWarning(this, "Block Not Found - instead found " + s);
             }
-            if (s == "(")
-            {
-                defaultValue.X = ReadFloat(validUnits, defaultValue.X);
-                defaultValue.Y = ReadFloat(validUnits, defaultValue.Y);
-                SkipRestOfBlock(); // <CJComment> This call seems poor practice as it discards any tokens _including mistakes_ up to the matching ")". </CJComment>  
-            }
-            STFException.TraceWarning(this, "Block Not Found - instead found " + s);
         }
 
         /// <summary>Read a Vector4 object in the STF format '( {X} {Y} {Z} {W} ... )'
@@ -1428,30 +1443,33 @@ namespace Orts.Formats.Msts.Parsers
         /// <param name="validUnits">Any combination of the Units enumeration, to limit the available suffixes to reasonable values.</param>
         /// <param name="defaultValue">The default vector if any of the values are not specified</param>
         /// <returns>The STF block as a Vector4</returns>
-        public Vector4 ReadVector4Block(Units validUnits, Vector4 defaultValue)
+        public void ReadVector4Block(Units validUnits, ref Vector4 initialValue)
         {
             if (Eof)
             {
                 STFException.TraceWarning(this, "Unexpected end of file");
-                return defaultValue;
             }
-            string s = ReadItem();
-            if (s == ")")
+            else
             {
-                StepBackOneItem();
-                return defaultValue;
+                string s = ReadItem();
+                if (s.Length == 1)
+                {
+                    if (s[0] == ')')
+                    {
+                        StepBackOneItem();
+                    }
+                    else if (s[0] == '(')
+                    {
+                        initialValue.X = ReadFloat(validUnits, initialValue.X);
+                        initialValue.Y = ReadFloat(validUnits, initialValue.Y);
+                        initialValue.Z = ReadFloat(validUnits, initialValue.Z);
+                        initialValue.W = ReadFloat(validUnits, initialValue.W);
+                        SkipRestOfBlock(); // <CJComment> This call seems poor practice as it discards any tokens _including mistakes_ up to the matching ")". </CJComment>  
+                    }
+                }
+                else
+                    STFException.TraceWarning(this, "Block Not Found - instead found " + s);
             }
-            if (s == "(")
-            {
-                defaultValue.X = ReadFloat(validUnits, defaultValue.X);
-                defaultValue.Y = ReadFloat(validUnits, defaultValue.Y);
-                defaultValue.Z = ReadFloat(validUnits, defaultValue.Z);
-                defaultValue.W = ReadFloat(validUnits, defaultValue.W);
-                SkipRestOfBlock(); // <CJComment> This call seems poor practice as it discards any tokens _including mistakes_ up to the matching ")". </CJComment>  
-                return defaultValue;
-            }
-            STFException.TraceWarning(this, "Block Not Found - instead found " + s);
-            return defaultValue;
         }
 
         /// <summary>Parse an STF file until the EOF, using the array of lower case tokens, with a processor delegate/lambda

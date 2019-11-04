@@ -279,8 +279,8 @@ namespace Orts.Simulation.RollingStocks
                         {
                             Vector4 v4 = (defaultValue as string).ParseVector4();
                             {
-                                _fi.SetValue(setWhom,
-                                    stf.ReadVector4Block(STFReader.Units.Any, v4));
+                                stf.ReadVector4Block(STFReader.Units.Any, ref v4);
+                                _fi.SetValue(setWhom, v4);
                             }
                             break;
                         }
@@ -289,7 +289,7 @@ namespace Orts.Simulation.RollingStocks
                             Color c = (defaultValue as string).ParseColor();
                             {
                                 Vector4 v4 = new Vector4(-1);
-                                v4 = stf.ReadVector4Block(STFReader.Units.Any, v4);
+                                stf.ReadVector4Block(STFReader.Units.Any, ref v4);
                                 if (v4.W == -1)
                                 {
                                     c.A = 255;
