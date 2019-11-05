@@ -26,8 +26,8 @@ namespace Orts.Formats.OR.Parsers
     /// </summary>
     public class TimetableReader
     {
-        public List<string[]> Strings = new List<string[]>();
-        public string FilePath;
+        public List<string[]> Strings { get; } = new List<string[]>();
+        public string FilePath { get; private set; }
 
         public TimetableReader(string filePath)
         {
@@ -35,22 +35,22 @@ namespace Orts.Formats.OR.Parsers
             using (var filestream = new StreamReader(filePath, true))
             {
                 // read all lines in file
-                var readLine = filestream.ReadLine();
+                string readLine = filestream.ReadLine();
 
                 // extract separator from first line
-                var separator = readLine.Substring(0, 1);
+                char separator = readLine.Length > 0 ? readLine[0] : '\0';
 
                 // check : only ";" or "," or "\tab" are allowed as separators
-                var validSeparator = separator == ";" || separator == "," || separator == "\t";
+                var validSeparator = separator == ';' || separator == ',' || separator == '\t';
                 if (!validSeparator)
                 {
-                    throw new InvalidDataException(String.Format("Expected separator ';' or ','; got '{1}' in timetable {0}", filePath, separator));
+                    throw new InvalidDataException($"Expected separator ';' or ','; got '{separator}' in timetable {filePath}");
                 }
 
                 // extract and store all strings
                 do
                 {
-                    Strings.Add(readLine.Split(separator[0]));
+                    Strings.Add(readLine.Split(separator));
                     readLine = filestream.ReadLine();
                 } while (readLine != null);
             }

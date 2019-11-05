@@ -89,6 +89,7 @@
     <Compile Include="Common\EqualityPrecisionDelta.cs" />
     <Compile Include="Common\IO\FileSystemCacheTests.cs" />
     <Compile Include="Formats\Msts\Parsers\StfReaderTests.cs" />
+    <Compile Include="Formats\OR\Parsers\TimetableReaderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Common\FormatStringsTests.cs" />
     <Compile Include="Common\CoordinatesTests.cs" />
