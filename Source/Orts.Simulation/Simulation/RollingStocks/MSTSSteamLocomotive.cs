@@ -6333,7 +6333,7 @@ namespace Orts.Simulation.RollingStocks
                 status.AppendFormat("\t{0}\t{1}\t{2:N2}\t{3}\t{4:N2}/{5}\t{6}\t{7:N2}\t{8}\t{9}",
                 Simulator.Catalog.GetString("Large:"),
                 Simulator.Catalog.GetString("Press"),
-                FormatStrings.FormatPressure(SteamEjectorLargePressurePSI, PressureUnit.PSI, MainPressureUnit, true),
+                FormatStrings.FormatPressure(SteamEjectorLargePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("StCons"),
                 FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(TempEjectorLargeSteamConsumptionLbpS)), IsMetric),
                 FormatStrings.h,
@@ -6627,7 +6627,7 @@ public void SteamStartGearBoxIncrease()
             if (IsPlayerTrain)
                 Simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Increase, LargeEjectorController.CurrentValue* 100);
             LargeEjectorController.StartIncrease(target);
-            SignalEvent(Event.LargeEjectorChange);
+            SignalEvent(TrainEvent.LargeEjectorChange);
         }
 
         public void StopLargeEjectorIncrease()
@@ -6641,7 +6641,7 @@ public void SteamStartGearBoxIncrease()
             if (IsPlayerTrain)
                 Simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Decrease, LargeEjectorController.CurrentValue* 100);
             LargeEjectorController.StartDecrease(target);
-            SignalEvent(Event.LargeEjectorChange);
+            SignalEvent(TrainEvent.LargeEjectorChange);
         }
 
         public void StopLargeEjectorDecrease()

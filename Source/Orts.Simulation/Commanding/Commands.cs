@@ -969,7 +969,7 @@ namespace Orts.Simulation.Commanding
         {
             if (Receiver == null) return;
             {
-                Receiver.LargeEjectorChangeTo(ToState, Target);
+                Receiver.LargeEjectorChangeTo(targetState, target);
             }
             // Report();
         }
