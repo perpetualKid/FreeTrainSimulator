@@ -439,8 +439,8 @@ namespace Orts.Viewer3D
                     Tiles.RemoveAt(0);
 
                 // Now calculate division to query.
-                var x = (int)((location.Location.X + 1024) / BlockSize);
-                var z = (int)((location.Location.Z + 1024) / BlockSize);
+                var x = ((int)location.Location.X + 1024) / BlockSize;
+                var z = ((int)location.Location.Z + 1024) / BlockSize;
 
                 // Trace the case where x or z are out of bounds
                 if (x < 0 || x > 255 || z < 0 || z > 255)
