@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.38
-November 5th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.39
+November 7th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -23,8 +23,9 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
 - true 64-bit management, allowing to use more than 4 GB of memory, if available, in Win64 systems (mainly by perpetualKid)
 - general options checkbox for optional run at 32 bit on Win64 (to avoid slight train shaking bug)
-- NEW: reverted bug fix about rain in 3DCab, to avoid lack of display of digital indicators (see http://www.elvastower.com/forums/index.php?/topic/24040-3d-cabs/page__view__findpost__p__252352 )
-- NEW: added trace log for precipitation crash (see http://www.elvastower.com/forums/index.php?/topic/33462-potential-problem-with-activity-in-monogame-v36/ )
+- reverted bug fix about rain in 3DCab, to avoid lack of display of digital indicators (see http://www.elvastower.com/forums/index.php?/topic/24040-3d-cabs/page__view__findpost__p__252352 )
+- added trace log for precipitation crash (see http://www.elvastower.com/forums/index.php?/topic/33462-potential-problem-with-activity-in-monogame-v36/ )
+- NEW: added tentative bug fix for precipitation crash (suggested by roeter)
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
