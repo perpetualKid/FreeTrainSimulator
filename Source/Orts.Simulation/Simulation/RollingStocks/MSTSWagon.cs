@@ -920,28 +920,28 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 case "wagon(coupling(spring(stiffness":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetStiffness(stf.ReadFloat(STFReader.UNITS.Stiffness, null), stf.ReadFloat(STFReader.UNITS.Stiffness, null));
+                    Couplers[Couplers.Count - 1].SetStiffness(stf.ReadFloat(STFReader.Units.Stiffness, null), stf.ReadFloat(STFReader.Units.Stiffness, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(damping":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetDamping(stf.ReadFloat(STFReader.UNITS.Resistance, null), stf.ReadFloat(STFReader.UNITS.Resistance, null));
+                    Couplers[Couplers.Count - 1].SetDamping(stf.ReadFloat(STFReader.Units.Resistance, null), stf.ReadFloat(STFReader.Units.Resistance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(ortsslack":
                     stf.MustMatch("(");
                      // IsAdvancedCoupler = true; // If this parameter is present in WAG file then treat coupler as advanced ones.  Temporarily disabled for v1.3 release
-                    Couplers[Couplers.Count - 1].SetSlack(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    Couplers[Couplers.Count - 1].SetSlack(stf.ReadFloat(STFReader.Units.Distance, null), stf.ReadFloat(STFReader.Units.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(break":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetBreak(stf.ReadFloat(STFReader.UNITS.Force, null), stf.ReadFloat(STFReader.UNITS.Force, null));
+                    Couplers[Couplers.Count - 1].SetBreak(stf.ReadFloat(STFReader.Units.Force, null), stf.ReadFloat(STFReader.Units.Force, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(coupling(spring(r0":
                     stf.MustMatch("(");
-                    Couplers[Couplers.Count - 1].SetR0(stf.ReadFloat(STFReader.UNITS.Distance, null), stf.ReadFloat(STFReader.UNITS.Distance, null));
+                    Couplers[Couplers.Count - 1].SetR0(stf.ReadFloat(STFReader.Units.Distance, null), stf.ReadFloat(STFReader.Units.Distance, null));
                     stf.SkipRestOfBlock();
                     break;
                 case "wagon(adheasion":
@@ -1683,20 +1683,20 @@ namespace Orts.Simulation.RollingStocks
                         if (WheelBearingTemperatureDegC < -10)
                         {
                             // Set to snowing (frozen value)
-                            StartFrictionLowLoadN = N.FromLbf(12.771f);  // Starting friction for a 10 ton(US) car with standard roller bearings, snowing
-                            StartFrictionHighLoadN = N.FromLbf(30.0f);  // Starting friction for a 100 ton(US) car with standard roller bearings, snowing
+                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(12.771f);  // Starting friction for a 10 ton(US) car with standard roller bearings, snowing
+                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(30.0f);  // Starting friction for a 100 ton(US) car with standard roller bearings, snowing
                         }
                         else if (WheelBearingTemperatureDegC > 25)
                         {
                             // Set to normal temperature value
-                            StartFrictionLowLoadN = N.FromLbf(4.257f);  // Starting friction for a 10 ton(US) car with standard roller bearings, not snowing
-                            StartFrictionHighLoadN = N.FromLbf(15.93f);  // Starting friction for a 100 ton(US) car with standard roller bearings, not snowing
+                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(4.257f);  // Starting friction for a 10 ton(US) car with standard roller bearings, not snowing
+                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(15.93f);  // Starting friction for a 100 ton(US) car with standard roller bearings, not snowing
                         }
                         else
                         {
                             // Set to variable value as bearing heats and cools
-                            StartFrictionLowLoadN = N.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
-                            StartFrictionHighLoadN = N.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
+                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
+                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
                         }
 
                          if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
@@ -1728,20 +1728,20 @@ namespace Orts.Simulation.RollingStocks
                         if (WheelBearingTemperatureDegC < -10)
                         {
                             // Set to snowing (frozen value)
-                            StartFrictionLowLoadN = N.FromLbf(7.98f);  // Starting friction for a 10 ton(US) car with Low torque bearings, snowing
-                            StartFrictionHighLoadN = N.FromLbf(23.142f);  // Starting friction for a 100 ton(US) car with low torque bearings, snowing
+                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(7.98f);  // Starting friction for a 10 ton(US) car with Low torque bearings, snowing
+                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(23.142f);  // Starting friction for a 100 ton(US) car with low torque bearings, snowing
                         }
                         else if (WheelBearingTemperatureDegC > 25)
                         {
                             // Set to normal temperature value
-                            StartFrictionLowLoadN = N.FromLbf(2.66f);  // Starting friction for a 10 ton(US) car with Low troque bearings, not snowing
-                            StartFrictionHighLoadN = N.FromLbf(7.714f);  // Starting friction for a 100 ton(US) car with low torque bearings, not snowing
+                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(2.66f);  // Starting friction for a 10 ton(US) car with Low troque bearings, not snowing
+                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(7.714f);  // Starting friction for a 100 ton(US) car with low torque bearings, not snowing
                         }
                         else
                         {
                             // Set to variable value as bearing heats and cools
-                            StartFrictionLowLoadN = N.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
-                            StartFrictionHighLoadN = N.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
+                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
+                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
                         }
 
                         if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
@@ -1773,20 +1773,20 @@ namespace Orts.Simulation.RollingStocks
                         if (WheelBearingTemperatureDegC < -10)
                         {
                             // Set to snowing (frozen value)
-                            StartFrictionLowLoadN = N.FromLbf(15.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), snowing
-                            StartFrictionHighLoadN = N.FromLbf(35.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), snowing
+                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(15.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), snowing
+                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(35.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), snowing
                         }
                         else if (WheelBearingTemperatureDegC > 25)
                         {
                             // Set to normal temperature value
-                            StartFrictionLowLoadN = N.FromLbf(10.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), not snowing
-                            StartFrictionHighLoadN = N.FromLbf(20.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), not snowing
+                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(10.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), not snowing
+                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(20.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), not snowing
                         }
                         else
                         {
                             // Set to variable value as bearing heats and cools
-                            StartFrictionLowLoadN = N.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
-                            StartFrictionHighLoadN = N.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
+                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
+                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
                         }
 
                         if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
@@ -1835,7 +1835,7 @@ namespace Orts.Simulation.RollingStocks
                     if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS)
                     {
                         WheelBearingTemperatureResistanceFactor = 2.0f;
-                        StaticFrictionFactorLb *= 2.0f;
+                        StaticFrictionFactorN *= 2.0f;
                     }
 
                     // Calculation of resistance @ low speeds
@@ -1844,7 +1844,7 @@ namespace Orts.Simulation.RollingStocks
                     float speedDecay = Speed.MeterPerSecond.FromMpH(2.5f);  // Speed at which decay point is reached - 2.5 mph
                     const float ForceDecayFactor = 2.5f; // Multiplier to determine what fraction of force to decay to - ie 2.5 x normal friction at 5mph
                     Friction5N = DavisAN * WheelBearingTemperatureResistanceFactor + speed5 * (DavisBNSpM + speed5 * DavisCNSSpMM); // Calculate friction @ 5 mph
-                    Friction0N = Dynamics.Force.FromLbf(Mass.Kilogram.ToTonsUS(MassKG) * StaticFrictionFactorLb); // Static friction is journal or roller bearing friction x factor
+                    Friction0N = Dynamics.Force.FromLbf(Mass.Kilogram.ToTonsUS(MassKG) * StaticFrictionFactorN); // Static friction is journal or roller bearing friction x factor
 
                     // Starting friction is decayed using an exponential vs speed function (similar to Newtons law of cooling), an arbitary decay rate of decreasing resistance to 
                     // 2 x the Davis value at 5mph by the time the train reaches a speed of 
@@ -1951,202 +1951,6 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Updates the temperature of the wheel bearing on each wagon.
         /// </summary>
-        private void UpdateWheelBearingTemperature(float elapsedClockSeconds)
-        {
-            // Increased bearing temperature impacts the train physics model in two ways - it reduces the starting friction, and also a hot box failure, can result in failure of the train.
-            // This is a "representative" model of bearing heat based upon the information described in the following publications- 
-            // PRR Report (Bulletin #26) - Train Resistance and Tonnage Rating
-            // Illinois Test Report (Bulletin #59) - The Effects of Cold Weather upon Train Resistance and Tonnage Rating
-            // This information is for plain (friction) type bearings, and there are many variables that effect bearing heating and cooling, however it is considered a "close approximation" 
-            // for the purposes it serves, ie to simulate resistance variation with temperature.
-            // The model uses the Newton Law of Heating and cooling to model the time taken for temperature rise and fall - ie of the form T(t) = Ts + (T0 - Ts)exp(kt)
-
-            // Keep track of Activity details if an activity, setup random wagon, and start time for hotbox
-            if (Simulator.ActivityRun != null)
-            {
-                if (ActivityElapsedDurationS<HotBoxStartTimeS)
-                {
-                    ActivityElapsedDurationS += elapsedClockSeconds;
-                }
-
-                // Determine whether car will be activated with a random hot box, only tested once at start of activity
-                if (!HotBoxHasBeenInitialized) // If already initialised then skip
-                {
-                    // Activity randomizatrion needs to be active in Options menu, and HotBox will not be applied to a locomotive or tender.
-                    if (Simulator.Settings.ActRandomizationLevel > 0 && WagonType != WagonTypes.Engine && WagonType != WagonTypes.Tender)
-                    {                        
-                        var HotboxRandom = Simulator.Random.Next(100) / Simulator.Settings.ActRandomizationLevel;
-                        float PerCentRandom = 0.66f; // Set so that random time is always in first 66% of activity duration
-                        var RawHotBoxTimeRandomS = Simulator.Random.Next(Train.ActivityDurationS);
-                        if (!Train.HotBoxSetOnTrain) // only allow one hot box to be set per train 
-                        {
-                            if (HotboxRandom< 10)
-                            {
-                                HotBoxActivated = true;
-                                Train.HotBoxSetOnTrain = true;
-                                HotBoxStartTimeS = PerCentRandom* RawHotBoxTimeRandomS;
-
-                                Trace.TraceInformation("Hotbox Bearing Activated on CarID {0}. Hotbox to start from {1:F1} minutes into activity", CarID, S.ToM(HotBoxStartTimeS));
-                            }
-                        }
-
-                                            
-                    }
-                }
-
-                HotBoxHasBeenInitialized = true; // Only allow to loop once at first pass
-            }
-            
-
-            float BearingSpeedMaximumTemperatureDegC = 0;
-            float MaximumNormalBearingTemperatureDegC = 90.0f;
-            float MaximumHotBoxBearingTemperatureDegC = 120.0f;
-
-            // K values calculated based on data in PRR report
-            float CoolingKConst = -0.0003355569417321907f; // Time = 1380s, amb = -9.4. init = 56.7C, final = 32.2C
-            float HeatingKConst = -0.000790635114477831f;  // Time = 3600s, amb = -9.4. init = 56.7C, final = 12.8C
-
-            // Empty wagons take longer for hot boxes to heat up, this section looks at the load on a wagon, and assigns a K value to suit loading.
-            // Guesstimated K values for Hotbox
-            float HotBoxKConst = 0;
-            float HotBoxKConstHighLoad = -0.002938026821980944f;  // Time = 600s, amb = -9.4. init = 120.0C, final = 12.8C
-            float HotBoxKConstLowLoad = -0.001469013410990472f;  // Time = 1200s, amb = -9.4. init = 120.0C, final = 12.8C
-
-            // Aligns to wagon weights used in friction calculations, ie < 10 tonsUS, and > 100 tonsUS either the low or high value used rspectively. In between these two values KConst scaled.
-            if (MassKG < Kg.FromTUS(10)) // Lightly loaded wagon
-            {
-                HotBoxKConst = -0.001469013410990472f;
-            }
-            else if (MassKG > Kg.FromTUS(100)) // Heavily loaded wagon
-            {
-                HotBoxKConst = -0.002938026821980944f;
-            }
-            else
-            {
-                // Scaled between light and heavy loads
-                var HotBoxScaleFactor = (MassKG - Kg.FromTUS(10)) / (Kg.FromTUS(100) - Kg.FromTUS(10));
-                HotBoxKConst = HotBoxKConstLowLoad - ((float)Math.Abs(HotBoxKConstHighLoad - HotBoxKConstLowLoad)) * HotBoxScaleFactor;
-            }
-
-
-            if (elapsedClockSeconds > 0) // Prevents zero values resetting temperature
-            {
-                
-                // Keep track of wheel bearing temperature until activtaion time reached
-                if (ActivityElapsedDurationS<HotBoxStartTimeS) 
-                {
-                   InitialHotBoxRiseTemperatureDegS = WheelBearingTemperatureDegC;
-                }
-
-                // Calculate Hot box bearing temperature
-                if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS && AbsSpeedMpS > 7.0)
-                {
-
-                    if (!HotBoxSoundActivated)
-                    {
-                        SignalEvent(Event.HotBoxBearingOn);
-                        HotBoxSoundActivated = true;
-                    }
-
-                    HotBoxTemperatureRiseTimeS += elapsedClockSeconds;
-
-                    // Calculate predicted bearing temperature based upon elapsed time
-                    WheelBearingTemperatureDegC = MaximumHotBoxBearingTemperatureDegC + (InitialHotBoxRiseTemperatureDegS - MaximumHotBoxBearingTemperatureDegC) * (float) (Math.Exp(HotBoxKConst* HotBoxTemperatureRiseTimeS));
-
-                    // Reset temperature decline values in preparation for next cylce
-                    WheelBearingTemperatureDeclineTimeS = 0;
-                    InitialWheelBearingDeclineTemperatureDegC = WheelBearingTemperatureDegC;
-
-                }
-                // Normal bearing temperature operation
-                else if (AbsSpeedMpS > 7.0) // If train is moving calculate heating temperature
-                {
-                    // Calculate maximum bearing temperature based on current speed using approximated linear graph y = 0.25x + 55
-                    const float MConst = 0.25f;
-                    const float BConst = 55;
-                    BearingSpeedMaximumTemperatureDegC = MConst* AbsSpeedMpS + BConst;
-
-                    WheelBearingTemperatureRiseTimeS += elapsedClockSeconds;
-
-                    // Calculate predicted bearing temperature based upon elapsed time
-                    WheelBearingTemperatureDegC = MaximumNormalBearingTemperatureDegC + (InitialWheelBearingRiseTemperatureDegC - MaximumNormalBearingTemperatureDegC) * (float) (Math.Exp(HeatingKConst* WheelBearingTemperatureRiseTimeS));
-
-                    // Cap bearing temperature depending upon speed
-                    if (WheelBearingTemperatureDegC > BearingSpeedMaximumTemperatureDegC)
-                    {
-                        WheelBearingTemperatureDegC = BearingSpeedMaximumTemperatureDegC;
-                    }
-
-                    // Reset Decline values in preparation for next cylce
-                    WheelBearingTemperatureDeclineTimeS = 0;
-                    InitialWheelBearingDeclineTemperatureDegC = WheelBearingTemperatureDegC;
-
-                }
-                // Calculate cooling temperature if train stops or slows down 
-                else
-                {
-                    if (WheelBearingTemperatureDegC > CarOutsideTempC)
-                    {
-                        WheelBearingTemperatureDeclineTimeS += elapsedClockSeconds;
-                        WheelBearingTemperatureDegC = CarOutsideTempC + (InitialWheelBearingDeclineTemperatureDegC - CarOutsideTempC) * (float) (Math.Exp(CoolingKConst* WheelBearingTemperatureDeclineTimeS));
-                    }
-
-                    WheelBearingTemperatureRiseTimeS = 0;
-                    InitialWheelBearingRiseTemperatureDegC = WheelBearingTemperatureDegC;
-
-                }
-
-                WheelBearingTemperatureRiseTimeS = 0;
-                InitialWheelBearingRiseTemperatureDegC = WheelBearingTemperatureDegC;
-                
-                // Turn off Hotbox sounds
-                SignalEvent(Event.HotBoxBearingOff);
-                HotBoxSoundActivated = false;
-
-            }
-
-            // Set warning messages for hot bearing and failed bearings
-            if (WheelBearingTemperatureDegC > 115)
-            {
-                var hotboxfailuremessage = "CarID" + CarID + "has experienced a failure due to a hot wheel bearing";
-                Simulator.Confirmer.Message(ConfirmLevel.Warning, hotboxfailuremessage);
-                WheelBearingFailed = true;
-            }
-            else if (WheelBearingTemperatureDegC > 100 && WheelBearingTemperatureDegC <= 115)
-            {
-                if (!WheelBearingHot)
-                {
-                    var hotboxmessage = "CarID" + CarID + "is experiencing a hot wheel bearing";
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, hotboxmessage);
-                    WheelBearingHot = true;
-                }
-            }
-            else
-            {
-                WheelBearingHot = false;
-            }
-
-            // Assume following limits for HUD - Normal operation: 50 - 90, Cool: < 50, Warm: 90 - 100, Hot: 100 - 115, Fail: > 115 - Set up text for HUD
-            DisplayWheelBearingTemperatureStatus = WheelBearingTemperatureDegC > 115 ? "Fail" + "!!!" : WheelBearingTemperatureDegC > 100 && WheelBearingTemperatureDegC <= 115 ? "Hot" + "!!!"
-                : WheelBearingTemperatureDegC > 90 && WheelBearingTemperatureDegC <= 100 ? "Warm" + "???" : WheelBearingTemperatureDegC <= 50 ? "Cool" + "%%%" : "Norm" + "";
-
-            if (WheelBearingTemperatureDegC > 90)
-            {
-                // Turn on smoke effects for bearing hot box
-                BearingHotBoxSmokeDurationS = 1;
-                BearingHotBoxSmokeVelocityMpS = 10.0f;
-                BearingHotBoxSmokeVolumeM3pS = 1.5f;
-            }
-            else if (WheelBearingTemperatureDegC < 50)
-            {
-                // Turn off smoke effects for hot boxs
-                BearingHotBoxSmokeDurationS = 0;
-                BearingHotBoxSmokeVelocityMpS = 0;
-                BearingHotBoxSmokeVolumeM3pS = 0;
-            }
-
-        }
-
         /// <summary>
         /// Updates the temperature of the wheel bearing on each wagon.
         /// </summary>
@@ -2990,17 +2794,17 @@ namespace Orts.Simulation.RollingStocks
                 float zerolength;
                 if (Coupler != null)
                 {
-                   zerolength = Coupler.R0X;
+                    zerolength = Coupler.CouplerSlackAM;
                 }
                 else
                 {
-                   zerolength = base.GetCouplerZeroLengthM();
+                    zerolength = base.GetCouplerZeroLengthM();
                 }
 
                 // Ensure zerolength doesn't go higher then 0.5
                 if (zerolength > 0.5)
                 {
-                   zerolength = 0.5f;
+                    zerolength = 0.5f;
                 }
 
                 return zerolength;
@@ -3008,8 +2812,8 @@ namespace Orts.Simulation.RollingStocks
             }
             else
             {
-               return Coupler != null ? Coupler.R0X : base.GetCouplerZeroLengthM();
-            } 
+                return Coupler != null ? Coupler.R0X : base.GetCouplerZeroLengthM();
+            }
 
         }
 
@@ -3018,88 +2822,67 @@ namespace Orts.Simulation.RollingStocks
             return Coupler != null && Coupler.R0X == 0 ? 7 * (Coupler.Stiffness1NpM + Coupler.Stiffness2NpM) : base.GetCouplerStiffnessNpM();
         }
 
-        public override float GetCouplerTensionStiffness1N()
+        public override float GetCouplerStiffness1NpM()
         {
             if (Coupler == null)
             {
-                return base.GetCouplerTensionStiffness1N();
+                return base.GetCouplerStiffness1NpM();
             }
-            return Coupler.Rigid? 10 * Coupler.TensionStiffness1N : Coupler.TensionStiffness1N;
-
-        }
- 
-        public override float GetCouplerTensionStiffness2N()
-        {
-            if (Coupler == null)
-            {
-                return base.GetCouplerTensionStiffness2N();
-            }
-            return Coupler.Rigid? 10 * Coupler.TensionStiffness2N : Coupler.TensionStiffness2N;
+            return Coupler.Rigid ? 10 * Coupler.Stiffness1NpM : Coupler.Stiffness1NpM;
         }
 
-        public override float GetCouplerCompressionStiffness1N()
+        public override float GetCouplerStiffness2NpM()
         {
             if (Coupler == null)
             {
-                return base.GetCouplerCompressionStiffness1N();
+                return base.GetCouplerStiffness2NpM();
             }
-            return Coupler.Rigid ? 10 * Coupler.CompressionStiffness1N : Coupler.CompressionStiffness1N;
-
+            return Coupler.Rigid ? 10 * Coupler.Stiffness1NpM : Coupler.Stiffness2NpM;
         }
 
-        public override float GetCouplerCompressionStiffness2N()
+        public override float GetCouplerDamping1NMpS()
         {
             if (Coupler == null)
             {
-                return base.GetCouplerCompressionStiffness2N();
+                return base.GetCouplerDamping1NMpS();
             }
-            return Coupler.Rigid ? 10 * Coupler.CompressionStiffness2N : Coupler.CompressionStiffness2N;
+            return Coupler.Damping1NMps;
         }
 
-        public override float GetTensionCouplerSlackAM()
+        public override float GetCouplerDamping2NMpS()
         {
             if (Coupler == null)
             {
-                return base.GetTensionCouplerSlackAM();
+                return base.GetCouplerDamping2NMpS();
             }
-            return Coupler.TensionCouplerSlackAM;
+            return Coupler.Damping2NMps;
         }
 
-        public override float GetTensionCouplerSlackBM()
+        public override float GetCouplerSlackAM()
         {
             if (Coupler == null)
             {
-                return base.GetTensionCouplerSlackBM();
+                return base.GetCouplerSlackAM();
             }
-            return Coupler.TensionCouplerSlackBM;
+            return Coupler.CouplerSlackAM;
         }
 
-        public override float GetCouplerCompressionSlackAM()
+        public override float GetCouplerSlackBM()
         {
             if (Coupler == null)
             {
-                return base.GetCouplerCompressionSlackAM();
+                return base.GetCouplerSlackBM();
             }
-            return Coupler.CouplerCompressionSlackAM;
+            return Coupler.CouplerSlackBM;
         }
 
-        public override float GetCouplerCompressionSlackBM()
+        public override int GetCouplerRigidIndication()
         {
             if (Coupler == null)
             {
-                return base.GetCouplerCompressionSlackBM();
+                return base.GetCouplerRigidIndication();   // If no coupler defined
             }
-            return Coupler.CouplerCompressionSlackBM;
-        }
-
-
-        public override bool GetCouplerRigidIndication()
-        {
-            if (Coupler == null)
-            {
-                 return base.GetCouplerRigidIndication();   // If no coupler defined
-            }
-            return Coupler.Rigid ? true : false; // Return whether coupler Rigid or Flexible
+            return Coupler.Rigid ? 1 : 2; // Return whether coupler Rigid or Flexible
         }
 
         public override bool GetAdvancedCouplerFlag()
@@ -3111,93 +2894,47 @@ namespace Orts.Simulation.RollingStocks
             return IsAdvancedCoupler;
         }
 
+        public override float GetMaximumCouplerSlack0M()  // This limits the maximum amount of slack, and typically will be equal to y - x of R0 statement
+        {
+            if (Coupler == null)
+                return base.GetMaximumCouplerSlack0M();
+            return Coupler.Rigid ? 0.0001f : Coupler.CouplerSlackBM;
+        }
+
         public override float GetMaximumCouplerSlack1M()  // This limits the maximum amount of slack, and typically will be equal to y - x of R0 statement
         {
-            if (Coupler == null)
-                return base.GetMaximumCouplerSlack1M();
-            return Coupler.Rigid ? 0.0001f : Coupler.R0Y;
-        }
-
-
-        public override float GetMaximumSimpleCouplerSlack1M()
-            // Used in Simple coupler
-        {
-            if (Coupler == null)
-                return base.GetMaximumSimpleCouplerSlack1M();
-            return Coupler.Rigid ? 0.0001f : Coupler.R0Diff;
-        }
-
-        public override float GetMaximumCouplerSlack2M()  
-        {
-
-                // Zone 2 limit - ie Zone 1 + 2
+            if (Simulator.UseAdvancedAdhesion && IsAdvancedCoupler)
+            {
                 if (Coupler == null)
-                    return base.GetMaximumCouplerSlack2M();
-                return Coupler.Rigid ? 0.0001f : Coupler.TensionCouplerSlackAM + Coupler.R0Y;
+                    return base.GetMaximumCouplerSlack1M();
+                return Coupler.Rigid ? 0.0001f : Coupler.CouplerSlackBM + Coupler.R0X;
+
+            }
+            else
+            {
+                if (Coupler == null)
+                    return base.GetMaximumCouplerSlack1M();
+                return Coupler.Rigid ? 0.0001f : Coupler.R0Diff;
+            }
+
+
         }
 
-        public override float GetMaximumCouplerSlack3M() // This limits the slack due to draft forces (?) and should be marginally greater then GetMaximumCouplerSlack2M
+        public override float GetMaximumCouplerSlack2M() // This limits the slack due to draft forces (?) and should be marginally greater then GetMaximumCouplerSlack1M
         {
             if (Simulator.UseAdvancedAdhesion && IsAdvancedCoupler) // for Advanced coupler
             {
                 if (Coupler == null)
-                {
-                    return base.GetMaximumCouplerSlack3M();
-                }
-                float Coupler2MTemporary = Coupler.TensionCouplerSlackBM;
-                if (Coupler2MTemporary < Coupler.TensionCouplerSlackAM)
-                {
-                    Coupler2MTemporary = Coupler.TensionCouplerSlackAM + 0.01f; // make sure that SlackBM is always > SlackAM
-                }
-                return Coupler.Rigid ? 0.0002f : GetMaximumCouplerSlack2M() + Coupler2MTemporary; //  GetMaximumCouplerSlack3M > GetMaximumCouplerSlack2M
+                    return base.GetMaximumCouplerSlack2M();
+                return Coupler.Rigid ? 0.0002f : Coupler.CouplerSlackBM + Coupler.R0Y; //  GetMaximumCouplerSlack2M > GetMaximumCouplerSlack1M																																						 
             }
             else  // for simple coupler
             {
                 if (Coupler == null)
-                    return base.GetMaximumCouplerSlack3M();
-                return Coupler.Rigid ? 0.0002f : base.GetMaximumCouplerSlack3M(); //  GetMaximumCouplerSlack3M > GetMaximumCouplerSlack2M
+                    return base.GetMaximumCouplerSlack2M();
+                return Coupler.Rigid ? 0.0002f : base.GetMaximumCouplerSlack2M(); //  GetMaximumCouplerSlack2M > GetMaximumCouplerSlack1M
             }
-        }
 
-        public override float GetMaximumCouplerCompressionSlack1M()  // This limits the maximum amount of slack, and typically will be equal to y - x of R0 statement
-        {
-            if (Coupler == null)
-                return base.GetMaximumCouplerCompressionSlack1M();
-            if (Coupler.CompressionR0Y == 0)
-            {
-                Coupler.CompressionR0Y = Coupler.R0Y; // if no value present, default value to tension value
-            }
-            return Coupler.Rigid ? 0.0001f : Coupler.CompressionR0Y;
-        }
-
-        public override float GetMaximumCouplerCompressionSlack2M()  // This limits the maximum amount of slack, and typically will be equal to y - x of R0 statement
-        {
-            if (Coupler == null)
-                    return base.GetMaximumCouplerCompressionSlack2M();
-            if (Coupler.CouplerCompressionSlackAM == 0)
-            {
-                Coupler.CouplerCompressionSlackAM = Coupler.TensionCouplerSlackAM; // if no value present, default value to tension value
-            }
-            return Coupler.Rigid ? 0.0001f : Coupler.CouplerCompressionSlackAM + Coupler.CompressionR0Y;
-
-        }
-
-        public override float GetMaximumCouplerCompressionSlack3M() // This limits the slack due to draft forces (?) and should be marginally greater then GetMaximumCouplerSlack1M
-        {
-            if (Coupler == null)
-            { 
-            return base.GetMaximumCouplerCompressionSlack3M();
-            }
-            if (Coupler.CouplerCompressionSlackBM == 0)
-            {
-                Coupler.CouplerCompressionSlackBM = Coupler.R0Y; // if no value present, default value to tension value
-            }
-            float Coupler2MTemporary = Coupler.CouplerCompressionSlackBM;
-            if (Coupler2MTemporary < Coupler.CouplerCompressionSlackAM)
-            {
-                Coupler2MTemporary = Coupler.CouplerCompressionSlackAM + 0.01f; // make sure that SlackBM is always > SlackAM
-            }
-            return Coupler.Rigid ? 0.0002f : GetMaximumCouplerCompressionSlack2M() + Coupler2MTemporary; //  GetMaximumCouplerSlack3M > GetMaximumCouplerSlack2M
         }
 
 
@@ -3216,11 +2953,10 @@ namespace Orts.Simulation.RollingStocks
             coupler.Rigid = coupler.R0Diff < .0002f;
             coupler.Stiffness1NpM = other.GetCouplerStiffnessNpM() / 7;
             coupler.Stiffness2NpM = 0;
-            coupler.TensionCouplerSlackAM = other.GetTensionCouplerSlackAM();
-            coupler.TensionCouplerSlackBM = other.GetTensionCouplerSlackBM();
-            coupler.CompressionCouplerSlackAM = other.GetCouplerCompressionSlackAM();
-            coupler.CompressionCouplerSlackBM = other.GetCouplerCompressionSlackBM();
-
+            coupler.Damping1NMps = other.GetCouplerDamping1NMpS();
+            coupler.Damping2NMps = other.GetCouplerDamping2NMpS();
+            coupler.CouplerSlackAM = other.GetCouplerSlackAM();
+            coupler.CouplerSlackBM = other.GetCouplerSlackBM();
             if (Couplers.Count == 0)
                 Couplers.Add(coupler);
             else
@@ -3374,21 +3110,12 @@ namespace Orts.Simulation.RollingStocks
         public float R0Diff = .012f;
         public float Stiffness1NpM = 1e7f;
         public float Stiffness2NpM = 2e7f;
+        public float Damping1NMps = 1e7f;
+        public float Damping2NMps = 2e7f;
         public float Break1N = 1e10f;
         public float Break2N = 1e10f;
-        public float TensionCouplerSlackAM;
-        public float TensionCouplerSlackBM;
-        public float TensionStiffness1N = 1e7f;
-        public float TensionStiffness2N = 2e7f;
-        public float CompressionR0X;
-        public float CompressionR0Y;
-        public float CompressionCouplerSlackAM;
-        public float CompressionCouplerSlackBM;
-        public float CompressionStiffness1N = 1e7f;
-        public float CompressionStiffness2N = 2e7f;
-        public float CompressionR0Diff = .012f;
-        public float CouplerCompressionSlackAM;
-        public float CouplerCompressionSlackBM;
+        public float CouplerSlackAM;
+        public float CouplerSlackBM;
 
         public MSTSCoupling()
         {
@@ -3403,24 +3130,15 @@ namespace Orts.Simulation.RollingStocks
             Break2N = copy.Break2N;
             Stiffness1NpM = copy.Stiffness1NpM;
             Stiffness2NpM = copy.Stiffness2NpM;
-            TensionStiffness1N = copy.TensionStiffness1N;
-            TensionStiffness2N = copy.TensionStiffness2N;
-            TensionCouplerSlackAM = copy.TensionCouplerSlackAM;
-            TensionCouplerSlackBM = copy.TensionCouplerSlackBM;
-            CompressionR0X = copy.CompressionR0X;
-            CompressionR0Y = copy.CompressionR0X;
-            CompressionCouplerSlackAM = copy.CompressionCouplerSlackAM;
-            CompressionCouplerSlackBM = copy.CompressionCouplerSlackBM;
-            CompressionStiffness1N = copy.CompressionStiffness1N;
-            CompressionStiffness2N = copy.CompressionStiffness2N;
-            CompressionR0Diff = copy.CompressionR0Diff;
-            CompressionCouplerSlackAM = copy.CompressionCouplerSlackAM;
-            CompressionCouplerSlackBM = copy.CompressionCouplerSlackBM;
+            Damping1NMps = copy.Damping1NMps;
+            Damping2NMps = copy.Damping2NMps;
+            CouplerSlackAM = copy.CouplerSlackAM;
+            CouplerSlackBM = copy.CouplerSlackBM;
         }
         public void SetR0(float a, float b)
         {
-                R0X = a;
-                R0Y = b;
+            R0X = a;
+            R0Y = b;
             if (a == 0)
                 R0Diff = b / 2 * Stiffness2NpM / (Stiffness1NpM + Stiffness2NpM);
             else
@@ -3430,26 +3148,8 @@ namespace Orts.Simulation.RollingStocks
             // Ensure R0Diff stays within "reasonable limits"
             if (R0Diff < 0.001)
                 R0Diff = 0.001f;
-            else if (R0Diff > 0.1) 
+            else if (R0Diff > 0.1)
                 R0Diff = 0.1f;
-
-        }
-
-        public void SetCompressionR0(float a, float b)
-        {
-            CompressionR0X = a;
-            CompressionR0Y = b;
-            if (a == 0)
-                CompressionR0Diff = b / 2 * CompressionStiffness2N / (CompressionStiffness1N + CompressionStiffness2N);
-            else
-                CompressionR0Diff = 0.012f;
-            //               R0Diff = b - a;
-
-            // Ensure R0Diff stays within "reasonable limits"
-            if (CompressionR0Diff < 0.001)
-                CompressionR0Diff = 0.001f;
-            else if (CompressionR0Diff > 0.1)
-                CompressionR0Diff = 0.1f;
 
         }
         public void SetStiffness(float a, float b)
@@ -3461,40 +3161,22 @@ namespace Orts.Simulation.RollingStocks
             Stiffness2NpM = b;
         }
 
-        public void SetTensionStiffness(float a, float b)
+        public void SetDamping(float a, float b)
         {
             if (a + b < 0)
                 return;
 
-            TensionStiffness1N = a;
-            TensionStiffness2N = b;
+            Damping1NMps = a;
+            Damping2NMps = b;
         }
 
-        public void SetCompressionStiffness(float a, float b)
+        public void SetSlack(float a, float b)
         {
             if (a + b < 0)
                 return;
 
-            CompressionStiffness1N = a;
-            CompressionStiffness2N = b;
-        }
-
-        public void SetTensionSlack(float a, float b)
-        {
-            if (a + b < 0)
-                return;
-
-            TensionCouplerSlackAM = a;
-            TensionCouplerSlackBM = b;
-        }
-
-        public void SetCompressionSlack(float a, float b)
-        {
-            if (a + b < 0)
-                return;
-
-            CompressionCouplerSlackAM = a;
-            CompressionCouplerSlackBM = b;
+            CouplerSlackAM = a;
+            CouplerSlackBM = b;
         }
 
         public void SetBreak(float a, float b)
@@ -3505,7 +3187,7 @@ namespace Orts.Simulation.RollingStocks
             Break1N = a;
 
             // Check if b = 0, as some stock has a zero value, set a default
-            if ( b == 0)
+            if (b == 0)
             {
                 Break2N = 2e7f;
             }
@@ -3513,7 +3195,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 Break2N = b;
             }
-            
+
         }
 
         /// <summary>
@@ -3528,8 +3210,10 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(R0Diff);
             outf.Write(Stiffness1NpM);
             outf.Write(Stiffness2NpM);
-            outf.Write(TensionCouplerSlackAM);
-            outf.Write(TensionCouplerSlackBM);
+            outf.Write(Damping1NMps);
+            outf.Write(Damping2NMps);
+            outf.Write(CouplerSlackAM);
+            outf.Write(CouplerSlackBM);
             outf.Write(Break1N);
             outf.Write(Break2N);
         }
@@ -3546,8 +3230,10 @@ namespace Orts.Simulation.RollingStocks
             R0Diff = inf.ReadSingle();
             Stiffness1NpM = inf.ReadSingle();
             Stiffness2NpM = inf.ReadSingle();
-            TensionCouplerSlackAM = inf.ReadSingle();
-            TensionCouplerSlackBM = inf.ReadSingle();
+            Damping1NMps = inf.ReadSingle();
+            Damping2NMps = inf.ReadSingle();
+            CouplerSlackAM = inf.ReadSingle();
+            CouplerSlackBM = inf.ReadSingle();
             Break1N = inf.ReadSingle();
             Break2N = inf.ReadSingle();
         }

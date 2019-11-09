@@ -2159,7 +2159,7 @@ namespace Orts.Simulation.RollingStocks
             {
 
 
-                var fraction = GetFilledFraction((uint)MSTSWagon.PickupType.FuelWater);
+                var fraction = GetFilledFraction(PickupType.FuelWater);
 
                 if (!HasWaterScoop)
                 {

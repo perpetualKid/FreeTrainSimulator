@@ -173,7 +173,7 @@ namespace Orts.Simulation.RollingStocks
         public float CouplerSlackM;  // extra distance between cars (calculated based on relative speeds)
         public float CouplerDampingSpeedMpS; // Dampening applied to coupler
         public int HUDCouplerForceIndication = 0; // Flag to indicate whether coupler is 1 - pulling, 2 - pushing or 0 - neither
-        public bool HUDCouplerRigidIndication = false; // flag to indicate whether coupler is rigid or flexible. fasle indicates that coupler is flexible, true indicates that coupler is rigid
+        public int HUDCouplerRigidIndication = 0; // flag to indicate whether coupler is rigid or flexible. fasle indicates that coupler is flexible, true indicates that coupler is rigid
         public float CouplerSlack2M;  // slack calculated using draft gear force
         public bool IsAdvancedCoupler = false; // Flag to indicate that coupler is to be treated as an advanced coupler
         public bool WheelSlip;  // true if locomotive wheels slipping
@@ -1647,6 +1647,60 @@ namespace Orts.Simulation.RollingStocks
         {
             return 2e7f;
         }
+        public virtual float GetCouplerStiffness1NpM()
+        {
+            return 1e7f;
+        }
+
+        public virtual float GetCouplerStiffness2NpM()
+        {
+            return 1e7f;
+        }
+
+        public virtual float GetCouplerDamping1NMpS()
+        {
+            return 1e7f;
+        }
+
+        public virtual float GetCouplerDamping2NMpS()
+        {
+            return 1e7f;
+        }
+
+        public virtual float GetCouplerSlackAM()
+        {
+            return 0;
+        }
+
+        public virtual float GetCouplerSlackBM()
+        {
+            return 0.1f;
+        }
+
+        public virtual int GetCouplerRigidIndication()
+        {
+            return 0;
+        }
+
+        public virtual float GetMaximumCouplerSlack0M()
+        {
+            return 0.005f;
+        }
+
+        public virtual float GetMaximumCouplerSlack1M()
+        {
+            return 0.012f;
+        }
+
+        public virtual float GetMaximumCouplerSlack2M()
+        {
+            return 0.12f;
+        }
+
+        public virtual float GetMaximumCouplerForceN()
+        {
+            return 1e10f;
+        }
 
         public virtual float GetCouplerTensionStiffness1N()
         {
@@ -1688,22 +1742,7 @@ namespace Orts.Simulation.RollingStocks
             return 0.1f;
         }
 
-        public virtual bool GetCouplerRigidIndication()
-        {
-            return false;
-        }
-
         public virtual float GetMaximumSimpleCouplerSlack1M()
-        {
-            return 0.012f;
-        }
-
-        public virtual float GetMaximumCouplerSlack1M()
-        {
-            return 0.005f;
-        }
-
-        public virtual float GetMaximumCouplerSlack2M()
         {
             return 0.012f;
         }
@@ -1726,12 +1765,6 @@ namespace Orts.Simulation.RollingStocks
         public virtual float GetMaximumCouplerCompressionSlack3M()
         {
             return 0.13f;
-        }
-
-
-        public virtual float GetMaximumCouplerForceN()
-        {
-            return 1e10f;
         }
 
         public virtual void CopyCoupler(TrainCar other)
@@ -2468,7 +2501,7 @@ namespace Orts.Simulation.RollingStocks
                         {
 
                             // train is on a switch; let's see if car is on a switch too
-                            WorldLocation switchLocation = TileLocation(Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD);
+                            ref readonly WorldLocation switchLocation = ref Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;
                             var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
                             if (distanceFromSwitch < CarLengthM * CarLengthM + Math.Min(SpeedMpS * 3, 150))
                             {

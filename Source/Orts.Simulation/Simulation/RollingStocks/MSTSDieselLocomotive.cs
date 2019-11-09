@@ -128,7 +128,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(dieselengineidlerpm": IdleRPM = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(dieselenginemaxrpm": MaxRPM = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(dieselenginemaxrpmchangerate": MaxRPMChangeRate = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortsdieselenginemaxpower": MaximumDieselEnginePowerW = stf.ReadFloatBlock(STFReader.UNITS.Power, null); break;
+                case "engine(ortsdieselenginemaxpower": MaximumDieselEnginePowerW = stf.ReadFloatBlock(STFReader.Units.Power, null); break;
                 case "engine(effects(dieselspecialeffects": ParseEffects(lowercasetoken, stf); break;
                 case "engine(dieselsmokeeffectinitialsmokerate": InitialExhaust = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(dieselsmokeeffectinitialmagnitude": InitialMagnitude = stf.ReadFloatBlock(STFReader.Units.None, null); break;

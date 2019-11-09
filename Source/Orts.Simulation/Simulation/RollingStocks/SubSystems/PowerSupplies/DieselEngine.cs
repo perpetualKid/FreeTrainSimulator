@@ -19,6 +19,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Microsoft.Xna.Framework;
@@ -795,7 +796,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     case "changedownrpmps": ChangeDownRPMpS = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.ChangeDownRPMpS; break;
                     case "rateofchangeuprpmpss": RateOfChangeUpRPMpSS = stf.ReadFloatBlock(STFReader.Units.None, 0);initLevel |= SettingsFlags.RateOfChangeUpRPMpSS; break;
                     case "rateofchangedownrpmpss": RateOfChangeDownRPMpSS = stf.ReadFloatBlock(STFReader.Units.None, 0);initLevel |= SettingsFlags.RateOfChangeDownRPMpSS; break;
-                    case "maximalpower":   MaximumDieselPowerW = stf.ReadFloatBlock(STFReader.Units.Power, 0);initLevel |= SettingsFlags.MaximumDieselPowerW; break;
+                    case "maximalpower":   MaximumDieselPowerW = stf.ReadFloatBlock(STFReader.Units.Power, 0);initLevel |= SettingsFlags.MaximalDieselPowerW; break;
                     case "idleexhaust":     InitialExhaust = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.IdleExhaust; break;
                     case "maxexhaust":      MaxExhaust = stf.ReadFloatBlock(STFReader.Units.None, 0);initLevel |= SettingsFlags.MaxExhaust; break;
                     case "exhaustdynamics": ExhaustAccelIncrease = stf.ReadFloatBlock(STFReader.Units.None, 0); initLevel |= SettingsFlags.ExhaustDynamics; break;
