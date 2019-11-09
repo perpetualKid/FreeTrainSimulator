@@ -167,8 +167,8 @@ namespace Orts.Simulation.Physics
         }
 
 
-        // Carriage Steam Heating
-        public float TrainCurrentCarriageHeatTempC;     // Current train carriage heat
+// Carriage Steam Heating
+public float TrainCurrentCarriageHeatTempC;     // Current train carriage heat
         public float TrainInsideTempC;                  // Desired inside temperature for carriage steam heating depending upon season
         public float TrainOutsideTempC;                 // External ambient temeprature for carriage steam heating.
         public float TrainSteamHeatLossWpT;             // Total Steam Heat loss of train
@@ -1980,7 +1980,6 @@ namespace Orts.Simulation.Physics
             if (mstsLocomotive != null)
             { 
 
- 
                 // Check to confirm that train is player driven and has passenger cars in the consist.
                 if (IsPlayerDriven && PassengerCarsNumber > 0 && mstsLocomotive.TrainFittedSteamHeat)
                 {
@@ -4550,17 +4549,8 @@ namespace Orts.Simulation.Physics
                 {
                     f += car.TotalForceN - (car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN + car.DynamicBrakeForceN);
                     m += car.MassKG;
-
-                    if (Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
-                    {
-                        if (j == Cars.Count - 1 || car.CouplerSlackM < car.GetMaximumCouplerSlack3M())
-                            break;
-                    }
-                    else // Simple coupler
-                    {
-                        if (j == Cars.Count - 1 || car.CouplerSlackM < car.GetMaximumCouplerSlack3M())
-                            break;
-                    }
+                    if (j == Cars.Count - 1 || car.CouplerSlackM < car.GetMaximumCouplerSlack2M())
+                        break;
                     j++;
                     car = Cars[j];
                 }
@@ -4598,17 +4588,8 @@ namespace Orts.Simulation.Physics
                 {
                     f += car.TotalForceN + car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN + car.DynamicBrakeForceN;
                     m += car.MassKG;
-
-                    if (Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
-                    {
-                        if (j == 0 || car.CouplerSlackM > -car.GetMaximumCouplerCompressionSlack3M())
-                            break;
-                    }
-                    else // Simple coupler
-                    {
-                        if (j == 0 || car.CouplerSlackM > -car.GetMaximumCouplerSlack3M())
-                            break;
-                    }
+                    if (j == 0 || car.CouplerSlackM > -car.GetMaximumCouplerSlack2M())
+                        break;
                     j--;
                     car = Cars[j];
                 }
@@ -4646,82 +4627,36 @@ namespace Orts.Simulation.Physics
                 TrainCar car = Cars[i];
                 car.CouplerSlackM += (car.SpeedMpS - Cars[i + 1].SpeedMpS) * elapsedTime;
 
-                if (i == 5 || i == 10)
-                {
-//                    Trace.TraceInformation("Slack - CarID {0} CarSpeed {1} CarSpeed+ {2} SlackDiff {3} CoupForce {4} CouplerSlack {5} TotalForceN {6}",  car.CarID, car.SpeedMpS, Cars[i + 1].SpeedMpS, (car.SpeedMpS - Cars[i + 1].SpeedMpS) * elapsedTime, car.CouplerForceU, car.CouplerSlackM, car.TotalForceN);
-                }
+                // Calculate speed for damping force
+                car.CouplerDampingSpeedMpS = car.SpeedMpS - Cars[i + 1].SpeedMpS;
 
                 // Make sure that coupler slack does not exceed the maximum coupler slack
-                if (Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
-                {
-                    float MaxZ3Tension = car.GetMaximumCouplerSlack3M();
-                    float MaxZ3Compression = -car.GetMaximumCouplerCompressionSlack3M();
-
-                    if (car.CouplerSlackM < MaxZ3Compression )
-                        car.CouplerSlackM = MaxZ3Compression;
-                    else if (car.CouplerSlackM > MaxZ3Tension)
-                        car.CouplerSlackM = MaxZ3Tension;
-                }
-                else // Simple coupler
-                {
-                    float max = car.GetMaximumCouplerSlack3M();
-                    if (car.CouplerSlackM < -max)
-                        car.CouplerSlackM = -max;
-                    else if (car.CouplerSlackM > max)
-                        car.CouplerSlackM = max;
-
-                }
-
-
-                if (car.HUDMaximumCouplerForceN < car.CouplerForceU)
-                {
-                    car.HUDMaximumCouplerForceN = car.CouplerForceU;
-                }
+                float max = car.GetMaximumCouplerSlack2M();
+                if (car.CouplerSlackM < -max)
+                    car.CouplerSlackM = -max;
+                else if (car.CouplerSlackM > max)
+                    car.CouplerSlackM = max;
 
                 TotalCouplerSlackM += car.CouplerSlackM; // Total coupler slack displayed in HUD only
 
-#if DEBUG_COUPLER_FORCES
-                Trace.TraceInformation("Slack - Tension - CarID {0} Slack {1} Zero {2} MaxSlack1 {3} MaxSlack2 {4} MaxSlack3 {5} Stiffness1 {6} Stiffness2 {7} " +
-                    "AdvancedCpl {8} CplSlackA {9} CplSlackB {10}  Rigid {11}", 
-                    car.CarID, car.CouplerSlackM, car.GetCouplerZeroLengthM(), car.GetMaximumCouplerSlack1M(),
-                    car.GetMaximumCouplerSlack1M(), car.GetMaximumCouplerSlack2M(), 
-                    car.GetCouplerTensionStiffness1N(), car.GetCouplerTensionStiffness2N(), car.IsAdvancedCoupler, car.GetTensionCouplerSlackAM(), car.GetTensionCouplerSlackBM(), car.HUDCouplerRigidIndication);
+                //                Trace.TraceInformation("Slack - CarID {0} Slack {1} Zero {2} MaxSlack0 {3} MaxSlack1 {4} MaxSlack2 {5} Damping1 {6} Damping2 {7} Stiffness1 {8} Stiffness2 {9} AdvancedCpl {10} CplSlackA {11} CplSlackB {12}", 
+                //                    car.CarID, car.CouplerSlackM, car.GetCouplerZeroLengthM(), car.GetMaximumCouplerSlack0M(),
+                //                    car.GetMaximumCouplerSlack1M(), car.GetMaximumCouplerSlack2M(), car.GetCouplerDamping1NMpS(), car.GetCouplerDamping2NMpS(), 
+                //                    car.GetCouplerStiffness1NpM(), car.GetCouplerStiffness1NpM(), car.IsAdvancedCoupler, car.GetCouplerSlackAM(), car.GetCouplerSlackBM());
 
-#endif
-                if (!car.HUDCouplerRigidIndication) // Flexible coupling - pulling and pushing value will be equal to slack when couplers faces touch
+                if (car.CouplerSlackM >= 0.001) // Coupler pulling
                 {
-                   if (car.CouplerSlackM >= 0.001) // Coupler pulling
-                   {
-                       NPull++;
-                       car.HUDCouplerForceIndication = 1;
-                   }
-                   else if (car.CouplerSlackM <= -0.001) // Coupler pushing
-                   {
-                       NPush++;
-                       car.HUDCouplerForceIndication = 2;
-                   }
-                   else
-                   {
-                       car.HUDCouplerForceIndication = 0; // Coupler neutral
-                   }
+                    NPull++;
+                    car.HUDCouplerForceIndication = 1;
                 }
-                else if (car.HUDCouplerRigidIndication) // Rigid coupling - starts pulling/pushing at a lower value then flexible coupling
+                else if (car.CouplerSlackM <= -0.001)
                 {
-                    if (car.CouplerSlackM >= 0.000125) // Coupler pulling
-                    {
-                        NPull++;
-                        car.HUDCouplerForceIndication = 1;
-                    }
-                    else if (car.CouplerSlackM <= -0.000125) // Coupler pushing
-                    {
-                        NPush++;
-                        car.HUDCouplerForceIndication = 2;
-                    }
-                    else
-                    {
-                        car.HUDCouplerForceIndication = 0; // Coupler neutral
-                    }
-
+                    NPush++;
+                    car.HUDCouplerForceIndication = 2;
+                }
+                else
+                {
+                    car.HUDCouplerForceIndication = 0;
                 }
 
 

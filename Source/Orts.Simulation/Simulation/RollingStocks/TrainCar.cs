@@ -124,7 +124,7 @@ namespace Orts.Simulation.RollingStocks
         public bool HasFreightAnim = false;
         public bool HasPassengerCapacity = false;
         public bool HasInsideView = false;
-        public float CarHeightAboveGroundM;
+        public float CarHeightAboveSeaLevelM;
 
         public float MaxHandbrakeForceN;
         public float MaxBrakeForceN = 89e3f;
@@ -171,6 +171,7 @@ namespace Orts.Simulation.RollingStocks
         public float _PrevSpeedMpS;
         public float AbsSpeedMpS; // Math.Abs(SpeedMps) expression is repeated many times in the subclasses, maybe this deserves a class variable
         public float CouplerSlackM;  // extra distance between cars (calculated based on relative speeds)
+        public float CouplerDampingSpeedMpS; // Dampening applied to coupler
         public int HUDCouplerForceIndication = 0; // Flag to indicate whether coupler is 1 - pulling, 2 - pushing or 0 - neither
         public bool HUDCouplerRigidIndication = false; // flag to indicate whether coupler is rigid or flexible. fasle indicates that coupler is flexible, true indicates that coupler is rigid
         public float CouplerSlack2M;  // slack calculated using draft gear force
@@ -594,7 +595,7 @@ namespace Orts.Simulation.RollingStocks
                 InitializeCarTemperatures();
                 AmbientTemperatureInitialised = true;
             }
-
+            
             // Update temperature variation for height of car above sea level
             // Typically in clear conditions there is a 9.8 DegC variation for every 1000m (1km) rise, in snow/rain there is approx 5.5 DegC variation for every 1000m (1km) rise
             float TemperatureHeightVariationDegC = 0;
@@ -603,15 +604,15 @@ namespace Orts.Simulation.RollingStocks
 
             if (Simulator.WeatherType == WeatherType.Rain || Simulator.WeatherType == WeatherType.Snow) // Apply snow/rain height variation
             {
-                TemperatureHeightVariationDegC = Size.Length.ToKM(CarHeightAboveGroundM) * WetLapseTemperatureC;
+                TemperatureHeightVariationDegC = Size.Length.ToKM(CarHeightAboveSeaLevelM) * WetLapseTemperatureC;
             }
             else  // Apply dry height variation
             {
-                TemperatureHeightVariationDegC = Size.Length.ToKM(CarHeightAboveGroundM) * DryLapseTemperatureC;
+                TemperatureHeightVariationDegC = Size.Length.ToKM(CarHeightAboveSeaLevelM) * DryLapseTemperatureC;
             }
-
+            
             TemperatureHeightVariationDegC = MathHelper.Clamp(TemperatureHeightVariationDegC, 0.00f, 30.0f);
-
+            
             CarOutsideTempC = InitialCarOutsideTempC - TemperatureHeightVariationDegC;
 
             // gravity force, M32 is up component of forward vector
@@ -2435,7 +2436,6 @@ namespace Orts.Simulation.RollingStocks
             return isOverTrough;
         }
 
-
         /// <summary>
         /// Checks if traincar is over junction or crossover. Used to check if water scoop breaks
         /// </summary>
@@ -2462,14 +2462,15 @@ namespace Orts.Simulation.RollingStocks
                     foreach (var thisSection in copyOccupiedTrack)
                     {
 
-//                    Trace.TraceInformation(" Track Section - Index {0} Ciruit Type {1}", thisSectionIndex, thisSection.CircuitType);
+                        //                    Trace.TraceInformation(" Track Section - Index {0} Ciruit Type {1}", thisSectionIndex, thisSection.CircuitType);
 
-                    if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                        if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
                         {
 
-                        // train is on a switch; let's see if car is on a switch too
-                        var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location);
-                            if (distanceFromSwitch<CarLengthM* CarLengthM + Math.Min(SpeedMpS* 3, 150))
+                            // train is on a switch; let's see if car is on a switch too
+                            WorldLocation switchLocation = TileLocation(Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD);
+                            var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
+                            if (distanceFromSwitch < CarLengthM * CarLengthM + Math.Min(SpeedMpS * 3, 150))
                             {
                                 isOverJunction = true;
                                 return isOverJunction;

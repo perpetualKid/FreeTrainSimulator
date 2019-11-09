@@ -203,7 +203,7 @@ namespace Orts.Simulation
                 , new string [] { GetString("Tender"), null, null, GetString("Coal re-filled"), null, GetString("Coal level") } 
                 , new string [] { GetString("Tender"), null, null, GetString("Water re-filled"), null, GetString("Water level") }
                 // General
-                , new string [] { GetString("Water Scoop"), GetString("up"), null, GetString("down") } 
+                , new string [] { GetString("Water Scoop"), GetString("up"), null, GetString("down") }
                 // Braking
                 , new string [] { GetString("Train Brake"), null, null, null, GetString("release"), GetString("apply") } 
                 , new string [] { GetString("Engine Brake"), null, null, null, GetString("release"), GetString("apply") } 

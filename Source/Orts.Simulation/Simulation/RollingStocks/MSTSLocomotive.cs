@@ -147,11 +147,8 @@ namespace Orts.Simulation.RollingStocks
         public string OnLineCabRadioURL;
 
         // Water trough filling
-        public bool WaterScoopDown;
         public bool HasWaterScoop = false; // indicates whether loco + tender have a water scoop or not
-                                           //        public float ScoopMinPickupSpeedMpS = 0.0f; // Minimum scoop pickup speed
         public float ScoopMaxPickupSpeedMpS = 200.0f; // Maximum scoop pickup speed - used in steam locomotive viewer
-                                                      //        public float ScoopResistanceN = 0.0f; // Scoop resistance
         public bool ScoopIsBroken = false; // becomes broken if activated where there is no trough
         public bool RefillingFromTrough = false; // refilling from through is ongoing
         public float WaterScoopFillElevationM; // height water has to be raised to fill tender
@@ -163,6 +160,7 @@ namespace Orts.Simulation.RollingStocks
         public float WaterScoopInputAmountL; // Water scooped in elapsed time
         public float WaterScoopMinSpeedMpS; // Minimum speed for water pickup
         public bool IsWaterScoopDown = false;
+        public bool WaterScoopDown;
         public const float GravitationalAccelerationFtpSpS = 32.26f;
         public float TenderWaterLevelFraction;
         public float WaterScoopTotalWaterL;
@@ -173,11 +171,9 @@ namespace Orts.Simulation.RollingStocks
         public bool IsWaterScoopPlayerLocomotive = false;
         public float MaxTotalCombinedWaterVolumeUKG;
         public MSTSNotchController WaterController = new MSTSNotchController(0, 1, 0.01f);
-
         public float CombinedTenderWaterVolumeUKG          // Decreased by running injectors and increased by refilling
         {
-            get { return WaterController.CurrentValue* MaxTotalCombinedWaterVolumeUKG;
-        }
+            get { return WaterController.CurrentValue* MaxTotalCombinedWaterVolumeUKG; }
             set { WaterController.CurrentValue = value / MaxTotalCombinedWaterVolumeUKG; }
         }
 
@@ -1133,7 +1129,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 WaterScoopDepthM = 0.0889f; // Set to default of 3.5 ins
             }
-            
+
             if (WaterScoopWidthM == 0)
             {
                 WaterScoopWidthM = 0.3048f; // Set to default of 1 ft
@@ -2158,104 +2154,104 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public virtual void UpdateWaterTroughRefill(float elapsedClockSeconds, float absSpeedMpS)
         {
+            // Check to see whether locomotive is to be refilled over water trough
+            if (Simulator.PlayerLocomotive == this && IsWaterScoopDown)
+            {
 
-        // Check to see whether locomotive is to be refilled over water trough
-        if (Simulator.PlayerLocomotive == this && IsWaterScoopDown)
-        {
-        
 
-            var fraction = GetFilledFraction(PickupType.FuelWater);
+                var fraction = GetFilledFraction((uint)MSTSWagon.PickupType.FuelWater);
 
-            if (!HasWaterScoop)
-            {
-                if (!WaterScoopNotFittedFlag)
+                if (!HasWaterScoop)
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("No water scoop on this loco"));
-                    WaterScoopNotFittedFlag = true;
+                    if (!WaterScoopNotFittedFlag)
+                    {
+                        Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("No water scoop on this loco"));
+                        WaterScoopNotFittedFlag = true;
+                    }
+                    MSTSWagon.RefillProcess.OkToRefill = false;
+                    MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
+                    RefillingFromTrough = false;
+                    return;
                 }
-                MSTSWagon.RefillProcess.OkToRefill = false;
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
-                RefillingFromTrough = false;
-                return;
-            }
-            else if (ScoopIsBroken)
-            {
-                Simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop is broken, can't refill"));
-                MSTSWagon.RefillProcess.OkToRefill = false;
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
-                RefillingFromTrough = false;
-                return;
-            }
-            else if (IsOverJunction())
-            {
-                if (!ScoopIsBroken) // Only display message first time scoop is broken
+                else if (ScoopIsBroken)
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop is broken by junction track"));
+                    Simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop is broken, can't refill"));
+                    MSTSWagon.RefillProcess.OkToRefill = false;
+                    MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
+                    RefillingFromTrough = false;
+                    return;
                 }
-                ScoopIsBroken = true;
-                MSTSWagon.RefillProcess.OkToRefill = false;
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
-                RefillingFromTrough = false;
-                return;
-            }
-            else if (!IsOverTrough())
-            {
-                if (!WaterScoopOverTroughFlag)
+                else if (IsOverJunction())
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Scoop is not over trough, can't refill"));
-                    WaterScoopOverTroughFlag = true;
+                    if (!ScoopIsBroken) // Only display message first time scoop is broken
+                    {
+                        Simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop is broken by junction track"));
+                    }
+                    ScoopIsBroken = true;
+                    MSTSWagon.RefillProcess.OkToRefill = false;
+                    MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
+                    RefillingFromTrough = false;
+                    return;
                 }
-                MSTSWagon.RefillProcess.OkToRefill = false;
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
-                RefillingFromTrough = false;
-                return;
-            }
-            else if (IsTenderRequired == 1 && Direction == Direction.Reverse) // Locomotives with tenders cannot go in reverse
-            {
-                if (!WaterScoopDirectionFlag)
+                else if (!IsOverTrough())
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetStringFmt("Refill: Loco must be moving forward."));
-                    WaterScoopDirectionFlag = true;
+                    if (!WaterScoopOverTroughFlag)
+                    {
+                        Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Scoop is not over trough, can't refill"));
+                        WaterScoopOverTroughFlag = true;
+                    }
+                    MSTSWagon.RefillProcess.OkToRefill = false;
+                    MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
+                    RefillingFromTrough = false;
+                    return;
                 }
-                MSTSWagon.RefillProcess.OkToRefill = false;
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
-                RefillingFromTrough = false;
-                return;
-            }
-            else if (absSpeedMpS < WaterScoopMinSpeedMpS)
-            {
-                if (!WaterScoopSlowSpeedFlag)
+                else if (IsTenderRequired == 1 && Direction == Direction.Reverse) // Locomotives with tenders cannot go in reverse
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetStringFmt("Refill: Loco speed must exceed {0} for water to enter tender.",
-                            FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, MilepostUnitsMetric)));
-                    WaterScoopSlowSpeedFlag = true;
+                    if (!WaterScoopDirectionFlag)
+                    {
+                        Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetStringFmt("Refill: Loco must be moving forward."));
+                        WaterScoopDirectionFlag = true;
+                    }
+                    MSTSWagon.RefillProcess.OkToRefill = false;
+                    MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
+                    RefillingFromTrough = false;
+                    return;
                 }
+                else if (absSpeedMpS < WaterScoopMinSpeedMpS)
+                {
+                    if (!WaterScoopSlowSpeedFlag)
+                    {
+                        Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetStringFmt("Refill: Loco speed must exceed {0} for water to enter tender.",
+                                FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, MilepostUnitsMetric)));
+                        WaterScoopSlowSpeedFlag = true;
+                    }
+                    MSTSWagon.RefillProcess.OkToRefill = false;
+                    MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
+                    RefillingFromTrough = false;
+                    return;
+                }
+                else if (fraction > 1.0)
+                {
+                    Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetStringFmt("Refill: Water supply now replenished."));
+                    return;
+                }
+                else
+                {
+                    MSTSWagon.RefillProcess.OkToRefill = true;
+                    MSTSWagon.RefillProcess.ActivePickupObjectUID = -1;
+                    RefillingFromTrough = true;
+                    WaterScoopOverTroughFlag = false; // Reset flag so that message will come up again
+                }
+
+            }
+            else // water scoop has been raised, stop water filling
+            {
                 MSTSWagon.RefillProcess.OkToRefill = false;
                 MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
                 RefillingFromTrough = false;
                 return;
-            }
-            else if (fraction > 1.0)
-            {
-                Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetStringFmt("Refill: Water supply now replenished."));
-                return;
-            }
-            else
-            {
-                MSTSWagon.RefillProcess.OkToRefill = true;
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = -1;
-                RefillingFromTrough = true;
-                WaterScoopOverTroughFlag = false; // Reset flag so that message will come up again
             }
 
-        }
-        else // water scoop has been raised, stop water filling
-        {
-                MSTSWagon.RefillProcess.OkToRefill = false;
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
-                RefillingFromTrough = false;
-                return;
-        }
 
 
             // update water scoop
@@ -2316,7 +2312,7 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
-        #region Calculate Friction Coefficient
+#region Calculate Friction Coefficient
         /// <summary>
         /// Calculates the current coefficient of friction based upon the current weather 
         /// The calculation of Coefficient of Friction appears to provide a wide range of 
