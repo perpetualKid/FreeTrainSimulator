@@ -134,25 +134,17 @@ namespace Orts.Common
             get { return new Vector3(XNAMatrix.M41, XNAMatrix.M42, -XNAMatrix.M43); }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Vector3 XnaLocation()
-        {
-            // "inlined" XnaMatrix.Translation() Decomposition
-            return new Vector3(XNAMatrix.M41, XNAMatrix.M42, XNAMatrix.M43);
-        }
-
         /// <summary>
         /// Ensure tile coordinates are within tile boundaries
         /// </summary>
         public WorldPosition Normalize()
         {
-            Vector3 location = XnaLocation();
-            int xTileDistance = (int)Math.Round((int)(location.X / 1024) / 2.0, MidpointRounding.AwayFromZero);
-            int zTileDistance = (int)Math.Round((int)(location.Z / 1024) / 2.0, MidpointRounding.AwayFromZero);
+            int xTileDistance = (int)Math.Round((int)(XNAMatrix.M41 / 1024) / 2.0, MidpointRounding.AwayFromZero);
+            int zTileDistance = (int)Math.Round((int)(XNAMatrix.M43 / 1024) / 2.0, MidpointRounding.AwayFromZero);
 
             return new WorldPosition(TileX + xTileDistance, TileZ + zTileDistance,
-                MatrixExtension.SetTranslation(XNAMatrix, location.X - (xTileDistance * TileSize), 
-                location.Y, location.Z - (zTileDistance * TileSize)));
+                MatrixExtension.SetTranslation(XNAMatrix, XNAMatrix.M41 - (xTileDistance * TileSize),
+                XNAMatrix.M42, XNAMatrix.M43 - (zTileDistance * TileSize)));
         }
 
         /// <summary>
@@ -162,12 +154,11 @@ namespace Orts.Common
         /// <param name="tileZ">The x-value of the tile to normalize to</param>
         public WorldPosition NormalizeTo(int tileX, int tileZ)
         {
-            Vector3 location = XnaLocation();
             int xDiff = TileX - tileX;
             int zDiff = TileZ - tileZ;
             return new WorldPosition(tileX, tileZ, 
-                MatrixExtension.SetTranslation(XNAMatrix, location.X + (xDiff * TileSize), 
-                location.Y, location.Z + (zDiff * TileSize)));
+                MatrixExtension.SetTranslation(XNAMatrix, XNAMatrix.M41 + (xDiff * TileSize),
+                XNAMatrix.M42, XNAMatrix.M43 + (zDiff * TileSize)));
         }
 
         /// <summary>
