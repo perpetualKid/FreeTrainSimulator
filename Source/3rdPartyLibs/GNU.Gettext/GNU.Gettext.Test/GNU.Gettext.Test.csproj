@@ -95,7 +95,11 @@
       <Name>GNU.Gettext.WinForms</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Include="NUnitTestAdapter.WithFramework">
+      <Version>2.0.0</Version>
+    </PackageReference>
+  </ItemGroup>
   <ItemGroup>
     <Content Include="Data\Test01.po">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -106,7 +110,6 @@
     <None Include="Data\UtilsTest.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Data\XgettextTest.txt" />
