@@ -19,6 +19,7 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Orts.Viewer3D.Popups;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -151,6 +152,52 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             base.Initialize(windowManager);
             Font = windowManager.TextFontDefault;
+            if (TrainDrivingWindow.FontToBold)
+            {
+                Font = windowManager.TextFontDefaultBold;
+            }
+        }
+
+        internal override void Draw(SpriteBatch spriteBatch, Point offset)
+        {
+            Font.Draw(spriteBatch, Position, offset, Text, Align, Color);
+        }
+    }
+
+    public class LabelMono : Control
+    {
+        public string Text;
+        public LabelAlignment Align;
+        public Color Color;
+        protected WindowTextFont Font;
+
+        public LabelMono(int x, int y, int width, int height, string text, LabelAlignment align)
+            : base(x, y, width, height)
+        {
+            Text = text;
+            Align = align;
+            Color = Color.White;
+        }
+
+        public LabelMono(int x, int y, int width, int height, string text)
+            : this(x, y, width, height, text, LabelAlignment.Left)
+        {
+        }
+
+        public LabelMono(int width, int height, string text, LabelAlignment align)
+            : this(0, 0, width, height, text, align)
+        {
+        }
+
+        public LabelMono(int width, int height, string text)
+            : this(0, 0, width, height, text, LabelAlignment.Left)
+        {
+        }
+
+        public override void Initialize(WindowManager windowManager)
+        {
+            base.Initialize(windowManager);
+            Font = windowManager.TextFontMonoSpacedBold;
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)

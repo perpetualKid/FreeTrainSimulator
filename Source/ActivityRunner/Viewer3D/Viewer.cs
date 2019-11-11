@@ -42,7 +42,7 @@ using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-
+using Orts.Viewer3D.Popups;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -88,6 +88,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public HelpWindow HelpWindow { get; private set; } // F1 window
         public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
+        public TrainDrivingWindow TrainDrivingWindow { get; private set; } // F5 train driving window
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
@@ -417,6 +418,7 @@ namespace Orts.ActivityRunner.Viewer3D
             TrackMonitorWindow = new TrackMonitorWindow(WindowManager);
             HUDWindow = new HUDWindow(WindowManager);
             HUDScrollWindow = new HUDScrollWindow(WindowManager);
+            TrainDrivingWindow = new TrainDrivingWindow(WindowManager);
             OSDLocations = new OSDLocations(WindowManager);
             OSDCars = new OSDCars(WindowManager);
             SwitchWindow = new SwitchWindow(WindowManager);
@@ -868,23 +870,13 @@ namespace Orts.ActivityRunner.Viewer3D
             if (UserInput.IsPressed(UserCommand.GameSave)) { GameStateRunActivity.Save(); }
             if (UserInput.IsPressed(UserCommand.DisplayHelpWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) HelpWindow.TabAction(); else HelpWindow.Visible = !HelpWindow.Visible;
             if (UserInput.IsPressed(UserCommand.DisplayTrackMonitorWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) TrackMonitorWindow.TabAction(); else TrackMonitorWindow.Visible = !TrackMonitorWindow.Visible;
+            if (UserInput.IsPressed(UserCommand.DisplayTrainDrivingWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) TrainDrivingWindow.TabAction(); else TrainDrivingWindow.Visible = !TrainDrivingWindow.Visible;
             if (UserInput.IsPressed(UserCommand.DisplayHUD)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) HUDWindow.TabAction();
             else
             {
                 HUDWindow.Visible = !HUDWindow.Visible;
                 if (!HUDWindow.Visible) HUDScrollWindow.Visible = false;
             }
-            if (UserInput.IsPressed(UserCommand.DisplayHUDScrollWindow))
-            {
-                if (HUDWindow.Visible)
-                {
-                    if (UserInput.IsDown(UserCommand.DisplayNextWindowTab))
-                        HUDScrollWindow.TabAction();
-                    else
-                        HUDScrollWindow.Visible = !HUDScrollWindow.Visible;
-                }
-            }
-
             if (UserInput.IsPressed(UserCommand.DisplayStationLabels))
             {
                 if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) OSDLocations.TabAction(); else OSDLocations.Visible = !OSDLocations.Visible;
