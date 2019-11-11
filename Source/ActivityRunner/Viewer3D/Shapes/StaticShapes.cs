@@ -88,7 +88,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             float maxY = shapes.Max(s => s.WorldPosition.Location.Y);
             float minZ = shapes.Min(s => s.WorldPosition.Location.Z);
             float maxZ = shapes.Max(s => s.WorldPosition.Location.Z);
-            return new WorldPosition(tileX, tileZ, Matrix.Identity).SetMstsTranslation((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
+            return new WorldPosition(tileX, tileZ, Matrix.Identity).SetTranslation((minX + maxX) / 2, (minY + maxY) / 2, - (minZ + maxZ) / 2);
         }
 
         private Matrix[] GetMatricies(List<BaseShape> shapes, ShapePrimitive shapePrimitive)

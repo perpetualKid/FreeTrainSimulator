@@ -368,8 +368,10 @@ namespace Orts.Formats.Msts.Models
             Vector3 speedPostTablePosition = new Vector3(2.2f, 0, 0);
             speedPostTablePosition = Vector3.Transform(speedPostTablePosition, position.XNAMatrix);
 
-            position = position.SetMstsTranslation(speedPostTablePosition).Normalize();
-            position = position.SetMstsTranslation(position.XNAMatrix.Translation);
+            //looks suspicios to change location back to MSTS coordinates just to Normalize, and rest the location even after Normalize
+            //position = position.SetMstsTranslation(speedPostTablePosition).Normalize();
+            //position = position.SetMstsTranslation(position.XNAMatrix.Translation);
+            position = position.SetTranslation(speedPostTablePosition).Normalize();
         }
     }
 

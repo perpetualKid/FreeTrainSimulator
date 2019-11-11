@@ -106,16 +106,6 @@ namespace Orts.Common
             return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, x, y, z));
         }
 
-        public WorldPosition SetMstsTranslation(Vector3 translation)
-        {
-            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, translation.X, translation.Y, -translation.Z));
-        }
-
-        public WorldPosition SetMstsTranslation(float x, float y, float z)
-        {
-            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, x, y, -z));
-        }
-
         /// <summary>
         /// The world-location in MSTS coordinates of the current position
         /// </summary>
@@ -142,7 +132,7 @@ namespace Orts.Common
             int xTileDistance = (int)Math.Round((int)(XNAMatrix.M41 / 1024) / 2.0, MidpointRounding.AwayFromZero);
             int zTileDistance = (int)Math.Round((int)(XNAMatrix.M43 / 1024) / 2.0, MidpointRounding.AwayFromZero);
 
-            return new WorldPosition(TileX + xTileDistance, TileZ + zTileDistance,
+            return (xTileDistance == 0 && zTileDistance == 0) ? this : new WorldPosition(TileX + xTileDistance, TileZ + zTileDistance,
                 MatrixExtension.SetTranslation(XNAMatrix, XNAMatrix.M41 - (xTileDistance * TileSize),
                 XNAMatrix.M42, XNAMatrix.M43 - (zTileDistance * TileSize)));
         }
@@ -156,7 +146,8 @@ namespace Orts.Common
         {
             int xDiff = TileX - tileX;
             int zDiff = TileZ - tileZ;
-            return new WorldPosition(tileX, tileZ, 
+
+            return (xDiff == 0 && zDiff == 0) ? this : new WorldPosition(tileX, tileZ, 
                 MatrixExtension.SetTranslation(XNAMatrix, XNAMatrix.M41 + (xDiff * TileSize),
                 XNAMatrix.M42, XNAMatrix.M43 + (zDiff * TileSize)));
         }
@@ -221,7 +212,7 @@ namespace Orts.Common
             int xTileDistance = (int)Math.Round((int)(Location.X / 1024) / 2.0, MidpointRounding.AwayFromZero);
             int zTileDistance = (int)Math.Round((int)(Location.Z / 1024) / 2.0, MidpointRounding.AwayFromZero);
 
-            return new WorldLocation(TileX + xTileDistance, TileZ + zTileDistance, new Vector3(Location.X - (xTileDistance * TileSize), Location.Y, Location.Z - (zTileDistance * TileSize)));
+            return (xTileDistance == 0 && zTileDistance == 0) ? this : new WorldLocation(TileX + xTileDistance, TileZ + zTileDistance, new Vector3(Location.X - (xTileDistance * TileSize), Location.Y, Location.Z - (zTileDistance * TileSize)));
         }
 
         /// <summary>
@@ -233,7 +224,8 @@ namespace Orts.Common
         {
             int xDiff = TileX - tileX;
             int zDiff = TileZ - tileZ;
-            return new WorldLocation(tileX, tileZ, new Vector3(Location.X + (xDiff * TileSize), Location.Y, Location.Z + (zDiff * TileSize)));
+
+            return (xDiff == 0 && zDiff == 0) ? this : new WorldLocation(tileX, tileZ, new Vector3(Location.X + (xDiff * TileSize), Location.Y, Location.Z + (zDiff * TileSize)));
         }
 
         /// <summary>
