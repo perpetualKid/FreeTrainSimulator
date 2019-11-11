@@ -81,7 +81,7 @@ namespace Orts.Formats.Msts.Signalling
         {
             string line;
             CommentParserState state = CommentParserState.None;
-            StringBuilder value = new StringBuilder();
+            StringBuilder value = new StringBuilder(256);
             bool lineContent = false;
 
             while ((line = reader.ReadLine()) != null)
