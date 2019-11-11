@@ -31,6 +31,7 @@ steps:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+    restoreNugetPackages: true
 
 - task: VSTest@2
   inputs:
