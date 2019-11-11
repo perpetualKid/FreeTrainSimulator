@@ -390,13 +390,13 @@ namespace Orts.Simulation.RollingStocks
         float BkW_Diff;                 // Net Energy into boiler after steam loads taken.
         float WaterVolL;                // Actual volume of water in bolier (litres)
         float BoilerHeatOutBTUpS = 0.0f;// heat out of boiler in BTU
-        float BoilerHeatInBTUpS = 0.0f; // heat into boiler in BTU
+        public float BoilerHeatInBTUpS = 0.0f; // heat into boiler in BTU
         float BoilerHeatExcess;         // Vlaue of excess boiler heat
         float InjCylEquivSizeIN;        // Calculate the equivalent cylinder size for purpose of sizing the injector.
         float InjectorSize;             // size of injector installed on boiler
 
         // Values from previous iteration to use in UpdateFiring() and show in HUD
-        float PreviousBoilerHeatOutBTUpS = 0.0f;
+        public float PreviousBoilerHeatOutBTUpS = 0.0f;
         public float PreviousTotalSteamUsageLBpS;
         float Injector1WaterDelTempF = 65f;   // Injector 1 water delivery temperature - F
         float Injector2WaterDelTempF = 65f;   // Injector 1 water delivery temperature - F
