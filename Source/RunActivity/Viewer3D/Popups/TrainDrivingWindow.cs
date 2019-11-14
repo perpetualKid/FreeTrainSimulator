@@ -29,6 +29,7 @@ using System.Text;
 using ORTS.Common.Input;
 using Microsoft.Xna.Framework;
 using System.Threading;
+using System.Globalization;
 
 namespace Orts.Viewer3D.Popups
 {
@@ -39,13 +40,17 @@ namespace Orts.Viewer3D.Popups
         int LinesCount;
         bool ResizeWindow;
 
+        // Save current language. Valid until locates was right.
+        public static CultureInfo LocaleCurrentCulture = Thread.CurrentThread.CurrentUICulture;
+        public static CultureInfo TrainDrivingCurrentCulture = new System.Globalization.CultureInfo("en");
+        public static bool StandardHUD = true;// Standard text
+
         int WindowHeightMin = 0;
         int WindowHeightMax = 0;
         int WindowWidthMin = 0;
         int WindowWidthMax = 0;
 
         char expandWindow;
-        public bool StandardHUD = true;// Standard text
         string keyPressed;// display a symbol when a control key is pressed.
         string Gradient;
         public int OffSetX = 0;
@@ -146,7 +151,6 @@ namespace Orts.Viewer3D.Popups
             base.Initialize();
             // Reset window size
             UpdateWindowSize();
-
         }
 
         protected override ControlLayout Layout(ControlLayout layout)
@@ -190,7 +194,7 @@ namespace Orts.Viewer3D.Popups
                                 SymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? data.SymbolCol.Substring(0, data.SymbolCol.Length - 3) : data.SymbolCol;
 
                                 // Apply color to FirstCol
-                                if (StandardHUD || FirstCol.StartsWith("Multi"))
+                                if (StandardHUD || FirstCol.StartsWith(Viewer.Catalog.GetString("Multi")))
                                 {   // Apply color to FirstCol
                                     hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
                                     indicator.Color = colorKeyPressed;
@@ -227,7 +231,7 @@ namespace Orts.Viewer3D.Popups
                                 hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
                                 indicator.Color = Color.White; // Default color
 
-                                if (StandardHUD || FirstCol.StartsWith("Multi") || FirstCol.ToUpper().Contains("PLAYER"))
+                                if (StandardHUD || FirstCol.StartsWith(Viewer.Catalog.GetString("Multi")) || FirstCol.ToUpper().Contains(Viewer.Catalog.GetString("PLAYER")))
                                 {
                                     hbox.Add(indicator = new Label(colWidth * OffestColWidth, hbox.RemainingHeight, FirstCol));
                                     indicator.Color = Color.White; // Default color
@@ -238,7 +242,7 @@ namespace Orts.Viewer3D.Popups
                                     indicatorMono.Color = Color.White; // Default color
                                 }
                                 // Font to bold
-                                if (FirstCol.ToUpper().StartsWith("TIME") && LastCol.Contains(':'))
+                                if (hbox.Position.Y == 24 && LastCol.Contains(':')) // Time line.
                                 {
                                     hbox.Add(LabelFontToBold = new Label(colWidth * (StandardHUD? 3: 5), hbox.RemainingHeight, LastCol));
                                     LabelFontToBold.Color = Color.White;
@@ -252,7 +256,7 @@ namespace Orts.Viewer3D.Popups
                             }                            
 
                             // Clickable symbol
-                            if (FirstCol.ToUpper().Contains("TIME"))
+                            if (hbox.Position.Y == 24)
                             {
                                 hbox.Add(ExpandWindow = new Label(hbox.RemainingWidth - TextSize,0 , TextSize, hbox.RemainingHeight, expandWindow.ToString(), LabelAlignment.Right));
                                 ExpandWindow.Color = Color.Yellow;
@@ -277,7 +281,14 @@ namespace Orts.Viewer3D.Popups
 
         void ExpandWindow_Click(Control arg1, Point arg2)
         {
-            StandardHUD = StandardHUD ? false : true;            
+            StandardHUD = StandardHUD ? false : true;
+
+            // Toogle between English and local language
+            if (!StandardHUD) // Allows to show english
+                Thread.CurrentThread.CurrentUICulture = TrainDrivingCurrentCulture = new System.Globalization.CultureInfo("en");
+            else// return to user language
+                Thread.CurrentThread.CurrentUICulture = TrainDrivingCurrentCulture = LocaleCurrentCulture;
+
             UpdateWindowSize();
         }
 
@@ -289,7 +300,7 @@ namespace Orts.Viewer3D.Popups
                 var newData = new List<string>();
                 foreach (var data in ListToLabel)
                 {
-                    if (!data.FirstCol.Contains("Sprtr"))
+                    if (!data.FirstCol.Contains(Viewer.Catalog.GetString("Sprtr")))
                     {
                         if (data.FirstCol.Contains("?") || data.FirstCol.Contains("!") || data.FirstCol.Contains("$"))
                         {
@@ -317,7 +328,7 @@ namespace Orts.Viewer3D.Popups
                 FirstColLenght = textWidht.MeasureString('\u2589'.ToString() + FirstColLongest) + (StandardHUD?(int)(TextSize * 1.2): TextSize);
                 LastColLenght = Owner.TextFontDefault.MeasureString(LastColLongest + "NNN");
 
-                var desiredHeight = Owner.TextFontDefault.Height * (ListToLabel.Count(x => x.FirstCol != "Sprtr") + (StandardHUD ? 4 : 4));
+                var desiredHeight = Owner.TextFontDefault.Height * (ListToLabel.Count(x => x.FirstCol != Viewer.Catalog.GetString("Sprtr")) + (StandardHUD ? 4 : 4));
                 var desiredWidth = FirstColLenght + LastColLenght;
 
                 var newHeight = (int)MathHelper.Clamp(desiredHeight, (StandardHUD? WindowHeightMin: 100), WindowHeightMax);
@@ -339,17 +350,16 @@ namespace Orts.Viewer3D.Popups
                 {
                     if (firstcol.Contains(code.Key))
                     {
-                        firstcol = firstcol.Replace(code.Key, code.Value);
+                        firstcol = firstcol.Replace((code.Key), (code.Value));
                     }
                 }
                 foreach (var code in LastColToAbbreviated)
                 {
                     if (lastcol.Contains(code.Key))
                     {
-                        lastcol = lastcol.Replace(code.Key, code.Value);
+                        lastcol = lastcol.Replace((code.Key), (code.Value));
                     }
                 }
-
             }
 
             ListToLabel.Add(new ListLabel
@@ -556,7 +566,7 @@ namespace Orts.Viewer3D.Popups
                     keyPressed = "";
                 }
             }
-            else
+            else if (brakeStatus.Contains(Viewer.Catalog.GetString("Lead")))
             {
                 brakeInfoValue = brakeStatus.Substring(0, brakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"))).TrimEnd();
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false, keyPressed);
@@ -570,6 +580,19 @@ namespace Orts.Viewer3D.Popups
                 index = brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + 5;
                 brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimEnd();
                 InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
+            }
+            else if (brakeStatus.Contains(Viewer.Catalog.GetString("BC")))
+            {
+                brakeInfoValue = brakeStatus.Substring(0, brakeStatus.IndexOf(Viewer.Catalog.GetString("BC"))).TrimEnd();
+                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false, keyPressed);
+
+                keyPressed = "";
+                index = brakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimEnd();
+
+                keyPressed = "";
+                InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
+                keyPressed = "";
             }
 
             keyPressed = "";
@@ -739,7 +762,11 @@ namespace Orts.Viewer3D.Popups
             base.PrepareFrame(elapsedTime, updateFull);
 
             if (updateFull)
-            {                
+            {
+                // Toogle between English and local language
+                if (!StandardHUD && TrainDrivingCurrentCulture.Name != Viewer.Catalog.GetString("en"))
+                    Thread.CurrentThread.CurrentUICulture = TrainDrivingCurrentCulture = new System.Globalization.CultureInfo("en");
+
                 UpdateData();
 
                 // Ctrl + F (FiringIsManual)                
@@ -749,6 +776,7 @@ namespace Orts.Viewer3D.Popups
                     UpdateWindowSize();
                     LinesCount = ListToLabel.Count();
                 }
+                
                 //Update Layout
                 Layout();
             }

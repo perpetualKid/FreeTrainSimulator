@@ -898,6 +898,13 @@ namespace Orts.Viewer3D
             if (UserInput.IsPressed(UserCommand.DisplayHelpWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) HelpWindow.TabAction(); else HelpWindow.Visible = !HelpWindow.Visible;
             if (UserInput.IsPressed(UserCommand.DisplayTrackMonitorWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) TrackMonitorWindow.TabAction(); else TrackMonitorWindow.Visible = !TrackMonitorWindow.Visible;
             if (UserInput.IsPressed(UserCommand.DisplayTrainDrivingWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) TrainDrivingWindow.TabAction(); else TrainDrivingWindow.Visible = !TrainDrivingWindow.Visible;
+            
+            // Toogle between English and local language
+            if (TrainDrivingWindow.Visible && !TrainDrivingWindow.StandardHUD && TrainDrivingWindow.TrainDrivingCurrentCulture.Name != Viewer.Catalog.GetString("en"))
+                Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("en");
+            else if (!TrainDrivingWindow.Visible && TrainDrivingWindow.TrainDrivingCurrentCulture.Name != TrainDrivingWindow.LocaleCurrentCulture.Name)
+                Thread.CurrentThread.CurrentUICulture = TrainDrivingWindow.TrainDrivingCurrentCulture = TrainDrivingWindow.LocaleCurrentCulture;
+            
             if (UserInput.IsPressed(UserCommand.DisplayHUD)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) HUDWindow.TabAction();
             else
             {
