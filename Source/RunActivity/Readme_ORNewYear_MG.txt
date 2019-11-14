@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.40
-November 11th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.41
+November 14th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -26,7 +26,8 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - reverted bug fix about rain in 3DCab, to avoid lack of display of digital indicators (see http://www.elvastower.com/forums/index.php?/topic/24040-3d-cabs/page__view__findpost__p__252352 )
 - added trace log for precipitation crash (see http://www.elvastower.com/forums/index.php?/topic/33462-potential-problem-with-activity-in-monogame-v36/ )
 - added bug fix for precipitation crash (suggested by roeter)
-- NEW: added Train Driving Info window (see http://www.elvastower.com/forums/index.php?/topic/33401-f5-hud-scrolling/page__view__findpost__p__251671 and following posts), by mbm_OR
+- added Train Driving Info window (see http://www.elvastower.com/forums/index.php?/topic/33401-f5-hud-scrolling/page__view__findpost__p__251671 and following posts), by mbm_OR
+- NEW: improved Train Driving Info window, by mbm_OR
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
