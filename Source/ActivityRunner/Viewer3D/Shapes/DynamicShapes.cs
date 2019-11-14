@@ -61,7 +61,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         /// <summary>
         /// Adjust the pose of the specified node to the frame position specifed by key.
         /// </summary>
-        public void AnimateMatrix(int iMatrix, float key)
+        public void AnimateMatrix(int iMatrix, double key)
         {
             // Animate the given matrix.
             AnimateOneMatrix(iMatrix, key);
@@ -72,7 +72,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     AnimateMatrix(i, key);
         }
 
-        private void AnimateOneMatrix(int iMatrix, float key)
+        private void AnimateOneMatrix(int iMatrix, double key)
         {
             if (SharedShape.Animations == null || SharedShape.Animations.Count == 0)
             {
@@ -116,7 +116,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                 // Make sure to clamp the amount, as we can fall outside the frame range. Also ensure there's a
                 // difference between frame1 and frame2 or we'll crash.
-                var amount = frame1 < frame2 ? MathHelper.Clamp((key - frame1) / (frame2 - frame1), 0, 1) : 0;
+                float amount = frame1 < frame2 ? (float)MathHelperD.Clamp((key - frame1) / (frame2 - frame1), 0, 1) : 0;
 
                 if (position1 is SlerpRotation slerp1 && position2 is SlerpRotation slerp2)  // rotate the existing matrix
                 {
@@ -152,7 +152,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     /// </summary>
     public class AnimatedShape : PoseableShape
     {
-        protected float animationKey;  // advances with time
+        protected double animationKey;  // advances with time
         protected readonly float frameRateMultiplier = 1f; // e.g. in passenger view shapes MSTS divides by 30 the frame rate; this is the inverse
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public class SwitchTrackShape : PoseableShape
     {
-        protected float animationKey;  // tracks position of points as they move left and right
+        protected double animationKey;  // tracks position of points as they move left and right
 
         private readonly TrackJunctionNode trackJunctionNode;  // has data on current aligment for the switch
         private readonly uint mainRoute;                  // 0 or 1 - which route is considered the main route
@@ -208,16 +208,16 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (trackJunctionNode.SelectedRoute == mainRoute)
             {
                 if (animationKey > 0.001)
-                    animationKey -= 0.002f * elapsedTime.ClockSeconds * 1000.0f;
+                    animationKey -= 0.002 * elapsedTime.ClockSeconds * 1000.0;
                 if (animationKey < 0.001)
-                    animationKey = 0f;
+                    animationKey = 0;
             }
             else
             {
                 if (animationKey < 0.999)
-                    animationKey += 0.002f * elapsedTime.ClockSeconds * 1000.0f;
+                    animationKey += 0.002 * elapsedTime.ClockSeconds * 1000.0;
                 if (animationKey > 0.999)
-                    animationKey = 1.0f;
+                    animationKey = 1.0;
             }
 
             // Update the pose
@@ -236,7 +236,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private readonly int numberIndices;
         private readonly short[] triangleListIndices;// Array of indices to vertices for triangles
 
-        protected readonly float animationKey;  // tracks position of points as they move left and right
+        protected readonly double animationKey;  // tracks position of points as they move left and right
         private ShapePrimitive shapePrimitive;
 
         public SpeedPostShape(string path, IWorldPosition positionSource, SpeedPostObject speedPostObject)
@@ -442,7 +442,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private readonly float animationFrames;
         private readonly float animationSpeed;
         private bool opening = true;
-        private float animationKey;
+        private double animationKey;
 
         public LevelCrossingShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, LevelCrossingObject crossingObj)
             : base(path, positionSource, shapeFlags)
@@ -521,9 +521,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
 
             if (opening)
-                animationKey -= elapsedTime.ClockSeconds * animationSpeed;
+                animationKey -= (float)elapsedTime.ClockSeconds * animationSpeed;
             else
-                animationKey += elapsedTime.ClockSeconds * animationSpeed;
+                animationKey += (float)elapsedTime.ClockSeconds * animationSpeed;
 
             if (levelCrossingObject.AnimationTiming < 0)
             {
@@ -551,9 +551,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         readonly Hazzard hazard;
 
         private readonly int animationFrames;
-        private float moved = 0f;
-        private float animationKey;
-        private float delayHazAnimation;
+        private double moved = 0f;
+        private double animationKey;
+        private double delayHazAnimation;
 
         public static HazardShape CreateHazzard(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject)
         {
@@ -583,7 +583,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (hazard == null)
                 return;
             Vector2 currentRange;
-            animationKey += elapsedTime.ClockSeconds * 24f;
+            animationKey += elapsedTime.ClockSeconds * 24;
             delayHazAnimation += elapsedTime.ClockSeconds;
             switch (hazard.state)
             {
@@ -605,7 +605,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         // Shape's position isn't stored but only calculated dynamically as it's passed to PrepareFrame further down
                         // this seems acceptable as the number of Hazardous objects is rather small
                         //WorldPosition.SetLocation(HazardObj.Position.X, HazardObj.Position.Y, HazardObj.Position.Z);
-                        hazardObject.UpdatePosition(m);
+                        hazardObject.UpdatePosition((float)m);
                     }
                     else
                     {
@@ -619,7 +619,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             {
                 case Hazzard.State.Idle1:
                 case Hazzard.State.Idle2:
-                    if (delayHazAnimation > 5f)
+                    if (delayHazAnimation > 5.0)
                     {
                         if (animationKey < currentRange.X)
                         {
@@ -666,7 +666,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private readonly float frameRate;
 
         private readonly int animationFrames;
-        protected float animationKey;
+        protected double animationKey;
 
 
         public FuelPickupItemShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, PickupObject fuelpickupitemObj)

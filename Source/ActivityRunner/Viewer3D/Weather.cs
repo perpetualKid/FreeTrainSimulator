@@ -28,6 +28,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR;
@@ -54,12 +55,12 @@ namespace Orts.ActivityRunner.Viewer3D
         private float[,] DesertZones = { { 30, 45, -120, -105 } }; // minlat, maxlat, minlong, maxlong
 
         // Variables used for wind calculations
-        Vector2 WindSpeedInternalMpS;
-        Vector2[] windSpeedMpS = new Vector2[2];
+        private Vector2D windSpeedInternalMpS;
+        private Vector2D[] windSpeedMpS = new Vector2D[2];
         public float Time;
-        readonly float[] WindChangeMpSS = { 40, 5 }; // Flurry, steady
-        const float WindSpeedMaxMpS = 4.5f;
-        float WindUpdateTimer = 0.0f;
+        readonly double[] windChangeMpSS = { 40, 5 }; // Flurry, steady
+        private const double windSpeedMaxMpS = 4.5f;
+        private double windUpdateTimer = 0.0;
         float WindGustUpdateTimeS = 1.0f;
         bool InitialWind = true;
         float BaseWindDirectionRad;
@@ -209,32 +210,32 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void UpdateWind(in ElapsedTime elapsedTime)
         {
-            WindUpdateTimer += elapsedTime.ClockSeconds;
+            windUpdateTimer += elapsedTime.ClockSeconds;
 
-            if (WindUpdateTimer > WindGustUpdateTimeS)
+            if (windUpdateTimer > WindGustUpdateTimeS)
             {
 
-                WindSpeedInternalMpS = Vector2.Zero;
+                windSpeedInternalMpS = Vector2D.Zero;
                 for (var i = 0; i < windSpeedMpS.Length; i++)
                 {
-                    windSpeedMpS[i].X += ((float)Viewer.Random.NextDouble() * 2 - 1) * WindChangeMpSS[i] * WindUpdateTimer;
-                    windSpeedMpS[i].Y += ((float)Viewer.Random.NextDouble() * 2 - 1) * WindChangeMpSS[i] * WindUpdateTimer;
 
-                    var windMagnitude = windSpeedMpS[i].Length() / (i == 0 ? Weather.WindSpeedMpS.Length() * 0.4f : WindSpeedMaxMpS);
+                    windSpeedMpS[i] += new Vector2D((Viewer.Random.NextDouble() * 2 - 1) * windChangeMpSS[i] * windUpdateTimer,
+                        (Viewer.Random.NextDouble() * 2 - 1) * windChangeMpSS[i] * windUpdateTimer);
+                    var windMagnitude = windSpeedMpS[i].Length() / (i == 0 ? Weather.WindSpeedMpS.Length() * 0.4f : windSpeedMaxMpS);
 
                     if (windMagnitude > 1)
-                        windSpeedMpS[i] /= windMagnitude;
+                        windSpeedMpS[i] /= (float)windMagnitude;
 
-                    WindSpeedInternalMpS += windSpeedMpS[i];
+                    windSpeedInternalMpS += windSpeedMpS[i];
                 }
 
-                var TotalwindMagnitude = WindSpeedInternalMpS.Length() / (WindSpeedMaxMpS);
+                var TotalwindMagnitude = windSpeedInternalMpS.Length() / (windSpeedMaxMpS);
 
                 if (TotalwindMagnitude > 1)
-                    WindSpeedInternalMpS /= TotalwindMagnitude;
+                    windSpeedInternalMpS /= TotalwindMagnitude;
 
-                Weather.WindSpeedMpS = WindSpeedInternalMpS;
-                WindUpdateTimer = 0.0f; // Reset wind gust timer
+                Weather.WindSpeedMpS = new Vector2((float)windSpeedInternalMpS.X, (float)windSpeedInternalMpS.Y);
+                windUpdateTimer = 0.0f; // Reset wind gust timer
 
                 if (InitialWind) // Record the initial wind direction.
                 {
@@ -329,7 +330,7 @@ namespace Orts.ActivityRunner.Viewer3D
         //[CallOnThread("Updater")]
         public virtual void Update(in ElapsedTime elapsedTime)
         {
-            Time += elapsedTime.ClockSeconds;
+            Time += (float)elapsedTime.ClockSeconds;
 
             if (MPManager.IsClient() && MPManager.Instance().weatherChanged)
             {
@@ -384,13 +385,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Overcast ranges from 0 (completely clear) to 1 (completely overcast).
                 if (UserInput.IsDown(UserCommand.DebugOvercastIncrease))
                 {
-                    Weather.OvercastFactor = MathHelper.Clamp(Weather.OvercastFactor + elapsedTime.RealSeconds / 10, 0, 1);
+                    Weather.OvercastFactor = (float)MathHelperD.Clamp(Weather.OvercastFactor + elapsedTime.RealSeconds / 10, 0, 1);
                     weatherChangeOn = false;
                     if (dynamicWeather != null) dynamicWeather.ORTSOvercast = -1;
                 }
                 if (UserInput.IsDown(UserCommand.DebugOvercastDecrease))
                 {
-                    Weather.OvercastFactor = MathHelper.Clamp(Weather.OvercastFactor - elapsedTime.RealSeconds / 10, 0, 1);
+                    Weather.OvercastFactor = (float)MathHelperD.Clamp(Weather.OvercastFactor - elapsedTime.RealSeconds / 10, 0, 1);
                     weatherChangeOn = false;
                     if (dynamicWeather != null) dynamicWeather.ORTSOvercast = -1;
                 }
@@ -471,13 +472,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Fog ranges from 10m (can't see anything) to 100km (clear arctic conditions).
                 if (UserInput.IsDown(UserCommand.DebugFogIncrease))
                 {
-                    Weather.FogDistance = MathHelper.Clamp(Weather.FogDistance - elapsedTime.RealSeconds * Weather.FogDistance, 10, 100000);
+                    Weather.FogDistance = (float)MathHelperD.Clamp(Weather.FogDistance - elapsedTime.RealSeconds * Weather.FogDistance, 10, 100000);
                     weatherChangeOn = false;
                     if (dynamicWeather != null) dynamicWeather.ORTSFog = -1;
                 }
                 if (UserInput.IsDown(UserCommand.DebugFogDecrease))
                 {
-                    Weather.FogDistance = MathHelper.Clamp(Weather.FogDistance + elapsedTime.RealSeconds * Weather.FogDistance, 10, 100000);
+                    Weather.FogDistance = (float)MathHelperD.Clamp(Weather.FogDistance + elapsedTime.RealSeconds * Weather.FogDistance, 10, 100000);
                     if (dynamicWeather != null) dynamicWeather.ORTSFog = -1;
                     weatherChangeOn = false;
                 }
@@ -671,7 +672,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var wChangeOn = false;
                 if (ORTSOvercast >= 0)
                 {
-                    overcastTimer -= elapsedTime.ClockSeconds;
+                    overcastTimer -= (float)elapsedTime.ClockSeconds;
                     if (overcastTimer <= 0) overcastTimer = 0;
                     else wChangeOn = true;
                     weatherControl.Weather.OvercastFactor = ORTSOvercast - overcastTimer * overcastChangeRate;
@@ -679,7 +680,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 if (ORTSFog >= 0)
                 {
-                    fogTimer -= elapsedTime.ClockSeconds;
+                    fogTimer -= (float)elapsedTime.ClockSeconds;
                     if (fogTimer <= 0) fogTimer = 0;
                     else wChangeOn = true;
                     if (!fogDistanceIncreasing)
@@ -693,7 +694,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 if (ORTSPrecipitationIntensity >= 0 && precipitationIntensityDelayTimer == -1)
                 {
-                    precipitationIntensityTimer -= elapsedTime.ClockSeconds;
+                    precipitationIntensityTimer -= (float)elapsedTime.ClockSeconds;
                     if (precipitationIntensityTimer <= 0) precipitationIntensityTimer = 0;
                     else if (weatherControl.RandomizedWeather == false ) wChangeOn = true;
                     var oldPricipitationIntensityPPSPM2 = weatherControl.Weather.PricipitationIntensityPPSPM2;
@@ -720,7 +721,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 else if (ORTSPrecipitationIntensity >= 0 && precipitationIntensityDelayTimer > 0)
                 {
-                    precipitationIntensityDelayTimer -= elapsedTime.ClockSeconds;
+                    precipitationIntensityDelayTimer -= (float)elapsedTime.ClockSeconds;
                     if (precipitationIntensityDelayTimer <= 0)
                     {
                         precipitationIntensityDelayTimer = -1; // OK, now rain/snow can start
@@ -729,7 +730,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 if (ORTSPrecipitationLiquidity >= 0)
                 {
-                    precipitationLiquidityTimer -= elapsedTime.ClockSeconds;
+                    precipitationLiquidityTimer -= (float)elapsedTime.ClockSeconds;
                     if (precipitationLiquidityTimer <= 0) precipitationLiquidityTimer = 0;
                     else wChangeOn = true;
                     var oldPrecipitationLiquidity = weatherControl.Weather.PrecipitationLiquidity;
@@ -756,7 +757,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 if (stableWeatherTimer > 0)
                 {
-                    stableWeatherTimer -= elapsedTime.ClockSeconds;
+                    stableWeatherTimer -= (float)elapsedTime.ClockSeconds;
                     if (stableWeatherTimer <= 0)
                         stableWeatherTimer = 0;
                     else wChangeOn = true;
@@ -1130,7 +1131,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void Update(in ElapsedTime elapsedTime)
         {
             // not client and weather auto mode
-            Time += elapsedTime.ClockSeconds;
+            Time += (float)elapsedTime.ClockSeconds;
             var fogActive = false;
 
             if (weatherDetails.Count == 0)
@@ -1184,11 +1185,11 @@ namespace Orts.ActivityRunner.Viewer3D
                         AWOvercastCloudcover = CalculateOvercast(lastWeatherPrecipitation.Overcast, lastWeatherPrecipitation.OvercastVariation, lastWeatherPrecipitation.OvercastRateOfChange, elapsedTime);
                         if (Weather.FogDistance > lastWeatherPrecipitation.OvercastVisibilityM)
                         {
-                            AWActualVisibility = Weather.FogDistance - 40 * elapsedTime.RealSeconds; // reduce visibility by 40 m/s
+                            AWActualVisibility = Weather.FogDistance - 40 * (float)elapsedTime.RealSeconds; // reduce visibility by 40 m/s
                         }
                         else if (Weather.FogDistance < lastWeatherPrecipitation.OvercastVisibilityM)
                         {
-                            AWActualVisibility = Weather.FogDistance + 40 * elapsedTime.RealSeconds; // increase visibility by 40 m/s
+                            AWActualVisibility = Weather.FogDistance + 40 * (float)elapsedTime.RealSeconds; // increase visibility by 40 m/s
                         }
                     }
                 }
@@ -1221,11 +1222,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 AWOvercastCloudcover = CalculateOvercast(lastWeatherOvercast.Overcast, lastWeatherOvercast.OvercastVariation, lastWeatherOvercast.OvercastRateOfChange, elapsedTime);
                 if (AWActualVisibility > lastWeatherOvercast.OvercastVisibilityM)
                 {
-                    AWActualVisibility = Math.Max(lastWeatherOvercast.OvercastVisibilityM, AWActualVisibility - 40 * elapsedTime.RealSeconds); // reduce visibility by 40 m/s
+                    AWActualVisibility = (float)Math.Max(lastWeatherOvercast.OvercastVisibilityM, AWActualVisibility - 40 * elapsedTime.RealSeconds); // reduce visibility by 40 m/s
                 }
                 else if (AWActualVisibility < lastWeatherOvercast.OvercastVisibilityM)
                 {
-                    AWActualVisibility = Math.Min(lastWeatherOvercast.OvercastVisibilityM, AWActualVisibility + 40 * elapsedTime.RealSeconds); // increase visibility by 40 m/s
+                    AWActualVisibility = (float)Math.Min(lastWeatherOvercast.OvercastVisibilityM, AWActualVisibility + 40 * elapsedTime.RealSeconds); // increase visibility by 40 m/s
                 }
             }
 
@@ -1518,11 +1519,11 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (AWPrecipitationActualPPSPM2 < AWPrecipitationRequiredPPSPM2)
             {
-                AWPrecipitationActualPPSPM2 = Math.Min(AWPrecipitationRequiredPPSPM2, AWPrecipitationActualPPSPM2 + AWPrecipitationRateOfChangePPSPM2PS * elapsedTime.RealSeconds);
+                AWPrecipitationActualPPSPM2 = (float)Math.Min(AWPrecipitationRequiredPPSPM2, AWPrecipitationActualPPSPM2 + AWPrecipitationRateOfChangePPSPM2PS * elapsedTime.RealSeconds);
             }
             else if (AWPrecipitationActualPPSPM2 > AWPrecipitationRequiredPPSPM2)
             {
-                AWPrecipitationActualPPSPM2 = Math.Max(AWPrecipitationRequiredPPSPM2, AWPrecipitationActualPPSPM2 - AWPrecipitationRateOfChangePPSPM2PS * elapsedTime.RealSeconds);
+                AWPrecipitationActualPPSPM2 = (float)Math.Max(AWPrecipitationRequiredPPSPM2, AWPrecipitationActualPPSPM2 - AWPrecipitationRateOfChangePPSPM2PS * elapsedTime.RealSeconds);
             }
             else
             {
@@ -1547,7 +1548,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         void StopPrecipitationSpell(WeatherSettingPrecipitation lastWeatherPrecipitation, in ElapsedTime elapsedTime)
         {
-            AWPrecipitationActualPPSPM2 = Math.Max(PrecipitationViewer.MinIntensityPPSPM2, AWPrecipitationActualPPSPM2 - AWPrecipitationEndRate * elapsedTime.RealSeconds);
+            AWPrecipitationActualPPSPM2 = (float)Math.Max(PrecipitationViewer.MinIntensityPPSPM2, AWPrecipitationActualPPSPM2 - AWPrecipitationEndRate * elapsedTime.RealSeconds);
             AWActualVisibility = AWLastVisibility +
                 (float)(Math.Sqrt(AWPrecipitationActualPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2) * (lastWeatherPrecipitation.PrecipitationVisibilityAtMaxDensityM - AWLastVisibility));
             AWOvercastCloudcover = CalculateOvercast(lastWeatherPrecipitation.Overcast, 0, lastWeatherPrecipitation.OvercastDispersion, elapsedTime);
@@ -1567,12 +1568,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (AWOvercastCloudcover < requiredOvercastFactor)
             {
-                float newOvercast = Math.Min(requiredOvercastFactor, Weather.OvercastFactor + AWOvercastCloudRateOfChangepS * elapsedTime.RealSeconds);
+                float newOvercast = (float)Math.Min(requiredOvercastFactor, Weather.OvercastFactor + AWOvercastCloudRateOfChangepS * elapsedTime.RealSeconds);
                 return (newOvercast);
             }
             else if (Weather.OvercastFactor > requiredOvercastFactor)
             {
-                float newOvercast = Math.Max(requiredOvercastFactor, Weather.OvercastFactor - AWOvercastCloudRateOfChangepS * elapsedTime.RealSeconds);
+                float newOvercast = (float)Math.Max(requiredOvercastFactor, Weather.OvercastFactor - AWOvercastCloudRateOfChangepS * elapsedTime.RealSeconds);
                 return (newOvercast);
             }
             else

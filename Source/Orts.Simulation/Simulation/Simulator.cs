@@ -626,7 +626,7 @@ namespace Orts.Simulation
         /// Convert and elapsed real time into clock time based on simulator
         /// running speed and paused state.
         /// </summary>
-        public float GetElapsedClockSeconds(float elapsedRealSeconds)
+        public double GetElapsedClockSeconds(double elapsedRealSeconds)
         {
             return elapsedRealSeconds * (Paused ? 0 : GameSpeed);
         }

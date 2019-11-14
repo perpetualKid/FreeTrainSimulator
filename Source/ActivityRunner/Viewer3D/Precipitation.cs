@@ -319,7 +319,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 RetireActiveParticles(currentTime);
                 FreeRetiredParticles();
 
-                ParticlesToEmit += elapsedTime.ClockSeconds * particlesPerSecondPerM2 * ParticleBoxLengthM * ParticleBoxWidthM;
+                ParticlesToEmit += (float)elapsedTime.ClockSeconds * particlesPerSecondPerM2 * ParticleBoxLengthM * ParticleBoxWidthM;
             }
 
             var numParticlesAdded = 0;

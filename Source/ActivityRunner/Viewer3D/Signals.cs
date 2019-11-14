@@ -326,7 +326,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                 }
 
-                CumulativeTime += elapsedTime.ClockSeconds;
+                CumulativeTime += (float)elapsedTime.ClockSeconds;
                 while (CumulativeTime > SignalTypeData.FlashTimeTotal)
                     CumulativeTime -= SignalTypeData.FlashTimeTotal;
 
@@ -386,7 +386,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     else
                     {
                         // Animate slowly to target position.
-                        SemaphorePos += SemaphoreSpeed * elapsedTime.ClockSeconds;
+                        SemaphorePos += SemaphoreSpeed * (float)elapsedTime.ClockSeconds;
                         if (SemaphorePos * Math.Sign(SemaphoreSpeed) > SemaphoreTarget * Math.Sign(SemaphoreSpeed))
                         {
                             SemaphorePos = SemaphoreTarget;

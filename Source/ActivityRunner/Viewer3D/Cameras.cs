@@ -260,7 +260,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 speed *= SpeedFactorFastSlow;
             if (UserInput.IsDown(UserCommand.CameraMoveSlow))
                 speed /= SpeedFactorFastSlow;
-            return speed;
+            return (float)speed;
         }
 
         protected virtual void ZoomIn(float speed)
@@ -1217,7 +1217,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (BrowseBackwards)
             {
                 var ZIncrM = -BrowseSpeedMpS * elapsedTime.ClockSeconds;
-                ZDistanceM += ZIncrM;
+                ZDistanceM += (float)ZIncrM;
                 if (-ZDistanceM >= attachedCar.Train.Length - (trainCars.First().CarLengthM  + trainCars.Last().CarLengthM) * 0.5f)
                 {
                     ZIncrM = -attachedCar.Train.Length + (trainCars.First().CarLengthM + trainCars.Last().CarLengthM) * 0.5f - (ZDistanceM - ZIncrM);
@@ -1235,7 +1235,7 @@ namespace Orts.ActivityRunner.Viewer3D
             else if (BrowseForwards)
             {
                 var ZIncrM = BrowseSpeedMpS * elapsedTime.ClockSeconds;
-                ZDistanceM += ZIncrM;
+                ZDistanceM += (float)ZIncrM;
                 if (ZDistanceM >= 0)
                 {
                     ZIncrM = ZIncrM - ZDistanceM;
@@ -2152,8 +2152,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            var speedFactor = 500;  // Gives a fairly smart response.
-            var speed = speedFactor * elapsedTime.RealSeconds; // Independent of framerate
+
+            var speed = 500 * (float)elapsedTime.RealSeconds; // Independent of framerate
 
             if (UserInput.IsPressed(UserCommand.CameraPanLeft))
                 ShiftView(+1);
@@ -2449,7 +2449,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 trainClose = false;
             }
             var trySpecial = false;
-            DistanceRunM += elapsedTime.ClockSeconds * train.SpeedMpS;
+            DistanceRunM += (float)elapsedTime.ClockSeconds * train.SpeedMpS;
             // when camera not at a special point, try every CheckIntervalM meters if there is a new special point nearby
             if (Math.Abs(DistanceRunM) >= CheckIntervalM)
             {

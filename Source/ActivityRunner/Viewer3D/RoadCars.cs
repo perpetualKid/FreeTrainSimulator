@@ -99,7 +99,7 @@ namespace Orts.ActivityRunner.Viewer3D
             foreach (var car in cars)
                 car.Update(elapsedTime);
 
-            LastSpawnedTime += elapsedTime.ClockSeconds;
+            LastSpawnedTime += (float)elapsedTime.ClockSeconds;
             if (Length > 0 && LastSpawnedTime >= NextSpawnTime && (cars.Count == 0 || cars.Last().Travelled > cars.Last().Length))
             {
                 var newCars = new List<RoadCar>(cars);
@@ -313,12 +313,12 @@ namespace Orts.ActivityRunner.Viewer3D
             if (stopDistance < slowingDistance)
                 Speed = SpeedMax * (float)Math.Sin((Math.PI / 2) * (stopDistance / slowingDistance));
             else if (Speed < SpeedMax)
-                Speed = Math.Min(Speed + AccelerationFactor / Length * elapsedTime.ClockSeconds, SpeedMax);
+                Speed = (float)Math.Min(Speed + AccelerationFactor / Length * elapsedTime.ClockSeconds, SpeedMax);
             else if (Speed > SpeedMax)
-                Speed = Math.Max(Speed - AccelerationFactor / Length * elapsedTime.ClockSeconds * 2, SpeedMax);
+                Speed = (float)Math.Max(Speed - AccelerationFactor / Length * elapsedTime.ClockSeconds * 2, SpeedMax);
 
             var distance = elapsedTime.ClockSeconds * Speed;
-            Travelled += distance;
+            Travelled += (float)distance;
             FrontTraveller.Move(distance);
             RearTraveller.Move(distance);
         }

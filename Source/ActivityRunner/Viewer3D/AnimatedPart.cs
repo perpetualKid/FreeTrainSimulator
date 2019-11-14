@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts.Models;
+using Orts.Common.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -87,9 +88,9 @@ namespace Orts.ActivityRunner.Viewer3D
             return MatrixIndexes.Count == 0;
         }
 
-        void SetFrame(float frame)
+        void SetFrame(double frame)
         {
-            AnimationKey = frame;
+            AnimationKey = (float)frame;
             foreach (var matrix in MatrixIndexes)
                 PoseableShape.AnimateMatrix(matrix, AnimationKey);
         }
@@ -97,11 +98,9 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Sets the animation to a particular frame whilst clamping it to the frame count range.
         /// </summary>
-        public void SetFrameClamp(float frame)
+        public void SetFrameClamp(double frame)
         {
-            if (frame > FrameCount) frame = FrameCount;
-            if (frame < 0) frame = 0;
-            SetFrame(frame);
+            SetFrame(MathHelperD.Clamp(frame, 0, FrameCount));
         }
 
         /// <summary>
@@ -116,10 +115,11 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Sets the animation to a particular frame whilst wrapping it around the frame count range.
         /// </summary>
-        public void SetFrameWrap(float frame)
+        public void SetFrameWrap(double frame)
         {
             // Wrap the frame around 0-FrameCount without hanging when FrameCount=0.
-            while (FrameCount > 0 && frame < 0) frame += FrameCount;
+            while (FrameCount > 0 && frame < 0)
+                frame += FrameCount;
             if (frame < 0) frame = 0;
             frame %= FrameCount;
             SetFrame(frame);

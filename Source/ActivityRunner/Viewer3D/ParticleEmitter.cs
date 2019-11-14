@@ -335,7 +335,7 @@ namespace Orts.ActivityRunner.Viewer3D
             velocity.X += (positionSource.WorldPosition.TileX - previousPosition.TileX) * 2048;
             velocity.Z += (positionSource.WorldPosition.TileZ - previousPosition.TileZ) * 2048;
             velocity.Z *= -1;
-            velocity /= elapsedTime.ClockSeconds;
+            velocity /= (float)elapsedTime.ClockSeconds;
 
             previousPosition = positionSource.WorldPosition;
 

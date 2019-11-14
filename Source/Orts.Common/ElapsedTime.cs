@@ -20,8 +20,8 @@ namespace Orts.Common
 {
     public readonly struct ElapsedTime
     {
-        public readonly float ClockSeconds;
-        public readonly float RealSeconds;
+        public readonly double ClockSeconds;
+        public readonly double RealSeconds;
 
         public static ElapsedTime Zero = new ElapsedTime();
 
@@ -30,7 +30,7 @@ namespace Orts.Common
             return new ElapsedTime(a.ClockSeconds + b.ClockSeconds, a.RealSeconds + b.RealSeconds);
         }
 
-        public ElapsedTime(float clockSeconds, float realSeconds)
+        public ElapsedTime(double clockSeconds, double realSeconds)
         {
             ClockSeconds = clockSeconds;
             RealSeconds = realSeconds;

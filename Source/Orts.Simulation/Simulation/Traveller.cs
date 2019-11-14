@@ -1013,24 +1013,24 @@ namespace Orts.Simulation
         /// </summary>
         /// <param name="distanceToGo">The distance to travel along the track. Positive values travel in the direction of the traveller and negative values in the opposite direction.</param>
         /// <returns>The remaining distance if the traveller reached the end of the track.</returns>
-        public float Move(float distanceToGo)
+        public float Move(double distanceToGo)
         {
             // TODO - must remove the trig from these calculations
-            if (float.IsNaN(distanceToGo)) distanceToGo = 0f;
+            if (double.IsNaN(distanceToGo)) distanceToGo = 0f;
             var distanceSign = Math.Sign(distanceToGo);
             distanceToGo = Math.Abs(distanceToGo);
             if (distanceSign < 0)
                 ReverseDirection();
             do
             {
-                distanceToGo = MoveInTrackSection(distanceToGo);
+                distanceToGo = MoveInTrackSection((float)distanceToGo);
                 if (distanceToGo < 0.001)
                     break;
             }
             while (NextSection());
             if (distanceSign < 0)
                 ReverseDirection();
-            return distanceSign * distanceToGo;
+            return (float)(distanceSign * distanceToGo);
         }
 
         /// <summary>

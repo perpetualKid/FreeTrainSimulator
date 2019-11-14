@@ -11,7 +11,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
     public class TurntableShape : PoseableShape
     {
-        protected float AnimationKey;  // advances with time
+        protected double animationKey;  // advances with time
         protected Turntable Turntable; // linked turntable data
         readonly SoundSource Sound;
         bool Rotating = false;
@@ -25,7 +25,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         {
             Turntable = turntable;
             Turntable.StartingY = (float)startingY;
-            AnimationKey = (Turntable.YAngle / (float)Math.PI * 1800.0f + 3600) % 3600.0f;
+            animationKey = (Turntable.YAngle / (float)Math.PI * 1800.0f + 3600) % 3600.0f;
             for (var imatrix = 0; imatrix < SharedShape.Matrices.Length; ++imatrix)
             {
                 if (SharedShape.MatrixNames[imatrix].ToLower() == turntable.Animations[0].ToLower())
@@ -57,7 +57,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 }
             }
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
-                AnimateMatrix(matrix, AnimationKey);
+                AnimateMatrix(matrix, animationKey);
 
             MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in WorldPosition.XNAMatrix, out Matrix absAnimationMatrix);
             Turntable.ReInitTrainPositions(absAnimationMatrix);
@@ -67,21 +67,21 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         {
             if (Turntable.GoToTarget)
             {
-                AnimationKey = (Turntable.TargetY / (float)Math.PI * 1800.0f + 3600) % 3600.0f;
+                animationKey = (Turntable.TargetY / Math.PI * 1800.0 + 3600) % 3600.0;
             }
 
             else if (Turntable.Counterclockwise)
             {
-                AnimationKey += SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
+                animationKey += SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
             }
             else if (Turntable.Clockwise)
             {
-                AnimationKey -= SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
+                animationKey -= SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
             }
-            while (AnimationKey > SharedShape.Animations[0].FrameCount) AnimationKey -= SharedShape.Animations[0].FrameCount;
-            while (AnimationKey < 0) AnimationKey += SharedShape.Animations[0].FrameCount;
+            while (animationKey > SharedShape.Animations[0].FrameCount) animationKey -= SharedShape.Animations[0].FrameCount;
+            while (animationKey < 0) animationKey += SharedShape.Animations[0].FrameCount;
 
-            Turntable.YAngle = MathHelper.WrapAngle(AnimationKey / 1800.0f * (float)Math.PI);
+            Turntable.YAngle = (float)MathHelperD.WrapAngle(animationKey / 1800.0 * Math.PI);
 
             if ((Turntable.Clockwise || Turntable.Counterclockwise) && !Rotating)
             {
@@ -97,7 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
             // Update the pose for each matrix
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
-                AnimateMatrix(matrix, AnimationKey);
+                AnimateMatrix(matrix, animationKey);
 
             MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in WorldPosition.XNAMatrix, out Matrix absAnimationMatrix);
             Turntable.PerformUpdateActions(absAnimationMatrix);
@@ -107,7 +107,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public class TransfertableShape : PoseableShape
     {
-        protected float AnimationKey;  // advances with time
+        protected double animationKey;  // advances with time
         protected Transfertable Transfertable; // linked turntable data
         readonly SoundSource Sound;
         bool Translating = false;
@@ -120,7 +120,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             : base(path, positionSource, flags)
         {
             Transfertable = transfertable;
-            AnimationKey = (Transfertable.XPos - Transfertable.CenterOffset.X) / Transfertable.Width * SharedShape.Animations[0].FrameCount;
+            animationKey = (Transfertable.XPos - Transfertable.CenterOffset.X) / Transfertable.Width * SharedShape.Animations[0].FrameCount;
             for (var imatrix = 0; imatrix < SharedShape.Matrices.Length; ++imatrix)
             {
                 if (SharedShape.MatrixNames[imatrix].ToLower() == transfertable.Animations[0].ToLower())
@@ -152,7 +152,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 }
             }
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
-                AnimateMatrix(matrix, AnimationKey);
+                AnimateMatrix(matrix, animationKey);
 
             MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in WorldPosition.XNAMatrix, out Matrix absAnimationMatrix);
             Transfertable.ReInitTrainPositions(absAnimationMatrix);
@@ -162,21 +162,21 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         {
             if (Transfertable.GoToTarget)
             {
-                AnimationKey = (Transfertable.TargetX - Transfertable.CenterOffset.X) / Transfertable.Width * SharedShape.Animations[0].FrameCount;
+                animationKey = (Transfertable.TargetX - Transfertable.CenterOffset.X) / Transfertable.Width * SharedShape.Animations[0].FrameCount;
             }
 
             else if (Transfertable.Forward)
             {
-                AnimationKey += SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
+                animationKey += SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
             }
             else if (Transfertable.Reverse)
             {
-                AnimationKey -= SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
+                animationKey -= SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
             }
-            if (AnimationKey > SharedShape.Animations[0].FrameCount) AnimationKey = SharedShape.Animations[0].FrameCount;
-            if (AnimationKey < 0) AnimationKey = 0;
+            if (animationKey > SharedShape.Animations[0].FrameCount) animationKey = SharedShape.Animations[0].FrameCount;
+            if (animationKey < 0) animationKey = 0;
 
-            Transfertable.XPos = AnimationKey / SharedShape.Animations[0].FrameCount * Transfertable.Width + Transfertable.CenterOffset.X;
+            Transfertable.XPos = (float)animationKey / SharedShape.Animations[0].FrameCount * Transfertable.Width + Transfertable.CenterOffset.X;
 
             if ((Transfertable.Forward || Transfertable.Reverse) && !Translating)
             {
@@ -192,7 +192,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
             // Update the pose for each matrix
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
-                AnimateMatrix(matrix, AnimationKey);
+                AnimateMatrix(matrix, animationKey);
 
             MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in WorldPosition.XNAMatrix, out Matrix absAnimationMatrix);
             Transfertable.PerformUpdateActions(absAnimationMatrix, WorldPosition);

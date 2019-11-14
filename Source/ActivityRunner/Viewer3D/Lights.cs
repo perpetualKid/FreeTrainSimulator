@@ -456,7 +456,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (StateCount > 1)
             {
-                StateTime += elapsedTime.ClockSeconds;
+                StateTime += (float)elapsedTime.ClockSeconds;
                 if (StateTime >= Light.States[State % Light.States.Count].Duration)
                 {
                     StateTime -= Light.States[State % Light.States.Count].Duration;
@@ -469,7 +469,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (FadeIn)
             {
-                FadeTime += elapsedTime.ClockSeconds;
+                FadeTime += (float)elapsedTime.ClockSeconds;
                 Fade.X = FadeTime / Light.FadeIn;
                 if (Fade.X > 1)
                 {
@@ -479,7 +479,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else if (FadeOut)
             {
-                FadeTime += elapsedTime.ClockSeconds;
+                FadeTime += (float)elapsedTime.ClockSeconds;
                 Fade.X = 1 - FadeTime / Light.FadeIn;
                 if (Fade.X < 0)
                 {

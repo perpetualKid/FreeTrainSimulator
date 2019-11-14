@@ -669,7 +669,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         //[CallOnThread("Updater")]
-        public void Update(RenderFrame frame, float elapsedRealTime)
+        public void Update(RenderFrame frame, double elapsedRealTime)
         {
             RealTime += elapsedRealTime;
             var elapsedTime = new ElapsedTime(Simulator.GetElapsedClockSeconds(elapsedRealTime), elapsedRealTime);
@@ -686,7 +686,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Camera.AttachedCar.Train.FormationReversed = false;
                 (Camera as TrackingCamera).SwapCameras();
             }
-            Simulator.Update(elapsedTime.ClockSeconds);
+            Simulator.Update((float)elapsedTime.ClockSeconds);
             if (PlayerLocomotive.Train.BrakingTime == -2) // We just had a wagon with stuck brakes
             {
                 LoadDefectCarSound(PlayerLocomotive.Train.Cars[-(int)PlayerLocomotive.Train.ContinuousBrakingTime], "BrakesStuck.sms");

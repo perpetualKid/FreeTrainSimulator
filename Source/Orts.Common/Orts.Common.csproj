@@ -85,9 +85,11 @@
     <Compile Include="SystemInfo.cs" />
     <Compile Include="Input\UserCommand.cs" />
     <Compile Include="VersionInfo.cs" />
+    <Compile Include="Xna\MathHelperD.cs" />
     <Compile Include="Xna\Matrix2x2.cs" />
     <Compile Include="Xna\Matrix3x3.cs" />
     <Compile Include="Xna\MatrixExtension.cs" />
+    <Compile Include="Xna\Vector2D.cs" />
     <Compile Include="Xna\VectorExtension.cs" />
   </ItemGroup>
   <ItemGroup>

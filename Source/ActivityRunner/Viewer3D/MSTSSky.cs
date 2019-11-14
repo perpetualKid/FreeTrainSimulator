@@ -192,11 +192,11 @@ namespace Orts.ActivityRunner.Viewer3D
             if (!Orts.MultiPlayer.MPManager.IsClient())
             {
                 // Overcast ranges from 0 (completely clear) to 1 (completely overcast).
-                if (UserInput.IsDown(UserCommand.DebugOvercastIncrease)) mstsskyovercastFactor = MathHelper.Clamp(mstsskyovercastFactor + elapsedTime.RealSeconds / 10, 0, 1);
-                if (UserInput.IsDown(UserCommand.DebugOvercastDecrease)) mstsskyovercastFactor = MathHelper.Clamp(mstsskyovercastFactor - elapsedTime.RealSeconds / 10, 0, 1);
+                if (UserInput.IsDown(UserCommand.DebugOvercastIncrease)) mstsskyovercastFactor = (float)MathHelperD.Clamp(mstsskyovercastFactor + elapsedTime.RealSeconds / 10, 0, 1);
+                if (UserInput.IsDown(UserCommand.DebugOvercastDecrease)) mstsskyovercastFactor = (float)MathHelperD.Clamp(mstsskyovercastFactor - elapsedTime.RealSeconds / 10, 0, 1);
                 // Fog ranges from 10m (can't see anything) to 100km (clear arctic conditions).
-                if (UserInput.IsDown(UserCommand.DebugFogIncrease)) mstsskyfogDistance = MathHelper.Clamp(mstsskyfogDistance - elapsedTime.RealSeconds * mstsskyfogDistance, 10, 100000);
-                if (UserInput.IsDown(UserCommand.DebugFogDecrease)) mstsskyfogDistance = MathHelper.Clamp(mstsskyfogDistance + elapsedTime.RealSeconds * mstsskyfogDistance, 10, 100000);
+                if (UserInput.IsDown(UserCommand.DebugFogIncrease)) mstsskyfogDistance = (float)MathHelperD.Clamp(mstsskyfogDistance - elapsedTime.RealSeconds * mstsskyfogDistance, 10, 100000);
+                if (UserInput.IsDown(UserCommand.DebugFogDecrease)) mstsskyfogDistance = (float)MathHelperD.Clamp(mstsskyfogDistance + elapsedTime.RealSeconds * mstsskyfogDistance, 10, 100000);
             }
             // Don't let clock shift if multiplayer.
             if (!Orts.MultiPlayer.MPManager.IsMultiPlayer())

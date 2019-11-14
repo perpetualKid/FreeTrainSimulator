@@ -1697,7 +1697,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             var mS = Control as CabViewMultiStateDisplayControl;
             if (mS != null)
             {
-                CumulativeTime += elapsedTime.ClockSeconds;
+                CumulativeTime += (float)elapsedTime.ClockSeconds;
                 while (CumulativeTime > CVCFlashTimeTotal)
                     CumulativeTime -= CVCFlashTimeTotal;
                 if ((mS.Styles.Count > index) && (mS.Styles[index] == 1) && (CumulativeTime > CVCFlashTimeOn))
@@ -2438,7 +2438,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            float elapsedClockSeconds = elapsedTime.ClockSeconds;
+            float elapsedClockSeconds = (float)elapsedTime.ClockSeconds;
 
             foreach (var p in AnimateParts)
             {
