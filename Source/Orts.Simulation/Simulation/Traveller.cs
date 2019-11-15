@@ -25,6 +25,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.Calc;
 using Orts.Common.Position;
+using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -567,7 +568,7 @@ namespace Orts.Simulation
 
             // Calculate distance along and away from the track centerline.
             float lat, lon;
-            MstsUtility.Survey(sx, sz, trackVectorSection.Direction.Y, x, z, out lon, out lat);
+            (lon, lat) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
             if (Math.Abs(lat) > MaximumCenterlineOffset)
                 return null;
             if (lon < -InitErrorMargin || lon > GetLength(trackSection) + InitErrorMargin)
@@ -1127,7 +1128,7 @@ namespace Orts.Simulation
         /// <param name="displacement">Displacement vector from PC to P in world coordinates, returned by reference.</param>
         public static void InterpolateAlongCurveLine(in Vector3 vPC, in Vector3 vPC_O, Matrix rotation, in Vector3 pitchYawRoll, out Vector3 position, out Vector3 displacement)
         {
-            Matrix matrix = MstsUtility.CreateFromYawPitchRoll(pitchYawRoll);
+            Matrix matrix = MatrixExtension.CreateFromYawPitchRoll(pitchYawRoll);
             // Shared method returns displacement from present world position and, by reference,
             // local position in x-z plane of end of this section
             position = Vector3.Transform(-vPC_O, rotation); // Rotate O_PC to O_P

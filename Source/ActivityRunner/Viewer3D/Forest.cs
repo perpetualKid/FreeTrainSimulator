@@ -341,7 +341,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // To simplify the math, center around the start of the track section, rotate such that the track section starts out pointing north (+z) and flip so the track curves to the right.
             x -= sx;
             z -= sz;
-            var rotated = MstsUtility.Rotate2D(trackVectorSection.Direction.Y, x, z);
+            var rotated = EarthCoordinates.Rotate2D(trackVectorSection.Direction.Y, x, z);
             if (trackSection.Angle < 0)
                 rotated.x *= -1;
 
@@ -381,7 +381,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Calculate distance along and away from the track centerline.
             float lat, lon;
-            MstsUtility.Survey(sx, sz, trackVectorSection.Direction.Y, x, z, out lon, out lat);
+            (lon, lat) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
             var trackSectionLength = GetLength(trackSection);
             if (Math.Abs(lat) > MaximumCenterlineOffset + treeWidth)
                 return false;

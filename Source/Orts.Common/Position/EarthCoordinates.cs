@@ -271,5 +271,37 @@ namespace Orts.Common.Position
                 return value;
         }
 
+        /// <summary>
+        /// Consider a line starting a pX,pZ and heading away at deg from North
+        /// returns lat =  distance of x,z off of the line
+        /// returns lon =  distance of x,z along the line
+        /// </summary>
+        public static (float lon, float lat) Survey(float pX, float pZ, float rad, float x, float z)
+        {
+            // translate the coordinates relative to a track section that starts at 0,0 
+            x -= pX;
+            z -= pZ;
+
+            // rotate the coordinates relative to a track section that is pointing due north ( +z in MSTS coordinate system )
+            return Rotate2D(rad, x, z);
+        }
+
+        //  2D Rotation
+        //    A point<x, y> can be rotated around the origin<0,0> by running it through the following equations to get the new point<x',y'> :        
+        //    x' = cos(theta)*x - sin(theta)*y 
+        //    y' = sin(theta)*x + cos(theta)*y        
+        //where theta is the angle by which to rotate the point.
+        public static (float x, float z) Rotate2D(float radians, float x, float z)
+        {
+            double cos = Math.Cos(radians);
+            double sin = Math.Sin(radians);
+
+            double xp = cos * x - sin * z;
+            double zp = sin * x + cos * z;
+
+            return ((float)xp, (float)zp);
+        }
+
+
     }
 }
