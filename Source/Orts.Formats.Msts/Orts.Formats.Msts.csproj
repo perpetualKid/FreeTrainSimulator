@@ -100,7 +100,6 @@
     <Compile Include="Files\SpeedpostDatFile.cs" />
     <Compile Include="Files\SoundManagmentFile.cs" />
     <Compile Include="Files\ServiceFile.cs" />
-    <Compile Include="TileHelper.cs" />
     <Compile Include="Files\TrackDatabaseFile.cs" />
     <Compile Include="Files\TerrainFile.cs" />
     <Compile Include="Files\TrafficFile.cs" />

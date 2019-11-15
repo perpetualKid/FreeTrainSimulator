@@ -34,6 +34,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
+using Orts.Common.Position;
 using ORTS.TrackViewer.Properties;
 
 namespace ORTS.TrackViewer.Drawing

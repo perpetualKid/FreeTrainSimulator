@@ -32,6 +32,7 @@ using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.IO;
+using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;

@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using Orts.Common.Position;
 
 namespace Orts.ActivityRunner.Viewer3D.Debugging
 {

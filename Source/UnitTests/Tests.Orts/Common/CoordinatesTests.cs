@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Orts.Common;
+
+using Orts.Common.Position;
 using Orts.Common.Xna;
 
 namespace Tests.Orts.Common

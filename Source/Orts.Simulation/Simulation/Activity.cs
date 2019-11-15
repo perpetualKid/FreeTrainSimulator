@@ -15,12 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
-using Orts.Formats.Msts;
-using Orts.Simulation.AIs;
-using Orts.Simulation.Physics;
-using Orts.Simulation.Signalling;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,12 +22,21 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Event = Orts.Common.Event;
-using Orts.Common.Xna;
+
+using Microsoft.Xna.Framework;
+
 using Orts.Common.Calc;
 using Orts.Common.Logging;
-using Orts.Formats.Msts.Models;
+using Orts.Common.Position;
+using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation.AIs;
+using Orts.Simulation.Physics;
+using Orts.Simulation.Signalling;
+
+using Event = Orts.Common.Event;
 
 namespace Orts.Simulation
 {

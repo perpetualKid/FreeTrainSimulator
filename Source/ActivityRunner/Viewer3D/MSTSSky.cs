@@ -19,13 +19,16 @@
 
 using System;
 using System.Collections.Generic;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.Common;
-using Orts.Common.Input;
-using Orts.Common.Xna;
+
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.Common;
+using Orts.Common.Input;
+using Orts.Common.Position;
+using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
 
 namespace Orts.ActivityRunner.Viewer3D

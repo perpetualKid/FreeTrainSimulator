@@ -26,10 +26,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Formats.Msts;
+using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;

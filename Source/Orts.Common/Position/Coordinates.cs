@@ -41,11 +41,12 @@
 
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
+
 using Microsoft.Xna.Framework;
+
 using Orts.Common.Xna;
 
-namespace Orts.Common
+namespace Orts.Common.Position
 {
     public interface IWorldPosition
     {

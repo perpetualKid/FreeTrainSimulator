@@ -34,7 +34,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common;
+using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D

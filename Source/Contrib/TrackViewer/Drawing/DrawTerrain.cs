@@ -51,16 +51,16 @@
 //  * the zoom size (1, 2, 8, 16)
 
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Formats.Msts;
 using Orts.ActivityRunner.Viewer3D;
-using Orts.Common;
+using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 

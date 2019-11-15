@@ -22,18 +22,23 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+
 using GNU.Gettext;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.Common;
+
 using Orts.Common.Calc;
+using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Menu.Entities;
+
 using ORTS.TrackViewer.Drawing;
 using ORTS.TrackViewer.Drawing.Labels;
 using ORTS.TrackViewer.Editing;
 using ORTS.TrackViewer.Editing.Charts;
 using ORTS.TrackViewer.UserInterface;
+
 using Color = Microsoft.Xna.Framework.Color;
 using MessageBox = System.Windows.Forms.MessageBox;
 

@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Orts.Common;
+using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.OR;
 using Orts.Simulation.Physics;

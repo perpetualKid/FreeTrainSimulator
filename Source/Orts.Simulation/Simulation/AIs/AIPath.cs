@@ -27,10 +27,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Orts.Common;
+using Orts.Common.Position;
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.AIs
 {

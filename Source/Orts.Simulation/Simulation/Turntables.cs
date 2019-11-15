@@ -24,6 +24,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.IO;
+using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;

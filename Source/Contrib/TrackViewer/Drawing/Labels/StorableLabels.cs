@@ -21,6 +21,7 @@ using System.Text;
 using Newtonsoft.Json;
 
 using Orts.Common;
+using Orts.Common.Position;
 
 namespace ORTS.TrackViewer.Drawing.Labels
 {

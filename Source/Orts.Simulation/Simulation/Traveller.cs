@@ -15,19 +15,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
-using Orts.Formats.Msts;
-using Orts.Simulation.AIs;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
+using Microsoft.Xna.Framework;
+
 using Orts.Common.Calc;
+using Orts.Common.Position;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Common.Xna;
+using Orts.Simulation.AIs;
 
 namespace Orts.Simulation
 {

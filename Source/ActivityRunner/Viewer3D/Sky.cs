@@ -19,12 +19,15 @@
 
 using System;
 using System.Collections.Generic;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.Common;
-using Orts.Common.Xna;
+
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.Common;
+using Orts.Common.Position;
+using Orts.Common.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

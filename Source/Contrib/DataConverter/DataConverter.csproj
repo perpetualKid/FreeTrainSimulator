@@ -50,6 +50,10 @@
     <Compile Include="TerrainConverter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj">
+      <Project>{da94d876-7d35-46c3-aece-aface72c686c}</Project>
+      <Name>Orts.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Orts.Formats.Msts\Orts.Formats.Msts.csproj">
       <Project>{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}</Project>
       <Name>Orts.Formats.Msts</Name>

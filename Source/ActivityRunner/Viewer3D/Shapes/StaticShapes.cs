@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
+using Orts.Common.Position;
 using Orts.Common.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes

@@ -21,6 +21,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using Orts.Menu.Entities;
 using ORTS.TrackViewer.Drawing;
+using Orts.Common.Position;
 
 namespace ORTS.TrackViewer.Editing
 {

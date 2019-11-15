@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
-namespace Orts.Formats.Msts
+namespace Orts.Common.Position
 {
     public static class TileHelper
     {

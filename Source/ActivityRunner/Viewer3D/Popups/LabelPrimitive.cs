@@ -19,7 +19,8 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.Common;
+
+using Orts.Common.Position;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {

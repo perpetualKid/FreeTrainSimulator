@@ -34,6 +34,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.Position;
 using Orts.Common.Threading;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;

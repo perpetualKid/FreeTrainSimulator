@@ -28,6 +28,7 @@ using System.Linq;
 using System.Threading;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Common.Position;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

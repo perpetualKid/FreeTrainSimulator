@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.Xna.Framework;
 using Orts.Common;
+using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Simulation;
 

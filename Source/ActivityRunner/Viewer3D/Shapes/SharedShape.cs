@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.Common;
-using Orts.Common.Xna;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts.Files;
 using Orts.Common.IO;
+using Orts.Common.Position;
+using Orts.Common.Xna;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {

@@ -21,6 +21,7 @@ using System.Text;
 using System.IO;
 
 using Orts.Common;
+using Orts.Common.Position;
 
 namespace ORTS.TrackViewer.Drawing
 {

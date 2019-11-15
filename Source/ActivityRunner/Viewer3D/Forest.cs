@@ -17,16 +17,18 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Formats.Msts;
-using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
-using Orts.Common.Xna;
-using System.Collections;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common;
+using Orts.Common.Position;
+using Orts.Common.Xna;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D

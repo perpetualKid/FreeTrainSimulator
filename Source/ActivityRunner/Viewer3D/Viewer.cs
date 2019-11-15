@@ -40,6 +40,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.IO;
+using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;

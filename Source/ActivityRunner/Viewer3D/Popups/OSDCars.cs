@@ -22,6 +22,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Simulation.RollingStocks;
 using Orts.Common;
 using System.Collections.Generic;
+using Orts.Common.Position;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {

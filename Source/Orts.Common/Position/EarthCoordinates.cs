@@ -32,7 +32,7 @@
 using Microsoft.Xna.Framework;
 using System;
 
-namespace Orts.Common
+namespace Orts.Common.Position
 {
     public static class EarthCoordinates
     {      

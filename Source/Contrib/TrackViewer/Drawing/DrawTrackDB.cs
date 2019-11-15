@@ -25,6 +25,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Parsers;
+using Orts.Common.Position;
 
 namespace ORTS.TrackViewer.Drawing
 {

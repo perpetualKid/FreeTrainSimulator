@@ -20,7 +20,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
-using Orts.Common;
+using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 
 using ORTS.TrackViewer.Drawing;

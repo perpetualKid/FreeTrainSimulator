@@ -21,16 +21,6 @@
 //    Richard Plokhaar / Signalsoft Rail Consultancy Ltd.
 // 
 
-using GNU.Gettext.WinForms;
-using Microsoft.Xna.Framework;
-using Orts.ActivityRunner.Viewer3D.Popups;
-using Orts.Common;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
-using Orts.Simulation;
-using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
-using Orts.Simulation.Signalling;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -38,6 +28,21 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Windows.Forms;
+
+using GNU.Gettext.WinForms;
+
+using Microsoft.Xna.Framework;
+
+using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.Common;
+using Orts.Common.Position;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation;
+using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
+using Orts.Simulation.Signalling;
+
 using Color = System.Drawing.Color;
 using Control = System.Windows.Forms.Control;
 using Image = System.Drawing.Image;

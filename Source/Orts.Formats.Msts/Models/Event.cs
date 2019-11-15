@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 
 using Orts.Common;
+using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models

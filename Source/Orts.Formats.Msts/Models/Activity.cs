@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-using Orts.Common;
+using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models

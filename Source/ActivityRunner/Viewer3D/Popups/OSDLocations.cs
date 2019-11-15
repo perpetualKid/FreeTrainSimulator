@@ -18,10 +18,12 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System.Collections.Generic;
+
 using Microsoft.Xna.Framework;
+
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
-using Orts.Formats.Msts;
+using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 

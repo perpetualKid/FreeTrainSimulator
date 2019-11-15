@@ -20,8 +20,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Orts.Common;
-using Orts.Formats.Msts;
+using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 

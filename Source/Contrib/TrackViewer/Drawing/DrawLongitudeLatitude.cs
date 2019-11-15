@@ -17,6 +17,7 @@
 using System;
 using Microsoft.Xna.Framework;
 using Orts.Common;
+using Orts.Common.Position;
 
 namespace ORTS.TrackViewer.Drawing
 {
