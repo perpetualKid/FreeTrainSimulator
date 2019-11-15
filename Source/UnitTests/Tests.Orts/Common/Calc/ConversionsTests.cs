@@ -24,29 +24,29 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void PeriodicRoundTripTest()
         {
-            for (float i = 0; i < 30; i += .1f)
+            for (double i = 0; i < 30; i += .1)
             {
-                Assert.AreEqual(i, Frequency.Periodic.FromMinutes(Frequency.Periodic.ToMinutes(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Frequency.Periodic.FromHours(Frequency.Periodic.ToHours(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Frequency.Periodic.FromMinutes(Frequency.Periodic.ToMinutes(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Frequency.Periodic.FromHours(Frequency.Periodic.ToHours(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
             }
         }
 
         [TestMethod]
         public void AngularRoundTripTest()
         {
-            for (float i = 0; i < 30; i += .1f)
+            for (double i = 0; i < 30; i += .1)
             {
-                Assert.AreEqual(i, Frequency.Angular.RadToHz(Frequency.Angular.HzToRad(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Frequency.Angular.RadToHz(Frequency.Angular.HzToRad(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
             }
         }
 
         [TestMethod]
         public void RelatedConversionTest()
         {
-            Assert.AreEqual(1.2f, Frequency.Periodic.FromMinutes(Time.Second.FromM(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Frequency.Periodic.ToMinutes(Time.Second.ToM(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Frequency.Periodic.FromHours(Time.Second.FromH(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Frequency.Periodic.ToHours(Time.Second.ToH(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(1.2, Frequency.Periodic.FromMinutes(Time.Second.FromM(1.2)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Frequency.Periodic.ToMinutes(Time.Second.ToM(1.2)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Frequency.Periodic.FromHours(Time.Second.FromH(1.2)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Frequency.Periodic.ToHours(Time.Second.ToH(1.2)), EqualityPrecisionDelta.DoublePrecisionDelta);
         }
     }
 
@@ -56,17 +56,17 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void EqualityTest()
         {
-            Assert.AreEqual(210, Time.Second.FromM(3.5f), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(9000, Time.Second.FromH(2.5f), EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(210, Time.Second.FromM(3.5), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(9000, Time.Second.FromH(2.5), EqualityPrecisionDelta.DoublePrecisionDelta);
         }
 
         [TestMethod]
         public void RoundTripTest()
         {
-            for (float i = 0; i < 30; i += 0.1f)
+            for (double i = 0; i < 30; i += 0.1)
             {
-                Assert.AreEqual(i, Time.Second.FromM(Time.Second.ToM(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Time.Second.FromH(Time.Second.ToH(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Time.Second.FromM(Time.Second.ToM(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Time.Second.FromH(Time.Second.ToH(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
             }
         }
 
@@ -135,25 +135,25 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void SizeRoundTripTest()
         {
-            for (float i = 0; i < 30; i += 0.1f)
+            for (double i = 0; i < 30; i += 0.1)
             {
-                Assert.AreEqual(i, Size.Length.FromMi(Size.Length.ToMi(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Size.Length.FromKM(Size.Length.ToKM(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Size.Length.FromYd(Size.Length.ToYd(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Size.Length.FromFt(Size.Length.ToFt(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Size.Length.FromIn(Size.Length.ToIn(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Length.FromMi(Size.Length.ToMi(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Size.Length.FromKM(Size.Length.ToKM(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Size.Length.FromYd(Size.Length.ToYd(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Size.Length.FromFt(Size.Length.ToFt(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Size.Length.FromIn(Size.Length.ToIn(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
 
-                Assert.AreEqual(i, Size.Area.FromFt2(Size.Area.ToFt2(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Size.Area.FromIn2(Size.Area.ToIn2(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Area.FromFt2(Size.Area.ToFt2(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Size.Area.FromIn2(Size.Area.ToIn2(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
 
-                Assert.AreEqual(i, Size.Volume.FromFt3(Size.Volume.ToFt3(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Size.Volume.FromIn3(Size.Volume.ToIn3(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Volume.FromFt3(Size.Volume.ToFt3(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Size.Volume.FromIn3(Size.Volume.ToIn3(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
 
-                Assert.AreEqual(i, Size.Length.ToM(Size.Length.FromM(i, true), true), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Size.Length.ToM(Size.Length.FromM(i, false), false), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.Length.ToM(Size.Length.FromM(i, true), true), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Size.Length.ToM(Size.Length.FromM(i, false), false), EqualityPrecisionDelta.DoublePrecisionDelta);
 
-                Assert.AreEqual(i, Size.LiquidVolume.FromGallonUK(Size.LiquidVolume.ToGallonUK(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Size.LiquidVolume.FromGallonUS(Size.LiquidVolume.ToGallonUS(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Size.LiquidVolume.FromGallonUK(Size.LiquidVolume.ToGallonUK(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Size.LiquidVolume.FromGallonUS(Size.LiquidVolume.ToGallonUS(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
 
             }
         }
@@ -162,16 +162,16 @@ namespace Tests.Orts.Common.Calc
         public void RelatedConversionsTest()
         {
             {
-                Assert.AreEqual(1.44f, Size.Area.FromFt2((float)Math.Pow(Size.Length.ToFt(1.2f), 2)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(1.44f, Size.Area.ToFt2((float)Math.Pow(Size.Length.FromFt(1.2f), 2)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(1.44f, Size.Area.FromIn2((float)Math.Pow(Size.Length.ToIn(1.2f), 2)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(1.44f, Size.Area.ToIn2((float)Math.Pow(Size.Length.FromIn(1.2f), 2)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(1.44, Size.Area.FromFt2(Math.Pow(Size.Length.ToFt(1.2), 2)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(1.44, Size.Area.ToFt2(Math.Pow(Size.Length.FromFt(1.2), 2)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(1.44, Size.Area.FromIn2(Math.Pow(Size.Length.ToIn(1.2), 2)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(1.44, Size.Area.ToIn2(Math.Pow(Size.Length.FromIn(1.2), 2)), EqualityPrecisionDelta.DoublePrecisionDelta);
 
 
-                Assert.AreEqual(1.728f, Size.Volume.FromFt3((float)Math.Pow(Size.Length.ToFt(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(1.728f, Size.Volume.ToFt3((float)Math.Pow(Size.Length.FromFt(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(1.728f, Size.Volume.FromIn3((float)Math.Pow(Size.Length.ToIn(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(1.728f, Size.Volume.ToIn3((float)Math.Pow(Size.Length.FromIn(1.2f), 3)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(1.728, Size.Volume.FromFt3(Math.Pow(Size.Length.ToFt(1.2), 3)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(1.728, Size.Volume.ToFt3(Math.Pow(Size.Length.FromFt(1.2), 3)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(1.728, Size.Volume.FromIn3(Math.Pow(Size.Length.ToIn(1.2), 3)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(1.728, Size.Volume.ToIn3(Math.Pow(Size.Length.FromIn(1.2), 3)), EqualityPrecisionDelta.DoublePrecisionDelta);
 
             }
         }
@@ -183,12 +183,12 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void MassRoundTripTest()
         {
-            for (float i = 0; i < 30; i += 0.1f)
+            for (double i = 0; i < 30; i += 0.1)
             {
-                Assert.AreEqual(i, Mass.Kilogram.FromLb(Mass.Kilogram.ToLb(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Mass.Kilogram.FromTonsUS(Mass.Kilogram.ToTonsUS(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Mass.Kilogram.FromTonsUK(Mass.Kilogram.ToTonsUK(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Mass.Kilogram.FromTonnes(Mass.Kilogram.ToTonnes(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Mass.Kilogram.FromLb(Mass.Kilogram.ToLb(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Mass.Kilogram.FromTonsUS(Mass.Kilogram.ToTonsUS(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Mass.Kilogram.FromTonsUK(Mass.Kilogram.ToTonsUK(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Mass.Kilogram.FromTonnes(Mass.Kilogram.ToTonnes(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
             }
 
         }
@@ -200,20 +200,20 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void ForceRoundTripTest()
         {
-            for (float i = 0; i < 30; i += 0.1f)
+            for (double i = 0; i < 30; i += 0.1)
             {
-                Assert.AreEqual(i, Dynamics.Force.FromLbf(Dynamics.Force.ToLbf(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Dynamics.Force.FromLbf(Dynamics.Force.ToLbf(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
             }
         }
 
         [TestMethod]
         public void PowerRoundTripTest()
         {
-            for (float i = 0; i < 30; i += 0.1f)
+            for (double i = 0; i < 30; i += 0.1)
             {
-                Assert.AreEqual(i, Dynamics.Power.FromKW(Dynamics.Power.ToKW(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Dynamics.Power.FromHp(Dynamics.Power.ToHp(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Dynamics.Power.FromBTUpS(Dynamics.Power.ToBTUpS(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Dynamics.Power.FromKW(Dynamics.Power.ToKW(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Dynamics.Power.FromHp(Dynamics.Power.ToHp(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Dynamics.Power.FromBTUpS(Dynamics.Power.ToBTUpS(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
             }
         }
 
@@ -225,20 +225,20 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void ConversionValuesTest()
         {
-            Assert.AreEqual(0, Temperature.Celsius.FromF(32f), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(-20, Temperature.Celsius.FromF(-4f), EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(0, Temperature.Celsius.FromF(32), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(-20, Temperature.Celsius.FromF(-4), EqualityPrecisionDelta.DoublePrecisionDelta);
         }
 
         [TestMethod]
         public void TemperatureRoundTripTest()
         {
-            for (float i = 0; i < 30; i += 0.1f)
+            for (double i = 0; i < 30; i += 0.1)
             {
-                Assert.AreEqual(i, Temperature.Celsius.FromF(Temperature.Celsius.ToF(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i * 5, Temperature.Celsius.FromK(Temperature.Celsius.ToK(i * 5)), EqualityPrecisionDelta.FloatPrecisionDelta * 10); // we loose accuracy because of the large 273.15
+                Assert.AreEqual(i, Temperature.Celsius.FromF(Temperature.Celsius.ToF(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i * 5, Temperature.Celsius.FromK(Temperature.Celsius.ToK(i * 5)), EqualityPrecisionDelta.DoublePrecisionDelta); // we loose accuracy because of the large 273.15
 
-                Assert.AreEqual(i, Temperature.Kelvin.FromF(Temperature.Kelvin.ToF(i)), EqualityPrecisionDelta.FloatPrecisionDelta * 10);
-                Assert.AreEqual(i * 5, Temperature.Kelvin.FromC(Temperature.Kelvin.ToC(i * 5)), EqualityPrecisionDelta.FloatPrecisionDelta * 10); // we loose accuracy because of the large 273.15
+                Assert.AreEqual(i, Temperature.Kelvin.FromF(Temperature.Kelvin.ToF(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i * 5, Temperature.Kelvin.FromC(Temperature.Kelvin.ToC(i * 5)), EqualityPrecisionDelta.DoublePrecisionDelta); // we loose accuracy because of the large 273.15
             }
         }
 
@@ -246,8 +246,8 @@ namespace Tests.Orts.Common.Calc
         public void RelatedConversionsTest()
         {
             Assert.AreEqual(Temperature.Kelvin.FromC(0), Temperature.Celsius.ToK(0));
-            Assert.AreEqual(Temperature.Celsius.FromF(0), Temperature.Kelvin.ToC(Temperature.Kelvin.FromF(0)), EqualityPrecisionDelta.FloatPrecisionDelta * 10);
-            Assert.AreEqual(Temperature.Kelvin.ToC(300), Temperature.Celsius.FromK(300), EqualityPrecisionDelta.FloatPrecisionDelta * 10);
+            Assert.AreEqual(Temperature.Celsius.FromF(0), Temperature.Kelvin.ToC(Temperature.Kelvin.FromF(0)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(Temperature.Kelvin.ToC(300), Temperature.Celsius.FromK(300), EqualityPrecisionDelta.DoublePrecisionDelta);
         }
     }
 
@@ -257,20 +257,20 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void SpeedRoundTripTest()
         {
-            for (float i = 0; i < 30; i += 0.1f)
+            for (double i = 0; i < 30; i += 0.1)
             {
-                Assert.AreEqual(i, Speed.MeterPerSecond.FromMpH(Speed.MeterPerSecond.ToMpH(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Speed.MeterPerSecond.FromKpH(Speed.MeterPerSecond.ToKpH(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Speed.MeterPerSecond.FromMpH(Speed.MeterPerSecond.ToMpH(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Speed.MeterPerSecond.FromKpH(Speed.MeterPerSecond.ToKpH(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
             }
         }
 
         [TestMethod]
         public void RelatedConversionsTest()
         {
-            Assert.AreEqual(1.2f, Speed.MeterPerSecond.FromMpS(Speed.MeterPerSecond.FromKpH(1.2f), true), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Speed.MeterPerSecond.FromMpS(Speed.MeterPerSecond.FromMpH(1.2f), false), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Speed.MeterPerSecond.ToMpS(Speed.MeterPerSecond.ToKpH(1.2f), true), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Speed.MeterPerSecond.ToMpS(Speed.MeterPerSecond.ToMpH(1.2f), false), EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(1.2, Speed.MeterPerSecond.FromMpS(Speed.MeterPerSecond.FromKpH(1.2), true), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Speed.MeterPerSecond.FromMpS(Speed.MeterPerSecond.FromMpH(1.2), false), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Speed.MeterPerSecond.ToMpS(Speed.MeterPerSecond.ToKpH(1.2), true), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Speed.MeterPerSecond.ToMpS(Speed.MeterPerSecond.ToMpH(1.2), false), EqualityPrecisionDelta.DoublePrecisionDelta);
 
 
         }
@@ -282,21 +282,21 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void RateRoundTripTest()
         {
-            for (float i = 0; i < 30; i += 0.1f)
+            for (double i = 0; i < 30; i += 0.1)
             {
-                Assert.AreEqual(i, Rate.Flow.Mass.FromLbpH(Rate.Flow.Mass.ToLbpH(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Rate.Pressure.FromPSIpS(Rate.Pressure.ToPSIpS(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Rate.Flow.Mass.FromLbpH(Rate.Flow.Mass.ToLbpH(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Rate.Pressure.FromPSIpS(Rate.Pressure.ToPSIpS(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
             }
         }
 
-        [TestMethod]
-        public void RelatedConversionsTest()
-        {
-            //Assert.AreEqual(1.2f, Rate.Pressure.FromPSIpS(Bar.ToPSI(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            //Assert.AreEqual(1.2f, Bar.FromPSI(Rate.Pressure.ToPSIpS(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            //Assert.AreEqual(1.2f, Rate.Pressure.ToPSIpS(Bar.FromPSI(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            //Assert.AreEqual(1.2f, Bar.ToPSI(Rate.Pressure.FromPSIpS(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
-        }
+        //[TestMethod]
+        //public void RelatedConversionsTest()
+        //{
+        //    Assert.AreEqual(1.2, Rate.Pressure.FromPSIpS(Bar.ToPSI(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
+        //    Assert.AreEqual(1.2, Bar.FromPSI(Rate.Pressure.ToPSIpS(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
+        //    Assert.AreEqual(1.2, Rate.Pressure.ToPSIpS(Bar.FromPSI(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
+        //    Assert.AreEqual(1.2, Bar.ToPSI(Rate.Pressure.FromPSIpS(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
+        //}
 
     }
 
@@ -306,10 +306,10 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void EnergyRoundTripTest()
         {
-            for (float i = 0; i < 30; i += 0.1f)
+            for (double i = 0; i < 30; i += 0.1)
             {
-                Assert.AreEqual(i, Energy.Density.Mass.FromBTUpLb(Energy.Density.Mass.ToBTUpLb(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Energy.Density.Volume.FromBTUpFt3(Energy.Density.Volume.ToBTUpFt3(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Energy.Density.Mass.FromBTUpLb(Energy.Density.Mass.ToBTUpLb(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Energy.Density.Volume.FromBTUpFt3(Energy.Density.Volume.ToBTUpFt3(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
             }
         }
     }
@@ -320,49 +320,49 @@ namespace Tests.Orts.Common.Calc
         [TestMethod]
         public void PressureRoundTripTest()
         {
-            for (float i = 0; i < 30; i += 0.1f)
+            for (double i = 0; i < 30; i += 0.1)
             {
-                Assert.AreEqual(i, Pressure.Standard.FromPSI(Pressure.Standard.ToPSI(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Pressure.Standard.FromInHg(Pressure.Standard.ToInHg(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Pressure.Standard.FromBar(Pressure.Standard.ToBar(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Pressure.Standard.FromKgfpCm2(Pressure.Standard.ToKgfpCm2(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Pressure.Standard.FromPSI(Pressure.Standard.ToPSI(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Pressure.Standard.FromInHg(Pressure.Standard.ToInHg(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Pressure.Standard.FromBar(Pressure.Standard.ToBar(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Pressure.Standard.FromKgfpCm2(Pressure.Standard.ToKgfpCm2(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
 
-                Assert.AreEqual(i, Pressure.Atmospheric.FromKPa(Pressure.Atmospheric.ToKPa(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Pressure.Atmospheric.FromPSI(Pressure.Atmospheric.ToPSI(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Pressure.Atmospheric.FromInHg(Pressure.Atmospheric.ToInHg(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
-                Assert.AreEqual(i, Pressure.Atmospheric.FromKgfpCm2(Pressure.Atmospheric.ToKgfpCm2(i)), EqualityPrecisionDelta.FloatPrecisionDelta);
+                Assert.AreEqual(i, Pressure.Atmospheric.FromKPa(Pressure.Atmospheric.ToKPa(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Pressure.Atmospheric.FromPSI(Pressure.Atmospheric.ToPSI(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Pressure.Atmospheric.FromInHg(Pressure.Atmospheric.ToInHg(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
+                Assert.AreEqual(i, Pressure.Atmospheric.FromKgfpCm2(Pressure.Atmospheric.ToKgfpCm2(i)), EqualityPrecisionDelta.DoublePrecisionDelta);
             }
         }
 
         [TestMethod]
         public void RelatedConversionsTest()
         {
-            Assert.AreEqual(1.2f, Pressure.Standard.FromBar(Pressure.Atmospheric.FromKPa(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.ToBar(Pressure.Atmospheric.ToKPa(1.2f)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.FromPSI(Pressure.Atmospheric.ToPSI(Pressure.Standard.ToBar(1.2f))), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.ToPSI(Pressure.Standard.FromBar(Pressure.Atmospheric.FromPSI(1.2f))), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.FromInHg(Pressure.Atmospheric.ToInHg(Pressure.Standard.ToBar(1.2f))), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.ToInHg(Pressure.Standard.FromBar(Pressure.Atmospheric.FromInHg(1.2f))), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.FromKgfpCm2(Pressure.Atmospheric.ToKgfpCm2(Pressure.Standard.ToBar(1.2f))), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.ToKgfpCm2(Pressure.Standard.FromBar(Pressure.Atmospheric.FromKgfpCm2(1.2f))), EqualityPrecisionDelta.FloatPrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.FromBar(Pressure.Atmospheric.FromKPa(1.2)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.ToBar(Pressure.Atmospheric.ToKPa(1.2)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.FromPSI(Pressure.Atmospheric.ToPSI(Pressure.Standard.ToBar(1.2))), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.ToPSI(Pressure.Standard.FromBar(Pressure.Atmospheric.FromPSI(1.2))), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.FromInHg(Pressure.Atmospheric.ToInHg(Pressure.Standard.ToBar(1.2))), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.ToInHg(Pressure.Standard.FromBar(Pressure.Atmospheric.FromInHg(1.2))), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.FromKgfpCm2(Pressure.Atmospheric.ToKgfpCm2(Pressure.Standard.ToBar(1.2))), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.ToKgfpCm2(Pressure.Standard.FromBar(Pressure.Atmospheric.FromKgfpCm2(1.2))), EqualityPrecisionDelta.DoublePrecisionDelta);
         }
 
         [TestMethod]
         public void MultiUnitConversions()
         {
-            Assert.AreEqual(1.2f, Pressure.Standard.FromKPa(1.2f, Pressure.Unit.KPa), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.FromBar(Pressure.Standard.FromKPa(1.2f, Pressure.Unit.Bar)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.FromInHg(Pressure.Standard.FromKPa(1.2f, Pressure.Unit.InHg)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.FromKgfpCm2(Pressure.Standard.FromKPa(1.2f, Pressure.Unit.KgfpCm2)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.FromPSI(Pressure.Standard.FromKPa(1.2f, Pressure.Unit.PSI)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Pressure.Standard.FromKPa(1.2f, Pressure.Unit.None));
+            Assert.AreEqual(1.2, Pressure.Standard.FromKPa(1.2, Pressure.Unit.KPa), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.FromBar(Pressure.Standard.FromKPa(1.2, Pressure.Unit.Bar)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.FromInHg(Pressure.Standard.FromKPa(1.2, Pressure.Unit.InHg)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.FromKgfpCm2(Pressure.Standard.FromKPa(1.2, Pressure.Unit.KgfpCm2)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.FromPSI(Pressure.Standard.FromKPa(1.2, Pressure.Unit.PSI)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Pressure.Standard.FromKPa(1.2, Pressure.Unit.None));
 
-            Assert.AreEqual(1.2f, Pressure.Standard.ToKPa(1.2f, Pressure.Unit.KPa), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.ToBar(Pressure.Standard.ToKPa(1.2f, Pressure.Unit.Bar)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.ToInHg(Pressure.Standard.ToKPa(1.2f, Pressure.Unit.InHg)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.ToKgfpCm2(Pressure.Standard.ToKPa(1.2f, Pressure.Unit.KgfpCm2)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.AreEqual(1.2f, Pressure.Standard.ToPSI(Pressure.Standard.ToKPa(1.2f, Pressure.Unit.PSI)), EqualityPrecisionDelta.FloatPrecisionDelta);
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Pressure.Standard.ToKPa(1.2f, Pressure.Unit.None));
+            Assert.AreEqual(1.2, Pressure.Standard.ToKPa(1.2, Pressure.Unit.KPa), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.ToBar(Pressure.Standard.ToKPa(1.2, Pressure.Unit.Bar)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.ToInHg(Pressure.Standard.ToKPa(1.2, Pressure.Unit.InHg)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.ToKgfpCm2(Pressure.Standard.ToKPa(1.2, Pressure.Unit.KgfpCm2)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.AreEqual(1.2, Pressure.Standard.ToPSI(Pressure.Standard.ToKPa(1.2, Pressure.Unit.PSI)), EqualityPrecisionDelta.DoublePrecisionDelta);
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Pressure.Standard.ToKPa(1.2, Pressure.Unit.None));
         }
 
 

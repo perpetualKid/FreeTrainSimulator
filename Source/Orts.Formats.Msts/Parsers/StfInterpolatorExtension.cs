@@ -8,7 +8,7 @@ namespace Orts.Formats.Msts.Parsers
     {
         public static Interpolator CreateInterpolator(this STFReader reader)
         {
-            List<float> list = new List<float>();
+            List<double> list = new List<double>();
             reader.MustMatchBlockStart();
             while (!reader.EndOfBlock())
                 list.Add(reader.ReadFloat(STFReader.Units.Any, null));
@@ -17,8 +17,8 @@ namespace Orts.Formats.Msts.Parsers
             int n = list.Count / 2;
             if (n < 2)
                 STFException.TraceWarning(reader, "Interpolator must have at least two value pairs.");
-            float[] xArray = new float[n];
-            float[] yArray = new float[n];
+            double[] xArray = new double[n];
+            double[] yArray = new double[n];
             for (int i = 0; i < n; i++)
             {
                 xArray[i] = list[2 * i];
@@ -31,7 +31,7 @@ namespace Orts.Formats.Msts.Parsers
 
         public static Interpolator2D CreateInterpolator2D(this STFReader stf)
         {
-            List<float> xlist = new List<float>();
+            List<double> xlist = new List<double>();
             List<Interpolator> ilist = new List<Interpolator>();
             stf.MustMatchBlockStart();
             while (!stf.EndOfBlock())
@@ -43,7 +43,7 @@ namespace Orts.Formats.Msts.Parsers
             int n = xlist.Count;
             if (n < 2)
                 STFException.TraceWarning(stf, "Interpolator must have at least two x values.");
-            float[] xArray = new float[n];
+            double[] xArray = new double[n];
             Interpolator[] yArray = new Interpolator[n];
             for (int i = 0; i < n; i++)
             {
@@ -57,7 +57,7 @@ namespace Orts.Formats.Msts.Parsers
 
         public static Interpolator2D CreateInterpolator2D(this STFReader stf, bool tab)
         {
-            List<float> xlist = new List<float>();
+            List<double> xlist = new List<double>();
             List<Interpolator> ilist = new List<Interpolator>();
 
             bool errorFound = false;
@@ -130,7 +130,7 @@ namespace Orts.Formats.Msts.Parsers
                             STFException.TraceWarning(stf, "Interpolator has found a mismatch between num of rows declared and num of rows given.");
                             errorFound = true;
                         }
-                        float dx = (checkMe.MaxX() - checkMe.MinX()) * 0.1f;
+                        double dx = (checkMe.MaxX() - checkMe.MinX()) * 0.1f;
                         if (dx <= 0f)
                         {
                             STFException.TraceWarning(stf, "Interpolator has found X data error - x values must be increasing. (Possible row number mismatch)");
@@ -138,9 +138,9 @@ namespace Orts.Formats.Msts.Parsers
                         }
                         else
                         {
-                            for (float x = checkMe.MinX(); x <= checkMe.MaxX(); x += dx)
+                            for (double x = checkMe.MinX(); x <= checkMe.MaxX(); x += dx)
                             {
-                                if (float.IsNaN(checkMe[x]))
+                                if (double.IsNaN(checkMe[x]))
                                 {
                                     STFException.TraceWarning(stf, "Interpolator has found X data error - x values must be increasing. (Possible row number mismatch)");
                                     errorFound = true;
@@ -180,7 +180,7 @@ namespace Orts.Formats.Msts.Parsers
                 STFException.TraceWarning(stf, "Interpolator must have at least two x values.");
                 errorFound = true;
             }
-            float[] xArray = new float[n];
+            double[] xArray = new double[n];
             Interpolator[] yArray = new Interpolator[n];
             for (int i = 0; i < n; i++)
             {

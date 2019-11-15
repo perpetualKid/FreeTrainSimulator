@@ -106,7 +106,7 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly TextPrimitive[] CurrentSpeed;
         List<TextPrimitive> DialSpeeds;
         List<Vector4> DialLineCoords;
-        Func<float, float> SpeedFromMpS;
+        Func<double, double> SpeedFromMpS;
 
         WindowTextFont FontDialSpeeds;
         WindowTextFont FontReleaseSpeed;
@@ -353,7 +353,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void PrepareFrame()
         {
             var tcs = Locomotive.TrainControlSystem;
-            SetData(Math.Abs(SpeedFromMpS(Locomotive.SpeedMpS)), (int)SpeedFromMpS(tcs.CurrentSpeedLimitMpS), (int)SpeedFromMpS(tcs.NextSpeedLimitMpS), 0, SpeedFromMpS(tcs.InterventionSpeedLimitMpS), tcs.MonitoringStatus);
+            SetData((float)Math.Abs(SpeedFromMpS(Locomotive.SpeedMpS)), (int)SpeedFromMpS(tcs.CurrentSpeedLimitMpS), (int)SpeedFromMpS(tcs.NextSpeedLimitMpS), 0, (float)SpeedFromMpS(tcs.InterventionSpeedLimitMpS), tcs.MonitoringStatus);
         }
 
         public void Draw(SpriteBatch spriteBatch, Point position)

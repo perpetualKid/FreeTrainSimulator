@@ -26,7 +26,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
     public class SingleTransferPipe : AirSinglePipe
     {
 
-        readonly static float OneAtmospherePSI = Pressure.Atmospheric.ToPSI(1);
+        readonly static float OneAtmospherePSI = (float)Pressure.Atmospheric.ToPSI(1);
 
         public SingleTransferPipe(TrainCar car)
             : base(car)
@@ -39,7 +39,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             switch (lowercasetoken)
             {
                 // OpenRails specific parameters
-                case "wagon(brakepipevolume": BrakePipeVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "wagon(brakepipevolume": BrakePipeVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
             }
         }
 

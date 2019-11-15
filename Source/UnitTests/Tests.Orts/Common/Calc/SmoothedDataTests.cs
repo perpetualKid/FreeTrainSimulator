@@ -11,9 +11,9 @@ namespace Tests.Orts.Common.Calc
         public void DefaultInitializeTest()
         {
             SmoothedData data = new SmoothedData(5);
-            Assert.AreEqual(float.NaN, data.Value);
+            Assert.AreEqual(double.NaN, data.Value);
             Assert.AreEqual(5, data.SmoothPeriodS);
-            Assert.AreEqual(float.NaN, data.SmoothedValue);
+            Assert.AreEqual(double.NaN, data.SmoothedValue);
         }
 
         [TestMethod]

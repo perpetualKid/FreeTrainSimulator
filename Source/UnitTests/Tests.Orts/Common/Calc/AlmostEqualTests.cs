@@ -27,5 +27,26 @@ namespace Tests.Orts.Common.Calc
             float test = 0f;
             Assert.IsTrue(test.AlmostEqual(0.1f, 0.11f));
         }
+
+        [TestMethod]
+        public void AlmostEqualDTest()
+        {
+            double test = 0;
+            Assert.IsTrue(test.AlmostEqual(0.1, 0.1));
+        }
+
+        [TestMethod]
+        public void AlmostEqualDOnNegativeNumbersTest()
+        {
+            double test = -10;
+            Assert.IsTrue(test.AlmostEqual(-11.1, 1.1));
+        }
+
+        [TestMethod]
+        public void NotEqualDTest()
+        {
+            double test = 0;
+            Assert.IsTrue(test.AlmostEqual(0.1, 0.11));
+        }
     }
 }

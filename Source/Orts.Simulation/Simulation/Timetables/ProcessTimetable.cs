@@ -500,7 +500,7 @@ namespace Orts.Simulation.Timetables
                             if (!speeddef)
                             {
                                 RowInfo[iRow] = rowType.speedInfo;
-                                actSpeedConv = Speed.MeterPerSecond.FromMpH(1.0f);
+                                actSpeedConv = (float)Speed.MeterPerSecond.FromMpH(1.0f);
                             }
                             break;
                         case "#speedkph":
@@ -517,7 +517,7 @@ namespace Orts.Simulation.Timetables
                             if (!speeddef)
                             {
                                 RowInfo[iRow] = rowType.speedInfo;
-                                actSpeedConv = Speed.MeterPerSecond.FromKpH(1.0f);
+                                actSpeedConv = (float)Speed.MeterPerSecond.FromKpH(1.0f);
                             }
                             break;
 

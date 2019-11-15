@@ -409,7 +409,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (t > (DieselEngines.MaxOutputPowerW / DieselEngines.MaxPowerW))
                         t = (DieselEngines.MaxOutputPowerW / DieselEngines.MaxPowerW);
-                    MotiveForceN = TractiveForceCurves.Get(t, AbsWheelSpeedMpS) * (1 - PowerReduction);
+                    MotiveForceN = (float)TractiveForceCurves.Get(t, AbsWheelSpeedMpS) * (1 - PowerReduction);
                     if (MotiveForceN < 0 && !TractiveForceCurves.HasNegativeValues)
                         MotiveForceN = 0;
                 }
@@ -520,7 +520,7 @@ namespace Orts.Simulation.RollingStocks
                     break;
                 case CabViewControlType.Fuel_Gauge:
                     if (cvc.ControlUnit == CabViewControlUnit.Gallons)
-                        data = Size.LiquidVolume.ToGallonUS(DieselLevelL);
+                        data = (float)Size.LiquidVolume.ToGallonUS(DieselLevelL);
                     else
                         data = DieselLevelL;
                     break;
@@ -730,7 +730,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     else
                     {
-                        Train.TrainCurrentSteamHeatPipeTempC = Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]);
+                        Train.TrainCurrentSteamHeatPipeTempC = (float)Temperature.Celsius.FromF(SteamHeatPressureToTemperaturePSItoF[CurrentSteamHeatPressurePSI]);
                         Train.CarSteamHeatOn = true; // turn on steam effects on wagons
                     }
                 }

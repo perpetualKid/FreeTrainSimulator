@@ -263,10 +263,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             Script.CircuitBreakerClosingOrder = () => CircuitBreakerClosingOrder;
             Script.CircuitBreakerOpeningOrder = () => CircuitBreakerOpeningOrder;
             Script.TractionAuthorization = () => TractionAuthorization;
-            Script.BrakePipePressureBar = () => Locomotive.BrakeSystem != null ? Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.BrakeLine1PressurePSI) : float.MaxValue;
-            Script.LocomotiveBrakeCylinderPressureBar = () => Locomotive.BrakeSystem != null ? Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.GetCylPressurePSI()) : float.MaxValue;
+            Script.BrakePipePressureBar = () => Locomotive.BrakeSystem != null ? (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.BrakeLine1PressurePSI) : float.MaxValue;
+            Script.LocomotiveBrakeCylinderPressureBar = () => Locomotive.BrakeSystem != null ? (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.GetCylPressurePSI()) : float.MaxValue;
             Script.DoesBrakeCutPower = () => Locomotive.DoesBrakeCutPower;
-            Script.BrakeCutsPowerAtBrakeCylinderPressureBar = () => Pressure.Atmospheric.FromPSI(Locomotive.BrakeCutsPowerAtBrakeCylinderPressurePSI);
+            Script.BrakeCutsPowerAtBrakeCylinderPressureBar = () => (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeCutsPowerAtBrakeCylinderPressurePSI);
 
             // TrainControlSystem functions
             Script.SpeedCurve = (arg1, arg2, arg3, arg4, arg5) => SpeedCurve(arg1, arg2, arg3, arg4, arg5);
@@ -963,7 +963,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 interventionSpeedMpS = CurrentSpeedLimitMpS + OverspeedMonitor.TriggerOnTrackOverspeedMarginMpS;
             }
             
-            SetInterventionSpeedLimitMpS(interventionSpeedMpS);
+            SetInterventionSpeedLimitMpS((float)interventionSpeedMpS);
 
             switch (OverspeedMonitorState)
             {

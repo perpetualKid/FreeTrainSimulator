@@ -870,7 +870,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             if ((ThrottleRPMTab != null) && (EngineStatus == Status.Running))
             {
-                DemandedRPM = ThrottleRPMTab[demandedThrottlePercent];
+                DemandedRPM = (float)ThrottleRPMTab[demandedThrottlePercent];
             }
 
             if (GearBox != null)
@@ -926,7 +926,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             if (DieselPowerTab != null)
             {
-                CurrentDieselOutputPowerW = (DieselPowerTab[RealRPM] <= MaximumDieselPowerW * (1 - locomotive.PowerReduction) ? DieselPowerTab[RealRPM] * (1 - locomotive.PowerReduction) : MaximumDieselPowerW) * (1 - locomotive.PowerReduction);
+                CurrentDieselOutputPowerW = (float)(DieselPowerTab[RealRPM] <= MaximumDieselPowerW * (1 - locomotive.PowerReduction) ? DieselPowerTab[RealRPM] * (1 - locomotive.PowerReduction) : MaximumDieselPowerW) * (1 - locomotive.PowerReduction);
                 CurrentDieselOutputPowerW = CurrentDieselOutputPowerW < 0f ? 0f : CurrentDieselOutputPowerW;
                 // Rail output power will never be the same as the diesel prime mover output power it will always have some level of loss of efficiency
                 CurrentRailOutputPowerW = (RealRPM - IdleRPM) / (MaxRPM - IdleRPM) * MaximumRailOutputPowerW * (1 - locomotive.PowerReduction);
@@ -961,7 +961,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 if (DieselConsumptionTab != null)
                 {
-                         DieselFlowLps = DieselConsumptionTab[RealRPM] / 3600.0f;
+                         DieselFlowLps = (float)DieselConsumptionTab[RealRPM] / 3600.0f;
                 }
                 else
                 {
@@ -1267,14 +1267,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             if ((initLevel & SettingsFlags.DieselConsumptionTab) == 0)
             {
-                DieselConsumptionTab = new Interpolator(new float[] { loco.IdleRPM, loco.MaxRPM }, new float[] { loco.DieselUsedPerHourAtIdleL, loco.DieselUsedPerHourAtMaxPowerL });
+                DieselConsumptionTab = new Interpolator(new double[] { loco.IdleRPM, loco.MaxRPM }, new double[] { loco.DieselUsedPerHourAtIdleL, loco.DieselUsedPerHourAtMaxPowerL });
                 if (DieselEngineConfigured)
                     Trace.TraceInformation("DieselConsumptionTab not found in Diesel Engine Config, set at default value");
             }
 
             if ((initLevel & SettingsFlags.ThrottleRPMTab) == 0)
             {
-                ThrottleRPMTab = new Interpolator(new float[] { 0, 100 }, new float[] { loco.IdleRPM, loco.MaxRPM });
+                ThrottleRPMTab = new Interpolator(new double[] { 0, 100 }, new double[] { loco.IdleRPM, loco.MaxRPM });
                 if (DieselEngineConfigured)
                     Trace.TraceInformation("ThrottleRpMTab not found in Diesel Engine Config, set at default value");
             }
@@ -1284,9 +1284,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             if (((initLevel & SettingsFlags.DieselTorqueTab) == 0) && ((initLevel & SettingsFlags.DieselPowerTab) == 0))
             {
                 int count = 11;
-                float[] rpm = new float[count + 1];
-                float[] power = new float[] { 0.02034f, 0.09302f, 0.36628f, 0.60756f, 0.69767f, 0.81395f, 0.93023f, 0.9686f, 0.99418f, 0.99418f, 1f, 0.5f };
-                float[] torque = new float[] { 0.05f, 0.2f, 0.7f, 0.95f, 1f, 1f, 0.98f, 0.95f, 0.9f, 0.86f, 0.81f, 0.3f };
+                double[] rpm = new double[count + 1];
+                double[] power = new double[] { 0.02034f, 0.09302f, 0.36628f, 0.60756f, 0.69767f, 0.81395f, 0.93023f, 0.9686f, 0.99418f, 0.99418f, 1f, 0.5f };
+                double[] torque = new double[] { 0.05f, 0.2f, 0.7f, 0.95f, 1f, 1f, 0.98f, 0.95f, 0.9f, 0.86f, 0.81f, 0.3f };
 
                 for (int i = 0; i < count; i++)
                 {
@@ -1310,12 +1310,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             // Set defaults for Torque table if it is not set.
             if (((initLevel & SettingsFlags.DieselTorqueTab) == 0) && ((initLevel & SettingsFlags.DieselPowerTab) == SettingsFlags.DieselPowerTab))
             {
-                float[] rpm = new float[DieselPowerTab.GetSize()];
-                float[] torque = new float[DieselPowerTab.GetSize()];
+                double[] rpm = new double[DieselPowerTab.GetSize()];
+                double[] torque = new double[DieselPowerTab.GetSize()];
                 for (int i = 0; i < DieselPowerTab.GetSize(); i++)
                 {
-                    rpm[i] = IdleRPM + (float)i * (MaxRPM - IdleRPM) / (float)DieselPowerTab.GetSize();
-                    torque[i] = DieselPowerTab[rpm[i]] / (rpm[i] * 2f * 3.1415f / 60f);
+                    rpm[i] = IdleRPM + i * (MaxRPM - IdleRPM) / DieselPowerTab.GetSize();
+                    torque[i] = DieselPowerTab[rpm[i]] / (rpm[i] * 2 * Math.PI / 60.0);
                 }
                 if (DieselEngineConfigured)
                     Trace.TraceInformation("DieselTorqueTab not found in Diesel Engine Config, set at default value");
@@ -1324,12 +1324,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             // Set defaults for Power table if it is not set.
             if (((initLevel & SettingsFlags.DieselTorqueTab) == SettingsFlags.DieselTorqueTab) && ((initLevel & SettingsFlags.DieselPowerTab) == 0))
             {
-                float[] rpm = new float[DieselPowerTab.GetSize()];
-                float[] power = new float[DieselPowerTab.GetSize()];
+                double[] rpm = new double[DieselPowerTab.GetSize()];
+                double[] power = new double[DieselPowerTab.GetSize()];
                 for (int i = 0; i < DieselPowerTab.GetSize(); i++)
                 {
-                    rpm[i] = IdleRPM + (float)i * (MaxRPM - IdleRPM) / (float)DieselPowerTab.GetSize();
-                    power[i] = DieselPowerTab[rpm[i]] * rpm[i] * 2f * 3.1415f / 60f;
+                    rpm[i] = IdleRPM + i * (MaxRPM - IdleRPM) / DieselPowerTab.GetSize();
+                    power[i] = DieselPowerTab[rpm[i]] * rpm[i] * 2 * Math.PI / 60.0;
                 }
                 if (DieselEngineConfigured)
                     Trace.TraceInformation("DieselPowerTab not found in Diesel Engine Config, set at default value");

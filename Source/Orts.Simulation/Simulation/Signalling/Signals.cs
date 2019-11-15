@@ -12554,12 +12554,12 @@ namespace Orts.Simulation.Signalling
             var sigasp_values = Enum.GetValues(typeof(SignalAspectState));
             speed_info = new ObjectSpeedInfo[sigasp_values.Length];
 
-            float speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
+            double speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
             if (speedItem.IsResume)
-                speedMpS = 999f;
+                speedMpS = 999.0;
 
-            float passSpeed = speedItem.IsPassenger ? speedMpS : -1;
-            float freightSpeed = speedItem.IsFreight ? speedMpS : -1;
+            float passSpeed = speedItem.IsPassenger ? (float)speedMpS : -1;
+            float freightSpeed = speedItem.IsFreight ? (float)speedMpS : -1;
             ObjectSpeedInfo speedinfo = new ObjectSpeedInfo(passSpeed, freightSpeed, false, false, speedItem is TempSpeedPostItem? (speedMpS == 999f? 2 : 1) : 0);
             speed_info[(int)state] = speedinfo;
         }

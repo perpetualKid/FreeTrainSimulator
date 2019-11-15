@@ -2036,7 +2036,7 @@ namespace Orts.Simulation.Physics
                         }
 
 
-                        TrainSteamPipeHeatConvW = (PipeHeatTransCoeffWpM2K * TrainHeatPipeAreaM2 * (Temperature.Celsius.ToK(TrainCurrentSteamHeatPipeTempC - TrainCurrentCarriageHeatTempC)));
+                        TrainSteamPipeHeatConvW = (float)(PipeHeatTransCoeffWpM2K * TrainHeatPipeAreaM2 * (Temperature.Celsius.ToK(TrainCurrentSteamHeatPipeTempC - TrainCurrentCarriageHeatTempC)));
                         float PipeTempAK = (float)Math.Pow(Temperature.Celsius.ToK(TrainCurrentSteamHeatPipeTempC), 4.0f);
                         float PipeTempBK = (float)Math.Pow(Temperature.Celsius.ToK(TrainCurrentCarriageHeatTempC), 4.0f);
                         TrainSteamHeatPipeRadW = (BoltzmanConstPipeWpM2 * (PipeTempAK - PipeTempBK));

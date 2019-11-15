@@ -95,7 +95,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             MSTSSteamLocomotive steamloco = viewer.PlayerLocomotive as MSTSSteamLocomotive;
 
-            float SteamspeedMpH = Speed.MeterPerSecond.ToMpH(steamloco.SpeedMpS);
+            float SteamspeedMpH = (float)Speed.MeterPerSecond.ToMpH(steamloco.SpeedMpS);
             if (SteamspeedMpH >= previousLoggedSteamSpeedMpH + 5) // Add a new record every time speed increases by 5 mph
             {
                 previousLoggedSteamSpeedMpH = (int)SteamspeedMpH; // Keep speed records close to whole numbers
@@ -148,12 +148,12 @@ namespace Orts.ActivityRunner.Viewer3D
         private void RecordSteamPowerCurve()
         {
             MSTSSteamLocomotive steamloco = viewer.PlayerLocomotive as MSTSSteamLocomotive;
-            float speedMpH = Speed.MeterPerSecond.ToMpH(steamloco.SpeedMpS);
+            double speedMpH = Speed.MeterPerSecond.ToMpH(steamloco.SpeedMpS);
             if (speedMpH >= previousLoggedSpeedMpH + 1) // Add a new record every time speed increases by 1 mph
             {
                 previousLoggedSpeedMpH = (int)speedMpH; // Keep speed records close to whole numbers
                 dataLog.Data(speedMpH.ToString("F1"));
-                float power = Dynamics.Power.ToHp(steamloco.MotiveForceN * steamloco.SpeedMpS);
+                double power = Dynamics.Power.ToHp(steamloco.MotiveForceN * steamloco.SpeedMpS);
                 dataLog.Data(power.ToString("F1"));
                 dataLog.Data(steamloco.ThrottlePercent.ToString("F0"));
                 dataLog.Data(steamloco.Train.MUReverserPercent.ToString("F0"));

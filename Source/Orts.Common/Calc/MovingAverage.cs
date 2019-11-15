@@ -6,7 +6,7 @@ namespace Orts.Common.Calc
 {
     public class MovingAverage
     {
-        private readonly Queue<float> buffer;
+        private readonly Queue<double> buffer;
         private readonly int size;
 
         public MovingAverage():
@@ -17,7 +17,7 @@ namespace Orts.Common.Calc
         public MovingAverage(int size)
         {
             this.size = Math.Max(1, size);
-            buffer = new Queue<float>(this.size);
+            buffer = new Queue<double>(this.size);
             Initialize();
         }
 
@@ -26,7 +26,7 @@ namespace Orts.Common.Calc
             get { return buffer.Count;}
         }
 
-        public void Initialize(float value)
+        public void Initialize(double value)
         {
             buffer.Clear();
             for (int i = 0; i < size; i++)
@@ -39,9 +39,9 @@ namespace Orts.Common.Calc
             Initialize(0f);
         }
 
-        public float Update(float value)
+        public double Update(double value)
         {
-            if (!float.IsNaN(value))
+            if (!double.IsNaN(value))
             {
                 buffer.Dequeue();
                 buffer.Enqueue(value);

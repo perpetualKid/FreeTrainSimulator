@@ -467,8 +467,8 @@ namespace Orts.Formats.Msts.Models
             internal CapacityData(SBR block)
             {
                 block.VerifyID(TokenID.PickupCapacity);
-                QuantityAvailableKG = Mass.Kilogram.FromLb(block.ReadFloat());
-                FeedRateKGpS = Mass.Kilogram.FromLb(block.ReadFloat());
+                QuantityAvailableKG = (float)Mass.Kilogram.FromLb(block.ReadFloat());
+                FeedRateKGpS = (float)Mass.Kilogram.FromLb(block.ReadFloat());
                 block.VerifyEndOfBlock();
             }
         }

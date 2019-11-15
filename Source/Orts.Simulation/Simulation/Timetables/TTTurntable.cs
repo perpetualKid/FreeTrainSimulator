@@ -244,7 +244,7 @@ namespace Orts.Simulation.Timetables
                     case "#speedmph":
                         try
                         {
-                            AdditionalTurntableDetails.TurntableSpeedMpS = Speed.MeterPerSecond.FromMpH(Convert.ToSingle(inputLine[1].Trim()));
+                            AdditionalTurntableDetails.TurntableSpeedMpS = (float)Speed.MeterPerSecond.FromMpH(Convert.ToSingle(inputLine[1].Trim()));
                         }
                         catch
                         {
@@ -256,7 +256,7 @@ namespace Orts.Simulation.Timetables
                     case "#speedkph":
                         try
                         {
-                            AdditionalTurntableDetails.TurntableSpeedMpS = Speed.MeterPerSecond.FromKpH(Convert.ToSingle(inputLine[1].Trim()));
+                            AdditionalTurntableDetails.TurntableSpeedMpS = (float)Speed.MeterPerSecond.FromKpH(Convert.ToSingle(inputLine[1].Trim()));
                         }
                         catch
                         {

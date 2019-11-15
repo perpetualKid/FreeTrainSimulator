@@ -615,7 +615,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
             }
 
-            return markerIntervalM;
+            return (float)markerIntervalM;
         }
 
         // draw signal, speed and authority items

@@ -55,13 +55,13 @@ namespace Orts.Common.Calc
         public static class Periodic
         {
             /// <summary>Convert from per Minute to per Second</summary>
-            public static float FromMinutes(float eventsPerMinute) { return eventsPerMinute * (1.0f / 60f); }
+            public static double FromMinutes(double eventsPerMinute) { return eventsPerMinute * (1.0 / 60.0); }
             /// <summary>Convert from per Second to per Minute</summary>
-            public static float ToMinutes(float eventsPerSecond) { return eventsPerSecond * 60f; }
+            public static double ToMinutes(double eventsPerSecond) { return eventsPerSecond * 60.0; }
             /// <summary>Convert from per Hour to per Second</summary>
-            public static float FromHours(float eventsPerHour) { return eventsPerHour * (1.0f / 3600f); }
+            public static double FromHours(double eventsPerHour) { return eventsPerHour * (1.0 / 3600.0); }
             /// <summary>Convert from per Second to per Hour</summary>
-            public static float ToHours(float eventsPerSecond) { return eventsPerSecond * 3600f; }
+            public static double ToHours(double eventsPerSecond) { return eventsPerSecond * 3600.0; }
         }
 
     }
@@ -77,13 +77,13 @@ namespace Orts.Common.Calc
         public static class Second
         {
             /// <summary>Convert from minutes to seconds</summary>
-            public static float FromM(float minutes) { return minutes * 60f; }
+            public static double FromM(double minutes) { return minutes * 60.0; }
             /// <summary>Convert from seconds to minutes</summary>
-            public static float ToM(float seconds) { return seconds * (1.0f / 60f); }
+            public static double ToM(double seconds) { return seconds * (1.0 / 60.0); }
             /// <summary>Convert from hours to seconds</summary>
-            public static float FromH(float hours) { return hours * 3600f; }
+            public static double FromH(double hours) { return hours * 3600.0; }
             /// <summary>Convert from seconds to hours</summary>
-            public static float ToH(float seconds) { return seconds * (1.0f / 3600f); }
+            public static double ToH(double seconds) { return seconds * (1.0 / 3600.0); }
         }
 
         /// <summary>
@@ -162,32 +162,32 @@ namespace Orts.Common.Calc
         public static class Length
         {
             /// <summary>Convert (statute or land) miles to metres</summary>
-            public static float FromMi(float miles) { return miles * 1609.344f; }
+            public static double FromMi(double miles) { return miles * 1609.344; }
             /// <summary>Convert metres to (statute or land) miles</summary>
-            public static float ToMi(float metres) { return metres * (1.0f / 1609.344f); }
+            public static double ToMi(double metres) { return metres * (1.0 / 1609.344); }
             /// <summary>Convert kilometres to metres</summary>
-            public static float FromKM(float kilometer) { return kilometer * 1000f; }
+            public static double FromKM(double kilometer) { return kilometer * 1000.0; }
             /// <summary>Convert metres to kilometres</summary>
-            public static float ToKM(float metres) { return metres * (1.0f / 1000f); }
+            public static double ToKM(double metres) { return metres * (1.0 / 1000.0); }
             /// <summary>Convert yards to metres</summary>
-            public static float FromYd(float yards) { return yards * 0.9144f; }
+            public static double FromYd(double yards) { return yards * 0.9144; }
             /// <summary>Convert metres to yards</summary>
-            public static float ToYd(float metres) { return metres * (1.0f / 0.9144f); }
+            public static double ToYd(double metres) { return metres * (1.0 / 0.9144); }
             /// <summary>Convert feet to metres</summary>
-            public static float FromFt(float feet) { return feet * 0.3048f; }
+            public static double FromFt(double feet) { return feet * 0.3048; }
             /// <summary>Convert metres to feet</summary>
-            public static float ToFt(float metres) { return metres * (1.0f / 0.3048f); }
+            public static double ToFt(double metres) { return metres * (1.0 / 0.3048); }
             /// <summary>Convert inches to metres</summary>
-            public static float FromIn(float inches) { return inches * 0.0254f; }
+            public static double FromIn(double inches) { return inches * 0.0254; }
             /// <summary>Convert metres to inches</summary>
-            public static float ToIn(float metres) { return metres * (1.0f / 0.0254f); }
+            public static double ToIn(double metres) { return metres * (1.0 / 0.0254); }
 
             /// <summary>
             /// Convert from metres into kilometres or miles, depending on the flag isMetric
             /// </summary>
             /// <param name="distance">distance in metres</param>
             /// <param name="isMetric">if true convert to kilometres, if false convert to miles</param>
-            public static float FromM(float distance, bool isMetric)
+            public static double FromM(double distance, bool isMetric)
             {
                 return isMetric ? ToKM(distance) : ToMi(distance);
             }
@@ -197,7 +197,7 @@ namespace Orts.Common.Calc
             /// </summary>
             /// <param name="distance">distance to be converted to metres</param>
             /// <param name="isMetric">if true convert from kilometres, if false convert from miles</param>
-            public static float ToM(float distance, bool isMetric)
+            public static double ToM(double distance, bool isMetric)
             {
                 return isMetric ? FromKM(distance) : FromMi(distance);
             }
@@ -210,13 +210,13 @@ namespace Orts.Common.Calc
         public static class Area
         {
             /// <summary>Convert from feet squared to metres squared</summary>
-            public static float FromFt2(float squareFeet) { return squareFeet * 0.092903f; }
+            public static double FromFt2(double squareFeet) { return squareFeet * (1 / 10.763910449); }
             /// <summary>Convert from metres squared to feet squared</summary>
-            public static float ToFt2(float squareMetres) { return squareMetres * (1.0f / 0.092903f); }
+            public static double ToFt2(double squareMetres) { return squareMetres * 10.763910449; }
             /// <summary>Convert from inches squared to metres squared</summary>
-            public static float FromIn2(float squareFeet) { return squareFeet * (1.0f / 1550.0031f); }
+            public static double FromIn2(double squareFeet) { return squareFeet * (1.0 / 1550.0031); }
             /// <summary>Convert from metres squared to inches squared</summary>
-            public static float ToIn2(float squareMetres) { return squareMetres * 1550.0031f; }
+            public static double ToIn2(double squareMetres) { return squareMetres * 1550.0031; }
         }
 
         /// <summary>
@@ -225,13 +225,13 @@ namespace Orts.Common.Calc
         public static class Volume
         {
             /// <summary>Convert from cubic feet to cubic metres</summary>
-            public static float FromFt3(float qubicFeet) { return qubicFeet * (1.0f / 35.3146665722f); }
+            public static double FromFt3(double qubicFeet) { return qubicFeet * (1.0 / 35.3146665722); }
             /// <summary>Convert from cubic metres to cubic feet</summary>
-            public static float ToFt3(float qubicMetres) { return qubicMetres * 35.3146665722f; }
+            public static double ToFt3(double qubicMetres) { return qubicMetres * 35.3146665722; }
             /// <summary>Convert from cubic inches to cubic metres</summary>
-            public static float FromIn3(float qubicInches) { return qubicInches * (1.0f / 61023.7441f); }
+            public static double FromIn3(double qubicInches) { return qubicInches * (1.0 / 61023.7441); }
             /// <summary>Convert from cubic metres to cubic inches</summary>
-            public static float ToIn3(float qubicMetres) { return qubicMetres * 61023.7441f; }
+            public static double ToIn3(double qubicMetres) { return qubicMetres * 61023.7441; }
 
         }
 
@@ -241,25 +241,25 @@ namespace Orts.Common.Calc
         public static class LiquidVolume
         {
             /// <summary>Convert from cubic metres to litres</summary>
-            public static float FromM3(float qubicMetres) { return qubicMetres * 1000; }
+            public static double FromM3(double qubicMetres) { return qubicMetres * 1000; }
             /// <summary>Convert litres to cubic metres</summary>
-            public static float ToM3(float litre) { return litre / (1.0f * 1000); }
+            public static double ToM3(double litre) { return litre / (1.0 * 1000); }
             /// <summary>Convert from UK Gallons to litres</summary>
-            public static float FromGallonUK(float gallonUK) { return gallonUK * 4.54609f; }
+            public static double FromGallonUK(double gallonUK) { return gallonUK * 4.54609; }
             /// <summary>Convert from litres to UK Gallons</summary>
-            public static float ToGallonUK(float litre) { return litre * (1.0f / 4.54609f); }
+            public static double ToGallonUK(double litre) { return litre * (1.0 / 4.54609); }
             /// <summary>Convert from US Gallons to litres</summary>
-            public static float FromGallonUS(float gallonUS) { return gallonUS * 3.78541f; }
+            public static double FromGallonUS(double gallonUS) { return gallonUS * 3.78541; }
             /// <summary>Convert from litres to US Gallons</summary>
-            public static float ToGallonUS(float litre) { return litre * (1.0f / 3.78541f); }
+            public static double ToGallonUS(double litre) { return litre * (1.0 / 3.78541); }
             /// <summary>Convert from cubic feet to litres</summary>
-            public static float FromFt3(float qubicFeet) { return FromM3(Volume.FromFt3(qubicFeet)); }
+            public static double FromFt3(double qubicFeet) { return FromM3(Volume.FromFt3(qubicFeet)); }
             /// <summary>Convert from litres to cubic feet</summary>
-            public static float ToFt3(float litre) { return Volume.ToFt3(ToM3(litre)); }
+            public static double ToFt3(double litre) { return Volume.ToFt3(ToM3(litre)); }
             /// <summary>Convert from cubic inches to litres</summary>
-            public static float FromIn3(float qubicInches) { return FromM3(Volume.FromIn3(qubicInches)); }
+            public static double FromIn3(double qubicInches) { return FromM3(Volume.FromIn3(qubicInches)); }
             /// <summary>Convert from litres to cubic inches</summary>
-            public static float ToIn3(float litre) { return Volume.FromFt3(ToM3(litre)); }
+            public static double ToIn3(double litre) { return Volume.FromFt3(ToM3(litre)); }
         }
     }
 
@@ -274,21 +274,21 @@ namespace Orts.Common.Calc
         public static class Kilogram
         {
             /// <summary>Convert from pounds (lb) to kilograms</summary>
-            public static float FromLb(float lb) { return lb * (1.0f / 2.20462f); }
+            public static double FromLb(double lb) { return lb * (1.0f / 2.20462); }
             /// <summary>Convert from kilograms to pounds (lb)</summary>
-            public static float ToLb(float kg) { return kg * 2.20462f; }
+            public static double ToLb(double kg) { return kg * 2.20462; }
             /// <summary>Convert from US Tons to kilograms</summary>
-            public static float FromTonsUS(float tonsUS) { return tonsUS * 907.1847f; }
+            public static double FromTonsUS(double tonsUS) { return tonsUS * 907.1847; }
             /// <summary>Convert from kilograms to US Tons</summary>
-            public static float ToTonsUS(float kg) { return kg * (1.0f / 907.1847f); }
+            public static double ToTonsUS(double kg) { return kg * (1.0 / 907.1847); }
             /// <summary>Convert from UK Tons to kilograms</summary>
-            public static float FromTonsUK(float tonsUK) { return tonsUK * 1016.047f; }
+            public static double FromTonsUK(double tonsUK) { return tonsUK * 1016.047; }
             /// <summary>Convert from kilograms to UK Tons</summary>
-            public static float ToTonsUK(float kg) { return kg * (1.0f / 1016.047f); }
+            public static double ToTonsUK(double kg) { return kg * (1.0 / 1016.047); }
             /// <summary>Convert from kilogram to metric tonnes</summary>
-            public static float ToTonnes(float kg) { return kg * (1.0f / 1000.0f); }
+            public static double ToTonnes(double kg) { return kg * (1.0 / 1000.0); }
             /// <summary>Convert from metrix tonnes to kilogram</summary>
-            public static float FromTonnes(float tonnes) { return tonnes * 1000.0f; }
+            public static double FromTonnes(double tonnes) { return tonnes * 1000.0; }
         }
     }
 
@@ -310,9 +310,9 @@ namespace Orts.Common.Calc
         public static class Resistance
         {
             /// <summary>Convert from pound-force per mile per hour to Newton per meter per second</summary>
-            public static float FromLbfpMpH(float lbfMpH) { return (Force.FromLbf(lbfMpH) / Speed.MeterPerSecond.FromMpH(1)); }
+            public static double FromLbfpMpH(double lbfMpH) { return (Force.FromLbf(lbfMpH) / Speed.MeterPerSecond.FromMpH(1)); }
             /// <summary>Convert from pound-force per mile per hour squared to Newton per meter per second</summary>
-            public static float FromLbfpMpH2(float lbfMpH) { return (Force.FromLbf(lbfMpH) / (Speed.MeterPerSecond.FromMpH(1) * Speed.MeterPerSecond.FromMpH(1))); }
+            public static double FromLbfpMpH2(double lbfMpH) { return (Force.FromLbf(lbfMpH) / (Speed.MeterPerSecond.FromMpH(1) * Speed.MeterPerSecond.FromMpH(1))); }
         }
 
         /// <summary>
@@ -321,21 +321,21 @@ namespace Orts.Common.Calc
         public static class Power
         {
             /// <summary>Convert from kiloWatts to Watts</summary>
-            public static float FromKW(float kiloWatts) { return kiloWatts * 1000f; }
+            public static double FromKW(double kiloWatts) { return kiloWatts * 1000; }
             /// <summary>Convert from Watts to kileWatts</summary>
-            public static float ToKW(float watts) { return watts * (1.0f / 1000f); }
+            public static double ToKW(double watts) { return watts * (1.0 / 1000); }
             /// <summary>Convert from HorsePower to Watts</summary>
-            public static float FromHp(float horsePowers) { return horsePowers * 745.699872f; }
+            public static double FromHp(double horsePowers) { return horsePowers * 745.699872; }
             /// <summary>Convert from Watts to HorsePower</summary>
-            public static float ToHp(float watts) { return watts * (1.0f / 745.699872f); }
+            public static double ToHp(double watts) { return watts * (1.0 / 745.699872); }
             /// <summary>Convert from BoilerHorsePower to Watts</summary>
-            public static float FromBhp(float horsePowers) { return horsePowers * 9809.5f; }
+            public static double FromBhp(double horsePowers) { return horsePowers * 9809.5; }
             /// <summary>Convert from Watts to BoilerHorsePower</summary>
-            public static float ToBhp(float watts) { return watts * (1.0f / 9809.5f); }
+            public static double ToBhp(double watts) { return watts * (1.0 / 9809.5); }
             /// <summary>Convert from British Thermal Unit (BTU) per second to watts</summary>
-            public static float FromBTUpS(float btuPerSecond) { return btuPerSecond * 1055.05585f; }
+            public static double FromBTUpS(double btuPerSecond) { return btuPerSecond * 1055.05585; }
             /// <summary>Convert from Watts to British Thermal Unit (BTU) per second</summary>
-            public static float ToBTUpS(float watts) { return watts * (1.0f / 1055.05585f); }
+            public static double ToBTUpS(double watts) { return watts * (1.0 / 1055.05585); }
         }
 
         /// <summary>
@@ -344,9 +344,9 @@ namespace Orts.Common.Calc
         public static class Force
         {
             /// <summary>Convert from pound-force to Newtons</summary>
-            public static float FromLbf(float lbf) { return lbf * (1.0f / 0.224808943871f); }
+            public static double FromLbf(double lbf) { return lbf * (1.0f / 0.224808943871); }
             /// <summary>Convert from Newtons to Pound-force</summary>
-            public static float ToLbf(float newton) { return newton * 0.224808943871f; }
+            public static double ToLbf(double newton) { return newton * 0.224808943871; }
         }
 
     }
@@ -362,13 +362,13 @@ namespace Orts.Common.Calc
         public static class Celsius
         {
             /// <summary>Convert from degrees Fahrenheit to degrees Celcius</summary>
-            public static float FromF(float fahrenheit) { return (fahrenheit - 32f) * (100f / 180f); }
+            public static double FromF(double fahrenheit) { return (fahrenheit - 32) * (100.0 / 180.0); }
             /// <summary>Convert from degrees Celcius to degrees Fahrenheit</summary>
-            public static float ToF(float celcius) { return celcius * (180f / 100f) + 32f; }
+            public static double ToF(double celcius) { return celcius * (180.0 / 100.0) + 32; }
             /// <summary>Convert from Kelvin to degrees Celcius</summary>
-            public static float FromK(float kelvin) { return kelvin - 273.15f; }
+            public static double FromK(double kelvin) { return kelvin - 273.15; }
             /// <summary>Convert from degress Celcius to Kelvin</summary>
-            public static float ToK(float celcius) { return celcius + 273.15f; }
+            public static double ToK(double celcius) { return celcius + 273.15; }
         }
 
         /// <summary>
@@ -377,13 +377,13 @@ namespace Orts.Common.Calc
         public static class Kelvin
         {
             /// <summary>Convert from degrees Fahrenheit to degrees Celcius</summary>
-            public static float FromF(float fahrenheit) { return (fahrenheit - 32f) * (100f / 180f) + 273.15f; }
+            public static double FromF(double fahrenheit) { return (fahrenheit - 32) * (100.0 / 180.0) + 273.15; }
             /// <summary>Convert from degrees Celcius to degrees Fahrenheit</summary>
-            public static float ToF(float kelvin) { return (kelvin - 273.15f) * (180f / 100f) + 32f; }
+            public static double ToF(double kelvin) { return (kelvin - 273.15) * (180.0 / 100.0) + 32; }
             /// <summary>Convert from Celcisu degress to Kelvin</summary>
-            public static float FromC(float celcius) { return celcius + 273.15f; }
+            public static double FromC(double celcius) { return celcius + 273.15; }
             /// <summary>Convert from Kelvin to degress Celcius</summary>
-            public static float ToC(float kelvin) { return kelvin - 273.15f; }
+            public static double ToC(double kelvin) { return kelvin - 273.15; }
 
         }
     }
@@ -399,20 +399,20 @@ namespace Orts.Common.Calc
         public static class MeterPerSecond
         {
             /// <summary>Convert miles/hour to metres/second</summary>
-            public static float FromMpH(float milesPerHour) { return milesPerHour * (1.0f / 2.23693629f); }
+            public static double FromMpH(double milesPerHour) { return milesPerHour * (1.0 / 2.23693629); }
             /// <summary>Convert metres/second to miles/hour</summary>
-            public static float ToMpH(float metersPerSecond) { return metersPerSecond * 2.23693629f; }
+            public static double ToMpH(double metersPerSecond) { return metersPerSecond * 2.23693629; }
             /// <summary>Convert kilometre/hour to metres/second</summary>
-            public static float FromKpH(float kilometersPerHour) { return kilometersPerHour * (1.0f / 3.600f); }
+            public static double FromKpH(double kilometersPerHour) { return kilometersPerHour * (1.0 / 3.6); }
             /// <summary>Convert metres/second to kilometres/hour</summary>
-            public static float ToKpH(float metersPerSecond) { return metersPerSecond * 3.600f; }
+            public static double ToKpH(double metersPerSecond) { return metersPerSecond * 3.6; }
 
             /// <summary>
             /// Convert from metres/second to kilometres/hour or miles/hour, depending on value of isMetric
             /// </summary>
             /// <param name="speed">speed in metres/second</param>
             /// <param name="isMetric">true to convert to kilometre/hour, false to convert to miles/hour</param>
-            public static float FromMpS(float speed, bool isMetric)
+            public static double FromMpS(double speed, bool isMetric)
             {
                 return isMetric ? ToKpH(speed) : ToMpH(speed);
             }
@@ -422,7 +422,7 @@ namespace Orts.Common.Calc
             /// </summary>
             /// <param name="speed">speed to be converted to metres/second</param>
             /// <param name="isMetric">true to convert from kilometre/hour, false to convert from miles/hour</param>
-            public static float ToMpS(float speed, bool isMetric)
+            public static double ToMpS(double speed, bool isMetric)
             {
                 return isMetric ? FromKpH(speed) : FromMpH(speed);
             }
@@ -446,9 +446,9 @@ namespace Orts.Common.Calc
             public static class Mass
             {
                 /// <summary>Convert from pound/hour to kilograms/second</summary>
-                public static float FromLbpH(float poundsPerHour) { return poundsPerHour * (1.0f / 7936.64144f); }
+                public static double FromLbpH(double poundsPerHour) { return poundsPerHour * (1.0 / 7936.64144); }
                 /// <summary>Convert from kilograms/second to pounds/hour</summary>
-                public static float ToLbpH(float kilogramsPerSecond) { return kilogramsPerSecond * 7936.64144f; }
+                public static double ToLbpH(double kilogramsPerSecond) { return kilogramsPerSecond * 7936.64144; }
             }
         }
 
@@ -458,9 +458,9 @@ namespace Orts.Common.Calc
         public static class Pressure
         {
             /// <summary>Convert from Pounds per square Inch per second to bar per second</summary>
-            public static float FromPSIpS(float psi) { return psi * (1.0f / 14.5037738f); }
+            public static double FromPSIpS(double psi) { return psi * (1.0 / 14.5037738); }
             /// <summary>Convert from bar per second to Pounds per square Inch per second</summary>
-            public static float ToPSIpS(float bar) { return bar * 14.5037738f; }
+            public static double ToPSIpS(double bar) { return bar * 14.5037738; }
         }
     }
 
@@ -480,9 +480,9 @@ namespace Orts.Common.Calc
             public static class Mass
             {
                 /// <summary>Convert from Britisch Thermal Units per Pound to kiloJoule per kilogram</summary>
-                public static float FromBTUpLb(float btuPerPound) { return btuPerPound * 2.326f; }
+                public static double FromBTUpLb(double btuPerPound) { return btuPerPound * 2.326; }
                 /// <summary>Convert from kiloJoule per kilogram to Britisch Thermal Units per Pound</summary>
-                public static float ToBTUpLb(float kJPerkg) { return kJPerkg * (1.0f / 2.326f); }
+                public static double ToBTUpLb(double kJPerkg) { return kJPerkg * (1.0f / 2.326); }
             }
 
             /// <summary>
@@ -491,9 +491,9 @@ namespace Orts.Common.Calc
             public static class Volume
             {
                 /// <summary>Convert from Britisch Thermal Units per ft^3 to kiloJoule per m^3</summary>
-                public static float FromBTUpFt3(float btuPerFt3) { return btuPerFt3 * (1f / 37.3f); }
+                public static double FromBTUpFt3(double btuPerFt3) { return btuPerFt3 * (1.0 / 37.3); }
                 /// <summary>Convert from kiloJoule per m^3 to Britisch Thermal Units per ft^3</summary>
-                public static float ToBTUpFt3(float kJPerM3) { return kJPerM3 * 37.3f; }
+                public static double ToBTUpFt3(double kJPerM3) { return kJPerM3 * 37.3; }
             }
 
         }
@@ -528,11 +528,11 @@ namespace Orts.Common.Calc
         /// </summary>
         public static class Vacuum
         {
-            readonly static float OneAtmospherePSI = Atmospheric.ToPSI(1);
+            readonly static double OneAtmospherePSI = Atmospheric.ToPSI(1);
             /// <summary>vacuum in inhg to pressure in psia</summary>
-            public static float ToPressure(float vacuum) { return OneAtmospherePSI - Atmospheric.ToPSI(Atmospheric.FromInHg(vacuum)); }
+            public static double ToPressure(double vacuum) { return OneAtmospherePSI - Atmospheric.ToPSI(Atmospheric.FromInHg(vacuum)); }
             /// <summary>convert pressure in psia to vacuum in inhg</summary>
-            public static float FromPressure(float pressure) { return Atmospheric.ToInHg(Atmospheric.FromPSI(OneAtmospherePSI - pressure)); }
+            public static double FromPressure(double pressure) { return Atmospheric.ToInHg(Atmospheric.FromPSI(OneAtmospherePSI - pressure)); }
         }
 
         /// <summary>
@@ -541,21 +541,21 @@ namespace Orts.Common.Calc
         public static class Atmospheric
         {
             /// <summary>Convert from kiloPascal to Bar</summary>
-            public static float FromKPa(float kiloPascal) { return kiloPascal * (1.0f / 100.0f); }
+            public static double FromKPa(double kiloPascal) { return kiloPascal * (1.0 / 100.0); }
             /// <summary>Convert from bar to kiloPascal</summary>
-            public static float ToKPa(float bar) { return bar * 100.0f; }
+            public static double ToKPa(double bar) { return bar * 100.0; }
             /// <summary>Convert from Pounds per Square Inch to Bar</summary>
-            public static float FromPSI(float poundsPerSquareInch) { return poundsPerSquareInch * (1.0f / 14.5037738f); }
+            public static double FromPSI(double poundsPerSquareInch) { return poundsPerSquareInch * (1.0 / 14.5037738); }
             /// <summary>Convert from Bar to Pounds per Square Inch</summary>
-            public static float ToPSI(float bar) { return bar * 14.5037738f; }
+            public static double ToPSI(double bar) { return bar * 14.5037738; }
             /// <summary>Convert from Inches Mercury to bar</summary>
-            public static float FromInHg(float inchesMercury) { return inchesMercury * 0.03386389f; }
+            public static double FromInHg(double inchesMercury) { return inchesMercury * 0.03386389; }
             /// <summary>Convert from bar to Inches Mercury</summary>
-            public static float ToInHg(float bar) { return bar * (1.0f / 0.03386389f); }
+            public static double ToInHg(double bar) { return bar * (1.0 / 0.03386389); }
             /// <summary>Convert from mass-force per square metres to bar</summary>
-            public static float FromKgfpCm2(float f) { return f * (1.0f / 1.0197f); }
+            public static double FromKgfpCm2(double f) { return f * (1.0 / 1.0197); }
             /// <summary>Convert from bar to mass-force per square metres</summary>
-            public static float ToKgfpCm2(float bar) { return bar * 1.0197f; }
+            public static double ToKgfpCm2(double bar) { return bar * 1.0197; }
         }
 
         /// <summary>
@@ -564,28 +564,28 @@ namespace Orts.Common.Calc
         public static class Standard
         {
             /// <summary>Convert from Pounds per Square Inch to kiloPascal</summary>
-            public static float FromPSI(float psi) { return psi * 6.89475729f; }
+            public static double FromPSI(double psi) { return psi * 6.89475729; }
             /// <summary>Convert from kiloPascal to Pounds per Square Inch</summary>
-            public static float ToPSI(float kiloPascal) { return kiloPascal * (1.0f / 6.89475729f); }
+            public static double ToPSI(double kiloPascal) { return kiloPascal * (1.0 / 6.89475729); }
             /// <summary>Convert from Inches Mercury to kiloPascal</summary>
-            public static float FromInHg(float inchesMercury) { return inchesMercury * 3.386389f; }
+            public static double FromInHg(double inchesMercury) { return inchesMercury * 3.386389; }
             /// <summary>Convert from kiloPascal to Inches Mercury</summary>
-            public static float ToInHg(float kiloPascal) { return kiloPascal * (1.0f / 3.386389f); }
+            public static double ToInHg(double kiloPascal) { return kiloPascal * (1.0 / 3.386389); }
             /// <summary>Convert from Bar to kiloPascal</summary>
-            public static float FromBar(float bar) { return bar * 100.0f; }
+            public static double FromBar(double bar) { return bar * 100.0; }
             /// <summary>Convert from kiloPascal to Bar</summary>
-            public static float ToBar(float kiloPascal) { return kiloPascal * (1.0f / 100.0f); }
+            public static double ToBar(double kiloPascal) { return kiloPascal * (1.0 / 100.0); }
             /// <summary>Convert from mass-force per square metres to kiloPascal</summary>
-            public static float FromKgfpCm2(float f) { return f * 98.068059f; }
+            public static double FromKgfpCm2(double f) { return f * 98.068059; }
             /// <summary>Convert from kiloPascal to mass-force per square centimetres</summary>
-            public static float ToKgfpCm2(float kiloPascal) { return kiloPascal * (1.0f / 98.068059f); }
+            public static double ToKgfpCm2(double kiloPascal) { return kiloPascal * (1.0 / 98.068059); }
 
             /// <summary>
             /// Convert from KPa to any pressure unit
             /// </summary>
             /// <param name="pressure">pressure to convert from</param>
             /// <param name="outputUnit">Unit to convert To</param>
-            public static float FromKPa(float pressure, Unit outputUnit)
+            public static double FromKPa(double pressure, Unit outputUnit)
             {
                 switch (outputUnit)
                 {
@@ -609,7 +609,7 @@ namespace Orts.Common.Calc
             /// </summary>
             /// <param name="pressure">pressure to convert from</param>
             /// <param name="inputUnit">Unit to convert from</param>
-            public static float ToKPa(float pressure, Unit inputUnit)
+            public static double ToKPa(double pressure, Unit inputUnit)
             {
                 switch (inputUnit)
                 {

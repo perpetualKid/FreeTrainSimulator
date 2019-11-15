@@ -136,7 +136,7 @@ namespace Orts.Common.Input
         /// <summary>
         /// Displays the given numeric value on RailDriver LED display
         /// </summary>
-        public void SetLedsNumeric(float value)
+        public void SetLedsNumeric(double value)
         {
             if (value < 0 || value > 999.9)
                 throw new ArgumentOutOfRangeException(nameof(value), value, "Display Value needs to be between 0.0 and 999.9");

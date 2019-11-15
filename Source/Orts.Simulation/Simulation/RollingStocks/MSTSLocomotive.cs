@@ -218,7 +218,7 @@ namespace Orts.Simulation.RollingStocks
         public float TrackSanderSandConsumptionFt3pH = 1.01f;
 
         // Vacuum Braking parameters
-        readonly static float OneAtmospherePSI = Pressure.Atmospheric.ToPSI(1);
+        readonly static double OneAtmospherePSI = Pressure.Atmospheric.ToPSI(1);
         public bool SmallSteamEjectorIsOn = false;
         public bool LargeSteamEjectorIsOn = false;
         public bool VacuumPumpOperating = false;
@@ -242,11 +242,11 @@ namespace Orts.Simulation.RollingStocks
 
         public bool EngineBrakeFitted = false;
         public bool VacuumExhausterIsOn = false;
-        public float VacuumBrakesMainResVolumeM3 = Size.Volume.FromFt3(200.0f); // Main vacuum reservoir volume
-        public float VacuumBrakesMainResMaxVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(23);
-        public float VacuumBrakesExhausterRestartVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(21);
-        public float VacuumBrakesMainResChargingRatePSIAorInHgpS = Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(0.2f));
-        public float VacuumMainResVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(23); // Vacuum currently in Main Reservoir
+        public double VacuumBrakesMainResVolumeM3 = Size.Volume.FromFt3(200.0f); // Main vacuum reservoir volume
+        public double VacuumBrakesMainResMaxVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(23);
+        public double VacuumBrakesExhausterRestartVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(21);
+        public double VacuumBrakesMainResChargingRatePSIAorInHgpS = Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(0.2f));
+        public double VacuumMainResVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(23); // Vacuum currently in Main Reservoir
 
 
         // Set values for display in HUD
@@ -299,10 +299,10 @@ namespace Orts.Simulation.RollingStocks
         public float BrakePipeChargingRatePSIorInHgpS;
         public Interpolator2D TractiveForceCurves;
         public Interpolator2D DynamicBrakeForceCurves;
-        public float DynamicBrakeSpeed1MpS = Speed.MeterPerSecond.FromKpH(5);
-        public float DynamicBrakeSpeed2MpS = Speed.MeterPerSecond.FromKpH(30);
-        public float DynamicBrakeSpeed3MpS = Speed.MeterPerSecond.FromKpH(999);
-        public float DynamicBrakeSpeed4MpS = Speed.MeterPerSecond.FromKpH(999);
+        public float DynamicBrakeSpeed1MpS = (float)Speed.MeterPerSecond.FromKpH(5);
+        public float DynamicBrakeSpeed2MpS = (float)Speed.MeterPerSecond.FromKpH(30);
+        public float DynamicBrakeSpeed3MpS = (float)Speed.MeterPerSecond.FromKpH(999);
+        public float DynamicBrakeSpeed4MpS = (float)Speed.MeterPerSecond.FromKpH(999);
         public float DynamicBrakeRatioAtSpeed4 = 0;
         public float MaxDynamicBrakeForceN;
         public float DynamicBrakeMaxCurrentA;
@@ -752,10 +752,10 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(awsmonitor":
                 case "engine(overspeedmonitor": VigilanceMonitor = true; TrainControlSystem.Parse(lowercasetoken, stf); break;
                 case "engine(enginecontrollers(combined_control": ParseCombData(lowercasetoken, stf); break;
-                case "engine(airbrakesmainresvolume": MainResVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "engine(airbrakesmainresvolume": MainResVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
                 case "engine(airbrakesmainmaxairpressure": MainResPressurePSI = MaxMainResPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(airbrakescompressorrestartpressure": CompressorRestartPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(airbrakesaircompressorpowerrating": CompressorChargingRateM3pS = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "engine(airbrakesaircompressorpowerrating": CompressorChargingRateM3pS = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
                 case "engine(trainpipeleakrate": TrainBrakePipeLeakPSIorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
                 case "engine(vacuumbrakesvacuumpumpresistance": VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
 
@@ -1137,7 +1137,7 @@ namespace Orts.Simulation.RollingStocks
             
             // Calculate minimum speed to pickup water
             const float Aconst = 2;
-            WaterScoopMinSpeedMpS = Size.Length.FromFt((float)Math.Sqrt(Aconst * GravitationalAccelerationFtpSpS * Size.Length.ToFt(WaterScoopFillElevationM)));
+            WaterScoopMinSpeedMpS = (float)Size.Length.FromFt(Math.Sqrt(Aconst * GravitationalAccelerationFtpSpS * Size.Length.ToFt(WaterScoopFillElevationM)));
 
             // Initialise Brake Pipe Charging Rate
             if (BrakePipeChargingRatePSIorInHgpS == 0) // Check to see if BrakePipeChargingRate has been set in the ENG file.
@@ -1304,7 +1304,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 if (MainResChargingRatePSIpS <= 0)
                 {
-                    MainResChargingRatePSIpS = Math.Max(0.5f, (CompressorChargingRateM3pS * Pressure.Atmospheric.ToPSI(1)) / MainResVolumeM3);
+                    MainResChargingRatePSIpS = (float)Math.Max(0.5, (CompressorChargingRateM3pS * Pressure.Atmospheric.ToPSI(1)) / MainResVolumeM3);
                 }
             }
             else if (MainResChargingRatePSIpS <= 0) MainResChargingRatePSIpS = 0.4f;
@@ -1408,7 +1408,7 @@ namespace Orts.Simulation.RollingStocks
 
             if (DynamicBrakePercent > 0 && DynamicBrakeForceCurves != null && AbsSpeedMpS > 0)
             {
-                float f = DynamicBrakeForceCurves.Get(.01f * DynamicBrakePercent, AbsSpeedMpS);
+                float f = (float)DynamicBrakeForceCurves.Get(.01f * DynamicBrakePercent, AbsSpeedMpS);
                 if (f > 0 && PowerOn)
                 {
                     DynamicBrakeForceN = f * (1 - PowerReduction);
@@ -1759,7 +1759,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    MotiveForceN = TractiveForceCurves.Get(t, AbsWheelSpeedMpS) * (1 - PowerReduction);
+                    MotiveForceN = (float)TractiveForceCurves.Get(t, AbsWheelSpeedMpS) * (1 - PowerReduction);
                     if (MotiveForceN < 0 && !TractiveForceCurves.HasNegativeValues)
                         MotiveForceN = 0;
                 }
@@ -2052,7 +2052,7 @@ namespace Orts.Simulation.RollingStocks
                 LocomotiveAxle.AxleWeightN = 9.81f * DrvWheelWeightKg;   //will be computed each time considering the tilting
                 LocomotiveAxle.DriveForceN = MotiveForceN;           //Developed force
                 LocomotiveAxle.TrainSpeedMpS = SpeedMpS;            //Set the train speed of the axle model
-                LocomotiveAxle.Update((float)elapsedClockSeconds);         //Main updater of the axle model
+                LocomotiveAxle.Update(elapsedClockSeconds);         //Main updater of the axle model
                 MotiveForceN = LocomotiveAxle.AxleForceN;           //Get the Axle force and use it for the motion
                 if (elapsedClockSeconds > 0)
                 {
@@ -2264,12 +2264,12 @@ namespace Orts.Simulation.RollingStocks
                 // Calculate water velocity
                 const float Aconst = 2;
                 const float Bconst = 2.15f;
-                float Avalue = ((float)Math.Pow(Speed.MeterPerSecond.ToMpH(absSpeedMpS), 2) * Bconst);
-                float Bvalue = Aconst * GravitationalAccelerationFtpSpS * Size.Length.ToFt(WaterScoopFillElevationM);
+                double Avalue = (Math.Pow(Speed.MeterPerSecond.ToMpH(absSpeedMpS), 2) * Bconst);
+                double Bvalue = Aconst * GravitationalAccelerationFtpSpS * Size.Length.ToFt(WaterScoopFillElevationM);
 
                 if (Avalue > Bvalue)
                 {
-                    WaterScoopVelocityMpS = Size.Length.FromFt((float)Math.Sqrt(Avalue - Bvalue));
+                    WaterScoopVelocityMpS = (float)Size.Length.FromFt(Math.Sqrt(Avalue - Bvalue));
                 }
                 else
                 {
@@ -2278,13 +2278,13 @@ namespace Orts.Simulation.RollingStocks
 
                 // calculate volume of water scooped per period
                 const float CuFttoGalUK = 6.22884f; // imperial gallons of water in a cubic foot of water
-                WaterScoopedQuantityLpS = Size.LiquidVolume.FromGallonUK(Size.Area.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Size.Length.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK);
+                WaterScoopedQuantityLpS = (float)Size.LiquidVolume.FromGallonUK(Size.Area.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Size.Length.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK);
                 WaterScoopInputAmountL = WaterScoopedQuantityLpS * (float)elapsedClockSeconds; // Calculate current input quantity
 
                 // Max sure that water level can't exceed maximum tender water level. Assume that water will be vented out of tender if maximum value exceeded. 
                 // If filling from water trough this will be done with force
                 const float NominalExtraWaterVolumeFactor = 1.0001f;
-                CombinedTenderWaterVolumeUKG += Size.LiquidVolume.ToGallonUK(WaterScoopInputAmountL); // add the amouunt of water added by scoop
+                CombinedTenderWaterVolumeUKG += (float)Size.LiquidVolume.ToGallonUK(WaterScoopInputAmountL); // add the amouunt of water added by scoop
                 WaterScoopTotalWaterL += WaterScoopInputAmountL;
 
                 CombinedTenderWaterVolumeUKG = MathHelper.Clamp(CombinedTenderWaterVolumeUKG, 0.0f, MaxTotalCombinedWaterVolumeUKG * NominalExtraWaterVolumeFactor);
@@ -2338,7 +2338,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public virtual void UpdateFrictionCoefficient(double elapsedClockSeconds)
         {
-            float BaseuMax = (Curtius_KnifflerA / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + Curtius_KnifflerB) + Curtius_KnifflerC); // Base Curtius - Kniffler equation - u = 0.33, all other values are scaled off this formula
+            float BaseuMax = (float)(Curtius_KnifflerA / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + Curtius_KnifflerB) + Curtius_KnifflerC); // Base Curtius - Kniffler equation - u = 0.33, all other values are scaled off this formula
 
             //Set the friction coeff due to weather
             if (Simulator.WeatherType == WeatherType.Rain || Simulator.WeatherType == WeatherType.Snow)
@@ -2474,7 +2474,7 @@ namespace Orts.Simulation.RollingStocks
                 if (TrackSandBoxCapacityFt3 > 0.0) // if sand still in sandbox then sanding is available
                 {
                     // Calculate consumption of sand, and drop in sand box level
-                    float ActualSandConsumptionFt3pS = Frequency.Periodic.FromHours(TrackSanderSandConsumptionFt3pH) * (float)elapsedClockSeconds;
+                    float ActualSandConsumptionFt3pS = (float)(Frequency.Periodic.FromHours(TrackSanderSandConsumptionFt3pH) * elapsedClockSeconds);
                     TrackSandBoxCapacityFt3 -= ActualSandConsumptionFt3pS;
                     TrackSandBoxCapacityFt3 = MathHelper.Clamp(TrackSandBoxCapacityFt3, 0.0f, MaxTrackSandBoxCapacityFt3);
                     if (TrackSandBoxCapacityFt3 == 0.0)
@@ -2484,8 +2484,8 @@ namespace Orts.Simulation.RollingStocks
                 }
 
           // Calculate air consumption and change in main air reservoir pressure
-                float ActualAirConsumptionFt3pS = Frequency.Periodic.FromMinutes(TrackSanderAirComsumptionFt3pM) * (float)elapsedClockSeconds;
-                float SanderPressureDiffPSI = ActualAirConsumptionFt3pS / Size.Volume.ToFt3(MainResVolumeM3) ;
+                float ActualAirConsumptionFt3pS = (float)(Frequency.Periodic.FromMinutes(TrackSanderAirComsumptionFt3pM) * elapsedClockSeconds);
+                float SanderPressureDiffPSI = ActualAirConsumptionFt3pS / (float)Size.Volume.ToFt3(MainResVolumeM3) ;
                 MainResPressurePSI -= SanderPressureDiffPSI;
                 MainResPressurePSI = MathHelper.Clamp(MainResPressurePSI, 0.001f, MaxMainResPressurePSI);
             }
@@ -4116,14 +4116,14 @@ namespace Orts.Simulation.RollingStocks
                     {
                         // Displays current allowable speed
                         bool metric = cvc.ControlUnit == CabViewControlUnit.Km_Per_Hour;
-                        data = Speed.MeterPerSecond.FromMpS(TrainControlSystem.CurrentSpeedLimitMpS, metric);
+                        data = (float)Speed.MeterPerSecond.FromMpS(TrainControlSystem.CurrentSpeedLimitMpS, metric);
                         break;
                     }
                 case CabViewControlType.SpeedLim_Display:
                     {
                         // Displays allowable speed shown on next signal
                         bool metric = cvc.ControlUnit == CabViewControlUnit.Km_Per_Hour;
-                        data = Speed.MeterPerSecond.FromMpS(TrainControlSystem.NextSpeedLimitMpS, metric);
+                        data = (float)Speed.MeterPerSecond.FromMpS(TrainControlSystem.NextSpeedLimitMpS, metric);
                         break;
                     }
                 case CabViewControlType.Gears_Display:
@@ -4249,13 +4249,13 @@ namespace Orts.Simulation.RollingStocks
         protected static float ConvertFromPSI(CabViewControl cvc, float data)
         {
             if (cvc.ControlUnit == CabViewControlUnit.Bar)
-                data = Pressure.Atmospheric.FromPSI(data);
+                data = (float)Pressure.Atmospheric.FromPSI(data);
             else if (cvc.ControlUnit == CabViewControlUnit.KiloPascals)
-                data = Pressure.Standard.FromPSI(data);
+                data = (float)Pressure.Standard.FromPSI(data);
             else if (cvc.ControlUnit == CabViewControlUnit.Kgs_Per_Square_Cm)
                 data *= 70.307e-3f;
             else if (cvc.ControlUnit == CabViewControlUnit.Inches_Of_Mercury)
-                data = Pressure.Vacuum.FromPressure(data);
+                data = (float)Pressure.Vacuum.FromPressure(data);
             return data;
         }
 

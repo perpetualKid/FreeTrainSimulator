@@ -307,7 +307,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                         //        motiveForceN = DieselEngine.MaxOutputPowerW / CurrentSpeedMpS;
                         //}
 
-                        float motiveForceN = DieselEngine.DieselTorqueTab[DieselEngine.RealRPM] * DieselEngine.DemandedThrottlePercent / DieselEngine.DieselTorqueTab.MaxY() * 0.01f * CurrentGear.MaxTractiveForceN;
+                        float motiveForceN = (float)(DieselEngine.DieselTorqueTab[DieselEngine.RealRPM] * DieselEngine.DemandedThrottlePercent / DieselEngine.DieselTorqueTab.MaxY() * 0.01f * CurrentGear.MaxTractiveForceN);
                         if (CurrentSpeedMpS > 0)
                         {
                             if (motiveForceN > (DieselEngine.CurrentDieselOutputPowerW/ CurrentSpeedMpS))

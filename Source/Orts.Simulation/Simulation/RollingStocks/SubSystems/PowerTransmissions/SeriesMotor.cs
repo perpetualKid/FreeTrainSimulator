@@ -145,7 +145,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             NominalRevolutionsRad = nomRevolutionsRad;
         }
 
-        public override void Update(float timeSpan)
+        public override void Update(double timeSpan)
         {
             if (shuntResistorOhms == 0.0f)
                 armatureCurrentA = fieldCurrentA / (1.0f - shuntRatio);
@@ -153,7 +153,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 armatureCurrentA = (FieldResistanceOhms + ShuntResistorOhms) / ShuntResistorOhms * fieldCurrentA;
             if ((backEMFvoltageV * fieldCurrentA) >= 0.0f)
             {
-                fieldCurrentA += timeSpan / FieldInductance *
+                fieldCurrentA += (float)timeSpan / FieldInductance *
                     (TerminalVoltageV
                         - backEMFvoltageV
                         - ArmatureResistanceOhms * armatureCurrentA

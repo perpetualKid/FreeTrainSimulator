@@ -240,7 +240,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Updates speed display on RailDriver LED
         /// </summary>
         /// <param name="speed"></param>
-        public void ShowSpeed(float speed)
+        public void ShowSpeed(double speed)
         {
             if (Active)
                 railDriverInstance?.SetLedsNumeric(Math.Abs(speed));

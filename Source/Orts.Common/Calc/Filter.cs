@@ -244,7 +244,7 @@ namespace Orts.Common.Calc
                     }
                     break;
                 default:
-                    throw new NotImplementedException("Other filter types are not implemented yet. Try to use constant sampling period and Filter(float NewSample) version of this method.");
+                    throw new NotImplementedException("Other filter types are not implemented yet. Try to use constant sampling period and Filter(double sample) version of this method.");
             }
             //shift the old samples
             for (int n = numberCoefficients - 1; n > 0; n--)

@@ -770,19 +770,19 @@ namespace Orts.Simulation.RollingStocks
                 switch (WagonType)
                 {
                     case WagonTypes.Freight:
-                        UnbalancedSuperElevationM = Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
+                        UnbalancedSuperElevationM = (float)Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
                         break;
                     case WagonTypes.Passenger:
-                        UnbalancedSuperElevationM = Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
+                        UnbalancedSuperElevationM = (float)Size.Length.FromIn(3.0f);  // Unbalanced superelevation has a maximum default value of 3"
                         break;
                     case WagonTypes.Engine:
-                        UnbalancedSuperElevationM = Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
+                        UnbalancedSuperElevationM = (float)Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
                         break;
                     case WagonTypes.Tender:
-                        UnbalancedSuperElevationM = Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
+                        UnbalancedSuperElevationM = (float)Size.Length.FromIn(6.0f);  // Unbalanced superelevation has a maximum default value of 6"
                         break;
                     default:
-                        UnbalancedSuperElevationM = Size.Length.FromIn(0.01f);  // if no value in wag file or is outside of bounds then set to a default value
+                        UnbalancedSuperElevationM = (float)Size.Length.FromIn(0.01f);  // if no value in wag file or is outside of bounds then set to a default value
                         break;
                 }
             }
@@ -1439,7 +1439,7 @@ namespace Orts.Simulation.RollingStocks
                         // If = 0, then locomotive must be a tank type locomotive. A tank locomotive has the fuel (coal and water) onboard.
                         // Thus the loco weight changes as boiler level goes up and down, and coal mass varies with the fire mass. Also onboard fuel (coal and water ) will vary as used.
                         {
-                            MassKG = LoadEmptyMassKg + Mass.Kilogram.FromLb(SteamLocomotiveIdentification.BoilerMassLB) + SteamLocomotiveIdentification.FireMassKG + SteamLocomotiveIdentification.TenderCoalMassKG + Mass.Kilogram.FromLb(SteamLocomotiveIdentification.CombinedTenderWaterVolumeUKG * WaterLBpUKG);
+                            MassKG = (float)(LoadEmptyMassKg + Mass.Kilogram.FromLb(SteamLocomotiveIdentification.BoilerMassLB) + SteamLocomotiveIdentification.FireMassKG + SteamLocomotiveIdentification.TenderCoalMassKG + Mass.Kilogram.FromLb(SteamLocomotiveIdentification.CombinedTenderWaterVolumeUKG * WaterLBpUKG));
                             MassKG = MathHelper.Clamp(MassKG, LoadEmptyMassKg, LoadFullMassKg); // Clamp Mass to between the empty and full wagon values   
                             // Adjust drive wheel weight
                             SteamLocomotiveIdentification.DrvWheelWeightKg = (MassKG / InitialMassKG) * SteamLocomotiveIdentification.InitialDrvWheelWeightKg;
@@ -1448,7 +1448,7 @@ namespace Orts.Simulation.RollingStocks
                         // This is a tender locomotive. A tender locomotive does not have any fuel onboard.
                         // Thus the loco weight only changes as boiler level goes up and down, and coal mass varies in the fire
                         {
-                            MassKG = LoadEmptyMassKg + Mass.Kilogram.FromLb(SteamLocomotiveIdentification.BoilerMassLB) + SteamLocomotiveIdentification.FireMassKG;
+                            MassKG = (float)(LoadEmptyMassKg + Mass.Kilogram.FromLb(SteamLocomotiveIdentification.BoilerMassLB) + SteamLocomotiveIdentification.FireMassKG);
                             MassKG = MathHelper.Clamp(MassKG, LoadEmptyMassKg, LoadFullMassKg); // Clamp Mass to between the empty and full wagon values        
                         // Adjust drive wheel weight
                             SteamLocomotiveIdentification.DrvWheelWeightKg = (MassKG / InitialMassKG) * SteamLocomotiveIdentification.InitialDrvWheelWeightKg;
@@ -1683,20 +1683,20 @@ namespace Orts.Simulation.RollingStocks
                         if (WheelBearingTemperatureDegC < -10)
                         {
                             // Set to snowing (frozen value)
-                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(12.771f);  // Starting friction for a 10 ton(US) car with standard roller bearings, snowing
-                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(30.0f);  // Starting friction for a 100 ton(US) car with standard roller bearings, snowing
+                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(12.771f);  // Starting friction for a 10 ton(US) car with standard roller bearings, snowing
+                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(30.0f);  // Starting friction for a 100 ton(US) car with standard roller bearings, snowing
                         }
                         else if (WheelBearingTemperatureDegC > 25)
                         {
                             // Set to normal temperature value
-                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(4.257f);  // Starting friction for a 10 ton(US) car with standard roller bearings, not snowing
-                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(15.93f);  // Starting friction for a 100 ton(US) car with standard roller bearings, not snowing
+                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(4.257f);  // Starting friction for a 10 ton(US) car with standard roller bearings, not snowing
+                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(15.93f);  // Starting friction for a 100 ton(US) car with standard roller bearings, not snowing
                         }
                         else
                         {
                             // Set to variable value as bearing heats and cools
-                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
-                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
+                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
+                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
                         }
 
                          if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
@@ -1709,7 +1709,7 @@ namespace Orts.Simulation.RollingStocks
                         }
                         else
                         {
-                            StaticFrictionFactorN = (((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
+                            StaticFrictionFactorN = (float)(((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
                         }
                     }
 
@@ -1728,20 +1728,20 @@ namespace Orts.Simulation.RollingStocks
                         if (WheelBearingTemperatureDegC < -10)
                         {
                             // Set to snowing (frozen value)
-                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(7.98f);  // Starting friction for a 10 ton(US) car with Low torque bearings, snowing
-                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(23.142f);  // Starting friction for a 100 ton(US) car with low torque bearings, snowing
+                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(7.98f);  // Starting friction for a 10 ton(US) car with Low torque bearings, snowing
+                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(23.142f);  // Starting friction for a 100 ton(US) car with low torque bearings, snowing
                         }
                         else if (WheelBearingTemperatureDegC > 25)
                         {
                             // Set to normal temperature value
-                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(2.66f);  // Starting friction for a 10 ton(US) car with Low troque bearings, not snowing
-                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(7.714f);  // Starting friction for a 100 ton(US) car with low torque bearings, not snowing
+                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(2.66f);  // Starting friction for a 10 ton(US) car with Low troque bearings, not snowing
+                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(7.714f);  // Starting friction for a 100 ton(US) car with low torque bearings, not snowing
                         }
                         else
                         {
                             // Set to variable value as bearing heats and cools
-                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
-                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
+                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
+                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
                         }
 
                         if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
@@ -1754,7 +1754,7 @@ namespace Orts.Simulation.RollingStocks
                         }
                         else
                         {
-                            StaticFrictionFactorN = (((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
+                            StaticFrictionFactorN = (float)(((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
                         }
 
                     }
@@ -1773,20 +1773,20 @@ namespace Orts.Simulation.RollingStocks
                         if (WheelBearingTemperatureDegC < -10)
                         {
                             // Set to snowing (frozen value)
-                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(15.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), snowing
-                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(35.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), snowing
+                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(15.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), snowing
+                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(35.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), snowing
                         }
                         else if (WheelBearingTemperatureDegC > 25)
                         {
                             // Set to normal temperature value
-                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(10.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), not snowing
-                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(20.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), not snowing
+                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(10.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), not snowing
+                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(20.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), not snowing
                         }
                         else
                         {
                             // Set to variable value as bearing heats and cools
-                            StartFrictionLowLoadN = Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
-                            StartFrictionHighLoadN = Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
+                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
+                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
                         }
 
                         if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
@@ -1799,7 +1799,7 @@ namespace Orts.Simulation.RollingStocks
                         }
                         else
                         {
-                            StaticFrictionFactorN = (((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
+                            StaticFrictionFactorN = (float)(((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
                         }
                     }
 
@@ -1840,11 +1840,11 @@ namespace Orts.Simulation.RollingStocks
 
                     // Calculation of resistance @ low speeds
                     // Wind resistance is not included at low speeds, as it does not have a significant enough impact
-                    float speed5 = Speed.MeterPerSecond.FromMpH(5); // 5 mph
-                    float speedDecay = Speed.MeterPerSecond.FromMpH(2.5f);  // Speed at which decay point is reached - 2.5 mph
+                    float speed5 = (float)Speed.MeterPerSecond.FromMpH(5); // 5 mph
+                    float speedDecay = (float)Speed.MeterPerSecond.FromMpH(2.5f);  // Speed at which decay point is reached - 2.5 mph
                     const float ForceDecayFactor = 2.5f; // Multiplier to determine what fraction of force to decay to - ie 2.5 x normal friction at 5mph
                     Friction5N = DavisAN * WheelBearingTemperatureResistanceFactor + speed5 * (DavisBNSpM + speed5 * DavisCNSSpMM); // Calculate friction @ 5 mph
-                    Friction0N = Dynamics.Force.FromLbf(Mass.Kilogram.ToTonsUS(MassKG) * StaticFrictionFactorN); // Static friction is journal or roller bearing friction x factor
+                    Friction0N = (float)Dynamics.Force.FromLbf(Mass.Kilogram.ToTonsUS(MassKG) * StaticFrictionFactorN); // Static friction is journal or roller bearing friction x factor
 
                     // Starting friction is decayed using an exponential vs speed function (similar to Newtons law of cooling), an arbitary decay rate of decreasing resistance to 
                     // 2 x the Davis value at 5mph by the time the train reaches a speed of 
@@ -2026,7 +2026,7 @@ namespace Orts.Simulation.RollingStocks
              {
                   // Scaled between light and heavy loads
                   var HotBoxScaleFactor = (MassKG - Mass.Kilogram.FromTonsUS(10)) / (Mass.Kilogram.FromTonsUS(100) - Mass.Kilogram.FromTonsUS(10));
-                  HotBoxKConst = HotBoxKConstLowLoad - ((float)Math.Abs(HotBoxKConstHighLoad - HotBoxKConstLowLoad)) * HotBoxScaleFactor;
+                  HotBoxKConst = (float)(HotBoxKConstLowLoad - (Math.Abs(HotBoxKConstHighLoad - HotBoxKConstLowLoad)) * HotBoxScaleFactor);
              }
              
              if (elapsedClockSeconds > 0) // Prevents zero values resetting temperature
@@ -2226,14 +2226,14 @@ namespace Orts.Simulation.RollingStocks
                 float A = Train.PhysicsWindSpeedMpS / AbsSpeedMpS;
                 float C = (float)Math.Sqrt((1 + (A * A) + 2.0f * A * Math.Cos(ResultantWindComponentRad)));
                 float WindConstant = 8.25f;
-                float TrainSpeedMpH = Size.Length.ToMi(Frequency.Periodic.ToHours(AbsSpeedMpS));
-                float WindSpeedMpH = Size.Length.ToMi(Frequency.Periodic.ToHours(Train.PhysicsWindSpeedMpS));
+                float TrainSpeedMpH = (float)Size.Length.ToMi(Frequency.Periodic.ToHours(AbsSpeedMpS));
+                float WindSpeedMpH = (float)Size.Length.ToMi(Frequency.Periodic.ToHours(Train.PhysicsWindSpeedMpS));
 
-                float WagonFrontalAreaFt2 = Size.Area.ToFt2(WagonFrontalAreaM2);
+                double WagonFrontalAreaFt2 = Size.Area.ToFt2(WagonFrontalAreaM2);
 
-                LateralWindForceN = Dynamics.Force.FromLbf(WindConstant * A * (float)Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C);
+                LateralWindForceN = (float)(Dynamics.Force.FromLbf(WindConstant * A * Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C));
 
-                float LateralWindResistanceForceN = Dynamics.Force.FromLbf(WindConstant * A * (float)Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C * Train.WagonCoefficientFriction);
+                float LateralWindResistanceForceN = (float)(Dynamics.Force.FromLbf(WindConstant * A * Math.Sin(ResultantWindComponentRad) * DavisDragConstant * WagonFrontalAreaFt2 * TrainSpeedMpH * TrainSpeedMpH * C * Train.WagonCoefficientFriction));
 
                 // if this car is a locomotive, but not the lead one then recalculate the resistance with lower C value as drag will not be as high on trailing locomotives
                 if (WagonType == WagonTypes.Engine && Train.LeadLocomotive != this)
@@ -2303,7 +2303,7 @@ namespace Orts.Simulation.RollingStocks
                         Trace.TraceInformation("Tender @ position {0} does not have a locomotive associated with. Check that it is preceeded by a steam locomotive.", CarID);
                     }
 
-                    MassKG = FreightAnimations.WagonEmptyWeight + TendersSteamLocomotive.TenderCoalMassKG + Mass.Kilogram.FromLb( (TendersSteamLocomotive.CurrentLocoTenderWaterVolumeUKG * WaterLBpUKG));
+                    MassKG = FreightAnimations.WagonEmptyWeight + TendersSteamLocomotive.TenderCoalMassKG + (float)Mass.Kilogram.FromLb( (TendersSteamLocomotive.CurrentLocoTenderWaterVolumeUKG * WaterLBpUKG));
                     MassKG = MathHelper.Clamp(MassKG, LoadEmptyMassKg, LoadFullMassKg); // Clamp Mass to between the empty and full wagon values   
 
                     // Update wagon parameters sensitive to wagon mass change
@@ -2336,7 +2336,7 @@ namespace Orts.Simulation.RollingStocks
                     // Find the associated steam locomotive for this tender
                     if (AuxTendersSteamLocomotive == null) FindAuxTendersSteamLocomotive();
 
-                    MassKG = FreightAnimations.WagonEmptyWeight + Mass.Kilogram.FromLb((AuxTendersSteamLocomotive.CurrentAuxTenderWaterVolumeUKG * WaterLBpUKG));
+                    MassKG = FreightAnimations.WagonEmptyWeight + (float)Mass.Kilogram.FromLb((AuxTendersSteamLocomotive.CurrentAuxTenderWaterVolumeUKG * WaterLBpUKG));
                     MassKG = MathHelper.Clamp(MassKG, LoadEmptyMassKg, LoadFullMassKg); // Clamp Mass to between the empty and full wagon values   
 
                     // Update wagon parameters sensitive to wagon mass change
@@ -2421,7 +2421,7 @@ namespace Orts.Simulation.RollingStocks
                     if (LocomotiveIdentification.RefillingFromTrough && ProcessWaterEffects)
                     {
 
-                        float SpeedRatio = AbsSpeedMpS / Speed.MeterPerSecond.FromMpH(100); // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
+                        float SpeedRatio = (float)(AbsSpeedMpS / Speed.MeterPerSecond.FromMpH(100)); // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
 
                         // Turn tender water overflow on if water level is greater then 100% nominally and minimum water scoop speed is reached
                         if (LocomotiveIdentification.TenderWaterLevelFraction >= 0.9999 && AbsSpeedMpS > LocomotiveIdentification.WaterScoopMinSpeedMpS)
@@ -2447,7 +2447,7 @@ namespace Orts.Simulation.RollingStocks
                     // Water scoop spray effects control - always on when scoop over trough, regardless of whether above minimum speed or not
                     if (ProcessWaterEffects && LocomotiveIdentification.IsWaterScoopDown && IsOverTrough() && AbsSpeedMpS > 0.1)
                     {
-                        float SpeedRatio = AbsSpeedMpS / Speed.MeterPerSecond.FromMpH(100); // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
+                        float SpeedRatio = (float)(AbsSpeedMpS / Speed.MeterPerSecond.FromMpH(100)); // Ratio to reduce water disturbance with speed - an arbitary value of 100mph has been chosen as the reference
 
                         float InitialWaterScoopParticleDurationS = 1.25f;
                         float InitialWaterScoopWaterVelocityMpS = 50.0f;
@@ -2456,8 +2456,8 @@ namespace Orts.Simulation.RollingStocks
                         // Turn water scoop spray effects on
                         if (AbsSpeedMpS <= Speed.MeterPerSecond.FromMpH(10))
                         {
-                            float SprayDecay = (Speed.MeterPerSecond.FromMpH(25) / Speed.MeterPerSecond.FromMpH(100)) / Speed.MeterPerSecond.FromMpH(10); // Linear decay factor - based upon previous level starts @ a value @ 25mph
-                            SpeedRatio = (SprayDecay * AbsSpeedMpS) / Speed.MeterPerSecond.FromMpH(100); // Decrease the water scoop spray effect to minimum level of visibility
+                            double SprayDecay = (Speed.MeterPerSecond.FromMpH(25) / Speed.MeterPerSecond.FromMpH(100)) / Speed.MeterPerSecond.FromMpH(10); // Linear decay factor - based upon previous level starts @ a value @ 25mph
+                            SpeedRatio = (float)((SprayDecay * AbsSpeedMpS) / Speed.MeterPerSecond.FromMpH(100)); // Decrease the water scoop spray effect to minimum level of visibility
                             WaterScoopParticleDurationS = InitialWaterScoopParticleDurationS * SpeedRatio;
                             WaterScoopWaterVelocityMpS = InitialWaterScoopWaterVelocityMpS * SpeedRatio;
                             WaterScoopWaterVolumeM3pS = InitialWaterScoopWaterVolumeM3pS * SpeedRatio;
@@ -2466,7 +2466,7 @@ namespace Orts.Simulation.RollingStocks
                         // Below 25mph effect does not vary, above 25mph effect varies according to speed
                         else if (AbsSpeedMpS < Speed.MeterPerSecond.FromMpH(25) && AbsSpeedMpS > Speed.MeterPerSecond.FromMpH(10))
                         {
-                            SpeedRatio = Speed.MeterPerSecond.FromMpH(25) / Speed.MeterPerSecond.FromMpH(100); // Hold the water scoop spray effect to a minimum level of visibility
+                            SpeedRatio = (float)(Speed.MeterPerSecond.FromMpH(25) / Speed.MeterPerSecond.FromMpH(100)); // Hold the water scoop spray effect to a minimum level of visibility
                             WaterScoopParticleDurationS = InitialWaterScoopParticleDurationS * SpeedRatio;
                             WaterScoopWaterVelocityMpS = InitialWaterScoopWaterVelocityMpS * SpeedRatio;
                             WaterScoopWaterVolumeM3pS = InitialWaterScoopWaterVolumeM3pS * SpeedRatio;
@@ -2998,7 +2998,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else
             {
-                frictionfraction = BrakeShoeFrictionFactor[Speed.MeterPerSecond.ToKpH(AbsSpeedMpS)];
+                frictionfraction = (float)BrakeShoeFrictionFactor[Speed.MeterPerSecond.ToKpH(AbsSpeedMpS)];
             }
             
             return frictionfraction;
@@ -3017,7 +3017,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else
             {
-                frictionfraction = BrakeShoeFrictionFactor[0.0f];
+                frictionfraction = (float)BrakeShoeFrictionFactor[0.0f];
             }
 
             return frictionfraction;

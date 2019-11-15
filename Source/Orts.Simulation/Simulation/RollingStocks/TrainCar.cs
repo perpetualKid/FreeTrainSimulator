@@ -209,28 +209,28 @@ namespace Orts.Simulation.RollingStocks
         public bool AmbientTemperatureInitialised;
 
         // Input values to allow the temperature for different values of latitude to be calculated
-        static float[] WorldLatitudeDeg = new float[]
+        static double[] WorldLatitudeDeg = new double[]
         {
            -50.0f, -40.0f, -30.0f, -20.0f, -10.0f, 0.0f, 10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f
         };
 
         // Temperature in deg Celcius
-        static float[] WorldTemperatureWinter = new float[]
+        static double[] WorldTemperatureWinter = new double[]
         {
             0.9f, 8.7f, 12.4f, 17.2f, 20.9f, 25.9f, 22.8f, 18.2f, 11.1f, 1.1f, -10.2f, -18.7f
          };
 
-        static float[] WorldTemperatureAutumn = new float[]
+        static double[] WorldTemperatureAutumn = new double[]
         {
             7.5f, 13.7f, 18.8f, 22.0f, 24.0f, 26.0f, 25.0f, 21.6f, 21.0f, 14.3f, 6.0f, 3.8f
          };
 
-        static float[] WorldTemperatureSpring = new float[]
+        static double[] WorldTemperatureSpring = new double[]
         {
             8.5f, 13.1f, 17.6f, 18.6f, 24.6f, 25.9f, 26.8f, 23.4f, 18.5f, 12.6f, 6.1f, 1.7f
          };
 
-        static float[] WorldTemperatureSummer = new float[]
+        static double[] WorldTemperatureSummer = new double[]
         {
             13.4f, 18.3f, 22.8f, 24.3f, 24.4f, 25.0f, 25.2f, 22.5f, 26.6f, 24.8f, 19.4f, 14.3f
          };
@@ -604,11 +604,11 @@ namespace Orts.Simulation.RollingStocks
 
             if (Simulator.WeatherType == WeatherType.Rain || Simulator.WeatherType == WeatherType.Snow) // Apply snow/rain height variation
             {
-                TemperatureHeightVariationDegC = Size.Length.ToKM(CarHeightAboveSeaLevelM) * WetLapseTemperatureC;
+                TemperatureHeightVariationDegC = (float)Size.Length.ToKM(CarHeightAboveSeaLevelM) * WetLapseTemperatureC;
             }
             else  // Apply dry height variation
             {
-                TemperatureHeightVariationDegC = Size.Length.ToKM(CarHeightAboveSeaLevelM) * DryLapseTemperatureC;
+                TemperatureHeightVariationDegC = (float)Size.Length.ToKM(CarHeightAboveSeaLevelM) * DryLapseTemperatureC;
             }
             
             TemperatureHeightVariationDegC = MathHelper.Clamp(TemperatureHeightVariationDegC, 0.00f, 30.0f);
@@ -673,22 +673,22 @@ namespace Orts.Simulation.RollingStocks
             if (Simulator.Season == SeasonType.Winter)
             {
                 // Winter temps
-                InitialCarOutsideTempC = OutsideWinterTempbyLatitudeC[LatitudeDeg];
+                InitialCarOutsideTempC = (float)OutsideWinterTempbyLatitudeC[LatitudeDeg];
             }
             else if (Simulator.Season == SeasonType.Autumn)
             {
                 // Autumn temps
-                InitialCarOutsideTempC = OutsideAutumnTempbyLatitudeC[LatitudeDeg];
+                InitialCarOutsideTempC = (float)OutsideAutumnTempbyLatitudeC[LatitudeDeg];
             }
             else if (Simulator.Season == SeasonType.Spring)
             {
                 // Spring temps
-                InitialCarOutsideTempC = OutsideSpringTempbyLatitudeC[LatitudeDeg];
+                InitialCarOutsideTempC = (float)OutsideSpringTempbyLatitudeC[LatitudeDeg];
             }
             else
             {
                 // Summer temps
-                InitialCarOutsideTempC = OutsideSummerTempbyLatitudeC[LatitudeDeg];
+                InitialCarOutsideTempC = (float)OutsideSummerTempbyLatitudeC[LatitudeDeg];
             }
 
             // If weather is freezing. Snow will only be produced when temp is between 0 and 2 Deg C. Adjust temp as appropriate
@@ -739,7 +739,7 @@ namespace Orts.Simulation.RollingStocks
                 else
                 // User defined friction NOT applied in WAG file - Assume MaxBrakeForce is incorrectly set in the WAG, so adjustment is required 
                 {
-                    DefaultBrakeShoeCoefficientFriction = (7.6f / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + 17.5f) + 0.07f) * AdhesionMultiplier; // Base Curtius - Kniffler equation - u = 0.50, all other values are scaled off this formula
+                    DefaultBrakeShoeCoefficientFriction = (float)(7.6f / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + 17.5f) + 0.07f) * AdhesionMultiplier; // Base Curtius - Kniffler equation - u = 0.50, all other values are scaled off this formula
                     BrakeShoeCoefficientFrictionAdjFactor = DefaultBrakeShoeCoefficientFriction / 0.2f * AdhesionMultiplier;  // Assuming that current MaxBrakeForce has been set with an existing Friction Coff of 0.2f, an adjustment factor needs to be developed to reduce the MAxBrakeForce by a relative amount
                     BrakeShoeRetardCoefficientFrictionAdjFactor = DefaultBrakeShoeCoefficientFriction / 0.2f * AdhesionMultiplier;
                     BrakeShoeCoefficientFriction = DefaultBrakeShoeCoefficientFriction * AdhesionMultiplier;  // For display purposes on HUD
@@ -914,7 +914,7 @@ namespace Orts.Simulation.RollingStocks
                 // Infiltration Heat loss, per degree of temp change
                 float SpecificHeatCapacityJpKgpK = 1000.0f;   // a value of cp = 1.0 kJ/kg.K (equal to kJ/kg.oC) - is normally accurate enough
                 float AirDensityKgpM3 = 1.2041f;   // Varies with temp and pressure
-                float NumAirShiftspSec = Frequency.Periodic.FromHours(0.5f);      // Rule of thumb 0.5 air shifts / hr
+                float NumAirShiftspSec = (float)Frequency.Periodic.FromHours(0.5f);      // Rule of thumb 0.5 air shifts / hr
 
                 CarHeatVolumeM3 = CarWidthM * (CarLengthM - CarCouplingPipeM) * (CarHeightM - BogieHeightM);
                 float HeatLossInfiltrationWpT = SpecificHeatCapacityJpKgpK * AirDensityKgpM3 * NumAirShiftspSec * CarHeatVolumeM3 * (CarriageHeatTempC - CarOutsideTempC);
@@ -923,17 +923,17 @@ namespace Orts.Simulation.RollingStocks
                 
                 // ++++++++++++++++++++++++
                 // Calculate steam pipe surface area
-                float CompartmentSteamPipeRadiusM = Size.Length.FromIn(2.0f) / 2.0f;  // Assume the steam pipes in the compartments have diameter of 2" (50mm)
-                float DoorSteamPipeRadiusM = Size.Length.FromIn(1.75f) / 2.0f;        // Assume the steam pipes in the doors have diameter of 1.75" (50mm)
+                float CompartmentSteamPipeRadiusM = (float)Size.Length.FromIn(2.0f) / 2.0f;  // Assume the steam pipes in the compartments have diameter of 2" (50mm)
+                float DoorSteamPipeRadiusM = (float)Size.Length.FromIn(1.75f) / 2.0f;        // Assume the steam pipes in the doors have diameter of 1.75" (50mm)
 
                 // Assume door pipes are 3' 4" (ie 3.3') long, and that there are doors at both ends of the car, ie x 2
-                float CarDoorLengthM = 2.0f * Size.Length.FromFt(3.3f);
+                float CarDoorLengthM = (float)(2.0 * Size.Length.FromFt(3.3));
                 float CarDoorVolumeM3 = CarWidthM * CarDoorLengthM * (CarHeightM - BogieHeightM);
 
                 float CarDoorPipeAreaM2 = 2.0f * MathHelper.Pi * DoorSteamPipeRadiusM * CarDoorLengthM;
 
                 // Use rule of thumb - 1" of 2" steam heat pipe for every 3.5 cu ft of volume in car compartment (second class)
-                float CarCompartmentPipeLengthM = Size.Length.FromIn((CarHeatVolumeM3 - CarDoorVolumeM3) / (Size.Volume.FromFt3(3.5f)));
+                float CarCompartmentPipeLengthM = (float)Size.Length.FromIn((CarHeatVolumeM3 - CarDoorVolumeM3) / (Size.Volume.FromFt3(3.5f)));
                 float CarCompartmentPipeAreaM2 = 2.0f * MathHelper.Pi * CompartmentSteamPipeRadiusM * CarCompartmentPipeLengthM;
 
                 CarHeatPipeAreaM2 = CarCompartmentPipeAreaM2 + CarDoorPipeAreaM2;
@@ -1016,9 +1016,9 @@ namespace Orts.Simulation.RollingStocks
                         float TempTunnel1 = (float)Math.Sqrt(TunnelBComponent + (TunnelCComponent * (TunnelLengthM - TrainLengthTunnelM) / TrainLengthTunnelM));
                         float TempTunnel2 = (1.0f - (1.0f / (1.0f + TempTunnel1))) * (1.0f - (1.0f / (1.0f + TempTunnel1)));
 
-                        float UnitAerodynamicDrag = ((TunnelAComponent * TrainLengthTunnelM) / Mass.Kilogram.ToTonnes(TrainMassTunnelKg)) * TempTunnel2;
+                        double UnitAerodynamicDrag = ((TunnelAComponent * TrainLengthTunnelM) / Mass.Kilogram.ToTonnes(TrainMassTunnelKg)) * TempTunnel2;
 
-                        TunnelForceN = UnitAerodynamicDrag * Mass.Kilogram.ToTonnes(MassKG) * AbsSpeedMpS * AbsSpeedMpS;
+                        TunnelForceN = (float)(UnitAerodynamicDrag * Mass.Kilogram.ToTonnes(MassKG) * AbsSpeedMpS * AbsSpeedMpS);
                     }
                     else
                     {
@@ -1131,12 +1131,12 @@ namespace Orts.Simulation.RollingStocks
 
                 if (CurrentCurveRadius > 0)  // only check curve speed if it is a curve
                 {
-                    float SpeedToleranceMpS =  Size.Length.FromMi(Frequency.Periodic.FromHours(2.5f));  // Set bandwidth tolerance for resetting notifications
+                    float SpeedToleranceMpS = (float)Size.Length.FromMi(Frequency.Periodic.FromHours(2.5f));  // Set bandwidth tolerance for resetting notifications
                     
                     // If super elevation set in Route (TRK) file
                     if (Simulator.TRK.Route.SuperElevationHgtpRadiusM != null)
                     {
-                        SuperelevationM = Simulator.TRK.Route.SuperElevationHgtpRadiusM[CurrentCurveRadius];
+                        SuperelevationM = (float)Simulator.TRK.Route.SuperElevationHgtpRadiusM[CurrentCurveRadius];
 
                     }
                     else

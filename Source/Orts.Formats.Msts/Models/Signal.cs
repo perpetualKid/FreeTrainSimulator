@@ -683,8 +683,8 @@ namespace Orts.Formats.Msts.Models
                 Aspect = aspect;
             DrawStateName = stf.ReadString().ToLowerInvariant();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("speedmph", ()=>{ SpeedLimit = Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
-                new STFReader.TokenProcessor("speedkph", ()=>{ SpeedLimit = Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("speedmph", ()=>{ SpeedLimit = (float)Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("speedkph", ()=>{ SpeedLimit = (float)Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
                 new STFReader.TokenProcessor("signalflags", ()=>{
                     stf.MustMatchBlockStart();
                     while (!stf.EndOfBlock())
@@ -723,12 +723,12 @@ namespace Orts.Formats.Msts.Models
         public ApproachControlLimits(STFReader stf)
         {
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("positionmiles", ()=>{ ApproachControlPositionM = Size.Length.FromMi(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("positionmiles", ()=>{ ApproachControlPositionM = (float)Size.Length.FromMi(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
                 new STFReader.TokenProcessor("positionkm", ()=>{ ApproachControlPositionM = (stf.ReadFloatBlock(STFReader.Units.None, 0) * 1000); }),
                 new STFReader.TokenProcessor("positionm", ()=>{ ApproachControlPositionM = stf.ReadFloatBlock(STFReader.Units.None, 0); }),
-                new STFReader.TokenProcessor("positionyd", ()=>{ ApproachControlPositionM = Size.Length.FromYd(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
-                new STFReader.TokenProcessor("speedmph", ()=>{ ApproachControlSpeedMpS = Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
-                new STFReader.TokenProcessor("speedkph", ()=>{ ApproachControlSpeedMpS = Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("positionyd", ()=>{ ApproachControlPositionM = (float)Size.Length.FromYd(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("speedmph", ()=>{ ApproachControlSpeedMpS = (float)Speed.MeterPerSecond.FromMpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
+                new STFReader.TokenProcessor("speedkph", ()=>{ ApproachControlSpeedMpS = (float)Speed.MeterPerSecond.FromKpH(stf.ReadFloatBlock(STFReader.Units.None, 0)); }),
                 });
         }
     }

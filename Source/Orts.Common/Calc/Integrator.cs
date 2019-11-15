@@ -37,30 +37,30 @@ namespace Orts.Common.Calc
     /// </summary>
     public class Integrator
     {
-        private float[] previousValues = new float[100];
-        private float[] previousStep = new float[100];
+        private double[] previousValues = new double[100];
+        private double[] previousStep = new double[100];
 
-        private float derivation;
-        private float prevDerivation;
+        private double derivation;
+        private double prevDerivation;
 
-        private float max;
-        private float min;
-        private float oldTime;
+        private double max;
+        private double min;
+        private double oldTime;
 
         public IntegratorMethod Method { get; set; }
 
         /// <summary>
         /// Initial condition acts as a Value at the beginning of the integration
         /// </summary>
-        public float InitialCondition { set; get; }
+        public double InitialCondition { set; get; }
         /// <summary>
         /// Integrated value
         /// </summary>
-        public float Value { get; private set; }
+        public double Value { get; private set; }
         /// <summary>
         /// Upper limit of the Value. Cannot be smaller than Min. Max is considered only if IsLimited is true
         /// </summary>
-        public float Max
+        public double Max
         {
             set
             {
@@ -74,7 +74,7 @@ namespace Orts.Common.Calc
         /// <summary>
         /// Lower limit of the Value. Cannot be greater than Max. Min is considered only if IsLimited is true
         /// </summary>
-        public float Min
+        public double Min
         {
             set
             {
@@ -92,7 +92,7 @@ namespace Orts.Common.Calc
         /// <summary>
         /// Minimal step of integration
         /// </summary>
-        public float MinStep { set; get; }
+        public double MinStep { set; get; }
         public bool IsStepDividing { set; get; }
 
         private int waitBeforeSpeedingUp;
@@ -103,7 +103,7 @@ namespace Orts.Common.Calc
         /// </summary>
         public int MaxSubsteps { set; get; }
 
-        public float Error { set; get; }
+        public double Error { set; get; }
 
         public Integrator() : this(0f)
         {
@@ -113,7 +113,7 @@ namespace Orts.Common.Calc
         /// Constructor
         /// </summary>
         /// <param name="initCondition">Initial condition of integration</param>
-        public Integrator(float initCondition): this(initCondition, IntegratorMethod.EulerBackward)
+        public Integrator(double initCondition): this(initCondition, IntegratorMethod.EulerBackward)
         {
         }
 
@@ -122,20 +122,20 @@ namespace Orts.Common.Calc
         /// </summary>
         /// <param name="initCondition">Initial condition of integration</param>
         /// <param name="method">Method of integration</param>
-        public Integrator(float initCondition, IntegratorMethod method)
+        public Integrator(double initCondition, IntegratorMethod method)
         {
             Method = method;
-            MinStep = 0.001f;
-            max = 1000.0f;
-            min = -1000.0f;
+            MinStep = 0.001;
+            max = 1000.0;
+            min = -1000.0;
             IsLimited = false;
             InitialCondition = initCondition;
             Value = InitialCondition;
             MaxSubsteps = 300;
             for (int i = 0; i < previousValues.Length; i++)
                 previousValues[i] = initCondition;
-            oldTime = 0.0f;
-            Error = 0.001f;
+            oldTime = 0.0;
+            Error = 0.001;
         }
 
         public Integrator(Integrator source)
@@ -150,7 +150,7 @@ namespace Orts.Common.Calc
             MaxSubsteps = source.MaxSubsteps;
             for (int i = 0; i < previousValues.Length; i++)
                 previousValues[i] = InitialCondition;
-            oldTime = 0.0f;
+            oldTime = 0.0;
             Error = source.Error;
         }
 
@@ -168,13 +168,13 @@ namespace Orts.Common.Calc
         /// <param name="timeSpan">Integration step or timespan in seconds</param>
         /// <param name="value">Value to integrate</param>
         /// <returns>Value of integration in the next step (t + timeSpan)</returns>
-        public float Integrate(float timeSpan, float value)
+        public double Integrate(double timeSpan, double value)
         {
-            float step = 0.0f;
-            float end = timeSpan;
+            double step = 0.0;
+            double end = timeSpan;
             int count = 0;
 
-            float k1, k2, k3, k4 = 0;
+            double k1, k2, k3, k4 = 0;
 
             //Skip when timeSpan is less then zero
             if (timeSpan <= 0.0f)
@@ -225,7 +225,7 @@ namespace Orts.Common.Calc
                         Value += (derivation = timeSpan * value);
                         break;
                     case IntegratorMethod.EulerBackMod:
-                        Value += (derivation = timeSpan / 2.0f * (previousValues[0] + value));
+                        Value += (derivation = timeSpan / 2.0 * (previousValues[0] + value));
                         previousValues[0] = value;
                         break;
                     case IntegratorMethod.EulerForward:
@@ -238,19 +238,19 @@ namespace Orts.Common.Calc
                         break;
                     case IntegratorMethod.RungeKutta4:
                         k1 = timeSpan * value;
-                        k2 = k1 + timeSpan / 2.0f * value;
-                        k3 = k1 + timeSpan / 2.0f * k2;
+                        k2 = k1 + timeSpan / 2.0 * value;
+                        k3 = k1 + timeSpan / 2.0 * k2;
                         k4 = timeSpan * k3;
-                        Value += (derivation = (k1 + 2.0f * k2 + 2.0f * k3 + k4) / 6.0f);
+                        Value += (derivation = (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
                         break;
                     case IntegratorMethod.NewtonRhapson:
                         throw new NotImplementedException("Not implemented yet!");
 
                     case IntegratorMethod.AdamsMoulton:
                         //prediction
-                        float predicted = Value + timeSpan / 24.0f * (55.0f * previousValues[0] - 59.0f * previousValues[1] + 37.0f * previousValues[2] - 9.0f * previousValues[3]);
+                        double predicted = Value + timeSpan / 24.0 * (55.0 * previousValues[0] - 59.0 * previousValues[1] + 37.0 * previousValues[2] - 9.0 * previousValues[3]);
                         //correction
-                        Value = Value + timeSpan / 24.0f * (9.0f * predicted + 19.0f * previousValues[0] - 5.0f * previousValues[1] + previousValues[2]);
+                        Value = Value + timeSpan / 24.0 * (9.0 * predicted + 19.0 * previousValues[0] - 5.0 * previousValues[1] + previousValues[2]);
                         for (int i = previousStep.Length - 1; i > 0; i--)
                         {
                             previousStep[i] = previousStep[i - 1];
@@ -287,9 +287,9 @@ namespace Orts.Common.Calc
         /// <param name="clockSeconds">Time value in seconds</param>
         /// <param name="value">Value to integrate</param>
         /// <returns>Value of integration in elapsedClockSeconds time</returns>
-        public float TimeIntegrate(float clockSeconds, float value)
+        public double TimeIntegrate(double clockSeconds, double value)
         {
-            float timeSpan = clockSeconds - oldTime;
+            double timeSpan = clockSeconds - oldTime;
             oldTime = clockSeconds;
             Value += timeSpan * value;
             if (IsLimited)
@@ -307,7 +307,7 @@ namespace Orts.Common.Calc
 
         public void Restore(BinaryReader inf)
         {
-            Value = inf.ReadSingle();
+            Value = inf.ReadDouble();
 
             for (int i = 0; i < 4; i++)
                 previousValues[i] = Value;

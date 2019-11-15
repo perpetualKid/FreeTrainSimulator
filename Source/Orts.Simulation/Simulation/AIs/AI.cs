@@ -926,7 +926,7 @@ namespace Orts.Simulation.AIs
                         var mstsSteamLocomotive = car as MSTSSteamLocomotive;
                         if (Simulator.Activity != null && mstsSteamLocomotive != null)
                         {
-                            mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0f) * Simulator.Activity.Activity.Header.FuelWater / 100.0f;
+                            mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)((Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0) * Simulator.Activity.Activity.Header.FuelWater / 100.0);
                             mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * Simulator.Activity.Activity.Header.FuelCoal / 100.0f;
                         }
                         if (train.InitialSpeed != 0)

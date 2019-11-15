@@ -11,12 +11,12 @@ namespace Tests.Orts.Common.Calc
         public void EnsureDefaultSizeConstraint()
         {
             MovingAverage instance = new MovingAverage();
-            float result = 0;
+            double result = 0;
             for (int i = 0; i < 10; i++)
             {
                 result = instance.Update(i);
             }
-            Assert.AreEqual((9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1 + 0) / (float)instance.Size, result);
+            Assert.AreEqual((9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1 + 0) / (double)instance.Size, result);
         }
 
         [TestMethod]
@@ -24,12 +24,12 @@ namespace Tests.Orts.Common.Calc
         {
             int size = 5;
             MovingAverage instance = new MovingAverage(size);
-            float result = 0;
+            double result = 0;
             for (int i = 0; i < 10; i++)
             {
                 result = instance.Update(i);
             }
-            Assert.AreEqual(result, (9 + 8 + 7 + 6 + 5) / (float)size);
+            Assert.AreEqual(result, (9 + 8 + 7 + 6 + 5) / (double)size);
         }
 
         [TestMethod]
@@ -45,7 +45,7 @@ namespace Tests.Orts.Common.Calc
         {
             int size = 5;
             MovingAverage instance = new MovingAverage(size);
-            float result = instance.Update(0f);
+            double result = instance.Update(0f);
             Assert.AreEqual(0f, result);
         }
 
@@ -55,7 +55,7 @@ namespace Tests.Orts.Common.Calc
             int size = 5;
             MovingAverage instance = new MovingAverage(size);
             instance.Initialize(size);
-            float result = instance.Update(size);
+            double result = instance.Update(size);
             Assert.AreEqual(size, result);
         }
     }
