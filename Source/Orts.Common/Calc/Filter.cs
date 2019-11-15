@@ -196,16 +196,6 @@ namespace Orts.Common.Calc
         public FilterTypes FilterType { set; get; }
 
         /// <summary>
-        /// Temporary as most code is using the float-based interface
-        /// </summary>
-        /// <param name="sample"></param>
-        /// <returns></returns>
-        public float Filter(float sample)
-        {
-            return (float)Filter((double)sample);
-        }
-
-        /// <summary>
         /// IIR Digital filter function
         /// Call this function with constant sample period
         /// </summary>
@@ -228,16 +218,6 @@ namespace Orts.Common.Calc
             return y[0];
         }
 
-        /// <summary>
-        /// temporary as most code is using the float-based interface
-        /// </summary>
-        /// <param name="sample"></param>
-        /// <param name="samplingPeriod"></param>
-        /// <returns></returns>
-        public float Filter(float sample, float samplingPeriod)
-        {
-            return (float)Filter((double)sample, (double)samplingPeriod);
-        }
         /// <summary>
         /// IIR Digital filter function
         /// Call this function with constant sample period

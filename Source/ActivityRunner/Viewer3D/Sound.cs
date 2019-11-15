@@ -1415,7 +1415,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 case Curve.ControlMode.Variable2: return car.Variable2;
                 case Curve.ControlMode.Variable3: return car.Variable3;
                 case Curve.ControlMode.BrakeCylinder: return car.BrakeSystem.GetCylPressurePSI();
-                case Curve.ControlMode.CurveForce: return car.CurveForceNFiltered;
+                case Curve.ControlMode.CurveForce: return (float)car.CurveForceNFiltered;
                 default: return 0;
             }
         }
@@ -1920,7 +1920,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     return car.BrakeSystem.GetCylPressurePSI();
                 case VariableTrigger.TriggerEvent.CurveForceDecrease:
                 case VariableTrigger.TriggerEvent.CurveForceIncrease:
-                    return car.CurveForceNFiltered;
+                    return (float)car.CurveForceNFiltered;
                 default:
                     return 0;
             }

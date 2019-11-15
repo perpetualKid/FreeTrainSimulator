@@ -112,7 +112,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Update(float elapsedClockSeconds)
+        public void Update(double elapsedClockSeconds)
         {
             foreach (Pantograph pantograph in List)
             {
@@ -269,12 +269,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         }
 
-        public void Update(float elapsedClockSeconds)
+        public void Update(double elapsedClockSeconds)
         {
             switch (State)
             {
                 case PantographState.Lowering:
-                    TimeS -= elapsedClockSeconds;
+                    TimeS -= (float)elapsedClockSeconds;
 
                     if (TimeS <= 0f)
                     {
@@ -284,7 +284,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     break;
 
                 case PantographState.Raising:
-                    TimeS += elapsedClockSeconds;
+                    TimeS += (float)elapsedClockSeconds;
 
                     if (TimeS >= DelayS)
                     {

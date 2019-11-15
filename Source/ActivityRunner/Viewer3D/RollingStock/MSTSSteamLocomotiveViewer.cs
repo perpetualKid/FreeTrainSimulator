@@ -240,8 +240,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             foreach (var drawer in Stack)
             {
-                Color_Value = car.SmokeColor.SmoothedValue;
-                drawer.SetOutput(car.StackSteamVelocityMpS.SmoothedValue, car.StackSteamVolumeM3pS / Stack.Count + car.FireRatio, Throttlepercent + car.FireRatio, new Color(Color_Value, Color_Value, Color_Value));
+                Color_Value = (float)car.SmokeColor.SmoothedValue;
+                drawer.SetOutput((float)car.StackSteamVelocityMpS.SmoothedValue, car.StackSteamVolumeM3pS / Stack.Count + car.FireRatio, Throttlepercent + car.FireRatio, new Color(Color_Value, Color_Value, Color_Value));
             }
 
             foreach (var drawer in Whistle)

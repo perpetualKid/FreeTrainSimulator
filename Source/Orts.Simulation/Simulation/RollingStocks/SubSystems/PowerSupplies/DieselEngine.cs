@@ -309,7 +309,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// Updates each auxiliary on the list
         /// </summary>
         /// <param name="elapsedClockSeconds">Time span within the simulation cycle</param>
-        public void Update(float elapsedClockSeconds)
+        public void Update(double elapsedClockSeconds)
         {
             foreach (DieselEngine de in DEList)
             {
@@ -849,7 +849,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         }
 
 
-        public void Update(float elapsedClockSeconds)
+        public void Update(double elapsedClockSeconds)
         {
             if (EngineStatus == DieselEngine.Status.Running)
                 DemandedThrottlePercent = locomotive.ThrottlePercent;
@@ -922,7 +922,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             if ((OutputPowerW > (1.1f * CurrentDieselOutputPowerW)) && (EngineStatus == Status.Running))
                 dRPM = (CurrentDieselOutputPowerW - OutputPowerW) / MaximumDieselPowerW * 0.01f * RateOfChangeDownRPMpSS;
 
-            RealRPM = Math.Max(RealRPM + dRPM * elapsedClockSeconds, 0);
+            RealRPM = (float)Math.Max(RealRPM + dRPM * elapsedClockSeconds, 0);
 
             if (DieselPowerTab != null)
             {
@@ -982,15 +982,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 ExhaustMagnitude = InitialMagnitude * 2;
             }
 
-            DieselTemperatureDeg += elapsedClockSeconds * (DieselMaxTemperatureDeg - DieselTemperatureDeg) / DieselTempTimeConstantSec;
+            DieselTemperatureDeg += (float)elapsedClockSeconds * (DieselMaxTemperatureDeg - DieselTemperatureDeg) / DieselTempTimeConstantSec;
             switch(EngineCooling)
             {
                 case Cooling.NoCooling:
-                    DieselTemperatureDeg += elapsedClockSeconds * (LoadPercent * 0.01f * (95f - 60f) + 60f - DieselTemperatureDeg) / DieselTempTimeConstantSec;
+                    DieselTemperatureDeg += (float)elapsedClockSeconds * (LoadPercent * 0.01f * (95f - 60f) + 60f - DieselTemperatureDeg) / DieselTempTimeConstantSec;
                     DieselTempCoolingRunning = false;
                     break;
                 case Cooling.Mechanical:
-                    DieselTemperatureDeg += elapsedClockSeconds * ((RealRPM - IdleRPM) / (MaxRPM - IdleRPM) * 95f + 60f - DieselTemperatureDeg) / DieselTempTimeConstantSec;
+                    DieselTemperatureDeg += (float)elapsedClockSeconds * ((RealRPM - IdleRPM) / (MaxRPM - IdleRPM) * 95f + 60f - DieselTemperatureDeg) / DieselTempTimeConstantSec;
                     DieselTempCoolingRunning = true;
                     break;
                 case Cooling.Hysteresis:
@@ -1000,9 +1000,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         DieselTempCoolingRunning = false;
 
                     if(DieselTempCoolingRunning)
-                        DieselTemperatureDeg += elapsedClockSeconds * (DieselMaxTemperatureDeg - DieselTemperatureDeg) / DieselTempTimeConstantSec;
+                        DieselTemperatureDeg += (float)elapsedClockSeconds * (DieselMaxTemperatureDeg - DieselTemperatureDeg) / DieselTempTimeConstantSec;
                     else
-                        DieselTemperatureDeg -= elapsedClockSeconds * (DieselMaxTemperatureDeg - 2f * DieselTempCoolingHyst - DieselTemperatureDeg) / DieselTempTimeConstantSec;
+                        DieselTemperatureDeg -= (float)elapsedClockSeconds * (DieselMaxTemperatureDeg - 2f * DieselTempCoolingHyst - DieselTemperatureDeg) / DieselTempTimeConstantSec;
                     break;
                 default:
                 case Cooling.Proportional:
@@ -1016,7 +1016,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     if (!DieselTempCoolingRunning)
                         cooling = 0f;
 
-                    DieselTemperatureDeg += elapsedClockSeconds * (LoadPercent * 0.01f * 95f - DieselTemperatureDeg) / DieselTempTimeConstantSec;
+                    DieselTemperatureDeg += (float)elapsedClockSeconds * (LoadPercent * 0.01f * 95f - DieselTemperatureDeg) / DieselTempTimeConstantSec;
                     if (DieselTemperatureDeg > DieselMaxTemperatureDeg - DieselTempCoolingHyst)
                         DieselTemperatureDeg = DieselMaxTemperatureDeg - DieselTempCoolingHyst;
                     break;

@@ -154,7 +154,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             return 0;
         }
 
-        public override void Update(float elapsedClockSeconds)
+        public override void Update(double elapsedClockSeconds)
         {
             BleedOffValveOpen = false;
             Car.BrakeRetardForceN = ( Car.MaxHandbrakeForceN * HandbrakePercent / 100) * Car.BrakeShoeRetardCoefficientFrictionAdjFactor; // calculates value of force applied to wheel, independent of wheel skid

@@ -675,12 +675,12 @@ namespace Orts.Simulation
             }
         }
 
-        public void AutoRotateTable(float elapsedClockSeconds)
+        public void AutoRotateTable(double elapsedClockSeconds)
         {
             GoToAutoTarget = true;
 
-            float angleStep = (YAngle / (float)Math.PI * 1800.0f + 3600) % 3600.0f;
-            float usedFrameRate = TurntableFrameRate.HasValue ? TurntableFrameRate.Value : 30f;
+            double angleStep = (YAngle / Math.PI * 1800.0 + 3600) % 3600.0;
+            float usedFrameRate = TurntableFrameRate ?? 30f;
 
             if (AutoClockwise)
             {
@@ -691,7 +691,7 @@ namespace Orts.Simulation
                 angleStep += elapsedClockSeconds * usedFrameRate;
             }
 
-            YAngle = TargetY = MathHelper.WrapAngle((angleStep / 1800.0f) * (float)Math.PI);
+            YAngle = TargetY = (float)MathHelperD.WrapAngle(angleStep / 1800.0 * Math.PI);
         }
 
         public override void Update()

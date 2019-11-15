@@ -317,7 +317,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             Script.InitializeMoving();
         }
 
-        public float Update(float elapsedClockSeconds)
+        public float Update(double elapsedClockSeconds)
         {
             if (Script != null)
                 return Script.Update(elapsedClockSeconds);
@@ -325,7 +325,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 return 0;
         }
 
-        public void UpdatePressure(ref float pressurePSI, float elapsedClockSeconds, ref float epControllerState)
+        public void UpdatePressure(ref float pressurePSI, double elapsedClockSeconds, ref float epControllerState)
         {
             if (Script != null)
             {
@@ -336,7 +336,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             }
         }
 
-        public void UpdateEngineBrakePressure(ref float pressurePSI, float elapsedClockSeconds)
+        public void UpdateEngineBrakePressure(ref float pressurePSI, double elapsedClockSeconds)
         {
             if (Script != null)
             {

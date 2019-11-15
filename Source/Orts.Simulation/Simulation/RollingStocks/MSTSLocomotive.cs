@@ -1331,7 +1331,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Dynamic brake blending 
         /// </summary>
-        public void DynamicBrakeBlending(float elapsedClockSeconds)
+        public void DynamicBrakeBlending(double elapsedClockSeconds)
         {
             if (airPipeSystem != null && ((airPipeSystem is EPBrakeSystem && Train.BrakeLine4 > 0f) || airPipeSystem.BrakeLine1PressurePSI < TrainBrakeController.MaxPressurePSI - 1f)
                 && ThrottleController.CurrentValue == 0f && !(DynamicBrakeController != null && DynamicBrakeBlendingOverride && DynamicBrakeController.CurrentValue > 0f)
@@ -1355,9 +1355,9 @@ namespace Orts.Simulation.RollingStocks
                 {
                     float diff = DynamicBrakeBlendingForceMatch ? targetDynamicBrakePercent * MaxBrakeForceN - DynamicBrakeForceN : targetDynamicBrakePercent - DynamicBrakeIntervention;
                     if (diff > threshold && DynamicBrakeIntervention <= 1)
-                        DynamicBrakeIntervention = Math.Min( DynamicBrakeIntervention + elapsedClockSeconds * (airPipeSystem.GetMaxApplicationRatePSIpS() / maxCylPressurePSI), 1.0f);
+                        DynamicBrakeIntervention = (float)Math.Min( DynamicBrakeIntervention + elapsedClockSeconds * (airPipeSystem.GetMaxApplicationRatePSIpS() / maxCylPressurePSI), 1.0f);
                     else if (diff < -threshold)
-                        DynamicBrakeIntervention -= elapsedClockSeconds * (airPipeSystem.GetMaxReleaseRatePSIpS() / maxCylPressurePSI);
+                        DynamicBrakeIntervention -= (float)elapsedClockSeconds * (airPipeSystem.GetMaxReleaseRatePSIpS() / maxCylPressurePSI);
                 }
                 if (DynamicBrakeController != null)
                     DynamicBrakeIntervention = Math.Max(DynamicBrakeIntervention, DynamicBrakeController.CurrentValue);
@@ -1372,7 +1372,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the states and physical variables of the locomotive's subsystems.
         /// </summary>
-        public override void Update(float elapsedClockSeconds)
+        public override void Update(double elapsedClockSeconds)
         {
             TrainControlSystem.Update();
 
@@ -1445,7 +1445,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     AntiSlip = true; // Always set AI trains to AntiSlip
                     SimpleAdhesion();                         //let's call the basic physics instead for now
-                    if (Train.IsActualPlayerTrain) FilteredMotiveForceN = CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
+                    if (Train.IsActualPlayerTrain) FilteredMotiveForceN = (float)CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
                     WheelSpeedMpS = Flipped ? -AbsSpeedMpS : AbsSpeedMpS;            //make the wheels go round
                     break;
                 case Train.TRAINTYPE.STATIC:
@@ -1502,7 +1502,7 @@ namespace Orts.Simulation.RollingStocks
                     }
 
                     //Force to display
-                    FilteredMotiveForceN = CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
+                    FilteredMotiveForceN = (float)CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
                     break;
                 default:
                     break;
@@ -1603,14 +1603,14 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the states and physical variables of the locomotive's power supply.
         /// </summary>
-        protected virtual void UpdatePowerSupply(float elapsedClockSeconds)
+        protected virtual void UpdatePowerSupply(double elapsedClockSeconds)
         {
         }
 
         /// <summary>
         /// This function updates periodically the states and physical variables of the locomotive's controllers.
         /// </summary>
-        protected virtual void UpdateControllers(float elapsedClockSeconds)
+        protected virtual void UpdateControllers(double elapsedClockSeconds)
         {
 
             SteamHeatController.Update(elapsedClockSeconds);
@@ -1736,7 +1736,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the locomotive's motive force.
         /// </summary>
-        protected virtual void UpdateMotiveForce(float elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
+        protected virtual void UpdateMotiveForce(double elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
         {
             // Method to set force and power info
             // An alternative method in the steam locomotive will override this and input force and power info for it.
@@ -1771,7 +1771,7 @@ namespace Orts.Simulation.RollingStocks
             if (MaxForceN > 0 && MaxContinuousForceN > 0 && PowerReduction < 1)
             {
                 MotiveForceN *= 1 - (MaxForceN - MaxContinuousForceN) / (MaxForceN * MaxContinuousForceN) * AverageForceN * (1 - PowerReduction);
-                float w = (ContinuousForceTimeFactor - elapsedClockSeconds) / ContinuousForceTimeFactor;
+                float w = (float)(ContinuousForceTimeFactor - elapsedClockSeconds) / ContinuousForceTimeFactor;
                 if (w < 0)
                     w = 0;
                 AverageForceN = w * AverageForceN + (1 - w) * MotiveForceN;
@@ -1825,7 +1825,7 @@ namespace Orts.Simulation.RollingStocks
 
         protected Wheelslip WheelslipState = Wheelslip.None;
 
-        public void ConfirmWheelslip(float elapsedClockSeconds)
+        public void ConfirmWheelslip(double elapsedClockSeconds)
         {
             if (elapsedClockSeconds > 0 && Simulator.GameTime - LocomotiveAxle.ResetTime > 5)
             {
@@ -1879,7 +1879,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the state of the steam ejector on a vacuum braked system.
         /// </summary>
-        protected virtual void UpdateSteamEjector(float elapsedClockSeconds)
+        protected virtual void UpdateSteamEjector(double elapsedClockSeconds)
         {
             if (TrainBrakeController.TrainBrakeControllerState == ControllerState.Release || TrainBrakeController.TrainBrakeControllerState == ControllerState.FullQuickRelease )
             {
@@ -1904,7 +1904,7 @@ namespace Orts.Simulation.RollingStocks
         /// Resevoir vacuum is maintained in "atmospheric pressure" and converted to vacuum
         /// Vacuum reservoir should normally be maintained at approx 26InHg (4.185 psi)
         /// </summary>
-        protected virtual void UpdateVacuumExhauster(float elapsedClockSeconds)
+        protected virtual void UpdateVacuumExhauster(double elapsedClockSeconds)
         {
             if (VacuumMainResVacuumPSIAorInHg > VacuumBrakesExhausterRestartVacuumPSIAorInHg && AuxPowerOn && !VacuumExhausterIsOn)
                 SignalEvent(Event.VacuumExhausterOn);
@@ -1912,13 +1912,13 @@ namespace Orts.Simulation.RollingStocks
                 SignalEvent(Event.VacuumExhausterOff);
 
             if (VacuumExhausterIsOn)
-                VacuumMainResVacuumPSIAorInHg -= elapsedClockSeconds * VacuumBrakesMainResChargingRatePSIAorInHgpS;
+                VacuumMainResVacuumPSIAorInHg -= (float)elapsedClockSeconds * VacuumBrakesMainResChargingRatePSIAorInHgpS;
         }
 
         /// <summary>
         /// This function updates periodically the state of the compressor and charges the main reservoir if the compressor is active.
         /// </summary>
-        protected virtual void UpdateCompressor(float elapsedClockSeconds)
+        protected virtual void UpdateCompressor(double elapsedClockSeconds)
         {
             if (MainResPressurePSI < CompressorRestartPressurePSI && AuxPowerOn && !CompressorIsOn)
                 SignalEvent(Event.CompressorOn);
@@ -1926,13 +1926,13 @@ namespace Orts.Simulation.RollingStocks
                 SignalEvent(Event.CompressorOff);
 
             if (CompressorIsOn)
-                MainResPressurePSI += elapsedClockSeconds * MainResChargingRatePSIpS;
+                MainResPressurePSI += (float)elapsedClockSeconds * MainResChargingRatePSIpS;
         }
 
         /// <summary>
         /// This function updates periodically the states of the horn/whistle and the bell of the locomotive.
         /// </summary>
-        protected virtual void UpdateHornAndBell(float elapsedClockSeconds)
+        protected virtual void UpdateHornAndBell(double elapsedClockSeconds)
         {
             Horn = ManualHorn || TCSHorn;
             if (Horn && !PreviousHorn)
@@ -1978,7 +1978,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the locomotive's sound variables.
         /// </summary>
-        protected virtual void UpdateSoundVariables(float elapsedClockSeconds)
+        protected virtual void UpdateSoundVariables(double elapsedClockSeconds)
         {
         }
 
@@ -1997,7 +1997,7 @@ namespace Orts.Simulation.RollingStocks
         /// If UseAdvancedAdhesion is false, the basic force limits are calculated the same way MSTS calculates them, but
         /// the weather handleing is different and Curtius-Kniffler curves are considered as a static limit
         /// </summary>
-        public void AdvancedAdhesion(float elapsedClockSeconds)
+        public void AdvancedAdhesion(double elapsedClockSeconds)
         {
 
             if (LocoNumDrvWheels <= 0)
@@ -2052,7 +2052,7 @@ namespace Orts.Simulation.RollingStocks
                 LocomotiveAxle.AxleWeightN = 9.81f * DrvWheelWeightKg;   //will be computed each time considering the tilting
                 LocomotiveAxle.DriveForceN = MotiveForceN;           //Developed force
                 LocomotiveAxle.TrainSpeedMpS = SpeedMpS;            //Set the train speed of the axle model
-                LocomotiveAxle.Update(elapsedClockSeconds);         //Main updater of the axle model
+                LocomotiveAxle.Update((float)elapsedClockSeconds);         //Main updater of the axle model
                 MotiveForceN = LocomotiveAxle.AxleForceN;           //Get the Axle force and use it for the motion
                 if (elapsedClockSeconds > 0)
                 {
@@ -2152,7 +2152,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Refills the locomotive from a water trough
         /// </summary>
-        public virtual void UpdateWaterTroughRefill(float elapsedClockSeconds, float absSpeedMpS)
+        public virtual void UpdateWaterTroughRefill(double elapsedClockSeconds, float absSpeedMpS)
         {
             // Check to see whether locomotive is to be refilled over water trough
             if (Simulator.PlayerLocomotive == this && IsWaterScoopDown)
@@ -2279,7 +2279,7 @@ namespace Orts.Simulation.RollingStocks
                 // calculate volume of water scooped per period
                 const float CuFttoGalUK = 6.22884f; // imperial gallons of water in a cubic foot of water
                 WaterScoopedQuantityLpS = Size.LiquidVolume.FromGallonUK(Size.Area.ToFt2((WaterScoopDepthM * WaterScoopWidthM)) * Size.Length.ToFt(WaterScoopVelocityMpS) * CuFttoGalUK);
-                WaterScoopInputAmountL = WaterScoopedQuantityLpS * elapsedClockSeconds; // Calculate current input quantity
+                WaterScoopInputAmountL = WaterScoopedQuantityLpS * (float)elapsedClockSeconds; // Calculate current input quantity
 
                 // Max sure that water level can't exceed maximum tender water level. Assume that water will be vented out of tender if maximum value exceeded. 
                 // If filling from water trough this will be done with force
@@ -2336,7 +2336,7 @@ namespace Orts.Simulation.RollingStocks
         /// 
         /// Note Heavy rain will actually wash track clean, and will give a higher value of adhesion then light drizzling rain
         /// </summary>
-        public virtual void UpdateFrictionCoefficient(float elapsedClockSeconds)
+        public virtual void UpdateFrictionCoefficient(double elapsedClockSeconds)
         {
             float BaseuMax = (Curtius_KnifflerA / (Speed.MeterPerSecond.ToKpH(AbsSpeedMpS) + Curtius_KnifflerB) + Curtius_KnifflerC); // Base Curtius - Kniffler equation - u = 0.33, all other values are scaled off this formula
 
@@ -2443,7 +2443,7 @@ namespace Orts.Simulation.RollingStocks
             // Set adhesion conditions for diesel, electric or steam geared locomotives
             if (elapsedClockSeconds > 0)
             {
-                LocomotiveAxle.AdhesionConditions = AdhesionMultiplier * AdhesionFilter.Filter(BaseFrictionCoefficientFactor + AdhesionRandom, elapsedClockSeconds);
+                LocomotiveAxle.AdhesionConditions = AdhesionMultiplier * (float)AdhesionFilter.Filter(BaseFrictionCoefficientFactor + AdhesionRandom, elapsedClockSeconds);
                 LocomotiveAxle.AdhesionConditions = MathHelper.Clamp(LocomotiveAxle.AdhesionConditions, 0.05f, 2.5f); // Avoids NaNs in axle speed computing
             }
 
@@ -2463,7 +2463,7 @@ namespace Orts.Simulation.RollingStocks
         #endregion
 
 
-        public void UpdateTrackSander(float elapsedClockSeconds)
+        public void UpdateTrackSander(double elapsedClockSeconds)
         {
         // updates track sander in terms of sand usage and impact on air compressor
         // The following assumptions have been made:
@@ -2474,7 +2474,7 @@ namespace Orts.Simulation.RollingStocks
                 if (TrackSandBoxCapacityFt3 > 0.0) // if sand still in sandbox then sanding is available
                 {
                     // Calculate consumption of sand, and drop in sand box level
-                    float ActualSandConsumptionFt3pS = Frequency.Periodic.FromHours(TrackSanderSandConsumptionFt3pH) * elapsedClockSeconds;
+                    float ActualSandConsumptionFt3pS = Frequency.Periodic.FromHours(TrackSanderSandConsumptionFt3pH) * (float)elapsedClockSeconds;
                     TrackSandBoxCapacityFt3 -= ActualSandConsumptionFt3pS;
                     TrackSandBoxCapacityFt3 = MathHelper.Clamp(TrackSandBoxCapacityFt3, 0.0f, MaxTrackSandBoxCapacityFt3);
                     if (TrackSandBoxCapacityFt3 == 0.0)
@@ -2484,7 +2484,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
           // Calculate air consumption and change in main air reservoir pressure
-                float ActualAirConsumptionFt3pS = Frequency.Periodic.FromMinutes(TrackSanderAirComsumptionFt3pM) * elapsedClockSeconds;
+                float ActualAirConsumptionFt3pS = Frequency.Periodic.FromMinutes(TrackSanderAirComsumptionFt3pM) * (float)elapsedClockSeconds;
                 float SanderPressureDiffPSI = ActualAirConsumptionFt3pS / Size.Volume.ToFt3(MainResVolumeM3) ;
                 MainResPressurePSI -= SanderPressureDiffPSI;
                 MainResPressurePSI = MathHelper.Clamp(MainResPressurePSI, 0.001f, MaxMainResPressurePSI);

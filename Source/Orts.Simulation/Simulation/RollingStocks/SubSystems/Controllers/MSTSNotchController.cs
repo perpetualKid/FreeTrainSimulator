@@ -348,7 +348,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             UpdateValue = 0;
         }
 
-        public float Update(float elapsedSeconds)
+        public float Update(double elapsedSeconds)
         {
             if (UpdateValue == 1 || UpdateValue == -1)
             {
@@ -383,10 +383,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             }
         }
 
-        private float UpdateValues(float elapsedSeconds, float direction)
+        private float UpdateValues(double elapsedSeconds, float direction)
         {
             //We increment the intermediate value first
-            IntermediateValue += StepSize * elapsedSeconds * GetNotchBoost() * direction;
+            IntermediateValue += StepSize * (float)elapsedSeconds * GetNotchBoost() * direction;
             IntermediateValue = MathHelper.Clamp(IntermediateValue, MinimumValue, MaximumValue);
 
             //Do we have notches

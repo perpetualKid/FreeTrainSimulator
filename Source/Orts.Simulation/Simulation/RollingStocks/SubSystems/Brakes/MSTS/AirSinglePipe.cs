@@ -342,7 +342,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 TripleValveState = ValveState.Lap;
         }
 
-        public override void Update(float elapsedClockSeconds)
+        public override void Update(double elapsedClockSeconds)
         {
             //ValveState prevTripleValueState = TripleValveState;
 
@@ -360,15 +360,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 }
                 else
                 {
-                    AuxResPressurePSI -= elapsedClockSeconds * MaxApplicationRatePSIpS;
+                    AuxResPressurePSI -= (float)elapsedClockSeconds * MaxApplicationRatePSIpS;
                     if (AuxResPressurePSI < 0)
                         AuxResPressurePSI = 0;
-                    AutoCylPressurePSI -= elapsedClockSeconds * MaxReleaseRatePSIpS;
+                    AutoCylPressurePSI -= (float)elapsedClockSeconds * MaxReleaseRatePSIpS;
                     if (AutoCylPressurePSI < 0)
                         AutoCylPressurePSI = 0;
                     if ((Car as MSTSWagon).EmergencyReservoirPresent)
                     {
-                        EmergResPressurePSI -= elapsedClockSeconds * EmergResChargingRatePSIpS;
+                        EmergResPressurePSI -= (float)elapsedClockSeconds * EmergResChargingRatePSIpS;
                         if (EmergResPressurePSI < 0)
                             EmergResPressurePSI = 0;
                     }
@@ -381,7 +381,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             // triple valve is set to charge the brake cylinder
             if (TripleValveState == ValveState.Apply || TripleValveState == ValveState.Emergency)
             {
-                float dp = elapsedClockSeconds * MaxApplicationRatePSIpS;
+                float dp = (float)elapsedClockSeconds * MaxApplicationRatePSIpS;
                 if (AuxResPressurePSI - dp / AuxCylVolumeRatio < AutoCylPressurePSI + dp)
                     dp = (AuxResPressurePSI - AutoCylPressurePSI) * AuxCylVolumeRatio / (1 + AuxCylVolumeRatio);
                 if (TwoPipes && dp > threshold - AutoCylPressurePSI)
@@ -396,7 +396,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                 if (TripleValveState == ValveState.Emergency && (Car as MSTSWagon).EmergencyReservoirPresent)
                 {
-                    dp = elapsedClockSeconds * MaxApplicationRatePSIpS;
+                    dp = (float)elapsedClockSeconds * MaxApplicationRatePSIpS;
                     if (EmergResPressurePSI - dp < AuxResPressurePSI + dp * EmergAuxVolumeRatio)
                         dp = (EmergResPressurePSI - AuxResPressurePSI) / (1 + EmergAuxVolumeRatio);
                     EmergResPressurePSI -= dp;
@@ -409,7 +409,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             {
                 if (AutoCylPressurePSI > threshold)
                 {
-                    AutoCylPressurePSI -= elapsedClockSeconds * ReleaseRatePSIpS;
+                    AutoCylPressurePSI -= (float)elapsedClockSeconds * ReleaseRatePSIpS;
                     if (AutoCylPressurePSI < threshold)
                         AutoCylPressurePSI = threshold;
                 }
@@ -418,7 +418,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 				{
                     if (!(Car as MSTSWagon).DistributorPresent && AuxResPressurePSI < EmergResPressurePSI && AuxResPressurePSI < BrakeLine1PressurePSI)
 					{
-						float dp = elapsedClockSeconds * EmergResChargingRatePSIpS;
+						float dp = (float)elapsedClockSeconds * EmergResChargingRatePSIpS;
 						if (EmergResPressurePSI - dp < AuxResPressurePSI + dp * EmergAuxVolumeRatio)
 							dp = (EmergResPressurePSI - AuxResPressurePSI) / (1 + EmergAuxVolumeRatio);
 						if (BrakeLine1PressurePSI < AuxResPressurePSI + dp * EmergAuxVolumeRatio)
@@ -428,7 +428,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 					}
 					if (AuxResPressurePSI > EmergResPressurePSI)
 					{
-						float dp = elapsedClockSeconds * EmergResChargingRatePSIpS;
+						float dp = (float)elapsedClockSeconds * EmergResChargingRatePSIpS;
 						if (EmergResPressurePSI + dp > AuxResPressurePSI - dp * EmergAuxVolumeRatio)
 							dp = (AuxResPressurePSI - EmergResPressurePSI) / (1 + EmergAuxVolumeRatio);
 						EmergResPressurePSI += dp;
@@ -437,7 +437,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 				}
                 if (AuxResPressurePSI < BrakeLine1PressurePSI && (!TwoPipes || NoMRPAuxResCharging || BrakeLine2PressurePSI < BrakeLine1PressurePSI) && !BleedOffValveOpen)
                 {
-                    float dp = elapsedClockSeconds * MaxAuxilaryChargingRatePSIpS; // Change in pressure for train brake pipe.
+                    float dp = (float)elapsedClockSeconds * MaxAuxilaryChargingRatePSIpS; // Change in pressure for train brake pipe.
                     if (AuxResPressurePSI + dp > BrakeLine1PressurePSI - dp * AuxBrakeLineVolumeRatio)
                         dp = (BrakeLine1PressurePSI - AuxResPressurePSI) / (1 + AuxBrakeLineVolumeRatio);
                     AuxResPressurePSI += dp;
@@ -450,7 +450,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 && AuxResPressurePSI < EmergResPressurePSI
                 && (BrakeLine2PressurePSI > BrakeLine1PressurePSI || TripleValveState != ValveState.Release) && !BleedOffValveOpen)
             {
-                float dp = elapsedClockSeconds * MaxAuxilaryChargingRatePSIpS;
+                float dp = (float)elapsedClockSeconds * MaxAuxilaryChargingRatePSIpS;
                 if (AuxResPressurePSI + dp > BrakeLine2PressurePSI - dp * AuxBrakeLineVolumeRatio)
                     dp = (BrakeLine2PressurePSI - AuxResPressurePSI) / (1 + AuxBrakeLineVolumeRatio);
                 AuxResPressurePSI += dp;
@@ -470,7 +470,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         BailOffOn = true;
                 }
                 if (BailOffOn)
-                    AutoCylPressurePSI -= MaxReleaseRatePSIpS * elapsedClockSeconds;
+                    AutoCylPressurePSI -= MaxReleaseRatePSIpS * (float)elapsedClockSeconds;
             }
 
             if (AutoCylPressurePSI < 0)
@@ -562,15 +562,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 prevCylPressurePSI = AutoCylPressurePSI;
                 prevBrakePipePressurePSI = BrakeLine1PressurePSI;
             }
-            SoundTriggerCounter = SoundTriggerCounter + elapsedClockSeconds;
+            SoundTriggerCounter = SoundTriggerCounter + (float)elapsedClockSeconds;
         }
 
-        public override void PropagateBrakePressure(float elapsedClockSeconds)
+        public override void PropagateBrakePressure(double elapsedClockSeconds)
         {
             PropagateBrakeLinePressures(elapsedClockSeconds, Car, TwoPipes);
         }
 
-        protected static void PropagateBrakeLinePressures(float elapsedClockSeconds, TrainCar trainCar, bool twoPipes)
+        protected static void PropagateBrakeLinePressures(double elapsedClockSeconds, TrainCar trainCar, bool twoPipes)
         {
             // Brake pressures are calculated on the lead locomotive first, and then propogated along each wagon in the consist.
             
@@ -578,7 +578,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             var lead = trainCar as MSTSLocomotive;
             var brakePipeTimeFactorS = lead == null ? 0.0015f : lead.BrakePipeTimeFactorS;
             int nSteps = (int)(elapsedClockSeconds / brakePipeTimeFactorS + 1);
-            float TrainPipeTimeVariationS = elapsedClockSeconds / nSteps;
+            float TrainPipeTimeVariationS = (float)elapsedClockSeconds / nSteps;
             float TrainPipeLeakLossPSI = lead == null ? 0.0f : (TrainPipeTimeVariationS * lead.TrainBrakePipeLeakPSIorInHgpS);
             // Propagate brake line (1) data if pressure gradient disabled
             if (lead != null && lead.BrakePipeChargingRatePSIorInHgpS >= 1000)
@@ -778,7 +778,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         var prevState = lead.EngineBrakeState;
                         if (p < train.BrakeLine3PressurePSI && p < lead.MainResPressurePSI )  // Apply the engine brake as the pressure decreases
                         {
-                            float dp = elapsedClockSeconds * lead.EngineBrakeApplyRatePSIpS / (last - first + 1);
+                            float dp = (float)elapsedClockSeconds * lead.EngineBrakeApplyRatePSIpS / (last - first + 1);
                             if (p + dp > train.BrakeLine3PressurePSI)
                                 dp = train.BrakeLine3PressurePSI - p;
                             p += dp;
@@ -787,7 +787,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         }
                         else if (p > train.BrakeLine3PressurePSI)  // Release the engine brake as the pressure increases in the brake cylinder
                         {
-                            float dp = elapsedClockSeconds * lead.EngineBrakeReleaseRatePSIpS / (last - first + 1);
+                            float dp = (float)elapsedClockSeconds * lead.EngineBrakeReleaseRatePSIpS / (last - first + 1);
                             if (p - dp < train.BrakeLine3PressurePSI)
                                 dp = p - train.BrakeLine3PressurePSI;
                             p -= dp;

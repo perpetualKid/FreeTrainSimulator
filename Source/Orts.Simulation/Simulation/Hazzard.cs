@@ -105,7 +105,7 @@ namespace Orts.Simulation
 		}
 
 		//[CallOnThread("Updater")]
-		public void Update(float elapsedClockSeconds)
+		public void Update(double elapsedClockSeconds)
 		{
 			var playerLocation = Simulator.PlayerLocomotive.WorldPosition.WorldLocation;
 

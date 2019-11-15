@@ -31,7 +31,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             DebugType = "EP";
         }
 
-        public override void Update(float elapsedClockSeconds)
+        public override void Update(double elapsedClockSeconds)
         {
             var demandedAutoCylPressurePSI = Math.Min(Math.Max(Car.Train.BrakeLine4, 0), 1) * FullServPressurePSI;
             if (BrakeLine3PressurePSI >= 1000f) demandedAutoCylPressurePSI = 0;
@@ -41,7 +41,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
             if (AutoCylPressurePSI < demandedAutoCylPressurePSI)
             {
-                float dp = elapsedClockSeconds * MaxApplicationRatePSIpS;
+                float dp = (float)elapsedClockSeconds * MaxApplicationRatePSIpS;
                 if (BrakeLine2PressurePSI - dp * AuxBrakeLineVolumeRatio / AuxCylVolumeRatio < AutoCylPressurePSI + dp)
                     dp = (BrakeLine2PressurePSI - AutoCylPressurePSI) / (1 + AuxBrakeLineVolumeRatio / AuxCylVolumeRatio);
                 if (dp > demandedAutoCylPressurePSI - AutoCylPressurePSI)

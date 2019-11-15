@@ -166,7 +166,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             CircuitBreaker.InitializeMoving();
         }
 
-        public void Update(float elapsedClockSeconds)
+        public void Update(double elapsedClockSeconds)
         {
             CircuitBreaker.Update(elapsedClockSeconds);
 
@@ -207,7 +207,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             AuxPowerOnTimer.Setup(AuxPowerOnDelayS());
         }
 
-        public override void Update(float elapsedClockSeconds)
+        public override void Update(double elapsedClockSeconds)
         {
             switch (CurrentPantographState())
             {
@@ -221,12 +221,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
                     SetCurrentState(PowerSupplyState.PowerOff);
                     SetCurrentAuxiliaryState(PowerSupplyState.PowerOff);
-                    SetPantographVoltageV(PantographFilter.Filter(0.0f, elapsedClockSeconds));
-                    SetFilterVoltageV(VoltageFilter.Filter(0.0f, elapsedClockSeconds));
+                    SetPantographVoltageV((float)PantographFilter.Filter(0.0, elapsedClockSeconds));
+                    SetFilterVoltageV((float)VoltageFilter.Filter(0.0, elapsedClockSeconds));
                     break;
 
                 case PantographState.Up:
-                    SetPantographVoltageV(PantographFilter.Filter(LineVoltageV(), elapsedClockSeconds));
+                    SetPantographVoltageV((float)PantographFilter.Filter(LineVoltageV(), elapsedClockSeconds));
 
                     switch (CurrentCircuitBreakerState())
                     {
@@ -238,7 +238,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
                             SetCurrentState(PowerSupplyState.PowerOff);
                             SetCurrentAuxiliaryState(PowerSupplyState.PowerOff);
-                            SetFilterVoltageV(VoltageFilter.Filter(0.0f, elapsedClockSeconds));
+                            SetFilterVoltageV((float)VoltageFilter.Filter(0.0f, elapsedClockSeconds));
                             break;
 
                         case CircuitBreakerState.Closed:
@@ -249,7 +249,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
                             SetCurrentState(PowerOnTimer.Triggered ? PowerSupplyState.PowerOn : PowerSupplyState.PowerOff);
                             SetCurrentAuxiliaryState(AuxPowerOnTimer.Triggered ? PowerSupplyState.PowerOn : PowerSupplyState.PowerOff);
-                            SetFilterVoltageV(VoltageFilter.Filter(PantographVoltageV(), elapsedClockSeconds));
+                            SetFilterVoltageV((float)VoltageFilter.Filter(PantographVoltageV(), elapsedClockSeconds));
                             break;
                     }
                     break;

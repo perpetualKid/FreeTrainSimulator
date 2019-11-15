@@ -263,7 +263,7 @@ namespace Orts.Simulation.Physics
         public TCSubpathRoute[] ValidRoute = new TCSubpathRoute[2] { null, null };  // actual valid path
         public TCSubpathRoute TrainRoute;                // partial route under train for Manual mode
         public bool ClaimState;                          // train is allowed to perform claim on sections
-        public float actualWaitTimeS;                    // actual time waiting for signal
+        public double actualWaitTimeS;                    // actual time waiting for signal
         public int movedBackward;                        // counter to detect backward move
         public float waitingPointWaitTimeS = -1.0f;      // time due at waiting point (PLAYER train only, valid in >= 0)
 
@@ -373,7 +373,7 @@ namespace Orts.Simulation.Physics
         public float InitialThrottlepercent = 25; // initial value of throttle when train starts activity at speed > 0
 
         public double BrakingTime;              // Total braking time, used to check whether brakes get stuck
-        public float ContinuousBrakingTime;     // Consecutive braking time, used to check whether brakes get stuck
+        public double ContinuousBrakingTime;     // Consecutive braking time, used to check whether brakes get stuck
         public double RunningTime;              // Total running time, used to check whether a locomotive is partly or totally unpowered due to a fault
         public int UnpoweredLoco = -1;          // car index of unpowered loco
 
@@ -681,7 +681,7 @@ namespace Orts.Simulation.Physics
             allowedAbsoluteMaxSpeedLimitMpS = inf.ReadSingle();
             allowedAbsoluteMaxTempSpeedLimitMpS = inf.ReadSingle();
             BrakingTime = inf.ReadDouble();
-            ContinuousBrakingTime = inf.ReadSingle();
+            ContinuousBrakingTime = inf.ReadDouble();
             RunningTime = inf.ReadDouble();
             IncorporatedTrainNo = inf.ReadInt32();
             IncorporatingTrainNo = inf.ReadInt32();
@@ -1557,7 +1557,7 @@ namespace Orts.Simulation.Physics
         /// Update train 
         /// <\summary>
 
-        public virtual void Update(float elapsedClockSeconds, bool auxiliaryUpdate = true)
+        public virtual void Update(double elapsedClockSeconds, bool auxiliaryUpdate = true)
         {
             if (!auxiliaryUpdate)
                 FormationReversed = false;
@@ -1658,7 +1658,7 @@ namespace Orts.Simulation.Physics
         /// Update train physics
         /// <\summary>
 
-        public virtual void physicsUpdate(float elapsedClockSeconds)
+        public virtual void physicsUpdate(double elapsedClockSeconds)
         {
             //if out of track, will set it to stop
             if ((FrontTDBTraveller != null && FrontTDBTraveller.IsEnd) || (RearTDBTraveller != null && RearTDBTraveller.IsEnd))
@@ -1786,11 +1786,11 @@ namespace Orts.Simulation.Physics
             // Update wind elements for the train, ie the wind speed, and direction, as well as the angle between the train and wind
             UpdateWindComponents();
 
-            float distanceM = LastCar.SpeedMpS * elapsedClockSeconds;
-            if (float.IsNaN(distanceM)) distanceM = 0;//avoid NaN, if so will not move
+            double distanceM = LastCar.SpeedMpS * elapsedClockSeconds;
+            if (double.IsNaN(distanceM)) distanceM = 0;//avoid NaN, if so will not move
             if (TrainType == TRAINTYPE.AI && LeadLocomotiveIndex == (Cars.Count - 1) && LastCar.Flipped)
                 distanceM = -distanceM;
-            DistanceTravelledM += distanceM;
+            DistanceTravelledM += (float)distanceM;
 
             SpeedMpS = 0;
             foreach (TrainCar car1 in Cars)
@@ -1820,7 +1820,7 @@ namespace Orts.Simulation.Physics
             // add them up and average them, as they only differ when the train forces are out of balance - Chris Jakeman 4-Mar-2019
             SpeedMpS /= Cars.Count;
 
-            SlipperySpotDistanceM -= SpeedMpS * elapsedClockSeconds;
+            SlipperySpotDistanceM -= SpeedMpS * (float)elapsedClockSeconds;
             if (ControlMode != TRAIN_CONTROL.TURNTABLE)
                 CalculatePositionOfCars(elapsedClockSeconds, distanceM);
 
@@ -1828,7 +1828,7 @@ namespace Orts.Simulation.Physics
             if (elapsedClockSeconds < AccelerationMpSpS.SmoothPeriodS)
                 AccelerationMpSpS.Update(elapsedClockSeconds, (SpeedMpS - LastSpeedMpS) / elapsedClockSeconds);
             LastSpeedMpS = SpeedMpS;
-            ProjectedSpeedMpS = SpeedMpS + 60 * AccelerationMpSpS.SmoothedValue;
+            ProjectedSpeedMpS = SpeedMpS + 60 * (float)AccelerationMpSpS.SmoothedValue;
             ProjectedSpeedMpS = SpeedMpS > float.Epsilon ?
                 Math.Max(0, ProjectedSpeedMpS) : SpeedMpS < -float.Epsilon ? Math.Min(0, ProjectedSpeedMpS) : 0;
         }
@@ -1974,7 +1974,7 @@ namespace Orts.Simulation.Physics
         /// Update Steam Heating
         /// <\summary>
 
-        public void UpdateCarSteamHeat(float elapsedClockSeconds)
+        public void UpdateCarSteamHeat(double elapsedClockSeconds)
         {
             var mstsLocomotive = Cars[0] as MSTSLocomotive;
             if (mstsLocomotive != null)
@@ -2003,11 +2003,11 @@ namespace Orts.Simulation.Physics
                     if (TrainNetSteamHeatLossWpTime < 0)
                     {
                         TrainNetSteamHeatLossWpTime = -1.0f * TrainNetSteamHeatLossWpTime; // If steam heat loss is negative, convert to a positive number
-                        TrainCurrentTrainSteamHeatW -= TrainNetSteamHeatLossWpTime * elapsedClockSeconds;  // Losses per elapsed time
+                        TrainCurrentTrainSteamHeatW -= TrainNetSteamHeatLossWpTime * (float)elapsedClockSeconds;  // Losses per elapsed time
                     }
                     else
                     {
-                        TrainCurrentTrainSteamHeatW += TrainNetSteamHeatLossWpTime * elapsedClockSeconds;  // Gains per elapsed time         
+                        TrainCurrentTrainSteamHeatW += TrainNetSteamHeatLossWpTime * (float)elapsedClockSeconds;  // Gains per elapsed time         
                     }
 
                     float MaximumHeatTempC = 37.778f;     // Allow heat to go to 100oF (37.778oC)
@@ -2467,7 +2467,7 @@ namespace Orts.Simulation.Physics
         /// Update in manual mode
         /// <\summary>
 
-        public void UpdateManual(float elapsedClockSeconds)
+        public void UpdateManual(double elapsedClockSeconds)
         {
             UpdateTrainPosition();                                                                // position update                  //
             int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[0]);   // check if passed signal forward   //
@@ -2494,7 +2494,7 @@ namespace Orts.Simulation.Physics
         /// Update in explorer mode
         /// <\summary>
 
-        public void UpdateExplorer(float elapsedClockSeconds)
+        public void UpdateExplorer(double elapsedClockSeconds)
         {
             UpdateTrainPosition();                                                                // position update                  //
             int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[0]);   // check if passed signal forward   //
@@ -2521,7 +2521,7 @@ namespace Orts.Simulation.Physics
         /// Update in turntable mode
         /// <\summary>
 
-        public void UpdateTurntable(float elapsedClockSeconds)
+        public void UpdateTurntable(double elapsedClockSeconds)
         {
             //           UpdateTrainPosition();                                                                // position update                  //
             if (LeadLocomotive != null && (LeadLocomotive.ThrottlePercent >= 1 || Math.Abs(LeadLocomotive.SpeedMpS) > 0.05 || !(LeadLocomotive.Direction == Direction.N
@@ -3777,7 +3777,7 @@ namespace Orts.Simulation.Physics
         /// Propagate brake pressure
         /// <\summary>
 
-        public void PropagateBrakePressure(float elapsedClockSeconds)
+        public void PropagateBrakePressure(double elapsedClockSeconds)
         {
             if (LeadLocomotiveIndex >= 0)
             {
@@ -3927,9 +3927,9 @@ namespace Orts.Simulation.Physics
         /// </summary>
         /// <param name="distance"></param>
 
-        public void CalculatePositionOfCars(float elapsedTime, float distance)
+        public void CalculatePositionOfCars(double elapsedTime, double distance)
         {
-            if (float.IsNaN(distance)) distance = 0;//sanity check
+            if (double.IsNaN(distance)) distance = 0;//sanity check
 
             RearTDBTraveller.Move(distance);
 
@@ -4009,7 +4009,7 @@ namespace Orts.Simulation.Physics
 
             FrontTDBTraveller = traveller;
             Length = length;
-            travelled += distance;
+            travelled += (float)distance;
         } // CalculatePositionOfCars
 
         //================================================================================================//
@@ -4398,7 +4398,7 @@ namespace Orts.Simulation.Physics
         /// Update Car speeds
         /// <\summary>
 
-        public void UpdateCarSpeeds(float elapsedTime)
+        public void UpdateCarSpeeds(double elapsedTime)
         {
             // The train speed is calculated by averaging all the car speeds. The individual car speeds are calculated from the TotalForce acting on each car. Typically the MotiveForce or Gravitational forces (though other forces like friction have a small impact as well).
             // At stop under normal circumstances the BrakeForce exceeds the TotalForces, and therefore the wagon is "held in a stationary position". 
@@ -4426,7 +4426,7 @@ namespace Orts.Simulation.Physics
                 if (car is MSTSLocomotive) locoBehind = false;
                 if (car.SpeedMpS > 0)
                 {
-                    car.SpeedMpS += car.TotalForceN / car.MassKG * elapsedTime;
+                    car.SpeedMpS += car.TotalForceN / car.MassKG * (float)elapsedTime;
                     if (car.SpeedMpS < 0)
                         car.SpeedMpS = 0;
                     // If is "air_piped car, and preceeding car is at stop, then set speed to zero.
@@ -4438,7 +4438,7 @@ namespace Orts.Simulation.Physics
                 }
                 else if (car.SpeedMpS < 0)
                 {
-                    car.SpeedMpS += car.TotalForceN / car.MassKG * elapsedTime;
+                    car.SpeedMpS += car.TotalForceN / car.MassKG * (float)elapsedTime;
                     if (car.SpeedMpS > 0)
                         car.SpeedMpS = 0;
                     // If is "air_piped car, and preceeding is at stop, then set speed to zero.
@@ -4492,7 +4492,7 @@ namespace Orts.Simulation.Physics
                         }
                         else
                         {
-                            Cars[k].SpeedMpS = f / m * elapsedTime;
+                            Cars[k].SpeedMpS = f / m * (float)elapsedTime;
                         }
                         PrevMovingCarSpeedMps = Cars[k].SpeedMpS;
                     }
@@ -4530,7 +4530,7 @@ namespace Orts.Simulation.Physics
                         }
                         else
                         {
-                            Cars[k].SpeedMpS = f / m * elapsedTime;
+                            Cars[k].SpeedMpS = f / m * (float)elapsedTime;
                         }
                         PrevMovingCarSpeedMps = Cars[k].SpeedMpS;
                     }
@@ -4543,7 +4543,7 @@ namespace Orts.Simulation.Physics
         /// Update coupler slack - ensures that coupler slack doesn't exceed the maximum permissible value, and provides indication to HUD
         /// <\summary>
 
-        public void UpdateCouplerSlack(float elapsedTime)
+        public void UpdateCouplerSlack(double elapsedTime)
         {
             TotalCouplerSlackM = 0;
             NPull = NPush = 0;
@@ -4551,7 +4551,7 @@ namespace Orts.Simulation.Physics
             {
                 // update coupler slack distance
                 TrainCar car = Cars[i];
-                car.CouplerSlackM += (car.SpeedMpS - Cars[i + 1].SpeedMpS) * elapsedTime;
+                car.CouplerSlackM += (car.SpeedMpS - Cars[i + 1].SpeedMpS) * (float)elapsedTime;
 
                 // Calculate speed for damping force
                 car.CouplerDampingSpeedMpS = car.SpeedMpS - Cars[i + 1].SpeedMpS;
@@ -4590,7 +4590,7 @@ namespace Orts.Simulation.Physics
 
             }
             foreach (TrainCar car in Cars)
-                car.DistanceM += Math.Abs(car.SpeedMpS * elapsedTime);
+                car.DistanceM += (float)Math.Abs(car.SpeedMpS * elapsedTime);
         }
 
         //================================================================================================//
@@ -5821,7 +5821,7 @@ namespace Orts.Simulation.Physics
         /// </summary>
         //
 
-        public virtual bool CheckRouteActions(float elapsedClockSeconds)
+        public virtual bool CheckRouteActions(double elapsedClockSeconds)
         {
             int directionNow = PresentPosition[0].TCDirection;
             int positionNow = PresentPosition[0].TCSectionIndex;
@@ -5877,7 +5877,7 @@ namespace Orts.Simulation.Physics
         /// bool[1] "false" if no further route available
         /// </summary>
 
-        public bool[] UpdateRouteActions(float elapsedClockSeconds, bool checkLoop = true)
+        public bool[] UpdateRouteActions(double elapsedClockSeconds, bool checkLoop = true)
         {
             bool endOfRoute = false;
             bool[] returnState = new bool[2] { false, false };
@@ -6310,7 +6310,7 @@ namespace Orts.Simulation.Physics
         /// Called every update, actions depend on present control state
         /// </summary>
 
-        public void UpdateRouteClearanceAhead(int signalObjectIndex, int backward, float elapsedClockSeconds)
+        public void UpdateRouteClearanceAhead(int signalObjectIndex, int backward, double elapsedClockSeconds)
         {
             switch (ControlMode)
             {
@@ -6364,7 +6364,7 @@ namespace Orts.Simulation.Physics
         /// Perform auto signal mode update
         /// </summary>
 
-        public void UpdateSignalMode(int signalObjectIndex, int backward, float elapsedClockSeconds)
+        public void UpdateSignalMode(int signalObjectIndex, int backward, double elapsedClockSeconds)
         {
             // in AUTO mode, use forward route only
             // if moving backward, check if slipped passed signal, if so, re-enable signal
@@ -6445,7 +6445,7 @@ namespace Orts.Simulation.Physics
                 }
                 else
                 {
-                    actualWaitTimeS = 0.0f;
+                    actualWaitTimeS = 0.0;
                     ClaimState = false;
 
                     // Reset any invalid claims (occurs on WAIT commands, reason still to be checked!) - not unclaiming causes deadlocks
@@ -6462,7 +6462,7 @@ namespace Orts.Simulation.Physics
             }
             else
             {
-                actualWaitTimeS = 0.0f;
+                actualWaitTimeS = 0.0;
                 ClaimState = false;
             }
         }
@@ -14950,7 +14950,7 @@ namespace Orts.Simulation.Physics
         /// </summary>
         /// 
 
-        public void CheckFailures(float elapsedClockSeconds)
+        public void CheckFailures(double elapsedClockSeconds)
         {
             if (IsFreight) CheckBrakes(elapsedClockSeconds);
             CheckLocoPower(elapsedClockSeconds);
@@ -14961,7 +14961,7 @@ namespace Orts.Simulation.Physics
         /// Check if it's time to have a car with stuck brakes
         /// </summary>
 
-        public void CheckBrakes(float elapsedClockSeconds)
+        public void CheckBrakes(double elapsedClockSeconds)
         {
             if (BrakingTime == -1) return;
             if (BrakingTime == -2)
@@ -14980,7 +14980,7 @@ namespace Orts.Simulation.Physics
                         {
                             BrakingTime += elapsedClockSeconds;
                             ContinuousBrakingTime += elapsedClockSeconds;
-                            if (BrakingTime >= 1200.0f / Simulator.Settings.ActRandomizationLevel || ContinuousBrakingTime >= 600.0f / Simulator.Settings.ActRandomizationLevel)
+                            if (BrakingTime >= 1200.0 / Simulator.Settings.ActRandomizationLevel || ContinuousBrakingTime >= 600.0 / Simulator.Settings.ActRandomizationLevel)
                             {
                                 var randInt = Simulator.Random.Next(200000);
                                 var brakesStuck = false;
@@ -15027,7 +15027,7 @@ namespace Orts.Simulation.Physics
         /// Check if it's time to have an electric or diesel loco with a bogie not powering
         /// </summary>
 
-        public void CheckLocoPower(float elapsedClockSeconds)
+        public void CheckLocoPower(double elapsedClockSeconds)
         {
             if (RunningTime == -1) return;
             if (RunningTime == -2)
@@ -19862,7 +19862,7 @@ namespace Orts.Simulation.Physics
             }
 
         }
-        public void UpdateRemoteTrainPos(float elapsedClockSeconds)
+        public void UpdateRemoteTrainPos(double elapsedClockSeconds)
         {
             float newDistanceTravelledM = DistanceTravelledM;
             //           float xx = 0;
@@ -19879,7 +19879,7 @@ namespace Orts.Simulation.Physics
                         ReverseFormation(doReverseMU == 1 ? true : false);
                         UpdateCarSlack(expectedLength);//update car slack first
                         CalculatePositionOfCars(elapsedClockSeconds, SpeedMpS * elapsedClockSeconds);
-                        newDistanceTravelledM = DistanceTravelledM + (SpeedMpS * elapsedClockSeconds);
+                        newDistanceTravelledM = DistanceTravelledM + (float)(SpeedMpS * elapsedClockSeconds);
                         this.MUDirection = (Direction)expectedDIr;
                     }
                     else
@@ -19916,9 +19916,9 @@ namespace Orts.Simulation.Physics
                         }
                         else//if the predicted location and reported location are similar, will try to increase/decrease the speed to bridge the gap in 1 second
                         {
-                            SpeedMpS += (expectedTravelled - x) / 1;
+                            SpeedMpS += (float)(expectedTravelled - x) / 1;
                             CalculatePositionOfCars(elapsedClockSeconds, SpeedMpS * elapsedClockSeconds);
-                            newDistanceTravelledM = DistanceTravelledM + (SpeedMpS * elapsedClockSeconds);
+                            newDistanceTravelledM = DistanceTravelledM + (float)(SpeedMpS * elapsedClockSeconds);
                         }
                         if (jumpRequested)
                         {
@@ -19937,7 +19937,7 @@ namespace Orts.Simulation.Physics
             else//no message received, will move at the previous speed
             {
                 CalculatePositionOfCars(elapsedClockSeconds, SpeedMpS * elapsedClockSeconds);
-                newDistanceTravelledM = DistanceTravelledM + (SpeedMpS * elapsedClockSeconds);
+                newDistanceTravelledM = DistanceTravelledM + (float)(SpeedMpS * elapsedClockSeconds);
             }
 
             //update speed for each car, so wheels will rotate
@@ -19947,7 +19947,7 @@ namespace Orts.Simulation.Physics
                 {
                     car.SpeedMpS = SpeedMpS;
                     if (car.Flipped) car.SpeedMpS = -car.SpeedMpS;
-                    car.AbsSpeedMpS = car.AbsSpeedMpS * (1 - elapsedClockSeconds) + targetSpeedMpS * elapsedClockSeconds;
+                    car.AbsSpeedMpS = (float)(car.AbsSpeedMpS * (1 - elapsedClockSeconds) + targetSpeedMpS * elapsedClockSeconds);
                     if (car.IsDriveable && car is MSTSWagon)
                     {
                         (car as MSTSWagon).WheelSpeedMpS = SpeedMpS;

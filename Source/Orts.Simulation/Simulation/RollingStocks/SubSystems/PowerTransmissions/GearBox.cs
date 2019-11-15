@@ -411,7 +411,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             }
         }
 
-        public void Update(float elapsedClockSeconds)
+        public void Update(double elapsedClockSeconds)
         {
             if ((clutch <= 0.05) || (clutch >= 1f))
             {

@@ -640,12 +640,12 @@ namespace Orts.Simulation.AIs
         /// Moves all active AI trains by calling their Update method.
         /// And finally, removes any AI trains that have reached the end of their path.
         /// </summary>
-        public void ActivityUpdate(float elapsedClockSeconds)
+        public void ActivityUpdate(double elapsedClockSeconds)
         {
             AIUpdate(elapsedClockSeconds, false);
         }
 
-        public void AIUpdate(float elapsedClockSeconds, bool preUpdate)
+        public void AIUpdate(double elapsedClockSeconds, bool preUpdate)
         {
             // update clock
 
@@ -685,13 +685,13 @@ namespace Orts.Simulation.AIs
         }
 
         // used in timetable mode
-        public void TimetableUpdate(float elapsedClockSeconds)
+        public void TimetableUpdate(double elapsedClockSeconds)
         {
             bool dummy = true; // dummy for activeTrains boolean
             AITTUpdate(elapsedClockSeconds, false, ref dummy);
         }
 
-        public bool AITTUpdate(float elapsedClockSeconds, bool preUpdate, ref bool activeTrains)
+        public bool AITTUpdate(double elapsedClockSeconds, bool preUpdate, ref bool activeTrains)
         {
             bool endPreRun = false;
             // update clock

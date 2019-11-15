@@ -637,7 +637,7 @@ namespace Orts.Simulation
         /// Executes in the UpdaterProcess thread.
         /// </summary>
         //[CallOnThread("Updater")]
-        public void Update(float elapsedClockSeconds)
+        public void Update(double elapsedClockSeconds)
         {
             // Advance the times.
             GameTime += elapsedClockSeconds;
@@ -900,7 +900,7 @@ namespace Orts.Simulation
         /// <summary>
         /// Scan other trains
         /// </summary>
-        public void CheckForCoupling(Physics.Train drivenTrain, float elapsedClockSeconds)
+        public void CheckForCoupling(Physics.Train drivenTrain, double elapsedClockSeconds)
         {
             if (MPManager.IsMultiPlayer() && !MPManager.IsServer()) return; //in MultiPlayer mode, server will check coupling, client will get message and do things
             if (drivenTrain.SpeedMpS < 0)

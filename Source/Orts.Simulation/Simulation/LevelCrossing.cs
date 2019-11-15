@@ -82,14 +82,14 @@ namespace Orts.Simulation
         }
 
         //[CallOnThread("Updater")]
-        public void Update(float elapsedClockSeconds)
+        public void Update(double elapsedClockSeconds)
         {
             foreach (var train in Simulator.Trains)
                 UpdateCrossings(train, elapsedClockSeconds);
         }
 
         //[CallOnThread("Updater")]
-        void UpdateCrossings(Train train, float elapsedTime)
+        void UpdateCrossings(Train train, double elapsedTime)
         {
             var speedMpS = train.SpeedMpS;
             var absSpeedMpS = Math.Abs(speedMpS);

@@ -21,27 +21,27 @@ namespace Orts.Common.Calc
 {
     public class SmoothedData
     {
-        public readonly float SmoothPeriodS = 3;
-        protected float currentValue = float.NaN;
-        protected float smoothedValue = float.NaN;
+        public readonly double SmoothPeriodS = 3;
+        protected double currentValue = double.NaN;
+        protected double smoothedValue = double.NaN;
 
         public SmoothedData()
         {
         }
 
-        public SmoothedData(float smoothPeriodS)
+        public SmoothedData(double smoothPeriodS)
             : this()
         {
             SmoothPeriodS = smoothPeriodS;
         }
 
-        public virtual void Update(float periodS, float value)
+        public virtual void Update(double periodS, double value)
         {
             currentValue = value;
 
-            if (periodS < float.Epsilon)
+            if (periodS < double.Epsilon)
             {
-                if (float.IsNaN(smoothedValue) || float.IsInfinity(smoothedValue))
+                if (double.IsNaN(smoothedValue) || double.IsInfinity(smoothedValue))
                     smoothedValue = currentValue;
                 return;
             }
@@ -49,43 +49,43 @@ namespace Orts.Common.Calc
             smoothedValue = SmoothValue(smoothedValue, periodS, currentValue);
         }
 
-        protected float SmoothValue(float smoothedValue, float periodS, float value)
+        protected double SmoothValue(double smoothedValue, double periodS, double value)
         {
-            float rate = SmoothPeriodS / periodS;
-            if (rate < 1 || float.IsNaN(smoothedValue) || float.IsInfinity(smoothedValue))
+            double rate = SmoothPeriodS / periodS;
+            if (rate < 1 || double.IsNaN(smoothedValue) || double.IsInfinity(smoothedValue))
                 return value;
             else
                 return (smoothedValue * (rate - 1) + value) / rate;
         }
 
-        public void Preset(float smoothedValue)
+        public void Preset(double smoothedValue)
         {
             this.smoothedValue = smoothedValue;
         }
 
-        public float Value { get { return currentValue; } }
-        public float SmoothedValue { get { return smoothedValue; } }
+        public double Value { get { return currentValue; } }
+        public double SmoothedValue { get { return smoothedValue; } }
     }
 
     public class SmoothedDataWithPercentiles : SmoothedData
     {
         private const int historyStepCount = 40; // 40 units (i.e. 10 seconds)
-        private const float historyStepSize = 0.25f; // each unit = 1/4 second
+        private const double historyStepSize = 0.25; // each unit = 1/4 second
 
-        private Queue<float> longHistory = new Queue<float>();
+        private Queue<double> longHistory = new Queue<double>();
         private Queue<int> historyCount = new Queue<int>(historyStepCount);
 
         private int count = 0;
 
-        private float position;
+        private double position;
 
-        public float P50 { get; private set; }
-        public float P95 { get; private set; }
-        public float P99 { get; private set; }
+        public double P50 { get; private set; }
+        public double P95 { get; private set; }
+        public double P99 { get; private set; }
 
-        public float SmoothedP50 { get; private set; } = float.NaN;
-        public float SmoothedP95 { get; private set; } = float.NaN;
-        public float SmoothedP99 { get; private set; } = float.NaN;
+        public double SmoothedP50 { get; private set; } = double.NaN;
+        public double SmoothedP95 { get; private set; } = double.NaN;
+        public double SmoothedP99 { get; private set; } = double.NaN;
 
         public SmoothedDataWithPercentiles()
             : base()
@@ -94,7 +94,7 @@ namespace Orts.Common.Calc
                 historyCount.Enqueue(0);
         }
 
-        public override void Update(float periodS, float value)
+        public override void Update(double periodS, double value)
         {
             base.Update(periodS, value);
 
@@ -104,7 +104,7 @@ namespace Orts.Common.Calc
 
             if (position >= historyStepSize)
             {
-                var samples = new List<float>(longHistory);
+                var samples = new List<double>(longHistory);
                 samples.Sort();
 
                 P50 = samples[(int)(samples.Count * 0.50f)];

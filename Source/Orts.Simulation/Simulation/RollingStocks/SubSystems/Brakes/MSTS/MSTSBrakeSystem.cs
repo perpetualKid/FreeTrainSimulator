@@ -39,7 +39,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public abstract void Parse(string lowercasetoken, STFReader stf);
 
-        public abstract void Update(float elapsedClockSeconds);
+        public abstract void Update(double elapsedClockSeconds);
 
         public abstract void InitializeFromCopy(BrakeSystem copy);
     }

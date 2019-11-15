@@ -321,7 +321,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the states and physical variables of the locomotive's subsystems.
         /// </summary>
-        public override void Update(float elapsedClockSeconds)
+        public override void Update(double elapsedClockSeconds)
         {
             base.Update(elapsedClockSeconds);
 
@@ -338,7 +338,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the states and physical variables of the locomotive's power supply.
         /// </summary>
-        protected override void UpdatePowerSupply(float elapsedClockSeconds)
+        protected override void UpdatePowerSupply(double elapsedClockSeconds)
         {
             DieselEngines.Update(elapsedClockSeconds);
 
@@ -355,7 +355,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the states and physical variables of the locomotive's controllers.
         /// </summary>
-        protected override void UpdateControllers(float elapsedClockSeconds)
+        protected override void UpdateControllers(double elapsedClockSeconds)
         {
             base.UpdateControllers(elapsedClockSeconds);
 
@@ -380,7 +380,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the locomotive's motive force.
         /// </summary>
-        protected override void UpdateMotiveForce(float elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
+        protected override void UpdateMotiveForce(double elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
         {
             if (PowerOn)
             {
@@ -415,7 +415,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 DieselFlowLps = DieselEngines.DieselFlowLps;
-                partialFuelConsumption += DieselEngines.DieselFlowLps * elapsedClockSeconds;
+                partialFuelConsumption += DieselEngines.DieselFlowLps * (float)elapsedClockSeconds;
                 if (partialFuelConsumption >= 0.1)
                 {
                     DieselLevelL -= partialFuelConsumption;
@@ -437,7 +437,7 @@ namespace Orts.Simulation.RollingStocks
             if (MaxForceN > 0 && MaxContinuousForceN > 0 && PowerReduction < 1)
             {
                 MotiveForceN *= 1 - (MaxForceN - MaxContinuousForceN) / (MaxForceN * MaxContinuousForceN) * AverageForceN * (1 - PowerReduction);
-                float w = (ContinuousForceTimeFactor - elapsedClockSeconds) / ContinuousForceTimeFactor;
+                float w = (float)(ContinuousForceTimeFactor - elapsedClockSeconds) / ContinuousForceTimeFactor;
                 if (w < 0)
                     w = 0;
                 AverageForceN = w * AverageForceN + (1 - w) * MotiveForceN;
@@ -447,7 +447,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the locomotive's sound variables.
         /// </summary>
-        protected override void UpdateSoundVariables(float elapsedClockSeconds)
+        protected override void UpdateSoundVariables(double elapsedClockSeconds)
         {
             EngineRPMRatio = (DieselEngines[0].RealRPM - DieselEngines[0].IdleRPM) / (DieselEngines[0].MaxRPM - DieselEngines[0].IdleRPM);
 
@@ -460,8 +460,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 // We must avoid Variable2 to run outside of [0, 1] range, even temporarily (because of multithreading)
                 Variable2 = EngineRPMRatio < Variable2 ?
-                    Math.Max(Math.Max(Variable2 - elapsedClockSeconds * PercentChangePerSec, EngineRPMRatio), 0) :
-                    Math.Min(Math.Min(Variable2 + elapsedClockSeconds * PercentChangePerSec, EngineRPMRatio), 1);
+                    (float)Math.Max(Math.Max(Variable2 - elapsedClockSeconds * PercentChangePerSec, EngineRPMRatio), 0) :
+                    (float)Math.Min(Math.Min(Variable2 + elapsedClockSeconds * PercentChangePerSec, EngineRPMRatio), 1);
             }
 
             EngineRPM = Variable2 * (MaxRPM - IdleRPM) + IdleRPM;
@@ -478,7 +478,7 @@ namespace Orts.Simulation.RollingStocks
 
             if (elapsedClockSeconds > 0.0f)
             {
-                EngineRPMderivation = (EngineRPM - EngineRPMold) / elapsedClockSeconds;
+                EngineRPMderivation = (EngineRPM - EngineRPMold) / (float)elapsedClockSeconds;
                 EngineRPMold = EngineRPM;
             }
         }
@@ -675,7 +675,7 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
-        private void UpdateSteamHeat(float elapsedClockSeconds)
+        private void UpdateSteamHeat(double elapsedClockSeconds)
         {
             // Update Steam Heating System
 
@@ -714,9 +714,9 @@ namespace Orts.Simulation.RollingStocks
                         HeatingSteamBoilerDurationS = 1.0f * SteamHeatController.CurrentValue;
 
                         // Calculate fuel usage for steam heat boiler
-                        float FuelUsageL = SteamHeatController.CurrentValue * Frequency.Periodic.FromHours(SteamHeatBoilerFuelUsageLpH) * elapsedClockSeconds;
-                        CurrentSteamHeatFuelCapacityL -= FuelUsageL; // Reduce Tank capacity as fuel used.
-                        MassKG -= FuelUsageL * 0.85f; // Reduce locomotive weight as Steam heat boiler uses fuel.
+                        double FuelUsageL = SteamHeatController.CurrentValue * Frequency.Periodic.FromHours(SteamHeatBoilerFuelUsageLpH) * elapsedClockSeconds;
+                        CurrentSteamHeatFuelCapacityL -= (float)FuelUsageL; // Reduce Tank capacity as fuel used.
+                        MassKG -= (float)(FuelUsageL * 0.85); // Reduce locomotive weight as Steam heat boiler uses fuel.
 
                     }
 

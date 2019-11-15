@@ -1568,7 +1568,7 @@ namespace Orts.Simulation.Timetables
         /// return : true if turntable actions for this train have terminated
         /// Instance of class will then be removed by train
 
-        public void UpdateTurntableStateAI(float elapsedClockSeconds, int presentTime)
+        public void UpdateTurntableStateAI(double elapsedClockSeconds, int presentTime)
         {
             if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as Turntable;
 
@@ -1707,7 +1707,7 @@ namespace Orts.Simulation.Timetables
         /// return : true if turntable actions for this train have terminated
         /// Instance of class will then be removed by train
 
-        public bool UpdateTurntableStatePlayer(float elapsedClockSeconds)
+        public bool UpdateTurntableStatePlayer(double elapsedClockSeconds)
         {
             if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as Turntable;
 
@@ -2018,7 +2018,7 @@ namespace Orts.Simulation.Timetables
         /// </summary>
 
         public bool AutoRequestExit(int reqExit, Traveller.TravellerDirection entryPathDirection, Traveller.TravellerDirection exitPathDirection,
-                        float elapsedClockSeconds)
+                        double elapsedClockSeconds)
         {
             // if turntable is moving, always return false
             if (parentTurntable.AutoClockwise || parentTurntable.AutoCounterclockwise)

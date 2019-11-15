@@ -598,7 +598,7 @@ namespace Orts.Simulation.AIs
         /// Update function for a single AI train.
         /// </summary>
 
-        public void AIUpdate(float elapsedClockSeconds, double clockTime, bool preUpdate)
+        public void AIUpdate(double elapsedClockSeconds, double clockTime, bool preUpdate)
         {
 #if DEBUG_CHECKTRAIN
             if (!CheckTrain)
@@ -979,24 +979,24 @@ namespace Orts.Simulation.AIs
         /// Update for pre-update state
         /// </summary>
 
-        public virtual void AIPreUpdate(float elapsedClockSeconds)
+        public virtual void AIPreUpdate(double elapsedClockSeconds)
         {
 
             // calculate delta speed and speed
 
-            float deltaSpeedMpS = (0.01f * AITrainThrottlePercent * MaxAccelMpSS - 0.01f * AITrainBrakePercent * MaxDecelMpSS) *
+            double deltaSpeedMpS = (0.01 * AITrainThrottlePercent * MaxAccelMpSS - 0.01 * AITrainBrakePercent * MaxDecelMpSS) *
                 Efficiency * elapsedClockSeconds;
             if (AITrainBrakePercent > 0 && deltaSpeedMpS < 0 && Math.Abs(deltaSpeedMpS) > SpeedMpS)
             {
                 deltaSpeedMpS = -SpeedMpS;
             }
-            SpeedMpS = Math.Min(TrainMaxSpeedMpS, Math.Max(0.0f, SpeedMpS + deltaSpeedMpS));
+            SpeedMpS = (float)Math.Min(TrainMaxSpeedMpS, Math.Max(0.0, SpeedMpS + deltaSpeedMpS));
 
             // calculate position
 
-            float distanceM = SpeedMpS * elapsedClockSeconds;
+            double distanceM = SpeedMpS * elapsedClockSeconds;
 
-            if (float.IsNaN(distanceM)) distanceM = 0;//sometimes it may become NaN, force it to be 0, so no move
+            if (double.IsNaN(distanceM)) distanceM = 0;//sometimes it may become NaN, force it to be 0, so no move
 
             // force stop
             if (distanceM > NextStopDistanceM)
@@ -1038,9 +1038,9 @@ namespace Orts.Simulation.AIs
                 }
             }
 
-            CalculatePositionOfCars(elapsedClockSeconds, distanceM);
+            CalculatePositionOfCars(elapsedClockSeconds, (float)distanceM);
 
-            DistanceTravelledM += distanceM;
+            DistanceTravelledM += (float)distanceM;
 
             // perform overall update
 
@@ -1554,7 +1554,7 @@ namespace Orts.Simulation.AIs
         /// Update train in stopped state
         /// </summary>
 
-        public virtual AITrain.AI_MOVEMENT_STATE UpdateStoppedState(float elapsedClockSeconds)
+        public virtual AITrain.AI_MOVEMENT_STATE UpdateStoppedState(double elapsedClockSeconds)
         {
             var AuxActionnextActionInfo = nextActionInfo;
             var tryBraking = true;
@@ -1865,7 +1865,7 @@ namespace Orts.Simulation.AIs
         /// Dummy method for child instancing
         /// </summary>
 
-        public virtual void UpdateTurntableState(float elapsedTimeSeconds, int presentTime)
+        public virtual void UpdateTurntableState(double elapsedTimeSeconds, int presentTime)
         { }
 
         //================================================================================================//
@@ -1873,7 +1873,7 @@ namespace Orts.Simulation.AIs
         /// Train is at station
         /// </summary>
 
-        public virtual void UpdateStationState(float elapsedClockSeconds, int presentTime)
+        public virtual void UpdateStationState(double elapsedClockSeconds, int presentTime)
         {
             StationStop thisStation = StationStops[0];
             bool removeStation = true;
@@ -1932,7 +1932,7 @@ namespace Orts.Simulation.AIs
                         var frontIsFront = thisStation.PlatformReference == thisStation.PlatformItem.PlatformFrontUiD;
                         if (doorOpenDelay > 0)
                         {
-                            doorOpenDelay -= elapsedClockSeconds;
+                            doorOpenDelay -= (float)elapsedClockSeconds;
                             if (doorOpenDelay < 0)
                             {
                                 if (thisStation.PlatformItem.PlatformSide[0])
@@ -1949,7 +1949,7 @@ namespace Orts.Simulation.AIs
                         }
                         if (doorCloseAdvance > 0)
                         {
-                            doorCloseAdvance -= elapsedClockSeconds;
+                            doorCloseAdvance -= (float)elapsedClockSeconds;
                             if (doorCloseAdvance < 0)
                             {
                                 if (thisStation.PlatformItem.PlatformSide[0])
@@ -2179,7 +2179,7 @@ namespace Orts.Simulation.AIs
         /// Train is braking
         /// </summary>
 
-        public virtual void UpdateBrakingState(float elapsedClockSeconds, int presentTime)
+        public virtual void UpdateBrakingState(double elapsedClockSeconds, int presentTime)
         {
 
             // check if action still required
@@ -2749,7 +2749,7 @@ namespace Orts.Simulation.AIs
             float deltaSpeedMpS = SpeedMpS - requiredSpeedMpS;
             float idealDecelMpSS = Math.Max((0.5f * MaxDecelMpSS), (deltaSpeedMpS * deltaSpeedMpS / (2.0f * distanceToGoM)));
 
-            float lastDecelMpSS = elapsedClockSeconds > 0 ? ((SpeedMpS - LastSpeedMpS) / elapsedClockSeconds) : idealDecelMpSS;
+            float lastDecelMpSS = elapsedClockSeconds > 0 ? (float)((SpeedMpS - LastSpeedMpS) / elapsedClockSeconds) : idealDecelMpSS;
 
             float preferredBrakingDistanceM = 2 * AllowedMaxSpeedMpS / (MaxDecelMpSS * MaxDecelMpSS);
 
@@ -2982,11 +2982,11 @@ namespace Orts.Simulation.AIs
         /// Train is accelerating
         /// </summary>
 
-        public virtual void UpdateAccelState(float elapsedClockSeconds)
+        public virtual void UpdateAccelState(double elapsedClockSeconds)
         {
 
             // check speed
-            if (((SpeedMpS - LastSpeedMpS) / elapsedClockSeconds) < 0.5f * MaxAccelMpSS)
+            if (((SpeedMpS - LastSpeedMpS) / elapsedClockSeconds) < 0.5 * MaxAccelMpSS)
             {
                 int stepSize = (!PreUpdate) ? 10 : 40;
                 float corrFactor = (!PreUpdate) ? 0.5f : 1.0f;
@@ -3006,7 +3006,7 @@ namespace Orts.Simulation.AIs
         /// Train is following
         /// </summary>
 
-        public virtual void UpdateFollowingState(float elapsedClockSeconds, int presentTime)
+        public virtual void UpdateFollowingState(double elapsedClockSeconds, int presentTime)
         {
             if (nextActionInfo != null && nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.TRAIN_AHEAD && nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM < -5)
             if (CheckTrain)
@@ -3373,7 +3373,7 @@ namespace Orts.Simulation.AIs
         /// Train is running at required speed
         /// </summary>
 
-        public virtual void UpdateRunningState(float elapsedClockSeconds)
+        public virtual void UpdateRunningState(double elapsedClockSeconds)
         {
             float topBand = AllowedMaxSpeedMpS > creepSpeedMpS ? AllowedMaxSpeedMpS - ((1.5f - Efficiency) * hysterisMpS) : AllowedMaxSpeedMpS;
             float highBand = AllowedMaxSpeedMpS > creepSpeedMpS ? Math.Max(0.5f, AllowedMaxSpeedMpS - ((3.0f - 2.0f * Efficiency) * hysterisMpS)) : AllowedMaxSpeedMpS;
@@ -3591,7 +3591,7 @@ namespace Orts.Simulation.AIs
         /// Train control routines
         /// </summary>
 
-        public void AdjustControlsBrakeMore(float reqDecelMpSS, float timeS, int stepSize)
+        public void AdjustControlsBrakeMore(float reqDecelMpSS, double timeS, int stepSize)
         {
             if (AITrainThrottlePercent > 0)
             {
@@ -3606,8 +3606,8 @@ namespace Orts.Simulation.AIs
             }
             else
             {
-                float ds = timeS * (reqDecelMpSS);
-                SpeedMpS = Math.Max(SpeedMpS - ds, 0); // avoid negative speeds
+                double ds = timeS * (reqDecelMpSS);
+                SpeedMpS = (float)Math.Max(SpeedMpS - ds, 0); // avoid negative speeds
                 foreach (TrainCar car in Cars)
                 {
                     //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
@@ -3621,7 +3621,7 @@ namespace Orts.Simulation.AIs
 
         }
 
-        public void AdjustControlsBrakeLess(float reqDecelMpSS, float timeS, int stepSize)
+        public void AdjustControlsBrakeLess(float reqDecelMpSS, double timeS, int stepSize)
         {
             if (AITrainThrottlePercent > 0)
             {
@@ -3636,8 +3636,8 @@ namespace Orts.Simulation.AIs
             }
             else
             {
-                float ds = timeS * (reqDecelMpSS);
-                SpeedMpS = SpeedMpS + ds; // avoid negative speeds
+                double ds = timeS * (reqDecelMpSS);
+                SpeedMpS = SpeedMpS + (float)ds; // avoid negative speeds
                 foreach (TrainCar car in Cars)
                 {
                     //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
@@ -3714,7 +3714,7 @@ namespace Orts.Simulation.AIs
             }
         }
 
-        public void AdjustControlsAccelMore(float reqAccelMpSS, float timeS, int stepSize)
+        public void AdjustControlsAccelMore(float reqAccelMpSS, double timeS, int stepSize)
         {
             if (AITrainBrakePercent > 0)
             {
@@ -3729,8 +3729,8 @@ namespace Orts.Simulation.AIs
             }
             else if (LastSpeedMpS == 0 || (((SpeedMpS - LastSpeedMpS) / timeS) < 0.5f * MaxAccelMpSS))
             {
-                float ds = timeS * (reqAccelMpSS);
-                SpeedMpS = LastSpeedMpS + ds;
+                double ds = timeS * (reqAccelMpSS);
+                SpeedMpS = LastSpeedMpS + (float)ds;
                 foreach (TrainCar car in Cars)
                 {
                     //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
@@ -3750,7 +3750,7 @@ namespace Orts.Simulation.AIs
         }
 
 
-        public void AdjustControlsAccelLess(float reqAccelMpSS, float timeS, int stepSize)
+        public void AdjustControlsAccelLess(float reqAccelMpSS, double timeS, int stepSize)
         {
             if (AITrainBrakePercent > 0)
             {
@@ -3765,8 +3765,8 @@ namespace Orts.Simulation.AIs
             }
             else
             {
-                float ds = timeS * (reqAccelMpSS);
-                SpeedMpS = Math.Max(SpeedMpS - ds, 0); // avoid negative speeds
+                double ds = timeS * (reqAccelMpSS);
+                SpeedMpS = (float)Math.Max(SpeedMpS - ds, 0); // avoid negative speeds
                 foreach (TrainCar car in Cars)
                 {
                     //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
@@ -6827,17 +6827,17 @@ namespace Orts.Simulation.AIs
             return false;
         }
 
-        public virtual AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public virtual AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             return movementState;
         }
 
-        public virtual AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public virtual AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             return movementState;
         }
 
-        public virtual AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public virtual AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             return movementState;
         }

@@ -99,7 +99,7 @@ namespace ORTS.Scripting.Api
         /// <summary>
         /// Called regularly at every simulator update cycle.
         /// </summary>
-        public abstract void Update(float elapsedClockSeconds);
+        public abstract void Update(double elapsedClockSeconds);
         /// <summary>
         /// Called when an event happens (a closing order from the driver for example)
         /// </summary>

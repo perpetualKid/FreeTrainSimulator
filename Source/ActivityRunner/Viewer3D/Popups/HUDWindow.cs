@@ -267,11 +267,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var gcCounts = new[] { GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2) };
                 DebugGraphMemory.AddSample((float)GetWorkingSetSize() / ProcessVirtualAddressLimit);
                 DebugGraphGCs.AddSample(gcCounts[2] > lastGCCounts[2] ? 1.0f : gcCounts[1] > lastGCCounts[1] ? 0.5f : gcCounts[0] > lastGCCounts[0] ? 0.25f : 0);
-                DebugGraphFrameTime.AddSample(Viewer.RenderProcess.FrameTime.Value * 10);
-                DebugGraphProcessRender.AddSample(Viewer.RenderProcess.Profiler.Wall.Value / 100);
-                DebugGraphProcessUpdater.AddSample(Viewer.UpdaterProcess.Profiler.Wall.Value / 100);
-                DebugGraphProcessLoader.AddSample(Viewer.LoaderProcess.Profiler.Wall.Value / 100);
-                DebugGraphProcessSound.AddSample(Viewer.SoundProcess.Profiler.Wall.Value / 100);
+                DebugGraphFrameTime.AddSample((float)Viewer.RenderProcess.FrameTime.Value * 10);
+                DebugGraphProcessRender.AddSample((float)Viewer.RenderProcess.Profiler.Wall.Value / 100);
+                DebugGraphProcessUpdater.AddSample((float)Viewer.UpdaterProcess.Profiler.Wall.Value / 100);
+                DebugGraphProcessLoader.AddSample((float)Viewer.LoaderProcess.Profiler.Wall.Value / 100);
+                DebugGraphProcessSound.AddSample((float)Viewer.SoundProcess.Profiler.Wall.Value / 100);
                 lastGCCounts = gcCounts;
                 DebugGraphs.PrepareFrame(frame);
             }

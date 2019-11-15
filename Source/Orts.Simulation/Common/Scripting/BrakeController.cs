@@ -115,15 +115,15 @@ namespace ORTS.Scripting.Api
         /// Called when starting speed > 0
         /// </summary>
         /// 
-        public abstract float Update(float elapsedClockSeconds);
+        public abstract float Update(double elapsedClockSeconds);
         /// <summary>
         /// Called regularly at every simulator update cycle.
         /// </summary>
-        public abstract void UpdatePressure(ref float pressureBar, float elapsedClockSeconds, ref float epPressureBar);
+        public abstract void UpdatePressure(ref float pressureBar, double elapsedClockSeconds, ref float epPressureBar);
         /// <summary>
         /// Called regularly at every simulator update cycle.
         /// </summary>
-        public abstract void UpdateEngineBrakePressure(ref float pressureBar, float elapsedClockSeconds);
+        public abstract void UpdateEngineBrakePressure(ref float pressureBar, double elapsedClockSeconds);
         /// <summary>
         /// Called when an event happens (like the alerter button pressed)
         /// </summary>

@@ -179,7 +179,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             State = CircuitBreakerState.Closed;
         }
 
-        public void Update(float elapsedSeconds)
+        public void Update(double elapsedSeconds)
         {
             if (Locomotive.Train.TrainType == Train.TRAINTYPE.AI || Locomotive.Train.TrainType == Train.TRAINTYPE.AI_AUTOGENERATE
                 || Locomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
@@ -241,7 +241,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             SetDriverClosingAuthorization(true);
         }
 
-        public override void Update(float elapsedSeconds)
+        public override void Update(double elapsedSeconds)
         {
             SetClosingAuthorization(TCSClosingAuthorization() && CurrentPantographState() == PantographState.Up);
 
@@ -323,7 +323,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             SetDriverClosingAuthorization(true);
         }
 
-        public override void Update(float elapsedSeconds)
+        public override void Update(double elapsedSeconds)
         {
             SetClosingAuthorization(TCSClosingAuthorization() && CurrentPantographState() == PantographState.Up);
 

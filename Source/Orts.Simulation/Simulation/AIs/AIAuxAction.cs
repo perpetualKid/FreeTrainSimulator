@@ -222,7 +222,7 @@ namespace Orts.Simulation.AIs
             }
         }
 
-        public void ProcessGenAction(AITrain thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public void ProcessGenAction(AITrain thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             if (genRequiredActions.Count <= 0 || !(ThisTrain is AITrain))
                 return;
@@ -243,7 +243,7 @@ namespace Orts.Simulation.AIs
             }
         }
 
-        public AITrain.AI_MOVEMENT_STATE ProcessSpecAction(AITrain thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public AITrain.AI_MOVEMENT_STATE ProcessSpecAction(AITrain thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             AITrain.AI_MOVEMENT_STATE MvtState = movementState;
             if (specRequiredActions.Count <= 0 || !(ThisTrain is AITrain))
@@ -1210,7 +1210,7 @@ namespace Orts.Simulation.AIs
             return true;
         }
 
-        public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             AITrain.AI_MOVEMENT_STATE mvtState = movementState;
             if (ActionRef.IsGeneric)
@@ -1345,7 +1345,7 @@ namespace Orts.Simulation.AIs
             return actionValid;
         }
 
-        public override AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public override AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             if (thisTrain is AITrain)
             {
@@ -1377,7 +1377,7 @@ namespace Orts.Simulation.AIs
             return AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION;
         }
 
-        public override AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public override AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             if (thisTrain is AITrain)
             {
@@ -1418,7 +1418,7 @@ namespace Orts.Simulation.AIs
             return movementState;
         }
 
-        public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             //int correctedTime = presentTime;
             //switch (movementState)
@@ -1575,7 +1575,7 @@ namespace Orts.Simulation.AIs
             return actionValid;
         }
 
-        public override AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public override AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "AITRain " + thisTrain.Number + " is " + movementState.ToString() + " at " + presentTime + "\n");
@@ -1586,7 +1586,7 @@ namespace Orts.Simulation.AIs
             return AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION;
         }
 
-        public override AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public override AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             if (ActualDepart >= presentTime)
             {
@@ -1618,7 +1618,7 @@ namespace Orts.Simulation.AIs
             return movementState;
         }
 
-        public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             AITrain.AI_MOVEMENT_STATE mvtState = movementState;
             if (ActionRef.IsGeneric)
@@ -1766,7 +1766,7 @@ namespace Orts.Simulation.AIs
             return actionValid;
         }
 
-        public override AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public override AITrain.AI_MOVEMENT_STATE InitAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
             int delay = ((AIActSigDelegateRef)ActionRef).Delay;
             // If delay between 30000 and 40000 it is considered an absolute delay in the form 3HHMM, where HH and MM are hour and minute where the delay ends
@@ -1780,7 +1780,7 @@ namespace Orts.Simulation.AIs
             return AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION;
         }
 
-        public override AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public override AITrain.AI_MOVEMENT_STATE HandleAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "WP, End Handle action for train " + thisTrain.Number + 
@@ -1837,7 +1837,7 @@ namespace Orts.Simulation.AIs
             return movementState;
         }
 
-        public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, float elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
+        public override AITrain.AI_MOVEMENT_STATE ProcessAction(Train thisTrain, int presentTime, double elapsedClockSeconds, AITrain.AI_MOVEMENT_STATE movementState)
         {
          movementState = base.ProcessAction(thisTrain, presentTime, elapsedClockSeconds, movementState);
             return movementState;

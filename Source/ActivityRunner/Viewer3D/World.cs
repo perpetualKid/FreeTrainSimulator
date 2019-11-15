@@ -132,7 +132,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var fpsChange = fpsTarget < -2.5 ? +1 : fpsTarget > 2.5 ? -1 : 0;
 
                 // If we're not vertical sync-limited, there's no point calculating the CPU change, just assume adding detail is okay.
-                var cpuTarget = 0f;
+                double cpuTarget = 0;
                 var cpuChange = 1;
                 if (Viewer.Settings.VerticalSync)
                 {

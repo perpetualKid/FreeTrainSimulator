@@ -79,7 +79,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes
 
         public abstract void Restore(BinaryReader inf);
 
-        public abstract void PropagateBrakePressure(float elapsedClockSeconds);
+        public abstract void PropagateBrakePressure(double elapsedClockSeconds);
 
         /// <summary>
         /// Convert real pressure to a system specific internal pressure.

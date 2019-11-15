@@ -372,7 +372,7 @@ namespace Orts.Simulation.RollingStocks
         // filter curve force for audio to prevent rapid changes.
         //private IIRFilter CurveForceFilter = new IIRFilter(IIRFilter.FilterTypes.Butterworth, 1, 1.0f, 0.9f);
         protected SmoothedData CurveForceFilter = new SmoothedData(0.75f);
-        public float CurveForceNFiltered;
+        public double CurveForceNFiltered;
 
         public float TunnelForceN;  // Resistive force due to tunnel, in Newtons
         public float FrictionForceN; // in Newtons ( kg.m/s^2 ) unsigned, includes effects of curvature
@@ -586,7 +586,7 @@ namespace Orts.Simulation.RollingStocks
         }
 
         // called when it's time to update the MotiveForce and FrictionForce
-        public virtual void Update(float elapsedClockSeconds)
+        public virtual void Update(double elapsedClockSeconds)
         {
 
             // Initialise ambient temperatures on first initial loop, then ignore
@@ -644,10 +644,10 @@ namespace Orts.Simulation.RollingStocks
             // acceleration
             if (elapsedClockSeconds > 0.0f)
             {
-                _AccelerationMpSS = (_SpeedMpS - _PrevSpeedMpS) / elapsedClockSeconds;
+                _AccelerationMpSS = (_SpeedMpS - _PrevSpeedMpS) / (float)elapsedClockSeconds;
 
                 if (Simulator.UseAdvancedAdhesion)
-                    _AccelerationMpSS = AccelerationFilter.Filter(_AccelerationMpSS, elapsedClockSeconds);
+                    _AccelerationMpSS = (float)AccelerationFilter.Filter(_AccelerationMpSS, elapsedClockSeconds);
 
                 _PrevSpeedMpS = _SpeedMpS;
             }
@@ -1382,7 +1382,7 @@ namespace Orts.Simulation.RollingStocks
         /// base.UpdateCurveForce();
         /// CurveForceN *= someCarSpecificCoef;     
         /// </summary>
-        public virtual void UpdateCurveForce(float elapsedClockSeconds)
+        public virtual void UpdateCurveForce(double elapsedClockSeconds)
         {
             if (CurveResistanceDependent)
             {
@@ -2079,7 +2079,7 @@ namespace Orts.Simulation.RollingStocks
 #endif
         } // end SetUpWheelsArticulation()
 
-        public void ComputePosition(Traveller traveler, bool backToFront, float elapsedTimeS, float distance, float speed)
+        public void ComputePosition(Traveller traveler, bool backToFront, double elapsedTimeS, double distance, float speed)
         {
             for (var j = 0; j < Parts.Count; j++)
                 Parts[j].InitLineFit();
@@ -2192,10 +2192,10 @@ namespace Orts.Simulation.RollingStocks
         #region Traveller-based updates
         public float CurrentCurveRadius;
 
-        internal void UpdatedTraveler(Traveller traveler, float elapsedTimeS, float distanceM, float speedMpS)
+        internal void UpdatedTraveler(Traveller traveler, double elapsedTimeS, double distanceM, float speedMpS)
         {
             // We need to avoid introducing any unbounded effects, so cap the elapsed time to 0.25 seconds (4FPS).
-            if (elapsedTimeS > 0.25f)
+            if (elapsedTimeS > 0.25)
                 return;
 
             CurrentCurveRadius = traveler.GetCurveRadius();
@@ -2205,7 +2205,7 @@ namespace Orts.Simulation.RollingStocks
         #endregion
 
         #region Super-elevation
-        void UpdateSuperElevation(Traveller traveler,  float elapsedTimeS)
+        void UpdateSuperElevation(Traveller traveler,  double elapsedTimeS)
         {
             if (Simulator.Settings.UseSuperElevation == 0)
                 return;
@@ -2219,7 +2219,7 @@ namespace Orts.Simulation.RollingStocks
             if (prevElev < -10f || prevElev > 10f) prevElev = z;//initial, will jump to the desired value
             else
             {
-                z = prevElev + (z - prevElev) * Math.Min(elapsedTimeS, 1);//smooth rotation
+                z = prevElev + (z - prevElev) * (float)Math.Min(elapsedTimeS, 1);//smooth rotation
                 prevElev = z;
             }
 
@@ -2275,7 +2275,7 @@ namespace Orts.Simulation.RollingStocks
         float PrevTiltingZRot; // previous tilting angle
         float TiltingZRot; // actual tilting angle
 
-        internal void UpdateVibrationAndTilting(Traveller traveler, float elapsedTimeS, float distanceM, float speedMpS)
+        internal void UpdateVibrationAndTilting(Traveller traveler, double elapsedTimeS, double distanceM, float speedMpS)
         {
             // NOTE: Traveller is at the FRONT of the TrainCar!
 
@@ -2318,11 +2318,11 @@ namespace Orts.Simulation.RollingStocks
                 //   Let v be the velocity in m/s
                 //   Then F = -c * v
                 // We apply the acceleration (let t be time in s, then dv/dt = a * t) and damping (-c * v) to the velocities:
-                VibrationRotationVelocityRadpS += rotationAccelerationRadpSpS * elapsedTimeS - VibratioDampingCoefficient * VibrationRotationVelocityRadpS;
-                VibrationTranslationVelocityMpS += translationAccelerationMpSpS * elapsedTimeS - VibratioDampingCoefficient * VibrationTranslationVelocityMpS;
+                VibrationRotationVelocityRadpS += rotationAccelerationRadpSpS * (float)elapsedTimeS - VibratioDampingCoefficient * VibrationRotationVelocityRadpS;
+                VibrationTranslationVelocityMpS += translationAccelerationMpSpS * (float)elapsedTimeS - VibratioDampingCoefficient * VibrationTranslationVelocityMpS;
                 // Now apply the velocities (dx/dt = v * t):
-                VibrationRotationRad += VibrationRotationVelocityRadpS * elapsedTimeS;
-                VibrationTranslationM += VibrationTranslationVelocityMpS * elapsedTimeS;
+                VibrationRotationRad += VibrationRotationVelocityRadpS * (float)elapsedTimeS;
+                VibrationTranslationM += VibrationTranslationVelocityMpS * (float)elapsedTimeS;
 
                 // Add new vibrations every CarLengthM in either direction.
                 if (Math.Round((VibrationOffsetM.X + DistanceM) / CarLengthM) != Math.Round((VibrationOffsetM.X + DistanceM + distanceM) / CarLengthM))
@@ -2353,7 +2353,7 @@ namespace Orts.Simulation.RollingStocks
             if (Train != null && Train.IsTilting)
             {
                 TiltingZRot = traveler.FindTiltedZ(speedMpS);//rotation if tilted, an indication of centrifugal force
-                TiltingZRot = PrevTiltingZRot + (TiltingZRot - PrevTiltingZRot) * elapsedTimeS;//smooth rotation
+                TiltingZRot = PrevTiltingZRot + (TiltingZRot - PrevTiltingZRot) * (float)elapsedTimeS;//smooth rotation
                 PrevTiltingZRot = TiltingZRot;
                 if (this.Flipped) TiltingZRot *= -1f;
             }

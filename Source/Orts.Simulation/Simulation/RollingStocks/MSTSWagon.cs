@@ -1280,7 +1280,7 @@ namespace Orts.Simulation.RollingStocks
             AuxPowerOn = true;
         }
 
-        public override void Update(float elapsedClockSeconds)
+        public override void Update(double elapsedClockSeconds)
         {
             base.Update(elapsedClockSeconds);
 
@@ -1954,7 +1954,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Updates the temperature of the wheel bearing on each wagon.
         /// </summary>
-        private void UpdateWheelBearingTemperature(float elapsedClockSeconds)
+        private void UpdateWheelBearingTemperature(double elapsedClockSeconds)
         {
 
              // Increased bearing temperature impacts the train physics model in two ways - it reduces the starting friction, and also a hot box failure, can result in failure of the train.
@@ -1970,7 +1970,7 @@ namespace Orts.Simulation.RollingStocks
              {
                  if (ActivityElapsedDurationS < HotBoxStartTimeS)
                  {
-                     ActivityElapsedDurationS += elapsedClockSeconds;
+                     ActivityElapsedDurationS += (float)elapsedClockSeconds;
                  }
 
                  // Determine whether car will be activated with a random hot box, only tested once at start of activity
@@ -2048,7 +2048,7 @@ namespace Orts.Simulation.RollingStocks
                          HotBoxSoundActivated = true;
                     }
 
-                    HotBoxTemperatureRiseTimeS += elapsedClockSeconds;
+                    HotBoxTemperatureRiseTimeS += (float)elapsedClockSeconds;
                     
                     // Calculate predicted bearing temperature based upon elapsed time
                     WheelBearingTemperatureDegC = MaximumHotBoxBearingTemperatureDegC + (InitialHotBoxRiseTemperatureDegS - MaximumHotBoxBearingTemperatureDegC) * (float)(Math.Exp(HotBoxKConst * HotBoxTemperatureRiseTimeS));
@@ -2066,7 +2066,7 @@ namespace Orts.Simulation.RollingStocks
                     const float BConst = 55;
                     BearingSpeedMaximumTemperatureDegC = MConst * AbsSpeedMpS + BConst;
 
-                    WheelBearingTemperatureRiseTimeS += elapsedClockSeconds;
+                    WheelBearingTemperatureRiseTimeS += (float)elapsedClockSeconds;
 
                     // Calculate predicted bearing temperature based upon elapsed time
                     WheelBearingTemperatureDegC = MaximumNormalBearingTemperatureDegC + (InitialWheelBearingRiseTemperatureDegC - MaximumNormalBearingTemperatureDegC) * (float)(Math.Exp(HeatingKConst * WheelBearingTemperatureRiseTimeS));
@@ -2087,7 +2087,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (WheelBearingTemperatureDegC > CarOutsideTempC)
                     {
-                        WheelBearingTemperatureDeclineTimeS += elapsedClockSeconds;
+                        WheelBearingTemperatureDeclineTimeS += (float)elapsedClockSeconds;
                         WheelBearingTemperatureDegC = CarOutsideTempC + (InitialWheelBearingDeclineTemperatureDegC - CarOutsideTempC) * (float)(Math.Exp(CoolingKConst * WheelBearingTemperatureDeclineTimeS));
                     }
                     
@@ -2367,7 +2367,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        private void UpdateSpecialEffects(float elapsedClockSeconds)
+        private void UpdateSpecialEffects(double elapsedClockSeconds)
         // This section updates the special effects
         {
 

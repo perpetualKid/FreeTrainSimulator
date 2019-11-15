@@ -29,7 +29,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
      */
     public interface IController
     {
-        float Update(float elapsedSeconds);
+        float Update(double elapsedSeconds);
 
         void StartIncrease();
         void StopIncrease();

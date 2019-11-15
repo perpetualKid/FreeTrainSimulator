@@ -2567,7 +2567,7 @@ namespace Orts.Simulation.Timetables
         /// Override from AITrain class
         /// <\summary>
 
-        public override void AIPreUpdate(float elapsedClockSeconds)
+        public override void AIPreUpdate(double elapsedClockSeconds)
         {
             // calculate delta speed and speed
             float distanceM = physicsPreUpdate(elapsedClockSeconds);
@@ -2652,7 +2652,7 @@ namespace Orts.Simulation.Timetables
         /// Update train physics during Pre-Update
         /// <\summary>
 
-        public float physicsPreUpdate(float elapsedClockSeconds)
+        public float physicsPreUpdate(double elapsedClockSeconds)
         {
 
             // Update train physics, position and movement
@@ -2678,14 +2678,14 @@ namespace Orts.Simulation.Timetables
 
             UpdateCarSpeeds(elapsedClockSeconds);
 
-            float distanceM = LastCar.SpeedMpS * elapsedClockSeconds;
+            double distanceM = LastCar.SpeedMpS * elapsedClockSeconds;
             if (Math.Abs(distanceM) < 0.1f) distanceM = 0.0f; //clamp to avoid movement due to calculation noise
-            if (float.IsNaN(distanceM)) distanceM = 0;        //avoid NaN, if so will not move
+            if (double.IsNaN(distanceM)) distanceM = 0;        //avoid NaN, if so will not move
 
             if (TrainType == TRAINTYPE.AI && LeadLocomotiveIndex == (Cars.Count - 1) && LastCar.Flipped)
                 distanceM = -distanceM;
 
-            return (distanceM);
+            return (float)distanceM;
         }
 
         //================================================================================================//
@@ -2693,7 +2693,7 @@ namespace Orts.Simulation.Timetables
         /// Update train 
         /// </summary>
 
-        public override void Update(float elapsedClockSeconds, bool auxiliaryUpdate = true)
+        public override void Update(double elapsedClockSeconds, bool auxiliaryUpdate = true)
         {
             // Update train physics, position and movement
 
@@ -3169,12 +3169,12 @@ namespace Orts.Simulation.Timetables
         /// Override from AITrain class
         /// <\summary>
 
-        public override AITrain.AI_MOVEMENT_STATE UpdateStoppedState(float elapsedClockSeconds)
+        public override AITrain.AI_MOVEMENT_STATE UpdateStoppedState(double elapsedClockSeconds)
         {
             // check if restart is delayed
             if (DelayedStart && Simulator.Settings.TTUseRestartDelays)
             {
-                RestdelayS -= elapsedClockSeconds;
+                RestdelayS -= (float)elapsedClockSeconds;
                 if (RestdelayS <= 0)   // wait time has elapsed - start moving
                 {
                     DelayedStart = false;
@@ -3196,7 +3196,7 @@ namespace Orts.Simulation.Timetables
 
             else if (RestdelayS > 0)
             {
-                RestdelayS -= elapsedClockSeconds; // decrease pre-restart wait time while stopped
+                RestdelayS -= (float)elapsedClockSeconds; // decrease pre-restart wait time while stopped
             }
 
             if (SpeedMpS > 0 || SpeedMpS < 0)   // if train still running force it to stop
@@ -3540,13 +3540,13 @@ namespace Orts.Simulation.Timetables
         /// Update when train on turntable
         /// </summary>
 
-        public override void UpdateTurntableState(float elapsedClockSeconds, int presentTime)
+        public override void UpdateTurntableState(double elapsedClockSeconds, int presentTime)
         {
 
             // check if delayed action is due
             if (DelayedStart)
             {
-                RestdelayS -= elapsedClockSeconds;
+                RestdelayS -= (float)elapsedClockSeconds;
                 if (RestdelayS <= 0)   // wait time has elapsed - start moving
                 {
                     DelayedStart = false;
@@ -3586,7 +3586,7 @@ namespace Orts.Simulation.Timetables
         /// Override for AITrain class
         /// <\summary>
 
-        public override void UpdateStationState(float elapsedClockSeconds, int presentTime)
+        public override void UpdateStationState(double elapsedClockSeconds, int presentTime)
         {
             StationStop thisStation = StationStops[0];
             bool removeStation = false;
@@ -4083,7 +4083,7 @@ namespace Orts.Simulation.Timetables
         /// Override for AITrain class
         /// <\summary>
 
-        public override void UpdateBrakingState(float elapsedClockSeconds, int presentTime)
+        public override void UpdateBrakingState(double elapsedClockSeconds, int presentTime)
         {
 
             // check if action still required
@@ -4666,7 +4666,7 @@ namespace Orts.Simulation.Timetables
             float deltaSpeedMpS = SpeedMpS - requiredSpeedMpS;
             float idealDecelMpSS = Math.Max((0.5f * MaxDecelMpSS), (deltaSpeedMpS * deltaSpeedMpS / (2.0f * distanceToGoM)));
 
-            float lastDecelMpSS = elapsedClockSeconds > 0 ? ((SpeedMpS - LastSpeedMpS) / elapsedClockSeconds) : idealDecelMpSS;
+            float lastDecelMpSS = elapsedClockSeconds > 0 ? (float)((SpeedMpS - LastSpeedMpS) / elapsedClockSeconds) : idealDecelMpSS;
 
             float preferredBrakingDistanceM = 2 * AllowedMaxSpeedMpS / (MaxDecelMpSS * MaxDecelMpSS);
 
@@ -5031,12 +5031,12 @@ namespace Orts.Simulation.Timetables
         /// Override from AITrain class
         /// <\summary>
 
-        public override void UpdateAccelState(float elapsedClockSeconds)
+        public override void UpdateAccelState(double elapsedClockSeconds)
         {
 
             // check speed
 
-            if (((SpeedMpS - LastSpeedMpS) / elapsedClockSeconds) < 0.5f * MaxAccelMpSS)
+            if (((SpeedMpS - LastSpeedMpS) / elapsedClockSeconds) < 0.5 * MaxAccelMpSS)
             {
                 AdjustControlsAccelMore(Efficiency * 0.5f * MaxAccelMpSS, elapsedClockSeconds, 10);
             }
@@ -5055,7 +5055,7 @@ namespace Orts.Simulation.Timetables
         /// Override from AITrain class
         /// <\summary>
 
-        public override void UpdateFollowingState(float elapsedClockSeconds, int presentTime)
+        public override void UpdateFollowingState(double elapsedClockSeconds, int presentTime)
         {
             if (CheckTrain)
             {
@@ -5566,7 +5566,7 @@ namespace Orts.Simulation.Timetables
         /// Override from AITrain class
         /// <\summary>
 
-        public override void UpdateRunningState(float elapsedClockSeconds)
+        public override void UpdateRunningState(double elapsedClockSeconds)
         {
 
             float topBand = AllowedMaxSpeedMpS - ((1.5f - Efficiency) * hysterisMpS);
@@ -10150,7 +10150,7 @@ namespace Orts.Simulation.Timetables
         /// Return parameter : true if train still exists (used only for player train)
         /// Override from Train class
         /// </summary>
-        public override bool CheckRouteActions(float elapsedClockSeconds)
+        public override bool CheckRouteActions(double elapsedClockSeconds)
         {
             int directionNow = PresentPosition[0].TCDirection;
             int positionNow = PresentPosition[0].TCSectionIndex;

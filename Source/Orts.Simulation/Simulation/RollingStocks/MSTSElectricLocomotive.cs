@@ -158,7 +158,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the states and physical variables of the locomotive's power supply.
         /// </summary>
-        protected override void UpdatePowerSupply(float elapsedClockSeconds)
+        protected override void UpdatePowerSupply(double elapsedClockSeconds)
         {
             PowerSupply.Update(elapsedClockSeconds);
         }
@@ -166,7 +166,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the locomotive's sound variables.
         /// </summary>
-        protected override void UpdateSoundVariables(float elapsedClockSeconds)
+        protected override void UpdateSoundVariables(double elapsedClockSeconds)
         {
             Variable1 = ThrottlePercent;
             if (ThrottlePercent == 0f) Variable2 = 0;

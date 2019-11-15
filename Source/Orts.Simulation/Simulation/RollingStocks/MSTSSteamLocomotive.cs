@@ -75,6 +75,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
@@ -1844,7 +1845,7 @@ namespace Orts.Simulation.RollingStocks
         /// and FrictionForceN values based on throttle settings
         /// etc for the locomotive.
         /// </summary>
-        public override void Update(float elapsedClockSeconds)
+        public override void Update(double elapsedClockSeconds)
         {
             PowerOn = true;
             base.Update(elapsedClockSeconds);
@@ -1914,7 +1915,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Update variables related to audiovisual effects (sound, steam)
         /// </summary>
-        private void UpdateFX(float elapsedClockSeconds)
+        private void UpdateFX(double elapsedClockSeconds)
         {
             // This section updates the various steam effects for the steam locomotive. It uses the particle drawer which has the following inputs.
             // Stack - steam velocity, steam volume, particle duration, colour, whislts all other effects use these inputs only, non-Stack - steam velocity, steam volume, particle duration
@@ -1927,7 +1928,7 @@ namespace Orts.Simulation.RollingStocks
             if (Cylinder2SteamEffects) // For MSTS locomotives with one cyldinder cock ignore calculation of cock opening times.
             {
                 CylinderCockOpenTimeS = 0.5f * 1.0f / DrvWheelRevRpS;  // Calculate how long cylinder cocks open  @ speed = Time (sec) / (Drv Wheel RpS ) - assume two cylinder strokes per rev, ie each cock will only be open for 1/2 rev
-                CylinderCockTimerS += elapsedClockSeconds;
+                CylinderCockTimerS += (float)elapsedClockSeconds;
                 if (CylinderCockTimerS > CylinderCockOpenTimeS)
                 {
                     if (CylinderCock1On)
@@ -2040,7 +2041,7 @@ namespace Orts.Simulation.RollingStocks
             int numPulses = NumCylinders * 2 * rotations;
 
             var dPulseTracker = Variable1 / fullLoop * numPulses * elapsedClockSeconds;
-            PulseTracker += dPulseTracker;
+            PulseTracker += (float)dPulseTracker;
 
             if (PulseTracker > (float)NextPulse - dPulseTracker / 2)
             {
@@ -2051,7 +2052,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        protected override void UpdateControllers(float elapsedClockSeconds)
+        protected override void UpdateControllers(double elapsedClockSeconds)
         {
             base.UpdateControllers(elapsedClockSeconds);
 
@@ -2172,7 +2173,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        private void UpdateTender(float elapsedClockSeconds)
+        private void UpdateTender(double elapsedClockSeconds)
         {
             TenderWaterLevelFraction = CombinedTenderWaterVolumeUKG / MaxTotalCombinedWaterVolumeUKG;
             float TempCylinderSteamUsageLbpS = CylinderSteamUsageLBpS;
@@ -2181,7 +2182,7 @@ namespace Orts.Simulation.RollingStocks
 
             if (HasTenderCoupled) // If a tender is coupled then coal is available
             {
-                TenderCoalMassKG -= elapsedClockSeconds * Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TempCylinderSteamUsageLbpS)])); // Current Tender coal mass determined by burn rate.
+                TenderCoalMassKG -= (float)elapsedClockSeconds * Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TempCylinderSteamUsageLbpS)])); // Current Tender coal mass determined by burn rate.
                 TenderCoalMassKG = MathHelper.Clamp(TenderCoalMassKG, 0, MaxTenderCoalMassKG); // Clamp value so that it doesn't go out of bounds
             }
             else // if no tender coupled then check whether a tender is required
@@ -2192,7 +2193,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else  // Tender is not required (ie tank locomotive) - therefore coal will be carried on the locomotive
                 {
-                    TenderCoalMassKG -= elapsedClockSeconds * Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TempCylinderSteamUsageLbpS)])); // Current Tender coal mass determined by burn rate.
+                    TenderCoalMassKG -= (float)elapsedClockSeconds * Frequency.Periodic.FromHours(Mass.Kilogram.FromLb(NewBurnRateSteamToCoalLbspH[Frequency.Periodic.ToHours(TempCylinderSteamUsageLbpS)])); // Current Tender coal mass determined by burn rate.
                     TenderCoalMassKG = MathHelper.Clamp(TenderCoalMassKG, 0, MaxTenderCoalMassKG); // Clamp value so that it doesn't go out of bounds
                 }
             }
@@ -2273,7 +2274,7 @@ namespace Orts.Simulation.RollingStocks
             CurrentLocoTenderWaterVolumeUKG = (Mass.Kilogram.ToLb(MaxLocoTenderWaterMassKG) / WaterLBpUKG) * TenderWaterPercent; // Adjust water level in locomotive tender
             PrevCombinedTenderWaterVolumeUKG = CombinedTenderWaterVolumeUKG;   // Store value for next iteration
             PreviousTenderWaterVolumeUKG = CombinedTenderWaterVolumeUKG;     // Store value for next iteration
-            WaterConsumptionLbpS = InjectorBoilerInputLB / elapsedClockSeconds; // water consumption
+            WaterConsumptionLbpS = InjectorBoilerInputLB / (float)elapsedClockSeconds; // water consumption
             WaterConsumptionLbpS = MathHelper.Clamp(WaterConsumptionLbpS, 0, WaterConsumptionLbpS);
             CumulativeWaterConsumptionLbs += InjectorBoilerInputLB;
             if (CumulativeWaterConsumptionLbs > 0) DbfEvalCumulativeWaterConsumptionLbs = CumulativeWaterConsumptionLbs;//DebriefEval
@@ -2308,7 +2309,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        private void UpdateFirebox(float elapsedClockSeconds, float absSpeedMpS)
+        private void UpdateFirebox(double elapsedClockSeconds, float absSpeedMpS)
         {
 
             // Determine heat loss values that should not be considered when firing - ie safety valves and cylinder cocks - as these are mechanisms to control heat and we don't want to increase firing to cover these items
@@ -2469,7 +2470,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             BurnRateSmoothKGpS.Update(elapsedClockSeconds, BurnRateRawKGpS);
-            FuelBurnRateSmoothedKGpS = BurnRateSmoothKGpS.SmoothedValue;
+            FuelBurnRateSmoothedKGpS = (float)BurnRateSmoothKGpS.SmoothedValue;
             FuelBurnRateSmoothedKGpS = MathHelper.Clamp(FuelBurnRateSmoothedKGpS, 0.0f, MaxFuelBurnGrateKGpS); // clamp burnrate to max fuel that can be burnt within grate limit
             #endregion
 
@@ -2487,12 +2488,12 @@ namespace Orts.Simulation.RollingStocks
                 if (StokerIsMechanical) // if a stoker is fitted expect a quicker response to fuel feeding
                 {
                     FuelRateStoker.Update(elapsedClockSeconds, DesiredChange); // faster fuel feed rate for stoker    
-                    FuelRateSmoothed = CoalIsExhausted ? 0 : FuelRateStoker.SmoothedValue; // If tender coal is empty stop fuelrate (feeding coal onto fire). 
+                    FuelRateSmoothed = CoalIsExhausted ? 0 : (float)FuelRateStoker.SmoothedValue; // If tender coal is empty stop fuelrate (feeding coal onto fire). 
                 }
                 else
                 {
                     FuelRate.Update(elapsedClockSeconds, DesiredChange); // slower fuel feed rate for fireman
-                    FuelRateSmoothed = CoalIsExhausted ? 0 : FuelRate.SmoothedValue; // If tender coal is empty stop fuelrate (feeding coal onto fire).
+                    FuelRateSmoothed = CoalIsExhausted ? 0 : (float)FuelRate.SmoothedValue; // If tender coal is empty stop fuelrate (feeding coal onto fire).
                 }
 
                 float CurrentFireLevelfactor = 0.95f; // factor representing the how low firemass has got compared to ideal firemass  
@@ -2526,7 +2527,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     DisplayMaxFiringRateKGpS = MaxTheoreticalFiringRateKgpS; // Set display value with temporary higher shovelling level
                     FuelFeedRateKGpS = MaxTheoreticalFiringRateKgpS * FuelRateSmoothed;  // At times of heavy burning allow AI fireman to overfuel
-                    FuelBoostOnTimerS += elapsedClockSeconds; // Time how long to fuel boost for
+                    FuelBoostOnTimerS += (float)elapsedClockSeconds; // Time how long to fuel boost for
                 }
                 else
                 {
@@ -2535,13 +2536,13 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
             // Calculate update to firemass as a result of adding fuel to the fire
-            FireMassKG += elapsedClockSeconds * (FuelFeedRateKGpS - FuelBurnRateSmoothedKGpS);
+            FireMassKG += (float)elapsedClockSeconds * (FuelFeedRateKGpS - FuelBurnRateSmoothedKGpS);
             FireMassKG = MathHelper.Clamp(FireMassKG, 0, MaxFireMassKG);
             GrateCombustionRateLBpFt2 = Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(FuelBurnRateSmoothedKGpS) / Size.Area.ToFt2(GrateAreaM2)); //coal burnt per sq ft grate area per hour
             // Time Fuel Boost reset timer if all time has been used up on boost timer
             if (FuelBoostOnTimerS >= TimeFuelBoostOnS)
             {
-                FuelBoostResetTimerS += elapsedClockSeconds; // Time how long to wait for next fuel boost
+                FuelBoostResetTimerS += (float)elapsedClockSeconds; // Time how long to wait for next fuel boost
                 FuelBoostReset = true;
             }
             if (FuelBoostResetTimerS > TimeFuelBoostResetS)
@@ -2552,7 +2553,7 @@ namespace Orts.Simulation.RollingStocks
             #endregion
         }
 
-        private void UpdateBoiler(float elapsedClockSeconds)
+        private void UpdateBoiler(double elapsedClockSeconds)
         {
             absSpeedMpS = Math.Abs(Train.SpeedMpS);
 
@@ -2805,8 +2806,8 @@ namespace Orts.Simulation.RollingStocks
                     }
 
                     SafetyValveUsageLBpS = SafetyValveUsage1LBpS + SafetyValveUsage2LBpS + SafetyValveUsage3LBpS + SafetyValveUsage4LBpS;   // Sum all the safety valve discharge rates together
-                    BoilerMassLB -= elapsedClockSeconds * SafetyValveUsageLBpS;
-                    BoilerHeatBTU -= elapsedClockSeconds * SafetyValveUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to safety valve
+                    BoilerMassLB -= (float)elapsedClockSeconds * SafetyValveUsageLBpS;
+                    BoilerHeatBTU -= (float)elapsedClockSeconds * SafetyValveUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to safety valve
                     TotalSteamUsageLBpS += SafetyValveUsageLBpS;
                     BoilerHeatOutBTUpS += SafetyValveUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to safety valve
                     SafetyValveBoilerHeatOutBTUpS = SafetyValveUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);
@@ -2840,8 +2841,8 @@ namespace Orts.Simulation.RollingStocks
                 if (SafetyIsOn)
                 {
                     SafetyValveUsageLBpS = MaxSafetyValveDischargeLbspS;   // For the AI fireman use the maximum possible safety valve steam volume
-                    BoilerMassLB -= elapsedClockSeconds * SafetyValveUsageLBpS;
-                    BoilerHeatBTU -= elapsedClockSeconds * SafetyValveUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to safety valve
+                    BoilerMassLB -= (float)elapsedClockSeconds * SafetyValveUsageLBpS;
+                    BoilerHeatBTU -= (float)elapsedClockSeconds * SafetyValveUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to safety valve
                     TotalSteamUsageLBpS += SafetyValveUsageLBpS;
                     BoilerHeatOutBTUpS += SafetyValveUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to safety valve
                     BoilerHeatOutSVAIBTUpS = SafetyValveUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Use this value to adjust the burn rate in AI mode if safety valves operate, main usage value used for display values
@@ -2859,8 +2860,8 @@ namespace Orts.Simulation.RollingStocks
             // Adjust blower impacts on heat and boiler mass
             if (BlowerIsOn)
             {
-                BoilerMassLB -= elapsedClockSeconds * BlowerSteamUsageLBpS; // Reduce boiler mass to reflect steam usage by blower  
-                BoilerHeatBTU -= elapsedClockSeconds * BlowerSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by blower
+                BoilerMassLB -= (float)elapsedClockSeconds * BlowerSteamUsageLBpS; // Reduce boiler mass to reflect steam usage by blower  
+                BoilerHeatBTU -= (float)elapsedClockSeconds * BlowerSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by blower
                 BoilerHeatOutBTUpS += BlowerSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by blower
                 TotalSteamUsageLBpS += BlowerSteamUsageLBpS;
             }
@@ -2876,7 +2877,7 @@ namespace Orts.Simulation.RollingStocks
 
             FlueTempDiffK = ((BoilerHeatInBTUpS - BoilerHeatOutBTUpS) * BTUpHtoKJpS) / (Dynamics.Power.ToKW(BoilerHeatTransferCoeffWpM2K) * EvaporationAreaM2); // calculate current FlueTempK difference, based upon heat input due to firing - heat taken out by boiler
 
-            FlueTempK += elapsedClockSeconds * FlueTempDiffK; // Calculate increase or decrease in Flue Temp
+            FlueTempK += (float)elapsedClockSeconds * FlueTempDiffK; // Calculate increase or decrease in Flue Temp
 
             FlueTempK = MathHelper.Clamp(FlueTempK, 0, 3000.0f);    // Maximum firebox temp in Penn document = 1514 K.
 
@@ -2983,14 +2984,14 @@ namespace Orts.Simulation.RollingStocks
             }
 
             BoilerHeatInBTUpS = Dynamics.Power.ToBTUpS(Dynamics.Power.FromKW(FireHeatTxfKW) * BoilerEfficiencyGrateAreaLBpFT2toX[(Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2))]);
-            BoilerHeatBTU += elapsedClockSeconds * Dynamics.Power.ToBTUpS(Dynamics.Power.FromKW(FireHeatTxfKW) * BoilerEfficiencyGrateAreaLBpFT2toX[(Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2))]);
+            BoilerHeatBTU += (float)elapsedClockSeconds * Dynamics.Power.ToBTUpS(Dynamics.Power.FromKW(FireHeatTxfKW) * BoilerEfficiencyGrateAreaLBpFT2toX[(Frequency.Periodic.ToHours(Mass.Kilogram.ToLb(FuelBurnRateSmoothedKGpS)) / Size.Area.ToFt2(GrateAreaM2))]);
 
             // Basic steam radiation losses 
             RadiationSteamLossLBpS = Frequency.Periodic.FromMinutes((absSpeedMpS == 0.0f) ?
                 3.04f : // lb/min at rest 
                 5.29f); // lb/min moving
-            BoilerMassLB -= elapsedClockSeconds * RadiationSteamLossLBpS;
-            BoilerHeatBTU -= elapsedClockSeconds * RadiationSteamLossLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);
+            BoilerMassLB -= (float)elapsedClockSeconds * RadiationSteamLossLBpS;
+            BoilerHeatBTU -= (float)elapsedClockSeconds * RadiationSteamLossLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);
             TotalSteamUsageLBpS += RadiationSteamLossLBpS;
             BoilerHeatOutBTUpS += RadiationSteamLossLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);
 
@@ -3015,7 +3016,7 @@ namespace Orts.Simulation.RollingStocks
 
             BoilerHeatSmoothBTU.Update(elapsedClockSeconds, BoilerHeatBTU);
 
-            BoilerHeatSmoothedBTU = MathHelper.Clamp(BoilerHeatSmoothBTU.SmoothedValue, 0.0f, (MaxBoilerSafetyPressHeatBTU * 1.05f));
+            BoilerHeatSmoothedBTU = (float)MathHelperD.Clamp(BoilerHeatSmoothBTU.SmoothedValue, 0.0, (MaxBoilerSafetyPressHeatBTU * 1.05));
 
             WaterHeatBTUpFT3 = (BoilerHeatSmoothedBTU / BoilerVolumeFT3 - (1 - WaterFraction) * BoilerSteamDensityLBpFT3 * BoilerSteamHeatBTUpLB) / (WaterFraction * BoilerWaterDensityLBpFT3);
 
@@ -3094,7 +3095,7 @@ namespace Orts.Simulation.RollingStocks
             ApplyBoilerPressure();
 
             // Calculate cummulative steam consumption
-            CummulativeTotalSteamConsumptionLbs += PreviousTotalSteamUsageLBpS * elapsedClockSeconds;
+            CummulativeTotalSteamConsumptionLbs += PreviousTotalSteamUsageLBpS * (float)elapsedClockSeconds;
         }
 
         private void ApplyBoilerPressure()
@@ -3113,7 +3114,7 @@ namespace Orts.Simulation.RollingStocks
             TotalSteamUsageLBpS = 0.0f;
         }
 
-        private void UpdateCylinders(float elapsedClockSeconds, float throttle, float cutoff, float absSpeedMpS)
+        private void UpdateCylinders(double elapsedClockSeconds, float throttle, float cutoff, float absSpeedMpS)
         {
             // Calculate speed of locomotive in wheel rpm - used to determine changes in performance based upon speed.
             DrvWheelRevRpS = absSpeedMpS / (2.0f * MathHelper.Pi * DriverWheelRadiusM);
@@ -4221,15 +4222,15 @@ namespace Orts.Simulation.RollingStocks
             // Decrease steam usage by SuperheaterUsage factor to model superheater - very crude model - to be improved upon
             CylinderSteamUsageLBpS = (0.6f * CylinderSteamUsageLBpS + 0.4f * CalculatedCylinderSteamUsageLBpS);
 
-            BoilerMassLB -= elapsedClockSeconds * CylinderSteamUsageLBpS; //  Boiler mass will be reduced by cylinder steam usage
-            BoilerHeatBTU -= elapsedClockSeconds * CylinderSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); //  Boiler Heat will be reduced by heat required to replace the cylinder steam usage, ie create steam from hot water. 
+            BoilerMassLB -= (float)elapsedClockSeconds * CylinderSteamUsageLBpS; //  Boiler mass will be reduced by cylinder steam usage
+            BoilerHeatBTU -= (float)elapsedClockSeconds * CylinderSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); //  Boiler Heat will be reduced by heat required to replace the cylinder steam usage, ie create steam from hot water. 
             TotalSteamUsageLBpS += CylinderSteamUsageLBpS;
             BoilerHeatOutBTUpS += CylinderSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);
-            CumulativeCylinderSteamConsumptionLbs += CylinderSteamUsageLBpS * elapsedClockSeconds;
+            CumulativeCylinderSteamConsumptionLbs += CylinderSteamUsageLBpS * (float)elapsedClockSeconds;
 
         }
 
-        private void UpdateMotion(float elapsedClockSeconds, float cutoff, float absSpeedMpS)
+        private void UpdateMotion(double elapsedClockSeconds, float cutoff, float absSpeedMpS)
         {
 
             // This section updates the force calculations and maintains them at the current values.
@@ -4286,7 +4287,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (SpeedMpS > 0.05)
                 {
-                    SteamPerformanceTimeS += elapsedClockSeconds;
+                    SteamPerformanceTimeS += (float)elapsedClockSeconds;
                 }
                 else if (SpeedMpS < 0.04)
                 {
@@ -4373,7 +4374,7 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
-        protected override void UpdateMotiveForce(float elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
+        protected override void UpdateMotiveForce(double elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
         {
             // Pass force and power information to MSTSLocomotive file by overriding corresponding method there
 
@@ -4779,7 +4780,7 @@ namespace Orts.Simulation.RollingStocks
                     // tangential speed = angular acceleration * time
                     PrevFrictionWheelSpeedMpS = FrictionWheelSpeedMpS; // Save current value of wheelspeed
                     // Speed = current velocity + acceleration * time
-                    FrictionWheelSpeedMpS += (AngAccRadpS2 * DriverWheelRadiusM * elapsedClockSeconds);  // increase wheel speed whilever wheel accelerating
+                    FrictionWheelSpeedMpS += (AngAccRadpS2 * DriverWheelRadiusM * (float)elapsedClockSeconds);  // increase wheel speed whilever wheel accelerating
                     FrictionWheelSpeedMpS = MathHelper.Clamp(FrictionWheelSpeedMpS, 0.0f, 62.58f);  // Clamp wheel speed at maximum of 140mph (62.58 m/s)
 
                     WheelSlip = true;  // Set wheel slip if locomotive is slipping
@@ -4869,7 +4870,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        private void UpdateAuxiliaries(float elapsedClockSeconds, float absSpeedMpS)
+        private void UpdateAuxiliaries(double elapsedClockSeconds, float absSpeedMpS)
         {
             // Only calculate compressor consumption if it is not a vacuum controlled steam engine
             if (!(BrakeSystem is Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS.VacuumSinglePipe))
@@ -4879,8 +4880,8 @@ namespace Orts.Simulation.RollingStocks
                 if (CompressorIsOn)
                 {
                     CompSteamUsageLBpS = Size.Volume.ToFt3(Size.Volume.FromIn3((float)Math.PI * (CompCylDiaIN / 2.0f) * (CompCylDiaIN / 2.0f) * CompCylStrokeIN * Frequency.Periodic.FromMinutes(CompStrokespM))) * SteamDensityPSItoLBpFT3[BoilerPressurePSI];   // Calculate Compressor steam usage - equivalent to volume of compressor steam cylinder * steam denisty * cylinder strokes
-                    BoilerMassLB -= elapsedClockSeconds * CompSteamUsageLBpS; // Reduce boiler mass to reflect steam usage by compressor
-                    BoilerHeatBTU -= elapsedClockSeconds * CompSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by compressor
+                    BoilerMassLB -= (float)elapsedClockSeconds * CompSteamUsageLBpS; // Reduce boiler mass to reflect steam usage by compressor
+                    BoilerHeatBTU -= (float)elapsedClockSeconds * CompSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by compressor
                     BoilerHeatOutBTUpS += CompSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by compressor
                     TotalSteamUsageLBpS += CompSteamUsageLBpS;
                 }
@@ -4959,8 +4960,8 @@ namespace Orts.Simulation.RollingStocks
                 // Calculate Total steamconsumption for Ejectors
                 EjectorTotalSteamConsumptionLbpS = TempEjectorSmallSteamConsumptionLbpS + TempEjectorLargeSteamConsumptionLbpS;
 
-                BoilerMassLB -= elapsedClockSeconds * EjectorTotalSteamConsumptionLbpS; // Reduce boiler mass to reflect steam usage by compressor
-                BoilerHeatBTU -= elapsedClockSeconds * EjectorTotalSteamConsumptionLbpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by compressor
+                BoilerMassLB -= (float)elapsedClockSeconds * EjectorTotalSteamConsumptionLbpS; // Reduce boiler mass to reflect steam usage by compressor
+                BoilerHeatBTU -= (float)elapsedClockSeconds * EjectorTotalSteamConsumptionLbpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by compressor
                 BoilerHeatOutBTUpS += EjectorTotalSteamConsumptionLbpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by compressor
                 TotalSteamUsageLBpS += EjectorTotalSteamConsumptionLbpS;
 
@@ -4987,8 +4988,8 @@ namespace Orts.Simulation.RollingStocks
                 if (throttle > 0.00 && absSpeedMpS > 0.1) // if regulator open & train moving
                 {
                     CylCockSteamUsageLBpS = Frequency.Periodic.FromHours(NumCylinders * (24.24f * (CylinderCocksPressureAtmPSI) * CylCockDiaIN * CylCockDiaIN));
-                    BoilerMassLB -= elapsedClockSeconds * CylCockSteamUsageLBpS; // Reduce boiler mass to reflect steam usage by cylinder steam cocks  
-                    BoilerHeatBTU -= elapsedClockSeconds * CylCockSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by cylinder steam cocks
+                    BoilerMassLB -= (float)elapsedClockSeconds * CylCockSteamUsageLBpS; // Reduce boiler mass to reflect steam usage by cylinder steam cocks  
+                    BoilerHeatBTU -= (float)elapsedClockSeconds * CylCockSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by cylinder steam cocks
                     BoilerHeatOutBTUpS += CylCockSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by cylinder steam cocks                
                     CylCockBoilerHeatOutBTUpS = CylCockSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by cylinder steam cocks
                     TotalSteamUsageLBpS += CylCockSteamUsageLBpS;
@@ -4998,8 +4999,8 @@ namespace Orts.Simulation.RollingStocks
                 {
                     CylCockSteamUsageLBpS = 0.0f; // set usage to zero if regulator closed
                     CylCockSteamUsageStatLBpS = Frequency.Periodic.FromHours(NumCylinders * (24.24f * (Pressure_b_AtmPSI) * CylCockDiaIN * CylCockDiaIN));
-                    BoilerMassLB -= elapsedClockSeconds * CylCockSteamUsageStatLBpS; // Reduce boiler mass to reflect steam usage by cylinder steam cocks  
-                    BoilerHeatBTU -= elapsedClockSeconds * CylCockSteamUsageStatLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by cylinder steam cocks
+                    BoilerMassLB -= (float)elapsedClockSeconds * CylCockSteamUsageStatLBpS; // Reduce boiler mass to reflect steam usage by cylinder steam cocks  
+                    BoilerHeatBTU -= (float)elapsedClockSeconds * CylCockSteamUsageStatLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by cylinder steam cocks
                     BoilerHeatOutBTUpS += CylCockSteamUsageStatLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by cylinder steam cocks                
                     CylCockBoilerHeatOutBTUpS = CylCockSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by cylinder steam cocks
                     TotalSteamUsageLBpS += CylCockSteamUsageStatLBpS;
@@ -5018,8 +5019,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 GeneratorSteamUsageLBpS = 0.0291666f; // Assume 105lb/hr steam usage for 500W generator
                 //   GeneratorSteamUsageLbpS = (GeneratorSizekW * SteamkwToBTUpS) / steamHeatCurrentBTUpLb; // calculate Generator steam usage
-                BoilerMassLB -= elapsedClockSeconds * GeneratorSteamUsageLBpS; // Reduce boiler mass to reflect steam usage by generator  
-                BoilerHeatBTU -= elapsedClockSeconds * GeneratorSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by generator
+                BoilerMassLB -= (float)elapsedClockSeconds * GeneratorSteamUsageLBpS; // Reduce boiler mass to reflect steam usage by generator  
+                BoilerHeatBTU -= (float)elapsedClockSeconds * GeneratorSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by generator
                 BoilerHeatOutBTUpS += GeneratorSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by generator
                 TotalSteamUsageLBpS += GeneratorSteamUsageLBpS;
             }
@@ -5030,8 +5031,8 @@ namespace Orts.Simulation.RollingStocks
             if (StokerIsMechanical)
             {
                 StokerSteamUsageLBpS = Frequency.Periodic.FromHours(MaxBoilerOutputLBpH) * (StokerMinUsage + (StokerMaxUsage - StokerMinUsage) * FuelFeedRateKGpS / MaxFiringRateKGpS);  // Caluculate current steam usage based on fuel feed rates
-                BoilerMassLB -= elapsedClockSeconds * StokerSteamUsageLBpS; // Reduce boiler mass to reflect steam usage by mechanical stoker  
-                BoilerHeatBTU -= elapsedClockSeconds * StokerSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by mechanical stoker
+                BoilerMassLB -= (float)elapsedClockSeconds * StokerSteamUsageLBpS; // Reduce boiler mass to reflect steam usage by mechanical stoker  
+                BoilerHeatBTU -= (float)elapsedClockSeconds * StokerSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by mechanical stoker
                 BoilerHeatOutBTUpS += StokerSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by mecahnical stoker
                 TotalSteamUsageLBpS += StokerSteamUsageLBpS;
             }
@@ -5071,7 +5072,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        private void UpdateInjectors(float elapsedClockSeconds)
+        private void UpdateInjectors(double elapsedClockSeconds)
         {
             #region Calculate Injector size
 
@@ -5158,9 +5159,9 @@ namespace Orts.Simulation.RollingStocks
                     Inject1WaterHeatLossBTU = Injector1Fraction * InjectorFlowRateLBpS * (BoilerWaterHeatBTUpLB - WaterHeatPSItoBTUpLB[Injector1WaterTempPressurePSI]);
 
                     // calculate Water steam heat based on injector water delivery temp
-                    BoilerMassLB += elapsedClockSeconds * Injector1Fraction * InjectorFlowRateLBpS;   // Boiler Mass increase by Injector 1
-                    BoilerHeatBTU -= elapsedClockSeconds * (Inject1WaterHeatLossBTU + Inject1SteamHeatLossBTU); // Total loss of boiler heat due to water injection - inject steam and water Heat   
-                    InjectorBoilerInputLB += (elapsedClockSeconds * Injector1Fraction * InjectorFlowRateLBpS); // Keep track of water flow into boilers from Injector 1
+                    BoilerMassLB += (float)elapsedClockSeconds * Injector1Fraction * InjectorFlowRateLBpS;   // Boiler Mass increase by Injector 1
+                    BoilerHeatBTU -= (float)elapsedClockSeconds * (Inject1WaterHeatLossBTU + Inject1SteamHeatLossBTU); // Total loss of boiler heat due to water injection - inject steam and water Heat   
+                    InjectorBoilerInputLB += (float)(elapsedClockSeconds * Injector1Fraction * InjectorFlowRateLBpS); // Keep track of water flow into boilers from Injector 1
                     BoilerHeatOutBTUpS += (Inject1WaterHeatLossBTU + Inject1SteamHeatLossBTU); // Total loss of boiler heat due to water injection - inject steam and water Heat
                 }
                 if (Injector2IsOn)
@@ -5189,9 +5190,9 @@ namespace Orts.Simulation.RollingStocks
                     Inject2WaterHeatLossBTU = Injector2Fraction * InjectorFlowRateLBpS * (BoilerWaterHeatBTUpLB - WaterHeatPSItoBTUpLB[Injector2WaterTempPressurePSI]); // Loss of boiler heat due to water injection - loss is the diff between steam and water Heat
 
                     // calculate Water steam heat based on injector water delivery temp
-                    BoilerMassLB += elapsedClockSeconds * Injector2Fraction * InjectorFlowRateLBpS;   // Boiler Mass increase by Injector 1
-                    BoilerHeatBTU -= elapsedClockSeconds * (Inject2WaterHeatLossBTU + Inject2SteamHeatLossBTU); // Total loss of boiler heat due to water injection - inject steam and water Heat   
-                    InjectorBoilerInputLB += (elapsedClockSeconds * Injector2Fraction * InjectorFlowRateLBpS); // Keep track of water flow into boilers from Injector 1
+                    BoilerMassLB += (float)elapsedClockSeconds * Injector2Fraction * InjectorFlowRateLBpS;   // Boiler Mass increase by Injector 1
+                    BoilerHeatBTU -= (float)elapsedClockSeconds * (Inject2WaterHeatLossBTU + Inject2SteamHeatLossBTU); // Total loss of boiler heat due to water injection - inject steam and water Heat   
+                    InjectorBoilerInputLB += (float)(elapsedClockSeconds * Injector2Fraction * InjectorFlowRateLBpS); // Keep track of water flow into boilers from Injector 1
                     BoilerHeatOutBTUpS += (Inject2WaterHeatLossBTU + Inject2SteamHeatLossBTU); // Total loss of boiler heat due to water injection - inject steam and water Heat
                 }
             }
@@ -5201,7 +5202,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (InjectorLockedOut)
                 {
-                    InjectorLockOutTimeS += elapsedClockSeconds;
+                    InjectorLockOutTimeS += (float)elapsedClockSeconds;
                 }
                 if (InjectorLockOutTimeS > InjectorLockOutResetTimeS)
                 {
@@ -5475,7 +5476,7 @@ namespace Orts.Simulation.RollingStocks
             #endregion
         }
 
-        private void UpdateSteamHeat(float elapsedClockSeconds)
+        private void UpdateSteamHeat(double elapsedClockSeconds)
         {
             // Update Steam Heating System
 
@@ -5533,8 +5534,8 @@ namespace Orts.Simulation.RollingStocks
                         }
 
                         // Calculate impact of steam heat usage on locomotive
-                        BoilerMassLB -= elapsedClockSeconds * CalculatedCarHeaterSteamUsageLBpS;
-                        BoilerHeatBTU -= elapsedClockSeconds * CalculatedCarHeaterSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to steam heat usage
+                        BoilerMassLB -= (float)elapsedClockSeconds * CalculatedCarHeaterSteamUsageLBpS;
+                        BoilerHeatBTU -= (float)elapsedClockSeconds * CalculatedCarHeaterSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to steam heat usage
                         TotalSteamUsageLBpS += CalculatedCarHeaterSteamUsageLBpS;
                         BoilerHeatOutBTUpS += CalculatedCarHeaterSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to safety valve                
                     }
