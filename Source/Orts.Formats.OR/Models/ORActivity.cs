@@ -51,7 +51,7 @@ namespace Orts.Formats.OR.Models
              
         public ORActivity(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortsaihornatcrossings", ()=>{ AIHornAtCrossings = stf.ReadIntBlock(AIHornAtCrossings); }),
 

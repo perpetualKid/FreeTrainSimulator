@@ -38,7 +38,7 @@ namespace Orts.Formats.OR.Files
                             STFException.TraceWarning(stf, "Skipped extra CarSpawner List");
                         else
                         {
-                            stf.MustMatch("(");
+                            stf.MustMatchBlockStart();
                             stf.MustMatch("ListName");
                             listName = stf.ReadStringBlock(null);
                             CarSpawners.Add( new CarSpawnerList(stf, shapePath, listName));

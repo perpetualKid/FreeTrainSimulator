@@ -40,62 +40,62 @@ namespace Orts.Formats.OR.Parsers
             }
         }
 
-        string _fileName;
-        JsonTextReader _reader;
-        StringBuilder _path;
-        Stack<int> _pathPositions;
+        private readonly string fileName;
+        private JsonTextReader reader;
+        private StringBuilder path;
+        private Stack<int> pathPositions;
 
         public string Path { get; private set; }
 
         JsonReader(string fileName, JsonTextReader reader)
         {
-            _fileName = fileName;
-            _reader = reader;
-            _path = new StringBuilder();
-            _pathPositions = new Stack<int>();
+            this.fileName = fileName;
+            this.reader = reader;
+            path = new StringBuilder();
+            pathPositions = new Stack<int>();
         }
 
         public void ReadBlock(Func<JsonReader, bool> tryParse)
         {
-            var basePosition = _pathPositions.Count > 0 ? _pathPositions.Peek() : 0;
+            var basePosition = pathPositions.Count > 0 ? pathPositions.Peek() : 0;
 
 #if DEBUG_JSON_READER
             Console.WriteLine();
             Console.WriteLine($"JsonReader({_path.ToString()} ({string.Join(",", _pathPositions.Select(p => p.ToString()).ToArray())})).ReadBlock(): base={basePosition}");
 #endif
 
-            while (_reader.Read())
+            while (reader.Read())
             {
 #if DEBUG_JSON_READER
                 Console.WriteLine($"JsonReader.ReadBlock({_path.ToString()} ({string.Join(",", _pathPositions.Select(p => p.ToString()).ToArray())})): token={_reader.TokenType} value={_reader.Value} type={_reader.ValueType}");
 #endif
-                switch (_reader.TokenType)
+                switch (reader.TokenType)
                 {
                     case JsonToken.StartArray:
-                        _pathPositions.Push(_path.Length);
-                        _path.Append("[]");
+                        pathPositions.Push(path.Length);
+                        path.Append("[]");
                         break;
                     case JsonToken.EndArray:
-                        _path.Length = _pathPositions.Pop();
+                        path.Length = pathPositions.Pop();
                         break;
                     case JsonToken.StartObject:
-                        _pathPositions.Push(_path.Length);
-                        if (_pathPositions.Count > 1) _path.Append(".");
-                        _pathPositions.Push(_path.Length);
+                        pathPositions.Push(path.Length);
+                        if (pathPositions.Count > 1) path.Append(".");
+                        pathPositions.Push(path.Length);
                         break;
                     case JsonToken.PropertyName:
-                        Debug.Assert(_reader.ValueType == typeof(string));
-                        _path.Length = _pathPositions.Peek();
-                        _path.Append((string)_reader.Value);
+                        Debug.Assert(reader.ValueType == typeof(string));
+                        path.Length = pathPositions.Peek();
+                        path.Append((string)reader.Value);
                         break;
                     case JsonToken.EndObject:
-                        var end = _pathPositions.Pop();
-                        _path.Length = _pathPositions.Pop();
+                        var end = pathPositions.Pop();
+                        path.Length = pathPositions.Pop();
                         if (end == basePosition) return;
                         break;
                 }
 
-                switch (_reader.TokenType)
+                switch (reader.TokenType)
                 {
                     case JsonToken.StartObject:
                     case JsonToken.Boolean:
@@ -105,8 +105,8 @@ namespace Orts.Formats.OR.Parsers
                     case JsonToken.Integer:
                     case JsonToken.Null:
                     case JsonToken.String:
-                        Path = _path.ToString().Substring(basePosition);
-                        if (!tryParse(this)) TraceInformation($"Skipped unknown {_reader.TokenType} \"{_reader.Value}\" in {Path}");
+                        Path = path.ToString().Substring(basePosition);
+                        if (!tryParse(this)) TraceInformation($"Skipped unknown {reader.TokenType} \"{reader.Value}\" in {Path}");
                         break;
                 }
             }
@@ -115,77 +115,77 @@ namespace Orts.Formats.OR.Parsers
         public T AsEnum<T>(T defaultValue)
         {
             Debug.Assert(typeof(T).IsEnum, "Must use type inheriting from Enum for AsEnum()");
-            switch (_reader.TokenType)
+            switch (reader.TokenType)
             {
                 case JsonToken.String:
-                    var value = (string)_reader.Value;
+                    var value = (string)reader.Value;
                     return (T)Enum.Parse(typeof(T), value, true);
                 default:
-                    TraceWarning($"Expected string (enum) value in {Path}; got {_reader.TokenType}");
+                    TraceWarning($"Expected string (enum) value in {Path}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
 
         public float AsFloat(float defaultValue)
         {
-            switch (_reader.TokenType)
+            switch (reader.TokenType)
             {
                 case JsonToken.Float:
-                    return (float)(double)_reader.Value;
+                    return (float)(double)reader.Value;
                 case JsonToken.Integer:
-                    return (long)_reader.Value;
+                    return (long)reader.Value;
                 default:
-                    TraceWarning($"Expected floating point value in {Path}; got {_reader.TokenType}");
+                    TraceWarning($"Expected floating point value in {Path}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
 
         public int AsInteger(int defaultValue)
         {
-            switch (_reader.TokenType)
+            switch (reader.TokenType)
             {
                 case JsonToken.Integer:
-                    return (int)(long)_reader.Value;
+                    return (int)(long)reader.Value;
                 default:
-                    TraceWarning($"Expected integer value in {Path}; got {_reader.TokenType}");
+                    TraceWarning($"Expected integer value in {Path}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
 
         public string AsString(string defaultValue)
         {
-            switch (_reader.TokenType)
+            switch (reader.TokenType)
             {
                 case JsonToken.String:
-                    return (string)_reader.Value;
+                    return (string)reader.Value;
                 default:
-                    TraceWarning($"Expected string value in {Path}; got {_reader.TokenType}");
+                    TraceWarning($"Expected string value in {Path}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
 
         public float AsTime(float defaultValue)
         {
-            switch (_reader.TokenType)
+            switch (reader.TokenType)
             {
                 case JsonToken.String:
-                    var time = ((string)_reader.Value).Split(':');
+                    var time = ((string)reader.Value).Split(':');
                     var StartTime = new TimeSpan(int.Parse(time[0]), time.Length > 1 ? int.Parse(time[1]) : 0, time.Length > 2 ? int.Parse(time[2]) : 0);
                     return (float)StartTime.TotalSeconds;
                 default:
-                    TraceWarning($"Expected string (time) value in {Path}; got {_reader.TokenType}");
+                    TraceWarning($"Expected string (time) value in {Path}; got {reader.TokenType}");
                     return defaultValue;
             }
         }
 
         public void TraceWarning(string message)
         {
-            Trace.TraceWarning("{2} in {0}:line {1}", _fileName, _reader.LineNumber, message);
+            Trace.TraceWarning("{2} in {0}:line {1}", fileName, reader.LineNumber, message);
         }
 
         public void TraceInformation(string message)
         {
-            Trace.TraceInformation("{2} in {0}:line {1}", _fileName, _reader.LineNumber, message);
+            Trace.TraceInformation("{2} in {0}:line {1}", fileName, reader.LineNumber, message);
         }
     }
 }

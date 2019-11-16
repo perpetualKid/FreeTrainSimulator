@@ -22,7 +22,7 @@ namespace Orts.Formats.OR.Files
 
         private void ParseORActivitySettings(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             var tokenPresent = false;
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tr_activity_file", ()=>{ tokenPresent = true; ParseORActivityFileSettings(stf); }),
@@ -33,7 +33,7 @@ namespace Orts.Formats.OR.Files
 
         private void ParseORActivityFileSettings(STFReader stf)
         {
-            stf.MustMatch("(");
+            stf.MustMatchBlockStart();
             var tokenPresent = false;
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("tr_activity_file", ()=>{ tokenPresent = true; Activity = new ORActivity(stf); }),
