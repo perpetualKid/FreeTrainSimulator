@@ -220,6 +220,7 @@ namespace ORTS.TrackViewer
                 }
                 catch {}
             }
+            FolderStructure.InitializeFromRoot(Properties.Settings.Default.installDirectory);
             InstallFolder = new Folder("default", Properties.Settings.Default.installDirectory);
 
             FindRoutes(InstallFolder);
@@ -809,6 +810,7 @@ namespace ORTS.TrackViewer
         private bool SetSelectedInstallFolder(string folderPath)
         {
             drawTerrain?.Clear();
+            FolderStructure.InitializeFromRoot(folderPath);
             Folder newInstallFolder = new Folder("installFolder", folderPath);
             bool foundroutes = FindRoutes(newInstallFolder);
             if (!foundroutes)
