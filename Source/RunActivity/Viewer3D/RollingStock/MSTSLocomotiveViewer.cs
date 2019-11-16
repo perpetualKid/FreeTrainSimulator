@@ -2335,7 +2335,7 @@ namespace Orts.Viewer3D.RollingStock
             if (car.CabView3D != null)
             {
                 var shapePath = car.CabView3D.ShapeFilePath;
-                TrainCarShape = new PoseableShape(viewer, shapePath + '\0' + Path.GetDirectoryName(shapePath), car.WorldPosition, ShapeFlags.ShadowCaster);
+                TrainCarShape = new PoseableShape(viewer, shapePath + '\0' + Path.GetDirectoryName(shapePath), car.WorldPosition, ShapeFlags.ShadowCaster | ShapeFlags.Interior);
                 locoViewer.ThreeDimentionCabRenderer = new CabRenderer(viewer, car, car.CabView3D.CVFFile);
             }
             else locoViewer.ThreeDimentionCabRenderer = locoViewer._CabRenderer;
@@ -2755,7 +2755,7 @@ namespace Orts.Viewer3D.RollingStock
             Matrix m = XNAMatrix * mx;
 
             // TODO: Make this use AddAutoPrimitive instead.
-            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.World, ref m, ShapeFlags.None);
+            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
         }
 
         internal void Mark()
@@ -2971,7 +2971,7 @@ namespace Orts.Viewer3D.RollingStock
             Matrix m = XNAMatrix * mx;
 
             // TODO: Make this use AddAutoPrimitive instead.
-            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.World, ref m, ShapeFlags.None);
+            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
         }
 
         internal void Mark()
