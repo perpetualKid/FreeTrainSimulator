@@ -50,7 +50,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
+    <OutputPath>..\..\Program\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <DocumentationFile>..\..\Program\OpenRails.xml</DocumentationFile>
     <Optimize>true</Optimize>
