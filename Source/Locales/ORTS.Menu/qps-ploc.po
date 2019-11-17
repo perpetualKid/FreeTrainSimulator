@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ORTS.Menu\n"
-"POT-Creation-Date: 2019-05-19 02:21:32+0200\n"
-"PO-Revision-Date: 2019-05-19 02:21:32+0200\n"
+"POT-Creation-Date: 2019-11-15 15:38:47+0100\n"
+"PO-Revision-Date: 2019-11-15 15:38:47+0100\n"
 "Last-Translator: \n"
 "Language-Team: Open Rails Dev Team\n"
 "Language: qps-ploc\n"
@@ -29,8 +29,8 @@ msgstr "[Nôƭ ƨá₥è řôúƭè: !!!]"
 #: ../../ORTS.Menu/Consists.cs:47
 #: ../../ORTS.Menu/Consists.cs:71
 #: ../../ORTS.Menu/Consists.cs:199
-#: ../../ORTS.Menu/ORTimetables.cs:55
-#: ../../ORTS.Menu/ORTimetables.cs:77
+#: ../../ORTS.Menu/ORTimetables.cs:56
+#: ../../ORTS.Menu/ORTimetables.cs:78
 #: ../../ORTS.Menu/Paths.cs:63
 #: ../../ORTS.Menu/Routes.cs:49
 msgid "load error:"
@@ -51,8 +51,8 @@ msgstr "[úññá₥èδ: !!!]"
 #: ../../ORTS.Menu/Consists.cs:54
 #: ../../ORTS.Menu/Consists.cs:78
 #: ../../ORTS.Menu/Consists.cs:207
-#: ../../ORTS.Menu/ORTimetables.cs:60
-#: ../../ORTS.Menu/ORTimetables.cs:82
+#: ../../ORTS.Menu/ORTimetables.cs:61
+#: ../../ORTS.Menu/ORTimetables.cs:83
 #: ../../ORTS.Menu/Paths.cs:71
 #: ../../ORTS.Menu/Routes.cs:56
 msgid "missing:"

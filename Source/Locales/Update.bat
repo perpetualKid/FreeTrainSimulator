@@ -1,4 +1,4 @@
-@ECHO OFF
+@ECHO ON
 REM Script must be run from Locales directory.
 
 PUSHD ..\3rdPartyLibs

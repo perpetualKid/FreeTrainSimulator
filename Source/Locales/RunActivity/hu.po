@@ -2230,7 +2230,7 @@ msgstr "A merítő eltörött, mert a vályún kívül lett alkalmazva"
 #~ msgid "CurSupH"
 #~ msgstr "TúlhPill"
 
-#~ msgid "Steam Usage"
+#~ msgid "Steam usage"
 #~ msgstr "Gőzfelhasználás"
 
 #~ msgid "Usage:"

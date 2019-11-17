@@ -1298,7 +1298,7 @@ msgid "CurSupH"
 msgstr "TúlhPill"
 
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:4166
-msgid "Steam Usage"
+msgid "Steam usage"
 msgstr "Gőzfelhasználás"
 
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:4171

@@ -2,14 +2,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orts.Simulation\n"
 "POT-Creation-Date: 2018-04-27 18:04:46+0200\n"
-"PO-Revision-Date: 2019-01-03 19:09+0100\n"
+"PO-Revision-Date: 2019-11-16 11:54+0100\n"
 "Last-Translator: Carlo Santucci <carlosanit1@gmail.com>\n"
 "Language-Team: Open Rails Dev Team\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.4\n"
+"X-Generator: Poedit 2.2.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../../Orts.Simulation/Common/Scripting/BrakeController.cs:227
@@ -1358,7 +1358,7 @@ msgstr "(sicherer Bereich)"
 
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:5530
 msgid "Boiler water level"
-msgstr "Wassersta. Kessel"
+msgstr "Wassersta Kessel"
 
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:5530
 msgid "(absolute)"
@@ -1380,11 +1380,11 @@ msgstr "Kraftstoffstände"
 
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:5537
 msgid "coal"
-msgstr "Kohle"
+msgstr "kohle"
 
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:5537
 msgid "water"
-msgstr "Wasser"
+msgstr "wasser"
 
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:5546
 msgid "Key Inputs"

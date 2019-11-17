@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Orts.Formats.OR\n"
+"Project-Id-Version: ORTS.Formats\n"
 "POT-Creation-Date: 2019-11-15 15:38:46+0100\n"
 "PO-Revision-Date: 2019-11-15 15:38:46+0100\n"
 "Last-Translator: \n"
@@ -12,9 +12,4 @@ msgstr ""
 "X-Generator: PowerShell Update-Pseudo.ps1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-
-#: ../../Orts.Formats.OR/TimetableFile.cs:286
-#, csharp-format
-msgid "Start time: {0}"
-msgstr "[§ƭářƭ ƭï₥è: {0} !!!]"
 

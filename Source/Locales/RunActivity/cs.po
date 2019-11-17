@@ -666,7 +666,7 @@ msgstr "Hladina vody v kotli"
 
 #: ../../RunActivity/RollingStock/MSTSSteamLocomotive.cs:3860
 msgid "(safe range)"
-msgstr "(bezpečný rozsah)"
+msgstr "(rozsah)"
 
 #: ../../RunActivity/RollingStock/MSTSSteamLocomotive.cs:3864
 msgid "(absolute)"
