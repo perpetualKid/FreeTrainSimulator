@@ -27,17 +27,17 @@ namespace Orts.Formats.OR
     public class AuxActionRef
     {
         public bool IsGeneric { get; set; }
-        public AUX_ACTION ActionType;
+        public AuxiliaryAction ActionType;
 
-       
-        public enum AUX_ACTION
+
+        public enum AuxiliaryAction
         {
-            WAITING_POINT,
-            SOUND_HORN,
-            CONTROL_START,
-            SIGNAL_DELEGATE,
-            CONTROL_STOPPED,
-            NONE
+            WaitingPoint,
+            SoundHorn,
+            ControlStart,
+            SignalDelegate,
+            ControlStop,
+            None
         }
 
         //================================================================================================//
@@ -46,13 +46,13 @@ namespace Orts.Formats.OR
         /// The specific datas are used to fired the Action.
         /// </summary>
 
-        public AuxActionRef(AUX_ACTION actionType, bool isGeneric)  
+        public AuxActionRef(AuxiliaryAction actionType, bool isGeneric)
         {
             IsGeneric = isGeneric;
             ActionType = actionType;
         }
 
-        public AuxActionRef(AUX_ACTION actionType = AuxActionRef.AUX_ACTION.NONE)
+        public AuxActionRef(AuxiliaryAction actionType = AuxActionRef.AuxiliaryAction.None)
         {
             IsGeneric = true;
             ActionType = actionType;
@@ -65,11 +65,11 @@ namespace Orts.Formats.OR
         public int Delay;
         public float RequiredDistance;
 
-        public AuxActionHorn(bool isGeneric, int delay = 2, float requiredDistance = 0) :    
-            base(AUX_ACTION.SOUND_HORN ,isGeneric)                                          
+        public AuxActionHorn(bool isGeneric, int delay = 2, float requiredDistance = 0) :
+            base(AuxiliaryAction.SoundHorn, isGeneric)
         {
             Delay = delay;
             RequiredDistance = requiredDistance;
         }
-    }    
+    }
 }

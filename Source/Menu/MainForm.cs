@@ -23,20 +23,23 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Resources;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 using GNU.Gettext;
 using GNU.Gettext.WinForms;
-using Orts.Formats.OR;
-using Orts.Menu.Entities;
+
 using Orts.Common;
 using Orts.Common.Native;
+using Orts.Formats.Msts;
+using Orts.Formats.OR.Files;
+using Orts.Formats.OR.Models;
+using Orts.Menu.Entities;
 using Orts.Settings;
 using Orts.Updater;
+
 using Path = Orts.Menu.Entities.Path;
-using Orts.Formats.Msts;
 
 namespace Orts.Menu
 {
@@ -95,8 +98,8 @@ namespace Orts.Menu
 
         // Timetable mode items
         public TimetableInfo SelectedTimetableSet { get { return (TimetableInfo)comboBoxTimetableSet.SelectedItem; } }
-        public TimetableFileLite SelectedTimetable { get { return (TimetableFileLite)comboBoxTimetable.SelectedItem; } }
-        public TimetableFileLite.TrainInformation SelectedTimetableTrain { get { return (TimetableFileLite.TrainInformation)comboBoxTimetableTrain.SelectedItem; } }
+        public TimetableFile SelectedTimetable { get { return (TimetableFile)comboBoxTimetable.SelectedItem; } }
+        public TrainInformation SelectedTimetableTrain { get { return (TrainInformation)comboBoxTimetableTrain.SelectedItem; } }
         public int SelectedTimetableDay { get { return initialized ? (comboBoxTimetableDay.SelectedItem as KeyedComboBoxItem).Key : 0; } }
         public WeatherFileInfo SelectedWeatherFile { get { return (WeatherFileInfo)comboBoxTimetableWeatherFile.SelectedItem; } }
         public Consist SelectedTimetableConsist;
@@ -514,7 +517,7 @@ namespace Orts.Menu
         #region Timetable Trains
         private void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboBoxTimetableTrain.SelectedItem is TimetableFileLite.TrainInformation selectedTrain)
+            if (comboBoxTimetableTrain.SelectedItem is TrainInformation selectedTrain)
             {
                 SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
                 SelectedTimetablePath = Path.GetPath(SelectedRoute, selectedTrain.Path, false);
@@ -1242,13 +1245,13 @@ namespace Orts.Menu
                 {
                     comboBoxTimetable.BeginUpdate();
                     comboBoxTimetable.Items.Clear();
-                    comboBoxTimetable.Items.AddRange(SelectedTimetableSet.ORTTList.ToArray());
+                    comboBoxTimetable.Items.AddRange(SelectedTimetableSet.TimeTables.ToArray());
                 }
                 finally
                 {
                     comboBoxTimetable.EndUpdate();
                 }
-                UpdateFromMenuSelection<TimetableFileLite>(comboBoxTimetable, Menu_SelectionIndex.Timetable, t => t.Description);
+                UpdateFromMenuSelection<TimetableFile>(comboBoxTimetable, Menu_SelectionIndex.Timetable, t => t.Description);
             }
             else
                 comboBoxTimetable.Items.Clear();
@@ -1267,7 +1270,7 @@ namespace Orts.Menu
                     comboBoxTimetableTrain.BeginUpdate();
                     comboBoxTimetableTrain.Items.Clear();
 
-                    var trains = SelectedTimetableSet.ORTTList[comboBoxTimetable.SelectedIndex].Trains;
+                    var trains = SelectedTimetableSet.TimeTables[comboBoxTimetable.SelectedIndex].Trains;
                     trains.Sort();
                     comboBoxTimetableTrain.Items.AddRange(trains.ToArray());
                 }
@@ -1275,7 +1278,7 @@ namespace Orts.Menu
                 {
                     comboBoxTimetableTrain.EndUpdate();
                 }
-                UpdateFromMenuSelection<TimetableFileLite.TrainInformation>(comboBoxTimetableTrain, Menu_SelectionIndex.Train, t => t.Column.ToString());
+                UpdateFromMenuSelection<TrainInformation>(comboBoxTimetableTrain, Menu_SelectionIndex.Train, t => t.Column.ToString());
             }
             else
                 comboBoxTimetableTrain.Items.Clear();
@@ -1334,7 +1337,7 @@ namespace Orts.Menu
                     }
                     if (SelectedTimetableTrain != null)
                     {
-                        ShowDetail(catalog.GetStringFmt("Train: {0}", SelectedTimetableTrain), SelectedTimetableTrain.ToInfo());
+                        ShowDetail(catalog.GetStringFmt("Train: {0}", SelectedTimetableTrain), new string[] { catalog.GetStringFmt("Start time: {0}", SelectedTimetableTrain.StartTime) });
                         if (SelectedTimetableConsist != null)
                         {
                             ShowDetail(catalog.GetStringFmt("Consist: {0}", SelectedTimetableConsist.Name), new string[0]);

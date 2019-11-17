@@ -77,18 +77,18 @@ namespace Orts.Simulation.AIs
                 int cntAction = inf.ReadInt32();
                 AuxActionRef action;
                 string actionRef = inf.ReadString();
-                AuxActionRef.AUX_ACTION nextAction = (AuxActionRef.AUX_ACTION)Enum.Parse(typeof(AuxActionRef.AUX_ACTION), actionRef);
+                AuxActionRef.AuxiliaryAction nextAction = (AuxActionRef.AuxiliaryAction)Enum.Parse(typeof(AuxActionRef.AuxiliaryAction), actionRef);
                 switch (nextAction)
                 {
-                    case AuxActionRef.AUX_ACTION.WAITING_POINT:
+                    case AuxActionRef.AuxiliaryAction.WaitingPoint:
                         action = new AIActionWPRef(thisTrain, inf);
                         SpecAuxActions.Add(action);
                         break;
-                    case AuxActionRef.AUX_ACTION.SOUND_HORN:
+                    case AuxActionRef.AuxiliaryAction.SoundHorn:
                         action = new AIActionHornRef(thisTrain, inf);
                         SpecAuxActions.Add(action);
                         break;
-                    case AuxActionRef.AUX_ACTION.SIGNAL_DELEGATE:
+                    case AuxActionRef.AuxiliaryAction.SignalDelegate:
                         action = new AIActSigDelegateRef(thisTrain, inf);
                         var hasWPActionAssociated = inf.ReadBoolean();
                         if (hasWPActionAssociated && SpecAuxActions.Count > 0)
@@ -289,7 +289,7 @@ namespace Orts.Simulation.AIs
                         RemoveSpecReqAction(action);
                 }
             }
-            if (action.ActionRef.ActionType == AuxActionRef.AUX_ACTION.SOUND_HORN)
+            if (action.ActionRef.ActionType == AuxActionRef.AuxiliaryAction.SoundHorn)
             {
                 if (specRequiredActions.Contains(action)) RemoveSpecReqAction(action);
                 else remove = false;
@@ -526,7 +526,7 @@ namespace Orts.Simulation.AIs
         public int Delay;
         public int EndSignalIndex { get; protected set; }
 
-        public AUX_ACTION NextAction = AUX_ACTION.NONE;
+        public AuxiliaryAction NextAction = AuxiliaryAction.None;
 
         //================================================================================================//
         /// <summary>
@@ -538,7 +538,7 @@ namespace Orts.Simulation.AIs
         {
         }
 
-        public AIAuxActionsRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir, AuxActionRef.AUX_ACTION actionType = AuxActionRef.AUX_ACTION.NONE) :
+        public AIAuxActionsRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir, AuxActionRef.AuxiliaryAction actionType = AuxActionRef.AuxiliaryAction.None) :
             base(actionType, false)                 //null, requiredSpeedMpS, , -1, )
         {
             RequiredDistance = distance;
@@ -552,7 +552,7 @@ namespace Orts.Simulation.AIs
             EndSignalIndex = -1;
         }
 
-        public AIAuxActionsRef(Train thisTrain, BinaryReader inf, AuxActionRef.AUX_ACTION actionType = AuxActionRef.AUX_ACTION.NONE)
+        public AIAuxActionsRef(Train thisTrain, BinaryReader inf, AuxActionRef.AuxiliaryAction actionType = AuxActionRef.AuxiliaryAction.None)
         {
             RequiredSpeedMpS = inf.ReadSingle();
             RequiredDistance = inf.ReadSingle();
@@ -699,7 +699,7 @@ namespace Orts.Simulation.AIs
         public AuxActionWPItem keepIt = null;
 
         public AIActionWPRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir)
-            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AuxActionRef.AUX_ACTION.WAITING_POINT)
+            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AuxActionRef.AuxiliaryAction.WaitingPoint)
         {
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "New AIAuxActionRef (WP) for train " + thisTrain.Number +
@@ -707,14 +707,14 @@ namespace Orts.Simulation.AIs
             File.AppendAllText(@"C:\temp\checkpath.txt", "\t\tSection id: " + subrouteIdx + "." + routeIdx + "." + sectionIdx 
                 + "\n"); 
 #endif
-            NextAction = AUX_ACTION.WAITING_POINT;
+            NextAction = AuxiliaryAction.WaitingPoint;
         }
 
         public AIActionWPRef(Train thisTrain, BinaryReader inf)
             : base (thisTrain, inf)
         {
             Delay = inf.ReadInt32();
-            NextAction = AUX_ACTION.WAITING_POINT;
+            NextAction = AuxiliaryAction.WaitingPoint;
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "\tRestore one WPAuxAction" +
                 "Position in file: " + inf.BaseStream.Position +
@@ -894,16 +894,16 @@ namespace Orts.Simulation.AIs
     public class AIActionHornRef : AIAuxActionsRef
     {
         public AIActionHornRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir)
-            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AUX_ACTION.SOUND_HORN)
+            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AuxiliaryAction.SoundHorn)
         {
-            NextAction = AUX_ACTION.SOUND_HORN;
+            NextAction = AuxiliaryAction.SoundHorn;
         }
 
         public AIActionHornRef(Train thisTrain, BinaryReader inf)
-            : base(thisTrain, inf, AUX_ACTION.SOUND_HORN)
+            : base(thisTrain, inf, AuxiliaryAction.SoundHorn)
         {
             Delay = inf.ReadInt32();
-            NextAction = AUX_ACTION.SOUND_HORN;
+            NextAction = AuxiliaryAction.SoundHorn;
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "\tRestore one WPAuxAction" +
                 "Position in file: " + inf.BaseStream.Position +
@@ -916,7 +916,7 @@ namespace Orts.Simulation.AIs
             : base(thisTrain, 0f, 0f, 0, 0, 0, 0, myBase.ActionType)
         {
             Delay = myBase.Delay;
-            NextAction = AUX_ACTION.SOUND_HORN;
+            NextAction = AuxiliaryAction.SoundHorn;
             IsGeneric = myBase.IsGeneric;
             RequiredDistance = myBase.RequiredDistance;
         }
@@ -1041,22 +1041,22 @@ namespace Orts.Simulation.AIs
         protected AuxActSigDelegate AssociatedItem = null;  //  In order to Unlock the signal when removing Action Reference
 
         public AIActSigDelegateRef(Train thisTrain, float distance, float requiredSpeedMpS, int subrouteIdx, int routeIdx, int sectionIdx, int dir, AIActionWPRef associatedWPAction = null)
-            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AUX_ACTION.SIGNAL_DELEGATE)
+            : base(thisTrain, distance, requiredSpeedMpS, subrouteIdx, routeIdx, sectionIdx, dir, AuxiliaryAction.SignalDelegate)
         {
             AssociatedWPAction = associatedWPAction;
-            NextAction = AUX_ACTION.SIGNAL_DELEGATE;
+            NextAction = AuxiliaryAction.SignalDelegate;
             IsGeneric = true;
  
                 brakeSection = distance; // Set to 1 later when applicable
         }
 
         public AIActSigDelegateRef(Train thisTrain, BinaryReader inf)
-            : base(thisTrain, inf, AUX_ACTION.SIGNAL_DELEGATE)
+            : base(thisTrain, inf, AuxiliaryAction.SignalDelegate)
         {
             Delay = inf.ReadInt32();
             brakeSection = (float)inf.ReadSingle();
             IsAbsolute = inf.ReadBoolean();
-            NextAction = AUX_ACTION.SIGNAL_DELEGATE;
+            NextAction = AuxiliaryAction.SignalDelegate;
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "\tRestore one WPAuxAction" +
                 "Position in file: " + inf.BaseStream.Position +
@@ -1634,7 +1634,7 @@ namespace Orts.Simulation.AIs
                     movementState = HandleAction(thisTrain, presentTime, elapsedClockSeconds, mvtState);
                     break;
                 case AITrain.AI_MOVEMENT_STATE.BRAKING:
-                    if (this.ActionRef.ActionType != AuxActionRef.AUX_ACTION.SOUND_HORN)
+                    if (this.ActionRef.ActionType != AuxActionRef.AuxiliaryAction.SoundHorn)
                     {
                         float distanceToGoM = thisTrain.activityClearingDistanceM;
                         distanceToGoM = ActivateDistanceM - thisTrain.PresentPosition[0].DistanceTravelledM;

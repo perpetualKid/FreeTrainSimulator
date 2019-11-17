@@ -6140,7 +6140,7 @@ namespace Orts.Simulation.AIs
                     {
                         movString = "Gen";
                     }
-                    else if (AuxActionsContain[0] != null && ((AIAuxActionsRef)AuxActionsContain[0]).NextAction == AuxActionRef.AUX_ACTION.WAITING_POINT)
+                    else if (AuxActionsContain[0] != null && ((AIAuxActionsRef)AuxActionsContain[0]).NextAction == AuxActionRef.AuxiliaryAction.WaitingPoint)
                     {
                         movString = "WTP";
                         DateTime baseDT = new DateTime();
@@ -6269,7 +6269,7 @@ namespace Orts.Simulation.AIs
             LeadLocomotiveIndex = leadLocomotiveIndex;
             Simulator.PlayerLocomotive.SwitchToPlayerControl();
             if (MovementState == AI_MOVEMENT_STATE.HANDLE_ACTION && nextActionInfo != null && nextActionInfo.GetType().IsSubclassOf(typeof(AuxActionItem))
-                && AuxActionsContain[0] != null && ((AIAuxActionsRef)AuxActionsContain[0]).NextAction == AuxActionRef.AUX_ACTION.WAITING_POINT)
+                && AuxActionsContain[0] != null && ((AIAuxActionsRef)AuxActionsContain[0]).NextAction == AuxActionRef.AuxiliaryAction.WaitingPoint)
             {
                 (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState = AI_MOVEMENT_STATE.HANDLE_ACTION;
             }

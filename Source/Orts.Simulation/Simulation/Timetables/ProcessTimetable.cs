@@ -30,19 +30,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
 using Orts.Common.Calc;
+using Orts.Common.IO;
 using Orts.Common.Threading;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
-using Orts.Formats.OR;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
-using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
+
 using Event = Orts.Common.Event;
-using Orts.Common.IO;
 
 namespace Orts.Simulation.Timetables
 {
@@ -290,8 +290,7 @@ namespace Orts.Simulation.Timetables
 
                 case ".timetablelist_or":
                 case ".timetablelist-or":
-                    TimetableGroupFile multiInfo = new TimetableGroupFile(filePath, fileDirectory);
-                    filenames = multiInfo.TTFiles;
+                    filenames = TimetableGroupFile.GetTimeTableList(filePath);
                     break;
 
                 default:

@@ -568,7 +568,7 @@ namespace Orts.Simulation
 
             // Calculate distance along and away from the track centerline.
             float lat, lon;
-            (lon, lat) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
+            (lat, lon) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
             if (Math.Abs(lat) > MaximumCenterlineOffset)
                 return null;
             if (lon < -InitErrorMargin || lon > GetLength(trackSection) + InitErrorMargin)

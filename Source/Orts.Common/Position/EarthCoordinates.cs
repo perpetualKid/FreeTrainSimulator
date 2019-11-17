@@ -276,7 +276,7 @@ namespace Orts.Common.Position
         /// returns lat =  distance of x,z off of the line
         /// returns lon =  distance of x,z along the line
         /// </summary>
-        public static (float lon, float lat) Survey(float pX, float pZ, float rad, float x, float z)
+        public static (float lat, float lon) Survey(float pX, float pZ, float rad, float x, float z)
         {
             // translate the coordinates relative to a track section that starts at 0,0 
             x -= pX;

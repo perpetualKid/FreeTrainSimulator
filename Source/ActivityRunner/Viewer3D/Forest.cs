@@ -381,7 +381,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Calculate distance along and away from the track centerline.
             float lat, lon;
-            (lon, lat) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
+            (lat, lon) = EarthCoordinates.Survey(sx, sz, trackVectorSection.Direction.Y, x, z);
             var trackSectionLength = GetLength(trackSection);
             if (Math.Abs(lat) > MaximumCenterlineOffset + treeWidth)
                 return false;

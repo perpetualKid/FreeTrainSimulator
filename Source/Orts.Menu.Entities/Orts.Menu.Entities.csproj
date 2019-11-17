@@ -48,7 +48,7 @@
     <Compile Include="Consists.cs" />
     <Compile Include="ContentBase.cs" />
     <Compile Include="Folders.cs" />
-    <Compile Include="ORTimetables.cs" />
+    <Compile Include="Timetables.cs" />
     <Compile Include="Paths.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Routes.cs" />

@@ -18,7 +18,7 @@
 using System;
 using System.IO;
 
-using Orts.Formats.OR;
+using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Parsers;
 
 namespace Orts.ContentChecker
@@ -38,8 +38,7 @@ namespace Orts.ContentChecker
             String extension = Path.GetExtension(file).ToLowerInvariant();
             if (extension.Contains("table"))
             {
-                string directory = Path.GetDirectoryName(file);
-                var timeTableList = new TimetableGroupFile(file, directory);
+                var timeTableList = new TimetableGroupFile(file);
             }
             else
             {

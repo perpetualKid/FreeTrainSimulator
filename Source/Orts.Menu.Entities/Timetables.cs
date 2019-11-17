@@ -20,58 +20,49 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Orts.Common.IO;
-using Orts.Formats.OR;
+using Orts.Formats.OR.Files;
 
 namespace Orts.Menu.Entities
 {
     public class TimetableInfo : ContentBase
     {
-        public List<TimetableFileLite> ORTTList { get; private set; } = new List<TimetableFileLite>();
+        public List<TimetableFile> TimeTables { get; private set; } = new List<TimetableFile>();
         public string Description { get; private set; }
         public string FileName { get; private set; }
 
         // items set for use as parameters, taken from main menu
-        public int Day;
-        public int Season;
-        public int Weather;
-        public string WeatherFile;
+        public int Day { get; set; }
+        public int Season { get; set; }
+        public int Weather { get; set; }
+        public string WeatherFile { get; set; }
 
         // note : file is read preliminary only, extracting description and train information
         // all other information is read only when activity is started
 
         internal TimetableInfo(string filePath)
         {
-            if (Common.IO.FileSystemCache.FileExists(filePath))
-            {
-                try
-                {
-                    TimetableFileLite timeTableLite = new TimetableFileLite(filePath);
-                    ORTTList.Add(timeTableLite);
-                    FileName = filePath;
-                    Description = timeTableLite.Description;
-                }
-                catch
-                {
-                    Description = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
-                }
-            }
-            else
-            {
-                Description = $"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
-            }
-        }
 
-        protected TimetableInfo(string filePath, string directory)
-        {
             if (FileSystemCache.FileExists(filePath))
             {
                 try
                 {
-                    TimetableGroupFileLite multiInfo = new TimetableGroupFileLite(filePath, directory);
-                    ORTTList = multiInfo.ORTTInfo;
-                    FileName = filePath;
-                    Description = multiInfo.Description;
+                    string extension = System.IO.Path.GetExtension(filePath).ToLowerInvariant();
+                    if (extension.Contains("list"))
+                    {
+                        TimetableGroupFile groupFile = new TimetableGroupFile(filePath);
+                        TimeTables = groupFile.TimeTables;
+                        FileName = filePath;
+                        Description = groupFile.Description;
+                    }
+                    else
+                    {
+                        TimetableFile timeTableFile = new TimetableFile(filePath);
+                        TimeTables.Add(timeTableFile);
+                        FileName = filePath;
+                        Description = timeTableFile.Description;
+                    }
                 }
                 catch
                 {
