@@ -3840,11 +3840,12 @@ namespace Orts.Simulation.RollingStocks
                             data = this.FilteredMotiveForceN;
                         else
                             data = this.LocomotiveAxle.AxleForceN;
+                        data = Math.Abs(data);
                         if (DynamicBrakePercent > 0)
                         {
-                            data = DynamicBrakeForceN;
+                            data = (DynamicBrakeForceN / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
+                            data = -Math.Abs(data); // Ensure that dynamic force is seen as a "-ve force" on the traction braking indicator
                         }
-                        data = Math.Abs(data);
                         switch (cvc.ControlUnit)
                         {
                             case CabViewControlUnit.Amps:
