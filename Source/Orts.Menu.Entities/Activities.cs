@@ -145,7 +145,7 @@ namespace Orts.Menu.Entities
                                 try
                                 {
                                     Activity activity = GetActivity(activityFile, folder, route);
-                                    if (null != activityFile)
+                                    if (null != activity)
                                     {
                                         addItem.Wait(token);
                                         activities.Add(activity);
@@ -160,8 +160,6 @@ namespace Orts.Menu.Entities
                         return Task.FromCanceled<List<Activity>>(token);
                 }
             }
-            foreach (var a in activities)
-                System.Diagnostics.Debug.Assert(a != null);
             return Task.FromResult(activities);
         }
     }
