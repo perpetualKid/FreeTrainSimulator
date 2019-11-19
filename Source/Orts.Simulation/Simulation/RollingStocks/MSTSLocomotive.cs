@@ -3820,7 +3820,7 @@ namespace Orts.Simulation.RollingStocks
                         if (DynamicBrakePercent > 0)
                         {
                             data = (DynamicBrakeForceN / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
-                            data = -Math.Abs(data); // Ensure that dynamic force is seen as a "-ve force" on the traction braking indicator
+                            data = Math.Abs(data); // Ensure that dynamic force is seen as a "+ve force" on the traction braking indicator
                         }
                         switch (cvc.Units)
                         {
