@@ -38,12 +38,8 @@ namespace Orts.Viewer3D.Popups
         int FirstColLenght = 0;
         int LastColLenght = 0;
         int LinesCount;
-        bool ResizeWindow;
-
-        // Save current language. Valid until locates was right.
-        public static CultureInfo LocaleCurrentCulture = Thread.CurrentThread.CurrentUICulture;
-        public static CultureInfo TrainDrivingCurrentCulture = new System.Globalization.CultureInfo("en");
-        public static bool StandardHUD = true;// Standard text
+        bool ResizeWindow;                
+        public bool StandardHUD = true;// Standard text
 
         int WindowHeightMin = 0;
         int WindowHeightMax = 0;
@@ -75,7 +71,7 @@ namespace Orts.Viewer3D.Popups
         List<ListLabel> ListToLabel = new List<ListLabel>();
 
         // Change text color
-        Dictionary<string, Color> ColorCode = new Dictionary<string, Color>
+        readonly Dictionary<string, Color> ColorCode = new Dictionary<string, Color>
         {
             { "!!!", Color.OrangeRed },
             { "!!?", Color.Orange },
@@ -88,53 +84,54 @@ namespace Orts.Viewer3D.Popups
             { "$??", Color.Cyan}
         };
 
-        Dictionary<string, string> FirstColToAbbreviated = new Dictionary<string, string>()
+        readonly Dictionary<string, string> FirstColToAbbreviated = new Dictionary<string, string>()
         {
-            {"Autopilot", "AUTO"},
-            {"Boiler pressure","PRES"},
-            {"Boiler water glass","WATR"},
-            {"Boiler water level","LEVL"},
-            {"Circuit breaker", "CIRC"},
-            {"Cylinder cocks", "CCOK" },
-            {"Direction", "DIRC" },
-            {"Doors open", "DOOR" },
-            {"Dynamic brake", "BDYN"},
-            {"Engine brake","BLOC"},
-            {"Engine","ENGN"},
-            {"Fire mass", "FIRE"},
-            {"Fixed gear", "GEAR"},
-            {"Fuel levels", "FUEL"},
-            {"Gear", "GEAR"},
-            {"Gradient", "GRAD"},
-            {"Pantographs", "PANT"},
-            {"Power", "POWR"},
-            {"Regulator", "REGL"},
-            {"Replay","RPLY"},
-            {"Retainers", "RETN"},
-            {"Reverser", "REVR"},
-            {"Sander", "SAND"},
-            {"Speed", "SPED"},
-            {"Steam usage", "STEM"},
-            {"Throttle", "THRO"},
-            {"Time","TIME"},
-            {"Train brake", "BTRN"},
-            {"Wheel", "WHEL"},
+            {Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("AUTO")},
+            {Viewer.Catalog.GetString("Boiler pressure"), Viewer.Catalog.GetString("PRES")},
+            {Viewer.Catalog.GetString("Boiler water glass"), Viewer.Catalog.GetString("WATR")},
+            {Viewer.Catalog.GetString("Boiler water level"), Viewer.Catalog.GetString("LEVL")},
+            {Viewer.Catalog.GetString("Circuit breaker"), Viewer.Catalog.GetString("CIRC")},
+            {Viewer.Catalog.GetString("Cylinder cocks"), Viewer.Catalog.GetString("CCOK")},
+            {Viewer.Catalog.GetString("Direction"), Viewer.Catalog.GetString("DIRC")},
+            {Viewer.Catalog.GetString("Doors open"), Viewer.Catalog.GetString("DOOR")},
+            {Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("BDYN")},
+            {Viewer.Catalog.GetString("Engine brake"), Viewer.Catalog.GetString("BLOC")},
+            {Viewer.Catalog.GetString("Engine"), Viewer.Catalog.GetString("ENGN")},
+            {Viewer.Catalog.GetString("Fire mass"), Viewer.Catalog.GetString("FIRE")},
+            {Viewer.Catalog.GetString("Fixed gear"), Viewer.Catalog.GetString("GEAR")},
+            {Viewer.Catalog.GetString("Fuel levels"), Viewer.Catalog.GetString("FUEL")},
+            {Viewer.Catalog.GetString("Gear"), Viewer.Catalog.GetString("GEAR")},
+            {Viewer.Catalog.GetString("Gradient"), Viewer.Catalog.GetString("GRAD")},
+            {Viewer.Catalog.GetString("Grate limit"), Viewer.Catalog.GetString("GRAT")},
+            {Viewer.Catalog.GetString("Pantographs"), Viewer.Catalog.GetString("PANT")},
+            {Viewer.Catalog.GetString("Power"), Viewer.Catalog.GetString("POWR")},
+            {Viewer.Catalog.GetString("Regulator"), Viewer.Catalog.GetString("REGL")},
+            {Viewer.Catalog.GetString("Replay"), Viewer.Catalog.GetString("RPLY")},
+            {Viewer.Catalog.GetString("Retainers"), Viewer.Catalog.GetString("RETN")},
+            {Viewer.Catalog.GetString("Reverser"), Viewer.Catalog.GetString("REVR")},
+            {Viewer.Catalog.GetString("Sander"), Viewer.Catalog.GetString("SAND")},
+            {Viewer.Catalog.GetString("Speed"), Viewer.Catalog.GetString("SPED")},
+            {Viewer.Catalog.GetString("Steam usage"), Viewer.Catalog.GetString("STEM")},
+            {Viewer.Catalog.GetString("Throttle"), Viewer.Catalog.GetString("THRO")},
+            {Viewer.Catalog.GetString("Time"), Viewer.Catalog.GetString("TIME")},
+            {Viewer.Catalog.GetString("Train brake"), Viewer.Catalog.GetString("BTRN")},
+            {Viewer.Catalog.GetString("Wheel"), Viewer.Catalog.GetString("WHEL")},    
         };
 
-        Dictionary<string, string> LastColToAbbreviated = new Dictionary<string, string>()
+        readonly Dictionary<string, string> LastColToAbbreviated = new Dictionary<string, string>()
         {
-            {"apply Service", "Apply"},
-            {"Apply Quick", "ApplQ"},
-            {"Apply Slow", "ApplS"},
-            {"Lap Self", "LapS"},
-            {"Emergency Braking Push Button", "EmerBPB"},
-            {"Minimum Reduction", "MRedc"},
-            {"coal", "c"},
-            {"water", "w"},
-            {"skid", "Skid"},
-            {"safe range", "safe"},
-            {"slip warning", "Warning"},
-            {"slip", "Slip"},
+            { Viewer.Catalog.GetString("apply Service"), Viewer.Catalog.GetString("Apply")},
+            {Viewer.Catalog.GetString("Apply Quick"), Viewer.Catalog.GetString("ApplQ")},
+            {Viewer.Catalog.GetString("Apply Slow"), Viewer.Catalog.GetString("ApplS")},
+            {Viewer.Catalog.GetString("coal"), Viewer.Catalog.GetString("c")},
+            {Viewer.Catalog.GetString("Emergency Braking Push Button"), Viewer.Catalog.GetString("EmerBPB")},
+            {Viewer.Catalog.GetString("Lap Self"), Viewer.Catalog.GetString("LapS")},
+            {Viewer.Catalog.GetString("Minimum Reduction"), Viewer.Catalog.GetString("MRedc")},
+            {Viewer.Catalog.GetString("safe range"), Viewer.Catalog.GetString("safe")},
+            {Viewer.Catalog.GetString("skid"), Viewer.Catalog.GetString("Skid")},
+            {Viewer.Catalog.GetString("slip warning"), Viewer.Catalog.GetString("Warning")},
+            {Viewer.Catalog.GetString("slip"), Viewer.Catalog.GetString("Slip")},
+            {Viewer.Catalog.GetString("water"), Viewer.Catalog.GetString("w")},
         };
 
         public TrainDrivingWindow(WindowManager owner)
@@ -169,7 +166,7 @@ namespace Orts.Viewer3D.Popups
                             var hbox = vbox.AddLayoutHorizontalLineOfText();
                             hbox.Add(new Label(colWidth * 2, hbox.RemainingHeight, " "));
                         }
-                        else if (data.FirstCol.Contains(Viewer.Catalog.GetString("Sprtr")))
+                        else if (data.FirstCol.Contains("Sprtr"))
                         {
                             vbox.AddHorizontalSeparator();
                         }
@@ -263,7 +260,7 @@ namespace Orts.Viewer3D.Popups
                                 ExpandWindow.Click += new Action<Control, Point>(ExpandWindow_Click);
                             }
                             // Separator line
-                            if (data.FirstCol.Contains(Viewer.Catalog.GetString("Sprtr")))
+                            if (data.FirstCol.Contains("Sprtr"))
                             {
                                 hbox.AddHorizontalSeparator();
                             }
@@ -282,13 +279,6 @@ namespace Orts.Viewer3D.Popups
         void ExpandWindow_Click(Control arg1, Point arg2)
         {
             StandardHUD = StandardHUD ? false : true;
-
-            // Toogle between English and local language
-            if (!StandardHUD) // Allows to show english
-                Thread.CurrentThread.CurrentUICulture = TrainDrivingCurrentCulture = new System.Globalization.CultureInfo("en");
-            else// return to user language
-                Thread.CurrentThread.CurrentUICulture = TrainDrivingCurrentCulture = LocaleCurrentCulture;
-
             UpdateWindowSize();
         }
 
@@ -300,7 +290,7 @@ namespace Orts.Viewer3D.Popups
                 var newData = new List<string>();
                 foreach (var data in ListToLabel)
                 {
-                    if (!data.FirstCol.Contains(Viewer.Catalog.GetString("Sprtr")))
+                    if (!data.FirstCol.Contains("Sprtr"))
                     {
                         if (data.FirstCol.Contains("?") || data.FirstCol.Contains("!") || data.FirstCol.Contains("$"))
                         {
@@ -328,7 +318,7 @@ namespace Orts.Viewer3D.Popups
                 FirstColLenght = textWidht.MeasureString('\u2589'.ToString() + FirstColLongest) + (StandardHUD?(int)(TextSize * 1.2): TextSize);
                 LastColLenght = Owner.TextFontDefault.MeasureString(LastColLongest + "NNN");
 
-                var desiredHeight = Owner.TextFontDefault.Height * (ListToLabel.Count(x => x.FirstCol != Viewer.Catalog.GetString("Sprtr")) + (StandardHUD ? 4 : 4));
+                var desiredHeight = Owner.TextFontDefault.Height * (ListToLabel.Count(x => x.FirstCol != "Sprtr") + (StandardHUD ? 4 : 4));
                 var desiredWidth = FirstColLenght + LastColLenght;
 
                 var newHeight = (int)MathHelper.Clamp(desiredHeight, (StandardHUD? WindowHeightMin: 100), WindowHeightMax);
@@ -350,14 +340,14 @@ namespace Orts.Viewer3D.Popups
                 {
                     if (firstcol.Contains(code.Key))
                     {
-                        firstcol = firstcol.Replace((code.Key), (code.Value));
+                        firstcol = firstcol.Replace(code.Key, code.Value);
                     }
                 }
                 foreach (var code in LastColToAbbreviated)
                 {
                     if (lastcol.Contains(code.Key))
                     {
-                        lastcol = lastcol.Replace((code.Key), (code.Value));
+                        lastcol = lastcol.Replace(code.Key, code.Value);
                     }
                 }
             }
@@ -381,7 +371,7 @@ namespace Orts.Viewer3D.Popups
             var end = '\u2589';// block
             var arrowToRight = '\u25BA'; // ►
             var smallDiamond = '\u25C6'; // ●
-           
+
             var playerTrain = Owner.Viewer.PlayerLocomotive.Train;
             var showMUReverser = Math.Abs(playerTrain.MUReverserPercent) != 100;
             var showRetainers = playerTrain.RetainerSetting != RetainerSetting.Exhaust;
@@ -407,7 +397,7 @@ namespace Orts.Viewer3D.Popups
                       .Replace("kPa", string.Empty)
                       .Replace("psi", string.Empty)
                       .ToString();
-            }           
+            }
 
             //if (StandardHUD)
             //    InfoToLabel(Viewer.Catalog.GetString("Version"), VersionInfo.VersionOrBuild.ToString(), false);
@@ -418,7 +408,7 @@ namespace Orts.Viewer3D.Popups
             if (Orts.MultiPlayer.MPManager.IsClient())
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + Orts.MultiPlayer.MPManager.Instance().serverTimeDifference), "", false, keyPressed);
             else
-            {                
+            {
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime), "", false, keyPressed);
             }
             if (Owner.Viewer.Simulator.IsReplaying)
@@ -454,7 +444,7 @@ namespace Orts.Viewer3D.Popups
             }
 
             // Separator
-            InfoToLabel(keyPressed, Viewer.Catalog.GetString("Sprtr"), "", "", false, keyPressed);
+            InfoToLabel(keyPressed, "Sprtr", "", "", false, keyPressed);
             keyPressed = "";
 
             // Second block
@@ -496,7 +486,7 @@ namespace Orts.Viewer3D.Popups
             // Cylinder Cocks
             if (Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive)
             {
-                keyPressed = (UserInput.IsDown(UserCommand.ControlCylinderCocks) ||(Owner.Viewer.PlayerLocomotive as MSTSSteamLocomotive).CylinderCocksAreOpen) ? arrowToRight.ToString() + "???" : "";
+                keyPressed = (UserInput.IsDown(UserCommand.ControlCylinderCocks) || (Owner.Viewer.PlayerLocomotive as MSTSSteamLocomotive).CylinderCocksAreOpen) ? arrowToRight.ToString() + "???" : "";
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Cylinder cocks"), (Owner.Viewer.PlayerLocomotive as MSTSSteamLocomotive).CylinderCocksAreOpen ? Viewer.Catalog.GetString("Open") + "!!?" : Viewer.Catalog.GetString("Closed") + "!??", "", false, keyPressed);
             }
 
@@ -523,7 +513,7 @@ namespace Orts.Viewer3D.Popups
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Sander"), "Off", "", false, keyPressed);
             }
 
-            InfoToLabel("", Viewer.Catalog.GetString("Sprtr"), "", "", false, keyPressed);
+            InfoToLabel("", "Sprtr", "", "", false, keyPressed);
 
             // Train Brake multi-lines
             // TO DO: A better algorithm
@@ -623,7 +613,7 @@ namespace Orts.Viewer3D.Popups
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Dynamic brake"), dynamicBrakeStatus + "$??", "", false, keyPressed);
             }
             keyPressed = "";
-            InfoToLabel(keyPressed, Viewer.Catalog.GetString("Sprtr"), "", "", false, keyPressed);
+            InfoToLabel(keyPressed, "Sprtr", "", "", false, keyPressed);
 
             if (locomotiveStatus != null)
             {
@@ -635,10 +625,10 @@ namespace Orts.Viewer3D.Popups
                         var parts = data.Split(new[] { " = " }, 2, StringSplitOptions.None);
                         var HeatColor = "!??"; // Color.White
                         keyPressed = "";
-                        if (!StandardHUD && parts[0].StartsWith(Viewer.Catalog.GetString("Steam usage")))
+                        if (!StandardHUD && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Steam usage")))
                         {
                         }
-                        else if (parts[0].StartsWith(Viewer.Catalog.GetString("Boiler pressure")))
+                        else if (Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Boiler pressure")))
                         {
                             MSTSSteamLocomotive steamloco = (MSTSSteamLocomotive)Owner.Viewer.PlayerLocomotive;
                             var bandUpper = steamloco.PreviousBoilerHeatOutBTUpS * 1.025f; // find upper bandwidth point
@@ -646,50 +636,51 @@ namespace Orts.Viewer3D.Popups
 
                             if (steamloco.BoilerHeatInBTUpS > bandLower && steamloco.BoilerHeatInBTUpS < bandUpper) HeatColor = smallDiamond.ToString() + "!??";
                             else if (steamloco.BoilerHeatInBTUpS < bandLower) HeatColor = smallArrowDown.ToString() + "$??"; // Color.Cyan
-                            else if (steamloco.BoilerHeatInBTUpS > bandUpper) HeatColor = smallArrowUp.ToString() + "!!?"; // Color.Orange
+                            else if (steamloco.BoilerHeatInBTUpS > bandUpper) HeatColor = smallArrowUp.ToString() + "!!!"; // Color.OrangeRed
 
                             keyPressed = "";
-                            InfoToLabel(keyPressed, Viewer.Catalog.GetString("Boiler pressure"), parts[1], HeatColor, false, keyPressed);
+                            InfoToLabel(keyPressed, Viewer.Catalog.GetString("Boiler pressure"), Viewer.Catalog.GetString(parts[1]), HeatColor, false, keyPressed);
                         }
-                        else if (!StandardHUD && parts[0].StartsWith(Viewer.Catalog.GetString("Fuel levels")))
+                        else if (!StandardHUD && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Fuel levels")))
                         {
                             keyPressed = "";
-                            InfoToLabel(keyPressed, parts[0].EndsWith("?") || parts[0].EndsWith("!") ? parts[0].Substring(0, parts[0].Length - 3) : parts[0], (parts.Length > 1 ? parts[1].Replace(" ", string.Empty) : ""), "", false, keyPressed);
+                            InfoToLabel(keyPressed, parts[0].EndsWith("?") || parts[0].EndsWith("!") ? Viewer.Catalog.GetString(parts[0].Substring(0, parts[0].Length - 3)) : Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1].Replace(" ", string.Empty)) : ""), "", false, keyPressed);
                         }
                         else if (parts[0].StartsWith(Viewer.Catalog.GetString("Gear")))
                         {
                             keyPressed = UserInput.IsDown(UserCommand.ControlGearDown) ? arrowDown.ToString() + "???" : UserInput.IsDown(UserCommand.ControlGearUp) ? arrowUp.ToString() + "???" : "";
-                            InfoToLabel(keyPressed, parts[0], (parts.Length > 1 ? parts[1] : ""), "", false, keyPressed);
+                            InfoToLabel(keyPressed, Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) : ""), "", false, keyPressed);
                             keyPressed = "";
                         }
                         else if (parts.Contains(Viewer.Catalog.GetString("Pantographs")))
                         {
                             keyPressed = UserInput.IsDown(UserCommand.ControlPantograph1) ? parts[1].StartsWith("Up") ? arrowUp.ToString() + "???" : arrowDown.ToString() + "???" : "";
-                            InfoToLabel(keyPressed, parts[0], (parts.Length > 1 ? parts[1] : ""), "", false, keyPressed);
+                            InfoToLabel(keyPressed, Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) : ""), "", false, keyPressed);
                             keyPressed = "";
                         }
                         else if (parts.Contains(Viewer.Catalog.GetString("Engine")))
                         {
                             keyPressed = "";
-                            InfoToLabel(keyPressed, parts[0], (parts.Length > 1 ? parts[1] + "!??" : ""), "", false, keyPressed);
+                            InfoToLabel(keyPressed, Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) + "!??" : ""), "", false, keyPressed);
                             keyPressed = "";
                         }
                         else
                         {
-                            InfoToLabel("", parts[0].EndsWith("?") || parts[0].EndsWith("!") ? parts[0].Substring(0, parts[0].Length - 3) : parts[0], (parts.Length > 1 ? parts[1] : ""), "", false, keyPressed);
+                            InfoToLabel("", parts[0].EndsWith("?") || parts[0].EndsWith("!") ? Viewer.Catalog.GetString( parts[0].Substring(0, parts[0].Length - 3)) : Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) : ""), "", false, keyPressed);
                         }
                     }
                 }
             }
 
             keyPressed = "";
-            InfoToLabel(keyPressed, Viewer.Catalog.GetString("Sprtr"), "", "", true, keyPressed);
+            InfoToLabel(keyPressed, "Sprtr", "", "", true, keyPressed);
 
             keyPressed = "";
             if (StandardHUD)
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("FPS"), Owner.Viewer.RenderProcess.FrameRate.SmoothedValue.ToString("F0"), "", false, keyPressed);
-            
+
             // Messages
+			// Autopilot
             keyPressed = "";
             if (Owner.Viewer.Settings.Autopilot)
             {
@@ -709,6 +700,23 @@ namespace Orts.Viewer3D.Popups
             else
                 InfoToLabel("", Viewer.Catalog.GetString("Autopilot" + "?!?"), Viewer.Catalog.GetString("Off"), "", false, keyPressed);
 
+            // Grate limit
+            keyPressed = "";
+            if (Owner.Viewer.PlayerLocomotive.GetType() == typeof(MSTSSteamLocomotive))
+            {
+                MSTSSteamLocomotive steamloco = (MSTSSteamLocomotive)Owner.Viewer.PlayerLocomotive;
+                if (steamloco.GrateCombustionRateLBpFt2 > steamloco.GrateLimitLBpFt2)
+                {
+                    if (!steamloco.IsGrateLimit)
+                        InfoToLabel("", Viewer.Catalog.GetString("Grate limit"), Viewer.Catalog.GetString("Exceeded") + "!!!", "", false, keyPressed);
+                }
+                else
+                    InfoToLabel("", Viewer.Catalog.GetString("Grate limit"), Viewer.Catalog.GetString("Normal") + "!??", "", false, keyPressed);
+            }
+            else
+                InfoToLabel("", Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false, keyPressed);
+
+			// Whell
             keyPressed = "";
             if (Owner.Viewer.PlayerTrain.IsWheelSlip)
                 InfoToLabel("", Viewer.Catalog.GetString("Wheel"), Viewer.Catalog.GetString("slip") + "!!!", "", false, keyPressed);
@@ -719,6 +727,7 @@ namespace Orts.Viewer3D.Popups
             else
                 InfoToLabel("", Viewer.Catalog.GetString("Wheel") + "?!?", Viewer.Catalog.GetString("skid") + "!!!", "", false, keyPressed);
 
+			// Door
             keyPressed = "";
             if ((Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorLeftOpen || (Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorRightOpen)
             {
@@ -738,7 +747,7 @@ namespace Orts.Viewer3D.Popups
             // MultiPlayer
             if (StandardHUD && Orts.MultiPlayer.MPManager.IsMultiPlayer())
             {
-                InfoToLabel("", Viewer.Catalog.GetString("Sprtr"), "", "", false, keyPressed);
+                InfoToLabel("", "Sprtr", "", "", false, keyPressed);
                 var text = Orts.MultiPlayer.MPManager.Instance().GetOnlineUsersInfo();
 
                 InfoToLabel(" ", Viewer.Catalog.GetString("MultiPlayerStatus: "), (Orts.MultiPlayer.MPManager.IsServer()
@@ -763,10 +772,6 @@ namespace Orts.Viewer3D.Popups
 
             if (updateFull)
             {
-                // Toogle between English and local language
-                if (!StandardHUD && TrainDrivingCurrentCulture.Name != Viewer.Catalog.GetString("en"))
-                    Thread.CurrentThread.CurrentUICulture = TrainDrivingCurrentCulture = new System.Globalization.CultureInfo("en");
-
                 UpdateData();
 
                 // Ctrl + F (FiringIsManual)                
