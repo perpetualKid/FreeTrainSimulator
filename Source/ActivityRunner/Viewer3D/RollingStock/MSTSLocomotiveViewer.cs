@@ -1752,6 +1752,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_Water_Scoop:
                 case CabViewControlType.Water_Injector1:
                 case CabViewControlType.Water_Injector2:
+                case CabViewControlType.Small_Ejector:
+                case CabViewControlType.Orts_Large_Ejector:
                 case CabViewControlType.FireHole:
                     index = PercentToIndex(data);
                     break;
@@ -1835,10 +1837,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Doors_Display:
                 case CabViewControlType.Cyl_Cocks:
                 case CabViewControlType.Orts_Cyl_Comp:
-                case CabViewControlType.Orts_Large_Ejector:
                 case CabViewControlType.Steam_Inj1:
                 case CabViewControlType.Steam_Inj2:
-                case CabViewControlType.Small_Ejector:
                 case CabViewControlType.Gears_Display:
                 case CabViewControlType.Cab_Radio:
                 case CabViewControlType.Orts_Player_Diesel_Engine:
