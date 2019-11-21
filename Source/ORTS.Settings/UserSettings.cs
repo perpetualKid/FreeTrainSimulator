@@ -138,7 +138,7 @@ namespace ORTS.Settings
         public bool DisableTCSScripts { get; set; }
         [Default(true)]
         public bool EnableWatchdog { get; set; }
-        [Default(false)]
+        [Default(true)]
         public bool RunAt32bit { get; set; }
 
         // Audio settings:
