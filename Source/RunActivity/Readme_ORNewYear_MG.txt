@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.42
-November 21st, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.43
+November 25th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -12,23 +12,22 @@ INSTALLATION
 you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails unstable revision U2019.11.20-1136 (which includes Monogame).
+This unofficial version has been derived from the official Open Rails unstable revision U2019.11.23-0506 (which includes Monogame).
 It includes some features not (yet) available in the Open Rails unstable official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
 - checkbox in General Options tab to enable or disable watchdog
 - increase of remote horn sound volume level
-- when car is ( cted through the F9 window, the car's brake line in the extended brake HUD is highlighted in yellow (by mbm_or)
+- when car is selected through the F9 window, the car's brake line in the extended brake HUD is highlighted in yellow (by mbm_or)
 - improved distance management in roadcar camera
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
 - true 64-bit management, allowing to use more than 4 GB of memory, if available, in Win64 systems (mainly by perpetualKid)
 - general options checkbox for optional run at 32 bit on Win64 (to avoid slight train shaking bug)
-- reverted bug fix about rain in 3DCab, to avoid lack of display of digital indicators (see http://www.elvastower.com/forums/index.php?/topic/24040-3d-cabs/page__view__findpost__p__252352 )
-- added trace log for precipitation crash (see http://www.elvastower.com/forums/index.php?/topic/33462-potential-problem-with-activity-in-monogame-v36/ )
-- added bug fix for precipitation crash (suggested by roeter)
 - added Train Driving Info window (see http://www.elvastower.com/forums/index.php?/topic/33401-f5-hud-scrolling/page__view__findpost__p__251671 and following posts), by mbm_OR
-- NEW: Train Driving Info window may be translated in other languages (done for Italian), by mbm_OR
-- NEW: 32bit running set as default, to avoid 64 bit shakings and flickerings
+- Train Driving Info window may be translated in other languages (done for Italian), by mbm_OR
+- 32bit running set as default, to avoid 64 bit shakings and flickerings
+- NEW: added management of integer divisions in new signal script parser
+- NEW: inserted tentative correction for Raildriver malfunctioning (by perpetualKid)
 
 
 CREDITS
@@ -36,9 +35,8 @@ This unofficial version couldn't have been created without following contributio
 - the whole Open Rails Development Team and Open Rails Management Team, that have generated the official Open Rails version
 - the Monogame Development Team
 - Peter Gulyas, who created the first Monogame version of Open Rails
-- perpetualKid, which now manages the process of refining the MG porting
-- Dennis A T (dennisat): a specific credit for this release, which includes the solution for the invisible digital displays in 3D cabs/page__view__findpost__p__252352
-(solution has been introduced also in the official version)
+- perpetualKid
+- Dennis A T (dennisat)
 - Mauricio (mbm_OR)
 - Peter Newell (steamer_ctn)
 - Rob Roeterdink (roeter)
