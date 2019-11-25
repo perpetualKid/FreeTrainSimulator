@@ -17,15 +17,6 @@
 
 // This file is the responsibility of the 3D & Environment Team.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Management;
-using System.Threading;
-using System.Windows.Forms;
-
 using GNU.Gettext;
 
 using Microsoft.Xna.Framework;
@@ -39,7 +30,6 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Input;
-using Orts.Common.IO;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
@@ -51,6 +41,15 @@ using Orts.Simulation;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Management;
+using System.Threading;
+using System.Windows.Forms;
 
 using Event = Orts.Common.Event;
 
@@ -274,7 +273,7 @@ namespace Orts.ActivityRunner.Viewer3D
             ENVFile = new EnvironmentFile(Simulator.RoutePath + @"\ENVFILES\" + Simulator.TRK.Route.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType));
 
             Trace.Write(" SIGCFG");
-            if (FileSystemCache.FileExists(ORfilepath + @"\sigcfg.dat"))
+            if (File.Exists(ORfilepath + @"\sigcfg.dat"))
             {
                 Trace.Write(" SIGCFG_OR");
                 SIGCFG = new SignalConfigurationFile(ORfilepath + @"\sigcfg.dat", true);
@@ -311,7 +310,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Simulator.ActivityRun != null && Simulator.Activity.Activity.ActivityRestrictedSpeedZones != null)
             {
                 var speedpostDatFile = Simulator.RoutePath + @"\speedpost.dat";
-                if (FileSystemCache.FileExists(speedpostDatFile))
+                if (File.Exists(speedpostDatFile))
                 {
                     Trace.Write(" SPEEDPOST");
                     SpeedpostDatFile = new SpeedpostDatFile(Simulator.RoutePath + @"\speedpost.dat", Simulator.RoutePath + @"\shapes\");
@@ -799,7 +798,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private void LoadDefectCarSound(TrainCar car, string filename)
         {
             var smsFilePath = Simulator.BasePath + @"\sound\" + filename;
-            if (!FileSystemCache.FileExists(smsFilePath))
+            if (!File.Exists(smsFilePath))
             {
                 Trace.TraceWarning("Cannot find defect car sound file {0}", filename);
                 return;

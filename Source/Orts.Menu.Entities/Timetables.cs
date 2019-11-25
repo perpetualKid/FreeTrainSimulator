@@ -15,14 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Formats.OR.Files;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Orts.Common.IO;
-using Orts.Formats.OR.Files;
 
 namespace Orts.Menu.Entities
 {
@@ -44,34 +43,27 @@ namespace Orts.Menu.Entities
         internal TimetableInfo(string filePath)
         {
 
-            if (FileSystemCache.FileExists(filePath))
+            try
             {
-                try
+                string extension = System.IO.Path.GetExtension(filePath).ToLowerInvariant();
+                if (extension.Contains("list"))
                 {
-                    string extension = System.IO.Path.GetExtension(filePath).ToLowerInvariant();
-                    if (extension.Contains("list"))
-                    {
-                        TimetableGroupFile groupFile = new TimetableGroupFile(filePath);
-                        TimeTables = groupFile.TimeTables;
-                        FileName = filePath;
-                        Description = groupFile.Description;
-                    }
-                    else
-                    {
-                        TimetableFile timeTableFile = new TimetableFile(filePath);
-                        TimeTables.Add(timeTableFile);
-                        FileName = filePath;
-                        Description = timeTableFile.Description;
-                    }
+                    TimetableGroupFile groupFile = new TimetableGroupFile(filePath);
+                    TimeTables = groupFile.TimeTables;
+                    FileName = filePath;
+                    Description = groupFile.Description;
                 }
-                catch
+                else
                 {
-                    Description = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
+                    TimetableFile timeTableFile = new TimetableFile(filePath);
+                    TimeTables.Add(timeTableFile);
+                    FileName = filePath;
+                    Description = timeTableFile.Description;
                 }
             }
-            else
+            catch
             {
-                Description = $"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
+                Description = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
             }
         }
 
@@ -88,9 +80,9 @@ namespace Orts.Menu.Entities
             List<TimetableInfo> result = new List<TimetableInfo>();
             if (route != null)
             {
-                string path = System.IO.Path.Combine(route.Path, "ACTIVITIES", "OPENRAILS");
+                string orActivitiesDirectory = route.RouteFolder.OrActivitiesFolder;
 
-                if (Directory.Exists(path))
+                if (Directory.Exists(orActivitiesDirectory))
                 {
                     try
                     {
@@ -98,7 +90,7 @@ namespace Orts.Menu.Entities
                             new ParallelOptions() { CancellationToken = token },
                             (extension, state) =>
                         {
-                            Parallel.ForEach(Directory.GetFiles(path, extension),
+                            Parallel.ForEach(Directory.GetFiles(orActivitiesDirectory, extension),
                                 new ParallelOptions() { CancellationToken = token },
                                 (timetableFile, innerState) =>
                             {
@@ -149,13 +141,13 @@ namespace Orts.Menu.Entities
 
             if (route != null)
             {
-                var directory = System.IO.Path.Combine(route.Path, "WeatherFiles");
+                string weatherDirectory = route.RouteFolder.WeatherFolder;
 
-                if (Directory.Exists(directory))
+                if (Directory.Exists(weatherDirectory))
                 {
                     try
                     {
-                        Parallel.ForEach(Directory.GetFiles(directory, "*.weather-or"),
+                        Parallel.ForEach(Directory.GetFiles(weatherDirectory, "*.weather-or"),
                             new ParallelOptions() { CancellationToken = token },
                             (weatherFile, state) =>
                             {

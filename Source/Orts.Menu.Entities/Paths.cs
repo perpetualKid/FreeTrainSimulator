@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Formats.Msts.Files;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Orts.Common.IO;
-using Orts.Formats.Msts.Files;
 
 namespace Orts.Menu.Entities
 {
@@ -48,7 +48,7 @@ namespace Orts.Menu.Entities
         /// <param name="filePath">The full name of the .pat file</param>
         internal Path(string filePath)
         {
-            if (FileSystemCache.FileExists(filePath))
+            if (File.Exists(filePath))
             {
                 try
                 {
@@ -93,12 +93,12 @@ namespace Orts.Menu.Entities
         {
             SemaphoreSlim addItem = new SemaphoreSlim(1);
             List<Path> paths = new List<Path>();
-            string directory = System.IO.Path.Combine(route.Path, "PATHS");
-            if (Directory.Exists(directory))
+            string pathsDirectory = route.RouteFolder.PathsFolder;
+            if (Directory.Exists(pathsDirectory))
             {
                 try
                 {
-                    Parallel.ForEach(Directory.GetFiles(directory, "*.pat"),
+                    Parallel.ForEach(Directory.GetFiles(pathsDirectory, "*.pat"),
                         new ParallelOptions() { CancellationToken = token },
                         (file, state) =>
                     {
@@ -151,8 +151,7 @@ namespace Orts.Menu.Entities
         public static Path GetPath(Route route, string name, bool allowNonPlayerPath)
         {
             Path path;
-            string directory = System.IO.Path.Combine(route.Path, "PATHS");
-            string file = System.IO.Path.Combine(directory, System.IO.Path.ChangeExtension(name, "pat"));
+            string file = route.RouteFolder.PathFile(name);
             try
             {
                 path = new Path(file);

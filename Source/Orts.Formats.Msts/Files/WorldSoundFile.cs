@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System.Diagnostics;
-using System.IO;
-using Orts.Common.IO;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+
+using System.Diagnostics;
+using System.IO;
 
 namespace Orts.Formats.Msts.Files
 {
@@ -29,7 +29,7 @@ namespace Orts.Formats.Msts.Files
 
         public WorldSoundFile(string fileName, TrackItem[] trItems)
         {
-            if (FileSystemCache.FileExists(fileName))
+            if (File.Exists(fileName))
             {
                 Trace.Write("$");
                 using (STFReader stf = new STFReader(fileName, false))

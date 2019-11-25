@@ -266,7 +266,7 @@ namespace Orts.Menu
                 buttonContentBrowse.Enabled = false; // Initial state because browsing a null path leads to an exception
                 try
                 {
-                    bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.RootFolder });
+                    bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.MstsFolder });
                 }
                 catch { }
             }

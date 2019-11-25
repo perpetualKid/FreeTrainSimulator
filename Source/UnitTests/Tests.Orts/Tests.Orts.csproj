@@ -50,7 +50,6 @@
     <Compile Include="Common\Calc\ConversionsTests.cs" />
     <Compile Include="Common\Calc\SmoothedDataTests.cs" />
     <Compile Include="Common\EqualityPrecisionDelta.cs" />
-    <Compile Include="Common\IO\FileSystemCacheTests.cs" />
     <Compile Include="Formats\Msts\Parsers\StfReaderTests.cs" />
     <Compile Include="Formats\OR\Parsers\TimetableReaderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

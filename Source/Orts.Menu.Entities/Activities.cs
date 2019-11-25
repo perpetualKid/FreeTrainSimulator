@@ -15,15 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Orts.Common.IO;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 namespace Orts.Menu.Entities
 {
@@ -38,7 +38,7 @@ namespace Orts.Menu.Entities
         public WeatherType Weather { get; protected set; } = WeatherType.Clear;
         public Difficulty Difficulty { get; protected set; } = Difficulty.Easy;
         public Duration Duration { get; protected set; } = new Duration(1, 0);
-        public Consist Consist { get; protected set; } = Consist.GetConsist("unknown", null);
+        public Consist Consist { get; protected set; } = Consist.GetConsist(null, "unknown");
         public Path Path { get; protected set; } = new Path("unknown");
         public string FilePath { get; private set; }
 
@@ -85,38 +85,30 @@ namespace Orts.Menu.Entities
         {
             Activity result;
 
-            if (FileSystemCache.FileExists(filePath))
+            try
             {
-                try
+                ActivityFile activityFile = new ActivityFile(filePath);
+                ServiceFile srvFile = new ServiceFile(route.RouteFolder.ServiceFile(activityFile.Activity.PlayerServices.Name));
+                Consist consist = Consist.GetConsist(folder, srvFile.TrainConfig);
+                Path path = new Path(route.RouteFolder.PathFile(srvFile.PathId));
+                if (!path.IsPlayerPath)
                 {
-                    ActivityFile activityFile = new ActivityFile(filePath);
-                    ServiceFile srvFile = new ServiceFile(System.IO.Path.Combine(route.Path, "SERVICES", activityFile.Activity.PlayerServices.Name + ".srv"));
-                    Consist consist = Consist.GetConsist(folder, srvFile.TrainConfig);
-                    Path path = new Path(System.IO.Path.Combine(route.Path, "PATHS", srvFile.PathId + ".pat"));
-                    if (!path.IsPlayerPath)
-                    {
-                        return null;
-                        // Not nice to throw an error now. Error was originally thrown by new Path(...);
-                        throw new InvalidDataException("Not a player path");
-                    }
-                    else if (activityFile.Activity.Header.RouteID.ToUpper() != route.RouteID.ToUpper())
-                    {
-                        //Activity and route have different RouteID.
-                        result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
-                    }
-                    else
+                    return null;
+                    // Not nice to throw an error now. Error was originally thrown by new Path(...);
+                    throw new InvalidDataException("Not a player path");
+                }
+                else if (activityFile.Activity.Header.RouteID.ToUpper() != route.RouteID.ToUpper())
+                {
+                    //Activity and route have different RouteID.
+                    result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
+                }
+                else
                     result = new Activity(string.Empty, filePath, activityFile, consist, path);
-                }
-                catch
-                {
-                    result = new Activity($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
-                }
             }
-            else
+            catch
             {
-                result = new Activity($"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
+                result = new Activity($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
             }
-
             return result;
         }
 
@@ -133,12 +125,12 @@ namespace Orts.Menu.Entities
             {
                 activities.Add(new DefaultExploreActivity());
                 activities.Add(new ExploreThroughActivity());
-                var directory = System.IO.Path.Combine(route.Path, "ACTIVITIES");
-                if (Directory.Exists(directory))
+                string activitiesDirectory = route.RouteFolder.ActivitiesFolder;
+                if (Directory.Exists(activitiesDirectory))
                 {
                     try
                     {
-                        Parallel.ForEach(Directory.GetFiles(directory, "*.act"),
+                        Parallel.ForEach(Directory.GetFiles(activitiesDirectory, "*.act"),
                             new ParallelOptions() { CancellationToken = token },
                             (activityFile, state) =>
                             {

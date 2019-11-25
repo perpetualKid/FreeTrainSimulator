@@ -44,17 +44,10 @@
 // Debug for Advanced Adhesion Model
 //#define DEBUG_ADHESION
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.IO;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -69,6 +62,12 @@ using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 
 using ORTS.Scripting.Api;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 using Event = Orts.Common.Event;
 
@@ -596,7 +595,7 @@ namespace Orts.Simulation.RollingStocks
             bool noseAhead = false;
 
             string basePath = Path.Combine(Path.GetDirectoryName(wagFilePath), "CABVIEW");
-            if (!FileSystemCache.FileExists(Path.Combine(basePath, cvfFileName)))
+            if (!File.Exists(Path.Combine(basePath, cvfFileName)))
                 return null;
 
             var cvfFile = new CabViewFile(basePath, cvfFileName);
@@ -627,7 +626,7 @@ namespace Orts.Simulation.RollingStocks
             if (wag.FreightShapeFileName != null)
             {
                 shapeFilePath = wagFolderSlash + wag.FreightShapeFileName;
-                if (shapeFilePath != null && FileSystemCache.FileExists(shapeFilePath + "d"))
+                if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
                 {
                     shapeFile = new ShapeDescriptorFile(shapeFilePath + "d");
                     if (shapeFile.Shape.EsdBoundingBox != null) boundingLimitsFound = true;
@@ -636,7 +635,7 @@ namespace Orts.Simulation.RollingStocks
             if (!boundingLimitsFound)
             {
                 shapeFilePath = wagFolderSlash + wag.MainShapeFileName;
-                if (shapeFilePath != null && FileSystemCache.FileExists(shapeFilePath + "d"))
+                if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
                 {
                     shapeFile = new ShapeDescriptorFile(shapeFilePath + "d");
                     if (shapeFile.Shape.EsdBoundingBox != null) boundingLimitsFound = true;
@@ -666,17 +665,17 @@ namespace Orts.Simulation.RollingStocks
 
             var cab3dBasePath = Path.Combine(Path.GetDirectoryName(WagFilePath), "CABVIEW3D");
             var shapeFilePath = Path.Combine(cab3dBasePath, Cab3DShapeFileName);
-            if (!FileSystemCache.FileExists(shapeFilePath))
+            if (!File.Exists(shapeFilePath))
                 return null;
 
             string cvfFileName  = Path.ChangeExtension(Cab3DShapeFileName, "cvf");
             if (!File.Exists(Path.Combine(cab3dBasePath, cvfFileName)))
             {
                 cvfFileName = CVFFileName;
-                if (!FileSystemCache.FileExists(Path.Combine(cab3dBasePath, cvfFileName)))
+                if (!File.Exists(Path.Combine(cab3dBasePath, cvfFileName)))
                 {
                     cab3dBasePath = Path.Combine(Path.GetDirectoryName(WagFilePath), "CABVIEW");
-                    if (!FileSystemCache.FileExists(Path.Combine(cab3dBasePath, cvfFileName)))
+                    if (!File.Exists(Path.Combine(cab3dBasePath, cvfFileName)))
                         return null;
                 }
             }

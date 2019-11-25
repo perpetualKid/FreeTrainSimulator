@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-using System.IO;
-
 using Microsoft.Xna.Framework;
-using Orts.Common.IO;
+
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
+
+using System.Collections.Generic;
+using System.IO;
 
 namespace Orts.Formats.Msts.Files
 {
@@ -56,7 +56,7 @@ namespace Orts.Formats.Msts.Files
                             if (!Path.GetFileNameWithoutExtension(cvfileName).EndsWith("1024"))
                             {
                                 string name1024 = Path.GetFileNameWithoutExtension(cvfileName) + "1024" + Path.GetExtension(cvfileName);
-                                if (FileSystemCache.FileExists(Path.Combine(path, name1024)))
+                                if (File.Exists(Path.Combine(path, name1024)))
                                     name = name1024;
                             }
 

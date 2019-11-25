@@ -393,8 +393,6 @@ namespace Orts.Menu
         #region Folders
         private async void ComboBoxFolder_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboBoxFolder.SelectedItem != null)
-                FolderStructure.InitializeFromRoot(((Folder)comboBoxFolder.SelectedItem).Path);
             try
             {
                 await Task.WhenAll(LoadRouteListAsync(), LoadLocomotiveListAsync());
@@ -407,8 +405,6 @@ namespace Orts.Menu
         #region Routes
         private async void ComboBoxRoute_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboBoxRoute.SelectedItem != null)
-                FolderStructure.InitializeFromRoute(((Route)comboBoxRoute.SelectedItem).Path);
             try
             {
                 await Task.WhenAll(
@@ -785,14 +781,12 @@ namespace Orts.Menu
         private async Task LoadFolderListAsync()
         {
             folders.Clear();
-//            ShowFolderList();
             try
             {
                 folders = (await Task.Run(() => Folder.GetFolders(settings))).OrderBy(f => f.Name).ToList();
             }
             catch (TaskCanceledException) { }
 
-            FolderStructure.InitializeFromRoot(settings.Menu_Selection[(int)Menu_SelectionIndex.Folder]);
             ShowFolderList();
             if (folders.Count > 0)
                 comboBoxFolder.Focus();
@@ -856,7 +850,6 @@ namespace Orts.Menu
                 routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token))).OrderBy(r => r.Name).ToList();
             }
             catch (TaskCanceledException) { }
-//            ShowRouteList();
             //cleanout existing data
             ShowRouteList();
             ShowActivityList();
@@ -878,8 +871,6 @@ namespace Orts.Menu
                 comboBoxRoute.EndUpdate();
             }
             UpdateFromMenuSelection<Route>(comboBoxRoute, Menu_SelectionIndex.Route, r => r.Path);
-            if (comboBoxRoute.SelectedItem != null)
-                FolderStructure.InitializeFromRoute(((Route)comboBoxRoute.SelectedItem).Path);
             if (settings.Menu_Selection.Length > (int)Menu_SelectionIndex.Activity)
             {
                 string path = settings.Menu_Selection[(int)Menu_SelectionIndex.Activity]; // Activity or Timetable

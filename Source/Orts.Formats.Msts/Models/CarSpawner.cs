@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Orts.Formats.Msts.Parsers;
+
+using System.Collections.Generic;
 using System.IO;
-using Orts.Common.IO;
-using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
@@ -22,7 +22,7 @@ namespace Orts.Formats.Msts.Models
                     else
                     {
                         CarSpawner dataItem = new CarSpawner(stf, shapePath);
-                        if (FileSystemCache.FileExists(dataItem.Name))
+                        if (File.Exists(dataItem.Name))
                             Add(dataItem);
                         else
                             STFException.TraceWarning(stf, $"Non-existent shape file {dataItem.Name} referenced");

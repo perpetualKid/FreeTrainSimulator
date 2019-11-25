@@ -15,15 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Formats.Msts.Files;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Orts.Common.IO;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 
 namespace Orts.Menu.Entities
 {
@@ -56,8 +55,9 @@ namespace Orts.Menu.Entities
 
         public static Consist GetConsist(Folder folder, string name, bool reverseConsist = false)
         {
-            string directory = System.IO.Path.Combine(folder.Path, "TRAINS", "CONSISTS");
-            string file = System.IO.Path.Combine(directory, System.IO.Path.ChangeExtension(name, "con"));
+            string file;
+            if (null == folder || !File.Exists(file = folder.ContentFolder.ConsistFile(name)))
+                return new Consist($"<{catalog.GetString("missing:")} {name}>", name);
 
             return GetConsist(file, folder, reverseConsist);
         }
@@ -66,25 +66,18 @@ namespace Orts.Menu.Entities
         {
             Consist result = null;
 
-            if (FileSystemCache.FileExists(fileName))
+            try
             {
-                try
+                ConsistFile conFile = new ConsistFile(fileName);
+                Locomotive locomotive = reverseConsist ? GetLocomotiveReverse(conFile, folder) : GetLocomotive(conFile, folder);
+                if (locomotive != null)
                 {
-                    ConsistFile conFile = new ConsistFile(fileName);
-                    Locomotive locomotive = reverseConsist ? GetLocomotiveReverse(conFile, folder) : GetLocomotive(conFile, folder);
-                    if (locomotive != null)
-                    {
-                        result = new Consist(conFile, locomotive, fileName);
-                    }
-                }
-                catch
-                {
-                    result = new Consist($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
+                    result = new Consist(conFile, locomotive, fileName);
                 }
             }
-            else
+            catch
             {
-                result = new Consist($"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
+                result = new Consist($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
             }
             return result;
         }
@@ -93,12 +86,12 @@ namespace Orts.Menu.Entities
         {
             SemaphoreSlim addItem = new SemaphoreSlim(1);
             List<Consist> consists = new List<Consist>();
-            string directory = System.IO.Path.Combine(folder.Path, "TRAINS", "CONSISTS");
-            if (Directory.Exists(directory))
+            string consistsDirectory = folder.ContentFolder.ConsistsFolder;
+            if (Directory.Exists(consistsDirectory))
             {
                 try
                 {
-                    Parallel.ForEach(Directory.GetFiles(directory, "*.con"),
+                    Parallel.ForEach(Directory.GetFiles(consistsDirectory, "*.con"),
                         new ParallelOptions() { CancellationToken = token },
                         (consistFile, state) =>
                     {
@@ -128,7 +121,7 @@ namespace Orts.Menu.Entities
             {
                 try
                 {
-                    return Locomotive.GetLocomotive(System.IO.Path.Combine(folder.Path, "TRAINS", "TRAINSET", wagon.Folder, wagon.Name + ".eng"));
+                    return Locomotive.GetLocomotive(folder.ContentFolder.EngineFile(wagon.Folder, wagon.Name));
                 }
                 catch { }
             }
@@ -141,7 +134,7 @@ namespace Orts.Menu.Entities
             {
                 try
                 {
-                    return Locomotive.GetLocomotive(System.IO.Path.Combine(folder.Path, "TRAINS", "TRAINSET", wagon.Folder, wagon.Name + ".eng"));
+                    return Locomotive.GetLocomotive(folder.ContentFolder.EngineFile(wagon.Folder, wagon.Name));
                 }
                 catch { }
             }
@@ -163,7 +156,7 @@ namespace Orts.Menu.Entities
             {
                 result = new Locomotive(catalog.GetString("- Any Locomotive -"), fileName);
             }
-            else if (FileSystemCache.FileExists(fileName))
+            else if (File.Exists(fileName))
             {
                 try
                 {

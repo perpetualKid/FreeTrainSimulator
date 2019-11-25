@@ -1079,12 +1079,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         private string GetRouteName(string path)
         {
-            FolderStructure.InitializeFromPathOrActivity(path); //TODO: this should be initialized higher up the stack
             try
             {
-                {
-                    return new RouteFile(FolderStructure.TrackFile).Route.Name;
-                }
+                return new RouteFile(FolderStructure.RouteFromActivity(path).TrackFileName).Route.Name;
             }
             catch { }
             return null;

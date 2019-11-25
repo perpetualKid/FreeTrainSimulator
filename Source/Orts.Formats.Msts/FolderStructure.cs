@@ -1,156 +1,204 @@
-﻿using System;
+﻿
+using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-
-using Microsoft.Win32;
-using Orts.Common.IO;
 
 namespace Orts.Formats.Msts
 {
     public static class FolderStructure
     {
-        private static readonly string mstsLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), 
-            "Microsoft Games", "Train Simulator");   // MSTS default path.
-
-        private static DirectoryInfo rootFolder;
-        private static DirectoryInfo routeFolder;
-
-        static FolderStructure()
+        public class ContentFolder
         {
-            RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft Games\Train Simulator\1.0");
-            if (key == null)
-                key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\Microsoft Games\Train Simulator\1.0");
-            rootFolder = new DirectoryInfo((string)key?.GetValue("Path", mstsLocation) ?? mstsLocation);
-
-            // Verify installation at this location
-            if (!rootFolder?.Exists ?? true)
-                Trace.TraceInformation($"MSTS directory '{mstsLocation}' does not exist.");
-        }
-
-        public static void InitializeFromPathOrActivity(string path)
-        {
-            if (Path.GetExtension(path).Equals(".act", StringComparison.OrdinalIgnoreCase) || Path.GetExtension(path).Equals(".pat", StringComparison.OrdinalIgnoreCase))
+            public class RouteFolder
             {
-                rootFolder = new DirectoryInfo(Path.GetFullPath(Path.Combine(path, "..", "..", "..", "..")));
-                routeFolder = new DirectoryInfo(Path.GetFullPath(Path.Combine(path, "..", "..")));
+                private readonly string routeName;
+                private readonly string routeFolder;
+
+                internal RouteFolder(string route, string folder)
+                {
+                    routeName = route;
+                    routeFolder = Path.Combine(folder, routeName);
+                }
+
+                public string TrackFileName
+                {
+                    get
+                    {
+                        string[] trackFiles = Directory.GetFiles(routeFolder, "*.trk");
+                        if (trackFiles.Length == 0)
+                            throw new FileNotFoundException($"TRK file not found in '{routeFolder}'");
+                        return trackFiles[0];
+                    }
+                }
+
+                public string ActivitiesFolder => Path.Combine(routeFolder, "ACTIVITIES");
+
+                public string OrActivitiesFolder => Path.Combine(routeFolder, "ACTIVITIES", "OpenRails");
+
+                public string WeatherFolder => Path.Combine(routeFolder, "WeatherFiles");
+
+                public string PathsFolder => Path.Combine(routeFolder, "PATHS");
+
+                public string ServicesFolder => Path.Combine(routeFolder, "SERVICES");
+
+                public string TrafficFolder => Path.Combine(routeFolder, "TRAFFIC");
+
+                public string SoundsFolder => Path.Combine(routeFolder, "SOUND");
+
+                public string ServiceFile(string serviceName)
+                {
+                    return Path.Combine(ServicesFolder, serviceName + ".srv");
+                }
+
+                public string PathFile(string pathName)
+                {
+                    return Path.Combine(PathsFolder, pathName+ ".pat");
+                }
+
+                public string TrafficFile(string trafficName)
+                {
+                    return Path.Combine(TrafficFolder, trafficName + ".trf");
+                }
+
+                public string SoundFile(string soundName)
+                {
+                    return Path.Combine(SoundsFolder, soundName);
+                }
+
             }
-            else
-                throw new FileNotFoundException($"Could not parse root directory for {path}");
-            FileSystemCache.Initialize(rootFolder);
+
+            private readonly Dictionary<string, RouteFolder> routeFolders = new Dictionary<string, RouteFolder>(StringComparer.OrdinalIgnoreCase);
+
+            internal ContentFolder(string root)
+            {
+                Folder = Path.GetFullPath(root);
+            }
+
+            public string Folder { get; }
+
+            public string RoutesFolder => Path.Combine(Folder, "ROUTES");
+
+            public string ConsistsFolder => Path.Combine(Folder, "TRAINS", "Consists");
+
+            public string TrainSetsFolder => Path.Combine(Folder, "TRAINS", "TrainSet");
+
+            public string ConsistFile(string consistName)
+            {
+                return Path.Combine(ConsistsFolder, consistName + ".con");
+            }
+
+            public string EngineFile(string trainSetName, string engineName)
+            {
+                return Path.Combine(TrainSetsFolder, trainSetName, engineName + ".eng");
+            }
+
+            public string WagonFile(string trainSetName, string wagonName)
+            {
+                return Path.Combine(TrainSetsFolder, trainSetName, wagonName + ".wag");
+            }
+
+            public RouteFolder Route(string route)
+            {
+                if (!routeFolders.ContainsKey(route))
+                {
+                    lock (routeFolders)
+                    {
+                        if (!routeFolders.ContainsKey(route))
+                            routeFolders.Add(route, new RouteFolder(route, RoutesFolder));
+                    }
+                }
+                return routeFolders[route];
+            }
+
         }
 
-        public static void InitializeFromRoot(string path)
-        {
-            rootFolder = new DirectoryInfo(path);
-            routeFolder = null;
-            FileSystemCache.Initialize(rootFolder);
-        }
+        private static readonly string mstsLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+            "Microsoft Games", "Train Simulator");   // MSTS default path.
+        private static readonly Dictionary<string, ContentFolder> contentFolders = new Dictionary<string, ContentFolder>(StringComparer.OrdinalIgnoreCase);
+        private static ContentFolder current;
 
-        public static void InitializeFromRoute(string path)
-        {
-            routeFolder = new DirectoryInfo(path);
-            rootFolder = routeFolder.Parent.Parent;
-            FileSystemCache.Initialize(rootFolder);
-        }
-
-        /// <summary>
-        /// returns the root folder of content set (such as Train Simulator default routes, or other Mini-Route folders
-        /// </summary>
-        public static string RootFolder => rootFolder.FullName;
-
-        public static string RouteFolder => routeFolder.FullName;
-
-        public static string RouteName => routeFolder.Name;
-
-        public static string RoutesFolder => Path.Combine(RootFolder, "ROUTES");
-
-        public static string ServicesFolder => Path.Combine(RouteFolder, "SERVICES");
-
-        public static string ConsistsFolder => Path.Combine(RootFolder, "TRAINS", "Consists");
-
-        public static string TrainSetsFolder => Path.Combine(RootFolder, "TRAINS", "TrainSet");
-
-        public static string SoundsFolder => Path.Combine(RootFolder, "SOUND");
-
-        public static string RouteSoundsFolder => Path.Combine(RouteFolder, "SOUND");
-
-        public static string ActivitiesFolder => Path.Combine(RouteFolder, "ACTIVITIES");
-
-        public static string TrackFile
+        public static ContentFolder Current
         {
             get
             {
-                var trackFiles = routeFolder.GetFiles("*.trk");
-                if (trackFiles.Length == 0)
-                    throw new FileNotFoundException($"TRK file not found in '{RouteFolder}'.", RouteName);
-                return trackFiles[0].FullName;
+                if (null == current)
+                    current = Content(MstsFolder);
+                return current;
             }
         }
 
-        public static string TrackItemTable => Path.Combine(RouteFolder, RouteName + ".TIT");
-
-        public static string ConsistFile(string consistName)
+        public static string MstsFolder
         {
-            return Path.Combine(ConsistsFolder, consistName + ".con");
+            get
+            {
+                RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft Games\Train Simulator\1.0");
+                if (key == null)
+                    key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\Microsoft Games\Train Simulator\1.0");
+                DirectoryInfo mstsFolder = new DirectoryInfo((string)key?.GetValue("Path", mstsLocation) ?? mstsLocation);
+
+                // Verify installation at this location
+                if (!mstsFolder?.Exists ?? true)
+                    Trace.TraceInformation($"MSTS directory '{mstsLocation}' does not exist.");
+                return mstsFolder.FullName;
+            }
         }
 
-        public static string ServiceFile(string serviceName)
+        public static ContentFolder Content(string root)
         {
-            return Path.Combine(ServicesFolder, serviceName + ".srv");
+            if (!contentFolders.ContainsKey(root))
+            {
+                lock (contentFolders)
+                {
+                    if (!contentFolders.ContainsKey(root))
+                        contentFolders.Add(root, new ContentFolder(root));
+                }
+            }
+            return contentFolders[root];
         }
 
-        public static string TrafficFile(string trafficName)
+        public static ContentFolder.RouteFolder Route(string routePath)
         {
-            return Path.Combine(RouteFolder, "TRAFFIC", trafficName + ".trf");
+            string routeName = Path.GetFileName(routePath);
+            string contentFolder = Path.GetFullPath(Path.Combine(routePath, "..\\.."));
+            return Content(contentFolder).Route(routeName);
         }
 
-        public static string PathFile(string pathName)
+        public static ContentFolder.RouteFolder RouteFromActivity(string activityPath)
         {
-            return Path.Combine(RouteFolder, "PATHS", pathName + ".pat");
+            string routePath = Path.GetFullPath(Path.Combine(activityPath, "..\\.."));
+            string routeName = Path.GetFileName(routePath);
+            string contentFolder = Path.GetFullPath(Path.Combine(routePath, "..\\.."));
+            return Content(contentFolder).Route(routeName);
         }
 
-        public static string WaggonFile(string waggonName, string trainsetName)
-        {
-            return Path.Combine(TrainSetsFolder, trainsetName, waggonName + ".wag");
-        }
+        //public static string TrackItemTable => Path.Combine(RouteFolder, RouteName + ".TIT");
 
-        public static string EngineFile(string engineName, string trainsetName)
-        {
-            return Path.Combine(TrainSetsFolder, trainsetName, engineName + ".eng");
-        }
+        ///// <summary>
+        ///// Given a soundfile reference in a wag or eng file, return the path the sound file
+        ///// </summary>
+        ///// <param name="wagfilename"></param>
+        ///// <param name="soundfile"></param>
+        ///// <returns></returns>
+        //public static string TrainSound(string waggonFile, string soundFile)
+        //{
+        //    string trainsetSoundPath = Path.Combine(Path.GetDirectoryName(waggonFile), "SOUND", soundFile);
+        //    string globalSoundPath = Path.Combine(SoundsFolder, soundFile);
 
-        /// <summary>
-        /// Given a soundfile reference in a wag or eng file, return the path the sound file
-        /// </summary>
-        /// <param name="wagfilename"></param>
-        /// <param name="soundfile"></param>
-        /// <returns></returns>
-        public static string TrainSound(string waggonFile, string soundFile)
-        {
-            string trainsetSoundPath = Path.Combine(Path.GetDirectoryName(waggonFile), "SOUND", soundFile);
-            string globalSoundPath = Path.Combine(SoundsFolder, soundFile);
+        //    return File.Exists(trainsetSoundPath) ? trainsetSoundPath : globalSoundPath;
+        //}
 
-            return FileSystemCache.FileExists(trainsetSoundPath) ? trainsetSoundPath : globalSoundPath;
-        }
+        ///// <summary>
+        ///// Given a soundfile reference in a cvf file, return the path to the sound file
+        ///// </summary>
+        //public static string SmsSoundPath(string smsFile, string soundFile)
+        //{
+        //    string smsSoundPath = Path.Combine(Path.GetDirectoryName(smsFile), soundFile);
+        //    string globalSoundPath = Path.Combine(SoundsFolder, soundFile);
 
-        /// <summary>
-        /// Given a soundfile reference in a cvf file, return the path to the sound file
-        /// </summary>
-        public static string SmsSoundPath(string smsFile, string soundFile)
-        {
-            string smsSoundPath = Path.Combine(Path.GetDirectoryName(smsFile), soundFile);
-            string globalSoundPath = Path.Combine(SoundsFolder, soundFile);
-
-            return FileSystemCache.FileExists(smsSoundPath) ? smsSoundPath : globalSoundPath;
-        }
-
-        public static string TrackFileName(string routeFolderPath)
-        {
-            var trkFileNames = Directory.GetFiles(routeFolderPath, "*.trk");
-            if (trkFileNames.Length == 0)
-                throw new FileNotFoundException("TRK file not found in '" + routeFolderPath + "'.", Path.Combine(routeFolderPath, Path.GetFileName(routeFolderPath)));
-            return trkFileNames[0];
-        }
+        //    return File.Exists(smsSoundPath) ? smsSoundPath : globalSoundPath;
+        //}
 
     }
 }

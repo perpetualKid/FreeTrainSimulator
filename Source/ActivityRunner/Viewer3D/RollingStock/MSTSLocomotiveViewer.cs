@@ -17,12 +17,6 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -32,7 +26,6 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Input;
-using Orts.Common.IO;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
@@ -44,6 +37,12 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 
 using ORTS.Scripting.Api;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 using Event = Orts.Common.Event;
 
@@ -2633,7 +2632,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             if (String.IsNullOrEmpty(TrainCarShape.SharedShape.ReferencePath))
             {
-                if (!FileSystemCache.FileExists(globalText + imageName))
+                if (!File.Exists(globalText + imageName))
                 {
                     Trace.TraceInformation("Ignored missing " + imageName + " using default. You can copy the " + imageName + " from OR\'s AddOns folder to " + globalText +
                         ", or place it under " + TrainCarShape.SharedShape.ReferencePath);
@@ -2642,7 +2641,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
             else
             {
-                if (!FileSystemCache.FileExists(TrainCarShape.SharedShape.ReferencePath + @"\" + imageName))
+                if (!File.Exists(TrainCarShape.SharedShape.ReferencePath + @"\" + imageName))
                 {
                     Trace.TraceInformation("Ignored missing " + imageName + " using default. You can copy the " + imageName + " from OR\'s AddOns folder to " + globalText +
                         ", or place it under " + TrainCarShape.SharedShape.ReferencePath);

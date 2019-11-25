@@ -25,14 +25,7 @@
 
 //
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-
 using Orts.Common.Calc;
-using Orts.Common.IO;
 using Orts.Common.Threading;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -41,6 +34,12 @@ using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 using Event = Orts.Common.Event;
 
@@ -1198,7 +1197,7 @@ namespace Orts.Simulation.Timetables
 
                 if (BinaryPaths)
                 {
-                    if (FileSystemCache.FileExists(formedpathFilefullBinary))
+                    if (File.Exists(formedpathFilefullBinary))
                     {
                         try
                         {
@@ -2453,7 +2452,7 @@ namespace Orts.Simulation.Timetables
                     if (wagon.IsEngine)
                         wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
 
-                    if (!FileSystemCache.FileExists(wagonFilePath))
+                    if (!File.Exists(wagonFilePath))
                     {
                         Trace.TraceWarning("Ignored missing wagon {0} in consist {1}", wagonFilePath, consistFile);
                         continue;

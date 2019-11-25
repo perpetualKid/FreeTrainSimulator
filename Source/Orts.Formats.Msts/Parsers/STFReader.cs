@@ -1858,7 +1858,7 @@ namespace Orts.Formats.Msts.Parsers
                             SkipRestOfBlock();
                         }
                         string includeFileName = Path.Combine(Path.GetDirectoryName(FileName), fileName);
-                        if (!Common.IO.FileSystemCache.FileExists(includeFileName))
+                        if (!File.Exists(includeFileName))
                             STFException.TraceWarning(this, string.Format("'{0}' not found", includeFileName));
                         includeReader = new STFReader(includeFileName, false);
                         return ReadItem(skip_mode, string_mode); // Which will recurse down when includeReader is tested

@@ -18,17 +18,16 @@
 // Define this to log the wheel configurations on cars as they are loaded.
 //#define DEBUG_WHEELS
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.IO;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 
 using ORTS.Scripting.Api;
+
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
@@ -213,7 +212,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     Path.Combine(Simulator.BasePath, "SOUND"),
                 };
                 var soundPath = ORTSPaths.GetFileFromFolders(soundPathArray, SoundFileName);
-                if (FileSystemCache.FileExists(soundPath))
+                if (File.Exists(soundPath))
                     Sounds.Add(Script, soundPath);
             }
 

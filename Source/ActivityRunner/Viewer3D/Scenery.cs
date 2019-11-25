@@ -42,21 +42,20 @@
  * 
  */
 
+using Microsoft.Xna.Framework;
+
+using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common;
+using Orts.Common.Position;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-
-using Microsoft.Xna.Framework;
-
-using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common;
-using Orts.Common.IO;
-using Orts.Common.Position;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -208,7 +207,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         //[CallOnThread("Updater")]
-        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime)
+        public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var worldFiles = WorldFiles;
             foreach (var worldFile in worldFiles)
@@ -276,7 +275,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var WFilePath = viewer.Simulator.RoutePath + @"\World\" + WFileName;
 
             // if there isn't a file, then return with an empty WorldFile object
-            if (!FileSystemCache.FileExists(WFilePath))
+            if (!File.Exists(WFilePath))
             {
                 if (visible)
                     Trace.TraceWarning("World file missing - {0}", WFilePath);
@@ -288,7 +287,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // check for existence of world file in OpenRails subfolder
             WFilePath = viewer.Simulator.RoutePath + @"\World\Openrails\" + WFileName;
-            if (FileSystemCache.FileExists(WFilePath))
+            if (File.Exists(WFilePath))
             {
                 // We have an OR-specific addition to world file
                 WFile.InsertORSpecificData(WFilePath);
@@ -331,14 +330,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (shapeFilePath != null)
                 {
                     shapeFilePath = Path.GetFullPath(shapeFilePath);
-                    if (!FileSystemCache.FileExists(shapeFilePath))
+                    if (!File.Exists(shapeFilePath))
                     {
                         Trace.TraceWarning("{0} scenery object {1} with StaticFlags {3:X8} references non-existent {2}", WFileName, worldObject.UiD, shapeFilePath, worldObject.StaticFlags);
                         shapeFilePath = null;
                     }
                 }
 
-                if (shapeFilePath != null && FileSystemCache.FileExists(shapeFilePath + "d"))
+                if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
                 {
                     var shape = new ShapeDescriptorFile(shapeFilePath + "d");
                     if (shape.Shape.EsdBoundingBox != null)

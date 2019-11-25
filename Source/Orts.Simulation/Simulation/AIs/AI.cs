@@ -30,23 +30,20 @@
 // #define DEBUG_TRACEINFO
 //
 
-using Orts.Formats.Msts;
+using Orts.Common.Calc;
+using Orts.Common.Threading;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using Orts.MultiPlayer;
-using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Timetables;
-using Orts.Simulation.Signalling;
-using Orts.Common;
+
 using ORTS.Scripting.Api;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Orts.Common.Threading;
-using Orts.Common.Calc;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
-using Orts.Common.IO;
 
 namespace Orts.Simulation.AIs
 {
@@ -900,7 +897,7 @@ namespace Orts.Simulation.AIs
                 if (wagon.IsEngine)
                     wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
 
-                if (!FileSystemCache.FileExists(wagonFilePath))
+                if (!File.Exists(wagonFilePath))
                 {
                     Trace.TraceWarning("Ignored missing wagon {0} in consist {1}", wagonFilePath, consistFileName);
                     continue;

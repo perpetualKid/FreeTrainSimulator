@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common.IO;
 using Orts.Formats.Msts;
 using Orts.Simulation;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -52,20 +52,20 @@ namespace Orts.ActivityRunner.Viewer3D.Common
         {
             var texturePath = Path.GetDirectoryName(textureFilePath);
             var textureName = Path.GetFileName(textureFilePath);
-            var nightTexturePath = !FileSystemCache.FileExists(texturePath + @"\Night\" + textureName) ? Path.GetDirectoryName(texturePath) + @"\Night\" : texturePath + @"\Night\";
+            var nightTexturePath = !File.Exists(texturePath + @"\Night\" + textureName) ? Path.GetDirectoryName(texturePath) + @"\Night\" : texturePath + @"\Night\";
 
-            if (!String.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".dds" && FileSystemCache.FileExists(nightTexturePath + textureName))
+            if (!String.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".dds" && File.Exists(nightTexturePath + textureName))
             {
                 return nightTexturePath + textureName;
             }
             else if (!String.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".ace")
             {
                 var alternativeTexture = Path.ChangeExtension(nightTexturePath + textureName, ".dds");
-                if (simulator.Settings.PreferDDSTexture && !String.IsNullOrEmpty(alternativeTexture.ToLower()) && FileSystemCache.FileExists(alternativeTexture))
+                if (simulator.Settings.PreferDDSTexture && !String.IsNullOrEmpty(alternativeTexture.ToLower()) && File.Exists(alternativeTexture))
                 {
                     return alternativeTexture;
                 }
-                else if (FileSystemCache.FileExists(nightTexturePath + textureName))
+                else if (File.Exists(nightTexturePath + textureName))
                 {
                     return nightTexturePath + textureName;
                 }

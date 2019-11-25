@@ -33,31 +33,27 @@ namespace Orts.Menu.Entities
         public string Description { get; private set; }
         public string Path { get; private set; }
 
+        internal FolderStructure.ContentFolder.RouteFolder RouteFolder { get; private set; }
+
         internal Route(string path)
         {
-            if (Directory.Exists(path))
+            RouteFolder = FolderStructure.Route(path);
+            string trkFilePath = RouteFolder.TrackFileName;
+            try
             {
-				string trkFilePath = FolderStructure.TrackFileName(path);
-                try
-                {
-					var trkFile = new RouteFile(trkFilePath);
-                    Name = trkFile.Route.Name.Trim();
-                    RouteID = trkFile.Route.RouteID;
-                    Description = trkFile.Route.Description.Trim();
-                }
-                catch
-                {
-                    Name = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileName(path)}>";
-                }
-                if (string.IsNullOrEmpty(Name))
-                    Name = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(path)}>";
-                if (string.IsNullOrEmpty(Description))
-                    Description = null;
+                var trkFile = new RouteFile(trkFilePath);
+                Name = trkFile.Route.Name;
+                RouteID = trkFile.Route.RouteID;
+                Description = trkFile.Route.Description;
             }
-            else
+            catch
             {
-                Name = $"<{catalog.GetString("missing:")} {System.IO.Path.GetFileName(path)}>";
+                Name = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileName(path)}>";
             }
+            if (string.IsNullOrEmpty(Name))
+                Name = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(path)}>";
+            if (string.IsNullOrEmpty(Description))
+                Description = null;
             Path = path;
         }
 
@@ -70,12 +66,12 @@ namespace Orts.Menu.Entities
         {
             SemaphoreSlim addItem = new SemaphoreSlim(1);
             List<Route> routes = new List<Route>();
-            string directory = System.IO.Path.Combine(folder.Path, "ROUTES");
-            if (Directory.Exists(directory))
+            string routesDirectory = folder.ContentFolder.RoutesFolder;
+            if (Directory.Exists(routesDirectory))
             {
                 try
                 {
-                    Parallel.ForEach(Directory.GetDirectories(directory),
+                    Parallel.ForEach(Directory.GetDirectories(routesDirectory),
                         new ParallelOptions() { CancellationToken = token },
                         (routeDirectory, state) =>
                     {

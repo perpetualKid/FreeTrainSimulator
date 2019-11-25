@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using Orts.Common.IO;
+using Orts.Formats.Msts;
 using Orts.Settings;
+
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Orts.Menu.Entities
 {
@@ -28,10 +28,13 @@ namespace Orts.Menu.Entities
         public string Name { get; private set; }
         public string Path { get; private set; }
 
+        internal FolderStructure.ContentFolder ContentFolder { get; private set; }
+
         public Folder(string name, string path)
         {
             Name = name;
             Path = path;
+            ContentFolder = FolderStructure.Content(path);
         }
 
         public override string ToString()
@@ -41,37 +44,9 @@ namespace Orts.Menu.Entities
 
         public static Task<List<Folder>> GetFolders(UserSettings settings)
         {
-            string folderDataFile = System.IO.Path.Combine(UserSettings.UserDataFolder, "folder.dat");
             List<Folder> folders = new List<Folder>();
-
-            if (settings.Folders.Folders.Count == 0 && FileSystemCache.FileExists(folderDataFile))
-            {
-                try
-                {
-                    using (BinaryReader inf = new BinaryReader(File.Open(folderDataFile, FileMode.Open)))
-                    {
-                        var count = inf.ReadInt32();
-                        for (int i = 0; i < count; ++i)
-                        {
-                            var path = inf.ReadString();
-                            var name = inf.ReadString();
-                            folders.Add(new Folder(name, path));
-                        }
-                    }
-                }
-                catch { }
-
-                // Migrate from folder.dat to FolderSettings.
-                foreach (var folder in folders)
-                    settings.Folders.Folders[folder.Name] = folder.Path;
-                settings.Folders.Save();
-            }
-            else
-            {
-                foreach (var folder in settings.Folders.Folders)
-                    folders.Add(new Folder(folder.Key, folder.Value));
-            }
-
+            foreach (var folder in settings.Folders.Folders)
+                folders.Add(new Folder(folder.Key, folder.Value));
             return Task.FromResult(folders);
         }
 

@@ -18,16 +18,7 @@
 // #define DEBUG_MULTIPLAYER
 // DEBUG flag for debug prints
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-
 using Orts.Common;
-using Orts.Common.IO;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -37,6 +28,14 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 
 using ORTS.Scripting.Api;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
 
 using Event = Orts.Common.Event;
 
@@ -576,7 +575,7 @@ namespace Orts.MultiPlayer
                                 for (int i = 0; i < cars.Length; i++)
                                 {
                                     string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\" + cars[i];
-                                    if (!FileSystemCache.FileExists(wagonFilePath))
+                                    if (!File.Exists(wagonFilePath))
                                     {
                                         Trace.TraceWarning("Ignored missing wagon {0}", wagonFilePath);
                                         continue;

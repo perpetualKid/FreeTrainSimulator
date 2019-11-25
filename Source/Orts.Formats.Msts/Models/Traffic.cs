@@ -207,7 +207,8 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("service_definition", ()=>{ Services.Add(new Services(stf)); }),
             });
 
-            TrafficFile = new TrafficFile(FolderStructure.TrafficFile(Name));
+//            TrafficFile = new TrafficFile(FolderStructure.TrafficFile(Name));
+            TrafficFile = new TrafficFile(FolderStructure.RouteFromActivity(stf.FileName).TrafficFile(Name));
 
         }
     }

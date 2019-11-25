@@ -15,6 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Microsoft.CSharp;
+
+using Orts.Simulation;
+
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -23,10 +27,6 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-
-using Microsoft.CSharp;
-using Orts.Common.IO;
-using Orts.Simulation;
 
 namespace Orts.Common.Scripting
 {
@@ -111,7 +111,7 @@ namespace Orts.Common.Scripting
             }
             catch (Exception error)
             {
-                if (FileSystemCache.FileExists(path))
+                if (File.Exists(path))
                     Trace.WriteLine(new FileLoadException(path, error));
                 else
                     Trace.TraceWarning("Ignored missing script file {0}", path);

@@ -93,7 +93,7 @@ namespace Orts.Formats.Msts.Models
                 {
                     stf.MustMatchBlockStart();
                     string soundFile = stf.ReadString();
-                    SoundFile = Path.Combine(FolderStructure.RouteSoundsFolder, soundFile);
+                    SoundFile = Path.Combine(FolderStructure.RouteFromActivity(stf.FileName).SoundFile(soundFile));
                     if (!EnumExtension.GetValue(stf.ReadString(), out OrtsActivitySoundFileType soundFileType))
                     {
                         stf.StepBackOneItem();

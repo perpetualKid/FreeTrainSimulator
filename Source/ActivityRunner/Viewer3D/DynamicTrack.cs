@@ -17,6 +17,18 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+using Orts.ActivityRunner.Viewer3D.Common;
+using Orts.ActivityRunner.Viewer3D.Shapes;
+using Orts.Common;
+using Orts.Common.Position;
+using Orts.Common.Xna;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts.Parsers;
+using Orts.Simulation;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -24,19 +36,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Xml;
 using System.Xml.Schema;
-
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
-using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common;
-using Orts.Common.IO;
-using Orts.Common.Position;
-using Orts.Common.Xna;
-using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts.Parsers;
-using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -251,12 +250,12 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             string path = routePath + @"\TrackProfiles";
             //Establish default track profile
-            if (FileSystemCache.FileExists(path + @"\TrProfile.xml"))
+            if (File.Exists(path + @"\TrProfile.xml"))
             {
                 // XML-style
                 trpFile = new TRPFile(viewer, path + @"\TrProfile.xml");
             }
-            else if (FileSystemCache.FileExists(path + @"\TrProfile.stf"))
+            else if (File.Exists(path + @"\TrProfile.stf"))
             {
                 // MSTS-style
                 trpFile = new TRPFile(viewer, path + @"\TrProfile.stf");

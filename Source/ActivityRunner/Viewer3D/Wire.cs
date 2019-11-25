@@ -23,20 +23,20 @@
  * 
  */
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Common.IO;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -371,11 +371,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
             lod = new LODWire(800.0f); // Create LOD for railsides with specified CutoffRadius
             lodItem = new LODItemWire("Wire");
-            if (FileSystemCache.FileExists(viewer.Simulator.RoutePath + "\\Textures\\overheadwire.ace"))
+            if (File.Exists(viewer.Simulator.RoutePath + "\\Textures\\overheadwire.ace"))
             {
                 lodItem.TexName = "overheadwire.ace";
             }
-            else if (FileSystemCache.FileExists(viewer.Simulator.BasePath + "\\global\\textures\\overheadwire.ace"))
+            else if (File.Exists(viewer.Simulator.BasePath + "\\global\\textures\\overheadwire.ace"))
             {
                 lodItem.TexName = "..\\..\\..\\global\\textures\\overheadwire.ace";
             }

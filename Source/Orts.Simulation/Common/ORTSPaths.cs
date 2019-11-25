@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
-using Orts.Common.IO;
 
 namespace Orts.Common
 {
@@ -29,13 +28,13 @@ namespace Orts.Common
         public static string FindTrainCarPlugin(string initialFolder, string fileName)
         {
             string dllPath = Path.Combine(initialFolder, fileName);  // search in trainset folder
-            if (FileSystemCache.FileExists(dllPath))
+            if (File.Exists(dllPath))
                 return dllPath;
             string rootFolder = Path.GetFullPath(Path.Combine(initialFolder, @"..\..\..", "OpenRails"));
             if (Directory.Exists(rootFolder))
             {
                 dllPath = Path.Combine(rootFolder, fileName);
-                if (FileSystemCache.FileExists(dllPath))
+                if (File.Exists(dllPath))
                     return dllPath;
             }
             return fileName;   // then search in OpenRails program folder
@@ -70,7 +69,7 @@ namespace Orts.Common
             foreach (string path in paths)
             {
                 string fullPath = Path.Combine(path, fileRelative);
-                if (FileSystemCache.FileExists(fullPath))
+                if (File.Exists(fullPath))
                 {
                     if (null != existingFiles)
                         existingFiles.Add(path, fullPath);

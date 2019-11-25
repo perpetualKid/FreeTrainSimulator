@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
-using Orts.Common.IO;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
@@ -87,7 +86,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
 
             var textureFlags = Helpers.TextureFlags.None;
-            if (FileSystemCache.FileExists(FilePath + "d"))
+            if (File.Exists(FilePath + "d"))
             {
                 var sdFile = new ShapeDescriptorFile(FilePath + "d");
                 textureFlags = (Helpers.TextureFlags)sdFile.Shape.EsdAlternativeTexture;
