@@ -99,6 +99,7 @@ namespace Orts.Viewer3D
             if (sourceDevice != Device)
                 return;
             State.SaveButtonData();
+            State.AddButtonData(data);
             byte[] rdata = null;
             while (0 == sourceDevice.ReadData(ref rdata)) //do this so don't ever miss any data
             {
