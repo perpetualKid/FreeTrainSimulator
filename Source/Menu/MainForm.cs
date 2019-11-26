@@ -84,7 +84,7 @@ namespace Orts.Menu
                 return System.IO.Path.Combine(Application.StartupPath, "ActivityRunner.exe"); ;
             }
         }
-        
+
         // Base items
         public Folder SelectedFolder { get { return (Folder)comboBoxFolder.SelectedItem; } }
         public Route SelectedRoute { get { return (Route)comboBoxRoute.SelectedItem; } }
@@ -135,14 +135,13 @@ namespace Orts.Menu
 
         private async void MainForm_Shown(object sender, EventArgs e)
         {
-            this.Suspend();
+            //            this.Suspend();
             var options = Environment.GetCommandLineArgs().Where(a => (a.StartsWith("-") || a.StartsWith("/"))).Select(a => a.Substring(1));
             settings = new UserSettings(options);
 
             List<Task> initTasks = new List<Task>
             {
-                InitializeUpdateManager(),
-                LoadToolsAndDocuments()
+                LoadFolderListAsync()
             };
 
             LoadOptions();
@@ -150,6 +149,9 @@ namespace Orts.Menu
 
             if (!initialized)
             {
+                initTasks.Add(InitializeUpdateManager());
+                initTasks.Add(LoadToolsAndDocuments());
+
                 var seasons = new[] {
                     new KeyedComboBoxItem(0, catalog.GetString("Spring")),
                     new KeyedComboBoxItem(1, catalog.GetString("Summer")),
@@ -185,8 +187,6 @@ namespace Orts.Menu
                 comboBoxTimetableWeather.Items.AddRange(weathers);
                 comboBoxTimetableDay.Items.AddRange(days);
 
-                initTasks.Add(LoadFolderListAsync());
-
                 initialized = true;
             }
 
@@ -194,10 +194,9 @@ namespace Orts.Menu
             ShowTimetableEnvironment();
             ShowDetails();
 
-            this.Resume();
+            //            this.Resume();
 
             await Task.WhenAll(initTasks);
-
         }
 
         private async Task InitializeUpdateManager()
@@ -209,36 +208,26 @@ namespace Orts.Menu
             await CheckForUpdateAsync();
         }
 
-        private Task<List<ToolStripItem>> LoadTools()
+        private async Task<IEnumerable<ToolStripItem>> LoadTools()
         {
-            SemaphoreSlim addItems = new SemaphoreSlim(1);
-            List<ToolStripItem> result = new List<ToolStripItem>();
-
             var coreExecutables = new[] {
                     "OpenRails.exe",
                     "Menu.exe",
                     "ActivityRunner.exe",
-                    "RunActivityLAA.exe",
                     "Updater.exe",
                 };
-            Parallel.ForEach(Directory.GetFiles(System.IO.Path.GetDirectoryName(Application.ExecutablePath), "*.exe"), (fileName) =>
+            return await Task.Run(() =>
             {
-                // Don't show any of the core parts of the application.
-                if (coreExecutables.Contains(System.IO.Path.GetFileName(fileName)))
-                    return;
-
-                FileVersionInfo toolInfo = FileVersionInfo.GetVersionInfo(fileName);
-
-                // Skip any executable that isn't part of this product (e.g. Visual Studio hosting files).
-                if (toolInfo.ProductName != Application.ProductName)
-                    return;
-
-                // Remove the product name from the tool's name and localise.
-                string toolName = catalog.GetString(toolInfo.FileDescription.Replace(Application.ProductName, "").Trim());
-
-                addItems.Wait();
-                    // Create menu item to execute tool.
-                    result.Add(new ToolStripMenuItem(toolName, null, (object sender2, EventArgs e2) =>
+                return Directory.GetFiles(System.IO.Path.GetDirectoryName(Application.ExecutablePath), "*.exe").
+                Where(fileName => (!coreExecutables.Contains(System.IO.Path.GetFileName(fileName), StringComparer.OrdinalIgnoreCase))).
+                Select(fileName =>
+                {
+                    FileVersionInfo toolInfo = FileVersionInfo.GetVersionInfo(fileName);
+                    // Skip any executable that isn't part of this product (e.g. Visual Studio hosting files).
+                    if (toolInfo.ProductName != Application.ProductName)
+                        return null;
+                    string toolName = catalog.GetString(toolInfo.FileDescription.Replace(Application.ProductName, "").Trim());
+                    return new ToolStripMenuItem(toolName, null, (object sender2, EventArgs e2) =>
                     {
                         string toolPath = (sender2 as ToolStripItem).Tag as string;
                         bool toolIsConsole = false;
@@ -250,44 +239,44 @@ namespace Orts.Menu
                             Process.Start("cmd", $"/k \"{toolPath}\"");
                         else
                             Process.Start(toolPath);
-                    })
-                    { Tag = fileName });
-                addItems.Release();
-            });
-            return Task.FromResult(result);
+                    }
+                    )
+                    { Tag = fileName };
+                }).
+                    Where(t => t != null);
+            }).ConfigureAwait(false);
         }
 
-        private Task<List<ToolStripItem>> LoadDocuments()
+        private async Task<IEnumerable<ToolStripItem>> LoadDocuments()
         {
-            SemaphoreSlim addItems = new SemaphoreSlim(1);
-            List<ToolStripItem> result = new List<ToolStripItem>();
-
             string path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Documentation");
             if (Directory.Exists(path))
             {
-                Parallel.ForEach(Directory.GetFiles(path), (fileName) =>
+                return await Task.Run(() =>
                 {
-                    // These are the following formats that can be selected.
-                    if (fileName.EndsWith(".pdf") || fileName.EndsWith(".doc") || fileName.EndsWith(".docx") || fileName.EndsWith(".pptx") || fileName.EndsWith(".txt"))
+                    return Directory.GetFiles(path).Select(fileName =>
                     {
-                        addItems.Wait();
-                            result.Add(new ToolStripMenuItem(System.IO.Path.GetFileName(fileName), null, (Object sender2, EventArgs e2) =>
+                        // These are the following formats that can be selected.
+                        if (fileName.EndsWith(".pdf") || fileName.EndsWith(".doc") || fileName.EndsWith(".docx") || fileName.EndsWith(".pptx") || fileName.EndsWith(".txt"))
+                        {
+                            return new ToolStripMenuItem(System.IO.Path.GetFileName(fileName), null, (Object sender2, EventArgs e2) =>
                             {
                                 var docPath = (sender2 as ToolStripItem).Tag as string;
                                 Process.Start(docPath);
                             })
-                            { Tag = fileName });
-                        addItems.Release();
-                    }
-                });
+                            { Tag = fileName };
+                        }
+                        return null;
+                    }).Where(d => d != null);
+                }).ConfigureAwait(false);
             }
-            return Task.FromResult(result);
+            return new ToolStripItem[0];
         }
 
         private async Task LoadToolsAndDocuments()
         {
             await Task.WhenAll(
-                Task.Run(() => LoadTools()).ContinueWith((tools) =>
+                LoadTools().ContinueWith((tools) =>
                 {
                     // Add all the tools in alphabetical order.
                     contextMenuStripTools.Items.AddRange((from tool in tools.Result
@@ -297,7 +286,7 @@ namespace Orts.Menu
                 }),
                 // Just like above, buttonDocuments is a button that is treated like a menu.  The result is a button that acts like a combobox.
                 // Populate buttonDocuments.
-                Task.Run(() => LoadDocuments()).ContinueWith((documents) =>
+                LoadDocuments().ContinueWith((documents) =>
                 {
                     // Add all the tools in alphabetical order.
                     contextMenuStripDocuments.Items.AddRange((from doc in documents.Result
@@ -326,11 +315,6 @@ namespace Orts.Menu
             // Remove any deleted saves
             if (Directory.Exists(UserSettings.DeletedSaveFolder))
                 Directory.Delete(UserSettings.DeletedSaveFolder, true);   // true removes all contents as well as folder
-
-            // Tidy up after versions which used SAVE.BIN
-            string file = UserSettings.UserDataFolder + @"\SAVE.BIN";
-            if (File.Exists(file))
-                File.Delete(file);
         }
 
         private async Task CheckForUpdateAsync()
@@ -344,7 +328,7 @@ namespace Orts.Menu
             // This is known directly from the chosen channel so doesn't need to wait for the update check itself.
             linkLabelChangeLog.Visible = !string.IsNullOrEmpty(updateManager.ChangeLogLink);
 
-//            await Task.Run(() => UpdateManager.CheckForUpdateAsync());
+            //            await Task.Run(() => UpdateManager.CheckForUpdateAsync());
             await updateManager.CheckForUpdateAsync();
 
             if (updateManager.LastCheckError != null)
@@ -648,7 +632,7 @@ namespace Orts.Menu
             OpenResumeForm(true);
         }
 
-        void OpenResumeForm (bool multiplayer)
+        void OpenResumeForm(bool multiplayer)
         {
             if (radioButtonModeTimetable.Checked)
             {
@@ -687,7 +671,7 @@ namespace Orts.Menu
         {
             if (CheckUserName(textBoxMPUser.Text) == false) return;
             SaveOptions();
-            SelectedAction = radioButtonMPClient.Checked? UserAction.MultiplayerClient : UserAction.MultiplayerServer;
+            SelectedAction = radioButtonMPClient.Checked ? UserAction.MultiplayerClient : UserAction.MultiplayerServer;
             DialogResult = DialogResult.OK;
         }
 
@@ -890,7 +874,7 @@ namespace Orts.Menu
                     ctsActivityLoading.Cancel();
                 ctsActivityLoading = ResetCancellationTokenSource(ctsActivityLoading);
             }
-//            ShowActivityList();
+            //            ShowActivityList();
 
             Folder selectedFolder = SelectedFolder;
             Route selectedRoute = SelectedRoute;
@@ -1472,28 +1456,28 @@ namespace Orts.Menu
 
         private void FlowDetails()
         {
-                var scrollPosition = panelDetails.AutoScrollPosition.Y;
-                panelDetails.AutoScrollPosition = Point.Empty;
-                panelDetails.AutoScrollMinSize = new Size(0, panelDetails.ClientSize.Height + 1);
+            var scrollPosition = panelDetails.AutoScrollPosition.Y;
+            panelDetails.AutoScrollPosition = Point.Empty;
+            panelDetails.AutoScrollMinSize = new Size(0, panelDetails.ClientSize.Height + 1);
 
-                var top = 0;
-                foreach (var detail in Details)
-                {
-                    top += detail.Title.Margin.Top;
-                    detail.Title.Top = detail.Expander.Top = top;
-                    top += detail.Title.Height + detail.Title.Margin.Bottom + detail.Description.Margin.Top;
-                    detail.Summary.Top = detail.Description.Top = top;
-                    detail.Summary.Visible = !detail.Expanded && detail.Expander.Enabled;
-                    detail.Description.Visible = !detail.Summary.Visible;
-                    if (detail.Description.Visible)
-                        top += detail.Description.Height + detail.Description.Margin.Bottom;
-                    else
-                        top += detail.Summary.Height + detail.Summary.Margin.Bottom;
-                }
+            var top = 0;
+            foreach (var detail in Details)
+            {
+                top += detail.Title.Margin.Top;
+                detail.Title.Top = detail.Expander.Top = top;
+                top += detail.Title.Height + detail.Title.Margin.Bottom + detail.Description.Margin.Top;
+                detail.Summary.Top = detail.Description.Top = top;
+                detail.Summary.Visible = !detail.Expanded && detail.Expander.Enabled;
+                detail.Description.Visible = !detail.Summary.Visible;
+                if (detail.Description.Visible)
+                    top += detail.Description.Height + detail.Description.Margin.Bottom;
+                else
+                    top += detail.Summary.Height + detail.Summary.Margin.Bottom;
+            }
 
-                if (panelDetails.AutoScrollMinSize.Height < top)
-                    panelDetails.AutoScrollMinSize = new Size(0, top);
-                panelDetails.AutoScrollPosition = new Point(0, -scrollPosition);
+            if (panelDetails.AutoScrollMinSize.Height < top)
+                panelDetails.AutoScrollMinSize = new Size(0, top);
+            panelDetails.AutoScrollPosition = new Point(0, -scrollPosition);
         }
         #endregion
 
