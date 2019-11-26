@@ -838,8 +838,10 @@ namespace ORTS.TrackViewer
         private bool FindRoutes(Folder newInstallFolder)
         {
             if (newInstallFolder == null) return false;
-            List<Route> newRoutes = Route.GetRoutes(newInstallFolder, System.Threading.CancellationToken.None).Result.OrderBy(r => r.ToString()).ToList();
 
+            var task = System.Threading.Tasks.Task.Run(() => Route.GetRoutes(newInstallFolder, System.Threading.CancellationToken.None));
+            task.Wait();
+            List<Route> newRoutes = task.Result.OrderBy(r => r.ToString()).ToList();
             if (newRoutes.Count > 0)
             {
                 // set default route
@@ -960,7 +962,9 @@ namespace ORTS.TrackViewer
         /// </summary>
         private void FindPaths()
         {
-            List<Path> newPaths = Path.GetPaths(CurrentRoute, true, System.Threading.CancellationToken.None).Result.OrderBy(r => r.Name).ToList();
+            var task = System.Threading.Tasks.Task.Run(() => Path.GetPaths(CurrentRoute, true, System.Threading.CancellationToken.None));
+            task.Wait();
+            List<Path> newPaths = task.Result.OrderBy(r => r.Name).ToList();
             Paths = new Collection<Path>(newPaths);
             menuControl.PopulatePaths();
             SetPath(null);

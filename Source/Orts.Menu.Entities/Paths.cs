@@ -20,6 +20,7 @@ using Orts.Formats.Msts.Files;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,10 +54,10 @@ namespace Orts.Menu.Entities
                 try
                 {
                     var patFile = new PathFile(filePath);
-                    this.IsPlayerPath = patFile.IsPlayerPath;
-                    Name = patFile.Name.Trim();
-                    Start = patFile.Start.Trim();
-                    End = patFile.End.Trim();
+                    IsPlayerPath = patFile.IsPlayerPath;
+                    Name = patFile.Name;
+                    Start = patFile.Start;
+                    End = patFile.End;
                 }
                 catch
                 {
@@ -76,6 +77,14 @@ namespace Orts.Menu.Entities
             FilePath = filePath;
         }
 
+        internal static async Task<Path> FromFileAsync(string fileName, CancellationToken token)
+        {
+            return await Task.Run(() =>
+            {
+                return new Path(fileName);
+            }, token).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// A path will be identified by its destination
         /// </summary>
@@ -89,56 +98,36 @@ namespace Orts.Menu.Entities
         /// </summary>
         /// <param name="route">The Route for which the paths need to be found</param>
         /// <param name="includeNonPlayerPaths">Selects whether non-player paths are included or not</param>
-        public static Task<List<Path>> GetPaths(Route route, bool includeNonPlayerPaths, CancellationToken token)
+        public static async Task<IEnumerable<Path>> GetPaths(Route route, bool includeNonPlayerPaths, CancellationToken token)
         {
-            SemaphoreSlim addItem = new SemaphoreSlim(1);
-            List<Path> paths = new List<Path>();
             string pathsDirectory = route.RouteFolder.PathsFolder;
             if (Directory.Exists(pathsDirectory))
             {
                 try
                 {
-                    Parallel.ForEach(Directory.GetFiles(pathsDirectory, "*.pat"),
-                        new ParallelOptions() { CancellationToken = token },
-                        (file, state) =>
-                    {
-                        try
-                        {
-                            Path path = new Path(file);
+                    // Suppress the 7 broken paths shipped with MSTS
+                    //
+                    // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
+                    // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.
+                    // ORTS checks for "broken path" when the simulator runs and does offer them in the list.
+                    // The first activity in Marias Pass is "Explore Longhale" which leads to a "Broken Path" message.
+                    // The message then confuses users new to ORTS who have just installed it along with MSTS,
+                    // see https://bugs.launchpad.net/or/+bug/1345172 and https://bugs.launchpad.net/or/+bug/128547
 
-                            if (includeNonPlayerPaths || path.IsPlayerPath)
-                            {
-                            // Suppress the 7 broken paths shipped with MSTS
-                            //
-                            // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
-                            // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.
-                            // ORTS checks for "broken path" when the simulator runs and does offer them in the list.
-                            // The first activity in Marias Pass is "Explore Longhale" which leads to a "Broken Path" message.
-                            // The message then confuses users new to ORTS who have just installed it along with MSTS,
-                            // see https://bugs.launchpad.net/or/+bug/1345172 and https://bugs.launchpad.net/or/+bug/128547
-                            if (!file.EndsWith(@"ROUTES\USA1\PATHS\aftstrm(traffic03).pat", StringComparison.OrdinalIgnoreCase)
-                                    && !file.EndsWith(@"ROUTES\USA1\PATHS\aftstrmtraffic01.pat", StringComparison.OrdinalIgnoreCase)
-                                    && !file.EndsWith(@"ROUTES\USA1\PATHS\aiphwne2.pat", StringComparison.OrdinalIgnoreCase)
-                                    && !file.EndsWith(@"ROUTES\USA1\PATHS\aiwnphex.pat", StringComparison.OrdinalIgnoreCase)
-                                    && !file.EndsWith(@"ROUTES\USA1\PATHS\blizzard(traffic).pat", StringComparison.OrdinalIgnoreCase)
-                                    && !file.EndsWith(@"ROUTES\USA2\PATHS\longhale.pat", StringComparison.OrdinalIgnoreCase)
-                                    && !file.EndsWith(@"ROUTES\USA2\PATHS\long-haul west (blizzard).pat", StringComparison.OrdinalIgnoreCase)
-                                    )
-                                {
-                                    addItem.Wait(token);
-                                    paths.Add(path);
-                                }
-                            }
-                        }
-                        catch { }
-                        finally { addItem.Release(); }
-                    });
+                    IEnumerable<string> pathFiles = Directory.GetFiles(pathsDirectory, "*.pat").Where(f =>
+                        (!f.EndsWith(@"ROUTES\USA1\PATHS\aftstrm(traffic03).pat", StringComparison.OrdinalIgnoreCase))
+                        && (!f.EndsWith(@"ROUTES\USA1\PATHS\aftstrmtraffic01.pat", StringComparison.OrdinalIgnoreCase))
+                        && (!f.EndsWith(@"ROUTES\USA1\PATHS\aiphwne2.pat", StringComparison.OrdinalIgnoreCase))
+                        && (!f.EndsWith(@"ROUTES\USA1\PATHS\aiwnphex.pat", StringComparison.OrdinalIgnoreCase))
+                        && (!f.EndsWith(@"ROUTES\USA1\PATHS\blizzard(traffic).pat", StringComparison.OrdinalIgnoreCase))
+                        && (!f.EndsWith(@"ROUTES\USA2\PATHS\longhale.pat", StringComparison.OrdinalIgnoreCase))
+                        && (!f.EndsWith(@"ROUTES\USA2\PATHS\long-haul west (blizzard).pat", StringComparison.OrdinalIgnoreCase)));
+                    var tasks = pathFiles.Select(pathFile => FromFileAsync(pathFile, token));
+                    return (await Task.WhenAll(tasks).ConfigureAwait(false)).Where(p => p != null && p.IsPlayerPath || includeNonPlayerPaths);
                 }
                 catch (OperationCanceledException) { }
-                if (token.IsCancellationRequested)
-                    return Task.FromCanceled<List<Path>>(token);
             }
-            return Task.FromResult(paths);
+            return new Path[0];
         }
 
         /// <summary>
@@ -176,12 +165,10 @@ namespace Orts.Menu.Entities
         /// <returns>array of strings with the user-readable information</returns>
         public string[] ToInfo()
         {
-            string[] infoString = new string[] {
+            return new string[] {
                 catalog.GetStringFmt("Start at: {0}", Start),
                 catalog.GetStringFmt("Heading to: {0}", End),
             };
-
-            return (infoString);
         }
     }
 }

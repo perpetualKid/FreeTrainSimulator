@@ -71,7 +71,7 @@ namespace Orts.Menu
         private readonly UserSettings settings;
         private readonly Route route;
         private readonly Activity activity;
-        private static List<Route> globalRoutes;
+        private static IEnumerable<Route> globalRoutes;
         private readonly TimetableInfo timeTable;
         private List<SavePoint> savePoints = new List<SavePoint>();
 
@@ -210,7 +210,7 @@ namespace Orts.Menu
         private static GettextResourceManager catalog = new GettextResourceManager("Menu");
 
         public ResumeForm(UserSettings settings, Route route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timetable,
-            List<Route> mainRoutes)
+            IEnumerable<Route> mainRoutes)
         {
             globalRoutes = mainRoutes;
             SelectedAction = mainFormAction;

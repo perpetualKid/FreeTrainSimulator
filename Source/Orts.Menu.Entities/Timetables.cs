@@ -20,6 +20,7 @@ using Orts.Formats.OR.Files;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -66,51 +67,34 @@ namespace Orts.Menu.Entities
                 Description = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
             }
         }
+        internal static async Task<TimetableInfo> FromFileAsync(string fileName, CancellationToken token)
+        {
+            return await Task.Run(() =>
+            {
+                return new TimetableInfo(fileName);
+            }, token).ConfigureAwait(false);
+        }
 
         public override string ToString()
         {
             return Description;
         }
 
-        public static Task<List<TimetableInfo>> GetTimetableInfo(Folder folder, Route route, CancellationToken token)
+        public static async Task<IEnumerable<TimetableInfo>> GetTimetableInfo(Folder folder, Route route, CancellationToken token)
         {
             string[] extensions = { "*.timetable_or", "*.timetable-or", "*.timetablelist_or", "*.timetablelist-or" };
-            SemaphoreSlim addItem = new SemaphoreSlim(1);
+            string orActivitiesDirectory = route.RouteFolder.OrActivitiesFolder;
 
-            List<TimetableInfo> result = new List<TimetableInfo>();
-            if (route != null)
+            if (Directory.Exists(orActivitiesDirectory))
             {
-                string orActivitiesDirectory = route.RouteFolder.OrActivitiesFolder;
-
-                if (Directory.Exists(orActivitiesDirectory))
+                try
                 {
-                    try
-                    {
-                        Parallel.ForEach(extensions,
-                            new ParallelOptions() { CancellationToken = token },
-                            (extension, state) =>
-                        {
-                            Parallel.ForEach(Directory.GetFiles(orActivitiesDirectory, extension),
-                                new ParallelOptions() { CancellationToken = token },
-                                (timetableFile, innerState) =>
-                            {
-                                try
-                                {
-                                    TimetableInfo timetableInfo = new TimetableInfo(timetableFile);
-                                    addItem.Wait(token);
-                                    result.Add(timetableInfo);
-                                }
-                                catch { }
-                                finally { addItem.Release(); }
-                            });
-                        });
-                    }
-                    catch (OperationCanceledException) { }
-                    if (token.IsCancellationRequested)
-                        return Task.FromCanceled<List<TimetableInfo>>(token);
+                    var tasks = extensions.SelectMany(extension => (Directory.GetFiles(orActivitiesDirectory, extension))).Select(timeTableFile => FromFileAsync(timeTableFile, token));
+                    return (await Task.WhenAll(tasks).ConfigureAwait(false)).Where(t => t != null);
                 }
+                catch (OperationCanceledException) { }
             }
-            return Task.FromResult(result);
+            return new TimetableInfo[0];
         }
     }
 
@@ -118,9 +102,14 @@ namespace Orts.Menu.Entities
     {
         public FileInfo FileDetails;
 
-        public WeatherFileInfo(string filename)
+        private WeatherFileInfo(string fileName)
         {
-            FileDetails = new FileInfo(filename);
+            FileDetails = new FileInfo(fileName);
+        }
+
+        internal static async Task<WeatherFileInfo> FromFileNameAsync(string fileName, CancellationToken token)
+        {
+            return await Task.Run(() => new WeatherFileInfo(fileName));
         }
 
         public override string ToString()
@@ -134,39 +123,20 @@ namespace Orts.Menu.Entities
         }
 
         // get weatherfiles
-        public static Task<List<WeatherFileInfo>> GetTimetableWeatherFiles(Folder folder, Route route, CancellationToken token)
+        public static async Task<IEnumerable<WeatherFileInfo>> GetTimetableWeatherFiles(Folder folder, Route route, CancellationToken token)
         {
-            SemaphoreSlim addItem = new SemaphoreSlim(1);
-            List<WeatherFileInfo> result = new List<WeatherFileInfo>();
+            string weatherDirectory = route.RouteFolder.WeatherFolder;
 
-            if (route != null)
+            if (Directory.Exists(weatherDirectory))
             {
-                string weatherDirectory = route.RouteFolder.WeatherFolder;
-
-                if (Directory.Exists(weatherDirectory))
+                try
                 {
-                    try
-                    {
-                        Parallel.ForEach(Directory.GetFiles(weatherDirectory, "*.weather-or"),
-                            new ParallelOptions() { CancellationToken = token },
-                            (weatherFile, state) =>
-                            {
-                                try
-                                {
-                                    WeatherFileInfo weatherFileInfo = new WeatherFileInfo(weatherFile);
-                                    addItem.Wait(token);
-                                    result.Add(weatherFileInfo);
-                                }
-                                catch { }
-                                finally { addItem.Release(); }
-                            });
-                    }
-                    catch (OperationCanceledException) { }
-                    if (token.IsCancellationRequested)
-                        return Task.FromCanceled<List<WeatherFileInfo>>(token);
+                    var tasks = Directory.GetFiles(weatherDirectory, "*.weather-or").Select(weatherFile => FromFileNameAsync(weatherFile, token));
+                    return (await Task.WhenAll(tasks).ConfigureAwait(false)).Where(w => w != null);
                 }
+                catch (OperationCanceledException) { }
             }
-            return Task.FromResult(result);
+            return new WeatherFileInfo[0];
         }
     }
 }

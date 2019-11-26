@@ -19,6 +19,7 @@ using Orts.Formats.Msts;
 using Orts.Settings;
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Orts.Menu.Entities
@@ -42,12 +43,12 @@ namespace Orts.Menu.Entities
             return Name;
         }
 
-        public static Task<List<Folder>> GetFolders(UserSettings settings)
+        public static async Task<IEnumerable<Folder>> GetFolders(UserSettings settings)
         {
-            List<Folder> folders = new List<Folder>();
-            foreach (var folder in settings.Folders.Folders)
-                folders.Add(new Folder(folder.Key, folder.Value));
-            return Task.FromResult(folders);
+            return await Task.Run(() =>
+            {
+                return settings.Folders.Folders.Select((folder) => new Folder(folder.Key, folder.Value));
+            }).ConfigureAwait(false);
         }
 
         public static void SetFolders(UserSettings settings, List<Folder> folders)

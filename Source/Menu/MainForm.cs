@@ -15,6 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using GNU.Gettext;
+using GNU.Gettext.WinForms;
+
+using Orts.Common;
+using Orts.Common.Native;
+using Orts.Formats.OR.Files;
+using Orts.Formats.OR.Models;
+using Orts.Menu.Entities;
+using Orts.Settings;
+using Orts.Updater;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,18 +37,6 @@ using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
-
-using Orts.Common;
-using Orts.Common.Native;
-using Orts.Formats.Msts;
-using Orts.Formats.OR.Files;
-using Orts.Formats.OR.Models;
-using Orts.Menu.Entities;
-using Orts.Settings;
-using Orts.Updater;
 
 using Path = Orts.Menu.Entities.Path;
 
@@ -61,13 +60,13 @@ namespace Orts.Menu
 
         private bool initialized;
         private UserSettings settings;
-        private List<Folder> folders = new List<Folder>();
-        private List<Route> routes = new List<Route>();
-        private List<Activity> activities = new List<Activity>();
-        private List<Consist> consists = new List<Consist>();
-        private List<Path> paths = new List<Path>();
-        private List<TimetableInfo> timetableSets = new List<TimetableInfo>();
-        private List<WeatherFileInfo> timetableWeatherFileSet = new List<WeatherFileInfo>();
+        private IEnumerable<Folder> folders = new Folder[0];
+        private IEnumerable<Route> routes = new Route[0];
+        private IEnumerable<Activity> activities = new Activity[0];
+        private IEnumerable<Consist> consists = new Consist[0];
+        private IEnumerable<Path> paths = new Path[0];
+        private IEnumerable<TimetableInfo> timetableSets = new TimetableInfo[0];
+        private IEnumerable<WeatherFileInfo> timetableWeatherFileSet = new WeatherFileInfo[0];
         private CancellationTokenSource ctsRouteLoading;
         private CancellationTokenSource ctsActivityLoading;
         private CancellationTokenSource ctsConsistLoading;
@@ -511,11 +510,11 @@ namespace Orts.Menu
         #endregion
 
         #region Timetable Trains
-        private void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
+        private async void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBoxTimetableTrain.SelectedItem is TrainInformation selectedTrain)
             {
-                SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
+                SelectedTimetableConsist = await Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist, CancellationToken.None);
                 SelectedTimetablePath = Path.GetPath(SelectedRoute, selectedTrain.Path, false);
                 ShowDetails();
             }
@@ -672,7 +671,7 @@ namespace Orts.Menu
                 return;
             }
 
-            using (var form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, this.routes))
+            using (var form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, routes))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -780,18 +779,20 @@ namespace Orts.Menu
         #region Folder list
         private async Task LoadFolderListAsync()
         {
-            folders.Clear();
             try
             {
-                folders = (await Task.Run(() => Folder.GetFolders(settings))).OrderBy(f => f.Name).ToList();
+                folders = (await Folder.GetFolders(settings)).OrderBy(f => f.Name);
             }
-            catch (TaskCanceledException) { }
+            catch (TaskCanceledException)
+            {
+                folders = new Folder[0];
+            }
 
             ShowFolderList();
-            if (folders.Count > 0)
+            if (folders.Count() > 0)
                 comboBoxFolder.Focus();
 
-            if (!initialized && folders.Count == 0)
+            if (!initialized && folders.Count() == 0)
             {
                 using (var form = new OptionsForm(settings, updateManager, true))
                 {
@@ -834,22 +835,18 @@ namespace Orts.Menu
                     ctsRouteLoading.Cancel();
                 ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
             }
-            routes.Clear();
-            activities.Clear();
-            paths.Clear();
-
-            ////cleanout existing data
-            //ShowRouteList();
-            //ShowActivityList();
-            //ShowStartAtList();
-            //ShowHeadToList();
+            paths = new Path[0];
+            activities = new Activity[0];
 
             Folder selectedFolder = SelectedFolder;
             try
             {
-                routes = (await Task.Run(() => Route.GetRoutes(selectedFolder, ctsRouteLoading.Token))).OrderBy(r => r.Name).ToList();
+                routes = (await Route.GetRoutes(selectedFolder, ctsRouteLoading.Token)).OrderBy(r => r.Name);
             }
-            catch (TaskCanceledException) { }
+            catch (TaskCanceledException)
+            {
+                routes = new Route[0];
+            }
             //cleanout existing data
             ShowRouteList();
             ShowActivityList();
@@ -893,16 +890,18 @@ namespace Orts.Menu
                     ctsActivityLoading.Cancel();
                 ctsActivityLoading = ResetCancellationTokenSource(ctsActivityLoading);
             }
-            activities.Clear();
-            ShowActivityList();
+//            ShowActivityList();
 
             Folder selectedFolder = SelectedFolder;
             Route selectedRoute = SelectedRoute;
             try
             {
-                activities = (await Task.Run(() => Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token))).OrderBy(a => a.Name).ToList();
+                activities = (await Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token)).OrderBy(a => a.Name);
             }
-            catch (TaskCanceledException) { }
+            catch (TaskCanceledException)
+            {
+                activities = new Activity[0];
+            }
             ShowActivityList();
         }
 
@@ -938,16 +937,18 @@ namespace Orts.Menu
                 ctsConsistLoading = ResetCancellationTokenSource(ctsConsistLoading);
             }
 
-            consists.Clear();
             ShowLocomotiveList();
             ShowConsistList();
 
             Folder selectedFolder = SelectedFolder;
             try
             {
-                consists = (await Task.Run(() => Consist.GetConsists(selectedFolder, ctsConsistLoading.Token))).OrderBy(c => c.Name).ToList();
+                consists = (await Consist.GetConsists(selectedFolder, ctsConsistLoading.Token)).OrderBy(c => c.Name);
             }
-            catch (TaskCanceledException) { }
+            catch (TaskCanceledException)
+            {
+                consists = new Consist[0];
+            }
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowLocomotiveList();
         }
@@ -1024,16 +1025,18 @@ namespace Orts.Menu
                 ctsPathLoading = ResetCancellationTokenSource(ctsPathLoading);
             }
 
-            paths.Clear();
             ShowStartAtList();
             ShowHeadToList();
 
             var selectedRoute = SelectedRoute;
             try
             {
-                paths = (await Task.Run(() => Path.GetPaths(selectedRoute, false, ctsPathLoading.Token))).OrderBy(a => a.ToString()).ToList();
+                paths = (await Path.GetPaths(selectedRoute, false, ctsPathLoading.Token)).OrderBy(a => a.ToString());
             }
-            catch (TaskCanceledException) { }
+            catch (TaskCanceledException)
+            {
+                paths = new Path[0];
+            }
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
                 ShowStartAtList();
         }
@@ -1169,17 +1172,20 @@ namespace Orts.Menu
                 ctsTimeTableLoading = ResetCancellationTokenSource(ctsTimeTableLoading);
             }
 
-            timetableSets.Clear();
             ShowTimetableSetList();
 
             var selectedFolder = SelectedFolder;
             var selectedRoute = SelectedRoute;
             try
             {
-                timetableSets = (await Task.Run(() => TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token))).OrderBy(tt => tt.Description).ToList();
-                timetableWeatherFileSet = (await Task.Run(() => WeatherFileInfo.GetTimetableWeatherFiles(selectedFolder, selectedRoute, ctsTimeTableLoading.Token))).OrderBy(a => a.ToString()).ToList();
+                timetableSets = (await TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token)).OrderBy(tt => tt.Description);
+                timetableWeatherFileSet = (await WeatherFileInfo.GetTimetableWeatherFiles(selectedFolder, selectedRoute, ctsTimeTableLoading.Token)).OrderBy(a => a.ToString());
             }
-            catch (TaskCanceledException) { }
+            catch (TaskCanceledException)
+            {
+                timetableSets = new TimetableInfo[0];
+                timetableWeatherFileSet = new WeatherFileInfo[0];
+            }
             ShowTimetableSetList();
             ShowTimetableWeatherSet();
         }

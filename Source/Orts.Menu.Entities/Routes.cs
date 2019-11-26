@@ -15,14 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 
 namespace Orts.Menu.Entities
 {
@@ -57,39 +58,39 @@ namespace Orts.Menu.Entities
             Path = path;
         }
 
+        internal static async Task<Route> FromPathAsync(string path, CancellationToken token)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    return new Route(path);
+                }
+                catch (FileNotFoundException)
+                {
+                    return null;                    
+                }
+            }, token).ConfigureAwait(false);
+        }
+
         public override string ToString()
         {
             return Name;
         }
 
-        public static Task<List<Route>> GetRoutes(Folder folder, CancellationToken token)
+        public static async Task<IEnumerable<Route>> GetRoutes(Folder folder, CancellationToken token)
         {
-            SemaphoreSlim addItem = new SemaphoreSlim(1);
-            List<Route> routes = new List<Route>();
             string routesDirectory = folder.ContentFolder.RoutesFolder;
             if (Directory.Exists(routesDirectory))
             {
                 try
                 {
-                    Parallel.ForEach(Directory.GetDirectories(routesDirectory),
-                        new ParallelOptions() { CancellationToken = token },
-                        (routeDirectory, state) =>
-                    {
-                        try
-                        {
-                            Route route = new Route(routeDirectory);
-                            addItem.Wait(token);
-                            routes.Add(route);
-                        }
-                        catch { }
-                        finally { addItem.Release(); }
-                    });
+                    var tasks = Directory.GetDirectories(routesDirectory).Select(routeDirectory => FromPathAsync(routeDirectory, token));
+                    return (await Task.WhenAll(tasks).ConfigureAwait(false)).Where(r => r != null);
                 }
                 catch (OperationCanceledException) { }
-                if (token.IsCancellationRequested)
-                    return Task.FromCanceled<List<Route>>(token);
             }
-            return Task.FromResult(routes);
+            return new Route[0];
         }
     }
 }

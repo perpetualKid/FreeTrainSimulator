@@ -53,66 +53,56 @@ namespace Orts.Menu.Entities
             FilePath = filePath;
         }
 
-        public static Consist GetConsist(Folder folder, string name, bool reverseConsist = false)
+        public static Consist GetMissingConsist(string name)
+        {
+            return new Consist($"<{catalog.GetString("missing:")} {name}>", name);
+        }
+
+        public static async Task<Consist> GetConsist(Folder folder, string name, bool reverseConsist, CancellationToken token)
         {
             string file;
             if (null == folder || !File.Exists(file = folder.ContentFolder.ConsistFile(name)))
                 return new Consist($"<{catalog.GetString("missing:")} {name}>", name);
 
-            return GetConsist(file, folder, reverseConsist);
+            return await FromFileAsync(file, folder, reverseConsist, token).ConfigureAwait(false);
         }
 
-        public static Consist GetConsist(string fileName, Folder folder, bool reverseConsist = false)
+        internal static async Task<Consist> FromFileAsync(string fileName, Folder folder, bool reverseConsist, CancellationToken token)
         {
-            Consist result = null;
-
-            try
+            return await Task.Run(() =>
             {
-                ConsistFile conFile = new ConsistFile(fileName);
-                Locomotive locomotive = reverseConsist ? GetLocomotiveReverse(conFile, folder) : GetLocomotive(conFile, folder);
-                if (locomotive != null)
+                Consist result = null;
+
+                try
                 {
-                    result = new Consist(conFile, locomotive, fileName);
+                    ConsistFile conFile = new ConsistFile(fileName);
+                    Locomotive locomotive = reverseConsist ? GetLocomotiveReverse(conFile, folder) : GetLocomotive(conFile, folder);
+                    if (locomotive != null)
+                    {
+                        result = new Consist(conFile, locomotive, fileName);
+                    }
                 }
-            }
-            catch
-            {
-                result = new Consist($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
-            }
-            return result;
+                catch
+                {
+                    result = new Consist($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
+                }
+                return result;
+            }, token).ConfigureAwait(false);
         }
 
-        public static Task<List<Consist>> GetConsists(Folder folder, CancellationToken token)
+        public static async Task<IEnumerable<Consist>> GetConsists(Folder folder, CancellationToken token)
         {
-            SemaphoreSlim addItem = new SemaphoreSlim(1);
-            List<Consist> consists = new List<Consist>();
             string consistsDirectory = folder.ContentFolder.ConsistsFolder;
             if (Directory.Exists(consistsDirectory))
             {
                 try
                 {
-                    Parallel.ForEach(Directory.GetFiles(consistsDirectory, "*.con"),
-                        new ParallelOptions() { CancellationToken = token },
-                        (consistFile, state) =>
-                    {
-                        try
-                        {
-                            Consist consist = GetConsist(consistFile, folder, false);
-                            if (null != consist)
-                            {
-                                addItem.Wait(token);
-                                consists.Add(consist);
-                            }
-                        }
-                        catch { }
-                        finally { addItem.Release(); }
-                    });
+                    var tasks = Directory.GetFiles(consistsDirectory, "*.con").Select(consistFile => FromFileAsync(consistFile, folder, false, token));
+                    return (await Task.WhenAll(tasks).ConfigureAwait(false)).Where(c => c != null);
                 }
                 catch (OperationCanceledException) { }
-                if (token.IsCancellationRequested)
-                    return Task.FromCanceled<List<Consist>>(token);
             }
-            return Task.FromResult(consists);
+            return new Consist[0];
         }
 
         private static Locomotive GetLocomotive(ConsistFile conFile, Folder folder)

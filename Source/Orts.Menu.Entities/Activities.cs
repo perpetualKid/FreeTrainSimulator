@@ -22,6 +22,7 @@ using Orts.Formats.Msts.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,7 +39,7 @@ namespace Orts.Menu.Entities
         public WeatherType Weather { get; protected set; } = WeatherType.Clear;
         public Difficulty Difficulty { get; protected set; } = Difficulty.Easy;
         public Duration Duration { get; protected set; } = new Duration(1, 0);
-        public Consist Consist { get; protected set; } = Consist.GetConsist(null, "unknown");
+        public Consist Consist { get; protected set; } = Consist.GetMissingConsist("unknown");
         public Path Path { get; protected set; } = new Path("unknown");
         public string FilePath { get; private set; }
 
@@ -55,7 +56,7 @@ namespace Orts.Menu.Entities
             else if (null != activityFile)
             {
                 // ITR activities are excluded.
-                Name = activityFile.Activity.Header.Name.Trim();
+                Name = activityFile.Activity.Header.Name;
                 if (activityFile.Activity.Header.Mode == ActivityMode.Introductory)
                     Name = "Introductory Train Ride";
                 Description = activityFile.Activity.Header.Description;
@@ -81,35 +82,41 @@ namespace Orts.Menu.Entities
             FilePath = filePath;
         }
 
-        internal static Activity GetActivity(string filePath, Folder folder, Route route)
+        internal static async Task<Activity> FromPathAsync(string filePath, Folder folder, Route route, CancellationToken token)
         {
-            Activity result;
+            return await Task.Run(async () =>
+            {
+                Activity result;
 
-            try
-            {
-                ActivityFile activityFile = new ActivityFile(filePath);
-                ServiceFile srvFile = new ServiceFile(route.RouteFolder.ServiceFile(activityFile.Activity.PlayerServices.Name));
-                Consist consist = Consist.GetConsist(folder, srvFile.TrainConfig);
-                Path path = new Path(route.RouteFolder.PathFile(srvFile.PathId));
-                if (!path.IsPlayerPath)
+                try
                 {
-                    return null;
-                    // Not nice to throw an error now. Error was originally thrown by new Path(...);
-                    throw new InvalidDataException("Not a player path");
+                    ActivityFile activityFile = new ActivityFile(filePath);
+                    ServiceFile srvFile = new ServiceFile(route.RouteFolder.ServiceFile(activityFile.Activity.PlayerServices.Name));
+                    var constistTask = Consist.GetConsist(folder, srvFile.TrainConfig,false, token);
+                    var pathTask = Path.FromFileAsync(route.RouteFolder.PathFile(srvFile.PathId), token);
+                    await Task.WhenAll(constistTask, pathTask).ConfigureAwait(false);
+                    Consist consist = await constistTask;
+                    Path path = await pathTask;
+                    if (!path.IsPlayerPath)
+                    {
+                        return null;
+                        // Not nice to throw an error now. Error was originally thrown by new Path(...);
+                        throw new InvalidDataException("Not a player path");
+                    }
+                    else if (!activityFile.Activity.Header.RouteID.Equals(route.RouteID, StringComparison.OrdinalIgnoreCase))
+                    {
+                        //Activity and route have different RouteID.
+                        result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
+                    }
+                    else
+                        result = new Activity(string.Empty, filePath, activityFile, consist, path);
                 }
-                else if (activityFile.Activity.Header.RouteID.ToUpper() != route.RouteID.ToUpper())
+                catch
                 {
-                    //Activity and route have different RouteID.
-                    result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
+                    result = new Activity($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
                 }
-                else
-                    result = new Activity(string.Empty, filePath, activityFile, consist, path);
-            }
-            catch
-            {
-                result = new Activity($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
-            }
-            return result;
+                return result;
+            }, token).ConfigureAwait(false);
         }
 
         public override string ToString()
@@ -117,9 +124,8 @@ namespace Orts.Menu.Entities
             return Name;
         }
 
-        public static Task<List<Activity>> GetActivities(Folder folder, Route route, CancellationToken token)
+        public static async Task<IEnumerable<Activity>> GetActivities(Folder folder, Route route, CancellationToken token)
         {
-            SemaphoreSlim addItem = new SemaphoreSlim(1);
             var activities = new List<Activity>();
             if (route != null)
             {
@@ -130,29 +136,14 @@ namespace Orts.Menu.Entities
                 {
                     try
                     {
-                        Parallel.ForEach(Directory.GetFiles(activitiesDirectory, "*.act"),
-                            new ParallelOptions() { CancellationToken = token },
-                            (activityFile, state) =>
-                            {
-                                try
-                                {
-                                    Activity activity = GetActivity(activityFile, folder, route);
-                                    if (null != activity)
-                                    {
-                                        addItem.Wait(token);
-                                        activities.Add(activity);
-                                    }
-                                }
-                                catch { }
-                                finally { addItem.Release(); }
-                            });
+                        var tasks = Directory.GetFiles(activitiesDirectory, "*.act").Select(activityFile => FromPathAsync(activityFile, folder, route , token));
+                        activities.AddRange((await Task.WhenAll(tasks).ConfigureAwait(false)).Where(a => a != null));
+                        return activities;
                     }
                     catch (OperationCanceledException) { }
-                    if (token.IsCancellationRequested)
-                        return Task.FromCanceled<List<Activity>>(token);
                 }
             }
-            return Task.FromResult(activities);
+            return new Activity[0];
         }
     }
 
