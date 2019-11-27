@@ -188,7 +188,7 @@ namespace Orts.Updater
         /// <param name="cancellationToken">A cancellation token. If invoked, the task will return 
         /// immediately as canceled.</param>
         /// <returns>A Task representing waiting for the process to end.</returns>
-        public static async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken = default)
         {
             var tcs = new TaskCompletionSource<bool>();
             void Process_Exited(object sender, EventArgs e)

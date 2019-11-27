@@ -201,10 +201,7 @@ namespace Orts.Menu
 
         private async Task InitializeUpdateManager()
         {
-            await Task.Run(() =>
-            {
-                updateManager = new UpdateManager(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
-            });
+            updateManager = await UpdateManager.Initialize(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
             await CheckForUpdateAsync();
         }
 
@@ -1285,22 +1282,22 @@ namespace Orts.Menu
                 this.Suspend();
                 ClearDetails();
                 if (SelectedRoute != null && SelectedRoute.Description != null)
-                    ShowDetail(catalog.GetStringFmt("Route: {0}", SelectedRoute.Name), SelectedRoute.Description.Split('\n'));
+                    AddDetailToShow(catalog.GetStringFmt("Route: {0}", SelectedRoute.Name), SelectedRoute.Description.Split('\n'));
 
                 if (radioButtonModeActivity.Checked)
                 {
-                    if (SelectedConsist != null && SelectedConsist.Locomotive != null && SelectedConsist.Locomotive.Description != null)
+                    if (SelectedConsist?.Locomotive?.Description != null)
                     {
-                        ShowDetail(catalog.GetStringFmt("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description.Split('\n'));
+                        AddDetailToShow(catalog.GetStringFmt("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description.Split('\n'));
                     }
-                    if (SelectedActivity != null && SelectedActivity.Description != null)
+                    if (SelectedActivity?.Description != null)
                     {
-                        ShowDetail(catalog.GetStringFmt("Activity: {0}", SelectedActivity.Name), SelectedActivity.Description.Split('\n'));
-                        ShowDetail(catalog.GetString("Activity Briefing"), SelectedActivity.Briefing.Split('\n'));
+                        AddDetailToShow(catalog.GetStringFmt("Activity: {0}", SelectedActivity.Name), SelectedActivity.Description.Split('\n'));
+                        AddDetailToShow(catalog.GetString("Activity Briefing"), SelectedActivity.Briefing.Split('\n'));
                     }
                     else if (SelectedPath != null)
                     {
-                        ShowDetail(catalog.GetStringFmt("Path: {0}", SelectedPath.Name), new[] {
+                        AddDetailToShow(catalog.GetStringFmt("Path: {0}", SelectedPath.Name), new[] {
                         catalog.GetStringFmt("Starting at: {0}", SelectedPath.Start),
                         catalog.GetStringFmt("Heading to: {0}", SelectedPath.End)
                     });
@@ -1310,26 +1307,26 @@ namespace Orts.Menu
                 {
                     if (SelectedTimetableSet != null)
                     {
-                        ShowDetail(catalog.GetStringFmt("Timetable set: {0}", SelectedTimetableSet), new string[0]);
+                        AddDetailToShow(catalog.GetStringFmt("Timetable set: {0}", SelectedTimetableSet), new string[0]);
                     }
                     if (SelectedTimetable != null)
                     {
-                        ShowDetail(catalog.GetStringFmt("Timetable: {0}", SelectedTimetable), new string[0]);
+                        AddDetailToShow(catalog.GetStringFmt("Timetable: {0}", SelectedTimetable), new string[0]);
                     }
                     if (SelectedTimetableTrain != null)
                     {
-                        ShowDetail(catalog.GetStringFmt("Train: {0}", SelectedTimetableTrain), new string[] { catalog.GetStringFmt("Start time: {0}", SelectedTimetableTrain.StartTime) });
+                        AddDetailToShow(catalog.GetStringFmt("Train: {0}", SelectedTimetableTrain), new string[] { catalog.GetStringFmt("Start time: {0}", SelectedTimetableTrain.StartTime) });
                         if (SelectedTimetableConsist != null)
                         {
-                            ShowDetail(catalog.GetStringFmt("Consist: {0}", SelectedTimetableConsist.Name), new string[0]);
+                            AddDetailToShow(catalog.GetStringFmt("Consist: {0}", SelectedTimetableConsist.Name), new string[0]);
                             if (SelectedTimetableConsist.Locomotive != null && SelectedTimetableConsist.Locomotive.Description != null)
                             {
-                                ShowDetail(catalog.GetStringFmt("Locomotive: {0}", SelectedTimetableConsist.Locomotive.Name), SelectedTimetableConsist.Locomotive.Description.Split('\n'));
+                                AddDetailToShow(catalog.GetStringFmt("Locomotive: {0}", SelectedTimetableConsist.Locomotive.Name), SelectedTimetableConsist.Locomotive.Description.Split('\n'));
                             }
                         }
                         if (SelectedTimetablePath != null)
                         {
-                            ShowDetail(catalog.GetStringFmt("Path: {0}", SelectedTimetablePath.Name), SelectedTimetablePath.ToInfo());
+                            AddDetailToShow(catalog.GetStringFmt("Path: {0}", SelectedTimetablePath.Name), SelectedTimetablePath.ToInfo());
                         }
                     }
                 }
@@ -1368,29 +1365,29 @@ namespace Orts.Menu
                 panelDetails.Controls.RemoveAt(0);
         }
 
-        private void ShowDetail(string title, string[] lines)
+        private void AddDetailToShow(string title, string[] lines)
         {
             var titleControl = new Label { Margin = new Padding(2), Text = title, UseMnemonic = false, Font = new Font(panelDetails.Font, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft };
-            panelDetails.Controls.Add(titleControl);
             titleControl.Left = titleControl.Margin.Left;
             titleControl.Width = panelDetails.ClientSize.Width - titleControl.Margin.Horizontal - titleControl.PreferredHeight;
             titleControl.Height = titleControl.PreferredHeight;
             titleControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+            panelDetails.Controls.Add(titleControl);
 
             var expanderControl = new Button { Margin = new Padding(0), Text = "", FlatStyle = FlatStyle.Flat };
-            panelDetails.Controls.Add(expanderControl);
             expanderControl.Left = panelDetails.ClientSize.Width - titleControl.Height - titleControl.Margin.Right;
             expanderControl.Width = expanderControl.Height = titleControl.Height;
             expanderControl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             expanderControl.FlatAppearance.BorderSize = 0;
             expanderControl.BackgroundImageLayout = ImageLayout.Center;
+            panelDetails.Controls.Add(expanderControl);
 
             var summaryControl = new Label { Margin = new Padding(2), Text = String.Join("\n", lines), AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
-            panelDetails.Controls.Add(summaryControl);
             summaryControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
             summaryControl.Left = summaryControl.Margin.Left;
             summaryControl.Width = panelDetails.ClientSize.Width - summaryControl.Margin.Horizontal;
             summaryControl.Height = TextRenderer.MeasureText("1\n2\n3\n4\n5", summaryControl.Font).Height;
+            panelDetails.Controls.Add(summaryControl);
 
             // Find out where we need to cut the text to make the summary 5 lines long. Uses a binaty search to find the cut point.
             var size = MeasureText(summaryControl.Text, summaryControl);
@@ -1412,11 +1409,11 @@ namespace Orts.Menu
             }
 
             var descriptionControl = new Label { Margin = new Padding(2), Text = String.Join("\n", lines), AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
-            panelDetails.Controls.Add(descriptionControl);
             descriptionControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
             descriptionControl.Left = descriptionControl.Margin.Left;
             descriptionControl.Width = panelDetails.ClientSize.Width - descriptionControl.Margin.Horizontal;
             descriptionControl.Height = MeasureText(descriptionControl.Text, descriptionControl);
+            panelDetails.Controls.Add(descriptionControl);
 
             // Enable the expander only if the full description is longer than the summary. Otherwise, disable the expander.
             expanderControl.Enabled = descriptionControl.Height > summaryControl.Height;

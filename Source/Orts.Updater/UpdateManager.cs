@@ -30,7 +30,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+
 using Newtonsoft.Json;
+
 using Orts.Settings;
 
 namespace Orts.Updater
@@ -55,17 +57,17 @@ namespace Orts.Updater
         private UpdateSettings channel;
         private bool forceUpdate;
 
-        private string PathUpdateTest { get { return Path.Combine(basePath, "UpdateTest"); } }
-        private string PathUpdateDirty { get { return Path.Combine(basePath, "UpdateDirty"); } }
-        private string PathUpdateStage { get { return Path.Combine(basePath, "UpdateStage"); } }
-        private string PathDocumentation { get { return Path.Combine(basePath, "Documentation"); } }
-        private string PathUpdateDocumentation { get { return Path.Combine(PathUpdateStage, "Documentation"); } }
-        private string FileUpdateStage { get { return Path.Combine(PathUpdateStage, "Update.zip"); } }
-        private string FileSettings { get { return Path.Combine(basePath, "OpenRails.ini"); } }
-        private string FileUpdater { get { return Path.Combine(basePath, "Updater.exe"); } }
+        private string PathUpdateTest => Path.Combine(basePath, "UpdateTest");
+        private string PathUpdateDirty => Path.Combine(basePath, "UpdateDirty");
+        private string PathUpdateStage => Path.Combine(basePath, "UpdateStage");
+        private string PathDocumentation => Path.Combine(basePath, "Documentation");
+        private string PathUpdateDocumentation => Path.Combine(PathUpdateStage, "Documentation"); 
+        private string FileUpdateStage => Path.Combine(PathUpdateStage, "Update.zip");
+        private string FileSettings => Path.Combine(basePath, "OpenRails.ini");
+        private string FileUpdater => Path.Combine(basePath, "Updater.exe");
 
         public string ChannelName { get; set; }
-        public string ChangeLogLink { get { return channel?.ChangeLogLink; } }
+        public string ChangeLogLink => channel?.ChangeLogLink;
         public Update LastUpdate { get; private set; }
         public Exception LastCheckError { get; private set; }
         public Exception LastUpdateError { get; private set; }
@@ -99,6 +101,11 @@ namespace Orts.Updater
                 var principal = new WindowsPrincipal(identity);
                 UpdaterNeedsElevation = !principal.IsInRole(WindowsBuiltInRole.Administrator);
             }
+        }
+
+        public static async Task<UpdateManager> Initialize(string basePath, string productName, string productVersion)
+        {
+            return await Task.Run(() => new UpdateManager(basePath, productName, productVersion));
         }
 
         public string[] GetChannels()
@@ -348,19 +355,17 @@ namespace Orts.Updater
             //// Clean up as much as we can here, but any in-use files will fail. Don't worry about them. This is
             //// called before the update begins so we'll always start from a clean slate.
             //// Scan the files in any order.
-            Parallel.ForEach(Directory.GetFiles(path, "*", SearchOption.AllDirectories),
-                             (file) =>
-                             {
-                                 try { File.Delete(file); }
-                                 catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
-                             });
+            foreach (string file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
+            {
+                try { File.Delete(file); }
+                catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+            }
 
-            Parallel.ForEach(Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly),
-                             (directory) =>
-                             {
-                                 try { Directory.Delete(directory, true); }
-                                 catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
-                             });
+            foreach (string directory in Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly))
+            {
+                try { Directory.Delete(directory, true); }
+                catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+            }
             try { Directory.Delete(path); }
             catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
             return Task.CompletedTask;
@@ -368,8 +373,7 @@ namespace Orts.Updater
 
         private async Task DownloadUpdateAsync(int progressMin, int progressLength)
         {
-            if (!Directory.Exists(PathUpdateStage))
-                Directory.CreateDirectory(PathUpdateStage);
+            Directory.CreateDirectory(PathUpdateStage);
 
             Uri updateUri = new Uri(channel.URL);
             updateUri = new Uri(updateUri, LastUpdate.Url);
@@ -473,14 +477,14 @@ namespace Orts.Updater
                 return Task.FromException(ex);
             }
 
-            Parallel.ForEach(files, (file) => 
+            foreach(string file in files)
             {
                 List<X509Certificate2> certificates = GetCertificatesFromFile(file);
                 if (!certificates.Any(c => expectedSubjects.Contains(c.Subject)))
                     throw new InvalidDataException("Cryptographic signatures don't match. Expected a common subject in old subjects:\n\n"
                         + FormatCertificateSubjectList(expectedSubjects) + "\n\nAnd new subjects:\n\n"
                         + FormatCertificateSubjectList(certificates) + "\n");
-            });
+            }
             return Task.CompletedTask;
         }
 
