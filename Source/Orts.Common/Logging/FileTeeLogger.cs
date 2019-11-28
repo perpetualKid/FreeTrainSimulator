@@ -51,7 +51,7 @@ namespace Orts.Common.Logging
 
         public override void Write(string value)
         {
-            Console.Write(value);
+            console.Write(value);
             using (var writer = new StreamWriter(fileName, true, Encoding))
             {
                 writer.Write(value);
