@@ -1487,15 +1487,16 @@ namespace Orts.Formats.Msts.Parsers
         /// <param name="processors">Array of lower case token, and the delegate/lambda to call when matched.</param>
         public void ParseFile(TokenProcessor[] processors)
         { // Press F10 'Step Over' to jump to the next token
+            Array.Sort(processors, TokenProcessorComparer.Instance);
 #line hidden
             while (!Eof)
             {
-                string token = ReadItem().ToLower();
-                if (token == "(") { SkipRestOfBlock(); continue; }
-                foreach (TokenProcessor tp in processors)
-                    if (tp.Token == token)
+                string token = ReadItem();
+                if (token?.Length > 0 && token[0] == '(') { SkipRestOfBlock(); continue; }
+                int index = Array.BinarySearch(processors, token, TokenProcessorComparer.Instance);
+                if (index > -1)
+                    processors[index].Processor();
 #line default
-                        tp.Processor(); // Press F11 'Step Into' to debug the Processor delegate
             } // Press F10 'Step Over' to jump to the next token
         }
         /// <summary>Parse an STF file until the EOF, using the array of lower case tokens, with a processor delegate/lambda
