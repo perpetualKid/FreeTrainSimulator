@@ -163,12 +163,9 @@ namespace Orts.Menu.Entities
         /// Additional information strings about the metadata
         /// </summary>
         /// <returns>array of strings with the user-readable information</returns>
-        public string[] ToInfo()
+        public string ToInfo()
         {
-            return new string[] {
-                catalog.GetStringFmt("Start at: {0}", Start),
-                catalog.GetStringFmt("Heading to: {0}", End),
-            };
+            return string.Join("\n", catalog.GetStringFmt("Start at: {0}", Start), catalog.GetStringFmt("Heading to: {0}", End));
         }
     }
 }
