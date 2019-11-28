@@ -2080,6 +2080,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             var digital = Control as CabViewDigitalControl;
 
             Num = Locomotive.GetDataOf(Control);
+            if (digital.MinValue < digital.MaxValue) Num = MathHelper.Clamp(Num, (float)digital.MinValue, (float)digital.MaxValue);
             if (Math.Abs(Num) < digital.AccuracySwitch)
                 Format = Format2;
             else
@@ -2742,7 +2743,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
             MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
             // TODO: Make this use AddAutoPrimitive instead.
-            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.World, ref m, ShapeFlags.None);
+            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
         }
 
         internal void Mark()
@@ -2959,7 +2960,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
 
             // TODO: Make this use AddAutoPrimitive instead.
-            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.World, ref m, ShapeFlags.None);
+            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
         }
 
         internal void Mark()

@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -3804,6 +3804,10 @@ namespace Orts.Simulation.RollingStocks
                             data = this.FilteredMotiveForceN;
                         else
                             data = this.LocomotiveAxle.AxleForceN;
+                        if (DynamicBrakePercent > 0)
+                        {
+                            data = DynamicBrakeForceN;
+                        }
                         data = Math.Abs(data);
                         switch (cvc.ControlUnit)
                         {
