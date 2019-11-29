@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RunActivity\n"
 "POT-Creation-Date: 2019-11-15 09:44:04+0100\n"
-"PO-Revision-Date: 2019-11-16 13:04+0100\n"
+"PO-Revision-Date: 2019-11-29 20:22+0100\n"
 "Last-Translator: Markus Gelbmann <gelbmann.markus@gmail.com>\n"
 "Language-Team: Open Rails Dev Team\n"
 "Language: de\n"
@@ -1714,14 +1714,9 @@ msgid "{0:F0}% ({1})"
 msgstr "{0:F0}% ({1})"
 
 #: ../../RunActivity/Viewer3D/Popups/HUDWindow.cs:1648
-#, fuzzy, csharp-format
-#| msgid ""
-#| "{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms, "
-#| "shader model {4})"
+#, csharp-format
 msgid "{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms)"
-msgstr ""
-"{0:F0} FPS (50./95./99. Perzentile {1:F1} / {2:F1} / {3:F1} ms, Shader-"
-"Modell {4})"
+msgstr "{0:F0} FPS (50./95./99. Perzentile {1:F1} / {2:F1} / {3:F1} ms)"
 
 #: ../../RunActivity/Viewer3D/Popups/HUDWindow.cs:1649
 #, csharp-format
