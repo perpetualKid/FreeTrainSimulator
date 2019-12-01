@@ -6,9 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using GNU.Gettext;
-using Orts.Common;
-using Orts.Common.Input;
-using Orts.Settings.Store;
+using ORTS.Common;
+using ORTS.Common.Input;
+using ORTS.Settings.Store;
 
 namespace ORTS.Settings
 {
