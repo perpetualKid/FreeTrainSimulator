@@ -327,7 +327,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             Car.TrackSoundType = CarAhead.TrackSoundType;
                             Car.TrackSoundLocation = CarAhead.TrackSoundLocation;
-                            Car.TrackSoundDistSquared = WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, Car.TrackSoundLocation);
+                            Car.TrackSoundDistSquared = (float)WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, Car.TrackSoundLocation);
 //                            Trace.TraceInformation("Time {4} TrainName {5} carNo {0} IsOnSwitch {1} IsOnCurve {6} TracksoundType {2} _CurTType {3} to standard",
 //                              Car.Train.Cars.IndexOf(Car), CarOnSwitch, Car.TrackSoundType, _curTType, Viewer.Simulator.GameTime, Car.Train.Name, CarOnCurve);
                             if (stateChange)
@@ -338,7 +338,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                         if (Car.TrackSoundLocation != WorldLocation.None)
                         {
-                            trackSoundDistSquared = WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, Car.TrackSoundLocation);
+                            trackSoundDistSquared = (float)WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, Car.TrackSoundLocation);
                             if (trackSoundDistSquared > 9 && (trackSoundDistSquared - 2) <= Car.TrackSoundDistSquared)
                                 Car.TrackSoundDistSquared = trackSoundDistSquared;
                             else
@@ -986,7 +986,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return true;
             }
 
-            DistanceSquared = WorldLocation.GetDistanceSquared(WorldLocation, Viewer.Camera.CameraWorldLocation);
+            DistanceSquared = (float)WorldLocation.GetDistanceSquared(WorldLocation, Viewer.Camera.CameraWorldLocation);
 
             return DistanceSquared > CUTOFFDISTANCE;
         }

@@ -409,7 +409,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                         car.WorldPosition.TileX, car.WorldPosition.TileZ,
                                         intakePosition.X, intakePosition.Y, -intakePosition.Z);
 
-                                    var d2 = WorldLocation.GetDistanceSquared(intakeLocation, pickup.WorldPosition.WorldLocation);
+                                    var d2 = (float)WorldLocation.GetDistanceSquared(intakeLocation, pickup.WorldPosition.WorldLocation);
                                     if (d2 < shortestD2)
                                     {
                                         shortestD2 = d2;

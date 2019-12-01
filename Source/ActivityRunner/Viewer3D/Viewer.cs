@@ -1571,9 +1571,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 foreach (var movingTable in Simulator.MovingTables)
                 {
 
-                    if (movingTable.WorldPosition.XNAMatrix.M44 != 100000000)
+                    if (movingTable.WorldPosition.XNAMatrix.M44 != 100_000_000)
                     {
-                        var distanceSquared = WorldLocation.GetDistanceSquared(movingTable.WorldPosition.WorldLocation, Camera.CameraWorldLocation);
+                        var distanceSquared = (float)WorldLocation.GetDistanceSquared(movingTable.WorldPosition.WorldLocation, Camera.CameraWorldLocation);
                         if (distanceSquared <= minDistanceSquared && distanceSquared < 160000) //must be the nearest one, but must also be near!
                         {
                             minDistanceSquared = distanceSquared;
