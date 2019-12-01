@@ -1081,6 +1081,10 @@ namespace Orts.Viewer3D
                     new UsePreviousFreeRoamCameraCommand(Log);
                 }
             }
+            if (UserInput.IsPressed(UserCommand.GameExternalCabController))
+            {
+                UserInput.RDState.Activate();
+            }
             if (UserInput.IsPressed(UserCommand.CameraHeadOutForward) && HeadOutForwardCamera.IsAvailable)
             {
                 CheckReplaying();
