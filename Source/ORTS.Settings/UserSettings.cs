@@ -407,6 +407,7 @@ namespace ORTS.Settings
             Load(options);
             Folders = new FolderSettings(options);
             Input = new InputSettings(options);
+            RailDriver = new RailDriverSettings(options);
         }
 
         public override object GetDefaultValue(string name)
@@ -429,7 +430,7 @@ namespace ORTS.Settings
 
         PropertyInfo[] GetProperties()
         {
-            return GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy).Where(pi => pi.Name != "Folders" && pi.Name != "Input").ToArray();
+            return GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy).Where(pi => pi.Name != "Folders" && pi.Name != "Input" && pi.Name != "RailDriver").ToArray();
         }
 
         protected override object GetValue(string name)

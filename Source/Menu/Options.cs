@@ -200,6 +200,9 @@ namespace ORTS
             // Keyboard tab
             InitializeKeyboardSettings();
 
+            ////RailDriver tab
+            //InitializeRailDriverSettings());
+
             // DataLogger tab
             var dictionaryDataLoggerSeparator = new Dictionary<string, string>();
             dictionaryDataLoggerSeparator.Add("comma", catalog.GetString("comma"));
@@ -335,6 +338,11 @@ namespace ORTS
             checkCorrectQuestionableBrakingParams.Checked = Settings.CorrectQuestionableBrakingParams;
             numericActRandomizationLevel.Value = Settings.ActRandomizationLevel;
             numericActWeatherRandomizationLevel.Value = Settings.ActWeatherRandomizationLevel;
+        }
+
+        private async void OptionsForm_Shown(object sender, EventArgs e)
+        {
+            await InitializeRailDriverSettingsAsync();
         }
 
         static string ParseCategoryFrom(string name)
@@ -751,5 +759,6 @@ namespace ORTS
             numericPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
         }
+
     }
 }
