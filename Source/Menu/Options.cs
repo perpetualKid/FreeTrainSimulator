@@ -342,7 +342,12 @@ namespace ORTS
 
         private async void OptionsForm_Shown(object sender, EventArgs e)
         {
-            await InitializeRailDriverSettingsAsync();
+            List<System.Threading.Tasks.Task> initTasks = new List<System.Threading.Tasks.Task>()
+            {
+                InitializeKeyboardSettingsAsync(),
+                InitializeRailDriverSettingsAsync()
+            };
+            await System.Threading.Tasks.Task.WhenAll(initTasks);
         }
 
         static string ParseCategoryFrom(string name)

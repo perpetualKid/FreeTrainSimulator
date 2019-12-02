@@ -55,8 +55,6 @@ namespace Orts.ExternalDevices
         Char_u = 0x1c,
     }
 
-    public delegate void RailDriverDataRead(byte[] data, RailDriverBase sourceDevice);
-
     public abstract class RailDriverBase
     {
         public static readonly byte[] LedDigits = { (byte)RailDriverDisplaySign.Digit_0, (byte)RailDriverDisplaySign.Digit_1, (byte)RailDriverDisplaySign.Digit_2,
@@ -106,14 +104,11 @@ namespace Orts.ExternalDevices
         public abstract int ReadBufferSize { get; }
 
         public abstract int WriteData(byte[] writeBuffer);
-
         public byte[] NewReadBuffer => new byte[ReadBufferSize];
-
-        public abstract int ReadData(ref byte[] readBuffer);
 
         public abstract int ReadCurrentData(ref byte[] data);
 
-        public abstract event RailDriverDataRead OnDataRead;
+        public abstract int BlockingReadCurrentData(ref byte[] data, int timeout);
 
         public abstract void Shutdown();
 
@@ -149,7 +144,6 @@ namespace Orts.ExternalDevices
             writeBuffer[4] = (byte)led1;
             instance?.WriteData(writeBuffer);
         }
-
 
         /// <summary>
         /// Displays the given numeric value on RailDriver LED display
@@ -200,13 +194,12 @@ namespace Orts.ExternalDevices
             instance.WriteData(writeBuffer);
         }
 
+
     }
 
-    internal class RailDriver32 : RailDriverBase, PIEHid32Net.PIEDataHandler, PIEHid32Net.PIEErrorHandler
+    internal class RailDriver32 : RailDriverBase
     {
         private readonly PIEHid32Net.PIEDevice device;                   // Our RailDriver
-
-        public override event RailDriverDataRead OnDataRead;
 
         public RailDriver32()
         {
@@ -218,8 +211,6 @@ namespace Orts.ExternalDevices
                     {
                         device = currentDevice;
                         device.SetupInterface();
-                        device.SetErrorCallback(this);
-                        device.SetDataCallback(this);
                         device.suppressDuplicateReports = true;
                         break;
                     }
@@ -232,28 +223,13 @@ namespace Orts.ExternalDevices
             }
         }
 
-        public void HandlePIEHidData(byte[] data, PIEHid32Net.PIEDevice sourceDevice, int error)
-        {
-            OnDataRead?.Invoke(data, this);
-        }
-
-        public void HandlePIEHidError(PIEHid32Net.PIEDevice sourceDevices, int error)
-        {
-            Trace.TraceWarning("RailDriver Error: {0}", error);
-        }
-
         public override int WriteBufferSize => device?.WriteLength ?? 0;
 
         public override int ReadBufferSize => device?.ReadLength ?? 0;
 
-        public override int WriteData(byte[] writeBuffer)
+        public override int BlockingReadCurrentData(ref byte[] data, int timeout)
         {
-            return device?.WriteData(writeBuffer) ?? -1;
-        }
-
-        public override int ReadData(ref byte[] readBuffer)
-        {
-            return device?.ReadData(ref readBuffer) ?? -1;
+            return device?.BlockingReadData(ref data, timeout) ?? -1;
         }
 
         public override int ReadCurrentData(ref byte[] data)
@@ -261,18 +237,20 @@ namespace Orts.ExternalDevices
             return device?.ReadLast(ref data) ?? -1;
         }
 
-
         public override void Shutdown()
         {
             device?.CloseInterface();
         }
+
+        public override int WriteData(byte[] writeBuffer)
+        {
+            return device?.WriteData(writeBuffer) ?? -1;
+        }
     }
 
-    internal class RailDriver64 : RailDriverBase, PIEHid64Net.PIEDataHandler, PIEHid64Net.PIEErrorHandler
+    internal class RailDriver64 : RailDriverBase
     {
         private readonly PIEHid64Net.PIEDevice device;                   // Our RailDriver
-
-        public override event RailDriverDataRead OnDataRead;
 
         public RailDriver64()
         {
@@ -284,8 +262,6 @@ namespace Orts.ExternalDevices
                     {
                         device = currentDevice;
                         device.SetupInterface();
-                        device.SetErrorCallback(this);
-                        device.SetDataCallback(this);
                         device.suppressDuplicateReports = true;
                         break;
                     }
@@ -298,28 +274,14 @@ namespace Orts.ExternalDevices
             }
         }
 
-        public void HandlePIEHidData(byte[] data, PIEHid64Net.PIEDevice sourceDevice, int error)
-        {
-            OnDataRead?.Invoke(data, this);
-        }
-
-        public void HandlePIEHidError(PIEHid64Net.PIEDevice sourceDevices, long error)
-        {
-            Trace.TraceWarning("RailDriver Error: {0}", error);
-        }
-
         public override int WriteBufferSize => (int)(device?.WriteLength ?? 0);
 
         public override int ReadBufferSize => (int)(device?.ReadLength ?? 0);
 
-        public override int WriteData(byte[] writeBuffer)
-        {
-            return device?.WriteData(writeBuffer) ?? -1;
-        }
 
-        public override int ReadData(ref byte[] readBuffer)
+        public override int BlockingReadCurrentData(ref byte[] data, int timeout)
         {
-            return device?.ReadData(ref readBuffer) ?? -1;
+            return device?.BlockingReadData(ref data, timeout) ?? -1;
         }
 
         public override int ReadCurrentData(ref byte[] data)
@@ -331,5 +293,11 @@ namespace Orts.ExternalDevices
         {
             device?.CloseInterface();
         }
+
+        public override int WriteData(byte[] writeBuffer)
+        {
+            return device?.WriteData(writeBuffer) ?? -1;
+        }
     }
+
 }
