@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ORTS.Common;
+using ORTS.Common.Input;
 using Orts.ExternalDevices;
 using Orts.Menu;
 using ORTS.Settings;
@@ -85,7 +87,7 @@ namespace ORTS
             return railDriverLegend;
         }
 
-        private Task<Panel> InitializeRailDriverInputControls()
+        private System.Threading.Tasks.Task<Panel> InitializeRailDriverInputControls()
         {
             TaskCompletionSource<Panel> tcs = new TaskCompletionSource<Panel>();
             Panel panel = new Panel() { AutoScroll = true, Width = panelRDSettings.Width / 2 };

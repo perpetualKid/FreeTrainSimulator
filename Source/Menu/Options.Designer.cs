@@ -2511,9 +2511,25 @@
         private System.Windows.Forms.NumericUpDown numericActWeatherRandomizationLevel;
         private System.Windows.Forms.Label label26;
         private System.Windows.Forms.CheckBox checkShadowAllShapes;
+        private System.Windows.Forms.TabPage tabPageRailDriver;
+        private System.Windows.Forms.Panel panelRDSettings;
+        private System.Windows.Forms.Button btnShowRDLegend;
+        private System.Windows.Forms.Button btnStartRDCalibration;
+        private System.Windows.Forms.Button btnRDReset;
+        private System.Windows.Forms.Panel panelRDOptions;
+        private System.Windows.Forms.Panel panelRDButtons;
+        private System.Windows.Forms.GroupBox groupBoxReverseRDLevers;
+        private System.Windows.Forms.CheckBox checkReverseReverser;
+        private System.Windows.Forms.CheckBox checkReverseIndependentBrake;
+        private System.Windows.Forms.CheckBox checkReverseAutoBrake;
+        private System.Windows.Forms.CheckBox checkReverseThrottle;
+        private System.Windows.Forms.CheckBox checkFullRangeThrottle;
+        private System.Windows.Forms.Button btnCheck;
+        private System.Windows.Forms.Button btnRDSettingsExport;
         private System.Windows.Forms.Label lblMSAACount;
         private System.Windows.Forms.TrackBar trackMultiSampling;
         private System.Windows.Forms.Label label28;
         private System.Windows.Forms.CheckBox checkEnableWatchdog;
+
     }
 }

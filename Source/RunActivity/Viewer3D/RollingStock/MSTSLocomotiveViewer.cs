@@ -199,7 +199,7 @@ namespace Orts.Viewer3D.RollingStock
                 {
                     Locomotive.SetBailOff(true);
                 }
-                if (UserInput.RDState.Changed)
+                if (UserInput.RDState.Active)
                 {
                     Locomotive.AlerterReset();
 

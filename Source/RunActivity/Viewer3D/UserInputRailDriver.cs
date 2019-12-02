@@ -291,7 +291,7 @@ namespace Orts.Viewer3D
 
         public bool IsPressed(UserCommand command)
         {
-            if (!(Active || (railDriverInstance.Enabled && command == UserCommand.GameExternalCabController)))
+            if (!(Active || (railDriverInstance != null && command == UserCommand.GameExternalCabController)))
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
             if (raildriverCommand == byte.MaxValue)

@@ -62,6 +62,11 @@ namespace Orts.ExternalDevices
         public static readonly byte[] LedDigits = { (byte)RailDriverDisplaySign.Digit_0, (byte)RailDriverDisplaySign.Digit_1, (byte)RailDriverDisplaySign.Digit_2,
             (byte)RailDriverDisplaySign.Digit_3, (byte)RailDriverDisplaySign.Digit_4, (byte)RailDriverDisplaySign.Digit_5, (byte)RailDriverDisplaySign.Digit_6,
             (byte)RailDriverDisplaySign.Digit_7, (byte)RailDriverDisplaySign.Digit_8, (byte)RailDriverDisplaySign.Digit_9};
+        public static readonly byte[] LedDecimalDigits = { (byte)RailDriverDisplaySign.Digit_0 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_1 | (byte)RailDriverDisplaySign.Decimal,
+            (byte)RailDriverDisplaySign.Digit_2 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_3 | (byte)RailDriverDisplaySign.Decimal,
+            (byte)RailDriverDisplaySign.Digit_4 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_5 | (byte)RailDriverDisplaySign.Decimal,
+            (byte)RailDriverDisplaySign.Digit_6 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_7 | (byte)RailDriverDisplaySign.Decimal,
+            (byte)RailDriverDisplaySign.Digit_8 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_9 | (byte)RailDriverDisplaySign.Decimal};
 
         public byte[] NewWriteBuffer => new byte[WriteBufferSize];
 
@@ -109,6 +114,8 @@ namespace Orts.ExternalDevices
         public abstract int ReadCurrentData(ref byte[] data);
 
         public abstract event RailDriverDataRead OnDataRead;
+
+        public abstract void Shutdown();
 
 
         /// <summary>
@@ -159,10 +166,40 @@ namespace Orts.ExternalDevices
                 SetLeds(LedDigits[(value / 100) % 10], LedDigits[(value / 10) % 10], LedDigits[(value) % 10]);
         }
 
+        /// <summary>
+        /// Displays the given numeric value on RailDriver LED display
+        /// </summary>
+        public void SetLedsNumeric(float value)
+        {
+            if (value < 0 || value > 999.9)
+                throw new ArgumentOutOfRangeException(nameof(value), value, "Display Value needs to be between 0.0 and 999.9");
+            value *= 10;    //simplify display setting for fractional part
+            int s = (int)(value >= 0 ? value + .5 : -value + .5);
+            if (s < 100)
+                SetLeds(0, LedDecimalDigits[s / 10], LedDigits[s % 10]);
+            else if (s < 1000)
+                SetLeds(LedDigits[(s / 100) % 10], LedDecimalDigits[(s / 10) % 10], LedDigits[s % 10]);
+            else if (s < 10000)
+                SetLeds(LedDigits[(s / 1000) % 10], LedDigits[(s / 100) % 10], LedDecimalDigits[(s / 10) % 10]);
+        }
+
         public void ClearDisplay()
         {
             SetLeds(RailDriverDisplaySign.Blank, RailDriverDisplaySign.Blank, RailDriverDisplaySign.Blank);
         }
+
+        /// <summary>
+        /// Turns raildriver speaker on or off
+        /// </summary>
+        /// <param name="on"></param>
+        public void EnableSpeaker(bool state)
+        {
+            writeBuffer.Initialize();
+            writeBuffer[1] = 133;
+            writeBuffer[7] = (byte)(state ? 1 : 0);
+            instance.WriteData(writeBuffer);
+        }
+
     }
 
     internal class RailDriver32 : RailDriverBase, PIEHid32Net.PIEDataHandler, PIEHid32Net.PIEErrorHandler
@@ -223,6 +260,12 @@ namespace Orts.ExternalDevices
         {
             return device?.ReadLast(ref data) ?? -1;
         }
+
+
+        public override void Shutdown()
+        {
+            device?.CloseInterface();
+        }
     }
 
     internal class RailDriver64 : RailDriverBase, PIEHid64Net.PIEDataHandler, PIEHid64Net.PIEErrorHandler
@@ -282,6 +325,11 @@ namespace Orts.ExternalDevices
         public override int ReadCurrentData(ref byte[] data)
         {
             return device?.ReadLast(ref data) ?? -1;
+        }
+
+        public override void Shutdown()
+        {
+            device?.CloseInterface();
         }
     }
 }
