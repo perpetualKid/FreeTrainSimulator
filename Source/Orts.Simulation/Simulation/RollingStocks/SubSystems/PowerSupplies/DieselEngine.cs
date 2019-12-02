@@ -1343,7 +1343,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 loco.MaximumDieselEnginePowerW = (float)DieselPowerTab[MaxRPM];
                 Trace.TraceInformation("Maximum Diesel Engine Power set by DieselPowerTab {0}", DieselPowerTab[MaxRPM]);
             }
-            if (MaximumRailOutputPowerW == 0)
+            if (MaximumRailOutputPowerW == 0 && loco.MaxPowerW != 0)
+            {
+                MaximumRailOutputPowerW = loco.MaxPowerW; // set rail power to a default value on the basis that of the value specified in the MaxPowrW parameter
+            }
+            else 
             {
                     MaximumRailOutputPowerW = 0.8f * MaximumDieselPowerW; // set rail power on the basis that it is about 80% of the prime mover output power
             }
