@@ -141,6 +141,7 @@ namespace Orts.Formats.Msts
             PLUS,
             DIVIDE,
             MODULO,
+            IDIVIDE,
         }
         #endregion
 
@@ -182,7 +183,8 @@ namespace Orts.Formats.Msts
                 { "*", SCRTermOperator.MULTIPLY },
                 { "+", SCRTermOperator.PLUS },
                 { "/", SCRTermOperator.DIVIDE },
-                { "%", SCRTermOperator.MODULO }
+                { "%", SCRTermOperator.MODULO },
+                { "/#", SCRTermOperator.IDIVIDE }
             };
 
         private static readonly IDictionary<string, SCRAndOr> TranslateAndOr = new Dictionary<string, SCRAndOr>

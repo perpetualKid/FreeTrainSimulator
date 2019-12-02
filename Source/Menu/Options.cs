@@ -148,6 +148,7 @@ namespace ORTS
             comboBoxOtherUnits.Text = settings.Units;
             checkDisableTCSScripts.Checked = Settings.DisableTCSScripts;
             checkEnableWatchdog.Checked = Settings.EnableWatchdog;
+            checkRunAt32bit.Checked = Settings.RunAt32bit;
 
 
             // Audio tab
@@ -190,6 +191,7 @@ namespace ORTS
             checkWindResistanceDependent.Checked = Settings.WindResistanceDependent;
             checkOverrideNonElectrifiedRoutes.Checked = Settings.OverrideNonElectrifiedRoutes;
             checkHotStart.Checked = Settings.HotStart;
+            checkSimpleControlPhysics.Checked = Settings.SimpleControlPhysics;
             checkAutopilot.Checked = Settings.Autopilot;
             checkForcedRedAtStationStops.Checked = !Settings.NoForcedRedAtStationStops;
             checkExtendedAIShunting.Checked = Settings.ExtendedAIShunting;
@@ -437,6 +439,7 @@ namespace ORTS
             Settings.Units = comboBoxOtherUnits.SelectedValue.ToString();
             Settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
             Settings.EnableWatchdog = checkEnableWatchdog.Checked;
+            Settings.RunAt32bit = checkRunAt32bit.Checked;
 
             // Audio tab
             Settings.MSTSBINSound = checkMSTSBINSound.Checked;
@@ -473,6 +476,7 @@ namespace ORTS
             Settings.WindResistanceDependent = checkWindResistanceDependent.Checked;
             Settings.OverrideNonElectrifiedRoutes = checkOverrideNonElectrifiedRoutes.Checked;
             Settings.HotStart = checkHotStart.Checked;
+            Settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
             Settings.Autopilot = checkAutopilot.Checked;
             Settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;
             Settings.ExtendedAIShunting = checkExtendedAIShunting.Checked;

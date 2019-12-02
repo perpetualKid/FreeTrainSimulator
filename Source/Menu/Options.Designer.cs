@@ -41,6 +41,7 @@
             this.checkViewDispatcher = new System.Windows.Forms.CheckBox();
             this.tabOptions = new System.Windows.Forms.TabControl();
             this.tabPageGeneral = new System.Windows.Forms.TabPage();
+            this.checkEnableWatchdog = new System.Windows.Forms.CheckBox();
             this.checkSpeedControl = new System.Windows.Forms.CheckBox();
             this.checkDisableTCSScripts = new System.Windows.Forms.CheckBox();
             this.labelOtherUnits = new System.Windows.Forms.Label();
@@ -60,6 +61,9 @@
             this.numericSoundDetailLevel = new System.Windows.Forms.NumericUpDown();
             this.checkMSTSBINSound = new System.Windows.Forms.CheckBox();
             this.tabPageVideo = new System.Windows.Forms.TabPage();
+            this.lblMSAACount = new System.Windows.Forms.Label();
+            this.trackMultiSampling = new System.Windows.Forms.TrackBar();
+            this.label28 = new System.Windows.Forms.Label();
             this.checkShadowAllShapes = new System.Windows.Forms.CheckBox();
             this.checkDoubleWire = new System.Windows.Forms.CheckBox();
             this.label15 = new System.Windows.Forms.Label();
@@ -92,6 +96,7 @@
             this.checkExtendedAIShunting = new System.Windows.Forms.CheckBox();
             this.checkAutopilot = new System.Windows.Forms.CheckBox();
             this.checkHotStart = new System.Windows.Forms.CheckBox();
+            this.checkSimpleControlPhysics = new System.Windows.Forms.CheckBox();
             this.checkCurveSpeedDependent = new System.Windows.Forms.CheckBox();
             this.checkCurveResistanceDependent = new System.Windows.Forms.CheckBox();
             this.checkTunnelResistanceDependent = new System.Windows.Forms.CheckBox();
@@ -186,10 +191,7 @@
             this.ElevationText = new System.Windows.Forms.Label();
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.label28 = new System.Windows.Forms.Label();
-            this.trackMultiSampling = new System.Windows.Forms.TrackBar();
-            this.lblMSAACount = new System.Windows.Forms.Label();
-            this.checkEnableWatchdog = new System.Windows.Forms.CheckBox();
+            this.checkRunAt32bit = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
@@ -198,6 +200,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSoundVolumePercent)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSoundDetailLevel)).BeginInit();
             this.tabPageVideo.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackMultiSampling)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackDayAmbientLight)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericDistantMountainsViewingDistance)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericViewingDistance)).BeginInit();
@@ -230,7 +233,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trackMultiSampling)).BeginInit();
             this.SuspendLayout();
             // 
             // buttonOK
@@ -351,6 +353,7 @@
             // 
             // tabPageGeneral
             // 
+            this.tabPageGeneral.Controls.Add(this.checkRunAt32bit);
             this.tabPageGeneral.Controls.Add(this.checkEnableWatchdog);
             this.tabPageGeneral.Controls.Add(this.checkSpeedControl);
             this.tabPageGeneral.Controls.Add(this.checkDisableTCSScripts);
@@ -375,6 +378,18 @@
             this.tabPageGeneral.TabIndex = 0;
             this.tabPageGeneral.Text = "General";
             this.tabPageGeneral.UseVisualStyleBackColor = true;
+            // 
+            // checkEnableWatchdog
+            // 
+            this.checkEnableWatchdog.AutoSize = true;
+            this.checkEnableWatchdog.Checked = true;
+            this.checkEnableWatchdog.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkEnableWatchdog.Location = new System.Drawing.Point(6, 302);
+            this.checkEnableWatchdog.Name = "checkEnableWatchdog";
+            this.checkEnableWatchdog.Size = new System.Drawing.Size(76, 17);
+            this.checkEnableWatchdog.TabIndex = 15;
+            this.checkEnableWatchdog.Text = "Watchdog";
+            this.checkEnableWatchdog.UseVisualStyleBackColor = true;
             // 
             // checkSpeedControl
             // 
@@ -621,6 +636,38 @@
             this.tabPageVideo.TabIndex = 4;
             this.tabPageVideo.Text = "Video";
             this.tabPageVideo.UseVisualStyleBackColor = true;
+            // 
+            // lblMSAACount
+            // 
+            this.lblMSAACount.Location = new System.Drawing.Point(447, 56);
+            this.lblMSAACount.Margin = new System.Windows.Forms.Padding(3);
+            this.lblMSAACount.Name = "lblMSAACount";
+            this.lblMSAACount.Size = new System.Drawing.Size(129, 13);
+            this.lblMSAACount.TabIndex = 30;
+            this.lblMSAACount.Text = "0x";
+            this.lblMSAACount.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // trackMultiSampling
+            // 
+            this.trackMultiSampling.AutoSize = false;
+            this.trackMultiSampling.BackColor = System.Drawing.SystemColors.Window;
+            this.trackMultiSampling.LargeChange = 2;
+            this.trackMultiSampling.Location = new System.Drawing.Point(298, 75);
+            this.trackMultiSampling.Maximum = 5;
+            this.trackMultiSampling.Name = "trackMultiSampling";
+            this.trackMultiSampling.Size = new System.Drawing.Size(281, 45);
+            this.trackMultiSampling.TabIndex = 29;
+            this.trackMultiSampling.ValueChanged += new System.EventHandler(this.trackMultiSampling_ValueChanged);
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(304, 56);
+            this.label28.Margin = new System.Windows.Forms.Padding(3);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(141, 13);
+            this.label28.TabIndex = 28;
+            this.label28.Text = "MultiSampling (Anti-Aliasing):";
             // 
             // checkShadowAllShapes
             // 
@@ -951,6 +998,7 @@
             // 
             this.tabPageSimulation.Controls.Add(this.groupBox1);
             this.tabPageSimulation.Controls.Add(this.checkHotStart);
+            this.tabPageSimulation.Controls.Add(this.checkSimpleControlPhysics);
             this.tabPageSimulation.Controls.Add(this.checkCurveSpeedDependent);
             this.tabPageSimulation.Controls.Add(this.checkCurveResistanceDependent);
             this.tabPageSimulation.Controls.Add(this.checkTunnelResistanceDependent);
@@ -1035,6 +1083,16 @@
             this.checkHotStart.TabIndex = 8;
             this.checkHotStart.Text = "Steam locomotive hot start";
             this.checkHotStart.UseVisualStyleBackColor = true;
+            // 
+            // checkSimpleControlPhysics
+            // 
+            this.checkSimpleControlPhysics.AutoSize = true;
+            this.checkSimpleControlPhysics.Location = new System.Drawing.Point(6, 215);
+            this.checkSimpleControlPhysics.Name = "checkSimpleControlPhysics";
+            this.checkSimpleControlPhysics.Size = new System.Drawing.Size(150, 17);
+            this.checkSimpleControlPhysics.TabIndex = 8;
+            this.checkSimpleControlPhysics.Text = "Simple Contol and Physics";
+            this.checkSimpleControlPhysics.UseVisualStyleBackColor = true;
             // 
             // checkCurveSpeedDependent
             // 
@@ -2238,49 +2296,15 @@
             this.checkPreferDDSTexture.Text = "Load DDS textures in preference to ACE";
             this.checkPreferDDSTexture.UseVisualStyleBackColor = true;
             // 
-            // label28
+            // checkRunAt32bit
             // 
-            this.label28.AutoSize = true;
-            this.label28.Location = new System.Drawing.Point(304, 56);
-            this.label28.Margin = new System.Windows.Forms.Padding(3);
-            this.label28.Name = "label28";
-            this.label28.Size = new System.Drawing.Size(141, 13);
-            this.label28.TabIndex = 28;
-            this.label28.Text = "MultiSampling (Anti-Aliasing):";
-            // 
-            // trackMultiSampling
-            // 
-            this.trackMultiSampling.AutoSize = false;
-            this.trackMultiSampling.BackColor = System.Drawing.SystemColors.Window;
-            this.trackMultiSampling.LargeChange = 2;
-            this.trackMultiSampling.Location = new System.Drawing.Point(298, 75);
-            this.trackMultiSampling.Maximum = 5;
-            this.trackMultiSampling.Name = "trackMultiSampling";
-            this.trackMultiSampling.Size = new System.Drawing.Size(281, 45);
-            this.trackMultiSampling.TabIndex = 29;
-            this.trackMultiSampling.ValueChanged += new System.EventHandler(this.trackMultiSampling_ValueChanged);
-            // 
-            // lblMSAACount
-            // 
-            this.lblMSAACount.Location = new System.Drawing.Point(447, 56);
-            this.lblMSAACount.Margin = new System.Windows.Forms.Padding(3);
-            this.lblMSAACount.Name = "lblMSAACount";
-            this.lblMSAACount.Size = new System.Drawing.Size(129, 13);
-            this.lblMSAACount.TabIndex = 30;
-            this.lblMSAACount.Text = "0x";
-            this.lblMSAACount.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // checkEnableWatchdog
-            // 
-            this.checkEnableWatchdog.AutoSize = true;
-            this.checkEnableWatchdog.Checked = true;
-            this.checkEnableWatchdog.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkEnableWatchdog.Location = new System.Drawing.Point(6, 302);
-            this.checkEnableWatchdog.Name = "checkEnableWatchdog";
-            this.checkEnableWatchdog.Size = new System.Drawing.Size(76, 17);
-            this.checkEnableWatchdog.TabIndex = 15;
-            this.checkEnableWatchdog.Text = "Watchdog";
-            this.checkEnableWatchdog.UseVisualStyleBackColor = true;
+            this.checkRunAt32bit.AutoSize = true;
+            this.checkRunAt32bit.Location = new System.Drawing.Point(6, 325);
+            this.checkRunAt32bit.Name = "checkRunAt32bit";
+            this.checkRunAt32bit.Size = new System.Drawing.Size(136, 17);
+            this.checkRunAt32bit.TabIndex = 16;
+            this.checkRunAt32bit.Text = "Run at 32 bit on Win64";
+            this.checkRunAt32bit.UseVisualStyleBackColor = true;
             // 
             // OptionsForm
             // 
@@ -2309,6 +2333,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSoundDetailLevel)).EndInit();
             this.tabPageVideo.ResumeLayout(false);
             this.tabPageVideo.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackMultiSampling)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackDayAmbientLight)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericDistantMountainsViewingDistance)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericViewingDistance)).EndInit();
@@ -2349,7 +2374,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trackMultiSampling)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -2443,6 +2467,7 @@
         private System.Windows.Forms.CheckBox checkAlerterExternal;
         private System.Windows.Forms.CheckBox checkCurveSpeedDependent;
         private System.Windows.Forms.CheckBox checkHotStart;
+        private System.Windows.Forms.CheckBox checkSimpleControlPhysics;
         private System.Windows.Forms.CheckBox checkFastFullScreenAltTab;
         private System.Windows.Forms.CheckBox checkVerticalSync;
         private System.Windows.Forms.ComboBox comboPressureUnit;
@@ -2530,6 +2555,6 @@
         private System.Windows.Forms.TrackBar trackMultiSampling;
         private System.Windows.Forms.Label label28;
         private System.Windows.Forms.CheckBox checkEnableWatchdog;
-
+        private System.Windows.Forms.CheckBox checkRunAt32bit;
     }
 }

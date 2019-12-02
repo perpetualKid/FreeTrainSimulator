@@ -215,20 +215,20 @@ namespace Orts.Simulation.RollingStocks
         readonly static float OneAtmospherePSI = Bar.ToPSI(1);
         public bool SmallSteamEjectorIsOn = false;
         public bool LargeSteamEjectorIsOn = false;
-        public bool VacConServLargeSteamEjectorIsOn = false;
         public bool VacuumPumpOperating = false;
         public float SteamEjectorSmallPressurePSI = 0.0f;
+        public float SteamEjectorLargePressurePSI = 0.0f;
         public bool VacuumPumpFitted;
         public bool SmallEjectorFitted = false;
         public float VacuumPumpResistanceN;
         public float EjectorSmallSteamConsumptionLbpS;
         public float EjectorLargeSteamConsumptionLbpS;
         public float SteamEjectorSmallSetting = 0.0f;
+        public float SteamEjectorLargeSetting = 0.0f;
         public float MaxVaccuumMaxPressurePSI = 110.0f;  // Value for the boiler pressure when maximum vacuum will be produced for the steam ejector 
         public float SmallEjectorFeedFraction = 0.35f;
         public float LargeEjectorFeedFraction = 1.0f;
-        public bool HasLargeEjector = false;
-        public bool LargeEjectorEnabled = true;
+        public bool LargeEjectorFitted = false;
         public float VacuumPumpChargingRateInHgpS = 0.0f;
         public bool VacuumBrakeEQFitted = false;  // Flag to indicate that equalising resevoir fitted to vacuum brakes
         public float HUDNetBPLossGainPSI;
@@ -286,7 +286,7 @@ namespace Orts.Simulation.RollingStocks
         public float TrainBrakePipeLeakPSIorInHgpS = 0.0f;    // Air leakage from train brake pipe - should normally be no more then 5psi/min - default off
         public float CompressorRestartPressurePSI = 110;
         public float CompressorChargingRateM3pS = 0.075f;
-        public float MainResChargingRatePSIpS;
+        public float MainResChargingRatePSIpS = 0.4f;
         public float EngineBrakeReleaseRatePSIpS = 12.5f;
         public float EngineBrakeApplyRatePSIpS = 12.5f;
         public float BrakePipeTimeFactorS = 0.0015f;
@@ -1291,7 +1291,7 @@ namespace Orts.Simulation.RollingStocks
         /// 
         protected void CorrectBrakingParams()
         {
-            if (Simulator.Settings.CorrectQuestionableBrakingParams)
+            if (Simulator.Settings.CorrectQuestionableBrakingParams || Simulator.Settings.SimpleControlPhysics)
             {
                 if (!(BrakeSystem is EPBrakeSystem) && !(BrakeSystem is VacuumSinglePipe) && !(BrakeSystem is AirTwinPipe))
                 {
@@ -1885,13 +1885,27 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         protected virtual void UpdateSteamEjector(float elapsedClockSeconds)
         {
-            if (LargeEjectorEnabled && (TrainBrakeController.TrainBrakeControllerState == ControllerState.Release || TrainBrakeController.TrainBrakeControllerState == ControllerState.FullQuickRelease || (TrainBrakeController.TrainBrakeControllerState == ControllerState.VacContServ && VacConServLargeSteamEjectorIsOn)))
+            if (Simulator.Settings.SimpleControlPhysics) // Simple braking - control Ejector automatically based upon the brake control position
             {
-                LargeSteamEjectorIsOn = true;  // If brake is set to a release controller, then turn ejector on
+                if (TrainBrakeController.TrainBrakeControllerState == ControllerState.Release || TrainBrakeController.TrainBrakeControllerState == ControllerState.FullQuickRelease || (TrainBrakeController.TrainBrakeControllerState == ControllerState.VacContServ))
+                {
+                    LargeSteamEjectorIsOn = true;  // If brake is set to a release controller, then turn ejector on
+                }
+                else
+                {
+                    LargeSteamEjectorIsOn = false; // If brake is not set to a release controller, then turn ejector off
+                }
             }
-            else
+            else  // Advanced braking - control ejector based upon large ejector control setting
             {
-                LargeSteamEjectorIsOn = false; // If brake is not set to a release controller, then turn ejector off
+                if (LargeEjectorFeedFraction > 0.1)
+                {
+                    LargeSteamEjectorIsOn = true;  // turn ejector on
+                }
+                else
+                {
+                    LargeSteamEjectorIsOn = false; // turn ejector off
+                }
             }
 
             // If diesel or electric locomotive, assume vacuum pump (exhauster) is continually running.
@@ -1900,7 +1914,7 @@ namespace Orts.Simulation.RollingStocks
                 VacuumPumpOperating = true;
             }
 
-
+            
         }
 
         /// <summary>
@@ -3802,6 +3816,10 @@ namespace Orts.Simulation.RollingStocks
                             data = this.FilteredMotiveForceN;
                         else
                             data = this.LocomotiveAxle.AxleForceN;
+                        if (DynamicBrakePercent > 0)
+                        {
+                            data = DynamicBrakeForceN;
+                        }
                         data = Math.Abs(data);
                         switch (cvc.Units)
                         {

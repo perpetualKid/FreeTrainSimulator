@@ -405,6 +405,7 @@ namespace Orts.Simulation.Signalling
                             break;
 
                         case (SignalScripts.SCRTermOperator.DIVIDE):
+                        case (SignalScripts.SCRTermOperator.IDIVIDE):
                             if (termvalue == 0)
                             {
                                 tempvalue = 0;

@@ -138,6 +138,8 @@ namespace ORTS.Settings
         public bool DisableTCSScripts { get; set; }
         [Default(true)]
         public bool EnableWatchdog { get; set; }
+        [Default(true)]
+        public bool RunAt32bit { get; set; }
 
         // Audio settings:
         [Default(true)]
@@ -202,6 +204,8 @@ namespace ORTS.Settings
         public bool OverrideNonElectrifiedRoutes { get; set; }
         [Default(true)]
         public bool HotStart { get; set; }
+        [Default(false)]
+        public bool SimpleControlPhysics { get; set; }
         [Default(false)]
         public bool Autopilot { get; set; }
 
@@ -361,6 +365,8 @@ namespace ORTS.Settings
         public int[] WindowPosition_Help { get; set; }
         [Default(new[] { 75, 0 })]
         public int[] WindowPosition_HUDScroll { get; set; }
+        [Default(new[] { 50, 50 })]
+        public int[] WindowPosition_TrainDriving { get; set; }
         [Default(new[] { 0, 100 })]
         public int[] WindowPosition_NextStation { get; set; }
         [Default(new[] { 50, 50 })]

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orts.Simulation\n"
 "POT-Creation-Date: 2018-04-27 18:14+0200\n"
-"PO-Revision-Date: 2018-10-28 16:55+0100\n"
+"PO-Revision-Date: 2019-11-20 19:00+0100\n"
 "Last-Translator: Roberto Ceccarelli (The Strawberry Field) <strawberry."
 "field@libero.it>\n"
 "Language-Team: Open Rails Dev Team\n"
@@ -10,7 +10,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../../Orts.Simulation/Common/Scripting/BrakeController.cs:227
@@ -122,7 +122,7 @@ msgstr "Accesa"
 #: ../../Orts.Simulation/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:90
 msgctxt "Pantograph"
 msgid "Down"
-msgstr "Abbassato"
+msgstr "Basso"
 
 #. Context: Pantograph
 #: ../../Orts.Simulation/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:91

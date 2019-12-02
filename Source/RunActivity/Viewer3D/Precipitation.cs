@@ -439,8 +439,13 @@ namespace Orts.Viewer3D
                     Tiles.RemoveAt(0);
 
                 // Now calculate division to query.
-                var x = (int)((location.Location.X + 1024) / BlockSize);
-                var z = (int)((location.Location.Z + 1024) / BlockSize);
+                var x = ((int)location.Location.X + 1024) / BlockSize;
+                var z = ((int)location.Location.Z + 1024) / BlockSize;
+
+                // Trace the case where x or z are out of bounds
+                if (x < 0 || x > 255 || z < 0 || z > 255)
+                    Trace.TraceWarning("Precipitation indexes are out of bounds:  x = {0}, z = {1}, Location.X = {2}, Location.Z = {3}, BlockSize = {4}, HeightDimensionX = {5}, HeightDimensionZ = {6}",
+                        x, z, location.Location.X, location.Location.Z, BlockSize, tile.Height.GetLength(0), tile.Height.GetLength(1));
 
                 // If we don't have it cached, load it.
                 if (tile.Height[x, z] == float.MinValue)

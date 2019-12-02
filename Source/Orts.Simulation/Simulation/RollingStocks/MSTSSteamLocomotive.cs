@@ -102,6 +102,7 @@ namespace Orts.Simulation.RollingStocks
         public MSTSNotchController FireboxDoorController = new MSTSNotchController(0, 1, 0.1f);
         public MSTSNotchController FuelController = new MSTSNotchController(0, 1, 0.01f); // Could be coal, wood, oil or even peat !
         public MSTSNotchController SmallEjectorController = new MSTSNotchController(0, 1, 0.1f);
+        public MSTSNotchController LargeEjectorController = new MSTSNotchController(0, 1, 0.1f);
 
         public bool Injector1IsOn;
         public bool Injector2IsOn;
@@ -120,7 +121,7 @@ namespace Orts.Simulation.RollingStocks
         bool FullBoilerHeat = false;    // Boiler heat has exceeded max possible heat in boiler (max operating steam pressure)
         bool FullMaxPressBoilerHeat = false; // Boiler heat has exceed the max total possible heat in boiler (max safety valve pressure)
         bool ShovelAnyway = false; // Predicts when the AI fireman should be increasing the fire burn rate despite the heat in the boiler
-        bool IsGrateLimit = false; // Grate limit of locomotive exceeded
+        public bool IsGrateLimit = false; // Grate limit of locomotive exceeded
         bool HasSuperheater = false;  // Flag to indicate whether locomotive is superheated steam type
         bool IsSuperSet = false;    // Flag to indicate whether superheating is reducing cylinder condenstation
         bool IsSaturated = false;     // Flag to indicate locomotive is saturated steam type
@@ -221,9 +222,9 @@ namespace Orts.Simulation.RollingStocks
         float IdealFireMassKG;      // Target fire mass
         float MaxFireMassKG;        // Max possible fire mass
         float MaxFiringRateKGpS;              // Max rate at which fireman or stoker can can feed coal into fire
-        float GrateLimitLBpFt2 = 150.0f;       // Max combustion rate of the grate, once this is reached, no more steam is produced.
+        public float GrateLimitLBpFt2 = 150.0f;       // Max combustion rate of the grate, once this is reached, no more steam is produced.
         float MaxFuelBurnGrateKGpS;            // Maximum rate of fuel burnt depending upon grate limit
-        float GrateCombustionRateLBpFt2;     // Grate combustion rate, ie how many lbs coal burnt per sq ft grate area.
+        public float GrateCombustionRateLBpFt2;     // Grate combustion rate, ie how many lbs coal burnt per sq ft grate area.
         float ORTSMaxFiringRateKGpS;          // OR equivalent of above
         float DisplayMaxFiringRateKGpS;     // Display value of MaxFiringRate
         public float SafetyValveUsageLBpS;
@@ -254,7 +255,6 @@ namespace Orts.Simulation.RollingStocks
         SmoothedData FuelRate = new SmoothedData(45); // Automatic fireman takes x seconds to fully react to changing needs.
         SmoothedData BurnRateSmoothKGpS = new SmoothedData(150); // Changes in BurnRate take x seconds to fully react to changing needs - models increase and decrease in heat.
         float FuelRateSmoothed = 0.0f;     // Smoothed Fuel Rate
-
 
         // steam performance reporting
         public float SteamPerformanceTimeS = 0.0f; // Records the time since starting movement
@@ -390,13 +390,13 @@ namespace Orts.Simulation.RollingStocks
         float BkW_Diff;                 // Net Energy into boiler after steam loads taken.
         float WaterVolL;                // Actual volume of water in bolier (litres)
         float BoilerHeatOutBTUpS = 0.0f;// heat out of boiler in BTU
-        float BoilerHeatInBTUpS = 0.0f; // heat into boiler in BTU
+        public float BoilerHeatInBTUpS = 0.0f; // heat into boiler in BTU
         float BoilerHeatExcess;         // Vlaue of excess boiler heat
         float InjCylEquivSizeIN;        // Calculate the equivalent cylinder size for purpose of sizing the injector.
         float InjectorSize;             // size of injector installed on boiler
 
         // Values from previous iteration to use in UpdateFiring() and show in HUD
-        float PreviousBoilerHeatOutBTUpS = 0.0f;
+        public float PreviousBoilerHeatOutBTUpS = 0.0f;
         public float PreviousTotalSteamUsageLBpS;
         float Injector1WaterDelTempF = 65f;   // Injector 1 water delivery temperature - F
         float Injector2WaterDelTempF = 65f;   // Injector 1 water delivery temperature - F
@@ -765,6 +765,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortssteamfiremanmaxpossiblefiringrate": ORTSMaxFiringRateKGpS = stf.ReadFloatBlock(STFReader.UNITS.MassRateDefaultLBpH, null) / 2.2046f / 3600; break;
                 case "engine(enginecontrollers(cutoff": CutoffController.Parse(stf); break;
                 case "engine(enginecontrollers(ortssmallejector": SmallEjectorController.Parse(stf); SmallEjectorFitted = true; break;
+                case "engine(enginecontrollers(ortslargeejector": LargeEjectorController.Parse(stf); LargeEjectorFitted = true; break;
                 case "engine(enginecontrollers(injector1water": Injector1Controller.Parse(stf); break;
                 case "engine(enginecontrollers(injector2water": Injector2Controller.Parse(stf); break;
                 case "engine(enginecontrollers(blower": BlowerController.Parse(stf); break;
@@ -818,7 +819,6 @@ namespace Orts.Simulation.RollingStocks
                     IsFixGeared = String.Compare(typeString2, "Fixed") == 0;
                     IsSelectGeared = String.Compare(typeString2, "Select") == 0;
                     break;
-                case "engine(enginecontrollers(ortslargeejector": HasLargeEjector = true; break;
 
                 default: base.Parse(lowercasetoken, stf); break;
             }
@@ -864,6 +864,7 @@ namespace Orts.Simulation.RollingStocks
             FiringRateController = (MSTSNotchController)locoCopy.FiringRateController.Clone();
             FireboxDoorController = (MSTSNotchController)locoCopy.FireboxDoorController.Clone();
             SmallEjectorController = (MSTSNotchController)locoCopy.SmallEjectorController.Clone();
+            LargeEjectorController = (MSTSNotchController)locoCopy.LargeEjectorController.Clone();
             GrateAreaM2 = locoCopy.GrateAreaM2;
             SuperheaterFactor = locoCopy.SuperheaterFactor;
             EvaporationAreaM2 = locoCopy.EvaporationAreaM2;
@@ -884,7 +885,7 @@ namespace Orts.Simulation.RollingStocks
             HasSuperheater = locoCopy.HasSuperheater;
             IsFixGeared = locoCopy.IsFixGeared;
             IsSelectGeared = locoCopy.IsSelectGeared;
-            HasLargeEjector = locoCopy.HasLargeEjector;
+            LargeEjectorFitted = locoCopy.LargeEjectorFitted;
             CylinderExhausttoCutoff = locoCopy.CylinderExhausttoCutoff;
             CylinderCompressiontoCutoff = locoCopy.CylinderCompressiontoCutoff;
             CylinderAdmissiontoCutoff = locoCopy.CylinderAdmissiontoCutoff;
@@ -939,8 +940,6 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(FireMassKG);
             outf.Write(FlueTempK);
             outf.Write(SteamGearPosition);
-            outf.Write(LargeEjectorEnabled);
-            outf.Write(ScoopIsBroken);
             ControllerFactory.Save(CutoffController, outf);
             ControllerFactory.Save(Injector1Controller, outf);
             ControllerFactory.Save(Injector2Controller, outf);
@@ -949,6 +948,7 @@ namespace Orts.Simulation.RollingStocks
             ControllerFactory.Save(FireboxDoorController, outf);
             ControllerFactory.Save(FiringRateController, outf);
             ControllerFactory.Save(SmallEjectorController, outf);
+            ControllerFactory.Save(LargeEjectorController, outf);
             outf.Write(FuelBurnRateSmoothedKGpS);
             outf.Write(BoilerHeatSmoothedBTU);
             outf.Write(FuelRateSmoothed);
@@ -1004,8 +1004,6 @@ namespace Orts.Simulation.RollingStocks
             FireMassKG = inf.ReadSingle();
             FlueTempK = inf.ReadSingle();
             SteamGearPosition = inf.ReadSingle();
-            LargeEjectorEnabled = inf.ReadBoolean();
-            ScoopIsBroken = inf.ReadBoolean();
             ControllerFactory.Restore(CutoffController, inf);
             ControllerFactory.Restore(Injector1Controller, inf);
             ControllerFactory.Restore(Injector2Controller, inf);
@@ -1014,6 +1012,7 @@ namespace Orts.Simulation.RollingStocks
             ControllerFactory.Restore(FireboxDoorController, inf);
             ControllerFactory.Restore(FiringRateController, inf);
             ControllerFactory.Restore(SmallEjectorController, inf);
+            ControllerFactory.Restore(LargeEjectorController, inf);
             FuelBurnRateSmoothedKGpS = inf.ReadSingle();
             BurnRateSmoothKGpS.ForceSmoothValue(FuelBurnRateSmoothedKGpS);
             BoilerHeatSmoothedBTU = inf.ReadSingle();
@@ -2102,6 +2101,15 @@ namespace Orts.Simulation.RollingStocks
                     Simulator.Confirmer.UpdateWithPerCent(CabControl.SmallEjector, CabSetting.Increase, SmallEjectorController.CurrentValue * 100);
                 if (SmallEjectorController.UpdateValue < 0.0)
                     Simulator.Confirmer.UpdateWithPerCent(CabControl.SmallEjector, CabSetting.Decrease, SmallEjectorController.CurrentValue * 100);
+            }
+
+            LargeEjectorController.Update(elapsedClockSeconds);
+            if (IsPlayerTrain)
+            {
+                if (LargeEjectorController.UpdateValue > 0.0)
+                    Simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, CabSetting.Increase, LargeEjectorController.CurrentValue * 100);
+                if (LargeEjectorController.UpdateValue < 0.0)
+                    Simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, CabSetting.Decrease, LargeEjectorController.CurrentValue * 100);
             }
 
             Injector1Controller.Update(elapsedClockSeconds);
@@ -4390,8 +4398,8 @@ namespace Orts.Simulation.RollingStocks
             // Set Max Velocity of locomotive
             MaxSpeedMpS = Me.FromMi(pS.FrompH(MaxLocoSpeedMpH)); // Note this is not the true max velocity of the locomotive, but  the speed at which max HP is reached
 
-            // Set "current" motive force based upon the throttle, cylinders, steam pressure, etc. Also reduce motive force by water scoop drag if applicable	
-            MotiveForceN = (Direction == Direction.Forward ? 1 : -1) * N.FromLbf(TractiveEffortLbsF) - WaterScoopDragForceN;
+            // Set "current" motive force based upon the throttle, cylinders, steam pressure, etc	
+            MotiveForceN = (Direction == Direction.Forward ? 1 : -1) * N.FromLbf(TractiveEffortLbsF);
 
             // On starting allow maximum motive force to be used
             if (absSpeedMpS < 1.0f && cutoff > 0.70f && throttle > 0.98f)
@@ -4929,26 +4937,44 @@ namespace Orts.Simulation.RollingStocks
                     SmallEjectorFeedFraction = 0.0f;
                 }
 
+                SmallEjectorFeedFraction = MathHelper.Clamp(SmallEjectorFeedFraction, 0.0f, 1.0f); // Keep within bounds
+                SmallEjectorBrakePipeChargingRatePSIorInHgpS = SmallEjectorFeedFraction * BrakePipeChargingRatePSIorInHgpS; // Rate used in the vacuum brakes
+                
+                /// <summary>
+                /// Update large ejector vacuum rate and steam usage.
+                /// </summary>
+
+                // Calculate Large steam ejector steam usage
+                SteamEjectorLargeSetting = LargeEjectorController.CurrentValue;
+                SteamEjectorLargePressurePSI = BoilerPressurePSI * SteamEjectorLargeSetting;
+                // Steam consumption for large ejector is assumed to be @ 120 psi steam pressure, therefore pressure will vary up and down from this reference figure.
+                float TempLargeSteamPressure = SteamEjectorLargePressurePSI / 120.0f;
+                TempEjectorLargeSteamConsumptionLbpS = EjectorSmallSteamConsumptionLbpS * TempLargeSteamPressure;
+
                 // Large ejector will suffer performance efficiency impacts if boiler steam pressure falls below max vacuum point.
-                if (BoilerPressurePSI < MaxVaccuumMaxPressurePSI)
+                if (SteamEjectorLargeSetting == 0)
                 {
-                    LargeEjectorFeedFraction = ((1.6122f * (BoilerPressurePSI / MaxVaccuumMaxPressurePSI) - 0.6122f)) * EjectorLargeSteamConsumptionLbpS / (EjectorLargeSteamConsumptionLbpS + EjectorSmallSteamConsumptionLbpS);
+                    LargeEjectorFeedFraction = 0;
+                }
+                else if (BoilerPressurePSI < MaxVaccuumMaxPressurePSI)
+                {
+                    LargeEjectorFeedFraction = ((1.6122f * (SteamEjectorLargePressurePSI / MaxVaccuumMaxPressurePSI) - 0.6122f)) * EjectorLargeSteamConsumptionLbpS / (EjectorLargeSteamConsumptionLbpS + EjectorSmallSteamConsumptionLbpS);
                 }
                 else
                 {
-                    //  Provided BP is greater then max vacuum pressure large ejector will operate at full efficiency
-                    LargeEjectorFeedFraction = 1.0f * EjectorLargeSteamConsumptionLbpS / (EjectorLargeSteamConsumptionLbpS + EjectorSmallSteamConsumptionLbpS);
+                    //  The fraction is dropped slightly as pressure increases to simulate decrease in vacuum evacuation as ejector pressure increases above the kneepoint of curve
+                    LargeEjectorFeedFraction = ((1.1063f - (0.1063f * (SteamEjectorLargePressurePSI / MaxVaccuumMaxPressurePSI)))) * EjectorLargeSteamConsumptionLbpS / (EjectorLargeSteamConsumptionLbpS + EjectorSmallSteamConsumptionLbpS);
                 }
 
-                if (!LargeSteamEjectorIsOn)
+                if (Simulator.Settings.SimpleControlPhysics)
                 {
-                    LargeEjectorFeedFraction = 0.0f;
+
+                    //  Provided BP is greater then max vacuum pressure large ejector will operate at full efficiency
+                    LargeEjectorFeedFraction = 1.0f * EjectorLargeSteamConsumptionLbpS / (EjectorLargeSteamConsumptionLbpS + EjectorSmallSteamConsumptionLbpS);
+
                 }
 
                 LargeEjectorFeedFraction = MathHelper.Clamp(LargeEjectorFeedFraction, 0.0f, 1.0f); // Keep within bounds
-                SmallEjectorFeedFraction = MathHelper.Clamp(SmallEjectorFeedFraction, 0.0f, 1.0f); // Keep within bounds
-                // Calculate for display purposes
-                SmallEjectorBrakePipeChargingRatePSIorInHgpS = SmallEjectorFeedFraction * BrakePipeChargingRatePSIorInHgpS;
                 LargeEjectorBrakePipeChargingRatePSIorInHgpS = LargeEjectorFeedFraction * BrakePipeChargingRatePSIorInHgpS;
 
                 // Calculate large steam ejector steam usage, and the brake turns the large ejector on
@@ -5586,9 +5612,6 @@ namespace Orts.Simulation.RollingStocks
                 case CABViewControlTypes.CYL_COCKS:
                     data = CylinderCocksAreOpen ? 1 : 0;
                     break;
-                case CABViewControlTypes.ORTS_LARGE_EJECTOR:
-                    data = LargeEjectorEnabled ? 1 : 0;
-                    break;
                 case CABViewControlTypes.ORTS_CYL_COMP:
                     data = CylinderCompoundOn ? 1 : 0;
                     break;
@@ -5619,6 +5642,11 @@ namespace Orts.Simulation.RollingStocks
                 case CABViewControlTypes.SMALL_EJECTOR:
                     {
                         data = SmallEjectorController.CurrentValue;
+                        break;
+                    }
+               case CABViewControlTypes.ORTS_LARGE_EJECTOR:
+                    {
+                        data = LargeEjectorController.CurrentValue;
                         break;
                     }
                 case CABViewControlTypes.FUEL_GAUGE:
@@ -5673,7 +5701,7 @@ namespace Orts.Simulation.RollingStocks
                     status.AppendFormat("{0} = {1:F0}%\n", Simulator.Catalog.GetString("Fire Heat Loss"), FireHeatLossPercent * 100);
             }
 
-            status.AppendFormat("{0}{5} = {3:F0}% {1}, {4:F0}% {2}{5}\n", Simulator.Catalog.GetString("Fuel levels"), Simulator.Catalog.GetString("coal"), Simulator.Catalog.GetString("water"), 100 * coalPercent, 100 * TenderWaterPercent, fuelSafety);
+            status.AppendFormat("{0}{5} = {3:F0}% {1}, {4:F0}% {2}{5}\n", Simulator.Catalog.GetString("Fuel levels"), Simulator.Catalog.GetString("coal"), Simulator.Catalog.GetString("water"), 100 * coalPercent, 100 * waterPercent, fuelSafety);
 
             return status.ToString();
         }
@@ -6298,15 +6326,16 @@ namespace Orts.Simulation.RollingStocks
                 FormatStrings.FormatMass(pS.TopH(Kg.FromLb(EjectorTotalSteamConsumptionLbpS)), IsMetric),
                 FormatStrings.h);
 
-                status.AppendFormat("{0}\t{1}\t{2:N2}/{3}\t{4}\t{5:N2}\t{6}\t{7}\t{8}",
+                status.AppendFormat("\t{0}\t{1}\t{2:N2}\t{3}\t{4:N2}/{5}\t{6}\t{7:N2}\t{8}\t{9}",
                 Simulator.Catalog.GetString("Large:"),
+                Simulator.Catalog.GetString("Press"),
+                FormatStrings.FormatPressure(SteamEjectorLargePressurePSI, PressureUnit.PSI, MainPressureUnit, true),
                 Simulator.Catalog.GetString("StCons"),
                 FormatStrings.FormatMass(pS.TopH(Kg.FromLb(TempEjectorLargeSteamConsumptionLbpS)), IsMetric),
                 FormatStrings.h,
                 Simulator.Catalog.GetString("Rate"),
                 LargeEjectorBrakePipeChargingRatePSIorInHgpS,
                 Simulator.Catalog.GetString("Lg Ej"),
-                LargeEjectorEnabled ? Simulator.Catalog.GetString("En") : Simulator.Catalog.GetString("Dis"),
                 LargeSteamEjectorIsOn ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No")
                 );
 
@@ -6580,6 +6609,73 @@ public void SteamStartGearBoxIncrease()
             }
             if (oldValue != controller.IntermediateValue)
                 Simulator.Confirmer.UpdateWithPerCent(CabControl.SmallEjector, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
+        }
+
+        #endregion
+
+        //Define Large Ejector Controller
+
+        #region Large Ejector controller
+
+        public void StartLargeEjectorIncrease(float? target)
+        {
+            LargeEjectorController.CommandStartTime = Simulator.ClockTime;
+            if (IsPlayerTrain)
+                Simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Increase, LargeEjectorController.CurrentValue* 100);
+            LargeEjectorController.StartIncrease(target);
+            SignalEvent(Event.LargeEjectorChange);
+        }
+
+        public void StopLargeEjectorIncrease()
+        {
+            LargeEjectorController.StopIncrease();
+            new ContinuousLargeEjectorCommand(Simulator.Log, 1, true, LargeEjectorController.CurrentValue, LargeEjectorController.CommandStartTime);
+        }
+
+        public void StartLargeEjectorDecrease(float? target)
+        {
+            if (IsPlayerTrain)
+                Simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Decrease, LargeEjectorController.CurrentValue* 100);
+            LargeEjectorController.StartDecrease(target);
+            SignalEvent(Event.LargeEjectorChange);
+        }
+
+        public void StopLargeEjectorDecrease()
+        {
+            LargeEjectorController.StopDecrease();
+            if (IsPlayerTrain)
+                new ContinuousLargeEjectorCommand(Simulator.Log, 1, false, LargeEjectorController.CurrentValue, LargeEjectorController.CommandStartTime);
+        }
+
+        public void LargeEjectorChangeTo(bool increase, float? target)
+        {
+            if (increase)
+            {
+                if (target > SmallEjectorController.CurrentValue)
+                {
+                    StartLargeEjectorIncrease(target);
+                }
+            }
+            else
+            {
+                if (target<LargeEjectorController.CurrentValue)
+                {
+                    StartLargeEjectorDecrease(target);
+                }
+            }
+        }
+
+        public void SetLargeEjectorValue(float value)
+        {
+            var controller = LargeEjectorController;
+            var oldValue = controller.IntermediateValue;
+            var change = controller.SetValue(value);
+            if (change != 0)
+            {
+                new ContinuousLargeEjectorCommand(Simulator.Log, 1, change > 0, controller.CurrentValue, Simulator.GameTime);
+            }
+            if (oldValue != controller.IntermediateValue)
+                Simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, oldValue<controller.IntermediateValue? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue* 100);
         }
 
         #endregion
@@ -7015,17 +7111,6 @@ public void SteamStartGearBoxIncrease()
             SmokeColor.Update(1, 0);
         }
 
-        public void ToggleLargeEjector()
-        {
-            if (HasLargeEjector) // Must have large Ejector control defined in engine controllers to enable control of large ejector
-            {
-                LargeEjectorEnabled = !LargeEjectorEnabled;
-            }
-
-            if (IsPlayerTrain)
-                Simulator.Confirmer.Confirm(CabControl.LargeEjector, LargeEjectorEnabled? CabSetting.On : CabSetting.Off);
-        }
-
 public void ToggleCylinderCocks()
         {
             CylinderCocksAreOpen = !CylinderCocksAreOpen;
@@ -7163,7 +7248,7 @@ public void ToggleCylinderCocks()
             return 0f;
         }
 
-        public void GetLocoInfo(ref float CC, ref float BC, ref float DC, ref float FC, ref float I1, ref float I2, ref float SE)
+        public void GetLocoInfo(ref float CC, ref float BC, ref float DC, ref float FC, ref float I1, ref float I2, ref float SE, ref float LE)
         {
             CC = CutoffController.CurrentValue;
             BC = BlowerController.CurrentValue;
@@ -7172,9 +7257,10 @@ public void ToggleCylinderCocks()
             I1 = Injector1Controller.CurrentValue;
             I2 = Injector2Controller.CurrentValue;
             SE = SmallEjectorController.CurrentValue;
+            LE = LargeEjectorController.CurrentValue;
         }
 
-        public void SetLocoInfo(float CC, float BC, float DC, float FC, float I1, float I2, float SE)
+        public void SetLocoInfo(float CC, float BC, float DC, float FC, float I1, float I2, float SE, float LE)
         {
             CutoffController.CurrentValue = CC;
             CutoffController.UpdateValue = 0.0f;
@@ -7190,6 +7276,8 @@ public void ToggleCylinderCocks()
             Injector2Controller.UpdateValue = 0.0f;
             SmallEjectorController.CurrentValue = SE;
             SmallEjectorController.UpdateValue = 0.0f;
+            LargeEjectorController.CurrentValue = LE;
+            LargeEjectorController.UpdateValue = 0.0f;
         }
 
         public override void SwitchToPlayerControl()
