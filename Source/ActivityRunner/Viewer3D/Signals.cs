@@ -37,7 +37,6 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Signalling;
 
-using Event = Orts.Common.Event;
 using Events = Orts.Common.Events;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -326,7 +325,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         SemaphoreTarget = SignalTypeData.DrawAspects[DisplayState].SemaphorePos;
                         SemaphoreSpeed = SignalTypeData.SemaphoreAnimationTime <= 0 ? 0 : (SemaphoreTarget > SemaphorePos ? +1 : -1) / SignalTypeData.SemaphoreAnimationTime;
-                        if (Sound != null) Sound.HandleEvent(Event.SemaphoreArm);
+                        if (Sound != null) Sound.HandleEvent(TrainEvent.SemaphoreArm);
                     }
                 }
 

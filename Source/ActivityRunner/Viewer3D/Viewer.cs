@@ -51,8 +51,6 @@ using System.Management;
 using System.Threading;
 using System.Windows.Forms;
 
-using Event = Orts.Common.Event;
-
 namespace Orts.ActivityRunner.Viewer3D
 {
     public class Viewer
@@ -439,7 +437,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Simulator.Confirmer.PlayErrorSound += (s, e) =>
             {
                 if (World.GameSounds != null)
-                    World.GameSounds.HandleEvent(Event.ControlError);
+                    World.GameSounds.HandleEvent(TrainEvent.ControlError);
             };
             Simulator.Confirmer.DisplayMessage += (s, e) => MessagesWindow.AddMessage(e.Key, e.Text, e.Duration);
 
@@ -1759,7 +1757,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Hide MessageWindow
                 MessagesWindow.Visible = false;
                 // Audible confirmation that screenshot taken
-                if (World.GameSounds != null) World.GameSounds.HandleEvent(Event.ControlError);
+                if (World.GameSounds != null) World.GameSounds.HandleEvent(TrainEvent.ControlError);
             }
 
             // Use IsDown() not IsPressed() so users can take multiple screenshots as fast as possible by holding down the key.

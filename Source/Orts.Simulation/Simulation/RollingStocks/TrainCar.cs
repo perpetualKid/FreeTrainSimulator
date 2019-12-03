@@ -54,8 +54,6 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 
-using Event = Orts.Common.Event;
-
 namespace Orts.Simulation.RollingStocks
 {
     public class ViewPoint
@@ -1499,7 +1497,7 @@ namespace Orts.Simulation.RollingStocks
         /// Signals an event from an external source (player, multi-player controller, etc.) for this car.
         /// </summary>
         /// <param name="evt"></param>
-        public virtual void SignalEvent(Event evt) { }
+        public virtual void SignalEvent(TrainEvent evt) { }
         public virtual void SignalEvent(PowerSupplyEvent evt) { }
         public virtual void SignalEvent(PowerSupplyEvent evt, int id) { }
 

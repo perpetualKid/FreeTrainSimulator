@@ -289,15 +289,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 switch (CurrentState())
                 {
                     case CircuitBreakerState.Open:
-                        SignalEvent(Event.CircuitBreakerOpen);
+                        SignalEvent(TrainEvent.CircuitBreakerOpen);
                         break;
 
                     case CircuitBreakerState.Closing:
-                        SignalEvent(Event.CircuitBreakerClosing);
+                        SignalEvent(TrainEvent.CircuitBreakerClosing);
                         break;
 
                     case CircuitBreakerState.Closed:
-                        SignalEvent(Event.CircuitBreakerClosed);
+                        SignalEvent(TrainEvent.CircuitBreakerClosed);
                         break;
                 }
             }
@@ -371,15 +371,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 switch (CurrentState())
                 {
                     case CircuitBreakerState.Open:
-                        SignalEvent(Event.CircuitBreakerOpen);
+                        SignalEvent(TrainEvent.CircuitBreakerOpen);
                         break;
 
                     case CircuitBreakerState.Closing:
-                        SignalEvent(Event.CircuitBreakerClosing);
+                        SignalEvent(TrainEvent.CircuitBreakerClosing);
                         break;
 
                     case CircuitBreakerState.Closed:
-                        SignalEvent(Event.CircuitBreakerClosed);
+                        SignalEvent(TrainEvent.CircuitBreakerClosed);
                         break;
                 }
             }
@@ -394,7 +394,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 case PowerSupplyEvent.CloseCircuitBreaker:
                     SetDriverClosingOrder(true);
                     SetDriverOpeningOrder(false);
-                    SignalEvent(Event.CircuitBreakerClosingOrderOn);
+                    SignalEvent(TrainEvent.CircuitBreakerClosingOrderOn);
 
                     Confirm(CabControl.CircuitBreakerClosingOrder, CabSetting.On);
                     if (!ClosingAuthorization())
@@ -406,7 +406,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 case PowerSupplyEvent.OpenCircuitBreaker:
                     SetDriverClosingOrder(false);
                     SetDriverOpeningOrder(true);
-                    SignalEvent(Event.CircuitBreakerClosingOrderOff);
+                    SignalEvent(TrainEvent.CircuitBreakerClosingOrderOff);
 
                     Confirm(CabControl.CircuitBreakerClosingOrder, CabSetting.Off);
                     break;

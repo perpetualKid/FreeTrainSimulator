@@ -307,18 +307,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             Script.SetCircuitBreakerClosingOrder = (value) => CircuitBreakerClosingOrder = value;
             Script.SetCircuitBreakerOpeningOrder = (value) => CircuitBreakerOpeningOrder = value;
             Script.SetTractionAuthorization = (value) => TractionAuthorization = value;
-            Script.SetVigilanceAlarm = (value) => Locomotive.SignalEvent(value ? Event.VigilanceAlarmOn : Event.VigilanceAlarmOff);
+            Script.SetVigilanceAlarm = (value) => Locomotive.SignalEvent(value ? TrainEvent.VigilanceAlarmOn : TrainEvent.VigilanceAlarmOff);
             Script.SetHorn = (value) => Locomotive.TCSHorn = value;
-            Script.TriggerSoundAlert1 = () => this.SignalEvent(Event.TrainControlSystemAlert1, Script);
-            Script.TriggerSoundAlert2 = () => this.SignalEvent(Event.TrainControlSystemAlert2, Script);
-            Script.TriggerSoundInfo1 = () => this.SignalEvent(Event.TrainControlSystemInfo1, Script);
-            Script.TriggerSoundInfo2 = () => this.SignalEvent(Event.TrainControlSystemInfo2, Script);
-            Script.TriggerSoundPenalty1 = () => this.SignalEvent(Event.TrainControlSystemPenalty1, Script);
-            Script.TriggerSoundPenalty2 = () => this.SignalEvent(Event.TrainControlSystemPenalty2, Script);
-            Script.TriggerSoundWarning1 = () => this.SignalEvent(Event.TrainControlSystemWarning1, Script);
-            Script.TriggerSoundWarning2 = () => this.SignalEvent(Event.TrainControlSystemWarning2, Script);
-            Script.TriggerSoundSystemActivate = () => this.SignalEvent(Event.TrainControlSystemActivate, Script);
-            Script.TriggerSoundSystemDeactivate = () => this.SignalEvent(Event.TrainControlSystemDeactivate, Script);
+            Script.TriggerSoundAlert1 = () => this.SignalEvent(TrainEvent.TrainControlSystemAlert1, Script);
+            Script.TriggerSoundAlert2 = () => this.SignalEvent(TrainEvent.TrainControlSystemAlert2, Script);
+            Script.TriggerSoundInfo1 = () => this.SignalEvent(TrainEvent.TrainControlSystemInfo1, Script);
+            Script.TriggerSoundInfo2 = () => this.SignalEvent(TrainEvent.TrainControlSystemInfo2, Script);
+            Script.TriggerSoundPenalty1 = () => this.SignalEvent(TrainEvent.TrainControlSystemPenalty1, Script);
+            Script.TriggerSoundPenalty2 = () => this.SignalEvent(TrainEvent.TrainControlSystemPenalty2, Script);
+            Script.TriggerSoundWarning1 = () => this.SignalEvent(TrainEvent.TrainControlSystemWarning1, Script);
+            Script.TriggerSoundWarning2 = () => this.SignalEvent(TrainEvent.TrainControlSystemWarning2, Script);
+            Script.TriggerSoundSystemActivate = () => this.SignalEvent(TrainEvent.TrainControlSystemActivate, Script);
+            Script.TriggerSoundSystemDeactivate = () => this.SignalEvent(TrainEvent.TrainControlSystemDeactivate, Script);
             Script.SetVigilanceAlarmDisplay = (value) => this.VigilanceAlarm = value;
             Script.SetVigilanceEmergencyDisplay = (value) => this.VigilanceEmergency = value;
             Script.SetOverspeedWarningDisplay = (value) => this.OverspeedWarning = value;
@@ -407,7 +407,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
         }
 
-        private void SignalEvent(Event evt, TrainControlSystem script)
+        private void SignalEvent(TrainEvent evt, TrainControlSystem script)
         {
             foreach (var eventHandler in Locomotive.EventHandlers)
                 eventHandler.HandleEvent(evt, script);

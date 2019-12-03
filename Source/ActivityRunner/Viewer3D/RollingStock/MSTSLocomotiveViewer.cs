@@ -41,8 +41,6 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 
-using Event = Orts.Common.Event;
-
 namespace Orts.ActivityRunner.Viewer3D.RollingStock
 {
     public class MSTSLocomotiveViewer : MSTSWagonViewer
@@ -196,8 +194,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 Locomotive.ShowCab = !Locomotive.ShowCab;
 
             // By Matej Pacha
-            if (UserInput.IsPressed(UserCommand.DebugResetWheelSlip)) { Locomotive.Train.SignalEvent(Event._ResetWheelSlip); }
-            if (UserInput.IsPressed(UserCommand.DebugToggleAdvancedAdhesion)) { Locomotive.Train.SignalEvent(Event._ResetWheelSlip); Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion; }
+            if (UserInput.IsPressed(UserCommand.DebugResetWheelSlip)) { Locomotive.Train.SignalEvent(TrainEvent._ResetWheelSlip); }
+            if (UserInput.IsPressed(UserCommand.DebugToggleAdvancedAdhesion)) { Locomotive.Train.SignalEvent(TrainEvent._ResetWheelSlip); Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion; }
 
             if (UserInput.Raildriver.Active)
             {
@@ -217,9 +215,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         Locomotive.SetDirection(Direction.N);
                         Locomotive.SetEmergency(UserInput.Raildriver.Emergency);
                     if (UserInput.Raildriver.Wipers == 1 && Locomotive.Wiper)
-                        Locomotive.SignalEvent(Event.WiperOff);
+                        Locomotive.SignalEvent(TrainEvent.WiperOff);
                     else if (UserInput.Raildriver.Wipers != 1 && !Locomotive.Wiper)
-                        Locomotive.SignalEvent(Event.WiperOn);
+                        Locomotive.SignalEvent(TrainEvent.WiperOn);
                     // changing Headlight more than one step at a time doesn't work for some reason
                     if (Locomotive.Headlight < UserInput.Raildriver.Lights - 1)
                         Locomotive.Headlight++;

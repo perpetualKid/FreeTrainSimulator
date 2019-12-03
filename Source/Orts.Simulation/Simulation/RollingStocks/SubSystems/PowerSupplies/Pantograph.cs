@@ -23,8 +23,6 @@ using System.Linq;
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 
-using Event = Orts.Common.Event;
-
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
     public class Pantographs
@@ -299,7 +297,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void HandleEvent(PowerSupplyEvent evt)
         {
-            Event soundEvent = Event.None;
+            TrainEvent soundEvent = TrainEvent.None;
 
             switch (evt)
             {
@@ -312,19 +310,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         {
                             default:
                             case 1:
-                                soundEvent = Event.Pantograph1Down;
+                                soundEvent = TrainEvent.Pantograph1Down;
                                 break;
 
                             case 2:
-                                soundEvent = Event.Pantograph2Down;
+                                soundEvent = TrainEvent.Pantograph2Down;
                                 break;
 
                             case 3:
-                                soundEvent = Event.Pantograph3Down;
+                                soundEvent = TrainEvent.Pantograph3Down;
                                 break;
 
                             case 4:
-                                soundEvent = Event.Pantograph4Down;
+                                soundEvent = TrainEvent.Pantograph4Down;
                                 break;
                         }
                     }
@@ -340,26 +338,26 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         {
                             default:
                             case 1:
-                                soundEvent = Event.Pantograph1Up;
+                                soundEvent = TrainEvent.Pantograph1Up;
                                 break;
 
                             case 2:
-                                soundEvent = Event.Pantograph2Up;
+                                soundEvent = TrainEvent.Pantograph2Up;
                                 break;
 
                             case 3:
-                                soundEvent = Event.Pantograph3Up;
+                                soundEvent = TrainEvent.Pantograph3Up;
                                 break;
 
                             case 4:
-                                soundEvent = Event.Pantograph4Up;
+                                soundEvent = TrainEvent.Pantograph4Up;
                                 break;
                         }
                     }
                     break;
             }
 
-            if (soundEvent != Event.None)
+            if (soundEvent != TrainEvent.None)
             {
                 foreach (var eventHandler in Wagon.EventHandlers)
                 {

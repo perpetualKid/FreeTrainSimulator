@@ -15,7 +15,6 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 
-using Event = Orts.Common.Event;
 using Events = Orts.Common.Events;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
@@ -520,7 +519,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (opening == levelCrossing.HasTrain)
             {
                 opening = !levelCrossing.HasTrain;
-                    soundSource?.HandleEvent(opening ? Event.CrossingOpening : Event.CrossingClosing);
+                    soundSource?.HandleEvent(opening ? TrainEvent.CrossingOpening : TrainEvent.CrossingClosing);
             }
 
             if (opening)
@@ -775,7 +774,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             // 0 can be used as a setting for instant animation.
             if (fuelPickupItem.ReFill() && fuelPickupItemObject.UiD == MSTSWagon.RefillProcess.ActivePickupObjectUID)
             {
-                if (animationKey == 0 && soundSource != null) soundSource.HandleEvent(Event.FuelTowerDown);
+                if (animationKey == 0 && soundSource != null) soundSource.HandleEvent(TrainEvent.FuelTowerDown);
                 if (fuelPickupItemObject.Options.AnimationSpeed == 0) animationKey = 1.0f;
                 else if (animationKey < animationFrames)
                     animationKey += elapsedTime.ClockSeconds * frameRate;
@@ -785,8 +784,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             {
                 if (animationKey == animationFrames && soundSource != null)
                 {
-                    soundSource.HandleEvent(Event.FuelTowerTransferEnd);
-                    soundSource.HandleEvent(Event.FuelTowerUp);
+                    soundSource.HandleEvent(TrainEvent.FuelTowerTransferEnd);
+                    soundSource.HandleEvent(TrainEvent.FuelTowerUp);
                 }
                 animationKey -= elapsedTime.ClockSeconds * frameRate;
             }
@@ -798,7 +797,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (animationKey > animationFrames)
             {
                 animationKey = animationFrames;
-                if (soundSource != null) soundSource.HandleEvent(Event.FuelTowerTransferStart);
+                if (soundSource != null) soundSource.HandleEvent(TrainEvent.FuelTowerTransferStart);
             }
 
             for (var i = 0; i < SharedShape.Matrices.Length; ++i)

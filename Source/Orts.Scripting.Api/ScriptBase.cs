@@ -32,10 +32,10 @@ namespace Orts.Scripting.Api
         /// <summary>
         /// Sends an event to the locomotive.
         /// </summary>
-        public Action<Event> SignalEvent;
+        public Action<TrainEvent> SignalEvent;
         /// <summary>
         /// Sends an event to the train.
         /// </summary>
-        public Action<Event> SignalEventToTrain;
+        public Action<TrainEvent> SignalEventToTrain;
     }
 }

@@ -15,6 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+
 using GNU.Gettext;
 
 using Microsoft.Xna.Framework;
@@ -36,13 +41,6 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-
-using Event = Orts.Common.Event;
 
 namespace Orts.Simulation
 {
@@ -157,7 +155,7 @@ namespace Orts.Simulation
         // Confirmer should be part of the Viewer, rather than the Simulator, as it is part of the user interface.
         // Perhaps an Observer design pattern would be better, so the Simulator sends messages to any observers. </CJComment>
         public Confirmer Confirmer;                 // Set by the Viewer
-        public Event SoundNotify = Event.None;
+        public TrainEvent SoundNotify = TrainEvent.None;
         public ScriptManager ScriptManager;
 
         public bool IsAutopilotMode = false;
@@ -930,7 +928,7 @@ namespace Orts.Simulation
                             }
                             // couple my rear to front of train
                             //drivenTrain.SetCoupleSpeed(train, 1);
-                            drivenTrain.LastCar.SignalEvent(Event.Couple);
+                            drivenTrain.LastCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
                                 DbfEvalOverSpeedCoupling += 1;
 
@@ -958,7 +956,7 @@ namespace Orts.Simulation
                             }
                             // couple my rear to rear of train
                             //drivenTrain.SetCoupleSpeed(train, -1);
-                            drivenTrain.LastCar.SignalEvent(Event.Couple);
+                            drivenTrain.LastCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
                                 DbfEvalOverSpeedCoupling += 1;
 
@@ -1007,7 +1005,7 @@ namespace Orts.Simulation
                             if (lead == null)
                             {//Like Rear coupling with changed data  
                                 lead = train.LeadLocomotive;
-                                train.LastCar.SignalEvent(Event.Couple);
+                                train.LastCar.SignalEvent(TrainEvent.Couple);
                                 if (drivenTrain.SpeedMpS > 1.5)
                                     DbfEvalOverSpeedCoupling += 1;
 
@@ -1022,7 +1020,7 @@ namespace Orts.Simulation
                             }
                             else
                             {
-                                drivenTrain.FirstCar.SignalEvent(Event.Couple);
+                                drivenTrain.FirstCar.SignalEvent(TrainEvent.Couple);
                                 if (drivenTrain.SpeedMpS > 1.5)
                                     DbfEvalOverSpeedCoupling += 1;
 
@@ -1054,7 +1052,7 @@ namespace Orts.Simulation
                             }
                             // couple my front to front of train
                             //drivenTrain.SetCoupleSpeed(train, -1);
-                            drivenTrain.FirstCar.SignalEvent(Event.Couple);
+                            drivenTrain.FirstCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
                                 DbfEvalOverSpeedCoupling += 1;
 
@@ -1719,7 +1717,7 @@ namespace Orts.Simulation
             train.Update(0);   // stop the wheels from moving etc
             train2.Update(0);  // stop the wheels from moving etc
 
-            car.SignalEvent(Event.Uncouple);
+            car.SignalEvent(TrainEvent.Uncouple);
             // TODO which event should we fire
             //car.CreateEvent(62);  these are listed as alternate events
             //car.CreateEvent(63);

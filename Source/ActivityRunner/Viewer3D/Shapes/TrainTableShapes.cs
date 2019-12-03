@@ -88,12 +88,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             {
                 Rotating = true;
                 if (Sound != null) Sound.HandleEvent(Turntable.TrainsOnMovingTable.Count == 1 &&
-                    Turntable.TrainsOnMovingTable[0].FrontOnBoard && Turntable.TrainsOnMovingTable[0].BackOnBoard ? Event.MovingTableMovingLoaded : Event.MovingTableMovingEmpty);
+                    Turntable.TrainsOnMovingTable[0].FrontOnBoard && Turntable.TrainsOnMovingTable[0].BackOnBoard ? TrainEvent.MovingTableMovingLoaded : TrainEvent.MovingTableMovingEmpty);
             }
             else if ((!Turntable.Clockwise && !Turntable.Counterclockwise && Rotating))
             {
                 Rotating = false;
-                if (Sound != null) Sound.HandleEvent(Event.MovingTableStopped);
+                if (Sound != null) Sound.HandleEvent(TrainEvent.MovingTableStopped);
             }
 
             // Update the pose for each matrix
@@ -183,12 +183,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             {
                 Translating = true;
                 if (Sound != null) Sound.HandleEvent(Transfertable.TrainsOnMovingTable.Count == 1 &&
-                    Transfertable.TrainsOnMovingTable[0].FrontOnBoard && Transfertable.TrainsOnMovingTable[0].BackOnBoard ? Event.MovingTableMovingLoaded : Event.MovingTableMovingEmpty);
+                    Transfertable.TrainsOnMovingTable[0].FrontOnBoard && Transfertable.TrainsOnMovingTable[0].BackOnBoard ? TrainEvent.MovingTableMovingLoaded : TrainEvent.MovingTableMovingEmpty);
             }
             else if ((!Transfertable.Forward && !Transfertable.Reverse && Translating))
             {
                 Translating = false;
-                if (Sound != null) Sound.HandleEvent(Event.MovingTableStopped);
+                if (Sound != null) Sound.HandleEvent(TrainEvent.MovingTableStopped);
             }
 
             // Update the pose for each matrix

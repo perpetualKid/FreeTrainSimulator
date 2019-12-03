@@ -265,7 +265,7 @@ namespace Orts.Common
         CabRadio,
     }
 
-    public enum Event
+    public enum TrainEvent
     {
         None,
         BellOff,

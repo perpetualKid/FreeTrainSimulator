@@ -723,9 +723,9 @@ namespace Orts.Common
         public override void Redo() {
             if( ToState ) {
                 if (!Receiver.Sander)
-                    Receiver.Train.SignalEvent(Event.SanderOn);
+                    Receiver.Train.SignalEvent(TrainEvent.SanderOn);
             } else {
-                Receiver.Train.SignalEvent(Event.SanderOff);
+                Receiver.Train.SignalEvent(TrainEvent.SanderOff);
             }
             // Report();
         }
@@ -745,7 +745,7 @@ namespace Orts.Common
         }
 
         public override void Redo() {
-            if (ToState) Receiver.SignalEvent(Event.VigilanceAlarmReset); // There is no Event.VigilanceAlarmResetReleased
+            if (ToState) Receiver.SignalEvent(TrainEvent.VigilanceAlarmReset); // There is no Event.VigilanceAlarmResetReleased
             Receiver.AlerterPressed(ToState);
             // Report();
         }
@@ -827,13 +827,13 @@ namespace Orts.Common
                     case 0: Receiver.Headlight = 1; Receiver.Simulator.Confirmer.Confirm( CabControl.Headlight, CabSetting.Neutral ); break;
                     case 1: Receiver.Headlight = 2; Receiver.Simulator.Confirmer.Confirm( CabControl.Headlight, CabSetting.On ); break;
                 }
-                Receiver.SignalEvent(Event.LightSwitchToggle);
+                Receiver.SignalEvent(TrainEvent.LightSwitchToggle);
             } else {
                 switch( Receiver.Headlight ) {
                     case 1: Receiver.Headlight = 0; Receiver.Simulator.Confirmer.Confirm( CabControl.Headlight, CabSetting.Off ); break;
                     case 2: Receiver.Headlight = 1; Receiver.Simulator.Confirmer.Confirm( CabControl.Headlight, CabSetting.Neutral ); break;
                 }
-                Receiver.SignalEvent(Event.LightSwitchToggle);
+                Receiver.SignalEvent(TrainEvent.LightSwitchToggle);
             }
             // Report();
         }

@@ -24,7 +24,7 @@ using System.Linq;
 using System.Text;
 
 using Microsoft.Xna.Framework;
-
+using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Logging;
 using Orts.Common.Position;
@@ -35,8 +35,6 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
-
-using Event = Orts.Common.Event;
 
 namespace Orts.Simulation
 {
@@ -966,7 +964,7 @@ namespace Orts.Simulation
                         {
                             maydepart = true;
                             DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. You may depart now.");
-                            Simulator.SoundNotify = Event.PermissionToDepart;
+                            Simulator.SoundNotify = TrainEvent.PermissionToDepart;
                         }
 
                         ldbfevaldepartbeforeboarding = false;//reset flag. Debrief Eval

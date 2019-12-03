@@ -56,7 +56,6 @@ using Orts.Simulation.AIs;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 
-using Event = Orts.Common.Event;
 using Events = Orts.Common.Events;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -829,7 +828,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Check if an event needs action from one of discrete triggers
         /// </summary>
         /// <param name="eventID">Occured event</param>
-        public void HandleEvent(Event eventID)
+        public void HandleEvent(TrainEvent eventID)
         {
             foreach (var ss in SoundStreams)
             {
@@ -1549,7 +1548,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Event this trigger listens to
         /// </summary>
-        public Event TriggerID;
+        public TrainEvent TriggerID;
         /// <summary>
         /// Store the owning SoundStream
         /// </summary>
@@ -1570,7 +1569,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Check if this trigger listens to an event
         /// </summary>
         /// <param name="eventID">Occured event</param>
-        public void HandleEvent(Event eventID)
+        public void HandleEvent(TrainEvent eventID)
         {
             if (eventID == TriggerID)
             {
@@ -1583,7 +1582,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         /// <param name="eventID">Occured event</param>
         /// <param name="viewer">Object the event belongs to</param>
-        public void HandleEvent(Event eventID, object viewer)
+        public void HandleEvent(TrainEvent eventID, object viewer)
         {
             if (eventID == TriggerID)
             {

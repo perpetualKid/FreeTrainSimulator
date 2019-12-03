@@ -67,8 +67,6 @@ using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
 
-using Event = Orts.Common.Event;
-
 namespace Orts.Simulation.RollingStocks
 {
 
@@ -996,9 +994,9 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Restore(BinaryReader inf)
         {
-            if (inf.ReadBoolean()) SignalEvent(Event.BellOn);
-            if (inf.ReadBoolean()) SignalEvent(Event.SanderOn);
-            if (inf.ReadBoolean()) SignalEvent(Event.WiperOn);
+            if (inf.ReadBoolean()) SignalEvent(TrainEvent.BellOn);
+            if (inf.ReadBoolean()) SignalEvent(TrainEvent.SanderOn);
+            if (inf.ReadBoolean()) SignalEvent(TrainEvent.WiperOn);
             OdometerResetPositionM = inf.ReadSingle();
             OdometerCountingUp = inf.ReadBoolean();
             OdometerCountingForwards = inf.ReadBoolean();
@@ -1698,7 +1696,7 @@ namespace Orts.Simulation.RollingStocks
                 var throttleCurrentNotch = ThrottleController.CurrentNotch;
                 ThrottleController.Update(elapsedClockSeconds);
                 if (ThrottleController.CurrentNotch < throttleCurrentNotch && ThrottleController.ToZero)
-                    SignalEvent(Event.ThrottleChange);
+                    SignalEvent(TrainEvent.ThrottleChange);
                 ThrottlePercent = (ThrottleIntervention < 0 ? ThrottleController.CurrentValue : ThrottleIntervention) * 100.0f;
                 ConfirmWheelslip(elapsedClockSeconds);
                 LocalThrottlePercent = (ThrottleIntervention < 0 ? ThrottleController.CurrentValue : ThrottleIntervention) * 100.0f;
@@ -1904,9 +1902,9 @@ namespace Orts.Simulation.RollingStocks
         protected virtual void UpdateVacuumExhauster(double elapsedClockSeconds)
         {
             if (VacuumMainResVacuumPSIAorInHg > VacuumBrakesExhausterRestartVacuumPSIAorInHg && AuxPowerOn && !VacuumExhausterIsOn)
-                SignalEvent(Event.VacuumExhausterOn);
+                SignalEvent(TrainEvent.VacuumExhausterOn);
             else if ((VacuumMainResVacuumPSIAorInHg < VacuumBrakesMainResMaxVacuumPSIAorInHg || !AuxPowerOn) && VacuumExhausterIsOn)
-                SignalEvent(Event.VacuumExhausterOff);
+                SignalEvent(TrainEvent.VacuumExhausterOff);
 
             if (VacuumExhausterIsOn)
                 VacuumMainResVacuumPSIAorInHg -= (float)elapsedClockSeconds * VacuumBrakesMainResChargingRatePSIAorInHgpS;
@@ -1918,9 +1916,9 @@ namespace Orts.Simulation.RollingStocks
         protected virtual void UpdateCompressor(double elapsedClockSeconds)
         {
             if (MainResPressurePSI < CompressorRestartPressurePSI && AuxPowerOn && !CompressorIsOn)
-                SignalEvent(Event.CompressorOn);
+                SignalEvent(TrainEvent.CompressorOn);
             else if ((MainResPressurePSI > MaxMainResPressurePSI || !AuxPowerOn) && CompressorIsOn)
-                SignalEvent(Event.CompressorOff);
+                SignalEvent(TrainEvent.CompressorOff);
 
             if (CompressorIsOn)
                 MainResPressurePSI += (float)elapsedClockSeconds * MainResChargingRatePSIpS;
@@ -1934,12 +1932,12 @@ namespace Orts.Simulation.RollingStocks
             Horn = ManualHorn || TCSHorn;
             if (Horn && !PreviousHorn)
             {
-                SignalEvent(Event.HornOn);
+                SignalEvent(TrainEvent.HornOn);
                 if (MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "HORN", 1)).ToString());
             }
             else if (!Horn && PreviousHorn)
             {
-                SignalEvent(Event.HornOff);
+                SignalEvent(TrainEvent.HornOff);
                 if (MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "HORN", 0)).ToString());
             }
 
@@ -1959,12 +1957,12 @@ namespace Orts.Simulation.RollingStocks
             Bell = BellState != SoundState.Stopped;
             if (Bell && !PreviousBell)
             {
-                SignalEvent(Event.BellOn);
+                SignalEvent(TrainEvent.BellOn);
                 if (Train.TrainType != Train.TRAINTYPE.REMOTE && MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "BELL", 1)).ToString());
             }
             else if (!Bell && PreviousBell)
             {
-                SignalEvent(Event.BellOff);
+                SignalEvent(TrainEvent.BellOff);
                 if (Train.TrainType != Train.TRAINTYPE.REMOTE && MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "BELL", 0)).ToString());
             }
 
@@ -2502,9 +2500,9 @@ namespace Orts.Simulation.RollingStocks
                 Direction = direction;
                 switch (direction)
                 {
-                    case Direction.Reverse: SignalEvent(Event.ReverserToForwardBackward); break;
-                    case Direction.N: SignalEvent(Event.ReverserToNeutral); break;
-                    case Direction.Forward: SignalEvent(Event.ReverserToForwardBackward); break;
+                    case Direction.Reverse: SignalEvent(TrainEvent.ReverserToForwardBackward); break;
+                    case Direction.N: SignalEvent(TrainEvent.ReverserToNeutral); break;
+                    case Direction.Forward: SignalEvent(TrainEvent.ReverserToForwardBackward); break;
                 }
                 // passes event also to other locomotives
                 foreach (TrainCar car in Train.Cars)
@@ -2513,13 +2511,13 @@ namespace Orts.Simulation.RollingStocks
                     if (loco != null && car != this && loco.AcceptMUSignals)
                         switch (direction)
                         {
-                            case Direction.Reverse: loco.SignalEvent(Event.ReverserToForwardBackward); break;
-                            case Direction.N: loco.SignalEvent(Event.ReverserToNeutral); break;
-                            case Direction.Forward: loco.SignalEvent(Event.ReverserToForwardBackward); break;
+                            case Direction.Reverse: loco.SignalEvent(TrainEvent.ReverserToForwardBackward); break;
+                            case Direction.N: loco.SignalEvent(TrainEvent.ReverserToNeutral); break;
+                            case Direction.Forward: loco.SignalEvent(TrainEvent.ReverserToForwardBackward); break;
                         }
 
                 }
-                SignalEvent(Event.ReverserChange);
+                SignalEvent(TrainEvent.ReverserChange);
                 if (direction == Direction.Forward)
                     Train.MUReverserPercent = 100;
                 else
@@ -2570,7 +2568,7 @@ namespace Orts.Simulation.RollingStocks
             if (target != null) ThrottleController.StartIncrease(target);
             else new NotchedThrottleCommand(Simulator.Log, true);
 
-            SignalEvent(Event.ThrottleChange);
+            SignalEvent(TrainEvent.ThrottleChange);
             AlerterReset(TCSEvent.ThrottleChanged);
             CommandStartTime = Simulator.ClockTime;
         }
@@ -2616,7 +2614,7 @@ namespace Orts.Simulation.RollingStocks
             if (target != null) ThrottleController.StartDecrease(target);
             else new NotchedThrottleCommand(Simulator.Log, false);
 
-            SignalEvent(Event.ThrottleChange);
+            SignalEvent(TrainEvent.ThrottleChange);
             AlerterReset(TCSEvent.ThrottleChanged);
             CommandStartTime = Simulator.ClockTime;
         }
@@ -2654,7 +2652,7 @@ namespace Orts.Simulation.RollingStocks
             if (IsPlayerTrain)
                 Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamHeat, CabSetting.Increase, SteamHeatController.CurrentValue * 100);
             SteamHeatController.StartIncrease(target);
-            SignalEvent(Event.SteamHeatChange);
+            SignalEvent(TrainEvent.SteamHeatChange);
         }
 
         public void StopSteamHeatIncrease()
@@ -2668,7 +2666,7 @@ namespace Orts.Simulation.RollingStocks
             if (IsPlayerTrain)
                 Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamHeat, CabSetting.Decrease, SteamHeatController.CurrentValue * 100);
             SteamHeatController.StartDecrease(target);
-            SignalEvent(Event.SteamHeatChange);
+            SignalEvent(TrainEvent.SteamHeatChange);
         }
 
         public void StopSteamHeatDecrease()
@@ -2714,16 +2712,16 @@ namespace Orts.Simulation.RollingStocks
             if (Simulator.PlayerLocomotive == this)
             {
                 WaterScoopDown = !WaterScoopDown;
-                SignalEvent(Event.CylinderCocksToggle);
+                SignalEvent(TrainEvent.CylinderCocksToggle);
                 if (WaterScoopDown)
                 {
                     IsWaterScoopDown = true; // Set flag to potentially fill from water trough
-                    SignalEvent(Event.WaterScoopDown);
+                    SignalEvent(TrainEvent.WaterScoopDown);
                 }
                 else
                 {
                     IsWaterScoopDown = false;
-                    SignalEvent(Event.WaterScoopUp);
+                    SignalEvent(TrainEvent.WaterScoopUp);
                     WaterScoopOverTroughFlag = false; // Reset flags so that message will come up again
                     WaterScoopNotFittedFlag = false;
                     WaterScoopSlowSpeedFlag = false;
@@ -2784,7 +2782,7 @@ namespace Orts.Simulation.RollingStocks
             if (change != 0)
             {
                 new ContinuousThrottleCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
-                SignalEvent(Event.ThrottleChange);
+                SignalEvent(TrainEvent.ThrottleChange);
                 AlerterReset(TCSEvent.ThrottleChanged);
             }
             if (oldValue != controller.IntermediateValue)
@@ -2816,7 +2814,7 @@ namespace Orts.Simulation.RollingStocks
                 return;
 
             ThrottleController.StartDecrease(target, true);
-            if (ThrottleController.NotchCount() <= 0) SignalEvent(Event.ThrottleChange);
+            if (ThrottleController.NotchCount() <= 0) SignalEvent(TrainEvent.ThrottleChange);
             AlerterReset(TCSEvent.ThrottleChanged);
             CommandStartTime = Simulator.ClockTime;
         }
@@ -2924,7 +2922,7 @@ namespace Orts.Simulation.RollingStocks
             if (change != 0)
             {
                 //new GarBoxCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
-                SignalEvent(change > 0 ? Event.GearUp : Event.GearDown);
+                SignalEvent(change > 0 ? TrainEvent.GearUp : TrainEvent.GearDown);
                 AlerterReset(TCSEvent.GearBoxChanged);
             }
             if (oldValue != controller.CurrentValue)
@@ -2942,7 +2940,7 @@ namespace Orts.Simulation.RollingStocks
             TrainBrakeController.StartIncrease(target);
             TrainBrakeController.CommandStartTime = Simulator.ClockTime;
             Simulator.Confirmer.Confirm(CabControl.TrainBrake, CabSetting.Increase, GetTrainBrakeStatus());
-            SignalEvent(Event.TrainBrakeChange);
+            SignalEvent(TrainEvent.TrainBrakeChange);
         }
 
         public void StopTrainBrakeIncrease()
@@ -2958,7 +2956,7 @@ namespace Orts.Simulation.RollingStocks
             TrainBrakeController.StartDecrease(target, toZero);
             TrainBrakeController.CommandStartTime = Simulator.ClockTime;
             Simulator.Confirmer.Confirm(CabControl.TrainBrake, CabSetting.Decrease, GetTrainBrakeStatus());
-            SignalEvent(Event.TrainBrakeChange);
+            SignalEvent(TrainEvent.TrainBrakeChange);
         }
 
         public void StopTrainBrakeDecrease()
@@ -3026,7 +3024,7 @@ namespace Orts.Simulation.RollingStocks
             if (change != 0)
             {
                 new TrainBrakeCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
-                SignalEvent(Event.TrainBrakeChange);
+                SignalEvent(TrainEvent.TrainBrakeChange);
                 AlerterReset(TCSEvent.TrainBrakeChanged);
             }
             if (oldValue != controller.IntermediateValue)
@@ -3052,7 +3050,7 @@ namespace Orts.Simulation.RollingStocks
 
             EngineBrakeController.StartIncrease(target);
             Simulator.Confirmer.Confirm(CabControl.EngineBrake, CabSetting.Increase, GetEngineBrakeStatus());
-            SignalEvent(Event.EngineBrakeChange);
+            SignalEvent(TrainEvent.EngineBrakeChange);
         }
 
         /// <summary>
@@ -3077,7 +3075,7 @@ namespace Orts.Simulation.RollingStocks
             EngineBrakeController.StartDecrease(target);
             EngineBrakeController.CommandStartTime = Simulator.ClockTime; // Remember when the command was issued
             Simulator.Confirmer.Confirm(CabControl.EngineBrake, CabSetting.Increase, GetEngineBrakeStatus());
-            SignalEvent(Event.EngineBrakeChange);
+            SignalEvent(TrainEvent.EngineBrakeChange);
         }
 
         /// <summary>
@@ -3119,7 +3117,7 @@ namespace Orts.Simulation.RollingStocks
             if (change != 0)
             {
                 new EngineBrakeCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
-                SignalEvent(Event.EngineBrakeChange);
+                SignalEvent(TrainEvent.EngineBrakeChange);
                 AlerterReset(TCSEvent.EngineBrakeChanged);
             }
             if (oldValue != controller.IntermediateValue)
@@ -3178,7 +3176,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else if (DynamicBrake)
             {
-                SignalEvent(Event.DynamicBrakeChange);
+                SignalEvent(TrainEvent.DynamicBrakeChange);
                 DynamicBrakeController.StartIncrease(target);
                 if (!HasSmoothStruc)
                 {
@@ -3210,7 +3208,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else if (DynamicBrake)
             {
-                SignalEvent(Event.DynamicBrakeChange);
+                SignalEvent(TrainEvent.DynamicBrakeChange);
                 DynamicBrakeController.StartDecrease(target);
                 if (!HasSmoothStruc)
                 {
@@ -3266,7 +3264,7 @@ namespace Orts.Simulation.RollingStocks
             if (change != 0)
             {
                 new DynamicBrakeCommand(Simulator.Log, change > 0, controller.CurrentValue, Simulator.ClockTime);
-                SignalEvent(Event.DynamicBrakeChange);
+                SignalEvent(TrainEvent.DynamicBrakeChange);
                 AlerterReset(TCSEvent.DynamicBrakeChanged);
             }
             if (oldValue != controller.IntermediateValue)
@@ -3291,7 +3289,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else if (!toState && DynamicBrake && DynamicBrakePercent > -1 && DynamicBrakeIntervention < 0)
             {
-                SignalEvent(Event.DynamicBrakeOff);
+                SignalEvent(TrainEvent.DynamicBrakeOff);
                 DynamicBrakePercent = -1;
                 DynamicBrakeController.CommandStartTime = Simulator.ClockTime;
                 StopDynamicBrakeIncrease();
@@ -3364,7 +3362,7 @@ namespace Orts.Simulation.RollingStocks
                 return;
 
             CabLightOn = !CabLightOn;
-            SignalEvent(Event.CabLightSwitchToggle);
+            SignalEvent(TrainEvent.CabLightSwitchToggle);
             Simulator.Confirmer.Confirm(CabControl.CabLight, CabLightOn ? CabSetting.On : CabSetting.Off);
         }
 
@@ -3373,8 +3371,8 @@ namespace Orts.Simulation.RollingStocks
             CabRadioOn = newState;
             if (!OnLineCabRadio)
             {
-                if (CabRadioOn) SignalEvent(Event.CabRadioOn); // hook for sound trigger
-                else SignalEvent(Event.CabRadioOff);
+                if (CabRadioOn) SignalEvent(TrainEvent.CabRadioOn); // hook for sound trigger
+                else SignalEvent(TrainEvent.CabRadioOff);
             }
             else if (OnLineCabRadioURL != "")
             { }
@@ -3383,7 +3381,7 @@ namespace Orts.Simulation.RollingStocks
 
         public void ToggleWipers(bool newState)
         {
-            SignalEvent(newState ? Event.WiperOn : Event.WiperOff);
+            SignalEvent(newState ? TrainEvent.WiperOn : TrainEvent.WiperOff);
         }
 
         public void SetBailOff(bool bailOff)
@@ -3520,9 +3518,9 @@ namespace Orts.Simulation.RollingStocks
                                     }
                                 }
                                 if (mstsDieselLocomotive.DieselEngines[1].EngineStatus == DieselEngine.Status.Stopping)
-                                    mstsDieselLocomotive.SignalEvent(Event.SecondEnginePowerOff);
+                                    mstsDieselLocomotive.SignalEvent(TrainEvent.SecondEnginePowerOff);
                                 else if (mstsDieselLocomotive.DieselEngines[1].EngineStatus == DieselEngine.Status.Starting)
-                                    mstsDieselLocomotive.SignalEvent(Event.SecondEnginePowerOn);
+                                    mstsDieselLocomotive.SignalEvent(TrainEvent.SecondEnginePowerOn);
                             }
                         }
                         else
@@ -3561,15 +3559,15 @@ namespace Orts.Simulation.RollingStocks
                     if ((car != Simulator.PlayerLocomotive) && (mstsDieselLocomotive.AcceptMUSignals))
                     {
                         if (mstsDieselLocomotive.DieselEngines[0].EngineStatus == DieselEngine.Status.Stopping)
-                            mstsDieselLocomotive.SignalEvent(Event.EnginePowerOff);
+                            mstsDieselLocomotive.SignalEvent(TrainEvent.EnginePowerOff);
                         else if (mstsDieselLocomotive.DieselEngines[0].EngineStatus == DieselEngine.Status.Starting)
-                            mstsDieselLocomotive.SignalEvent(Event.EnginePowerOn);
+                            mstsDieselLocomotive.SignalEvent(TrainEvent.EnginePowerOn);
                         if (mstsDieselLocomotive.DieselEngines.Count > 1)
                         {
                             if (mstsDieselLocomotive.DieselEngines[1].EngineStatus == DieselEngine.Status.Stopping)
-                                mstsDieselLocomotive.SignalEvent(Event.SecondEnginePowerOff);
+                                mstsDieselLocomotive.SignalEvent(TrainEvent.SecondEnginePowerOff);
                             else if (mstsDieselLocomotive.DieselEngines[1].EngineStatus == DieselEngine.Status.Starting)
-                                mstsDieselLocomotive.SignalEvent(Event.SecondEnginePowerOn);
+                                mstsDieselLocomotive.SignalEvent(TrainEvent.SecondEnginePowerOn);
                         }
                     }
                     helperLocos++;
@@ -3584,40 +3582,40 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
-        public override void SignalEvent(Event evt)
+        public override void SignalEvent(TrainEvent evt)
         {
             switch (evt)
             {
-                case Event.VigilanceAlarmOn: { AlerterSnd = true; if (Simulator.Settings.Alerter) Simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.On); break; }
-                case Event.VigilanceAlarmOff: { AlerterSnd = false; if (Simulator.Settings.Alerter) Simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.Off); break; }
-                case Event.BellOn:
-                case Event.BellOff:
+                case TrainEvent.VigilanceAlarmOn: { AlerterSnd = true; if (Simulator.Settings.Alerter) Simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.On); break; }
+                case TrainEvent.VigilanceAlarmOff: { AlerterSnd = false; if (Simulator.Settings.Alerter) Simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.Off); break; }
+                case TrainEvent.BellOn:
+                case TrainEvent.BellOff:
                     if (this == Simulator.PlayerLocomotive && Simulator.Confirmer != null)
                         Simulator.Confirmer.Confirm(CabControl.Bell, Bell ? CabSetting.On : CabSetting.Off);
                     break;
-                case Event.HornOn:
-                case Event.HornOff:
+                case TrainEvent.HornOn:
+                case TrainEvent.HornOff:
                     if (this == Simulator.PlayerLocomotive && Simulator.Confirmer != null)
                         Simulator.Confirmer.Confirm(this is MSTSSteamLocomotive ? CabControl.Whistle : CabControl.Horn, Horn ? CabSetting.On : CabSetting.Off);
                     break;
-                case Event.SanderOn: { Sander = true; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.On); break; }
-                case Event.SanderOff: { Sander = false; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.Off); break; }
-                case Event.WiperOn: { Wiper = true; if (this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.On); break; }
-                case Event.WiperOff: { Wiper = false; if (this == Simulator.PlayerLocomotive) Simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.Off); break; }
+                case TrainEvent.SanderOn: { Sander = true; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.On); break; }
+                case TrainEvent.SanderOff: { Sander = false; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.Off); break; }
+                case TrainEvent.WiperOn: { Wiper = true; if (this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.On); break; }
+                case TrainEvent.WiperOff: { Wiper = false; if (this == Simulator.PlayerLocomotive) Simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.Off); break; }
 
                 // <CJComment> The "H" key doesn't call these SignalEvents yet. </CJComment>
-                case Event._HeadlightOff: { Headlight = 0; break; }
-                case Event._HeadlightDim: { Headlight = 1; break; }
-                case Event._HeadlightOn: { Headlight = 2; break; }
+                case TrainEvent._HeadlightOff: { Headlight = 0; break; }
+                case TrainEvent._HeadlightDim: { Headlight = 1; break; }
+                case TrainEvent._HeadlightOn: { Headlight = 2; break; }
 
-                case Event.CompressorOn: { CompressorIsOn = true; break; }
-                case Event.CompressorOff: { CompressorIsOn = false; break; }
-                case Event.VacuumExhausterOn: { VacuumExhausterIsOn = true; break; }
-                case Event.VacuumExhausterOff : { VacuumExhausterIsOn = false; break; }
+                case TrainEvent.CompressorOn: { CompressorIsOn = true; break; }
+                case TrainEvent.CompressorOff: { CompressorIsOn = false; break; }
+                case TrainEvent.VacuumExhausterOn: { VacuumExhausterIsOn = true; break; }
+                case TrainEvent.VacuumExhausterOff : { VacuumExhausterIsOn = false; break; }
 
-                case Event._ResetWheelSlip: { LocomotiveAxle.Reset(Simulator.GameTime, SpeedMpS); ThrottleController.SetValue(0.0f); break; }
-                case Event.TrainBrakePressureDecrease:
-                case Event.TrainBrakePressureIncrease:
+                case TrainEvent._ResetWheelSlip: { LocomotiveAxle.Reset(Simulator.GameTime, SpeedMpS); ThrottleController.SetValue(0.0f); break; }
+                case TrainEvent.TrainBrakePressureDecrease:
+                case TrainEvent.TrainBrakePressureIncrease:
                     {
                         if (Train.TrainType == Train.TRAINTYPE.AI || Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
                         {
