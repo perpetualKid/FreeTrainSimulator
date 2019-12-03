@@ -66,7 +66,7 @@ namespace Orts.Viewer3D
                     railDriverInstance = RailDriverBase.GetInstance64();
                 else
                     railDriverInstance = RailDriverBase.GetInstance32();
-                if (railDriverInstance != null)
+                if (railDriverInstance.Enabled)
                 {
                     settings = game.Settings.RailDriver;
                     byte cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.CutOffDelta];
@@ -142,7 +142,7 @@ namespace Orts.Viewer3D
         public void Update()
         {
             (readBufferHistory, readBuffer) = (readBuffer, readBufferHistory);
-            if (railDriverInstance != null && 0 == railDriverInstance.ReadCurrentData(ref readBuffer))
+            if (railDriverInstance.Enabled && 0 == railDriverInstance.ReadCurrentData(ref readBuffer))
             {
                 if (Active)
                 {
@@ -171,7 +171,7 @@ namespace Orts.Viewer3D
 
         public void Activate()
         {
-            if (railDriverInstance != null)
+            if (railDriverInstance.Enabled)
             {
                 Active = !Active;
                 railDriverInstance.EnableSpeaker(Active);
@@ -262,7 +262,7 @@ namespace Orts.Viewer3D
 
         public void Shutdown()
         {
-            if (railDriverInstance != null)
+            if (railDriverInstance.Enabled)
             {
                 railDriverInstance?.ClearDisplay();
                 railDriverInstance?.Shutdown();
@@ -291,7 +291,7 @@ namespace Orts.Viewer3D
 
         public bool IsPressed(UserCommand command)
         {
-            if (!(Active || (railDriverInstance != null && command == UserCommand.GameExternalCabController)))
+            if (!(Active || (railDriverInstance.Enabled && command == UserCommand.GameExternalCabController)))
                 return false;
             byte raildriverCommand = settings.UserCommands[(int)command];
             if (raildriverCommand == byte.MaxValue)

@@ -76,13 +76,9 @@ namespace Orts.ExternalDevices
             if (null == instance)
             {
                 instance = new RailDriver32();
-            }
-            if (instance.WriteBufferSize == 0) return null;
-            else
-            {
                 writeBuffer = instance.NewWriteBuffer;
-                return null;
             }
+            return instance;
         }
 
         public static RailDriverBase GetInstance64()
@@ -90,13 +86,9 @@ namespace Orts.ExternalDevices
             if (null == instance)
             {
                 instance = new RailDriver64();
-            }
-            if (instance.WriteBufferSize == 0) return null;
-            else
-            {
                 writeBuffer = instance.NewWriteBuffer;
-                return null;
             }
+            return instance;
         }
 
         public abstract int WriteBufferSize { get; }
@@ -111,6 +103,8 @@ namespace Orts.ExternalDevices
         public abstract int BlockingReadCurrentData(ref byte[] data, int timeout);
 
         public abstract void Shutdown();
+
+        public abstract bool Enabled { get; }
 
 
         /// <summary>
@@ -137,6 +131,7 @@ namespace Orts.ExternalDevices
         /// <param name="led3"></param>
         public void SetLeds(RailDriverDisplaySign led1, RailDriverDisplaySign led2, RailDriverDisplaySign led3)
         {
+            if (writeBuffer.Length == 0) return;
             writeBuffer.Initialize();
             writeBuffer[1] = 134;
             writeBuffer[2] = (byte)led3;
@@ -227,6 +222,8 @@ namespace Orts.ExternalDevices
 
         public override int ReadBufferSize => device?.ReadLength ?? 0;
 
+        public override bool Enabled => device != null;
+
         public override int BlockingReadCurrentData(ref byte[] data, int timeout)
         {
             return device?.BlockingReadData(ref data, timeout) ?? -1;
@@ -278,6 +275,7 @@ namespace Orts.ExternalDevices
 
         public override int ReadBufferSize => (int)(device?.ReadLength ?? 0);
 
+        public override bool Enabled => device != null;
 
         public override int BlockingReadCurrentData(ref byte[] data, int timeout)
         {

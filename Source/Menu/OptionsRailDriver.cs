@@ -20,7 +20,7 @@ namespace ORTS
         private Form railDriverLegend;
         private RailDriverCalibrationSetting currentCalibrationStep = RailDriverCalibrationSetting.CutOffDelta;
 
-        private byte[] calibrationSettings = new byte[EnumExtension.GetLength<RailDriverCalibrationSetting>()];
+        private byte[] calibrationSettings = new byte[Enum.GetNames(typeof(UserCommand)).Length];
         private bool isCalibrationSet;
 
         private static int[,] startingPoints = { 
@@ -76,7 +76,7 @@ namespace ORTS
                     {
                         e.Graphics.DrawRectangle(penLine, startingPoints[(int)currentCalibrationStep, 0], startingPoints[(int)currentCalibrationStep, 1], 60, 40);
                         e.Graphics.DrawLine(penArrow, 10, 10, startingPoints[(int)currentCalibrationStep, 0] - 5, startingPoints[(int)currentCalibrationStep, 1] + 20);
-                        e.Graphics.DrawString(currentCalibrationStep.GetDescription(), new Font("Arial", 14), new SolidBrush(Color.Red), 80, 225);
+                        e.Graphics.DrawString(catalog.GetString(GetStringAttribute.GetPrettyName(currentCalibrationStep)), new Font("Arial", 14), new SolidBrush(Color.Red), 80, 225);
                     }
                 };
             }
@@ -87,11 +87,10 @@ namespace ORTS
             return railDriverLegend;
         }
 
-        private System.Threading.Tasks.Task<Panel> InitializeRailDriverInputControls()
+        private Panel InitializeRailDriverInputControls()
         {
-            TaskCompletionSource<Panel> tcs = new TaskCompletionSource<Panel>();
             Panel panel = new Panel() { AutoScroll = true, Width = panelRDSettings.Width / 2 };
-            panel.SuspendLayout();
+//            panel.SuspendLayout();
 
             var columnWidth = (panel.ClientSize.Width - 20) / 3;
 
@@ -107,9 +106,9 @@ namespace ORTS
             string previousCategory = "";
             var i = 0;
 
-            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
+            foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
             {
-                string name = catalog.GetString(command.GetDescription());
+                string name = InputSettings.GetPrettyLocalizedName(command);
                 string category, description;
                 int index = name.IndexOf(' ');
                 if (index == -1)
@@ -158,25 +157,23 @@ namespace ORTS
 
                 ++i;
             }
-            panel.ResumeLayout(true);
-            tcs.SetResult(panel);
-            return tcs.Task;
+            return panel;
         }
 
-        private async Task InitializeRailDriverSettingsAsync()
+        private void InitializeRailDriverSettings()
         {
             if (Environment.Is64BitProcess)
                 instance = RailDriverBase.GetInstance64();
             else
                 instance = RailDriverBase.GetInstance32();
-                //#if !DEBUG
-                /*            if (instance == null)
-                            {
-                                tabOptions.TabPages.Remove(tabPageRailDriver);
-                                await Task.CompletedTask;
-                                return;
-                            }*/
-                //#endif
+            //#if !DEBUG
+            /*          if (!instance.Enabled)
+                        {
+                            tabOptions.TabPages.Remove(tabPageRailDriver);
+                            await Task.CompletedTask;
+                            return;
+                        }*/
+            //#endif
             panelRDButtons.Width = panelRDSettings.Width / 2;
             panelRDButtons.Controls.Clear();
 
@@ -185,7 +182,7 @@ namespace ORTS
             checkReverseAutoBrake.Checked = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake] != 0;
             checkReverseIndependentBrake.Checked = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake] != 0;
             checkFullRangeThrottle.Checked = Settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.FullRangeThrottle] != 0;
-            Panel controls = await Task.Run(InitializeRailDriverInputControls);
+            Panel controls = InitializeRailDriverInputControls();
             controls.Dock = DockStyle.Fill;
             panelRDButtons.Controls.Add(controls);
             foreach(Control control in controls.Controls)
@@ -203,7 +200,7 @@ namespace ORTS
             {
                 currentCalibrationStep = nextStep;
                 railDriverLegend.Invalidate(true);  //enforce redraw legend to show guidance
-                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{currentCalibrationStep.GetDescription()}\". Move the Lever as indicated through guidance. \r\n\r\nClick OK to read the position and continue. Click Cancel anytime to abort the calibration process.", "RailDriver Calibration", MessageBoxButtons.OKCancel);
+                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{catalog.GetString(GetStringAttribute.GetPrettyName(currentCalibrationStep))}\". Move the Lever as indicated through guidance. \r\n\r\nClick OK to read the position and continue. Click Cancel anytime to abort the calibration process.", "RailDriver Calibration", MessageBoxButtons.OKCancel);
                 // Read Setting
                 if (result == DialogResult.OK)
                 {
@@ -246,12 +243,12 @@ namespace ORTS
             RunCalibration();
         }
 
-        private async void BtnRDReset_Click(object sender, EventArgs e)
+        private void BtnRDReset_Click(object sender, EventArgs e)
         {
             if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom button assignments?"), Application.ProductName, MessageBoxButtons.YesNo))
             {
                 Settings.RailDriver.Reset();
-                await InitializeRailDriverSettingsAsync();
+                InitializeRailDriverSettings();
             }
         }
 
@@ -278,9 +275,9 @@ namespace ORTS
 
         private string CheckButtonAssignments()
         {
-            if (instance == null)
-                return string.Empty;
-            byte[] buttons = new byte[EnumExtension.GetLength<UserCommand>()];
+ //           if (!instance.Enabled)
+//                return string.Empty;
+            byte[] buttons = new byte[Enum.GetNames(typeof(UserCommand)).Length];
             foreach (Control control in panelRDButtons.Controls)
             {
                 if (control is Panel)

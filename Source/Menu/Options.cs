@@ -200,8 +200,8 @@ namespace ORTS
             // Keyboard tab
             InitializeKeyboardSettings();
 
-            ////RailDriver tab
-            //InitializeRailDriverSettings());
+            //RailDriver tab
+            InitializeRailDriverSettings();
 
             // DataLogger tab
             var dictionaryDataLoggerSeparator = new Dictionary<string, string>();
@@ -340,7 +340,8 @@ namespace ORTS
             numericActWeatherRandomizationLevel.Value = Settings.ActWeatherRandomizationLevel;
         }
 
-        private async void OptionsForm_Shown(object sender, EventArgs e)
+/*
+private async void OptionsForm_Shown(object sender, EventArgs e)
         {
             List<System.Threading.Tasks.Task> initTasks = new List<System.Threading.Tasks.Task>()
             {
@@ -348,7 +349,7 @@ namespace ORTS
                 InitializeRailDriverSettingsAsync()
             };
             await System.Threading.Tasks.Task.WhenAll(initTasks);
-        }
+        }*/
 
         static string ParseCategoryFrom(string name)
         {
@@ -497,6 +498,9 @@ namespace ORTS
 
             // Keyboard tab
             // These are edited live.
+
+            // Raildriver Tab
+            SaveRailDriverSettings();
 
             // DataLogger tab
             Settings.DataLoggerSeparator = comboDataLoggerSeparator.SelectedValue.ToString();

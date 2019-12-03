@@ -12,45 +12,45 @@ namespace ORTS.Settings
 {
     public enum RailDriverCalibrationSetting
     {
-        [Description("Reverser Neutral")] ReverserNeutral,
-        [Description("Reverser Full Reversed")] ReverserFullReversed,
-        [Description("Reverser Full Forward")] ReverserFullForward,
-        [Description("Throttle Idle")] ThrottleIdle,
-        [Description("Full Throttle")] ThrottleFull,
-        [Description("Dynamic Brake")] DynamicBrake,
-        [Description("Dynamic Brake Setup")] DynamicBrakeSetup,
-        [Description("Auto Brake Released")] AutoBrakeRelease,
-        [Description("Full Auto Brake ")] AutoBrakeFull,
-        [Description("Emergency Brake")] EmergencyBrake,
-        [Description("Independent Brake Released")] IndependentBrakeRelease,
-        [Description("Independent Brake Full")] IndependentBrakeFull,
-        [Description("Bail Off Disengaged (in Released position)")] BailOffDisengagedRelease,
-        [Description("Bail Off Engaged (in Released position)")] BailOffEngagedRelease,
-        [Description("Bail Off Disengaged (in Full position)")] BailOffDisengagedFull,
-        [Description("Bail Off Engaged (in Full position)")] BailOffEngagedFull,
-        [Description("Rotary Switch 1-Position 1(OFF)")] Rotary1Position1,
-        [Description("Rotary Switch 1-Position 2(SLOW)")] Rotary1Position2,
-        [Description("Rotary Switch 1-Position 3(FULL)")] Rotary1Position3,
-        [Description("Rotary Switch 2-Position 1(OFF)")] Rotary2Position1,
-        [Description("Rotary Switch 2-Position 2(DIM)")] Rotary2Position2,
-        [Description("Rotary Switch 2-Position 3(FULL)")] Rotary2Position3,
-        [Description("Reverse Reverser Direction")] ReverseReverser,
-        [Description("Reverse Throttle Direction")] ReverseThrottle,
-        [Description("Reverse Auto Brake Direction")] ReverseAutoBrake,
-        [Description("Reverse Independent Brake Direction")] ReverseIndependentBrake,
-        [Description("Full Range Throttle")] FullRangeThrottle,
-        [Description("Cut Off Delta")] CutOffDelta,
+        [GetString("Reverser Neutral")] ReverserNeutral,
+        [GetString("Reverser Full Reversed")] ReverserFullReversed,
+        [GetString("Reverser Full Forward")] ReverserFullForward,
+        [GetString("Throttle Idle")] ThrottleIdle,
+        [GetString("Full Throttle")] ThrottleFull,
+        [GetString("Dynamic Brake")] DynamicBrake,
+        [GetString("Dynamic Brake Setup")] DynamicBrakeSetup,
+        [GetString("Auto Brake Released")] AutoBrakeRelease,
+        [GetString("Full Auto Brake ")] AutoBrakeFull,
+        [GetString("Emergency Brake")] EmergencyBrake,
+        [GetString("Independent Brake Released")] IndependentBrakeRelease,
+        [GetString("Independent Brake Full")] IndependentBrakeFull,
+        [GetString("Bail Off Disengaged (in Released position)")] BailOffDisengagedRelease,
+        [GetString("Bail Off Engaged (in Released position)")] BailOffEngagedRelease,
+        [GetString("Bail Off Disengaged (in Full position)")] BailOffDisengagedFull,
+        [GetString("Bail Off Engaged (in Full position)")] BailOffEngagedFull,
+        [GetString("Rotary Switch 1-Position 1(OFF)")] Rotary1Position1,
+        [GetString("Rotary Switch 1-Position 2(SLOW)")] Rotary1Position2,
+        [GetString("Rotary Switch 1-Position 3(FULL)")] Rotary1Position3,
+        [GetString("Rotary Switch 2-Position 1(OFF)")] Rotary2Position1,
+        [GetString("Rotary Switch 2-Position 2(DIM)")] Rotary2Position2,
+        [GetString("Rotary Switch 2-Position 3(FULL)")] Rotary2Position3,
+        [GetString("Reverse Reverser Direction")] ReverseReverser,
+        [GetString("Reverse Throttle Direction")] ReverseThrottle,
+        [GetString("Reverse Auto Brake Direction")] ReverseAutoBrake,
+        [GetString("Reverse Independent Brake Direction")] ReverseIndependentBrake,
+        [GetString("Full Range Throttle")] FullRangeThrottle,
+        [GetString("Cut Off Delta")] CutOffDelta,
     }
 
     public class RailDriverSettings : SettingsBase
     {
-        private static readonly GettextResourceManager catalog = new GettextResourceManager("ORTS.Settings");
+        static readonly GettextResourceManager catalog = new GettextResourceManager("ORTS.Settings");
         private static readonly byte[] DefaultCalibrationSettings;
         private static readonly Dictionary<UserCommand, byte> DefaultUserCommands;
 
         private bool default0WhileSaving;
 
-        public readonly byte[] UserCommands = new byte[EnumExtension.GetLength<UserCommand>()];
+        public readonly byte[] UserCommands = new byte[Enum.GetNames(typeof(UserCommand)).Length];
 
         public readonly byte[] CalibrationSettings;
 
@@ -151,17 +151,17 @@ namespace ORTS.Settings
             //foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
             //    Reset(setting.ToString());
 
-            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
+            foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
                 Reset(command.ToString());
         }
 
         public override void Save()
         {
             default0WhileSaving = true; //temporarily "disable" default calibration settings, so Calibration Settings are always getting written to SettingsStore
-            foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
+            foreach (RailDriverCalibrationSetting setting in Enum.GetValues(typeof(RailDriverCalibrationSetting)))
                 Save(setting.ToString());
 
-            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
+            foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
                 Save(command.ToString());
 
             default0WhileSaving = false;
@@ -188,9 +188,9 @@ namespace ORTS.Settings
 
         protected override void Load(bool allowUserSettings, Dictionary<string, string> optionsDictionary)
         {
-            foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
+            foreach (RailDriverCalibrationSetting setting in Enum.GetValues(typeof(RailDriverCalibrationSetting)))
                 Load(allowUserSettings, optionsDictionary, setting.ToString(), typeof(byte));
-            foreach (var command in EnumExtension.GetValues<UserCommand>())
+            foreach (var command in Enum.GetValues(typeof(UserCommand)))
                 Load(allowUserSettings, optionsDictionary, command.ToString(), typeof(byte));
         }
 
@@ -225,7 +225,7 @@ namespace ORTS.Settings
                 errors.Append(catalog.GetStringFmt("Button {0} is assigned to \r\n\t", duplicate.Key));
                 foreach (var buttonMapping in duplicate)
                 {
-                    errors.Append($"\"{catalog.GetString(((UserCommand)buttonMapping.Index).GetDescription())}\" and ");
+                    errors.Append($"\"{InputSettings.GetPrettyLocalizedName((UserCommand)(buttonMapping.Index))}\" and ");
                 }
                 errors.Remove(errors.Length - 5, 5);
                 errors.AppendLine();
@@ -245,7 +245,7 @@ namespace ORTS.Settings
                 writer.WriteLine("{0,-40}{1,-40}", "Command", "Button");
                 writer.WriteLine(new string('=', 40 * 2));
                 foreach (var buttonMapping in buttonMappings)
-                    writer.WriteLine("{0,-40}{1,-40}", catalog.GetString(((UserCommand)buttonMapping.Index).GetDescription()), buttonMapping.Button);
+                    writer.WriteLine("{0,-40}{1,-40}", InputSettings.GetPrettyLocalizedName((UserCommand)(buttonMapping.Index)), buttonMapping.Button);
             }
         }
 

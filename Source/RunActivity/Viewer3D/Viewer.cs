@@ -199,7 +199,7 @@ namespace Orts.Viewer3D
 
         public Camera SuspendedCamera { get; private set; }
 
-        UserInputRailDriver RailDriver;
+//        UserInputRailDriver RailDriver;
 
         public static double DbfEvalAutoPilotTimeS = 0;//Debrief eval
         public static double DbfEvalIniAutoPilotTimeS = 0;//Debrief eval  
@@ -1610,7 +1610,7 @@ namespace Orts.Viewer3D
         internal void Terminate()
         {
             InfoDisplay.Terminate();
-            RailDriver.Shutdown();
+            UserInput.RDState.Shutdown();
         }
 
         private int trainCount;

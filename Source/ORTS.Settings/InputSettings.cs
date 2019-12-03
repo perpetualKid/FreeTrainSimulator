@@ -638,7 +638,7 @@ namespace ORTS.Settings
     }
 
     /// <summary>
-    /// Stores a specific combination of keyboard modifiers for comparison with a <see cref="KeyboardState"/>.
+    /// Stores a specific combination of keyboard modifiers for comparison with a <see cref="KeyboaRailDriver"/>.
     /// </summary>
     public class UserCommandModifierInput : UserCommandInput
     {
@@ -712,7 +712,7 @@ namespace ORTS.Settings
     }
 
     /// <summary>
-    /// Stores a key and specific combination of keyboard modifiers for comparison with a <see cref="KeyboardState"/>.
+    /// Stores a key and specific combination of keyboard modifiers for comparison with a <see cref="KeyboaRailDriver"/>.
     /// </summary>
     public class UserCommandKeyInput : UserCommandInput
     {
@@ -825,7 +825,7 @@ namespace ORTS.Settings
     }
 
     /// <summary>
-    /// Stores a key, specific combination of keyboard modifiers and a set of keyboard modifiers to ignore for comparison with a <see cref="KeyboardState"/>.
+    /// Stores a key, specific combination of keyboard modifiers and a set of keyboard modifiers to ignore for comparison with a <see cref="KeyboaRailDriver"/>.
     /// </summary>
     public class UserCommandModifiableKeyInput : UserCommandKeyInput
     {
