@@ -47,9 +47,8 @@
   <ItemGroup>
     <Compile Include="Common\CommandLog.cs" />
     <Compile Include="Common\Commands.cs" />
-    <Compile Include="Common\Events.cs" />
     <Compile Include="Common\OrtsPaths.cs" />
-    <Compile Include="Common\SteamTable.cs" />
+    <Compile Include="Simulation\Physics\SteamTable.cs" />
     <Compile Include="MultiPlayer\ClientComm.cs" />
     <Compile Include="MultiPlayer\Decoder.cs" />
     <Compile Include="MultiPlayer\Message.cs" />
