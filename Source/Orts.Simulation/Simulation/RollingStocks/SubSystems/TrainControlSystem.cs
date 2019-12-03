@@ -24,6 +24,7 @@ using System.IO;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
 using Orts.Simulation.Physics;
@@ -209,7 +210,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "SOUND"),
                     Path.Combine(Simulator.BasePath, "SOUND"),
                 };
-                var soundPath = ORTSPaths.GetFileFromFolders(soundPathArray, SoundFileName);
+                var soundPath = FolderStructure.FindFileFromFolders(soundPathArray, SoundFileName);
                 if (File.Exists(soundPath))
                     Sounds.Add(Script, soundPath);
             }

@@ -82,16 +82,16 @@ namespace Orts.ActivityRunner.Viewer3D
             };
 
             ClearSound = new List<SoundSourceBase>() {
-                new SoundSource(viewer, SoundEventSource.InGame, ORTSPaths.GetFileFromFolders(pathArray, "clear_in.sms"), false),
-                new SoundSource(viewer, SoundEventSource.InGame, ORTSPaths.GetFileFromFolders(pathArray, "clear_ex.sms"), false),
+                new SoundSource(viewer, SoundEventSource.InGame, FolderStructure.FindFileFromFolders(pathArray, "clear_in.sms"), false),
+                new SoundSource(viewer, SoundEventSource.InGame, FolderStructure.FindFileFromFolders(pathArray, "clear_ex.sms"), false),
             };
             RainSound = new List<SoundSourceBase>() {
-                new SoundSource(viewer, SoundEventSource.InGame, ORTSPaths.GetFileFromFolders(pathArray, "rain_in.sms"), false),
-                new SoundSource(viewer, SoundEventSource.InGame, ORTSPaths.GetFileFromFolders(pathArray, "rain_ex.sms"), false),
+                new SoundSource(viewer, SoundEventSource.InGame, FolderStructure.FindFileFromFolders(pathArray, "rain_in.sms"), false),
+                new SoundSource(viewer, SoundEventSource.InGame, FolderStructure.FindFileFromFolders(pathArray, "rain_ex.sms"), false),
             };
             SnowSound = new List<SoundSourceBase>() {
-                new SoundSource(viewer, SoundEventSource.InGame, ORTSPaths.GetFileFromFolders(pathArray, "snow_in.sms"), false),
-                new SoundSource(viewer, SoundEventSource.InGame, ORTSPaths.GetFileFromFolders(pathArray, "snow_ex.sms"), false),
+                new SoundSource(viewer, SoundEventSource.InGame, FolderStructure.FindFileFromFolders(pathArray, "snow_in.sms"), false),
+                new SoundSource(viewer, SoundEventSource.InGame, FolderStructure.FindFileFromFolders(pathArray, "snow_ex.sms"), false),
             };
 
             WeatherSounds.AddRange(ClearSound);
