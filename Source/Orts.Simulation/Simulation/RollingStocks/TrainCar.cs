@@ -336,17 +336,17 @@ namespace Orts.Simulation.RollingStocks
                 if (IsDriveable && Train.IsActualPlayerTrain)
                 {
                     var loco = this as MSTSLocomotive;
-                    return Flipped ^ loco.UsingRearCab ? DirectionControl.Flip(Train.MUDirection) : Train.MUDirection;
+                    return Flipped ^ loco.UsingRearCab ? (Direction)((int)Train.MUDirection * -1) : Train.MUDirection;
                 }
                 else
                 {
-                    return Flipped ? DirectionControl.Flip(Train.MUDirection) : Train.MUDirection;
+                    return Flipped ? (Direction)((int)Train.MUDirection * -1) : Train.MUDirection;
                 }
             }
             set
             {
                 var loco = this as MSTSLocomotive;
-                Train.MUDirection = Flipped ^ loco.UsingRearCab ? DirectionControl.Flip(value) : value;
+                Train.MUDirection = Flipped ^ loco.UsingRearCab ? (Direction)((int)value * -1) : value;
             }
         }
         public BrakeSystem BrakeSystem;

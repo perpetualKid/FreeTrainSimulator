@@ -1434,7 +1434,7 @@ namespace Orts.Simulation.Physics
             if (setMUParameters)
             {
                 // Flip the controls.
-                MUDirection = DirectionControl.Flip(MUDirection);
+                MUDirection = (Direction)((int)MUDirection * -1);
                 MUReverserPercent = -MUReverserPercent;
             }
             if (!((this is AITrain && (this as AITrain).AI.PreUpdate) || this.TrainType == TRAINTYPE.STATIC)) FormationReversed = true;

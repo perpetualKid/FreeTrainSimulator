@@ -134,9 +134,9 @@ namespace Orts.Common
     [Description("Reverser")]
     public enum Direction
     {
-        [Description("Forward")] Forward,
-        [Description("Reverse")] Reverse,
-        [Description("N")] N
+        [Description("Reverse")] Reverse = -1,
+        [Description("N")] N = 0,
+        [Description("Forward")] Forward = 1,
     }
 
     [Description("Rotation")]
@@ -145,19 +145,6 @@ namespace Orts.Common
         CounterClockwise = -1,
         None = 0,
         Clockwise = 1,
-    }
-    public class DirectionControl
-    {
-        public static Direction Flip(Direction direction)
-        {
-            //return direction == Direction.Forward ? Direction.Reverse : Direction.Forward;
-            if (direction == Direction.N)
-                return Direction.N;
-            if (direction == Direction.Forward)
-                return Direction.Reverse;
-            else
-                return Direction.Forward;
-        }
     }
 
     public enum TrackMonitorSignalAspect
