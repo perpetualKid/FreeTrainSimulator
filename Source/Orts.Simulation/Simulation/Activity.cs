@@ -135,15 +135,15 @@ namespace Orts.Simulation
             // Compile list of freight events, if any, from the parsed ACT file.
             foreach (var i in actFile?.Activity?.Events?.AsEnumerable())
             {
-                if (i is EventCategoryAction)
+                if (i is ActionActivityEvent)
                 {
                     EventList.Add(new EventCategoryActionWrapper(i, Simulator));
                 }
-                if (i is EventCategoryLocation)
+                if (i is LocationActivityEvent)
                 {
                     EventList.Add(new EventCategoryLocationWrapper(i, Simulator));
                 }
-                if (i is EventCategoryTime)
+                if (i is TimeActivityEvent)
                 {
                     EventList.Add(new EventCategoryTimeWrapper(i, Simulator));
                 }
@@ -1228,7 +1228,7 @@ namespace Orts.Simulation
         public EventCategoryActionWrapper(Orts.Formats.Msts.Models.ActivityEvent @event, Simulator simulator)
             : base(@event, simulator)
         {
-            var e = this.ParsedObject as EventCategoryAction;
+            var e = this.ParsedObject as ActionActivityEvent;
             if (e.SidingId != null)
             {
                 var i = e.SidingId.Value;
@@ -1252,7 +1252,7 @@ namespace Orts.Simulation
         override public Boolean Triggered(Activity activity)
         {
             Train OriginalPlayerTrain = Simulator.OriginalPlayerTrain;
-            var e = this.ParsedObject as EventCategoryAction;
+            var e = this.ParsedObject as ActionActivityEvent;
             if (e.WorkOrderWagons != null)
             {                     // only if event involves wagons
                 if (ChangeWagonIdList == null)
@@ -1476,7 +1476,7 @@ namespace Orts.Simulation
         override public Boolean Triggered(Activity activity)
         {
             var triggered = false;
-            var e = this.ParsedObject as Orts.Formats.Msts.Models.EventCategoryLocation;
+            var e = this.ParsedObject as Orts.Formats.Msts.Models.LocationActivityEvent;
             var train = Simulator.PlayerLocomotive.Train;
             if (ParsedObject.TrainService != "" && Train != null)
             {
@@ -1517,7 +1517,7 @@ namespace Orts.Simulation
 
         override public Boolean Triggered(Activity activity)
         {
-            var e = this.ParsedObject as Orts.Formats.Msts.Models.EventCategoryTime;
+            var e = this.ParsedObject as Orts.Formats.Msts.Models.TimeActivityEvent;
             if (e == null) return false;
             Train = Simulator.PlayerLocomotive.Train;
             var triggered = (e.Time <= (int)Simulator.ClockTime - activity.StartTimeS);

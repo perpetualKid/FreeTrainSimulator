@@ -18,9 +18,9 @@ namespace Orts.Formats.Msts.Models
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("eventcategorylocation", ()=>{ Add(new EventCategoryLocation(stf)); }),
-                new STFReader.TokenProcessor("eventcategoryaction", ()=>{ Add(new EventCategoryAction(stf)); }),
-                new STFReader.TokenProcessor("eventcategorytime", ()=>{ Add(new EventCategoryTime(stf)); }),
+                new STFReader.TokenProcessor("eventcategorylocation", ()=>{ Add(new LocationActivityEvent(stf)); }),
+                new STFReader.TokenProcessor("eventcategoryaction", ()=>{ Add(new ActionActivityEvent(stf)); }),
+                new STFReader.TokenProcessor("eventcategorytime", ()=>{ Add(new TimeActivityEvent(stf)); }),
             });
         }
 
@@ -76,9 +76,9 @@ namespace Orts.Formats.Msts.Models
         private bool TestMatch(int category, ActivityEvent origEvent)
         {
             return 
-                ((category == 0 && origEvent is EventCategoryLocation) ||
-                (category == 1 && origEvent is EventCategoryAction) ||
-                (category == 2 && origEvent is EventCategoryTime));
+                ((category == 0 && origEvent is LocationActivityEvent) ||
+                (category == 1 && origEvent is ActionActivityEvent) ||
+                (category == 2 && origEvent is TimeActivityEvent));
         }
     }
 
@@ -121,14 +121,14 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
-    public class EventCategoryLocation : ActivityEvent
+    public class LocationActivityEvent : ActivityEvent
     {
         private WorldLocation location;
         public bool TriggerOnStop { get; private set; } // Value assumed if property not found.
         public ref readonly WorldLocation Location => ref location;
         public float RadiusM { get; private set; }
 
-        public EventCategoryLocation(STFReader stf)
+        public LocationActivityEvent(STFReader stf)
         {
             stf.MustMatchBlockStart();
             Update(stf);
@@ -177,14 +177,14 @@ namespace Orts.Formats.Msts.Models
     /// Parses all types of action events.
     /// Save type of action event in Type. MSTS syntax isn't fully hierarchical, so using inheritance here instead of Type would be awkward. 
     /// </summary>
-    public class EventCategoryAction : ActivityEvent
+    public class ActionActivityEvent : ActivityEvent
     {
         public EventType Type { get; private set; }
         public WorkOrderWagons WorkOrderWagons { get; private set; }
         public uint? SidingId { get; private set; }  // May be specified inside the Wagon_List instead. Nullable as can't use -1 to indicate not set.
         public float SpeedMpS { get; private set; }
 
-        public EventCategoryAction(STFReader stf)
+        public ActionActivityEvent(STFReader stf)
         {
             stf.MustMatchBlockStart();
             Update(stf);
@@ -223,11 +223,11 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
-    public class EventCategoryTime : ActivityEvent
+    public class TimeActivityEvent : ActivityEvent
     {  // E.g. Hisatsu route and Short Passenger Run shrtpass.act
         public int Time { get; private set; }
 
-        public EventCategoryTime(STFReader stf)
+        public TimeActivityEvent(STFReader stf)
         {
             stf.MustMatchBlockStart();
             Update(stf);
