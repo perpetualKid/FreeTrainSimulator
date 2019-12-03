@@ -17,11 +17,13 @@
 
 using System;
 using System.IO;
+
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
+using Orts.Scripting.Api;
+using Orts.Scripting.Api.PowerSupply;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
-using ORTS.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
@@ -123,8 +125,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                             break;
 
                         default:
-                            var pathArray = new string[] { Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script") };
-                            Script = Simulator.ScriptManager.Load(pathArray, ScriptName) as CircuitBreaker;
+                            Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as CircuitBreaker;
                             break;
                     }
                 }
@@ -135,8 +136,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 }
 
                 // AbstractScriptClass
-                Script.ClockTime = () => (float)Simulator.ClockTime;
-                Script.GameTime = () => (float)Simulator.GameTime;
+                Script.ClockTime = () => Simulator.ClockTime;
+                Script.GameTime = () => Simulator.GameTime;
                 Script.DistanceM = () => Locomotive.DistanceM;
                 Script.Confirm = Locomotive.Simulator.Confirmer.Confirm;
                 Script.Message = Locomotive.Simulator.Confirmer.Message;

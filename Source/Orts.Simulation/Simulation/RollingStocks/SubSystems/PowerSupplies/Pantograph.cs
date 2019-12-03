@@ -19,8 +19,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using Orts.Common;
 using Orts.Formats.Msts.Parsers;
-using ORTS.Scripting.Api;
+
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies

@@ -78,8 +78,6 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 
-using ORTS.Scripting.Api;
-
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.Physics
@@ -3581,14 +3579,16 @@ namespace Orts.Simulation.Physics
                 MSTSLocomotive lead = (MSTSLocomotive)Cars[LeadLocomotiveIndex];
                 if (lead.TrainBrakeController != null)
                 {
-                    lead.TrainBrakeController.UpdatePressure(ref EqualReservoirPressurePSIorInHg, 1000, ref BrakeLine4);
+                    var (pressurePSI, epControllerState) = lead.TrainBrakeController.UpdatePressure(EqualReservoirPressurePSIorInHg, BrakeLine4, 1000);
+                    EqualReservoirPressurePSIorInHg = (float)pressurePSI;
+                    BrakeLine4 = (float)epControllerState; 
                     maxPressurePSI = lead.TrainBrakeController.MaxPressurePSI;
                     fullServPressurePSI = lead.BrakeSystem is VacuumSinglePipe ? 16 : maxPressurePSI - lead.TrainBrakeController.FullServReductionPSI;
                     EqualReservoirPressurePSIorInHg =
                             MathHelper.Max(EqualReservoirPressurePSIorInHg, fullServPressurePSI);
                 }
                 if (lead.EngineBrakeController != null)
-                    lead.EngineBrakeController.UpdateEngineBrakePressure(ref BrakeLine3PressurePSI, 1000);
+                    BrakeLine3PressurePSI = (float)lead.EngineBrakeController.UpdateEngineBrakePressure(BrakeLine3PressurePSI, 1000);
                 if (lead.DynamicBrakeController != null)
                 {
                     MUDynamicBrakePercent = lead.DynamicBrakeController.Update(1000) * 100;
@@ -3788,9 +3788,13 @@ namespace Orts.Simulation.Physics
             {
                 MSTSLocomotive lead = (MSTSLocomotive)Cars[LeadLocomotiveIndex];
                 if (lead.TrainBrakeController != null)
-                    lead.TrainBrakeController.UpdatePressure(ref EqualReservoirPressurePSIorInHg, elapsedClockSeconds, ref BrakeLine4);
+                {
+                    var (pressurePSI, epControllerState) = lead.TrainBrakeController.UpdatePressure(EqualReservoirPressurePSIorInHg, BrakeLine4, elapsedClockSeconds);
+                    EqualReservoirPressurePSIorInHg = (float)pressurePSI;
+                    BrakeLine4 = (float)epControllerState;
+                }
                 if (lead.EngineBrakeController != null)
-                    lead.EngineBrakeController.UpdateEngineBrakePressure(ref BrakeLine3PressurePSI, elapsedClockSeconds);
+                    BrakeLine3PressurePSI = (float)lead.EngineBrakeController.UpdateEngineBrakePressure(BrakeLine3PressurePSI, elapsedClockSeconds);
                 lead.BrakeSystem.PropagateBrakePressure(elapsedClockSeconds);
             }
             else if (TrainType == TRAINTYPE.STATIC)

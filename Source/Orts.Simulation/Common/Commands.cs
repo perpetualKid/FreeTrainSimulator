@@ -17,13 +17,12 @@
 
 // This file is the responsibility of the 3D & Environment Team.
 
+using System;
+using System.Diagnostics;   // Used by Trace.Warnings
+
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using Orts.Common;
-using ORTS.Scripting.Api;
-using System;
-using System.Diagnostics;   // Used by Trace.Warnings
 
 namespace Orts.Common
 {

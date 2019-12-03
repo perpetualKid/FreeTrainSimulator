@@ -18,16 +18,15 @@
 // Define this to log the wheel configurations on cars as they are loaded.
 //#define DEBUG_WHEELS
 
-using Orts.Common;
-using Orts.Common.Calc;
-using Orts.Formats.Msts.Parsers;
-using Orts.Simulation.Physics;
-
-using ORTS.Scripting.Api;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
+
+using Orts.Common;
+using Orts.Common.Calc;
+using Orts.Formats.Msts.Parsers;
+using Orts.Scripting.Api;
+using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
@@ -114,7 +113,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         readonly Simulator Simulator;
 
         List<float> SignalSpeedLimits = new List<float>();
-        List<Aspect> SignalAspects = new List<Aspect>();
+        List<TrackMonitorSignalAspect> SignalAspects = new List<TrackMonitorSignalAspect>();
         List<float> SignalDistances = new List<float>();
         List<float> PostSpeedLimits = new List<float>();
         List<float> PostDistances = new List<float>();
@@ -185,8 +184,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             if (!Simulator.Settings.DisableTCSScripts && ScriptName != null && ScriptName != "MSTS")
             {
-                var pathArray = new string[] { Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script") };
-                Script = Simulator.ScriptManager.Load(pathArray, ScriptName) as TrainControlSystem;
+                Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as TrainControlSystem;
             }
 
             if (ParametersFileName != null)
@@ -245,7 +243,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             Script.TrainSpeedLimitMpS = () => TrainInfo.allowedSpeedMpS;
             Script.CurrentSignalSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedSignalMpS;
             Script.NextSignalSpeedLimitMpS = (value) => NextSignalItem<float>(value, ref SignalSpeedLimits, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL);
-            Script.NextSignalAspect = (value) => NextSignalItem<Aspect>(value, ref SignalAspects, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL);
+            Script.NextSignalAspect = (value) => NextSignalItem<TrackMonitorSignalAspect>(value, ref SignalAspects, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL);
             Script.NextSignalDistanceM = (value) => NextSignalItem<float>(value, ref SignalDistances, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL);
             Script.CurrentPostSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedLimitMpS;
             Script.NextPostSpeedLimitMpS = (value) => NextSignalItem<float>(value, ref PostSpeedLimits, Train.TrainObjectItem.TRAINOBJECTTYPE.SPEEDPOST);
@@ -364,7 +362,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         if (signalsFound > SignalSpeedLimits.Count)
                         {
                             SignalSpeedLimits.Add(foundItem.AllowedSpeedMpS);
-                            SignalAspects.Add((Aspect)foundItem.SignalState);
+                            SignalAspects.Add((TrackMonitorSignalAspect)foundItem.SignalState);
                             SignalDistances.Add(foundItem.DistanceToTrainM);
                         }
                         break;
@@ -383,7 +381,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         if (signalsFound > SignalSpeedLimits.Count)
                         {
                             SignalSpeedLimits.Add(0f);
-                            SignalAspects.Add(Aspect.Stop);
+                            SignalAspects.Add(TrackMonitorSignalAspect.Stop);
                             SignalDistances.Add(foundItem.DistanceToTrainM);
                         }
                         break;
@@ -399,7 +397,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             if (searchFor == Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL && signalsFound == 0)
             {
                 SignalSpeedLimits.Add(-1);
-                SignalAspects.Add(Aspect.None);
+                SignalAspects.Add(TrackMonitorSignalAspect.None);
                 SignalDistances.Add(float.MaxValue);
             }
             if (searchFor == Train.TrainObjectItem.TRAINOBJECTTYPE.SPEEDPOST && postsFound == 0)
@@ -816,7 +814,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 CurrentSpeedLimitMpS = TrainSpeedLimitMpS();
 
             // TODO: NextSignalSpeedLimitMpS(0) should return 0 if the signal is at stop; cause seems to be updateSpeedInfo() within Train.cs
-            NextSpeedLimitMpS = NextSignalAspect(0) != Aspect.Stop ? (NextSignalSpeedLimitMpS(0) > 0 && NextSignalSpeedLimitMpS(0) < TrainSpeedLimitMpS() ? NextSignalSpeedLimitMpS(0) : TrainSpeedLimitMpS() ) : 0;
+            NextSpeedLimitMpS = NextSignalAspect(0) != TrackMonitorSignalAspect.Stop ? (NextSignalSpeedLimitMpS(0) > 0 && NextSignalSpeedLimitMpS(0) < TrainSpeedLimitMpS() ? NextSignalSpeedLimitMpS(0) : TrainSpeedLimitMpS() ) : 0;
 
             SetCurrentSpeedLimitMpS(CurrentSpeedLimitMpS);
             SetNextSpeedLimitMpS(NextSpeedLimitMpS);

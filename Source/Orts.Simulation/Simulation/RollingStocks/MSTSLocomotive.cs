@@ -44,6 +44,12 @@
 // Debug for Advanced Adhesion Model
 //#define DEBUG_ADHESION
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -60,14 +66,6 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions;
-
-using ORTS.Scripting.Api;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 
 using Event = Orts.Common.Event;
 

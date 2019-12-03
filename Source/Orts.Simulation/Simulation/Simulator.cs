@@ -21,7 +21,6 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Scripting;
 using Orts.Common.Threading;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -29,6 +28,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
 using Orts.MultiPlayer;
+using Orts.Scripting.Api;
 using Orts.Settings;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -348,7 +348,7 @@ namespace Orts.Simulation
             Confirmer = new Confirmer(this, 1.5);
             HazzardManager = new HazzardManager(this);
             FuelManager = new FuelManager(this);
-            ScriptManager = new ScriptManager(this);
+            ScriptManager = new ScriptManager();
             Log = new CommandLog(this);
         }
 

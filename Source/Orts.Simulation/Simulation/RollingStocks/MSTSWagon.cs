@@ -36,6 +36,11 @@
 // Debug for Freight Animation Variable Mass
 //#define DEBUG_VARIABLE_MASS
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -47,13 +52,6 @@ using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
-
-using ORTS.Scripting.Api;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 
 using Event = Orts.Common.Event;
 

@@ -18,6 +18,14 @@
 // #define DEBUG_MULTIPLAYER
 // DEBUG flag for debug prints
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
@@ -26,16 +34,6 @@ using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
-
-using ORTS.Scripting.Api;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
 
 using Event = Orts.Common.Event;
 

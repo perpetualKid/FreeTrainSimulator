@@ -37,8 +37,6 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
-using ORTS.Scripting.Api;
-
 using Event = Orts.Common.Event;
 
 namespace Orts.Simulation.RollingStocks
