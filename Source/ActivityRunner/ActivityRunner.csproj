@@ -167,6 +167,7 @@
     <Compile Include="Viewer3D\Signals.cs" />
     <Compile Include="Viewer3D\Sky.cs" />
     <Compile Include="Viewer3D\Sound.cs" />
+    <Compile Include="Viewer3D\Sound\SoundEvents.cs" />
     <Compile Include="Viewer3D\SuperElevation.cs" />
     <Compile Include="Viewer3D\Terrain.cs" />
     <Compile Include="Viewer3D\Tiles.cs" />

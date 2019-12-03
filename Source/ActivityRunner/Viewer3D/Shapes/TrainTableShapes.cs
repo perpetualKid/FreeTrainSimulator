@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+
 using Microsoft.Xna.Framework;
+
+using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
@@ -40,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
                 try
                 {
-                    Sound = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.ORTSTurntable, soundPath);
+                    Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                 }
                 catch
@@ -48,7 +51,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
                     try
                     {
-                        Sound = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.ORTSTurntable, soundPath);
+                        Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
                         viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                     }
                     catch (Exception error)
@@ -135,7 +138,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
                 try
                 {
-                    Sound = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.ORTSTurntable, soundPath);
+                    Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                 }
                 catch
@@ -143,7 +146,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
                     try
                     {
-                        Sound = new SoundSource(viewer, WorldPosition.WorldLocation, Events.Source.ORTSTurntable, soundPath);
+                        Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
                         viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                     }
                     catch (Exception error)

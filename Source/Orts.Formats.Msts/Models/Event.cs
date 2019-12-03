@@ -12,9 +12,9 @@ namespace Orts.Formats.Msts.Models
     /// <summary>
     /// Parses Event objects and saves them in EventList.
     /// </summary>
-    public class Events: List<Event>
+    public class ActivityEvents: List<ActivityEvent>
     {
-        public Events(STFReader stf)
+        public ActivityEvents(STFReader stf)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -36,7 +36,7 @@ namespace Orts.Formats.Msts.Models
 
         private void TryModify(int category, STFReader stf)
         {
-            Event origEvent;
+            ActivityEvent origEvent;
             bool wrongEventID = false;
             int modifiedID = -1;
             try
@@ -73,7 +73,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        private bool TestMatch(int category, Event origEvent)
+        private bool TestMatch(int category, ActivityEvent origEvent)
         {
             return 
                 ((category == 0 && origEvent is EventCategoryLocation) ||
@@ -85,7 +85,7 @@ namespace Orts.Formats.Msts.Models
     /// <summary>
     /// The 3 types of event are inherited from the abstract Event class.
     /// </summary>
-    public abstract class Event
+    public abstract class ActivityEvent
     {
         public int ID { get; protected set; }
         public string Name { get; protected set; }
@@ -121,7 +121,7 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
-    public class EventCategoryLocation : Event
+    public class EventCategoryLocation : ActivityEvent
     {
         private WorldLocation location;
         public bool TriggerOnStop { get; private set; } // Value assumed if property not found.
@@ -177,7 +177,7 @@ namespace Orts.Formats.Msts.Models
     /// Parses all types of action events.
     /// Save type of action event in Type. MSTS syntax isn't fully hierarchical, so using inheritance here instead of Type would be awkward. 
     /// </summary>
-    public class EventCategoryAction : Event
+    public class EventCategoryAction : ActivityEvent
     {
         public EventType Type { get; private set; }
         public WorkOrderWagons WorkOrderWagons { get; private set; }
@@ -223,7 +223,7 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
-    public class EventCategoryTime : Event
+    public class EventCategoryTime : ActivityEvent
     {  // E.g. Hisatsu route and Short Passenger Run shrtpass.act
         public int Time { get; private set; }
 

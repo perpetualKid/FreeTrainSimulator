@@ -1100,14 +1100,14 @@ namespace Orts.Simulation
     /// </summary>
     public abstract class EventWrapper
     {
-        public Orts.Formats.Msts.Models.Event ParsedObject;     // Points to object parsed from file *.act
+        public Orts.Formats.Msts.Models.ActivityEvent ParsedObject;     // Points to object parsed from file *.act
         public int OriginalActivationLevel; // Needed to reset .ActivationLevel
         public int TimesTriggered;          // Needed for evaluation after activity ends
         public Boolean IsDisabled;          // Used for a reversible event to prevent it firing again until after it has been reset.
         protected Simulator Simulator;
         public Train Train;              // Train involved in event; if null actual or original player train
 
-        public EventWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
+        public EventWrapper(Orts.Formats.Msts.Models.ActivityEvent @event, Simulator simulator)
         {
             ParsedObject = @event;
             Simulator = simulator;
@@ -1225,7 +1225,7 @@ namespace Orts.Simulation
         SidingItem SidingEnd2;
         List<string> ChangeWagonIdList;   // Wagons to be assembled, picked up or dropped off.
 
-        public EventCategoryActionWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
+        public EventCategoryActionWrapper(Orts.Formats.Msts.Models.ActivityEvent @event, Simulator simulator)
             : base(@event, simulator)
         {
             var e = this.ParsedObject as EventCategoryAction;
@@ -1468,7 +1468,7 @@ namespace Orts.Simulation
 
     public class EventCategoryLocationWrapper : EventWrapper
     {
-        public EventCategoryLocationWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
+        public EventCategoryLocationWrapper(Orts.Formats.Msts.Models.ActivityEvent @event, Simulator simulator)
             : base(@event, simulator)
         {
         }
@@ -1510,7 +1510,7 @@ namespace Orts.Simulation
     public class EventCategoryTimeWrapper : EventWrapper
     {
 
-        public EventCategoryTimeWrapper(Orts.Formats.Msts.Models.Event @event, Simulator simulator)
+        public EventCategoryTimeWrapper(Orts.Formats.Msts.Models.ActivityEvent @event, Simulator simulator)
             : base(@event, simulator)
         {
         }
