@@ -563,13 +563,21 @@ namespace Orts.Viewer3D.Popups
 
                 keyPressed = "";
                 index = brakeStatus.IndexOf(Viewer.Catalog.GetString("Lead")) + 5;
-                brakeInfoValue = brakeStatus.Substring(index, brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
-                InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
+                if (brakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
+                {
+                    brakeInfoValue = brakeStatus.Substring(index, brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
+                    InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
 
-                keyPressed = "";
-                index = brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + 5;
-                brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimEnd();
-                InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
+                    keyPressed = "";
+                    index = brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + 5;
+                    brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimEnd();
+                    InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
+                }
+                else
+                {
+                    brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimEnd();
+                    InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
+                }
             }
             else if (brakeStatus.Contains(Viewer.Catalog.GetString("BC")))
             {
