@@ -131,7 +131,7 @@ namespace Orts.ExternalDevices
         /// <param name="led3"></param>
         public void SetLeds(RailDriverDisplaySign led1, RailDriverDisplaySign led2, RailDriverDisplaySign led3)
         {
-            if (writeBuffer.Length == 0) return;
+//            if (writeBuffer.Length == 0) return;
             writeBuffer.Initialize();
             writeBuffer[1] = 134;
             writeBuffer[2] = (byte)led3;
