@@ -39,6 +39,7 @@ using Orts.Settings;
 using Orts.Settings.Util;
 using Orts.Simulation;
 using Orts.Simulation.AIs;
+using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 

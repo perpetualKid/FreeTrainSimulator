@@ -36,6 +36,7 @@ using Orts.MultiPlayer;
 using Orts.Scripting.Api;
 using Orts.Settings;
 using Orts.Simulation.AIs;
+using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;

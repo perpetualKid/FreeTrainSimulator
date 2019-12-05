@@ -45,8 +45,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Common\CommandLog.cs" />
-    <Compile Include="Common\Commands.cs" />
+    <Compile Include="Commanding\ICommand.cs" />
+    <Compile Include="Commanding\CommandLog.cs" />
+    <Compile Include="Commanding\Commands.cs" />
     <Compile Include="Simulation\Physics\SteamTable.cs" />
     <Compile Include="MultiPlayer\ClientComm.cs" />
     <Compile Include="MultiPlayer\Decoder.cs" />
