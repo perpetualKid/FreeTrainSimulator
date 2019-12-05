@@ -116,6 +116,8 @@ namespace Orts.Viewer3D.Processes
                 ToggleFullScreen();
 
             SynchronizeGraphicsDeviceManager();
+
+            UserInput.Initialize(game);
         }
 
         void GDM_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)

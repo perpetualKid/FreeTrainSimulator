@@ -46,12 +46,17 @@ namespace Orts.Viewer3D
         static KeyboardState LastKeyboardState;
         static MouseState LastMouseState;
 
-        public static RailDriverState RDState;
+        public static UserInputRailDriver RDState;
 
         static InputSettings InputSettings;
 
         [DllImport("user32.dll")]
         static extern short GetAsyncKeyState(Keys key);
+
+        public static void Initialize(Game game)
+        {
+            RDState = new UserInputRailDriver(game);
+        }
 
         public static void Update(Game game)
         {
@@ -124,12 +129,6 @@ namespace Orts.Viewer3D
             if ((GetAsyncKeyState(Keys.PrintScreen) & 0x8000) != 0)
                 keys.Add(Keys.PrintScreen);
             return keys.ToArray();
-        }
-
-        public static void Handled()
-        {
-            if (RDState != null)
-                RDState.Handled();
         }
 
         public static bool IsPressed(UserCommand command)

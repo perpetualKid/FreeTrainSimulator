@@ -86,10 +86,19 @@
     <Compile Include="KeyInputControl.Designer.cs">
       <DependentUpon>KeyInputControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="OptionsRailDriver.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="RDButtonInputControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="RDButtonInputControl.Designer.cs">
+      <DependentUpon>RDButtonInputControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ResumeForm.cs">
       <SubType>Form</SubType>
@@ -128,6 +137,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="RDButtonInputControl.resx">
+      <DependentUpon>RDButtonInputControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ResumeForm.resx">
       <DependentUpon>ResumeForm.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -165,6 +177,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Orts.ExternalDevices\Orts.ExternalDevices.csproj">
+      <Project>{0da86c52-ffb5-4cd6-a2c0-08f1610e6399}</Project>
+      <Name>Orts.ExternalDevices</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj">
       <Project>{570709FA-0C8A-4B1D-BA2D-D9455AFD9B5C}</Project>
       <Name>Orts.Formats.Msts</Name>
@@ -193,6 +209,9 @@
       <Project>{88108A94-0389-43FF-A75C-C55BD202FC8D}</Project>
       <Name>ORTS.Updater</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="RailDriverLegend.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

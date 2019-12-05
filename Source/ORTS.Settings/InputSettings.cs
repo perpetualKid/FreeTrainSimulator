@@ -467,6 +467,7 @@ namespace ORTS.Settings
             Commands[(int)UserCommand.GameChangeCab] = new UserCommandKeyInput(0x12, KeyModifiers.Control);
             Commands[(int)UserCommand.GameClearSignalBackward] = new UserCommandKeyInput(0x0F, KeyModifiers.Shift);
             Commands[(int)UserCommand.GameClearSignalForward] = new UserCommandKeyInput(0x0F);
+            Commands[(int)UserCommand.GameExternalCabController] = new UserCommandKeyInput(0x29);
             Commands[(int)UserCommand.GameFullscreen] = new UserCommandKeyInput(0x1C, KeyModifiers.Alt);
             Commands[(int)UserCommand.GameMultiPlayerDispatcher] = new UserCommandKeyInput(0x0A, KeyModifiers.Control);
             Commands[(int)UserCommand.GameMultiPlayerTexting] = new UserCommandKeyInput(0x14, KeyModifiers.Control);
@@ -637,7 +638,7 @@ namespace ORTS.Settings
     }
 
     /// <summary>
-    /// Stores a specific combination of keyboard modifiers for comparison with a <see cref="KeyboardState"/>.
+    /// Stores a specific combination of keyboard modifiers for comparison with a <see cref="KeyboaRailDriver"/>.
     /// </summary>
     public class UserCommandModifierInput : UserCommandInput
     {
@@ -711,7 +712,7 @@ namespace ORTS.Settings
     }
 
     /// <summary>
-    /// Stores a key and specific combination of keyboard modifiers for comparison with a <see cref="KeyboardState"/>.
+    /// Stores a key and specific combination of keyboard modifiers for comparison with a <see cref="KeyboaRailDriver"/>.
     /// </summary>
     public class UserCommandKeyInput : UserCommandInput
     {
@@ -824,7 +825,7 @@ namespace ORTS.Settings
     }
 
     /// <summary>
-    /// Stores a key, specific combination of keyboard modifiers and a set of keyboard modifiers to ignore for comparison with a <see cref="KeyboardState"/>.
+    /// Stores a key, specific combination of keyboard modifiers and a set of keyboard modifiers to ignore for comparison with a <see cref="KeyboaRailDriver"/>.
     /// </summary>
     public class UserCommandModifiableKeyInput : UserCommandKeyInput
     {

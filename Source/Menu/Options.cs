@@ -200,6 +200,9 @@ namespace ORTS
             // Keyboard tab
             InitializeKeyboardSettings();
 
+            //RailDriver tab
+            InitializeRailDriverSettings();
+
             // DataLogger tab
             var dictionaryDataLoggerSeparator = new Dictionary<string, string>();
             dictionaryDataLoggerSeparator.Add("comma", catalog.GetString("comma"));
@@ -336,6 +339,17 @@ namespace ORTS
             numericActRandomizationLevel.Value = Settings.ActRandomizationLevel;
             numericActWeatherRandomizationLevel.Value = Settings.ActWeatherRandomizationLevel;
         }
+
+/*
+private async void OptionsForm_Shown(object sender, EventArgs e)
+        {
+            List<System.Threading.Tasks.Task> initTasks = new List<System.Threading.Tasks.Task>()
+            {
+                InitializeKeyboardSettingsAsync(),
+                InitializeRailDriverSettingsAsync()
+            };
+            await System.Threading.Tasks.Task.WhenAll(initTasks);
+        }*/
 
         static string ParseCategoryFrom(string name)
         {
@@ -484,6 +498,9 @@ namespace ORTS
 
             // Keyboard tab
             // These are edited live.
+
+            // Raildriver Tab
+            SaveRailDriverSettings();
 
             // DataLogger tab
             Settings.DataLoggerSeparator = comboDataLoggerSeparator.SelectedValue.ToString();
@@ -751,5 +768,6 @@ namespace ORTS
             numericPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
         }
+
     }
 }

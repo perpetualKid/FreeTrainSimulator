@@ -199,7 +199,7 @@ namespace Orts.Viewer3D
 
         public Camera SuspendedCamera { get; private set; }
 
-        UserInputRailDriver RailDriver;
+//        UserInputRailDriver RailDriver;
 
         public static double DbfEvalAutoPilotTimeS = 0;//Debrief eval
         public static double DbfEvalIniAutoPilotTimeS = 0;//Debrief eval  
@@ -282,8 +282,6 @@ namespace Orts.Viewer3D
             Tiles = new TileManager(Simulator.RoutePath + @"\TILES\", false);
             LoTiles = new TileManager(Simulator.RoutePath + @"\LO_TILES\", true);
             MilepostUnitsMetric = Simulator.TRK.Tr_RouteFile.MilepostUnitsMetric;
-
-            RailDriver = new UserInputRailDriver(Simulator.BasePath);
 
             Simulator.AllowedSpeedRaised += (object sender, EventArgs e) =>
             {
@@ -703,12 +701,10 @@ namespace Orts.Viewer3D
 
             if (ComposeMessageWindow.Visible == true)
             {
-                UserInput.Handled();
                 ComposeMessageWindow.AppendMessage(UserInput.GetPressedKeys(), UserInput.GetPreviousPressedKeys());
             }
 
             HandleUserInput(elapsedTime);
-            UserInput.Handled();
             // We need to do it also here, because passing from manual to auto a ReverseFormation may be needed
             if (Camera is TrackingCamera && Camera.AttachedCar != null && Camera.AttachedCar.Train != null && Camera.AttachedCar.Train.FormationReversed)
             {
@@ -728,7 +724,7 @@ namespace Orts.Viewer3D
                 MPManager.Instance().Update(Simulator.GameTime);
             }
 
-            RailDriver.Update(PlayerLocomotive);
+            UserInput.RDState.ShowSpeed(MpS.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
 
             // This has to be done also for stopped trains
             var cars = World.Trains.Cars;
@@ -1074,6 +1070,10 @@ namespace Orts.Viewer3D
                     new UsePreviousFreeRoamCameraCommand(Log);
                 }
             }
+            if (UserInput.IsPressed(UserCommand.GameExternalCabController))
+            {
+                UserInput.RDState.Activate();
+            }
             if (UserInput.IsPressed(UserCommand.CameraHeadOutForward) && HeadOutForwardCamera.IsAvailable)
             {
                 CheckReplaying();
@@ -1281,7 +1281,6 @@ namespace Orts.Viewer3D
                 if (UserInput.IsMouseLeftButtonPressed)
                 {
                     TryThrowSwitchAt();
-                    UserInput.Handled();
                 }
             }
             else if (!Simulator.Paused && UserInput.IsDown(UserCommand.GameUncoupleWithMouse))
@@ -1290,7 +1289,6 @@ namespace Orts.Viewer3D
                 if (UserInput.IsMouseLeftButtonPressed)
                 {
                     TryUncoupleAt();
-                    UserInput.Handled();
                 }
             }
             else
@@ -1325,7 +1323,6 @@ namespace Orts.Viewer3D
                     if (UserInput.IsMouseLeftButtonReleased)
                     {
                         MouseChangingControl = null;
-                        UserInput.Handled();
                     }
                 }
             }
@@ -1414,7 +1411,6 @@ namespace Orts.Viewer3D
                     if (UserInput.IsMouseLeftButtonReleased)
                     {
                         MouseChangingControl = null;
-                        UserInput.Handled();
                     }
                 }
             }
@@ -1486,9 +1482,6 @@ namespace Orts.Viewer3D
                     MousePickedControl = null;
                 }
             }
-
-            if (UserInput.RDState != null)
-                UserInput.RDState.Handled();
 
             MouseState currentMouseState = Mouse.GetState();
 
@@ -1617,7 +1610,7 @@ namespace Orts.Viewer3D
         internal void Terminate()
         {
             InfoDisplay.Terminate();
-            RailDriver.Shutdown();
+            UserInput.RDState.Shutdown();
         }
 
         private int trainCount;
