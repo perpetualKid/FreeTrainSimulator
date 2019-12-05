@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.43
-November 25th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.44
+December 5th, 2019
 
 Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -12,7 +12,7 @@ INSTALLATION
 you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails unstable revision U2019.11.23-0506 (which includes Monogame).
+This unofficial version has been derived from the official Open Rails unstable revision U2019.12.04-2036 (which includes Monogame).
 It includes some features not (yet) available in the Open Rails unstable official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
@@ -26,8 +26,9 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - added Train Driving Info window (see http://www.elvastower.com/forums/index.php?/topic/33401-f5-hud-scrolling/page__view__findpost__p__251671 and following posts), by mbm_OR
 - Train Driving Info window may be translated in other languages (done for Italian), by mbm_OR
 - 32bit running set as default, to avoid 64 bit shakings and flickerings
-- NEW: added management of integer divisions in new signal script parser
-- NEW: inserted tentative correction for Raildriver malfunctioning (by perpetualKid)
+- NEW: inserted extended Raildriver setup, as present in OR Ultimate (by perpetualKid)
+- NEW: corrected bug causing a crash in Train Driving window (by mbm_OR)
+- NEW: corrected German translation in debug info HUD causing crash
 
 
 CREDITS
