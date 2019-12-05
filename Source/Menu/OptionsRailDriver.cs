@@ -90,7 +90,7 @@ namespace ORTS
         private Panel InitializeRailDriverInputControls()
         {
             Panel panel = new Panel() { AutoScroll = true, Width = panelRDSettings.Width / 2 };
-//            panel.SuspendLayout();
+            panel.SuspendLayout();
 
             var columnWidth = (panel.ClientSize.Width - 20) / 3;
 
@@ -157,6 +157,7 @@ namespace ORTS
 
                 ++i;
             }
+            panel.ResumeLayout(true);
             return panel;
         }
 
