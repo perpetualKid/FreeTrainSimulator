@@ -57,12 +57,12 @@ namespace Orts.Viewer3D.Processes
                     Program.DebugViewer = new DispatchViewer(Viewer.Simulator, Viewer);
 
                     //Trick to bring window to the front, even though invisible, so that it appears immediately when Ctrl+9 is pressed
-                    Program.DebugViewer.WindowState = System.Windows.Forms.FormWindowState.Minimized;
+ /*                   Program.DebugViewer.WindowState = System.Windows.Forms.FormWindowState.Minimized;
                     Program.DebugViewer.Show();
                     Program.DebugViewer.WindowState = System.Windows.Forms.FormWindowState.Normal;
 
                     Program.DebugViewer.Hide();
-                    Viewer.DebugViewerEnabled = false;
+                    Viewer.DebugViewerEnabled = false;*/
                 }
 
                 Program.SoundDebugForm = new SoundDebugForm(Viewer);
