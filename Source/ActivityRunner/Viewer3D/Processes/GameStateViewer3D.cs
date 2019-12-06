@@ -118,7 +118,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             // TODO: ComputeFPS should be called in UpdaterProcess.Update() but needs delta time.
-            Game.RenderProcess.ComputeFPS((float)elapsedRealTime);
+            Game.RenderProcess.ComputeFPS(elapsedRealTime);
             Viewer.Update(frame, elapsedRealTime);
         }
 
