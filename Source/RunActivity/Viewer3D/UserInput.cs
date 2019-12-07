@@ -60,6 +60,7 @@ namespace Orts.Viewer3D
 
         public static void Update(Game game)
         {
+            RDState.Update();
             if (Orts.MultiPlayer.MPManager.IsMultiPlayer() && Orts.MultiPlayer.MPManager.Instance().ComposingText) return;
             if (InputSettings == null) InputSettings = game.Settings.Input;
             LastKeyboardState = KeyboardState;
