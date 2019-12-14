@@ -1,7 +1,7 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.44
-December 5th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.45
+December 14th, 2019
 
-Please note the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
+Please note that the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
 INSTALLATION
 - the requirements for installation of the official Open Rails version apply, with the precisions of next lines
@@ -12,7 +12,8 @@ INSTALLATION
 you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails unstable revision U2019.12.04-2036 (which includes Monogame).
+This unofficial version has been derived from the official Open Rails unstable revision U2019.12.10-1721 (which includes Monogame)
+and from the official OpenRails testing revision X1.3.1-107.
 It includes some features not (yet) available in the Open Rails unstable official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
@@ -23,12 +24,11 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - signal script parser (by perpetualKid): reduces CPU time needed for signal management
 - true 64-bit management, allowing to use more than 4 GB of memory, if available, in Win64 systems (mainly by perpetualKid)
 - general options checkbox for optional run at 32 bit on Win64 (to avoid slight train shaking bug)
-- added Train Driving Info window (see http://www.elvastower.com/forums/index.php?/topic/33401-f5-hud-scrolling/page__view__findpost__p__251671 and following posts), by mbm_OR
-- Train Driving Info window may be translated in other languages (done for Italian), by mbm_OR
+- added translatable Train Driving Info window (see http://www.elvastower.com/forums/index.php?/topic/33401-f5-hud-scrolling/page__view__findpost__p__251671 and following posts), by mbm_OR
 - 32bit running set as default, to avoid 64 bit shakings and flickerings
-- NEW: inserted extended Raildriver setup, as present in OR Ultimate (by perpetualKid)
-- NEW: corrected bug causing a crash in Train Driving window (by mbm_OR)
-- NEW: corrected German translation in debug info HUD causing crash
+- inserted extended Raildriver setup, as present in OR Ultimate (by perpetualKid)
+- NEW: corrected bug blocking motion of pickup items (water columns and coal towers)
+- NEW: set Simple Control and Physics option as default.
 
 
 CREDITS
