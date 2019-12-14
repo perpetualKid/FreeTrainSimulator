@@ -176,7 +176,7 @@ namespace Orts.Settings
         public bool OverrideNonElectrifiedRoutes { get; set; }
         [Default(true)]
         public bool HotStart { get; set; }
-        [Default(false)]
+        [Default(true)]
         public bool SimpleControlPhysics { get; set; }
         [Default(false)]
         public bool Autopilot { get; set; }
