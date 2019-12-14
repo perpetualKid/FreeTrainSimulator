@@ -1121,7 +1121,7 @@
             this.checkSimpleControlPhysics.Name = "checkSimpleControlPhysics";
             this.checkSimpleControlPhysics.Size = new System.Drawing.Size(150, 17);
             this.checkSimpleControlPhysics.TabIndex = 8;
-            this.checkSimpleControlPhysics.Text = "Simple Contol and Physics";
+            this.checkSimpleControlPhysics.Text = "Simple Control and Physics";
             this.checkSimpleControlPhysics.UseVisualStyleBackColor = true;
             // 
             // checkCurveSpeedDependent
