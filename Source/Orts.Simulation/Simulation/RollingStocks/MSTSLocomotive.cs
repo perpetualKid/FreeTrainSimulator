@@ -2184,8 +2184,8 @@ namespace Orts.Simulation.RollingStocks
                 {
                     Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("No water scoop on this loco"));
                     WaterScoopNotFittedFlag = true;
-                    RefillingFromTrough = false;
-                    }
+                }
+                RefillingFromTrough = false;
                 return;
             }
             else if (ScoopIsBroken)
@@ -2193,7 +2193,7 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Confirmer.Message(ConfirmLevel.Error, Simulator.Catalog.GetString("Scoop is broken, can't refill"));
                 RefillingFromTrough = false;
                 return;
-                }
+            }
             else if (IsOverJunction())
             {
                 if (!ScoopIsBroken) // Only display message first time scoop is broken
@@ -2212,7 +2212,7 @@ namespace Orts.Simulation.RollingStocks
                     WaterScoopOverTroughFlag = true;
                     MSTSWagon.RefillProcess.OkToRefill = false;
                     MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
-                    }
+                }
                 RefillingFromTrough = false;
                 return;
             }
@@ -2235,7 +2235,7 @@ namespace Orts.Simulation.RollingStocks
                     WaterScoopSlowSpeedFlag = true;
                     MSTSWagon.RefillProcess.OkToRefill = false;
                     MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
-                    }
+                }
                 RefillingFromTrough = false;
                 return;
             }
@@ -2255,10 +2255,10 @@ namespace Orts.Simulation.RollingStocks
         }
         else if (HasWaterScoop && MSTSWagon.RefillProcess.OkToRefill == true && IsOverTrough())// water scoop has been raised, stop water filling
         {
-                MSTSWagon.RefillProcess.OkToRefill = false;
-                MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
-                RefillingFromTrough = false;
-                return;
+            MSTSWagon.RefillProcess.OkToRefill = false;
+            MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
+            RefillingFromTrough = false;
+            return;
         }
 
 
