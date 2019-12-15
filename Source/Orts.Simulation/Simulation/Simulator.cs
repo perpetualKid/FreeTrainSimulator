@@ -2340,6 +2340,24 @@ namespace Orts.Simulation
                     setting.HotStart = false;
                     Trace.Write("\nHot Start                        =   False");
                 }
+                if (activitySettings.Options.SimpleControlPhysics == 1)
+                {
+                    Trace.Write("\nSimple Control/Physics                        =   Not Active");
+                }
+                else if (activitySettings.Options.SimpleControlPhysics == 0)
+                {
+                    Trace.Write("\nSimple Control/Physics                        =   Not Active");
+                }
+
+                // Data Logger TAB
+                if (activitySettings.Options.VerboseConfigurationMessages == 1)
+                {
+                    Trace.Write("\nVerbose Configuration Messages               =   Not Active");
+                }
+                else if (activitySettings.Options.VerboseConfigurationMessages == 0)
+                {
+                    Trace.Write("\nVerbose Configuration Messages                        =   Not Active");
+                }
 
                 // Experimental TAB
                 if (activitySettings.Options.UseLocationPassingPaths == 1)
