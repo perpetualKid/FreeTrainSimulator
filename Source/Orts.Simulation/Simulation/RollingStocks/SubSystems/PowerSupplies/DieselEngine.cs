@@ -614,11 +614,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// </summary>
         public float RateOfChangeDownRPMpSS;
         /// <summary>
-        /// MAximum Power output of the diesel engine (prime mover)
+        /// Maximum Rated Power output of the diesel engine (prime mover)
         /// </summary>
         public float MaximumDieselPowerW;
         /// <summary>
-        /// Current power available to the rail
+        /// Current power available to the traction motors
         /// </summary>
         public float CurrentDieselOutputPowerW;
          /// <summary>
@@ -1557,6 +1557,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 if (loco.Simulator.Settings.VerboseConfigurationMessages)
                     Trace.TraceInformation("Maximum Diesel Engine Prime Mover Power set by DieselPowerTab {0} value", FormatStrings.FormatPower(DieselPowerTab[MaxRPM], loco.IsMetric, false, false));
             }
+            // Check whether this code check is really required.
             if (MaximumRailOutputPowerW == 0 && loco.MaxPowerW != 0)
             {
                 MaximumRailOutputPowerW = loco.MaxPowerW; // set rail power to a default value on the basis that of the value specified in the MaxPowrW parameter
