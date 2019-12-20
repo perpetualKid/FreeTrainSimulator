@@ -1656,9 +1656,13 @@ namespace Orts.Simulation.RollingStocks
             if (IsDavisFriction)  // If set to use next Davis friction then do so
             {
                 // Davis formulas only apply above about 5mph, so different treatment required for low speed < 5mph.
-                if (AbsSpeedMpS > Speed.MeterPerSecond.FromMpH(5))     // if speed above 5 mph then turn off low speed calculations
+                if (AbsSpeedMpS > Speed.MeterPerSecond.FromMpH(5.05))     // if speed above 5 mph then turn off low speed calculations
                     IsLowSpeed = false;
-                if (AbsSpeedMpS == 0.0)
+                else if (AbsSpeedMpS < Speed.MeterPerSecond.FromMpH(4.95)) // if speed below 5 mph then turn on low speed calculations
+                    IsLowSpeed = true;
+
+                // Ensure that flag is turned off at low speed
+                    if (AbsSpeedMpS <= 0.0)
                     IsLowSpeed = true;
 
                 if (IsLowSpeed)
