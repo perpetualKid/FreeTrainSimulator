@@ -409,8 +409,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         private void SignalEvent(Event evt, TrainControlSystem script)
         {
-            foreach (var eventHandler in Locomotive.EventHandlers)
-                eventHandler.HandleEvent(evt, script);
+            lock (Locomotive.EventHandlers)
+                foreach (var eventHandler in Locomotive.EventHandlers)
+                    eventHandler.HandleEvent(evt, script);
         }
 
         private static float SpeedCurve(float targetDistanceM, float targetSpeedMpS, float slope, float delayS, float decelerationMpS2)

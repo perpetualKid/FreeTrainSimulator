@@ -358,12 +358,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
 
             if (soundEvent != Event.None)
-            {
-                foreach (var eventHandler in Wagon.EventHandlers)
+                lock (Wagon.EventHandlers)
                 {
-                    eventHandler.HandleEvent(soundEvent);
+                    foreach (var eventHandler in Wagon.EventHandlers)
+                    {
+                        eventHandler.HandleEvent(soundEvent);
+                    }
                 }
-            }
         }
 
         public void Save(BinaryWriter outf)
