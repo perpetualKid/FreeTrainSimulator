@@ -2549,8 +2549,9 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // TODO: This should be moved to TrainCar probably.
-            foreach (var eventHandler in EventHandlers) // e.g. for HandleCarEvent() in Sounds.cs
-                eventHandler.HandleEvent(evt);
+            lock (EventHandlers)
+                foreach (var eventHandler in EventHandlers) // e.g. for HandleCarEvent() in Sounds.cs
+                    eventHandler.HandleEvent(evt);
 
             base.SignalEvent(evt);
         }

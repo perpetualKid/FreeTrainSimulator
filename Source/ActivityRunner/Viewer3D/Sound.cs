@@ -1218,8 +1218,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     else if (trigger is DiscreteTrigger && soundSource.Car != null)
                     {
                         ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, (DiscreteTrigger)trigger, settings);
-                        Triggers.Add(ortsTrigger);  // list them here so we can enable and disable 
-                        SoundSource.Car.EventHandlers.Add(ortsTrigger);  // tell the simulator to call us when the event occurs
+                        Triggers.Add(ortsTrigger);  // list them here so we can enable and disable
+                        lock (SoundSource.Car.EventHandlers)
+                            SoundSource.Car.EventHandlers.Add(ortsTrigger);  // tell the simulator to call us when the event occurs
                     }
                     else if (trigger is DiscreteTrigger)
                     {
