@@ -202,12 +202,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                     Locomotive.AlerterReset();
 
-                    Locomotive.SetThrottlePercent(UserInput.Raildriver.ThrottlePercent);
+                    Locomotive.SetThrottlePercentWithSound(UserInput.Raildriver.ThrottlePercent);
                     Locomotive.SetTrainBrakePercent(UserInput.Raildriver.TrainBrakePercent);
                     Locomotive.SetEngineBrakePercent(UserInput.Raildriver.EngineBrakePercent);
                     Locomotive.SetBailOff(UserInput.Raildriver.BailOff);
                     if (Locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
-                        Locomotive.SetDynamicBrakePercent(UserInput.Raildriver.DynamicBrakePercent);
+                        Locomotive.SetDynamicBrakePercentWithSound(UserInput.Raildriver.DynamicBrakePercent);
                     if (UserInput.Raildriver.DirectionPercent > 50)
                         Locomotive.SetDirection(Direction.Forward);
                     else if (UserInput.Raildriver.DirectionPercent < -50)
@@ -221,9 +221,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         Locomotive.SignalEvent(TrainEvent.WiperOn);
                     // changing Headlight more than one step at a time doesn't work for some reason
                     if (Locomotive.Headlight < UserInput.Raildriver.Lights - 1)
+                    {
                         Locomotive.Headlight++;
-                    if (Locomotive.Headlight > UserInput.Raildriver.Lights - 1)
+                        Locomotive.SignalEvent(Event.LightSwitchToggle);
+                    }
+                    if (Locomotive.Headlight > UserInput.RDState.Lights - 1)
+                    {
                         Locomotive.Headlight--;
+                        Locomotive.SignalEvent(Event.LightSwitchToggle);
+                    }
             }
 
             foreach (var command in UserInputCommands.Keys)
