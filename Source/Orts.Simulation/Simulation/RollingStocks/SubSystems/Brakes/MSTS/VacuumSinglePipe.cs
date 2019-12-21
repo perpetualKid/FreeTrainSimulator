@@ -88,9 +88,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         float VacResPressureAdjPSIA()
         {
             if (VacResPressurePSIA >= CylPressurePSIA)
-                return VacResPressurePSIA;
+            {
+                return VacResPressurePSIA;           
+            }
+            // TODO - review for a better approach
             // Calculate the new vacuum based upon the volume reduction in the reservoir due to brake cylinder movement
-            float p = VacResPressurePSIA * VacResVolM3 / (VacResVolM3 - (NumBrakeCylinders * BrakeCylFraction * BrakeCylVolM3));
+            // Using Boyles formula: PsVs = PfVf, and a starting pressure equal to 1 psi calculate the change in pressure
+            float PressureChange = VacResVolM3 / (VacResVolM3 - (NumBrakeCylinders * BrakeCylFraction * BrakeCylVolM3));
+            // Pressure Change should represent the incremental variation as the barke cylinder moves. 
+            // Pressure is not linear and reversed compared to vacuum values, and hence more work maybe required to tidy this section of code up.
+            float p = VacResPressurePSIA + PressureChange;
             return p < CylPressurePSIA ? p : CylPressurePSIA;
         }
 
@@ -290,10 +297,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             {
                 if (BrakeLine1PressurePSI < VacResPressurePSIA)
                 {
-                    float dp = elapsedClockSeconds * MaxApplicationRatePSIpS * BrakeCylVolM3 / VacResVolM3;
-                    float vr = NumBrakeCylinders * VacResVolM3 / BrakePipeVolumeM3;
+                    float dp = elapsedClockSeconds * MaxApplicationRatePSIpS * (NumBrakeCylinders * BrakeCylVolM3) / VacResVolM3;
+                    float vr = VacResVolM3 / BrakePipeVolumeM3;
                     if (VacResPressurePSIA - dp < BrakeLine1PressurePSI + dp * vr)
+                    {
                         dp = (VacResPressurePSIA - BrakeLine1PressurePSI) / (1 + vr);
+                    }
                     VacResPressurePSIA -= dp;
 
                     if (LeadLoco == false)
