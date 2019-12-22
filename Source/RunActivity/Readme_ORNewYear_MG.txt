@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.45
-December 14th, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.46
+December 22nd, 2019
 
 Please note that the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -12,7 +12,7 @@ INSTALLATION
 you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails unstable revision U2019.12.10-1721 (which includes Monogame)
+This unofficial version has been derived from the official Open Rails unstable revision U2019.12.21-2121 (which includes Monogame)
 and from the official OpenRails testing revision X1.3.1-107.
 It includes some features not (yet) available in the Open Rails unstable official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
@@ -27,9 +27,8 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - added translatable Train Driving Info window (see http://www.elvastower.com/forums/index.php?/topic/33401-f5-hud-scrolling/page__view__findpost__p__251671 and following posts), by mbm_OR
 - 32bit running set as default, to avoid 64 bit shakings and flickerings
 - inserted extended Raildriver setup, as present in OR Ultimate (by perpetualKid)
-- NEW: corrected bug blocking motion of pickup items (water columns and coal towers)
-- NEW: set Simple Control and Physics option as default.
-
+- set Simple Control and Physics option as default
+- NEW: fixed bug https://bugs.launchpad.net/or/+bug/1857203 thread safety problem with EventHandlers (by dennisat)
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
