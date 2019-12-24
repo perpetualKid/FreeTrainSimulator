@@ -1219,8 +1219,14 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         ORTSDiscreteTrigger ortsTrigger = new ORTSDiscreteTrigger(this, eventSource, (DiscreteTrigger)trigger, settings);
                         Triggers.Add(ortsTrigger);  // list them here so we can enable and disable
-                        lock (SoundSource.Car.EventHandlers)
+                        try
+                        {
                             SoundSource.Car.EventHandlers.Add(ortsTrigger);  // tell the simulator to call us when the event occurs
+                        }
+                        catch (Exception error)
+                        {
+                            Trace.TraceInformation("Sound event skipped due to thread safety problem" + error.Message);
+                        }
                     }
                     else if (trigger is DiscreteTrigger)
                     {
