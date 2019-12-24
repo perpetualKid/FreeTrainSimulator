@@ -630,7 +630,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// </summary>
         public float CurrentRailOutputPowerW;
         /// <summary>
-        /// Real power output of the engine
+        /// Real power output of the engine (based upon previous cycle - ie equivalent to Previous Motive Force - to calculate difference in power
         /// </summary>
         public float OutputPowerW;
         /// <summary>
@@ -910,7 +910,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     ExhaustColor = ExhaustSteadyColor;
                 }
             }
-            else if (RealRPM > (DemandedRPM))
+            else if (RealRPM > DemandedRPM)
                 {
                     dRPM = (float)Math.Max(-Math.Sqrt(2 * RateOfChangeDownRPMpSS * (RealRPM - DemandedRPM)), -ChangeDownRPMpS);
                     ExhaustParticles = (InitialExhaust + ((ExhaustRange * (RealRPM - IdleRPM) / RPMRange))) * ExhaustDecelReduction;
@@ -919,14 +919,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
                 }
 
-            if ((OutputPowerW > (1.1f * CurrentDieselOutputPowerW)) && (EngineStatus == Status.Running))
+            // Uncertain about the purpose of this code piece?? Does there need to be a corresponding code for RateOfChangeUpRPMpSS???
+            if (DemandedRPM < RealRPM && (OutputPowerW > (1.1f * CurrentDieselOutputPowerW)) && (EngineStatus == Status.Running))
                 dRPM = (CurrentDieselOutputPowerW - OutputPowerW) / MaximumDieselPowerW * 0.01f * RateOfChangeDownRPMpSS;
 
             RealRPM = (float)Math.Max(RealRPM + dRPM * elapsedClockSeconds, 0);
 
             if (DieselPowerTab != null)
             {
-                CurrentDieselOutputPowerW = (float)(DieselPowerTab[RealRPM] <= MaximumDieselPowerW * (1 - locomotive.PowerReduction) ? DieselPowerTab[RealRPM] * (1 - locomotive.PowerReduction) : MaximumDieselPowerW) * (1 - locomotive.PowerReduction);
+                // Following line to be deleted???
+                //  CurrentDieselOutputPowerW = (DieselPowerTab[RealRPM] <= MaximumDieselPowerW * (1 - locomotive.PowerReduction) ? DieselPowerTab[RealRPM] * (1 - locomotive.PowerReduction) : MaximumDieselPowerW) * (1 - locomotive.PowerReduction);
+
+                CurrentDieselOutputPowerW = (float)(DieselPowerTab[RealRPM] * (1 - locomotive.PowerReduction) <= MaximumDieselPowerW * (1 - locomotive.PowerReduction) ? DieselPowerTab[RealRPM] * (1 - locomotive.PowerReduction) : MaximumDieselPowerW * (1 - locomotive.PowerReduction));
                 CurrentDieselOutputPowerW = CurrentDieselOutputPowerW < 0f ? 0f : CurrentDieselOutputPowerW;
                 // Rail output power will never be the same as the diesel prime mover output power it will always have some level of loss of efficiency
                 CurrentRailOutputPowerW = (RealRPM - IdleRPM) / (MaxRPM - IdleRPM) * MaximumRailOutputPowerW * (1 - locomotive.PowerReduction);
@@ -1448,14 +1452,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
             if ((initLevel & SettingsFlags.DieselConsumptionTab) == 0)
             {
-                DieselConsumptionTab = new Interpolator(new double[] { loco.IdleRPM, loco.MaxRPM }, new double[] { loco.DieselUsedPerHourAtIdleL, loco.DieselUsedPerHourAtMaxPowerL });
+                DieselConsumptionTab = new Interpolator(new double[] { IdleRPM, MaxRPM }, new double[] { loco.DieselUsedPerHourAtIdleL, loco.DieselUsedPerHourAtMaxPowerL });
                 if (DieselEngineConfigured && loco.Simulator.Settings.VerboseConfigurationMessages)
                     Trace.TraceInformation("DieselConsumptionTab not found in Diesel Engine Config, set at default values");
             }
 
             if ((initLevel & SettingsFlags.ThrottleRPMTab) == 0)
             {
-                ThrottleRPMTab = new Interpolator(new double[] { 0, 100 }, new double[] { loco.IdleRPM, loco.MaxRPM });
+                ThrottleRPMTab = new Interpolator(new double[] { 0, 100 }, new double[] { IdleRPM, MaxRPM });
                 if (DieselEngineConfigured && loco.Simulator.Settings.VerboseConfigurationMessages)
                     Trace.TraceInformation("ThrottleRpMTab not found in Diesel Engine Config, set at default values");
             }
@@ -1472,13 +1476,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 for (int i = 0; i < count; i++)
                 {
                     if (i == 0)
-                        rpm[i] = loco.IdleRPM;
+                        rpm[i] = IdleRPM;
                     else
-                        rpm[i] = rpm[i - 1] + (loco.MaxRPM - loco.IdleRPM) / (count - 1);
+                        rpm[i] = rpm[i - 1] + (MaxRPM - IdleRPM) / (count - 1);
                     power[i] *= MaximumDieselPowerW;
                     torque[i] *= MaximumDieselPowerW / (MaxRPM * 2f * 3.1415f / 60f) / 0.81f;
                 }
-                rpm[count] = loco.MaxRPM * 1.5f;
+                rpm[count] = MaxRPM * 1.5f;
                 DieselPowerTab = new Interpolator(rpm, power);
                 DieselTorqueTab = new Interpolator(rpm, torque);
                 if (DieselEngineConfigured)
