@@ -2564,9 +2564,15 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // TODO: This should be moved to TrainCar probably.
-            lock (EventHandlers)
+            try
+            {
                 foreach (var eventHandler in EventHandlers) // e.g. for HandleCarEvent() in Sounds.cs
                     eventHandler.HandleEvent(evt);
+            }
+            catch (Exception error)
+            {
+                Trace.TraceInformation("Sound event skipped due to thread safety problem" + error.Message);
+            }
 
             base.SignalEvent(evt);
         }
