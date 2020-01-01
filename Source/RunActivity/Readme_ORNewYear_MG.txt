@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.46
-December 22nd, 2019
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.47
+January 1st, 2020
 
 Please note that the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -12,8 +12,8 @@ INSTALLATION
 you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails unstable revision U2019.12.21-2121 (which includes Monogame)
-and from the official OpenRails testing revision X1.3.1-107.
+This unofficial version has been derived from the official Open Rails unstable revision U2020.01.01-1751 (which includes Monogame)
+and from the official OpenRails testing revision X1.3.1-108.
 It includes some features not (yet) available in the Open Rails unstable official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
@@ -28,7 +28,8 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - 32bit running set as default, to avoid 64 bit shakings and flickerings
 - inserted extended Raildriver setup, as present in OR Ultimate (by perpetualKid)
 - set Simple Control and Physics option as default
-- NEW: fixed bug https://bugs.launchpad.net/or/+bug/1857203 thread safety problem with EventHandlers (by dennisat)
+
+Various bug fixes have been introduced in parallel to the unstable release.
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
