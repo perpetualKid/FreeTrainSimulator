@@ -1220,7 +1220,7 @@ namespace Orts.Viewer3D
                         }
                         catch (Exception error)
                         {
-                            Trace.TraceInformation("Sound event skipped due to thread safety problem" + error.Message);
+                            Trace.TraceInformation("Sound event skipped due to thread safety problem " + error.Message);
                         }
                     }
                     else if (trigger.GetType() == typeof(Orts.Formats.Msts.Discrete_Trigger))

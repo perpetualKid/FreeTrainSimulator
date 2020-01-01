@@ -417,7 +417,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
             catch (Exception error)
             {
-                Trace.TraceInformation("Sound event skipped due to thread safety problem" + error.Message);
+                Trace.TraceInformation("Sound event skipped due to thread safety problem " + error.Message);
             }
 }
 
