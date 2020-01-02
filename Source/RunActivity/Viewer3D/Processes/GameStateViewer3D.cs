@@ -56,7 +56,7 @@ namespace Orts.Viewer3D.Processes
                 {
                     Program.DebugViewer = new DispatchViewer(Viewer.Simulator, Viewer);
                     Program.DebugViewer.Hide();
-                    Viewer.DebugViewerEnabled = false;*/
+                    Viewer.DebugViewerEnabled = false;
                 }
 
                 Program.SoundDebugForm = new SoundDebugForm(Viewer);
