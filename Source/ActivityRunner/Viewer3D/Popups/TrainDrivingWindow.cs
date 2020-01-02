@@ -334,6 +334,15 @@ namespace Orts.Viewer3D.Popups
             }
         }
 
+        /// <summary>
+        /// Display info according to the full text window or the condensed text window
+        /// </summary>
+        /// <param name="firstkeyactivated"></param>
+        /// <param name="firstcol"></param>
+        /// <param name="lastcol"></param>
+        /// <param name="symbolcol"></param>
+        /// <param name="changecolwidth"></param>
+        /// <param name="lastkeyactivated"></param>
         private void InfoToLabel(string firstkeyactivated, string firstcol, string lastcol, string symbolcol, bool changecolwidth, string lastkeyactivated)
         {
             if (!StandardHUD)
@@ -398,6 +407,7 @@ namespace Orts.Viewer3D.Popups
                       .Replace("inHg", string.Empty)
                       .Replace("kgf/cm²", string.Empty)
                       .Replace("kPa", string.Empty)
+                      .Replace("lib./pal.", string.Empty)
                       .Replace("psi", string.Empty)
                       .ToString();
             }
@@ -539,12 +549,13 @@ namespace Orts.Viewer3D.Popups
                 keyPressed = "";
                 if (brakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
                 {
+                    var IndexOffset = Viewer.Catalog.GetString("EOT").Length + 1;
                     index = brakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
                     brakeInfoValue = brakeStatus.Substring(index, brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
                     keyPressed = "";
                     InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
                     keyPressed = "";
-                    index = brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + 4;
+                    index = brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + IndexOffset;
                     brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimStart();
                     keyPressed = "";
                     InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
@@ -561,18 +572,19 @@ namespace Orts.Viewer3D.Popups
             }
             else if (brakeStatus.Contains(Viewer.Catalog.GetString("Lead")))
             {
+                var IndexOffset  = Viewer.Catalog.GetString("Lead").Length + 1;
                 brakeInfoValue = brakeStatus.Substring(0, brakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"))).TrimEnd();
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false, keyPressed);
 
                 keyPressed = "";
-                index = brakeStatus.IndexOf(Viewer.Catalog.GetString("Lead")) + 5;
+                index = brakeStatus.IndexOf(Viewer.Catalog.GetString("Lead")) + IndexOffset;
                 if (brakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
                 {
                     brakeInfoValue = brakeStatus.Substring(index, brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
                     InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
 
                     keyPressed = "";
-                    index = brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + 5;
+                    index = brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + IndexOffset;
                     brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimEnd();
                     InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
                 }
@@ -665,7 +677,7 @@ namespace Orts.Viewer3D.Popups
                         }
                         else if (parts.Contains(Viewer.Catalog.GetString("Pantographs")))
                         {
-                            keyPressed = UserInput.IsDown(UserCommand.ControlPantograph1) ? parts[1].StartsWith("Up") ? arrowUp.ToString() + "???" : arrowDown.ToString() + "???" : "";
+                            keyPressed = UserInput.IsDown(UserCommand.ControlPantograph1) ? parts[1].StartsWith(Viewer.Catalog.GetString("Up")) ? arrowUp.ToString() + "???" : arrowDown.ToString() + "???" : "";
                             InfoToLabel(keyPressed, Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) : ""), "", false, keyPressed);
                             keyPressed = "";
                         }
@@ -722,7 +734,7 @@ namespace Orts.Viewer3D.Popups
                         InfoToLabel("", Viewer.Catalog.GetString("Grate limit"), Viewer.Catalog.GetString("Exceeded") + "!!!", "", false, keyPressed);
                 }
                 else
-                    InfoToLabel("", Viewer.Catalog.GetString("Grate limit"), Viewer.Catalog.GetString("Normal") + "!??", "", false, keyPressed);
+                    InfoToLabel("", Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false, keyPressed);
             }
             else
                 InfoToLabel("", Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false, keyPressed);
