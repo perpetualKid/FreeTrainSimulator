@@ -7304,14 +7304,9 @@ public void ToggleCylinderCocks()
 
         public override void SwitchToAutopilotControl()
         {
-            if (Train.MUDirection == Direction.Forward)
-            {
-                Train.MUReverserPercent = 100;
-            }
-            else if (Train.MUDirection == Direction.Reverse)
-            {
-                Train.MUReverserPercent = -100;
-            }
+            if (Train.MUDirection != Direction.Forward) SignalEvent(TrainEvent.ReverserChange);
+            Train.MUDirection = Direction.Forward;
+            Train.MUReverserPercent = 100;
             base.SwitchToAutopilotControl();
         }
 
