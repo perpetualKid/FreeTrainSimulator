@@ -2564,25 +2564,8 @@ namespace Orts.Simulation.Physics
 
             if (IsActualPlayerTrain)
             {
-                DatalogTrainSpeed = Simulator.Settings.DataLogTrainSpeed;
-                DatalogTSInterval = Simulator.Settings.DataLogTSInterval;
+                SetTrainSpeedLoggingFlag();
 
-                DatalogTSContents = new int[Simulator.Settings.DataLogTSContents.Length];
-                Simulator.Settings.DataLogTSContents.CopyTo(DatalogTSContents, 0);
-
-                // if logging required, derive filename and open file
-                if (DatalogTrainSpeed)
-                {
-                    DataLogFile = Simulator.DeriveLogFile("Speed");
-                    if (String.IsNullOrEmpty(DataLogFile))
-                    {
-                        DatalogTrainSpeed = false;
-                    }
-                    else
-                    {
-                        CreateLogFile();
-                    }
-                }
 
                 // if debug, print out all passing paths
 
@@ -2592,6 +2575,34 @@ namespace Orts.Simulation.Physics
             }
 
             return (validPosition);
+        }
+
+        //================================================================================================//
+        /// <summary>
+        /// set train speed logging flag (valid per activity, so will be restored after save)
+        /// </summary>
+        
+        protected void SetTrainSpeedLoggingFlag()
+        {
+            DatalogTrainSpeed = Simulator.Settings.DataLogTrainSpeed;
+            DatalogTSInterval = Simulator.Settings.DataLogTSInterval;
+
+            DatalogTSContents = new int[Simulator.Settings.DataLogTSContents.Length];
+            Simulator.Settings.DataLogTSContents.CopyTo(DatalogTSContents, 0);
+
+            // if logging required, derive filename and open file
+            if (DatalogTrainSpeed)
+            {
+                DataLogFile = Simulator.DeriveLogFile("Speed");
+                if (String.IsNullOrEmpty(DataLogFile))
+                {
+                    DatalogTrainSpeed = false;
+                }
+                else
+                {
+                    CreateLogFile();
+                }
+            }
         }
 
         //================================================================================================//
