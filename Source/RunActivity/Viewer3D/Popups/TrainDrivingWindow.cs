@@ -727,14 +727,14 @@ namespace Orts.Viewer3D.Popups
                 MSTSSteamLocomotive steamloco = (MSTSSteamLocomotive)Owner.Viewer.PlayerLocomotive;
                 if (steamloco.GrateCombustionRateLBpFt2 > steamloco.GrateLimitLBpFt2)
                 {
-                    if (!steamloco.IsGrateLimit)
+                    if (steamloco.IsGrateLimit)
                         InfoToLabel("", Viewer.Catalog.GetString("Grate limit"), Viewer.Catalog.GetString("Exceeded") + "!!!", "", false, keyPressed);
                 }
                 else
                     InfoToLabel("", Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false, keyPressed);
             }
             else
-                InfoToLabel("", Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false, keyPressed);
+                InfoToLabel("", Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("-") + "?!?", "", false, keyPressed);
 
 			// Whell
             keyPressed = "";
@@ -745,7 +745,7 @@ namespace Orts.Viewer3D.Popups
             else if (Owner.Viewer.PlayerTrain.IsBrakeSkid)
                 InfoToLabel("", Viewer.Catalog.GetString("Wheel"), Viewer.Catalog.GetString("skid") + "!!!", "", false, keyPressed);
             else
-                InfoToLabel("", Viewer.Catalog.GetString("Wheel") + "?!?", Viewer.Catalog.GetString("skid") + "!!!", "", false, keyPressed);
+                InfoToLabel("", Viewer.Catalog.GetString("Wheel") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false, keyPressed);
 
 			// Door
             keyPressed = "";
