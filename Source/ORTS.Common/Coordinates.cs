@@ -223,10 +223,6 @@ namespace ORTS.Common
         /// </summary>
         public void Normalize()
         {
-            while (Location.X >= 1024) { Location.X -= 2048; TileX++; }
-            while (Location.X < -1024) { Location.X += 2048; TileX--; }
-            while (Location.Z >= 1024) { Location.Z -= 2048; TileZ++; }
-            while (Location.Z < -1024) { Location.Z += 2048; TileZ--; }
             int xTileDistance = (int)Math.Round((int)(Location.X / 1024) / 2.0, MidpointRounding.AwayFromZero);
             int zTileDistance = (int)Math.Round((int)(Location.Z / 1024) / 2.0, MidpointRounding.AwayFromZero);
             if (xTileDistance == 0 && zTileDistance == 0) return;
@@ -246,10 +242,6 @@ namespace ORTS.Common
         /// <param name="tileZ">The x-value of the tile to normalize to</param>
         public void NormalizeTo(int tileX, int tileZ)
         {
-            while (TileX < tileX) { Location.X -= 2048; TileX++; }
-            while (TileX > tileX) { Location.X += 2048; TileX--; }
-            while (TileZ < tileZ) { Location.Z -= 2048; TileZ++; }
-            while (TileZ > tileZ) { Location.Z += 2048; TileZ--; }
             int xDiff = TileX - tileX;
             int zDiff = TileZ - tileZ;
             if (xDiff == 0 && zDiff == 0) return;
