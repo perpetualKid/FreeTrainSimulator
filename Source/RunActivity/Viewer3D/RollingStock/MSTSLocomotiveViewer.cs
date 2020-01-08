@@ -1038,30 +1038,14 @@ namespace Orts.Viewer3D.RollingStock
             _Viewer = viewer;
             _Locomotive = car;
 
-            _Viewer.AdjustCabHeight(_Viewer.DisplaySize.X, _Viewer.DisplaySize.Y);
-            
-            _Viewer.CabCamera.ScreenChanged();
-            
-                        // _Viewer.DisplaySize intercepted to adjust cab view height
+            // _Viewer.DisplaySize intercepted to adjust cab view height
             Point DisplaySize = _Viewer.DisplaySize;
-            DisplaySize.Y = _Viewer.CabHeightPixels;
-            
-            // Use same shader for both front-facing and rear-facing cabs.
-            if (_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF != null)
-            {
-                _Shader = new CabShader(viewer.GraphicsDevice,
-                ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
-                ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
-                ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Color),
-                ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Color));
-            }
-            _PrevScreenSize = DisplaySize;
-            _SpriteShader2DCabView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, ShaderKey, _Shader);
 
             #region Create Control renderers
             ControlMap = new Dictionary<int, CabViewControlRenderer>();
             int[] count = new int[256];//enough to hold all types, count the occurence of each type
             var i = 0;
+            bool firstOne = true;
             foreach (var cabView in car.CabViewList)
             {
                 if (cabView.CVFFile != null)
@@ -1070,6 +1054,25 @@ namespace Orts.Viewer3D.RollingStock
                     foreach (var cabfile in cabView.CVFFile.TwoDViews)
                     {
                         HasCabLightDirectory = CABTextureManager.LoadTextures(viewer, cabfile);
+                    }
+
+                    if (firstOne)
+                    {
+                        _Viewer.AdjustCabHeight(_Viewer.DisplaySize.X, _Viewer.DisplaySize.Y);
+
+                        _Viewer.CabCamera.ScreenChanged();
+                        DisplaySize.Y = _Viewer.CabHeightPixels;
+                        // Use same shader for both front-facing and rear-facing cabs.
+                        if (_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF != null)
+                        {
+                            _Shader = new CabShader(viewer.GraphicsDevice,
+                            ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Position, DisplaySize),
+                            ExtendedCVF.TranslatedPosition(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Position, DisplaySize),
+                            ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light1Color),
+                            ExtendedCVF.TranslatedColor(_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF.Light2Color));
+                        }
+                        _SpriteShader2DCabView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, ShaderKey, _Shader);
+                        firstOne = false;
                     }
 
                     if (cabView.CVFFile.CabViewControls == null)
@@ -1159,6 +1162,8 @@ namespace Orts.Viewer3D.RollingStock
                 i++;
             }
             #endregion
+
+            _PrevScreenSize = DisplaySize;
 
         }
 
