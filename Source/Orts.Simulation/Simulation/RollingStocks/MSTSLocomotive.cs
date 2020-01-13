@@ -2805,7 +2805,7 @@ namespace Orts.Simulation.RollingStocks
             var oldThrottlePercent = ThrottleController.CurrentValue * 100;
             SetThrottlePercent(percent);
             if (Math.Abs(oldThrottlePercent - ThrottleController.CurrentValue * 100) > 2)
-                SignalEvent(Event.ThrottleChange);
+                SignalEvent(TrainEvent.ThrottleChange);
         }
 
         public void ThrottleToZero()
@@ -3297,7 +3297,7 @@ namespace Orts.Simulation.RollingStocks
             var oldDynamicBrakePercent = DynamicBrakeController.CurrentValue * 100;
             SetDynamicBrakePercent(percent);
             if (Math.Abs(oldDynamicBrakePercent - DynamicBrakeController.CurrentValue * 100) > 2)
-                SignalEvent(Event.DynamicBrakeChange);
+                SignalEvent(TrainEvent.DynamicBrakeChange);
         }
 
         public void DynamicBrakeChangeActiveState(bool toState)

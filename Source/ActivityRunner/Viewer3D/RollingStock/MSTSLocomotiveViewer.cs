@@ -223,12 +223,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (Locomotive.Headlight < UserInput.Raildriver.Lights - 1)
                     {
                         Locomotive.Headlight++;
-                        Locomotive.SignalEvent(Event.LightSwitchToggle);
+                        Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
                     }
-                    if (Locomotive.Headlight > UserInput.RDState.Lights - 1)
+                    if (Locomotive.Headlight > UserInput.Raildriver.Lights - 1)
                     {
                         Locomotive.Headlight--;
-                        Locomotive.SignalEvent(Event.LightSwitchToggle);
+                        Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
                     }
             }
 
