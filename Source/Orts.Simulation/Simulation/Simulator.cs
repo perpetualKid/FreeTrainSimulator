@@ -143,8 +143,8 @@ namespace Orts.Simulation
         public bool InControl = true;//For multiplayer, a player may not control his/her own train (as helper)
         public TurntableFile TurntableFile;
         public List<MovingTable> MovingTables = new List<MovingTable>();
-        //public List<CarSpawnerList> CarSpawnerLists;
         public List<CarSpawnerList> CarSpawnerLists;
+        public ClockList Clocks;           // List of OR-Clocks given by externe file "openrails\clocks.dat"
 
         // timetable pools
         public Poolholder PoolHolder;
@@ -342,6 +342,15 @@ namespace Orts.Simulation
                 Trace.Write(" EXTCARSPAWN");
                 ORCarSpawnerFile acsf = new ORCarSpawnerFile(RoutePath + @"\openrails\carspawn.dat", RoutePath + @"\shapes\");
                 CarSpawnerLists.AddRange(acsf.CarSpawners);
+            }
+
+            //Load OR-Clock if external file "openrails\clock.dat" exists --------------------------------------------------------
+            var extClockFile = RoutePath + @"\openrails\clocks.dat";
+            if (File.Exists(extClockFile))
+            {
+                Trace.Write(" EXTCLOCK");
+                ClockFile cf = new ClockFile(RoutePath + @"\openrails\clocks.dat", RoutePath + @"\shapes\");
+                Clocks = cf.Clocks;
             }
 
             Confirmer = new Confirmer(this, 1.5);

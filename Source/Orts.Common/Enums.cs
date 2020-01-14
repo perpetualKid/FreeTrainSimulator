@@ -147,6 +147,13 @@ namespace Orts.Common
         Clockwise = 1,
     }
 
+    public enum ClockType
+    {
+        Unknown,
+        Analog,
+        Digital,
+    }
+
     public enum TrackMonitorSignalAspect
     {
         None,
