@@ -311,7 +311,7 @@ namespace Orts.Simulation.RollingStocks
         protected bool DynamicBrakeBlendingEnabled; // dynamic brake blending is configured
         protected bool DynamicBrakeAvailable; // dynamic brake is available
         AirSinglePipe airPipeSystem;
-        protected double DynamicBrakeCommandStartTime;
+        public double DynamicBrakeCommandStartTime;
         protected bool DynamicBrakeBlendingOverride; // true when DB lever >0% should always override the blending. When false, the bigger command is applied.
         protected bool DynamicBrakeBlendingForceMatch = true; // if true, dynamic brake blending tries to achieve the same braking force as the airbrake would have.
 

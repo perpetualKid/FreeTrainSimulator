@@ -35,10 +35,16 @@ namespace Orts.Viewer3D.Popups
 {
     public class TrainDrivingWindow : Window
     {
+        bool DynBrakeSetup = false;
+        bool ResizeWindow;
+        double StartTime;
+        int FirstColIndex = 0;//first string that does not fit
         int FirstColLenght = 0;
+        int FirstColOverFlow = 0;
         int LastColLenght = 0;
-        int LinesCount;
-        bool ResizeWindow;                
+        int LastColOverFlow = 0;
+        int LinesCount = 0;
+
         public bool StandardHUD = true;// Standard text
 
         int WindowHeightMin = 0;
@@ -63,7 +69,9 @@ namespace Orts.Viewer3D.Popups
         public struct ListLabel
         {
             public string FirstCol { get; set; }
+            public int FirstColWidth { get; set; }
             public string LastCol { get; set; }
+            public int LastColWidth { get; set; }
             public string SymbolCol { get; set; }
             public bool ChangeColWidth { get; set; }
             public string keyPressed { get; set; }
@@ -138,7 +146,7 @@ namespace Orts.Viewer3D.Popups
             : base(owner, Window.DecorationSize.X + (owner.TextFontDefault.Height * ( Orts.MultiPlayer.MPManager.IsMultiPlayer() ? 15 : 9)), Window.DecorationSize.Y + owner.TextFontDefault.Height * (Orts.MultiPlayer.MPManager.IsMultiPlayer() ? 30 : 15), Viewer.Catalog.GetString("Train Driving Info"))
         {
             WindowHeightMin = Location.Height;
-            WindowHeightMax = Location.Height + owner.TextFontDefault.Height * 10; // 10 lines
+            WindowHeightMax = Location.Height + owner.TextFontDefault.Height * 20; // 10 lines
             WindowWidthMin = Location.Width;
             WindowWidthMax = Location.Width + owner.TextFontDefault.Height * 20; ; // 20 char
         }
@@ -154,123 +162,128 @@ namespace Orts.Viewer3D.Popups
         {
             // Display main HUD data
             var vbox = base.Layout(layout).AddLayoutVertical();
-            var colWidth =(int) Math.Round((double) vbox.RemainingWidth / TextSize, 1);
-            var OffestColWidth = FirstColLenght / colWidth;
-
-            foreach (var data in ListToLabel)
+            if (ListToLabel.Count > 0)
             {
+                var colWidth = ListToLabel.Max(x => x.FirstColWidth) + (StandardHUD ? FontToBold ? 19 : 16 : 8);
+                var TimeHboxPositionY = 0;
+                foreach (var data in ListToLabel)
                 {
-                    {   // open
-                        if (data.FirstCol.Contains(Viewer.Catalog.GetString("NwLn")))
-                        {
-                            var hbox = vbox.AddLayoutHorizontalLineOfText();
-                            hbox.Add(new Label(colWidth * 2, hbox.RemainingHeight, " "));
-                        }
-                        else if (data.FirstCol.Contains("Sprtr"))
-                        {
-                            vbox.AddHorizontalSeparator();
-                        }
-                        else
-                        {
-                            var hbox = vbox.AddLayoutHorizontalLineOfText();
-                            var FirstCol = data.FirstCol;
-                            var LastCol = data.LastCol;
-                            var SymbolCol = data.SymbolCol;
-
-                            if (ColorCode.Keys.Any(FirstCol.EndsWith) || ColorCode.Keys.Any(LastCol.EndsWith) || ColorCode.Keys.Any(data.keyPressed.EndsWith) || ColorCode.Keys.Any(data.SymbolCol.EndsWith))
+                    {
+                        {   // open
+                            if (data.FirstCol.Contains(Viewer.Catalog.GetString("NwLn")))
                             {
-                                var colorFirstColEndsWith = ColorCode.Keys.Any(FirstCol.EndsWith) ? ColorCode[FirstCol.Substring(FirstCol.Length - 3)] : Color.White;
-                                var colorLastColEndsWith = ColorCode.Keys.Any(LastCol.EndsWith) ? ColorCode[LastCol.Substring(LastCol.Length - 3)] : Color.White;
-                                var colorKeyPressed = ColorCode.Keys.Any(data.keyPressed.EndsWith) ? ColorCode[data.keyPressed.Substring(data.keyPressed.Length - 3)] : Color.White;
-                                var colorSymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? ColorCode[data.SymbolCol.Substring(data.SymbolCol.Length - 3)] : Color.White;
-
-                                // Erase the color code at the string end
-                                FirstCol = ColorCode.Keys.Any(FirstCol.EndsWith) ? FirstCol.Substring(0, FirstCol.Length - 3) : FirstCol;
-                                LastCol = ColorCode.Keys.Any(LastCol.EndsWith) ? LastCol.Substring(0, LastCol.Length - 3) : LastCol;
-                                keyPressed = ColorCode.Keys.Any(data.keyPressed.EndsWith) ? data.keyPressed.Substring(0, data.keyPressed.Length - 3) : data.keyPressed;
-                                SymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? data.SymbolCol.Substring(0, data.SymbolCol.Length - 3) : data.SymbolCol;
-
-                                // Apply color to FirstCol
-                                if (StandardHUD || FirstCol.StartsWith(Viewer.Catalog.GetString("Multi")))
-                                {   // Apply color to FirstCol
-                                    hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
-                                    indicator.Color = colorKeyPressed;
-                                    hbox.Add(indicator = new Label(colWidth * OffestColWidth, hbox.RemainingHeight, FirstCol));
-                                    indicator.Color = colorFirstColEndsWith;
-                                }
-                                else
-                                {   // Use constant width font
-                                    hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
-                                    indicator.Color = colorKeyPressed;
-                                    hbox.Add(indicatorMono = new LabelMono(colWidth * OffestColWidth, hbox.RemainingHeight, FirstCol));
-                                    indicatorMono.Color = colorFirstColEndsWith;
-                                }
-
-                                if (data.keyPressed != null && data.keyPressed != "")
-                                {
-                                    hbox.Add(indicator = new Label(-TextSize, 0, TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Right));
-                                    indicator.Color = colorKeyPressed;
-                                }
-
-                                if (data.SymbolCol != null && data.SymbolCol != "")
-                                {
-                                    hbox.Add(indicator = new Label(-(TextSize + 3), 0, TextSize, hbox.RemainingHeight, SymbolCol, LabelAlignment.Right));
-                                    indicator.Color = colorSymbolCol;
-                                }
-                                
-                                // Apply color to LastCol
-                                hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
-                                indicator.Color = colorFirstColEndsWith == Color.White ? colorLastColEndsWith : colorFirstColEndsWith;
+                                var hbox = vbox.AddLayoutHorizontalLineOfText();
+                                hbox.Add(new Label(colWidth * 2, hbox.RemainingHeight, " "));
+                            }
+                            else if (data.FirstCol.Contains("Sprtr"))
+                            {
+                                vbox.AddHorizontalSeparator();
                             }
                             else
-                            {   // blanck space
-                                keyPressed = "";
-                                hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
-                                indicator.Color = Color.White; // Default color
+                            {
+                                var hbox = vbox.AddLayoutHorizontalLineOfText();
+                                var FirstCol = data.FirstCol;
+                                var LastCol = data.LastCol;
+                                var SymbolCol = data.SymbolCol;
 
-                                if (StandardHUD || FirstCol.StartsWith(Viewer.Catalog.GetString("Multi")) || FirstCol.ToUpper().Contains(Viewer.Catalog.GetString("PLAYER")))
+                                if (ColorCode.Keys.Any(FirstCol.EndsWith) || ColorCode.Keys.Any(LastCol.EndsWith) || ColorCode.Keys.Any(data.keyPressed.EndsWith) || ColorCode.Keys.Any(data.SymbolCol.EndsWith))
                                 {
-                                    hbox.Add(indicator = new Label(colWidth * OffestColWidth, hbox.RemainingHeight, FirstCol));
-                                    indicator.Color = Color.White; // Default color
-                                }
-                                else
-                                {
-                                    hbox.Add(indicatorMono = new LabelMono(colWidth * OffestColWidth, hbox.RemainingHeight, FirstCol));
-                                    indicatorMono.Color = Color.White; // Default color
-                                }
-                                // Font to bold
-                                if (hbox.Position.Y == 24 && LastCol.Contains(':')) // Time line.
-                                {
-                                    hbox.Add(LabelFontToBold = new Label(colWidth * (StandardHUD? 3: 5), hbox.RemainingHeight, LastCol));
-                                    LabelFontToBold.Color = Color.White;
-                                    LabelFontToBold.Click += new Action<Control, Point>(FontToBold_Click);
-                                }
-                                else
-                                {
+                                    var colorFirstColEndsWith = ColorCode.Keys.Any(FirstCol.EndsWith) ? ColorCode[FirstCol.Substring(FirstCol.Length - 3)] : Color.White;
+                                    var colorLastColEndsWith = ColorCode.Keys.Any(LastCol.EndsWith) ? ColorCode[LastCol.Substring(LastCol.Length - 3)] : Color.White;
+                                    var colorKeyPressed = ColorCode.Keys.Any(data.keyPressed.EndsWith) ? ColorCode[data.keyPressed.Substring(data.keyPressed.Length - 3)] : Color.White;
+                                    var colorSymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? ColorCode[data.SymbolCol.Substring(data.SymbolCol.Length - 3)] : Color.White;
+
+                                    // Erase the color code at the string end
+                                    FirstCol = ColorCode.Keys.Any(FirstCol.EndsWith) ? FirstCol.Substring(0, FirstCol.Length - 3) : FirstCol;
+                                    LastCol = ColorCode.Keys.Any(LastCol.EndsWith) ? LastCol.Substring(0, LastCol.Length - 3) : LastCol;
+                                    keyPressed = ColorCode.Keys.Any(data.keyPressed.EndsWith) ? data.keyPressed.Substring(0, data.keyPressed.Length - 3) : data.keyPressed;
+                                    SymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? data.SymbolCol.Substring(0, data.SymbolCol.Length - 3) : data.SymbolCol;
+
+                                    // Apply color to FirstCol
+                                    if (StandardHUD || FirstCol.StartsWith(Viewer.Catalog.GetString("Multi")))
+                                    {   // Apply color to FirstCol
+                                        hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
+                                        indicator.Color = colorKeyPressed;
+                                        hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, FirstCol));
+                                        indicator.Color = colorFirstColEndsWith;
+                                    }
+                                    else
+                                    {   // Use constant width font
+                                        hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
+                                        indicator.Color = colorKeyPressed;
+                                        hbox.Add(indicatorMono = new LabelMono(colWidth, hbox.RemainingHeight, FirstCol));
+                                        indicatorMono.Color = colorFirstColEndsWith;
+                                    }
+
+                                    if (data.keyPressed != null && data.keyPressed != "")
+                                    {
+                                        hbox.Add(indicator = new Label(-TextSize, 0, TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Right));
+                                        indicator.Color = colorKeyPressed;
+                                    }
+
+                                    if (data.SymbolCol != null && data.SymbolCol != "")
+                                    {
+                                        hbox.Add(indicator = new Label(-(TextSize + 3), 0, TextSize, hbox.RemainingHeight, SymbolCol, LabelAlignment.Right));
+                                        indicator.Color = colorSymbolCol;
+                                    }
+
+                                    // Apply color to LastCol
                                     hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
-                                    indicator.Color = Color.White; // Default color                                
+                                    indicator.Color = colorFirstColEndsWith == Color.White ? colorLastColEndsWith : colorFirstColEndsWith;
                                 }
-                            }                            
+                                else
+                                {   // blanck space
+                                    keyPressed = "";
+                                    hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
+                                    indicator.Color = Color.White; // Default color
 
-                            // Clickable symbol
-                            if (hbox.Position.Y == 24)
-                            {
-                                hbox.Add(ExpandWindow = new Label(hbox.RemainingWidth - TextSize,0 , TextSize, hbox.RemainingHeight, expandWindow.ToString(), LabelAlignment.Right));
-                                ExpandWindow.Color = Color.Yellow;
-                                ExpandWindow.Click += new Action<Control, Point>(ExpandWindow_Click);
-                            }
-                            // Separator line
-                            if (data.FirstCol.Contains("Sprtr"))
-                            {
-                                hbox.AddHorizontalSeparator();
+                                    //Avoids troubles when the Main Scale (Windows DPI settings) is not set to 100%
+                                    if (LastCol.Contains(':')) TimeHboxPositionY = hbox.Position.Y;
+
+                                    if (StandardHUD || FirstCol.StartsWith(Viewer.Catalog.GetString("Multi")) || FirstCol.ToUpper().Contains(Viewer.Catalog.GetString("PLAYER")))
+                                    {
+                                        hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, FirstCol));
+                                        indicator.Color = Color.White; // Default color
+                                    }
+                                    else
+                                    {
+                                        hbox.Add(indicatorMono = new LabelMono(colWidth, hbox.RemainingHeight, FirstCol));
+                                        indicatorMono.Color = Color.White; // Default color
+                                    }
+                                    // Font to bold
+                                    if (hbox.Position.Y == TimeHboxPositionY && LastCol.Contains(':')) // Time line.
+                                    {
+                                        hbox.Add(LabelFontToBold = new Label(Owner.TextFontDefault.MeasureString(LastCol) - (StandardHUD ? 5 : 3), hbox.RemainingHeight, LastCol));
+                                        LabelFontToBold.Color = Color.White;
+                                        LabelFontToBold.Click += new Action<Control, Point>(FontToBold_Click);
+                                    }
+                                    else
+                                    {
+                                        hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
+                                        indicator.Color = Color.White; // Default color
+                                    }
+                                }
+
+                                // Clickable symbol
+                                if (hbox.Position.Y == TimeHboxPositionY)
+                                {
+                                    hbox.Add(ExpandWindow = new Label(hbox.RemainingWidth - TextSize, 0, TextSize, hbox.RemainingHeight, expandWindow.ToString(), LabelAlignment.Right));
+                                    ExpandWindow.Color = Color.Yellow;
+                                    ExpandWindow.Click += new Action<Control, Point>(ExpandWindow_Click);
+                                }
+                                // Separator line
+                                if (data.FirstCol.Contains("Sprtr"))
+                                {
+                                    hbox.AddHorizontalSeparator();
+                                }
                             }
                         }
                     }
                 }
-            }  // close
+            }// close
             return vbox;
         }
-                
+
         void FontToBold_Click(Control arg1, Point arg2)
         {
             FontToBold = FontToBold ? false : true;
@@ -279,61 +292,46 @@ namespace Orts.Viewer3D.Popups
         void ExpandWindow_Click(Control arg1, Point arg2)
         {
             StandardHUD = StandardHUD ? false : true;
+            UpdateData();
             UpdateWindowSize();
         }
 
         private void UpdateWindowSize()
         {
             UpdateData();
+            ModifyWindowSize();
+        }
+
+        /// <summary>
+        /// Modify window size
+        /// </summary>
+        private void ModifyWindowSize()
+        {
             if (ListToLabel.Count > 0)
             {
-                var newData = new List<string>();
-                foreach (var data in ListToLabel)
-                {
-                    if (!data.FirstCol.Contains("Sprtr"))
-                    {
-                        if (data.FirstCol.Contains("?") || data.FirstCol.Contains("!") || data.FirstCol.Contains("$"))
-                        {
-                            newData.Add(data.FirstCol.Replace("?", "").Replace("!", "").Replace("$", ""));
-                        }
-                        else
-                            newData.Add(data.FirstCol);
-                    }
-                }
-                var FirstColLongest = newData.OrderByDescending(s => s.Length).First().ToString();
+                var textwidth = Owner.TextFontDefault.Height;
+                FirstColLenght = ListToLabel.Max(x => x.FirstColWidth);
+                LastColLenght = ListToLabel.Max(x => x.LastColWidth);
 
-                newData.Clear();
-                foreach (var data in ListToLabel)
-                {
-                    if (data.LastCol.Contains("?") || data.LastCol.Contains("!") || data.LastCol.Contains("$"))
-                    {
-                        newData.Add(data.LastCol.Replace("?", "").Replace("!", "").Replace("$", ""));
-                    }
-                    else
-                        newData.Add(data.LastCol);
-                }
+                var desiredHeight = FontToBold ? Owner.TextFontDefaultBold.Height * ListToLabel.Count(x => x.LastCol != null)
+                    : Owner.TextFontDefault.Height * ListToLabel.Count(x => x.LastCol != null);
 
-                var LastColLongest = (newData.OrderByDescending(s => s.Length).First()).ToString();
-                var textWidht = Owner.TextFontDefault;// StandardHUD ? Owner.TextFontDefault : Owner.TextFontMonoSpacedBold;
-                FirstColLenght = textWidht.MeasureString('\u2589'.ToString() + FirstColLongest) + (StandardHUD?(int)(TextSize * 1.2): TextSize);
-                LastColLenght = Owner.TextFontDefault.MeasureString(LastColLongest + "NNN");
+                var desiredWidth = FirstColLenght + LastColLenght + (StandardHUD ? FontToBold ? 43 : 41 : 31);
 
-                var desiredHeight = Owner.TextFontDefault.Height * (ListToLabel.Count(x => x.FirstCol != "Sprtr") + (StandardHUD ? 4 : 4));
-                var desiredWidth = FirstColLenght + LastColLenght;
-
-                var newHeight = (int)MathHelper.Clamp(desiredHeight, (StandardHUD? WindowHeightMin: 100), WindowHeightMax);
-                var newWidth = (int)MathHelper.Clamp(desiredWidth, (StandardHUD? WindowWidthMin: 100), WindowWidthMax);
+                var newHeight = (int)MathHelper.Clamp(desiredHeight, (StandardHUD ? WindowHeightMin : 100), WindowHeightMax);
+                var newWidth = (int)MathHelper.Clamp(desiredWidth, (StandardHUD ? WindowWidthMin : 100), WindowWidthMax);
 
                 // Move the dialog up if we're expanding it, or down if not; this keeps the center in the same place.
                 var newTop = Location.Y + (Location.Height - newHeight) / 2;
 
+                // Display window
                 SizeTo(newWidth, newHeight);
                 MoveTo(Location.X, newTop);
             }
         }
 
         /// <summary>
-        /// Display info according to the full text window or the condensed text window
+        /// Display info according to the full text window or the slim text window
         /// </summary>
         /// <param name="firstkeyactivated"></param>
         /// <param name="firstcol"></param>
@@ -349,26 +347,74 @@ namespace Orts.Viewer3D.Popups
                 {
                     if (firstcol.Contains(code.Key))
                     {
-                        firstcol = firstcol.Replace(code.Key, code.Value);
+                        firstcol = firstcol.Replace(code.Key, code.Value).TrimEnd();
                     }
                 }
                 foreach (var code in LastColToAbbreviated)
                 {
                     if (lastcol.Contains(code.Key))
                     {
-                        lastcol = lastcol.Replace(code.Key, code.Value);
+                        lastcol = lastcol.Replace(code.Key, code.Value).TrimEnd();
                     }
+                }
+            }
+
+            var firstColWidth = 0;
+            var lastColWidth = 0;
+            if (!firstcol.Contains("Sprtr"))
+            {
+                if (firstcol.Contains("?") || firstcol.Contains("!") || firstcol.Contains("$"))
+                {
+                    firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(firstcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd())
+                        : Owner.TextFontDefault.MeasureString(firstcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd());
+                }
+                else
+                {
+                    firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(firstcol.TrimEnd())
+                        : Owner.TextFontDefault.MeasureString(firstcol.TrimEnd());
+                }
+
+                if (lastcol.Contains("?") || lastcol.Contains("!") || lastcol.Contains("$"))
+                {
+                    lastColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(lastcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd())
+                        : Owner.TextFontDefault.MeasureString(lastcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd());
+                }
+                else
+                {
+                    lastColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(lastcol.TrimEnd())
+                        : Owner.TextFontDefault.MeasureString(lastcol.TrimEnd());
                 }
             }
 
             ListToLabel.Add(new ListLabel
             {
                 FirstCol = firstcol,
+                FirstColWidth = firstColWidth,
                 LastCol = lastcol,
+                LastColWidth = lastColWidth,
                 SymbolCol = symbolcol,
                 ChangeColWidth = changecolwidth,
                 keyPressed = keyPressed
             });
+
+            // Detect Autopilot is on to avoid flickering when slim window is displayed
+            var AutopilotOn = Owner.Viewer.Settings.Autopilot && Owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING ? true : false;
+
+            //ResizeWindow, when the string spans over the right boundary of the window
+            var maxFirstColWidth = ListToLabel.Max(x => x.FirstColWidth);
+            var maxLastColWidth = ListToLabel.Max(x => x.LastColWidth);
+
+            if (!ResizeWindow && ListToLabel.Count > 0 && lastcol != "")
+            {
+                if (((StandardHUD && maxFirstColWidth > FirstColLenght) || maxLastColWidth > LastColLenght) ||
+                   (FirstColIndex == ListToLabel.Count - 1 && ((StandardHUD && FirstColOverFlow != maxFirstColWidth) || (!AutopilotOn && LastColOverFlow != maxLastColWidth))))
+                {
+                    FirstColIndex = ListToLabel.Count - 1;
+                    LastColOverFlow = maxLastColWidth;
+                    FirstColOverFlow = maxFirstColWidth;
+                    ResizeWindow = true;
+                }
+            }
         }
 
         private void UpdateData()
@@ -377,29 +423,33 @@ namespace Orts.Viewer3D.Popups
             var smallArrowUp = '\u25B3';  // △
             var arrowDown = '\u25BC';// ▼
             var smallArrowDown = '\u25BD';// ▽
-            var end = '\u2589';// block
+            var end = '\u2589';// block ▉
+            var endLower = '\u2596';// block ▖
             var arrowToRight = '\u25BA'; // ►
             var smallDiamond = '\u25C6'; // ●
 
-            var playerTrain = Owner.Viewer.PlayerLocomotive.Train;
-            var showMUReverser = Math.Abs(playerTrain.MUReverserPercent) != 100;
-            var showRetainers = playerTrain.RetainerSetting != RetainerSetting.Exhaust;
-            var engineBrakeStatus = Owner.Viewer.PlayerLocomotive.GetEngineBrakeStatus();
-            var dynamicBrakeStatus = Owner.Viewer.PlayerLocomotive.GetDynamicBrakeStatus();
-            var locomotiveStatus = Owner.Viewer.PlayerLocomotive.GetStatus();
-            var locomotiveDebugStatus = Owner.Viewer.PlayerLocomotive.GetDebugStatus();
-            var stretched = playerTrain.Cars.Count > 1 && playerTrain.NPull == playerTrain.Cars.Count - 1;
-            var bunched = !stretched && playerTrain.Cars.Count > 1 && playerTrain.NPush == playerTrain.Cars.Count - 1;
-            var thisInfo = Owner.Viewer.PlayerTrain.GetTrainInfo();
-            var brakeStatus = Owner.Viewer.PlayerLocomotive.GetTrainBrakeStatus();
+            var PlayerTrain = Owner.Viewer.PlayerLocomotive.Train;
+            var BrakeStatus = Owner.Viewer.PlayerLocomotive.GetTrainBrakeStatus();
+            var DynamicBrakePercent = Owner.Viewer.PlayerLocomotive.DynamicBrakePercent;
+            var DynamicBrakeStatus = Owner.Viewer.PlayerLocomotive.GetDynamicBrakeStatus();
+            var EngineBrakeStatus = Owner.Viewer.PlayerLocomotive.GetEngineBrakeStatus();
+            var Locomotive = Owner.Viewer.PlayerLocomotive as MSTSLocomotive;
+            var LocomotiveDebugStatus = Owner.Viewer.PlayerLocomotive.GetDebugStatus();
+            var LocomotiveStatus = Owner.Viewer.PlayerLocomotive.GetStatus();
+            var CombinedCT = Locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic ? true : false;
+            var ShowMUReverser = Math.Abs(PlayerTrain.MUReverserPercent) != 100;
+            var ShowRetainers = PlayerTrain.RetainerSetting != RetainerSetting.Exhaust;
+            var Stretched = PlayerTrain.Cars.Count > 1 && PlayerTrain.NPull == PlayerTrain.Cars.Count - 1;
+            var Bunched = !Stretched && PlayerTrain.Cars.Count > 1 && PlayerTrain.NPush == PlayerTrain.Cars.Count - 1;
+            var ThisInfo = Owner.Viewer.PlayerTrain.GetTrainInfo();
             expandWindow = '\u23FA';// ⏺ toggle window
 
             keyPressed = "";
             ListToLabel.Clear();
             if (!StandardHUD)
             {
-                var newBrakeStatus = new StringBuilder(brakeStatus);
-                brakeStatus = newBrakeStatus
+                var newBrakeStatus = new StringBuilder(BrakeStatus);
+                BrakeStatus = newBrakeStatus
                       .Replace("bar", string.Empty)
                       .Replace("inHg", string.Empty)
                       .Replace("kgf/cm²", string.Empty)
@@ -429,25 +479,25 @@ namespace Orts.Viewer3D.Popups
 
             InfoToLabel(keyPressed, Viewer.Catalog.GetString("Speed"),
                 FormatStrings.FormatSpeedDisplay(Owner.Viewer.PlayerLocomotive.SpeedMpS, Owner.Viewer.PlayerLocomotive.IsMetric) +
-                (thisInfo.speedMpS < thisInfo.allowedSpeedMpS - 1.0f ? "!??" :        // White
-                thisInfo.speedMpS < thisInfo.allowedSpeedMpS + 0.0f ? "?!!" :         // PaleGreen
-                thisInfo.speedMpS < thisInfo.allowedSpeedMpS + 5.0f ? "!!?" : "!!!"), "", false, keyPressed);// Orange : Red
+                (ThisInfo.speedMpS < ThisInfo.allowedSpeedMpS - 1.0f ? "!??" :        // White
+                ThisInfo.speedMpS < ThisInfo.allowedSpeedMpS + 0.0f ? "?!!" :         // PaleGreen
+                ThisInfo.speedMpS < ThisInfo.allowedSpeedMpS + 5.0f ? "!!?" : "!!!"), "", false, keyPressed);// Orange : Red
             keyPressed = "";
 
             // Gradient info
             if (StandardHUD)
             {
-                if (-thisInfo.currentElevationPercent < -0.00015)
+                if (-ThisInfo.currentElevationPercent < -0.00015)
                 {
                     var c = '\u2198';
-                    Gradient = String.Format("{0:F1}%{1}", -thisInfo.currentElevationPercent, c) + "$$$";
+                    Gradient = String.Format("{0:F1}%{1}", -ThisInfo.currentElevationPercent, c) + "$$$";
                 }
-                else if (-thisInfo.currentElevationPercent > 0.00015)
+                else if (-ThisInfo.currentElevationPercent > 0.00015)
                 {
                     var c = '\u2197';
-                    Gradient = String.Format("{0:F1}%{1}", -thisInfo.currentElevationPercent, c) + "???";
+                    Gradient = String.Format("{0:F1}%{1}", -ThisInfo.currentElevationPercent, c) + "???";
                 }
-                else Gradient = String.Format("{0:F1}%", -thisInfo.currentElevationPercent);
+                else Gradient = String.Format("{0:F1}%", -ThisInfo.currentElevationPercent);
 
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Gradient"), Gradient, "", false, keyPressed);
                 keyPressed = "";
@@ -475,14 +525,18 @@ namespace Orts.Viewer3D.Popups
                 }
             }
             InfoToLabel(keyPressed, (Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction")),
-                (showMUReverser ? Math.Abs(playerTrain.MUReverserPercent).ToString("0") + "% " : "") + FormatStrings.Catalog.GetParticularString("Reverser", GetStringAttribute.GetPrettyName(Owner.Viewer.PlayerLocomotive.Direction)), "", false, keyPressed);
+                (ShowMUReverser ? Math.Abs(PlayerTrain.MUReverserPercent).ToString("0") + "% " : "") + FormatStrings.Catalog.GetParticularString("Reverser", GetStringAttribute.GetPrettyName(Owner.Viewer.PlayerLocomotive.Direction)), "", false, keyPressed);
             keyPressed = "";
 
             // Throttle
-            if ((UserInput.IsDown(UserCommand.ControlThrottleIncrease) && Owner.Viewer.PlayerLocomotive.ThrottlePercent == 100)
-               || (UserInput.IsDown(UserCommand.ControlThrottleDecrease) && Owner.Viewer.PlayerLocomotive.ThrottlePercent == 0))
+            if (DynamicBrakePercent < 1 && ((UserInput.IsDown(UserCommand.ControlThrottleIncrease) && Owner.Viewer.PlayerLocomotive.ThrottlePercent == 100)
+               || (UserInput.IsDown(UserCommand.ControlThrottleDecrease) && Owner.Viewer.PlayerLocomotive.ThrottlePercent == 0)))
             {
                 keyPressed = end.ToString() + "???";
+            }
+            else if (DynamicBrakePercent > -1)
+            {
+                keyPressed = endLower.ToString() + "???";
             }
             else
             {
@@ -504,7 +558,7 @@ namespace Orts.Viewer3D.Popups
             keyPressed = UserInput.IsDown(UserCommand.ControlSander) || UserInput.IsDown(UserCommand.ControlSanderToggle) ? arrowDown.ToString() + "???" : " ";
             if (Owner.Viewer.PlayerLocomotive.GetSanderOn())
             {
-                var sanderBlocked = Owner.Viewer.PlayerLocomotive is MSTSLocomotive && Math.Abs(playerTrain.SpeedMpS) > ((MSTSLocomotive)Owner.Viewer.PlayerLocomotive).SanderSpeedOfMpS;
+                var sanderBlocked = Owner.Viewer.PlayerLocomotive is MSTSLocomotive && Math.Abs(PlayerTrain.SpeedMpS) > ((MSTSLocomotive)Owner.Viewer.PlayerLocomotive).SanderSpeedOfMpS;
                 if (sanderBlocked)
                 {
                     InfoToLabel(keyPressed, Viewer.Catalog.GetString("Sander"), Viewer.Catalog.GetString("Blocked") + "!!!", "", StandardHUD ? true : false, keyPressed);
@@ -534,71 +588,71 @@ namespace Orts.Viewer3D.Popups
             var brakeInfoValue = "";
             var index = 0;
 
-            if (brakeStatus.Contains(Viewer.Catalog.GetString("EQ")))
+            if (BrakeStatus.Contains(Viewer.Catalog.GetString("EQ")))
             {
-                brakeInfoValue = brakeStatus.Substring(0, brakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"))).TrimEnd();
+                brakeInfoValue = BrakeStatus.Substring(0, BrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"))).TrimEnd();
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false, keyPressed);
                 keyPressed = "";
-                index = brakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"));
-                brakeInfoValue = brakeStatus.Substring(index, brakeStatus.IndexOf(Viewer.Catalog.GetString("BC")) - index).TrimEnd();
+                index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"));
+                brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC")) - index).TrimEnd();
 
                 InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
                 keyPressed = "";
-                if (brakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
+                if (BrakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
                 {
                     var IndexOffset = Viewer.Catalog.GetString("EOT").Length + 1;
-                    index = brakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
-                    brakeInfoValue = brakeStatus.Substring(index, brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
+                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
                     keyPressed = "";
                     InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
                     keyPressed = "";
-                    index = brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + IndexOffset;
-                    brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimStart();
+                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + IndexOffset;
+                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.Length - index).TrimStart();
                     keyPressed = "";
                     InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
                     keyPressed = "";
                 }
                 else
                 {
-                    index = brakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
-                    brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimEnd();
+                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.Length - index).TrimEnd();
                     keyPressed = "";
                     InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
                     keyPressed = "";
                 }
             }
-            else if (brakeStatus.Contains(Viewer.Catalog.GetString("Lead")))
+            else if (BrakeStatus.Contains(Viewer.Catalog.GetString("Lead")))
             {
                 var IndexOffset  = Viewer.Catalog.GetString("Lead").Length + 1;
-                brakeInfoValue = brakeStatus.Substring(0, brakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"))).TrimEnd();
+                brakeInfoValue = BrakeStatus.Substring(0, BrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"))).TrimEnd();
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false, keyPressed);
 
                 keyPressed = "";
-                index = brakeStatus.IndexOf(Viewer.Catalog.GetString("Lead")) + IndexOffset;
-                if (brakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
+                index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead")) + IndexOffset;
+                if (BrakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
                 {
-                    brakeInfoValue = brakeStatus.Substring(index, brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
+                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
                     InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
 
                     keyPressed = "";
-                    index = brakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + IndexOffset;
-                    brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimEnd();
+                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + IndexOffset;
+                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.Length - index).TrimEnd();
                     InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
                 }
                 else
                 {
-                    brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimEnd();
+                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.Length - index).TrimEnd();
                     InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
                 }
             }
-            else if (brakeStatus.Contains(Viewer.Catalog.GetString("BC")))
+            else if (BrakeStatus.Contains(Viewer.Catalog.GetString("BC")))
             {
-                brakeInfoValue = brakeStatus.Substring(0, brakeStatus.IndexOf(Viewer.Catalog.GetString("BC"))).TrimEnd();
+                brakeInfoValue = BrakeStatus.Substring(0, BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"))).TrimEnd();
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false, keyPressed);
 
                 keyPressed = "";
-                index = brakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
-                brakeInfoValue = brakeStatus.Substring(index, brakeStatus.Length - index).TrimEnd();
+                index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.Length - index).TrimEnd();
 
                 keyPressed = "";
                 InfoToLabel(keyPressed, "", brakeInfoValue, "", false, keyPressed);
@@ -606,38 +660,73 @@ namespace Orts.Viewer3D.Popups
             }
 
             keyPressed = "";
-            if (showRetainers)
-                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Retainers"), (playerTrain.RetainerPercent + " " + Viewer.Catalog.GetString(GetStringAttribute.GetPrettyName(playerTrain.RetainerSetting))), "", false, keyPressed);
+            if (ShowRetainers)
+                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Retainers"), (PlayerTrain.RetainerPercent + " " + Viewer.Catalog.GetString(GetStringAttribute.GetPrettyName(PlayerTrain.RetainerSetting))), "", false, keyPressed);
 
             keyPressed = "";
             if ((Owner.Viewer.PlayerLocomotive as MSTSLocomotive).EngineBrakeFitted) // ideally this test should be using "engineBrakeStatus != null", but this currently does not work, as a controller is defined by default
             {
             }
             keyPressed = UserInput.IsDown(UserCommand.ControlEngineBrakeDecrease) ? arrowDown.ToString() + "???" : UserInput.IsDown(UserCommand.ControlEngineBrakeIncrease) ? arrowUp.ToString() + "???" : "";
-            if (engineBrakeStatus.Contains(Viewer.Catalog.GetString("BC")))
+            if (EngineBrakeStatus.Contains(Viewer.Catalog.GetString("BC")))
             {
-                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Engine brake"), engineBrakeStatus.Substring(0, engineBrakeStatus.IndexOf("BC")) + "$??", "", false, keyPressed);
+                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Engine brake"), EngineBrakeStatus.Substring(0, EngineBrakeStatus.IndexOf("BC")) + "$??", "", false, keyPressed);
                 keyPressed = "";
-                index = engineBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
-                brakeInfoValue = engineBrakeStatus.Substring(index, engineBrakeStatus.Length - index).TrimEnd();
+                index = EngineBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                brakeInfoValue = EngineBrakeStatus.Substring(index, EngineBrakeStatus.Length - index).TrimEnd();
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString(""), brakeInfoValue + "!??", "", false, keyPressed);
             }
             else
-                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Engine brake"), engineBrakeStatus + "$??", "", false, keyPressed);
+                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Engine brake"), EngineBrakeStatus + "$??", "", false, keyPressed);
 
             keyPressed = "";
-            if (dynamicBrakeStatus != null)
+            if (DynamicBrakeStatus != null && Locomotive.IsLeadLocomotive())
             {
-                keyPressed = UserInput.IsDown(UserCommand.ControlDynamicBrakeDecrease) ? arrowDown.ToString() + "???"
-                    : UserInput.IsDown(UserCommand.ControlDynamicBrakeIncrease) ? arrowUp.ToString() + "???" : "";
-                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Dynamic brake"), dynamicBrakeStatus + "$??", "", false, keyPressed);
+                if (!DynBrakeSetup && ( UserInput.IsDown(UserCommand.ControlDynamicBrakeIncrease) && DynamicBrakePercent == 0)
+                    || (CombinedCT && UserInput.IsDown(UserCommand.ControlThrottleDecrease) && Owner.Viewer.PlayerLocomotive.ThrottlePercent == 0 && DynamicBrakeStatus == "0%"))
+                {
+                    StartTime = Locomotive.DynamicBrakeCommandStartTime + Locomotive.DynamicBrakeDelayS;
+                    DynBrakeSetup = true;
+                    keyPressed = arrowToRight.ToString() + "???";
+                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Setup") + "$??", "", false, keyPressed);
+                }
+                else if (DynBrakeSetup && StartTime < Owner.Viewer.Simulator.ClockTime)
+                {
+                    DynBrakeSetup = false;
+                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Dynamic brake"), DynamicBrakePercent + "% " + "$??", "", false, keyPressed);
+                }
+                else if (DynBrakeSetup && StartTime > Owner.Viewer.Simulator.ClockTime)
+                {
+                    keyPressed = arrowToRight.ToString() + "???";
+                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Setup") + "$??", "", false, keyPressed);
+                }
+                else if (!DynBrakeSetup && DynamicBrakePercent > -1)
+                {
+                    if (CombinedCT)
+                    {
+                        keyPressed = UserInput.IsDown(UserCommand.ControlThrottleIncrease) || UserInput.IsDown(UserCommand.ControlDynamicBrakeDecrease) ? arrowDown.ToString() + "???"
+                           : UserInput.IsDown(UserCommand.ControlThrottleDecrease) || UserInput.IsDown(UserCommand.ControlDynamicBrakeIncrease) ? arrowUp.ToString() + "???"
+                           : "";
+                    }
+                    else
+                    {
+                        keyPressed = UserInput.IsDown(UserCommand.ControlDynamicBrakeDecrease) ? arrowDown.ToString() + "???"
+                            : UserInput.IsDown(UserCommand.ControlDynamicBrakeIncrease) ? arrowUp.ToString() + "???"
+                            : "";
+                    }
+                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Dynamic brake"), DynamicBrakeStatus + "$??", "", false, keyPressed);
+                }
+                else if (DynamicBrakeStatus == "" && DynamicBrakePercent < 0)
+                {
+                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Off"), "", false, keyPressed);
+                }
             }
             keyPressed = "";
             InfoToLabel(keyPressed, "Sprtr", "", "", false, keyPressed);
 
-            if (locomotiveStatus != null)
+            if (LocomotiveStatus != null)
             {
-                var lines = locomotiveStatus.Split('\n');
+                var lines = LocomotiveStatus.Split('\n');
                 foreach (var data in lines)
                 {
                     if (data.Length > 0)
@@ -736,7 +825,7 @@ namespace Orts.Viewer3D.Popups
             else
                 InfoToLabel("", Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("-") + "?!?", "", false, keyPressed);
 
-			// Whell
+			// Wheel
             keyPressed = "";
             if (Owner.Viewer.PlayerTrain.IsWheelSlip)
                 InfoToLabel("", Viewer.Catalog.GetString("Wheel"), Viewer.Catalog.GetString("slip") + "!!!", "", false, keyPressed);
@@ -747,7 +836,7 @@ namespace Orts.Viewer3D.Popups
             else
                 InfoToLabel("", Viewer.Catalog.GetString("Wheel") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false, keyPressed);
 
-			// Door
+            // Door
             keyPressed = "";
             if ((Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorLeftOpen || (Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorRightOpen)
             {
