@@ -26,7 +26,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     {
         private readonly IWorldPosition positionSource;
 
-        static Dictionary<string, bool> SeenShapeAnimationError = new Dictionary<string, bool>();
+        protected static Dictionary<string, bool> SeenShapeAnimationError = new Dictionary<string, bool>();
 
         public Matrix[] XNAMatrices = new Matrix[0];  // the positions of the subobjects
 
@@ -420,6 +420,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             // TODO: Make this use AddAutoPrimitive instead.
             frame.AddPrimitive(shapePrimitive.Material, shapePrimitive, RenderPrimitiveGroup.World, ref xnaXfmWrtCamTile, ShapeFlags.None);
 
+            // if there is no animation, that's normal and so no animation missing error is displayed
+            if (SharedShape.Animations == null || SharedShape.Animations.Count == 0)
+            {
+                if (!SeenShapeAnimationError.ContainsKey(SharedShape.FilePath))
+                    SeenShapeAnimationError[SharedShape.FilePath] = true;
+            }
             // Update the pose
             for (int iMatrix = 0; iMatrix < SharedShape.Matrices.Length; ++iMatrix)
                 AnimateMatrix(iMatrix, animationKey);
