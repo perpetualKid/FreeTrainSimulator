@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.buttonOK = new System.Windows.Forms.Button();
             this.numericBrakePipeChargingRate = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -41,6 +41,9 @@
             this.checkViewDispatcher = new System.Windows.Forms.CheckBox();
             this.tabOptions = new System.Windows.Forms.TabControl();
             this.tabPageGeneral = new System.Windows.Forms.TabPage();
+            this.label29 = new System.Windows.Forms.Label();
+            this.numericWebServerPort = new System.Windows.Forms.NumericUpDown();
+            this.checkEnableWebServer = new System.Windows.Forms.CheckBox();
             this.checkRunAt32bit = new System.Windows.Forms.CheckBox();
             this.checkEnableWatchdog = new System.Windows.Forms.CheckBox();
             this.checkSpeedControl = new System.Windows.Forms.CheckBox();
@@ -211,6 +214,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericWebServerPort)).BeginInit();
             this.tabPageAudio.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericExternalSoundPassThruPercent)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSoundVolumePercent)).BeginInit();
@@ -374,6 +378,9 @@
             // 
             // tabPageGeneral
             // 
+            this.tabPageGeneral.Controls.Add(this.label29);
+            this.tabPageGeneral.Controls.Add(this.numericWebServerPort);
+            this.tabPageGeneral.Controls.Add(this.checkEnableWebServer);
             this.tabPageGeneral.Controls.Add(this.checkRunAt32bit);
             this.tabPageGeneral.Controls.Add(this.checkEnableWatchdog);
             this.tabPageGeneral.Controls.Add(this.checkSpeedControl);
@@ -400,10 +407,51 @@
             this.tabPageGeneral.Text = "General";
             this.tabPageGeneral.UseVisualStyleBackColor = true;
             // 
+            // label29
+            // 
+            this.label29.AutoSize = true;
+            this.label29.Location = new System.Drawing.Point(82, 332);
+            this.label29.Name = "label29";
+            this.label29.Size = new System.Drawing.Size(66, 13);
+            this.label29.TabIndex = 17;
+            this.label29.Text = "Port Number";
+            // 
+            // numericWebServerPort
+            // 
+            this.numericWebServerPort.Location = new System.Drawing.Point(6, 325);
+            this.numericWebServerPort.Maximum = new decimal(new int[] {
+            65534,
+            0,
+            0,
+            0});
+            this.numericWebServerPort.Minimum = new decimal(new int[] {
+            1025,
+            0,
+            0,
+            0});
+            this.numericWebServerPort.Name = "numericWebServerPort";
+            this.numericWebServerPort.Size = new System.Drawing.Size(70, 20);
+            this.numericWebServerPort.TabIndex = 16;
+            this.numericWebServerPort.Value = new decimal(new int[] {
+            1025,
+            0,
+            0,
+            0});
+            // 
+            // checkEnableWebServer
+            // 
+            this.checkEnableWebServer.AutoSize = true;
+            this.checkEnableWebServer.Location = new System.Drawing.Point(6, 302);
+            this.checkEnableWebServer.Name = "checkEnableWebServer";
+            this.checkEnableWebServer.Size = new System.Drawing.Size(116, 17);
+            this.checkEnableWebServer.TabIndex = 15;
+            this.checkEnableWebServer.Text = "Enable WebServer";
+            this.checkEnableWebServer.UseVisualStyleBackColor = true;
+            // 
             // checkRunAt32bit
             // 
             this.checkRunAt32bit.AutoSize = true;
-            this.checkRunAt32bit.Location = new System.Drawing.Point(6, 325);
+            this.checkRunAt32bit.Location = new System.Drawing.Point(304, 52);
             this.checkRunAt32bit.Name = "checkRunAt32bit";
             this.checkRunAt32bit.Size = new System.Drawing.Size(136, 17);
             this.checkRunAt32bit.TabIndex = 16;
@@ -415,7 +463,7 @@
             this.checkEnableWatchdog.AutoSize = true;
             this.checkEnableWatchdog.Checked = true;
             this.checkEnableWatchdog.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkEnableWatchdog.Location = new System.Drawing.Point(6, 302);
+            this.checkEnableWatchdog.Location = new System.Drawing.Point(304, 29);
             this.checkEnableWatchdog.Name = "checkEnableWatchdog";
             this.checkEnableWatchdog.Size = new System.Drawing.Size(76, 17);
             this.checkEnableWatchdog.TabIndex = 15;
@@ -1120,7 +1168,7 @@
             this.checkSimpleControlPhysics.AutoSize = true;
             this.checkSimpleControlPhysics.Location = new System.Drawing.Point(6, 215);
             this.checkSimpleControlPhysics.Name = "checkSimpleControlPhysics";
-            this.checkSimpleControlPhysics.Size = new System.Drawing.Size(150, 17);
+            this.checkSimpleControlPhysics.Size = new System.Drawing.Size(153, 17);
             this.checkSimpleControlPhysics.TabIndex = 8;
             this.checkSimpleControlPhysics.Text = "Simple Control and Physics";
             this.checkSimpleControlPhysics.UseVisualStyleBackColor = true;
@@ -1593,7 +1641,7 @@
             this.checkVerboseConfigurationMessages.AutoSize = true;
             this.checkVerboseConfigurationMessages.Location = new System.Drawing.Point(6, 236);
             this.checkVerboseConfigurationMessages.Name = "checkVerboseConfigurationMessages";
-            this.checkVerboseConfigurationMessages.Size = new System.Drawing.Size(163, 17);
+            this.checkVerboseConfigurationMessages.Size = new System.Drawing.Size(236, 17);
             this.checkVerboseConfigurationMessages.TabIndex = 6;
             this.checkVerboseConfigurationMessages.Text = "Verbose ENG/WAG configuration messages";
             this.checkVerboseConfigurationMessages.UseVisualStyleBackColor = true;
@@ -1814,27 +1862,27 @@
             this.dataGridViewContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dataGridViewContent.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dataGridViewContent.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dataGridViewContent.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dataGridViewContent.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.nameDataGridViewTextBoxColumn,
             this.pathDataGridViewTextBoxColumn});
             this.dataGridViewContent.DataSource = this.bindingSourceContent;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridViewContent.DefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridViewContent.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewContent.Location = new System.Drawing.Point(0, 0);
             this.dataGridViewContent.MultiSelect = false;
@@ -2535,6 +2583,7 @@
             this.tabOptions.ResumeLayout(false);
             this.tabPageGeneral.ResumeLayout(false);
             this.tabPageGeneral.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericWebServerPort)).EndInit();
             this.tabPageAudio.ResumeLayout(false);
             this.tabPageAudio.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericExternalSoundPassThruPercent)).EndInit();
@@ -2751,6 +2800,9 @@
         private System.Windows.Forms.NumericUpDown numericActWeatherRandomizationLevel;
         private System.Windows.Forms.Label label26;
         private System.Windows.Forms.CheckBox checkShadowAllShapes;
+        private System.Windows.Forms.CheckBox checkEnableWebServer;
+        private System.Windows.Forms.NumericUpDown numericWebServerPort;
+        private System.Windows.Forms.Label label29;
         private System.Windows.Forms.TabPage tabPageRailDriver;
         private System.Windows.Forms.Panel panelRDSettings;
         private System.Windows.Forms.Button btnShowRDLegend;

@@ -292,6 +292,19 @@ namespace Orts.Viewer3D.Popups
             }
         }
 
+        // ==========================================================================================================================================
+        //      Method to construct the various Heads Up Display pages for use by the WebServer 
+        //      Replaces the Prepare Frame Method
+        //      djr - 20171221
+        // ==========================================================================================================================================
+        public TableData PrepareTable(int PageNo)
+        {
+            var table = new TableData() { Cells = new string[1, 1] };
+
+            TextPages[PageNo](table);
+            return (table);
+        }
+
         public override void Draw(SpriteBatch spriteBatch)
         {
             // Completely customise the rendering of the HUD - don't call base.Draw(spriteBatch).
@@ -340,7 +353,7 @@ namespace Orts.Viewer3D.Popups
         }
 
 #region Table handling
-        sealed class TableData
+        public sealed class TableData
         {
             public string[,] Cells;
             public int CurrentRow;

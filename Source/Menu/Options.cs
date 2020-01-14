@@ -147,9 +147,10 @@ namespace ORTS
             comboPressureUnit.Text = Settings.PressureUnit;
             comboBoxOtherUnits.Text = settings.Units;
             checkDisableTCSScripts.Checked = Settings.DisableTCSScripts;
+            checkEnableWebServer.Checked = Settings.WebServer;
+            numericWebServerPort.Value = Settings.WebServerPort;
             checkEnableWatchdog.Checked = Settings.EnableWatchdog;
             checkRunAt32bit.Checked = Settings.RunAt32bit;
-
 
             // Audio tab
             checkMSTSBINSound.Checked = Settings.MSTSBINSound;
@@ -453,6 +454,7 @@ private async void OptionsForm_Shown(object sender, EventArgs e)
             Settings.PressureUnit = comboPressureUnit.SelectedValue.ToString();
             Settings.Units = comboBoxOtherUnits.SelectedValue.ToString();
             Settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
+            Settings.WebServer = checkEnableWebServer.Checked;
             Settings.EnableWatchdog = checkEnableWatchdog.Checked;
             Settings.RunAt32bit = checkRunAt32bit.Checked;
 
