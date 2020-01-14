@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.48
-January 5th, 2020
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.49
+January 14th, 2020
 
 Please note that the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -12,8 +12,8 @@ INSTALLATION
 you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails unstable revision U2020.01.05-0906 (which includes Monogame)
-and from the official OpenRails testing revision X1.3.1-111.
+This unofficial version has been derived from the official Open Rails unstable revision U2020.01.13-0851 (which includes Monogame)
+and from the official OpenRails testing revision X1.3.1-114.
 It includes some features not (yet) available in the Open Rails unstable official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
@@ -28,9 +28,14 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - 32bit running set as default, to avoid 64 bit shakings and flickerings
 - inserted extended Raildriver setup, as present in OR Ultimate (by perpetualKid)
 - set Simple Control and Physics option as default
+- bug fix for https://bugs.launchpad.net/or/+bug/1858298 Sound problems when viewer not created in initial conditions
+- bug fix for https://bugs.launchpad.net/or/+bug/1858323 Unjustified player train initialization differences 
+- bug fix for https://bugs.launchpad.net/or/+bug/1858655 Helpers not throttled to zero when de-MUed
 - NEW: improvements in the Train Driving Info window, by mbm_OR
-- NEW: bug fix for https://bugs.launchpad.net/or/+bug/1858298 Sound problems when viewer not created in initial conditions
-- NEW: bug fix for https://bugs.launchpad.net/or/+bug/1858323 Unjustified player train initialization differences 
+- NEW: mouse wheel scroll and scrollbar dragging in OR windows, see https://blueprints.launchpad.net/or/+spec/dragging-scrollbars-in-game
+ and https://blueprints.launchpad.net/or/+spec/mouse-wheel-scrolling-in-game , by Reve
+- NEW: analog clocks showing game time, see http://www.elvastower.com/forums/index.php?/topic/29546-station-clocks/ , by jonas
+- NEW: Open Rails web server, by BillC and cjakeman
 
 Various bug fixes have been introduced in parallel to the unstable release.
 
