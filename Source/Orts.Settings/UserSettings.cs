@@ -84,6 +84,12 @@ namespace Orts.Settings
         public int Multiplayer_Port { get; set; }
 
         // General settings:
+
+        [Default(false)]
+        public bool WebServer { get; set; }
+        [Default(2150)]
+        public int WebServerPort { get; set; }
+
         [Default(false)]
         public bool Alerter { get; set; }
         [Default(true)]
