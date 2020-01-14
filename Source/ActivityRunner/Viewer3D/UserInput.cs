@@ -26,6 +26,7 @@
 // This logs every UserCommandInput change from pressed to released.
 //#define DEBUG_USER_INPUT
 
+using System;
 using System.Runtime.InteropServices;
 //using System.Linq;      //DEBUG_INPUT only
 using Microsoft.Xna.Framework.Input;
@@ -39,6 +40,8 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         [DllImport("user32.dll")]
         static extern short GetAsyncKeyState(Keys key);
+        public static int MouseSpeedX;
+        public static int MouseSpeedY;
 
         private static KeyboardState keyboardState;
         private static MouseState mouseState;
@@ -69,6 +72,9 @@ namespace Orts.ActivityRunner.Viewer3D
             // Make sure we have an "idle" (everything released) keyboard and mouse state if the window isn't active.
             keyboardState = active ? Keyboard.GetState() : emptyKeyboardState;
             mouseState = active ? Mouse.GetState() : new MouseState(0, 0, lastMouseState.ScrollWheelValue, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released);
+			
+            MouseSpeedX = Math.Abs(mouseState.X - lastMouseState.X);
+            MouseSpeedY = Math.Abs(mouseState.Y - lastMouseState.Y);
 
 #if DEBUG_RAW_INPUT
             for (Keys key = 0; key <= Keys.OemClear; key++)
@@ -157,6 +163,10 @@ namespace Orts.ActivityRunner.Viewer3D
         public static int MouseMoveY { get { return mouseState.Y - lastMouseState.Y; } }
         public static int MouseX { get { return mouseState.X; } }
         public static int MouseY { get { return mouseState.Y; } }
+        public static bool MouseMovedUp {  get { return mouseState.Y < lastMouseState.Y; } }
+        public static bool MouseMovedDown {  get { return mouseState.Y > lastMouseState.Y; } }
+        public static bool MouseMovedLeft {  get { return mouseState.X < lastMouseState.X; } }
+        public static bool MouseMovedRight {  get { return mouseState.X > lastMouseState.X; } }
 
         public static bool IsMouseWheelChanged { get { return mouseState.ScrollWheelValue != lastMouseState.ScrollWheelValue; } }
         public static int MouseWheelChange { get { return mouseState.ScrollWheelValue - lastMouseState.ScrollWheelValue; } }
