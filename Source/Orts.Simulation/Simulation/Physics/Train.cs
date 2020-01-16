@@ -2403,7 +2403,7 @@ namespace Orts.Simulation.Physics
 
                 if (DatalogTSContents[4] == 1)
                 {
-                    stringBuild.Append((0 - Cars[LeadLocomotiveIndex].CurrentElevationPercent).ToString("00.0"));
+                    stringBuild.Append((0 - Simulator.PlayerLocomotive.CurrentElevationPercent).ToString("00.0"));
                     stringBuild.Append(Separator);
                 }
 
@@ -2441,7 +2441,7 @@ namespace Orts.Simulation.Physics
                 if (DatalogTSContents[9] == 1)
                 {
                     //                    stringBuild.Append(BrakeLine1PressurePSIorInHg.ToString("000"));
-                    stringBuild.Append(Cars[LeadLocomotiveIndex].BrakeSystem.GetCylPressurePSI().ToString("000"));
+                    stringBuild.Append(Simulator.PlayerLocomotive.BrakeSystem.GetCylPressurePSI().ToString("000"));
                     stringBuild.Append(Separator);
                 }
 
