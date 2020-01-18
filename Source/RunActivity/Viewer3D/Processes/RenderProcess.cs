@@ -96,7 +96,7 @@ namespace Orts.Viewer3D.Processes
             Game.InactiveSleepTime = TimeSpan.FromMilliseconds(100);
 
             // Set up the rest of the graphics according to the settings.
-            if (Game.Settings.FullScreen && !Game.Settings.FastFullScreenAltTab)
+            if (!Game.Settings.FastFullScreenAltTab)
                 GraphicsDeviceManager.HardwareModeSwitch = false;
             GraphicsDeviceManager.SynchronizeWithVerticalRetrace = Game.Settings.VerticalSync;
             GraphicsDeviceManager.PreferredBackBufferFormat = SurfaceFormat.Color;
