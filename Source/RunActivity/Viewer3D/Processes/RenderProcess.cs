@@ -96,6 +96,8 @@ namespace Orts.Viewer3D.Processes
             Game.InactiveSleepTime = TimeSpan.FromMilliseconds(100);
 
             // Set up the rest of the graphics according to the settings.
+            if (Game.Settings.FullScreen && !Game.Settings.FastFullScreenAltTab)
+                GraphicsDeviceManager.HardwareModeSwitch = false;
             GraphicsDeviceManager.SynchronizeWithVerticalRetrace = Game.Settings.VerticalSync;
             GraphicsDeviceManager.PreferredBackBufferFormat = SurfaceFormat.Color;
             GraphicsDeviceManager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
@@ -113,7 +115,7 @@ namespace Orts.Viewer3D.Processes
             GameWindowOrigin = GameForm.Location;
 
             if (Game.Settings.FullScreen)
-                ToggleFullScreen();
+                IsFullScreen = true;
 
             SynchronizeGraphicsDeviceManager();
 
@@ -270,10 +272,12 @@ namespace Orts.Viewer3D.Processes
                 {
                     GameWindowOrigin = GameForm.Location;
                     GameForm.Location = GameFullScreenOrigin;
+                    GameForm.SetBounds(GameFullScreenOrigin.X, GameFullScreenOrigin.Y, screen.Bounds.Width, screen.Bounds.Height);
                 }
                 else
                 {
                     GameForm.Location = GameWindowOrigin;
+                    GameForm.SetBounds(GameForm.Location.X, GameForm.Location.Y, GameWindowSize.X, GameWindowSize.Y);
                 }
                 GraphicsDeviceManager.ApplyChanges();
             }
