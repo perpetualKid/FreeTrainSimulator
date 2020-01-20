@@ -80,6 +80,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -188,6 +189,7 @@
     <Compile Include="Viewer3D\Viewer.cs" />
     <Compile Include="Viewer3D\Water.cs" />
     <Compile Include="Viewer3D\Weather.cs" />
+    <Compile Include="Viewer3D\WebServices\WebApi.cs" />
     <Compile Include="Viewer3D\WebServices\WebServer.cs" />
     <Compile Include="Viewer3D\Wire.cs" />
     <Compile Include="Viewer3D\World.cs" />
@@ -342,58 +344,6 @@
     <Content Include="Readme_ORNewYear_MG.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Viewer3D\WebServices\Web\css\hud.css" >
-      <Link>Content\Web\css\hud.css</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\css\sample.css" >
-	  <Link>Content\Web\css\sample.css</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\css\trackmonitor.css" >
-	  <Link>Content\Web\css\trackmonitor.css</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\HUD.html" >
-	  <Link>Content\Web\HUD.html</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\images\or_logo.png" >
-	  <Link>Content\Web\images\or_logo.png</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\images\waverley.jpg" >
-	  <Link>Content\Web\images\waverley.jpg</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\images\zig-zag.jpg" >
-	  <Link>Content\Web\images\zig-zag.jpg</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\index - ApiSample.html" >
-	  <Link>Content\Web\index - ApiSample.html</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\index.html" >
-	  <Link>Content\Web\index.html</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\js\ApiSample.js" >
-	  <Link>Content\Web\js\ApiSample.js</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\js\ApiTrainInfo.js" >
-	  <Link>Content\Web\js\ApiTrainInfo.js</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\js\hud.js" >
-	  <Link>Content\Web\js\hud.js</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Viewer3D\WebServices\Web\js\trackmonitor.js" >
-	  <Link>Content\Web\js\trackmonitor.js</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.ExternalDevices\Orts.ExternalDevices.csproj">
@@ -466,6 +416,8 @@
     </PreBuildEvent>
     <PostBuildEvent>echo $Revision: 000 $&gt;Revision.txt
 date /t&gt;&gt;Revision.txt
-time /t&gt;&gt;Revision.txt</PostBuildEvent>
+time /t&gt;&gt;Revision.txt
+XCOPY "$(SolutionDir)RunActivity\Viewer3D\WebServices\Web" "$(TargetDir)Content\Web" /s /i /y
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
