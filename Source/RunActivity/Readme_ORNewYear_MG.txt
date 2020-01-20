@@ -1,5 +1,5 @@
-﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.49
-January 14th, 2020
+﻿Open Rails, Monogame version (unofficial) README - Release NewYear - Rev.50
+January 20th, 2020
 
 Please note that the installation and use of Open Rails software, even of its unofficial versions, is governed by the Open Rails End User License Agreement. 
 
@@ -12,8 +12,8 @@ INSTALLATION
 you would return to the official OR version.
 
 RELEASE NOTES
-This unofficial version has been derived from the official Open Rails unstable revision U2020.01.13-0851 (which includes Monogame)
-and from the official OpenRails testing revision X1.3.1-114.
+This unofficial version has been derived from the official Open Rails unstable revision U2020.01.19-1006 (which includes Monogame)
+and from the official OpenRails testing revision X1.3.1-115.
 It includes some features not (yet) available in the Open Rails unstable official version, that is:
 - addition of track sounds in the sound debug window (by dennisat)
 - F5 HUD scrolling (by mbm_or)
@@ -31,13 +31,16 @@ It includes some features not (yet) available in the Open Rails unstable officia
 - bug fix for https://bugs.launchpad.net/or/+bug/1858298 Sound problems when viewer not created in initial conditions
 - bug fix for https://bugs.launchpad.net/or/+bug/1858323 Unjustified player train initialization differences 
 - bug fix for https://bugs.launchpad.net/or/+bug/1858655 Helpers not throttled to zero when de-MUed
-- NEW: improvements in the Train Driving Info window, by mbm_OR
-- NEW: mouse wheel scroll and scrollbar dragging in OR windows, see https://blueprints.launchpad.net/or/+spec/dragging-scrollbars-in-game
+- mouse wheel scroll and scrollbar dragging in OR windows, see https://blueprints.launchpad.net/or/+spec/dragging-scrollbars-in-game
  and https://blueprints.launchpad.net/or/+spec/mouse-wheel-scrolling-in-game , by Reve
-- NEW: analog clocks showing game time, see http://www.elvastower.com/forums/index.php?/topic/29546-station-clocks/ , by jonas
-- NEW: Open Rails web server, by BillC and cjakeman
+- analog clocks showing game time, see http://www.elvastower.com/forums/index.php?/topic/29546-station-clocks/ , by jonas
+- bug fix for crash when activating speed logging with autopiloted train
+- bug fix for MSTS environments not looking like in testing version
+- bug fix for bad mouse pointing in full screen mode and for issues with Fast full screen-Alt-Tab mode
+- NEW: updated Open Rails web server, by BillC and cjakeman
+- NEW: bug fix for https://bugs.launchpad.net/or/+bug/1860263 System.ArgumentException at System.Array.Copy.
 
-Various bug fixes have been introduced in parallel to the unstable release.
+Bug fixes have been introduced in parallel to the unstable release.
 
 CREDITS
 This unofficial version couldn't have been created without following contributions:
