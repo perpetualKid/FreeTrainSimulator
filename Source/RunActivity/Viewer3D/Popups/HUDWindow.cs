@@ -76,6 +76,7 @@ namespace Orts.Viewer3D.Popups
         List<string> stringStatus = new List<string>();
         public static bool BrakeInfoVisible = false;
 
+        public int WebServerPageNo;
         int TextPage;
         int LocomotivePage = 2;
         int LastTextPage;
@@ -300,7 +301,7 @@ namespace Orts.Viewer3D.Popups
         public TableData PrepareTable(int PageNo)
         {
             var table = new TableData() { Cells = new string[1, 1] };
-
+            WebServerPageNo = PageNo;
             TextPages[PageNo](table);
             return (table);
         }
@@ -437,12 +438,8 @@ namespace Orts.Viewer3D.Popups
             var bunched = !stretched && playerTrain.Cars.Count > 1 && playerTrain.NPush == playerTrain.Cars.Count - 1;
             
             //Disable Hudscroll.
-            if(Viewer.HUDScrollWindow.Visible && TextPage == 0)
-                Viewer.HUDScrollWindow.Visible = false;
-
-            //Disable Hudscroll.
-            if (Viewer.HUDScrollWindow.Visible && TextPage == 0)
-                Viewer.HUDScrollWindow.Visible = false;
+            if(Viewer.HUDScrollWindow.Visible)
+                Viewer.HUDScrollWindow.Visible = TextPage == 0 && WebServerPageNo == 0 ? false : true;
 
             TableSetLabelValueColumns(table, 0, 2);
             TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.VersionOrBuild);
@@ -637,6 +634,7 @@ namespace Orts.Viewer3D.Popups
             var locomotive = Viewer.PlayerLocomotive;
             var train = locomotive.Train;
             ResetHudScroll();//Reset Hudscroll.
+            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0 ? true : false;//HudScroll
 
             //HudScroll
             //Store status for each locomotive
@@ -1633,7 +1631,7 @@ namespace Orts.Viewer3D.Popups
             TextPageHeading(table, Viewer.Catalog.GetString("WEATHER INFORMATION"));
 
             //Disable Hudscroll.
-            Viewer.HUDScrollWindow.Visible = false;//HudScroll
+            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0? true: false;//HudScroll
 
             TableAddLabelValue(table, Viewer.Catalog.GetString("Visibility"), Viewer.Catalog.GetStringFmt("{0:N0} m", Viewer.Simulator.Weather.FogDistance));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Cloud cover"), Viewer.Catalog.GetStringFmt("{0:F0} %", Viewer.Simulator.Weather.OvercastFactor * 100));
@@ -1648,7 +1646,7 @@ namespace Orts.Viewer3D.Popups
             TextPageHeading(table, Viewer.Catalog.GetString("DEBUG INFORMATION"));
 
             //Disable Hudscroll.
-            Viewer.HUDScrollWindow.Visible = false;//HudScroll
+            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0 ? true : false;//HudScroll
 
             var allocatedBytesPerSecond = AllocatedBytesPerSecCounter == null ? 0 : AllocatedBytesPerSecCounter.NextValue();
             if (allocatedBytesPerSecond >= 1 && AllocatedBytesPerSecLastValue != allocatedBytesPerSecond)
@@ -1727,9 +1725,9 @@ namespace Orts.Viewer3D.Popups
             hudWindowColumnsPagesCount = (statusPathLenght < charFitPerLine) ? 0 : (int)Math.Ceiling(Convert.ToDouble(statusPathLenght / charFitPerLine) + 0.5);
 
             //Hide - Show HUDScrollWindow
-            if (Viewer.HUDScrollWindow.Visible && (hudWindowLinesActualPage == 1 && hudWindowLinesPagesCount == 1 && hudWindowColumnsActualPage == 0 && hudWindowColumnsPagesCount == 0) && TextPages[TextPage] != TextPageLocomotiveInfo && !hudWindowFullScreen)
+            if (Viewer.HUDScrollWindow.Visible && WebServerPageNo == 0 && (hudWindowLinesActualPage == 1 && hudWindowLinesPagesCount == 1 && hudWindowColumnsActualPage == 0 && hudWindowColumnsPagesCount == 0) && TextPages[TextPage] != TextPageLocomotiveInfo && !hudWindowFullScreen)
                 Viewer.HUDScrollWindow.Visible = false;
-            if (!Viewer.HUDScrollWindow.Visible && (hudWindowLinesPagesCount > 1 || hudWindowColumnsPagesCount > 0))
+            if (!Viewer.HUDScrollWindow.Visible && WebServerPageNo > 0 && (hudWindowLinesPagesCount > 1 || hudWindowColumnsPagesCount > 0))
                 Viewer.HUDScrollWindow.Visible = true;
         }
 
@@ -1952,9 +1950,9 @@ namespace Orts.Viewer3D.Popups
             //Hide - Show HUDScrollWindow
             var locomotive = Viewer.PlayerLocomotive;
             var train = locomotive.Train;
-            if (Viewer.HUDScrollWindow.Visible && hudWindowColumnsPagesCount == 0 && hudWindowLinesPagesCount == 1 && TextPages[TextPage] != TextPageLocomotiveInfo && !hudWindowFullScreen)
+            if (Viewer.HUDScrollWindow.Visible && WebServerPageNo == 0 && hudWindowColumnsPagesCount == 0 && hudWindowLinesPagesCount == 1 && TextPages[TextPage] != TextPageLocomotiveInfo && !hudWindowFullScreen)
                 Viewer.HUDScrollWindow.Visible = false;
-            if (!Viewer.HUDScrollWindow.Visible && hudWindowColumnsPagesCount > 0 || (TextPages[TextPage] == TextPageLocomotiveInfo && (IsSteamLocomotive || hudWindowLocoPagesCount > 1)))
+            if (!Viewer.HUDScrollWindow.Visible && WebServerPageNo > 0 && hudWindowColumnsPagesCount > 0 || (TextPages[TextPage] == TextPageLocomotiveInfo && (IsSteamLocomotive || hudWindowLocoPagesCount > 1)))
                 Viewer.HUDScrollWindow.Visible = true;
         }
 
