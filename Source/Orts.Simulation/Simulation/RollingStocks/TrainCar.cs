@@ -1545,8 +1545,8 @@ namespace Orts.Simulation.RollingStocks
                 AcceptMUSignals ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 ThrottlePercent,
                 String.Format("{0}", FormatStrings.FormatSpeedDisplay(SpeedMpS, IsMetric)),
-                FormatStrings.FormatPower(MotiveForceN * SpeedMpS, IsMetric, false, false),
-                String.Format("{0}{1}", FormatStrings.FormatForce(MotiveForceN, IsMetric), WheelSlip ? "!!!" : WheelSlipWarning ? "???" : ""));
+                FormatStrings.FormatPower(MotiveForceN - DynamicBrakeForceN * SpeedMpS, IsMetric, false, false),
+                String.Format("{0}{1}", FormatStrings.FormatForce(MotiveForceN - DynamicBrakeForceN, IsMetric), WheelSlip ? "!!!" : WheelSlipWarning ? "???" : ""));
         }
         public virtual string GetTrainBrakeStatus() { return null; }
         public virtual string GetEngineBrakeStatus() { return null; }
