@@ -257,16 +257,12 @@ namespace Orts.Viewer3D
                         PrimitiveType.TriangleList,
                         0,
                         0,
-                        (numVertices - 4) / 2,
-                        0,
                         (indexCount - 6) / 6);
                     break;
                 case 2: // Moon
                     graphicsDevice.DrawIndexedPrimitives(
                     PrimitiveType.TriangleList,
                     0,
-                    numVertices - 4,
-                    4,
                     indexCount - 6,
                     2);
                     break;
@@ -274,8 +270,6 @@ namespace Orts.Viewer3D
                     graphicsDevice.DrawIndexedPrimitives(
                         PrimitiveType.TriangleList,
                         0,
-                        (numVertices - 4) / 2,
-                        (numVertices - 4) / 2,
                         (indexCount - 6) / 2,
                         (indexCount - 6) / 6);
                     break;

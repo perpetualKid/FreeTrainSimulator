@@ -1400,7 +1400,7 @@ namespace Orts.Viewer3D
                 // TODO consider sorting by Vertex set so we can reduce the number of SetSources required.
                 graphicsDevice.SetVertexBuffers(VertexBufferBindings);
                 graphicsDevice.Indices = IndexBuffer;
-                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, MinVertexIndex, NumVerticies, 0, PrimitiveCount);
+                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, PrimitiveCount);
             }
         }
 
@@ -1473,7 +1473,7 @@ namespace Orts.Viewer3D
         {
             graphicsDevice.Indices = IndexBuffer;
             graphicsDevice.SetVertexBuffers(VertexBufferBindings);
-            graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, MinVertexIndex, NumVerticies, 0, PrimitiveCount, InstanceCount);
+            graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, PrimitiveCount, InstanceCount);
         }
     }
 
