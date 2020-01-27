@@ -76,7 +76,7 @@ namespace Orts.Viewer3D.Popups
         List<string> stringStatus = new List<string>();
         public static bool BrakeInfoVisible = false;
 
-        public int WebServerPageNo;
+        public int WebServerPageNo = 0;
         int TextPage;
         int LocomotivePage = 2;
         int LastTextPage;
@@ -284,7 +284,7 @@ namespace Orts.Viewer3D.Popups
             {
                 var table = new TableData() { Cells = new string[TextTable.Cells.GetLength(0), TextTable.Cells.GetLength(1)] };
                 //Normal screen or full screen
-                if (!hudWindowFullScreen)
+                if (!hudWindowFullScreen || (Viewer.HUDScrollWindow.Visible && TextPage == 0)) 
                     TextPages[0](table);
 
                 if (TextPage > 0)
@@ -1633,6 +1633,9 @@ namespace Orts.Viewer3D.Popups
             //Disable Hudscroll.
             Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0? true: false;//HudScroll
 
+            if (hudWindowFullScreen)
+                TableSetLabelValueColumns(table, 0, 2);
+
             TableAddLabelValue(table, Viewer.Catalog.GetString("Visibility"), Viewer.Catalog.GetStringFmt("{0:N0} m", Viewer.Simulator.Weather.FogDistance));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Cloud cover"), Viewer.Catalog.GetStringFmt("{0:F0} %", Viewer.Simulator.Weather.OvercastFactor * 100));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Intensity"), Viewer.Catalog.GetStringFmt("{0:F4} p/s/m^2", Viewer.Simulator.Weather.PricipitationIntensityPPSPM2));
@@ -1647,6 +1650,9 @@ namespace Orts.Viewer3D.Popups
 
             //Disable Hudscroll.
             Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0 ? true : false;//HudScroll
+
+            if (hudWindowFullScreen)
+                TableSetLabelValueColumns(table, 0, 2);
 
             var allocatedBytesPerSecond = AllocatedBytesPerSecCounter == null ? 0 : AllocatedBytesPerSecCounter.NextValue();
             if (allocatedBytesPerSecond >= 1 && AllocatedBytesPerSecLastValue != allocatedBytesPerSecond)
