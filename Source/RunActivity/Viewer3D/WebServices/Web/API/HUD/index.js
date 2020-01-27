@@ -64,6 +64,13 @@ function api() {
 						if (obj.commonTable.values[next] == null) {
 							Str += "<td></td>";
 						}
+						else if (obj.commonTable.values[next].slice(-3) == "???"
+						|| obj.commonTable.values[next].slice(-3) == "!!!"
+						|| obj.commonTable.values[next].slice(-3) == "%%%") {
+							var endIndex = obj.commonTable.values[next].length;
+							var newData = obj.commonTable.values[next].slice(0, endIndex -3);
+							Str += "<td>"  + newData + "</td>";
+						}
 						else {
 							Str += "<td>" + obj.commonTable.values[next] + "</td>";
 						}
@@ -84,6 +91,13 @@ function api() {
 						for (var col=0; col < obj.extraTable.nCols; ++col) { 
 							if (obj.extraTable.values[next] == null) {
 								Str += "<td></td>";
+							}
+							else if (obj.extraTable.values[next].slice(-3) == "???"
+							|| obj.extraTable.values[next].slice(-3) == "!!!"
+							|| obj.extraTable.values[next].slice(-3) == "%%%") {
+								var endIndex = obj.extraTable.values[next].length;
+								var newData = obj.extraTable.values[next].slice(0, endIndex -3);
+								Str += "<td>"  + newData + "</td>";								
 							}
 							else {
 								Str += "<td>"  + obj.extraTable.values[next] + "</td>";
