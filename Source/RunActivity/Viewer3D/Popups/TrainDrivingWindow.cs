@@ -30,13 +30,15 @@ using ORTS.Common.Input;
 using Microsoft.Xna.Framework;
 using System.Threading;
 using System.Globalization;
+using System.IO;
 
 namespace Orts.Viewer3D.Popups
 {
     public class TrainDrivingWindow : Window
     {
         bool DynBrakeSetup = false;
-        bool ResizeWindow;
+        bool ResizeWindow = false;
+        bool UpdateDataEnded = false;
         double StartTime;
         int FirstColIndex = 0;//first string that does not fit
         int FirstColLenght = 0;
@@ -143,12 +145,37 @@ namespace Orts.Viewer3D.Popups
         };
 
         public TrainDrivingWindow(WindowManager owner)
-            : base(owner, Window.DecorationSize.X + (owner.TextFontDefault.Height * ( Orts.MultiPlayer.MPManager.IsMultiPlayer() ? 15 : 9)), Window.DecorationSize.Y + owner.TextFontDefault.Height * (Orts.MultiPlayer.MPManager.IsMultiPlayer() ? 30 : 15), Viewer.Catalog.GetString("Train Driving Info"))
+            : base(owner, Window.DecorationSize.X + owner.TextFontDefault.Height * 10, Window.DecorationSize.Y + owner.TextFontDefault.Height * 10, Viewer.Catalog.GetString("Train Driving Info"))
         {
             WindowHeightMin = Location.Height;
-            WindowHeightMax = Location.Height + owner.TextFontDefault.Height * 20; // 10 lines
+            WindowHeightMax = Location.Height + owner.TextFontDefault.Height * 20;
             WindowWidthMin = Location.Width;
-            WindowWidthMax = Location.Width + owner.TextFontDefault.Height * 20; ; // 20 char
+            WindowWidthMax = Location.Width + owner.TextFontDefault.Height * 20;
+        }
+
+        protected internal override void Save(BinaryWriter outf)
+        {
+            base.Save(outf);
+            outf.Write(StandardHUD);
+            outf.Write(Location.X);
+            outf.Write(Location.Y);
+            outf.Write(Location.Width);
+            outf.Write(Location.Height);
+        }
+
+        protected internal override void Restore(BinaryReader inf)
+        {
+            base.Restore(inf);
+            Rectangle LocationRestore;
+            StandardHUD = inf.ReadBoolean();
+            LocationRestore.X = inf.ReadInt32();
+            LocationRestore.Y = inf.ReadInt32();
+            LocationRestore.Width = inf.ReadInt32();
+            LocationRestore.Height = inf.ReadInt32();
+
+            // Display window
+            SizeTo(LocationRestore.Width, LocationRestore.Height);
+            MoveTo(LocationRestore.X, LocationRestore.Y);
         }
 
         protected internal override void Initialize()
@@ -168,115 +195,112 @@ namespace Orts.Viewer3D.Popups
                 var TimeHboxPositionY = 0;
                 foreach (var data in ListToLabel)
                 {
+                    if (data.FirstCol.Contains(Viewer.Catalog.GetString("NwLn")))
                     {
-                        {   // open
-                            if (data.FirstCol.Contains(Viewer.Catalog.GetString("NwLn")))
-                            {
-                                var hbox = vbox.AddLayoutHorizontalLineOfText();
-                                hbox.Add(new Label(colWidth * 2, hbox.RemainingHeight, " "));
+                        var hbox = vbox.AddLayoutHorizontalLineOfText();
+                        hbox.Add(new Label(colWidth * 2, hbox.RemainingHeight, " "));
+                    }
+                    else if (data.FirstCol.Contains("Sprtr"))
+                    {
+                        vbox.AddHorizontalSeparator();
+                    }
+                    else
+                    {
+                        var hbox = vbox.AddLayoutHorizontalLineOfText();
+                        var FirstCol = data.FirstCol;
+                        var LastCol = data.LastCol;
+                        var SymbolCol = data.SymbolCol;
+
+                        if (ColorCode.Keys.Any(FirstCol.EndsWith) || ColorCode.Keys.Any(LastCol.EndsWith) || ColorCode.Keys.Any(data.keyPressed.EndsWith) || ColorCode.Keys.Any(data.SymbolCol.EndsWith))
+                        {
+                            var colorFirstColEndsWith = ColorCode.Keys.Any(FirstCol.EndsWith) ? ColorCode[FirstCol.Substring(FirstCol.Length - 3)] : Color.White;
+                            var colorLastColEndsWith = ColorCode.Keys.Any(LastCol.EndsWith) ? ColorCode[LastCol.Substring(LastCol.Length - 3)] : Color.White;
+                            var colorKeyPressed = ColorCode.Keys.Any(data.keyPressed.EndsWith) ? ColorCode[data.keyPressed.Substring(data.keyPressed.Length - 3)] : Color.White;
+                            var colorSymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? ColorCode[data.SymbolCol.Substring(data.SymbolCol.Length - 3)] : Color.White;
+
+                            // Erase the color code at the string end
+                            FirstCol = ColorCode.Keys.Any(FirstCol.EndsWith) ? FirstCol.Substring(0, FirstCol.Length - 3) : FirstCol;
+                            LastCol = ColorCode.Keys.Any(LastCol.EndsWith) ? LastCol.Substring(0, LastCol.Length - 3) : LastCol;
+                            keyPressed = ColorCode.Keys.Any(data.keyPressed.EndsWith) ? data.keyPressed.Substring(0, data.keyPressed.Length - 3) : data.keyPressed;
+                            SymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? data.SymbolCol.Substring(0, data.SymbolCol.Length - 3) : data.SymbolCol;
+
+                            // Apply color to FirstCol
+                            if (StandardHUD)
+                            {   // Apply color to FirstCol
+                                hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
+                                indicator.Color = colorKeyPressed;
+                                hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, FirstCol));
+                                indicator.Color = colorFirstColEndsWith;
                             }
-                            else if (data.FirstCol.Contains("Sprtr"))
+                            else
+                            {   // Use constant width font
+                                hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
+                                indicator.Color = colorKeyPressed;
+                                hbox.Add(indicatorMono = new LabelMono(colWidth, hbox.RemainingHeight, FirstCol));
+                                indicatorMono.Color = colorFirstColEndsWith;
+                            }
+
+                            if (data.keyPressed != null && data.keyPressed != "")
                             {
-                                vbox.AddHorizontalSeparator();
+                                hbox.Add(indicator = new Label(-TextSize, 0, TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Right));
+                                indicator.Color = colorKeyPressed;
+                            }
+
+                            if (data.SymbolCol != null && data.SymbolCol != "")
+                            {
+                                hbox.Add(indicator = new Label(-(TextSize + 3), 0, TextSize, hbox.RemainingHeight, SymbolCol, LabelAlignment.Right));
+                                indicator.Color = colorSymbolCol;
+                            }
+
+                            // Apply color to LastCol
+                            hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
+                            indicator.Color = colorFirstColEndsWith == Color.White ? colorLastColEndsWith : colorFirstColEndsWith;
+                        }
+                        else
+                        {   // blanck space
+                            keyPressed = "";
+                            hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
+                            indicator.Color = Color.White; // Default color
+
+                            //Avoids troubles when the Main Scale (Windows DPI settings) is not set to 100%
+                            if (LastCol.Contains(':')) TimeHboxPositionY = hbox.Position.Y;
+
+                            if (StandardHUD)
+                            {
+                                hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, FirstCol));
+                                indicator.Color = Color.White; // Default color
                             }
                             else
                             {
-                                var hbox = vbox.AddLayoutHorizontalLineOfText();
-                                var FirstCol = data.FirstCol;
-                                var LastCol = data.LastCol;
-                                var SymbolCol = data.SymbolCol;
-
-                                if (ColorCode.Keys.Any(FirstCol.EndsWith) || ColorCode.Keys.Any(LastCol.EndsWith) || ColorCode.Keys.Any(data.keyPressed.EndsWith) || ColorCode.Keys.Any(data.SymbolCol.EndsWith))
-                                {
-                                    var colorFirstColEndsWith = ColorCode.Keys.Any(FirstCol.EndsWith) ? ColorCode[FirstCol.Substring(FirstCol.Length - 3)] : Color.White;
-                                    var colorLastColEndsWith = ColorCode.Keys.Any(LastCol.EndsWith) ? ColorCode[LastCol.Substring(LastCol.Length - 3)] : Color.White;
-                                    var colorKeyPressed = ColorCode.Keys.Any(data.keyPressed.EndsWith) ? ColorCode[data.keyPressed.Substring(data.keyPressed.Length - 3)] : Color.White;
-                                    var colorSymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? ColorCode[data.SymbolCol.Substring(data.SymbolCol.Length - 3)] : Color.White;
-
-                                    // Erase the color code at the string end
-                                    FirstCol = ColorCode.Keys.Any(FirstCol.EndsWith) ? FirstCol.Substring(0, FirstCol.Length - 3) : FirstCol;
-                                    LastCol = ColorCode.Keys.Any(LastCol.EndsWith) ? LastCol.Substring(0, LastCol.Length - 3) : LastCol;
-                                    keyPressed = ColorCode.Keys.Any(data.keyPressed.EndsWith) ? data.keyPressed.Substring(0, data.keyPressed.Length - 3) : data.keyPressed;
-                                    SymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? data.SymbolCol.Substring(0, data.SymbolCol.Length - 3) : data.SymbolCol;
-
-                                    // Apply color to FirstCol
-                                    if (StandardHUD || FirstCol.StartsWith(Viewer.Catalog.GetString("Multi")))
-                                    {   // Apply color to FirstCol
-                                        hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
-                                        indicator.Color = colorKeyPressed;
-                                        hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, FirstCol));
-                                        indicator.Color = colorFirstColEndsWith;
-                                    }
-                                    else
-                                    {   // Use constant width font
-                                        hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
-                                        indicator.Color = colorKeyPressed;
-                                        hbox.Add(indicatorMono = new LabelMono(colWidth, hbox.RemainingHeight, FirstCol));
-                                        indicatorMono.Color = colorFirstColEndsWith;
-                                    }
-
-                                    if (data.keyPressed != null && data.keyPressed != "")
-                                    {
-                                        hbox.Add(indicator = new Label(-TextSize, 0, TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Right));
-                                        indicator.Color = colorKeyPressed;
-                                    }
-
-                                    if (data.SymbolCol != null && data.SymbolCol != "")
-                                    {
-                                        hbox.Add(indicator = new Label(-(TextSize + 3), 0, TextSize, hbox.RemainingHeight, SymbolCol, LabelAlignment.Right));
-                                        indicator.Color = colorSymbolCol;
-                                    }
-
-                                    // Apply color to LastCol
-                                    hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
-                                    indicator.Color = colorFirstColEndsWith == Color.White ? colorLastColEndsWith : colorFirstColEndsWith;
-                                }
-                                else
-                                {   // blanck space
-                                    keyPressed = "";
-                                    hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
-                                    indicator.Color = Color.White; // Default color
-
-                                    //Avoids troubles when the Main Scale (Windows DPI settings) is not set to 100%
-                                    if (LastCol.Contains(':')) TimeHboxPositionY = hbox.Position.Y;
-
-                                    if (StandardHUD || FirstCol.StartsWith(Viewer.Catalog.GetString("Multi")) || FirstCol.ToUpper().Contains(Viewer.Catalog.GetString("PLAYER")))
-                                    {
-                                        hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, FirstCol));
-                                        indicator.Color = Color.White; // Default color
-                                    }
-                                    else
-                                    {
-                                        hbox.Add(indicatorMono = new LabelMono(colWidth, hbox.RemainingHeight, FirstCol));
-                                        indicatorMono.Color = Color.White; // Default color
-                                    }
-                                    // Font to bold
-                                    if (hbox.Position.Y == TimeHboxPositionY && LastCol.Contains(':')) // Time line.
-                                    {
-                                        hbox.Add(LabelFontToBold = new Label(Owner.TextFontDefault.MeasureString(LastCol) - (StandardHUD ? 5 : 3), hbox.RemainingHeight, LastCol));
-                                        LabelFontToBold.Color = Color.White;
-                                        LabelFontToBold.Click += new Action<Control, Point>(FontToBold_Click);
-                                    }
-                                    else
-                                    {
-                                        hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
-                                        indicator.Color = Color.White; // Default color
-                                    }
-                                }
-
-                                // Clickable symbol
-                                if (hbox.Position.Y == TimeHboxPositionY)
-                                {
-                                    hbox.Add(ExpandWindow = new Label(hbox.RemainingWidth - TextSize, 0, TextSize, hbox.RemainingHeight, expandWindow.ToString(), LabelAlignment.Right));
-                                    ExpandWindow.Color = Color.Yellow;
-                                    ExpandWindow.Click += new Action<Control, Point>(ExpandWindow_Click);
-                                }
-                                // Separator line
-                                if (data.FirstCol.Contains("Sprtr"))
-                                {
-                                    hbox.AddHorizontalSeparator();
-                                }
+                                hbox.Add(indicatorMono = new LabelMono(colWidth, hbox.RemainingHeight, FirstCol));
+                                indicatorMono.Color = Color.White; // Default color
                             }
+
+                            // Font to bold, clickable label
+                            if (hbox.Position.Y == TimeHboxPositionY && LastCol.Contains(':')) // Time line.
+                            {
+                                hbox.Add(LabelFontToBold = new Label(Owner.TextFontDefault.MeasureString(LastCol) - (StandardHUD ? 5 : 3), hbox.RemainingHeight, LastCol));
+                                LabelFontToBold.Color = Color.White;
+                                LabelFontToBold.Click += new Action<Control, Point>(FontToBold_Click);
+                            }
+                            else
+                            {
+                                hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, LastCol));
+                                indicator.Color = Color.White; // Default color
+                            }
+                        }
+
+                        // Clickable symbol
+                        if (hbox.Position.Y == TimeHboxPositionY)
+                        {
+                            hbox.Add(ExpandWindow = new Label(hbox.RemainingWidth - TextSize, 0, TextSize, hbox.RemainingHeight, expandWindow.ToString(), LabelAlignment.Right));
+                            ExpandWindow.Color = Color.Yellow;
+                            ExpandWindow.Click += new Action<Control, Point>(ExpandWindow_Click);
+                        }
+                        // Separator line
+                        if (data.FirstCol.Contains("Sprtr"))
+                        {
+                            hbox.AddHorizontalSeparator();
                         }
                     }
                 }
@@ -292,7 +316,7 @@ namespace Orts.Viewer3D.Popups
         void ExpandWindow_Click(Control arg1, Point arg2)
         {
             StandardHUD = StandardHUD ? false : true;
-            UpdateData();
+            //UpdateData();
             UpdateWindowSize();
         }
 
@@ -341,75 +365,85 @@ namespace Orts.Viewer3D.Popups
         /// <param name="lastkeyactivated"></param>
         private void InfoToLabel(string firstkeyactivated, string firstcol, string lastcol, string symbolcol, bool changecolwidth, string lastkeyactivated)
         {
-            if (!StandardHUD)
+            if (!UpdateDataEnded)
             {
-                foreach (var code in FirstColToAbbreviated)
+                if (!StandardHUD)
                 {
-                    if (firstcol.Contains(code.Key))
+                    foreach (var code in FirstColToAbbreviated)
                     {
-                        firstcol = firstcol.Replace(code.Key, code.Value).TrimEnd();
+                        if (firstcol.Contains(code.Key))
+                        {
+                            firstcol = firstcol.Replace(code.Key, code.Value).TrimEnd();
+                        }
+                    }
+                    foreach (var code in LastColToAbbreviated)
+                    {
+                        if (lastcol.Contains(code.Key))
+                        {
+                            lastcol = lastcol.Replace(code.Key, code.Value).TrimEnd();
+                        }
                     }
                 }
-                foreach (var code in LastColToAbbreviated)
+
+                var firstColWidth = 0;
+                var lastColWidth = 0;
+
+                if (!firstcol.Contains("Sprtr"))
                 {
-                    if (lastcol.Contains(code.Key))
+
+                    if (firstcol.Contains("?") || firstcol.Contains("!") || firstcol.Contains("$"))
                     {
-                        lastcol = lastcol.Replace(code.Key, code.Value).TrimEnd();
+                        firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(firstcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd())
+                            : Owner.TextFontDefault.MeasureString(firstcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd());
                     }
+                    else
+                    {
+                        firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(firstcol.TrimEnd())
+                            : Owner.TextFontDefault.MeasureString(firstcol.TrimEnd());
+                    }
+
+                    if (lastcol.Contains("?") || lastcol.Contains("!") || lastcol.Contains("$"))
+                    {
+                        lastColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(lastcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd())
+                            : Owner.TextFontDefault.MeasureString(lastcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd());
+                    }
+                    else
+                    {
+                        lastColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(lastcol.TrimEnd())
+                            : Owner.TextFontDefault.MeasureString(lastcol.TrimEnd());
+                    }
+
+                    //Set a minimum value for LastColWidth to avoid overlap between time value and clickable symbol
+                    if (ListToLabel.Count == 1)
+                    {
+                        lastColWidth = ListToLabel.First().LastColWidth + 15;// time value + clickable symbol
+                    }
+                    // Ajuste the text lenght because MeasureString was not accuracy
+                    lastColWidth = lastColWidth > 180 ? lastColWidth + 10 : lastColWidth;
                 }
+
+                ListToLabel.Add(new ListLabel
+                {
+                    FirstCol = firstcol,
+                    FirstColWidth = firstColWidth,
+                    LastCol = lastcol,
+                    LastColWidth = lastColWidth,
+                    SymbolCol = symbolcol,
+                    ChangeColWidth = changecolwidth,
+                    keyPressed = keyPressed
+                });
             }
-
-            var firstColWidth = 0;
-            var lastColWidth = 0;
-            if (!firstcol.Contains("Sprtr"))
+            else
             {
-                if (firstcol.Contains("?") || firstcol.Contains("!") || firstcol.Contains("$"))
-                {
-                    firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(firstcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd())
-                        : Owner.TextFontDefault.MeasureString(firstcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd());
-                }
-                else
-                {
-                    firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(firstcol.TrimEnd())
-                        : Owner.TextFontDefault.MeasureString(firstcol.TrimEnd());
-                }
+                // Detect Autopilot is on to avoid flickering when slim window is displayed
+                var AutopilotOn = Owner.Viewer.Settings.Autopilot && Owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING ? true : false;
 
-                if (lastcol.Contains("?") || lastcol.Contains("!") || lastcol.Contains("$"))
+                //ResizeWindow, when the string spans over the right boundary of the window
+                var maxFirstColWidth = ListToLabel.Max(x => x.FirstColWidth);
+                var maxLastColWidth = ListToLabel.Max(x => x.LastColWidth);
+
+                if (!ResizeWindow & (FirstColOverFlow != maxFirstColWidth || (!AutopilotOn && LastColOverFlow != maxLastColWidth)))
                 {
-                    lastColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(lastcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd())
-                        : Owner.TextFontDefault.MeasureString(lastcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd());
-                }
-                else
-                {
-                    lastColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(lastcol.TrimEnd())
-                        : Owner.TextFontDefault.MeasureString(lastcol.TrimEnd());
-                }
-            }
-
-            ListToLabel.Add(new ListLabel
-            {
-                FirstCol = firstcol,
-                FirstColWidth = firstColWidth,
-                LastCol = lastcol,
-                LastColWidth = lastColWidth,
-                SymbolCol = symbolcol,
-                ChangeColWidth = changecolwidth,
-                keyPressed = keyPressed
-            });
-
-            // Detect Autopilot is on to avoid flickering when slim window is displayed
-            var AutopilotOn = Owner.Viewer.Settings.Autopilot && Owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING ? true : false;
-
-            //ResizeWindow, when the string spans over the right boundary of the window
-            var maxFirstColWidth = ListToLabel.Max(x => x.FirstColWidth);
-            var maxLastColWidth = ListToLabel.Max(x => x.LastColWidth);
-
-            if (!ResizeWindow && ListToLabel.Count > 0 && lastcol != "")
-            {
-                if (((StandardHUD && maxFirstColWidth > FirstColLenght) || maxLastColWidth > LastColLenght) ||
-                   (FirstColIndex == ListToLabel.Count - 1 && ((StandardHUD && FirstColOverFlow != maxFirstColWidth) || (!AutopilotOn && LastColOverFlow != maxLastColWidth))))
-                {
-                    FirstColIndex = ListToLabel.Count - 1;
                     LastColOverFlow = maxLastColWidth;
                     FirstColOverFlow = maxFirstColWidth;
                     ResizeWindow = true;
@@ -436,6 +470,7 @@ namespace Orts.Viewer3D.Popups
             var Locomotive = Owner.Viewer.PlayerLocomotive as MSTSLocomotive;
             var LocomotiveDebugStatus = Owner.Viewer.PlayerLocomotive.GetDebugStatus();
             var LocomotiveStatus = Owner.Viewer.PlayerLocomotive.GetStatus();
+            var LocomotiveSteam = Owner.Viewer.PlayerLocomotive as MSTSSteamLocomotive;
             var CombinedCT = Locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic ? true : false;
             var ShowMUReverser = Math.Abs(PlayerTrain.MUReverserPercent) != 100;
             var ShowRetainers = PlayerTrain.RetainerSetting != RetainerSetting.Exhaust;
@@ -446,16 +481,19 @@ namespace Orts.Viewer3D.Popups
 
             keyPressed = "";
             ListToLabel.Clear();
+            UpdateDataEnded = false;
+
             if (!StandardHUD)
             {
                 var newBrakeStatus = new StringBuilder(BrakeStatus);
                 BrakeStatus = newBrakeStatus
-                      .Replace("bar", string.Empty)
-                      .Replace("inHg", string.Empty)
-                      .Replace("kgf/cm²", string.Empty)
-                      .Replace("kPa", string.Empty)
-                      .Replace("lib./pal.", string.Empty)
-                      .Replace("psi", string.Empty)
+                      .Replace(Viewer.Catalog.GetString("bar"), string.Empty)
+                      .Replace(Viewer.Catalog.GetString("inHg"), string.Empty)
+                      .Replace(Viewer.Catalog.GetString("kgf/cm²"), string.Empty)
+                      .Replace(Viewer.Catalog.GetString("kPa"), string.Empty)
+                      .Replace(Viewer.Catalog.GetString("psi"), string.Empty)
+                      .Replace(Viewer.Catalog.GetString("lib./pal."), string.Empty)//cs locales
+                      .Replace(Viewer.Catalog.GetString("pal.rtuti"), string.Empty)
                       .ToString();
             }
 
@@ -511,11 +549,13 @@ namespace Orts.Viewer3D.Popups
             // Direction
             if (UserInput.IsDown(UserCommand.ControlBackwards) || UserInput.IsDown(UserCommand.ControlForwards))
             {
-                if (Owner.Viewer.PlayerLocomotive.EngineType != TrainCar.EngineTypes.Steam &&
+                if ((Owner.Viewer.PlayerLocomotive.EngineType != TrainCar.EngineTypes.Steam &&
                     (Owner.Viewer.PlayerLocomotive.Direction != Direction.Forward
                     || Owner.Viewer.PlayerLocomotive.Direction != Direction.Reverse)
                     && (Owner.Viewer.PlayerLocomotive.ThrottlePercent >= 1
                     || Math.Abs(Owner.Viewer.PlayerLocomotive.SpeedMpS) > 1))
+                    || (Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam && LocomotiveSteam.CutoffController.MaximumValue == Math.Abs(PlayerTrain.MUReverserPercent / 100))
+                    )
                 {
                     keyPressed = end.ToString() + "???";
                 }
@@ -529,7 +569,7 @@ namespace Orts.Viewer3D.Popups
             keyPressed = "";
 
             // Throttle
-            if (DynamicBrakePercent < 1 && ((UserInput.IsDown(UserCommand.ControlThrottleIncrease) && Owner.Viewer.PlayerLocomotive.ThrottlePercent == 100)
+            if (DynamicBrakePercent < 1 && ((UserInput.IsDown(UserCommand.ControlThrottleIncrease) && Locomotive.ThrottleController.MaximumValue == Owner.Viewer.PlayerLocomotive.ThrottlePercent / 100)
                || (UserInput.IsDown(UserCommand.ControlThrottleDecrease) && Owner.Viewer.PlayerLocomotive.ThrottlePercent == 0)))
             {
                 keyPressed = end.ToString() + "???";
@@ -745,7 +785,7 @@ namespace Orts.Viewer3D.Popups
 
                             if (steamloco.BoilerHeatInBTUpS > bandLower && steamloco.BoilerHeatInBTUpS < bandUpper) HeatColor = smallDiamond.ToString() + "!??";
                             else if (steamloco.BoilerHeatInBTUpS < bandLower) HeatColor = smallArrowDown.ToString() + "$??"; // Color.Cyan
-                            else if (steamloco.BoilerHeatInBTUpS > bandUpper) HeatColor = smallArrowUp.ToString() + "!!!"; // Color.OrangeRed
+                            else if (steamloco.BoilerHeatInBTUpS > bandUpper) HeatColor = smallArrowUp.ToString() + "!!?"; // Color.Orange
 
                             keyPressed = "";
                             InfoToLabel(keyPressed, Viewer.Catalog.GetString("Boiler pressure"), Viewer.Catalog.GetString(parts[1]), HeatColor, false, keyPressed);
@@ -836,7 +876,7 @@ namespace Orts.Viewer3D.Popups
             else
                 InfoToLabel("", Viewer.Catalog.GetString("Wheel") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false, keyPressed);
 
-            // Door
+            // Doors
             keyPressed = "";
             if ((Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorLeftOpen || (Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorRightOpen)
             {
@@ -853,46 +893,41 @@ namespace Orts.Viewer3D.Popups
             else
                 InfoToLabel(" ", Viewer.Catalog.GetString("Doors open") + "?!?", Viewer.Catalog.GetString("Closed"), "", false, keyPressed);
 
-            // MultiPlayer
-            if (StandardHUD && Orts.MultiPlayer.MPManager.IsMultiPlayer())
-            {
-                InfoToLabel("", "Sprtr", "", "", false, keyPressed);
-                var text = Orts.MultiPlayer.MPManager.Instance().GetOnlineUsersInfo();
-
-                InfoToLabel(" ", Viewer.Catalog.GetString("MultiPlayerStatus: "), (Orts.MultiPlayer.MPManager.IsServer()
-                    ? Viewer.Catalog.GetString("Dispatcher") : Orts.MultiPlayer.MPManager.Instance().AmAider
-                    ? Viewer.Catalog.GetString("Helper") : Orts.MultiPlayer.MPManager.IsClient()
-                    ? Viewer.Catalog.GetString("Client") : ""), "", true, keyPressed);
-                InfoToLabel("", "NwLn", "", "", false, keyPressed);
-                foreach (var t in text.Split('\t'))
-                    InfoToLabel(" ", (t), "", "", true, keyPressed);
-            }
-
             // Ctrl + F Firing to manual
             if (UserInput.IsDown(UserCommand.ControlFiring))
             {
                 ResizeWindow = true;
             }
+
+            UpdateDataEnded = true;
+            keyPressed = "";
+            InfoToLabel(keyPressed, "", "", "", true, keyPressed);
         }
 
         public override void PrepareFrame(ElapsedTime elapsedTime, bool updateFull)
         {
             base.PrepareFrame(elapsedTime, updateFull);
 
-            if (updateFull)
+            var MovingCurrentWindow = UserInput.IsMouseLeftButtonDown &&
+                   UserInput.MouseX >= Location.X && UserInput.MouseX <= Location.X + Location.Width &&
+                   UserInput.MouseY >= Location.Y && UserInput.MouseY <= Location.Y + Location.Height ?
+                   true : false;
+
+            // Avoid to updateFull when the window is moving
+            if (!MovingCurrentWindow & updateFull)
             {
                 UpdateData();
 
-                // Ctrl + F (FiringIsManual)                
-                if (ResizeWindow || LinesCount != ListToLabel.Count())
-                {
+                // Ctrl + F (FiringIsManual)
+               if (ResizeWindow || LinesCount != ListToLabel.Count())
+               {
                     ResizeWindow = false;
                     UpdateWindowSize();
                     LinesCount = ListToLabel.Count();
-                }
-                
-                //Update Layout
-                Layout();
+               }
+
+               //Update Layout
+               Layout();
             }
         }
     }
