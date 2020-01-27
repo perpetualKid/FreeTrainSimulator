@@ -872,7 +872,7 @@ namespace Orts.Viewer3D
                 if (ComposeMessageWindow == null) ComposeMessageWindow = new ComposeMessage(WindowManager);
                 ComposeMessageWindow.InitMessage();
             }
-            if (MPManager.IsMultiPlayer()) MultiPlayerWindow.Visible = true;
+            if (MPManager.IsMultiPlayer()) MultiPlayerWindow.Visible = TrainDrivingWindow.Visible? true : false;
             if (!MPManager.IsMultiPlayer() && UserInput.IsPressed(UserCommand.GamePauseMenu)) { QuitWindow.Visible = Simulator.Paused = !QuitWindow.Visible; }
             if (MPManager.IsMultiPlayer() && UserInput.IsPressed(UserCommand.GamePauseMenu)) { if (Simulator.Confirmer != null) Simulator.Confirmer.Information(Viewer.Catalog.GetString("In MP, use Alt-F4 to quit directly")); }
 
