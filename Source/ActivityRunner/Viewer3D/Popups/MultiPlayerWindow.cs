@@ -191,7 +191,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             indicator.Color = Color.White; // Default color
 
                             //Avoids troubles when the Main Scale (Windows DPI settings) is not set to 100%
-                            if (FirstCol.Contains(Viewer.Catalog.GetString("Time"))) TimeHboxPositionY = hbox.Position.Y;
+                            if (FirstCol.Contains(StandardHUD? Viewer.Catalog.GetString("Time"): Viewer.Catalog.GetString("Status"))) TimeHboxPositionY = hbox.Position.Y;
 
                             hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, FirstCol));
                             indicator.Color = Color.White; // Default color
@@ -359,26 +359,50 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 			// First Block
             // Client and server may have a time difference.
             keyPressed = "";
-            if (Orts.MultiPlayer.MPManager.IsClient())
-                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Time") + ": " + FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + Orts.MultiPlayer.MPManager.Instance().serverTimeDifference), "", "", false, keyPressed);
-            else
+            if (StandardHUD)
             {
-                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Time") + ": " + FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime), "", "", false, keyPressed);
+                if (Orts.MultiPlayer.MPManager.IsClient())
+                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Time") + ": " + FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + Orts.MultiPlayer.MPManager.Instance().serverTimeDifference), "", "", false, keyPressed);
+                else
+                {
+                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Time") + ": " + FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime), "", "", false, keyPressed);
+                }
             }
 
             // MultiPlayer
-            if (StandardHUD && Orts.MultiPlayer.MPManager.IsMultiPlayer())
+            if (Orts.MultiPlayer.MPManager.IsMultiPlayer())
             {
-                InfoToLabel("", Viewer.Catalog.GetString("Sprtr"), "", "", false, keyPressed);
                 var text = Orts.MultiPlayer.MPManager.Instance().GetOnlineUsersInfo();
 
-                InfoToLabel(" ", Viewer.Catalog.GetString("MultiPlayerStatus:") + " " + (Orts.MultiPlayer.MPManager.IsServer()
-                    ? Viewer.Catalog.GetString("Dispatcher") : Orts.MultiPlayer.MPManager.Instance().AmAider
-                    ? Viewer.Catalog.GetString("Helper") : Orts.MultiPlayer.MPManager.IsClient()
-                    ? Viewer.Catalog.GetString("Client") : ""),"", "", true, keyPressed);
+                if (StandardHUD)
+                {
+                    InfoToLabel("", Viewer.Catalog.GetString("Sprtr"), "", "", false, keyPressed);
+                    InfoToLabel(" ", Viewer.Catalog.GetString("MultiPlayerStatus:") + " " + (Orts.MultiPlayer.MPManager.IsServer()
+                        ? Viewer.Catalog.GetString("Dispatcher") : Orts.MultiPlayer.MPManager.Instance().AmAider
+                        ? Viewer.Catalog.GetString("Helper") : Orts.MultiPlayer.MPManager.IsClient()
+                        ? Viewer.Catalog.GetString("Client") : ""), "", "", true, keyPressed);
+                }
+                else
+                {
+                    InfoToLabel(" ", Viewer.Catalog.GetString("Status:") + " " + (Orts.MultiPlayer.MPManager.IsServer()
+                        ? Viewer.Catalog.GetString("Dispatcher") : Orts.MultiPlayer.MPManager.Instance().AmAider
+                        ? Viewer.Catalog.GetString("Helper") : Orts.MultiPlayer.MPManager.IsClient()
+                        ? Viewer.Catalog.GetString("Client") : ""), "", "", true, keyPressed);
+                }
+                // Number of player and trains
                 InfoToLabel("", "NwLn", "", "", false, keyPressed);
                 foreach (var t in text.Split('\t'))
-                    InfoToLabel(" ", (t), "", "", true, keyPressed);
+                {
+                    if (StandardHUD)
+                    {
+                        InfoToLabel(" ", (t), "", "", true, keyPressed);
+                    }
+                    else
+                    {
+                        InfoToLabel(" ", (t), "", "", true, keyPressed);
+                        break;
+                    }
+                }
             }
 
             UpdateDataEnded = true;
