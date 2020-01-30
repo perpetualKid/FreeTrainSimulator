@@ -18,20 +18,11 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 
-using System;
-using System.Net.Sockets;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
 using System.Threading;
-using Orts.Viewer3D;
-using Orts.Viewer3D.WebServices;
-using ORTS.Common;
-using ORTS.Settings;
-using Orts.Processes;
+using Orts.ActivityRunner.Processes;
+using Orts.ActivityRunner.Viewer3D.WebServices;
 
-namespace Orts.Viewer3D.Processes
+namespace Orts.ActivityRunner.Viewer3D.Processes
 {
     public class WebServerProcess
     {
@@ -83,7 +74,6 @@ namespace Orts.Viewer3D.Processes
             State.WaitTillFinished();
         }
 
-        [ThreadName("WebServer")]
         void WebServerThread()
         {
             Profiler.SetThread();

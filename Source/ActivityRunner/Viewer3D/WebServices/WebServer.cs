@@ -34,11 +34,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+
 using Newtonsoft.Json;
-using Orts.Simulation;
+
 using Orts.Simulation.Physics;
 
-namespace Orts.Viewer3D.WebServices
+namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
     // =================================================================
     // State object for reading client data asynchronously
