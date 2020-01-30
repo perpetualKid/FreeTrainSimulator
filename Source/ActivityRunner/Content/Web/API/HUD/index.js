@@ -28,88 +28,88 @@ var xmlHttpRequestCodeDone = 4;
 
 var idleMs = 500; // default idle time between calls
 function poll(initialIdleMs) {
-	if (initialIdleMs != null)
-		idleMs = initialIdleMs; // Save it to use at end
-	
-	api();
-	
-	// setTimeout() used instead of setInterval() to avoid overloading the browser's queue.
-	// (It's not true recursion, so it won't blow the stack.)
-	setTimeout(poll, idleMs); // In this call, initialIdleMs == null
+    if (initialIdleMs != null)
+        idleMs = initialIdleMs; // Save it to use at end
+
+    api();
+
+    // setTimeout() used instead of setInterval() to avoid overloading the browser's queue.
+    // (It's not true recursion, so it won't blow the stack.)
+    setTimeout(poll, idleMs); // In this call, initialIdleMs == null
 }
 
 var pageNo = 0;
 
 function api() {
-	// If this file is located in folder /API/<API_name>/, then Open Rails will call the API with the signature "/API/<API_name"
+    // If this file is located in folder /API/<API_name>/, then Open Rails will call the API with the signature "/API/<API_name"
 
-	// GET preferred over POST as Internet Explorer may then fail intermittently with network error 00002eff
-	// hr.open("post", "call_API", true);
-	// hr.send("pageno="+pageNo);
-	hr.open("GET", "call_API?pageNo="+pageNo, true);
-	hr.send();
-	
-	hr.onreadystatechange = function () {
-		if (this.readyState == xmlHttpRequestCodeDone && this.status == httpCodeSuccess) {
-			var obj = JSON.parse(hr.responseText);
-			if (obj != null) // Can happen using IEv11
-			{
-				var rows = obj.commonTable.nRows;
-				var cols = obj.commonTable.nCols;
-				Str = "<table>";  
-				var next = 0;
-				for (var row = 0; row < obj.commonTable.nRows; ++row) {
-					Str += "<tr>";
-					for (var col=0; col < obj.commonTable.nCols; ++col) { 
-						if (obj.commonTable.values[next] == null) {
-							Str += "<td></td>";
-						}
-						else if (obj.commonTable.values[next].slice(-3) == "???"
-						|| obj.commonTable.values[next].slice(-3) == "!!!"
-						|| obj.commonTable.values[next].slice(-3) == "%%%") {
-							var endIndex = obj.commonTable.values[next].length;
-							var newData = obj.commonTable.values[next].slice(0, endIndex -3);
-							Str += "<td>"  + newData + "</td>";
-						}
-						else {
-							Str += "<td>" + obj.commonTable.values[next] + "</td>";
-						}
-						++next;
-					}
-					Str += "</tr>";
-				}
-				Str += "</table>";
-				HUDCommon.innerHTML = Str;
+    // GET preferred over POST as Internet Explorer may then fail intermittently with network error 00002eff
+    // hr.open("post", "call_API", true);
+    // hr.send("pageno="+pageNo);
+    hr.open("GET", "call_API?pageNo=" + pageNo, true);
+    hr.send();
 
-				if (obj.nTables == 2) {
-					var rows = obj.extraTable.nRows;
-					var cols = obj.extraTable.nCols;
-					next = 0;
-					Str = "<table>";  
-					for (var row = 0; row < obj.extraTable.nRows; ++row) {
-						Str += "<tr>";
-						for (var col=0; col < obj.extraTable.nCols; ++col) { 
-							if (obj.extraTable.values[next] == null) {
-								Str += "<td></td>";
-							}
-							else if (obj.extraTable.values[next].slice(-3) == "???"
-							|| obj.extraTable.values[next].slice(-3) == "!!!"
-							|| obj.extraTable.values[next].slice(-3) == "%%%") {
-								var endIndex = obj.extraTable.values[next].length;
-								var newData = obj.extraTable.values[next].slice(0, endIndex -3);
-								Str += "<td>"  + newData + "</td>";								
-							}
-							else {
-								Str += "<td>"  + obj.extraTable.values[next] + "</td>";
-							}
-							++next;
-						}
-						Str += "</tr>";
-					}
-					Str += "</table>";
-					HUDExtra.innerHTML = Str;
-				}
-			}
-		}
-	}
+    hr.onreadystatechange = function () {
+        if (this.readyState == xmlHttpRequestCodeDone && this.status == httpCodeSuccess) {
+            var obj = JSON.parse(hr.responseText);
+            if (obj != null) // Can happen using IEv11
+            {
+                var rows = obj.commonTable.nRows;
+                var cols = obj.commonTable.nCols;
+                Str = "<table>";
+                var next = 0;
+                for (var row = 0; row < obj.commonTable.nRows; ++row) {
+                    Str += "<tr>";
+                    for (var col = 0; col < obj.commonTable.nCols; ++col) {
+                        if (obj.commonTable.values[next] == null) {
+                            Str += "<td></td>";
+                        }
+                        else if (obj.commonTable.values[next].slice(-3) == "???"
+                            || obj.commonTable.values[next].slice(-3) == "!!!"
+                            || obj.commonTable.values[next].slice(-3) == "%%%") {
+                            var endIndex = obj.commonTable.values[next].length;
+                            var newData = obj.commonTable.values[next].slice(0, endIndex - 3);
+                            Str += "<td>" + newData + "</td>";
+                        }
+                        else {
+                            Str += "<td>" + obj.commonTable.values[next] + "</td>";
+                        }
+                        ++next;
+                    }
+                    Str += "</tr>";
+                }
+                Str += "</table>";
+                HUDCommon.innerHTML = Str;
+
+                if (obj.nTables == 2) {
+                    var rows = obj.extraTable.nRows;
+                    var cols = obj.extraTable.nCols;
+                    next = 0;
+                    Str = "<table>";
+                    for (var row = 0; row < obj.extraTable.nRows; ++row) {
+                        Str += "<tr>";
+                        for (var col = 0; col < obj.extraTable.nCols; ++col) {
+                            if (obj.extraTable.values[next] == null) {
+                                Str += "<td></td>";
+                            }
+                            else if (obj.extraTable.values[next].slice(-3) == "???"
+                                || obj.extraTable.values[next].slice(-3) == "!!!"
+                                || obj.extraTable.values[next].slice(-3) == "%%%") {
+                                var endIndex = obj.extraTable.values[next].length;
+                                var newData = obj.extraTable.values[next].slice(0, endIndex - 3);
+                                Str += "<td>" + newData + "</td>";
+                            }
+                            else {
+                                Str += "<td>" + obj.extraTable.values[next] + "</td>";
+                            }
+                            ++next;
+                        }
+                        Str += "</tr>";
+                    }
+                    Str += "</table>";
+                    HUDExtra.innerHTML = Str;
+                }
+            }
+        }
+    }
 }
