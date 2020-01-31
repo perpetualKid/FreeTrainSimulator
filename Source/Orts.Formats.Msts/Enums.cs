@@ -309,6 +309,7 @@ namespace Orts.Formats.Msts
         Dynamic_Brake_Display,
         Sanders,
         Wipers,
+        Vacuum_Exhauster,
         Horn,
         Bell,
         Front_HLight,
