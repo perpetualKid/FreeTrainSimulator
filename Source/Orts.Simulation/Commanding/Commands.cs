@@ -783,7 +783,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return ToString(targetState ? "on" : "off");
+            return ToString(targetState ? "fast" : "normal");
         }
     }
 
