@@ -118,6 +118,7 @@ namespace Orts.Simulation.RollingStocks
         protected bool PreviousBell = false;
 
         public bool VacuumExhausterPressed = false;
+        public bool FastVacuumExhausterFitted = false;
 
         public bool AlerterSnd;
         public bool VigilanceMonitor;
@@ -744,7 +745,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(enginecontrollers(brake_train":
                     TrainBrakeController.Parse(lowercasetoken, stf);
                     break;
-
+                case "engine(enginecontrollers(ortsfastvacuumexhauster": FastVacuumExhausterFitted = true; break;
                 case "engine(enginebrakescontrollermaxsystempressure":
                 case "engine(enginebrakescontrollermaxreleaserate":
                 case "engine(enginebrakescontrollermaxquickreleaserate":
@@ -908,6 +909,7 @@ namespace Orts.Simulation.RollingStocks
             LocoNumDrvWheels = locoCopy.LocoNumDrvWheels;
             AntiSlip = locoCopy.AntiSlip;
             VacuumPumpFitted = locoCopy.VacuumPumpFitted;
+            FastVacuumExhausterFitted = locoCopy.FastVacuumExhausterFitted;
             DrvWheelWeightKg = locoCopy.DrvWheelWeightKg;
             InitialDrvWheelWeightKg = locoCopy.InitialDrvWheelWeightKg;
             SanderSpeedEffectUpToMpS = locoCopy.SanderSpeedEffectUpToMpS;
@@ -3750,8 +3752,10 @@ namespace Orts.Simulation.RollingStocks
 
                 case TrainEvent.CompressorOn: { CompressorIsOn = true; break; }
                 case TrainEvent.CompressorOff: { CompressorIsOn = false; break; }
-                case TrainEvent.VacuumExhausterOn: { VacuumExhausterPressed = true; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.On); break; }
-                case TrainEvent.VacuumExhausterOff : { VacuumExhausterPressed = false; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.Off); break; }
+
+                    //Vacuum exhauster event only triggered if vacuum exhauster engine control fitted.
+                case TrainEvent.VacuumExhausterOn: { if(FastVacuumExhausterFitted) VacuumExhausterPressed = true; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.On); break; }
+                case TrainEvent.VacuumExhausterOff: { if (FastVacuumExhausterFitted) VacuumExhausterPressed = false; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.Off); break; }
 
                 case TrainEvent._ResetWheelSlip: { LocomotiveAxle.Reset(Simulator.GameTime, SpeedMpS); ThrottleController.SetValue(0.0f); break; }
                 case TrainEvent.TrainBrakePressureDecrease:
@@ -4152,7 +4156,14 @@ namespace Orts.Simulation.RollingStocks
                     }
                 case CabViewControlType.Vacuum_Exhauster:
                     {
-                        data = VacuumExhausterPressed ? 1 : 0;
+                        if (FastVacuumExhausterFitted)
+                        {
+                            data = VacuumExhausterPressed ? 1 : 0;
+                        }
+                        else
+                        {
+                            data = 0;
+                        }
                         break;
                     }
 
