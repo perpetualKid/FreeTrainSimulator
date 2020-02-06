@@ -37,6 +37,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         TrainCar Car;
         float HandbrakePercent;
         float CylPressurePSIA;
+        float BrakeCutOffPSIA;
+        float BrakeRestorePSIA; 
         float VacResPressurePSIA;  // vacuum reservior pressure with piston in released position
         // defaults based on information in http://www.lmsca.org.uk/lms-coaches/LMSRAVB.pdf
         public int NumBrakeCylinders = 2;
@@ -54,8 +56,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         int SoundTriggerCounter = 0;
         float prevCylPressurePSIA = 0f;
         float prevBrakePipePressurePSI = 0f;
-
-
+        
         public VacuumSinglePipe(TrainCar car)
         {
             Car = car;
@@ -264,6 +265,26 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 if (lead.EngineBrakeFitted)
                 {
                     EngineBrake = true;  // set to overcome potential null errors with lead var.
+                }
+
+                // Brake cuts power
+                float BrakeCutoffPressurePSIA = (float)Pressure.Vacuum.ToPressure(lead.BrakeCutsPowerAtBrakeCylinderPressurePSI);
+                float BrakeRestorePressurePSIA = (float)Pressure.Vacuum.ToPressure(lead.BrakeRestoresPowerAtBrakeCylinderPressurePSI);
+                if (lead.DoesBrakeCutPower)
+                {
+                    if (CylPressurePSIA < BrakeCutoffPressurePSIA)
+                    {
+                        lead.ThrottleController.SetValue(0.0f);
+                        lead.BrakeCutoffActivated = true;
+                    }
+                    else if (CylPressurePSIA > BrakeRestorePressurePSIA)
+                    {
+                        lead.BrakeCutoffActivated = false;
+                    }
+                    else if (lead.BrakeCutoffActivated)
+                    {
+                        lead.ThrottleController.SetValue(0.0f);
+                    }
                 }
             }
 
@@ -837,6 +858,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     }
                     // Keep brake line within relevant limits - ie between 21 or 25 InHg and Atmospheric pressure.
                     lead.BrakeSystem.BrakeLine1PressurePSI = MathHelper.Clamp(lead.BrakeSystem.BrakeLine1PressurePSI, OneAtmospherePSI - MaxVacuumPipeLevelPSI, OneAtmospherePSI);
+
                 }
 
                 // Propogate lead brake line pressure from lead locomotive along the train to each car
