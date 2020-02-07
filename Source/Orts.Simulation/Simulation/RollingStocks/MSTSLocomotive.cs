@@ -249,7 +249,7 @@ namespace Orts.Simulation.RollingStocks
         public float LargeEjectorBrakePipeChargingRatePSIorInHgpS;
         public float ExhausterHighSBPChargingRatePSIorInHgpS;  // Rate for Exhauster in high speed mode
         public float ExhausterLowSBPChargingRatePSIorInHgpS;  // Rate for Exhauster in high speed mode
-        public bool BrakeCutoffActivated = false;
+        public bool VacuumBrakeCutoffActivated = false;
 
         public bool EngineBrakeFitted = false;
         public bool VacuumExhausterIsOn = false;
@@ -349,9 +349,10 @@ namespace Orts.Simulation.RollingStocks
         public bool EmergencyEngagesHorn { get; private set; }
         public bool WheelslipCausesThrottleDown { get; private set; }
 
+        public bool DoesVacuumBrakeCutPower { get; private set; }
         public bool DoesBrakeCutPower { get; private set; }
-        public float BrakeCutsPowerAtBrakeCylinderPressurePSI { get; private set; }
-        public float BrakeRestoresPowerAtBrakeCylinderPressurePSI { get; private set; }
+        public float BrakeCutsPowerAtBrakePipePressurePSI { get; private set; }
+        public float BrakeRestoresPowerAtBrakePipePressurePSI { get; private set; }
         public bool DoesHornTriggerBell { get; private set; }
 
         protected const float DefaultCompressorRestartToMaxSysPressureDiff = 35;    // Used to check if difference between these two .eng parameters is correct, and to correct it
@@ -398,7 +399,6 @@ namespace Orts.Simulation.RollingStocks
             //  BrakePipeChargingRatePSIpS = Simulator.Settings.BrakePipeChargingRate;
 
             MilepostUnitsMetric = Simulator.TRK.Route.MilepostUnitsMetric;
-            BrakeCutsPowerAtBrakeCylinderPressurePSI = 4.0f;
 
             LocomotiveAxle = new Axle();
             LocomotiveAxle.DriveType = AxleDriveType.ForceDriven;
@@ -817,12 +817,13 @@ namespace Orts.Simulation.RollingStocks
                     HeadOutViewpoints.Add(new ViewPoint(HeadOutViewpoints[0], true));
                     break;
                 case "engine(sanding": SanderSpeedOfMpS = stf.ReadFloatBlock(STFReader.Units.Speed, 30.0f); break;
-                case "engine(ORTSMaxTrackSanderBoxCapacity": MaxTrackSandBoxCapacityM3 = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
-                case "engine(ORTSTrackSanderSandConsumption": TrackSanderSandConsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
-                case "engine(ORTSTrackSanderAirConsumption": TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
+                case "engine(ortsdoesvacuumbrakecutpower": DoesVacuumBrakeCutPower = stf.ReadBoolBlock(false); break;
+                case "engine(ortstracksandersandconsumption": TrackSanderSandConsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
+                case "engine(ortstracksanderairconsumption": TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
                 case "engine(doesbrakecutpower": DoesBrakeCutPower = stf.ReadBoolBlock(false); break;
-                case "engine(brakecutspoweratbrakecylinderpressure": BrakeCutsPowerAtBrakeCylinderPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(ortsbrakerestorespoweratbrakecylinderpressure": BrakeRestoresPowerAtBrakeCylinderPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
+                case "engine(ortsbrakecutspoweratbrakepipepressure":
+                case "engine(brakecutspoweratbrakecylinderpressure": BrakeCutsPowerAtBrakePipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
+                case "engine(ortsbrakerestorespoweratbrakepipepressure": BrakeRestoresPowerAtBrakePipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(doeshorntriggerbell": DoesHornTriggerBell = stf.ReadBoolBlock(false); break;
                 case "engine(brakesenginecontrollers":
                     foreach (var brakesenginecontrollers in stf.ReadStringBlock("").ToLower().Replace(" ", "").Split(','))
@@ -1267,19 +1268,20 @@ namespace Orts.Simulation.RollingStocks
                 TrainBrakeController.MaxPressurePSI = (float)Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(TrainBrakeController.MaxPressurePSI));
             }
 
-            // Check initialisation of brake cutoff values
-            if (DoesBrakeCutPower)
+            // Check initialisation of brake cutoff values - set if zero values or are greater then atmospheric pressure as this will put them "out of range" in vacuum brakes class
+            if ((BrakeSystem is VacuumSinglePipe) && ( BrakeCutsPowerAtBrakePipePressurePSI == 0 || BrakeCutsPowerAtBrakePipePressurePSI > OneAtmospherePSI))
             {
-                if ((BrakeSystem is VacuumSinglePipe) && BrakeCutsPowerAtBrakeCylinderPressurePSI == 0)
-                {
-                    BrakeCutsPowerAtBrakeCylinderPressurePSI = 12.5f; // Power is cut @ 12.5 InHg
-                }
-
-                if ((BrakeSystem is VacuumSinglePipe) && BrakeRestoresPowerAtBrakeCylinderPressurePSI == 0)
-                {
-                    BrakeCutsPowerAtBrakeCylinderPressurePSI = 15.0f; // Power can be resotred once cylinder rises above 15 InHg
-                }
+                BrakeCutsPowerAtBrakePipePressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(12.5f)); // Power is cut @ 12.5 InHg
             }
+            else
+            {
+                BrakeCutsPowerAtBrakePipePressurePSI = 4.0f; // Air brake default
+            }
+            if ((BrakeSystem is VacuumSinglePipe) && ( BrakeRestoresPowerAtBrakePipePressurePSI == 0 || BrakeRestoresPowerAtBrakePipePressurePSI > OneAtmospherePSI))
+            {
+                BrakeRestoresPowerAtBrakePipePressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(15.0f)); // Power can be resotred once brake pipe rises above 15 InHg
+            }
+            
 
             // Initialise Brake Time Factor
             if (BrakePipeTimeFactorS == 0) // Check to see if BrakePipeTimeFactorS has been set in the ENG file.
