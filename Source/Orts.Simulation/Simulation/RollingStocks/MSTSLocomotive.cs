@@ -821,7 +821,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortstracksandersandconsumption": TrackSanderSandConsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
                 case "engine(ortstracksanderairconsumption": TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
                 case "engine(doesbrakecutpower": DoesBrakeCutPower = stf.ReadBoolBlock(false); break;
-                case "engine(ortsbrakecutspoweratbrakepipepressure":
+                case "engine(ortsbrakecutspoweratbrakepipepressure": BrakeCutsPowerAtBrakePipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(brakecutspoweratbrakecylinderpressure": BrakeCutsPowerAtBrakePipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(ortsbrakerestorespoweratbrakepipepressure": BrakeRestoresPowerAtBrakePipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(doeshorntriggerbell": DoesHornTriggerBell = stf.ReadBoolBlock(false); break;
