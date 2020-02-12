@@ -297,7 +297,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             Script.BrakePipePressureBar = () => Locomotive.BrakeSystem != null ? (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.BrakeLine1PressurePSI) : float.MaxValue;
             Script.LocomotiveBrakeCylinderPressureBar = () => Locomotive.BrakeSystem != null ? (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.GetCylPressurePSI()) : float.MaxValue;
                 Script.DoesBrakeCutPower = () => Locomotive.DoesBrakeCutPower;
-            Script.BrakeCutsPowerAtBrakeCylinderPressureBar = () => (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeCutsPowerAtBrakePipePressurePSI);
+            Script.BrakeCutsPowerAtBrakeCylinderPressureBar = () => (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeCutsPowerAtBrakeCylinderPressurePSI);
             Script.LineSpeedMpS = () => (float)Simulator.TRK.Route.SpeedLimit;
                 Script.DoesStartFromTerminalStation = () => DoesStartFromTerminalStation();
                 Script.IsColdStart = () => Locomotive.Train.ColdStart;
