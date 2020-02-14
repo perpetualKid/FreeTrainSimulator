@@ -208,12 +208,12 @@ namespace Orts.Simulation.RollingStocks
         public float SteamDrvWheelWeightLbs;  // Weight on each drive axle
         public float PreviousThrottleSetting = 0.0f;  // Holds the value of the previous throttle setting for calculating the correct antislip speed
 
-        // parameters for Track Sander
-        public float MaxTrackSandBoxCapacityFt3 = 5.0f;  // Capacity of sandbox - assume 3.5 cu ft
-        public float TrackSandBoxCapacityFt3 = 5.0f;   // This value needs to be initialised to the value above.
-        public float TrackSanderAirComsumptionFt3pM = 17.0f;  //
-        public float TrackSanderAirPressurePSI = 80.0f;
-        public float TrackSanderSandConsumptionFt3pH = 1.01f;
+        // parameters for Track Sander based upon Compressor air and abrasive consumption table for 1/2" sand blasting nozzle @ 50psi
+        public float MaxTrackSandBoxCapacityM3 = (float)Size.Volume.FromFt3(40.0f);  // Capacity of sandbox - assume 5.0 cu ft
+        public float CurrentTrackSandBoxCapacityM3;   // This value needs to be initialised to the value above, as it reduces as sand is used.
+        public float TrackSanderAirComsumptionM3pS = (float)Size.Volume.FromFt3(195.0f) / 60.0f;  // Default value - cubic feet per m (CFM) 195 ft3/m
+        public float TrackSanderAirPressurePSI = 50.0f;
+        public float TrackSanderSandConsumptionM3pS = (float)Size.Volume.FromFt3(11.6f) / 3600.0f; // Default value 11.6 ft3/h
 
         // Vacuum Braking parameters
         readonly static double OneAtmospherePSI = Pressure.Atmospheric.ToPSI(1);
@@ -806,6 +806,9 @@ namespace Orts.Simulation.RollingStocks
                     HeadOutViewpoints.Add(new ViewPoint(HeadOutViewpoints[0], true));
                     break;
                 case "engine(sanding": SanderSpeedOfMpS = stf.ReadFloatBlock(STFReader.Units.Speed, 30.0f); break;
+                case "engine(ORTSMaxTrackSanderBoxCapacity": MaxTrackSandBoxCapacityM3 = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
+                case "engine(ORTSTrackSanderSandConsumption": TrackSanderSandConsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
+                case "engine(ORTSTrackSanderAirConsumption": TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
                 case "engine(doesbrakecutpower": DoesBrakeCutPower = stf.ReadBoolBlock(false); break;
                 case "engine(brakecutspoweratbrakecylinderpressure": BrakeCutsPowerAtBrakeCylinderPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(doeshorntriggerbell": DoesHornTriggerBell = stf.ReadBoolBlock(false); break;
@@ -898,6 +901,9 @@ namespace Orts.Simulation.RollingStocks
             InitialDrvWheelWeightKg = locoCopy.InitialDrvWheelWeightKg;
             SanderSpeedEffectUpToMpS = locoCopy.SanderSpeedEffectUpToMpS;
             SanderSpeedOfMpS = locoCopy.SanderSpeedOfMpS;
+            MaxTrackSandBoxCapacityM3 = locoCopy.MaxTrackSandBoxCapacityM3;
+            TrackSanderSandConsumptionM3pS = locoCopy.TrackSanderSandConsumptionM3pS;
+            TrackSanderAirComsumptionM3pS = locoCopy.TrackSanderAirComsumptionM3pS;
             PowerOnDelayS = locoCopy.PowerOnDelayS;
             DoesHornTriggerBell = locoCopy.DoesHornTriggerBell;
             MaxSteamHeatPressurePSI = locoCopy.MaxSteamHeatPressurePSI;
@@ -998,6 +1004,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(PowerReduction);
             outf.Write(ScoopIsBroken);
             outf.Write(IsWaterScoopDown);
+            outf.Write(CurrentTrackSandBoxCapacityM3);
 
             base.Save(outf);
         }
@@ -1034,6 +1041,7 @@ namespace Orts.Simulation.RollingStocks
             PowerReduction = inf.ReadSingle();
             ScoopIsBroken = inf.ReadBoolean();
             IsWaterScoopDown = inf.ReadBoolean();
+            CurrentTrackSandBoxCapacityM3 = inf.ReadSingle();
 
             AdhesionFilter.Reset(0.5f);
 
@@ -1145,6 +1153,12 @@ namespace Orts.Simulation.RollingStocks
                 WaterScoopWidthM = 0.3048f; // Set to default of 1 ft
             }
 
+            // Check if sander has been set
+            if (CurrentTrackSandBoxCapacityM3 == 0)
+            {
+                CurrentTrackSandBoxCapacityM3 = MaxTrackSandBoxCapacityM3;
+            }
+            
             // Calculate minimum speed to pickup water
             const float Aconst = 2;
             WaterScoopMinSpeedMpS = (float)Size.Length.FromFt(Math.Sqrt(Aconst * GravitationalAccelerationFtpSpS * Size.Length.ToFt(WaterScoopFillElevationM)));
@@ -2149,7 +2163,7 @@ namespace Orts.Simulation.RollingStocks
             //float max1 = (Sander ? .95f : Adhesion2) * max0;  //Not used this way
             max1 = MaxForceN;
             //add sander
-            if (AbsSpeedMpS < SanderSpeedOfMpS && TrackSandBoxCapacityFt3 > 0.0 && MainResPressurePSI > 80.0)
+            if (AbsSpeedMpS < SanderSpeedOfMpS && CurrentTrackSandBoxCapacityM3 > 0.0 && MainResPressurePSI > 80.0)
             {
                 if (SanderSpeedEffectUpToMpS > 0.0f)
                 {
@@ -2416,7 +2430,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 //add sander - more effective in wet weather, so increases adhesion by more
-                if (AbsSpeedMpS < SanderSpeedOfMpS && TrackSandBoxCapacityFt3 > 0.0 && MainResPressurePSI > 80.0 && (AbsSpeedMpS > 0))
+                if (AbsSpeedMpS < SanderSpeedOfMpS && CurrentTrackSandBoxCapacityM3 > 0.0 && MainResPressurePSI > 80.0 && (AbsSpeedMpS > 0))
                 {
                     if (SanderSpeedEffectUpToMpS > 0.0f)
                     {
@@ -2458,7 +2472,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 //add sander - not as effective in dry weather
-                if (AbsSpeedMpS < SanderSpeedOfMpS && TrackSandBoxCapacityFt3 > 0.0 && MainResPressurePSI > 80.0 && (AbsSpeedMpS > 0))
+                if (AbsSpeedMpS < SanderSpeedOfMpS && CurrentTrackSandBoxCapacityM3 > 0.0 && MainResPressurePSI > 80.0 && (AbsSpeedMpS > 0))
                 {
                     if (SanderSpeedEffectUpToMpS > 0.0f)
                     {
@@ -2540,21 +2554,21 @@ namespace Orts.Simulation.RollingStocks
 
             if (Sander)  // If sander is on adjust parameters
             {
-                if (TrackSandBoxCapacityFt3 > 0.0) // if sand still in sandbox then sanding is available
+                if (CurrentTrackSandBoxCapacityM3 > 0.0) // if sand still in sandbox then sanding is available
                 {
                     // Calculate consumption of sand, and drop in sand box level
-                    float ActualSandConsumptionFt3pS = (float)(Frequency.Periodic.FromHours(TrackSanderSandConsumptionFt3pH) * elapsedClockSeconds);
-                    TrackSandBoxCapacityFt3 -= ActualSandConsumptionFt3pS;
-                    TrackSandBoxCapacityFt3 = MathHelper.Clamp(TrackSandBoxCapacityFt3, 0.0f, MaxTrackSandBoxCapacityFt3);
-                    if (TrackSandBoxCapacityFt3 == 0.0)
+                    float ActualSandConsumptionM3pS = (float)(TrackSanderSandConsumptionM3pS * elapsedClockSeconds);
+                    CurrentTrackSandBoxCapacityM3 -= ActualSandConsumptionM3pS;
+                    CurrentTrackSandBoxCapacityM3 = MathHelper.Clamp(CurrentTrackSandBoxCapacityM3, 0.0f, MaxTrackSandBoxCapacityM3);
+                    if (CurrentTrackSandBoxCapacityM3 == 0.0)
                     {
                         Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Sand supply has been exhausted"));
                     }
                 }
 
                 // Calculate air consumption and change in main air reservoir pressure
-                float ActualAirConsumptionFt3pS = (float)(Frequency.Periodic.FromMinutes(TrackSanderAirComsumptionFt3pM) * elapsedClockSeconds);
-                float SanderPressureDiffPSI = ActualAirConsumptionFt3pS / (float)Size.Volume.ToFt3(MainResVolumeM3);
+                float ActualAirConsumptionM3pS = (float)(TrackSanderAirComsumptionM3pS * elapsedClockSeconds);
+                float SanderPressureDiffPSI = (float)(ActualAirConsumptionM3pS / Size.Volume.ToFt3(MainResVolumeM3));
                 MainResPressurePSI -= SanderPressureDiffPSI;
                 MainResPressurePSI = MathHelper.Clamp(MainResPressurePSI, 0.001f, MaxMainResPressurePSI);
             }
