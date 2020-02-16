@@ -858,6 +858,9 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortswaterscoopfillelevation": WaterScoopFillElevationM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f); break;
                 case "engine(ortswaterscoopdepth": WaterScoopDepthM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f); break;
                 case "engine(ortswaterscoopwidth": WaterScoopWidthM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f); break;
+                case "engine(ortsmaxtracksanderboxcapacity": MaxTrackSandBoxCapacityM3 = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
+                case "engine(ortsmaxtracksandersandconsumption": TrackSanderSandConsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
+                case "engine(ortsmaxtracksanderairconsumption": TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
                 default: base.Parse(lowercasetoken, stf); break;
 
             }
