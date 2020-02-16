@@ -208,10 +208,10 @@ namespace Orts.Simulation.RollingStocks
         public float SteamDrvWheelWeightLbs;  // Weight on each drive axle
         public float PreviousThrottleSetting = 0.0f;  // Holds the value of the previous throttle setting for calculating the correct antislip speed
 
-        // parameters for Track Sander based upon Compressor air and abrasive consumption table for 1/2" sand blasting nozzle @ 50psi
-        public float MaxTrackSandBoxCapacityM3 = (float)Size.Volume.FromFt3(40.0f);  // Capacity of sandbox - assume 5.0 cu ft
-        public float CurrentTrackSandBoxCapacityM3;   // This value needs to be initialised to the value above, as it reduces as sand is used.
-        public float TrackSanderAirComsumptionM3pS = (float)Size.Volume.FromFt3(195.0f) / 60.0f;  // Default value - cubic feet per m (CFM) 195 ft3/m
+        // parameters for Track Sander based upon compressor air and abrasive table for 1/2" sand blasting nozzle @ 50psi
+        public float MaxTrackSandBoxCapacityM3 = (float)Size.Volume.FromFt3(40.0f);  // Capacity of sandbox - assume 40.0 cu ft
+        public float CurrentTrackSandBoxCapacityM3 = 5.0f;   // This value needs to be initialised to the value above, as it reduces as sand is used.
+        public float TrackSanderAirComsumptionM3pS = (float)Size.Volume.FromFt3(195.0f) / 60.0f;  // Default value - cubic feet per min (CFM) 195 ft3/m
         public float TrackSanderAirPressurePSI = 50.0f;
         public float TrackSanderSandConsumptionM3pS = (float)Size.Volume.FromFt3(11.6f) / 3600.0f; // Default value 11.6 ft3/h
 
@@ -1153,8 +1153,8 @@ namespace Orts.Simulation.RollingStocks
                 WaterScoopWidthM = 0.3048f; // Set to default of 1 ft
             }
 
-            // Check if sander has been set
-            if (CurrentTrackSandBoxCapacityM3 == 0)
+            // Check if current sander has been set
+            if (CurrentTrackSandBoxCapacityM3 == 0 )
             {
                 CurrentTrackSandBoxCapacityM3 = MaxTrackSandBoxCapacityM3;
             }
@@ -2557,7 +2557,7 @@ namespace Orts.Simulation.RollingStocks
                 if (CurrentTrackSandBoxCapacityM3 > 0.0) // if sand still in sandbox then sanding is available
                 {
                     // Calculate consumption of sand, and drop in sand box level
-                    float ActualSandConsumptionM3pS = (float)(TrackSanderSandConsumptionM3pS * elapsedClockSeconds);
+                    float ActualSandConsumptionM3pS = (float)(Time.Second.FromH(TrackSanderSandConsumptionM3pS) * elapsedClockSeconds);
                     CurrentTrackSandBoxCapacityM3 -= ActualSandConsumptionM3pS;
                     CurrentTrackSandBoxCapacityM3 = MathHelper.Clamp(CurrentTrackSandBoxCapacityM3, 0.0f, MaxTrackSandBoxCapacityM3);
                     if (CurrentTrackSandBoxCapacityM3 == 0.0)
@@ -2567,8 +2567,8 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // Calculate air consumption and change in main air reservoir pressure
-                float ActualAirConsumptionM3pS = (float)(TrackSanderAirComsumptionM3pS * elapsedClockSeconds);
-                float SanderPressureDiffPSI = (float)(ActualAirConsumptionM3pS / Size.Volume.ToFt3(MainResVolumeM3));
+                float ActualAirConsumptionM3pS = (float)(Time.Second.FromM(TrackSanderAirComsumptionM3pS) * elapsedClockSeconds);
+                float SanderPressureDiffPSI = ActualAirConsumptionM3pS / (float)Size.Volume.ToFt3(MainResVolumeM3) ;
                 MainResPressurePSI -= SanderPressureDiffPSI;
                 MainResPressurePSI = MathHelper.Clamp(MainResPressurePSI, 0.001f, MaxMainResPressurePSI);
             }
