@@ -4630,19 +4630,41 @@ namespace Orts.Simulation.Physics
                 //                    car.GetMaximumCouplerSlack1M(), car.GetMaximumCouplerSlack2M(), car.GetCouplerDamping1NMpS(), car.GetCouplerDamping2NMpS(), 
                 //                    car.GetCouplerStiffness1NpM(), car.GetCouplerStiffness1NpM(), car.IsAdvancedCoupler, car.GetCouplerSlackAM(), car.GetCouplerSlackBM());
 
-                if (car.CouplerSlackM >= 0.001) // Coupler pulling
+                if (!car.HUDCouplerRigidIndication) // Flexible coupling - pulling and pushing value will be equal to slack when couplers faces touch
                 {
-                    NPull++;
-                    car.HUDCouplerForceIndication = 1;
+
+                    if (car.CouplerSlackM >= 0.001) // Coupler pulling
+                    {
+                        NPull++;
+                        car.HUDCouplerForceIndication = 1;
+                    }
+                    else if (car.CouplerSlackM <= -0.001) // Coupler pushing
+                    {
+                        NPush++;
+                        car.HUDCouplerForceIndication = 2;
+                    }
+                    else
+                    {
+                        car.HUDCouplerForceIndication = 0; // Coupler neutral
+                    }
                 }
-                else if (car.CouplerSlackM <= -0.001)
+                else if (car.HUDCouplerRigidIndication) // Rigid coupling - starts pulling/pushing at a lower value then flexible coupling
                 {
-                    NPush++;
-                    car.HUDCouplerForceIndication = 2;
-                }
-                else
-                {
-                    car.HUDCouplerForceIndication = 0;
+                    if (car.CouplerSlackM >= 0.000125) // Coupler pulling
+                    {
+                        NPull++;
+                        car.HUDCouplerForceIndication = 1;
+                    }
+                    else if (car.CouplerSlackM <= -0.000125) // Coupler pushing
+                    {
+                        NPush++;
+                        car.HUDCouplerForceIndication = 2;
+                    }
+                    else
+                    {
+                        car.HUDCouplerForceIndication = 0; // Coupler neutral
+                    }
+
                 }
 
 
