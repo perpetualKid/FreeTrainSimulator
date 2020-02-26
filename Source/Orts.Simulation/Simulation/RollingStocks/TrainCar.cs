@@ -1655,7 +1655,7 @@ namespace Orts.Simulation.RollingStocks
             return 0;
         }
 
-        public virtual float GetCouplerStiffnessNpM()
+        public virtual float GetSimpleCouplerStiffnessNpM()
         {
             return 2e7f;
         }
@@ -1699,12 +1699,12 @@ namespace Orts.Simulation.RollingStocks
             return 0.005f;
         }
 
-        public virtual float GetMaximumCouplerSlack1M()
+        public virtual float GetMaximumSimpleCouplerSlack1M()
         {
-            return 0.012f;
+            return 0.005f;
         }
 
-        public virtual float GetMaximumCouplerSlack2M()
+        public virtual float GetMaximumSimpleCouplerSlack2M()
         {
             return 0.12f;
         }
@@ -1752,11 +1752,6 @@ namespace Orts.Simulation.RollingStocks
         public virtual float GetCouplerCompressionSlackBM()
         {
             return 0.1f;
-        }
-
-        public virtual float GetMaximumSimpleCouplerSlack1M()
-        {
-            return 0.012f;
         }
         
         public virtual float GetMaximumCouplerSlack3M()
