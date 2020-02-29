@@ -4836,8 +4836,16 @@ namespace Orts.Simulation.Physics
                 {
                     f += car.TotalForceN - (car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN + car.DynamicBrakeForceN);
                     m += car.MassKG;
-                    if (j == Cars.Count - 1 || car.CouplerSlackM < car.GetMaximumSimpleCouplerSlack2M())
-                        break;
+                    if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
+                    {
+                        if (j == Cars.Count - 1 || car.CouplerSlackM < car.AdvancedCouplerDynamicTensionSlackLimitM)
+                            break;
+                    }
+                    else // Simple coupler
+                    {
+                        if (j == Cars.Count - 1 || car.CouplerSlackM < car.GetMaximumSimpleCouplerSlack2M())
+                            break;
+                    }               
                     j++;
                     car = Cars[j];
                 }
@@ -4874,8 +4882,16 @@ namespace Orts.Simulation.Physics
                 {
                     f += car.TotalForceN + car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN + car.DynamicBrakeForceN;
                     m += car.MassKG;
-                    if (j == 0 || car.CouplerSlackM > -car.GetMaximumSimpleCouplerSlack2M())
-                        break;
+                    if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
+                    {
+                        if (j == 0 || car.CouplerSlackM > car.AdvancedCouplerDynamicCompressionSlackLimitM)
+                            break;
+                    }
+                    else // Simple coupler
+                    {
+                        if (j == 0 || car.CouplerSlackM > -car.GetMaximumSimpleCouplerSlack2M())
+                            break;
+                    }
                     j--;
                     car = Cars[j];
                 }
@@ -4912,9 +4928,6 @@ namespace Orts.Simulation.Physics
                 // update coupler slack distance
                 TrainCar car = Cars[i];
                 car.CouplerSlackM += (car.SpeedMpS - Cars[i + 1].SpeedMpS) * (float)elapsedTime;
-
-                // Calculate speed for damping force
-                car.CouplerDampingSpeedMpS = car.SpeedMpS - Cars[i + 1].SpeedMpS;
 
                 // Make sure that coupler slack does not exceed the maximum coupler slack
 
