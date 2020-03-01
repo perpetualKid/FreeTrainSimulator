@@ -699,7 +699,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 Vector3 displacement;
                 displacement.X = Car.FrontCouplerAnimWidthM;
                 displacement.Y = Car.FrontCouplerAnimHeightM;
-                displacement.Z = (Car.FrontCouplerAnimLengthM + Car.CarLengthM + Car.CouplerSlackM) / 2.0f;
+                displacement.Z = (Car.FrontCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM);
 
                 // Get the orientation of the car as a quaternion
                 Car.WorldPosition.XNAMatrix.Decompose(out Vector3 scale, out Quaternion quaternion, out Vector3 translation);
@@ -724,7 +724,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 Vector3 displacement;
                 displacement.X = Car.RearCouplerAnimWidthM;
                 displacement.Y = Car.RearCouplerAnimHeightM;
-                displacement.Z = -(Car.RearCouplerAnimLengthM + Car.CarLengthM + Car.CouplerSlackM) / 2.0f;  // Reversed as this is the rear coupler of the wagon
+                displacement.Z = -(Car.RearCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM);  // Reversed as this is the rear coupler of the wagon
 
                 // Get the orientation of the car as a quaternion
                 Car.WorldPosition.XNAMatrix.Decompose(out Vector3 scale, out Quaternion quaternion, out Vector3 translation);
