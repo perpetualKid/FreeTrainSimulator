@@ -3022,7 +3022,6 @@ namespace Orts.Simulation.RollingStocks
 
         public override float GetMaximumSimpleCouplerSlack2M() // This limits the slack due to draft forces (?) and should be marginally greater then GetMaximumCouplerSlack1M
         {
-            if (Simulator.UseAdvancedAdhesion && IsAdvancedCoupler) // for Advanced coupler
 
                 if (Coupler == null)
                     return base.GetMaximumSimpleCouplerSlack2M();
