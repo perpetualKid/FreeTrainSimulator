@@ -903,5 +903,8 @@ msgid "Control AI Fire Off"
 msgstr ""
 
 #: ../../ORTS.Common/Input/UserCommand.cs:192
+msgstr ""
+
+#: ../../ORTS.Common/Input/UserCommand.cs:192
 msgid "Control AI Fire Reset"
 msgstr "Control AI Fire Reset"

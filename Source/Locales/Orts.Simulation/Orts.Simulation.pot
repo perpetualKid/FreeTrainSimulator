@@ -271,7 +271,26 @@ msgstr ""
 msgid "Passenger boarding completes in {0:D2}:{1:D2}"
 msgstr ""
 
-#: ../../Orts.Simulation/Simulation/Confirmer.cs:170
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:26
+msgid "None"
+msgstr ""
+
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:27
+msgid "Information"
+msgstr ""
+
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:28
+msgid "Warning"
+msgstr ""
+
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:29
+msgid "Error"
+msgstr ""
+
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:30
+msgid "MSG"
+msgstr ""
+
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:169
 msgid "<none>"
 msgstr ""
@@ -303,6 +322,7 @@ msgstr ""
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:172
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:180
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:181
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:194
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:190
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:191
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:194
@@ -317,6 +337,7 @@ msgstr ""
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:172
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:180
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:181
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:194
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:190
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:191
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:194
@@ -592,15 +613,15 @@ msgstr ""
 msgid "Train Brake"
 msgstr ""
 
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:207
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:208
-#: ../../Orts.Simulation/Simulation/Confirmer.cs:209
-#: ../../Orts.Simulation/Simulation/Confirmer.cs:211
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:210
 msgid "release"
 msgstr ""
 
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:207
 #: ../../Orts.Simulation/Simulation/Confirmer.cs:208
-#: ../../Orts.Simulation/Simulation/Confirmer.cs:209
-#: ../../Orts.Simulation/Simulation/Confirmer.cs:211
+#: ../../Orts.Simulation/Simulation/Confirmer.cs:210
 msgid "apply"
 msgstr ""
 
@@ -1142,11 +1163,13 @@ msgstr ""
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSDieselLocomotive.cs:529
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSDieselLocomotive.cs:541
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:5641
+#: ../../Orts.Simulation/Simulation/RollingStocks/MSTSDieselLocomotive.cs:543
+#: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:5641
 msgid "Gear"
 msgstr ""
 
-#: ../../Orts.Simulation/Simulation/RollingStocks/MSTSDieselLocomotive.cs:543
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSDieselLocomotive.cs:552
+#: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:5930
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSSteamLocomotive.cs:5930
 msgid "StHeat:"
 msgstr ""
@@ -1204,6 +1227,8 @@ msgstr ""
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSElectricLocomotive.cs:416
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSElectricLocomotive.cs:416
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSElectricLocomotive.cs:417
+#: ../../Orts.Simulation/Simulation/RollingStocks/MSTSElectricLocomotive.cs:416
+#: ../../Orts.Simulation/Simulation/RollingStocks/MSTSElectricLocomotive.cs:417
 msgid "OK"
 msgstr ""
 
@@ -1218,6 +1243,14 @@ msgstr ""
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSElectricLocomotive.cs:407
 msgctxt "PowerSupply"
 msgid "Power"
+msgstr ""
+
+#: ../../Orts.Simulation/Simulation/RollingStocks/MSTSElectricLocomotive.cs:418
+msgid "No water scoop on this loco"
+msgstr ""
+
+#: ../../Orts.Simulation/Simulation/RollingStocks/MSTSLocomotive.cs:2164
+#: ../../Orts.Simulation/Simulation/RollingStocks/MSTSElectricLocomotive.cs:407
 msgstr ""
 
 #: ../../Orts.Simulation/Simulation/RollingStocks/MSTSLocomotive.cs:2156
@@ -2158,13 +2191,45 @@ msgid "Circuit breaker closing not authorized"
 msgstr ""
 
 #: ../../Orts.Simulation/Simulation/RollingStocks/SubSystems/PowerSupplies/DieselEngine.cs:333
+msgid "Status"
+msgstr ""
+
 #: ../../Orts.Simulation/Simulation/RollingStocks/SubSystems/PowerSupplies/DieselEngine.cs:341
+msgid "Load"
+msgstr ""
+
 #: ../../Orts.Simulation/Simulation/RollingStocks/SubSystems/PowerSupplies/DieselEngine.cs:348
+msgid "Flow"
+msgstr ""
+
 #: ../../Orts.Simulation/Simulation/RollingStocks/SubSystems/PowerSupplies/DieselEngine.cs:356
+msgid "Oil"
+msgstr ""
+
+#. Context: Engine
 #: ../../Orts.Simulation/Simulation/RollingStocks/SubSystems/PowerSupplies/DieselEngine.cs:431
+msgctxt "Engine"
+msgid "Stopped"
+msgstr ""
+
+#. Context: Engine
 #: ../../Orts.Simulation/Simulation/RollingStocks/SubSystems/PowerSupplies/DieselEngine.cs:432
+msgctxt "Engine"
+msgid "Starting"
+msgstr ""
+
+#. Context: Engine
 #: ../../Orts.Simulation/Simulation/RollingStocks/SubSystems/PowerSupplies/DieselEngine.cs:433
+msgctxt "Engine"
+msgid "Running"
+msgstr ""
+
+#. Context: Engine
 #: ../../Orts.Simulation/Simulation/RollingStocks/SubSystems/PowerSupplies/DieselEngine.cs:434
+msgctxt "Engine"
+msgid "Stopping"
+msgstr ""
+
 #: ../../Orts.Simulation/Simulation/Timetables/TTTrain.cs:10406
 msgid "Held for connecting train : "
 msgstr ""

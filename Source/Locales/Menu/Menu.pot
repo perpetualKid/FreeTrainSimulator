@@ -249,6 +249,10 @@ msgstr ""
 
 #: ../../Menu/MainForm.Designer.cs:124
 #: ../../Menu/MainForm.Designer.cs:134
+msgid "Windowed"
+msgstr ""
+
+#: ../../Menu/MainForm.Designer.cs:134
 msgid "Start"
 msgstr ""
 
