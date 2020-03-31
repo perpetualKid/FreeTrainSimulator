@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-05-19 00:50:56+0200\n"
-"PO-Revision-Date: 2020-01-29 14:40-0300\n"
+"POT-Creation-Date: 2020-04-01 01:30:30+0200\n"
+"PO-Revision-Date: 2020-04-01 01:30:30+0200\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -430,474 +430,478 @@ msgstr "Depurar formato de som"
 msgid "Debug Physics Form"
 msgstr "Depurar formatos físicos"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:73
-msgid "Camera Cab"
+#: ../../ORTS.Common/Input/UserCommand.cs:72
+msgid "Debug Toggle Confirmations"
 msgstr "Visão da cabine"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:74
-msgid "Camera Change Passenger Viewpoint"
+msgid "Camera Cab"
 msgstr "Mudar visão do passageiro"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:75
-msgid "Camera 3D Cab"
+msgid "Camera Change Passenger Viewpoint"
 msgstr "Cabine 3D"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:76
-msgid "Camera Toggle Show Cab"
+msgid "Camera 3D Cab"
 msgstr "Alternar visão da cabine"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:77
-msgid "Camera Head Out Forward"
+msgid "Camera Toggle Show Cab"
 msgstr "Cabeça para fora (visão a frente)"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:78
-msgid "Camera Head Out Backward"
+msgid "Camera Head Out Forward"
 msgstr "Cabeça para fora (visão atrás)"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:79
-msgid "Camera Outside Front"
+msgid "Camera Head Out Backward"
 msgstr "Visão externa"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:80
-msgid "Camera Outside Rear"
+msgid "Camera Outside Front"
 msgstr "Visão do último veículo"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:81
-msgid "Camera Trackside"
+msgid "Camera Outside Rear"
 msgstr "Visão cinematográfica"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:82
-msgid "Camera SpecialTracksidePoint"
+msgid "Camera Trackside"
 msgstr "Visão externa lateral"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:83
-msgid "Camera Passenger"
+msgid "Camera SpecialTracksidePoint"
 msgstr "Visão do passageiro"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:84
-msgid "Camera Brakeman"
+msgid "Camera Passenger"
 msgstr "Visão do engate"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:85
-msgid "Camera Free"
+msgid "Camera Brakeman"
 msgstr "Câmera livre"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:86
-msgid "Camera Previous Free"
+msgid "Camera Free"
 msgstr "Voltar a câmera livre anterior"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:87
-msgid "Camera Reset"
+msgid "Camera Previous Free"
 msgstr "Resetar câmera"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:88
-msgid "Camera Move Fast"
+msgid "Camera Reset"
 msgstr "Mover câmera rapidamente"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:89
-msgid "Camera Move Slow"
+msgid "Camera Move Fast"
 msgstr "Mover câmera lentamente"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:90
-msgid "Camera Pan (Rotate) Left"
+msgid "Camera Move Slow"
 msgstr "Virar câmera para a esquerda"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:91
-msgid "Camera Pan (Rotate) Right"
+msgid "Camera Pan (Rotate) Left"
 msgstr "Virar câmera para a direita"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:92
-msgid "Camera Pan (Rotate) Up"
+msgid "Camera Pan (Rotate) Right"
 msgstr "Subir a câmera"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:93
-msgid "Camera Pan (Rotate) Down"
+msgid "Camera Pan (Rotate) Up"
 msgstr "Descer a câmera"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:94
-msgid "Camera Zoom In (Move Z)"
+msgid "Camera Pan (Rotate) Down"
 msgstr "Andar com a câmera para frente"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:95
-msgid "Camera Zoom Out (Move Z)"
+msgid "Camera Zoom In (Move Z)"
 msgstr "Andar com a câmera para trás"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:96
-msgid "Camera Rotate (Pan) Left"
+msgid "Camera Zoom Out (Move Z)"
 msgstr "Rotacionar a câmera para a esquerda"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:97
-msgid "Camera Rotate (Pan) Right"
+msgid "Camera Rotate (Pan) Left"
 msgstr "Rotacionar a câmera para a direita"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:98
-msgid "Camera Rotate (Pan) Up"
+msgid "Camera Rotate (Pan) Right"
 msgstr "Rotacionar a câmera para cima"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:99
-msgid "Camera Rotate (Pan) Down"
+msgid "Camera Rotate (Pan) Up"
 msgstr "Rotacionar a câmera para baixo"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:100
-msgid "Camera Car Next"
+msgid "Camera Rotate (Pan) Down"
 msgstr "Visão do vagão a frente"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:101
-msgid "Camera Car Previous"
+msgid "Camera Car Next"
 msgstr "Visão do vagão atrás"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:102
-msgid "Camera Car First"
+msgid "Camera Car Previous"
 msgstr "Visão do primeiro vagão"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:103
-msgid "Camera Car Last"
+msgid "Camera Car First"
 msgstr "Visão do último vagão"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:104
-msgid "Camera Jumping Trains"
+msgid "Camera Car Last"
 msgstr "Mudar para ver os outros trens do cenário"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:105
-msgid "Camera Jump Back Player"
+msgid "Camera Jumping Trains"
 msgstr "Voltar para o trem do jogador"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:106
-msgid "Camera Jump See Switch"
+msgid "Camera Jump Back Player"
 msgstr "Camera Jump See Switch"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:107
-msgid "Camera Vibrate"
+msgid "Camera Jump See Switch"
 msgstr "Vibração do trem"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:108
-msgid "Camera Scroll Right"
+msgid "Camera Vibrate"
 msgstr "Rotacionar a câmera para a direita"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:109
-msgid "Camera Scroll Left"
+msgid "Camera Scroll Right"
 msgstr "Rotacionar a câmera para a esquerda"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:110
-msgid "Camera Browse Backwards"
+msgid "Camera Scroll Left"
 msgstr "Movimentar câmera auto para trás"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:111
-msgid "Camera Browse Forwards"
+msgid "Camera Browse Backwards"
 msgstr "Movimentar câmera auto para frente"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:113
-msgid "Control Forwards"
+#: ../../ORTS.Common/Input/UserCommand.cs:112
+msgid "Camera Browse Forwards"
 msgstr "Reversora para frente"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:114
-msgid "Control Backwards"
+msgid "Control Forwards"
 msgstr "Reversora para trás"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:115
-msgid "Control Throttle Increase"
+msgid "Control Backwards"
 msgstr "Aumento do acelerador"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:116
-msgid "Control Throttle Decrease"
+msgid "Control Throttle Increase"
 msgstr "Diminuição do acelerador"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:117
-msgid "Control Throttle Zero"
+msgid "Control Throttle Decrease"
 msgstr "Fechar acelerador"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:118
-msgid "Control Gear Up"
+msgid "Control Throttle Zero"
 msgstr "Controle de engrenagem"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:119
-msgid "Control Gear Down"
+msgid "Control Gear Up"
 msgstr "Engrenagem para baixo"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:120
-msgid "Control Train Brake Increase"
+msgid "Control Gear Down"
 msgstr "Aplicar freio do trem"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:121
-msgid "Control Train Brake Decrease"
+msgid "Control Train Brake Increase"
 msgstr "Aliviar do freio do trem"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:122
-msgid "Control Train Brake Zero"
+msgid "Control Train Brake Decrease"
 msgstr "Liberar freio do trem"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:123
-msgid "Control Engine Brake Increase"
+msgid "Control Train Brake Zero"
 msgstr "Aplicar freio independente"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:124
-msgid "Control Engine Brake Decrease"
+msgid "Control Engine Brake Increase"
 msgstr "Aliviar freio independente"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:125
-msgid "Control Dynamic Brake Increase"
+msgid "Control Engine Brake Decrease"
 msgstr "Aumentar freio dinâmico"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:126
-msgid "Control Dynamic Brake Decrease"
+msgid "Control Dynamic Brake Increase"
 msgstr "Diminuir freio dinamico"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:127
-msgid "Control Bail Off"
+msgid "Control Dynamic Brake Decrease"
 msgstr "Baill off MFI"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:128
-msgid "Control Initialize Brakes"
+msgid "Control Bail Off"
 msgstr "Liberar ou aplicar freio imediatamente"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:129
-msgid "Control Handbrake Full"
+msgid "Control Initialize Brakes"
 msgstr "Freio manual apertado"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:130
-msgid "Control Handbrake None"
+msgid "Control Handbrake Full"
 msgstr "Freio manual solto"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:131
-msgid "Control Odometer Show/Hide"
+msgid "Control Handbrake None"
 msgstr "Odômetro  Mostrar / Ocultar"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:132
-msgid "Control Odometer Reset"
+msgid "Control Odometer Show/Hide"
 msgstr "Resetar Odômetro"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:133
-msgid "Control Odometer Direction"
+msgid "Control Odometer Reset"
 msgstr "Mudar direção do odômetro"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:134
-msgid "Control Retainers On"
+msgid "Control Odometer Direction"
 msgstr "Ativar retentores de controle"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:135
-msgid "Control Retainers Off"
+msgid "Control Retainers On"
 msgstr "Desativar retentores de controle"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:136
-msgid "Control Brake Hose Connect"
+msgid "Control Retainers Off"
 msgstr "Conectar mangueira do freio"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:137
-msgid "Control Brake Hose Disconnect"
+msgid "Control Brake Hose Connect"
 msgstr "Desconectar mangueira do freio"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:138
-msgid "Control Alerter"
+msgid "Control Brake Hose Disconnect"
 msgstr "Resetar alertor"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:139
-msgid "Control Emergency Push Button"
+msgid "Control Alerter"
 msgstr "Botão de emergência"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:140
-msgid "Control Sander"
+msgid "Control Emergency Push Button"
 msgstr "Ligar / desligar areia"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:141
-msgid "Control Sander Toggle"
+msgid "Control Sander"
 msgstr "Controle de areia automático"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:142
-msgid "Control Wiper"
+msgid "Control Sander Toggle"
 msgstr "Limpador de parabrisas (quando disponível)"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:143
-msgid "Control Horn"
+msgid "Control Wiper"
 msgstr "Buzinar"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:144
-msgid "Control Bell"
+msgid "Control Horn"
 msgstr "Ligar / desligar sino"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:145
-msgid "Control Bell Toggle"
+msgid "Control Bell"
 msgstr "Ligar / desligar sino automático"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:146
-msgid "Control Door Left"
+msgid "Control Bell Toggle"
 msgstr "Abrir / fechar portas esquerdas"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:147
-msgid "Control Door Right"
+msgid "Control Door Left"
 msgstr "Abrir / fechar portas direitas"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:148
-msgid "Control Mirror"
+msgid "Control Door Right"
 msgstr "Ativar / desativar espelho (quando disponível)"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:149
-msgid "Control Light"
+msgid "Control Mirror"
 msgstr "Acender / apagar luz da cabine"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:150
-msgid "Control Pantograph 1"
+msgid "Control Light"
 msgstr "Abaixar / levantar pantógrafo 1"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:151
-msgid "Control Pantograph 2"
+msgid "Control Pantograph 1"
 msgstr "Abaixar / levantar pantógrafo 2"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:152
-msgid "Control Pantograph 3"
+msgid "Control Pantograph 2"
 msgstr "Abaixar / levantar pantógrafo 3"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:153
-msgid "Control Pantograph 4"
+msgid "Control Pantograph 3"
 msgstr "Abaixar / levantar pantógrafo 4"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:154
-msgid "Control Circuit Breaker Closing Order"
+msgid "Control Pantograph 4"
 msgstr "Control Circuit Breaker Closing Order"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:155
-msgid "Control Circuit Breaker Opening Order"
+msgid "Control Circuit Breaker Closing Order"
 msgstr "Control Circuit Breaker Opening Order"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:156
-msgid "Control Circuit Breaker Closing Authorization"
+msgid "Control Circuit Breaker Opening Order"
 msgstr "Control Circuit Breaker Closing Authorization"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:157
-msgid "Control Diesel Player"
+msgid "Control Circuit Breaker Closing Authorization"
 msgstr "Ligar / desligar locomotiva (s) líder (es)"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:158
-msgid "Control Diesel Helper"
+msgid "Control Diesel Player"
 msgstr "Ligar / desligar locomotiva (s) remota (s)"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:159
-msgid "Control Headlight Increase"
+msgid "Control Diesel Helper"
 msgstr "Aumentar estágio de farol"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:160
-msgid "Control Headlight Decrease"
+msgid "Control Headlight Increase"
 msgstr "Diminuir estágio de farol"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:161
-msgid "Control Injector 1 Increase"
+msgid "Control Headlight Decrease"
 msgstr "Controle de aumento do injetor 1"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:162
-msgid "Control Injector 1 Decrease"
+msgid "Control Injector 1 Increase"
 msgstr "Controle de diminuição do injetor 1"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:163
-msgid "Control Injector 1"
+msgid "Control Injector 1 Decrease"
 msgstr "Controle do injetor 1"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:164
-msgid "Control Injector 2 Increase"
+msgid "Control Injector 1"
 msgstr "Controle de aumento do injetor 2"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:165
-msgid "Control Injector 2 Decrease"
+msgid "Control Injector 2 Increase"
 msgstr "Controle de diminuição do injetor 2"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:166
-msgid "Control Injector 2"
+msgid "Control Injector 2 Decrease"
 msgstr "Controle do injetor 2"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:167
-msgid "Control Blower Increase"
+msgid "Control Injector 2"
 msgstr "Control Blower Increase"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:168
-msgid "Control Blower Decrease"
+msgid "Control Blower Increase"
 msgstr "Control Blower Decrease"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:169
-msgid "Control Steam Heat Increase"
+msgid "Control Blower Decrease"
 msgstr "Controle de aumentação do calor do vapor"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:170
-msgid "Control Steam Heat Decrease"
+msgid "Control Steam Heat Increase"
 msgstr "Controle de diminuição do calor do vapor"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:171
-msgid "Control Damper Increase"
+msgid "Control Steam Heat Decrease"
 msgstr "Controle de aumento do amortecedor"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:172
-msgid "Control Damper Decrease"
+msgid "Control Damper Increase"
 msgstr "Controle de diminuição do amortecedor"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:173
-msgid "Control Firebox Open"
+msgid "Control Damper Decrease"
 msgstr "Abrir caixa do foguista"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:174
-msgid "Control Firebox Close"
+msgid "Control Firebox Open"
 msgstr "Fechar caixa do foguista"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:175
-msgid "Control Firing Rate Increase"
+msgid "Control Firebox Close"
 msgstr "Control Firing Rate Increase"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:176
-msgid "Control Firing Rate Decrease"
+msgid "Control Firing Rate Increase"
 msgstr "Control Firing Rate Decrease"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:177
-msgid "Control Fire Shovel Full"
+msgid "Control Firing Rate Decrease"
 msgstr "Control Fire Shovel Full"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:178
-msgid "Control Cylinder Cocks"
+msgid "Control Fire Shovel Full"
 msgstr "Controle das torneiras de cilindro"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:179
-msgid "Control Small Ejector Increase"
+msgid "Control Cylinder Cocks"
 msgstr "Controlar o aumento do ejetor pequeno"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:180
-msgid "Control Small Ejector Decrease"
+msgid "Control Small Ejector Increase"
 msgstr "Controlar a diminuição do ejetor pequeno"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:181
-msgid "Control Cylinder Compound"
+msgid "Control Small Ejector Decrease"
 msgstr "Control Cylinder Compound"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:182
-msgid "Control Firing"
+msgid "Control Cylinder Compound"
 msgstr "Controle de queima"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:183
-msgid "Control Refill"
+msgid "Control Firing"
 msgstr "Carregar vagão"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:184
-msgid "Control TroughRefill"
+msgid "Control Refill"
 msgstr "Control TroughRefill"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:185
-msgid "Control ImmediateRefill"
+msgid "Control Water Scoop"
 msgstr "Carregar vagão imediatamente"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:186
-msgid "Control Turntable Clockwise"
+msgid "Control ImmediateRefill"
 msgstr "Plataforma giratória no sentido horário"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:187
-msgid "Control Turntable Counterclockwise"
+msgid "Control Turntable Clockwise"
 msgstr "Plataforma giratória no sentido anti horario"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:188
-msgid "Control Cab Radio"
+msgid "Control Turntable Counterclockwise"
 msgstr "Controlar rádio da cabine"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:189
-msgid "Control AI Fire On"
+msgid "Control Cab Radio"
 msgstr "Control AI Fire On"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:190
-msgid "Control AI Fire Off"
+msgid "Control AI Fire On"
 msgstr "Control AI Fire Off"
 
 #: ../../ORTS.Common/Input/UserCommand.cs:191
+msgid "Control AI Fire Off"
+msgstr ""
+
+#: ../../ORTS.Common/Input/UserCommand.cs:192
 msgid "Control AI Fire Reset"
 msgstr "Control AI Fire Reset"
