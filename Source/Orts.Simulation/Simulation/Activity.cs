@@ -1065,6 +1065,7 @@ namespace Orts.Simulation
             outf.Write((Int32)PlatformEnd1.TrackItemId);
             outf.Write((Int32)PlatformEnd2.TrackItemId);
             outf.Write((double)BoardingEndS);
+            outf.Write((double)BoardingS);
             outf.Write((Int32)TimerChk);
             outf.Write(arrived);
             outf.Write(maydepart);
@@ -1086,6 +1087,7 @@ namespace Orts.Simulation
             PlatformEnd1 = Simulator.TDB.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
             PlatformEnd2 = Simulator.TDB.TrackDB.TrackItems[inf.ReadInt32()] as PlatformItem;
             BoardingEndS = inf.ReadDouble();
+            BoardingS = inf.ReadDouble();
             TimerChk = inf.ReadInt32();
             arrived = inf.ReadBoolean();
             maydepart = inf.ReadBoolean();
