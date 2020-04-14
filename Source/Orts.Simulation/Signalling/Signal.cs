@@ -3645,9 +3645,14 @@ namespace Orts.Simulation.Signalling
             if (EnabledTrain != null)
             {
                 if (state && CallOnEnabled)
+                {
                     EnabledTrain.Train.AllowedCallOnSignal = this;
+                    DispatcherClearHoldSignal();
+                }
                 else if (EnabledTrain.Train.AllowedCallOnSignal == this)
+                {
                     EnabledTrain.Train.AllowedCallOnSignal = null;
+                }
             }
         }
 

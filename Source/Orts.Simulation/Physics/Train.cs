@@ -2483,8 +2483,7 @@ namespace Orts.Simulation.Physics
                 if (signalObject.HoldState == SignalHoldState.ManualPass || signalObject.HoldState == SignalHoldState.ManualApproach)
                     signalObject.HoldState = SignalHoldState.None;
 
-                if (AllowedCallOnSignal != NextSignalObject[0] && AllowedCallOnSignal != NextSignalObject[1])
-                    AllowedCallOnSignal = null;
+                AllowedCallOnSignal = null;
             }
             UpdateSectionStateManual();                                                           // update track occupation          //
             UpdateManualMode(SignalObjIndex);                                                     // update route clearance           //
@@ -2510,8 +2509,7 @@ namespace Orts.Simulation.Physics
                 if (signalObject.HoldState == SignalHoldState.ManualPass || signalObject.HoldState == SignalHoldState.ManualApproach)
                     signalObject.HoldState = SignalHoldState.None;
 
-                if (AllowedCallOnSignal != NextSignalObject[0] && AllowedCallOnSignal != NextSignalObject[1])
-                    AllowedCallOnSignal = null;
+                AllowedCallOnSignal = null;
             }
             UpdateSectionStateExplorer();                                                         // update track occupation          //
             UpdateExplorerMode(SignalObjIndex);                                                   // update route clearance           //
@@ -5326,8 +5324,7 @@ namespace Orts.Simulation.Physics
                     signalObject.HoldState = SignalHoldState.None;
                 }
 
-                if (AllowedCallOnSignal != NextSignalObject[0] && AllowedCallOnSignal != NextSignalObject[1])
-                    AllowedCallOnSignal = null;
+                AllowedCallOnSignal = null;
 
                 signalObject.ResetSignalEnabled();
             }
@@ -5430,23 +5427,25 @@ namespace Orts.Simulation.Physics
         /// </summary>
         internal virtual bool TestCallOn(Signal signal, bool allowOnNonePlatform, TrackCircuitPartialPathRoute route)
         {
-            if (AllowedCallOnSignal == signal)
-                return true;
-
-            bool intoPlatform = false;
-
-            foreach (TrackCircuitRouteElement routeElement in signal.SignalRoute)
+            if (AllowedCallOnSignal != signal)
             {
-                // check if route leads into platform
-                if (routeElement.TrackCircuitSection.PlatformIndices.Count > 0)
+                bool intoPlatform = false;
+
+                foreach (TrackCircuitRouteElement routeElement in signal.SignalRoute)
                 {
-                    intoPlatform = true;
+                    // check if route leads into platform
+                    if (routeElement.TrackCircuitSection.PlatformIndices.Count > 0)
+                    {
+                        intoPlatform = true;
+                    }
                 }
+
+                //if track does not lead into platform, return state as defined in call
+                // else never allow if track leads into platform
+                return !intoPlatform && allowOnNonePlatform;
             }
 
-            //if track does not lead into platform, return state as defined in call
-            // else never allow if track leads into platform
-            return !intoPlatform && allowOnNonePlatform;
+            return true;
         }
 
         /// <summary>
@@ -5692,8 +5691,7 @@ namespace Orts.Simulation.Physics
                 if (signal.HoldState == SignalHoldState.ManualPass || signal.HoldState == SignalHoldState.ManualApproach)
                     signal.HoldState = SignalHoldState.None;
 
-                if (AllowedCallOnSignal != NextSignalObject[0] && AllowedCallOnSignal != NextSignalObject[1])
-                    AllowedCallOnSignal = null;
+                AllowedCallOnSignal = null;
 
                 signal.ResetSignalEnabled();
             }
