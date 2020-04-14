@@ -3523,6 +3523,12 @@ namespace Orts.MultiPlayer
                         sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
                     }
                     break;
+                case 4:
+                    if (signal.EnabledTrain != null)
+                    {
+                        signal.EnabledTrain.Train.AllowedCallOnSignal = signal;
+                    }
+                    break;
             }
         }
 

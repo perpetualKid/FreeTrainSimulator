@@ -111,6 +111,8 @@ namespace Orts.Simulation.Signalling
         public int TrackCircuitNextIndex { get; private set; } = -1;    // Index of next TrackCircuit (NORMAL signals only)
         public TrackDirection TrackCircuitNextDirection { get; private set; } // Direction of next TrackCircuit 
 
+        public bool CallOnEnabled { get; private set; } = false;
+
         internal static void Initialize(SignalEnvironment signals, TrackNode[] trackNodes, TrackItem[] trackItems)
         {
             signalEnvironment = signals;               // reference to overlaying Signal class
@@ -3310,6 +3312,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public bool TrainHasCallOn(bool allowOnNonePlatform, bool allowAdvancedSignal)
         {
+            CallOnEnabled = true;
             // no train approaching
             if (EnabledTrain == null)
             {
