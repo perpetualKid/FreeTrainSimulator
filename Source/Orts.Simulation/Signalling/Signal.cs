@@ -111,7 +111,7 @@ namespace Orts.Simulation.Signalling
         public int TrackCircuitNextIndex { get; private set; } = -1;    // Index of next TrackCircuit (NORMAL signals only)
         public TrackDirection TrackCircuitNextDirection { get; private set; } // Direction of next TrackCircuit 
 
-        public bool CallOnEnabled { get; private set; } = false;
+        public bool CallOnEnabled { get; private set; }      // set if signal script file uses CallOn functionality
 
         internal static void Initialize(SignalEnvironment signals, TrackNode[] trackNodes, TrackItem[] trackItems)
         {
@@ -3579,6 +3579,8 @@ namespace Orts.Simulation.Signalling
             bool[] returnValue = new bool[2];
             SignalAspectState thisAspect = SignalLR(SignalFunction.Normal);
 
+            SetManualCallOn(false);
+
             // signal not enabled - set lock, reset if cleared (auto signal can clear without enabling)
             if (EnabledTrain == null || EnabledTrain.Train == null)
             {
@@ -3632,6 +3634,21 @@ namespace Orts.Simulation.Signalling
         public void DispatcherClearHoldSignal()
         {
             HoldState = SignalHoldState.None;
+        }
+
+        //================================================================================================//
+        /// <summary>
+        /// Set call on manually from dispatcher
+        /// </summary>
+        public void SetManualCallOn(bool state)
+        {
+            if (EnabledTrain != null)
+            {
+                if (state && CallOnEnabled)
+                    EnabledTrain.Train.AllowedCallOnSignal = this;
+                else if (EnabledTrain.Train.AllowedCallOnSignal == this)
+                    EnabledTrain.Train.AllowedCallOnSignal = null;
+            }
         }
 
         //================================================================================================//

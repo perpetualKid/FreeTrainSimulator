@@ -1537,17 +1537,20 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  if (LastCursorPosition.Y < 100) y = 100;
 		  if (LastCursorPosition.Y > pictureBox1.Size.Height - 100) y = pictureBox1.Size.Height - 100;
 
-          if (boxSetSignal.Items.Count == 5)
-              boxSetSignal.Items.RemoveAt(4);
+		  if (boxSetSignal.Items.Count == 5)
+			  boxSetSignal.Items.RemoveAt(4);
 
           if (signalPickedItem.Signal.EnabledTrain != null && signalPickedItem.Signal.CallOnEnabled)
-          {
-              /*if (signalPickedItem.Signal.enabledTrain.Train.AllowedCallOnSignal == signalPickedItem.Signal)
-                  boxSetSignal.Items.Add("Disable call on");*/
-              boxSetSignal.Items.Add("Enable call on");
-          }
-           
-          boxSetSignal.Location = new System.Drawing.Point(LastCursorPosition.X + 2, y);
+		  {
+			  if (signalPickedItem.Signal.EnabledTrain.Train.AllowedCallOnSignal != signalPickedItem.Signal)
+			  boxSetSignal.Items.Add("Enable call on");
+			  /*else
+				  boxSetSignal.Items.Add("Disable call on");*/
+			  // To disable Call On signal must be manually set to stop, to avoid signal state change
+			  // in the interval between this list is shown and the option is selected by dispatcher
+		  }
+
+		  boxSetSignal.Location = new System.Drawing.Point(LastCursorPosition.X + 2, y);
 		  boxSetSignal.Enabled = true;
 		  boxSetSignal.Focus();
 		  boxSetSignal.SelectedIndex = -1;
@@ -1972,11 +1975,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                       sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
                   }
 				  break;
-              case 4: 
-                  if (signal.EnabledTrain != null)
-                  {
-                      signal.EnabledTrain.Train.AllowedCallOnSignal = signal;
-                  }
+              case 4:
+                  signal.SetManualCallOn(true);
                   break;
 		  }
 		  UnHandleItemPick();

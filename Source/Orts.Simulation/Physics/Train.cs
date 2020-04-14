@@ -208,7 +208,7 @@ namespace Orts.Simulation.Physics
         private int nextSignalIndex = -1;                 // Index in SignalObjectItems for next signal
         private int nextSpeedLimitIndex = -1;             // Index in SignalObjectItems for next speedpost
         internal Signal[] NextSignalObject { get; } = new Signal[2];  // direct reference to next signal
-        public Signal AllowedCallOnSignal { get; set; }         // Signal for which train has call on allowed by dispatcher
+        public Signal AllowedCallOnSignal { get; internal set; }         // Signal for which train has call on allowed by dispatcher
 
         // Local max speed independently from signal and speedpost speed;
         // depends from various parameters like route max speed, overall or section efficiency of service,
@@ -2483,7 +2483,7 @@ namespace Orts.Simulation.Physics
                 if (signalObject.HoldState == SignalHoldState.ManualPass || signalObject.HoldState == SignalHoldState.ManualApproach)
                     signalObject.HoldState = SignalHoldState.None;
 
-                if (AllowedCallOnSignal == signalObject)
+                if (AllowedCallOnSignal != NextSignalObject[0] && AllowedCallOnSignal != NextSignalObject[1])
                     AllowedCallOnSignal = null;
             }
             UpdateSectionStateManual();                                                           // update track occupation          //
@@ -2510,7 +2510,7 @@ namespace Orts.Simulation.Physics
                 if (signalObject.HoldState == SignalHoldState.ManualPass || signalObject.HoldState == SignalHoldState.ManualApproach)
                     signalObject.HoldState = SignalHoldState.None;
 
-                if (AllowedCallOnSignal == signalObject)
+                if (AllowedCallOnSignal != NextSignalObject[0] && AllowedCallOnSignal != NextSignalObject[1])
                     AllowedCallOnSignal = null;
             }
             UpdateSectionStateExplorer();                                                         // update track occupation          //
@@ -5326,7 +5326,7 @@ namespace Orts.Simulation.Physics
                     signalObject.HoldState = SignalHoldState.None;
                 }
 
-                if (AllowedCallOnSignal == signalObject)
+                if (AllowedCallOnSignal != NextSignalObject[0] && AllowedCallOnSignal != NextSignalObject[1])
                     AllowedCallOnSignal = null;
 
                 signalObject.ResetSignalEnabled();
@@ -5692,7 +5692,7 @@ namespace Orts.Simulation.Physics
                 if (signal.HoldState == SignalHoldState.ManualPass || signal.HoldState == SignalHoldState.ManualApproach)
                     signal.HoldState = SignalHoldState.None;
 
-                if (AllowedCallOnSignal == signal)
+                if (AllowedCallOnSignal != NextSignalObject[0] && AllowedCallOnSignal != NextSignalObject[1])
                     AllowedCallOnSignal = null;
 
                 signal.ResetSignalEnabled();
