@@ -11580,7 +11580,7 @@ namespace Orts.Simulation.Signalling
                     offset = enabledTrain.Train.PresentPosition[0].TCOffset;
                 else
                     offset = signalRef.TrackCircuitList[enabledTrain.Train.PresentPosition[1].TCSectionIndex].Length - enabledTrain.Train.PresentPosition[1].TCOffset;
-                while (!found && distance < reqPositionM)
+                while (!found)
                 {
                     Train.TCRouteElement thisElement = routePath[actRouteIndex];
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
@@ -11600,9 +11600,21 @@ namespace Orts.Simulation.Signalling
                 }
             }
 
+            if (!found)
+            {
+                if (!String.IsNullOrEmpty(dumpfile))
+                {
+                    var sob = new StringBuilder();
+                    sob.AppendFormat("APPROACH CONTROL : Train {0} has no valid path to signal, clear not allowed \n", enabledTrain.Train.Number);
+                    File.AppendAllText(dumpfile, sob.ToString());
+                }
+                ApproachControlSet = true;
+                return (false);
+            }
+
             // test distance
 
-            if (found && Convert.ToInt32(distance) < reqPositionM)
+            if (Convert.ToInt32(distance) < reqPositionM)
             {
                 if (!String.IsNullOrEmpty(dumpfile))
                 {
@@ -11624,7 +11636,7 @@ namespace Orts.Simulation.Signalling
                 {
                     var sob = new StringBuilder();
                     sob.AppendFormat("APPROACH CONTROL : Train {0} at distance {1} (required {2}), clear not allowed \n",
-                        enabledTrain.Train.Number, enabledTrain.Train.DistanceToSignal.Value, reqPositionM);
+                        enabledTrain.Train.Number, distance, reqPositionM);
                     File.AppendAllText(dumpfile, sob.ToString());
                 }
 
