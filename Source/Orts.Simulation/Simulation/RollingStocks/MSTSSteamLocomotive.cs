@@ -111,6 +111,7 @@ namespace Orts.Simulation.RollingStocks
         public bool Injector1IsOn;
         public bool Injector2IsOn;
         public bool CylinderCocksAreOpen;
+        public bool BlowdownValveOpen;
         public bool CylinderCompoundOn;  // Flag to indicate whether compound locomotive is in compound or simple mode of operation - simple = true (ie bypass valve is open)
         bool FiringIsManual;
         bool BlowerIsOn = false;
@@ -161,6 +162,9 @@ namespace Orts.Simulation.RollingStocks
         public bool HasTenderCoupled = true;
         // Carriage Steam Heating Parameters
         float CalculatedCarHeaterSteamUsageLBpS;  //
+
+        float BlowdownSteamUsageLBpS;
+        float BlowdownValveSizeDiaIn2;
 
         string SteamLocoType;     // Type of steam locomotive type
 
@@ -658,6 +662,10 @@ namespace Orts.Simulation.RollingStocks
         public float Cylinders2SteamVolumeM3pS;
         public float SafetyValvesSteamVelocityMpS;
         public float SafetyValvesSteamVolumeM3pS;
+
+        public float BlowdownSteamVolumeM3pS;
+        public float BlowdownSteamVelocityMpS;
+        public float BlowdownParticleDurationS = 3.0f;
 
         public float DrainpipeSteamVolumeM3pS;
         public float DrainpipeSteamVelocityMpS;
@@ -1889,7 +1897,7 @@ namespace Orts.Simulation.RollingStocks
             if (absSpeedMpS > 2 && (Train.MUReverserPercent == 100 || Train.MUReverserPercent == -100))
             {   // AI cutoff adjustment logic, also used for steam MU'd with non-steam
                 cutoff = throttle * CutoffController.MaximumValue * 2 / absSpeedMpS;
-                float min = 0.2f;  // Figure originally set with ForceFactor2 table - not sure the significance at this tiSize.Length.
+                float min = 0.2f;  // Figure originally set with ForceFactor2 table - not sure the significance at this time.
                 if (cutoff < min)
                 {
                     throttle = cutoff / min;
@@ -1962,6 +1970,11 @@ namespace Orts.Simulation.RollingStocks
             Cylinders2SteamVolumeM3pS = (CylinderCock2On && CylinderCocksAreOpen && throttle > 0.0 && CylCockSteamUsageDisplayLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f);
             Cylinder1ParticleDurationS = 1.0f;
             Cylinder2ParticleDurationS = 1.0f;
+
+            // Blowdown Steam Effects
+            BlowdownSteamVolumeM3pS = (BlowdownValveOpen && BlowdownSteamUsageLBpS > 0.0 ? (10.0f * SteamEffectsFactor) : 0.0f);
+            BlowdownSteamVelocityMpS = 350.0f;
+            BlowdownParticleDurationS = 2.0f;
 
             // Drainpipe Steam Effects
             DrainpipeSteamVolumeM3pS = 0.0f;  // Turn Drainpipe permanently "off"
@@ -2667,7 +2680,7 @@ namespace Orts.Simulation.RollingStocks
 
             // Steam Discharge Rates
             // Use Napier formula to calculate steam discharge rate through safety valve, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
-            // Set "valve area" of safety valve, based on reverse enginnered values of steam, valve area is determined by lift and the gap created 
+            // Set "valve area" of safety valve, based on reverse engineered values of steam, valve area is determined by lift and the gap created 
             const float SafetyValveDischargeFactor = 70.0f;
             if (SafetyValveSizeIn == 2.5f)
             {
@@ -2869,6 +2882,28 @@ namespace Orts.Simulation.RollingStocks
 
                 #endregion
 
+            }
+
+            // Update details for blowdown vlave
+            if (BlowdownValveOpen)
+            {
+                // Use Napier formula to calculate steam discharge rate through safety valve, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
+                // 
+                const float BlowdownValveDischargeFactor = 70.0f;
+
+                // Find area of pipe - assume 1.5" dia pressure pipe
+                BlowdownValveSizeDiaIn2 = (float)Math.PI * (1.5f / 2.0f) * (1.5f / 2.0f);
+
+                BlowdownSteamUsageLBpS = (BlowdownValveSizeDiaIn2 * (MaxBoilerPressurePSI + OneAtmospherePSI)) / BlowdownValveDischargeFactor;
+
+                BoilerMassLB -= (float)(elapsedClockSeconds * BlowdownSteamUsageLBpS); // Reduce boiler mass to reflect steam usage by blower  
+                BoilerHeatBTU -= (float)(elapsedClockSeconds * BlowdownSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB));  // Reduce boiler Heat to reflect steam usage by blower
+                BoilerHeatOutBTUpS += BlowdownSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB);  // Reduce boiler Heat to reflect steam usage by blower
+                TotalSteamUsageLBpS += BlowdownSteamUsageLBpS;
+            }
+            else
+            {
+                BlowdownSteamUsageLBpS = 0; // Turn off Hud view
             }
 
             // Adjust blower impacts on heat and boiler mass
@@ -5631,6 +5666,9 @@ namespace Orts.Simulation.RollingStocks
                 case CabViewControlType.FireHole:
                     data = FireboxDoorController.CurrentValue;
                     break;
+                case CabViewControlType.Orts_BlowDown_Valve:
+                    data = BlowdownValveOpen ? 1 : 0;
+                    break;
                 case CabViewControlType.Water_Injector1:
                     data = Injector1Controller.CurrentValue;
                     break;
@@ -5792,25 +5830,25 @@ namespace Orts.Simulation.RollingStocks
             if (!(BrakeSystem is Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS.VacuumSinglePipe))
             {
                 // Display air compressor information
-                status.AppendFormat("{0}\t{1}\t{10}/{21}\t{2}\t{11}/{21}\t{3}\t{12}/{21}\t{4}\t{13}/{21}\t{5}\t{14}/{21}\t{6}\t{15}/{21}\t{7}\t{16}/{21}\t{8}\t{17}/{21}\t{9}\t{18}/{21} ({19}x{20:N1}\")\n",
+                status.AppendFormat("{0}\t{1}\t{2}/{21}\t{3}\t{4}/{21}\t{5}\t{6}/{21}\t{7}\t{8}/{21}\t{9}\t{10}/{21}\t{11}\t{12}/{21}\t{13}\t{14}/{21}\t{15}\t{16}/{21}\t{17}\t{18}/{21} ({19}x{20:N1}\")\n",
                     Simulator.Catalog.GetString("Usage:"),
                     Simulator.Catalog.GetString("Cyl"),
-                    Simulator.Catalog.GetString("Blower"),
-                    Simulator.Catalog.GetString("Radiation"),
-                    Simulator.Catalog.GetString("Comprsr"),
-                    Simulator.Catalog.GetString("SafetyV"),
-                    Simulator.Catalog.GetString("CylCock"),
-                    Simulator.Catalog.GetString("Genertr"),
-                    Simulator.Catalog.GetString("Stoker"),
-                    Simulator.Catalog.GetString("MaxSafe"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylinderSteamUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("Blower"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowerSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(RadiationSteamLossLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("Comprsr"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CompSteamUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("SafetyV"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(SafetyValveUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("CylCock"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylCockSteamUsageDisplayLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("Genertr"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(GeneratorSteamUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("Stoker"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(StokerSteamUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("BlowD"),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowdownSteamUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("MaxSafe"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(MaxSafetyValveDischargeLbspS)), IsMetric),
                     NumSafetyValves,
                     SafetyValveSizeIn,
@@ -5819,30 +5857,29 @@ namespace Orts.Simulation.RollingStocks
             else
             {
                 // Display steam ejector information instead of air compressor
-                status.AppendFormat("{0}\t{1}\t{10}/{21}\t{2}\t{11}/{21}\t{3}\t{12}/{21}\t{4}\t{13}/{21}\t{5}\t{14}/{21}\t{6}\t{15}/{21}\t{7}\t{16}/{21}\t{8}\t{17}/{21}\t{9}\t{18}/{21} ({19}x{20:N1}\")\n",
+                status.AppendFormat("{0}\t{1}\t{2}/{21}\t{3}\t{4}/{21}\t{5}\t{6}/{21}\t{7}\t{8}/{21}\t{9}\t{10}/{21}\t{11}\t{12}/{21}\t{13}\t{14}/{21}\t{15}\t{16}/{21}\t{17}\t{18}/{21} ({19}x{20:N1}\")\n",
                     Simulator.Catalog.GetString("Usage:"),
                     Simulator.Catalog.GetString("Cyl"),
-                    Simulator.Catalog.GetString("Blower"),
-                    Simulator.Catalog.GetString("Radiation"),
-                    Simulator.Catalog.GetString("Ejector"),
-                    Simulator.Catalog.GetString("SafetyV"),
-                    Simulator.Catalog.GetString("CylCock"),
-                    Simulator.Catalog.GetString("Genertr"),
-                    Simulator.Catalog.GetString("Stoker"),
-                    Simulator.Catalog.GetString("MaxSafe"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylinderSteamUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("Blower"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowerSteamUsageLBpS)), IsMetric),
-                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(RadiationSteamLossLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("Ejector"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(EjectorTotalSteamConsumptionLbpS)), IsMetric),
+                    Simulator.Catalog.GetString("SafetyV"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(SafetyValveUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("CylCock"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(CylCockSteamUsageDisplayLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("Genertr"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(GeneratorSteamUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("Stoker"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(StokerSteamUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("BlowD"),
+                    FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(BlowdownSteamUsageLBpS)), IsMetric),
+                    Simulator.Catalog.GetString("MaxSafe"),
                     FormatStrings.FormatMass(Frequency.Periodic.ToHours(Mass.Kilogram.FromLb(MaxSafetyValveDischargeLbspS)), IsMetric),
                     NumSafetyValves,
                     SafetyValveSizeIn,
                     FormatStrings.h);
-
             }
 
 
@@ -7173,7 +7210,16 @@ public void ToggleCylinderCocks()
                 Simulator.Confirmer.Confirm(CabControl.Injector2, Injector2IsOn ? CabSetting.On : CabSetting.Off);
         }
 
-        public void ToggleManualFiring()
+        public void ToggleBlowdownValve()
+        {
+            BlowdownValveOpen = !BlowdownValveOpen;
+            SignalEvent(TrainEvent.BlowdownValveToggle);
+
+            if (IsPlayerTrain)
+                Simulator.Confirmer.Confirm(CabControl.BlowdownValve, BlowdownValveOpen? CabSetting.On : CabSetting.Off);
+        }
+
+    public void ToggleManualFiring()
         {
             FiringIsManual = !FiringIsManual;
         }

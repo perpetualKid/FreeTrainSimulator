@@ -120,6 +120,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 118: return TrainEvent.TrainControlSystemAlert2;
                         case 119: return TrainEvent.CylinderCompoundToggle; // Locomotive switched to compound
 
+                        case 120: return TrainEvent.BlowdownValveToggle;
                         case 121: return TrainEvent.SteamPulse1;
                         case 122: return TrainEvent.SteamPulse2;
                         case 123: return TrainEvent.SteamPulse3;

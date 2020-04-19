@@ -2803,7 +2803,7 @@ namespace Orts.Simulation.RollingStocks
             if (Simulator.PlayerLocomotive == this)
             {
                 WaterScoopDown = !WaterScoopDown;
-                SignalEvent(TrainEvent.CylinderCocksToggle);
+                SignalEvent(TrainEvent.WaterScoopDown);
                 if (WaterScoopDown)
                 {
                     IsWaterScoopDown = true; // Set flag to potentially fill from water trough
