@@ -7287,6 +7287,10 @@ public void ToggleCylinderCocks()
         {
             BlowdownValveOpen = !BlowdownValveOpen;
             SignalEvent(TrainEvent.BlowdownValveToggle);
+            if (BlowdownValveOpen)
+                SignalEvent(TrainEvent.BoilerBlowdownOn);
+            else
+                SignalEvent(TrainEvent.BoilerBlowdownOff);
 
             if (IsPlayerTrain)
                 Simulator.Confirmer.Confirm(CabControl.BlowdownValve, BlowdownValveOpen? CabSetting.On : CabSetting.Off);

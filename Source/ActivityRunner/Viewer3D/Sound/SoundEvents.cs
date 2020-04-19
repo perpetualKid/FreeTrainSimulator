@@ -177,6 +177,10 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
 
                         case 173: return TrainEvent.HotBoxBearingOn;
                         case 174: return TrainEvent.HotBoxBearingOff;
+
+                        case 175: return TrainEvent.BoilerBlowdownOn;
+                        case 176: return TrainEvent.BoilerBlowdownOff;
+
                         //
                         default: return TrainEvent.None;
                     }
