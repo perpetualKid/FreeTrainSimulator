@@ -12197,7 +12197,8 @@ namespace Orts.Simulation.Signalling
         public SignalBlockState RouteClearedToSignal(int req_signalid, bool allowCallOn, string dumpfile)
         {
             SignalBlockState routeState = SignalBlockState.Jn_Obstructed;
-            if (enabledTrain != null && req_signalid >= 0 && req_signalid < signalRef.SignalObjects.Length)
+            Train.TCSubpathRoute trainRoute = enabledTrain.Train.ValidRoute[enabledTrain.TrainRouteDirectionIndex];
+            if (enabledTrain != null && req_signalid >= 0 && req_signalid < signalRef.SignalObjects.Length && trainRoute != null)
             {
                 Signal otherSignal = signalRef.SignalObjects[req_signalid];
 
@@ -12210,8 +12211,8 @@ namespace Orts.Simulation.Signalling
                     File.AppendAllText(dumpfile, sob.ToString());
                 }
 
-                int thisRouteIndex = enabledTrain.Train.ValidRoute[0].GetRouteIndex(TCNextTC, enabledTrain.Train.PresentPosition[0].RouteListIndex);
-                int otherRouteIndex = enabledTrain.Train.ValidRoute[0].GetRouteIndex(otherSignal.TCReference, thisRouteIndex);
+                int thisRouteIndex = trainRoute.GetRouteIndex(isSignalNormal() ? TCNextTC : TCReference, 0);
+                int otherRouteIndex = trainRoute.GetRouteIndex(otherSignal.TCReference, thisRouteIndex);
 
                 if (otherRouteIndex < 0)
                 {
@@ -12227,7 +12228,7 @@ namespace Orts.Simulation.Signalling
                 else
                 {
                     bool routeCleared = true;
-                    Train.TCSubpathRoute reqPath = new Train.TCSubpathRoute(enabledTrain.Train.ValidRoute[0], thisRouteIndex, otherRouteIndex);
+                    Train.TCSubpathRoute reqPath = new Train.TCSubpathRoute(trainRoute, thisRouteIndex, otherRouteIndex);
 
                     for (int iIndex = 0; iIndex < reqPath.Count && routeCleared; iIndex++)
                     {
