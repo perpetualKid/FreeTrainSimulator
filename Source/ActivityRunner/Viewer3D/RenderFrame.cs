@@ -176,6 +176,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 temp = x.XNAMatrix.M43 - viewerPos.Z;
                 distanceSquared -= temp * temp;
 
+                if (x.Material is WaterMaterial && y.Material is WaterMaterial && x.XNAMatrix.Translation.Y < viewerPos.Y)
+                {
+                    if (Math.Abs((x.XNAMatrix.Translation - viewerPos).Length() - (y.XNAMatrix.Translation - viewerPos).Length()) < 1.0)
+                        return Math.Sign(x.XNAMatrix.Translation.Y - y.XNAMatrix.Translation.Y);
+                }
                 if (Math.Abs(distanceSquared) >= 0.001)
                     return Math.Sign(distanceSquared);
                 return Math.Sign(x.RenderPrimitive.SortIndex - y.RenderPrimitive.SortIndex);
