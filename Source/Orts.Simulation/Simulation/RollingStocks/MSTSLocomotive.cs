@@ -3901,6 +3901,52 @@ namespace Orts.Simulation.RollingStocks
                             data = -data;
                         break;
                     }
+                case CabViewControlType.Orts_Signed_Traction_Braking:
+                    {
+                        var direction = 0; // Forwards
+                        if (cvc is CabViewGaugeControl cvgc && cvgc.Orientation == 0)
+                            direction = cvgc.Direction;
+                        data = 0.0f;
+                        if (FilteredMotiveForceN != 0)
+                            data = Math.Abs(this.FilteredMotiveForceN);
+                        else
+                            data = Math.Abs(this.LocomotiveAxle.AxleForceN);
+                        if (DynamicBrakePercent > 0)
+                        {
+                            data = -Math.Abs(DynamicBrakeForceN);
+                        }
+                        switch (cvc.ControlUnit)
+                        {
+                            case CabViewControlUnit.Amps:
+                                if (MaxCurrentA == 0)
+                                    MaxCurrentA = (float)cvc.ScaleRangeMax;
+                                if (DynamicBrakeMaxCurrentA == 0)
+                                    DynamicBrakeMaxCurrentA = (float)cvc.ScaleRangeMin;
+                                if (ThrottlePercent > 0)
+                                {
+                                    data = (data / MaxForceN) * MaxCurrentA;
+                                }
+                                if (DynamicBrakePercent > 0)
+                                {
+                                    data = (data / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
+                                }
+                                break;
+
+                            case CabViewControlUnit.Newtons:
+                                break;
+
+                            case CabViewControlUnit.Kilo_Newtons:
+                                data = data / 1000.0f;
+                                break;
+
+                            case CabViewControlUnit.Kilo_Lbs:
+                                data = data / 4448.22162f;
+                                break;
+                        }
+ //                       if (direction == 1 && !(cvc is CVCGauge))
+ //                           data = -data;
+                        break;
+                    }
                 case CabViewControlType.Dynamic_Brake_Force:
                     {
                         var direction = 0; // Forwards
