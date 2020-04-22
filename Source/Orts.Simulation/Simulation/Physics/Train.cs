@@ -14230,7 +14230,7 @@ namespace Orts.Simulation.Physics
                 int actionRouteIndex = ValidRoute[0].GetRouteIndex((AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).TCSectionIndex, actionIndex0);
                 var wpDistance = ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).RequiredDistance, AITrainDirectionForward, signalRef);
                 bool wpEnabled = false;
-                if (SpeedMpS == 0 && (((AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
+                if (Math.Abs(SpeedMpS) <= 0.1f && (((AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
                     (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION) ||
                     ((this as AITrain).nextActionInfo is AuxActionWPItem && (this as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION))) wpEnabled = true;
 
