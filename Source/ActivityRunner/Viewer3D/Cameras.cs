@@ -2169,6 +2169,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 ScrollRight(true, speed);
             if (UserInput.IsDown(UserCommand.CameraScrollLeft))
                 ScrollRight(false, speed);
+            if (UserInput.IsPressed(UserCommand.CameraToggleLetterboxCab))
+            {
+                Viewer.Settings.Letterbox2DCab = !Viewer.Settings.Letterbox2DCab;
+                Viewer.AdjustCabHeight(Viewer.DisplaySize.X, Viewer.DisplaySize.Y);
+            }
         }
     }
 

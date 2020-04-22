@@ -1257,6 +1257,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             _CabRect.Width = _Viewer.CabWidthPixels;
             _CabRect.Height = _Viewer.CabHeightPixels;
 
+            // Cab view position adjusted to allow for letterboxing
+            _CabRect.X = _Viewer.CabXLetterboxPixels;
+            _CabRect.Y = _Viewer.CabYLetterboxPixels;
+
             if (_PrevScreenSize != _Viewer.DisplaySize && _Shader != null)
             {
                 _PrevScreenSize = _Viewer.DisplaySize;
@@ -1310,6 +1314,24 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 else
                 {
                     _SpriteShader2DCabView.SpriteBatch.Draw(_CabTexture, stretchedCab, Color.White);
+                }
+
+                // Draw letterboxing.
+                Texture2D letterboxTexture = new Texture2D(graphicsDevice, 1, 1);
+                letterboxTexture.SetData<Color>(new Color[] { Color.Black });
+                Action<int, int, int, int> drawLetterbox = (x, y, w, h) =>
+                {
+                    _SpriteShader2DCabView.SpriteBatch.Draw(letterboxTexture, new Rectangle(x, y, w, h), Color.White);
+                };
+                if (_Viewer.CabXLetterboxPixels > 0)
+                {
+                    drawLetterbox(0, 0, _Viewer.CabXLetterboxPixels, _Viewer.DisplaySize.Y);
+                    drawLetterbox(_Viewer.CabXLetterboxPixels + _Viewer.CabWidthPixels, 0, _Viewer.DisplaySize.X - _Viewer.CabWidthPixels - _Viewer.CabXLetterboxPixels, _Viewer.DisplaySize.Y);
+                }
+                if (_Viewer.CabYLetterboxPixels > 0)
+                {
+                    drawLetterbox(0, 0, _Viewer.DisplaySize.X, _Viewer.CabYLetterboxPixels);
+                    drawLetterbox(0, _Viewer.CabYLetterboxPixels + _Viewer.CabHeightPixels, _Viewer.DisplaySize.X, _Viewer.DisplaySize.Y - _Viewer.CabHeightPixels - _Viewer.CabYLetterboxPixels);
                 }
             }
         }
@@ -1439,7 +1461,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // Cab view height and vertical position adjusted to allow for clip or stretch.
             Position.X = (float)Viewer.CabWidthPixels / 640 * ((float)Control.Bounds.X + Origin.X * Scale) - Viewer.CabXOffsetPixels;
             Position.Y = (float)Viewer.CabHeightPixels / 480 * ((float)Control.Bounds.Y + Origin.Y * Scale) + Viewer.CabYOffsetPixels;
-            ScaleToScreen = (float)Viewer.DisplaySize.X / 640 * Scale;
+            ScaleToScreen = (float)Viewer.CabWidthPixels / 640 * Scale;
+
+            // Cab view position adjusted to allow for letterboxing.
+            Position.X += Viewer.CabXLetterboxPixels;
+            Position.Y += Viewer.CabYLetterboxPixels;
 
             var rangeFraction = GetRangeFraction();
             var direction = ControlDial.Direction == 0 ? 1 : -1;
@@ -1636,6 +1662,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         DrawColor = Gauge.PositiveColors[0];
                 }
             }
+
+            // Cab view position adjusted to allow for letterboxing.
+            DestinationRectangle.X += Viewer.CabXLetterboxPixels;
+            DestinationRectangle.Y += Viewer.CabYLetterboxPixels;
         }
 
         public override void Draw()
@@ -1725,6 +1755,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             DestinationRectangle.Y = (int)(yratio * Control.Bounds.Y * 1.0001) + Viewer.CabYOffsetPixels;
             DestinationRectangle.Width = (int)(xratio * Math.Min(Control.Bounds.Width, Texture.Width));  // Allow only downscaling of the texture, and not upscaling
             DestinationRectangle.Height = (int)(yratio * Math.Min(Control.Bounds.Height, Texture.Height));  // Allow only downscaling of the texture, and not upscaling
+
+            // Cab view position adjusted to allow for letterboxing.
+            DestinationRectangle.X += Viewer.CabXLetterboxPixels;
+            DestinationRectangle.Y += Viewer.CabYLetterboxPixels;
         }
 
         public override void Draw()
@@ -2102,6 +2136,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             DrawPosition.Y = (int)((Position.Y + Control.Bounds.Height / 2) * Viewer.CabHeightPixels / 480) - DrawFont.Height / 2 + Viewer.CabYOffsetPixels;
             DrawPosition.Width = (int)(Control.Bounds.Width * Viewer.DisplaySize.X / 640);
             DrawPosition.Height = (int)(Control.Bounds.Height * Viewer.DisplaySize.Y / 480);
+
+            // Cab view position adjusted to allow for letterboxing.
+            DrawPosition.X += Viewer.CabXLetterboxPixels;
+            DrawPosition.Y += Viewer.CabYLetterboxPixels;
 
             if (Control.ControlType == CabViewControlType.Clock)
             {
