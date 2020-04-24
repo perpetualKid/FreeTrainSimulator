@@ -77,6 +77,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         // Create viewers for special steam/smoke effects on car
         List<ParticleEmitterViewer> HeatingHose = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> HeatingCompartmentSteamTrap = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> HeatingMainPipeSteamTrap = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WaterScoop = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WaterScoopReverse = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> TenderWaterOverflow = new List<ParticleEmitterViewer>();
@@ -165,6 +167,25 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     drawer.Initialize(steamTexture);
                 }
 
+                // Steam leak in heating compartment steam trap
+
+                if (emitter.Key.ToLowerInvariant() == "heatingcompartmentsteamtrapfx")
+                    HeatingHose.AddRange(emitter.Value);
+
+                foreach (var drawer in HeatingCompartmentSteamTrap)
+                {
+                    drawer.Initialize(steamTexture);
+                }
+
+                // Steam leak in heating steam trap
+
+                if (emitter.Key.ToLowerInvariant() == "heatingmainpipesteamtrapfx")
+                    HeatingHose.AddRange(emitter.Value);
+
+                foreach (var drawer in HeatingMainPipeSteamTrap)
+                {
+                    drawer.Initialize(steamTexture);
+                }
 
                 // Water spray for when water scoop is in use (use steam effects for the time being)
                 // Forward motion
@@ -544,6 +565,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             foreach (var drawer in HeatingHose)
             {
                 drawer.SetOutput(car.HeatingHoseSteamVelocityMpS, car.HeatingHoseSteamVolumeM3pS, car.HeatingHoseParticleDurationS);
+            }
+
+            // Steam leak in heating compartment steamtrap
+            foreach (var drawer in HeatingCompartmentSteamTrap)
+            {
+                drawer.SetOutput(car.HeatingCompartmentSteamTrapVelocityMpS, car.HeatingCompartmentSteamTrapVolumeM3pS, car.HeatingCompartmentSteamTrapParticleDurationS);
+            }
+
+            // Steam leak in heating main pipe steamtrap
+            foreach (var drawer in HeatingMainPipeSteamTrap)
+            {
+                drawer.SetOutput(car.HeatingMainPipeSteamTrapVelocityMpS, car.HeatingMainPipeSteamTrapVolumeM3pS, car.HeatingMainPipeSteamTrapDurationS);
             }
 
             // Heating Steam Boiler Exhaust

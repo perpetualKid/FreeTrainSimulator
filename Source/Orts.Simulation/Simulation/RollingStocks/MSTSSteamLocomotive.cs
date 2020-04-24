@@ -5664,6 +5664,9 @@ namespace Orts.Simulation.RollingStocks
                 case CabViewControlType.SteamChest_Pr:
                     data = ConvertFromPSI(cvc, SteamChestPressurePSI);
                     break;
+                case CabViewControlType.SteamHeat_Pressure:
+                    data = ConvertFromPSI(cvc, CurrentSteamHeatPressurePSI);
+                    break;
                 case CabViewControlType.CutOff:
                 case CabViewControlType.Reverser_Plate:
                     data = Train.MUReverserPercent / 100f;
