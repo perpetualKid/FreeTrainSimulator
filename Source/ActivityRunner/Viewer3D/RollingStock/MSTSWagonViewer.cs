@@ -170,7 +170,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Steam leak in heating compartment steam trap
 
                 if (emitter.Key.ToLowerInvariant() == "heatingcompartmentsteamtrapfx")
-                    HeatingHose.AddRange(emitter.Value);
+                    HeatingCompartmentSteamTrap.AddRange(emitter.Value);
 
                 foreach (var drawer in HeatingCompartmentSteamTrap)
                 {
@@ -180,7 +180,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Steam leak in heating steam trap
 
                 if (emitter.Key.ToLowerInvariant() == "heatingmainpipesteamtrapfx")
-                    HeatingHose.AddRange(emitter.Value);
+                    HeatingMainPipeSteamTrap.AddRange(emitter.Value);
 
                 foreach (var drawer in HeatingMainPipeSteamTrap)
                 {
