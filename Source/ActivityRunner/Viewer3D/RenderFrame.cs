@@ -176,6 +176,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 temp = x.XNAMatrix.M43 - viewerPos.Z;
                 distanceSquared -= temp * temp;
 
+                // The following avoids water levels flashing, by forcing that higher water levels are nearer to the
+                // camera, which is always true except when camera is under water level, which is quite abnormal
                 if (x.Material is WaterMaterial && y.Material is WaterMaterial && x.XNAMatrix.Translation.Y < viewerPos.Y)
                 {
                     if (Math.Abs((x.XNAMatrix.Translation - viewerPos).Length() - (y.XNAMatrix.Translation - viewerPos).Length()) < 1.0)
