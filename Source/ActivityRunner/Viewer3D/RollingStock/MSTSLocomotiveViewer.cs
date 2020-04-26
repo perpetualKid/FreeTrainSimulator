@@ -1794,18 +1794,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     break;
                 case CabViewControlType.Dynamic_Brake:
                 case CabViewControlType.Dynamic_Brake_Display:
+                    var dynBrakePercent = Locomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING ?
+                        Locomotive.DynamicBrakePercent : Locomotive.LocalDynamicBrakePercent;
                     if (Locomotive.DynamicBrakeController != null)
                     {
-                        if (Locomotive.DynamicBrakePercent == -1)
+                        if (dynBrakePercent == -1)
                             break;
                         if (!Locomotive.HasSmoothStruc)
+                        {
                             index = Locomotive.DynamicBrakeController != null ? Locomotive.DynamicBrakeController.CurrentNotch : 0;
+                        }
                         else
-                            index = PercentToIndex(Locomotive.DynamicBrakePercent);
+                            index = PercentToIndex(dynBrakePercent);
                     }
                     else
                     {
-                        index = PercentToIndex(Locomotive.DynamicBrakePercent);
+                        index = PercentToIndex(dynBrakePercent);
                     }
                     break;
                 case CabViewControlType.Cph_Display:
@@ -1880,6 +1884,58 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_LeftDoor:
                 case CabViewControlType.Orts_RightDoor:
                 case CabViewControlType.Orts_Mirros:
+                    index = (int)data;
+                    break;
+
+                // Train Control System controls
+                case CabViewControlType.Orts_TCS1:
+                case CabViewControlType.Orts_TCS2:
+                case CabViewControlType.Orts_TCS3:
+                case CabViewControlType.Orts_TCS4:
+                case CabViewControlType.Orts_TCS5:
+                case CabViewControlType.Orts_TCS6:
+                case CabViewControlType.Orts_TCS7:
+                case CabViewControlType.Orts_TCS8:
+                case CabViewControlType.Orts_TCS9:
+                case CabViewControlType.Orts_TCS10:
+                case CabViewControlType.Orts_TCS11:
+                case CabViewControlType.Orts_TCS12:
+                case CabViewControlType.Orts_TCS13:
+                case CabViewControlType.Orts_TCS14:
+                case CabViewControlType.Orts_TCS15:
+                case CabViewControlType.Orts_TCS16:
+                case CabViewControlType.Orts_TCS17:
+                case CabViewControlType.Orts_TCS18:
+                case CabViewControlType.Orts_TCS19:
+                case CabViewControlType.Orts_TCS20:
+                case CabViewControlType.Orts_TCS21:
+                case CabViewControlType.Orts_TCS22:
+                case CabViewControlType.Orts_TCS23:
+                case CabViewControlType.Orts_TCS24:
+                case CabViewControlType.Orts_TCS25:
+                case CabViewControlType.Orts_TCS26:
+                case CabViewControlType.Orts_TCS27:
+                case CabViewControlType.Orts_TCS28:
+                case CabViewControlType.Orts_TCS29:
+                case CabViewControlType.Orts_TCS30:
+                case CabViewControlType.Orts_TCS31:
+                case CabViewControlType.Orts_TCS32:
+                case CabViewControlType.Orts_TCS33:
+                case CabViewControlType.Orts_TCS34:
+                case CabViewControlType.Orts_TCS35:
+                case CabViewControlType.Orts_TCS36:
+                case CabViewControlType.Orts_TCS37:
+                case CabViewControlType.Orts_TCS38:
+                case CabViewControlType.Orts_TCS39:
+                case CabViewControlType.Orts_TCS40:
+                case CabViewControlType.Orts_TCS41:
+                case CabViewControlType.Orts_TCS42:
+                case CabViewControlType.Orts_TCS43:
+                case CabViewControlType.Orts_TCS44:
+                case CabViewControlType.Orts_TCS45:
+                case CabViewControlType.Orts_TCS46:
+                case CabViewControlType.Orts_TCS47:
+                case CabViewControlType.Orts_TCS48:
                     index = (int)data;
                     break;
             }
@@ -2036,6 +2092,45 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                          != ChangedValue(Locomotive.GetCabFlipped() ? (Locomotive.DoorLeftOpen ? 1 : 0) : Locomotive.DoorRightOpen ? 1 : 0)) new ToggleDoorsRightCommand(Viewer.Log); break;
                 case CabViewControlType.Orts_Mirros:
                     if ((Locomotive.MirrorOpen ? 1 : 0) != ChangedValue(Locomotive.MirrorOpen ? 1 : 0)) new ToggleMirrorsCommand(Viewer.Log); break;
+
+                // Train Control System controls
+                case CabViewControlType.Orts_TCS1:
+                case CabViewControlType.Orts_TCS2:
+                case CabViewControlType.Orts_TCS3:
+                case CabViewControlType.Orts_TCS4:
+                case CabViewControlType.Orts_TCS5:
+                case CabViewControlType.Orts_TCS6:
+                case CabViewControlType.Orts_TCS7:
+                case CabViewControlType.Orts_TCS8:
+                case CabViewControlType.Orts_TCS9:
+                case CabViewControlType.Orts_TCS10:
+                case CabViewControlType.Orts_TCS11:
+                case CabViewControlType.Orts_TCS12:
+                case CabViewControlType.Orts_TCS13:
+                case CabViewControlType.Orts_TCS14:
+                case CabViewControlType.Orts_TCS15:
+                case CabViewControlType.Orts_TCS16:
+                case CabViewControlType.Orts_TCS17:
+                case CabViewControlType.Orts_TCS18:
+                case CabViewControlType.Orts_TCS19:
+                case CabViewControlType.Orts_TCS20:
+                case CabViewControlType.Orts_TCS21:
+                case CabViewControlType.Orts_TCS22:
+                case CabViewControlType.Orts_TCS23:
+                case CabViewControlType.Orts_TCS24:
+                case CabViewControlType.Orts_TCS25:
+                case CabViewControlType.Orts_TCS26:
+                case CabViewControlType.Orts_TCS27:
+                case CabViewControlType.Orts_TCS28:
+                case CabViewControlType.Orts_TCS29:
+                case CabViewControlType.Orts_TCS30:
+                case CabViewControlType.Orts_TCS31:
+                case CabViewControlType.Orts_TCS32:
+                    int commandIndex = (int)Control.ControlType - (int)CabViewControlType.Orts_TCS1;
+                    if (ChangedValue(1) > 0 ^ Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex])
+                        new TCSCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex], commandIndex);
+                    break;
+
             }
 
         }

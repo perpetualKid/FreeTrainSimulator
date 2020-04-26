@@ -22,6 +22,7 @@ using System.Diagnostics;   // Used by Trace.Warnings
 using Orts.Common;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems;
 
 namespace Orts.Simulation.Commanding
 {
@@ -1454,6 +1455,7 @@ namespace Orts.Simulation.Commanding
         }
     }
 
+    #region TurnTable
     [Serializable()]
     public sealed class TurntableClockwiseCommand : Command
     {
@@ -1471,7 +1473,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return ToString(" Clockwise");
+            return ToString("Clockwise");
         }
     }
 
@@ -1493,7 +1495,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return ToString(" Clockwise with target");
+            return ToString("Clockwise with target");
         }
     }
 
@@ -1514,7 +1516,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return ToString(" Counterclockwise");
+            return ToString("Counterclockwise");
         }
     }
 
@@ -1536,8 +1538,44 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return ToString(" Counterclockwise with target");
+            return ToString("Counterclockwise with target");
         }
     }
+    #endregion
+
+    #region TCS
+    /// <summary>
+    /// This is the list of commands available for TCS scripts; they are generic commands, whose action will specified by the active script
+    /// All commands record the time when the command is created, but a continuous command backdates the time to when the key
+    /// was pressed.
+    /// </summary>
+
+    // Generic TCS command
+    [Serializable()]
+    public sealed class TCSCommand : BooleanCommand
+    {
+        public int CommandIndex;
+        public static ScriptedTrainControlSystem Receiver { get; set; }
+
+        public TCSCommand(CommandLog log, bool toState, int commandIndex)
+            : base(log, toState)
+        {
+            CommandIndex = commandIndex;
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            //           if (ToState) Receiver.SignalEvent(Event.VigilanceAlarmReset); // There is no Event.VigilanceAlarmResetReleased
+            Receiver.TCSCommandPressed(targetState, CommandIndex);
+            // Report();
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "ON" : "OFF");
+        }
+    }
+    #endregion
 
 }

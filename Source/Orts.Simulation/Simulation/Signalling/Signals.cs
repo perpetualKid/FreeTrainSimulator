@@ -74,6 +74,7 @@ namespace Orts.Simulation.Signalling
         private Dictionary<uint, Signal> SignalHeadList;
         public static SIGSCRfile scrfile;
         public int ORTSSignalTypeCount { get; private set; }
+        public IList<string> ORTSSignalTypes;
 
         public int noSignals;
         private int foundSignals;
@@ -113,6 +114,7 @@ namespace Orts.Simulation.Signalling
             Dictionary<int, int> platformList = new Dictionary<int, int>();
 
             ORTSSignalTypeCount = OrSignalTypes.Instance.FunctionTypes.Count;
+            ORTSSignalTypes = OrSignalTypes.Instance.FunctionTypes;
 
             trackDB = simulator.TDB.TrackDB;
             tsectiondat = simulator.TSectionDat;
@@ -1285,7 +1287,7 @@ namespace Orts.Simulation.Signalling
         //================================================================================================//
         /// <summary>
         /// Find_Next_Object_InRoute : find next item along path of train - using Route List (only forward)
-        /// Objects to search for : SpeedPost, Normal Signal
+        /// Objects to search for : SpeedPost, Signal
         ///
         /// Usage :
         ///   always set : RouteList, RouteNodeIndex, distance along RouteNode, fnType
@@ -1379,10 +1381,28 @@ namespace Orts.Simulation.Signalling
                         }
                     }
                 }
+                // other fn_types
+                else
+                {
+                    TrackCircuitSignalList thisSignalList =
+                        thisSection.CircuitItems.TrackCircuitSignals[actDirection][(int)fn_type];
+                    locstate = ObjectItemInfo.ObjectItemFindState.None;
 
-                // next section accessed via next route element
+                    foreach (TrackCircuitSignalItem thisSignal in thisSignalList.TrackCircuitItem)
+                    {
+                        if (thisSignal.SignalLocation > lengthOffset)
+                        {
+                            locstate = ObjectItemInfo.ObjectItemFindState.Object;
+                            foundObject = thisSignal.SignalRef;
+                            totalLength += (thisSignal.SignalLocation - lengthOffset);
+                            break;
+                        }
+                    }
+                }
 
-                if (locstate == ObjectItemInfo.ObjectItemFindState.None)
+                    // next section accessed via next route element
+
+                    if (locstate == ObjectItemInfo.ObjectItemFindState.None)
                 {
                     totalLength += (thisSection.Length - lengthOffset);
                     lengthOffset = 0;
@@ -1602,6 +1622,36 @@ namespace Orts.Simulation.Signalling
 
             return (returnItem);
         }
+
+        //================================================================================================//
+        /// <summary>
+        /// Gets the Track Monitor Aspect from the MSTS aspect (for the TCS) 
+        /// </summary>
+
+        public TrackMonitorSignalAspect TranslateToTCSAspect(SignalAspectState state)
+        {
+            switch (state)
+            {
+                case SignalAspectState.Stop:
+                    return TrackMonitorSignalAspect.Stop;
+                case SignalAspectState.Stop_And_Proceed:
+                    return TrackMonitorSignalAspect.StopAndProceed;
+                case SignalAspectState.Restricting:
+                    return TrackMonitorSignalAspect.Restricted;
+                case SignalAspectState.Approach_1:
+                    return TrackMonitorSignalAspect.Approach_1;
+                case SignalAspectState.Approach_2:
+                    return TrackMonitorSignalAspect.Approach_2;
+                case SignalAspectState.Approach_3:
+                    return TrackMonitorSignalAspect.Approach_3;
+                case SignalAspectState.Clear_1:
+                    return TrackMonitorSignalAspect.Clear_1;
+                case SignalAspectState.Clear_2:
+                    return TrackMonitorSignalAspect.Clear_2;
+                default:
+                    return TrackMonitorSignalAspect.None;
+            }
+        } // GetMonitorAspect
 
         //================================================================================================//
         /// <summary>

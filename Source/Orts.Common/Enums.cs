@@ -566,6 +566,18 @@ namespace Orts.Common
         BrakeNotch           // EngineBrakesControllerBrakeNotchStart
     }
 
+    public enum TrainControlMode
+    {
+        AutoSignal,
+        AutoNode,
+        Manual,
+        Explorer,
+        OutOfControl,
+        Inactive,
+        TurnTable,
+        Undefined,
+    }
+
 
     public enum TCSEvent
     {
@@ -609,6 +621,22 @@ namespace Orts.Common
         /// Internal reset request by the horn handle.
         /// </summary>
         HornActivated,
+        /// <summary>
+        /// Generic TCS button pressed.
+        /// </summary>
+        GenericTCSButtonPressed,
+        /// <summary>
+        /// Generic TCS button released.
+        /// </summary>
+        GenericTCSButtonReleased,
+        /// <summary>
+        /// Circuit breaker has been closed.
+        /// </summary>
+        CircuitBreakerClosed,
+        /// <summary>
+        /// Circuit breaker has been opened.
+        /// </summary>
+        CircuitBreakerOpen,
     }
 
     /// <summary>

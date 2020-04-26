@@ -323,6 +323,8 @@ namespace Orts.Simulation.Physics
         public TrainRouted routedForward;                 // routed train class for forward moves (used in signalling)
         public TrainRouted routedBackward;                // routed train class for backward moves (used in signalling)
 
+
+        //TODO replace with Orts.Common.TrainControlMode
         public enum TRAIN_CONTROL
         {
             AUTO_SIGNAL,
@@ -380,6 +382,7 @@ namespace Orts.Simulation.Physics
         public double ContinuousBrakingTime;     // Consecutive braking time, used to check whether brakes get stuck
         public double RunningTime;              // Total running time, used to check whether a locomotive is partly or totally unpowered due to a fault
         public int UnpoweredLoco = -1;          // car index of unpowered loco
+        public bool ColdStart = true;           // False if train is moving at game start or if game resumed
 
         // TODO: Replace this with an event
         public bool FormationReversed;          // flags the execution of the ReverseFormation method (executed at reversal points)
@@ -652,13 +655,14 @@ namespace Orts.Simulation.Physics
 
             routedForward = new TrainRouted(this, 0);
             routedBackward = new TrainRouted(this, 1);
-
+            ColdStart = false;
             RestoreCars(simulator, inf);
             Number = inf.ReadInt32();
             TotalNumber = Math.Max(Number + 1, TotalNumber);
             Name = inf.ReadString();
             SpeedMpS = inf.ReadSingle();
             TrainType = (TRAINTYPE)inf.ReadInt32();
+            if (TrainType == TRAINTYPE.STATIC) ColdStart = true;
             MUDirection = (Direction)inf.ReadInt32();
             MUThrottlePercent = inf.ReadSingle();
             MUGearboxGearIndex = inf.ReadInt32();
@@ -1504,6 +1508,7 @@ namespace Orts.Simulation.Physics
 
         public virtual void InitializeMoving()
         {
+            ColdStart = false;
             SpeedMpS = InitialSpeed;
             MUDirection = Direction.Forward;
             float initialThrottlepercent = InitialThrottlepercent;
@@ -14658,6 +14663,54 @@ namespace Orts.Simulation.Physics
             TCRoute = new TCRoutePath(aiPath, (int)FrontTDBTraveller.Direction, Length, signalRef, Number, Simulator.Settings);
             ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
         }
+
+
+        //================================================================================================//
+        /// <summary>
+        /// Search trailing diverging switch
+        /// </summary>
+        /// 
+        public float NextTrailingDivergingSwitchDistanceM(float maxDistanceM)
+        {
+            var switchDistanceM = float.MaxValue;
+            // run along forward path to catch the first trailing diverging switch
+            if (ValidRoute[0] != null)
+            {
+                float distanceToTrainM = 0.0f;
+                float offset = PresentPosition[0].TCOffset;
+                TrackCircuitSection firstSection = signalRef.TrackCircuitList[PresentPosition[0].TCSectionIndex];
+                float sectionStart = -offset;
+                int startRouteIndex = PresentPosition[0].RouteListIndex;
+                if (startRouteIndex < 0) startRouteIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
+                if (startRouteIndex >= 0)
+                {
+                    int routeSectionIndex = PresentPosition[0].TCSectionIndex;
+                    for (int iRouteElement = startRouteIndex; iRouteElement < ValidRoute[0].Count && distanceToTrainM < maxDistanceM && sectionStart < maxDistanceM; iRouteElement++)
+                    {
+                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iRouteElement].TCSectionIndex];
+                        int sectionDirection = ValidRoute[0][iRouteElement].Direction;
+
+                        if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction && (thisSection.Pins[sectionDirection, 1].Link == -1) && sectionStart < maxDistanceM)
+                        {
+                            // is trailing
+                            TrackJunctionNode junctionNode = Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackJunctionNode;
+                            if ((thisSection.Pins[sectionDirection == 0 ? 1 : 0, 1].Link == routeSectionIndex && thisSection.JunctionDefaultRoute == 0) ||
+                                (thisSection.Pins[sectionDirection == 0 ? 1 : 0, 0].Link == routeSectionIndex && thisSection.JunctionDefaultRoute > 0))
+                            {
+                                //is trailing diverging
+                                switchDistanceM = sectionStart;
+                                break;
+                            }
+
+                        }
+                        routeSectionIndex = ValidRoute[0][iRouteElement].TCSectionIndex;
+                        sectionStart += thisSection.Length;
+                    }
+                }
+            }
+            return switchDistanceM;
+        }
+
 
 
         //================================================================================================//
