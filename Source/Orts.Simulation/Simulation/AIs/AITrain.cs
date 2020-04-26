@@ -2526,7 +2526,7 @@ namespace Orts.Simulation.AIs
 
                         // train is stopped - set departure time
 
-                        if (Math.Abs(SpeedMpS) <= 0.1f)
+                        if (Math.Abs(SpeedMpS) <= Simulator.MaxStoppedMpS)
                         {
                             MovementState = AI_MOVEMENT_STATE.STATION_STOP;
                             StationStop thisStation = StationStops[0];
@@ -2634,7 +2634,7 @@ namespace Orts.Simulation.AIs
                     {
                         AdjustControlsBrakeMore(MaxDecelMpSS, elapsedClockSeconds, 50);
                         AITrainThrottlePercent = 0;
-                        if (Math.Abs(SpeedMpS) <= 0.1f)
+                        if (Math.Abs(SpeedMpS) <= Simulator.MaxStoppedMpS)
                         {
                             MovementState = AI_MOVEMENT_STATE.STOPPED;
                         }
