@@ -137,6 +137,8 @@ namespace Orts.Formats.Msts.Models
         public float FlashTimeOn { get; private set; }
         /// <summary>Off duration for flashing light. (In seconds.)</summary>
         public float FlashTimeOff { get; private set; }
+        /// <summary>Transition time between lit and unlit states. (In seconds.)</summary>
+        public float TransitionTime { get; private set; }
         /// <summary>The name of the texture to use for the lights</summary>
         public string LightTextureName { get; private set; }
         /// <summary></summary>
@@ -171,6 +173,7 @@ namespace Orts.Formats.Msts.Models
             LightTextureName = string.Empty;
             FlashTimeOn = 1.0f;
             FlashTimeOff = 1.0f;
+            TransitionTime = 0.5f;
         }
 
         /// <summary>
@@ -226,6 +229,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("ortsnightglow", ()=>{ NightGlow = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("ortsdaylight", ()=>{ DayLight = stf.ReadBoolBlock(true); }),
                 new STFReader.TokenProcessor("ortsnormalsubtype", ()=>{ ortsNormalSubType = ReadOrtsNormalSubType(stf); }),
+                new STFReader.TokenProcessor("ortsonofftime", ()=>{ TransitionTime = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("sigflashduration", ()=>{
                     stf.MustMatchBlockStart();
                     FlashTimeOn = stf.ReadFloat(STFReader.Units.None, null);

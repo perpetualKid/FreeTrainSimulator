@@ -299,7 +299,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 lightStates = new SignalLightState[SignalTypeData.Lights.Count];
                 for (var i = 0; i < SignalTypeData.Lights.Count; i++)
-                    lightStates[i] = new SignalLightState();
+                    lightStates[i] = new SignalLightState(SignalTypeData.TransitionTime);
 
 #if DEBUG_SIGNAL_SHAPES
                 Console.Write("  HEAD type={0,-8} lights={1,-2} sem={2}", SignalTypeData.Type, SignalTypeData.Lights.Count, SignalTypeData.Semaphore);
@@ -428,6 +428,7 @@ namespace Orts.ActivityRunner.Viewer3D
             public readonly Dictionary<int, SignalAspectData> DrawAspects = new Dictionary<int, SignalAspectData>();
             public readonly float FlashTimeOn;
             public readonly float FlashTimeTotal;
+            public readonly float TransitionTime;
             public readonly bool Semaphore;
             public readonly bool DayLight = true;
             public readonly float SemaphoreAnimationTime;
@@ -498,6 +499,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     SemaphoreAnimationTime = mstsSignalType.SemaphoreInfo;
                     DayLight = mstsSignalType.DayLight;
                 }
+
+                TransitionTime = mstsSignalType.TransitionTime;
             }
         }
 
@@ -552,20 +555,26 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     internal class SignalLightState
     {
-        private static readonly float duration = 0.5f; // Transition time in seconds.
+        private readonly float transitionTime; // Transition time in seconds.
         private double intensity = 0;
+
+        public SignalLightState(float transitionTime)
+        {
+            this.transitionTime = transitionTime;
+        }
 
         public double Intensity => intensity;
         public bool Illuminated => intensity > 0;
 
         public void SetIntensity(float target, in ElapsedTime elapsedTime)
         {
-            if (target > intensity)
-                intensity = Math.Min(intensity + elapsedTime.ClockSeconds / duration, target);
+            if (transitionTime == 0)
+                intensity = target;
+            else if (target > intensity)
+                intensity = Math.Min(intensity + elapsedTime.ClockSeconds / transitionTime, target);
             else if (target < intensity)
-                intensity = Math.Max(intensity - elapsedTime.ClockSeconds / duration, target);
+                intensity = Math.Max(intensity - elapsedTime.ClockSeconds / transitionTime, target);
         }
-
     }
 
     public class SignalLightPrimitive : RenderPrimitive
