@@ -196,6 +196,8 @@ namespace Orts.Common.Input
         [Description("Control ImmediateRefill")] ControlImmediateRefill,
         [Description("Control Turntable Clockwise")] ControlTurntableClockwise,
         [Description("Control Turntable Counterclockwise")] ControlTurntableCounterclockwise,
+        [Description("Control Generic 1")] ControlGeneric1,
+        [Description("Control Generic 2")] ControlGeneric2,
         [Description("Control Cab Radio")] ControlCabRadio,
         [Description("Control AI Fire On")] ControlAIFireOn,
         [Description("Control AI Fire Off")] ControlAIFireOff,
