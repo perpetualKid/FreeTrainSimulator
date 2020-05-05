@@ -357,7 +357,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     bool semaphoreDark = SemaphorePos != SemaphoreTarget && SignalTypeData.LightsSemaphoreChange[i];
                     bool constantDark = !SignalTypeData.DrawAspects[DisplayState].DrawLights[i];
                     bool flashingDark = SignalTypeData.DrawAspects[DisplayState].FlashLights[i] && (CumulativeTime > SignalTypeData.FlashTimeOn);
-                    state.SetIntensity(semaphoreDark || constantDark || flashingDark ? 0 : 1, elapsedTime);
+                    state.UpdateIntensity(semaphoreDark || constantDark || flashingDark ? 0 : 1, elapsedTime);
                     if (!state.Illuminated)
                         continue;
 
@@ -557,6 +557,7 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         private readonly float transitionTime; // Transition time in seconds.
         private double intensity = 0;
+        private bool firstUpdate = true;
 
         public SignalLightState(float transitionTime)
         {
@@ -566,14 +567,15 @@ namespace Orts.ActivityRunner.Viewer3D
         public double Intensity => intensity;
         public bool Illuminated => intensity > 0;
 
-        public void SetIntensity(float target, in ElapsedTime elapsedTime)
+        public void UpdateIntensity(float target, in ElapsedTime elapsedTime)
         {
-            if (transitionTime == 0)
+            if (firstUpdate || transitionTime == 0)
                 intensity = target;
             else if (target > intensity)
                 intensity = Math.Min(intensity + elapsedTime.ClockSeconds / transitionTime, target);
             else if (target < intensity)
                 intensity = Math.Max(intensity - elapsedTime.ClockSeconds / transitionTime, target);
+            firstUpdate = false;
         }
     }
 
