@@ -173,7 +173,7 @@ namespace Orts.Formats.Msts.Models
             LightTextureName = string.Empty;
             FlashTimeOn = 1.0f;
             FlashTimeOff = 1.0f;
-            TransitionTime = 0.5f;
+            TransitionTime = 0.2f;
         }
 
         /// <summary>
