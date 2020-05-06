@@ -188,14 +188,45 @@ namespace Orts.Simulation.RollingStocks
         public string LocomotiveName; // Name of locomotive from ENG file
 
         // Carriage Steam Heating Parameters
+        public Interpolator TrainHeatBoilerWaterUsageGalukpH;
+        public Interpolator TrainHeatBoilerFuelUsageGalukpH;
+
+        // Input values to allow the water and fuel usage of steam heating boiler to be calculated based upon Spanner SwirlyFlo Mk111 Boiler
+        static double[] SteamUsageLbpH = new double[]
+        {
+           0.0, 3000.0
+        };
+
+        // Water Usage
+        static double[] WaterUsageGalukpH = new double[]
+        {
+           0.0, 3000.0
+        };
+
+        // Fuel usage
+        static double[] FuelUsageGalukpH = new double[]
+        {
+           0.0, 31.0
+        };
+
+        public static Interpolator SteamHeatBoilerWaterUsageGalukpH()
+        {
+            return new Interpolator(SteamUsageLbpH, WaterUsageGalukpH);
+        }
+
+        public static Interpolator SteamHeatBoilerFuelUsageGalukpH()
+        {
+            return new Interpolator(SteamUsageLbpH, FuelUsageGalukpH);
+        }
+
         public float MaxSteamHeatPressurePSI;    // Maximum Steam heating pressure
         public Interpolator SteamHeatPressureToTemperaturePSItoF;
         public Interpolator SteamDensityPSItoLBpFT3;   // saturated steam density given pressure
         public Interpolator SteamHeatPSItoBTUpLB;      // total heat in saturated steam given pressure
-        public float SteamHeatFuelTankCapacityL = 1500.0f; // Capacity of the fuel tank for the steam heating boiler
-        public float SteamHeatBoilerFuelUsageLpH = 31.0f; // Usage rate of fuel for steam heating boiler
-        public float CurrentSteamHeatFuelCapacityL;  // Current fuel level
-        public bool TrainFittedSteamHeat = false;       // Flag to determine train fitted with steam heating
+        public float SteamHeatBoilerFuelTankCapacityL = 1500.0f; // Capacity of the fuel tank for the steam heating boiler
+        public float SteamHeatBoilerWaterTankCapacityL = (float)Size.LiquidVolume.FromGallonUK(800.0f); // Capacity of the water feed tank for the steam heating boiler
+        public float CurrentSteamHeatBoilerWaterCapacityL;  // Current water level
+        public bool IsSteamHeatingBoilerFitted = false;   // Flag to indicate when steam heat boiler van is fitted
         public float CalculatedCarHeaterSteamUsageLBpS;
 
 #if DEBUG_ADHESION
@@ -1133,6 +1164,9 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Initialize()
         {
+            TrainHeatBoilerWaterUsageGalukpH = SteamHeatBoilerWaterUsageGalukpH();
+            TrainHeatBoilerFuelUsageGalukpH = SteamHeatBoilerFuelUsageGalukpH();
+            
             TrainBrakeController.Initialize();
             EngineBrakeController.Initialize();
             TrainControlSystem.Initialize();
@@ -1140,13 +1174,11 @@ namespace Orts.Simulation.RollingStocks
             if (MaxSteamHeatPressurePSI == 0)       // Check to see if steam heating is fitted to locomotive
             {
                 IsSteamHeatFitted = false;
-                TrainFittedSteamHeat = false;
             }
             else
             {
                 IsSteamHeatFitted = true;
-                TrainFittedSteamHeat = true;
-                CurrentSteamHeatFuelCapacityL = SteamHeatFuelTankCapacityL;
+                CurrentSteamHeatBoilerWaterCapacityL = SteamHeatBoilerWaterTankCapacityL;
             }
 
             SteamHeatPressureToTemperaturePSItoF = SteamTable.SteamHeatPressureToTemperatureInterpolatorPSItoF();
