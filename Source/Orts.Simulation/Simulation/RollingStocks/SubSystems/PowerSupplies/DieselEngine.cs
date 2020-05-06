@@ -1615,24 +1615,24 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             // Set up the reverse ThrottleRPM table
             if (ThrottleRPMTab != null)
             {
-                double[] rpm = new double[ThrottleRPMTab.GetSize()];
-                double[] throttle = new double[ThrottleRPMTab.GetSize()];
+                int icount = 11;
+                double[] rpm = new double[icount];
+                double[] throttle = new double[icount];
 
-                float TabIncrement = 100.0f / (ThrottleRPMTab.GetSize() - 1); // find the increment size for the table
+                float TabIncrement = 10.0f; // find the increment size for the throttle axis in table
                 float PreviousThrottleValue = 0;
-                throttle[0] = 0; // Set throttle value between 0 and 100
+                throttle[0] = 0; // Set throttle value to 0
                 rpm[0] = ThrottleRPMTab[throttle[0]]; // Find rpm of this throttle value in ThrottleRPMTab 
 
-                for (int i = 1; i < ThrottleRPMTab.GetSize(); i++)
+                for (int i = 1; i < icount; i++)
                 {
-                    throttle[i] = PreviousThrottleValue + TabIncrement; // Increment throttle value between 0 and 100 by the number of steps in ThrottleRPMTab
-                    PreviousThrottleValue += TabIncrement;
-                    rpm[i] = ThrottleRPMTab[throttle[i]]; // Find rpm of this throttle value in ThrottleRPMTab   
-
+                    float NewThrottleValue = PreviousThrottleValue + TabIncrement;
+                    throttle[i] = NewThrottleValue; // Increment throttle value between 0 and 100 by the number of steps in ThrottleRPMTab
+                    PreviousThrottleValue = NewThrottleValue; // For next time round
+                    rpm[i] = ThrottleRPMTab[NewThrottleValue]; // Find rpm of this throttle value in ThrottleRPMTab   
                 }
                 ReverseThrottleRPMTab = new Interpolator(rpm, throttle); // create reverse table
             }
-
 
                 // TODO - this value needs to be divided by the number of diesel engines in the locomotive
 

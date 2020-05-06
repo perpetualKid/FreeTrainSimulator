@@ -587,7 +587,6 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-
                     MotiveForceN = (float)(TractiveForceCurves.Get((DieselEngines.ApparentThrottleSetting/100.0f), AbsSpeedMpS) * (1 - PowerReduction));
                     if (MotiveForceN < 0 && !TractiveForceCurves.HasNegativeValues)
                         MotiveForceN = 0;
