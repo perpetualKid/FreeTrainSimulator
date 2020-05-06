@@ -580,7 +580,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         }
 
 
-        private void SignalEvent(TrainEvent evt, TrainControlSystem script)
+        public void SignalEvent(TrainEvent evt, TrainControlSystem script)
         {
             try
             { 
