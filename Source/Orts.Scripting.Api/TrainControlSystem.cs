@@ -200,6 +200,18 @@ namespace Orts.Scripting.Api
         /// Get locomotive handle
         /// </summary>
         public Func<dynamic> Locomotive; //TODO 20200729 MSTSLocomotive not known here
+        /// <summary>
+        /// Get restored boolean
+        /// </summary>
+        public Func<bool> ReadBoolean;
+        /// <summary>
+        /// Get restored float
+        /// </summary>
+        public Func<float> ReadSingle;
+        /// <summary>
+        /// Get restored integer
+        /// </summary>
+        public Func<int> ReadInt32;
 
         /// <summary>
         /// (float targetDistanceM, float targetSpeedMpS, float slope, float delayS, float decelerationMpS2)
@@ -354,6 +366,18 @@ namespace Orts.Scripting.Api
         /// Requests toggle to and from Manual Mode.
         /// </summary>
         public Action RequestToggleManualMode;
+        /// <summary>
+        /// Saves boolean.
+        /// </summary>
+        public Action<bool> SaveBoolean;
+        /// <summary>
+        /// Saves float.
+        /// </summary>
+        public Action<float> SaveSingle;
+        /// <summary>
+        /// Saves boolean.
+        /// </summary>
+        public Action<int> SaveInt32;
         /// <summary>
         /// Get bool parameter in the INI file.
         /// </summary>

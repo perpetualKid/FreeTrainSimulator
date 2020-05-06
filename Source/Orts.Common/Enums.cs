@@ -637,6 +637,14 @@ namespace Orts.Common
         /// Circuit breaker has been opened.
         /// </summary>
         CircuitBreakerOpen,
+        /// <summary>
+        /// Save request.
+        /// </summary>
+        Save,
+        /// <summary>
+        /// Restore request.
+        /// </summary>
+        Restore,
     }
 
     /// <summary>

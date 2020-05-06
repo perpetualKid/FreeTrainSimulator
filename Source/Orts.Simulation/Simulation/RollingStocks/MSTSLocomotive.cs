@@ -198,11 +198,13 @@ namespace Orts.Simulation.RollingStocks
         public bool TrainFittedSteamHeat = false;       // Flag to determine train fitted with steam heating
         public float CalculatedCarHeaterSteamUsageLBpS;
 
+#if DEBUG_ADHESION
         // Adhesion Debug
         bool DebugSpeedReached;
         float DebugSpeedIncrement = 5.0f; // Speed increment for debug display - in mph
         float DebugSpeed = 5.0f; // Initialise at 5 mph
         float DebugTimer = 0.0f;
+#endif
 
         // Adhesion parameters
         float BaseFrictionCoefficientFactor;  // Factor used to adjust Curtius formula depending upon weather conditions
@@ -1014,6 +1016,8 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(CurrentTrackSandBoxCapacityM3);
 
             base.Save(outf);
+
+            TrainControlSystem.Save(outf);
         }
 
         /// <summary>
@@ -1054,6 +1058,8 @@ namespace Orts.Simulation.RollingStocks
             AdhesionFilter.Reset(0.5f);
 
             base.Restore(inf);
+
+            TrainControlSystem.Restore(inf);
         }
 
         public bool IsLeadLocomotive()
@@ -2383,7 +2389,7 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
-        #region Calculate Friction Coefficient
+#region Calculate Friction Coefficient
         /// <summary>
         /// Calculates the current coefficient of friction based upon the current weather 
         /// The calculation of Coefficient of Friction appears to provide a wide range of 
@@ -2560,7 +2566,7 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
-        #endregion
+#endregion
 
 
         public void UpdateTrackSander(double elapsedClockSeconds)
@@ -2597,7 +2603,7 @@ namespace Orts.Simulation.RollingStocks
             return Sander;
         }
 
-        #region Reverser
+#region Reverser
         public void SetDirection(Direction direction)
         {
             if (Direction != direction && ThrottlePercent < 1)
@@ -2662,9 +2668,9 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
         }
-        #endregion
+#endregion
 
-        #region ThrottleController
+#region ThrottleController
         public void StartThrottleIncrease(float? target)
         {
             if (ThrottleController.CurrentValue >= ThrottleController.MaximumValue)
@@ -2749,7 +2755,7 @@ namespace Orts.Simulation.RollingStocks
 
         //Steam Heat Controller
 
-        #region Steam heating controller
+#region Steam heating controller
 
         public void StartSteamHeatIncrease(float? target)
         {
@@ -2838,7 +2844,7 @@ namespace Orts.Simulation.RollingStocks
 
 
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Used by commands to start a continuous adjustment.
@@ -2932,9 +2938,9 @@ namespace Orts.Simulation.RollingStocks
             CommandStartTime = Simulator.ClockTime;
         }
 
-        #endregion
+#endregion
 
-        #region CombinedHandle
+#region CombinedHandle
         /// <summary>
         /// Determines which sub-control of combined handle is to be set when receiving a combined value.
         /// Combined value is in 0-1 range, where arrangement is [[1--throttle--0]split[0--dynamic|airbrake--1]].
@@ -2976,9 +2982,9 @@ namespace Orts.Simulation.RollingStocks
             else
                 return CombinedControlSplitPosition * (1 - (intermediateValue ? ThrottleController.IntermediateValue : ThrottleController.CurrentValue));
         }
-        #endregion
+#endregion
 
-        #region GearBoxController
+#region GearBoxController
         public virtual void ChangeGearUp()
         {
         }
@@ -3041,9 +3047,9 @@ namespace Orts.Simulation.RollingStocks
             if (oldValue != controller.CurrentValue)
                 Simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
         }
-        #endregion
+#endregion
 
-        #region TrainBrakeController
+#region TrainBrakeController
         public void StartTrainBrakeIncrease(float? target)
         {
             if (CombinedControlType == CombinedControl.ThrottleAir)
@@ -3152,9 +3158,9 @@ namespace Orts.Simulation.RollingStocks
             if (TrainBrakeController.IsValid())
                 TrainBrakeController.SetPercent(percent);
         }
-        #endregion
+#endregion
 
-        #region EngineBrakeController
+#region EngineBrakeController
         public void StartEngineBrakeIncrease(float? target)
         {
             AlerterReset(TCSEvent.EngineBrakeChanged);
@@ -3274,9 +3280,9 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
         }
-        #endregion
+#endregion
 
-        #region DynamicBrakeController
+#region DynamicBrakeController
         public void StartDynamicBrakeIncrease(float? target)
         {
             AlerterReset(TCSEvent.DynamicBrakeChanged);
@@ -3435,7 +3441,7 @@ namespace Orts.Simulation.RollingStocks
                 return string.Format("{0:F0}%", DynamicBrakePercent);
             return string.Format("{0}", DynamicBrakeController.GetStatus());
         }
-        #endregion
+#endregion
 
         public virtual void SetPower(bool ToState)
         {
