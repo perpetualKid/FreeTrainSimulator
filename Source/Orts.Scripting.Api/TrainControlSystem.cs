@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 using Orts.Common;
 
@@ -201,19 +202,6 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<dynamic> Locomotive; //TODO 20200729 MSTSLocomotive not known here
         /// <summary>
-        /// Get restored boolean
-        /// </summary>
-        public Func<bool> ReadBoolean;
-        /// <summary>
-        /// Get restored float
-        /// </summary>
-        public Func<float> ReadSingle;
-        /// <summary>
-        /// Get restored integer
-        /// </summary>
-        public Func<int> ReadInt32;
-
-        /// <summary>
         /// (float targetDistanceM, float targetSpeedMpS, float slope, float delayS, float decelerationMpS2)
         /// Returns a speed curve based speed limit, unit is m/s
         /// </summary>
@@ -367,18 +355,6 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Action RequestToggleManualMode;
         /// <summary>
-        /// Saves boolean.
-        /// </summary>
-        public Action<bool> SaveBoolean;
-        /// <summary>
-        /// Saves float.
-        /// </summary>
-        public Action<float> SaveSingle;
-        /// <summary>
-        /// Saves boolean.
-        /// </summary>
-        public Action<int> SaveInt32;
-        /// <summary>
         /// Get bool parameter in the INI file.
         /// </summary>
         public Func<string, string, bool, bool> GetBoolParameter;
@@ -413,5 +389,15 @@ namespace Orts.Scripting.Api
         /// Called by signalling code externally to stop the train in certain circumstances.
         /// </summary>
         public abstract void SetEmergency(bool emergency);
+        /// <summary>
+        /// Called when player has requested a game save. 
+        /// Set at virtual to keep compatibility with scripts not providing this method.
+        /// </summary>
+        public virtual void Save(BinaryWriter outf) { }
+        /// <summary>
+        /// Called when player has requested a game restore. 
+        /// Set at virtual to keep compatibility with scripts not providing this method.
+        /// </summary>
+        public virtual void Restore(BinaryReader inf) { }
     }
 }
