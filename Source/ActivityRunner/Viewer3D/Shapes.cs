@@ -84,7 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // TODO consider sorting by Vertex set so we can reduce the number of SetSources required.
                 graphicsDevice.SetVertexBuffers(VertexBufferBindings);
                 graphicsDevice.Indices = IndexBuffer;
-//                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, MinVertexIndex, NumVerticies, 0, PrimitiveCount);
+                //                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, MinVertexIndex, NumVerticies, 0, PrimitiveCount);
                 graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, PrimitiveCount);
             }
         }
@@ -93,6 +93,37 @@ namespace Orts.ActivityRunner.Viewer3D
         public virtual void Mark()
         {
             Material.Mark();
+        }
+    }
+
+    /// <summary>
+    /// A <c>ShapePrimitive</c> that permits manipulation of the vertex and index buffers to change geometry efficiently.
+    /// </summary>
+    /// <remarks>
+    /// <typeparamref name="T"/> represents the type stored in the index buffer.
+    /// </remarks>
+    public class MutableShapePrimitive<T> : ShapePrimitive where T : struct
+    {
+        /// <remarks>
+        /// Buffers cannot be expanded, so take care to properly set <paramref name="maxVertices"/> and <paramref name="maxIndices"/>,
+        /// which define the maximum sizes of the vertex and index buffers, respectively.
+        /// </remarks>
+        public MutableShapePrimitive(GraphicsDevice graphicsDevice, Material material, int maxVertices, int maxIndices, int[] hierarchy, int hierarchyIndex)
+           : base(material, new SharedShape.VertexBufferSet(new VertexPositionNormalTexture[maxVertices], graphicsDevice), new List<ushort>(maxIndices), graphicsDevice, hierarchy, hierarchyIndex)
+        { 
+        }
+
+        public void SetVertexData(VertexPositionNormalTexture[] data, int minVertexIndex, int numVertices, int primitiveCount)
+        {
+            VertexBuffer.SetData(data);
+            MinVertexIndex = minVertexIndex;
+            NumVerticies = numVertices;
+            PrimitiveCount = primitiveCount;
+        }
+
+        public void SetIndexData(T[] data)
+        {
+            IndexBuffer.SetData(data);
         }
     }
 
