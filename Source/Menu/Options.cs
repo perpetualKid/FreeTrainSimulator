@@ -193,9 +193,7 @@ namespace Orts.Menu
             checkOverrideNonElectrifiedRoutes.Checked = Settings.OverrideNonElectrifiedRoutes;
             checkHotStart.Checked = Settings.HotStart;
             checkSimpleControlPhysics.Checked = Settings.SimpleControlPhysics;
-            checkAutopilot.Checked = Settings.Autopilot;
             checkForcedRedAtStationStops.Checked = !Settings.NoForcedRedAtStationStops;
-            checkExtendedAIShunting.Checked = Settings.ExtendedAIShunting;
             checkDoorsAITrains.Checked = Settings.OpenDoorsInAITrains;
 
             //// Keyboard tab
@@ -449,9 +447,7 @@ namespace Orts.Menu
             Settings.OverrideNonElectrifiedRoutes = checkOverrideNonElectrifiedRoutes.Checked;
             Settings.HotStart = checkHotStart.Checked;
             Settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
-            Settings.Autopilot = checkAutopilot.Checked;
             Settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;
-            Settings.ExtendedAIShunting = checkExtendedAIShunting.Checked;
             Settings.OpenDoorsInAITrains = checkDoorsAITrains.Checked;
 
             // Keyboard tab
@@ -576,7 +572,7 @@ namespace Orts.Menu
 
         private void TrackbarMultiSampling_Scroll(object sender, EventArgs e)
         {
-            lblMSAACount.Text = trackbarMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetStringFmt($"{1 << trackbarMultiSampling.Value}x");
+            labelMSAACount.Text = trackbarMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetStringFmt($"{1 << trackbarMultiSampling.Value}x");
         }
 
         private void CheckBoxFullScreenNativeResolution_CheckedChanged(object sender, EventArgs e)

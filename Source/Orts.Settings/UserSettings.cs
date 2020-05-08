@@ -184,8 +184,6 @@ namespace Orts.Settings
         public bool HotStart { get; set; }
         [Default(true)]
         public bool SimpleControlPhysics { get; set; }
-        [Default(false)]
-        public bool Autopilot { get; set; }
 
         // Data logger settings:
         [Default("comma")]
@@ -270,8 +268,6 @@ namespace Orts.Settings
         public bool NoForcedRedAtStationStops { get; set; }
         [Default(false)]
         public bool ConditionalLoadOfDayOrNightTextures { get; set; }
-        [Default(false)]
-        public bool ExtendedAIShunting { get; set; }
         [Default(100)]
         public int PrecipitationBoxHeight { get; set; }
         [Default(500)]

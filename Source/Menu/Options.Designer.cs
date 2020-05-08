@@ -66,7 +66,7 @@
             this.radioButtonWindow = new System.Windows.Forms.RadioButton();
             this.radioButtonFullScreen = new System.Windows.Forms.RadioButton();
             this.checkBoxFullScreenNativeResolution = new System.Windows.Forms.CheckBox();
-            this.lblMSAACount = new System.Windows.Forms.Label();
+            this.labelMSAACount = new System.Windows.Forms.Label();
             this.label28 = new System.Windows.Forms.Label();
             this.trackbarMultiSampling = new System.Windows.Forms.TrackBar();
             this.checkShadowAllShapes = new System.Windows.Forms.CheckBox();
@@ -96,10 +96,9 @@
             this.checkWire = new System.Windows.Forms.CheckBox();
             this.tabPageSimulation = new System.Windows.Forms.TabPage();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.checkUseLocationPassingPaths = new System.Windows.Forms.CheckBox();
             this.checkDoorsAITrains = new System.Windows.Forms.CheckBox();
             this.checkForcedRedAtStationStops = new System.Windows.Forms.CheckBox();
-            this.checkExtendedAIShunting = new System.Windows.Forms.CheckBox();
-            this.checkAutopilot = new System.Windows.Forms.CheckBox();
             this.checkHotStart = new System.Windows.Forms.CheckBox();
             this.checkSimpleControlPhysics = new System.Windows.Forms.CheckBox();
             this.checkCurveSpeedDependent = new System.Windows.Forms.CheckBox();
@@ -117,11 +116,11 @@
             this.buttonCheckKeys = new System.Windows.Forms.Button();
             this.panelKeys = new System.Windows.Forms.Panel();
             this.tabPageRailDriver = new System.Windows.Forms.TabPage();
-            this.btnRDSettingsExport = new System.Windows.Forms.Button();
-            this.btnCheck = new System.Windows.Forms.Button();
-            this.btnRDReset = new System.Windows.Forms.Button();
-            this.btnStartRDCalibration = new System.Windows.Forms.Button();
-            this.btnShowRDLegend = new System.Windows.Forms.Button();
+            this.buttonRDSettingsExport = new System.Windows.Forms.Button();
+            this.buttonCheck = new System.Windows.Forms.Button();
+            this.buttonRDReset = new System.Windows.Forms.Button();
+            this.buttonStartRDCalibration = new System.Windows.Forms.Button();
+            this.buttonShowRDLegend = new System.Windows.Forms.Button();
             this.panelRDSettings = new System.Windows.Forms.Panel();
             this.panelRDOptions = new System.Windows.Forms.Panel();
             this.groupBoxReverseRDLevers = new System.Windows.Forms.GroupBox();
@@ -197,7 +196,6 @@
             this.checkCircularSpeedGauge = new System.Windows.Forms.CheckBox();
             this.checkSignalLightGlow = new System.Windows.Forms.CheckBox();
             this.checkUseMSTSEnv = new System.Windows.Forms.CheckBox();
-            this.checkUseLocationPassingPaths = new System.Windows.Forms.CheckBox();
             this.labelPerformanceTunerTarget = new System.Windows.Forms.Label();
             this.numericPerformanceTunerTarget = new System.Windows.Forms.NumericUpDown();
             this.checkPerformanceTuner = new System.Windows.Forms.CheckBox();
@@ -410,7 +408,7 @@
             // label29
             // 
             this.label29.AutoSize = true;
-            this.label29.Location = new System.Drawing.Point(82, 332);
+            this.label29.Location = new System.Drawing.Point(82, 327);
             this.label29.Name = "label29";
             this.label29.Size = new System.Drawing.Size(66, 13);
             this.label29.TabIndex = 17;
@@ -649,7 +647,7 @@
             // 
             this.tabPageVideo.Controls.Add(this.panel1);
             this.tabPageVideo.Controls.Add(this.checkBoxFullScreenNativeResolution);
-            this.tabPageVideo.Controls.Add(this.lblMSAACount);
+            this.tabPageVideo.Controls.Add(this.labelMSAACount);
             this.tabPageVideo.Controls.Add(this.label28);
             this.tabPageVideo.Controls.Add(this.trackbarMultiSampling);
             this.tabPageVideo.Controls.Add(this.checkShadowAllShapes);
@@ -727,15 +725,15 @@
             this.checkBoxFullScreenNativeResolution.UseVisualStyleBackColor = true;
             this.checkBoxFullScreenNativeResolution.CheckedChanged += new System.EventHandler(this.CheckBoxFullScreenNativeResolution_CheckedChanged);
             // 
-            // lblMSAACount
+            // labelMSAACount
             // 
-            this.lblMSAACount.Location = new System.Drawing.Point(459, 154);
-            this.lblMSAACount.Margin = new System.Windows.Forms.Padding(3);
-            this.lblMSAACount.Name = "lblMSAACount";
-            this.lblMSAACount.Size = new System.Drawing.Size(129, 13);
-            this.lblMSAACount.TabIndex = 28;
-            this.lblMSAACount.Text = "0x";
-            this.lblMSAACount.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.labelMSAACount.Location = new System.Drawing.Point(459, 154);
+            this.labelMSAACount.Margin = new System.Windows.Forms.Padding(3);
+            this.labelMSAACount.Name = "labelMSAACount";
+            this.labelMSAACount.Size = new System.Drawing.Size(129, 13);
+            this.labelMSAACount.TabIndex = 28;
+            this.labelMSAACount.Text = "0x";
+            this.labelMSAACount.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // label28
             // 
@@ -1109,10 +1107,9 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.checkUseLocationPassingPaths);
             this.groupBox1.Controls.Add(this.checkDoorsAITrains);
             this.groupBox1.Controls.Add(this.checkForcedRedAtStationStops);
-            this.groupBox1.Controls.Add(this.checkExtendedAIShunting);
-            this.groupBox1.Controls.Add(this.checkAutopilot);
             this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox1.Location = new System.Drawing.Point(324, 6);
             this.groupBox1.Name = "groupBox1";
@@ -1121,11 +1118,22 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Activity Options";
             // 
+            // checkUseLocationPassingPaths
+            // 
+            this.checkUseLocationPassingPaths.AutoSize = true;
+            this.checkUseLocationPassingPaths.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkUseLocationPassingPaths.Location = new System.Drawing.Point(6, 71);
+            this.checkUseLocationPassingPaths.Name = "checkUseLocationPassingPaths";
+            this.checkUseLocationPassingPaths.Size = new System.Drawing.Size(215, 17);
+            this.checkUseLocationPassingPaths.TabIndex = 46;
+            this.checkUseLocationPassingPaths.Text = "Location-linked passing path processing";
+            this.checkUseLocationPassingPaths.UseVisualStyleBackColor = true;
+            // 
             // checkDoorsAITrains
             // 
             this.checkDoorsAITrains.AutoSize = true;
             this.checkDoorsAITrains.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkDoorsAITrains.Location = new System.Drawing.Point(6, 94);
+            this.checkDoorsAITrains.Location = new System.Drawing.Point(6, 46);
             this.checkDoorsAITrains.Name = "checkDoorsAITrains";
             this.checkDoorsAITrains.Size = new System.Drawing.Size(163, 17);
             this.checkDoorsAITrains.TabIndex = 45;
@@ -1136,34 +1144,12 @@
             // 
             this.checkForcedRedAtStationStops.AutoSize = true;
             this.checkForcedRedAtStationStops.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkForcedRedAtStationStops.Location = new System.Drawing.Point(6, 71);
+            this.checkForcedRedAtStationStops.Location = new System.Drawing.Point(6, 23);
             this.checkForcedRedAtStationStops.Name = "checkForcedRedAtStationStops";
             this.checkForcedRedAtStationStops.Size = new System.Drawing.Size(151, 17);
             this.checkForcedRedAtStationStops.TabIndex = 23;
             this.checkForcedRedAtStationStops.Text = "Forced red at station stops";
             this.checkForcedRedAtStationStops.UseVisualStyleBackColor = true;
-            // 
-            // checkExtendedAIShunting
-            // 
-            this.checkExtendedAIShunting.AutoSize = true;
-            this.checkExtendedAIShunting.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkExtendedAIShunting.Location = new System.Drawing.Point(6, 48);
-            this.checkExtendedAIShunting.Name = "checkExtendedAIShunting";
-            this.checkExtendedAIShunting.Size = new System.Drawing.Size(150, 17);
-            this.checkExtendedAIShunting.TabIndex = 22;
-            this.checkExtendedAIShunting.Text = "Extended AI train shunting";
-            this.checkExtendedAIShunting.UseVisualStyleBackColor = true;
-            // 
-            // checkAutopilot
-            // 
-            this.checkAutopilot.AutoSize = true;
-            this.checkAutopilot.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkAutopilot.Location = new System.Drawing.Point(6, 26);
-            this.checkAutopilot.Name = "checkAutopilot";
-            this.checkAutopilot.Size = new System.Drawing.Size(67, 17);
-            this.checkAutopilot.TabIndex = 21;
-            this.checkAutopilot.Text = "Autopilot";
-            this.checkAutopilot.UseVisualStyleBackColor = true;
             // 
             // checkHotStart
             // 
@@ -1174,13 +1160,13 @@
             this.checkHotStart.TabIndex = 8;
             this.checkHotStart.Text = "Steam locomotive hot start";
             this.checkHotStart.UseVisualStyleBackColor = true;
-            //
+            // 
             // checkSimpleControlPhysics
             // 
             this.checkSimpleControlPhysics.AutoSize = true;
             this.checkSimpleControlPhysics.Location = new System.Drawing.Point(6, 215);
             this.checkSimpleControlPhysics.Name = "checkSimpleControlPhysics";
-            this.checkSimpleControlPhysics.Size = new System.Drawing.Size(151, 17);
+            this.checkSimpleControlPhysics.Size = new System.Drawing.Size(153, 17);
             this.checkSimpleControlPhysics.TabIndex = 8;
             this.checkSimpleControlPhysics.Text = "Simple Control and Physics";
             this.checkSimpleControlPhysics.UseVisualStyleBackColor = true;
@@ -1349,11 +1335,11 @@
             // 
             // tabPageRailDriver
             // 
-            this.tabPageRailDriver.Controls.Add(this.btnRDSettingsExport);
-            this.tabPageRailDriver.Controls.Add(this.btnCheck);
-            this.tabPageRailDriver.Controls.Add(this.btnRDReset);
-            this.tabPageRailDriver.Controls.Add(this.btnStartRDCalibration);
-            this.tabPageRailDriver.Controls.Add(this.btnShowRDLegend);
+            this.tabPageRailDriver.Controls.Add(this.buttonRDSettingsExport);
+            this.tabPageRailDriver.Controls.Add(this.buttonCheck);
+            this.tabPageRailDriver.Controls.Add(this.buttonRDReset);
+            this.tabPageRailDriver.Controls.Add(this.buttonStartRDCalibration);
+            this.tabPageRailDriver.Controls.Add(this.buttonShowRDLegend);
             this.tabPageRailDriver.Controls.Add(this.panelRDSettings);
             this.tabPageRailDriver.Location = new System.Drawing.Point(4, 22);
             this.tabPageRailDriver.Name = "tabPageRailDriver";
@@ -1362,64 +1348,64 @@
             this.tabPageRailDriver.Text = "RailDriver";
             this.tabPageRailDriver.UseVisualStyleBackColor = true;
             // 
-            // btnRDSettingsExport
+            // buttonRDSettingsExport
             // 
-            this.btnRDSettingsExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRDSettingsExport.Location = new System.Drawing.Point(521, 373);
-            this.btnRDSettingsExport.Name = "btnRDSettingsExport";
-            this.btnRDSettingsExport.Size = new System.Drawing.Size(75, 23);
-            this.btnRDSettingsExport.TabIndex = 5;
-            this.btnRDSettingsExport.Text = "Export";
-            this.toolTip1.SetToolTip(this.btnRDSettingsExport, "Generate a listing of your keyboard assignments.  \r\nThe output is placed on your " +
+            this.buttonRDSettingsExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonRDSettingsExport.Location = new System.Drawing.Point(521, 373);
+            this.buttonRDSettingsExport.Name = "buttonRDSettingsExport";
+            this.buttonRDSettingsExport.Size = new System.Drawing.Size(75, 23);
+            this.buttonRDSettingsExport.TabIndex = 5;
+            this.buttonRDSettingsExport.Text = "Export";
+            this.toolTip1.SetToolTip(this.buttonRDSettingsExport, "Generate a listing of your keyboard assignments.  \r\nThe output is placed on your " +
         "desktop.");
-            this.btnRDSettingsExport.UseVisualStyleBackColor = true;
-            this.btnRDSettingsExport.Click += new System.EventHandler(this.BtnRDSettingsExport_Click);
+            this.buttonRDSettingsExport.UseVisualStyleBackColor = true;
+            this.buttonRDSettingsExport.Click += new System.EventHandler(this.BtnRDSettingsExport_Click);
             // 
-            // btnCheck
+            // buttonCheck
             // 
-            this.btnCheck.Location = new System.Drawing.Point(247, 372);
-            this.btnCheck.Name = "btnCheck";
-            this.btnCheck.Size = new System.Drawing.Size(75, 23);
-            this.btnCheck.TabIndex = 4;
-            this.btnCheck.Text = "Check";
-            this.toolTip1.SetToolTip(this.btnCheck, "Load the factory default button assignments.");
-            this.btnCheck.UseVisualStyleBackColor = true;
-            this.btnCheck.Click += new System.EventHandler(this.BtnCheck_Click);
+            this.buttonCheck.Location = new System.Drawing.Point(247, 372);
+            this.buttonCheck.Name = "buttonCheck";
+            this.buttonCheck.Size = new System.Drawing.Size(75, 23);
+            this.buttonCheck.TabIndex = 4;
+            this.buttonCheck.Text = "Check";
+            this.toolTip1.SetToolTip(this.buttonCheck, "Load the factory default button assignments.");
+            this.buttonCheck.UseVisualStyleBackColor = true;
+            this.buttonCheck.Click += new System.EventHandler(this.BtnCheck_Click);
             // 
-            // btnRDReset
+            // buttonRDReset
             // 
-            this.btnRDReset.Location = new System.Drawing.Point(166, 372);
-            this.btnRDReset.Name = "btnRDReset";
-            this.btnRDReset.Size = new System.Drawing.Size(75, 23);
-            this.btnRDReset.TabIndex = 2;
-            this.btnRDReset.Text = "Defaults";
-            this.toolTip1.SetToolTip(this.btnRDReset, "Load the factory default button assignments.");
-            this.btnRDReset.UseVisualStyleBackColor = true;
-            this.btnRDReset.Click += new System.EventHandler(this.BtnRDReset_Click);
+            this.buttonRDReset.Location = new System.Drawing.Point(166, 372);
+            this.buttonRDReset.Name = "buttonRDReset";
+            this.buttonRDReset.Size = new System.Drawing.Size(75, 23);
+            this.buttonRDReset.TabIndex = 2;
+            this.buttonRDReset.Text = "Defaults";
+            this.toolTip1.SetToolTip(this.buttonRDReset, "Load the factory default button assignments.");
+            this.buttonRDReset.UseVisualStyleBackColor = true;
+            this.buttonRDReset.Click += new System.EventHandler(this.BtnRDReset_Click);
             // 
-            // btnStartRDCalibration
+            // buttonStartRDCalibration
             // 
-            this.btnStartRDCalibration.Location = new System.Drawing.Point(86, 372);
-            this.btnStartRDCalibration.Margin = new System.Windows.Forms.Padding(2);
-            this.btnStartRDCalibration.Name = "btnStartRDCalibration";
-            this.btnStartRDCalibration.Size = new System.Drawing.Size(75, 23);
-            this.btnStartRDCalibration.TabIndex = 3;
-            this.btnStartRDCalibration.Text = "Calibration";
-            this.toolTip1.SetToolTip(this.btnStartRDCalibration, "Calibrate the lever position reading");
-            this.btnStartRDCalibration.UseVisualStyleBackColor = true;
-            this.btnStartRDCalibration.Click += new System.EventHandler(this.StartRDCalibration_Click);
+            this.buttonStartRDCalibration.Location = new System.Drawing.Point(86, 372);
+            this.buttonStartRDCalibration.Margin = new System.Windows.Forms.Padding(2);
+            this.buttonStartRDCalibration.Name = "buttonStartRDCalibration";
+            this.buttonStartRDCalibration.Size = new System.Drawing.Size(75, 23);
+            this.buttonStartRDCalibration.TabIndex = 3;
+            this.buttonStartRDCalibration.Text = "Calibration";
+            this.toolTip1.SetToolTip(this.buttonStartRDCalibration, "Calibrate the lever position reading");
+            this.buttonStartRDCalibration.UseVisualStyleBackColor = true;
+            this.buttonStartRDCalibration.Click += new System.EventHandler(this.StartRDCalibration_Click);
             // 
-            // btnShowRDLegend
+            // buttonShowRDLegend
             // 
-            this.btnShowRDLegend.Location = new System.Drawing.Point(6, 372);
-            this.btnShowRDLegend.Name = "btnShowRDLegend";
-            this.btnShowRDLegend.Size = new System.Drawing.Size(75, 23);
-            this.btnShowRDLegend.TabIndex = 1;
-            this.btnShowRDLegend.Text = "Legend";
-            this.toolTip1.SetToolTip(this.btnShowRDLegend, "Show a legend of RailDriver board with button and lever description. Press cancel" +
+            this.buttonShowRDLegend.Location = new System.Drawing.Point(6, 372);
+            this.buttonShowRDLegend.Name = "buttonShowRDLegend";
+            this.buttonShowRDLegend.Size = new System.Drawing.Size(75, 23);
+            this.buttonShowRDLegend.TabIndex = 1;
+            this.buttonShowRDLegend.Text = "Legend";
+            this.toolTip1.SetToolTip(this.buttonShowRDLegend, "Show a legend of RailDriver board with button and lever description. Press cancel" +
         " to close again.");
-            this.btnShowRDLegend.UseVisualStyleBackColor = true;
-            this.btnShowRDLegend.Click += new System.EventHandler(this.BtnShowRDLegend_Click);
+            this.buttonShowRDLegend.UseVisualStyleBackColor = true;
+            this.buttonShowRDLegend.Click += new System.EventHandler(this.BtnShowRDLegend_Click);
             // 
             // panelRDSettings
             // 
@@ -1980,7 +1966,6 @@
             this.tabPageExperimental.Controls.Add(this.checkCircularSpeedGauge);
             this.tabPageExperimental.Controls.Add(this.checkSignalLightGlow);
             this.tabPageExperimental.Controls.Add(this.checkUseMSTSEnv);
-            this.tabPageExperimental.Controls.Add(this.checkUseLocationPassingPaths);
             this.tabPageExperimental.Controls.Add(this.labelPerformanceTunerTarget);
             this.tabPageExperimental.Controls.Add(this.numericPerformanceTunerTarget);
             this.tabPageExperimental.Controls.Add(this.checkPerformanceTuner);
@@ -2372,16 +2357,6 @@
             this.checkUseMSTSEnv.Text = "MSTS environments";
             this.checkUseMSTSEnv.UseVisualStyleBackColor = true;
             // 
-            // checkUseLocationPassingPaths
-            // 
-            this.checkUseLocationPassingPaths.AutoSize = true;
-            this.checkUseLocationPassingPaths.Location = new System.Drawing.Point(6, 166);
-            this.checkUseLocationPassingPaths.Name = "checkUseLocationPassingPaths";
-            this.checkUseLocationPassingPaths.Size = new System.Drawing.Size(215, 17);
-            this.checkUseLocationPassingPaths.TabIndex = 24;
-            this.checkUseLocationPassingPaths.Text = "Location-linked passing path processing";
-            this.checkUseLocationPassingPaths.UseVisualStyleBackColor = true;
-            // 
             // labelPerformanceTunerTarget
             // 
             this.labelPerformanceTunerTarget.AutoSize = true;
@@ -2725,7 +2700,6 @@
         private System.Windows.Forms.NumericUpDown numericPerformanceTunerTarget;
         private System.Windows.Forms.CheckBox checkPerformanceTuner;
         private System.Windows.Forms.CheckBox checkOverrideNonElectrifiedRoutes;
-        private System.Windows.Forms.CheckBox checkUseLocationPassingPaths;
         private System.Windows.Forms.TabPage tabPageEvaluate;
         private System.Windows.Forms.CheckedListBox checkListDataLogTSContents;
         private System.Windows.Forms.Label labelDataLogTSInterval;
@@ -2801,12 +2775,10 @@
         private System.Windows.Forms.CheckBox checkSpeedControl;
         private System.Windows.Forms.NumericUpDown numericExternalSoundPassThruPercent;
         private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.CheckBox checkAutopilot;
         private System.Windows.Forms.CheckBox checkDoubleWire;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.CheckBox checkDoorsAITrains;
         private System.Windows.Forms.CheckBox checkForcedRedAtStationStops;
-        private System.Windows.Forms.CheckBox checkExtendedAIShunting;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.NumericUpDown numericActRandomizationLevel;
         private System.Windows.Forms.Label label13;
@@ -2819,9 +2791,9 @@
         private System.Windows.Forms.Label label29;
         private System.Windows.Forms.TabPage tabPageRailDriver;
         private System.Windows.Forms.Panel panelRDSettings;
-        private System.Windows.Forms.Button btnShowRDLegend;
-        private System.Windows.Forms.Button btnStartRDCalibration;
-        private System.Windows.Forms.Button btnRDReset;
+        private System.Windows.Forms.Button buttonShowRDLegend;
+        private System.Windows.Forms.Button buttonStartRDCalibration;
+        private System.Windows.Forms.Button buttonRDReset;
         private System.Windows.Forms.Panel panelRDOptions;
         private System.Windows.Forms.Panel panelRDButtons;
         private System.Windows.Forms.GroupBox groupBoxReverseRDLevers;
@@ -2830,11 +2802,12 @@
         private System.Windows.Forms.CheckBox checkReverseAutoBrake;
         private System.Windows.Forms.CheckBox checkReverseThrottle;
         private System.Windows.Forms.CheckBox checkFullRangeThrottle;
-        private System.Windows.Forms.Button btnCheck;
-        private System.Windows.Forms.Button btnRDSettingsExport;
+        private System.Windows.Forms.Button buttonCheck;
+        private System.Windows.Forms.Button buttonRDSettingsExport;
         private System.Windows.Forms.Label label28;
         private System.Windows.Forms.TrackBar trackbarMultiSampling;
-        private System.Windows.Forms.Label lblMSAACount;
+        private System.Windows.Forms.CheckBox checkUseLocationPassingPaths;
+        private System.Windows.Forms.Label labelMSAACount;
         private System.Windows.Forms.CheckBox checkBoxFullScreenNativeResolution;
         private System.Windows.Forms.RadioButton radioButtonWindow;
         private System.Windows.Forms.RadioButton radioButtonFullScreen;
