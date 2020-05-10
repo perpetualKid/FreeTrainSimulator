@@ -188,37 +188,6 @@ namespace Orts.Simulation.RollingStocks
         public string LocomotiveName; // Name of locomotive from ENG file
 
         // Carriage Steam Heating Parameters
-        public Interpolator TrainHeatBoilerWaterUsageGalukpH;
-        public Interpolator TrainHeatBoilerFuelUsageGalukpH;
-
-        // Input values to allow the water and fuel usage of steam heating boiler to be calculated based upon Spanner SwirlyFlo Mk111 Boiler
-        static double[] SteamUsageLbpH = new double[]
-        {
-           0.0, 3000.0
-        };
-
-        // Water Usage
-        static double[] WaterUsageGalukpH = new double[]
-        {
-           0.0, 3000.0
-        };
-
-        // Fuel usage
-        static double[] FuelUsageGalukpH = new double[]
-        {
-           0.0, 31.0
-        };
-
-        public static Interpolator SteamHeatBoilerWaterUsageGalukpH()
-        {
-            return new Interpolator(SteamUsageLbpH, WaterUsageGalukpH);
-        }
-
-        public static Interpolator SteamHeatBoilerFuelUsageGalukpH()
-        {
-            return new Interpolator(SteamUsageLbpH, FuelUsageGalukpH);
-        }
-
         public float MaxSteamHeatPressurePSI;    // Maximum Steam heating pressure
         public Interpolator SteamHeatPressureToTemperaturePSItoF;
         public Interpolator SteamDensityPSItoLBpFT3;   // saturated steam density given pressure
@@ -1164,8 +1133,6 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Initialize()
         {
-            TrainHeatBoilerWaterUsageGalukpH = SteamHeatBoilerWaterUsageGalukpH();
-            TrainHeatBoilerFuelUsageGalukpH = SteamHeatBoilerFuelUsageGalukpH();
             
             TrainBrakeController.Initialize();
             EngineBrakeController.Initialize();

@@ -115,6 +115,22 @@ namespace Orts.Simulation.RollingStocks
         public List<int> SoundSourceIDs = new List<int>();
 
         // Used to calculate Carriage Steam Heat Loss - ToDo - ctn_steamer - consolidate these parameters with other steam heat ones, also check as some now may be obsolete
+        public Interpolator TrainHeatBoilerWaterUsageGalukpH;
+        public Interpolator TrainHeatBoilerFuelUsageGalukpH;
+
+        // Input values to allow the water and fuel usage of steam heating boiler to be calculated based upon Spanner SwirlyFlo Mk111 Boiler
+        static double[] SteamUsageLbpH = {0.0, 3000.0};
+
+        // Water Usage
+        static double[] WaterUsageGalukpH = { 0.0, 3000.0 };
+
+        // Fuel usage
+        static double[] FuelUsageGalukpH = { 0.0, 31.0};
+
+        public static Interpolator SteamHeatBoilerWaterUsageGalukpH { get; } = new Interpolator(SteamUsageLbpH, WaterUsageGalukpH);
+
+        public static Interpolator SteamHeatBoilerFuelUsageGalukpH { get; } = new Interpolator(SteamUsageLbpH, FuelUsageGalukpH);
+
         public float MainHeatPipeOuterDiaM = 0.073661016f; // Steel pipe OD = 1.9" + 1.0" insulation (0.5" either side of pipe) = 0.073661016m
         public float CompartmentHeatingPipeAreaFactor = 3.0f;
         public float DesiredCompartmentTempSetpointC = (float)Temperature.Celsius.FromF(55.0f); // This is the desired temperature for the passenger compartment heating
