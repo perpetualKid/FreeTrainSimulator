@@ -1145,7 +1145,6 @@ namespace Orts.Simulation.RollingStocks
             else
             {
                 IsSteamHeatFitted = true;
-                CurrentSteamHeatBoilerWaterCapacityL = SteamHeatBoilerWaterTankCapacityL;
             }
 
             SteamHeatPressureToTemperaturePSItoF = SteamTable.SteamHeatPressureToTemperatureInterpolatorPSItoF();

@@ -908,6 +908,10 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortsheatingcompartmentpipeareafactor": CompartmentHeatingPipeAreaFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "wagon(ortsheatingtrainpipeouterdiameter": MainHeatPipeOuterDiaM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(mass": InitialMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); if (InitialMassKG < 0.1f) InitialMassKG = 0.1f; break;
+                case "wagon(ortsheatingboilerwatertankcapacity": SteamHeatBoilerWaterTankCapacityL = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
+                case "wagon(ortsheatingboilerfueltankcapacity": SteamHeatBoilerFuelTankCapacityL = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
+                case "wagon(ortsheatingboilersteamusage": TrainHeatBoilerWaterUsageGalukpH = stf.CreateInterpolator(); break;
+                case "wagon(ortsheatingboilerfuelusage": TrainHeatBoilerFuelUsageGalukpH = stf.CreateInterpolator(); break;
                 case "wagon(wheelradius": WheelRadiusM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "engine(wheelradius": DriverWheelRadiusM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(sound": MainSoundFileName = stf.ReadStringBlock(null); break;
@@ -1218,6 +1222,10 @@ namespace Orts.Simulation.RollingStocks
             DesiredCompartmentTempSetpointC = copy.DesiredCompartmentTempSetpointC;
             CompartmentHeatingPipeAreaFactor = copy.CompartmentHeatingPipeAreaFactor;
             MainHeatPipeOuterDiaM = copy.MainHeatPipeOuterDiaM;
+            SteamHeatBoilerWaterTankCapacityL = copy.SteamHeatBoilerWaterTankCapacityL;
+            SteamHeatBoilerFuelTankCapacityL = copy.SteamHeatBoilerFuelTankCapacityL;
+            TrainHeatBoilerWaterUsageGalukpH = new Interpolator(copy.TrainHeatBoilerWaterUsageGalukpH);
+            TrainHeatBoilerFuelUsageGalukpH = new Interpolator(copy.TrainHeatBoilerFuelUsageGalukpH);
             DavisAN = copy.DavisAN;
             DavisBNSpM = copy.DavisBNSpM;
             DavisCNSSpMM = copy.DavisCNSSpMM;
