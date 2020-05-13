@@ -122,7 +122,7 @@ namespace Orts.Simulation.RollingStocks
         static double[] SteamUsageLbpH = {0.0, 3000.0};
 
         // Water Usage
-        static double[] WaterUsageGalukpH = { 0.0, 3000.0 };
+        static double[] WaterUsageGalukpH = { 0.0, 300.0 };
 
         // Fuel usage
         static double[] FuelUsageGalukpH = { 0.0, 31.0};
@@ -131,6 +131,8 @@ namespace Orts.Simulation.RollingStocks
 
         public static Interpolator SteamHeatBoilerFuelUsageGalukpH { get; } = new Interpolator(SteamUsageLbpH, FuelUsageGalukpH);
 
+        public bool IsSteamHeatBoilerLockedOut = false;
+        public float MaximumSteamHeatingBoilerSteamUsageRateLbpS;
         public float MaximiumSteamHeatBoilerFuelTankCapacityL = 1500.0f; // Capacity of the fuel tank for the steam heating boiler
         public float CurrentSteamHeatBoilerWaterCapacityL;  // Current water level
         public float CurrentSteamHeatBoilerFuelCapacityL;  // Current fuel level - only on steam vans, diesels use main diesel tank
