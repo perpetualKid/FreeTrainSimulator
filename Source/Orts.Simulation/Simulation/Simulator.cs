@@ -562,6 +562,7 @@ namespace Orts.Simulation
         {
             Train playerTrain = InitializePlayerTrain();
             InitializeStaticConsists();
+            AI = new AI(this, cancellation, ClockTime);
             if (playerTrain != null)
             {
                 var validPosition = playerTrain.PostInit();
