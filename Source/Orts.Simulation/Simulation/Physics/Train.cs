@@ -2217,10 +2217,10 @@ namespace Orts.Simulation.Physics
 
                         // Calculate Length of carriage and heat loss in main steam pipe
                         float CarMainSteamPipeTempF = (float)mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[car.CarSteamHeatMainPipeSteamPressurePSI];
-                        car.CarHeatSteamMainPipeHeatLossBTU = (float)(Size.Length.ToFt(car.CarLengthM) * (MathHelper.Pi * Size.Length.ToFt(car.MainHeatPipeOuterDiaM)) * HeatTransCoeffMainPipeBTUpFt2pHrpF * (CarMainSteamPipeTempF - Temperature.Celsius.ToF(car.CarOutsideTempC)));
+                        car.CarHeatSteamMainPipeHeatLossBTU = (float)(Size.Length.ToFt(car.CarLengthM) * (MathHelper.Pi * Size.Length.ToFt(car.MainSteamHeatPipeOuterDiaM)) * HeatTransCoeffMainPipeBTUpFt2pHrpF * (CarMainSteamPipeTempF - Temperature.Celsius.ToF(car.CarOutsideTempC)));
 
                         // calculate steam connecting hoses heat loss - assume 1.5" hose
-                        float ConnectSteamHoseOuterDiaFt = 0.1708f; // Rubber hose OD = 2.05"                  
+                        float ConnectSteamHoseOuterDiaFt = (float)Size.Length.ToFt(car.CarConnectSteamHoseOuterDiaM);                 
                         car.CarHeatConnectSteamHoseHeatLossBTU = (float)(ConnectSteamHoseLengthFt * (MathHelper.Pi * ConnectSteamHoseOuterDiaFt) * HeatTransCoeffConnectHoseBTUpFt2pHrpF * (CarMainSteamPipeTempF - Temperature.Celsius.ToF(car.CarOutsideTempC)));
 
                         // Use Napier formula to calculate steam discharge rate through steam trap valve, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
@@ -2330,13 +2330,9 @@ namespace Orts.Simulation.Physics
                         // dp = 0.0001306 * q^2 * L * (1 + 3.6/d) / (3600 * ρ * d^5)
                         // where dp = pressure drop (psi), q = steam flow rate(lb/ hr), L = length of pipe(ft), d = pipe inside diameter(inches), ρ = steam density(lb / ft3)
                         // Use values for the specific volume corresponding to the average pressure if the pressure drop exceeds 10 - 15 % of the initial absolute pressure
-
-                        float MainHeatPipeInnerDiaIn = 2.07f; // Steel pipe ID = 2.07"
-                        float ConnectSteamHoseInnerDiaIn = 2.0f; // Rubber hose ID = 2.0"
-
-                        float HeatPipePressureDropPSI = (float)((0.0001306f * SteamFlowRateLbpHr * SteamFlowRateLbpHr * Size.Length.ToFt(car.CarLengthM) * (1 + 3.6f / 2.5f)) / (3600 * mstsLocomotive.SteamDensityPSItoLBpFT3[mstsLocomotive.CurrentSteamHeatPressurePSI] * (float)Math.Pow(MainHeatPipeInnerDiaIn, 5.0f)));
-                        float ConnectHosePressureDropPSI = (float)((0.0001306f * SteamFlowRateLbpHr * SteamFlowRateLbpHr * ConnectSteamHoseLengthFt * (1 + 3.6f / 2.5f)) / (3600 * mstsLocomotive.SteamDensityPSItoLBpFT3[mstsLocomotive.CurrentSteamHeatPressurePSI] * (float)Math.Pow(ConnectSteamHoseInnerDiaIn, 5.0f)));
-
+                        
+                        float HeatPipePressureDropPSI = (float)((0.0001306f * SteamFlowRateLbpHr * SteamFlowRateLbpHr * Size.Length.ToFt(car.CarLengthM) * (1 + 3.6f / 2.5f)) / (3600 * mstsLocomotive.SteamDensityPSItoLBpFT3[mstsLocomotive.CurrentSteamHeatPressurePSI] * (float)Math.Pow(car.MainSteamHeatPipeInnerDiaM, 5.0f)));
+                        float ConnectHosePressureDropPSI = (float)((0.0001306f * SteamFlowRateLbpHr * SteamFlowRateLbpHr * ConnectSteamHoseLengthFt * (1 + 3.6f / 2.5f)) / (3600 * mstsLocomotive.SteamDensityPSItoLBpFT3[mstsLocomotive.CurrentSteamHeatPressurePSI] * (float)Math.Pow(car.CarConnectSteamHoseInnerDiaM, 5.0f)));
                         float CarPressureDropPSI = HeatPipePressureDropPSI + ConnectHosePressureDropPSI;
 
                         ProgressivePressureAlongTrainPSI -= CarPressureDropPSI;
