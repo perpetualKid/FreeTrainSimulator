@@ -2347,7 +2347,7 @@ namespace Orts.Simulation.Physics
                         {
 
                             // Don't process if water or fule capacities are low
-                            if (mstsLocomotive.CurrentSteamHeatPressurePSI > 0 && car.CurrentSteamHeatBoilerFuelCapacityL > 0 && car.CurrentSteamHeatBoilerWaterCapacityL > 0 && !car.IsSteamHeatBoilerLockedOut)
+                            if (mstsLocomotive.CurrentSteamHeatPressurePSI > 0 && car.CurrentSteamHeatBoilerFuelCapacityL > 0 && car.CurrentCarSteamHeatBoilerWaterCapacityL > 0 && !car.IsSteamHeatBoilerLockedOut)
                             {
                                 // Test boiler steam capacity can deliever steam required for the system
                                 if (mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS > car.MaximumSteamHeatingBoilerSteamUsageRateLbpS)
@@ -2365,7 +2365,7 @@ namespace Orts.Simulation.Physics
 
                                 // Calculate water usage for steam heat boiler
                                 double WaterUsageLpS = Size.LiquidVolume.FromGallonUK(Frequency.Periodic.FromHours(car.TrainHeatBoilerWaterUsageGalukpH[Frequency.Periodic.ToHours(mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS)]));
-                                car.CurrentSteamHeatBoilerWaterCapacityL -= (float)(WaterUsageLpS * elapsedClockSeconds); // Reduce tank capacity as water used.
+                                car.CurrentCarSteamHeatBoilerWaterCapacityL -= (float)(WaterUsageLpS * elapsedClockSeconds); // Reduce tank capacity as water used.
                                 car.MassKG -= (float)(WaterUsageLpS * elapsedClockSeconds); // Reduce locomotive weight as Steam heat boiler uses water - NB 1 litre of water = 1 kg.
                             }
                         }
