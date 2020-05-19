@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2020-04-01 01:30:38+0200\n"
-"PO-Revision-Date: 2020-04-01 01:30:38+0200\n"
+"POT-Creation-Date: 2020-05-21 17:47:32+0200\n"
+"PO-Revision-Date: 2020-05-21 17:47:32+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -196,40 +196,40 @@ msgid "MSG to Server"
 msgstr ""
 
 #: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.cs:567
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:227
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:224
 msgid "MSG to All"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:93
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:91
 msgid "View Train"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:138
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:134
 msgid "m"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:159
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:155
 msgid "Remove"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:174
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:169
 msgid "Auto Switch"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:189
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:183
 msgid "Show Avatars"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:215
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:210
 msgid "MSG to Selected"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:238
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:237
 #: ../../ActivityRunner/Viewer3D/Debugging/MessageViewer.Designer.cs:88
 msgid "Compose MSG"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:251
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:249
 msgid "Res"
 msgstr ""
 
@@ -237,47 +237,47 @@ msgstr ""
 msgid "Reply to Selected"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:276
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:275
 msgid "Draw Path"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:326
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:322
 msgid "Pick Signals"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:340
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:335
 msgid "Pick Switches"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:354
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:348
 msgid "Can Join"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:378
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:371
 msgid "Assist"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:390
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:383
 msgid "Normal"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:403
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:395
 msgid "Follow"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:418
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:409
 msgid "Penalty"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:433
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:423
 msgid "Prefer Green"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:447
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:436
 msgid "See in Game"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:486
+#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:474
 msgid "DispatchViewer"
 msgstr ""
 
@@ -718,28 +718,6 @@ msgstr ""
 msgid "A report file was created:"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:733
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:738
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:760
-msgid "Diesel"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:742
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:748
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:761
-msgid "Steam"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:742
-msgid "Engine"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:753
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:755
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:762
-msgid "Electric"
-msgstr ""
-
 #: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:763
 msgid " Diesel. "
 msgstr ""
@@ -974,14 +952,6 @@ msgstr ""
 msgid "Cab Aspect"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:502
-msgid "R"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:502
-msgid "F"
-msgstr ""
-
 #: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:503
 #: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:525
 #: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:858
@@ -991,6 +961,7 @@ msgstr ""
 
 #: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:503
 #: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:525
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:858
 #: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1047
 msgid "No"
 msgstr ""
@@ -1518,6 +1489,26 @@ msgid_plural "{0} logical processors"
 msgstr[0] ""
 msgstr[1] ""
 
+#. Context: Cab
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:502
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:529
+msgctxt "Cab"
+msgid "R"
+msgstr ""
+
+#. Context: Cab
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:502
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:529
+msgctxt "Cab"
+msgid "F"
+msgstr ""
+
+#. Context: Cab
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:529
+msgctxt "Cab"
+msgid "D"
+msgstr ""
+
 #. Context: Steam
 #: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:566
 msgctxt "Steam"
@@ -1528,6 +1519,48 @@ msgstr ""
 #: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:566
 msgctxt "NonSteam"
 msgid "Reverser"
+msgstr ""
+
+#. Context: Coupler
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:852
+msgctxt "Coupler"
+msgid "F"
+msgstr ""
+
+#. Context: Coupler
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:852
+msgctxt "Coupler"
+msgid "R"
+msgstr ""
+
+#. Context: Coupler
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:852
+msgctxt "Coupler"
+msgid "N"
+msgstr ""
+
+#. Context: Coupler
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:852
+msgctxt "Coupler"
+msgid "xxx"
+msgstr ""
+
+#. Context: Coupler
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:852
+msgctxt "Coupler"
+msgid "O/L"
+msgstr ""
+
+#. Context: Coupler
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:852
+msgctxt "Coupler"
+msgid "Pull"
+msgstr ""
+
+#. Context: Coupler
+#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:852
+msgctxt "Coupler"
+msgid "Push"
 msgstr ""
 
 #: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:60
@@ -1759,19 +1792,15 @@ msgid "Front"
 msgstr ""
 
 #: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:112
-msgid "This portion will continue as train : "
+#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:117
+#, csharp-format
+msgid "This portion will continue as train : {0}"
 msgstr ""
 
 #: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:113
-msgid " portion will form train : "
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:117
-msgid "This portion will form into train : "
-msgstr ""
-
 #: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:118
-msgid " portion will continue as train : "
+#, csharp-format
+msgid "{0} portion will form train : {1}"
 msgstr ""
 
 #: ../../ActivityRunner/Viewer3D/Popups/WindowText.cs:152
@@ -1780,7 +1809,7 @@ msgid ""
 "\",.-+|!$%&/()=?;:'_[]"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Processes/GameStateRunActivity.cs:1195
+#: ../../ActivityRunner/Viewer3D/Processes/GameStateActivityRunner.cs:1195
 #, csharp-format
 msgid "Activity Save file '*.save' not found in folder {0}"
 msgstr ""
