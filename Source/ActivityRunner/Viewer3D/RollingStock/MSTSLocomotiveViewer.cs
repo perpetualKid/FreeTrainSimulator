@@ -2191,6 +2191,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         protected Rectangle DrawPosition;
         string DrawText;
         Color DrawColor;
+        float DrawRotation;
 
         //[CallOnThread("Loader")]
         public CabViewDigitalRenderer(Viewer viewer, MSTSLocomotive car, CabViewDigitalControl digital, CabShader shader)
@@ -2225,6 +2226,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             DrawPosition.Y = (int)((Position.Y + Control.Bounds.Height / 2) * Viewer.CabHeightPixels / 480) - DrawFont.Height / 2 + Viewer.CabYOffsetPixels + Viewer.CabYLetterboxPixels;
             DrawPosition.Width = (int)(Control.Bounds.Width * Viewer.DisplaySize.X / 640);
             DrawPosition.Height = (int)(Control.Bounds.Height * Viewer.DisplaySize.Y / 480);
+            DrawRotation = digital.Rotation;
 
             if (Control.ControlType == CabViewControlType.Clock)
             {
@@ -2283,7 +2285,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public override void Draw()
         {
-            DrawFont.Draw(CabShaderControlView.SpriteBatch, DrawPosition, Point.Zero, DrawText, Alignment, DrawColor);
+            DrawFont.Draw(CabShaderControlView.SpriteBatch, DrawPosition, Point.Zero, DrawRotation, DrawText, Alignment, DrawColor, Color.Black);
         }
 
         public string GetDigits(out Color DrawColor)
