@@ -399,7 +399,15 @@ namespace Orts.Simulation.RollingStocks
             }
             MaximumSteamHeatingBoilerSteamUsageRateLbpS = (float)TrainHeatBoilerWaterUsageGalukpH.MaxX(); // Find maximum steam capacity of the generator based upon the information in the water usage table
             CurrentSteamHeatBoilerFuelCapacityL = MaximiumSteamHeatBoilerFuelTankCapacityL;
-            CurrentCarSteamHeatBoilerWaterCapacityL = MaximumSteamHeatBoilerWaterTankCapacityL;
+
+            if (MaximumSteamHeatBoilerWaterTankCapacityL != 0)
+            {
+                CurrentCarSteamHeatBoilerWaterCapacityL = MaximumSteamHeatBoilerWaterTankCapacityL;
+            }
+            else
+            {
+                CurrentCarSteamHeatBoilerWaterCapacityL = (float)Size.LiquidVolume.FromGallonUK(800.0f);
+            }
 
             // If Drag constant not defined in WAG/ENG file then assign default value based upon orig Davis values
             if (DavisDragConstant == 0)

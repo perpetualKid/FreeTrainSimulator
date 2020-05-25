@@ -1452,7 +1452,6 @@ namespace Orts.Simulation.RollingStocks
             TrainControlSystem.Update();
 
             UpdatePowerSupply(elapsedClockSeconds);
-
             UpdateControllers(elapsedClockSeconds);
 
             // Train Heading - only check the lead locomotive otherwise flipped locomotives further in consist will overwrite the train direction
@@ -1471,6 +1470,11 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
+            if (IsSteamHeatFitted)
+            {
+                UpdateCarSteamHeat(elapsedClockSeconds);
+            }
+ 
             // TODO  this is a wild simplification for electric and diesel electric
             float t = ThrottlePercent / 100f;
 
@@ -1693,6 +1697,13 @@ namespace Orts.Simulation.RollingStocks
         /// This function updates periodically the states and physical variables of the locomotive's power supply.
         /// </summary>
         protected virtual void UpdatePowerSupply(double elapsedClockSeconds)
+        {
+        }
+
+        /// <summary>
+        /// This function updates periodically the steam heating in wagons.
+        /// </summary>
+        protected virtual void UpdateCarSteamHeat(double elapsedClockSeconds)
         {
         }
 
@@ -2399,7 +2410,7 @@ namespace Orts.Simulation.RollingStocks
                 if (EngineType == EngineTypes.Steam)
                 {
                     const float NominalExtraWaterVolumeFactor = 1.0001f;
-                    CombinedTenderWaterVolumeUKG += (float)Size.LiquidVolume.ToGallonUK(WaterScoopInputAmountL); // add the amouunt of water added by scoop
+                    CombinedTenderWaterVolumeUKG += (float)Size.LiquidVolume.ToGallonUK(WaterScoopInputAmountL); // add the amount of water added by scoop
                     WaterScoopTotalWaterL += WaterScoopInputAmountL;
                     CombinedTenderWaterVolumeUKG = MathHelper.Clamp(CombinedTenderWaterVolumeUKG, 0.0f, MaxTotalCombinedWaterVolumeUKG * NominalExtraWaterVolumeFactor);
                 }

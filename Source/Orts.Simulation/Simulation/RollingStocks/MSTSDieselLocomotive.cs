@@ -416,6 +416,14 @@ namespace Orts.Simulation.RollingStocks
             {
                 CurrentLocomotiveSteamHeatBoilerWaterCapacityL = RestoredCurrentLocomotiveSteamHeatBoilerWaterCapacityL;
             }
+            else if (MaximumSteamHeatBoilerWaterTankCapacityL != 0)
+            {
+                CurrentLocomotiveSteamHeatBoilerWaterCapacityL = MaximumSteamHeatBoilerWaterTankCapacityL;
+            }
+            else
+            {
+                CurrentLocomotiveSteamHeatBoilerWaterCapacityL = (float)Size.LiquidVolume.FromGallonUK(800.0f);
+            }
             // Check force assumptions set for diesel
             if (EngineType == EngineTypes.Diesel && SpeedOfMaxContinuousForceMpS != 0)
             {
@@ -506,8 +514,6 @@ namespace Orts.Simulation.RollingStocks
             FuelController.Update(elapsedClockSeconds);
             if (FuelController.UpdateValue > 0.0)
                 Simulator.Confirmer.UpdateWithPerCent(CabControl.DieselFuel, CabSetting.Increase, FuelController.CurrentValue * 100);
-
-            UpdateCarSteamHeat(elapsedClockSeconds);
         
         }
 
@@ -914,7 +920,7 @@ namespace Orts.Simulation.RollingStocks
             base.SwitchToAutopilotControl();
         }
 
-        private void UpdateCarSteamHeat(double elapsedClockSeconds)
+        protected override void UpdateCarSteamHeat(double elapsedClockSeconds)
         {
             // Update Steam Heating System
 
