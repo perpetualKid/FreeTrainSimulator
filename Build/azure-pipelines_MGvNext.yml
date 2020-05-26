@@ -49,8 +49,8 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'custom'
-    custom: 'tool install'
-    arguments: '-g dotnet-mgfxc --version 3.8.0.1368-develop'
+    custom: 'tool'
+    arguments: 'install -g dotnet-mgfxc --version 3.8.0.1368-develop'
     
 - task: PowerShell@2
   inputs:
