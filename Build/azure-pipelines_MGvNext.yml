@@ -8,7 +8,10 @@ trigger:
     'true'
   branches:
     include:
-    - master
+    - Monogame_vNext
+  paths:
+    exclude:
+      - Build/*
 
 pool:
   vmImage: 'VS2017-Win2016'
