@@ -50,8 +50,10 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'custom'
-#    custom: 'tool'
-    arguments: 'tool install -g dotnet-mgfxc --version 3.8.0.1368-develop'
+    custom: 'tool install'
+    arguments: '-g dotnet-mgfxc --version 3.8.0.1368-develop'
+    feedsToUse: 'select'
+    vstsFeed: '283d8d46-b3e8-423b-b1fc-4cf79c2aff85/c4b6a39f-ba16-4ca3-bd44-6112137242ac'
     
 - task: PowerShell@2
   inputs:
