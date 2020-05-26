@@ -23,7 +23,7 @@ variables:
   outputFile: '$(Build.BuildId)'
 
 steps:
-- checkout: none
+#- checkout: none
 - task: NuGetToolInstaller@1
   inputs:
     versionSpec: 
@@ -53,11 +53,15 @@ steps:
     custom: 'tool'
     arguments: 'install -g dotnet-mgfxc --version 3.8.0.1368-develop --add-source https://pkgs.dev.azure.com/perpetualKid/ORTS-MG/_packaging/Monogame_vNext/nuget/v3/index.json'
     
+- task: CmdLine@2
+  inputs:
+    script: 'FOR %%i IN (./Source/ActivityRunner/Content/*.fx) DO ( dotnet mgfxc ./Program/Content/%%~nxi %%~ni.mgfx /Profile:DirectX_11 )'
+
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
     script: '$Revision = git describe --first-parent --always;
-    $Version=Get-Content "./Program/Version.txt" -First 1;
+    $Version=Get-Content "Version.txt" -First 1;
     $Revision = "$Version-$(Build.BuildId)-$Revision";
     Set-Content "./Program/Revision.txt" "`$Revision: $Revision `$";
     (Get-Content "./Program/Version.txt" | select -skip 1 )| Set-Content "./Program/Version.txt";
