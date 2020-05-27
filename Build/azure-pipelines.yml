@@ -9,6 +9,9 @@ trigger:
   branches:
     include:
     - master
+  paths:
+    exclude: # file paths which will not trigger a build
+    - Build/*
 
 pool:
   vmImage: 'VS2017-Win2016'
