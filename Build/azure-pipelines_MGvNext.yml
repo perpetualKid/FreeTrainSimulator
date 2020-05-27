@@ -57,7 +57,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: '$Revision = git describe --first-parent --always;
-    $Version=Get-Content "Version.txt" -First 1;
+    $Version=Get-Content ""./Program/Version.txt" -First 1;
     $Revision = "$Version-$(Build.BuildId)-$Revision";
     Set-Content "./Program/Revision.txt" "`$Revision: $Revision `$";
     (Get-Content "./Program/Version.txt" | select -skip 1 )| Set-Content "./Program/Version.txt";
