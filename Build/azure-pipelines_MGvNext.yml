@@ -36,26 +36,22 @@ steps:
     vstsFeed: '283d8d46-b3e8-423b-b1fc-4cf79c2aff85/c4b6a39f-ba16-4ca3-bd44-6112137242ac'
     includeNuGetOrg: true
 
-#- task: VSBuild@1
-#  inputs:
-#    solution: '$(solution)'
-#    platform: '$(buildPlatform)'
-#    configuration: '$(buildConfiguration)'
-
-#- task: VSTest@2
-#  inputs:
-#    platform: '$(buildPlatform)'
-#    configuration: '$(buildConfiguration)'
-
 - task: DotNetCoreCLI@2
   inputs:
     command: 'custom'
     custom: 'tool'
     arguments: 'install -g dotnet-mgfxc --version 3.8.0.1368-develop --add-source https://pkgs.dev.azure.com/perpetualKid/ORTS-MG/_packaging/Monogame_vNext/nuget/v3/index.json'
     
-- task: CmdLine@2
+- task: VSBuild@1
   inputs:
-    script: 'FOR %%i IN (./Source/ActivityRunner/Content/*.fx) DO ( mgfxc ./Source/ActivityRunner/Content/%%~i ./Program/Content/%%~ni.mgfx /Profile:DirectX_11 )'
+    solution: '$(solution)'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: VSTest@2
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
 
 - task: PowerShell@2
   inputs:
@@ -71,26 +67,26 @@ steps:
     git log --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%dT%H:%MZ" -100 | ConvertFrom-Csv -Delimiter "|" -Header "Commit", "Date", "Author", "Message" | ConvertTo-Json | %{[Regex]::Replace($_, "\\u(?<Value>[a-zA-Z0-9]{4})", { param($m) ([char]([int]::Parse($m.Groups["Value"].Value,[System.Globalization.NumberStyles]::HexNumber))).ToString() } )} | Out-File $(Build.ArtifactStagingDirectory)/history.json;
 @{version="$Version";date=(get-date).ToString("yyyy-MM-ddTHH:mmZ");url="ci-builds/releases/$Version.zip"}| ConvertTo-Json | Out-File $(Build.ArtifactStagingDirectory)/version.json'
 
-#- task: ArchiveFiles@2
-#  inputs:
-#    rootFolderOrFile: './Program/'
-#    includeRootFolder: true 
-#    archiveFile: "$(Build.ArtifactStagingDirectory)/$(outputFile).zip"  
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: './Program/'
+    includeRootFolder: true 
+    archiveFile: "$(Build.ArtifactStagingDirectory)/$(outputFile).zip"  
 
-#- task: AzureFileCopy@3
-#  inputs:
-#    SourcePath: '$(Build.ArtifactStagingDirectory)/$(outputFile).zip'
-#    ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
-#    Destination: 'AzureBlob'
-#    StorageAccountRM: 'ultimaterails'
-#    ContainerName: 'ci-builds-mg38'
-#    BlobPrefix: 'releases'
+- task: AzureFileCopy@3
+  inputs:
+    SourcePath: '$(Build.ArtifactStagingDirectory)/$(outputFile).zip'
+    ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+    Destination: 'AzureBlob'
+    StorageAccountRM: 'ultimaterails'
+    ContainerName: 'ci-builds-mg38'
+    BlobPrefix: 'releases'
 
-#- task: AzureFileCopy@3
-#  inputs:
-#    SourcePath: '$(Build.ArtifactStagingDirectory)'
-#    ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
-#    Destination: 'AzureBlob'
-#    StorageAccountRM: 'ultimaterails'
-#    ContainerName: 'ci-builds-mg38'
-#    additionalArgumentsForBlobCopy: '/Pattern:*.json /Y'
+- task: AzureFileCopy@3
+  inputs:
+    SourcePath: '$(Build.ArtifactStagingDirectory)'
+    ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+    Destination: 'AzureBlob'
+    StorageAccountRM: 'ultimaterails'
+    ContainerName: 'ci-builds-mg38'
+    additionalArgumentsForBlobCopy: '/Pattern:*.json /Y'
