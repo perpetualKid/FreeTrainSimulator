@@ -55,7 +55,7 @@ steps:
     
 - task: CmdLine@2
   inputs:
-    script: 'FOR %%i IN (./Source/ActivityRunner/Content/*.fx) DO ( mgfxc ./Program/Content/%%~nxi %%~ni.mgfx /Profile:DirectX_11 )'
+    script: 'FOR %%i IN (./Source/ActivityRunner/Content/*.fx) DO ( mgfxc %%~fi ./Program/Content/%%~ni.mgfx /Profile:DirectX_11 )'
 
 - task: PowerShell@2
   inputs:
