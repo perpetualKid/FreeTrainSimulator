@@ -36,23 +36,22 @@ steps:
     vstsFeed: '283d8d46-b3e8-423b-b1fc-4cf79c2aff85/c4b6a39f-ba16-4ca3-bd44-6112137242ac'
     includeNuGetOrg: true
 
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: 
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'custom'
     custom: 'tool'
     arguments: 'install -g dotnet-mgfxc --version 3.8.0.1368-develop --add-source https://pkgs.dev.azure.com/perpetualKid/ORTS-MG/_packaging/Monogame_vNext/nuget/v3/index.json'
 
-- task: DotNetCoreCLI@2
+- task: VSBuild@1
   inputs:
-    command: 'custom'
-    custom: 'tool'
-    arguments: 'list --global'
-
-#- task: VSBuild@1
-#  inputs:
-#    solution: '$(solution)'
-#    platform: '$(buildPlatform)'
-#    configuration: '$(buildConfiguration)'
+    solution: '$(solution)'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
 
 #- task: VSTest@2
 #  inputs:
