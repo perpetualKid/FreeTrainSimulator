@@ -23,7 +23,7 @@ variables:
   outputFile: '$(Build.BuildId)'
 
 steps:
-- checkout: none
+#- checkout: none
 - task: NuGetToolInstaller@1
   inputs:
     versionSpec: 
