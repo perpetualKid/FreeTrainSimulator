@@ -8,7 +8,10 @@ trigger:
     'true'
   branches:
     include:
-    - master
+    - Monogame_vNext
+  paths:
+    exclude:
+      - Build/*
 
 pool:
   vmImage: 'VS2017-Win2016'
@@ -20,16 +23,25 @@ variables:
   outputFile: '$(Build.BuildId)'
 
 steps:
+#- checkout: none
 - task: NuGetToolInstaller@1
   inputs:
     versionSpec: 
-
+    
 - task: NuGetCommand@2
   inputs:
     command: 'restore'
+    restoreSolution: '**/*.sln'
     feedsToUse: 'select'
-    restoreSolution: '$(solution)'
+    vstsFeed: '283d8d46-b3e8-423b-b1fc-4cf79c2aff85/c4b6a39f-ba16-4ca3-bd44-6112137242ac'
+    includeNuGetOrg: true
 
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'custom'
+    custom: 'tool'
+    arguments: 'install -g dotnet-mgfxc --version 3.8.0.1368-develop --add-source https://pkgs.dev.azure.com/perpetualKid/ORTS-MG/_packaging/Monogame_vNext/nuget/v3/index.json'
+    
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
@@ -45,7 +57,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: '$Revision = git describe --first-parent --always;
-    $Version=Get-Content "./Program/Version.txt" -First 1;
+    $Version=Get-Content "Version.txt" -First 1;
     $Revision = "$Version-$(Build.BuildId)-$Revision";
     Set-Content "./Program/Revision.txt" "`$Revision: $Revision `$";
     (Get-Content "./Program/Version.txt" | select -skip 1 )| Set-Content "./Program/Version.txt";
@@ -67,7 +79,7 @@ steps:
     ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
     Destination: 'AzureBlob'
     StorageAccountRM: 'ultimaterails'
-    ContainerName: 'ci-builds'
+    ContainerName: 'ci-builds-mg38'
     BlobPrefix: 'releases'
 
 - task: AzureFileCopy@3
@@ -76,5 +88,5 @@ steps:
     ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
     Destination: 'AzureBlob'
     StorageAccountRM: 'ultimaterails'
-    ContainerName: 'ci-builds'
+    ContainerName: 'ci-builds-mg38'
     additionalArgumentsForBlobCopy: '/Pattern:*.json /Y'
