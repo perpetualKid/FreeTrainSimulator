@@ -213,6 +213,7 @@ namespace Orts.Common
         PlayerDiesel,
         HelperDiesel,
         DieselFuel,
+        SteamHeatBoilerWater,
         // Steam power
         SteamLocomotiveReverser,
         Regulator,
