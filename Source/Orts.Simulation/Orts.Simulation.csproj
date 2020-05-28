@@ -138,7 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX">
-      <Version>3.8.0.1368-develop</Version>
+      <Version>3.8.0.1375-develop</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
