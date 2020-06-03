@@ -1223,6 +1223,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private CabSpriteBatchMaterial _SpriteShader2DCabView;
         private Matrix _Scale = Matrix.Identity;
         private Texture2D _CabTexture;
+        private readonly Texture2D letterboxTexture;
         private CabShader _Shader;  // Shaders must have unique Keys - below
         private int ShaderKey = 1;  // Shader Key must refer to only o
 
@@ -1247,6 +1248,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             DisplaySize.Y = _Viewer.CabHeightPixels;
 
             _PrevScreenSize = DisplaySize;
+
+            letterboxTexture = new Texture2D(viewer.RenderProcess.GraphicsDevice, 1, 1);
+            letterboxTexture.SetData(new Color[] { Color.Black });
 
             // Use same shader for both front-facing and rear-facing cabs.
             if (_Locomotive.CabViewList[(int)CabViewType.Front].ExtendedCVF != null)
@@ -1549,8 +1553,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             _SpriteShader2DCabView.SpriteBatch.Draw(_CabTexture, drawPos, cabRect, Color.White, 0f, drawOrigin, cabScale, SpriteEffects.None, 0f);
 
             // Draw letterboxing.
-            Texture2D letterboxTexture = new Texture2D(graphicsDevice, 1, 1);
-            letterboxTexture.SetData<Color>(new Color[] { Color.Black });
             void drawLetterbox(int x, int y, int w, int h)
             {
                 _SpriteShader2DCabView.SpriteBatch.Draw(letterboxTexture, new Rectangle(x, y, w, h), Color.White);
