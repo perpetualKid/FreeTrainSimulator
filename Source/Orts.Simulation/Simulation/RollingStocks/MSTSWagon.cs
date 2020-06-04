@@ -80,7 +80,6 @@ namespace Orts.Simulation.RollingStocks
         public bool IsStandStill = true;  // Used for MSTS type friction
         public bool IsDavisFriction = true; // Default to new Davis type friction
         public bool IsLowSpeed = true; // set indicator for low speed operation  0 - 5mph
-        public bool IsORTSFriction = true; // Default to new Davis type friction
         public bool IsBelowMergeSpeed = true; // set indicator for low speed operation as per given speed
 
         Interpolator BrakeShoeFrictionFactor;  // Factor of friction for wagon brake shoes
@@ -1271,7 +1270,6 @@ namespace Orts.Simulation.RollingStocks
             FrictionC2 = copy.FrictionC2;
             FrictionE2 = copy.FrictionE2;
             EffectData = copy.EffectData;
-            IsORTSFriction = copy.IsORTSFriction;
             IsBelowMergeSpeed = copy.IsBelowMergeSpeed;
             StandstillFrictionN = copy.StandstillFrictionN;
             MergeSpeedFrictionN = copy.MergeSpeedFrictionN;
@@ -1437,7 +1435,6 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(DavisCNSSpMM);
             outf.Write(StandstillFrictionN);
             outf.Write(MergeSpeedFrictionN);
-            outf.Write(IsORTSFriction);
             outf.Write(IsBelowMergeSpeed);
             outf.Write(MergeSpeedMpS);
             outf.Write(MassKG);
@@ -1481,7 +1478,6 @@ namespace Orts.Simulation.RollingStocks
             DavisAN = inf.ReadSingle();
             DavisBNSpM = inf.ReadSingle();
             DavisCNSSpMM = inf.ReadSingle();
-            IsORTSFriction = inf.ReadBoolean();
             StandstillFrictionN = inf.ReadSingle();
             MergeSpeedFrictionN = inf.ReadSingle();
             IsBelowMergeSpeed = inf.ReadBoolean();
@@ -1771,524 +1767,479 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-
         private void UpdateTrainBaseResistance()
         {
-            if (IsDavisFriction == true) // test to see if OR thinks that Davis Values have been entered in WG file.
+            IsDavisFriction = DavisAN != 0 && DavisBNSpM != 0 && DavisCNSSpMM != 0; // test to see if OR thinks that Davis Values have been entered in WG file.
+            IsLowSpeed = AbsSpeedMpS < Speed.MeterPerSecond.FromMpH(5f);
+            IsBelowMergeSpeed = AbsSpeedMpS < MergeSpeedMpS;
+            IsStandStill = AbsSpeedMpS < 0.1f;
+            bool isStartingFriction = StandstillFrictionN != 0 && MergeSpeedMpS != 0;
+
+            if (IsDavisFriction) // If set to use next Davis friction then do so
             {
-                if (DavisAN == 0 || DavisBNSpM == 0 || DavisCNSSpMM == 0) // If Davis parameters are not defined in WAG file, then set falg to use default friction values
-                    IsDavisFriction = false; // set to false - indicating that Davis friction is not used
-            }
-            if (IsORTSFriction == true && IsDavisFriction == true) // test to see if OR thinks that Davis Values have been entered in WG file.
-            {
-                if (StandstillFrictionN == 0 || MergeSpeedMpS == 0) // If Davis parameters are not defined in WAG file, then set falg to use default friction values
-                    IsORTSFriction = false; // set to false - indicating that Davis friction is not used
-            }
-            if (IsORTSFriction) // test to see if OR thinks that Davis Values have been entered in WAG file.
-            {
-                // Davis formulas only apply above merge speed, so different treatment required for low speed
-                if (AbsSpeedMpS > Speed.MeterPerSecond.FromMpH(MergeSpeedMpS / 1.609344f * 3.6f))     // if speed above merge speed then turn off low speed calculations
-                    IsBelowMergeSpeed = false;
-                else if (AbsSpeedMpS < Speed.MeterPerSecond.FromMpH(MergeSpeedMpS / 1.60934f * 3.6f))
-                    IsBelowMergeSpeed = true;
-                if (AbsSpeedMpS <= 0.0)
-                    IsBelowMergeSpeed = true;
-
-                if (IsBelowMergeSpeed)
-                {
-                    // Dtermine the starting friction factor based upon the type of bearing
-                    float StartFrictionLoadN = StandstillFrictionN;  // Starting friction
-
-                    // Determine the starting resistance due to wheel bearing temperature
-                    // Note reference values in lbf and US tons - converted to metric values as appropriate
-                    // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
-                    // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
-                    const float RunGrad = -0.0085714285714286f;
-                    const float RunIntersect = 1.2142857142857f;
-                    if (WheelBearingTemperatureDegC < -10) // Set to snowing (frozen value)
-                        StartFrictionLoadN = 1.2f;  // Starting friction, snowing
-                    else if (WheelBearingTemperatureDegC > 25) // Set to normal temperature value
-                        StartFrictionLoadN = 1.0f;  // Starting friction, not snowing
-                    else // Set to variable value as bearing heats and cools
-                        StartFrictionLoadN = RunGrad * WheelBearingTemperatureDegC + RunIntersect;
-                    StaticFrictionFactorN = StartFrictionLoadN;
-
-                    // Determine the running resistance due to wheel bearing temperature
-                    float WheelBearingTemperatureResistanceFactor = 0;
-
-                    // Assume the running resistance is impacted by wheel bearing temperature, ie gets higher as tmperature decreasses. This will only impact the A parameter as it is related to
-                    // bearing. Assume that resistance will increase by 30% as temperature drops below 0 DegC.
-                    // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
-                    // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
-
-                    if (WheelBearingTemperatureDegC < -10) // Set to snowing (frozen value)
-                        WheelBearingTemperatureResistanceFactor = 1.3f;
-                    else if (WheelBearingTemperatureDegC > 25) // Set to normal temperature value
-                        WheelBearingTemperatureResistanceFactor = 1.0f;
-                    else // Set to variable value as bearing heats and cools
-                        WheelBearingTemperatureResistanceFactor = RunGrad * WheelBearingTemperatureDegC + RunIntersect;
-                    // If hot box has been initiated, then increase friction on the wagon significantly
-                    if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS)
-                    {
-                        WheelBearingTemperatureResistanceFactor = 2.0f;
-                        StaticFrictionFactorN *= 2.0f;
-                    }
-                    // Calculation of resistance @ low speeds
-                    // Wind resistance is not included at low speeds, as it does not have a significant enough impact
-                    MergeSpeedFrictionN = DavisAN * WheelBearingTemperatureResistanceFactor + (MergeSpeedMpS) * (DavisBNSpM + (MergeSpeedMpS) * DavisCNSSpMM); // Calculate friction @ merge speed
-                    Friction0N = StandstillFrictionN * StaticFrictionFactorN; // Static friction x external resistance as this matches reference value
-                    FrictionBelowMergeSpeedN = ((1.0f - (AbsSpeedMpS / (MergeSpeedMpS))) * (Friction0N - MergeSpeedFrictionN)) + MergeSpeedFrictionN; // Calculate friction below merge speed - decreases linearly with speed
-                    FrictionForceN = FrictionBelowMergeSpeedN; // At low speed use this value
-                }
+                if (isStartingFriction && IsBelowMergeSpeed) // Davis formulas only apply above merge speed, so different treatment required for low speed
+                    UpdateTrainBaseResistance_StartingFriction();
+                else if (IsLowSpeed) // Davis formulas only apply above about 5mph, so different treatment required for low speed < 5mph.
+                    UpdateTrainBaseResistance_DavisLowSpeed();
                 else
+                    UpdateTrainBaseResistance_DavisHighSpeed();
+            }
+            else if (isStartingFriction && IsBelowMergeSpeed)
+            {
+                UpdateTrainBaseResistance_StartingFriction();
+            }
+            else
+            {
+                UpdateTrainBaseResistance_ORTS();
+            }
+        }
+
+        /// <summary>
+        /// Update train base resistance with the conventional Open Rails algorithm.
+        /// </summary>
+        /// <remarks>
+        /// For all speeds.
+        /// </remarks>
+        private void UpdateTrainBaseResistance_ORTS()
+        {
+            if (FrictionV2 < 0 || FrictionV2 > 4.4407f) // > 10 mph
+            {   // not fcalc ignore friction and use default davis equation
+                // Starting Friction 
+                //
+                //                      Above Freezing   Below Freezing
+                //    Journal Bearing      25 lb/ton        35 lb/ton   (short ton)
+                //     Roller Bearing       5 lb/ton        15 lb/ton
+                //
+                // [2009-10-25 from http://www.arema.org/publications/pgre/ ]
+                //Friction0N = MassKG * 30f /* lb/ton */ * 4.84e-3f;  // convert lbs/short-ton to N/kg 
+                DavisAN = 6.3743f * MassKG / 1000 + 128.998f * 4;
+                DavisBNSpM = .49358f * MassKG / 1000;
+                DavisCNSSpMM = .11979f * 100 / 10.76f;
+                Friction0N = DavisAN * 2.0f;            //More firendly to high load trains and the new physics
+            }
+            else
+            {   // probably fcalc, recover approximate davis equation
+                float mps1 = FrictionV2;
+                float mps2 = 80 * .44704f;
+                float s = mps2 - mps1;
+                float x1 = mps1 * mps1;
+                float x2 = mps2 * mps2;
+                float sx = (x2 - x1) / 2;
+                float y0 = FrictionC1 * (float)Math.Pow(mps1, FrictionE1) + FrictionC2 * mps1;
+                float y1 = FrictionC2 * (float)Math.Pow(mps1, FrictionE2) * mps1;
+                float y2 = FrictionC2 * (float)Math.Pow(mps2, FrictionE2) * mps2;
+                float sy = y0 * (mps2 - mps1) + (y2 - y1) / (1 + FrictionE2);
+                y1 *= mps1;
+                y2 *= mps2;
+                float syx = y0 * (x2 - x1) / 2 + (y2 - y1) / (2 + FrictionE2);
+                x1 *= mps1;
+                x2 *= mps2;
+                float sx2 = (x2 - x1) / 3;
+                y1 *= mps1;
+                y2 *= mps2;
+                float syx2 = y0 * (x2 - x1) / 3 + (y2 - y1) / (3 + FrictionE2);
+                x1 *= mps1;
+                x2 *= mps2;
+                float sx3 = (x2 - x1) / 4;
+                x1 *= mps1;
+                x2 *= mps2;
+                float sx4 = (x2 - x1) / 5;
+                float s1 = syx - sy * sx / s;
+                float s2 = sx * sx2 / s - sx3;
+                float s3 = sx2 - sx * sx / s;
+                float s4 = syx2 - sy * sx2 / s;
+                float s5 = sx2 * sx2 / s - sx4;
+                float s6 = sx3 - sx * sx2 / s;
+                DavisCNSSpMM = (s1 * s6 - s3 * s4) / (s3 * s5 - s2 * s6);
+                DavisBNSpM = (s1 + DavisCNSSpMM * s2) / s3;
+                DavisAN = (sy - DavisBNSpM * sx - DavisCNSSpMM * sx2) / s;
+                Friction0N = FrictionC1;
+                if (FrictionE1 < 0)
+                    Friction0N *= (float)Math.Pow(.0025 * .44704, FrictionE1);
+            }
+
+            if (IsStandStill)
+            {
+                FrictionForceN = Friction0N;
+            }
+            else
+            {
+                FrictionForceN = DavisAN + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * DavisCNSSpMM);
+
+                // if this car is a locomotive, but not the lead one then recalculate the resistance with lower value as drag will not be as high on trailing locomotives
+                // Only the drag (C) factor changes if a trailing locomotive, so only running resistance, and not starting resistance needs to be corrected
+                if (WagonType == WagonTypes.Engine && Train.LeadLocomotive != this)
+                    FrictionForceN = DavisAN + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
+
+                // Test to identify whether a tender is attached to the leading engine, if not then the resistance should also be derated as for the locomotive
+                bool IsLeadTender = false;
+                if (WagonType == WagonTypes.Tender)
                 {
-                    // Determine the running resistance due to wheel bearing temperature
-                    float WheelBearingTemperatureResistanceFactor = 0;
-
-                    // Assume the running resistance is impacted by wheel bearing temperature, ie gets higher as tmperature decreasses. This will only impact the A parameter as it is related to
-                    // bearing. Assume that resisnce will increase by 30% as temperature drops below 0 DegC.
-                    // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
-                    // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
-                    const float RunGrad = -0.0085714285714286f;
-                    const float RunIntersect = 1.2142857142857f;
-
-                    if (WheelBearingTemperatureDegC < -10) // Set to snowing (frozen value)
-                        WheelBearingTemperatureResistanceFactor = 1.3f;
-                    else if (WheelBearingTemperatureDegC > 25) // Set to normal temperature value
-                        WheelBearingTemperatureResistanceFactor = 1.0f;
-                    else // Set to variable value as bearing heats and cools
-                        WheelBearingTemperatureResistanceFactor = RunGrad * WheelBearingTemperatureDegC + RunIntersect;
-
-                    // If hot box has been initiated, then increase friction on the wagon significantly
-                    if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS)
-                        WheelBearingTemperatureResistanceFactor = 2.0f;
-
-                    FrictionForceN = DavisAN * WheelBearingTemperatureResistanceFactor + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * DavisCNSSpMM); // for normal speed operation
-
-                    // if this car is a locomotive, but not the lead one then recalculate the resistance with lower value as drag will not be as high on trailing locomotives
-                    // Only the drag (C) factor changes if a trailing locomotive, so only running resistance, and not starting resistance needs to be corrected
-                    if (WagonType == WagonTypes.Engine && Train.LeadLocomotive != this)
-                        FrictionForceN = DavisAN * WheelBearingTemperatureResistanceFactor + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
-
-                    // Test to identify whether a tender is attached to the leading engine, if not then the resistance should also be derated as for the locomotive
-                    bool IsLeadTender = false;
-                    if (WagonType == WagonTypes.Tender)
+                    bool PrevCarLead = false;
+                    foreach (var car in Train.Cars)
                     {
-                        bool PrevCarLead = false;
-                        foreach (var car in Train.Cars)
+                        // If this car is a tender and the previous car is the lead locomotive then set the flag so that resistance will be reduced
+                        if (car == this && PrevCarLead)
                         {
-                            // If this car is a tender and the previous car is the lead locomotive then set the flag so that resistance will be reduced
-                            if (car == this && PrevCarLead)
-                            {
-                                IsLeadTender = true;
-                                break;  // If the tender has been identified then break out of the loop, otherwise keep going until whole train is done.
-                            }
-                            // Identify whether car is a lead locomotive or not. This is kept for when the next iteration (next car) is checked.
-                            PrevCarLead = Train.LeadLocomotive == car;
+                            IsLeadTender = true;
+                            break;  // If the tender has been identified then break out of the loop, otherwise keep going until whole train is done.
                         }
-
-                        // If tender is coupled to a trailing locomotive then reduce resistance
-                        if (!IsLeadTender)
-                            FrictionForceN = DavisAN * WheelBearingTemperatureResistanceFactor + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
+                        // Identify whether car is a lead locomotive or not. This is kept for when the next iteration (next car) is checked.
+                        PrevCarLead = Train.LeadLocomotive == car;
                     }
-                }
-            }
 
-            if (IsDavisFriction == false)    // If Davis parameters are not defined in WAG file, then use default methods
-            {
-
-                if (FrictionV2 < 0 || FrictionV2 > 4.4407f) // > 10 mph
-                {   // not fcalc ignore friction and use default davis equation
-                    // Starting Friction 
-                    //
-                    //                      Above Freezing   Below Freezing
-                    //    Journal Bearing      25 lb/ton        35 lb/ton   (short ton)
-                    //     Roller Bearing       5 lb/ton        15 lb/ton
-                    //
-                    // [2009-10-25 from http://www.arema.org/publications/pgre/ ]
-                    //Friction0N = MassKG * 30f /* lb/ton */ * 4.84e-3f;  // convert lbs/short-ton to N/kg 
-                    DavisAN = 6.3743f * MassKG / 1000 + 128.998f * 4;
-                    DavisBNSpM = .49358f * MassKG / 1000;
-                    DavisCNSSpMM = .11979f * 100 / 10.76f;
-                    Friction0N = DavisAN * 2.0f;            //More firendly to high load trains and the new physics
-                }
-                else
-                {   // probably fcalc, recover approximate davis equation
-                    float mps1 = FrictionV2;
-                    float mps2 = 80 * .44704f;
-                    float s = mps2 - mps1;
-                    float x1 = mps1 * mps1;
-                    float x2 = mps2 * mps2;
-                    float sx = (x2 - x1) / 2;
-                    float y0 = FrictionC1 * (float)Math.Pow(mps1, FrictionE1) + FrictionC2 * mps1;
-                    float y1 = FrictionC2 * (float)Math.Pow(mps1, FrictionE2) * mps1;
-                    float y2 = FrictionC2 * (float)Math.Pow(mps2, FrictionE2) * mps2;
-                    float sy = y0 * (mps2 - mps1) + (y2 - y1) / (1 + FrictionE2);
-                    y1 *= mps1;
-                    y2 *= mps2;
-                    float syx = y0 * (x2 - x1) / 2 + (y2 - y1) / (2 + FrictionE2);
-                    x1 *= mps1;
-                    x2 *= mps2;
-                    float sx2 = (x2 - x1) / 3;
-                    y1 *= mps1;
-                    y2 *= mps2;
-                    float syx2 = y0 * (x2 - x1) / 3 + (y2 - y1) / (3 + FrictionE2);
-                    x1 *= mps1;
-                    x2 *= mps2;
-                    float sx3 = (x2 - x1) / 4;
-                    x1 *= mps1;
-                    x2 *= mps2;
-                    float sx4 = (x2 - x1) / 5;
-                    float s1 = syx - sy * sx / s;
-                    float s2 = sx * sx2 / s - sx3;
-                    float s3 = sx2 - sx * sx / s;
-                    float s4 = syx2 - sy * sx2 / s;
-                    float s5 = sx2 * sx2 / s - sx4;
-                    float s6 = sx3 - sx * sx2 / s;
-                    DavisCNSSpMM = (s1 * s6 - s3 * s4) / (s3 * s5 - s2 * s6);
-                    DavisBNSpM = (s1 + DavisCNSSpMM * s2) / s3;
-                    DavisAN = (sy - DavisBNSpM * sx - DavisCNSSpMM * sx2) / s;
-                    Friction0N = FrictionC1;
-                    if (FrictionE1 < 0)
-                        Friction0N *= (float)Math.Pow(.0025 * .44704, FrictionE1);
-                }
-
-                if (AbsSpeedMpS > 0.1)
-                    IsStandStill = false;
-                if (AbsSpeedMpS == 0.0)
-                    IsStandStill = true;
-
-                if (IsStandStill)
-                    FrictionForceN = Friction0N;
-                else
-                {
-                    FrictionForceN = DavisAN + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * DavisCNSSpMM);
-
-                    // if this car is a locomotive, but not the lead one then recalculate the resistance with lower value as drag will not be as high on trailing locomotives
-                    // Only the drag (C) factor changes if a trailing locomotive, so only running resistance, and not starting resistance needs to be corrected
-                    if (WagonType == WagonTypes.Engine && Train.LeadLocomotive != this)
-                    {
+                    // If tender is coupled to a trailing locomotive then reduce resistance
+                    if (!IsLeadTender)
                         FrictionForceN = DavisAN + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
-                    }
-
-                    // Test to identify whether a tender is attached to the leading engine, if not then the resistance should also be derated as for the locomotive
-                    bool IsLeadTender = false;
-                    if (WagonType == WagonTypes.Tender)
-                    {
-                        bool PrevCarLead = false;
-                        foreach (var car in Train.Cars)
-                        {
-                            // If this car is a tender and the previous car is the lead locomotive then set the flag so that resistance will be reduced
-                            if (car == this && PrevCarLead)
-                            {
-                                IsLeadTender = true;
-                                break;  // If the tender has been identified then break out of the loop, otherwise keep going until whole train is done.
-                            }
-                            // Identify whether car is a lead locomotive or not. This is kept for when the next iteration (next car) is checked.
-                            if (Train.LeadLocomotive == car)
-                            {
-                                PrevCarLead = true;
-                            }
-                            else
-                            {
-                                PrevCarLead = false;
-                            }
-                        }
-
-                        // If tender is coupled to a trailing locomotive then reduce resistance
-                        if (!IsLeadTender)
-                        {
-                            FrictionForceN = DavisAN + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
-                        }
-                    }
                 }
             }
+        }
 
-            if (IsDavisFriction && !IsORTSFriction)  // If set to use next Davis friction then do so
+        /// <summary>
+        /// Update train base resistance with a manually specified starting friction.
+        /// </summary>
+        /// <remarks>
+        /// For speeds slower than the merge speed.
+        /// </remarks>
+        private void UpdateTrainBaseResistance_StartingFriction()
+        {
+            // Dtermine the starting friction factor based upon the type of bearing
+            float StartFrictionLoadN = StandstillFrictionN;  // Starting friction
+
+            // Determine the starting resistance due to wheel bearing temperature
+            // Note reference values in lbf and US tons - converted to metric values as appropriate
+            // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
+            // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
+            const float RunGrad = -0.0085714285714286f;
+            const float RunIntersect = 1.2142857142857f;
+            if (WheelBearingTemperatureDegC < -10) // Set to snowing (frozen value)
+                StartFrictionLoadN = 1.2f;  // Starting friction, snowing
+            else if (WheelBearingTemperatureDegC > 25) // Set to normal temperature value
+                StartFrictionLoadN = 1.0f;  // Starting friction, not snowing
+            else // Set to variable value as bearing heats and cools
+                StartFrictionLoadN = RunGrad * WheelBearingTemperatureDegC + RunIntersect;
+            StaticFrictionFactorN = StartFrictionLoadN;
+
+            // Determine the running resistance due to wheel bearing temperature
+            float WheelBearingTemperatureResistanceFactor = 0;
+
+            // Assume the running resistance is impacted by wheel bearing temperature, ie gets higher as tmperature decreasses. This will only impact the A parameter as it is related to
+            // bearing. Assume that resistance will increase by 30% as temperature drops below 0 DegC.
+            // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
+            // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
+
+            if (WheelBearingTemperatureDegC < -10) // Set to snowing (frozen value)
+                WheelBearingTemperatureResistanceFactor = 1.3f;
+            else if (WheelBearingTemperatureDegC > 25) // Set to normal temperature value
+                WheelBearingTemperatureResistanceFactor = 1.0f;
+            else // Set to variable value as bearing heats and cools
+                WheelBearingTemperatureResistanceFactor = RunGrad * WheelBearingTemperatureDegC + RunIntersect;
+            // If hot box has been initiated, then increase friction on the wagon significantly
+            if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS)
             {
-                // Davis formulas only apply above about 5mph, so different treatment required for low speed < 5mph.
-                if (AbsSpeedMpS > Speed.MeterPerSecond.FromMpH(5.05))     // if speed above 5 mph then turn off low speed calculations
-                    IsLowSpeed = false;
-                else if (AbsSpeedMpS < Speed.MeterPerSecond.FromMpH(4.95)) // if speed below 5 mph then turn on low speed calculations
-                    IsLowSpeed = true;
+                WheelBearingTemperatureResistanceFactor = 2.0f;
+                StaticFrictionFactorN *= 2.0f;
+            }
+            // Calculation of resistance @ low speeds
+            // Wind resistance is not included at low speeds, as it does not have a significant enough impact
+            MergeSpeedFrictionN = DavisAN * WheelBearingTemperatureResistanceFactor + (MergeSpeedMpS) * (DavisBNSpM + (MergeSpeedMpS) * DavisCNSSpMM); // Calculate friction @ merge speed
+            Friction0N = StandstillFrictionN * StaticFrictionFactorN; // Static friction x external resistance as this matches reference value
+            FrictionBelowMergeSpeedN = ((1.0f - (AbsSpeedMpS / (MergeSpeedMpS))) * (Friction0N - MergeSpeedFrictionN)) + MergeSpeedFrictionN; // Calculate friction below merge speed - decreases linearly with speed
+            FrictionForceN = FrictionBelowMergeSpeedN; // At low speed use this value
+        }
 
-                // Ensure that flag is turned off at low speed
-                if (AbsSpeedMpS <= 0.0)
-                    IsLowSpeed = true;
+        /// <summary>
+        /// Update train base resistance with the Davis function.
+        /// </summary>
+        /// <remarks>
+        /// For speeds slower than the "slow" speed.
+        /// </remarks>
+        private void UpdateTrainBaseResistance_DavisLowSpeed()
+        {
+            // Dtermine the starting friction factor based upon the type of bearing
 
-                if (IsLowSpeed)
+            float StartFrictionLowLoadN = 0.0f;  // Starting friction for a lightly loaded wagon
+            float StartFrictionHighLoadN = 0.0f; // Starting friction for a heavily loaded wagon
+
+            if (IsRollerBearing)
+            {
+                // Determine the starting resistance due to wheel bearing temperature
+                // Note reference values in lbf and US tons - converted to metric values as appropriate
+                // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
+                // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
+                const float LowGrad = -0.24342857142857f;
+                const float LowIntersect = 10.335714285714f;
+                const float HighGrad = -0.402f;
+                const float HighIntersect = 25.98f;
+
+                if (WheelBearingTemperatureDegC < -10)
                 {
-
-                    // Dtermine the starting friction factor based upon the type of bearing
-
-                    float StartFrictionLowLoadN = 0.0f;  // Starting friction for a lightly loaded wagon
-                    float StartFrictionHighLoadN = 0.0f; // Starting friction for a heavily loaded wagon
-
-                    if (IsRollerBearing)
-                    {
-                        // Determine the starting resistance due to wheel bearing temperature
-                        // Note reference values in lbf and US tons - converted to metric values as appropriate
-                        // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
-                        // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
-                        const float LowGrad = -0.24342857142857f;
-                        const float LowIntersect = 10.335714285714f;
-                        const float HighGrad = -0.402f;
-                        const float HighIntersect = 25.98f;
-
-                        if (WheelBearingTemperatureDegC < -10)
-                        {
-                            // Set to snowing (frozen value)
-                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(12.771f);  // Starting friction for a 10 ton(US) car with standard roller bearings, snowing
-                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(30.0f);  // Starting friction for a 100 ton(US) car with standard roller bearings, snowing
-                        }
-                        else if (WheelBearingTemperatureDegC > 25)
-                        {
-                            // Set to normal temperature value
-                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(4.257f);  // Starting friction for a 10 ton(US) car with standard roller bearings, not snowing
-                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(15.93f);  // Starting friction for a 100 ton(US) car with standard roller bearings, not snowing
-                        }
-                        else
-                        {
-                            // Set to variable value as bearing heats and cools
-                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
-                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
-                        }
-
-                        if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
-                        {
-                            StaticFrictionFactorN = StartFrictionLowLoadN;  // Starting friction for a < 10 ton(US) car with standard roller bearings
-                        }
-                        else if (Mass.Kilogram.ToTonsUS(MassKG) > 100.0)
-                        {
-                            StaticFrictionFactorN = StartFrictionHighLoadN;  // Starting friction for a > 100 ton(US) car with standard roller bearings
-                        }
-                        else
-                        {
-                            StaticFrictionFactorN = (float)(((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
-                        }
-                    }
-                    else if (IsLowTorqueRollerBearing)
-                    {
-                        // Determine the starting resistance due to wheel bearing temperature
-                        // Note reference values in lbf and US tons - converted to metric values as appropriate
-                        // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
-                        // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
-                        const float LowGrad = -0.152f;
-                        const float LowIntersect = 6.46f;
-                        const float HighGrad = -0.4408f;
-                        const float HighIntersect = 18.734f;
-
-                        if (WheelBearingTemperatureDegC < -10)
-                        {
-                            // Set to snowing (frozen value)
-                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(7.98f);  // Starting friction for a 10 ton(US) car with Low torque bearings, snowing
-                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(23.142f);  // Starting friction for a 100 ton(US) car with low torque bearings, snowing
-                        }
-                        else if (WheelBearingTemperatureDegC > 25)
-                        {
-                            // Set to normal temperature value
-                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(2.66f);  // Starting friction for a 10 ton(US) car with Low troque bearings, not snowing
-                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(7.714f);  // Starting friction for a 100 ton(US) car with low torque bearings, not snowing
-                        }
-                        else
-                        {
-                            // Set to variable value as bearing heats and cools
-                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
-                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
-                        }
-
-                        if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
-                        {
-                            StaticFrictionFactorN = StartFrictionLowLoadN;  // Starting friction for a < 10 ton(US) car with Low troque bearings
-                        }
-                        else if (Mass.Kilogram.ToTonsUS(MassKG) > 100.0)
-                        {
-                            StaticFrictionFactorN = StartFrictionHighLoadN;  // Starting friction for a > 100 ton(US) car with low torque bearings
-                        }
-                        else
-                        {
-                            StaticFrictionFactorN = (float)(((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
-                        }
-                    }
-                    else  // default to friction (solid - journal) bearing
-                    {
-
-                        // Determine the starting resistance due to wheel bearing temperature
-                        // Note reference values in lbf and US tons - converted to metric values as appropriate
-                        // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
-                        // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
-                        const float LowGrad = -0.14285714285714f;
-                        const float LowIntersect = 13.571428571429f;
-                        const float HighGrad = -0.42857142857143f;
-                        const float HighIntersect = 30.714285714286f;
-
-                        if (WheelBearingTemperatureDegC < -10)
-                        {
-                            // Set to snowing (frozen value)
-                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(15.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), snowing
-                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(35.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), snowing
-                        }
-                        else if (WheelBearingTemperatureDegC > 25)
-                        {
-                            // Set to normal temperature value
-                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(10.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), not snowing
-                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(20.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), not snowing
-                        }
-                        else
-                        {
-                            // Set to variable value as bearing heats and cools
-                            StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
-                            StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
-                        }
-
-                        if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
-                        {
-                            StaticFrictionFactorN = StartFrictionLowLoadN;  // Starting friction for a < 10 ton(US) car with friction (journal) bearings
-                        }
-                        else if (Mass.Kilogram.ToTonsUS(MassKG) > 100.0)
-                        {
-                            StaticFrictionFactorN = StartFrictionHighLoadN;  // Starting friction for a > 100 ton(US) car with friction (journal) bearings
-                        }
-                        else
-                        {
-                            StaticFrictionFactorN = (float)(((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
-                        }
-                    }
-
-                    // Determine the running resistance due to wheel bearing temperature
-                    float WheelBearingTemperatureResistanceFactor = 0;
-
-
-                    // Assume the running resistance is impacted by wheel bearing temperature, ie gets higher as tmperature decreasses. This will only impact the A parameter as it is related to
-                    // bearing. Assume that resisnce will increase by 30% as temperature drops below 0 DegC.
-                    // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
-                    // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
-                    const float RunGrad = -0.0085714285714286f;
-                    const float RunIntersect = 1.2142857142857f;
-
-                    if (WheelBearingTemperatureDegC < -10)
-                    {
-                        // Set to snowing (frozen value)
-                        WheelBearingTemperatureResistanceFactor = 1.3f;
-                    }
-                    else if (WheelBearingTemperatureDegC > 25)
-                    {
-                        // Set to normal temperature value
-                        WheelBearingTemperatureResistanceFactor = 1.0f;
-                    }
-                    else
-                    {
-                        // Set to variable value as bearing heats and cools
-                        WheelBearingTemperatureResistanceFactor = RunGrad * WheelBearingTemperatureDegC + RunIntersect;
-                    }
-
-                    // If hot box has been initiated, then increase friction on the wagon significantly
-                    if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS)
-                    {
-                        WheelBearingTemperatureResistanceFactor = 2.0f;
-                        StaticFrictionFactorN *= 2.0f;
-                    }
-
-                    // Calculation of resistance @ low speeds
-                    // Wind resistance is not included at low speeds, as it does not have a significant enough impact
-                    float speed5 = (float)Speed.MeterPerSecond.FromMpH(5); // 5 mph
-                    float speedDecay = (float)Speed.MeterPerSecond.FromMpH(2.5f);  // Speed at which decay point is reached - 2.5 mph
-                    const float ForceDecayFactor = 2.5f; // Multiplier to determine what fraction of force to decay to - ie 2.5 x normal friction at 5mph
-                    Friction5N = DavisAN * WheelBearingTemperatureResistanceFactor + speed5 * (DavisBNSpM + speed5 * DavisCNSSpMM); // Calculate friction @ 5 mph
-                    Friction0N = (float)Dynamics.Force.FromLbf(Mass.Kilogram.ToTonsUS(MassKG) * StaticFrictionFactorN); // Static friction is journal or roller bearing friction x factor
-
-                    // Starting friction is decayed using an exponential vs speed function (similar to Newtons law of cooling), an arbitary decay rate of decreasing resistance to 
-                    // 2 x the Davis value at 5mph by the time the train reaches a speed of 
-                    float FrictionDN = Friction5N * ForceDecayFactor;
-                    float FrictionVariationN = (FrictionDN - Friction5N) / (Friction0N - Friction5N);
-
-                    // Log function in ExpValue must never be less then zero, otherwise Na value will occur
-                    if (FrictionVariationN <= 0)
-                    {
-                        FrictionVariationN = 0.0001f;
-                    }
-
-                    float ExpValue = (float)Math.Log(FrictionVariationN) / speedDecay;
-                    float DecayValue = AbsSpeedMpS * ExpValue;
-                    FrictionLowSpeedN = Friction5N + (Friction0N - Friction5N) * (float)Math.Exp(DecayValue);
-
-                    FrictionForceN = FrictionLowSpeedN; // At low speed use this value
-                    FrictionForceN = MathHelper.Clamp(FrictionForceN, Friction5N, Friction0N); // Clamp FrictionForce to a value of resistance between 0 and 5 mph
+                    // Set to snowing (frozen value)
+                    StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(12.771f);  // Starting friction for a 10 ton(US) car with standard roller bearings, snowing
+                    StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(30.0f);  // Starting friction for a 100 ton(US) car with standard roller bearings, snowing
+                }
+                else if (WheelBearingTemperatureDegC > 25)
+                {
+                    // Set to normal temperature value
+                    StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(4.257f);  // Starting friction for a 10 ton(US) car with standard roller bearings, not snowing
+                    StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(15.93f);  // Starting friction for a 100 ton(US) car with standard roller bearings, not snowing
                 }
                 else
                 {
+                    // Set to variable value as bearing heats and cools
+                    StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
+                    StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
+                }
 
-                    // Determine the running resistance due to wheel bearing temperature
-                    float WheelBearingTemperatureResistanceFactor = 0;
+                if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
+                {
+                    StaticFrictionFactorN = StartFrictionLowLoadN;  // Starting friction for a < 10 ton(US) car with standard roller bearings
+                }
+                else if (Mass.Kilogram.ToTonsUS(MassKG) > 100.0)
+                {
+                    StaticFrictionFactorN = StartFrictionHighLoadN;  // Starting friction for a > 100 ton(US) car with standard roller bearings
+                }
+                else
+                {
+                    StaticFrictionFactorN = (float)(((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
+                }
+            }
+            else if (IsLowTorqueRollerBearing)
+            {
+                // Determine the starting resistance due to wheel bearing temperature
+                // Note reference values in lbf and US tons - converted to metric values as appropriate
+                // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
+                // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
+                const float LowGrad = -0.152f;
+                const float LowIntersect = 6.46f;
+                const float HighGrad = -0.4408f;
+                const float HighIntersect = 18.734f;
 
-                    // Assume the running resistance is impacted by wheel bearing temperature, ie gets higher as tmperature decreasses. This will only impact the A parameter as it is related to
-                    // bearing. Assume that resisnce will increase by 30% as temperature drops below 0 DegC.
-                    // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
-                    // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
-                    const float RunGrad = -0.0085714285714286f;
-                    const float RunIntersect = 1.2142857142857f;
+                if (WheelBearingTemperatureDegC < -10)
+                {
+                    // Set to snowing (frozen value)
+                    StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(7.98f);  // Starting friction for a 10 ton(US) car with Low torque bearings, snowing
+                    StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(23.142f);  // Starting friction for a 100 ton(US) car with low torque bearings, snowing
+                }
+                else if (WheelBearingTemperatureDegC > 25)
+                {
+                    // Set to normal temperature value
+                    StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(2.66f);  // Starting friction for a 10 ton(US) car with Low troque bearings, not snowing
+                    StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(7.714f);  // Starting friction for a 100 ton(US) car with low torque bearings, not snowing
+                }
+                else
+                {
+                    // Set to variable value as bearing heats and cools
+                    StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
+                    StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
+                }
 
-                    if (WheelBearingTemperatureDegC < -10)
+                if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
+                {
+                    StaticFrictionFactorN = StartFrictionLowLoadN;  // Starting friction for a < 10 ton(US) car with Low troque bearings
+                }
+                else if (Mass.Kilogram.ToTonsUS(MassKG) > 100.0)
+                {
+                    StaticFrictionFactorN = StartFrictionHighLoadN;  // Starting friction for a > 100 ton(US) car with low torque bearings
+                }
+                else
+                {
+                    StaticFrictionFactorN = (float)(((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
+                }
+            }
+            else  // default to friction (solid - journal) bearing
+            {
+
+                // Determine the starting resistance due to wheel bearing temperature
+                // Note reference values in lbf and US tons - converted to metric values as appropriate
+                // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
+                // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
+                const float LowGrad = -0.14285714285714f;
+                const float LowIntersect = 13.571428571429f;
+                const float HighGrad = -0.42857142857143f;
+                const float HighIntersect = 30.714285714286f;
+
+                if (WheelBearingTemperatureDegC < -10)
+                {
+                    // Set to snowing (frozen value)
+                    StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(15.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), snowing
+                    StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(35.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), snowing
+                }
+                else if (WheelBearingTemperatureDegC > 25)
+                {
+                    // Set to normal temperature value
+                    StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(10.0f); // Starting friction for a < 10 ton(US) car with friction (journal) bearings - ton (US), not snowing
+                    StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(20.0f); // Starting friction for a > 100 ton(US) car with friction (journal) bearings - ton (US), not snowing
+                }
+                else
+                {
+                    // Set to variable value as bearing heats and cools
+                    StartFrictionLowLoadN = (float)Dynamics.Force.FromLbf(LowGrad * WheelBearingTemperatureDegC + LowIntersect);
+                    StartFrictionHighLoadN = (float)Dynamics.Force.FromLbf(HighGrad * WheelBearingTemperatureDegC + HighIntersect);
+                }
+
+                if (Mass.Kilogram.ToTonsUS(MassKG) < 10.0)
+                {
+                    StaticFrictionFactorN = StartFrictionLowLoadN;  // Starting friction for a < 10 ton(US) car with friction (journal) bearings
+                }
+                else if (Mass.Kilogram.ToTonsUS(MassKG) > 100.0)
+                {
+                    StaticFrictionFactorN = StartFrictionHighLoadN;  // Starting friction for a > 100 ton(US) car with friction (journal) bearings
+                }
+                else
+                {
+                    StaticFrictionFactorN = (float)(((Mass.Kilogram.ToTonsUS(MassKG) - 10.0f) / 90.0f) * (StartFrictionHighLoadN - StartFrictionLowLoadN)) + StartFrictionLowLoadN;
+                }
+            }
+
+            // Determine the running resistance due to wheel bearing temperature
+            float WheelBearingTemperatureResistanceFactor = 0;
+
+
+            // Assume the running resistance is impacted by wheel bearing temperature, ie gets higher as tmperature decreasses. This will only impact the A parameter as it is related to
+            // bearing. Assume that resisnce will increase by 30% as temperature drops below 0 DegC.
+            // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
+            // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
+            const float RunGrad = -0.0085714285714286f;
+            const float RunIntersect = 1.2142857142857f;
+
+            if (WheelBearingTemperatureDegC < -10)
+            {
+                // Set to snowing (frozen value)
+                WheelBearingTemperatureResistanceFactor = 1.3f;
+            }
+            else if (WheelBearingTemperatureDegC > 25)
+            {
+                // Set to normal temperature value
+                WheelBearingTemperatureResistanceFactor = 1.0f;
+            }
+            else
+            {
+                // Set to variable value as bearing heats and cools
+                WheelBearingTemperatureResistanceFactor = RunGrad * WheelBearingTemperatureDegC + RunIntersect;
+            }
+
+            // If hot box has been initiated, then increase friction on the wagon significantly
+            if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS)
+            {
+                WheelBearingTemperatureResistanceFactor = 2.0f;
+                StaticFrictionFactorN *= 2.0f;
+            }
+
+            // Calculation of resistance @ low speeds
+            // Wind resistance is not included at low speeds, as it does not have a significant enough impact
+            float speed5 = (float)Speed.MeterPerSecond.FromMpH(5); // 5 mph
+            float speedDecay = (float)Speed.MeterPerSecond.FromMpH(2.5f);  // Speed at which decay point is reached - 2.5 mph
+            const float ForceDecayFactor = 2.5f; // Multiplier to determine what fraction of force to decay to - ie 2.5 x normal friction at 5mph
+            Friction5N = DavisAN * WheelBearingTemperatureResistanceFactor + speed5 * (DavisBNSpM + speed5 * DavisCNSSpMM); // Calculate friction @ 5 mph
+            Friction0N = (float)Dynamics.Force.FromLbf(Mass.Kilogram.ToTonsUS(MassKG) * StaticFrictionFactorN); // Static friction is journal or roller bearing friction x factor
+            FrictionLowSpeedN = ((1.0f - (AbsSpeedMpS / speed5)) * (Friction0N - Friction5N)) + Friction5N; // Calculate friction below 5mph - decreases linearly with speed
+            FrictionForceN = FrictionLowSpeedN; // At low speed use this value
+#if DEBUG_FRICTION
+                    Trace.TraceInformation("========================== Debug Stationary Friction in MSTSWagon.cs ==========================================");
+                    Trace.TraceInformation("Stationary - CarID {0} Force0N {1} Force5N {2} Speed {3} Factor {4}", CarID, Friction0N, Friction5N, AbsSpeedMpS, StaticFrictionFactorN);
+                    Trace.TraceInformation("Stationary - Mass {0} Mass (US-tons) {1} Bearing - Roller: {2} Bearing - Low: {3}", MassKG, Kg.ToTUS(MassKG), IsLowTorqueRollerBearing, IsRollerBearing);
+                    Trace.TraceInformation("Stationary - Weather Type (1 for Snow) {0}", (int)Simulator.WeatherType);
+                    Trace.TraceInformation("Stationary - StartFrictionHighLoad {0} StartFrictionLowLoad {1}", StartFrictionHighLoadN, StartFrictionLowLoadN);
+    
+                    Trace.TraceInformation("Stationary - Force0 lbf {0} Force5 lbf {1}", N.ToLbf(Friction0N), N.ToLbf(Friction5N));
+#endif
+
+            // Starting friction is decayed using an exponential vs speed function (similar to Newtons law of cooling), an arbitary decay rate of decreasing resistance to 
+            // 2 x the Davis value at 5mph by the time the train reaches a speed of 
+            float FrictionDN = Friction5N * ForceDecayFactor;
+            float FrictionVariationN = (FrictionDN - Friction5N) / (Friction0N - Friction5N);
+
+            // Log function in ExpValue must never be less then zero, otherwise Na value will occur
+            if (FrictionVariationN <= 0)
+            {
+                FrictionVariationN = 0.0001f;
+            }
+
+            float ExpValue = (float)Math.Log(FrictionVariationN) / speedDecay;
+            float DecayValue = AbsSpeedMpS * ExpValue;
+            FrictionLowSpeedN = Friction5N + (Friction0N - Friction5N) * (float)Math.Exp(DecayValue);
+            FrictionForceN = FrictionLowSpeedN; // At low speed use this value
+            FrictionForceN = MathHelper.Clamp(FrictionForceN, Friction5N, Friction0N); // Clamp FrictionForce to a value of resistance between 0 and 5 mph
+        }
+
+        /// <summary>
+        /// Update train base resistance with the Davis function.
+        /// </summary>
+        /// <remarks>
+        /// For speeds faster than the "slow" speed.
+        /// </remarks>
+        private void UpdateTrainBaseResistance_DavisHighSpeed()
+        {
+            // Determine the running resistance due to wheel bearing temperature
+            float WheelBearingTemperatureResistanceFactor = 0;
+
+            // Assume the running resistance is impacted by wheel bearing temperature, ie gets higher as tmperature decreasses. This will only impact the A parameter as it is related to
+            // bearing. Assume that resisnce will increase by 30% as temperature drops below 0 DegC.
+            // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
+            // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
+            const float RunGrad = -0.0085714285714286f;
+            const float RunIntersect = 1.2142857142857f;
+
+            if (WheelBearingTemperatureDegC < -10)
+            {
+                // Set to snowing (frozen value)
+                WheelBearingTemperatureResistanceFactor = 1.3f;
+            }
+            else if (WheelBearingTemperatureDegC > 25)
+            {
+                // Set to normal temperature value
+                WheelBearingTemperatureResistanceFactor = 1.0f;
+            }
+            else
+            {
+                // Set to variable value as bearing heats and cools
+                WheelBearingTemperatureResistanceFactor = RunGrad * WheelBearingTemperatureDegC + RunIntersect;
+            }
+
+            // If hot box has been initiated, then increase friction on the wagon significantly
+            if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS)
+            {
+                WheelBearingTemperatureResistanceFactor = 2.0f;
+            }
+
+            FrictionForceN = DavisAN * WheelBearingTemperatureResistanceFactor + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * DavisCNSSpMM); // for normal speed operation
+
+            // if this car is a locomotive, but not the lead one then recalculate the resistance with lower value as drag will not be as high on trailing locomotives
+            // Only the drag (C) factor changes if a trailing locomotive, so only running resistance, and not starting resistance needs to be corrected
+            if (WagonType == WagonTypes.Engine && Train.LeadLocomotive != this)
+            {
+                FrictionForceN = DavisAN * WheelBearingTemperatureResistanceFactor + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
+            }
+
+            // Test to identify whether a tender is attached to the leading engine, if not then the resistance should also be derated as for the locomotive
+            bool IsLeadTender = false;
+            if (WagonType == WagonTypes.Tender)
+            {
+                bool PrevCarLead = false;
+                foreach (var car in Train.Cars)
+                {
+                    // If this car is a tender and the previous car is the lead locomotive then set the flag so that resistance will be reduced
+                    if (car == this && PrevCarLead)
                     {
-                        // Set to snowing (frozen value)
-                        WheelBearingTemperatureResistanceFactor = 1.3f;
+                        IsLeadTender = true;
+                        break;  // If the tender has been identified then break out of the loop, otherwise keep going until whole train is done.
                     }
-                    else if (WheelBearingTemperatureDegC > 25)
+                    // Identify whether car is a lead locomotive or not. This is kept for when the next iteration (next car) is checked.
+                    if (Train.LeadLocomotive == car)
                     {
-                        // Set to normal temperature value
-                        WheelBearingTemperatureResistanceFactor = 1.0f;
+                        PrevCarLead = true;
                     }
                     else
                     {
-                        // Set to variable value as bearing heats and cools
-                        WheelBearingTemperatureResistanceFactor = RunGrad * WheelBearingTemperatureDegC + RunIntersect;
+                        PrevCarLead = false;
                     }
+                }
 
-                    // If hot box has been initiated, then increase friction on the wagon significantly
-                    if (HotBoxActivated && ActivityElapsedDurationS > HotBoxStartTimeS)
-                    {
-                        WheelBearingTemperatureResistanceFactor = 2.0f;
-                    }
-
-                    FrictionForceN = DavisAN * WheelBearingTemperatureResistanceFactor + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * DavisCNSSpMM); // for normal speed operation
-
-                    // if this car is a locomotive, but not the lead one then recalculate the resistance with lower value as drag will not be as high on trailing locomotives
-                    // Only the drag (C) factor changes if a trailing locomotive, so only running resistance, and not starting resistance needs to be corrected
-                    if (WagonType == WagonTypes.Engine && Train.LeadLocomotive != this)
-                    {
-                        FrictionForceN = DavisAN * WheelBearingTemperatureResistanceFactor + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
-                    }
-
-                    // Test to identify whether a tender is attached to the leading engine, if not then the resistance should also be derated as for the locomotive
-                    bool IsLeadTender = false;
-                    if (WagonType == WagonTypes.Tender)
-                    {
-                        bool PrevCarLead = false;
-                        foreach (var car in Train.Cars)
-                        {
-                            // If this car is a tender and the previous car is the lead locomotive then set the flag so that resistance will be reduced
-                            if (car == this && PrevCarLead)
-                            {
-                                IsLeadTender = true;
-                                break;  // If the tender has been identified then break out of the loop, otherwise keep going until whole train is done.
-                            }
-                            // Identify whether car is a lead locomotive or not. This is kept for when the next iteration (next car) is checked.
-                            if (Train.LeadLocomotive == car)
-                            {
-                                PrevCarLead = true;
-                            }
-                            else
-                            {
-                                PrevCarLead = false;
-                            }
-                        }
-
-                        // If tender is coupled to a trailing locomotive then reduce resistance
-                        if (!IsLeadTender)
-                        {
-                            FrictionForceN = DavisAN * WheelBearingTemperatureResistanceFactor + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
-                        }
-                    }
+                // If tender is coupled to a trailing locomotive then reduce resistance
+                if (!IsLeadTender)
+                {
+                    FrictionForceN = DavisAN * WheelBearingTemperatureResistanceFactor + AbsSpeedMpS * (DavisBNSpM + AbsSpeedMpS * (TrailLocoResistanceFactor * DavisCNSSpMM));
                 }
             }
         }
