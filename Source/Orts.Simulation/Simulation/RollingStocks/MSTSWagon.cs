@@ -111,7 +111,7 @@ namespace Orts.Simulation.RollingStocks
         protected float Friction5N;               // Friction at 5mph
         public float StandstillFrictionN;
         public float MergeSpeedFrictionN;
-        public float MergeSpeedMpS;
+        public float MergeSpeedMpS = (float)Speed.MeterPerSecond.FromMpH(5f);
         public float DavisAN;           // davis equation constant
         public float DavisBNSpM;        // davis equation constant for speed
         public float DavisCNSSpMM;      // davis equation constant for speed squared
@@ -952,7 +952,7 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortswagonfrontalarea": WagonFrontalAreaM2 = stf.ReadFloatBlock(STFReader.Units.AreaDefaultFT2, null); break;
                 case "wagon(ortstraillocomotiveresistancefactor": TrailLocoResistanceFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "wagon(ortsstandstillfriction": StandstillFrictionN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
-                case "wagon(ortsmergespeed": MergeSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
+                case "wagon(ortsmergespeed": MergeSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, MergeSpeedMpS); break;
                 case "wagon(effects(specialeffects": ParseEffects(lowercasetoken, stf); break;
                 case "wagon(ortsbearingtype":
                     stf.MustMatch("(");
