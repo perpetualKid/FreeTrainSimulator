@@ -4070,6 +4070,34 @@ namespace Orts.Simulation.RollingStocks
  //                           data = -data;
                         break;
                     }
+                    // this considers both the dynamic as well as the train braking
+                case CabViewControlType.Orts_Signed_Traction_Total_Braking:
+                    {
+                        var direction = 0; // Forwards
+                        if (cvc is CabViewGaugeControl cvcGauge && cvcGauge.Orientation == 0)
+                            direction = cvcGauge.Direction;
+                        data = 0.0f;
+                        if (Math.Abs(SpeedMpS) == 0.0f)
+                            data = 0.0f;
+                        else if (Math.Abs(FilteredMotiveForceN) - Math.Abs(BrakeForceN + DynamicBrakeForceN) > 0)
+                            data = Math.Abs(this.FilteredMotiveForceN);
+                        else if (Math.Abs(FilteredMotiveForceN) - Math.Abs(BrakeForceN + DynamicBrakeForceN) < 0)
+                            data = -Math.Abs(BrakeForceN + DynamicBrakeForceN);
+                        switch (cvc.ControlUnit)
+                        {
+                            case CabViewControlUnit.Newtons:
+                                break;
+
+                            case CabViewControlUnit.Kilo_Newtons:
+                                data = data / 1000.0f;
+                                break;
+
+                            case CabViewControlUnit.Kilo_Lbs:
+                                data = data / 4448.22162f;
+                                break;
+                        }
+                        break;
+                    }
                 case CabViewControlType.Dynamic_Brake_Force:
                     {
                         var direction = 0; // Forwards

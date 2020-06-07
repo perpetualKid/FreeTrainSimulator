@@ -396,6 +396,7 @@ namespace Orts.Formats.Msts
         Orts_MinuteDial,
         Orts_SecondDial,
         Orts_Signed_Traction_Braking,
+        Orts_Signed_Traction_Total_Braking,
 
         // TCS Controls
         Orts_TCS1,
