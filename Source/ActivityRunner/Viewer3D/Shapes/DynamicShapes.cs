@@ -173,7 +173,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // if the shape has animations
-            if (SharedShape.Animations != null && SharedShape.Animations.Count > 0 && SharedShape.Animations[0].FrameCount > 1)
+            if (SharedShape.Animations?.Count > 0 && SharedShape.Animations[0].FrameCount > 0)
             {
                 animationKey += SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds * frameRateMultiplier;
                 while (animationKey > SharedShape.Animations[0].FrameCount)
