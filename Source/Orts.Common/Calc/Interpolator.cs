@@ -232,11 +232,28 @@ namespace Orts.Common.Calc
             else
                 return -1;
         }
+
+        public bool CheckForConsistentIncrease(double step)
+        {
+            bool result = false;
+            double value = yArray[0];
+            for (int i = 1; i < size; i++)
+            {
+                if (yArray[i] <= value)
+                {
+                    step = value + step;
+                    yArray[i] = step;
+                    result = true;
+                }
+            }
+            return result;
+        }
+
     }
 
-     /// <summary>
-     /// two dimensional Interpolated table lookup - Generic
-     /// </summary>
+    /// <summary>
+    /// two dimensional Interpolated table lookup - Generic
+    /// </summary>
     public class Interpolator2D
     {
         private double[] xArray;  // must be in increasing order
