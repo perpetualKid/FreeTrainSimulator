@@ -559,7 +559,11 @@ namespace Orts.Simulation.RollingStocks
         float DisplayCriticalSpeedTractiveEffortLbf;  // Display power value @ speed of piston
         float absStartTractiveEffortN = 0.0f;      // Record starting tractive effort
         float TractiveEffortLbsF;           // Current sim calculated tractive effort
-        const float TractiveEffortFactor = 0.85f;  // factor for calculating Theoretical Tractive Effort
+        const float TractiveEffortFactor = 0.85f;  // factor for calculating Theoretical Tractive Effort for non-geared locomotives
+        const float GearedTractiveEffortFactor = 0.7f;  // factor for calculating Theoretical Tractive Effort for geared locomotives
+        float NeutralGearedDavisAN; // Davis A value adjusted for neutral gearing
+        const float DavisMechanicalResistanceFactor = 20.0f;
+        float GearedRetainedDavisAN; // Remembers the Davis A value
 
         float MaxLocoSpeedMpH;      // Speed of loco when max performance reached
         float DisplayMaxLocoSpeedMpH;      // Display value of speed of loco when max performance reached
@@ -1243,7 +1247,7 @@ namespace Orts.Simulation.RollingStocks
                     // Calculate maximum locomotive speed - based upon the number of revs for the drive shaft, geared to wheel shaft, and then circumference of drive wheel
                     // Max Geared speed = ((MaxPistonSpeedFt/m / Gear Ratio) x DrvWheelCircumference) / Feet in mile - miles per min
                     LowMaxGearedSpeedMpS = (float)(Frequency.Periodic.FromMinutes(MaxSteamGearPistonRateFtpM / SteamGearRatio * Math.PI * DriverWheelRadiusM * 2.0f));
-                    MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2.0f * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * TractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
+                    MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2.0f * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
                     DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                 }
                 else if (IsSelectGeared)
@@ -1274,6 +1278,15 @@ namespace Orts.Simulation.RollingStocks
                         SteamGearRatioHigh = 2.0f;
                         Trace.TraceWarning("SteamGearRatioHigh not found in ENG file, or doesn't appear to be a valid figure, and has been set to default value");
                     }
+                    // Adjust resistance for neutral gearing
+                    GearedRetainedDavisAN = DavisAN; // remember davis a value for later
+                    NeutralGearedDavisAN = DavisAN; // Initialise neutral gear value
+                    float TempDavisAAmount = (float)(Dynamics.Force.FromLbf((DavisMechanicalResistanceFactor * Mass.Kilogram.ToTonsUS(DrvWheelWeightKg)))); // Based upon the Davis formula for steam locomotive resistance
+                    if (TempDavisAAmount > 0.5 * DavisAN)
+                    {
+                        TempDavisAAmount = DavisAN * 0.5f; // If calculated mechanical resistance is greater then then 50% of the DavisA amount then set to an arbitary value of 50%.
+                    }
+                    NeutralGearedDavisAN -= TempDavisAAmount; // Reduces locomotive resistance when in neutral gear, as mechanical resistance decreases
 
                     MotiveForceGearRatio = SteamGearRatioLow; // assume in low gear as starting position (for purposes of initialising locomotive and HUD correctly
                     SteamGearRatio = SteamGearRatioLow;   // assume in low gear as starting position
@@ -1282,7 +1295,7 @@ namespace Orts.Simulation.RollingStocks
                     // Max Geared speed = ((MaxPistonSpeed / Gear Ratio) x DrvWheelCircumference) / Feet in mile - miles per min
                     LowMaxGearedSpeedMpS = (float)(Speed.MeterPerSecond.ToMpH(Size.Length.FromFt(Frequency.Periodic.FromMinutes(MaxSteamGearPistonRateFtpM / SteamGearRatioLow))) * 2.0f * Math.PI * DriverWheelRadiusM / (2.0f * CylinderStrokeM));
                     HighMaxGearedSpeedMpS = (float)(Speed.MeterPerSecond.ToMpH(Size.Length.FromFt(Frequency.Periodic.FromMinutes(MaxSteamGearPistonRateFtpM / SteamGearRatioHigh))) * 2.0f * Math.PI * DriverWheelRadiusM / (2.0f * CylinderStrokeM));
-                    MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * TractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
+                    MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
                     DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                 }
                 else
@@ -4395,6 +4408,15 @@ namespace Orts.Simulation.RollingStocks
             {
                 TractiveEffortLbsF = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2.0f * Size.Length.ToIn(DriverWheelRadiusM))) * (MeanEffectivePressurePSI * CylinderEfficiencyRate) * MotiveForceGearRatio);
                 
+                // If the steam piston is exceeding the maximum design piston rate then decrease efficiency of mep
+                if (SteamEngineType == SteamEngineTypes.Geared && PistonSpeedFtpMin > MaxSteamGearPistonRateFtpM)
+                {
+                    // use straight line curve to decay mep to zero by 2 x piston speed
+                    float pistonforcedecay = 1.0f - (1.0f / MaxSteamGearPistonRateFtpM) * (PistonSpeedFtpMin - MaxSteamGearPistonRateFtpM);
+                    pistonforcedecay = MathHelper.Clamp(pistonforcedecay, 0.0f, 1.0f);  // Clamp decay within bounds
+
+                    MeanEffectivePressurePSI *= pistonforcedecay; // Decrease mep once piston critical speed is exceeded
+                }
 
                 // Force tractive effort to zero if throttle is closed, or if a geared steam locomotive in neutral gear. MEP calculation is not allowing it to go to zero
                 if (throttle < 0.001 || (SteamEngineType == SteamEngineTypes.Geared && SteamGearPosition == 0))
@@ -6542,6 +6564,7 @@ namespace Orts.Simulation.RollingStocks
                         if (SteamGearPosition == 0.0)
                         {
                             // Re-initialise the following for the new gear setting - set to zero as in neutral speed
+                            DavisAN = NeutralGearedDavisAN; // Reduces locomotive resistance when in neutral gear, as mechanical resistance decreases
                             MotiveForceGearRatio = 0.0f;
                             DisplayMaxLocoSpeedMpH = 0.0f;
                             SteamGearRatio = 0.0f;
@@ -6553,6 +6576,7 @@ namespace Orts.Simulation.RollingStocks
                         else if (SteamGearPosition == 1.0)
                         {
                             // Re -initialise the following for the new gear setting
+                            DavisAN = GearedRetainedDavisAN; // reset resistance to geared value
                             MotiveForceGearRatio = SteamGearRatioLow;
                             MaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(LowMaxGearedSpeedMpS);
                             DisplayMaxLocoSpeedMpH = MaxLocoSpeedMpH;
@@ -6585,7 +6609,7 @@ namespace Orts.Simulation.RollingStocks
                             DisplayMaxLocoSpeedMpH = MaxLocoSpeedMpH;
                             SteamGearRatio = SteamGearRatioHigh;
 
-                            MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * TractiveEffortFactor * MotiveForceGearRatio);
+                            MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio);
                             DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
 
                             // Max IHP = (Max TE x Speed) / 375.0, use a factor of 0.85 to calculate max TE
@@ -6632,6 +6656,7 @@ namespace Orts.Simulation.RollingStocks
                         {
 
                             // Re -initialise the following for the new gear setting
+                            DavisAN = GearedRetainedDavisAN; // reset resistance to geared value
                             MotiveForceGearRatio = SteamGearRatioLow;
                             MaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(LowMaxGearedSpeedMpS);
                             DisplayMaxLocoSpeedMpH = MaxLocoSpeedMpH;
@@ -6658,6 +6683,7 @@ namespace Orts.Simulation.RollingStocks
                         else if (SteamGearPosition == 0.0)
                         {
                             // Re -initialise the following for the new gear setting - set to zero as in neutral speed
+                            DavisAN = NeutralGearedDavisAN; // Reduces locomotive resistance when in neutral gear, as mechanical resistance decreases
                             MotiveForceGearRatio = 0.0f;
                             DisplayMaxLocoSpeedMpH = 0.0f;
                             SteamGearRatio = 0.0f;
