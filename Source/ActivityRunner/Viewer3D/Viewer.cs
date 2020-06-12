@@ -1119,27 +1119,21 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (Program.DebugViewer != null && Program.DebugViewer.Enabled && (Program.DebugViewer.switchPickedItem != null || Program.DebugViewer.signalPickedItem != null))
                 {
                     WorldLocation wos;
-                    try
+                    if (Program.DebugViewer.switchPickedItem?.Item != null)
                     {
-                        if (Program.DebugViewer.switchPickedItem != null)
-                        {
                             wos = Program.DebugViewer.switchPickedItem.Item.UiD.Location.ChangeElevation(8); 
-                        }
-                        else
-                        {
-                            wos = Program.DebugViewer.signalPickedItem.Item.Location.ChangeElevation(8);
-                        }
-                        if (FreeRoamCameraList.Count == 0)
-                        {
-                            new UseFreeRoamCameraCommand(Log);
-                        }
-                        FreeRoamCamera.SetLocation(wos);
-                        //FreeRoamCamera
-                        FreeRoamCamera.Activate();
                     }
-                    catch { }
-
-
+                    else
+                    {
+                            wos = Program.DebugViewer.signalPickedItem.Item.Location.ChangeElevation(8);
+                    }
+                    if (FreeRoamCameraList.Count == 0)
+                    {
+                        new UseFreeRoamCameraCommand(Log);
+                    }
+                    FreeRoamCamera.SetLocation(wos);
+                    //FreeRoamCamera
+                    FreeRoamCamera.Activate();
                 }
             }
 
