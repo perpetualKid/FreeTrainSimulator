@@ -196,6 +196,14 @@ Trigger       Function
 143           BrakePipePressureStoppedChanging : for rolling stock equipped with train brakes, triggered when brake pipe/brakeline pressure stops changing
 =========     ============================================================================================================================================================================
 
+
+=========     ======================================================================
+Trigger       Function
+=========     ======================================================================
+148           AIFiremanSoundOn : AI fireman mode is on.
+149           AIFiremanSoundOff : AI fireman mode is off, ie in Manual Firing mode.
+=========     ======================================================================
+
 Triggers from 150 to 158 are used for the circuit breaker sounds.
 
 The following triggers are activated when the state of the circuit breaker changes:
