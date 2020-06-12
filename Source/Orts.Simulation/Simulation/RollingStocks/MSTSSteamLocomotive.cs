@@ -6661,7 +6661,7 @@ namespace Orts.Simulation.RollingStocks
                             MaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(LowMaxGearedSpeedMpS);
                             DisplayMaxLocoSpeedMpH = MaxLocoSpeedMpH;
                             SteamGearRatio = SteamGearRatioLow;
-                            MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * TractiveEffortFactor * MotiveForceGearRatio);
+                            MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio);
                             DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
 
                             // Max IHP = (Max TE x Speed) / 375.0, use a factor of 0.85 to calculate max TE
