@@ -434,7 +434,11 @@ namespace Orts.Common
 
         BoilerBlowdownOn,
         BoilerBlowdownOff,
+
+        AIFiremanSoundOn,
+        AIFiremanSoundOff
     }
+
     public enum PowerSupplyEvent
     {
         RaisePantograph,
