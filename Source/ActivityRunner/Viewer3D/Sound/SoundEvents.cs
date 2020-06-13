@@ -146,6 +146,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 142: return TrainEvent.BrakePipePressureDecrease;
                         case 143: return TrainEvent.BrakePipePressureStoppedChanging;
 
+                        case 147: return TrainEvent.SteamGearLeverToggle;
                         case 148: return TrainEvent.AIFiremanSoundOn;
                         case 149: return TrainEvent.AIFiremanSoundOff;
 
