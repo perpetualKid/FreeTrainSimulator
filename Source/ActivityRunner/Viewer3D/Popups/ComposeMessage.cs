@@ -120,9 +120,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     MPManager.Notify(msgText);
                 }
                 catch { }
-                Visible = false;
-                UserInput.ComposingMessage = false;
-                Message.Text = "";
+                finally
+                {
+                    Visible = false;
+                    UserInput.ComposingMessage = false;
+                    Message.Text = "";
+                }
             }
         }
         protected override ControlLayout Layout(ControlLayout layout)
