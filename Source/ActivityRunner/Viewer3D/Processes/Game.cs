@@ -208,7 +208,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 {
                     CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(Settings.Language);
                 }
-                catch { }
+                catch (CultureNotFoundException) { }
             }
         }
 
