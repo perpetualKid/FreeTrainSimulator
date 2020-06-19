@@ -61,15 +61,15 @@ namespace Orts.ActivityRunner.Processes
             // This is so that you can identify threads from debuggers like Visual Studio.
             try
             {
-                Thread.CurrentThread.Name = Name + " Process";
+                Thread.CurrentThread.Name += " Process";
             }
-            catch { }
+            catch (InvalidOperationException) { }
 
             // This is so that you can identify threads from programs like Process Monitor. The call
             // should always fail but will appear in Process Monitor's log against the correct thread.
             try
             {
-                File.ReadAllBytes(@"DEBUG\THREAD\" + Name + " Process");
+                File.ReadAllBytes($@"DEBUG\THREAD\{Name} Process");
             }
             catch { }
 
