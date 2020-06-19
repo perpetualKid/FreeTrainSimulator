@@ -182,8 +182,20 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             UserInputCommands.Add(UserCommand.ControlOdoMeterDirection, new Action[] { Noop, () => new ToggleOdometerDirectionCommand(Viewer.Log) });
             UserInputCommands.Add(UserCommand.ControlCabRadio, new Action[] { Noop, () => new CabRadioCommand(Viewer.Log, !Locomotive.CabRadioOn) });
             UserInputCommands.Add(UserCommand.ControlDieselHelper, new Action[] { Noop, () => new ToggleHelpersEngineCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlGeneric1, new Action[] { () => new TCSCommand(Viewer.Log, false, 0), () => new TCSCommand(Viewer.Log, true, 0) });
-            UserInputCommands.Add(UserCommand.ControlGeneric2, new Action[] { () => new TCSCommand(Viewer.Log, false, 1), () => new TCSCommand(Viewer.Log, true, 1) });
+            UserInputCommands.Add(UserCommand.ControlGeneric1, new Action[] {
+                () => new TCSButtonCommand(Viewer.Log, false, 0),
+                () => {
+                    new TCSButtonCommand(Viewer.Log, true, 0);
+                    new TCSSwitchCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandSwitchOn[0], 0);
+                }
+            });
+            UserInputCommands.Add(UserCommand.ControlGeneric2, new Action[] {
+                () => new TCSButtonCommand(Viewer.Log, false, 1),
+                () => {
+                    new TCSButtonCommand(Viewer.Log, true, 1);
+                    new TCSSwitchCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandSwitchOn[1], 1);
+                }
+            });
             base.InitializeUserInputCommands();
         }
 
@@ -2131,9 +2143,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_TCS32:
                     int commandIndex = (int)Control.ControlType - (int)CabViewControlType.Orts_TCS1;
                     if (ChangedValue(1) > 0 ^ Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex])
-                        new TCSCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex], commandIndex);
+                        new TCSButtonCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex], commandIndex);
+                    new TCSSwitchCommand(Viewer.Log, ChangedValue(Locomotive.TrainControlSystem.TCSCommandSwitchOn[commandIndex] ? 1 : 0) > 0, commandIndex);
                     break;
-
             }
 
         }

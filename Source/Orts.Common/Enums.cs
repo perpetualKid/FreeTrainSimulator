@@ -659,6 +659,14 @@ namespace Orts.Common
         /// Restore request.
         /// </summary>
         Restore,
+        /// Generic TCS switch toggled off.
+        /// </summary>
+        GenericTCSSwitchOff,
+        /// <summary>
+        /// Generic TCS switch toggled on.
+        /// </summary>
+        GenericTCSSwitchOn,
+        /// <summary>
     }
 
     /// <summary>
