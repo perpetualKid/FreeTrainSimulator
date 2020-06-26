@@ -61,7 +61,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
     }
 
     internal class OrtsApiController : WebApiController
-    { 
+    {
         private readonly Viewer Viewer;
 
         public OrtsApiController(Viewer viewer)
@@ -126,7 +126,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
 
         [Route(HttpVerbs.Get, "/HUD/{pageNo}")]
-        // Example URL where pageNo = 3: 
+        // Example URL where pageNo = 3:
         //   "http://localhost:2150/API/HUD/3" returns data in JSON
         // Call from JavaScript is case-sensitive, with /API prefix, e.g:
         //   hr.open("GET", "/API/HUD" + pageNo, true);
