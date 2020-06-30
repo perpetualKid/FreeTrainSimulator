@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
+﻿// COPYRIGHT 2020 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -21,59 +21,50 @@
 using System.Threading;
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.WebServices;
+using System.IO;
+using System.Windows.Forms;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
     public class WebServerProcess
     {
-        public readonly Profiler Profiler = new Profiler("WebServer");
-        readonly ProcessState State = new ProcessState("WebServer");
-        readonly Game Game;
-        readonly Thread Thread;
-        private readonly bool active;
-        private readonly CancellationTokenSource stopServer = new CancellationTokenSource();
+        private readonly Profiler Profiler = new Profiler("WebServer");
+        private readonly ProcessState State = new ProcessState("WebServer");
+        private readonly Game Game;
+        private readonly Thread Thread;
+        private readonly CancellationTokenSource StopServer = new CancellationTokenSource();
 
         public WebServerProcess(Game game)
         {
             Game = game;
             Thread = new Thread(WebServerThread);
-            active = game.Settings.WebServer;
         }
 
         public void Start()
         {
-            if (active)
-                Thread.Start();
+            State.SignalStart();
+            Thread.Start();
         }
 
         public void Stop()
         {
-            if (active)
-            {
-                stopServer.Cancel();
-                State.SignalTerminate();
-                Thread.Abort();
-            }
+            StopServer.Cancel();
+            State.SignalTerminate();
         }
-
-        public bool Finished { get => State.Finished; }
-
-        public void WaitTillFinished() => State.WaitTillFinished();
 
         void WebServerThread()
         {
             Profiler.SetThread();
             Game.SetThreadLanguage();
-            int port = Game.Settings.WebServerPort;
+            if (!Game.Settings.WebServer)
+                return;
 
-            var myWebContentPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(
-                System.Windows.Forms.Application.ExecutablePath),"Content\\Web");
-
-            string url(string ip) => $"http://{ip}:{port}";
+            string contentPath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Content\\Web");
+            string url(string ip) => $"http://{ip}:{Game.Settings.WebServerPort}";
             var urls = new string[] { url("[::1]"), url("127.0.0.1"), url("localhost") };
-            using (var server = WebServer.CreateWebServer(urls, myWebContentPath))
-                server.RunAsync(stopServer.Token).Wait();
+            using (EmbedIO.WebServer server = WebServer.CreateWebServer(urls, contentPath))
+                server.RunAsync(StopServer.Token).Wait();
         }
     }
 }
