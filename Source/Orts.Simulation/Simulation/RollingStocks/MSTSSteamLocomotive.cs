@@ -106,7 +106,9 @@ namespace Orts.Simulation.RollingStocks
         public MSTSNotchController LargeEjectorController = new MSTSNotchController(0, 1, 0.1f);
 
         public bool Injector1IsOn;
+        bool Injector1SoundIsOn = false;
         public bool Injector2IsOn;
+        bool Injector2SoundIsOn = false;
         public bool CylinderCocksAreOpen;
         public bool BlowdownValveOpen;
         public bool CylinderCompoundOn;  // Flag to indicate whether compound locomotive is in compound or simple mode of operation - simple = true (ie bypass valve is open)
@@ -5441,6 +5443,10 @@ namespace Orts.Simulation.RollingStocks
                     Injector1Fraction = 0.0f;
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
+                    SignalEvent(TrainEvent.WaterInjector1Off);
+                    SignalEvent(TrainEvent.WaterInjector2Off);
+                    Injector1SoundIsOn = false;
+                    Injector2SoundIsOn = false;
                 }
                 else if (WaterGlassLevelIN <= 7.0 && WaterGlassLevelIN > 6.875 && !InjectorLockedOut)  // turn injector 1 on 20% if water level in boiler drops below 7.0
                 {
@@ -5449,6 +5455,11 @@ namespace Orts.Simulation.RollingStocks
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
                     InjectorLockedOut = true;
+                    if (!Injector1SoundIsOn) // turn injector sound on only when injector starts
+                    {
+                        Injector1SoundIsOn = true;
+                        SignalEvent(TrainEvent.WaterInjector1On);
+                    }
                 }
                 else if (WaterGlassLevelIN <= 6.875 && WaterGlassLevelIN > 6.75 && !InjectorLockedOut)  // turn injector 1 on 20% if water level in boiler drops below 7.0
                 {
@@ -5457,6 +5468,11 @@ namespace Orts.Simulation.RollingStocks
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
                     InjectorLockedOut = true;
+                    if (!Injector1SoundIsOn) // turn injector sound on only when injector starts
+                    {
+                        Injector1SoundIsOn = true;
+                        SignalEvent(TrainEvent.WaterInjector1On);
+                    }
                 }
                 else if (WaterGlassLevelIN <= 6.75 && WaterGlassLevelIN > 6.675 && !InjectorLockedOut)  // turn injector 1 on 20% if water level in boiler drops below 7.0
                 {
@@ -5465,6 +5481,11 @@ namespace Orts.Simulation.RollingStocks
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
                     InjectorLockedOut = true;
+                    if (!Injector1SoundIsOn) // turn injector sound on only when injector starts
+                    {
+                        Injector1SoundIsOn = true;
+                        SignalEvent(TrainEvent.WaterInjector1On);
+                    }
                 }
                 else if (WaterGlassLevelIN <= 6.675 && WaterGlassLevelIN > 6.5 && !InjectorLockedOut)
                 {
@@ -5473,6 +5494,11 @@ namespace Orts.Simulation.RollingStocks
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
                     InjectorLockedOut = true;
+                    if (!Injector1SoundIsOn) // turn injector sound on only when injector starts
+                    {
+                        Injector1SoundIsOn = true;
+                        SignalEvent(TrainEvent.WaterInjector1On);
+                    }
                 }
                 else if (WaterGlassLevelIN <= 6.5 && WaterGlassLevelIN > 6.375 && !InjectorLockedOut)
                 {
@@ -5481,6 +5507,11 @@ namespace Orts.Simulation.RollingStocks
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
                     InjectorLockedOut = true;
+                    if (!Injector1SoundIsOn) // turn injector sound on only when injector starts
+                    {
+                        Injector1SoundIsOn = true;
+                        SignalEvent(TrainEvent.WaterInjector1On);
+                    }
                 }
                 else if (WaterGlassLevelIN <= 6.375 && WaterGlassLevelIN > 6.25 && !InjectorLockedOut)
                 {
@@ -5489,6 +5520,11 @@ namespace Orts.Simulation.RollingStocks
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
                     InjectorLockedOut = true;
+                    if (!Injector1SoundIsOn) // turn injector sound on only when injector starts
+                    {
+                        Injector1SoundIsOn = true;
+                        SignalEvent(TrainEvent.WaterInjector1On);
+                    }
                 }
                 else if (WaterGlassLevelIN <= 6.25 && WaterGlassLevelIN > 6.125 && !InjectorLockedOut)
                 {
@@ -5497,6 +5533,11 @@ namespace Orts.Simulation.RollingStocks
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
                     InjectorLockedOut = true;
+                    if (!Injector1SoundIsOn) // turn injector sound on only when injector starts
+                    {
+                        Injector1SoundIsOn = true;
+                        SignalEvent(TrainEvent.WaterInjector1On);
+                    }
                 }
                 else if (WaterGlassLevelIN <= 6.125 && WaterGlassLevelIN > 6.0 && !InjectorLockedOut)
                 {
@@ -5505,6 +5546,11 @@ namespace Orts.Simulation.RollingStocks
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
                     InjectorLockedOut = true;
+                    if (!Injector1SoundIsOn) // turn injector sound on only when injector starts
+                    {
+                        Injector1SoundIsOn = true;
+                        SignalEvent(TrainEvent.WaterInjector1On);
+                    }
                 }
                 else if (WaterGlassLevelIN <= 6.0 && WaterGlassLevelIN > 5.875 && !InjectorLockedOut)
                 {
@@ -5513,6 +5559,11 @@ namespace Orts.Simulation.RollingStocks
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
                     InjectorLockedOut = true;
+                    if (!Injector1SoundIsOn) // turn injector sound on only when injector starts
+                    {
+                        Injector1SoundIsOn = true;
+                        SignalEvent(TrainEvent.WaterInjector1On);
+                    }
                 }
                 else if (WaterGlassLevelIN <= 5.875 && WaterGlassLevelIN > 5.75 && !InjectorLockedOut)
                 {
@@ -5521,6 +5572,11 @@ namespace Orts.Simulation.RollingStocks
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
                     InjectorLockedOut = true;
+                    if (!Injector1SoundIsOn) // turn injector sound on only when injector starts
+                    {
+                        Injector1SoundIsOn = true;
+                        SignalEvent(TrainEvent.WaterInjector1On);
+                    }
                 }
                 else if (BoilerPressurePSI > (MaxBoilerPressurePSI - 100.0))  // If boiler pressure is not too low then turn on injector 2
                 {
@@ -5529,66 +5585,112 @@ namespace Orts.Simulation.RollingStocks
                         Injector2IsOn = true;
                         Injector2Fraction = 0.1f;
                         InjectorLockedOut = true;
+                        if (!Injector2SoundIsOn) // turn injector sound on only when injector starts
+                        {
+                            Injector2SoundIsOn = true;
+                            SignalEvent(TrainEvent.WaterInjector2On);
+                        }
                     }
                     else if (WaterGlassLevelIN <= 5.675 && WaterGlassLevelIN > 5.5 && !InjectorLockedOut)
                     {
                         Injector2IsOn = true;
                         Injector2Fraction = 0.2f;
                         InjectorLockedOut = true;
+                        if (!Injector2SoundIsOn) // turn injector sound on only when injector starts
+                        {
+                            Injector2SoundIsOn = true;
+                            SignalEvent(TrainEvent.WaterInjector2On);
+                        }
                     }
                     else if (WaterGlassLevelIN <= 5.5 && WaterGlassLevelIN > 5.325 && !InjectorLockedOut)
                     {
                         Injector2IsOn = true;
                         Injector2Fraction = 0.3f;
                         InjectorLockedOut = true;
+                        if (!Injector2SoundIsOn) // turn injector sound on only when injector starts
+                        {
+                            Injector2SoundIsOn = true;
+                            SignalEvent(TrainEvent.WaterInjector2On);
+                        }
                     }
                     else if (WaterGlassLevelIN <= 5.325 && WaterGlassLevelIN > 5.25 && !InjectorLockedOut)
                     {
                         Injector2IsOn = true;
                         Injector2Fraction = 0.4f;
                         InjectorLockedOut = true;
+                        if (!Injector2SoundIsOn) // turn injector sound on only when injector starts
+                        {
+                            Injector2SoundIsOn = true;
+                            SignalEvent(TrainEvent.WaterInjector2On);
+                        }
                     }
                     else if (WaterGlassLevelIN <= 5.25 && WaterGlassLevelIN > 5.125 && !InjectorLockedOut)
                     {
                         Injector2IsOn = true;
                         Injector2Fraction = 0.5f;
                         InjectorLockedOut = true;
+                        if (!Injector2SoundIsOn) // turn injector sound on only when injector starts
+                        {
+                            Injector2SoundIsOn = true;
+                            SignalEvent(TrainEvent.WaterInjector2On);
+                        }
                     }
                     else if (WaterGlassLevelIN <= 5.125 && WaterGlassLevelIN > 5.0 && !InjectorLockedOut)
                     {
                         Injector2IsOn = true;
                         Injector2Fraction = 0.6f;
                         InjectorLockedOut = true;
+                        if (!Injector2SoundIsOn) // turn injector sound on only when injector starts
+                        {
+                            Injector2SoundIsOn = true;
+                            SignalEvent(TrainEvent.WaterInjector2On);
+                        }
                     }
                     else if (WaterGlassLevelIN <= 5.0 && WaterGlassLevelIN > 4.875 && !InjectorLockedOut)
                     {
                         Injector2IsOn = true;
                         Injector2Fraction = 0.7f;
                         InjectorLockedOut = true;
+                        if (!Injector2SoundIsOn) // turn injector sound on only when injector starts
+                        {
+                            Injector2SoundIsOn = true;
+                            SignalEvent(TrainEvent.WaterInjector2On);
+                        }
                     }
                     else if (WaterGlassLevelIN <= 4.875 && WaterGlassLevelIN > 4.75 && !InjectorLockedOut)
                     {
                         Injector2IsOn = true;
                         Injector2Fraction = 0.8f;
                         InjectorLockedOut = true;
+                        if (!Injector2SoundIsOn) // turn injector sound on only when injector starts
+                        {
+                            Injector2SoundIsOn = true;
+                            SignalEvent(TrainEvent.WaterInjector2On);
+                        }
                     }
                     else if (WaterGlassLevelIN <= 4.75 && WaterGlassLevelIN > 4.625 && !InjectorLockedOut)
                     {
                         Injector2IsOn = true;
                         Injector2Fraction = 0.9f;
                         InjectorLockedOut = true;
+                        if (!Injector2SoundIsOn) // turn injector sound on only when injector starts
+                        {
+                            Injector2SoundIsOn = true;
+                            SignalEvent(TrainEvent.WaterInjector2On);
+                        }
                     }
                     else if (WaterGlassLevelIN <= 4.625 && WaterGlassLevelIN > 4.5 && !InjectorLockedOut)
                     {
                         Injector2IsOn = true;
                         Injector2Fraction = 1.0f;
                         InjectorLockedOut = true;
+                        if (!Injector2SoundIsOn) // turn injector sound on only when injector starts
+                        {
+                            Injector2SoundIsOn = true;
+                            SignalEvent(TrainEvent.WaterInjector2On);
+                        }
                     }
                 }
-
-                // Put sound triggers in for the injectors in AI Fireman mode
-                SignalEvent(Injector1IsOn ? TrainEvent.WaterInjector1On : TrainEvent.WaterInjector1Off); // hook for sound trigger
-                SignalEvent(Injector2IsOn ? TrainEvent.WaterInjector2On : TrainEvent.WaterInjector2Off); // hook for sound trigger
 
                 float BoilerHeatCheck = BoilerHeatOutBTUpS / BoilerHeatInBTUpS;
                 BoilerHeatExcess = BoilerHeatBTU / MaxBoilerHeatBTU;
@@ -6573,6 +6675,7 @@ namespace Orts.Simulation.RollingStocks
                             DrawbarHorsePowerHP = 0.0f;
                             DrawBarPullLbsF = 0.0f;
                             SignalEvent(TrainEvent.SteamGearLeverToggle);
+                            SignalEvent(TrainEvent.GearPosition0);
                         }
                         else if (SteamGearPosition == 1.0)
                         {
@@ -6583,6 +6686,7 @@ namespace Orts.Simulation.RollingStocks
                             DisplayMaxLocoSpeedMpH = MaxLocoSpeedMpH;
                             SteamGearRatio = SteamGearRatioLow;
                             SignalEvent(TrainEvent.SteamGearLeverToggle);
+                            SignalEvent(TrainEvent.GearPosition1);
 
                             MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * TractiveEffortFactor * MotiveForceGearRatio);
                             DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
@@ -6611,6 +6715,7 @@ namespace Orts.Simulation.RollingStocks
                             DisplayMaxLocoSpeedMpH = MaxLocoSpeedMpH;
                             SteamGearRatio = SteamGearRatioHigh;
                             SignalEvent(TrainEvent.SteamGearLeverToggle);
+                            SignalEvent(TrainEvent.GearPosition2);
 
                             MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio);
                             DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
@@ -6667,6 +6772,7 @@ namespace Orts.Simulation.RollingStocks
                             MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2 * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio);
                             DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
                             SignalEvent(TrainEvent.SteamGearLeverToggle);
+                            SignalEvent(TrainEvent.GearPosition1);
 
                             // Max IHP = (Max TE x Speed) / 375.0, use a factor of 0.85 to calculate max TE
                             MaxIndicatedHorsePowerHP = MaxSpeedFactor * ((MaxTractiveEffortLbf) * MaxLocoSpeedMpH) / 375.0f;
@@ -6696,6 +6802,7 @@ namespace Orts.Simulation.RollingStocks
                             DrawbarHorsePowerHP = 0.0f;
                             DrawBarPullLbsF = 0.0f;
                             SignalEvent(TrainEvent.SteamGearLeverToggle);
+                            SignalEvent(TrainEvent.GearPosition0);
                         }
                     }
                 }

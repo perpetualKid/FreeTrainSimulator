@@ -437,7 +437,11 @@ namespace Orts.Common
 
         SteamGearLeverToggle,
         AIFiremanSoundOn,
-        AIFiremanSoundOff
+        AIFiremanSoundOff,
+
+        GearPosition0,
+        GearPosition1,
+        GearPosition2,
     }
 
     public enum PowerSupplyEvent
