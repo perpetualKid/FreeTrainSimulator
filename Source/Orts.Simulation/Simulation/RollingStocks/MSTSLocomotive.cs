@@ -374,7 +374,7 @@ namespace Orts.Simulation.RollingStocks
         public MSTSNotchController DynamicBrakeController;
         public MSTSNotchController GearBoxController;
 
-        float PreviousGearBoxNotch;
+        private int PreviousGearBoxNotch;
 
         public float EngineBrakeIntervention = -1;
         public float TrainBrakeIntervention = -1;
@@ -3052,26 +3052,7 @@ namespace Orts.Simulation.RollingStocks
                 GearBoxController.StartIncrease();
                 Simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Increase, GearBoxController.CurrentNotch);
                 AlerterReset(TCSEvent.GearBoxChanged);
-
-                // Only activate sound event if notch has actually changed
-                if (GearBoxController.CurrentNotch != PreviousGearBoxNotch)
-                {
-                    if (GearBoxController.CurrentNotch == 0)
-                    {
-                        SignalEvent(TrainEvent.GearPosition0);
-                        PreviousGearBoxNotch = 0; // Update previous value for next time around
-                    }
-                    else if (GearBoxController.CurrentNotch == 1)
-                    {
-                        SignalEvent(TrainEvent.GearPosition1);
-                        PreviousGearBoxNotch = 1; // Update previous value for next time around
-                    }
-                    else
-                    {
-                        SignalEvent(TrainEvent.GearPosition2);
-                        PreviousGearBoxNotch = 2; // Update previous value for next time around
-                    }
-                }
+                SignalGearBoxChangeEvents();
             }
 
             ChangeGearUp();
@@ -3096,27 +3077,7 @@ namespace Orts.Simulation.RollingStocks
                 GearBoxController.StartDecrease();
                 Simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
                 AlerterReset(TCSEvent.GearBoxChanged);
-
-                // Only activate sound event if notch has actually changed
-                if (GearBoxController.CurrentNotch != PreviousGearBoxNotch)
-                {
-                    if (GearBoxController.CurrentNotch == 0)
-                    {
-                        SignalEvent(TrainEvent.GearPosition0);
-                        PreviousGearBoxNotch = 0; // Update previous value for next time around
-                    }
-                    else if (GearBoxController.CurrentNotch == 1)
-                    {
-                        SignalEvent(TrainEvent.GearPosition1);
-                        PreviousGearBoxNotch = 1; // Update previous value for next time around
-                    }
-                    else
-                    {
-                        SignalEvent(TrainEvent.GearPosition2);
-                        PreviousGearBoxNotch = 2; // Update previous value for next time around
-                    }
-                }
-
+                SignalGearBoxChangeEvents();
             }
 
             ChangeGearDown();
@@ -3127,6 +3088,30 @@ namespace Orts.Simulation.RollingStocks
             if (GearBoxController != null)
             {
                 GearBoxController.StopDecrease();
+            }
+        }
+
+        /// <summary>
+        /// Trigger sound events when the gearbox increases or decreases.
+        /// </summary>
+        private void SignalGearBoxChangeEvents()
+        {
+            // Only activate sound event if notch has actually changed
+            if (GearBoxController.CurrentNotch != PreviousGearBoxNotch)
+            {
+                switch (GearBoxController.CurrentNotch)
+                {
+                    case 0:
+                        SignalEvent(TrainEvent.GearPosition0);
+                        break;
+                    case 1:
+                        SignalEvent(TrainEvent.GearPosition1);
+                        break;
+                    default:
+                        SignalEvent(TrainEvent.GearPosition2);
+                        break;
+                }
+                PreviousGearBoxNotch = GearBoxController.CurrentNotch; // Update previous value for next time around
             }
         }
 
