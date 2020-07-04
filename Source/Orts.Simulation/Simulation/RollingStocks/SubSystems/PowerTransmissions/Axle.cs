@@ -18,6 +18,7 @@
 using Orts.Common;
 using Orts.Common.Calc;
 using System;
+using System.IO;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {
@@ -581,6 +582,26 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                     totalInertiaKgm2 = inertiaKgm2;
                     break;
             }
+        }
+
+        /// <summary>
+        /// A constructor that restores the game state.
+        /// </summary>
+        /// <param name="inf">The save stream to read from.</param>
+        public Axle(BinaryReader inf) : this()
+        {
+            previousSlipPercent = inf.ReadSingle();
+            previousSlipSpeedMpS = inf.ReadSingle();
+        }
+
+        /// <summary>
+        /// Save the game state.
+        /// </summary>
+        /// <param name="outf">The save stream to write to.</param>
+        public void Save(BinaryWriter outf)
+        {
+            outf.Write(previousSlipPercent);
+            outf.Write(previousSlipSpeedMpS);
         }
 
         /// <summary>
