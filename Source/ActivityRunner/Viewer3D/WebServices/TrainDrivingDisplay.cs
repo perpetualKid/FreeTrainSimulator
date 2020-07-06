@@ -111,7 +111,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
         private static readonly Dictionary<string, string> LastColToAbbreviated = new Dictionary<string, string>()
         {
-            { Viewer.Catalog.GetString("apply Service"), Viewer.Catalog.GetString("Apply")},
+            {Viewer.Catalog.GetString("apply Service"), Viewer.Catalog.GetString("Apply")},
             {Viewer.Catalog.GetString("Apply Quick"), Viewer.Catalog.GetString("ApplQ")},
             {Viewer.Catalog.GetString("Apply Slow"), Viewer.Catalog.GetString("ApplS")},
             {Viewer.Catalog.GetString("coal"), Viewer.Catalog.GetString("c")},
@@ -184,11 +184,13 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 LastCol = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayer.MPManager.IsClient() ? MultiPlayer.MPManager.Instance().serverTimeDifference : 0)),
             });
             if (viewer.Simulator.IsReplaying)
+            {
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Replay"),
                     LastCol = FormatStrings.FormatTime(viewer.Log.ReplayEndsAt - viewer.Simulator.ClockTime),
                 });
+            }
 
             Color speedColor;
             if (locomotive.SpeedMpS < trainInfo.allowedSpeedMpS - 1f)
@@ -379,11 +381,13 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
 
             if (showRetainers)
+            {
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Retainers"),
                     LastCol = $"{train.RetainerPercent} {Viewer.Catalog.GetString(train.RetainerSetting.GetDescription())}",
                 });
+            }
 
             if (engineBrakeStatus.Contains(Viewer.Catalog.GetString("BC")))
             {
@@ -412,17 +416,21 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             if (dynamicBrakeStatus != null && locomotive.IsLeadLocomotive())
             {
                 if (locomotive.DynamicBrakePercent >= 0)
+                {
                     AddLabel(new ListLabel
                     {
                         FirstCol = Viewer.Catalog.GetString("Dynamic brake"),
                         LastCol = locomotive.DynamicBrake ? dynamicBrakeStatus : Viewer.Catalog.GetString("Setup") + ColorCode[Color.Cyan],
                     });
+                }
                 else
+                {
                     AddLabel(new ListLabel
                     {
                         FirstCol = Viewer.Catalog.GetString("Dynamic brake"),
                         LastCol = Viewer.Catalog.GetString("Off"),
                     });
+                }
             }
 
             AddSeparator();
@@ -505,17 +513,21 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             if (locomotive is MSTSSteamLocomotive steamLocomotive1)
             {
                 if (steamLocomotive1.IsGrateLimit && steamLocomotive1.GrateCombustionRateLBpFt2 > steamLocomotive1.GrateLimitLBpFt2)
+                {
                     AddLabel(new ListLabel
                     {
                         FirstCol = Viewer.Catalog.GetString("Grate limit"),
                         LastCol = Viewer.Catalog.GetString("Exceeded") + ColorCode[Color.OrangeRed],
                     });
+                }
                 else
+                {
                     AddLabel(new ListLabel
                     {
                         FirstCol = Viewer.Catalog.GetString("Grate limit") + ColorCode[Color.Black],
                         LastCol = Viewer.Catalog.GetString("Normal") + ColorCode[Color.Black],
                     });
+                }
             }
             else
             {
@@ -528,29 +540,37 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             // Wheel
             if (train.IsWheelSlip)
+            {
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Wheel"),
                     LastCol = Viewer.Catalog.GetString("slip") + ColorCode[Color.OrangeRed],
                 });
+            }
             else if (train.IsWheelSlipWarninq)
+            {
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Wheel"),
                     LastCol = Viewer.Catalog.GetString("slip warning") + ColorCode[Color.Yellow],
                 });
+            }
             else if (train.IsBrakeSkid)
+            {
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Wheel"),
                     LastCol = Viewer.Catalog.GetString("skid") + ColorCode[Color.OrangeRed],
                 });
+            }
             else
+            {
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Wheel") + ColorCode[Color.Black],
                     LastCol = Viewer.Catalog.GetString("Normal") + ColorCode[Color.Black],
                 });
+            }
 
             // Doors
             var wagon = (MSTSWagon)locomotive;
