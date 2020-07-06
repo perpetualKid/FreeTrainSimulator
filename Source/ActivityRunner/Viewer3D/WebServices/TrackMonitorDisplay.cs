@@ -458,7 +458,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// </remarks>
         private static string FindAuthorityInfo(IEnumerable<Train.TrainObjectItem> objects, string controlText)
         {
-            Train.TrainObjectItem authInfo = objects.SingleOrDefault((info) => info.ItemType == Train.TrainObjectItem.TRAINOBJECTTYPE.AUTHORITY);
+            Train.TrainObjectItem authInfo = objects.SingleOrDefault((info) => info.ItemType == TRAINOBJECTTYPE.AUTHORITY);
             return authInfo == null ? controlText : $"{controlText} : {AuthorityLabels[authInfo.AuthorityType]}";
         }
 
