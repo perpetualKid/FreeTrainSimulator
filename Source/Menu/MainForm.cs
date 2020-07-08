@@ -41,6 +41,7 @@ using Orts.Settings;
 using Orts.Updater;
 
 using Path = Orts.Menu.Entities.Path;
+using Activity = Orts.Menu.Entities.Activity;
 
 namespace Orts.Menu
 {

@@ -85,6 +85,8 @@ namespace Orts.Common
             var builds = new Dictionary<TimeSpan, string>();
             foreach (string fileName in fileNames)
             {
+                if (!File.Exists(Path.Combine(applicationPath, fileName)))
+                    continue;
                 var version = FileVersionInfo.GetVersionInfo(Path.Combine(applicationPath, fileName));
                 TimeSpan ts = new TimeSpan(version.ProductBuildPart, 0, 0, version.ProductPrivatePart * 2);
                 if (!builds.ContainsKey(ts))

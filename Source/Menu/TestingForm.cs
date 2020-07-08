@@ -30,6 +30,7 @@ using GNU.Gettext.WinForms;
 using Orts.Menu.Entities;
 using Orts.Settings;
 using Path = System.IO.Path;
+using Activity = Orts.Menu.Entities.Activity;
 
 namespace Orts.Menu
 {
