@@ -8,7 +8,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\Program.Core</OutputPath>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>..\Orts.ico</ApplicationIcon>
     <RootNamespace>Orts.Menu</RootNamespace>
   </PropertyGroup>
   <ItemGroup>

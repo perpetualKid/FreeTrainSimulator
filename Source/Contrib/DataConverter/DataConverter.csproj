@@ -9,6 +9,7 @@
     <OutputPath>..\..\..\Program.Core</OutputPath>
     <RootNamespace>Orts.DataConverter</RootNamespace>
     <AssemblyName>Contrib.DataConverter</AssemblyName>
+    <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj" />

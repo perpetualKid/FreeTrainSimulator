@@ -10,6 +10,7 @@
     <OutputPath>..\..\..\Program.Core</OutputPath>
     <RootNamespace>Orts.ContentManager</RootNamespace>
     <AssemblyName>Contrib.ContentManager</AssemblyName>
+    <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />

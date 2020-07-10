@@ -10,6 +10,7 @@
     <OutputPath>..\..\Program.Core</OutputPath>
     <RootNamespace>Orts.Launcher</RootNamespace>
     <AssemblyName>OpenRails</AssemblyName>
+    <ApplicationIcon>..\Orts.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />

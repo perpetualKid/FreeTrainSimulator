@@ -8,7 +8,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\Program.Core</OutputPath>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>..\Orts.ico</ApplicationIcon>
     <RootNamespace>Orts.ActivityRunner</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

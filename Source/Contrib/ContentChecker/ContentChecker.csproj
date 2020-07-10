@@ -10,6 +10,7 @@
     <OutputPath>..\..\..\Program.Core</OutputPath>
     <RootNamespace>Orts.ContentChecker</RootNamespace>
     <AssemblyName>Contrib.ContentChecker</AssemblyName>
+    <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1375-develop" />

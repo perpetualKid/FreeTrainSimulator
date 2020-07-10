@@ -10,6 +10,7 @@
   <PropertyGroup>
     <OutputPath>..\..\..\Program.Core</OutputPath>
     <RootNamespace>ORTS.TrackViewer</RootNamespace>
+    <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
     <AssemblyName>Contrib.TrackViewer</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
