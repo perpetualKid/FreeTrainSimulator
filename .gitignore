@@ -2,9 +2,6 @@
 /xunit.xml
 /OpenRails-*.pdf
 /OpenRails-*.zip
-/Microsoft .NET Framework Redistributable 3.5 SP1
-/Microsoft .NET Framework Redistributable 3.5 SP1 download manager
-/Microsoft XNA Framework Redistributable 3.1
 /Open Rails
 /Program
 /Program.Core
@@ -362,3 +359,4 @@ healthchecksdb
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 *.orig
+Source/**/Properties/launchSettings.json

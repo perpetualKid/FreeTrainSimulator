@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Orts.Common.Native
 {
@@ -27,10 +28,10 @@ namespace Orts.Common.Native
         [DllImport("user32.dll", EntryPoint = "MapVirtualKey", SetLastError = true)]
         private static extern int MapVirtualKeyNative(int code, MapVirtualKeyType type);
 
-        public static int GetKeyNameText(int scanCode, [Out] string name, int length)
+        public static int GetKeyNameText(int scanCode, [Out] StringBuilder name, int length)
         { return GetKeyNameTextNative(scanCode, name, length); }
         [DllImport("user32.dll", EntryPoint = "GetKeyNameText", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern int GetKeyNameTextNative(int scanCode, [Out] string name, int length);
+        private static extern int GetKeyNameTextNative(int scanCode, [Out] StringBuilder name, int length);
 
         public static IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr wParam, ref CharFormat2 lParam)
         { return SendMessageNative(hwnd, msg, wParam, ref lParam); }
