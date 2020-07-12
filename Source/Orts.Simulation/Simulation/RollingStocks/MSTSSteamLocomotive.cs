@@ -5443,10 +5443,8 @@ namespace Orts.Simulation.RollingStocks
                     Injector1Fraction = 0.0f;
                     Injector2IsOn = false;
                     Injector2Fraction = 0.0f;
-                    SignalEvent(TrainEvent.WaterInjector1Off);
-                    SignalEvent(TrainEvent.WaterInjector2Off);
-                    Injector1SoundIsOn = false;
-                    Injector2SoundIsOn = false;
+                    StopInjector1Sound();
+                    StopInjector2Sound();
                 }
                 else if (WaterGlassLevelIN <= 7.0 && WaterGlassLevelIN > 6.875 && !InjectorLockedOut)  // turn injector 1 on 20% if water level in boiler drops below 7.0
                 {
@@ -5691,6 +5689,31 @@ namespace Orts.Simulation.RollingStocks
                 SignalEvent(TrainEvent.WaterInjector2On);
             }
         }
+
+        /// <summary>
+        /// Turn off the injector 1 sound only when the injector stops.
+        /// </summary>
+        private void StopInjector1Sound()
+        {
+            if (Injector1SoundIsOn)
+            {
+                Injector1SoundIsOn = false;
+                SignalEvent(TrainEvent.WaterInjector1Off);
+            }
+        }
+
+        /// <summary>
+        /// Turn off the injector 2 sound only when the injector stops.
+        /// </summary>
+        private void StopInjector2Sound()
+        {
+            if (Injector2SoundIsOn)
+            {
+                Injector2SoundIsOn = false;
+                SignalEvent(TrainEvent.WaterInjector2Off);
+            }
+        }
+
 
         protected override void UpdateCarSteamHeat(double elapsedClockSeconds)
         {

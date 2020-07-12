@@ -197,6 +197,12 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 200: return TrainEvent.GearPosition0;
                         case 201: return TrainEvent.GearPosition1;
                         case 202: return TrainEvent.GearPosition2;
+                        case 203: return TrainEvent.GearPosition3;
+                        case 204: return TrainEvent.GearPosition4;
+                        case 205: return TrainEvent.GearPosition5;
+                        case 206: return TrainEvent.GearPosition6;
+                        case 207: return TrainEvent.GearPosition7;
+                        case 208: return TrainEvent.GearPosition8;
                         //
                         default: return TrainEvent.None;
                     }

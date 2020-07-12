@@ -442,6 +442,12 @@ namespace Orts.Common
         GearPosition0,
         GearPosition1,
         GearPosition2,
+        GearPosition3,
+        GearPosition4,
+        GearPosition5,
+        GearPosition6,
+        GearPosition7,
+        GearPosition8,
     }
 
     public enum PowerSupplyEvent
