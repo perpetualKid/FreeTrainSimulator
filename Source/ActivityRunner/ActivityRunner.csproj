@@ -11,6 +11,10 @@
     <ApplicationIcon>..\Orts.ico</ApplicationIcon>
     <RootNamespace>Orts.ActivityRunner</RootNamespace>
   </PropertyGroup>
+  <PropertyGroup>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>WINDOWS;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
     <PlatformTarget>AnyCPU</PlatformTarget>
