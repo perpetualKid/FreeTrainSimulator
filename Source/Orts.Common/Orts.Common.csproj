@@ -2,8 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Deterministic>false</Deterministic>
+    <AssemblyTitle>Open Rails Common Library</AssemblyTitle>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\Program.Core</OutputPath>

@@ -2,9 +2,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Deterministic>false</Deterministic>
     <UseWindowsForms>true</UseWindowsForms>
+    <Description>Open Rails Data Collector (Contributed)</Description>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\..\Program.Core</OutputPath>

@@ -12,4 +12,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
+  <PropertyGroup>
+    <VersionPrefix>1.3.0</VersionPrefix>
+    <VersionSuffix>LocalBuild</VersionSuffix>
+    <Product>Open Rails Ultimate</Product>
+    <Company>Open Rails Ultimate Team</Company>
+    <Description>Open Rails Train Simulator</Description>
+    <Copyright>Copyright © 2020</Copyright>
+  </PropertyGroup>
 </Project>
