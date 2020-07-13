@@ -1,5 +1,10 @@
 trigger: 
-    none
+  branches:
+    include:
+    - Core
+  paths:
+    exclude: # file paths which will not trigger a build
+    - build/*
 
 pool:
   vmImage: 'windows-latest'
