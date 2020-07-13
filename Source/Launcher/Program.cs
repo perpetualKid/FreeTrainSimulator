@@ -129,8 +129,6 @@ namespace Orts.Launcher
         {
             foreach (var file in new[] {
                 // Required libraries:
-                "GNU.Gettext.dll",
-                "GNU.Gettext.WinForms.dll",
                 @"Native/X86/OpenAL32.dll",
                 @"Native/X64/OpenAL32.dll",
                 // Programs:

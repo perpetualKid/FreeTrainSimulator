@@ -9911,7 +9911,7 @@ namespace Orts.Simulation.Physics
 
             if (Simulator.PlayerLocomotive != null && Simulator.PlayerLocomotive.Train == this)
             {
-                var report = Simulator.Catalog.GetStringFmt("Train stopped due to problems with other train: train {0} , reason: {1}", otherTrainNumber, reason);
+                var report = Simulator.Catalog.GetString("Train stopped due to problems with other train: train {0} , reason: {1}", otherTrainNumber, reason);
 
                 if (Simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
                     Simulator.Confirmer.Message(ConfirmLevel.Warning, report);

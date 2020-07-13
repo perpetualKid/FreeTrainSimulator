@@ -26,8 +26,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
+
+using GetText;
+using GetText.WindowsForms;
+
 using Orts.Settings;
 
 namespace Orts.Updater
@@ -35,7 +37,7 @@ namespace Orts.Updater
     public partial class UpdaterProgress : Form
     {
         private readonly UserSettings Settings;
-        private readonly GettextResourceManager catalog = new GettextResourceManager("Updater");
+        private readonly ICatalog catalog = new Catalog("Updater");
 
         private string basePath;
         private string launcherPath;

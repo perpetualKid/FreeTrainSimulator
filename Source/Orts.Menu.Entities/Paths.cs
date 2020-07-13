@@ -165,7 +165,7 @@ namespace Orts.Menu.Entities
         /// <returns>array of strings with the user-readable information</returns>
         public string ToInfo()
         {
-            return string.Join("\n", catalog.GetStringFmt("Start at: {0}", Start), catalog.GetStringFmt("Heading to: {0}", End));
+            return string.Join("\n", catalog.GetString("Start at: {0}", Start), catalog.GetString("Heading to: {0}", End));
         }
     }
 }

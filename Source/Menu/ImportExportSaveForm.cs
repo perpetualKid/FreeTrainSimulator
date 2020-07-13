@@ -21,8 +21,10 @@ using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Windows.Forms;
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
+
+using GetText;
+using GetText.WindowsForms;
+
 using Orts.Settings;
 
 namespace Orts.Menu
@@ -32,7 +34,7 @@ namespace Orts.Menu
         private readonly ResumeForm.SavePoint savePoint;
         private const string SavePackFileExtension = "ORSavePack";  // Includes "OR" in the extension as this may be emailed, downloaded and mixed in with non-OR files.
 
-        private GettextResourceManager catalog = new GettextResourceManager("Menu");
+        private ICatalog catalog = new Catalog("Menu");
 
         public ImportExportSaveForm(ResumeForm.SavePoint save)
         {
@@ -61,7 +63,7 @@ namespace Orts.Menu
             if (ofdImportSave.ShowDialog() == DialogResult.OK)
             {
 				ExtractFilesFromZip(ofdImportSave.FileName, UserSettings.UserDataFolder);
-                UpdateFileList(catalog.GetStringFmt("Save Pack '{0}' imported successfully.", Path.GetFileNameWithoutExtension(ofdImportSave.FileName)));
+                UpdateFileList(catalog.GetString("Save Pack '{0}' imported successfully.", Path.GetFileNameWithoutExtension(ofdImportSave.FileName)));
             }
         }
 
@@ -72,7 +74,7 @@ namespace Orts.Menu
             // Copy files to new package in folder save_packs
             string fullZipFilePath = Path.Combine(UserSettings.SavePackFolder, savePoint.Name + "." + SavePackFileExtension);
             AddFileToZip(fullZipFilePath, Directory.GetFiles(Path.GetDirectoryName(savePoint.File), savePoint.Name + ".*"));
-            UpdateFileList(catalog.GetStringFmt("Save Pack '{0}' exported successfully.", Path.GetFileNameWithoutExtension(savePoint.File)));
+            UpdateFileList(catalog.GetString("Save Pack '{0}' exported successfully.", Path.GetFileNameWithoutExtension(savePoint.File)));
         }
 
         private void BViewSavePacksFolder_Click(object sender, EventArgs e)
@@ -98,7 +100,7 @@ namespace Orts.Menu
         {
 			string[] files = Directory.GetFiles(UserSettings.SavePackFolder, "*." + SavePackFileExtension);
             textBoxSavePacks.Text = String.IsNullOrEmpty(message) ? "" : message + "\r\n";
-            textBoxSavePacks.Text += catalog.GetPluralStringFmt("Save Pack folder contains {0} save pack:", "Save Pack folder contains {0} save packs:", files.Length);
+            textBoxSavePacks.Text += catalog.GetPluralString("Save Pack folder contains {0} save pack:", "Save Pack folder contains {0} save packs:", files.Length);
             foreach (var s in files)
                 textBoxSavePacks.Text += "\r\n    " + Path.GetFileNameWithoutExtension(s);
         }

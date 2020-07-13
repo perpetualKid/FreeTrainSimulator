@@ -4430,7 +4430,7 @@ namespace Orts.Simulation.AIs
                     Simulator.TrainSwitcher.ClickedTrainFromList = true;
                     attachTrain.TrainType = TRAINTYPE.AI_PLAYERHOSTING;
                     AI.TrainsToRemoveFromAI.Add((AITrain)attachTrain);
-                    Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetStringFmt("Player train has been included into train {0} service {1}, that automatically becomes the new player train",
+                    Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Player train has been included into train {0} service {1}, that automatically becomes the new player train",
                         Number, Name));
                     Simulator.PlayerLocomotive = Simulator.SetPlayerLocomotive(attachTrain);
                     (attachTrain as AITrain).SwitchToPlayerControl();
@@ -4984,7 +4984,7 @@ namespace Orts.Simulation.AIs
             Cars.Clear();
             requiredActions.RemovePendingAIActionItems(true);
             UncondAttach = false;
-            Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetStringFmt("Join success: Train {0} service {1} has been incorporated into train {2} service {3}",
+            Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Join success: Train {0} service {1} has been incorporated into train {2} service {3}",
                 Number, Name.Substring(0, Math.Min(Name.Length, 20)), incorporatingTrain.Number, incorporatingTrain.Name.Substring(0, Math.Min(incorporatingTrain.Name.Length, 20))));
         }
 
@@ -6554,7 +6554,7 @@ namespace Orts.Simulation.AIs
                         }
                         else
                         {
-                            DisplayMessage = Simulator.Catalog.GetStringFmt("Passenger boarding completes in {0:D2}:{1:D2}",
+                            DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completes in {0:D2}:{1:D2}",
                                 remaining / 60, remaining % 60);
                         }
                     }

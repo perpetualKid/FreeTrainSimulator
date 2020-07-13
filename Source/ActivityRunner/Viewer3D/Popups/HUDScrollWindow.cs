@@ -145,7 +145,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 vbox.Add(pageRight);
 
                 vbox.AddHorizontalSeparator();
-                nextLoco = new Label(hbox.RemainingWidth, hbox.RemainingHeight, !HUDWindow.hudWindowSteamLocoLead && HUDWindow.hudWindowLocoActualPage > 0 ? Viewer.Catalog.GetString("▼ Next Loco (") + HUDWindow.hudWindowLocoActualPage + "/" + HUDWindow.hudWindowLocoPagesCount + ")" : Viewer.Catalog.GetPluralStringFmt("= One Locomotive.", "= All Locomotives.", (long)HUDWindow.hudWindowLocoPagesCount), LabelAlignment.Left) { Color = HUDWindow.hudWindowSteamLocoLead || HUDWindow.hudWindowLocoPagesCount > HUDWindow.hudWindowLocoActualPage ? Color.Gray : Color.Black };
+                nextLoco = new Label(hbox.RemainingWidth, hbox.RemainingHeight, !HUDWindow.hudWindowSteamLocoLead && HUDWindow.hudWindowLocoActualPage > 0 ? Viewer.Catalog.GetString("▼ Next Loco (") + HUDWindow.hudWindowLocoActualPage + "/" + HUDWindow.hudWindowLocoPagesCount + ")" : Viewer.Catalog.GetPluralString("= One Locomotive.", "= All Locomotives.", (long)HUDWindow.hudWindowLocoPagesCount), LabelAlignment.Left) { Color = HUDWindow.hudWindowSteamLocoLead || HUDWindow.hudWindowLocoPagesCount > HUDWindow.hudWindowLocoActualPage ? Color.Gray : Color.Black };
                 nextLoco.Click += NextLoco_Click;
                 vbox.Add(nextLoco);
 

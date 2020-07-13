@@ -223,14 +223,14 @@ namespace Orts.Simulation
                         if (!isAligned)
                         {
                             TrainsOnMovingTable[trainIndex].SetFrontState(true);
-                            Simulator.Confirmer.Warning(Simulator.Catalog.GetStringFmt("Train slipped into non aligned {0}", thisTableType));
+                            Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Train slipped into non aligned {0}", thisTableType));
                             train.SetTrainOutOfControl(Train.OUTOFCONTROL.SLIPPED_INTO_TURNTABLE);
                             train.SpeedMpS = 0;
                             foreach (var car in train.Cars) car.SpeedMpS = 0;
                             return false;
                         }
                     }
-                    if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetStringFmt("Train front on {0}", thisTableType));
+                    if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetString("Train front on {0}", thisTableType));
                 }
                 TrainsOnMovingTable[trainIndex].SetFrontState(true);
             }
@@ -238,7 +238,7 @@ namespace Orts.Simulation
             {
                 if (trainIndex != -1 && TrainsOnMovingTable[trainIndex].FrontOnBoard)
                 {
-                    if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetStringFmt("Train front outside {0}", thisTableType));
+                    if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetString("Train front outside {0}", thisTableType));
                     if (TrainsOnMovingTable[trainIndex].BackOnBoard) TrainsOnMovingTable[trainIndex].SetFrontState(false);
                     else
                     {
@@ -264,14 +264,14 @@ namespace Orts.Simulation
                         if (!isAligned)
                         {
                             TrainsOnMovingTable[trainIndex].SetBackState(true);
-                            Simulator.Confirmer.Warning(Simulator.Catalog.GetStringFmt("Train slipped into non aligned {0}", thisTableType));
+                            Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Train slipped into non aligned {0}", thisTableType));
                             train.SetTrainOutOfControl(Train.OUTOFCONTROL.SLIPPED_INTO_TURNTABLE);
                             train.SpeedMpS = 0;
                             foreach (var car in train.Cars) car.SpeedMpS = 0;
                             return false;
                         }
                     }
-                    Simulator.Confirmer.Information(Simulator.Catalog.GetStringFmt("Train rear on {0}", thisTableType));
+                    Simulator.Confirmer.Information(Simulator.Catalog.GetString("Train rear on {0}", thisTableType));
                 }
                 TrainsOnMovingTable[trainIndex].SetBackState(true);
             }
@@ -279,7 +279,7 @@ namespace Orts.Simulation
             {
                 if (trainIndex != -1 && TrainsOnMovingTable[trainIndex].BackOnBoard)
                 {
-                    if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetStringFmt("Train rear outside {0}", thisTableType));
+                    if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetString("Train rear outside {0}", thisTableType));
                     if (TrainsOnMovingTable[trainIndex].FrontOnBoard) TrainsOnMovingTable[trainIndex].SetBackState(false);
                     else
                     {
@@ -598,7 +598,7 @@ namespace Orts.Simulation
                 Clockwise = false;
                 Counterclockwise = false;
                 Continuous = false;
-                if (SendNotifications) Simulator.Confirmer.Warning(Simulator.Catalog.GetStringFmt("Train partially on turntable, can't rotate"));
+                if (SendNotifications) Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Train partially on turntable, can't rotate"));
                 return;
             }
             if (TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard && TrainsOnMovingTable[0].BackOnBoard)
@@ -609,7 +609,7 @@ namespace Orts.Simulation
                  || Math.Abs(train.MUReverserPercent) <= 1))) || (train.ControlMode != Train.TRAIN_CONTROL.MANUAL && train.ControlMode != Train.TRAIN_CONTROL.TURNTABLE &&
                  train.ControlMode != Train.TRAIN_CONTROL.EXPLORER && train.ControlMode != Train.TRAIN_CONTROL.UNDEFINED))
                 {
-                    if (SendNotifications) Simulator.Confirmer.Warning(Simulator.Catalog.GetStringFmt("Rotation can't start: check throttle, speed, direction and control mode"));
+                    if (SendNotifications) Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Rotation can't start: check throttle, speed, direction and control mode"));
                     return;
                 }
                 if (train.ControlMode == Train.TRAIN_CONTROL.MANUAL || train.ControlMode == Train.TRAIN_CONTROL.EXPLORER || train.ControlMode == Train.TRAIN_CONTROL.UNDEFINED)
@@ -617,7 +617,7 @@ namespace Orts.Simulation
                     ComputeTrainPosition(train);
                     train.ControlMode = Train.TRAIN_CONTROL.TURNTABLE;
                 }
-                if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetStringFmt("Turntable starting rotation with train"));
+                if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetString("Turntable starting rotation with train"));
 
             }
             Clockwise = isClockwise;
@@ -726,7 +726,7 @@ namespace Orts.Simulation
                             Clockwise = false;
                             AutoClockwise = false;
                             ConnectedTrackEnd = ForwardConnectedTarget;
-                            if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetStringFmt("Turntable forward connected"));
+                            if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetString("Turntable forward connected"));
                             TargetY = -Angles[ForwardConnectedTarget];
                         }
                     }
@@ -739,7 +739,7 @@ namespace Orts.Simulation
                             Clockwise = false;
                             AutoClockwise = false;
                             ConnectedTrackEnd = RearConnectedTarget;
-                            if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetStringFmt("Turntable backward connected"));
+                            if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetString("Turntable backward connected"));
                             TargetY = -MathHelper.WrapAngle(Angles[RearConnectedTarget] + (float)Math.PI);
                         }
                     }
@@ -757,7 +757,7 @@ namespace Orts.Simulation
                             Counterclockwise = false;
                             AutoCounterclockwise = false;
                             ConnectedTrackEnd = ForwardConnectedTarget;
-                            if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetStringFmt("Turntable forward connected"));
+                            if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetString("Turntable forward connected"));
                             TargetY = -Angles[ForwardConnectedTarget];
                         }
                     }
@@ -770,7 +770,7 @@ namespace Orts.Simulation
                             Counterclockwise = false;
                             AutoCounterclockwise = false;
                             ConnectedTrackEnd = RearConnectedTarget;
-                            if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetStringFmt("Turntable backward connected"));
+                            if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetString("Turntable backward connected"));
                             TargetY = -MathHelper.WrapAngle(Angles[RearConnectedTarget] + (float)Math.PI);
                         }
                     }

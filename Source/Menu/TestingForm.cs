@@ -25,12 +25,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
+
+using GetText;
+using GetText.WindowsForms;
+
 using Orts.Menu.Entities;
 using Orts.Settings;
-using Path = System.IO.Path;
+
 using Activity = Orts.Menu.Entities.Activity;
+using Path = System.IO.Path;
 
 namespace Orts.Menu
 {
@@ -70,7 +73,7 @@ namespace Orts.Menu
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
-            GettextResourceManager catalog = new GettextResourceManager("Menu");
+            ICatalog catalog = new Catalog("Menu");
             Localizer.Localize(this, catalog);
 
             // Windows 2000 and XP should use 8.25pt Tahoma, while Windows

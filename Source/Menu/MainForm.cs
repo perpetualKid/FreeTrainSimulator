@@ -28,11 +28,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
+using GetText;
+using GetText.WindowsForms;
 
 using Orts.Common;
-using Orts.Common.Native;
 using Orts.Formats.Msts;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
@@ -40,8 +39,8 @@ using Orts.Menu.Entities;
 using Orts.Settings;
 using Orts.Updater;
 
-using Path = Orts.Menu.Entities.Path;
 using Activity = Orts.Menu.Entities.Activity;
+using Path = Orts.Menu.Entities.Path;
 
 namespace Orts.Menu
 {
@@ -115,7 +114,7 @@ namespace Orts.Menu
         public string SelectedSaveFile { get; set; }
         public UserAction SelectedAction { get; set; }
 
-        private GettextResourceManager catalog = new GettextResourceManager("Menu");
+        private ICatalog catalog = new Catalog("Menu");
 
         #region Main Form
         public MainForm()
@@ -331,7 +330,7 @@ namespace Orts.Menu
             if (updateManager.LastCheckError != null)
                 linkLabelUpdate.Text = catalog.GetString("Update check failed");
             else if (updateManager.LastUpdate != null && updateManager.LastUpdate.Version != VersionInfo.Version)
-                linkLabelUpdate.Text = catalog.GetStringFmt("Update to {0}", updateManager.LastUpdate.Version);
+                linkLabelUpdate.Text = catalog.GetString("Update to {0}", updateManager.LastUpdate.Version);
             else
                 linkLabelUpdate.Text = "";
             linkLabelUpdate.Enabled = true;
@@ -574,7 +573,7 @@ namespace Orts.Menu
         {
             if (updateManager.LastCheckError != null)
             {
-                MessageBox.Show(catalog.GetStringFmt("The update check failed due to an error:\n\n{0}", updateManager.LastCheckError), Application.ProductName);
+                MessageBox.Show(catalog.GetString("The update check failed due to an error:\n\n{0}", updateManager.LastCheckError), Application.ProductName);
                 return;
             }
 
@@ -582,7 +581,7 @@ namespace Orts.Menu
 
             if (updateManager.LastUpdateError != null)
             {
-                MessageBox.Show(catalog.GetStringFmt("The update failed due to an error:\n\n{0}", updateManager.LastUpdateError), Application.ProductName);
+                MessageBox.Show(catalog.GetString("The update failed due to an error:\n\n{0}", updateManager.LastUpdateError), Application.ProductName);
             }
         }
 
@@ -1308,50 +1307,50 @@ namespace Orts.Menu
         {
             ClearDetails();
             if (SelectedRoute != null && SelectedRoute.Description != null)
-                AddDetailToShow(catalog.GetStringFmt("Route: {0}", SelectedRoute.Name), SelectedRoute.Description);
+                AddDetailToShow(catalog.GetString("Route: {0}", SelectedRoute.Name), SelectedRoute.Description);
 
             if (radioButtonModeActivity.Checked)
             {
                 if (SelectedConsist?.Locomotive?.Description != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description);
+                    AddDetailToShow(catalog.GetString("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description);
                 }
                 if (SelectedActivity?.Description != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Activity: {0}", SelectedActivity.Name), SelectedActivity.Description);
+                    AddDetailToShow(catalog.GetString("Activity: {0}", SelectedActivity.Name), SelectedActivity.Description);
                     AddDetailToShow(catalog.GetString("Activity Briefing"), SelectedActivity.Briefing);
                 }
                 else if (SelectedPath != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Path: {0}", SelectedPath.Name),
-                        string.Join("\n", catalog.GetStringFmt("Starting at: {0}", SelectedPath.Start),
-                    catalog.GetStringFmt("Heading to: {0}", SelectedPath.End)));
+                    AddDetailToShow(catalog.GetString("Path: {0}", SelectedPath.Name),
+                        string.Join("\n", catalog.GetString("Starting at: {0}", SelectedPath.Start),
+                    catalog.GetString("Heading to: {0}", SelectedPath.End)));
                 }
             }
             if (radioButtonModeTimetable.Checked)
             {
                 if (SelectedTimetableSet != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Timetable set: {0}", SelectedTimetableSet), string.Empty);
+                    AddDetailToShow(catalog.GetString("Timetable set: {0}", SelectedTimetableSet), string.Empty);
                 }
                 if (SelectedTimetable != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Timetable: {0}", SelectedTimetable), string.Empty);
+                    AddDetailToShow(catalog.GetString("Timetable: {0}", SelectedTimetable), string.Empty);
                 }
                 if (SelectedTimetableTrain != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Train: {0}", SelectedTimetableTrain), catalog.GetStringFmt("Start time: {0}", SelectedTimetableTrain.StartTime));
+                    AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTime));
                     if (SelectedTimetableConsist != null)
                     {
-                        AddDetailToShow(catalog.GetStringFmt("Consist: {0}", SelectedTimetableConsist.Name), string.Empty);
+                        AddDetailToShow(catalog.GetString("Consist: {0}", SelectedTimetableConsist.Name), string.Empty);
                         if (SelectedTimetableConsist.Locomotive != null && SelectedTimetableConsist.Locomotive.Description != null)
                         {
-                            AddDetailToShow(catalog.GetStringFmt("Locomotive: {0}", SelectedTimetableConsist.Locomotive.Name), SelectedTimetableConsist.Locomotive.Description);
+                            AddDetailToShow(catalog.GetString("Locomotive: {0}", SelectedTimetableConsist.Locomotive.Name), SelectedTimetableConsist.Locomotive.Description);
                         }
                     }
                     if (SelectedTimetablePath != null)
                     {
-                        AddDetailToShow(catalog.GetStringFmt("Path: {0}", SelectedTimetablePath.Name), SelectedTimetablePath.ToInfo());
+                        AddDetailToShow(catalog.GetString("Path: {0}", SelectedTimetablePath.Name), SelectedTimetablePath.ToInfo());
                     }
                 }
             }

@@ -17,7 +17,16 @@
 
 // This file is the responsibility of the 3D & Environment Team.
 
-using GNU.Gettext;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Management;
+using System.Threading;
+using System.Windows.Forms;
+
+using GetText;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -43,20 +52,12 @@ using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Viewer3D.Popups;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Management;
-using System.Threading;
-using System.Windows.Forms;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
     public class Viewer
     {
-        public static GettextResourceManager Catalog { get; private set; }
+        public static ICatalog Catalog { get; private set; }
         public static Random Random { get; private set; }
         // User setups.
         public UserSettings Settings { get; private set; }
@@ -244,7 +245,7 @@ namespace Orts.ActivityRunner.Viewer3D
         //[CallOnThread("Loader")]
         public Viewer(Simulator simulator, Orts.ActivityRunner.Viewer3D.Processes.Game game)
         {
-            Catalog = new GettextResourceManager("ActivityRunner");
+            Catalog = new Catalog("ActivityRunner");
             Random = new Random();
             Simulator = simulator;
             Game = game;
@@ -297,7 +298,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var train = sender as Train;
                 if (!TrackMonitorWindow.Visible && Simulator.Confirmer != null && train != null)
                 {
-                    var message = Catalog.GetStringFmt("Allowed speed raised to {0}", FormatStrings.FormatSpeedDisplay(train.AllowedMaxSpeedMpS, MilepostUnitsMetric));
+                    var message = Catalog.GetString("Allowed speed raised to {0}", FormatStrings.FormatSpeedDisplay(train.AllowedMaxSpeedMpS, MilepostUnitsMetric));
                     Simulator.Confirmer.Message(ConfirmLevel.Information, message);
                 }
             };
@@ -992,7 +993,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (UserInput.IsPressed(UserCommand.CameraVibrate))
             {
                 Program.Simulator.CarVibrating = (Program.Simulator.CarVibrating + 1) % 4;
-                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetStringFmt("Vibrating at level {0}", Program.Simulator.CarVibrating));
+                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Vibrating at level {0}", Program.Simulator.CarVibrating));
                 Settings.CarVibratingLevel = Program.Simulator.CarVibrating;
                 Settings.Save("CarVibratingLevel");
             }
@@ -1044,7 +1045,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 CheckReplaying();
                 new UseFreeRoamCameraCommand(Log);
-                Simulator.Confirmer.Message(ConfirmLevel.None, Catalog.GetPluralStringFmt(
+                Simulator.Confirmer.Message(ConfirmLevel.None, Catalog.GetPluralString(
                     "{0} viewpoint stored. Use Shift+8 to restore viewpoints.", "{0} viewpoints stored. Use Shift+8 to restore viewpoints.", FreeRoamCameraList.Count - 1));
             }
             if (UserInput.IsPressed(UserCommand.CameraPreviousFree))
@@ -1195,11 +1196,11 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 var textPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.txt");
                 Settings.Input.DumpToText(textPath);
-                MessagesWindow.AddMessage(Catalog.GetStringFmt("Keyboard map list saved to '{0}'.", textPath), 10);
+                MessagesWindow.AddMessage(Catalog.GetString("Keyboard map list saved to '{0}'.", textPath), 10);
 
                 var graphicPath = Path.Combine(Settings.LoggingPath, "OpenRailsKeyboard.png");
                 KeyboardMap.DumpToGraphic(Settings.Input, graphicPath);
-                MessagesWindow.AddMessage(Catalog.GetStringFmt("Keyboard map image saved to '{0}'.", graphicPath), 10);
+                MessagesWindow.AddMessage(Catalog.GetString("Keyboard map image saved to '{0}'.", graphicPath), 10);
             }
 
             // print position command

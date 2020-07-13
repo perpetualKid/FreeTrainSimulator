@@ -10614,7 +10614,7 @@ namespace Orts.Simulation.Timetables
                         }
                         else
                         {
-                            DisplayMessage = Simulator.Catalog.GetStringFmt("Passenger boarding completes in {0:D2}:{1:D2}",
+                            DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completes in {0:D2}:{1:D2}",
                                 remaining / 60, remaining % 60);
                         }
                     }

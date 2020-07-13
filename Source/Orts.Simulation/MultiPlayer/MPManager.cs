@@ -32,7 +32,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 
-using GNU.Gettext;
+using GetText;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
@@ -46,7 +46,7 @@ namespace Orts.MultiPlayer
     //a singleton class handles communication, update and stop etc.
     public class MPManager
 	{
-        public static GettextResourceManager Catalog { get; private set; }
+        public static ICatalog Catalog { get; private set; }
         public static Random Random { get; private set; }
         public static Simulator Simulator { get; internal set; }
 
@@ -173,7 +173,7 @@ namespace Orts.MultiPlayer
 		{
             if (localUser == null)
             {
-                Catalog = new GettextResourceManager("Orts.Simulation");
+                Catalog = new Catalog("Orts.Simulation");
                 Random = new Random();
                 localUser = new MPManager();
             }
@@ -469,7 +469,7 @@ namespace Orts.MultiPlayer
 				if (count >= 2)
 				{
 					if (confirmer != null)
-						confirmer.Information(MPManager.Catalog.GetPluralStringFmt("Cannot decouple: train has {0} player, need to completely stop.", "Cannot decouple: train has {0} players, need to completely stop.", count));
+						confirmer.Information(MPManager.Catalog.GetPluralString("Cannot decouple: train has {0} player, need to completely stop.", "Cannot decouple: train has {0} players, need to completely stop.", count));
 					return false;
 				}
 			}

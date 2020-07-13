@@ -243,7 +243,7 @@ namespace Orts.Simulation
                 Forward = false;
                 Reverse = false;
                 Continuous = false;
-                Simulator.Confirmer.Warning(Simulator.Catalog.GetStringFmt("Train partially on transfertable, can't transfer"));
+                Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Train partially on transfertable, can't transfer"));
                 return;
             }
             if (TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard && TrainsOnMovingTable[0].BackOnBoard)
@@ -254,7 +254,7 @@ namespace Orts.Simulation
                  || Math.Abs(train.MUReverserPercent) <= 1))) || (train.ControlMode != Train.TRAIN_CONTROL.MANUAL && train.ControlMode != Train.TRAIN_CONTROL.TURNTABLE &&
                  train.ControlMode != Train.TRAIN_CONTROL.EXPLORER && train.ControlMode != Train.TRAIN_CONTROL.UNDEFINED))
                 {
-                    Simulator.Confirmer.Warning(Simulator.Catalog.GetStringFmt("Transfer can't start: check throttle, speed, direction and control mode"));
+                    Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Transfer can't start: check throttle, speed, direction and control mode"));
                     return;
                 }
                 if (train.ControlMode == Train.TRAIN_CONTROL.MANUAL || train.ControlMode == Train.TRAIN_CONTROL.EXPLORER || train.ControlMode == Train.TRAIN_CONTROL.UNDEFINED)
@@ -281,7 +281,7 @@ namespace Orts.Simulation
                     RelativeRearTravellerXNALocation = Vector3.Transform(XNALocation, invAnimationXNAMatrix);
                     train.ControlMode = Train.TRAIN_CONTROL.TURNTABLE;
                 }
-                Simulator.Confirmer.Information (Simulator.Catalog.GetStringFmt("Transfertable starting transferring train"));
+                Simulator.Confirmer.Information (Simulator.Catalog.GetString("Transfertable starting transferring train"));
                 // Computing position of cars relative to center of transfertable
 
              }
@@ -343,7 +343,7 @@ namespace Orts.Simulation
                             Connected = true;
                             Forward = false;
                             ConnectedTrackEnd = ConnectedTarget;
-                            Simulator.Confirmer.Information (Simulator.Catalog.GetStringFmt("Transfertable connected"));
+                            Simulator.Confirmer.Information (Simulator.Catalog.GetString("Transfertable connected"));
                             GoToTarget = true;
                             TargetX = Offsets[ConnectedTarget];
                         }
@@ -359,7 +359,7 @@ namespace Orts.Simulation
                             Connected = true;
                             Reverse = false;
                             ConnectedTrackEnd = ConnectedTarget;
-                            Simulator.Confirmer.Information(Simulator.Catalog.GetStringFmt("Transfertable connected"));
+                            Simulator.Confirmer.Information(Simulator.Catalog.GetString("Transfertable connected"));
                             GoToTarget = true;
                             TargetX = Offsets[ConnectedTarget];
                         }

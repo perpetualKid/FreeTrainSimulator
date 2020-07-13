@@ -5,7 +5,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
-using GNU.Gettext;
+
+using GetText;
+
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings.Store;
@@ -46,7 +48,7 @@ namespace Orts.Settings
 
     public class RailDriverSettings : SettingsBase
     {
-        private static readonly GettextResourceManager catalog = new GettextResourceManager("ORTS.Settings");
+        private static readonly ICatalog catalog = new Catalog("ORTS.Settings");
         private static readonly byte[] DefaultCalibrationSettings;
         private static readonly Dictionary<UserCommand, byte> DefaultUserCommands;
 
@@ -219,7 +221,7 @@ namespace Orts.Settings
 
             foreach(var duplicate in duplicates)
             {
-                errors.Append(catalog.GetStringFmt("Button {0} is assigned to \r\n\t", duplicate.Key));
+                errors.Append(catalog.GetString("Button {0} is assigned to \r\n\t", duplicate.Key));
                 foreach (var buttonMapping in duplicate)
                 {
                    errors.Append($"\"{catalog.GetString(((UserCommand)buttonMapping.Index).GetDescription())}\" and ");

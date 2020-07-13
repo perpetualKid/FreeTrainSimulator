@@ -15,10 +15,6 @@
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
     <ProjectReference Include="..\Orts.Scripting.Api\Orts.Scripting.Api.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="GNU.Gettext">
-      <HintPath>..\3rdPartyLibs\GNU.Gettext.dll</HintPath>
-    </Reference>
+    <PackageReference Include="GetText.NET" Version="0.9.0" />
   </ItemGroup>
 </Project>

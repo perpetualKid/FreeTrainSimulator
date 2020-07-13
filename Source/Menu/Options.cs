@@ -23,8 +23,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
+
+using GetText;
+using GetText.WindowsForms;
+
 using Orts.Formats.Msts;
 using Orts.Settings;
 using Orts.Updater;
@@ -36,7 +38,7 @@ namespace Orts.Menu
         private readonly UserSettings Settings;
         private readonly UpdateManager UpdateManager;
 
-        private GettextResourceManager catalog = new GettextResourceManager("Menu");
+        private ICatalog catalog = new Catalog("Menu");
 
         public class ComboBoxMember
         {
@@ -517,7 +519,7 @@ namespace Orts.Menu
 
         private void NumericUpDownFOV_ValueChanged(object sender, EventArgs e)
         {
-            labelFOVHelp.Text = catalog.GetStringFmt("{0:F0}° vertical FOV is the same as:\n{1:F0}° horizontal FOV on 4:3\n{2:F0}° horizontal FOV on 16:9", numericViewingFOV.Value, numericViewingFOV.Value * 4 / 3, numericViewingFOV.Value * 16 / 9);
+            labelFOVHelp.Text = catalog.GetString("{0:F0}° vertical FOV is the same as:\n{1:F0}° horizontal FOV on 4:3\n{2:F0}° horizontal FOV on 16:9", numericViewingFOV.Value, numericViewingFOV.Value * 4 / 3, numericViewingFOV.Value * 16 / 9);
         }
 
         private void TrackBarDayAmbientLight_Scroll(object sender, EventArgs e)
@@ -561,12 +563,12 @@ namespace Orts.Menu
 
         private void TrackDayAmbientLight_ValueChanged(object sender, EventArgs e)
         {
-            labelDayAmbientLight.Text = catalog.GetStringFmt("{0}%", trackDayAmbientLight.Value * 5);
+            labelDayAmbientLight.Text = catalog.GetString("{0}%", trackDayAmbientLight.Value * 5);
         }
 
         private void TrackbarMultiSampling_Scroll(object sender, EventArgs e)
         {
-            lblMSAACount.Text = trackbarMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetStringFmt($"{1 << trackbarMultiSampling.Value}x");
+            lblMSAACount.Text = trackbarMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetString($"{1 << trackbarMultiSampling.Value}x");
         }
 
         private void CheckBoxFullScreenNativeResolution_CheckedChanged(object sender, EventArgs e)
@@ -577,15 +579,15 @@ namespace Orts.Menu
         private void TrackLODBias_ValueChanged(object sender, EventArgs e)
         {
             if (trackLODBias.Value == -100)
-                labelLODBias.Text = catalog.GetStringFmt("No detail (-{0}%)", -trackLODBias.Value);
+                labelLODBias.Text = catalog.GetString("No detail (-{0}%)", -trackLODBias.Value);
             else if (trackLODBias.Value < 0)
-                labelLODBias.Text = catalog.GetStringFmt("Less detail (-{0}%)", -trackLODBias.Value);
+                labelLODBias.Text = catalog.GetString("Less detail (-{0}%)", -trackLODBias.Value);
             else if (trackLODBias.Value == 0)
-                labelLODBias.Text = catalog.GetStringFmt("Default detail (+{0}%)", trackLODBias.Value);
+                labelLODBias.Text = catalog.GetString("Default detail (+{0}%)", trackLODBias.Value);
             else if (trackLODBias.Value < 100)
-                labelLODBias.Text = catalog.GetStringFmt("More detail (+{0}%)", trackLODBias.Value);
+                labelLODBias.Text = catalog.GetString("More detail (+{0}%)", trackLODBias.Value);
             else
-                labelLODBias.Text = catalog.GetStringFmt("All detail (+{0}%)", trackLODBias.Value);
+                labelLODBias.Text = catalog.GetString("All detail (+{0}%)", trackLODBias.Value);
         }
 
         private void DataGridViewContent_SelectionChanged(object sender, EventArgs e)

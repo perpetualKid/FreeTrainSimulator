@@ -10,11 +10,9 @@
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1375-develop" />
     <PackageReference Include="System.Management" Version="4.7.0" />
+    <PackageReference Include="GetText.NET" Version="0.9.0" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="GNU.Gettext">
-      <HintPath>..\3rdPartyLibs\GNU.Gettext.dll</HintPath>
-    </Reference>
     <Reference Include="PIEHid32Net">
       <HintPath>..\3rdPartyLibs\PIEHid32Net.dll</HintPath>
     </Reference>

@@ -391,7 +391,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 line.Add(new Label(colWidth * 3, line.RemainingHeight, Viewer.Catalog.GetString("- Remaining station stops: ") + dbfstationstopsremaining.ToString()));
 
                                 //Current delay
-                                line.Add(new Label(colWidth, line.RemainingHeight, playerTrain.Delay != null ? Viewer.Catalog.GetPluralStringFmt("Current Delay: {0} minute", "Current Delay: {0} minutes", (long)playerTrain.Delay.Value.TotalMinutes) : "Current Delay: 0 minute"));
+                                line.Add(new Label(colWidth, line.RemainingHeight, playerTrain.Delay != null ? Viewer.Catalog.GetPluralString("Current Delay: {0} minute", "Current Delay: {0} minutes", (long)playerTrain.Delay.Value.TotalMinutes) : "Current Delay: 0 minute"));
                                 line = scrollbox.AddLayoutHorizontalLineOfText();
                                 line = line.AddLayoutHorizontalLineOfText();
                             }
@@ -578,8 +578,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 }
                                 if (DbfEvalTaskName.Count > 0)
                                 {
-                                    DbfEvalValues.Add((Viewer.Catalog.GetPluralStringFmt("Task", "Tasks", DbfEvalTaskName.Count)), DbfEvalTaskName.Count);
-                                    DbfEvalValues.Add((Viewer.Catalog.GetPluralStringFmt("Task accomplished", "Tasks accomplished", ndbfEvalTaskAccomplished)), ndbfEvalTaskAccomplished);
+                                    DbfEvalValues.Add((Viewer.Catalog.GetPluralString("Task", "Tasks", DbfEvalTaskName.Count)), DbfEvalTaskName.Count);
+                                    DbfEvalValues.Add((Viewer.Catalog.GetPluralString("Task accomplished", "Tasks accomplished", ndbfEvalTaskAccomplished)), ndbfEvalTaskAccomplished);
                                 }
                                 //TO DO: water consumption is not ready.
                                 //DbfEvalValues.Add("Water consumption", MSTSSteamLocomotive.DbfEvalCumulativeWaterConsumptionLbs);
@@ -592,7 +592,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 foreach (KeyValuePair<string, double> pair in DbfEvalValues.OrderBy(i => i.Key))
                                 {
                                     line.Add(new Label(colWidth * 4, line.RemainingHeight, Viewer.Catalog.GetString("- " + pair.Key)));
-                                    line.Add(new Label(colWidth, line.RemainingHeight, Viewer.Catalog.GetString("= " + (pair.Key.Contains("Time") ? FormatStrings.FormatTime(pair.Value) : pair.Key.Contains("Activity") ? (Viewer.Catalog.GetPluralStringFmt("{0} minute", "{0} minutes", (long)playerTrain.Delay.Value.TotalMinutes)) : pair.Key.Contains("Distance") ? FormatStrings.FormatDistanceDisplay(Convert.ToSingle(pair.Value), locomotive.IsMetric) : pair.Value.ToString()))));
+                                    line.Add(new Label(colWidth, line.RemainingHeight, Viewer.Catalog.GetString("= " + (pair.Key.Contains("Time") ? FormatStrings.FormatTime(pair.Value) : pair.Key.Contains("Activity") ? (Viewer.Catalog.GetPluralString("{0} minute", "{0} minutes", (long)playerTrain.Delay.Value.TotalMinutes)) : pair.Key.Contains("Distance") ? FormatStrings.FormatDistanceDisplay(Convert.ToSingle(pair.Value), locomotive.IsMetric) : pair.Value.ToString()))));
 
                                     line = scrollbox.AddLayoutHorizontalLineOfText();
                                 }

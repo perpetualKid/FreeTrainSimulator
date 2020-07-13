@@ -16,6 +16,8 @@
     <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+    <PackageReference Include="GetText.NET" Version="0.9.0" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
@@ -24,14 +26,6 @@
     <ProjectReference Include="..\Orts.Menu.Entities\Orts.Menu.Entities.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\Orts.Updater\Orts.Updater.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="GNU.Gettext">
-      <HintPath>..\3rdPartyLibs\GNU.Gettext.dll</HintPath>
-    </Reference>
-    <Reference Include="GNU.Gettext.WinForms">
-      <HintPath>..\3rdPartyLibs\GNU.Gettext.WinForms.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Update="Updater.ini">
