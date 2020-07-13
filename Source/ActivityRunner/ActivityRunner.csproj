@@ -48,10 +48,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CppNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\3rdPartyLibs\CppNet.dll</HintPath>
-    </Reference>
     <Reference Include="GNU.Gettext, Version=1.1.5151.39896, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdPartyLibs\GNU.Gettext.dll</HintPath>
@@ -59,10 +55,6 @@
     <Reference Include="GNU.Gettext.WinForms, Version=1.0.5151.39911, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdPartyLibs\GNU.Gettext.WinForms.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoGame.Framework.Content.Pipeline, Version=3.7.1.189, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\3rdPartyLibs\MonoGame.Framework.Content.Pipeline.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -202,30 +194,18 @@
     <Content Include="Content\blank.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\CabShader.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="Content\Shaders\CabShader.fx" />
     <Content Include="Content\Clouds01.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\DebugShader.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\DriverMachineInterfaceShader.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\LightConeShader.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="Content\Shaders\DebugShader.fx" />
+    <None Include="Content\Shaders\DriverMachineInterfaceShader.fx" />
+    <None Include="Content\Shaders\LightConeShader.fx" />
     <Content Include="Content\LightGlow.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\LightGlowShader.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Loading.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="Content\Shaders\LightGlowShader.fx" />
+    <None Include="Content\Shaders\Loading.fx" />
     <Content Include="Content\Loading.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -235,15 +215,9 @@
     <Content Include="Content\MoonMask.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\ParticleEmitterShader.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\PopupWindow.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\PrecipitationShader.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="Content\Shaders\ParticleEmitterShader.fx" />
+    <None Include="Content\Shaders\PopupWindow.fx" />
+    <None Include="Content\Shaders\PrecipitationShader.fx" />
     <Content Include="Content\Raindrop.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -277,12 +251,8 @@
     <Content Include="Content\Raindrop10.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\SceneryShader.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\ShadowMap.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="Content\Shaders\SceneryShader.fx" />
+    <None Include="Content\Shaders\ShadowMap.fx" />
     <Content Include="Content\SignalAspects.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -292,9 +262,7 @@
     <Content Include="Content\SkyDome1.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\SkyShader.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="Content\Shaders\SkyShader.fx" />
     <Content Include="Content\Snowflake.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -425,10 +393,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX">
-      <Version>3.7.1.189</Version>
-    </PackageReference>
-    <PackageReference Include="SharpDX.D3DCompiler">
-      <Version>4.0.1</Version>
+      <Version>3.8.0.1375-develop</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup />
@@ -449,7 +414,9 @@
     </PreBuildEvent>
     <PostBuildEvent>echo $Revision: @(VersionNumber) $&gt;Revision.txt
 date /t&gt;&gt;Revision.txt
-time /t&gt;&gt;Revision.txt</PostBuildEvent>
+time /t&gt;&gt;Revision.txt
+dotnet tool install -g dotnet-mgfxc --version 3.8.0.1375-develop --add-source https://pkgs.dev.azure.com/perpetualKid/ORTS-MG/_packaging/Monogame_vNext/nuget/v3/index.json'
+FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO ( mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11)</PostBuildEvent>
   </PropertyGroup>
   <Target Name="PostBuildMacros">
     <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
