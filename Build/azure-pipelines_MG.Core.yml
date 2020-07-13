@@ -20,8 +20,14 @@ variables:
 
 steps:
 - checkout: none
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'
+
 - task: PowerShell@2
-  displayName: Set the name of the build (i.e. the Build.BuildNumber)
+  displayName: Set the name of the build
   inputs:
     targetType: 'inline'
     script: |
