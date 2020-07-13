@@ -11,6 +11,7 @@ variables:
   version.MajorMinor: '1.2' # Manually adjust the version number as needed for semantic versioning. Revision is auto-incremented.
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
   versionNumber: '$(version.MajorMinor).$(version.Revision)'
+  prereleaseVersionNumber: '$(versionNumber)-$(Build.SourceVersion)'
 
 steps:
 - checkout: none
@@ -19,6 +20,6 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      [string] $buildName = "$(versionNumber)_$(Build.SourceBranchName)"
+      [string] $buildName = "$(versionNumber)_$(prereleaseVersionNumber)"
       Write-Host "Setting the name of the build to '$buildName'."
       Write-Host "##vso[build.updatebuildnumber]$buildName"
