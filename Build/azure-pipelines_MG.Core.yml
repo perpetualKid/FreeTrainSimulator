@@ -13,11 +13,8 @@ variables:
   solution: 'Source/Orts.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  version.MajorMinor: '1.2' # Manually adjust the version number as needed for semantic versioning. Revision is auto-incremented.
-  version.Revision: $[counter(variables['version.MajorMinor'], 0)]
-  versionNumber: '$(version.MajorMinor).$(version.Revision)'
-#  prereleaseVersionNumber: '$(versionNumber)-$(Build.SourceVersion)'
-  prereleaseVersion: '$(prerelease).$(Build.BuildId)+$(channel)'
+  versionPrefix: '1.0.0'
+  versionSuffix: '$(prerelease).$(Build.BuildId)+$(channel)'
 
 
 steps:
@@ -35,9 +32,11 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      [string] $buildName = "$(prereleaseVersion)"
+      [string] $version = $test = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
+      [string] $buildName = "$version-$(versionSuffix)"
       Write-Host "Setting the name of the build to '$buildName'."
       Write-Host "##vso[build.updatebuildnumber]$buildName"
+      Write-Host "##vso[task.setvariable variable=versionPrefix]$version";
 
 - task: MSBuild@1
   inputs:
@@ -45,18 +44,12 @@ steps:
     msbuildArchitecture: 'x64'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '-property:versionsuffix=$(prereleaseVersion)'
+    msbuildArguments: '-property:versionsuffix=$(versionSuffix)'
     
 - task: VSTest@2
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-
-#- task: DotNetCoreCLI@2
-#  inputs:
-#    command: 'build'
-#    projects: '$(solution)'
-#    arguments: '--version-suffix $(prereleaseVersion)'
 
 - task: ArchiveFiles@2
   inputs:
