@@ -4,6 +4,7 @@
     <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <Description>Open Rails Content Manager (Contributed)</Description>
+	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\..\Program.Core</OutputPath>
@@ -11,6 +12,9 @@
     <AssemblyName>Contrib.ContentManager</AssemblyName>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+	<PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj" />

@@ -4,6 +4,7 @@
     <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <Description>Open Rails Menu</Description>
+	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\Program.Core</OutputPath>
@@ -18,6 +19,7 @@
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="GetText.NET" Version="0.9.0" />
     <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.0" />
+	<PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />

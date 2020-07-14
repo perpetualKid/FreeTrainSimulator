@@ -4,6 +4,7 @@
     <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
     <Description>Open Rails Updater</Description>
     <UseWindowsForms>true</UseWindowsForms>
+	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\Program.Core</OutputPath>
@@ -20,6 +21,7 @@
     <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
+	<PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
