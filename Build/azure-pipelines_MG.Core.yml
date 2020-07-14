@@ -19,7 +19,7 @@ variables:
   prereleaseVersionNumber: '$(versionNumber)-$(Build.SourceVersion)'
 
 steps:
-- checkout: none
+#- checkout: none
 - task: NuGetToolInstaller@1
 
 - task: NuGetCommand@2
