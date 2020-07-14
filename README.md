@@ -1,4 +1,4 @@
-[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/perpetualKid.ORTS-MG?branchName=master)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=1&branchName=master)
+[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/ORTS-MG%20Master%20Release?branchName=master)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=1&branchName=master)
 
 # [OpenRails Train Simulator](http://openrails.org/)
 
