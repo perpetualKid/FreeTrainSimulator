@@ -1,0 +1,62 @@
+trigger: 
+  branches:
+    include:
+    - Core
+  paths:
+    exclude: # file paths which will not trigger a build
+    - build/*
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: 'Source/Orts.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  version.MajorMinor: '1.2' # Manually adjust the version number as needed for semantic versioning. Revision is auto-incremented.
+  version.Revision: $[counter(variables['version.MajorMinor'], 0)]
+  versionNumber: '$(version.MajorMinor).$(version.Revision)'
+  prereleaseVersionNumber: '$(versionNumber)-$(Build.SourceVersion)'
+
+steps:
+- checkout: self
+  fetchDepth: 5 
+
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'
+
+- task: PowerShell@2
+  displayName: Set the name of the build
+  inputs:
+    targetType: 'inline'
+    script: |
+      [string] $buildName = "$(versionNumber)_$(prereleaseVersionNumber)"
+      Write-Host "Setting the name of the build to '$buildName'."
+      Write-Host "##vso[build.updatebuildnumber]$buildName"
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '$(solution)'
+    arguments: '--version-suffix 0.rc'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: './Program.Core/'
+    includeRootFolder: true 
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
+
+- task: AzureFileCopy@3
+  inputs:
+    SourcePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+    Destination: 'AzureBlob'
+    StorageAccountRM: 'ultimaterails'
+    ContainerName: 'ci-builds'
+    BlobPrefix: 'core'
+
