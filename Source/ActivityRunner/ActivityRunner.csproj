@@ -207,6 +207,6 @@
     </ItemGroup>
   </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="PowerShell -ExecutionPolicy Unrestricted &quot;Set-Content -Path (Join-Path -path $(TargetDir) -childPath 'Revision.txt') -value ([string]::Format('$Revision: {0}$', (Get-Command (Join-Path -path $(TargetDir) -childPath 'ActivityRunner.exe')).FileVersionInfo.FileVersion))&quot;&#xD;&#xA;date /t&gt;&gt;$(TargetDir)Revision.txt&#xD;&#xA;time /t&gt;&gt;$(TargetDir)Revision.txt&#xD;&#xA;dotnet tool install -g dotnet-mgfxc --version 3.8.0.1375-develop --add-source https://pkgs.dev.azure.com/perpetualKid/ORTS-MG/_packaging/Monogame_vNext/nuget/v3/index.json'&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO ( mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11)" />
+    <Exec Command="PowerShell -ExecutionPolicy &quot;Set-Content -Path (Join-Path -path $(TargetDir) -childPath 'Revision.txt') -value ([string]::Format('$Revision: {0}$', (Get-Command (Join-Path -path $(TargetDir) -childPath 'ActivityRunner.exe')).FileVersionInfo.FileVersion))&quot;&#xD;&#xA;date /t&gt;&gt;$(TargetDir)Revision.txt&#xD;&#xA;time /t&gt;&gt;$(TargetDir)Revision.txt&#xD;&#xA;dotnet tool install -g dotnet-mgfxc --version 3.8.0.1375-develop&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO ( mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11)" />
   </Target>
 </Project>
