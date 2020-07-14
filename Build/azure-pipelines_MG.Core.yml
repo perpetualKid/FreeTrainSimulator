@@ -44,7 +44,7 @@ steps:
     msbuildArchitecture: 'x64'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '-property:versionsuffix=$(prereleaseVersion)'
+    msbuildArguments: '-property:versionsuffix=$(versionSuffix)'
     
 - task: VSTest@2
   inputs:
