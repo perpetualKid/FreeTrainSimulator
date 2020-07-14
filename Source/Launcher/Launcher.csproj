@@ -6,7 +6,7 @@
     <Description>Open Rails Launcher</Description>
   </PropertyGroup>
   <ItemGroup>
-	<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0-preview.2">
+	<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0">
 	<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     <PrivateAssets>all</PrivateAssets>
     </PackageReference>     
