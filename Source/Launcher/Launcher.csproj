@@ -9,8 +9,9 @@
 	<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0">
 	<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     <PrivateAssets>all</PrivateAssets>
-    </PackageReference>     
-   </ItemGroup>  
+    </PackageReference>
+    <PackageReference Remove="Microsoft.NETCore.Targets" Version="3.1.0" PrivateAssets="all" />
+  </ItemGroup>  
    <PropertyGroup>
     <OutputPath>..\..\Program.Core</OutputPath>
     <RootNamespace>Orts.Launcher</RootNamespace>
