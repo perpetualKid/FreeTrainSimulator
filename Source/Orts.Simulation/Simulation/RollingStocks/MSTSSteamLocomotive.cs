@@ -1791,7 +1791,7 @@ namespace Orts.Simulation.RollingStocks
             if (Simulator.Settings.DataLogSteamPerformance)
             {
                 Trace.TraceInformation("============================================= Steam Locomotive Performance - Locomotive Details =========================================================");
-                Trace.TraceInformation("Version - {0}", VersionInfo.VersionOrBuild);
+                Trace.TraceInformation("Version - {0}", VersionInfo.Version);
                 Trace.TraceInformation("Locomotive Name - {0}", LocomotiveName);
                 Trace.TraceInformation("Steam Locomotive Type - {0}", SteamLocoType);
 

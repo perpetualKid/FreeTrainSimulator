@@ -20,6 +20,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+
+using NuGet.Versioning;
+
+using SharpDX.MediaFoundation;
 
 namespace Orts.Common
 {
@@ -28,82 +33,66 @@ namespace Orts.Common
     /// </summary>
     public static class VersionInfo
     {
-        private static readonly string applicationPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-        // GetRevision() must come before GetVersion()
+        public static readonly NuGetVersion SemanticVersion = GetVersion();
+        //VersionInfo.FullVersion: "1.3.2-alpha.4+LocalBuild"
+        //VersionInfo.Version: "1.3.2-alpha.4"
+        //VersionInfo.Revision: "alpha.4"
+        //VersionInfo.FileVersion: "1.3.2.0"
+        //VersionInfo.Channel: "LocalBuild"
+        //VersionInfo.BuildType: "alpha"
+        //VersionInfo.Build: "4"
+
+        /// <summary>
+        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.FullVersion: "1.3.2-alpha.4+LocalBuild"
+        /// </summary>
+        public static string FullVersion => SemanticVersion.ToFullString();
+
+        /// <summary>
+        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Version: "1.3.2-alpha.4"
+        /// </summary>
+        public static string Version => SemanticVersion.ToNormalizedString();
+
+        /// <summary>
+        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.FileVersion: "1.3.2.0"
+        /// </summary>
+        public static string FileVersion => SemanticVersion.Version.ToString();
+
+        /// <summary>
+        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Channl: "LocalBuild"
+        /// </summary>
+        public static string Channel => SemanticVersion.Metadata;
+
+        /// <summary>
+        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Channel: "LocalBuild"
+        /// </summary>
+        public static string Build => SemanticVersion.ReleaseLabels?.ToArray()[1];
+
+        /// <summary>
+        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.BuildType: "alpha"
+        /// </summary>
+        public static string BuildType => SemanticVersion.ReleaseLabels?.ToArray()[0];
+
+        /// <summary>
+        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Revision: "alpha-4"
+        /// </summary>
+        public static string Revision => SemanticVersion.Release;
+
         /// <summary>Revision number, e.g. Release: "1648",       experimental: "1649",   local: ""</summary>
-        public static readonly string Revision = GetRevision("Revision.txt");
+//        public static readonly string Revision = GetRevision("Revision.txt");
         /// <summary>Full version number, e.g. Release: "0.9.0.1648", experimental: "X.1649", local: ""</summary>
-        public static readonly string Version = GetVersion("Version.txt");
+//        public static readonly string Version = GetVersion("Version.txt");
         /// <summary>Full build number, e.g. "0.0.5223.24629 (2014-04-20 13:40:58Z)"</summary>
-        public static readonly string Build = GetBuild("Orts.Common.dll", "OpenRails.exe", "Menu.exe", "ActivityRunner.exe");
+//        public static readonly string Build = GetBuild("Orts.Common.dll", "OpenRails.exe", "Menu.exe", "ActivityRunner.exe");
         /// <summary>Version, but if "", returns Build</summary>
-        public static readonly string VersionOrBuild = GetVersionOrBuild();
 
-        static string GetRevision(string fileName)
+        private static NuGetVersion GetVersion()
         {
-            try
+            if (!NuGetVersion.TryParse(FileVersionInfo.GetVersionInfo(Assembly.GetAssembly(typeof(VersionInfo)).Location).ProductVersion, out NuGetVersion result))
             {
-                using (StreamReader reader = new StreamReader(Path.Combine(applicationPath, fileName)))
-                {
-                    string revision = reader.ReadLine().Trim();
-                    if (revision.StartsWith("$Revision:") && revision.EndsWith("$"))
-                    {
-                        if (!revision.Contains(" 000 "))
-                            return revision.Substring(10, revision.Length - 11).Trim();
-                    }
-                    else
-                    {
-                        return revision;
-                    }
-                }
+                if (!NuGetVersion.TryParse(FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion, out result))
+                    result = NuGetVersion.Parse(new Version().ToString());
             }
-            catch
-            {
-            }
-            return string.Empty;
-        }
-
-        static string GetVersion(string fileName)
-        {
-            try
-            {
-                using (StreamReader reader = new StreamReader(Path.Combine(applicationPath, fileName)))
-                {
-                    var version = reader.ReadLine().Trim();
-                    if (!string.IsNullOrEmpty(Revision))
-                        return version + "-" + Revision;
-                }
-            }
-            catch
-            {
-            }
-            return string.Empty;
-        }
-
-        static string GetBuild(params string[] fileNames)
-        {
-            var builds = new Dictionary<TimeSpan, string>();
-            foreach (string fileName in fileNames)
-            {
-                if (!File.Exists(Path.Combine(applicationPath, fileName)))
-                    continue;
-                var version = FileVersionInfo.GetVersionInfo(Path.Combine(applicationPath, fileName));
-                TimeSpan ts = new TimeSpan(version.ProductBuildPart, 0, 0, version.ProductPrivatePart * 2);
-                if (!builds.ContainsKey(ts))
-                    builds.Add(ts, version.ProductVersion);
-            }
-            if (builds.Count > 0)
-            {
-                var datetime = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                var timespan = builds.Keys.OrderBy(ts => ts).Last();
-                return $"{builds[timespan]} ({datetime + timespan:u})";
-            }
-            return string.Empty;
-        }
-
-        static string GetVersionOrBuild()
-        {
-            return Version.Length > 0 ? Version : Build;
+            return result;
         }
 
         /// <summary>

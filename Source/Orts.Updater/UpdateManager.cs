@@ -103,11 +103,6 @@ namespace Orts.Updater
             }
         }
 
-        public static async Task<UpdateManager> Initialize(string basePath, string productName, string productVersion)
-        {
-            return await Task.Run(() => new UpdateManager(basePath, productName, productVersion));
-        }
-
         public string[] GetChannels()
         {
             if (channel == null)

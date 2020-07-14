@@ -200,7 +200,7 @@ namespace Orts.Menu
 
         private async Task InitializeUpdateManager()
         {
-            updateManager = await UpdateManager.Initialize(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
+            updateManager = new UpdateManager(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.FullVersion);
             await CheckForUpdateAsync();
         }
 

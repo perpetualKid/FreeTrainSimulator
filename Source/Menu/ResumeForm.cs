@@ -311,22 +311,21 @@ namespace Orts.Menu
             GridSaves_SelectionChanged(null, null);
             // Show warning after the list has been updated as this is more useful.
             if (!string.IsNullOrEmpty(warnings))
-                MessageBox.Show(warnings, Application.ProductName + " " + VersionInfo.VersionOrBuild);
+                MessageBox.Show(warnings, $"{Application.ProductName} {VersionInfo.Version}");
         }
 
         private bool AcceptUseOfNonvalidSave(SavePoint save)
         {
             DialogResult reply = MessageBox.Show(catalog.GetString(
                 "Restoring from a save made by version {1} of {0} may be incompatible with current version {2}. Please do not report any problems that may result.\n\nContinue?",
-                Application.ProductName, save.VersionOrBuild, VersionInfo.VersionOrBuild),
-                Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Application.ProductName, save.VersionOrBuild, VersionInfo.Version), $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             return reply == DialogResult.Yes;
         }
         private bool AcceptOfNonvalidDbfSetup(SavePoint save)
         {
             DialogResult reply = MessageBox.Show(catalog.GetString(
                    "The selected file contains Debrief Eval data.\nBut Debrief Evaluation checkbox (Main menu) is unchecked.\nYou cannot continue with the Evaluation on course.\n\nContinue?"),
-                   Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                   $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
             return reply == DialogResult.Yes;
         }
@@ -495,7 +494,7 @@ namespace Orts.Menu
                     deleted++;
                 }
             }
-            MessageBox.Show(catalog.GetString("{0} invalid saves have been deleted.", deleted), Application.ProductName + " " + VersionInfo.VersionOrBuild);
+            MessageBox.Show(catalog.GetString("{0} invalid saves have been deleted.", deleted), $"{Application.ProductName} {VersionInfo.Version}");
             await LoadSavePointsAsync();
         }
 

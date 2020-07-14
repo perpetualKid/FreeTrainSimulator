@@ -638,7 +638,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                             //.DbfEval.txt
                             filename = String.Format("{0}{1:yyyyMMdd.HHmm}.DbfEval.txt", filename, DateTime.Now);
-                            filename = String.Format(filename, Application.ProductName, VersionInfo.VersionOrBuild, VersionInfo.Version, VersionInfo.Build, DateTime.Now);
 
                             logFileName = Path.Combine(dbfevalDataFolder, filename);
                             //Ensure we start with an empty file.

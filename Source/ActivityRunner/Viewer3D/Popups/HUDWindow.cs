@@ -444,7 +444,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 Viewer.HUDScrollWindow.Visible = TextPage == 0 && WebServerPageNo == 0 ? false : true;
 
             TableSetLabelValueColumns(table, 0, 2);
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.VersionOrBuild);
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.Version);
 
             // Client and server may have a time difference.
             if (Orts.MultiPlayer.MPManager.IsClient())
