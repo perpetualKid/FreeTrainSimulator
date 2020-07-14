@@ -39,11 +39,24 @@ steps:
       Write-Host "Setting the name of the build to '$buildName'."
       Write-Host "##vso[build.updatebuildnumber]$buildName"
 
-- task: DotNetCoreCLI@2
+- task: MSBuild@1
   inputs:
-    command: 'build'
-    projects: '$(solution)'
-    arguments: '--version-suffix $(prereleaseVersion)'
+    solution: '$(solution)'
+    msbuildArchitecture: 'x64'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    msbuildArguments: '-property:versionsuffix=$(prereleaseVersion)'
+    
+- task: VSTest@2
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+#- task: DotNetCoreCLI@2
+#  inputs:
+#    command: 'build'
+#    projects: '$(solution)'
+#    arguments: '--version-suffix $(prereleaseVersion)'
 
 - task: ArchiveFiles@2
   inputs:
