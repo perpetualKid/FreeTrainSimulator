@@ -18,13 +18,9 @@ variables:
   versionNumber: '$(version.MajorMinor).$(version.Revision)'
   prereleaseVersionNumber: '$(versionNumber)-$(Build.SourceVersion)'
 
-resources:
-  repositories:
-    ref: Core
-
 steps:
-#- checkout: none
-fetchDepth: 5 
+- checkout: self
+  fetchDepth: 5 
 
 - task: NuGetToolInstaller@1
 
