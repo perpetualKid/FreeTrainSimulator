@@ -10,7 +10,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
+  solution: '/Source/Orts.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   version.MajorMinor: '1.2' # Manually adjust the version number as needed for semantic versioning. Revision is auto-incremented.
@@ -34,3 +34,27 @@ steps:
       [string] $buildName = "$(versionNumber)_$(prereleaseVersionNumber)"
       Write-Host "Setting the name of the build to '$buildName'."
       Write-Host "##vso[build.updatebuildnumber]$buildName"
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '/Source/Orts.sln'
+    arguments: '--version-suffix 0.rc'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: './Program.Core/'
+    includeRootFolder: true 
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
+
+- task: AzureFileCopy@3
+  inputs:
+    SourcePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+    Destination: 'AzureBlob'
+    StorageAccountRM: 'ultimaterails'
+    ContainerName: 'ci-builds'
+    BlobPrefix: 'core'
+
