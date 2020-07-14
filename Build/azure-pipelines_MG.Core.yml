@@ -32,7 +32,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      [string] $version = $test = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText"
+      [string] $version = $test = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
       [string] $buildName = "$version-$(versionSuffix)"
       Write-Host "Setting the name of the build to '$buildName'."
       Write-Host "##vso[build.updatebuildnumber]$buildName"
