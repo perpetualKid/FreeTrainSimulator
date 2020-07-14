@@ -43,7 +43,7 @@ steps:
   inputs:
     command: 'build'
     projects: '$(solution)'
-    arguments: '--version-suffix $(prereleaseVersion).'
+    arguments: '--version-suffix $(prereleaseVersion)'
 
 - task: ArchiveFiles@2
   inputs:
