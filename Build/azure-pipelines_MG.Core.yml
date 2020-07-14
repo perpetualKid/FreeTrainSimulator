@@ -10,7 +10,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '/Source/Orts.sln'
+  solution: 'Source/Orts.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   version.MajorMinor: '1.2' # Manually adjust the version number as needed for semantic versioning. Revision is auto-incremented.
@@ -38,7 +38,7 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: '/Source/Orts.sln'
+    projects: '$(solution)'
     arguments: '--version-suffix 0.rc'
 
 - task: ArchiveFiles@2
