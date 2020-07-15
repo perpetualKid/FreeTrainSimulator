@@ -44,7 +44,7 @@ jobs:
     counterName: '$(prerelease)$(versionFromCode)'
     buildNumber: $[counter(variables['counterName'], 0)]
     versionSuffix: '$(prerelease).$(buildNumber)+$(channel)'
-    version: '$versionFromCode-$(versionSuffix)'
+    version: '$(versionFromCode)-$(versionSuffix)'
 
   steps:
   - checkout: self
