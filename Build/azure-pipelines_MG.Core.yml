@@ -33,12 +33,14 @@ stages:
     variables:
       testVersion:  $[counter(variables['versionFromCode'], 0)]
     steps:
+    - checkout: none
     - task: PowerShell@2
       displayName: Set the name of the build
       inputs:
         targetType: 'inline'
         script: |
           Write-Host "Current testversion is '$(testVersion)'."
+          Write-Host "Current versionFromCode is '$(versionFromCode)'."
 
 - stage: Build
   condition: failed()
