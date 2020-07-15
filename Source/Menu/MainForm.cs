@@ -127,7 +127,7 @@ namespace Orts.Menu
             Font = SystemFonts.MessageBoxFont;
 
             // Set title to show revision or build info.
-            Text = VersionInfo.Version.Length > 0 ? $"{Application.ProductName} {VersionInfo.Version}" : $"{Application.ProductName} build {VersionInfo.Build}";
+            Text = $"{Application.ProductName} {VersionInfo.Version}";
 #if DEBUG
             Text += " (debug)";
 #endif
