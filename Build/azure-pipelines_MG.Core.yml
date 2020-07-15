@@ -61,8 +61,8 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        Write-Host "Setting the name of the build to '$version'."
-        Write-Host "##vso[build.updatebuildnumber]$version"
+        Write-Host "Setting the name of the build to '$(version)'."
+        Write-Host "##vso[build.updatebuildnumber]$(version)"
 
   - task: MSBuild@1
     inputs:
