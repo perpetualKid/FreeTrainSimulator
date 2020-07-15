@@ -26,8 +26,8 @@ stages:
         script: |
           [string] $version = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
           Write-Host "Updating the value of the buildVersion to '$version'."
-          Write-Host "##vso[task.setvariable variable=versionFromCode]$version";
-          Write-Host "##vso[task.setvariable variable=pipelineVersionFromCode]$version";
+          Write-Host "##vso[task.setvariable variable=versionFromCode;isOutput=true;]$version";
+          Write-Host "##vso[task.setvariable variable=pipelineVersionFromCode;isOutput=true;]$version";
 
     - task: PowerShell@2
       displayName: Show the version
@@ -44,7 +44,7 @@ stages:
     pool:
       vmImage: 'windows-latest'
     variables:
-      testVersion:  $[counter(variables['versionFromCode'], 0)]
+      testVersion:  $[counter(variables[dependencies.GetVersion.outputs['versionFromCode']], 0)]
     steps:
     - checkout: none
     - task: PowerShell@2
@@ -53,8 +53,8 @@ stages:
         targetType: 'inline'
         script: |
           Write-Host "Current testversion is '$(testVersion)'."
-          Write-Host "Current versionFromCode is '$env:versionFromCode'."
-          Write-Host "Current pipelineVersionFromCode is '$($env:pipelineVersionFromCode)'."
+          Write-Host "Current versionFromCode is '$dependencies.GetVersion.outputs['versionFromCode']'."
+          Write-Host "Current pipelineVersionFromCode is '$dependencies.GetVersion.outputs['pipelineVersionFromCode']'."
 
 - stage: Build
   condition: failed()
