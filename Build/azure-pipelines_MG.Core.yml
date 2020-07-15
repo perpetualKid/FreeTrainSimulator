@@ -31,7 +31,8 @@ stages:
 
 #- stage: 'TestingPrep'
 #  jobs:
-  - job: 'TestingVariables'
+  - job: TestingVariables
+    dependsOn: GetVersion
     pool:
       vmImage: 'windows-latest'
     variables:
