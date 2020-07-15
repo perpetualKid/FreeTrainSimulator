@@ -1,3 +1,6 @@
+variables:      # pipeline-level
+  pipelineVersionFromCode: '1.x'
+
 trigger: 
   branches:
     include:
@@ -24,6 +27,7 @@ stages:
           [string] $version = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
           Write-Host "Updating the value of the buildVersion to '$version'."
           Write-Host "##vso[task.setvariable variable=versionFromCode]$version";
+          Write-Host "##vso[task.setvariable variable=pipelineVersionFromCode]$version";
 
 #- stage: 'TestingPrep'
 #  jobs:
@@ -41,6 +45,7 @@ stages:
         script: |
           Write-Host "Current testversion is '$(testVersion)'."
           Write-Host "Current versionFromCode is '$(versionFromCode)'."
+          Write-Host "Current versionFromCode is '$(pipelineVersionFromCode)'."
 
 - stage: Build
   condition: failed()
