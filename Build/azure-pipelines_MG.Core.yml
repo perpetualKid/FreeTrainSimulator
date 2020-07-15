@@ -6,65 +6,89 @@ trigger:
     exclude: # file paths which will not trigger a build
     - Build/*
 
-pool:
-  vmImage: 'windows-latest'
+stages:
+- stage: Prep
+  jobs:
+  - job: GetVersion
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - checkout: self
+      fetchDepth: 5 
 
-variables:
-  solution: 'Source/Orts.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
-  versionPrefix: '1.0.0'
-  versionSuffix: '$(prerelease).$(Build.BuildId)+$(channel)'
+    - task: PowerShell@2
+      displayName: Get the version from directory.builds.props
+      inputs:
+        targetType: 'inline'
+        script: |
+          [string] $version = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
+          Write-Host "Updating the value of the buildVersion to '$version'."
+          Write-Host "##vso[task.setvariable variable=versionFromCode]$version";
 
+- stage: Build
+  jobs:
+  - job: Build
 
-steps:
-- checkout: self
-  fetchDepth: 5 
+    pool:
+      vmImage: 'windows-latest'
 
-- task: NuGetToolInstaller@1
+    variables:
+      solution: 'Source/Orts.sln'
+      buildPlatform: 'Any CPU'
+      buildConfiguration: 'Release'
+      versionPrefix: '1.0.0'
+      versionSuffix: '$(prerelease).$(Build.BuildId)+$(channel)'
+      testVersion:  $[counter(variables['versionFromCode'], 0)]
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+    steps:
+    - checkout: self
+      fetchDepth: 10 
 
-- task: PowerShell@2
-  displayName: Set the name of the build
-  inputs:
-    targetType: 'inline'
-    script: |
-      [string] $version = $test = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
-      [string] $buildName = "$version-$(versionSuffix)"
-      Write-Host "Setting the name of the build to '$buildName'."
-      Write-Host "##vso[build.updatebuildnumber]$buildName"
-      Write-Host "##vso[task.setvariable variable=versionPrefix]$version";
+    - task: NuGetToolInstaller@1
 
-- task: MSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArchitecture: 'x64'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    msbuildArguments: '-property:versionsuffix=$(versionSuffix)'
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
+
+    - task: PowerShell@2
+      displayName: Set the name of the build
+      inputs:
+        targetType: 'inline'
+        script: |
+          [string] $version = $test = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
+          [string] $buildName = "$version-$(versionSuffix)"
+          Write-Host "Setting the name of the build to '$buildName'."
+          Write-Host "Current testversion is '$testVersion'."
+          Write-Host "##vso[build.updatebuildnumber]$buildName"
+          Write-Host "##vso[task.setvariable variable=versionPrefix]$version";
+
+    - task: MSBuild@1
+      inputs:
+        solution: '$(solution)'
+        msbuildArchitecture: 'x64'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+        msbuildArguments: '-property:versionsuffix=$(versionSuffix)'
     
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    - task: VSTest@2
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
 
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: './Program.Core/'
-    includeRootFolder: true 
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-    replaceExistingArchive: true
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: './Program.Core/'
+        includeRootFolder: true 
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        replaceExistingArchive: true
 
-- task: AzureFileCopy@3
-  inputs:
-    SourcePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-    ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
-    Destination: 'AzureBlob'
-    StorageAccountRM: 'ultimaterails'
-    ContainerName: 'ci-builds'
-    BlobPrefix: 'core'
+    - task: AzureFileCopy@3
+      inputs:
+        SourcePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+        Destination: 'AzureBlob'
+        StorageAccountRM: 'ultimaterails'
+        ContainerName: 'ci-builds'
+        BlobPrefix: 'core'
 
