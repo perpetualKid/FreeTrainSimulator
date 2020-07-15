@@ -28,6 +28,8 @@ stages:
           Write-Host "Updating the value of the buildVersion to '$version'."
           Write-Host "##vso[task.setvariable variable=versionFromCode]$version";
           Write-Host "##vso[task.setvariable variable=pipelineVersionFromCode]$version";
+          Write-Host "Current versionFromCode is '$(versionFromCode)'."
+          Write-Host "Current pipelineVersionFromCode is '$(pipelineVersionFromCode)'."
 
 #- stage: 'TestingPrep'
 #  jobs:
@@ -46,7 +48,7 @@ stages:
         script: |
           Write-Host "Current testversion is '$(testVersion)'."
           Write-Host "Current versionFromCode is '$(versionFromCode)'."
-          Write-Host "Current versionFromCode is '$(pipelineVersionFromCode)'."
+          Write-Host "Current pipelineVersionFromCode is '$(pipelineVersionFromCode)'."
 
 - stage: Build
   condition: failed()
