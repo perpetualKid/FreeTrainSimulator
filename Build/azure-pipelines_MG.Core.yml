@@ -1,6 +1,3 @@
-variables:      # pipeline-level
-  pipelineVersionFromCode: '1.x'
-
 trigger: 
   branches:
     include:
@@ -9,120 +6,91 @@ trigger:
     exclude: # file paths which will not trigger a build
     - Build/*
 
-stages:
-- stage: Prep
-  jobs:
-  - job: GetVersion
-    pool:
-      vmImage: 'windows-latest'
-    steps:
-    - checkout: self
-      fetchDepth: 5 
+jobs:
+- job: GetVersionJob
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+  - checkout: self
+    fetchDepth: 10 
 
-    - task: PowerShell@2
-      displayName: Get the version from directory.builds.props
-      inputs:
-        targetType: 'inline'
-        script: |
-          [string] $version = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
-          Write-Host "Updating the value of the buildVersion to '$version'."
-          Write-Host "##vso[task.setvariable variable=versionFromCode;isOutput=true;]$version";
-          Write-Host "##vso[task.setvariable variable=pipelineVersionFromCode;isOutput=true;]$version";
+  - task: PowerShell@2
+    displayName: Get the version from directory.builds.props
+    name: SetVersionTask
+    inputs:
+      targetType: 'inline'
+      script: |
+        [string] $version = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
+        Write-Host "Updating the value of the codeVersion to '$version'."
+        Write-Host "##vso[task.setvariable variable=versionFromCode;isOutput=true;]$version";
 
-    - task: PowerShell@2
-      displayName: Show the version
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Current versionFromCode is '$env:versionFromCode'."
-          Write-Host "Current pipelineVersionFromCode is '$($env:pipelineVersionFromCode)'."
+  - task: PowerShell@2
+    displayName: Show the version
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "Current versionFromCode is '$(SetVersionTask.versionFromCode)'."
 
-#- stage: 'TestingPrep'
-#  jobs:
-  - job: TestingVariables
-    dependsOn: GetVersion
-    pool:
-      vmImage: 'windows-latest'
-    variables:
-      someVersion:  variables[dependencies.GetVersion.outputs['versionFromCode']
-      testVersion:  $[counter(variables[dependencies.GetVersion.outputs['versionFromCode']], 0)]
-    steps:
-    - checkout: none
-    - task: PowerShell@2
-      displayName: Set the name of the build
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Current testversion is '$(testVersion)'."
-          Write-Host "Current someVersion is '$(someVersion)'."
-          Write-Host "Current versionFromCode is '$(dependencies.GetVersion.outputs['versionFromCode'])'."
-          Write-Host "Current pipelineVersionFromCode is '$(dependencies.GetVersion.outputs['pipelineVersionFromCode'])'."
+- job: Build
+  dependsOn: GetVersionJob
+  pool:
+    vmImage: 'windows-latest'
 
-- stage: Build
-  condition: failed()
-  jobs:
-  - job: Build
+  variables:
+    solution: 'Source/Orts.sln'
+    buildPlatform: 'Any CPU'
+    buildConfiguration: 'Release'
+    versionFromCode: $[dependencies.GetVersionJob.outputs['SetVersionTask.versionFromCode']]
+    counterName: '$(prerelease)$(versionFromCode)'
+    buildNumber: $[counter(variables['counterName'], 0)]
+    versionSuffix: '$(prerelease).$(buildNumber)+$(channel)'
+    version: '$versionFromCode-$(versionSuffix)'
 
-    pool:
-      vmImage: 'windows-latest'
+  steps:
+  - checkout: self
+    fetchDepth: 20 
 
-    variables:
-      solution: 'Source/Orts.sln'
-      buildPlatform: 'Any CPU'
-      buildConfiguration: 'Release'
-      versionPrefix: '1.0.0'
-      versionSuffix: '$(prerelease).$(Build.BuildId)+$(channel)'
-      testVersion:  $[counter(variables['versionFromCode'], 0)]
+  - task: NuGetToolInstaller@1
 
-    steps:
-    - checkout: self
-      fetchDepth: 10 
+  - task: NuGetCommand@2
+    inputs:
+      restoreSolution: '$(solution)'
 
-    - task: NuGetToolInstaller@1
+  - task: PowerShell@2
+    displayName: Set the name of the build
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "Setting the name of the build to '$version'."
+        Write-Host "##vso[build.updatebuildnumber]$version"
 
-    - task: NuGetCommand@2
-      inputs:
-        restoreSolution: '$(solution)'
+  - task: MSBuild@1
+    inputs:
+      solution: '$(solution)'
+      msbuildArchitecture: 'x64'
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
+      msbuildArguments: '-property:versionsuffix=$(versionSuffix)'
+  
+  - task: VSTest@2
+    inputs:
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
 
-    - task: PowerShell@2
-      displayName: Set the name of the build
-      inputs:
-        targetType: 'inline'
-        script: |
-          [string] $version = $test = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
-          [string] $buildName = "$version-$(versionSuffix)"
-          Write-Host "Setting the name of the build to '$buildName'."
-          Write-Host "Current testversion is '$(testVersion)'."
-          Write-Host "##vso[build.updatebuildnumber]$buildName"
-          Write-Host "##vso[task.setvariable variable=versionPrefix]$version";
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: './Program.Core/'
+      includeRootFolder: true 
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/$(version).zip'
+      replaceExistingArchive: true
 
-    - task: MSBuild@1
-      inputs:
-        solution: '$(solution)'
-        msbuildArchitecture: 'x64'
-        platform: '$(buildPlatform)'
-        configuration: '$(buildConfiguration)'
-        msbuildArguments: '-property:versionsuffix=$(versionSuffix)'
-    
-    - task: VSTest@2
-      inputs:
-        platform: '$(buildPlatform)'
-        configuration: '$(buildConfiguration)'
-
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: './Program.Core/'
-        includeRootFolder: true 
-        archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-        replaceExistingArchive: true
-
-    - task: AzureFileCopy@3
-      inputs:
-        SourcePath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-        ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
-        Destination: 'AzureBlob'
-        StorageAccountRM: 'ultimaterails'
-        ContainerName: 'ci-builds'
-        BlobPrefix: 'core'
+  - task: AzureFileCopy@3
+    inputs:
+      SourcePath: '$(Build.ArtifactStagingDirectory)/$(version).zip'
+      ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+      Destination: 'AzureBlob'
+      StorageAccountRM: 'ultimaterails'
+      ContainerName: 'ci-builds'
+      BlobPrefix: 'core'
 
