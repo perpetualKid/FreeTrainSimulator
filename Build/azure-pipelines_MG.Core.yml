@@ -44,6 +44,7 @@ stages:
     pool:
       vmImage: 'windows-latest'
     variables:
+      someVersion:  variables[dependencies.GetVersion.outputs['versionFromCode']
       testVersion:  $[counter(variables[dependencies.GetVersion.outputs['versionFromCode']], 0)]
     steps:
     - checkout: none
@@ -53,8 +54,9 @@ stages:
         targetType: 'inline'
         script: |
           Write-Host "Current testversion is '$(testVersion)'."
-          Write-Host "Current versionFromCode is '$dependencies.GetVersion.outputs['versionFromCode']'."
-          Write-Host "Current pipelineVersionFromCode is '$dependencies.GetVersion.outputs['pipelineVersionFromCode']'."
+          Write-Host "Current someVersion is '$(someVersion)'."
+          Write-Host "Current versionFromCode is '$(dependencies.GetVersion.outputs['versionFromCode'])'."
+          Write-Host "Current pipelineVersionFromCode is '$(dependencies.GetVersion.outputs['pipelineVersionFromCode'])'."
 
 - stage: Build
   condition: failed()
