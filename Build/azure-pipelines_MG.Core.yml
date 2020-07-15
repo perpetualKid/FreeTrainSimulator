@@ -25,8 +25,8 @@ stages:
           Write-Host "Updating the value of the buildVersion to '$version'."
           Write-Host "##vso[task.setvariable variable=versionFromCode]$version";
 
-- stage: 'TestingPrep'
-  jobs:
+#- stage: 'TestingPrep'
+#  jobs:
   - job: 'TestingVariables'
     pool:
       vmImage: 'windows-latest'
