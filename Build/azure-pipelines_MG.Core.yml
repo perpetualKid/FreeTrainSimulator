@@ -25,7 +25,23 @@ stages:
           Write-Host "Updating the value of the buildVersion to '$version'."
           Write-Host "##vso[task.setvariable variable=versionFromCode]$version";
 
+- stage: 'TestingPrep'
+  jobs:
+  - job: 'TestingVariables'
+    pool:
+      vmImage: 'windows-latest'
+    variables:
+      testVersion:  $[counter(variables['versionFromCode'], 0)]
+    steps:
+    - task: PowerShell@2
+      displayName: Set the name of the build
+      inputs:
+        targetType: 'inline'
+        script: |
+          Write-Host "Current testversion is '$(testVersion)'."
+
 - stage: Build
+  condition: failed()
   jobs:
   - job: Build
 
@@ -58,7 +74,7 @@ stages:
           [string] $version = $test = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
           [string] $buildName = "$version-$(versionSuffix)"
           Write-Host "Setting the name of the build to '$buildName'."
-          Write-Host "Current testversion is '$testVersion'."
+          Write-Host "Current testversion is '$(testVersion)'."
           Write-Host "##vso[build.updatebuildnumber]$buildName"
           Write-Host "##vso[task.setvariable variable=versionPrefix]$version";
 
