@@ -26,8 +26,8 @@ stages:
         script: |
           [string] $version = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
           Write-Host "Updating the value of the buildVersion to '$version'."
-          Write-Host "##vso[task.setvariable variable=versionFromCode;isOutput=true]$version";
-          Write-Host "##vso[task.setvariable variable=pipelineVersionFromCode;isOutput=true]$version";
+          Write-Host "##vso[task.setvariable variable=versionFromCode]$version";
+          Write-Host "##vso[task.setvariable variable=pipelineVersionFromCode]$version";
           Write-Host "Current versionFromCode is '$env:versionFromCode'."
           Write-Host "Current pipelineVersionFromCode is '$($env:pipelineVersionFromCode)'."
 
@@ -36,8 +36,8 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          Write-Host "Current versionFromCode is '$(versionFromCode)'."
-          Write-Host "Current pipelineVersionFromCode is '$(pipelineVersionFromCode)'."
+          Write-Host "Current versionFromCode is '$env:versionFromCode'."
+          Write-Host "Current pipelineVersionFromCode is '$($env:pipelineVersionFromCode)'."
 
 #- stage: 'TestingPrep'
 #  jobs:
