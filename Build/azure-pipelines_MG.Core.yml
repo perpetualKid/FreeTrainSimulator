@@ -28,8 +28,8 @@ stages:
           Write-Host "Updating the value of the buildVersion to '$version'."
           Write-Host "##vso[task.setvariable variable=versionFromCode;isOutput=true]$version";
           Write-Host "##vso[task.setvariable variable=pipelineVersionFromCode;isOutput=true]$version";
-          Write-Host "Current versionFromCode is '$(versionFromCode)'."
-          Write-Host "Current pipelineVersionFromCode is '$(pipelineVersionFromCode)'."
+          Write-Host "Current versionFromCode is '$env.versionFromCode'."
+          Write-Host "Current pipelineVersionFromCode is '$env.pipelineVersionFromCode'."
 
     - task: PowerShell@2
       displayName: Show the version
