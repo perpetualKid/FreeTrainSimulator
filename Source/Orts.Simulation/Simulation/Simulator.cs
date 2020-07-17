@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 using GetText;
 
@@ -1512,7 +1513,7 @@ namespace Orts.Simulation
         /// The other end is at x2,y2,z2
         /// Return a rotation and translation matrix for the center of the railcar.
         /// </summary>
-        public static Matrix XNAMatrixFromMSTSCoordinates(float x1, float y1, float z1, float x2, float y2, float z2)
+        public static Matrix4x4 XNAMatrixFromMSTSCoordinates(float x1, float y1, float z1, float x2, float y2, float z2)
         {
             // translate 1st coordinate to be relative to 0,0,0
             float dx = (float)(x1 - x2);
@@ -1538,17 +1539,17 @@ namespace Orts.Simulation
 
             // setup matrix values
 
-            Matrix xnaTilt = new Matrix(1, 0, 0, 0,
+            Matrix4x4 xnaTilt = new Matrix4x4(1, 0, 0, 0,
                                      0, run, dy, 0,
                                      0, -dy, run, 0,
                                      0, 0, 0, 1);
 
-            Matrix xnaRotation = new Matrix(dz, 0, dx, 0,
+            Matrix4x4 xnaRotation = new Matrix4x4(dz, 0, dx, 0,
                                             0, 1, 0, 0,
                                             -dx, 0, dz, 0,
                                             0, 0, 0, 1);
 
-            Matrix xnaLocation = Matrix.CreateTranslation((x1 + x2) / 2f, (y1 + y2) / 2f, -(z1 + z2) / 2f);
+            Matrix4x4 xnaLocation = Matrix4x4.CreateTranslation((x1 + x2) / 2f, (y1 + y2) / 2f, -(z1 + z2) / 2f);
             return xnaTilt * xnaRotation * xnaLocation;
         }
 

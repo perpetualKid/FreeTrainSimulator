@@ -31,6 +31,7 @@
 
 using Microsoft.Xna.Framework;
 using System;
+using System.Numerics;
 
 namespace Orts.Common.Position
 {

@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -68,9 +69,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         readonly List<Window> Windows = new List<Window>();
         Window[] WindowsZOrder = new Window[0];
         SpriteBatch SpriteBatch;
-        Matrix Identity = Matrix.Identity;
-        Matrix XNAView = Matrix.Identity;
-		Matrix XNAProjection = Matrix.Identity;
+        Matrix4x4 Identity = Matrix4x4.Identity;
+        Matrix4x4 XNAView = Matrix4x4.Identity;
+        Matrix4x4 XNAProjection = Matrix4x4.Identity;
         internal Point ScreenSize = new Point(10000, 10000); // Arbitrary but necessary.
         RenderTarget2D Screen;
 
@@ -229,11 +230,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
 			// Construct a view where (0, 0) is the top-left and (width, height) is
 			// bottom-right, so that popups can act more like normal window things.
-			XNAView = Matrix.CreateTranslation(-ScreenSize.X / 2, -ScreenSize.Y / 2, 0) *
-				Matrix.CreateTranslation(-0.5f, -0.5f, 0) *
-				Matrix.CreateScale(1, -1, 1);
+			XNAView = Matrix4x4.CreateTranslation(-ScreenSize.X / 2, -ScreenSize.Y / 2, 0) *
+                Matrix4x4.CreateTranslation(-0.5f, -0.5f, 0) *
+                Matrix4x4.CreateScale(1, -1, 1);
 			// Project into a flat view of the same size as the viewport.
-			XNAProjection = Matrix.CreateOrthographic(ScreenSize.X, ScreenSize.Y, 0, 100);
+			XNAProjection = Matrix4x4.CreateOrthographic(ScreenSize.X, ScreenSize.Y, 0, 100);
 
 			foreach (var window in VisibleWindows)
 			{
@@ -244,7 +245,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 //    graphicsDevice.ResolveBackBuffer(Screen);
 
                 PopupWindowMaterial.SetState(Screen);
-                RenderItem item = new RenderItem(null, window, Matrix.Identity, ShapeFlags.None);
+                RenderItem item = new RenderItem(null, window, Matrix4x4.Identity, ShapeFlags.None);
                 PopupWindowMaterial.Render(new List<RenderItem>() { item }, ref xnaWorld, ref XNAView, ref XNAProjection);
 //                PopupWindowMaterial.Render(window, ref xnaWorld, ref XNAView, ref XNAProjection);
                 PopupWindowMaterial.ResetState();

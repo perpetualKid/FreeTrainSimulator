@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Numerics;
+
+using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Parsers;
 

@@ -57,6 +57,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 
 using Microsoft.Xna.Framework;
@@ -3931,14 +3932,14 @@ namespace Orts.Simulation.Physics
                     }
 
                     // note the railcar sits 0.275meters above the track database path  TODO - is this always consistent?
-                    Matrix flipMatrix = Matrix.Identity;
+                    Matrix4x4 flipMatrix = Matrix4x4.Identity;
                     if (!car.Flipped)
                     {
                         //  Rotate matrix 180' around Y axis.
                         flipMatrix.M11 = -1;
                         flipMatrix.M33 = -1;
                     }
-                    car.WorldPosition = new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.Multiply(flipMatrix, Simulator.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z)));
+                    car.WorldPosition = new WorldPosition(traveller.TileX, traveller.TileZ, Matrix4x4.Multiply(flipMatrix, Simulator.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z)));
                     traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);
                 }
                 if (i < Cars.Count - 1)
@@ -4050,7 +4051,7 @@ namespace Orts.Simulation.Physics
 
 
                     // note the railcar sits 0.275meters above the track database path  TODO - is this always consistent?
-                    Matrix flipMatrix = Matrix.Identity;
+                    Matrix4x4 flipMatrix = Matrix4x4.Identity;
                     if (car.Flipped)
                     {
                         //  Rotate matrix 180' around Y axis.
@@ -4058,7 +4059,7 @@ namespace Orts.Simulation.Physics
                         flipMatrix.M33 = -1;
                     }
                     car.WorldPosition = new WorldPosition(traveller.TileX, traveller.TileZ,
-                        MatrixExtension.Multiply(flipMatrix, Simulator.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z)));
+                        Matrix4x4.Multiply(flipMatrix, Simulator.XNAMatrixFromMSTSCoordinates(traveller.X, traveller.Y + 0.275f, traveller.Z, x, y + 0.275f, z)));
 
                     traveller.Move((car.CarLengthM - bogieSpacing) / 2.0f);  // Move to the front of the car 
 

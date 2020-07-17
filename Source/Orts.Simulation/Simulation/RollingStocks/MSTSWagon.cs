@@ -40,6 +40,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -3292,7 +3293,7 @@ namespace Orts.Simulation.RollingStocks
             XNADirection.X = stf.ReadFloat(STFReader.Units.Distance, 0.0f);
             XNADirection.Y = stf.ReadFloat(STFReader.Units.Distance, 0.0f);
             XNADirection.Z = -stf.ReadFloat(STFReader.Units.Distance, 0.0f);
-            XNADirection.Normalize();
+            Vector3.Normalize(XNADirection);
             NozzleWidth = stf.ReadFloat(STFReader.Units.Distance, 0.0f);
             stf.SkipRestOfBlock();
         }

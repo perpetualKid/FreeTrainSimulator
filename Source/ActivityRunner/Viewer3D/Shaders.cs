@@ -19,6 +19,7 @@
 
 using System;
 using System.IO;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -97,24 +98,24 @@ namespace Orts.ActivityRunner.Viewer3D
         const float startNightTrans = 0.1f;
         const float finishNightTrans = -0.1f;
 
-        public void SetViewMatrix(ref Matrix v)
+        public void SetViewMatrix(ref Matrix4x4 v)
         {
             viewEyeVector = new Vector3(v.M13, v.M23, v.M33);
-            Vector3.Normalize(ref viewEyeVector, out viewEyeVector);
+            Vector3.Normalize(viewEyeVector);
 
-            Vector3.Dot(ref viewEyeVector, ref _sunDirection, out float dot);
+            float dot = Vector3.Dot(viewEyeVector, _sunDirection);
             eyeVector.SetValue(new Vector4(viewEyeVector, dot * 0.5f + 0.5f));
-            sideVector.SetValue(Vector3.Normalize(Vector3.Cross(viewEyeVector, Vector3.Down)));
+            sideVector.SetValue(Vector3.Normalize(Vector3.Cross(viewEyeVector, Vector3.UnitY * -1)));
 
             //            _eyeVector = Vector3.Normalize((new Vector3(v.M13, v.M23, v.M33));
             //eyeVector.SetValue(new Vector4(viewEyeVector, Vector3.Dot(viewEyeVector, _sunDirection) * 0.5f + 0.5f));
             //sideVector.SetValue(Vector3.Normalize(Vector3.Cross(viewEyeVector, Vector3.Down)));
         }
 
-        public void SetMatrix(in Matrix w, in Matrix vp)
+        public void SetMatrix(in Matrix4x4 w, in Matrix4x4 vp)
         {
             world.SetValue(w);
-            MatrixExtension.Multiply(in w, in vp, out Matrix wvp);
+            Matrix4x4 wvp = Matrix4x4.Multiply(w, vp);
             worldViewProjection.SetValue(wvp);
 //            worldViewProjection.SetValue(w * vp);
 
@@ -134,7 +135,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        public void SetShadowMap(Matrix[] shadowProjections, Texture2D[] textures, float[] limits)
+        public void SetShadowMap(Matrix4x4[] shadowProjections, Texture2D[] textures, float[] limits)
         {
             for (var i = 0; i < RenderProcess.ShadowMapCount; i++)
             {
@@ -250,18 +251,18 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly EffectParameter imageTexture;
         readonly EffectParameter blurTexture;
 
-        public void SetData(ref Matrix v)
+        public void SetData(ref Matrix4x4 v)
         {
-            sideVector.SetValue(v.Right);
+            sideVector.SetValue(new Vector3(v.M11, v.M12, v.M13));
         }
 
-        public void SetData(ref Matrix wvp, Texture2D texture)
+        public void SetData(ref Matrix4x4 wvp, Texture2D texture)
         {
             worldViewProjection.SetValue(wvp);
             imageTexture.SetValue(texture);
         }
 
-        public void SetBlurData(ref Matrix wvp)
+        public void SetBlurData(ref Matrix4x4 wvp)
         {
             worldViewProjection.SetValue(wvp);
         }
@@ -383,21 +384,21 @@ namespace Orts.ActivityRunner.Viewer3D
         public Texture2D MoonMaskTexture { set { moonMaskTexture.SetValue(value); } }
         public Texture2D CloudMapTexture { set { cloudMapTexture.SetValue(value); } }
 
-        public void SetViewMatrix(ref Matrix view)
+        public void SetViewMatrix(ref Matrix4x4 view)
         {
             var moonScale = MoonScale;
             if (_moonPhase == 6)
                 moonScale *= 2;
 
             var eye = Vector3.Normalize(new Vector3(view.M13, view.M23, view.M33));
-            var right = Vector3.Cross(eye, Vector3.Up);
-            Vector3.Cross(ref right, ref eye, out Vector3 up);
+            var right = Vector3.Cross(eye, Vector3.UnitY);
+            Vector3 up = Vector3.Cross(right, eye);
 
             rightVector.SetValue(right * moonScale);
             upVector.SetValue(up * moonScale);
         }
 
-        public void SetMatrix(ref Matrix wvp)
+        public void SetMatrix(ref Matrix4x4 wvp)
         {
             worldViewProjection.SetValueTranspose(wvp);
         }
@@ -499,10 +500,11 @@ namespace Orts.ActivityRunner.Viewer3D
             fog = Parameters["Fog"];
         }
 
-        public void SetMatrix(ref Matrix view, ref Matrix projection)
+        public void SetMatrix(ref Matrix4x4 view, ref Matrix4x4 projection)
         {
-            wvp.SetValue(Matrix.Identity * view * projection);
-            invView.SetValue(Matrix.Invert(view));
+            wvp.SetValue(Matrix4x4.Identity * view * projection);
+            Matrix4x4.Invert(view, out Matrix4x4 result);
+            invView.SetValue(result);
         }
 
         public void SetFog(float depth, ref Color color)
@@ -520,7 +522,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public Texture2D LightGlowTexture { set { lightGlowTexture.SetValue(value); } }
 
-        public void SetMatrix(ref Matrix wvp)
+        public void SetMatrix(ref Matrix4x4 wvp)
         {
             worldViewProjection.SetValueTranspose(wvp);
         }
@@ -552,7 +554,7 @@ namespace Orts.ActivityRunner.Viewer3D
             fade = Parameters["Fade"];
         }
 
-        public void SetMatrix(ref Matrix wvp)
+        public void SetMatrix(ref Matrix4x4 wvp)
         {
             worldViewProjection.SetValue(wvp);
         }
@@ -586,7 +588,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public Color GlassColor { set { glassColor.SetValue(new Vector3(value.R / 255f, value.G / 255f, value.B / 255f)); } }
 
-        public void SetMatrix(ref Matrix w, ref Matrix wvp)
+        public void SetMatrix(ref Matrix4x4 w, ref Matrix4x4 wvp)
         {
             world.SetValue(w);
             worldViewProjection.SetValue(wvp);
@@ -708,9 +710,9 @@ namespace Orts.ActivityRunner.Viewer3D
             graphSample = Parameters["GraphSample"];
         }
 
-        public void SetMatrix(Matrix matrix, ref Matrix viewproj)
+        public void SetMatrix(Matrix4x4 matrix, ref Matrix4x4 viewproj)
         {
-            MatrixExtension.Multiply(in matrix, in viewproj, out Matrix wvp);
+            Matrix4x4 wvp = Matrix4x4.Multiply(matrix, viewproj);
             worldViewProjection.SetValue(wvp);
         }
     }

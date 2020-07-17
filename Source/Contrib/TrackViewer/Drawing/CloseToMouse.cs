@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Orts.Common;
@@ -377,7 +378,7 @@ namespace ORTS.TrackViewer.Drawing
             vectorToMouse.Z += (float)((storedMouseLocation.TileZ - trackVectorSection.Location.TileZ) * WorldLocation.TileSize);
 
             //Now rotate the vector such that a direction along the track is in a direction (x=0, z=1)
-            vectorToMouse = Vector3.Transform(vectorToMouse, Matrix.CreateRotationY(-trackVectorSection.Direction.Y));
+            vectorToMouse = Vector3.Transform(vectorToMouse, Matrix4x4.CreateRotationY(-trackVectorSection.Direction.Y));
 
             float lon, lat;
             if (!trackSection.Curved)

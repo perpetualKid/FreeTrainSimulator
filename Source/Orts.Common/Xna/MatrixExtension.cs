@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 
@@ -7,7 +8,7 @@ namespace Orts.Common.Xna
     public static class MatrixExtension
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Multiply(in Matrix matrix1, in Matrix matrix2, out Matrix result)
+        public static void Multiply(in Matrix4x4 matrix1, in Matrix4x4 matrix2, out Matrix4x4 result)
         {
             result.M11 = matrix1.M11 * matrix2.M11 + matrix1.M12 * matrix2.M21 + matrix1.M13 * matrix2.M31 + matrix1.M14 * matrix2.M41;
             result.M12 = matrix1.M11 * matrix2.M12 + matrix1.M12 * matrix2.M22 + matrix1.M13 * matrix2.M32 + matrix1.M14 * matrix2.M42;
@@ -27,44 +28,44 @@ namespace Orts.Common.Xna
             result.M44 = matrix1.M41 * matrix2.M14 + matrix1.M42 * matrix2.M24 + matrix1.M43 * matrix2.M34 + matrix1.M44 * matrix2.M44;
         }
 
-        public static Matrix Multiply(in Matrix matrix1, in Matrix matrix2)
+        public static Matrix4x4 Multiply(in Matrix4x4 matrix1, in Matrix4x4 matrix2)
         {
-            Multiply(matrix1, matrix2, out Matrix result);
+            Multiply(matrix1, matrix2, out Matrix4x4 result);
             return result;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Matrix SetTranslation(in Matrix matrix, in Vector3 position)
+        public static Matrix4x4 SetTranslation(in Matrix4x4 matrix, in Vector3 position)
         {
             return SetTranslation(matrix, position.X, position.Y, position.Z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Matrix SetTranslation(in Matrix matrix, float x, float y, float z)
+        public static Matrix4x4 SetTranslation(in Matrix4x4 matrix, float x, float y, float z)
         {
-            return new Matrix(matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+            return new Matrix4x4(matrix.M11, matrix.M12, matrix.M13, matrix.M14,
                 matrix.M21, matrix.M22, matrix.M23, matrix.M24,
                 matrix.M31, matrix.M32, matrix.M33, matrix.M34,
                 x, y, z, matrix.M44);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Matrix ChangeTranslation(in Matrix matrix, in Vector3 positionDelta)
+        public static Matrix4x4 ChangeTranslation(in Matrix4x4 matrix, in Vector3 positionDelta)
         {
             return ChangeTranslation(matrix, positionDelta.X, positionDelta.Y, positionDelta.Z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Matrix ChangeTranslation(in Matrix matrix, float xDelta, float yDelta, float zDelta)
+        public static Matrix4x4 ChangeTranslation(in Matrix4x4 matrix, float xDelta, float yDelta, float zDelta)
         {
-            return new Matrix(matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+            return new Matrix4x4(matrix.M11, matrix.M12, matrix.M13, matrix.M14,
                 matrix.M21, matrix.M22, matrix.M23, matrix.M24,
                 matrix.M31, matrix.M32, matrix.M33, matrix.M34,
                 matrix.M41 + xDelta, matrix.M42 + yDelta, matrix.M43 + zDelta, matrix.M44);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Matrix RemoveTranslation(in Matrix matrix)
+        public static Matrix4x4 RemoveTranslation(in Matrix4x4 matrix)
         {
             return SetTranslation(matrix, Vector3.Zero);
         }
@@ -72,7 +73,7 @@ namespace Orts.Common.Xna
         //
         // from http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToEuler/index.htm
         //
-        public static void MatrixToAngles(this in Matrix m, out float heading, out float attitude, out float bank)
+        public static void MatrixToAngles(this in Matrix4x4 m, out float heading, out float attitude, out float bank)
         {    // Assuming the angles are in radians.
             if (m.M21 > 0.998)
             { // singularity at north pole
@@ -94,7 +95,7 @@ namespace Orts.Common.Xna
             }
         }
 
-        public static float MatrixToYAngle(this in Matrix m)
+        public static float MatrixToYAngle(this in Matrix4x4 m)
         {    // Assuming the angles are in radians.
 
             if (m.M21 == 0.998)
@@ -103,11 +104,10 @@ namespace Orts.Common.Xna
                 return (float)Math.Atan2(m.M13, m.M33);
         }
 
-        public static Matrix CreateFromYawPitchRoll(in Vector3 pitchYawRoll)
+        public static Matrix4x4 CreateFromYawPitchRoll(in Vector3 pitchYawRoll)
         {
-            Quaternion.CreateFromYawPitchRoll(-pitchYawRoll.Y, -pitchYawRoll.X, pitchYawRoll.Z, out Quaternion quaternion);
-            Matrix.CreateFromQuaternion(ref quaternion, out Matrix matrix);
-            return matrix;
+            Quaternion quaternion = Quaternion.CreateFromYawPitchRoll(-pitchYawRoll.Y, -pitchYawRoll.X, pitchYawRoll.Z);
+            return Matrix4x4.CreateFromQuaternion(quaternion);
         }
 
 

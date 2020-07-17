@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -899,7 +900,7 @@ namespace Orts.MultiPlayer
 			foreach (string name in allEngines)
 			{
 				double len = 0.0f;
-				Microsoft.Xna.Framework.Vector3 def = new Microsoft.Xna.Framework.Vector3();
+				Vector3 def = new Vector3();
 
 				try
 				{

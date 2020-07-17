@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -138,7 +139,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             // Adjust dome position so the bottom edge is not visible
             Vector3 ViewerXNAPosition = new Vector3(MSTSSkyViewer.Camera.Location.X, MSTSSkyViewer.Camera.Location.Y - 100, -MSTSSkyViewer.Camera.Location.Z);
-            Matrix XNASkyWorldLocation = Matrix.CreateTranslation(ViewerXNAPosition);
+            Matrix4x4 XNASkyWorldLocation = Matrix4x4.CreateTranslation(ViewerXNAPosition);
 
             if (!initialized)
             {
@@ -527,7 +528,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly Texture2D mstsSkyMoonMask;
         private readonly List<Texture2D> mstsSkyCloudTextures = new List<Texture2D>();
         private readonly Texture2D mstsSkySunTexture;
-        private Matrix moonMatrix;
+        private Matrix4x4 moonMatrix;
         private float mstsskytexturex;
         private float mstsskytexturey;
         private float mstscloudtexturex;
@@ -600,7 +601,7 @@ namespace Orts.ActivityRunner.Viewer3D
             shader.CloudMapTexture = mstsSkyCloudTextures[0];
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             // Adjust Fog color for day-night conditions and overcast
             FogDay2Night(
@@ -626,7 +627,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Sky dome
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-            MatrixExtension.Multiply(in view, in Camera.XNASkyProjection, out Matrix viewXNASkyProj);
+            Matrix4x4 viewXNASkyProj = Matrix4x4.Multiply(view, Camera.XNASkyProjection);
 
             shader.CurrentTechnique = shader.Techniques[0]; //["Sky"];
             Viewer.World.MSTSSky.MSTSSkyMesh.drawIndex = 1;
@@ -636,7 +637,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
+                    Matrix4x4 wvp = Matrix4x4.Multiply(item.XNAMatrix, viewXNASkyProj);
                     shader.SetMatrix(ref wvp);
                     pass.Apply();
                     item.RenderPrimitive.Draw();
@@ -651,11 +652,11 @@ namespace Orts.ActivityRunner.Viewer3D
             // Send the transform matrices to the shader
             int mstsskyRadius = Viewer.World.MSTSSky.MSTSSkyMesh.mstsskyRadius;
             int mstscloudRadiusDiff = Viewer.World.MSTSSky.MSTSSkyMesh.mstscloudDomeRadiusDiff;
-            moonMatrix = Matrix.CreateTranslation(Viewer.World.MSTSSky.mstsskylunarDirection * (mstsskyRadius));
+            moonMatrix = Matrix4x4.CreateTranslation(Viewer.World.MSTSSky.mstsskylunarDirection * (mstsskyRadius));
             //            Matrix XNAMoonMatrixView = moonMatrix * viewMatrix;
 
-            MatrixExtension.Multiply(in moonMatrix, in view, out Matrix result);
-            MatrixExtension.Multiply(in result, in Camera.XNASkyProjection, out Matrix cameraProjection);
+            Matrix4x4 result = Matrix4x4.Multiply(moonMatrix, view);
+            Matrix4x4 cameraProjection = Matrix4x4.Multiply(result, Camera.XNASkyProjection);
 
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -663,7 +664,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     RenderItem item = renderItems[i];
                     //                    Matrix wvp = item.XNAMatrix * XNAMoonMatrixView * Camera.XNASkyProjection;
-                    MatrixExtension.Multiply(in item.XNAMatrix, in cameraProjection, out Matrix wvp);
+                    Matrix4x4 wvp = Matrix4x4.Multiply(item.XNAMatrix, cameraProjection);
                     shader.SetMatrix(ref wvp);
                     pass.Apply();
                     item.RenderPrimitive.Draw();
@@ -682,7 +683,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     RenderItem item = renderItems[i];
                     //                    Matrix wvp = item.XNAMatrix * viewXNASkyProj;
-                    MatrixExtension.Multiply(in item.XNAMatrix, in viewXNASkyProj, out Matrix wvp);
+                    Matrix4x4 wvp = Matrix4x4.Multiply(item.XNAMatrix, viewXNASkyProj);
                     shader.SetMatrix(ref wvp);
                     pass.Apply();
                     item.RenderPrimitive.Draw();

@@ -37,6 +37,7 @@ using System.Linq;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Models;
 using Orts.Common.Position;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -156,7 +157,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             int dTileX = positionSource.WorldPosition.TileX - Viewer.Camera.TileX;
             int dTileZ = positionSource.WorldPosition.TileZ - Viewer.Camera.TileZ;
-            Matrix xnaDTileTranslation = Matrix.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
+            Matrix4x4 xnaDTileTranslation = Matrix4x4.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
             xnaDTileTranslation = positionSource.WorldPosition.XNAMatrix * xnaDTileTranslation;
 
             Vector3 mstsLocation = new Vector3(xnaDTileTranslation.Translation.X, xnaDTileTranslation.Translation.Y, -xnaDTileTranslation.Translation.Z);
@@ -182,7 +183,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 LightConePosition = Vector3.Transform(Vector3.Lerp(ActiveLightCone.Position1, ActiveLightCone.Position2, ActiveLightCone.Fade.Y), xnaDTileTranslation);
                 LightConeDirection = Vector3.Transform(Vector3.Lerp(ActiveLightCone.Direction1, ActiveLightCone.Direction2, ActiveLightCone.Fade.Y), Car.WorldPosition.XNAMatrix);
                 LightConeDirection -= positionSource.WorldPosition.XNAMatrix.Translation;
-                LightConeDirection.Normalize();
+                Vector3.Normalize(LightConeDirection);
                 LightConeDistance = MathHelper.Lerp(ActiveLightCone.Distance1, ActiveLightCone.Distance2, ActiveLightCone.Fade.Y);
                 LightConeMinDotProduct = (float)Math.Cos(MathHelper.Lerp(ActiveLightCone.Angle1, ActiveLightCone.Angle2, ActiveLightCone.Fade.Y));
                 LightConeColor = Vector4.Lerp(ActiveLightCone.Color1, ActiveLightCone.Color2, ActiveLightCone.Fade.Y);
@@ -201,7 +202,7 @@ namespace Orts.ActivityRunner.Viewer3D
             position = lightState.Position;
             position.Z *= -1;
             direction = -Vector3.UnitZ;
-            direction = Vector3.Transform(Vector3.Transform(-Vector3.UnitZ, Matrix.CreateRotationX(MathHelper.ToRadians(-lightState.Elevation.Y))), Matrix.CreateRotationY(MathHelper.ToRadians(-lightState.Azimuth.Y)));
+            direction = Vector3.Transform(Vector3.Transform(-Vector3.UnitZ, Matrix4x4.CreateRotationX(MathHelper.ToRadians(-lightState.Elevation.Y))), Matrix4x4.CreateRotationY(MathHelper.ToRadians(-lightState.Azimuth.Y)));
             angle = MathHelper.ToRadians(lightState.Angle) / 2;
             radius = lightState.Radius / 2;
             distance = (float)(radius / Math.Sin(angle));
@@ -523,11 +524,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     // FIXME: Is conversion of "azimuth" to a normal right?
 
                     var position1 = state1.Position; position1.Z *= -1;
-                    var normal1 = Vector3.Transform(Vector3.Transform(-Vector3.UnitZ, Matrix.CreateRotationX(MathHelper.ToRadians(-state1.Elevation.Y))), Matrix.CreateRotationY(MathHelper.ToRadians(-state1.Azimuth.Y)));
+                    var normal1 = Vector3.Transform(Vector3.Transform(-Vector3.UnitZ, Matrix4x4.CreateRotationX(MathHelper.ToRadians(-state1.Elevation.Y))), Matrix4x4.CreateRotationY(MathHelper.ToRadians(-state1.Azimuth.Y)));
                     var color1 = new Color() { PackedValue = state1.Color }.ToVector4();
 
                     var position2 = state2.Position; position2.Z *= -1;
-                    var normal2 = Vector3.Transform(Vector3.Transform(-Vector3.UnitZ, Matrix.CreateRotationX(MathHelper.ToRadians(-state2.Elevation.Y))), Matrix.CreateRotationY(MathHelper.ToRadians(-state2.Azimuth.Y)));
+                    var normal2 = Vector3.Transform(Vector3.Transform(-Vector3.UnitZ, Matrix4x4.CreateRotationX(MathHelper.ToRadians(-state2.Elevation.Y))), Matrix4x4.CreateRotationY(MathHelper.ToRadians(-state2.Azimuth.Y)));
                     var color2 = new Color() { PackedValue = state2.Color }.ToVector4();
 
                     vertexData[6 * state + 0] = new LightGlowVertex(new Vector2(1, 1), position1, position2, normal1, normal2, color1, color2, state1.Radius, state2.Radius);
@@ -764,7 +765,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -773,7 +774,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     RenderItem item = renderItems[i];
                     // Glow lights were not working properly because farPlaneDistance used by XNASkyProjection is hardcoded at 6100.  So when view distance was greater than 6100, the 
                     // glow lights were unable to render properly.
-                    MatrixExtension.Multiply(in item.XNAMatrix, in viewProjection, out Matrix wvp);
+                    Matrix4x4 wvp = Matrix4x4.Multiply(item.XNAMatrix, viewProjection);
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();
@@ -819,7 +820,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.DepthStencilState.StencilEnable = true;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -829,7 +830,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     // Light cone was originally using XNASkyProjection, but with no problems.
                     // Switched to Viewer.Camera.XnaProjection to keep the standard since farPlaneDistance used by XNASkyProjection is limited to 6100.
                     //                    Matrix wvp = item.XNAMatrix * viewMatrix * Viewer.Camera.XnaProjection;
-                    MatrixExtension.Multiply(in item.XNAMatrix, in viewProjection, out Matrix wvp);
+                    Matrix4x4 wvp = Matrix4x4.Multiply(item.XNAMatrix, viewProjection);
                     shader.SetMatrix(ref wvp);
                     shader.SetFade(((LightPrimitive)item.RenderPrimitive).Fade);
                     pass.Apply();

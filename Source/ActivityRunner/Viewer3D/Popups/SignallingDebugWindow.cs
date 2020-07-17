@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -386,7 +387,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         protected static Vector3 Project3D(Vector3 position, Viewport viewport, Camera camera)
         {
-            return viewport.Project(position, camera.XnaProjection, camera.XnaView, Matrix.Identity);
+            return viewport.Project(position, camera.XnaProjection, camera.XnaView, Matrix4x4.Identity);
         }
 
         protected static Vector2 Flatten(Vector3 position)
@@ -426,7 +427,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var start2d = Project3D(Normalize(Start, camera), viewport, camera);
             var end2d = Project3D(Normalize(End, camera), viewport, camera);
             var line2d = end2d - start2d;
-            line2d.Normalize();
+            Vector3.Normalize(line2d);
 
             Visible = (start2d.Z >= 0 && start2d.Z <= 1 && end2d.Z >= 0 && end2d.Z <= 1);
             Start2D = Flatten(start2d) + new Vector2(line2d.Y * Width / 2, -line2d.X * Width / 2);

@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using Orts.Formats.Msts.Parsers;

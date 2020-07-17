@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -987,7 +988,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     {
         private CabSpriteBatchMaterial _SpriteShader2DCabView;
         private Rectangle _CabRect = new Rectangle();
-        private Matrix _Scale = Matrix.Identity;
+        private Matrix4x4 _Scale = Matrix4x4.Identity;
         private Texture2D _CabTexture;
         private CabShader _Shader;  // Shaders must have unique Keys - below
         private int ShaderKey = 1;  // Shader Key must refer to only o
@@ -1341,7 +1342,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         protected bool IsNightTexture;
         protected bool HasCabLightDirectory;
 
-        Matrix Matrix = Matrix.Identity;
+        Matrix4x4 Matrix = Matrix4x4.Identity;
 
         public CabViewControlRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewControl control, CabShader shader)
         {
@@ -2508,7 +2509,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         int NumVertices;
         int NumIndices;
         public short[] TriangleListIndices;// Array of indices to vertices for triangles
-        Matrix XNAMatrix;
+        Matrix4x4 XNAMatrix;
         Viewer Viewer;
         ShapePrimitive shapePrimitive;
         CabViewDigitalRenderer CVFR;
@@ -2555,7 +2556,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             for (var j = 0; j < speed.Length; j++)
             {
                 var tX = GetTextureCoordX(speed[j]); var tY = GetTextureCoordY(speed[j]);
-                var rot = Matrix.CreateRotationY(-rotation);
+                var rot = Matrix4x4.CreateRotationY(-rotation);
 
                 //the left-bottom vertex
                 Vector3 v = new Vector3(offset.X, offset.Y, 0.01f);
@@ -2747,11 +2748,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             UpdateDigit();
 
-            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
+            Matrix4x4 mx = Orts.Common.Xna.MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
                 (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
                 0,
                 (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
-            MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
+            Matrix4x4 m = Matrix4x4.Multiply(XNAMatrix, mx);
             // TODO: Make this use AddAutoPrimitive instead.
             frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
         }
@@ -2769,7 +2770,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         int NumVertices;
         int NumIndices;
         public short[] TriangleListIndices;// Array of indices to vertices for triangles
-        Matrix XNAMatrix;
+        Matrix4x4 XNAMatrix;
         Viewer Viewer;
         ShapePrimitive shapePrimitive;
         CabViewGaugeRenderer CVFR;
@@ -2963,11 +2964,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             UpdateDigit();
-            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
+            Matrix4x4 mx = Orts.Common.Xna.MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
                 (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
                 0,
                 (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
-            MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
+            Matrix4x4 m = Matrix4x4.Multiply(XNAMatrix, mx);
 
             // TODO: Make this use AddAutoPrimitive instead.
             frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
@@ -2985,7 +2986,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         Viewer Viewer;
         int matrixIndex;
         CabViewGaugeRenderer CVFR;
-        Matrix XNAMatrix;
+        Matrix4x4 XNAMatrix;
         float GaugeSize;
         public ThreeDimCabGauge(Viewer viewer, int iMatrix, float gaugeSize, PoseableShape trainCarShape, CabViewControlRenderer c)
         {
@@ -3010,11 +3011,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             if (CVFR.GetStyle() == CabViewControlStyle.Pointer)
             {
-                this.TrainCarShape.XNAMatrices[matrixIndex] = Matrix.CreateTranslation(scale * this.GaugeSize, 0, 0) * this.TrainCarShape.SharedShape.Matrices[matrixIndex];
+                this.TrainCarShape.XNAMatrices[matrixIndex] = Matrix4x4.CreateTranslation(scale * this.GaugeSize, 0, 0) * this.TrainCarShape.SharedShape.Matrices[matrixIndex];
             }
             else
             {
-                this.TrainCarShape.XNAMatrices[matrixIndex] = Matrix.CreateScale(scale * 10, 1, 1) * this.TrainCarShape.SharedShape.Matrices[matrixIndex];
+                this.TrainCarShape.XNAMatrices[matrixIndex] = Matrix4x4.CreateScale(scale * 10, 1, 1) * this.TrainCarShape.SharedShape.Matrices[matrixIndex];
             }
             //this.TrainCarShape.SharedShape.Matrices[matrixIndex] = XNAMatrix * mx * Matrix.CreateRotationX(10);
         }

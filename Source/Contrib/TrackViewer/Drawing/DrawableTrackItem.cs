@@ -22,6 +22,7 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using System;
+using System.Numerics;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -130,8 +131,8 @@ namespace ORTS.TrackViewer.Drawing
                 this.angle = signalTraveller.RotY;
 
                 // Shift signal a little bit to be able to distinguish backfacing from normal facing
-                Microsoft.Xna.Framework.Vector3 shiftedLocation = this.WorldLocation.Location + 
-                    0.0001f * new Microsoft.Xna.Framework.Vector3((float) Math.Cos(this.angle), 0f, -(float) Math.Sin(this.angle));
+                Vector3 shiftedLocation = this.WorldLocation.Location + 
+                    0.0001f * new Vector3((float) Math.Cos(this.angle), 0f, -(float) Math.Sin(this.angle));
                 this.WorldLocation = new WorldLocation(this.WorldLocation.TileX, this.WorldLocation.TileZ, shiftedLocation );
             }
             catch { }

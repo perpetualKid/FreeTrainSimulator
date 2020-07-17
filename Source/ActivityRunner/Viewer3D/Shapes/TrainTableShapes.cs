@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -64,7 +65,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, animationKey);
 
-            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in WorldPosition.XNAMatrix, out Matrix absAnimationMatrix);
+            Matrix4x4 absAnimationMatrix = Matrix4x4.Multiply(XNAMatrices[IAnimationMatrix], WorldPosition.XNAMatrix);
             Turntable.ReInitTrainPositions(absAnimationMatrix);
         }
 
@@ -104,7 +105,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, animationKey);
 
-            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in WorldPosition.XNAMatrix, out Matrix absAnimationMatrix);
+            Matrix4x4 absAnimationMatrix = Matrix4x4.Multiply(XNAMatrices[IAnimationMatrix], WorldPosition.XNAMatrix);
             Turntable.PerformUpdateActions(absAnimationMatrix);
             SharedShape.PrepareFrame(frame, WorldPosition, XNAMatrices, Flags);
         }
@@ -159,7 +160,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, animationKey);
 
-            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in WorldPosition.XNAMatrix, out Matrix absAnimationMatrix);
+            Matrix4x4 absAnimationMatrix = Matrix4x4.Multiply(XNAMatrices[IAnimationMatrix], WorldPosition.XNAMatrix);
             Transfertable.ReInitTrainPositions(absAnimationMatrix);
         }
 
@@ -199,7 +200,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
                 AnimateMatrix(matrix, animationKey);
 
-            MatrixExtension.Multiply(in XNAMatrices[IAnimationMatrix], in WorldPosition.XNAMatrix, out Matrix absAnimationMatrix);
+            Matrix4x4 absAnimationMatrix = Matrix4x4.Multiply(XNAMatrices[IAnimationMatrix], WorldPosition.XNAMatrix);
             Transfertable.PerformUpdateActions(absAnimationMatrix, WorldPosition);
             SharedShape.PrepareFrame(frame, WorldPosition, XNAMatrices, Flags);
         }

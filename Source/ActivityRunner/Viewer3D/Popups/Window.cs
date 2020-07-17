@@ -22,6 +22,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using System;
 using System.IO;
+using System.Numerics;
 using System.Reflection;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
@@ -32,7 +33,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public static readonly Point DecorationOffset = new Point(4, 4 + BaseFontSize + 5);
         public static readonly Point DecorationSize = new Point(4 + 4, 4 + BaseFontSize + 5 + 4);
-        public Matrix XNAWorld;
+        public Matrix4x4 XNAWorld;
 
         protected WindowManager Owner;
 
@@ -111,7 +112,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 Owner.Viewer.Settings.Save(SettingsProperty.Name);
             }
 
-            XNAWorld = Matrix.CreateWorld(new Vector3(location.X, location.Y, 0), -Vector3.UnitZ, Vector3.UnitY);
+            XNAWorld = Matrix4x4.CreateWorld(new Vector3(location.X, location.Y, 0), -Vector3.UnitZ, Vector3.UnitY);
         }
 
         protected virtual void SizeChanged()

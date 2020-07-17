@@ -56,6 +56,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -345,7 +346,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         var min = shape.Shape.EsdBoundingBox.Min;
                         var max = shape.Shape.EsdBoundingBox.Max;
-                        var transform = Matrix.Invert(worldMatrix.XNAMatrix);
+                        Matrix4x4.Invert(worldMatrix.XNAMatrix, out Matrix4x4 transform);
                         // Not sure if this is needed, but it is to correct for center-of-gravity being not the center of the box.
                         //transform.M41 += (max.X + min.X) / 2;
                         //transform.M42 += (max.Y + min.Y) / 2;
@@ -654,11 +655,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public readonly struct BoundingBox
     {
-        public readonly Matrix Transform;
+        public readonly Matrix4x4 Transform;
         public readonly Vector3 Size;
         public readonly float Height;
 
-        internal BoundingBox(Matrix transform, Vector3 size, float height)
+        internal BoundingBox(Matrix4x4 transform, Vector3 size, float height)
         {
             Transform = transform;
             Size = size;

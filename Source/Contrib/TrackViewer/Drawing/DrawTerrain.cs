@@ -54,6 +54,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -140,7 +141,7 @@ namespace ORTS.TrackViewer.Drawing
             basicEffect = new BasicEffect(this.device)
             {
                 TextureEnabled = true,
-                World = Matrix.Identity
+                World = Matrix4x4.Identity
             };
             Clear();
         }
@@ -494,8 +495,8 @@ namespace ORTS.TrackViewer.Drawing
             float camHeight = width / device.Viewport.AspectRatio / 2;
             Vector3 cameraPosition = cameraTarget;
             cameraPosition.Y = -camHeight;
-            basicEffect.View = Matrix.CreateLookAt(cameraPosition, cameraTarget, new Vector3(0, 0, 1));
-            basicEffect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver2, device.Viewport.AspectRatio, camHeight / 2, camHeight * 2);
+            basicEffect.View = Matrix4x4.CreateLookAt(cameraPosition, cameraTarget, new Vector3(0, 0, 1));
+            basicEffect.Projection = Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.PiOver2, device.Viewport.AspectRatio, camHeight / 2, camHeight * 2);
 
         }
         #endregion

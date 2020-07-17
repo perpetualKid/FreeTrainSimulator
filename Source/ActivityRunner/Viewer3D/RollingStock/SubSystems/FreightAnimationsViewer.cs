@@ -21,6 +21,7 @@ using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Common;
 using System.Collections.Generic;
 using Orts.ActivityRunner.Viewer3D.Shapes;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 {
@@ -67,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             }
             if (FreightShape.XNAMatrices.Length > 0 && animation is FreightAnimationStatic && (animation as FreightAnimationStatic).Flipped)
             {
-                var flipper = Matrix.Identity;
+                var flipper = Matrix4x4.Identity;
                 flipper.M11 = -1;
                 flipper.M33 = -1;
                 FreightShape.XNAMatrices[0] *= flipper;

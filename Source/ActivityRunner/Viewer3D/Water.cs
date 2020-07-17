@@ -20,6 +20,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
@@ -39,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly int PrimitiveCount;
         readonly VertexBufferBinding[] VertexBufferBindings;
 
-        Matrix xnaMatrix = Matrix.Identity;
+        Matrix4x4 xnaMatrix = Matrix4x4.Identity;
 
         public WaterPrimitive(Viewer viewer, Tile tile)
         {
@@ -54,7 +56,7 @@ namespace Orts.ActivityRunner.Viewer3D
             LoadGeometry(Viewer.RenderProcess.GraphicsDevice, tile, out PrimitiveCount, out IndexBuffer, out VertexBuffer);
             
             DummyVertexBuffer = new VertexBuffer(Viewer.RenderProcess.GraphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
-            DummyVertexBuffer.SetData(new Matrix[] { Matrix.Identity });
+            DummyVertexBuffer.SetData(new Matrix4x4[] { Matrix4x4.Identity });
             VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(DummyVertexBuffer) };
         }
 
@@ -194,7 +196,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             for (int j = 0; j < shaderPasses.Count; j++)
             {

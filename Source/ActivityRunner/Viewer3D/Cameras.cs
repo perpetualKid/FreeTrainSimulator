@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -55,19 +56,19 @@ namespace Orts.ActivityRunner.Viewer3D
         protected int MouseScrollValue;
         protected internal float FieldOfView;
 
-        protected Matrix xnaView;
-        public ref Matrix XnaView => ref xnaView; 
+        protected Matrix4x4 xnaView;
+        public ref Matrix4x4 XnaView => ref xnaView; 
 
-        private Matrix projection;
-        private static Matrix skyProjection;
-        private static Matrix distantMountainProjection;
+        private Matrix4x4 projection;
+        private static Matrix4x4 skyProjection;
+        private static Matrix4x4 distantMountainProjection;
 
-        public ref Matrix XnaProjection => ref projection;
+        public ref Matrix4x4 XnaProjection => ref projection;
 
-        public static ref Matrix XnaDistantMountainProjection => ref distantMountainProjection;
+        public static ref Matrix4x4 XnaDistantMountainProjection => ref distantMountainProjection;
 
         // This sucks. It's really not camera-related at all.
-        public static ref Matrix XNASkyProjection => ref skyProjection;
+        public static ref Matrix4x4 XNASkyProjection => ref skyProjection;
 
         Vector3 frustumRightProjected;
         Vector3 frustumLeft;
@@ -170,7 +171,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// A camera should use this method to return a unique view.
         /// </summary>
-        protected abstract Matrix GetCameraView();
+        protected abstract Matrix4x4 GetCameraView();
 
         /// <summary>
         /// Notifies the camera that the screen dimensions have changed.
@@ -182,9 +183,9 @@ namespace Orts.ActivityRunner.Viewer3D
             var fovWidthRadians = MathHelper.ToRadians(FieldOfView);
 
             if (Viewer.Settings.DistantMountains)
-                distantMountainProjection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, MathHelper.Clamp(Viewer.Settings.ViewingDistance - 500, 500, 1500), Viewer.Settings.DistantMountainsViewingDistance);
-            projection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, Viewer.Settings.ViewingDistance);
-            skyProjection = Matrix.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, farPlaneDistance);    // TODO remove? 
+                distantMountainProjection = Matrix4x4.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, MathHelper.Clamp(Viewer.Settings.ViewingDistance - 500, 500, 1500), Viewer.Settings.DistantMountainsViewingDistance);
+            projection = Matrix4x4.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, Viewer.Settings.ViewingDistance);
+            skyProjection = Matrix4x4.CreatePerspectiveFieldOfView(fovWidthRadians, aspectRatio, NearPlane, farPlaneDistance);    // TODO remove? 
             frustumRightProjected.X = (float)Math.Cos(fovWidthRadians / 2 * aspectRatio);  // Precompute the right edge of the view frustrum.
             frustumRightProjected.Z = (float)Math.Sin(fovWidthRadians / 2 * aspectRatio);
         }
@@ -201,11 +202,11 @@ namespace Orts.ActivityRunner.Viewer3D
             frustumLeft.X = -xnaView.M11 * frustumRightProjected.X + xnaView.M13 * frustumRightProjected.Z;
             frustumLeft.Y = -xnaView.M21 * frustumRightProjected.X + xnaView.M23 * frustumRightProjected.Z;
             frustumLeft.Z = -xnaView.M31 * frustumRightProjected.X + xnaView.M33 * frustumRightProjected.Z;
-            frustumLeft.Normalize();
+            Vector3.Normalize(frustumLeft);
             frustumRight.X = xnaView.M11 * frustumRightProjected.X + xnaView.M13 * frustumRightProjected.Z;
             frustumRight.Y = xnaView.M21 * frustumRightProjected.X + xnaView.M23 * frustumRightProjected.Z;
             frustumRight.Z = xnaView.M31 * frustumRightProjected.X + xnaView.M33 * frustumRightProjected.Z;
-            frustumRight.Normalize();
+            Vector3.Normalize(frustumRight);
         }
 
         // Cull for fov
@@ -343,8 +344,8 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             float[] cameraOrientation = new float[] {
-                        XnaView.Backward.X, XnaView.Backward.Y, XnaView.Backward.Z,
-                        XnaView.Down.X, XnaView.Down.Y, XnaView.Down.Z };
+                        XnaView.M31, XnaView.M32, XnaView.M33,
+                        - XnaView.M21, -XnaView.M22, -XnaView.M23 };
 
             OpenAL.alListenerfv(OpenAL.AL_POSITION, cameraPosition);
             OpenAL.alListenerfv(OpenAL.AL_VELOCITY, cameraVelocity);
@@ -383,9 +384,9 @@ namespace Orts.ActivityRunner.Viewer3D
             targetLocation = WorldLocation.Restore(inf);
         }
 
-        protected override Matrix GetCameraView()
+        protected override Matrix4x4 GetCameraView()
         {
-            return Matrix.CreateLookAt(XnaLocation(cameraLocation), XnaLocation(targetLocation), Vector3.UnitY);
+            return Matrix4x4.CreateLookAt(XnaLocation(cameraLocation), XnaLocation(targetLocation), Vector3.UnitY);
         }
     }
 
@@ -444,14 +445,14 @@ namespace Orts.ActivityRunner.Viewer3D
             RotationXRadians = RotationYRadians = XRadians = YRadians = ZRadians = 0;
         }
 
-        protected override Matrix GetCameraView()
+        protected override Matrix4x4 GetCameraView()
         {
             var lookAtPosition = Vector3.UnitZ;
-            lookAtPosition = Vector3.Transform(lookAtPosition, Matrix.CreateRotationX(RotationXRadians));
-            lookAtPosition = Vector3.Transform(lookAtPosition, Matrix.CreateRotationY(RotationYRadians));
+            lookAtPosition = Vector3.Transform(lookAtPosition, Matrix4x4.CreateRotationX(RotationXRadians));
+            lookAtPosition = Vector3.Transform(lookAtPosition, Matrix4x4.CreateRotationY(RotationYRadians));
             lookAtPosition += cameraLocation.Location;
             lookAtPosition.Z *= -1;
-            return Matrix.CreateLookAt(XnaLocation(cameraLocation), lookAtPosition, Vector3.Up);
+            return Matrix4x4.CreateLookAt(XnaLocation(cameraLocation), lookAtPosition, Vector3.UnitY);
         }
 
         protected static float GetMouseDelta(int mouseMovementPixels)
@@ -567,8 +568,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected void MoveCamera(Vector3 movement)
         {
-            movement = Vector3.Transform(movement, Matrix.CreateRotationX(RotationXRadians));
-            movement = Vector3.Transform(movement, Matrix.CreateRotationY(RotationYRadians));
+            movement = Vector3.Transform(movement, Matrix4x4.CreateRotationX(RotationXRadians));
+            movement = Vector3.Transform(movement, Matrix4x4.CreateRotationY(RotationYRadians));
             cameraLocation = new WorldLocation(cameraLocation.TileX, cameraLocation.TileZ, cameraLocation.Location + movement, true);
         }
 
@@ -882,16 +883,16 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Vector3 source = IsCameraFlipped() ? new Vector3(-attachedLocation.X, attachedLocation.Y, attachedLocation.Z) :
                 new Vector3(attachedLocation.X, attachedLocation.Y, -attachedLocation.Z);
-            Vector3.Transform(source, worldPosition.XNAMatrix).Deconstruct(out float x, out float y, out float z);
-            cameraLocation = new WorldLocation(worldPosition.TileX, worldPosition.TileZ, x, y, -z);
+            Vector3 result = Vector3.Transform(source, worldPosition.XNAMatrix);
+            cameraLocation = new WorldLocation(worldPosition.TileX, worldPosition.TileZ, result.X, result.Y, -result.Z);
         }
 
-        protected override Matrix GetCameraView()
+        protected override Matrix4x4 GetCameraView()
         {
             var flipped = IsCameraFlipped();
             var lookAtPosition = Vector3.UnitZ;
-            lookAtPosition = Vector3.Transform(lookAtPosition, Matrix.CreateRotationX(RotationXRadians));
-            lookAtPosition = Vector3.Transform(lookAtPosition, Matrix.CreateRotationY(RotationYRadians + (flipped ? MathHelper.Pi : 0)));
+            lookAtPosition = Vector3.Transform(lookAtPosition, Matrix4x4.CreateRotationX(RotationXRadians));
+            lookAtPosition = Vector3.Transform(lookAtPosition, Matrix4x4.CreateRotationY(RotationYRadians + (flipped ? MathHelper.Pi : 0)));
             if (flipped)
             {
                 lookAtPosition.X -= attachedLocation.X;
@@ -909,14 +910,14 @@ namespace Orts.ActivityRunner.Viewer3D
             // Don't forget to rotate the up vector so the camera rotates with us.
             Vector3 up;
             if (Viewer.Camera is TrackingCamera)
-                up = Vector3.Up;
+                up = Vector3.UnitY;
             else
             {
                 var upRotation = attachedCar.WorldPosition.XNAMatrix;
                 upRotation.Translation = Vector3.Zero;
-                up = Vector3.Transform(Vector3.Up, upRotation);
+                up = Vector3.Transform(Vector3.UnitY, upRotation);
             }
-            return Matrix.CreateLookAt(XnaLocation(cameraLocation), lookAtPosition, up);
+            return Matrix4x4.CreateLookAt(XnaLocation(cameraLocation), lookAtPosition, up);
         }
 
         public override void Update(in ElapsedTime elapsedTime)
@@ -925,8 +926,8 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 Vector3 source = IsCameraFlipped() ? new Vector3(-attachedLocation.X, attachedLocation.Y, attachedLocation.Z) : 
                     new Vector3(attachedLocation.X, attachedLocation.Y, -attachedLocation.Z);
-                Vector3.Transform(source, attachedCar.WorldPosition.XNAMatrix).Deconstruct(out float x, out float y, out float z);
-                cameraLocation = new WorldLocation(attachedCar.WorldPosition.TileX, attachedCar.WorldPosition.TileZ, x, y, -z);
+                Vector3 result = Vector3.Transform(source, attachedCar.WorldPosition.XNAMatrix);
+                cameraLocation = new WorldLocation(attachedCar.WorldPosition.TileX, attachedCar.WorldPosition.TileZ, result.X, result.Y, -result.Z);
             }
             UpdateRotation(elapsedTime);
             UpdateListener();
@@ -1193,16 +1194,16 @@ namespace Orts.ActivityRunner.Viewer3D
             attachedLocation.X = 0;
             attachedLocation.Y = 2;
             attachedLocation.Z = PositionDistance;
-            attachedLocation = Vector3.Transform(attachedLocation, Matrix.CreateRotationX(-PositionXRadians));
-            attachedLocation = Vector3.Transform(attachedLocation, Matrix.CreateRotationY(PositionYRadians));
+            attachedLocation = Vector3.Transform(attachedLocation, Matrix4x4.CreateRotationX(-PositionXRadians));
+            attachedLocation = Vector3.Transform(attachedLocation, Matrix4x4.CreateRotationY(PositionYRadians));
 
             // Update location of camera
             if (BrowseMode)
             {
                 UpdateTrainBrowsing(elapsedTime);
                 attachedLocation.Z += BrowseDistance * (Front ? 1 : -1);
-                LookedAtPosition = new WorldPosition(browsedTraveller.TileX, browsedTraveller.TileZ, 
-                    Matrix.CreateFromYawPitchRoll(-browsedTraveller.RotY, 0, 0)).SetTranslation(browsedTraveller.X, browsedTraveller.Y, -browsedTraveller.Z);
+                LookedAtPosition = new WorldPosition(browsedTraveller.TileX, browsedTraveller.TileZ,
+                    Matrix4x4.CreateFromYawPitchRoll(-browsedTraveller.RotY, 0, 0)).SetTranslation(browsedTraveller.X, browsedTraveller.Y, -browsedTraveller.Z);
             }
             else if (attachedCar != null)
             {

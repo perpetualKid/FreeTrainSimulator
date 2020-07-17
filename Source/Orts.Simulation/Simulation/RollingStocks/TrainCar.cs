@@ -38,6 +38,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -2131,13 +2132,13 @@ namespace Orts.Simulation.RollingStocks
             Vector3 fwd = new Vector3(p0.B[0], p0.B[1], -p0.B[2]);
             // Check if null vector - The Length() is fine also, but may be more time consuming - By GeorgeS
             if (fwd.X != 0 && fwd.Y != 0 && fwd.Z != 0)
-                fwd.Normalize();
-            Vector3 side = Vector3.Cross(Vector3.Up, fwd);
+                Vector3.Normalize(fwd);
+            Vector3 side = Vector3.Cross(Vector3.UnitY, fwd);
             // Check if null vector - The Length() is fine also, but may be more time consuming - By GeorgeS
             if (side.X != 0 && side.Y != 0 && side.Z != 0)
-                side.Normalize();
+                Vector3.Normalize(side);
             Vector3 up = Vector3.Cross(fwd, side);
-            Matrix m = Matrix.Identity;
+            Matrix4x4 m = Matrix4x4.Identity;
             m.M11 = side.X;
             m.M12 = side.Y;
             m.M13 = side.Z;
@@ -2175,7 +2176,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
-                    fwd1.Normalize();
+                    Vector3.Normalize(fwd1);
                     p.Cos = Vector3.Dot(fwd, fwd1);
                 }
 
@@ -2224,12 +2225,12 @@ namespace Orts.Simulation.RollingStocks
                 prevElev = z;
             }
 
-            WorldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(Matrix.CreateRotationZ(z), WorldPosition.XNAMatrix));
+            WorldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, Matrix4x4.Multiply(Matrix4x4.CreateRotationZ(z), WorldPosition.XNAMatrix));
         }
         #endregion
 
         #region Vibration and tilting
-        public Matrix VibrationInverseMatrix = Matrix.Identity;
+        public Matrix4x4 VibrationInverseMatrix = Matrix4x4.Identity;
 
         // https://en.wikipedia.org/wiki/Newton%27s_laws_of_motion#Newton.27s_2nd_Law
         //   Let F be the force in N
@@ -2360,10 +2361,10 @@ namespace Orts.Simulation.RollingStocks
             }
             if (Simulator.Settings.CarVibratingLevel != 0 || Train.IsTilting)
             {
-                var rotation = Matrix.CreateFromYawPitchRoll(VibrationRotationRad.Y, VibrationRotationRad.X, VibrationRotationRad.Z + TiltingZRot);
-                var translation = Matrix.CreateTranslation(VibrationTranslationM.X, VibrationTranslationM.Y, 0);
-                WorldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, MatrixExtension.Multiply(MatrixExtension.Multiply(rotation, translation), WorldPosition.XNAMatrix));
-                VibrationInverseMatrix = Matrix.Invert(rotation * translation);
+                var rotation = Matrix4x4.CreateFromYawPitchRoll(VibrationRotationRad.Y, VibrationRotationRad.X, VibrationRotationRad.Z + TiltingZRot);
+                var translation = Matrix4x4.CreateTranslation(VibrationTranslationM.X, VibrationTranslationM.Y, 0);
+                WorldPosition = new WorldPosition(WorldPosition.TileX, WorldPosition.TileZ, Matrix4x4.Multiply(Matrix4x4.Multiply(rotation, translation), WorldPosition.XNAMatrix));
+                Matrix4x4.Invert(rotation * translation, out VibrationInverseMatrix);
             }
         }
 

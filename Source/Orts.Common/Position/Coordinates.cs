@@ -21,7 +21,7 @@
  * whereas in MSTS it is the opposite.  As a result you will see the sign of all Z coordinates gets negated
  * and matrices are adjusted as they are loaded into XNA.  In addition the winding order of triangles is reversed in XNA.
  * Generally - X,Y,Z coordinates, vectors, quaternions, and angles will be expressed using MSTS coordinates 
- * unless otherwise noted with the prefix XNA.  Matrix's are usually constructed using XNA coordinates so they can be 
+ * unless otherwise noted with the prefix XNA.  Matrix4x4's are usually constructed using XNA coordinates so they can be 
  * used directly in XNA draw routines.  So most matrix's will have XNA prepended to their name.
  * 
  * WorldCoordinates
@@ -41,6 +41,8 @@
 
 using System;
 using System.IO;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 
@@ -65,16 +67,16 @@ namespace Orts.Common.Position
         /// <summary>The z-value of the tile</summary>
         public readonly int TileZ;
         /// <summary>The position within a tile (relative to the center of tile)</summary>
-        public readonly Matrix XNAMatrix;
+        public readonly Matrix4x4 XNAMatrix;
 
-        public WorldPosition(int tileX, int tileZ, Matrix xnaMatrix)
+        public WorldPosition(int tileX, int tileZ, Matrix4x4 xnaMatrix)
         {
             TileX = tileX;
             TileZ = tileZ;
             XNAMatrix = xnaMatrix;
         }
 
-        private static readonly WorldPosition none = new WorldPosition(0, 0, Matrix.Identity);
+        private static readonly WorldPosition none = new WorldPosition(0, 0, Matrix4x4.Identity);
 
         /// <summary>
         /// Returns a WorldPosition representing no Position at all.
@@ -88,23 +90,22 @@ namespace Orts.Common.Position
         {
             TileX = source.TileX;
             TileZ = source.TileZ;
-            source.Location.Deconstruct(out float x, out float y, out float z);
-            XNAMatrix = MatrixExtension.SetTranslation(Matrix.Identity, x, y, -z);
+            XNAMatrix = Xna.MatrixExtension.SetTranslation(Matrix4x4.Identity, source.Location.X, source.Location.Y, - source.Location.Z);
         }
 
         public WorldPosition ChangeTranslation(float x, float y, float z)
         {
-            return new WorldPosition(TileX, TileZ, MatrixExtension.ChangeTranslation(XNAMatrix, x, y, z));
+            return new WorldPosition(TileX, TileZ, Xna.MatrixExtension.ChangeTranslation(XNAMatrix, x, y, z));
         }
 
         public WorldPosition SetTranslation(Vector3 translation)
         {
-            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, translation));
+            return new WorldPosition(TileX, TileZ, Xna.MatrixExtension.SetTranslation(XNAMatrix, translation));
         }
 
         public WorldPosition SetTranslation(float x, float y, float z)
         {
-            return new WorldPosition(TileX, TileZ, MatrixExtension.SetTranslation(XNAMatrix, x, y, z));
+            return new WorldPosition(TileX, TileZ, Xna.MatrixExtension.SetTranslation(XNAMatrix, x, y, z));
         }
 
         /// <summary>
@@ -134,7 +135,7 @@ namespace Orts.Common.Position
             int zTileDistance = (int)Math.Round((int)(XNAMatrix.M43 / 1024) / 2.0, MidpointRounding.AwayFromZero);
 
             return (xTileDistance == 0 && zTileDistance == 0) ? this : new WorldPosition(TileX + xTileDistance, TileZ + zTileDistance,
-                MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 - (xTileDistance * TileSize)),
+                Xna.MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 - (xTileDistance * TileSize)),
                 XNAMatrix.M42, (float)(XNAMatrix.M43 - (zTileDistance * TileSize))));
         }
 
@@ -149,7 +150,7 @@ namespace Orts.Common.Position
             int zDiff = TileZ - tileZ;
 
             return (xDiff == 0 && zDiff == 0) ? this : new WorldPosition(tileX, tileZ, 
-                MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 + (xDiff * TileSize)),
+                Xna.MatrixExtension.SetTranslation(XNAMatrix, (float)(XNAMatrix.M41 + (xDiff * TileSize)),
                 XNAMatrix.M42, (float)(XNAMatrix.M43 + (zDiff * TileSize))));
         }
 

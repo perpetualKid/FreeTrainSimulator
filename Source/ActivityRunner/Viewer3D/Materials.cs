@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -575,7 +576,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public virtual void SetState(Material previousMaterial) { }
 
-        public abstract void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection);
+        public abstract void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection);
 
         public virtual void ResetState() { }
 
@@ -606,7 +607,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 matrixviewProjection)
         {
             throw new NotImplementedException();
         }
@@ -619,7 +620,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             for (int i = 0; i < renderItems.Count; i++)
                 renderItems[i].RenderPrimitive.Draw();
@@ -943,7 +944,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             for (int j = 0; j < shaderPasses.Count; j++)
             {
@@ -1085,7 +1086,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.RasterizerState = mode == Mode.Blocker ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             for (int j = 0; j < shaderPasses.Count; j++)
             {
@@ -1094,7 +1095,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     RenderItem item = renderItems[i];
                     //                    ref Matrix wvp = ref item.XNAMatrix;
                     //                    MatrixExtension.Multiply(ref wvp, ref matrices[(int)ViewMatrixSequence.ViewProjection], out wvp);
-                    MatrixExtension.Multiply(in item.XNAMatrix, in viewProjection, out Matrix wvp);
+                    Matrix4x4 wvp = Matrix4x4.Multiply(item.XNAMatrix, viewProjection);
                     shader.SetData(ref wvp, item.Material.GetShadowTexture());
                     shaderPasses[j].Apply();
                     graphicsDevice.SamplerStates[0] = item.Material.SamplerState;
@@ -1105,7 +1106,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public RenderTarget2D ApplyBlur(RenderTarget2D shadowMap, RenderTarget2D renderTarget)
         {
-            var wvp = Matrix.Identity;
+            var wvp = Matrix4x4.Identity;
 
             shader.CurrentTechnique = shader.Techniques[(int)Mode.Blur];
             shader.SetBlurData(ref wvp);
@@ -1159,10 +1160,10 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.None;
         }
 
-        public void Render(RenderPrimitive renderPrimitive, ref Matrix worldMatrix, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public void Render(RenderPrimitive renderPrimitive, ref Matrix4x4 worldMatrix, ref Matrix4x4 viewMatrix, ref Matrix4x4 projectionMatrix)
         {
-            MatrixExtension.Multiply(in worldMatrix, in viewMatrix, out Matrix result);
-            MatrixExtension.Multiply(in result, in projectionMatrix, out Matrix wvp);
+            Matrix4x4 result = Matrix4x4.Multiply(worldMatrix, viewMatrix);
+            Matrix4x4 wvp = Matrix4x4.Multiply(result, projectionMatrix);
 //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
             shader.SetMatrix(ref worldMatrix, ref wvp);
 
@@ -1173,10 +1174,10 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
-            MatrixExtension.Multiply(in view, in projection, out Matrix result);
-            MatrixExtension.Multiply(in result, in viewProjection, out Matrix wvp);
+            Matrix4x4 result = Matrix4x4.Multiply(view, projection);
+            Matrix4x4 wvp = Matrix4x4.Multiply(result, viewProjection);
             //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
             shader.SetMatrix(ref view, ref wvp);
 
@@ -1233,7 +1234,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             basicEffect.View = view;
             basicEffect.Projection = projection;
@@ -1281,7 +1282,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             basicEffect.View = view;
             basicEffect.Projection = projection;
@@ -1319,11 +1320,11 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             var scaling = (float)graphicsDevice.PresentationParameters.BackBufferHeight / Viewer.RenderProcess.GraphicsDeviceManager.PreferredBackBufferHeight;
             Vector3 screenScaling = new Vector3(scaling);
-            SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null, Matrix.CreateScale(scaling));
+            SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null, Matrix4x4.CreateScale(scaling));
             SpriteBatch.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             textBoxes.Clear();
             base.Render(renderItems, ref view, ref projection, ref viewProjection);
@@ -1369,7 +1370,7 @@ namespace Orts.ActivityRunner.Viewer3D
             shader.CurrentTechnique = shader.Techniques[0]; //["Normal"];
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             for (int j = 0; j < shaderPasses.Count; j++)
             {

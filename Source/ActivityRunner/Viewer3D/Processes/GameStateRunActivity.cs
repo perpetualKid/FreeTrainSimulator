@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -65,7 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         LoadingPrimitive Loading;
         LoadingScreenPrimitive LoadingScreen;
         LoadingBarPrimitive LoadingBar;
-        Matrix LoadingMatrix = Matrix.Identity;
+        Matrix4x4 LoadingMatrix = Matrix4x4.Identity;
 
         public GameStateRunActivity(string[] args)
         {
@@ -1350,12 +1351,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 graphicsDevice.BlendState = BlendState.NonPremultiplied;
             }
 
-            public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+            public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
-                    MatrixExtension.Multiply(in item.XNAMatrix, in viewProjection, out Matrix wvp);
+                    Matrix4x4 wvp = Matrix4x4.Multiply(item.XNAMatrix, viewProjection);
                     shader.WorldViewProjection = wvp;
                     //                    shader.WorldViewProjection = item.XNAMatrix * matrices[0] * matrices[1];
                     shader.CurrentTechnique.Passes[0].Apply();
@@ -1456,7 +1457,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             readonly EffectParameter loadingPercent;
             readonly EffectParameter loadingTexture;
 
-            public Matrix WorldViewProjection { set { worldViewProjection.SetValue(value); } }
+            public Matrix4x4 WorldViewProjection { set { worldViewProjection.SetValue(value); } }
 
             public float LoadingPercent { set { loadingPercent.SetValue(value); } }
 

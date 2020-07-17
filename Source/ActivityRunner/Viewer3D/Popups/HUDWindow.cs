@@ -37,6 +37,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Orts.Common.Calc;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -2132,7 +2133,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public void PrepareFrame(RenderFrame frame)
         {
-            var matrix = Matrix.Identity;
+            var matrix = Matrix4x4.Identity;
             for (var i = 0; i < Graphs.Count; i++)
             {
                 Graphs[i].Mesh.GraphPos.X = Viewer.DisplaySize.X - Margin.X - Graphs[i].Mesh.GraphPos.Z;
@@ -2279,7 +2280,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             graphicsDevice.DepthStencilState = DepthStencilState.None;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {

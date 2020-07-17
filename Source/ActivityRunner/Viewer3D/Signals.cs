@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -155,8 +156,8 @@ namespace Orts.ActivityRunner.Viewer3D
             // Locate relative to the camera
             var dTileX = WorldPosition.TileX - viewer.Camera.TileX;
             var dTileZ = WorldPosition.TileZ - viewer.Camera.TileZ;
-            var xnaTileTranslation = Matrix.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
-            MatrixExtension.Multiply(in WorldPosition.XNAMatrix, in xnaTileTranslation, out Matrix xnaTileTranslationResult);
+            var xnaTileTranslation = Matrix4x4.CreateTranslation(dTileX * 2048, 0, -dTileZ * 2048);  // object is offset from camera this many tiles
+            Matrix4x4 xnaTileTranslationResult = Matrix4x4.Multiply(WorldPosition.XNAMatrix, xnaTileTranslation);
 
             foreach (var head in Heads)
                 head.PrepareFrame(frame, elapsedTime, xnaTileTranslationResult);
@@ -309,7 +310,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, Matrix xnaTileTranslation)
+            public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, Matrix4x4 xnaTileTranslation)
             {
                 var initialise = DisplayState == -1;
                 if (DisplayState != SignalHead.draw_state)
@@ -363,13 +364,13 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (!SignalTypeData.DayLight && isDay && !isPoorVisibility)
                         continue;
 
-                    var translationMatrix = Matrix.CreateTranslation(SignalTypeData.Lights[i].Position);
-                    Matrix temp = default;
+                    var translationMatrix = Matrix4x4.CreateTranslation(SignalTypeData.Lights[i].Position);
+                    Matrix4x4 temp = default;
                     foreach (int MatrixIndex in MatrixIndices)
                     {
-                        MatrixExtension.Multiply(in translationMatrix, in SignalShape.XNAMatrices[MatrixIndex], out temp);
+                        temp = Matrix4x4.Multiply(translationMatrix, SignalShape.XNAMatrices[MatrixIndex]);
                     }
-                    MatrixExtension.Multiply(in temp, in xnaTileTranslation, out Matrix xnaMatrix);
+                    Matrix4x4 xnaMatrix = Matrix4x4.Multiply(temp, xnaTileTranslation);
 
                     frame.AddPrimitive(SignalTypeData.Material, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix);
                     if (Viewer.Settings.SignalLightGlow)
@@ -602,7 +603,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -667,7 +668,7 @@ namespace Orts.ActivityRunner.Viewer3D
             nightEffect = 1 - MathHelper.Clamp((sunDirection.Y - finishNightTrans) / (startNightTrans - finishNightTrans), 0, 1);
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {

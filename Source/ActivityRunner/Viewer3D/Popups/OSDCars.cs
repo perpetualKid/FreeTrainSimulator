@@ -23,12 +23,13 @@ using Orts.Simulation.RollingStocks;
 using Orts.Common;
 using System.Collections.Generic;
 using Orts.Common.Position;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
     public class OSDCars : LayeredWindow
     {
-        Matrix Identity = Matrix.Identity;
+        Matrix4x4 Identity = Matrix4x4.Identity;
 
         internal const float MaximumDistance = OSDLocations.MaximumDistanceSiding;
         internal const float MinimumDistance = OSDLocations.MinimumDistance;

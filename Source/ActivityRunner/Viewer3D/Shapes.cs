@@ -29,6 +29,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -102,7 +103,7 @@ namespace Orts.ActivityRunner.Viewer3D
     struct ShapeInstanceData
     {
 #pragma warning disable 0649
-        public Matrix World;
+        public Matrix4x4 World;
 #pragma warning restore 0649
 
         public static readonly VertexElement[] VertexElements = {
@@ -135,7 +136,7 @@ namespace Orts.ActivityRunner.Viewer3D
         protected int InstanceCount;
         protected VertexBufferBinding[] VertexBufferBindings;
 
-        internal ShapePrimitiveInstances(GraphicsDevice graphicsDevice, ShapePrimitive shapePrimitive, Matrix[] positions, int subObjectIndex)
+        internal ShapePrimitiveInstances(GraphicsDevice graphicsDevice, ShapePrimitive shapePrimitive, Matrix4x4[] positions, int subObjectIndex)
         {
             Material = shapePrimitive.Material;
             Hierarchy = shapePrimitive.Hierarchy;

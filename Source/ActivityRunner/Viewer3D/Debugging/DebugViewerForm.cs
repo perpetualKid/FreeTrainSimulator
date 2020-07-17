@@ -27,6 +27,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Numerics;
 using System.Windows.Forms;
 
 using GetText.WindowsForms;
@@ -2178,7 +2179,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     throw new Exception();
                 var v1 = new Vector2(Location.X, Location.Y); 
                 var v3 = v1 - v2; 
-                v3.Normalize(); 
+                Vector2.Normalize(v3); 
                 v2 = v1 - Vector2.Multiply(v3, signal.direction == 0 ? 12f : -12f);
                 Dir.X = v2.X; 
                 Dir.Y = v2.Y;
@@ -2314,7 +2315,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				   //curve = ts.SectionCurve;
 				   Vector3 v = new Vector3(((B.Location.TileX-A.Location.TileX)*2048 + B.Location.Location.X - A.Location.Location.X), 0, ((B.Location.TileZ - A.Location.TileZ)*2048 + B.Location.Location.Z - A.Location.Location.Z));
 				   isCurved = true;
-				   Vector3 v2 = Vector3.Cross(Vector3.Up, v); v2.Normalize();
+				   Vector3 v2 = Vector3.Cross(Vector3.UnitY, v); Vector3.Normalize(v2);
                    v = v / 2; v.X += A.Location.TileX * 2048 + A.Location.Location.X; 
                     v.Z += A.Location.TileZ * 2048 + A.Location.Location.Z;
 				   if (ts.Angle > 0)

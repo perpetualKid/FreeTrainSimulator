@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -91,24 +92,24 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             float maxY = shapes.Max(s => s.WorldPosition.Location.Y);
             float minZ = shapes.Min(s => s.WorldPosition.Location.Z);
             float maxZ = shapes.Max(s => s.WorldPosition.Location.Z);
-            return new WorldPosition(tileX, tileZ, Matrix.Identity).SetTranslation((minX + maxX) / 2, (minY + maxY) / 2, - (minZ + maxZ) / 2);
+            return new WorldPosition(tileX, tileZ, Matrix4x4.Identity).SetTranslation((minX + maxX) / 2, (minY + maxY) / 2, - (minZ + maxZ) / 2);
         }
 
-        private Matrix[] GetMatricies(List<BaseShape> shapes, ShapePrimitive shapePrimitive)
+        private Matrix4x4[] GetMatricies(List<BaseShape> shapes, ShapePrimitive shapePrimitive)
         {
-            Matrix matrix = Matrix.Identity;
+            Matrix4x4 matrix = Matrix4x4.Identity;
             int hi = shapePrimitive.HierarchyIndex;
             while (hi >= 0 && hi < shapePrimitive.Hierarchy.Length && shapePrimitive.Hierarchy[hi] != -1)
             {
-                matrix = MatrixExtension.Multiply(matrix, SharedShape.Matrices[hi]);
+                matrix = Matrix4x4.Multiply(matrix, SharedShape.Matrices[hi]);
                 hi = shapePrimitive.Hierarchy[hi];
             }
 
-            var matricies = new Matrix[shapes.Count];
+            var matricies = new Matrix4x4[shapes.Count];
             for (var i = 0; i < shapes.Count; i++)
-                matricies[i] = MatrixExtension.Multiply(
-                    MatrixExtension.Multiply(matrix, shapes[i].WorldPosition.XNAMatrix), 
-                    Matrix.CreateTranslation(-WorldPosition.Location.X, -WorldPosition.Location.Y, WorldPosition.Location.Z));
+                matricies[i] = Matrix4x4.Multiply(
+                    Matrix4x4.Multiply(matrix, shapes[i].WorldPosition.XNAMatrix),
+                    Matrix4x4.CreateTranslation(-WorldPosition.Location.X, -WorldPosition.Location.Y, WorldPosition.Location.Z));
 
             return matricies;
         }
@@ -118,7 +119,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             int dTileX = worldPosition.TileX - viewer.Camera.TileX;
             int dTileZ = worldPosition.TileZ - viewer.Camera.TileZ;
             Vector3 mstsLocation = worldPosition.Location + new Vector3(dTileX * 2048, 0, dTileZ * 2048);
-            Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z, out Matrix xnaMatrix);
+            Matrix4x4 xnaMatrix = Matrix4x4.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
 
             foreach (var primitive in primitives)
                 if (primitive.SubObjectIndex != 1 || !nightObjectEnabled || viewer.MaterialManager.sunDirection.Y < 0)

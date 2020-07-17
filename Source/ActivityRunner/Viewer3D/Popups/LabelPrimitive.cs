@@ -17,6 +17,8 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using System.Numerics;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -58,12 +60,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             lineLocation3D.Y += offsetY;
             lineLocation3D.Z += (camera.TileZ - positionSource.WorldPosition.TileZ) * 2048;
 
-            var lineLocation2DStart = graphicsDevice.Viewport.Project(lineLocation3D, camera.XnaProjection, camera.XnaView, Matrix.Identity);
+            var lineLocation2DStart = graphicsDevice.Viewport.Project(lineLocation3D, camera.XnaProjection, camera.XnaView, Matrix4x4.Identity);
             if (lineLocation2DStart.Z > 1 || lineLocation2DStart.Z < 0)
                 return; // Out of range or behind the camera
 
             lineLocation3D.Y += 10;
-            var lineLocation2DEndY = graphicsDevice.Viewport.Project(lineLocation3D, camera.XnaProjection, camera.XnaView, Matrix.Identity).Y;
+            var lineLocation2DEndY = graphicsDevice.Viewport.Project(lineLocation3D, camera.XnaProjection, camera.XnaView, Matrix4x4.Identity).Y;
 
             var labelLocation2D = material.GetTextLocation((int)lineLocation2DStart.X, (int)lineLocation2DEndY - material.Font.Height, text);
             lineLocation2DEndY = labelLocation2D.Y + material.Font.Height;

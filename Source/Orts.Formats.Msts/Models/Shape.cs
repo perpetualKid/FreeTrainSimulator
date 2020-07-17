@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -284,7 +285,7 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
-    public class Matrices : List<Matrix>
+    public class Matrices : List<Matrix4x4>
     {
         public List<string> MatrixNames { get; } = new List<string>();
 
@@ -296,12 +297,12 @@ namespace Orts.Formats.Msts.Models
             block.VerifyEndOfBlock();
         }
 
-        private Matrix ReadMatrix(SBR block)
+        private Matrix4x4 ReadMatrix(SBR block)
         {
             block.VerifyID(TokenID.Matrix);
             MatrixNames.Add(string.IsNullOrEmpty(block.Label) ? string.Empty : block.Label.ToUpperInvariant());
 
-            Matrix result = new Matrix(
+            Matrix4x4 result = new Matrix4x4(
                 block.ReadFloat(), block.ReadFloat(), - block.ReadFloat(), 0.0f,
                 block.ReadFloat(), block.ReadFloat(), - block.ReadFloat(), 0.0f,
                 - block.ReadFloat(), - block.ReadFloat(), block.ReadFloat(), 0.0f,

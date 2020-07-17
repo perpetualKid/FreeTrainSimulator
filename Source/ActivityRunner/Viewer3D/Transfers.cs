@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -47,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         static WorldPosition RemoveRotation(in WorldPosition position)
         {           
-            return new WorldPosition(position.TileX, position.TileZ, Matrix.CreateTranslation(position.XNAMatrix.Translation));
+            return new WorldPosition(position.TileX, position.TileZ, Matrix4x4.CreateTranslation(position.XNAMatrix.Translation));
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
@@ -55,7 +56,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var dTileX = WorldPosition.TileX - viewer.Camera.TileX;
             var dTileZ = WorldPosition.TileZ - viewer.Camera.TileZ;
             var mstsLocation = WorldPosition.Location + new Vector3(dTileX * 2048, 0, dTileZ * 2048);
-            var xnaMatrix = Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
+            var xnaMatrix = Matrix4x4.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
             frame.AddAutoPrimitive(mstsLocation, Radius, float.MaxValue, Material, Primitive, RenderPrimitiveGroup.World, ref xnaMatrix, Flags);
         }
 
@@ -83,7 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var maxZ = (int)Math.Ceiling((center.Z + radius) / 8);
             var xnaRotation = position.XNAMatrix;
             xnaRotation.Translation = Vector3.Zero;
-            Matrix.Invert(ref xnaRotation, out xnaRotation);
+            Matrix4x4.Invert(xnaRotation, out xnaRotation);
 
             var verticies = new VertexPositionTexture[(maxX - minX + 1) * (maxZ - minZ + 1)];
             for (var x = 0; x <= maxX - minX; x++)
@@ -186,7 +187,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             shader.SetViewMatrix(ref view);
             foreach (var pass in shader.CurrentTechnique.Passes)

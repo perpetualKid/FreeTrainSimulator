@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Numerics;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -828,7 +829,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 Vector3 nearsource = new Vector3((float)UserInput.MouseX, (float)UserInput.MouseY, 0f);
                 Vector3 farsource = new Vector3((float)UserInput.MouseX, (float)UserInput.MouseY, 1f);
-                Matrix world = Matrix.CreateTranslation(0, 0, 0);
+                Matrix4x4 world = Matrix4x4.CreateTranslation(0, 0, 0);
                 NearPoint = DefaultViewport.Unproject(nearsource, Camera.XnaProjection, Camera.XnaView, world);
                 FarPoint = DefaultViewport.Unproject(farsource, Camera.XnaProjection, Camera.XnaView, world);
             }
@@ -1365,15 +1366,15 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             foreach (var iMatrix in animatedPart.Value.MatrixIndexes)
                             {
-                                Matrix startingPoint = Matrix.Identity;
+                                Matrix4x4 startingPoint = Matrix4x4.Identity;
                                 var hi = iMatrix;
                                 while (hi >= 0 && hi < trainCarShape.Hierarchy.Length && trainCarShape.Hierarchy[hi] != -1)
                                 {
-                                    MatrixExtension.Multiply(in startingPoint, in trainCarShape.XNAMatrices[hi], out Matrix result);
+                                    Matrix4x4 result = Matrix4x4.Multiply(startingPoint, trainCarShape.XNAMatrices[hi]);
                                     hi = trainCarShape.Hierarchy[hi];
                                     startingPoint = result;
                                 }
-                                MatrixExtension.Multiply(in startingPoint, in trainCarShape.WorldPosition.XNAMatrix, out Matrix matrix);
+                                Matrix4x4 matrix = Matrix4x4.Multiply(startingPoint, trainCarShape.WorldPosition.XNAMatrix);
                                 var matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ, 
                                 matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
                                 Vector3 xnaCenter = Camera.XnaLocation(matrixWorldLocation);
@@ -1425,15 +1426,15 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             foreach (var iMatrix in animatedPart.Value.MatrixIndexes)
                             {
-                                Matrix startingPoint = Matrix.Identity;
+                                Matrix4x4 startingPoint = Matrix4x4.Identity;
                                 var hi = iMatrix;
                                 while (hi >= 0 && hi < trainCarShape.Hierarchy.Length && trainCarShape.Hierarchy[hi] != -1)
                                 {
-                                    MatrixExtension.Multiply(in startingPoint, in trainCarShape.XNAMatrices[hi], out Matrix result);
+                                    Matrix4x4 result = Matrix4x4.Multiply(startingPoint, trainCarShape.XNAMatrices[hi]);
                                     hi = trainCarShape.Hierarchy[hi];
                                     startingPoint = result;
                                 }
-                                MatrixExtension.Multiply(in startingPoint, in trainCarShape.WorldPosition.XNAMatrix, out Matrix matrix);
+                                Matrix4x4 matrix = Matrix4x4.Multiply(startingPoint, trainCarShape.WorldPosition.XNAMatrix);
                                 var matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ, 
                                     matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
                                 Vector3 xnaCenter = Camera.XnaLocation(matrixWorldLocation);
@@ -1633,7 +1634,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // Create a ray from the near clip plane to the far clip plane.
             Vector3 direction = FarPoint - NearPoint;
-            direction.Normalize();
+            Vector3.Normalize(direction);
             Ray pickRay = new Ray(NearPoint, direction);
 
             // check each car

@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Font = System.Drawing.Font;
 using FontStyle = System.Drawing.FontStyle;
@@ -239,7 +240,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             for (var i = 0; i < text.Length; i++)
                 chIndexes[i] = characters.IndexOfCharacter(text[i]);
 
-            var rotationScale = Matrix.CreateRotationZ(rotation) * Matrix.CreateTranslation(position.X - OutlineSize, position.Y - OutlineSize, 0);
+            var rotationScale = Matrix4x4.CreateRotationZ(rotation) * Matrix4x4.CreateTranslation(position.X - OutlineSize, position.Y - OutlineSize, 0);
 
             var current = Vector2.Zero;
             if (align != LabelAlignment.Left)

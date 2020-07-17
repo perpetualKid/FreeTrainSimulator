@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -510,7 +511,7 @@ namespace Orts.Simulation
             // To simplify the math, center around the start of the track section, rotate such that the track section starts out pointing north (+z) and flip so the track curves to the right.
             l.X -= sx;
             l.Z -= sz;
-            l = Vector3.Transform(l, Matrix.CreateRotationY(-trackVectorSection.Direction.Y));
+            l = Vector3.Transform(l, Matrix4x4.CreateRotationY(-trackVectorSection.Direction.Y));
             if (trackSection.Angle < 0)
                 l.X *= -1;
 
@@ -831,8 +832,8 @@ namespace Orts.Simulation
                 // "Handedness" Convention: A right-hand curve (TS.SectionCurve.Angle > 0) curves 
                 // to the right when moving forward.
                 var sign = -Math.Sign(ts.Angle);
-                var vectorCurveStartToCenter = Vector3.Left * ts.Radius * sign;
-                var curveRotation = Matrix.CreateRotationY(to * sign);
+                var vectorCurveStartToCenter = Vector3.UnitX * -1 * ts.Radius * sign;
+                var curveRotation = Matrix4x4.CreateRotationY(to * sign);
                 InterpolateAlongCurveLine(Vector3.Zero, vectorCurveStartToCenter, curveRotation, tvs.Direction, out _, out Vector3 displacement);
                 displacement.Z *= -1;
                 location = new WorldLocation(location.TileX, location.TileZ, location.Location + displacement);
@@ -1126,14 +1127,14 @@ namespace Orts.Simulation
         /// <param name="pitchYawRoll">>Vector3 containing Yaw, Pitch, and Roll components.</param>
         /// <param name="position">Position vector for desired point on curve (P), returned by reference.</param>
         /// <param name="displacement">Displacement vector from PC to P in world coordinates, returned by reference.</param>
-        public static void InterpolateAlongCurveLine(in Vector3 vPC, in Vector3 vPC_O, Matrix rotation, in Vector3 pitchYawRoll, out Vector3 position, out Vector3 displacement)
+        public static void InterpolateAlongCurveLine(in Vector3 vPC, in Vector3 vPC_O, Matrix4x4 rotation, in Vector3 pitchYawRoll, out Vector3 position, out Vector3 displacement)
         {
-            Matrix matrix = MatrixExtension.CreateFromYawPitchRoll(pitchYawRoll);
+            Matrix4x4 matrix = Common.Xna.MatrixExtension.CreateFromYawPitchRoll(pitchYawRoll);
             // Shared method returns displacement from present world position and, by reference,
             // local position in x-z plane of end of this section
             position = Vector3.Transform(-vPC_O, rotation); // Rotate O_PC to O_P
             position = vPC + vPC_O + position; // Position of P relative to PC
-            Vector3.Transform(ref position, ref matrix, out displacement); // Transform to world coordinates and return as displacement.
+            displacement = Vector3.Transform(position, matrix); // Transform to world coordinates and return as displacement.
         }
 
         /// <summary>
@@ -1147,10 +1148,10 @@ namespace Orts.Simulation
         /// <returns>Displacement vector from P0 to P in world coordinates.</returns>
         public static void InterpolateAlongStraightLine(in Vector3 vP0, Vector3 vP0_P, float offset, in Vector3 pitchYawRoll, out Vector3 position, out Vector3 displacement)
         {
-            Quaternion.CreateFromYawPitchRoll(pitchYawRoll.Y, pitchYawRoll.X, pitchYawRoll.Z, out Quaternion quaternion);
-            Matrix.CreateFromQuaternion(ref quaternion, out Matrix matrix);
+            Quaternion quaternion = Quaternion.CreateFromYawPitchRoll(pitchYawRoll.Y, pitchYawRoll.X, pitchYawRoll.Z);
+            Matrix4x4 matrix = Matrix4x4.CreateFromQuaternion(quaternion);
             position = vP0 + offset * vP0_P; // Position of desired point in local coordinates.
-            Vector3.Transform(ref position, ref matrix, out displacement);
+            displacement = Vector3.Transform(position, matrix);
         }
 
         /// <summary>
@@ -1163,7 +1164,7 @@ namespace Orts.Simulation
         /// <param name="mWorld">Transformation from local to world coordinates.</param>
         /// <param name="vP">Position vector for desired point on curve (P), returned by reference.</param>
         /// <returns>Displacement vector from PC to P in world coordinates.</returns>
-        public static Vector3 MSTSInterpolateAlongCurve(Vector3 vPC, Vector3 vPC_O, Matrix mRotY, Matrix mWorld, out Vector3 vP)
+        public static Vector3 MSTSInterpolateAlongCurve(Vector3 vPC, Vector3 vPC_O, Matrix4x4 mRotY, Matrix4x4 mWorld, out Vector3 vP)
         {
             // Shared method returns displacement from present world position and, by reference,
             // local position in x-z plane of end of this section
@@ -1181,7 +1182,7 @@ namespace Orts.Simulation
         /// <param name="mWorld">Transformation from local to world coordinates.</param>
         /// <param name="vP">Position vector for desired point(P), returned by reference.</param>
         /// <returns>Displacement vector from P0 to P in world coordinates.</returns>
-        public static Vector3 MSTSInterpolateAlongStraight(Vector3 vP0, Vector3 vP0_P, float offset, Matrix mWorld, out Vector3 vP)
+        public static Vector3 MSTSInterpolateAlongStraight(Vector3 vP0, Vector3 vP0_P, float offset, Matrix4x4 mWorld, out Vector3 vP)
         {
             vP = vP0 + offset * vP0_P; // Position of desired point in local coordinates.
             return Vector3.Transform(vP, mWorld);

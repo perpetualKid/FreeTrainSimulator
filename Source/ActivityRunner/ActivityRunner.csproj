@@ -164,10 +164,24 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1375-develop" />
     <PackageReference Include="GetText.NET" Version="0.9.0" />
     <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.0" />
 	<PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
+  </ItemGroup>
+    <ItemGroup>
+    <PackageReference Version="4.0.1" Include="SharpDX" />
+    <PackageReference Version="4.0.1" Include="SharpDX.Direct2D1" />
+    <PackageReference Version="4.0.1" Include="SharpDX.Direct3D11" />
+    <PackageReference Version="4.0.1" Include="SharpDX.DXGI" />
+    <PackageReference Version="4.0.1" Include="SharpDX.MediaFoundation" />
+    <PackageReference Version="4.0.1" Include="SharpDX.XAudio2" />
+    <PackageReference Version="4.0.1" Include="SharpDX.XInput" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MonoGame.Framework">
+      <HintPath>..\..\..\MonoGame\Artifacts\MonoGame.Framework\WindowsDX\Release\$(TargetFramework)\MonoGame.Framework.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
@@ -198,6 +212,6 @@
     </ItemGroup>
   </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="dotnet tool install -g dotnet-mgfxc --version 3.8.0.1375-develop&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO ( mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11)" />
+    <Exec Command="FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO ( &quot;C:\Storage\Dev\MonoGame\Artifacts\MonoGame.Content.Builder\Release\mgfxc.exe&quot; $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11)" />
   </Target>
 </Project>

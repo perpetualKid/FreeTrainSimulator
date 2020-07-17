@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
@@ -21,7 +22,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         // This data is common to all instances of the shape
         public List<string> MatrixNames = new List<string>();
-        public Matrix[] Matrices = new Matrix[0];  // the original natural pose for this shape - shared by all instances
+        public Matrix4x4[] Matrices = new Matrix4x4[0];  // the original natural pose for this shape - shared by all instances
         public Animations Animations;
         public LodControl[] LodControls;
         public bool HasNightSubObj;
@@ -528,12 +529,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             PrepareFrame(frame, location, Matrices, null, flags);
         }
 
-        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, ShapeFlags flags)
+        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix4x4[] animatedXNAMatrices, ShapeFlags flags)
         {
             PrepareFrame(frame, location, animatedXNAMatrices, null, flags);
         }
 
-        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, bool[] subObjVisible, ShapeFlags flags)
+        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix4x4[] animatedXNAMatrices, bool[] subObjVisible, ShapeFlags flags)
         {
             var lodBias = ((float)viewer.Settings.LODBias / 100 + 1);
 
@@ -598,14 +599,14 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                     foreach (var shapePrimitive in subObject.ShapePrimitives)
                     {
-                        Matrix startingPoint = Matrix.Identity;
+                        Matrix4x4 startingPoint = Matrix4x4.Identity;
                         var hi = shapePrimitive.HierarchyIndex;
                         while (hi >= 0 && hi < shapePrimitive.Hierarchy.Length)
                         {
-                            startingPoint = MatrixExtension.Multiply(in startingPoint, in animatedXNAMatrices[hi]);
+                            startingPoint = Matrix4x4.Multiply(startingPoint, animatedXNAMatrices[hi]);
                             hi = shapePrimitive.Hierarchy[hi];
                         }
-                        MatrixExtension.Multiply(in startingPoint, in xnaDTileTranslation, out Matrix xnaMatrix);
+                        Matrix4x4 xnaMatrix = Matrix4x4.Multiply(startingPoint, xnaDTileTranslation);
 
                         // TODO make shadows depend on shape overrides
 
@@ -616,10 +617,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
         }
 
-        public Matrix GetMatrixProduct(int iNode)
+        public Matrix4x4 GetMatrixProduct(int iNode)
         {
             int[] h = LodControls[0].DistanceLevels[0].SubObjects[0].ShapePrimitives[0].Hierarchy;
-            Matrix matrix = Matrix.Identity;
+            Matrix4x4 matrix = Matrix4x4.Identity;
             while (iNode != -1)
             {
                 matrix *= Matrices[iNode];

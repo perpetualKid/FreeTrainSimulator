@@ -34,6 +34,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -989,7 +990,7 @@ namespace Orts.Simulation.AIs
                 thisTrain.CalculatePositionOfCars();
                 for (int i = 0; i < thisTrain.Cars.Count; i++)
                 {
-                    Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
+                    Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
                     position.Y -= 1000;
                     thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
                 }
@@ -1177,7 +1178,7 @@ namespace Orts.Simulation.AIs
                     thisTrain.CalculatePositionOfCars();
                     for (int i = 0; i < thisTrain.Cars.Count; i++)
                     {
-                        Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
+                        Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
                         position.Y -= 1000;
                         thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
                     }
@@ -1203,7 +1204,7 @@ namespace Orts.Simulation.AIs
                     thisTrain.CalculatePositionOfCars();
                     for (int i = 0; i < thisTrain.Cars.Count; i++)
                     {
-                        Microsoft.Xna.Framework.Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
+                        Vector3 position = thisTrain.Cars[i].WorldPosition.XNAMatrix.Translation;
                         position.Y -= 1000;
                         thisTrain.Cars[i].WorldPosition = thisTrain.Cars[i].WorldPosition.SetTranslation(position);
                     }

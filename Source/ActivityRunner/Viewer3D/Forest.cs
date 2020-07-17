@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -63,7 +64,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var dTileX = Position.TileX - Viewer.Camera.TileX;
                 var dTileZ = Position.TileZ - Viewer.Camera.TileZ;
                 var mstsLocation = Position.Location + new Vector3(dTileX * 2048, 0, dTileZ * 2048);
-                var xnaMatrix = Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
+                var xnaMatrix = Matrix4x4.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
                 frame.AddAutoPrimitive(mstsLocation, Primitive.ObjectRadius, float.MaxValue, Material, Primitive, RenderPrimitiveGroup.World, ref xnaMatrix, Viewer.Settings.ShadowAllShapes ? ShapeFlags.ShadowCaster : ShapeFlags.None);
             }
         }
@@ -112,7 +113,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (MaximumCenterlineOffset > 0)
             {
-                Matrix InvForestXNAMatrix = Matrix.Invert(position.XNAMatrix);
+                Matrix4x4.Invert(position.XNAMatrix, out Matrix4x4 InvForestXNAMatrix);
                 var addList = FindTracksAndRoadsClose(position.TileX, position.TileZ);
                 FindTracksAndRoadsMoreClose(ref sections, addList, forest, position, InvForestXNAMatrix);
 
@@ -294,7 +295,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // don't consider track sections outside the forest boundaries
-        public void FindTracksAndRoadsMoreClose(ref List<TrackVectorSection> sections, List<TrackVectorSection> allSections, ForestObject forest, in WorldPosition position, Matrix invForestXNAMatrix)
+        public void FindTracksAndRoadsMoreClose(ref List<TrackVectorSection> sections, List<TrackVectorSection> allSections, ForestObject forest, in WorldPosition position, Matrix4x4 invForestXNAMatrix)
         {
             if (allSections != null && allSections.Count > 0)
             {
@@ -440,7 +441,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             shader.SetViewMatrix(ref view);
             foreach (var pass in shader.CurrentTechnique.Passes)

@@ -24,6 +24,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D;
 using Orts.Formats.Msts.Files;
+using System.Numerics;
 
 namespace ORTS.TrackViewer.Drawing
 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -353,7 +354,7 @@ namespace Orts.Formats.Msts.Models
         public void Flip()
         {
             Angle += (float)Math.PI;
-            position = new WorldPosition(position.TileX, position.TileZ, new Matrix(
+            position = new WorldPosition(position.TileX, position.TileZ, new Matrix4x4(
                 -position.XNAMatrix.M11, position.XNAMatrix.M12, -position.XNAMatrix.M13, position.XNAMatrix.M14,
                 position.XNAMatrix.M21, position.XNAMatrix.M22, position.XNAMatrix.M23, position.XNAMatrix.M24,
                 -position.XNAMatrix.M31, position.XNAMatrix.M32, -position.XNAMatrix.M33, position.XNAMatrix.M34,

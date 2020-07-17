@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -131,7 +132,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Emitter.Update(gameTime, elapsedTime);
 
             // Note: This is quite a hack. We ideally should be able to pass this through RenderItem somehow.
-            var XNAWorldLocation = Matrix.Identity;
+            var XNAWorldLocation = Matrix4x4.Identity;
             XNAWorldLocation.M11 = gameTime;
             XNAWorldLocation.M21 = Viewer.Camera.TileX;
             XNAWorldLocation.M22 = Viewer.Camera.TileZ;
@@ -229,7 +230,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             EmitterData = data;
             XNAInitialVelocity = data.XNADirection;
-            XNATargetVelocity = Vector3.Up;
+            XNATargetVelocity = Vector3.UnitY;
             ParticlesPerSecond = 0;
             ParticleDuration = 3;
             ParticleColor = Color.White;
@@ -487,7 +488,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {

@@ -19,6 +19,7 @@ using Microsoft.Xna.Framework;
 using Orts.Simulation.RollingStocks;
 using Orts.Common;
 using System.Diagnostics;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock
 {
@@ -75,7 +76,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     var loco = Car as MSTSLocomotive;
                     if (loco.UsingRearCab) realSpeedMpS = -realSpeedMpS;
                 }
-                Vector3 directionVector = Vector3.Multiply(Car.WorldPosition.XNAMatrix.Forward, realSpeedMpS);
+                Vector3 directionVector = Vector3.Multiply(new Vector3(-Car.WorldPosition.XNAMatrix.M31, -Car.WorldPosition.XNAMatrix.M32, -Car.WorldPosition.XNAMatrix.M33), realSpeedMpS);
                 Velocity = new float[] { directionVector.X, directionVector.Y, -directionVector.Z };
             }
             else
@@ -83,7 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             float[] soundLocation = new float[3];
             // TODO This entire block of code (down to TODO END) should be inside the SoundProcess, not here.
-            Car.WorldPosition.WorldLocation.NormalizeTo(Camera.SoundBaseTile.X, Camera.SoundBaseTile.Y).Location.Deconstruct(out soundLocation[0], out soundLocation[1], out soundLocation[2]);
+            Car.WorldPosition.WorldLocation.NormalizeTo(Camera.SoundBaseTile.X, Camera.SoundBaseTile.Y).Location.CopyTo(soundLocation, 0);
 
             // make a copy of SoundSourceIDs, but check that it didn't change during the copy; if it changed, try again up to 5 times.
             var sSIDsFinalCount = -1;

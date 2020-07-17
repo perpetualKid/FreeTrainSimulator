@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -645,7 +646,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 var wheelCircumferenceM = MathHelper.TwoPi * AnimationWheelRadiusM;
                 var rotationalDistanceR = MathHelper.TwoPi * distanceTravelledM / wheelCircumferenceM;  // in radians
                 WheelRotationR = MathHelper.WrapAngle(WheelRotationR - rotationalDistanceR);
-                var wheelRotationMatrix = Matrix.CreateRotationX(WheelRotationR);
+                var wheelRotationMatrix = Matrix4x4.CreateRotationX(WheelRotationR);
                 foreach (var iMatrix in WheelPartIndexes)
                  {
                     TrainCarShape.XNAMatrices[iMatrix] = wheelRotationMatrix * TrainCarShape.SharedShape.Matrices[iMatrix];
@@ -666,7 +667,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 if (p.iMatrix <= 0)
                     continue;
-                Matrix m = Matrix.Identity;
+                Matrix4x4 m = Matrix4x4.Identity;
                 m.Translation = TrainCarShape.SharedShape.Matrices[p.iMatrix].Translation;
                 m.M11 = p.Cos;
                 m.M13 = p.Sin;

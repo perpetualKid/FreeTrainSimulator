@@ -15,13 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
+using System.Collections.Generic;
+using System.IO;
+using System.Numerics;
 
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
-
-using System.Collections.Generic;
-using System.IO;
 
 namespace Orts.Formats.Msts.Files
 {

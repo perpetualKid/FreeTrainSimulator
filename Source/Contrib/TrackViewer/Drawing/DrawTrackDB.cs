@@ -19,13 +19,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
+
 using Microsoft.Xna.Framework;
-using Orts.Common;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Parsers;
+
 using Orts.Common.Position;
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
+using Orts.Formats.Msts.Parsers;
 
 namespace ORTS.TrackViewer.Drawing
 {

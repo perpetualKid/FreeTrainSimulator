@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 namespace Orts.Simulation
 {
@@ -98,8 +99,8 @@ namespace Orts.Simulation
 
         // additions to manage rotation or transfer of wagons
         public List<TrainOnMovingTable> TrainsOnMovingTable = new List<TrainOnMovingTable>(); // List of trains on turntable or transfertable
-        public Matrix AnimationXNAMatrix = Matrix.Identity;
-        public List<Matrix> RelativeCarPositions;
+        public Matrix4x4 AnimationXNAMatrix = Matrix4x4.Identity;
+        public List<Matrix4x4> RelativeCarPositions;
         public Vector3 RelativeFrontTravellerXNALocation;
         public Vector3 RelativeRearTravellerXNALocation;
         public Vector3 FinalFrontTravellerXNALocation;
@@ -311,7 +312,7 @@ namespace Orts.Simulation
 
         }
 
-        public void ReInitTrainPositions(Matrix animationXNAMatrix)
+        public void ReInitTrainPositions(Matrix4x4 animationXNAMatrix)
         {
             AnimationXNAMatrix = animationXNAMatrix;
             if (this == Simulator.ActiveMovingTable && TrainsOnMovingTable.Count == 1)
@@ -319,13 +320,13 @@ namespace Orts.Simulation
                 var train = TrainsOnMovingTable[0].Train;
                 if (TrainsOnMovingTable[0].FrontOnBoard && TrainsOnMovingTable[0].BackOnBoard && Math.Abs(train.SpeedMpS) < 0.1)
                 {
-                    var invAnimationXNAMatrix = Matrix.Invert(AnimationXNAMatrix);
-                    RelativeCarPositions = new List<Matrix>();
+                    Matrix4x4.Invert(AnimationXNAMatrix, out var invAnimationXNAMatrix);
+                    RelativeCarPositions = new List<Matrix4x4>();
                     foreach (TrainCar trainCar in train.Cars)
                     {
-                        var relativeCarPosition = Matrix.Identity;
+                        var relativeCarPosition = Matrix4x4.Identity;
                         trainCar.WorldPosition = trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ);
-                        relativeCarPosition = Matrix.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
+                        relativeCarPosition = Matrix4x4.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
                         RelativeCarPositions.Add(relativeCarPosition);
                     }
 
@@ -333,7 +334,7 @@ namespace Orts.Simulation
             }
         }
 
-        public void RecalculateTravellerXNALocations(Matrix animationXNAMatrix)
+        public void RecalculateTravellerXNALocations(Matrix4x4 animationXNAMatrix)
         {
             FinalFrontTravellerXNALocation = Vector3.Transform(RelativeFrontTravellerXNALocation, animationXNAMatrix);
             FinalRearTravellerXNALocation = Vector3.Transform(RelativeRearTravellerXNALocation, animationXNAMatrix);
@@ -366,7 +367,7 @@ namespace Orts.Simulation
         {
             signalRef = Simulator.Signals;
             string animation;
-            Matrix position = Matrix.Identity;
+            Matrix4x4 position = Matrix4x4.Identity;
             position.M44 = 100000000; //WorlPosition not yet defined, will be loaded when loading related tile;
             stf.MustMatch("(");
               stf.ParseBlock(new[] {
@@ -630,13 +631,13 @@ namespace Orts.Simulation
         {
             SaveForwardConnected = ForwardConnected ^ !MyTrackNodesOrientation[ConnectedTrackEnd];
             SaveRearConnected = RearConnected;
-            var invAnimationXNAMatrix = Matrix.Invert(AnimationXNAMatrix);
-            RelativeCarPositions = new List<Matrix>();
+            Matrix4x4.Invert(AnimationXNAMatrix, out var invAnimationXNAMatrix);
+            RelativeCarPositions = new List<Matrix4x4>();
             foreach (TrainCar trainCar in train.Cars)
             {
-                var relativeCarPosition = Matrix.Identity;
+                var relativeCarPosition = Matrix4x4.Identity;
                 trainCar.WorldPosition = trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ);
-                relativeCarPosition = Matrix.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
+                relativeCarPosition = Matrix4x4.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
                 RelativeCarPositions.Add(relativeCarPosition);
             }
             var XNALocation = train.FrontTDBTraveller.Location;
@@ -658,7 +659,7 @@ namespace Orts.Simulation
 
         }
 
-        public void RotateTrain(Matrix animationXNAMatrix)
+        public void RotateTrain(Matrix4x4 animationXNAMatrix)
         {
             AnimationXNAMatrix = animationXNAMatrix;
             if ((Clockwise || Counterclockwise || GoToTarget || GoToAutoTarget) && TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard &&
@@ -669,7 +670,7 @@ namespace Orts.Simulation
                 foreach (TrainCar traincar in TrainsOnMovingTable[0].Train.Cars)
                 {
                     traincar.WorldPosition = new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ,
-                        Matrix.Multiply(RelativeCarPositions[iRelativeCarPositions], AnimationXNAMatrix));
+                        Matrix4x4.Multiply(RelativeCarPositions[iRelativeCarPositions], AnimationXNAMatrix));
                     iRelativeCarPositions++;
                 }
             }
@@ -819,7 +820,7 @@ namespace Orts.Simulation
         /// PerformUpdateActions: actions to be performed at every animation step
         /// </summary>
         /// 
-        public void PerformUpdateActions ( Matrix absAnimationMatrix)
+        public void PerformUpdateActions ( Matrix4x4 absAnimationMatrix)
         {
             RotateTrain(absAnimationMatrix);
             if ((GoToTarget || GoToAutoTarget) && TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].Train.ControlMode == Train.TRAIN_CONTROL.TURNTABLE)

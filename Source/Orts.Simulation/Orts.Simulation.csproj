@@ -7,7 +7,9 @@
     <OutputPath>..\..\Program.Core</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1375-develop" />
+    <Reference Include="MonoGame.Framework">
+      <HintPath>..\..\..\MonoGame\Artifacts\MonoGame.Framework\WindowsDX\Release\$(TargetFramework)\MonoGame.Framework.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />

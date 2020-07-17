@@ -18,6 +18,7 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System.Collections.Generic;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -31,7 +32,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 {
     public class OSDLocations : LayeredWindow
     {
-        Matrix Identity = Matrix.Identity;
+        Matrix4x4 Identity = Matrix4x4.Identity;
 
         internal const float MaximumDistancePlatform = 1000;
         internal const float MaximumDistanceSiding = 500;

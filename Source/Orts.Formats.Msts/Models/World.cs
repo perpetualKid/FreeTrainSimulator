@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -36,19 +37,19 @@ namespace Orts.Formats.Msts.Models
                 if (holder.LocationSet && holder.PositionSet)
                 {
                     holder.Location.Z *= -1; ;
-                    Matrix xnaMatrix = new Matrix(
+                    Matrix4x4 xnaMatrix = new Matrix4x4(
                         holder.Position.M00, holder.Position.M01, -holder.Position.M02, 0,
                         holder.Position.M10, holder.Position.M11, -holder.Position.M12, 0,
                         -holder.Position.M20, -holder.Position.M21, holder.Position.M22, 0,
                         0, 0, 0, 1);
 
-                    return new WorldPosition(holder.TileX, holder.TileZ, MatrixExtension.Multiply(xnaMatrix, Matrix.CreateTranslation(holder.Location)));
+                    return new WorldPosition(holder.TileX, holder.TileZ, Matrix4x4.Multiply(xnaMatrix, Matrix4x4.CreateTranslation(holder.Location)));
                 }
                 else if (holder.LocationSet && holder.DirectionSet)
                 {
                     holder.Direction.Z *= -1;
                     holder.Location.Z *= -1; ;
-                    return new WorldPosition(holder.TileX, holder.TileZ, MatrixExtension.Multiply(Matrix.CreateFromQuaternion(holder.Direction), Matrix.CreateTranslation(holder.Location)));
+                    return new WorldPosition(holder.TileX, holder.TileZ, Matrix4x4.Multiply(Matrix4x4.CreateFromQuaternion(holder.Direction), Matrix4x4.CreateTranslation(holder.Location)));
 
                 }
                 else
@@ -787,7 +788,7 @@ namespace Orts.Formats.Msts.Models
         {
             set
             {
-                value.Conjugate();
+                Quaternion.Conjugate(value);
                 euler = new Vector3((2 * value.Y * value.W + 2 * value.Z * value.X),
                     (2 * value.Z * value.Y - 2 * value.X * value.W),
                     (value.Z * value.Z - value.Y * value.Y - value.X * value.X + value.W * value.W));

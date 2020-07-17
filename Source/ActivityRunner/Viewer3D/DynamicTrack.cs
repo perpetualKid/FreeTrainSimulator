@@ -34,6 +34,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using System.Xml;
 using System.Xml.Schema;
 
@@ -67,11 +68,11 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 localV = Vector3.Zero; // Local position (in x-z plane)
             Vector3 localProjectedV; // Local next position (in x-z plane)
             Vector3 displacement;  // Local displacement (from y=0 plane)
-            Vector3 heading = Vector3.Forward; // Local heading (unit vector)
+            Vector3 heading = Vector3.UnitZ * -1; // Local heading (unit vector)
 
             WorldPosition nextRoot = worldMatrix; // Will become initial root
             Vector3 sectionOrigin = worldMatrix.XNAMatrix.Translation; // Save root position
-            Matrix root = MatrixExtension.RemoveTranslation(worldMatrix.XNAMatrix); // worldMatrix now rotation-only
+            Matrix4x4 root = Orts.Common.Xna.MatrixExtension.RemoveTranslation(worldMatrix.XNAMatrix); // worldMatrix now rotation-only
 
             // Iterate through all subsections
             for (int iTkSection = 0; iTkSection < trackObj.TrackSections.Count; iTkSection++)
@@ -107,14 +108,14 @@ namespace Orts.ActivityRunner.Viewer3D
                     // nextRoot is found by moving from Point-of-Curve (PC) to
                     // center (O)to Point-of-Tangent (PT).
                     float radius = subsection.TrackSections[0].Radius * Math.Sign(-subsection.TrackSections[0].Angle); // meters
-                    Vector3 left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
-                    Matrix rot = Matrix.CreateRotationY(-subsection.TrackSections[0].Angle); // Heading change (rotation about O)
+                    Vector3 left = radius * Vector3.Cross(Vector3.UnitY, heading); // Vector from PC to O
+                    Matrix4x4 rot = Matrix4x4.CreateRotationY(-subsection.TrackSections[0].Angle); // Heading change (rotation about O)
                     // Shared method returns displacement from present world position and, by reference,
                     // local position in x-z plane of end of this section
                     displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot, root, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix));// Store heading change
+                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, Matrix4x4.Multiply(rot, nextRoot.XNAMatrix));// Store heading change
                 }
 
                 // Update nextRoot with new translation component
@@ -188,7 +189,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // lodIndex marks first in-range LOD
 
             // Initialize xnaXfmWrtCamTile to object-tile to camera-tile translation:
-            Matrix xnaXfmWrtCamTile = Matrix.CreateTranslation(tileOffsetWrtCamera);
+            Matrix4x4 xnaXfmWrtCamTile = Matrix4x4.CreateTranslation(tileOffsetWrtCamera);
             xnaXfmWrtCamTile = worldPosition.XNAMatrix * xnaXfmWrtCamTile; // Catenate to world transformation
             // (Transformation is now with respect to camera-tile origin)
 
@@ -950,7 +951,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public Vector3 OldRadius;          // Radius vector to centerline for previous cross section
 
         //TODO: Candidates for re-packaging:
-        public Matrix sectionRotation;     // Rotates previous profile into next profile position on curve.
+        public Matrix4x4 sectionRotation;     // Rotates previous profile into next profile position on curve.
         public Vector3 center;             // Center coordinates of curve radius
         public Vector3 radius;             // Radius vector to cross section on curve centerline
 
@@ -1191,8 +1192,8 @@ namespace Orts.ActivityRunner.Viewer3D
             // The approach here is to replicate the previous cross section, 
             // rotated into its position on the curve and vertically displaced if on grade.
             // The local center for the curve lies to the left or right of the local origin and ON THE BASE PLANE
-            center = DTrackData.Radius * (DTrackData.Length < 0 ? Vector3.Left : Vector3.Right);
-            sectionRotation = Matrix.CreateRotationY(-SegmentLength); // Rotation per iteration (constant)
+            center = DTrackData.Radius * (DTrackData.Length < 0 ? Vector3.UnitX * -1 : Vector3.UnitX);
+            sectionRotation = Matrix4x4.CreateRotationY(-SegmentLength); // Rotation per iteration (constant)
         }
 
         /// <summary>

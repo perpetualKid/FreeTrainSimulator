@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 
 using Microsoft.Xna.Framework;
@@ -35,6 +36,8 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
+
+using MatrixExtension = Orts.Common.Xna.MatrixExtension;
 
 namespace Orts.Simulation
 {
@@ -597,7 +600,7 @@ namespace Orts.Simulation
         /// 
         static void SpeedPostPosition(TempSpeedPostItem restrSpeedPost, ref Traveller traveller)
         {
-            restrSpeedPost.Update(traveller.Y, -traveller.RotY + (float)Math.PI / 2, new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z)));
+            restrSpeedPost.Update(traveller.Y, -traveller.RotY + (float)Math.PI / 2, new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.SetTranslation(Matrix4x4.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z)));
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -28,7 +29,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         protected static Dictionary<string, bool> SeenShapeAnimationError = new Dictionary<string, bool>();
 
-        public Matrix[] XNAMatrices = new Matrix[0];  // the positions of the subobjects
+        public Matrix4x4[] XNAMatrices = new Matrix4x4[0];  // the positions of the subobjects
 
         public readonly int[] Hierarchy;
 
@@ -39,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         {
             this.positionSource = positionSource;
 
-            XNAMatrices = new Matrix[SharedShape.Matrices.Length];
+            XNAMatrices = new Matrix4x4[SharedShape.Matrices.Length];
             for (int iMatrix = 0; iMatrix < SharedShape.Matrices.Length; ++iMatrix)
                 XNAMatrices[iMatrix] = SharedShape.Matrices[iMatrix];
 
@@ -126,7 +127,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     ref readonly Quaternion slerp2Quaternion = ref slerp2.Quaternion;
                     Quaternion q = Quaternion.Slerp(slerp1Quaternion, slerp2Quaternion, amount);
                     Vector3 location = xnaPose.Translation;
-                    xnaPose = Matrix.CreateFromQuaternion(q);
+                    xnaPose = Matrix4x4.CreateFromQuaternion(q);
                     xnaPose.Translation = location;
                 }
                 else if (position1 is LinearKey key1 && position2 is LinearKey key2)  // a key sets an absolute position, vs shifting the existing matrix
@@ -139,7 +140,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     ref readonly Quaternion tcb2Quaternion = ref tcbkey2.Quaternion;
                     Quaternion q = Quaternion.Slerp(tcb1Quaternion, tcb2Quaternion, amount);
                     Vector3 location = xnaPose.Translation;
-                    xnaPose = Matrix.CreateFromQuaternion(q);
+                    xnaPose = Matrix4x4.CreateFromQuaternion(q);
                     xnaPose.Translation = location;
                 }
             }
@@ -294,7 +295,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                             ref readonly Quaternion slerp2Quaternion = ref slerp2.Quaternion;
                             Quaternion q = Quaternion.Slerp(slerp1Quaternion, slerp2Quaternion, quadrantAmount);
                             Vector3 location = xnaPose.Translation;
-                            xnaPose = Matrix.CreateFromQuaternion(q);
+                            xnaPose = Matrix4x4.CreateFromQuaternion(q);
                             xnaPose.Translation = location;
                         }
                         else if (position1 is LinearKey key1 && position2 is LinearKey key2) //OR-Clock anim.node has tcb keys
@@ -307,7 +308,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                             ref readonly Quaternion tcb2Quaternion = ref tcbkey2.Quaternion;
                             Quaternion q = Quaternion.Slerp(tcb1Quaternion, tcb2Quaternion, quadrantAmount);
                             Vector3 location = xnaPose.Translation;
-                            xnaPose = Matrix.CreateFromQuaternion(q);
+                            xnaPose = Matrix4x4.CreateFromQuaternion(q);
                             xnaPose.Translation = location;
                         }
                     }
@@ -429,7 +430,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     {
                         float tX = GetTextureCoordX(speed[j]);
                         float tY = GetTextureCoordY(speed[j]);
-                        Matrix rot = Matrix.CreateRotationY(-rotation);
+                        Matrix4x4 rot = Matrix4x4.CreateRotationY(-rotation);
 
                         //the left-bottom vertex
                         Vector3 v = new Vector3(offset.X, offset.Y, 0.01f);
@@ -542,7 +543,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             Vector3 tileOffsetWrtCamera = new Vector3(dTileX * 2048, 0, -dTileZ * 2048);
 
             // Initialize xnaXfmWrtCamTile to object-tile to camera-tile translation:
-            MatrixExtension.Multiply(WorldPosition.XNAMatrix, Matrix.CreateTranslation(tileOffsetWrtCamera), out Matrix xnaXfmWrtCamTile);
+            Matrix4x4 xnaXfmWrtCamTile = Matrix4x4.Multiply(WorldPosition.XNAMatrix, Matrix4x4.CreateTranslation(tileOffsetWrtCamera));
             // (Transformation is now with respect to camera-tile origin)
 
             // TODO: Make this use AddAutoPrimitive instead.

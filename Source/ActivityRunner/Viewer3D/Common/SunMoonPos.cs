@@ -27,6 +27,7 @@
 
 using Microsoft.Xna.Framework;
 using System;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D.Common
 {
@@ -97,7 +98,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             sunDirection.X = -(float)solarAzimuthSine;
             sunDirection.Y = (float)solarZenithCosine;
             sunDirection.Z = -(float)solarAzimuthCosine;
-            sunDirection.Normalize();
+            Vector3.Normalize(sunDirection);
             return sunDirection;
         }
 
@@ -183,7 +184,7 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             moonDirection.X = (float)Math.Sin(lunarAzimuth);
             moonDirection.Y = (float)lunarAltSin;
             moonDirection.Z = (float)Math.Cos(lunarAzimuth);
-            moonDirection.Normalize();
+            Vector3.Normalize(moonDirection);
             return moonDirection;
         }
 

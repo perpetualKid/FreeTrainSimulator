@@ -24,6 +24,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using System;
 using System.Diagnostics;
+using System.Numerics;
 using System.Windows.Forms;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
@@ -224,7 +225,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 var corner2 = new Vector3(height2, width2, C);
                 var cornerCenter = (corner1 + corner2) / 2;
                 var length = cornerCenter.Length();
-                cornerCenter.Normalize();
+                Vector3.Normalize(cornerCenter);
                 var center = length / Vector3.Dot(cornerCenter, Vector3.UnitZ);
                 var diameter = 2 * (float)Math.Sqrt(height2 * height2 + width2 * width2 + (C - center) * (C - center));
 

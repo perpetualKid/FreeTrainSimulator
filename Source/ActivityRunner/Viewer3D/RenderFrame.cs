@@ -21,6 +21,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Processes;
@@ -106,7 +108,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected static VertexBuffer DummyVertexBuffer;
         protected static readonly VertexDeclaration DummyVertexDeclaration = new VertexDeclaration(ShapeInstanceData.SizeInBytes, ShapeInstanceData.VertexElements);
-        protected static readonly Matrix[] DummyVertexData = new Matrix[] { Matrix.Identity };
+        protected static readonly Matrix4x4[] DummyVertexData = new Matrix4x4[] { Matrix4x4.Identity };
 
         /// <summary>
         /// This is an adjustment for the depth buffer calculation which may be used to reduce the chance of co-planar primitives from fighting each other.
@@ -132,10 +134,10 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         public readonly Material Material;
         public readonly RenderPrimitive RenderPrimitive;
-        public readonly Matrix XNAMatrix;
+        public readonly Matrix4x4 XNAMatrix;
         public readonly ShapeFlags Flags;
 
-        public RenderItem(Material material, RenderPrimitive renderPrimitive, Matrix xnaMatrix, ShapeFlags flags)
+        public RenderItem(Material material, RenderPrimitive renderPrimitive, Matrix4x4 xnaMatrix, ShapeFlags flags)
         {
             Material = material;
             RenderPrimitive = renderPrimitive;
@@ -205,10 +207,10 @@ namespace Orts.ActivityRunner.Viewer3D
         private static Vector3 steppedSolarDirection = Vector3.UnitX;
 
         // Local shadow map data.
-        private readonly Matrix[] shadowMapLightView;
-        private readonly Matrix[] shadowMapLightProjection;
-        private readonly Matrix[] shadowMapLightViewProjection;
-        private readonly Matrix[] shadowMapLightViewProjectionShadowProjection;
+        private readonly Matrix4x4[] shadowMapLightView;
+        private readonly Matrix4x4[] shadowMapLightProjection;
+        private readonly Matrix4x4[] shadowMapLightViewProjection;
+        private readonly Matrix4x4[] shadowMapLightViewProjectionShadowProjection;
         private Vector3 shadowMapX;
         private Vector3 shadowMapY;
         private readonly Vector3[] shadowMapCenter;
@@ -230,9 +232,9 @@ namespace Orts.ActivityRunner.Viewer3D
         private Vector3 cameraLocation;
         private RenderItem.Comparer renderItemComparer;
 
-        private Matrix cameraViewProjection;
-        private Matrix identity;
-        private Matrix projection;
+        private Matrix4x4 cameraViewProjection;
+        private Matrix4x4 identity;
+        private Matrix4x4 projection;
 
         private readonly int shadowMapCount;
         private readonly bool dynamicShadows;
@@ -261,10 +263,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                 }
 
-                shadowMapLightView = new Matrix[shadowMapCount];
-                shadowMapLightProjection = new Matrix[shadowMapCount];
-                shadowMapLightViewProjection = new Matrix[shadowMapCount];
-                shadowMapLightViewProjectionShadowProjection = new Matrix[shadowMapCount];
+                shadowMapLightView = new Matrix4x4[shadowMapCount];
+                shadowMapLightProjection = new Matrix4x4[shadowMapCount];
+                shadowMapLightViewProjection = new Matrix4x4[shadowMapCount];
+                shadowMapLightViewProjectionShadowProjection = new Matrix4x4[shadowMapCount];
                 shadowMapCenter = new Vector3[shadowMapCount];
 
                 renderShadowSceneryItems = new List<RenderItem>[shadowMapCount];
@@ -278,9 +280,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            identity = Matrix.Identity;
-            projection = Matrix.CreateOrthographic(game.RenderProcess.DisplaySize.X, game.RenderProcess.DisplaySize.Y, 1, 100);
-            MatrixExtension.Multiply(in identity, in projection, out cameraViewProjection);
+            identity = Matrix4x4.Identity;
+            projection = Matrix4x4.CreateOrthographic(game.RenderProcess.DisplaySize.X, game.RenderProcess.DisplaySize.Y, 1, 100);
+            cameraViewProjection = Matrix4x4.Multiply(identity, projection);
 
             renderItemComparer = new RenderItem.Comparer(Vector3.Zero);
         }
@@ -339,7 +341,7 @@ namespace Orts.ActivityRunner.Viewer3D
             //viewMatrices[(int)ViewMatrixSequence.View] = camera.XnaView;
             //viewMatrices[(int)ViewMatrixSequence.Projection] = camera.XnaProjection;
             //MatrixExtension.Multiply(in viewMatrices[0], in viewMatrices[1], out viewMatrices[2]);
-            MatrixExtension.Multiply(in camera.XnaView, in camera.XnaProjection, out cameraViewProjection);
+            cameraViewProjection = Matrix4x4.Multiply(camera.XnaView, camera.XnaProjection);
 
             renderItemComparer.Update(cameraLocation);
         }
@@ -354,7 +356,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (dynamicShadows && (shadowMapCount > 0) && !LockShadows)
             {
                 Vector3 normalizedSolarDirection = solarDirection;
-                normalizedSolarDirection.Normalize();
+                Vector3.Normalize(normalizedSolarDirection);
                 if (Vector3.Dot(steppedSolarDirection, normalizedSolarDirection) < 0.99999)
                     steppedSolarDirection = normalizedSolarDirection;
 
@@ -362,12 +364,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 //                var cameraDirection = new Vector3(-viewMatrices[(int)ViewMatrixSequence.View].M13, -viewMatrices[(int)ViewMatrixSequence.View].M23, -viewMatrices[(int)ViewMatrixSequence.View].M33);
                 Vector3 cameraDirection = new Vector3(-(camera?.XnaView.M13 ?? 0), -(camera?.XnaView.M23 ?? 0), -(camera?.XnaView.M33 ?? 1)); 
                 // viewMatrices[(int)ViewMatrixSequence.View].M13, -viewMatrices[(int)ViewMatrixSequence.View].M23, -viewMatrices[(int)ViewMatrixSequence.View].M33);
-                cameraDirection.Normalize();
+                Vector3.Normalize(cameraDirection);
 
                 var shadowMapAlignAxisX = Vector3.Cross(steppedSolarDirection, Vector3.UnitY);
                 var shadowMapAlignAxisY = Vector3.Cross(shadowMapAlignAxisX, steppedSolarDirection);
-                shadowMapAlignAxisX.Normalize();
-                shadowMapAlignAxisY.Normalize();
+                Vector3.Normalize(shadowMapAlignAxisX);
+                Vector3.Normalize(shadowMapAlignAxisY);
                 shadowMapX = shadowMapAlignAxisX;
                 shadowMapY = shadowMapAlignAxisY;
 
@@ -391,12 +393,12 @@ namespace Orts.ActivityRunner.Viewer3D
                     shadowMapLocation.Y -= shadowMapAlignAxisY.Y * adjustY;
                     shadowMapLocation.Z -= shadowMapAlignAxisY.Z * adjustY;
 
-                    shadowMapLightView[shadowMapIndex] = Matrix.CreateLookAt(shadowMapLocation + viewingDistance * steppedSolarDirection, shadowMapLocation, Vector3.Up);
-                    shadowMapLightProjection[shadowMapIndex] = Matrix.CreateOrthographic(shadowMapDiameter, shadowMapDiameter, 0, viewingDistance + shadowMapDiameter / 2);
-                    MatrixExtension.Multiply(in shadowMapLightView[shadowMapIndex], in shadowMapLightProjection[shadowMapIndex], out shadowMapLightViewProjection[shadowMapIndex]);
+                    shadowMapLightView[shadowMapIndex] = Matrix4x4.CreateLookAt(shadowMapLocation + viewingDistance * steppedSolarDirection, shadowMapLocation, Vector3.UnitY);
+                    shadowMapLightProjection[shadowMapIndex] = Matrix4x4.CreateOrthographic(shadowMapDiameter, shadowMapDiameter, 0, viewingDistance + shadowMapDiameter / 2);
+                    shadowMapLightViewProjection[shadowMapIndex] = Matrix4x4.Multiply(shadowMapLightView[shadowMapIndex], shadowMapLightProjection[shadowMapIndex]);
 //                    shadowMapLightViewProjection[shadowMapIndex] = shadowMapLightView[shadowMapIndex] * shadowMapLightProjection[shadowMapIndex];
 
-                    shadowMapLightViewProjectionShadowProjection[shadowMapIndex] = shadowMapLightView[shadowMapIndex] * shadowMapLightProjection[shadowMapIndex] * new Matrix(0.5f, 0, 0, 0, 0, -0.5f, 0, 0, 0, 0, 1, 0, 0.5f + 0.5f / shadowMapSize, 0.5f + 0.5f / shadowMapSize, 0, 1);
+                    shadowMapLightViewProjectionShadowProjection[shadowMapIndex] = shadowMapLightView[shadowMapIndex] * shadowMapLightProjection[shadowMapIndex] * new Matrix4x4(0.5f, 0, 0, 0, 0, -0.5f, 0, 0, 0, 0, 1, 0, 0.5f + 0.5f / shadowMapSize, 0.5f + 0.5f / shadowMapSize, 0, 1);
                     shadowMapCenter[shadowMapIndex] = shadowMapLocation;
                 }
             }
@@ -414,7 +416,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="xnaMatrix"></param>
         /// <param name="flags"></param>
         //[CallOnThread("Updater")]
-        public void AddAutoPrimitive(Vector3 mstsLocation, float objectRadius, float objectViewingDistance, Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags)
+        public void AddAutoPrimitive(Vector3 mstsLocation, float objectRadius, float objectViewingDistance, Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix4x4 xnaMatrix, ShapeFlags flags)
         {
             if (float.IsPositiveInfinity(objectViewingDistance) || (camera != null && camera.InRange(mstsLocation, objectRadius, objectViewingDistance)))
             {
@@ -429,7 +431,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         //[CallOnThread("Updater")]
-        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix)
+        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix4x4 xnaMatrix)
         {
             AddPrimitive(material, primitive, group, ref xnaMatrix, ShapeFlags.None);
         }
@@ -439,7 +441,7 @@ namespace Orts.ActivityRunner.Viewer3D
         static readonly bool[] PrimitiveNotBlended = new bool[] { false };
 
         //[CallOnThread("Updater")]
-        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags)
+        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix4x4 xnaMatrix, ShapeFlags flags)
         {
             var getBlending = material.GetBlending();
             var blending = getBlending && material is SceneryMaterial ? PrimitiveBlendedScenery : getBlending ? PrimitiveBlended : PrimitiveNotBlended;
@@ -462,7 +464,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         //[CallOnThread("Updater")]
-        void AddShadowPrimitive(int shadowMapIndex, Material material, RenderPrimitive primitive, ref Matrix xnaMatrix, ShapeFlags flags)
+        void AddShadowPrimitive(int shadowMapIndex, Material material, RenderPrimitive primitive, ref Matrix4x4 xnaMatrix, ShapeFlags flags)
         {
             if (material is SceneryMaterial)
                 renderShadowSceneryItems[shadowMapIndex].Add(new RenderItem(material, primitive, xnaMatrix, flags));
@@ -504,7 +506,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return false;
 
             mstsLocation.Z *= -1;
-            Vector3.Subtract(ref mstsLocation, ref shadowMapCenter[shadowMapIndex], out mstsLocation);
+            mstsLocation = Vector3.Subtract(mstsLocation, shadowMapCenter[shadowMapIndex]);
             objectRadius += RenderProcess.ShadowMapDiameter[shadowMapIndex] / 2;
 
             // Check if object is inside the sphere.
@@ -513,16 +515,16 @@ namespace Orts.ActivityRunner.Viewer3D
                 return true;
 
             // Check if object is inside cylinder.
-            Vector3.Dot(ref mstsLocation, ref shadowMapX, out float dotX);
+            float dotX = Vector3.Dot(mstsLocation, shadowMapX);
             if (Math.Abs(dotX) > objectRadius)
                 return false;
 
-            Vector3.Dot(ref mstsLocation, ref shadowMapY, out float dotY);
+            float dotY = Vector3.Dot(mstsLocation, shadowMapY);
             if (Math.Abs(dotY) > objectRadius)
                 return false;
 
             // Check if object is on correct side of center.
-            Vector3.Dot(ref mstsLocation, ref steppedSolarDirection, out float dotZ);
+            float dotZ = Vector3.Dot(mstsLocation, steppedSolarDirection);
             if (dotZ < 0)
                 return false;
 
@@ -655,8 +657,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         void DrawSequences(bool logging)
         {
-            ref Matrix viewRef = ref (camera != null ? ref camera.XnaView : ref identity);
-            ref Matrix projectionRef = ref (camera != null ? ref camera.XnaProjection : ref projection);
+            ref Matrix4x4 viewRef = ref (camera != null ? ref camera.XnaView : ref identity);
+            ref Matrix4x4 projectionRef = ref (camera != null ? ref camera.XnaProjection : ref projection);
 
             if (dynamicShadows && (shadowMapCount > 0) && sceneryShader != null)
                 sceneryShader.SetShadowMap(shadowMapLightViewProjectionShadowProjection, shadowMap, RenderProcess.ShadowMapLimit);
@@ -723,11 +725,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
         void DrawSequencesDistantMountains(bool logging)
         {
-            Matrix mountainViewProjection;
+            Matrix4x4 mountainViewProjection;
             if (camera == null)
-                MatrixExtension.Multiply(in identity, in Camera.XnaDistantMountainProjection, out mountainViewProjection);
+                mountainViewProjection = Matrix4x4.Multiply(identity, Camera.XnaDistantMountainProjection);
             else
-                MatrixExtension.Multiply(in camera.XnaView, in Camera.XnaDistantMountainProjection, out mountainViewProjection);
+                mountainViewProjection = Matrix4x4.Multiply(camera.XnaView, Camera.XnaDistantMountainProjection);
 
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
             {

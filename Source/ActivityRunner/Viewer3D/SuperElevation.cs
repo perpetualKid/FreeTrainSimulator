@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -135,11 +136,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
             Vector3 trackLocation = location.Location;
             trackLocation.Z *= -1;
-            WorldPosition root = new WorldPosition(ts.Location.TileX, ts.Location.TileZ, MatrixExtension.CreateFromYawPitchRoll(ts.Direction)).SetTranslation(Vector3.Transform(trackLocation, Matrix.Identity));
+            WorldPosition root = new WorldPosition(ts.Location.TileX, ts.Location.TileZ, Orts.Common.Xna.MatrixExtension.CreateFromYawPitchRoll(ts.Direction)).SetTranslation(Vector3.Transform(trackLocation, Matrix4x4.Identity));
 
             var sign = -Math.Sign(tss.Angle); var to = Math.Abs(tss.Angle * 0.0174f);
-            var vectorCurveStartToCenter = Vector3.Left * tss.Radius * sign;
-            var curveRotation = Matrix.CreateRotationY(to * sign);
+            var vectorCurveStartToCenter = Vector3.UnitX * -1 * tss.Radius * sign;
+            var curveRotation = Matrix4x4.CreateRotationY(to * sign);
             var displacement = Traveller.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
 
             WorldPosition nextRoot = root.SetTranslation(displacement);
@@ -168,11 +169,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 Vector3 trackLoc = ts.Location.Location;
                 trackLoc.Z *= - 1;
 
-                WorldPosition root = new WorldPosition(ts.Location.TileX, ts.Location.TileZ, MatrixExtension.CreateFromYawPitchRoll(ts.Direction)).SetTranslation(Vector3.Transform(trackLoc, Matrix.Identity));
+                WorldPosition root = new WorldPosition(ts.Location.TileX, ts.Location.TileZ, Orts.Common.Xna.MatrixExtension.CreateFromYawPitchRoll(ts.Direction)).SetTranslation(Vector3.Transform(trackLoc, Matrix4x4.Identity));
 
                 var sign = -Math.Sign(tss.Angle); var to = Math.Abs(tss.Angle * 0.0174f);
-                var vectorCurveStartToCenter = Vector3.Left * tss.Radius * sign;
-                var curveRotation = Matrix.CreateRotationY(to * sign);
+                var vectorCurveStartToCenter = Vector3.UnitX * -1 * tss.Radius * sign;
+                var curveRotation = Matrix4x4.CreateRotationY(to * sign);
                 var displacement = Traveller.MSTSInterpolateAlongCurve(Vector3.Zero, vectorCurveStartToCenter, curveRotation, root.XNAMatrix, out Vector3 _);
 
                 WorldPosition nextRoot = root.SetTranslation(displacement);
@@ -252,7 +253,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 localV = Vector3.Zero; // Local position (in x-z plane)
             Vector3 localProjectedV; // Local next position (in x-z plane)
             Vector3 displacement;  // Local displacement (from y=0 plane)
-            Vector3 heading = Vector3.Forward; // Local heading (unit vector)
+            Vector3 heading = Vector3.UnitZ * -1; // Local heading (unit vector)
 
             WorldPosition nextRoot = worldMatrixInput; // Will become initial root
 
@@ -274,15 +275,15 @@ namespace Orts.ActivityRunner.Viewer3D
             nextRoot = wcopy; // Will become initial root
             sectionOrigin = nextRoot.XNAMatrix.Translation;
 
-            heading = Vector3.Forward; // Local heading (unit vector)
+            heading = Vector3.UnitZ * -1; // Local heading (unit vector)
             localV = Vector3.Zero; // Local position (in x-z plane)
 
 
             Vector3 trackLoc = new Vector3(0, 0, 0);// +new Vector3(3, 0, 0);
-            Matrix trackRot = Matrix.CreateRotationY(0);
+            Matrix4x4 trackRot = Matrix4x4.CreateRotationY(0);
 
             //heading = Vector3.Transform(heading, trackRot); // Heading change
-            nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(trackRot, nextRoot.XNAMatrix));
+            nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, Matrix4x4.Multiply(trackRot, nextRoot.XNAMatrix));
             uint[] sections = path.TrackSections;
 
             int count = -1;
@@ -309,15 +310,15 @@ namespace Orts.ActivityRunner.Viewer3D
                     radius = section.Radius; // meters
 
                     Vector3 left;
-                    if (section.Angle > 0) left = radius * Vector3.Cross(Vector3.Down, heading); // Vector from PC to O
-                    else left = radius * Vector3.Cross(Vector3.Up, heading); // Vector from PC to O
-                    Matrix rot = Matrix.CreateRotationY(-section.Angle * 3.14f / 180); // Heading change (rotation about O)
+                    if (section.Angle > 0) left = radius * Vector3.Cross(Vector3.UnitY * -1, heading); // Vector from PC to O
+                    else left = radius * Vector3.Cross(Vector3.UnitY, heading); // Vector from PC to O
+                    Matrix4x4 rot = Matrix4x4.CreateRotationY(-section.Angle * 3.14f / 180); // Heading change (rotation about O)
 
                     displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(MatrixExtension.Multiply(trackRot, rot), nextRoot.XNAMatrix)); // Store heading change
+                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, Matrix4x4.Multiply(Matrix4x4.Multiply(trackRot, rot), nextRoot.XNAMatrix)); // Store heading change
 
                 }
                 nextRoot = nextRoot.SetTranslation(sectionOrigin + displacement);
@@ -358,7 +359,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Vector3 localV = Vector3.Zero; // Local position (in x-z plane)
             Vector3 localProjectedV; // Local next position (in x-z plane)
             Vector3 displacement;  // Local displacement (from y=0 plane)
-            Vector3 heading = Vector3.Forward; // Local heading (unit vector)
+            Vector3 heading = Vector3.UnitZ * -1; // Local heading (unit vector)
 
             WorldPosition nextRoot = worldMatrixInput; // Will become initial root
             Vector3 sectionOrigin = worldMatrixInput.XNAMatrix.Translation; // Save root position
@@ -399,15 +400,15 @@ namespace Orts.ActivityRunner.Viewer3D
                 {   // Both heading and translation change 
                     // nextRoot is found by moving from Point-of-Curve (PC) to
                     // center (O)to Point-of-Tangent (PT).
-                    Vector3 left = subsection.TrackSections[0].Radius * Vector3.Cross(Vector3.Up, heading) * Math.Sign(-subsection.TrackSections[0].Angle); // Vector from PC to O
-                    Matrix rot = Matrix.CreateRotationY(-subsection.TrackSections[0].Angle); // Heading change (rotation about O)
+                    Vector3 left = subsection.TrackSections[0].Radius * Vector3.Cross(Vector3.UnitY, heading) * Math.Sign(-subsection.TrackSections[0].Angle); // Vector from PC to O
+                    Matrix4x4 rot = Matrix4x4.CreateRotationY(-subsection.TrackSections[0].Angle); // Heading change (rotation about O)
                     // Shared method returns displacement from present world position and, by reference,
                     // local position in x-z plane of end of this section
                     displacement = Traveller.MSTSInterpolateAlongCurve(localV, left, rot,
                                             worldMatrix.XNAMatrix, out localProjectedV);
 
                     heading = Vector3.Transform(heading, rot); // Heading change
-                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, MatrixExtension.Multiply(rot, nextRoot.XNAMatrix)); // Store heading change
+                    nextRoot = new WorldPosition(nextRoot.TileX, nextRoot.TileZ, Matrix4x4.Multiply(rot, nextRoot.XNAMatrix)); // Store heading change
                 }
 
                 // Update nextRoot with new translation component
@@ -548,9 +549,9 @@ namespace Orts.ActivityRunner.Viewer3D
             else if (StartElev.AlmostEqual(0f, 0.001f) && !EndElv.AlmostEqual(0f, 0.001f)) whichCase = 1;//start
             else if (EndElv.AlmostEqual(0f, 0.001f) && !StartElev.AlmostEqual(0f, 0.001f)) whichCase = 2;//finish
             else whichCase = 3;//in middle
-            Matrix PreRotation = Matrix.Identity;
+            Matrix4x4 PreRotation = Matrix4x4.Identity;
             elevated = MaxElev;
-            if (whichCase == 3 || whichCase == 2) PreRotation = Matrix.CreateRotationZ(-elevated * Math.Sign(DTrackData.Length));
+            if (whichCase == 3 || whichCase == 2) PreRotation = Matrix4x4.CreateRotationZ(-elevated * Math.Sign(DTrackData.Length));
             //if section is in the middle of curve, will only rotate the first set of vertex, others will follow the same rotation
             prevRotation = 0f;
 
@@ -678,8 +679,8 @@ namespace Orts.ActivityRunner.Viewer3D
             // The approach here is to replicate the previous cross section, 
             // rotated into its position on the curve and vertically displaced if on grade.
             // The local center for the curve lies to the left or right of the local origin and ON THE BASE PLANE
-            center = DTrackData.Radius * (DTrackData.Length < 0 ? Vector3.Left : Vector3.Right);
-            sectionRotation = Matrix.CreateRotationY(-SegmentLength); // Rotation per iteration (constant)
+            center = DTrackData.Radius * (DTrackData.Length < 0 ? Vector3.UnitX * -1 : Vector3.UnitX);
+            sectionRotation = Matrix4x4.CreateRotationY(-SegmentLength); // Rotation per iteration (constant)
         }
 
         /// <summary>
@@ -720,12 +721,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
             Vector3 copy = new Vector3(OldV.X, OldV.Y, OldV.Z);
 
-            copy = Vector3.Transform(copy, Matrix.CreateRotationZ(elevated));
+            copy = Vector3.Transform(copy, Matrix4x4.CreateRotationZ(elevated));
 
             //if (NumSections > 1) p = DDY + center + radius + Vector3.Transform(OldV, Matrix.CreateRotationZ(elevated) * sectionRotation);
             //else 
 
-            p = DDY + center + radius + Vector3.Transform(OldV, Matrix.CreateRotationZ(elevated) * sectionRotation);
+            p = DDY + center + radius + Vector3.Transform(OldV, Matrix4x4.CreateRotationZ(elevated) * sectionRotation);
             //if (offSet == NumSections - 1 && (whichCase == 2 || whichCase == 4)) p.Y = OldV.Y;
             Vector3 n = VertexList[VertexIndex - stride].Normal;
             Vector2 uv = VertexList[VertexIndex - stride].TextureCoordinate + uvDisplacement;

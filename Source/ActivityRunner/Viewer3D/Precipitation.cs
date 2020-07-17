@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Microsoft.Xna.Framework;
@@ -69,7 +70,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Pricipitation.Update(gameTime, elapsedTime, Weather.PricipitationIntensityPPSPM2, Viewer);
 
             // Note: This is quite a hack. We ideally should be able to pass this through RenderItem somehow.
-            var XNAWorldLocation = Matrix.Identity;
+            var XNAWorldLocation = Matrix4x4.Identity;
             XNAWorldLocation.M11 = gameTime;
             XNAWorldLocation.M21 = Viewer.Camera.TileX;
             XNAWorldLocation.M22 = Viewer.Camera.TileZ;
@@ -534,7 +535,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
@@ -596,10 +597,11 @@ namespace Orts.ActivityRunner.Viewer3D
             precipitation_Tex = Parameters["precipitation_Tex"];
         }
 
-        public void SetMatrix(ref Matrix view, ref Matrix projection)
+        public void SetMatrix(ref Matrix4x4 view, ref Matrix4x4 projection)
         {
-            worldViewProjection.SetValue(Matrix.Identity * view * projection);
-            invView.SetValue(Matrix.Invert(view));
+            worldViewProjection.SetValue(Matrix4x4.Identity * view * projection);
+            Matrix4x4.Invert(view, out Matrix4x4 result);
+            invView.SetValue(result);
         }
     }
 }

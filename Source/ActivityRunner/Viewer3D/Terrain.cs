@@ -31,6 +31,7 @@ using System.Linq;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using System.Numerics;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -258,7 +259,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var dTileX = TileX - Viewer.Camera.TileX;
             var dTileZ = TileZ - Viewer.Camera.TileZ;
             var mstsLocation = new Vector3(PatchLocation.X + dTileX * 2048, PatchLocation.Y, PatchLocation.Z + dTileZ * 2048);
-            var xnaPatchMatrix = Matrix.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
+            var xnaPatchMatrix = Matrix4x4.CreateTranslation(mstsLocation.X, mstsLocation.Y, -mstsLocation.Z);
             mstsLocation.Y += AverageElevation; // Try to keep testing point somewhere useful within the patch's altitude.
             // Low-resolution terrain (Size > 2) should always be drawn (PositiveInfinity), while high-resolution terrain should only be drawn within the viewing distance (MaxValue).
             frame.AddAutoPrimitive(mstsLocation, PatchSize * 0.7071F, Size > 2 ? float.PositiveInfinity : float.MaxValue, PatchMaterial, this, RenderPrimitiveGroup.World, ref xnaPatchMatrix, Size <= 2 ? ShapeFlags.ShadowCaster : ShapeFlags.None);
@@ -542,7 +543,7 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.BlendState = BlendState.NonPremultiplied;
         }
 
-        public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
+        public override void Render(List<RenderItem> renderItems, ref Matrix4x4 view, ref Matrix4x4 projection, ref Matrix4x4 viewProjection)
         {
             foreach (var pass in shader.CurrentTechnique.Passes)
             {
