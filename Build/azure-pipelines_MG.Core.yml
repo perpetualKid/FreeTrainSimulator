@@ -91,6 +91,6 @@ jobs:
       ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
-      ContainerName: 'ci-builds'
-      BlobPrefix: 'core'
+      ContainerName: 'builds'
+      BlobPrefix: '$(versionFromCode)/$(prerelease)'
 
