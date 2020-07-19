@@ -721,6 +721,7 @@ namespace Orts.ActivityRunner.Viewer3D
         TextureAddressModeWrap = 0x000,
         TextureAddressModeMirror = 0x200,
         TextureAddressModeClamp = 0x400,
+        TextureAddressModeBorder = 0x600,
         TextureAddressModeMask = 0x600,
         // Night texture
         NightTexture = 0x800,

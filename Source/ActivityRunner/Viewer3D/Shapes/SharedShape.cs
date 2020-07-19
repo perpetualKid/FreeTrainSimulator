@@ -219,6 +219,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 SceneryMaterialOptions.TextureAddressModeWrap,
                 SceneryMaterialOptions.TextureAddressModeMirror,
                 SceneryMaterialOptions.TextureAddressModeClamp,
+                SceneryMaterialOptions.TextureAddressModeBorder,
             };
 
             static readonly Dictionary<string, SceneryMaterialOptions> ShaderNames = new Dictionary<string, SceneryMaterialOptions> {
