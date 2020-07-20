@@ -114,4 +114,4 @@ jobs:
       StorageAccountRM: 'ultimaterails'
       ContainerName: 'builds'
       BlobPrefix: '$(channel)'
-      additionalArgumentsForBlobCopy: '/Pattern:*.html /Y'
+      additionalArgumentsForBlobCopy: '/Pattern:*.html /Y /SetContentType:text/html'
