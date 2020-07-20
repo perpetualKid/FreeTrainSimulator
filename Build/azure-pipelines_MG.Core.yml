@@ -64,9 +64,10 @@ jobs:
       script: |
         Write-Host "Setting the name of the build to '$(version)'."
         Write-Host "##vso[build.updatebuildnumber]$(version)"
-        $html = git log --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%dT%H:%MZ" -100 `
+        $html = git log --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%d %H:%M" -100 `
         | ConvertFrom-Csv -Delimiter "|" -Header "Commit", "Date", "Author", "Message" `
-        | ConvertTo-Html -title "Open Rails Commit History Channel=$(channel) Version=$(version)" `
+        | ConvertTo-Html -title "Commit History" `
+        -Head "Open Rails Commit History Channel=$(channel) Version=$(version)" ` 
         -Property @{Label="Link";Expression={"<a href='$(githubUrl)$($_.Commit)'>$($_.Commit)</a>"}}, Date, Author, Message
         [System.Net.WebUtility]::HtmlDecode($html) | Out-File $(Build.ArtifactStagingDirectory)/history.html
 
@@ -112,5 +113,5 @@ jobs:
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
       ContainerName: 'builds'
-      BlobPrefix: '$(channel)/$(versionFromCode)'
+      BlobPrefix: '$(channel)'
       additionalArgumentsForBlobCopy: '/Pattern:*.html /Y'
