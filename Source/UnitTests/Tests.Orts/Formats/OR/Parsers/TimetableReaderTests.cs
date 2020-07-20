@@ -26,7 +26,13 @@ namespace Tests.Orts.Formats.OR.Parsers
                 Assert.AreEqual(1, tr.Strings.Count);
                 Assert.AreEqual(2, tr.Strings[0].Length);
             }
-            using (var file = new TestFile("\n"))
+            using (var file = new TestFile("\t"))
+            {
+                var tr = new TimetableReader(file.FileName);
+                Assert.AreEqual(1, tr.Strings.Count);
+                Assert.AreEqual(2, tr.Strings[0].Length);
+            }
+            using (var file = new TestFile(":"))
             {
                 Assert.ThrowsException<InvalidDataException>(() => {
                     var tr = new TimetableReader(file.FileName);
