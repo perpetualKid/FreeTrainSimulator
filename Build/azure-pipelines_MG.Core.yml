@@ -41,10 +41,11 @@ jobs:
     buildPlatform: 'Any CPU'
     buildConfiguration: 'Release'
     versionFromCode: $[dependencies.GetVersionJob.outputs['SetVersionTask.versionFromCode']]
-    counterName: '$(prerelease)$(versionFromCode)'
+    counterName: '$(channel)$(versionFromCode)'
     buildNumber: $[counter(variables['counterName'], 0)]
-    versionSuffix: '$(prerelease).$(buildNumber)+$(channel)'
+    versionSuffix: '$(channel).$(buildNumber)+$(tag)'
     version: '$(versionFromCode)-$(versionSuffix)'
+    githubUrl: 'https://github.com/perpetualKid/ORTS-MG/commit/'
 
   steps:
   - checkout: self
@@ -63,8 +64,13 @@ jobs:
       script: |
         Write-Host "Setting the name of the build to '$(version)'."
         Write-Host "##vso[build.updatebuildnumber]$(version)"
+        $html = git log --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%dT%H:%MZ" -100 
+        | ConvertFrom-Csv -Delimiter "|" -Header "Commit", "Date", "Author", "Message"  
+        | ConvertTo-Html -title "Open Rails Commit History Channel=$(channel) Version=$(version)" -Property @{Label="Link";Expression={"<a href='$(githubUrl)/$($_.Commit)'>$($_.Commit)</a>"}}, Date, Author, Message
+        [System.Net.WebUtility]::HtmlDecode($html) | Out-File $(Build.ArtifactStagingDirectory)/history.html'
 
   - task: MSBuild@1
+    displayName: Building the solution
     inputs:
       solution: '$(solution)'
       msbuildArchitecture: 'x64'
@@ -73,11 +79,13 @@ jobs:
       msbuildArguments: '-property:versionsuffix=$(versionSuffix)'
   
   - task: VSTest@2
+    displayName: Testing the solution
     inputs:
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
 
   - task: ArchiveFiles@2
+    displayName: Creating zip archive
     inputs:
       rootFolderOrFile: './Program.Core/'
       includeRootFolder: true 
@@ -86,11 +94,22 @@ jobs:
       replaceExistingArchive: true
 
   - task: AzureFileCopy@3
+    displayName: Uploading the binaries to Azure
     inputs:
       SourcePath: '$(Build.ArtifactStagingDirectory)/$(version).zip'
       ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
       ContainerName: 'builds'
-      BlobPrefix: '$(versionFromCode)/$(prerelease)'
+      BlobPrefix: '$(channel)/$(versionFromCode)'
 
+  - task: AzureFileCopy@3
+    displayName: Uploading history logs to Azure
+    inputs:
+      SourcePath: '$(Build.ArtifactStagingDirectory)'
+      ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+      Destination: 'AzureBlob'
+      StorageAccountRM: 'ultimaterails'
+      ContainerName: 'builds'
+      BlobPrefix: '$(channel)/$(versionFromCode)'
+      additionalArgumentsForBlobCopy: '/Pattern:*.html /Y'
