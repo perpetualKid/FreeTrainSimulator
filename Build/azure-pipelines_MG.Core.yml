@@ -98,7 +98,7 @@ jobs:
         }
         else          
         { 
-          $release = [PSCustomObject]@{name ='$(channel)'; date = $date; url = '$(downloadurl)/$(containerName)/$(channel)/(versionFromCode)/$(version).zip'; version = '$(version)'}
+          $release = [PSCustomObject]@{name ='$(channel)'; date = $date; url = '$(downloadurl)/$(containerName)/$(channel)/$(versionFromCode)/$(version).zip'; version = '$(version)'}
           $versionTable.channels += $release
         }
         $json = $versionTable | ConvertTo-Json -Depth 8
