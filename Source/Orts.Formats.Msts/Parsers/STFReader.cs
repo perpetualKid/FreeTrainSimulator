@@ -553,6 +553,8 @@ namespace Orts.Formats.Msts.Parsers
                 return defaultValue.Value;
             }
 
+            if (item.Length == 0)
+                return 0x0;
             uint val;
             if (item.Length == 0) return 0;
             if (uint.TryParse(item, parseHex, parseNFI, out val)) return val;
