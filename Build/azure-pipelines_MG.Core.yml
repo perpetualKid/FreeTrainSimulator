@@ -135,7 +135,7 @@ jobs:
       ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
-      ContainerName: '$(container)'
+      ContainerName: '$(containerName)'
       BlobPrefix: '$(channel)/$(versionFromCode)'
 
   - task: AzureFileCopy@3
@@ -145,7 +145,7 @@ jobs:
       ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
-      ContainerName: '$(container)'
+      ContainerName: '$(containerName)'
       BlobPrefix: '$(channel)'
       additionalArgumentsForBlobCopy: '/Pattern:*.html /Y /SetContentType:text/html'
 
@@ -156,5 +156,5 @@ jobs:
       ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
-      ContainerName: '$(container)'
+      ContainerName: '$(containerName)'
       additionalArgumentsForBlobCopy: '/Pattern:$(versionJson) /Y /SetContentType:application/json'
