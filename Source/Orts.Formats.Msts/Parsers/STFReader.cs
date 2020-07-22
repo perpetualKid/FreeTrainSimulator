@@ -273,7 +273,7 @@ namespace Orts.Formats.Msts.Parsers
         /// <summary>Returns the next whitespace delimited {item} from the STF file skipping comments, etc.
         /// </summary>
         /// <remarks>
-        /// <alert class="important">If a comment/skip/#*/_* ignore block is the last {item} in a block, rather than being totally consumed a dummy '#' is returned, so if EndOFBlock() returns false, you always get an {item} (which can then just be ignored).</alert>
+        /// <alert class="important">If a comment/skip/#*/_* ignore block is the last {item} in a block, rather than being totally consumed a dummy <see cref="EndBlockCommentSentinel"/> is returned, so if EndOFBlock() returns false, you always get an {item} (which can then just be ignored).</alert>
         /// </remarks>
         /// <returns>The next {item} from the STF file, any surrounding quotations will be not be returned.</returns>
         public string ReadItem()
@@ -284,7 +284,7 @@ namespace Orts.Formats.Msts.Parsers
         /// <summary>This is an internal function in STFReader, it returns the next whitespace delimited {item} from the STF file.
         /// </summary>
         /// <remarks>
-        /// <alert class="important">If a comment/skip/#*/_* ignore block is the last {item} in a block, rather than being totally consumed a dummy '#' is returned, so if EndOFBlock() returns false, you always get an {item} (which can then just be ignored).</alert>
+        /// <alert class="important">If a comment/skip/#*/_* ignore block is the last {item} in a block, rather than being totally consumed a dummy <see cref="EndBlockCommentSentinel"/> is returned, so if EndOFBlock() returns false, you always get an {item} (which can then just be ignored).</alert>
         /// </remarks>
         /// <param name="string_mode">When true normal comment processing is disabled.</param>
         /// <returns>The next {item} from the STF file, any surrounding quotations will be not be returned.</returns>
