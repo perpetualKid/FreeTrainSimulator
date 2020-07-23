@@ -8,6 +8,8 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.MultiPlayer;
 
+using SharpDX.Direct3D11;
+
 namespace Orts.Simulation.Signalling
 {
     //================================================================================================//
@@ -19,6 +21,7 @@ namespace Orts.Simulation.Signalling
     public class SignalHead
     {
         private SignalScripts.SCRScripts signalScript;   // used sigscript
+        private CsSignalScript csSignalScript;
 
         public SignalFunction SignalFunction => SignalType?.FunctionType ?? SignalFunction.Unknown;
 
@@ -38,6 +41,9 @@ namespace Orts.Simulation.Signalling
         public int JunctionMainNode { get; internal set; }
         public float? ApproachControlLimitPositionM { get; private set; }
         public float? ApproachControlLimitSpeedMpS { get; private set; }
+
+        public string TextSignalAspect { get; internal set; } = string.Empty;
+
 
         //================================================================================================//
         /// <summary>
@@ -105,6 +111,14 @@ namespace Orts.Simulation.Signalling
                 // get related signalscript
                 SignalScriptProcessing.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
 
+                csSignalScript = CsSignalScripts.TryGetScript(SignalType.Name);
+
+                if (csSignalScript != null)
+                {
+                    csSignalScript.SignalHead = this;
+                    csSignalScript.Initialize();
+                }
+
                 // set signal speeds
                 foreach (SignalAspect aspect in SignalType.Aspects)
                 {
@@ -152,6 +166,11 @@ namespace Orts.Simulation.Signalling
         ///  Set of methods called per signal head from signal script processing
         ///  All methods link through to the main method set for signal objec
         /// </summary>
+
+        public void HandleSignalMessage()
+        {
+            //            csSignalScript?.HandleSignalMessage(SignalObject.thisRef, message)
+        }
 
         public SignalAspectState NextSignalMR(int signalType)
         {
@@ -470,14 +489,15 @@ namespace Orts.Simulation.Signalling
             return 1;
         }
 
-        //================================================================================================//
         /// <summary>
         ///  Default update process
         /// </summary>
-
         public void Update()
         {
-            SignalScriptProcessing.SignalHeadUpdate(this, signalScript);
+            if (csSignalScript != null)
+                csSignalScript.Update();
+            else
+                SignalScriptProcessing.SignalHeadUpdate(this, signalScript);
         }
     } //Update
 

@@ -23,6 +23,8 @@ namespace Orts.Scripting.Api
         {
             MetadataReference.CreateFromFile(typeof(Trace).GetTypeInfo().Assembly.Location),
             MetadataReference.CreateFromFile("Orts.Common.dll"),
+            MetadataReference.CreateFromFile("Orts.Formats.Msts.dll"),
+            MetadataReference.CreateFromFile("Orts.Format.OR.dll"),
             MetadataReference.CreateFromFile("Orts.Settings.dll"),
             MetadataReference.CreateFromFile("Orts.Scripting.Api.dll"),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "mscorlib.dll")),
