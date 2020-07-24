@@ -4681,7 +4681,7 @@ namespace Orts.Simulation.Physics
                 Cars[i + 1].TotalForceN -= car.CouplerForceU;
 
                 car.CouplerForceUSmoothed.Update(elapsedTime, car.CouplerForceU);
-                car.SmoothedCouplerForceUN = car.CouplerForceUSmoothed.SmoothedValue;
+                car.SmoothedCouplerForceUN = (float)car.CouplerForceUSmoothed.SmoothedValue;
 
                 // Find max coupler force on the car - currently doesn't appear to be used anywhere
                 if (MaximumCouplerForceN < Math.Abs(car.CouplerForceU))

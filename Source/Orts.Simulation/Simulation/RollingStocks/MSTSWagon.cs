@@ -1003,9 +1003,9 @@ namespace Orts.Simulation.RollingStocks
                     stf.MustMatch("(");
                     FrontCouplerOpenFitted = true;
                     FrontCouplerOpenShapeFileName = stf.ReadString();
-                    FrontCouplerOpenAnimWidthM = stf.ReadFloat(STFReader.UNITS.Distance, null);
-                    FrontCouplerOpenAnimHeightM = stf.ReadFloat(STFReader.UNITS.Distance, null);
-                    FrontCouplerOpenAnimLengthM = stf.ReadFloat(STFReader.UNITS.Distance, null);
+                    FrontCouplerOpenAnimWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
+                    FrontCouplerOpenAnimHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
+                    FrontCouplerOpenAnimLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
                     stf.SkipRestOfBlock();
                     break;
                     
@@ -1013,9 +1013,9 @@ namespace Orts.Simulation.RollingStocks
                     stf.MustMatch("(");
                     RearCouplerOpenFitted = true;
                     RearCouplerOpenShapeFileName = stf.ReadString();
-                    RearCouplerOpenAnimWidthM = stf.ReadFloat(STFReader.UNITS.Distance, null);
-                    RearCouplerOpenAnimHeightM = stf.ReadFloat(STFReader.UNITS.Distance, null);
-                    RearCouplerOpenAnimLengthM = stf.ReadFloat(STFReader.UNITS.Distance, null);
+                    RearCouplerOpenAnimWidthM = stf.ReadFloat(STFReader.Units.Distance, null);
+                    RearCouplerOpenAnimHeightM = stf.ReadFloat(STFReader.Units.Distance, null);
+                    RearCouplerOpenAnimLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
                     stf.SkipRestOfBlock();
                     break;
 
