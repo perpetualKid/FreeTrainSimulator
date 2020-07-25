@@ -740,6 +740,7 @@ namespace Orts.Formats.Msts.Models
                 case CabViewControlType.Sanders:
                 case CabViewControlType.Bell:
                 case CabViewControlType.Reset:
+                case CabViewControlType.Vacuum_Exhauster:
                     ControlStyle = CabViewControlStyle.While_Pressed; break;
                 case CabViewControlType.Direction:
                     if (Orientation == 0)

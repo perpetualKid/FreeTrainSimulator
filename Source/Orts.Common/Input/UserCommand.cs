@@ -186,6 +186,7 @@ namespace Orts.Common.Input
         [Description("Control Large Ejector Decrease")] ControlLargeEjectorDecrease,
         [Description("Control Small Ejector Increase")] ControlSmallEjectorIncrease,
         [Description("Control Small Ejector Decrease")] ControlSmallEjectorDecrease,
+        [Description("Control Vacuum Exhauster")] ControlVacuumExhausterPressed,
         [Description("Control Cylinder Compound")] ControlCylinderCompound,
         [Description("Control Firing")] ControlFiring,
         [Description("Control Refill")] ControlRefill,

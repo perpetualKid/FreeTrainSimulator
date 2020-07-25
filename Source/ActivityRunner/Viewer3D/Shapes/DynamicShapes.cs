@@ -187,6 +187,24 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
             SharedShape.PrepareFrame(frame, WorldPosition, XNAMatrices, Flags);
         }
+
+        public  void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, in WorldPosition position)
+        {
+            // if the shape has animations
+            if (SharedShape.Animations != null && SharedShape.Animations.Count > 0 && SharedShape.Animations[0].FrameCount > 1)
+            {
+                animationKey += SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds * frameRateMultiplier;
+                while (animationKey > SharedShape.Animations[0].FrameCount)
+                    animationKey -= SharedShape.Animations[0].FrameCount;
+                while (animationKey < 0)
+                    animationKey += SharedShape.Animations[0].FrameCount;
+
+                // Update the pose for each matrix
+                for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
+                    AnimateMatrix(matrix, animationKey);
+            }
+            SharedShape.PrepareFrame(frame, position, XNAMatrices, Flags);
+        }
     }
 
     //Class AnalogClockShape to animate analog OR-Clocks as child of AnimatedShape <- PoseableShape <- StaticShape

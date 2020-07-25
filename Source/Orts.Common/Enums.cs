@@ -229,6 +229,7 @@ namespace Orts.Common
         CylinderCompound,
         LargeEjector,
         SmallEjector,
+        VacuumExhauster,
         TenderCoal,
         TenderWater,
         // General

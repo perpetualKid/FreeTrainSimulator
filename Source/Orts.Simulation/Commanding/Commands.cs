@@ -758,8 +758,37 @@ namespace Orts.Simulation.Commanding
     }
 
     [Serializable()]
-    public sealed class HornCommand : BooleanCommand
+    public sealed class VacuumExhausterCommand : BooleanCommand
     {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public VacuumExhausterCommand(CommandLog log, bool targetState)
+            : base(log, targetState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (targetState)
+            {
+                if (!Receiver.VacuumExhausterPressed)
+                    Receiver.Train.SignalEvent(TrainEvent.VacuumExhausterOn);
+            }
+            else
+            {
+                Receiver.Train.SignalEvent(TrainEvent.VacuumExhausterOff);
+            }
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "fast" : "normal");
+        }
+    }
+
+    [Serializable()]
+    public sealed class HornCommand : BooleanCommand {
         public static MSTSLocomotive Receiver { get; set; }
 
         public HornCommand(CommandLog log, bool targetState)
