@@ -89,4 +89,4 @@ steps:
     Destination: 'AzureBlob'
     StorageAccountRM: 'ultimaterails'
     ContainerName: 'ci-builds'
-    additionalArgumentsForBlobCopy: '/Pattern:*.json /Y'
+    additionalArgumentsForBlobCopy: '/Pattern:*.json /Y /SetContentType:application/json'
