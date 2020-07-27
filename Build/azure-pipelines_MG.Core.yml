@@ -5,6 +5,8 @@ trigger:
   paths:
     exclude: # file paths which will not trigger a build
     - Build/*
+# no PR triggers
+pr: none
 
 jobs:
 - job: GetVersionJob
