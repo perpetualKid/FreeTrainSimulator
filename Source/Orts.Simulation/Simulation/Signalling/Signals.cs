@@ -8396,6 +8396,7 @@ namespace Orts.Simulation.Signalling
             ApproachControlSet = inf.ReadBoolean();
             ClaimLocked = inf.ReadBoolean();
             ForcePropOnApproachControl = inf.ReadBoolean();
+            hasPermission = (Permission)inf.ReadInt32();
 
             // set dummy train, route direction index will be set later on restore of train
 
@@ -8542,6 +8543,7 @@ namespace Orts.Simulation.Signalling
             outf.Write(ApproachControlSet);
             outf.Write(ClaimLocked);
             outf.Write(ForcePropOnApproachControl);
+            outf.Write((int)hasPermission);
             outf.Write(LockedTrains.Count);
             for (int cnt = 0; cnt < LockedTrains.Count; cnt++)
             {
@@ -10437,7 +10439,7 @@ namespace Orts.Simulation.Signalling
             {
                 propagateRequest();
             }
-            if (thisTrain != null && thisTrain.Train is AITrain && thisTrain.Train.SpeedMpS == 0)
+            if (thisTrain != null && thisTrain.Train is AITrain && Math.Abs(thisTrain.Train.SpeedMpS) <= Simulator.MaxStoppedMpS)
             {
                 WorldLocation location = this.tdbtraveller.WorldLocation;
                 ((AITrain)thisTrain.Train).AuxActionsContain.CheckGenActions(this.GetType(), location, 0f, 0f, this.tdbtraveller.TrackNodeIndex);
@@ -12197,7 +12199,7 @@ namespace Orts.Simulation.Signalling
         public SignalBlockState RouteClearedToSignal(int req_signalid, bool allowCallOn, string dumpfile)
         {
             SignalBlockState routeState = SignalBlockState.Jn_Obstructed;
-            if (enabledTrain != null && req_signalid >= 0 && req_signalid < signalRef.SignalObjects.Length)
+            if (enabledTrain != null && enabledTrain.Train.ValidRoute[enabledTrain.TrainRouteDirectionIndex] != null && req_signalid >= 0 && req_signalid < signalRef.SignalObjects.Length)
             {
                 Signal otherSignal = signalRef.SignalObjects[req_signalid];
 
@@ -12210,8 +12212,10 @@ namespace Orts.Simulation.Signalling
                     File.AppendAllText(dumpfile, sob.ToString());
                 }
 
-                int thisRouteIndex = enabledTrain.Train.ValidRoute[0].GetRouteIndex(TCNextTC, enabledTrain.Train.PresentPosition[0].RouteListIndex);
-                int otherRouteIndex = enabledTrain.Train.ValidRoute[0].GetRouteIndex(otherSignal.TCReference, thisRouteIndex);
+                Train.TCSubpathRoute trainRoute = enabledTrain.Train.ValidRoute[enabledTrain.TrainRouteDirectionIndex];
+
+                int thisRouteIndex = trainRoute.GetRouteIndex(isSignalNormal() ? TCNextTC : TCReference, 0);
+                int otherRouteIndex = trainRoute.GetRouteIndex(otherSignal.TCReference, thisRouteIndex);
 
                 if (otherRouteIndex < 0)
                 {
@@ -12227,7 +12231,7 @@ namespace Orts.Simulation.Signalling
                 else
                 {
                     bool routeCleared = true;
-                    Train.TCSubpathRoute reqPath = new Train.TCSubpathRoute(enabledTrain.Train.ValidRoute[0], thisRouteIndex, otherRouteIndex);
+                    Train.TCSubpathRoute reqPath = new Train.TCSubpathRoute(trainRoute, thisRouteIndex, otherRouteIndex);
 
                     for (int iIndex = 0; iIndex < reqPath.Count && routeCleared; iIndex++)
                     {

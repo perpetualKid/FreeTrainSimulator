@@ -1545,8 +1545,9 @@ namespace Orts.Simulation.RollingStocks
                 AcceptMUSignals ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 ThrottlePercent,
                 String.Format("{0}", FormatStrings.FormatSpeedDisplay(SpeedMpS, IsMetric)),
-                FormatStrings.FormatPower(MotiveForceN * SpeedMpS, IsMetric, false, false),
-                String.Format("{0}{1}", FormatStrings.FormatForce(MotiveForceN, IsMetric), WheelSlip ? "!!!" : WheelSlipWarning ? "???" : ""));
+                // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
+                FormatStrings.FormatPower((MotiveForceN - DynamicBrakeForceN) * SpeedMpS, IsMetric, false, false),
+                String.Format("{0}{1}", FormatStrings.FormatForce(MotiveForceN - DynamicBrakeForceN, IsMetric), WheelSlip ? "!!!" : WheelSlipWarning ? "???" : ""));
         }
         public virtual string GetTrainBrakeStatus() { return null; }
         public virtual string GetEngineBrakeStatus() { return null; }
@@ -2451,6 +2452,7 @@ namespace Orts.Simulation.RollingStocks
             var isOverTrough = false;
             // start at front of train
             int thisSectionIndex = Train.PresentPosition[0].TCSectionIndex;
+            if (thisSectionIndex < 0) return isOverTrough;
             float thisSectionOffset = Train.PresentPosition[0].TCOffset;
             int thisSectionDirection = Train.PresentPosition[0].TCDirection;
 
