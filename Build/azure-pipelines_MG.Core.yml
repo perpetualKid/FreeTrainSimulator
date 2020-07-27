@@ -96,7 +96,8 @@ jobs:
         if ($release -ne $null)
         {
           $release.date = $date
-          $release.version = $(version)
+          $release.version = '$(version)'
+          $release.url = '$(downloadurl)/$(containerName)/$(channel)/$(versionFromCode)/$(version).zip'
         }
         else          
         { 
