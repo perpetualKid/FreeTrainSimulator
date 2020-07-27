@@ -96,7 +96,7 @@ jobs:
         if ($release -ne $null)
         {
           $release.date = $date
-          $release.version = $(version1)
+          $release.version = $(version)
         }
         else          
         { 
