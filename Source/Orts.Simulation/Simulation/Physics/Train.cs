@@ -2121,10 +2121,10 @@ namespace Orts.Simulation.Physics
 
                             // ++++++++++++++++++++++++
                             // Infiltration Heat loss, per degree of temp change
-                            float NumAirShiftspSec = pS.FrompH(0.5f);      // Rule of thumb 0.5 air shifts / hr
+                            float NumAirShiftspSec = (float)Frequency.Periodic.FromHours(0.5f);      // Rule of thumb 0.5 air shifts / hr
 
                             car.CarHeatVolumeM3 = car.CarWidthM * (car.CarLengthM - CarCouplingPipeM) * (car.CarHeightM - BogieHeightM);
-                            float HeatLossInfiltrationWpT = W.FromKW(SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * NumAirShiftspSec * car.CarHeatVolumeM3 * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC));
+                            float HeatLossInfiltrationWpT = (float)(Dynamics.Power.FromKW(SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * NumAirShiftspSec * car.CarHeatVolumeM3 * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC)));
 
                             car.TotalCarCompartmentHeatLossWpT = HeatLossTransmissionWpT + HeatLossInfiltrationWpT;
 
@@ -2137,28 +2137,28 @@ namespace Orts.Simulation.Physics
                             // QRad = % * A * e * (Tp^4 - To^4), where % = Boltzmans constant, A = surface area of pipe, Tp^4 = pipe temperature, To^4 = temperature of air around the pipe, e = emissivity factor
 
                             // Calculate steam pipe surface area
-                            float CompartmentSteamPipeRadiusM = Me.FromIn(2.0f) / 2.0f;  // Assume the steam pipes in the compartments have diameter of 2" (50mm)
-                            float DoorSteamPipeRadiusM = Me.FromIn(1.75f) / 2.0f;        // Assume the steam pipes in the doors have diameter of 1.75" (50mm)
+                            float CompartmentSteamPipeRadiusM = (float)(Size.Length.FromIn(2.0f) / 2.0f);  // Assume the steam pipes in the compartments have diameter of 2" (50mm)
+                            float DoorSteamPipeRadiusM = (float)(Size.Length.FromIn(1.75f) / 2.0f);        // Assume the steam pipes in the doors have diameter of 1.75" (50mm)
 
                             // Assume door pipes are 3' 4" (ie 3.3') long, and that there are doors at both ends of the car, ie x 2
-                            float CarDoorLengthM = 2.0f * Me.FromFt(3.3f);
+                            float CarDoorLengthM = 2.0f * (float)(Size.Length.FromFt(3.3f));
                             float CarDoorVolumeM3 = car.CarWidthM * CarDoorLengthM * (car.CarHeightM - BogieHeightM);
 
                             float CarDoorPipeAreaM2 = 2.0f * MathHelper.Pi * DoorSteamPipeRadiusM * CarDoorLengthM;
 
                             // Use rule of thumb - 1" of 2" steam heat pipe for every 3.0 cu ft of volume in car compartment (third class)
-                            float CarCompartmentPipeLengthM = Me.FromIn((car.CarHeatVolumeM3 - CarDoorVolumeM3) / (Me3.FromFt3(3.0f)));
+                            float CarCompartmentPipeLengthM = (float)(Size.Length.FromIn((car.CarHeatVolumeM3 - CarDoorVolumeM3) / (Size.Volume.FromFt3(3.0f))));
                             float CarCompartmentPipeAreaM2 = 2.0f * MathHelper.Pi * CompartmentSteamPipeRadiusM * CarCompartmentPipeLengthM;
 
                             car.CarHeatCompartmentPipeAreaM2 = CarCompartmentPipeAreaM2 + CarDoorPipeAreaM2;
 
                             // Pipe convection heat produced - steam is reduced to atmospheric pressure when it is injected into compartment
-                            float CompartmentSteamPipeTempC = C.FromF(mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[0]);
+                            float CompartmentSteamPipeTempC = (float)Temperature.Celsius.FromF(mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[0]);
                             car.CarCompartmentSteamPipeHeatConvW = (PipeHeatTransCoeffWpM2K * car.CarHeatCompartmentPipeAreaM2 * (CompartmentSteamPipeTempC - car.CarCurrentCarriageHeatTempC));
 
                             // Pipe radiation heat produced
-                            float PipeTempAK = (float)Math.Pow(C.ToK(C.FromF(CompartmentSteamPipeTempC)), 4.0f);
-                            float PipeTempBK = (float)Math.Pow(C.ToK(car.CarCurrentCarriageHeatTempC), 4.0f);
+                            float PipeTempAK = (float)Math.Pow(Temperature.Kelvin.FromF(CompartmentSteamPipeTempC), 4.0f);
+                            float PipeTempBK = (float)Math.Pow(Temperature.Celsius.ToK(car.CarCurrentCarriageHeatTempC), 4.0f);
                             car.CarCompartmentSteamHeatPipeRadW = (BoltzmanConstPipeWpM2 * EmissivityFactor * car.CarHeatCompartmentPipeAreaM2 * (PipeTempAK - PipeTempBK));
 
                             car.CarHeatCompartmentSteamPipeHeatW = car.CarCompartmentSteamHeatPipeRadW + car.CarCompartmentSteamPipeHeatConvW;
