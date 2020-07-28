@@ -120,6 +120,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 118: return TrainEvent.TrainControlSystemAlert2;
                         case 119: return TrainEvent.CylinderCompoundToggle; // Locomotive switched to compound
 
+                        case 120: return TrainEvent.BlowdownValveToggle;
                         case 121: return TrainEvent.SteamPulse1;
                         case 122: return TrainEvent.SteamPulse2;
                         case 123: return TrainEvent.SteamPulse3;
@@ -176,6 +177,10 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
 
                         case 173: return TrainEvent.HotBoxBearingOn;
                         case 174: return TrainEvent.HotBoxBearingOff;
+
+                        case 175: return TrainEvent.BoilerBlowdownOn;
+                        case 176: return TrainEvent.BoilerBlowdownOff;
+
                         //
                         default: return TrainEvent.None;
                     }

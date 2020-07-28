@@ -218,6 +218,7 @@ namespace Orts.Common
         Regulator,
         Injector1,
         Injector2,
+        BlowdownValve,
         Blower,
         SteamHeat,
         Damper,
@@ -358,6 +359,7 @@ namespace Orts.Common
         WaterInjector1On,
         WaterInjector2Off,
         WaterInjector2On,
+        BlowdownValveToggle,
         SteamHeatChange,
         SteamPulse1,
         SteamPulse2,
@@ -419,7 +421,10 @@ namespace Orts.Common
         SecondEnginePowerOn,
 
         HotBoxBearingOn,
-        HotBoxBearingOff
+        HotBoxBearingOff,
+
+        BoilerBlowdownOn,
+        BoilerBlowdownOff,
     }
     public enum PowerSupplyEvent
     {

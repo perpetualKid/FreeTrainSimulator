@@ -322,7 +322,7 @@ namespace Orts.Common.Calc
         {
             /// <summary>Convert from kiloWatts to Watts</summary>
             public static double FromKW(double kiloWatts) { return kiloWatts * 1000; }
-            /// <summary>Convert from Watts to kileWatts</summary>
+            /// <summary>Convert from Watts to kiloWatts</summary>
             public static double ToKW(double watts) { return watts * (1.0 / 1000); }
             /// <summary>Convert from HorsePower to Watts</summary>
             public static double FromHp(double horsePowers) { return horsePowers * 745.699872; }

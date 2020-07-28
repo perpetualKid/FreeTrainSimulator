@@ -171,6 +171,7 @@ namespace Orts.Common.Input
         [Description("Control Injector 2 Increase")] ControlInjector2Increase,
         [Description("Control Injector 2 Decrease")] ControlInjector2Decrease,
         [Description("Control Injector 2")] ControlInjector2,
+        [Description("Control Blowdown Valve")] ControlBlowdownValve,
         [Description("Control Blower Increase")] ControlBlowerIncrease,
         [Description("Control Blower Decrease")] ControlBlowerDecrease,
         [Description("Control Steam Heat Increase")] ControlSteamHeatIncrease,
