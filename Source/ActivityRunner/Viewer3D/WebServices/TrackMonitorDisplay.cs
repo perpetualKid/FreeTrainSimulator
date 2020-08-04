@@ -15,17 +15,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
-using ORTS.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using Microsoft.Xna.Framework;
+
+using Orts.Common;
+using Orts.Common.Calc;
+using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
+
 using static Orts.Simulation.Physics.Train.TrainObjectItem;
 
-namespace Orts.Viewer3D.WebServices
+namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
     /// <summary>
     /// An in-browser Track Monitor that duplicates much of the functionality of the native Track Monitor.
@@ -325,7 +328,7 @@ namespace Orts.Viewer3D.WebServices
             AddLabel(new ListLabel
             {
                 FirstCol = viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
-                TrackCol = (showMUReverser ? $"{Math.Abs(playerTrain.MUReverserPercent):0}% " : "") + FormatStrings.Catalog.GetParticularString("Reverser", GetStringAttribute.GetPrettyName(viewer.PlayerLocomotive.Direction)),
+                TrackCol = (showMUReverser ? $"{Math.Abs(playerTrain.MUReverserPercent):0}% " : "") + FormatStrings.Catalog.GetParticularString("Reverser", viewer.PlayerLocomotive.Direction.GetDescription()),
             });
 
             // Present cab orientation (0=forward, 1=backward)
@@ -659,7 +662,7 @@ namespace Orts.Viewer3D.WebServices
         /// <returns>The computed interval between markers.</returns>
         private static float DrawDistanceMarkers(List<ListLabel> labels, float distanceFactor, int zeroPoint, int numberOfMarkers, TrainDirection direction, bool useMetric)
         {
-            float maxDistanceD = Me.FromM(MaximumDistanceM, useMetric);
+            float maxDistanceD = (float)Size.Length.FromM(MaximumDistanceM, useMetric);
             float markerIntervalD = maxDistanceD / numberOfMarkers;
             float roundingValue = RoundingValues
                 .Where((KeyValuePair<float, float> pair) => pair.Key == 0f || markerIntervalD > pair.Key)
@@ -667,7 +670,7 @@ namespace Orts.Viewer3D.WebServices
                 .Value;
 
             // From display back to meter
-            float markerIntervalM = Me.ToM(Convert.ToInt32(markerIntervalD / roundingValue) * roundingValue, useMetric);
+            float markerIntervalM = (float)Size.Length.ToM(Convert.ToInt32(markerIntervalD / roundingValue) * roundingValue, useMetric);
 
             IEnumerable<int> imarkers = Enumerable.Range(1, numberOfMarkers + 1)
                 .Where((int ipos) => markerIntervalM * ipos < MaximumDistanceM);
@@ -896,7 +899,7 @@ namespace Orts.Viewer3D.WebServices
 
             public override ListLabel TransformLabel(ListLabel dataCol)
             {
-                float allowedSpeedMpS = Math.Min(Item.AllowedSpeedMpS, (float)Program.Simulator.TRK.Tr_RouteFile.SpeedLimit);
+                float allowedSpeedMpS = Math.Min(Item.AllowedSpeedMpS, (float)Program.Simulator.TRK.Route.SpeedLimit);
                 Color color;
                 switch (Item.SpeedObjectType)
                 {
