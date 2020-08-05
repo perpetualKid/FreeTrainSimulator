@@ -2314,11 +2314,11 @@ namespace Orts.Simulation.Physics
                                 float CarTemp = car.CarCurrentCarriageHeatTempC;
                                 if (car.WagonType == TrainCar.WagonTypes.Passenger)
                                 {
-                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetStringFmt("Carriage {0} temperature is too cold, the passengers are freezing.", car.CarID));
+                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Carriage {0} temperature is too cold, the passengers are freezing.", car.CarID));
                                 }
                                 else
                                 {
-                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetStringFmt("Car {0} temperature is too cold for the freight.", car.CarID));
+                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Car {0} temperature is too cold for the freight.", car.CarID));
                                 }
                             }
 
