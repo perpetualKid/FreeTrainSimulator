@@ -213,11 +213,13 @@ namespace Orts.Common
         PlayerDiesel,
         HelperDiesel,
         DieselFuel,
+        SteamHeatBoilerWater,
         // Steam power
         SteamLocomotiveReverser,
         Regulator,
         Injector1,
         Injector2,
+        BlowdownValve,
         Blower,
         SteamHeat,
         Damper,
@@ -229,6 +231,7 @@ namespace Orts.Common
         CylinderCompound,
         LargeEjector,
         SmallEjector,
+        VacuumExhauster,
         TenderCoal,
         TenderWater,
         // General
@@ -325,6 +328,14 @@ namespace Orts.Common
         FuelTowerUp,
         GearDown,
         GearUp,
+        GenericEvent1,
+        GenericEvent2,
+        GenericEvent3,
+        GenericEvent4,
+        GenericEvent5,
+        GenericEvent6,
+        GenericEvent7,
+        GenericEvent8,
         HornOff,
         HornOn,
         LargeEjectorChange,
@@ -357,6 +368,7 @@ namespace Orts.Common
         WaterInjector1On,
         WaterInjector2Off,
         WaterInjector2On,
+        BlowdownValveToggle,
         SteamHeatChange,
         SteamPulse1,
         SteamPulse2,
@@ -418,8 +430,26 @@ namespace Orts.Common
         SecondEnginePowerOn,
 
         HotBoxBearingOn,
-        HotBoxBearingOff
+        HotBoxBearingOff,
+
+        BoilerBlowdownOn,
+        BoilerBlowdownOff,
+
+        SteamGearLeverToggle,
+        AIFiremanSoundOn,
+        AIFiremanSoundOff,
+
+        GearPosition0,
+        GearPosition1,
+        GearPosition2,
+        GearPosition3,
+        GearPosition4,
+        GearPosition5,
+        GearPosition6,
+        GearPosition7,
+        GearPosition8,
     }
+
     public enum PowerSupplyEvent
     {
         RaisePantograph,
@@ -560,6 +590,18 @@ namespace Orts.Common
         BrakeNotch           // EngineBrakesControllerBrakeNotchStart
     }
 
+    public enum TrainControlMode
+    {
+        AutoSignal,
+        AutoNode,
+        Manual,
+        Explorer,
+        OutOfControl,
+        Inactive,
+        TurnTable,
+        Undefined,
+    }
+
 
     public enum TCSEvent
     {
@@ -603,6 +645,38 @@ namespace Orts.Common
         /// Internal reset request by the horn handle.
         /// </summary>
         HornActivated,
+        /// <summary>
+        /// Generic TCS button pressed.
+        /// </summary>
+        GenericTCSButtonPressed,
+        /// <summary>
+        /// Generic TCS button released.
+        /// </summary>
+        GenericTCSButtonReleased,
+        /// <summary>
+        /// Circuit breaker has been closed.
+        /// </summary>
+        CircuitBreakerClosed,
+        /// <summary>
+        /// Circuit breaker has been opened.
+        /// </summary>
+        CircuitBreakerOpen,
+        /// <summary>
+        /// Save request.
+        /// </summary>
+        Save,
+        /// <summary>
+        /// Restore request.
+        /// </summary>
+        Restore,
+        /// Generic TCS switch toggled off.
+        /// </summary>
+        GenericTCSSwitchOff,
+        /// <summary>
+        /// Generic TCS switch toggled on.
+        /// </summary>
+        GenericTCSSwitchOn,
+        /// <summary>
     }
 
     /// <summary>

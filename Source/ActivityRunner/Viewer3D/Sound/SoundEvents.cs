@@ -120,6 +120,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 118: return TrainEvent.TrainControlSystemAlert2;
                         case 119: return TrainEvent.CylinderCompoundToggle; // Locomotive switched to compound
 
+                        case 120: return TrainEvent.BlowdownValveToggle;
                         case 121: return TrainEvent.SteamPulse1;
                         case 122: return TrainEvent.SteamPulse2;
                         case 123: return TrainEvent.SteamPulse3;
@@ -144,6 +145,10 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 141: return TrainEvent.BrakePipePressureIncrease;
                         case 142: return TrainEvent.BrakePipePressureDecrease;
                         case 143: return TrainEvent.BrakePipePressureStoppedChanging;
+
+                        case 147: return TrainEvent.SteamGearLeverToggle;
+                        case 148: return TrainEvent.AIFiremanSoundOn;
+                        case 149: return TrainEvent.AIFiremanSoundOff;
 
                         case 150: return TrainEvent.CircuitBreakerOpen;
                         case 151: return TrainEvent.CircuitBreakerClosing;
@@ -176,6 +181,28 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
 
                         case 173: return TrainEvent.HotBoxBearingOn;
                         case 174: return TrainEvent.HotBoxBearingOff;
+
+                        case 175: return TrainEvent.BoilerBlowdownOn;
+                        case 176: return TrainEvent.BoilerBlowdownOff;
+
+                        case 181: return TrainEvent.GenericEvent1;
+                        case 182: return TrainEvent.GenericEvent2;
+                        case 183: return TrainEvent.GenericEvent3;
+                        case 184: return TrainEvent.GenericEvent4;
+                        case 185: return TrainEvent.GenericEvent5;
+                        case 186: return TrainEvent.GenericEvent6;
+                        case 187: return TrainEvent.GenericEvent7;
+                        case 188: return TrainEvent.GenericEvent8;
+
+                        case 200: return TrainEvent.GearPosition0;
+                        case 201: return TrainEvent.GearPosition1;
+                        case 202: return TrainEvent.GearPosition2;
+                        case 203: return TrainEvent.GearPosition3;
+                        case 204: return TrainEvent.GearPosition4;
+                        case 205: return TrainEvent.GearPosition5;
+                        case 206: return TrainEvent.GearPosition6;
+                        case 207: return TrainEvent.GearPosition7;
+                        case 208: return TrainEvent.GearPosition8;
                         //
                         default: return TrainEvent.None;
                     }

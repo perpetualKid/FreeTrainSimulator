@@ -22,8 +22,6 @@ using System.Diagnostics;
 
 namespace Orts.Simulation
 {
-    // <CJComment> Some of these are not cab controls or even controls. However they all make good use of structured text. </CJComment>
-
     public class DisplayMessageEventArgs : EventArgs
     {
         public readonly string Key;
@@ -85,12 +83,14 @@ namespace Orts.Simulation
                 // Diesel power
                 , new string [] { GetString("Player Diesel Power"), GetString("off"), null, GetString("on"), null, null, GetString("locked. Close throttle then re-try.") }
                 , new string [] { GetString("Helper Diesel Power"), GetString("off"), null, GetString("on") }
-                , new string [] { GetString("Diesel Tank"), null, null, GetString("re-fueled"), null, GetString("level") } 
+                , new string [] { GetString("Diesel Tank"), null, null, GetString("re-fueled"), null, GetString("level") }
+                , new string [] { GetString("Boiler Water Tank"), null, null, GetString("re-fueled"), null, GetString("level") }
                 // Steam power
                 , new string [] { GetParticularString("Steam", "Reverser"), GetString("reverse"), GetString("neutral"), GetString("forward"), null, null, GetString("locked. Close throttle, stop train then re-try.") } 
                 , new string [] { GetString("Regulator"), null, null, null, GetString("close"), GetString("open") }    // Throttle for steam locomotives
                 , new string [] { GetString("Injector 1"), GetString("off"), null, GetString("on"), GetString("close"), GetString("open") } 
-                , new string [] { GetString("Injector 2"), GetString("off"), null, GetString("on"), GetString("close"), GetString("open") } 
+                , new string [] { GetString("Injector 2"), GetString("off"), null, GetString("on"), GetString("close"), GetString("open") }
+                , new string [] { GetString("Blowdown Valve"), GetString("close"), null, GetString("open") }
                 , new string [] { GetString("Blower"), null, null, null, GetString("decrease"), GetString("increase") } 
                 , new string [] { GetString("SteamHeat"), null, null, null, GetString("decrease"), GetString("increase") } 
                 , new string [] { GetString("Damper"), null, null, null, GetString("close"), GetString("open") } 
@@ -101,7 +101,8 @@ namespace Orts.Simulation
                 , new string [] { GetString("Cylinder Cocks"), GetString("close"), null, GetString("open") } 
                 , new string [] { GetString("Cylinder Compound"), GetString("close"), null, GetString("open") }
                 , new string [] { GetString("LargeEjector"), null, null, null, GetString("decrease"), GetString("increase") }
-                , new string [] { GetString("SmallEjector"), null, null, null, GetString("decrease"), GetString("increase") } 
+                , new string [] { GetString("SmallEjector"), null, null, null, GetString("decrease"), GetString("increase") }
+                , new string [] { GetString("VacuumExhauster"), GetString("normal"), null, GetString("fast") }
                 , new string [] { GetString("Tender"), null, null, GetString("Coal re-filled"), null, GetString("Coal level") } 
                 , new string [] { GetString("Tender"), null, null, GetString("Water re-filled"), null, GetString("Water level") }
                 // General

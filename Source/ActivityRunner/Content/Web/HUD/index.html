@@ -1,16 +1,34 @@
 <!DOCTYPE HTML>
+<!--
+COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
+
+This file is part of Open Rails.
+
+Open Rails is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Open Rails is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <html lang="en">
 <head>
+	<title>OR: Heads Up Display (HUD) - Common Page</title>
 	<meta charset="utf-8"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1"><!-- adds zooming for mobiles -->
-	<title>OR: Heads Up Display (HUD) - Common Page</title>
 	<link rel="shortcut icon" type="image/png" href="/or_logo.png"><!-- This icon appears in the page's tab and its bookmark. -->
 	<link rel="stylesheet" type="text/css" href="/index.css"><!-- share styles with home page -->
-  <link rel="stylesheet" type="text/css" href="index.css">
+	<link rel="stylesheet" type="text/css" href="index.css">
 	<script src="index.js"></script>
 </head>
 
-<body onload="poll(500)" ><!-- 500 mSec is the default and may be omitted -->
+<body onload="setInterval (ApiHeadUpDisplay, 500)">
   <ul>
     <li><a id="common">Common</a></li>
     <li><a id="consist">Consist</a></li>
@@ -22,11 +40,13 @@
     <li><a id="debug">Debug</a></li>
   </ul>
   <div id=menu><a href="/">Back to Menu</a></div>
-  <h2>Open Rails - Heads Up Display</h2>
+  <h2>Open Rails - Head Up Display</h2>
   <br><div id="HUDCommon"></div>
   <br><h2 id="ExtraHeading"></h2>
   <br><div id="HUDExtra"></div>
 <script>
+var pageNo = 0;
+
 document.getElementById("common").onclick = function (){
 	pageNo = 0;
 }

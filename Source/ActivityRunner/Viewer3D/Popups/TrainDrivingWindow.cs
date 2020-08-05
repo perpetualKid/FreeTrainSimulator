@@ -438,7 +438,7 @@ namespace Orts.Viewer3D.Popups
             else
             {
                 // Detect Autopilot is on to avoid flickering when slim window is displayed
-                var AutopilotOn = Owner.Viewer.Settings.Autopilot && Owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING ? true : false;
+                var AutopilotOn = Owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING ? true : false;
 
                 //ResizeWindow, when the string spans over the right boundary of the window
                 var maxFirstColWidth = ListToLabel.Max(x => x.FirstColWidth);
@@ -665,7 +665,7 @@ namespace Orts.Viewer3D.Popups
             }
             else if (BrakeStatus.Contains(Viewer.Catalog.GetString("Lead")))
             {
-                var IndexOffset  = Viewer.Catalog.GetString("Lead").Length + 1;
+                var IndexOffset = Viewer.Catalog.GetString("Lead").Length + 1;
                 brakeInfoValue = BrakeStatus.Substring(0, BrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"))).TrimEnd();
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false, keyPressed);
 
@@ -704,7 +704,7 @@ namespace Orts.Viewer3D.Popups
             keyPressed = "";
             if (ShowRetainers)
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Retainers"), (PlayerTrain.RetainerPercent + " " + Viewer.Catalog.GetString(PlayerTrain.RetainerSetting.GetDescription())), "", false, keyPressed); keyPressed = "";
-		keyPressed = "";
+            keyPressed = "";
             if ((Owner.Viewer.PlayerLocomotive as MSTSLocomotive).EngineBrakeFitted) // ideally this test should be using "engineBrakeStatus != null", but this currently does not work, as a controller is defined by default
             {
             }
@@ -723,7 +723,7 @@ namespace Orts.Viewer3D.Popups
             keyPressed = "";
             if (DynamicBrakeStatus != null && Locomotive.IsLeadLocomotive())
             {
-                if (!DynBrakeSetup && ( UserInput.IsDown(UserCommand.ControlDynamicBrakeIncrease) && DynamicBrakePercent == 0)
+                if (!DynBrakeSetup && (UserInput.IsDown(UserCommand.ControlDynamicBrakeIncrease) && DynamicBrakePercent == 0)
                     || (CombinedCT && UserInput.IsDown(UserCommand.ControlThrottleDecrease) && Owner.Viewer.PlayerLocomotive.ThrottlePercent == 0 && DynamicBrakeStatus == "0%"))
                 {
                     StartTime = Locomotive.DynamicBrakeCommandStartTime + Locomotive.DynamicBrakeDelayS;
@@ -816,7 +816,7 @@ namespace Orts.Viewer3D.Popups
                         }
                         else
                         {
-                            InfoToLabel("", parts[0].EndsWith("?") || parts[0].EndsWith("!") ? Viewer.Catalog.GetString( parts[0].Substring(0, parts[0].Length - 3)) : Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) : ""), "", false, keyPressed);
+                            InfoToLabel("", parts[0].EndsWith("?") || parts[0].EndsWith("!") ? Viewer.Catalog.GetString(parts[0].Substring(0, parts[0].Length - 3)) : Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1]) : ""), "", false, keyPressed);
                         }
                     }
                 }
@@ -830,25 +830,20 @@ namespace Orts.Viewer3D.Popups
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("FPS"), Owner.Viewer.RenderProcess.FrameRate.SmoothedValue.ToString("F0"), "", false, keyPressed);
 
             // Messages
-			// Autopilot
+            // Autopilot
             keyPressed = "";
-            if (Owner.Viewer.Settings.Autopilot)
+            if (Owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
             {
-                if (Owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
-                {
-                    keyPressed = UserInput.IsDown(UserCommand.GameAutopilotMode) ? arrowUp.ToString() + "???" : "";
-                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("On") + "???", "", false, keyPressed);
-                }
-                else if (Owner.Viewer.PlayerLocomotive.Train.TrainType != Train.TRAINTYPE.AI_PLAYERHOSTING)
-                {
-                    keyPressed = UserInput.IsDown(UserCommand.GameAutopilotMode) ? arrowDown.ToString() + "???" : "";
-                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("Off"), "", false, keyPressed);
-                }
-                else
-                    InfoToLabel("", Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("Off"), "", false, keyPressed);
+                keyPressed = UserInput.IsDown(UserCommand.GameAutopilotMode) ? arrowUp.ToString() + "???" : "";
+                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("On") + "???", "", false, keyPressed);
+            }
+            else if (Owner.Viewer.PlayerLocomotive.Train.TrainType != Train.TRAINTYPE.AI_PLAYERHOSTING)
+            {
+                keyPressed = UserInput.IsDown(UserCommand.GameAutopilotMode) ? arrowDown.ToString() + "???" : "";
+                InfoToLabel(keyPressed, Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("Off"), "", false, keyPressed);
             }
             else
-                InfoToLabel("", Viewer.Catalog.GetString("Autopilot" + "?!?"), Viewer.Catalog.GetString("Off"), "", false, keyPressed);
+                InfoToLabel("", Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("Off"), "", false, keyPressed);
 
             // Grate limit
             keyPressed = "";
@@ -866,7 +861,7 @@ namespace Orts.Viewer3D.Popups
             else
                 InfoToLabel("", Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("-") + "?!?", "", false, keyPressed);
 
-			// Wheel
+            // Wheel
             keyPressed = "";
             if (Owner.Viewer.PlayerTrain.IsWheelSlip)
                 InfoToLabel("", Viewer.Catalog.GetString("Wheel"), Viewer.Catalog.GetString("slip") + "!!!", "", false, keyPressed);

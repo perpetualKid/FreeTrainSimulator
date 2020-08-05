@@ -43,6 +43,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         protected PoseableShape TrainCarShape;
         protected AnimatedShape FreightShape;
         protected AnimatedShape InteriorShape;
+        protected AnimatedShape FrontCouplerShape;
+        protected AnimatedShape FrontCouplerOpenShape;
+        protected AnimatedShape RearCouplerShape;
+        protected AnimatedShape RearCouplerOpenShape;
         public static readonly Action Noop = () => { };
         /// <summary>
         /// Dictionary of built-in locomotive control keyboard commands, Action[] is in the order {KeyRelease, KeyPress}
@@ -73,6 +77,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         // Create viewers for special steam/smoke effects on car
         List<ParticleEmitterViewer> HeatingHose = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> HeatingCompartmentSteamTrap = new List<ParticleEmitterViewer>();
+        List<ParticleEmitterViewer> HeatingMainPipeSteamTrap = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WaterScoop = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> WaterScoopReverse = new List<ParticleEmitterViewer>();
         List<ParticleEmitterViewer> TenderWaterOverflow = new List<ParticleEmitterViewer>();
@@ -161,6 +167,25 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     drawer.Initialize(steamTexture);
                 }
 
+                // Steam leak in heating compartment steam trap
+
+                if (emitter.Key.ToLowerInvariant() == "heatingcompartmentsteamtrapfx")
+                    HeatingCompartmentSteamTrap.AddRange(emitter.Value);
+
+                foreach (var drawer in HeatingCompartmentSteamTrap)
+                {
+                    drawer.Initialize(steamTexture);
+                }
+
+                // Steam leak in heating steam trap
+
+                if (emitter.Key.ToLowerInvariant() == "heatingmainpipesteamtrapfx")
+                    HeatingMainPipeSteamTrap.AddRange(emitter.Value);
+
+                foreach (var drawer in HeatingMainPipeSteamTrap)
+                {
+                    drawer.Initialize(steamTexture);
+                }
 
                 // Water spray for when water scoop is in use (use steam effects for the time being)
                 // Forward motion
@@ -222,6 +247,27 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             FreightShape.SharedShape.LodControls[0].DistanceLevels[0].SubObjects[0].ShapePrimitives[0].Hierarchy[0] = 1;
                     }
                 }
+            }
+
+            // Initialise Coupler shapes 
+            if (car.FrontCouplerShapeFileName != null)
+            {
+                FrontCouplerShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+            }
+
+            if (car.FrontCouplerOpenShapeFileName != null)
+            {
+                FrontCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerOpenShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+            }
+
+            if (car.RearCouplerShapeFileName != null)
+            {
+                RearCouplerShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+            }
+
+            if (car.RearCouplerOpenShapeFileName != null)
+            {
+                RearCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerOpenShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
             }
 
 
@@ -521,6 +567,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 drawer.SetOutput(car.HeatingHoseSteamVelocityMpS, car.HeatingHoseSteamVolumeM3pS, car.HeatingHoseParticleDurationS);
             }
 
+            // Steam leak in heating compartment steamtrap
+            foreach (var drawer in HeatingCompartmentSteamTrap)
+            {
+                drawer.SetOutput(car.HeatingCompartmentSteamTrapVelocityMpS, car.HeatingCompartmentSteamTrapVolumeM3pS, car.HeatingCompartmentSteamTrapParticleDurationS);
+            }
+
+            // Steam leak in heating main pipe steamtrap
+            foreach (var drawer in HeatingMainPipeSteamTrap)
+            {
+                drawer.SetOutput(car.HeatingMainPipeSteamTrapVelocityMpS, car.HeatingMainPipeSteamTrapVolumeM3pS, car.HeatingMainPipeSteamTrapDurationS);
+            }
+
             // Heating Steam Boiler Exhaust
             foreach (var drawer in HeatingSteamBoiler)
             {
@@ -677,6 +735,112 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 TrainCarShape.XNAMatrices[p.iMatrix] = Car.VibrationInverseMatrix * m;
             }
 
+            // Display rear coupler in sim if open coupler shape is configured, otherwise skip to next section, and just display closed (default) coupler if configured
+            if (FrontCouplerOpenShape != null && Car.IsAdvancedCoupler && Car.FrontCouplerOpenFitted && Car.FrontCouplerOpen && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+            {
+                // The following locates the coupler at the end of the car.
+                // Suitable for development but, for release, would be better to implement as a sub-object of the car object.
+
+                // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
+                Vector3 displacement;
+                displacement.X = Car.FrontCouplerOpenAnimWidthM;
+                displacement.Y = Car.FrontCouplerOpenAnimHeightM;
+                displacement.Z = (Car.FrontCouplerOpenAnimLengthM + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM);
+
+                // Place the coupler in the centre of the car
+                // Get the orientation of the car as a quaternion
+                Car.WorldPosition.XNAMatrix.Decompose(out Vector3 scale, out Quaternion quaternion, out Vector3 translation);
+
+                // Reverse the y axis (plan view) component - perhaps because XNA is opposite to MSTS
+                var quaternionReversed = new Quaternion(quaternion.X, -quaternion.Y, quaternion.Z, quaternion.W);
+
+                // Rotate the displacement to match the orientation of the car
+                var rotatedDisplacement = Vector3.Transform(displacement, quaternionReversed);
+
+                // Apply the rotation to the coupler displacement to keep it in place with the wagon
+                // Display Animation Shape                    
+                FrontCouplerOpenShape.PrepareFrame(frame, elapsedTime, Car.WorldPosition.ChangeTranslation(rotatedDisplacement.X, rotatedDisplacement.Y, rotatedDisplacement.Z));
+            }
+
+            // Display rear default coupler in sim, by default it will always be closed position
+            else if (FrontCouplerShape != null && Car.IsAdvancedCoupler && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+            {
+                // The following locates the coupler at the end of the car.
+                // Suitable for development but, for release, would be better to implement as a sub-object of the car object.
+
+                // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
+                Vector3 displacement;
+                displacement.X = Car.FrontCouplerAnimWidthM;
+                displacement.Y = Car.FrontCouplerAnimHeightM;
+                displacement.Z = (Car.FrontCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM);
+
+                // Get the orientation of the car as a quaternion
+                Car.WorldPosition.XNAMatrix.Decompose(out Vector3 scale, out Quaternion quaternion, out Vector3 translation);
+
+                // Reverse the y axis (plan view) component - perhaps because XNA is opposite to MSTS
+                var quaternionReversed = new Quaternion(quaternion.X, -quaternion.Y, quaternion.Z, quaternion.W);
+
+                // Rotate the displacement to match the orientation of the car
+                var rotatedDisplacement = Vector3.Transform(displacement, quaternionReversed);
+
+                // Display Animation Shape                    
+                FrontCouplerShape.PrepareFrame(frame, elapsedTime, Car.WorldPosition.ChangeTranslation(rotatedDisplacement.X, rotatedDisplacement.Y, rotatedDisplacement.Z));
+            }
+
+            // Display rear coupler in sim if open coupler shape is configured, otherwise skip to next section, and just display closed (default) coupler if configured
+            if (RearCouplerOpenShape != null && Car.IsAdvancedCoupler && Car.RearCouplerOpenFitted && Car.RearCouplerOpen && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+            {
+                // The following locates the coupler at the end of the car.
+                // Suitable for development but, for release, would be better to implement as a sub-object of the car object.
+
+                // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
+                Vector3 displacement;
+                displacement.X = Car.RearCouplerOpenAnimWidthM;
+                displacement.Y = Car.RearCouplerOpenAnimHeightM;
+                displacement.Z = -(Car.RearCouplerOpenAnimLengthM + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM);  // Reversed as this is the rear coupler of the wagon
+
+                // Get the orientation of the car as a quaternion
+                // Place the coupler in the centre of the car
+                Car.WorldPosition.XNAMatrix.Decompose(out Vector3 scale, out Quaternion quaternion, out Vector3 translation);
+
+                // Reverse the y axis (plan view) component - perhaps because XNA is opposite to MSTS
+                var quaternionReversed = new Quaternion(quaternion.X, -quaternion.Y, quaternion.Z, quaternion.W);
+
+                // Rotate the displacement to match the orientation of the car
+                var rotatedDisplacement = Vector3.Transform(displacement, quaternionReversed);
+
+                // Apply the rotation to the coupler displacement to keep it in place with the wagon
+
+                // Keep the coupler shape aligned with the wagon
+                // Display Animation Shape                    
+                RearCouplerOpenShape.PrepareFrame(frame, elapsedTime, Car.WorldPosition.ChangeTranslation(rotatedDisplacement.X, rotatedDisplacement.Y, rotatedDisplacement.Z));
+            }
+
+            // Display rear default coupler in sim, by default it will always be closed position
+            else if (RearCouplerShape != null && Car.IsAdvancedCoupler && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+            {
+                // The following locates the coupler at the end of the car.
+                // Suitable for development but, for release, would be better to implement as a sub-object of the car object.
+
+                // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
+                Vector3 displacement;
+                displacement.X = Car.RearCouplerAnimWidthM;
+                displacement.Y = Car.RearCouplerAnimHeightM;
+                displacement.Z = -(Car.RearCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM);  // Reversed as this is the rear coupler of the wagon
+
+                // Get the orientation of the car as a quaternion
+                Car.WorldPosition.XNAMatrix.Decompose(out Vector3 scale, out Quaternion quaternion, out Vector3 translation);
+
+                // Reverse the y axis (plan view) component - perhaps because XNA is opposite to MSTS
+                var quaternionReversed = new Quaternion(quaternion.X, -quaternion.Y, quaternion.Z, quaternion.W);
+
+                // Rotate the displacement to match the orientation of the car
+                var rotatedDisplacement = Vector3.Transform(displacement, quaternionReversed);
+
+                // Display Animation Shape                    
+                RearCouplerShape.PrepareFrame(frame, elapsedTime, Car.WorldPosition.ChangeTranslation(rotatedDisplacement.X, rotatedDisplacement.Y, rotatedDisplacement.Z));
+            }
+
 
             // Applies MSTS style freight animation for coal load on the locomotive, crews, and other static animations.
             // Takes the form of FreightAnim ( A B C )
@@ -686,9 +850,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // To disable coal load variation and insert a static (crew) shape on the tender breech, one of the conditions indicated above
             if (FreightShape != null && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
             {
-                //// Define default position of shape
-                //FreightShape.Location = Car.WorldPosition;
-
                     bool SteamAnimShape = false;
                     float FuelControllerLevel = 0.0f;
 
@@ -716,10 +877,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         } 
                     }
                 }
-
-                    // Set height of FAs - if relevant conditions met, use default position co-ords defined above
-                    if (FreightShape.XNAMatrices.Length > 0)
-                    {
+                Orts.Common.Position.WorldPosition freightLocation = Car.WorldPosition;
+                // Set height of FAs - if relevant conditions met, use default position co-ords defined above
+                if (FreightShape.XNAMatrices.Length > 0)
+                {
                     // For tender coal load animation 
                     if (MSTSWagon.FreightAnimFlag > 0 && MSTSWagon.FreightAnimMaxLevelM > MSTSWagon.FreightAnimMinLevelM && SteamAnimShape)
                     {
@@ -728,14 +889,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     // reproducing MSTS strange behavior; used to display loco crew when attached to tender
                     else if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender)
                     {
-                        //TODO
-                        //Matrix freightLocation = FreightShape.WorldPosition.XNAMatrix;
                         //freightLocation.M42 += MSTSWagon.FreightAnimMaxLevelM;
-                        //FreightShape.Location = new WorldPosition(FreightShape.WorldPosition.TileX, FreightShape.WorldPosition.TileZ, freightLocation);
+                        freightLocation = Car.WorldPosition.ChangeTranslation(0, MSTSWagon.FreightAnimMaxLevelM, 0);
                     }
-                    }
+                }
                 // Display Animation Shape                    
-                FreightShape.PrepareFrame(frame, elapsedTime);
+                FreightShape.PrepareFrame(frame, elapsedTime, freightLocation);
             }
 
             if (FreightAnimations != null)

@@ -221,24 +221,24 @@ namespace Orts.ActivityRunner.Viewer3D
                         dataLog.Data((viewer.PlayerLocomotive as MSTSLocomotive).LocomotiveAxle.AxleForceN.ToString("F2"));
                         dataLog.Data((viewer.PlayerLocomotive as MSTSLocomotive).LocomotiveAxle.SlipSpeedPercent.ToString("F1"));
 
-                        switch (viewer.Settings.DataLogSpeedUnits)
+                        string LogSpeed(float speedMpS)
                         {
-                            case "route":
-                                dataLog.Data(FormatStrings.FormatSpeed(viewer.PlayerLocomotive.SpeedMpS, viewer.MilepostUnitsMetric));
-                                break;
-                            case "mps":
-                                dataLog.Data(viewer.PlayerLocomotive.SpeedMpS.ToString("F1"));
-                                break;
-                            case "mph":
-                                dataLog.Data(Speed.MeterPerSecond.FromMpS(viewer.PlayerLocomotive.SpeedMpS, false).ToString("F1"));
-                                break;
-                            case "kmph":
-                                dataLog.Data(Speed.MeterPerSecond.FromMpS(viewer.PlayerLocomotive.SpeedMpS, true).ToString("F1"));
-                                break;
-                            default:
-                                dataLog.Data(FormatStrings.FormatSpeed(viewer.PlayerLocomotive.SpeedMpS, viewer.MilepostUnitsMetric));
-                                break;
+                            switch (viewer.Settings.DataLogSpeedUnits)
+                            {
+                                case "route":
+                                    return FormatStrings.FormatSpeed(speedMpS, viewer.MilepostUnitsMetric);
+                                case "mps":
+                                    return speedMpS.ToString("F1");
+                                case "mph":
+                                    return Speed.MeterPerSecond.FromMpS(speedMpS, false).ToString("F1");
+                                case "kmph":
+                                    return Speed.MeterPerSecond.FromMpS(speedMpS, true).ToString("F1");
+                                default:
+                                    return FormatStrings.FormatSpeed(speedMpS, viewer.MilepostUnitsMetric);
+                            }
                         }
+                        dataLog.Data(LogSpeed(viewer.PlayerLocomotive.SpeedMpS));
+                        dataLog.Data(LogSpeed(viewer.PlayerTrain.AllowedMaxSpeedMpS));
 
                         dataLog.Data((viewer.PlayerLocomotive.DistanceM.ToString("F0")));
                         dataLog.Data((viewer.PlayerLocomotive.GravityForceN.ToString("F0")));
@@ -379,6 +379,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     "Player Axle Force [N]",
                     "Player Wheelslip",
                     $"Player Speed [{viewer.Settings.DataLogSpeedUnits}]",
+                    $"Speed Limit [{viewer.Settings.DataLogSpeedUnits}]",
                     "Distance [m]",
                     "Player Gravity Force [N]",
                     "Train Brake",

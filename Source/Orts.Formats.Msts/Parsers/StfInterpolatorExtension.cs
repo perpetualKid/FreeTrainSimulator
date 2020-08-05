@@ -197,6 +197,5 @@ namespace Orts.Formats.Msts.Parsers
             Interpolator2D result = new Interpolator2D(xArray, yArray);
             return result;
         }
-
     }
 }

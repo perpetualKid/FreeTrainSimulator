@@ -73,6 +73,7 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly EffectParameter nightColorModifier;
         readonly EffectParameter halfNightColorModifier;
         readonly EffectParameter vegetationAmbientModifier;
+        readonly EffectParameter signalLightIntensity;
         readonly EffectParameter eyeVector;
         readonly EffectParameter sideVector;
         readonly EffectParameter imageTexture;
@@ -189,6 +190,8 @@ namespace Orts.ActivityRunner.Viewer3D
             headlightPosition.SetValue(Vector4.Zero);
         }
 
+        public float SignalLightIntensity { set { signalLightIntensity.SetValue(value); } }
+
         public float Overcast { set { overcast.SetValue(new Vector2(value, value / 2)); } }
 
         public Vector3 ViewerPos { set { viewerPos.SetValue(value); } }
@@ -229,6 +232,7 @@ namespace Orts.ActivityRunner.Viewer3D
             nightColorModifier = Parameters["NightColorModifier"];
             halfNightColorModifier = Parameters["HalfNightColorModifier"];
             vegetationAmbientModifier = Parameters["VegetationAmbientModifier"];
+            signalLightIntensity = Parameters["SignalLightIntensity"];
             eyeVector = Parameters["EyeVector"];
             sideVector = Parameters["SideVector"];
             imageTexture = Parameters["ImageTexture"];

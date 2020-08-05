@@ -195,9 +195,7 @@ namespace Orts.Menu
             checkOverrideNonElectrifiedRoutes.Checked = Settings.OverrideNonElectrifiedRoutes;
             checkHotStart.Checked = Settings.HotStart;
             checkSimpleControlPhysics.Checked = Settings.SimpleControlPhysics;
-            checkAutopilot.Checked = Settings.Autopilot;
             checkForcedRedAtStationStops.Checked = !Settings.NoForcedRedAtStationStops;
-            checkExtendedAIShunting.Checked = Settings.ExtendedAIShunting;
             checkDoorsAITrains.Checked = Settings.OpenDoorsInAITrains;
 
             //// Keyboard tab
@@ -433,7 +431,8 @@ namespace Orts.Menu
             Settings.DistantMountainsViewingDistance = (int)numericDistantMountainsViewingDistance.Value * 1000;
             Settings.ViewingFOV = (int)numericViewingFOV.Value;
             Settings.WorldObjectDensity = (int)numericWorldObjectDensity.Value;
-            Settings.WindowSize = comboWindowSize.Text;
+            Settings.WindowSize = GetValidWindowSize(comboWindowSize);
+
             Settings.DayAmbientLight = (int)trackDayAmbientLight.Value;
             Settings.DoubleWire = checkDoubleWire.Checked;
             Settings.NativeFullscreenResolution = checkBoxFullScreenNativeResolution.Checked;
@@ -450,9 +449,7 @@ namespace Orts.Menu
             Settings.OverrideNonElectrifiedRoutes = checkOverrideNonElectrifiedRoutes.Checked;
             Settings.HotStart = checkHotStart.Checked;
             Settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
-            Settings.Autopilot = checkAutopilot.Checked;
             Settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;
-            Settings.ExtendedAIShunting = checkExtendedAIShunting.Checked;
             Settings.OpenDoorsInAITrains = checkDoorsAITrains.Checked;
 
             // Keyboard tab
@@ -517,6 +514,20 @@ namespace Orts.Menu
             Settings.Save();
         }
 
+        /// <summary>
+        /// Returns user's [width]x[height] if expression is valid and values are sane, else returns previous value of setting.
+        /// </summary>
+        private string GetValidWindowSize(ComboBox comboWindowSize)
+        {
+            // "1024X780" instead of "1024x780" then "Start" resulted in an immediate return to the Menu with no OpenRailsLog.txt and a baffled user.
+            var sizeArray = comboWindowSize.Text.ToLower().Replace(" ", "").Split('x');
+            if (sizeArray.Count() == 2)
+                if (int.TryParse(sizeArray[0], out int width) && int.TryParse(sizeArray[1], out int height))
+                    if ((100 < width && width < 10000) && (100 < height && height < 100000)) // sanity check
+                        return $"{width}x{height}";
+            return Settings.WindowSize; // i.e. no change or message. Just ignore non-numeric entries
+        }
+
         private void NumericUpDownFOV_ValueChanged(object sender, EventArgs e)
         {
             labelFOVHelp.Text = catalog.GetString("{0:F0}° vertical FOV is the same as:\n{1:F0}° horizontal FOV on 4:3\n{2:F0}° horizontal FOV on 16:9", numericViewingFOV.Value, numericViewingFOV.Value * 4 / 3, numericViewingFOV.Value * 16 / 9);
@@ -568,7 +579,7 @@ namespace Orts.Menu
 
         private void TrackbarMultiSampling_Scroll(object sender, EventArgs e)
         {
-            lblMSAACount.Text = trackbarMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetString($"{1 << trackbarMultiSampling.Value}x");
+            labelMSAACount.Text = trackbarMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetStringFmt($"{1 << trackbarMultiSampling.Value}x");
         }
 
         private void CheckBoxFullScreenNativeResolution_CheckedChanged(object sender, EventArgs e)

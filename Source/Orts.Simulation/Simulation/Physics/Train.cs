@@ -40,9 +40,6 @@
 // #define DEBUG_TRACEINFO
 // #define DEBUG_SIGNALPASS
 
-// Debug Calculation of Carriage Heat Loss
-// #define DEBUG_CARSTEAMHEAT
-
 // Debug Calculation of Aux Tender operation
 // #define DEBUG_AUXTENDER
 
@@ -115,6 +112,7 @@ namespace Orts.Simulation.Physics
         public float MaximumCouplerForceN;
         public int NPull;                                // Count of number of couplings being stretched (pulled)
         public int NPush;                                // Count of number of couplings being compressed (pushed)
+        public float AdvancedCouplerDuplicationFactor = 2.0f;
         public int LeadLocomotiveIndex = -1;
         public bool IsFreight;                           // has at least one freight car
         public int PassengerCarsNumber = 0;              // Number of passenger cars
@@ -169,7 +167,10 @@ namespace Orts.Simulation.Physics
 
 
         // Carriage Steam Heating
-        public float TrainCurrentCarriageHeatTempC;     // Current train carriage heat
+        public bool HeatedCarAttached = false;
+        public bool HeatingBoilerCarAttached = false;
+        bool IsFirstTimeBoilerCarAttached = true;
+        public float TrainSteamPipeHeatW;               // Not required, all instances can be removed!!!!!!!!!
         public float TrainInsideTempC;                  // Desired inside temperature for carriage steam heating depending upon season
         public float TrainOutsideTempC;                 // External ambient temeprature for carriage steam heating.
         public float TrainSteamHeatLossWpT;             // Total Steam Heat loss of train
@@ -179,18 +180,17 @@ namespace Orts.Simulation.Physics
         public bool CarSteamHeatOn = false;    // Is steam heating turned on
         public float TrainNetSteamHeatLossWpTime;        // Net Steam loss - Loss in Cars vs Steam Pipe Heat
         public float TrainCurrentTrainSteamHeatW;    // Current steam heat of air in train
-        public float TrainSteamPipeHeatW;               // Heat radiated by steam pipe - total
         public float TrainTotalSteamHeatW;         // Total steam heat in train - based upon air volume
-        float SpecificHeatCapcityAirKJpKgK = 1006.0f; // Specific Heat Capacity of Air
+        float SpecificHeatCapcityAirKJpKgK = 1.006f; // Specific Heat Capacity of Air
         float DensityAirKgpM3 = 1.247f;   // Density of air - use a av value
-        bool IsSteamHeatExceeded = false;   // Flag to indicate when steam heat temp is exceeded
         bool IsSteamHeatLow = false;        // Flag to indicate when steam heat temp is low
         public float DisplayTrainNetSteamHeatLossWpTime;  // Display Net Steam loss - Loss in Cars vs Steam Pipe Heat
         public float TrainSteamPipeHeatConvW;               // Heat radiated by steam pipe - convection
         public float TrainSteamHeatPipeRadW;                // Heat radiated by steam pipe - radiation
+        float EmissivityFactor = 0.79f; // Oxidised steel
+        float OneAtmospherePSI = 14.696f;      // Atmospheric Pressure
         float PipeHeatTransCoeffWpM2K = 22.0f;    // heat transmission coefficient for a steel pipe.
         float BoltzmanConstPipeWpM2 = 0.0000000567f; // Boltzman's Constant
-        bool IsTrainSteamHeatInitial = true; // Allow steam heat to be initialised.
         Interpolator OutsideWinterTempbyLatitudeC;
         Interpolator OutsideAutumnTempbyLatitudeC;
         Interpolator OutsideSpringTempbyLatitudeC;
@@ -324,6 +324,8 @@ namespace Orts.Simulation.Physics
         public TrainRouted routedForward;                 // routed train class for forward moves (used in signalling)
         public TrainRouted routedBackward;                // routed train class for backward moves (used in signalling)
 
+
+        //TODO replace with Orts.Common.TrainControlMode
         public enum TRAIN_CONTROL
         {
             AUTO_SIGNAL,
@@ -381,6 +383,7 @@ namespace Orts.Simulation.Physics
         public double ContinuousBrakingTime;     // Consecutive braking time, used to check whether brakes get stuck
         public double RunningTime;              // Total running time, used to check whether a locomotive is partly or totally unpowered due to a fault
         public int UnpoweredLoco = -1;          // car index of unpowered loco
+        public bool ColdStart = true;           // False if train is moving at game start or if game resumed
 
         // TODO: Replace this with an event
         public bool FormationReversed;          // flags the execution of the ReverseFormation method (executed at reversal points)
@@ -653,15 +656,15 @@ namespace Orts.Simulation.Physics
 
             routedForward = new TrainRouted(this, 0);
             routedBackward = new TrainRouted(this, 1);
-
+            ColdStart = false;
             RestoreCars(simulator, inf);
             Number = inf.ReadInt32();
             TotalNumber = Math.Max(Number + 1, TotalNumber);
             Name = inf.ReadString();
-            SpeedMpS = inf.ReadSingle();
-            TrainCurrentCarriageHeatTempC = inf.ReadSingle();
-            TrainCurrentTrainSteamHeatW = inf.ReadSingle();
+            SpeedMpS = LastSpeedMpS = inf.ReadSingle();
+            AccelerationMpSpS.Preset(inf.ReadSingle());
             TrainType = (TRAINTYPE)inf.ReadInt32();
+            if (TrainType == TRAINTYPE.STATIC) ColdStart = true;
             MUDirection = (Direction)inf.ReadInt32();
             MUThrottlePercent = inf.ReadSingle();
             MUGearboxGearIndex = inf.ReadInt32();
@@ -992,8 +995,7 @@ namespace Orts.Simulation.Physics
             outf.Write(Number);
             outf.Write(Name);
             outf.Write(SpeedMpS);
-            outf.Write(TrainCurrentCarriageHeatTempC);
-            outf.Write(TrainCurrentTrainSteamHeatW);
+            outf.Write(AccelerationMpSpS.SmoothedValue);
             outf.Write((int)TrainType);
             outf.Write((int)MUDirection);
             outf.Write(MUThrottlePercent);
@@ -1450,9 +1452,11 @@ namespace Orts.Simulation.Physics
 
         public void ReverseCars()
         {
-            // Shift all the coupler data along the train by 1 car.
+            // Shift all the coupler data along the train by 1 car. Not sure whether this logic is correct, as it appears to give incorrect coupler information - To Be Checked
             for (var i = Cars.Count - 1; i > 0; i--)
+            {
                 Cars[i].CopyCoupler(Cars[i - 1]);
+            }
             // Reverse brake hose connections and angle cocks
             for (var i = 0; i < Cars.Count; i++)
             {
@@ -1507,6 +1511,7 @@ namespace Orts.Simulation.Physics
 
         public virtual void InitializeMoving()
         {
+            ColdStart = false;
             SpeedMpS = InitialSpeed;
             MUDirection = Direction.Forward;
             float initialThrottlepercent = InitialThrottlepercent;
@@ -1575,7 +1580,7 @@ namespace Orts.Simulation.Physics
             }
 
 
-            if (IsActualPlayerTrain && Simulator.Settings.Autopilot && Simulator.Settings.ActRandomizationLevel > 0 && Simulator.ActivityRun != null) // defects might occur
+            if (IsActualPlayerTrain && Simulator.Settings.ActRandomizationLevel > 0 && Simulator.ActivityRun != null) // defects might occur
             {
                 CheckFailures(elapsedClockSeconds);
             }
@@ -1699,7 +1704,10 @@ namespace Orts.Simulation.Physics
             {
                 car.MotiveForceN = 0;
                 car.Update(elapsedClockSeconds);
+
+                // Set TotalForce at the start of each calculation cycle. This value is adjusted further through loop based upon forces acting on the train.
                 car.TotalForceN = car.MotiveForceN + car.GravityForceN;
+
                 massKg += car.MassKG;
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
@@ -1782,8 +1790,8 @@ namespace Orts.Simulation.Physics
             UpdateCarSteamHeat(elapsedClockSeconds);
             UpdateAuxTender();
 
-            AddCouplerImpulseForces();
-            ComputeCouplerForces();
+            AddCouplerImpulseForces(elapsedClockSeconds);
+            ComputeCouplerForces(elapsedClockSeconds);
 
             UpdateCarSpeeds(elapsedClockSeconds);
             UpdateCouplerSlack(elapsedClockSeconds);
@@ -1872,8 +1880,6 @@ namespace Orts.Simulation.Physics
                 else
                     ResultantWindComponentDeg = 0.0f;
 
-                //                Trace.TraceInformation("WindDeg {0} TrainDeg {1} ResWindDeg {2}", PhysicsWindDirectionDeg, PhysicsTrainLocoDirectionDeg, ResultantWindComponentDeg);
-
                 // Correct wind direction if it is greater then 360 deg, then correct to a value less then 360
                 if (Math.Abs(ResultantWindComponentDeg) > 360)
                     ResultantWindComponentDeg = ResultantWindComponentDeg - 360.0f;
@@ -1886,7 +1892,6 @@ namespace Orts.Simulation.Physics
 
                 WindResultantSpeedMpS = (float)Math.Sqrt(TrainSpeedMpS * TrainSpeedMpS + PhysicsWindSpeedMpS * PhysicsWindSpeedMpS + 2.0f * TrainSpeedMpS * PhysicsWindSpeedMpS * (float)Math.Cos(WindAngleRad));
 
-                //                Trace.TraceInformation("WindResultant {0} ResWindDeg {1}", WindResultantSpeedMpS, ResultantWindComponentDeg);
             }
             else
             {
@@ -1969,141 +1974,418 @@ namespace Orts.Simulation.Physics
                 }
             }
 
-            //  Trace.TraceInformation("Tender uncouple - Tender Coupled {0} Water Mass {1}", IsAuxTenderCoupled, MaxAuxTenderWaterMassKG);
-
         }
 
 
         //================================================================================================//
         /// <summary>
-        /// Update Steam Heating
+        /// Update Steam Heating - this model calculates the total train heat losses and gains for all the cars
         /// <\summary>
+
+        // The carriage steam heating model is based upon a description provided in a number of articles, including, "The Steam Heating of Railway Carriages" by Frank W. Marillier ( http://www.gwr.org.uk/links.html ),
+        // and "Some Considerations on the Problem of the Heating of British Railway Coaches" by F. J. Pepper. (Journal Institution of Locomotive Engineers - Paper No. 568 - pg 13 -74)
+        // Steam is carried the length of the train by a 2" or 1.5" steam pipe that is fitted between each of the cars. Rubber pressure hoses are used to couple the carriage steam pipes together. 
+        // Typically these pipes would have some level of insulation on them.
+        // Typically 2" bore steam pipes are then placed at strategic locations within the car. For cars with separate compartments, a steam pipe would need to be located in each compartment.
+        // The length of each of these compartment steam pipes was determined by a rule of thumb based upon the volume of the space that it was desgined to heat, so for example, a 
+        // 2nd class compartment, would have 1" of pipe length for each 3.5cu ft of compartment volume.
+        // Steam entering into the passenger area of the train is typically reduced to atmospheric pressure??? 
+        // Some articles suggest that a typical steam heating system could use approx 100lbs of steam per hour per car. (more detail)
+
+        // The model calculates the heat capacity of each car at a default temperature, and the various heat losses, such as heat loss from the cars, main steam pipe, leaks, etc are 
+        // subtracted from this value. Heat gain from the radiation heat exchange area are added to this value. If all is ok then a balance should be achieved.
+
+        // Leaks in system, loss of heat (and pressure) as steam moves along train
 
         public void UpdateCarSteamHeat(double elapsedClockSeconds)
         {
-            var mstsLocomotive = Cars[0] as MSTSLocomotive;
+            var mstsLocomotive = Simulator.PlayerLocomotive as MSTSLocomotive;
             if (mstsLocomotive != null)
             {
 
-                // Check to confirm that train is player driven and has passenger cars in the consist.
-                if (IsPlayerDriven && PassengerCarsNumber > 0 && mstsLocomotive.TrainFittedSteamHeat)
+                if (IsFirstTimeBoilerCarAttached)
                 {
-
-                    // Reset Values to zero to recalculate values
-                    TrainHeatVolumeM3 = 0.0f;
-                    TrainHeatPipeAreaM2 = 0.0f;
-                    TrainSteamHeatLossWpT = 0.0f;
-                    // Calculate total heat loss for whole train
                     for (int i = 0; i < Cars.Count; i++)
                     {
-                        TrainSteamHeatLossWpT += Cars[i].CarHeatLossWpT;
-                        TrainHeatPipeAreaM2 += Cars[i].CarHeatPipeAreaM2;
-                        TrainHeatVolumeM3 += Cars[i].CarHeatVolumeM3;
-                    }
-
-                    // Carriage temperature will be equal to heat input (from steam pipe) less heat losses through carriage walls, etc
-                    // Calculate Heat in Train
-                    TrainTotalSteamHeatW = SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * TrainHeatVolumeM3 * (TrainInsideTempC - TrainOutsideTempC);
-
-                    if (TrainNetSteamHeatLossWpTime < 0)
-                    {
-                        TrainNetSteamHeatLossWpTime = -1.0f * TrainNetSteamHeatLossWpTime; // If steam heat loss is negative, convert to a positive number
-                        TrainCurrentTrainSteamHeatW -= TrainNetSteamHeatLossWpTime * (float)elapsedClockSeconds;  // Losses per elapsed time
-                    }
-                    else
-                    {
-                        TrainCurrentTrainSteamHeatW += TrainNetSteamHeatLossWpTime * (float)elapsedClockSeconds;  // Gains per elapsed time         
-                    }
-
-                    float MaximumHeatTempC = 37.778f;     // Allow heat to go to 100oF (37.778oC)
-
-                    if (IsTrainSteamHeatInitial)
-                    {
-                        // First time this method is processed do this loop
-                        TrainCurrentTrainSteamHeatW = (TrainCurrentCarriageHeatTempC - TrainOutsideTempC) / (TrainInsideTempC - TrainOutsideTempC) * TrainTotalSteamHeatW;
-                        IsTrainSteamHeatInitial = false;
-                    }
-                    else
-                    {
-                        // After initialisation do this loop
-                        if (TrainCurrentCarriageHeatTempC <= MaximumHeatTempC && TrainTotalSteamHeatW > 0.0)
+                        var car = Cars[i];
+                        if (car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.HeatingBoiler)
                         {
-                            if (TrainCurrentCarriageHeatTempC >= TrainOutsideTempC)
+                            HeatingBoilerCarAttached = true; // A steam heating boiler is fitted in a wagon
+                        }
+                        if (car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.Heated)
+                        {
+                            HeatedCarAttached = true; // A steam heating boiler is fitted in a wagon
+                        }
+
+                    }
+                    IsFirstTimeBoilerCarAttached = false;
+                }
+
+                // Check to confirm that train is player driven and has passenger cars in the consist. Steam heating is OFF if steam heat valve is closed and no pressure is present
+                if (IsPlayerDriven && (PassengerCarsNumber > 0 || HeatedCarAttached) && (mstsLocomotive.IsSteamHeatFitted || HeatingBoilerCarAttached) && mstsLocomotive.CurrentSteamHeatPressurePSI > 0)
+                {
+                    // Set default values required
+                    float SteamFlowRateLbpHr = 0;
+                    float ProgressiveHeatAlongTrainBTU = 0;
+                    float ConnectSteamHoseLengthFt = 2.0f * 2.0f; // Assume two hoses on each car * 2 ft long
+
+                    // Calculate total heat loss and car temperature along the train
+                    for (int i = 0; i < Cars.Count; i++)
+                    {
+                        var car = Cars[i];
+                        // Calculate volume in carriage - note height reduced by 1.06m to allow for bogies, etc
+                        float BogieHeightM = 1.06f;
+
+                        car.CarHeatVolumeM3 = car.CarWidthM * (car.CarLengthM) * (car.CarHeightM - BogieHeightM); // Check whether this needs to be same as compartment volume
+                        car.CarOutsideTempC = TrainOutsideTempC;  // Update Outside temp
+
+                        // Only initialise these values the first time around the loop
+                        if (car.IsCarSteamHeatInitial)
+                        {
+                           
+                            // This section sets some arbitary default values the first time that this section is processed. Real values are set on subsequent loops, once steam heat is turned on in locomotive
+                            if (TrainInsideTempC == 0)
                             {
-                                TrainCurrentCarriageHeatTempC = (((TrainInsideTempC - TrainOutsideTempC) * TrainCurrentTrainSteamHeatW) / TrainTotalSteamHeatW) + TrainOutsideTempC;
+                                TrainInsideTempC = car.DesiredCompartmentTempSetpointC; // Set intial temp - will be set in Steam and Diesel Eng, but these are done after this step
+                            }
+
+                            if (TrainOutsideTempC == 0)
+                            {
+
+                                TrainOutsideTempC = 10.0f; // Set intial temp - will be set in Steam and Diesel Eng, but these are done after this step
+                            }
+
+                            if (mstsLocomotive.EngineType == TrainCar.EngineTypes.Steam && Simulator.Settings.HotStart || mstsLocomotive.EngineType == TrainCar.EngineTypes.Diesel || mstsLocomotive.EngineType == TrainCar.EngineTypes.Electric)
+                            {
+                                if (TrainOutsideTempC < car.DesiredCompartmentTempSetpointC)
+                                {
+                                    car.CarCurrentCarriageHeatTempC = car.DesiredCompartmentTempSetpointC; // Set intial temp
+                                }
+                                else
+                                {
+                                    car.CarCurrentCarriageHeatTempC = TrainOutsideTempC;
+                                }
                             }
                             else
                             {
-                                // TO BE CHECKED
-                                TrainCurrentCarriageHeatTempC = TrainOutsideTempC - (((TrainInsideTempC - TrainOutsideTempC) * TrainCurrentTrainSteamHeatW) / TrainTotalSteamHeatW);
+                                car.CarCurrentCarriageHeatTempC = TrainOutsideTempC;
                             }
 
+                            // Calculate a random factor for steam heat leaks in connecting pipes
+                            car.SteamHoseLeakRateRandom = (float)Simulator.Random.Next(100) / 100.0f; // Achieves a two digit random number betwee 0 and 1
+                            car.SteamHoseLeakRateRandom = MathHelper.Clamp(car.SteamHoseLeakRateRandom, 0.5f, 1.0f); // Keep Random Factor ratio within bounds
+
+                            // Calculate Starting Heat value in Car Q = C * M * Tdiff, where C = Specific heat capacity, M = Mass ( Volume * Density), Tdiff - difference in temperature
+                            car.TotalPossibleCarHeatW =(float)(Dynamics.Power.FromKW(SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * car.CarHeatVolumeM3 * (car.CarCurrentCarriageHeatTempC - TrainOutsideTempC)));
+
+                            //                            Trace.TraceInformation("Initialise TotalCarHeat - CarID {0} Possible {1} Max {2} Out {3} Vol {4} Density {5} Specific {6}", car.CarID, car.TotalPossibleCarHeatW, car.CarCurrentCarriageHeatTempC, TrainOutsideTempC, car.CarHeatVolumeM3, DensityAirKgpM3, SpecificHeatCapcityAirKJpKgC);
+
+                            // Initialise current Train Steam Heat based upon selected Current carriage Temp
+                            car.CarHeatCurrentCompartmentHeatW = car.TotalPossibleCarHeatW;
+                            car.IsCarSteamHeatInitial = false;
                         }
 
+                        // Heat loss due to train movement and air flow, based upon convection heat transfer information - http://www.engineeringtoolbox.com/convective-heat-transfer-d_430.html
+                        // The formula on this page ( hc = 10.45 - v + 10v1/2), where v = m/s. This formula is used to develop a multiplication factor with train speed.
+                        // Curve is only valid between 2.0m/s and 20.0m/s
 
-                        TrainSteamPipeHeatConvW = (float)(PipeHeatTransCoeffWpM2K * TrainHeatPipeAreaM2 * (Temperature.Celsius.ToK(TrainCurrentSteamHeatPipeTempC - TrainCurrentCarriageHeatTempC)));
-                        float PipeTempAK = (float)Math.Pow(Temperature.Celsius.ToK(TrainCurrentSteamHeatPipeTempC), 4.0f);
-                        float PipeTempBK = (float)Math.Pow(Temperature.Celsius.ToK(TrainCurrentCarriageHeatTempC), 4.0f);
-                        TrainSteamHeatPipeRadW = (BoltzmanConstPipeWpM2 * (PipeTempAK - PipeTempBK));
-                        TrainSteamPipeHeatW = TrainSteamPipeHeatConvW + TrainSteamHeatPipeRadW;   // heat generated by pipe per degree
+                        float LowSpeedMpS = 2.0f;
+                        float HighSpeedMpS = 20.0f;
+                        float ConvHeatTxfMinSpeed = 10.45f - LowSpeedMpS + (10.0f * (float)Math.Pow(LowSpeedMpS, 0.5));
+                        float ConvHeatTxfMaxSpeed = 10.45f - HighSpeedMpS + (10.0f * (float)Math.Pow(HighSpeedMpS, 0.5));
+                        float ConvHeatTxActualSpeed = 10.45f - car.AbsSpeedMpS + (10.0f * (float)Math.Pow(car.AbsSpeedMpS, 0.5));
+                        float ConvFactor = 0;
 
-                        // Calculate Net steam heat loss or gain
-                        TrainNetSteamHeatLossWpTime = TrainSteamPipeHeatW - TrainSteamHeatLossWpT;
-
-                        if (CarSteamHeatOn) // Only display warning messages if steam heating is turned on
+                        if (car.AbsSpeedMpS > 2 && car.AbsSpeedMpS < 20.0f)
                         {
-
-                            DisplayTrainNetSteamHeatLossWpTime = TrainNetSteamHeatLossWpTime; // Captures raw value of heat loss for display on HUD
-
-                            // Test to see if steam heating temp has exceeded the comfortable heating value.
-                            if (TrainCurrentCarriageHeatTempC > 23.8889f) // If temp above 75of (23.889oC) then alarm
-                            //     if (TrainCurrentCarriageHeatTempC > TrainInsideTempC)
-                            {
-                                if (!IsSteamHeatExceeded)
-                                {
-                                    IsSteamHeatExceeded = true;
-                                    // Provide warning message if temperature is too hot
-                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Carriage temperature is too hot, the passengers are sweating."));
-                                }
-                            }
-                            else if (TrainCurrentCarriageHeatTempC < 22.0f)
-                            //           else if (TrainCurrentCarriageHeatTempC < TrainInsideTempC - 3.0f)
-                            {
-                                IsSteamHeatExceeded = false;        // Reset temperature warning
-                            }
-
-                            // Test to see if steam heating temp has dropped too low.
-
-                            if (TrainCurrentCarriageHeatTempC < 18.333f) // If temp below 65of (18.33oC) then alarm
-                            {
-                                if (!IsSteamHeatLow)
-                                {
-                                    IsSteamHeatLow = true;
-                                    // Provide warning message if temperature is too hot
-                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Carriage temperature is too cold, the passengers are freezing."));
-                                }
-                            }
-                            else if (TrainCurrentCarriageHeatTempC > 21.0f)
-                            {
-
-                                IsSteamHeatLow = false;        // Reset temperature warning
-                            }
+                            ConvFactor = ConvHeatTxActualSpeed / ConvHeatTxfMinSpeed; // Calculate fraction only between 2 and 20
+                        }
+                        else if (car.AbsSpeedMpS < 2)
+                        {
+                            ConvFactor = 1.0f; // If speed less then 2m/s then set fracftion to give stationary Kc value 
                         }
                         else
                         {
-                            DisplayTrainNetSteamHeatLossWpTime = 0.0f; // Set to zero if steam heating is off
+                            ConvFactor = ConvHeatTxActualSpeed / ConvHeatTxfMinSpeed; // Calculate constant fraction over 20m/s
+                        }
+                        ConvFactor = MathHelper.Clamp(ConvFactor, 1.0f, 1.6f); // Keep Conv Factor ratio within bounds - should not exceed 1.6.
+
+
+                        if (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.Heated) // Only calculate compartment heat in passenger or specially marked heated cars
+                        {
+
+                            // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                            // Calculate heat loss from inside the carriage
+                            // Initialise car values for heating to zero
+                            car.TotalCarCompartmentHeatLossWpT = 0.0f;
+                            car.CarHeatCompartmentPipeAreaM2 = 0.0f;
+                            car.CarHeatVolumeM3 = 0.0f;
+                            float HeatLossTransmissionWpT = 0;
+
+                            // Transmission heat loss = exposed area * heat transmission coeff (inside temp - outside temp)
+                            // Calculate the heat loss through the roof, wagon sides, and floor separately  
+                            // Calculate the heat loss through the carriage sides, per degree of temp change
+                            // References - https://www.engineeringtoolbox.com/heat-loss-transmission-d_748.html  and https://www.engineeringtoolbox.com/heat-loss-buildings-d_113.html
+                            float HeatTransCoeffRoofWm2C = 1.7f * ConvFactor; // 2 inch wood - uninsulated
+                            float HeatTransCoeffEndsWm2C = 0.9f * ConvFactor; // 2 inch wood - insulated - this compensates for the fact that the ends of the cars are somewhat protected from the environment
+                            float HeatTransCoeffSidesWm2C = 1.7f * ConvFactor; // 2 inch wood - uninsulated
+                            float HeatTransCoeffWindowsWm2C = 4.7f * ConvFactor; // Single glazed glass window in wooden frame
+                            float HeatTransCoeffFloorWm2C = 2.5f * ConvFactor; // uninsulated floor
+
+                            // Calculate volume in carriage - note height reduced by 1.06m to allow for bogies, etc
+                            float CarCouplingPipeM = 1.2f;  // Allow for connection between cars (assume 2' each end) - no heat is contributed to carriages.
+
+                            // Calculate the heat loss through the roof, allow 15% additional heat loss through roof because of radiation to space
+                            float RoofHeatLossFactor = 1.15f;
+                            float HeatLossTransRoofWpT = RoofHeatLossFactor * (car.CarWidthM * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffRoofWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
+
+                            // Each car will have 2 x sides + 2 x ends. Each side will be made up of solid walls, and windows. A factor has been assumed to determine the ratio of window area to wall area.
+                            float HeatLossTransWindowsWpT = (car.WindowDeratingFactor * (car.CarHeightM - BogieHeightM) * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffWindowsWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
+                            float HeatLossTransSidesWpT = ((1.0f - car.WindowDeratingFactor) * (car.CarHeightM - BogieHeightM) * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffSidesWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
+                            float HeatLossTransEndsWpT = ((car.CarHeightM - BogieHeightM) * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffEndsWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
+
+                            // Total equals 2 x sides, ends, windows
+                            float HeatLossTransTotalSidesWpT = (2.0f * HeatLossTransWindowsWpT) + (2.0f * HeatLossTransSidesWpT) + (2.0f * HeatLossTransEndsWpT);
+
+                            // Calculate the heat loss through the floor
+                            float HeatLossTransFloorWpT = (car.CarWidthM * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffFloorWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
+
+                            HeatLossTransmissionWpT = HeatLossTransRoofWpT + HeatLossTransTotalSidesWpT + HeatLossTransFloorWpT;
+
+                            // ++++++++++++++++++++++++
+                            // Ventilation Heat loss, per degree of temp change
+                            // This will occur when the train is stopped at the station and prior to being ready to depart. Typically will only apply in activity mode, and not explore mode
+                            float HeatLossVentilationWpT = 0;
+                            float HeatRecoveryEfficiency = 0.5f; // Assume a HRF of 50%
+                            float AirFlowVolumeM3pS = car.CarHeatVolumeM3 / 300.0f; // Assume that the volume of the car is emptied over a period of 5 minutes
+
+                            if (AtStation) // When train is at station.
+                            {
+                                if (MayDepart) // If the train is ready to depart, assume all doors are closed, and hence no ventilation loss
+                                {
+                                    HeatLossVentilationWpT = 0;
+                                }
+                                else //
+                                {
+                                    HeatLossVentilationWpT = (float)Dynamics.Power.FromKW((1.0f - HeatRecoveryEfficiency) * SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * AirFlowVolumeM3pS * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC));
+                                }
+                            }
+
+                            // ++++++++++++++++++++++++
+                            // Infiltration Heat loss, per degree of temp change
+                            float NumAirShiftspSec = (float)Frequency.Periodic.FromHours(10.0);      // Pepper article suggests that approx 14 air changes per hour happen for a train that is moving @ 50mph, use and av figure of 10.0.
+                            float HeatLossInfiltrationWpT = 0;
+                            car.CarHeatVolumeM3 = car.CarWidthM * (car.CarLengthM - CarCouplingPipeM) * (car.CarHeightM - BogieHeightM);
+                            HeatLossInfiltrationWpT = (float)(Dynamics.Power.FromKW(SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * NumAirShiftspSec * car.CarHeatVolumeM3 * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC)));
+
+                            car.TotalCarCompartmentHeatLossWpT = HeatLossTransmissionWpT + HeatLossInfiltrationWpT + HeatLossVentilationWpT;
+                            
+                            //++++++++++++++++++++++++++++++++++++++++
+                            // Calculate heat produced by steam pipe acting as heat exchanger inside carriage - this model is based upon the heat loss from a steam pipe. 
+                            // The heat loss per metre from a bare pipe equals the heat loss by convection and radiation. Temperatures in degrees Kelvin
+                            // QConv = hc * A * (Tp - To), where hc = convection coeff, A = surface area of pipe, Tp = pipe temperature, To = temperature of air around the pipe
+                            // QRad = % * A * e * (Tp^4 - To^4), where % = Boltzmans constant, A = surface area of pipe, Tp^4 = pipe temperature, To^4 = temperature of air around the pipe, e = emissivity factor
+
+                            // Calculate steam pipe surface area
+                            float CompartmentSteamPipeRadiusM = (float)(Size.Length.FromIn(2.375f) / 2.0f);  // Assume the steam pipes in the compartments have  have internal diameter of 2" (50mm) - external = 2.375"
+                            float DoorSteamPipeRadiusM = (float)(Size.Length.FromIn(2.75f) / 2.0f);        // Assume the steam pipes in the doors have diameter of 1.75" (50mm) - assume external = 2.0"
+
+                            // Assume door pipes are 3' 4" (ie 3.3') long, and that there are doors at both ends of the car, ie x 2
+                            float CarDoorLengthM = 2.0f * (float)(Size.Length.FromFt(3.3f));
+                            float CarDoorVolumeM3 = car.CarWidthM * CarDoorLengthM * (car.CarHeightM - BogieHeightM);
+
+                            float CarDoorPipeAreaM2 = 2.0f * MathHelper.Pi * DoorSteamPipeRadiusM * CarDoorLengthM;
+
+                            // Use rule of thumb - 1" of 2" steam heat pipe for every 3.0 cu ft of volume in car compartment (third class)
+                            float CarCompartmentPipeLengthM = (float)(Size.Length.FromIn((car.CarHeatVolumeM3 - CarDoorVolumeM3) / (Size.Volume.FromFt3(car.CompartmentHeatingPipeAreaFactor))));
+                            float CarCompartmentPipeAreaM2 = 2.0f * MathHelper.Pi * CompartmentSteamPipeRadiusM * CarCompartmentPipeLengthM;
+
+                            car.CarHeatCompartmentPipeAreaM2 = CarCompartmentPipeAreaM2 + CarDoorPipeAreaM2;
+
+                            // Pipe convection heat produced - steam is reduced to atmospheric pressure when it is injected into compartment
+                            float CompartmentSteamPipeTempC = (float)Temperature.Celsius.FromF(mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[0]);
+                            car.CarCompartmentSteamPipeHeatConvW = (PipeHeatTransCoeffWpM2K * car.CarHeatCompartmentPipeAreaM2 * (CompartmentSteamPipeTempC - car.CarCurrentCarriageHeatTempC));
+
+                            // Pipe radiation heat produced
+                            float PipeTempAK = (float)Math.Pow(Temperature.Kelvin.FromF(CompartmentSteamPipeTempC), 4.0f);
+                            float PipeTempBK = (float)Math.Pow(Temperature.Celsius.ToK(car.CarCurrentCarriageHeatTempC), 4.0f);
+                            car.CarCompartmentSteamHeatPipeRadW = (BoltzmanConstPipeWpM2 * EmissivityFactor * car.CarHeatCompartmentPipeAreaM2 * (PipeTempAK - PipeTempBK));
+
+                            car.CarHeatCompartmentSteamPipeHeatW = car.CarCompartmentSteamHeatPipeRadW + car.CarCompartmentSteamPipeHeatConvW;
+
+                        }
+
+                        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        // Calculate heating loss in main supply pipe that runs under carriage
+
+                        // Set heat trans coeff
+                        float HeatTransCoeffMainPipeBTUpFt2pHrpF = 0.4f * ConvFactor; // insulated pipe - BTU / sq.ft. / hr / l in / °F.
+                        float HeatTransCoeffConnectHoseBTUpFt2pHrpF = 0.04f * ConvFactor; // rubber connecting hoses - BTU / sq.ft. / hr / l in / °F. TO BE CHECKED
+
+                        // Calculate Length of carriage and heat loss in main steam pipe
+                        float CarMainSteamPipeTempF = (float)mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[car.CarSteamHeatMainPipeSteamPressurePSI];
+                        car.CarHeatSteamMainPipeHeatLossBTU = (float)(Size.Length.ToFt(car.CarLengthM) * (MathHelper.Pi * Size.Length.ToFt(car.MainSteamHeatPipeOuterDiaM)) * HeatTransCoeffMainPipeBTUpFt2pHrpF * (CarMainSteamPipeTempF - Temperature.Celsius.ToF(car.CarOutsideTempC)));
+
+                        // calculate steam connecting hoses heat loss - assume 1.5" hose
+                        float ConnectSteamHoseOuterDiaFt = (float)Size.Length.ToFt(car.CarConnectSteamHoseOuterDiaM);                 
+                        car.CarHeatConnectSteamHoseHeatLossBTU = (float)(ConnectSteamHoseLengthFt * (MathHelper.Pi * ConnectSteamHoseOuterDiaFt) * HeatTransCoeffConnectHoseBTUpFt2pHrpF * (CarMainSteamPipeTempF - Temperature.Celsius.ToF(car.CarOutsideTempC)));
+
+                        // Use Napier formula to calculate steam discharge rate through steam trap valve, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
+                        const float SteamTrapValveDischargeFactor = 70.0f;
+
+                        // Find area of pipe - assume 0.1875" (3/16") dia steam trap
+                        float SteamTrapDiaIn = 0.1875f;
+                        float SteamTrapValveSizeAreaIn2 = (float)Math.PI * (SteamTrapDiaIn / 2.0f) * (SteamTrapDiaIn / 2.0f);
+
+                        car.CarHeatSteamTrapUsageLBpS = (SteamTrapValveSizeAreaIn2 * (car.CarSteamHeatMainPipeSteamPressurePSI + OneAtmospherePSI)) / SteamTrapValveDischargeFactor;
+
+                        // Use Napier formula to calculate steam discharge rate through steam leak in connecting hose, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
+                        const float ConnectingHoseDischargeFactor = 70.0f;
+
+                        // Find area of pipe - assume 0.1875" (3/16") dia steam trap
+                        float ConnectingHoseLeakDiaIn = 0.1875f;
+                        float ConnectingHoseLeakAreaIn2 = (float)Math.PI * (ConnectingHoseLeakDiaIn / 2.0f) * (ConnectingHoseLeakDiaIn / 2.0f);
+
+                        car.CarHeatConnectingSteamHoseLeakageLBpS = car.SteamHoseLeakRateRandom * (ConnectingHoseLeakAreaIn2 * (car.CarSteamHeatMainPipeSteamPressurePSI + OneAtmospherePSI)) / ConnectingHoseDischargeFactor;
+                        
+                        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                        float CurrentComparmentSteamPipeHeatW = 0;
+
+                        // Calculate total steam loss along main pipe, by calculating heat into steam pipe at locomotive, deduct heat loss for each car, 
+                        // note if pipe pressure drops, then compartment heating will stop
+                        if (car.CarSteamHeatMainPipeSteamPressurePSI >= 1 && car.CarHeatCompartmentHeaterOn && (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.Heated))
+                        {
+                            // If main pipe pressure is > 0 then heating will start to occur in comparment, so include compartment heat exchanger value
+                            ProgressiveHeatAlongTrainBTU += (float)((car.CarHeatSteamMainPipeHeatLossBTU + car.CarHeatConnectSteamHoseHeatLossBTU) + Frequency.Periodic.ToHours(Dynamics.Power.ToBTUpS(car.CarHeatCompartmentSteamPipeHeatW)));
+                            CurrentComparmentSteamPipeHeatW = car.CarHeatCompartmentSteamPipeHeatW; // Car is being heated as main pipe pressure is high enough, and temperature increase is required
+                            car.SteamHeatingCompartmentSteamTrapOn = true; // turn on the compartment steam traps
+                        }
+                        else
+                        {
+                            // If main pipe pressure is < 0 or temperature in compartment is above the desired temeperature,
+                            // then no heating will occur in comparment, so leave compartment heat exchanger value out
+                            ProgressiveHeatAlongTrainBTU += (car.CarHeatSteamMainPipeHeatLossBTU + car.CarHeatConnectSteamHoseHeatLossBTU);
+                            CurrentComparmentSteamPipeHeatW = 0; // Car is not being heated as main pipe pressure is not high enough, or car temp is hot enough
+                            car.SteamHeatingCompartmentSteamTrapOn = false; // turn off the compartment steam traps
+                        }
+
+                        // Calculate steam flow rates and steam used
+                        SteamFlowRateLbpHr = (float)((ProgressiveHeatAlongTrainBTU / mstsLocomotive.SteamHeatPSItoBTUpLB[mstsLocomotive.CurrentSteamHeatPressurePSI]) + Frequency.Periodic.ToHours(car.CarHeatSteamTrapUsageLBpS) + Frequency.Periodic.ToHours(car.CarHeatConnectingSteamHoseLeakageLBpS));
+                        mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS = (float)Frequency.Periodic.FromHours(SteamFlowRateLbpHr);
+
+                        // Calculate Net steam heat loss or gain for each compartment in the car
+                        car.CarNetSteamHeatLossWpTime = CurrentComparmentSteamPipeHeatW - car.TotalCarCompartmentHeatLossWpT;
+
+                        car.DisplayTrainNetSteamHeatLossWpTime = car.CarNetSteamHeatLossWpTime;
+
+                        // Given the net heat loss the car calculate the current heat capacity, and corresponding temperature
+                        if (car.CarNetSteamHeatLossWpTime < 0)
+                        {
+                            car.CarNetSteamHeatLossWpTime = -1.0f * car.CarNetSteamHeatLossWpTime; // If steam heat loss is negative, convert to a positive number
+                            car.CarHeatCurrentCompartmentHeatW -= (float)(car.CarNetSteamHeatLossWpTime * elapsedClockSeconds);  // Losses per elapsed time
+                        }
+                        else
+                        {
+
+                            car.CarHeatCurrentCompartmentHeatW += (float)(car.CarNetSteamHeatLossWpTime * elapsedClockSeconds);  // Gains per elapsed time         
+                        }
+
+                        car.CarCurrentCarriageHeatTempC = (float)(Dynamics.Power.ToKW(car.CarHeatCurrentCompartmentHeatW) / (SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * car.CarHeatVolumeM3) + TrainOutsideTempC);
+
+                        float DesiredCompartmentTempResetpointC = car.DesiredCompartmentTempSetpointC - 2.5f; // Allow 2.5Deg bandwidth for temperature
+
+                        if (car.CarCurrentCarriageHeatTempC > car.DesiredCompartmentTempSetpointC)
+                        {
+                            car.CarHeatCompartmentHeaterOn = false;
+                        }
+                        else if (car.CarCurrentCarriageHeatTempC < DesiredCompartmentTempResetpointC)
+                        {
+                            car.CarHeatCompartmentHeaterOn = true;
+                        }
+
+                        float DesiredCompartmentAlarmTempSetpointC = (float)Temperature.Celsius.FromF(45.0f); // Alarm temperature
+                        if (car.CarCurrentCarriageHeatTempC < DesiredCompartmentAlarmTempSetpointC) // If temp below 45of then alarm
+                        {
+                            if (!IsSteamHeatLow)
+                            {
+                                IsSteamHeatLow = true;
+                                // Provide warning message if temperature is too hot
+                                float CarTemp = car.CarCurrentCarriageHeatTempC;
+                                if (car.WagonType == TrainCar.WagonTypes.Passenger)
+                                {
+                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetStringFmt("Carriage {0} temperature is too cold, the passengers are freezing.", car.CarID));
+                                }
+                                else
+                                {
+                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetStringFmt("Car {0} temperature is too cold for the freight.", car.CarID));
+                                }
+                            }
+
+                        }
+                        else if (car.CarCurrentCarriageHeatTempC > Temperature.Celsius.FromF(65.0f))
+                        {
+
+                            IsSteamHeatLow = false;        // Reset temperature warning
                         }
                     }
 
+#region Calculate Steam Pressure drop along train
 
-#if DEBUG_CARSTEAMHEAT
+                    // Initialise main steam pipe pressure to same as steam heat valve setting
+                    float ProgressivePressureAlongTrainPSI = mstsLocomotive.CurrentSteamHeatPressurePSI;
 
-        Trace.TraceInformation("***************************************** DEBUG_CARHEAT (Train.cs) ***************************************************************");
-        Trace.TraceInformation("Steam Heating Fitted {0} Player Driven {1} Passenger Cars {2}", mstsLocomotive.TrainFittedSteamHeat, IsPlayerDriven, PassengerCarsNumber);       
-        Trace.TraceInformation("Inside Temp {0} Outside Temp {1}", TrainInsideTempC, TrainOutsideTempC); 
-        Trace.TraceInformation("Train heat loss {0} Train heat pipe area {1} Train heat volume {2}", TrainSteamHeatLossWpT, TrainHeatPipeAreaM2, TrainHeatVolumeM3);        
+                    // Calculate pressure drop along whole train
+                    for (int i = 0; i < Cars.Count; i++)
+                    {
+                        var car = Cars[i];
 
-#endif
+                        // Calculate pressure drop in pipe along train. This calculation is based upon the Unwin formula - https://www.engineeringtoolbox.com/steam-pressure-drop-calculator-d_1093.html
+                        // dp = 0.0001306 * q^2 * L * (1 + 3.6/d) / (3600 * ρ * d^5)
+                        // where dp = pressure drop (psi), q = steam flow rate(lb/ hr), L = length of pipe(ft), d = pipe inside diameter(inches), ρ = steam density(lb / ft3)
+                        // Use values for the specific volume corresponding to the average pressure if the pressure drop exceeds 10 - 15 % of the initial absolute pressure
+                        
+                        float HeatPipePressureDropPSI = (float)((0.0001306f * SteamFlowRateLbpHr * SteamFlowRateLbpHr * Size.Length.ToFt(car.CarLengthM) * (1 + 3.6f / 2.5f)) / (3600 * mstsLocomotive.SteamDensityPSItoLBpFT3[mstsLocomotive.CurrentSteamHeatPressurePSI] * (float)Math.Pow(car.MainSteamHeatPipeInnerDiaM, 5.0f)));
+                        float ConnectHosePressureDropPSI = (float)((0.0001306f * SteamFlowRateLbpHr * SteamFlowRateLbpHr * ConnectSteamHoseLengthFt * (1 + 3.6f / 2.5f)) / (3600 * mstsLocomotive.SteamDensityPSItoLBpFT3[mstsLocomotive.CurrentSteamHeatPressurePSI] * (float)Math.Pow(car.CarConnectSteamHoseInnerDiaM, 5.0f)));
+                        float CarPressureDropPSI = HeatPipePressureDropPSI + ConnectHosePressureDropPSI;
+
+                        ProgressivePressureAlongTrainPSI -= CarPressureDropPSI;
+                        if (ProgressivePressureAlongTrainPSI < 0)
+                        {
+                            ProgressivePressureAlongTrainPSI = 0; // Make sure that pressure never goes negative
+                        }
+                        car.CarSteamHeatMainPipeSteamPressurePSI = ProgressivePressureAlongTrainPSI;
+
+                        // For the boiler heating car adjust mass based upon fuel and water usage
+                        if (car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.HeatingBoiler)
+                        {
+
+                            // Don't process if water or fule capacities are low
+                            if (mstsLocomotive.CurrentSteamHeatPressurePSI > 0 && car.CurrentSteamHeatBoilerFuelCapacityL > 0 && car.CurrentCarSteamHeatBoilerWaterCapacityL > 0 && !car.IsSteamHeatBoilerLockedOut)
+                            {
+                                // Test boiler steam capacity can deliever steam required for the system
+                                if (mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS > car.MaximumSteamHeatingBoilerSteamUsageRateLbpS)
+                                {
+                                    car.IsSteamHeatBoilerLockedOut = true; // Lock steam heat boiler out is steam usage exceeds capacity
+                                    Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("The steam usage has exceeded the capacity of the steam boiler. Steam boiler locked out."));
+                                    Trace.TraceInformation("Steam heat boiler locked out as capacity exceeded");
+                                }
+
+                                // Calculate fuel usage for steam heat boiler
+                                double FuelUsageLpS = Size.LiquidVolume.FromGallonUK(Frequency.Periodic.FromHours(car.TrainHeatBoilerFuelUsageGalukpH[Frequency.Periodic.ToHours(mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS)]));
+                                double FuelOilConvertLtoKg = 0.85f;
+                                car.CurrentSteamHeatBoilerFuelCapacityL -= (float)(FuelUsageLpS * elapsedClockSeconds); // Reduce tank capacity as fuel used.
+                                car.MassKG -= (float)(FuelUsageLpS * elapsedClockSeconds * FuelOilConvertLtoKg); // Reduce locomotive weight as Steam heat boiler uses fuel.
+
+                                // Calculate water usage for steam heat boiler
+                                double WaterUsageLpS = Size.LiquidVolume.FromGallonUK(Frequency.Periodic.FromHours(car.TrainHeatBoilerWaterUsageGalukpH[Frequency.Periodic.ToHours(mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS)]));
+                                car.CurrentCarSteamHeatBoilerWaterCapacityL -= (float)(WaterUsageLpS * elapsedClockSeconds); // Reduce tank capacity as water used.
+                                car.MassKG -= (float)(WaterUsageLpS * elapsedClockSeconds); // Reduce locomotive weight as Steam heat boiler uses water - NB 1 litre of water = 1 kg.
+                            }
+                        }
+                    }
+
+                    #endregion
                 }
             }
         }
@@ -4167,21 +4449,20 @@ namespace Orts.Simulation.Physics
                 if (car.CouplerSlackM < 0 || car.CouplerForceB >= 1)
                     continue;
 
-                if (Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
+                if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
                 {
-                    float maxs0 = car.GetMaximumCouplerSlack0M();
+                    float MaxZ1TensionM = car.GetMaximumCouplerTensionSlack1M() * AdvancedCouplerDuplicationFactor;
+                    // If coupler in Zone 1 tension, ie ( -ve CouplerForceU ) then set coupler forces to zero, as coupler faces not touching yet
 
-                    if (car.CouplerSlackM < maxs0)
-                    //               if (car.CouplerSlackM < maxs0 || car.CouplerForceU > 0)  // In Zone 1 set coupler forces to zero, as coupler faces not touching, or if coupler force is in the opposite direction, ie compressing ( +ve CouplerForceU )
+                    if (car.CouplerSlackM < MaxZ1TensionM && car.CouplerSlackM >= 0)
                     {
-                        //                        Trace.TraceInformation("FixCoupler #1 - Tension - CardId {0} SlackM {1} Slack2M {2} Maxs0 {3} Force {4}", car.CarID, car.CouplerSlackM, car.CouplerSlack2M, maxs0, car.CouplerForceU);
                         SetCouplerForce(car, 0);
                         return true;
                     }
                 }
                 else // "Simple coupler" - only operates on two extension zones, coupler faces not in contact, so set coupler forces to zero
                 {
-                    float maxs1 = car.GetMaximumCouplerSlack1M();
+                    float maxs1 = car.GetMaximumSimpleCouplerSlack1M();
                     // In Zone 1 set coupler forces to zero, as coupler faces not touching , or if coupler force is in the opposite direction, ie compressing ( +ve CouplerForceU )
                     if (car.CouplerSlackM < maxs1 || car.CouplerForceU > 0)
                     {
@@ -4191,32 +4472,29 @@ namespace Orts.Simulation.Physics
                 }
             }
 
-
             // Coupler in compression
             for (int i = Cars.Count - 1; i >= 0; i--)
             {
                 TrainCar car = Cars[i];
 
-                // Coupler in tension on this car or coupler force is "zero" then jump to next car
-                if (car.CouplerSlackM > 0 || car.CouplerForceB >= 1)
+                // Coupler in tension on this car or coupler force is "zero" then jump to (process) next car
+                if (car.CouplerSlackM > 0 || car.CouplerForceB >= 1) 
                     continue;
 
-                if (Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
+                if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
                 {
-                    float maxs0 = car.GetMaximumCouplerSlack0M();
+                    float MaxZ1CompressionM = -car.GetMaximumCouplerCompressionSlack1M() * AdvancedCouplerDuplicationFactor;
 
-                    if (car.CouplerSlackM > -maxs0)
-                    //                    if (car.CouplerSlackM > -maxs0 || car.CouplerForceU < 0) // In Zone 1 set coupler forces to zero, as coupler faces not touching, or if coupler force is in the opposite direction, ie in tension ( -ve CouplerForceU )
+                    if (car.CouplerSlackM > MaxZ1CompressionM && car.CouplerSlackM < 0) // In Zone 1 set coupler forces to zero
                     {
-                        //                        Trace.TraceInformation("FixCoupler #2 - Compression - CardId {0} SlackM {1} Slack2M {2} Maxs0 {3} Force {4}", car.CarID, car.CouplerSlackM, car.CouplerSlack2M, maxs0, car.CouplerForceU);
                         SetCouplerForce(car, 0);
                         return true;
                     }
                 }
-                else // "Simple coupler" - operates on two extension zones, coupler faces not in contact, and coupler fuller in contact
+                else // "Simple coupler" - only operates on two extension zones, coupler faces not in contact, so set coupler forces to zero
                 {
 
-                    float maxs1 = car.GetMaximumCouplerSlack1M();
+                    float maxs1 = car.GetMaximumSimpleCouplerSlack1M();
                     // In Zone 1 set coupler forces to zero, as coupler faces not touching, or if coupler force is in the opposite direction, ie in tension ( -ve CouplerForceU )
                     if (car.CouplerSlackM > -maxs1 || car.CouplerForceU < 0)
                     {
@@ -4256,14 +4534,28 @@ namespace Orts.Simulation.Physics
             {
                 TrainCar car = Cars[i];
                 // if coupler in compression on this car, or coupler is not to be solved, then jump car
-                if (car.CouplerSlackM < 0 || car.CouplerForceB >= 1)
+                if (car.CouplerSlackM < 0 || car.CouplerForceB >= 1) // if coupler in compression on this car, or coupler is not to be solved, then jump to next car and skip processing this one
                     continue;
-
-                if (car.CouplerSlackM < car.CouplerSlack2M || car.CouplerForceU > 0)
+                if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
                 {
-                    //                   Trace.TraceInformation("FixCouplerImpulse #1 - Tension - CardId {0} SlackM {1} Slack2M {2} Force {3}", car.CarID, car.CouplerSlackM, car.CouplerSlack2M, car.CouplerForceU);
-                    SetCouplerForce(car, 0);
-                    return true;
+                    float MaxZ3TensionM = car.AdvancedCouplerDynamicTensionSlackLimitM;
+
+                    if (car.CouplerSlackM < MaxZ3TensionM && car.CouplerSlackM >= 0 || car.CouplerForceU > 0) // If slack is less then coupler maximum extension, then set Impulse forces to zero
+                    {
+                        SetCouplerForce(car, 0);
+                        return true;
+                    }
+                    
+                }
+                else
+                // Simple Coupler
+                {
+                    // Coupler is in tension according to slack measurement, but a tension force is present
+                    if (car.CouplerSlackM < car.CouplerSlack2M || car.CouplerForceU > 0)
+                    {
+                        SetCouplerForce(car, 0);
+                        return true;
+                    }
                 }
             }
 
@@ -4274,11 +4566,23 @@ namespace Orts.Simulation.Physics
                 // Coupler in tension on this car or coupler force is "zero" then jump to next car
                 if (car.CouplerSlackM > 0 || car.CouplerForceB >= 1)
                     continue;
-                if (car.CouplerSlackM > -car.CouplerSlack2M || car.CouplerForceU < 0)
+                if (Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
                 {
-                    //                    Trace.TraceInformation("FixCouplerImpulse #2 - Tension - CardId {0} SlackM {1} Slack2M {2} Force {3}", car.CarID, car.CouplerSlackM, car.CouplerSlack2M, car.CouplerForceU);
-                    SetCouplerForce(car, 0);
-                    return true;
+                    float MaxZ3CompressionM = car.AdvancedCouplerDynamicCompressionSlackLimitM;
+
+                    if (car.CouplerSlackM > MaxZ3CompressionM && car.CouplerSlackM <= 0 || car.CouplerForceU < 0) // If slack is less then coupler maximum extension, then set Impulse forces to zero
+                    {
+                        SetCouplerForce(car, 0);
+                        return true;
+                    }
+                }
+                else // Simple coupler
+                {
+                    if (car.CouplerSlackM > -car.CouplerSlack2M || car.CouplerForceU < 0)
+                    {
+                        SetCouplerForce(car, 0);
+                        return true;
+                    }
                 }
             }
             return false;
@@ -4290,7 +4594,7 @@ namespace Orts.Simulation.Physics
         /// computes and applies coupler impulse forces which force speeds to match when no relative movement is possible
         /// <\summary>
 
-        public void AddCouplerImpulseForces()
+        public void AddCouplerImpulseForces(double elapsedTime)
         {
             if (Cars.Count < 2)
                 return;
@@ -4300,14 +4604,31 @@ namespace Orts.Simulation.Physics
             {
                 TrainCar car = Cars[i];
 
-                float max = car.CouplerSlack2M;
-                if (-max < car.CouplerSlackM && car.CouplerSlackM < max)
+                if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler"
                 {
-                    car.CouplerForceB = 1;
-                    car.CouplerForceA = car.CouplerForceC = car.CouplerForceR = 0;
+                    float MaxTensionCouplerLimitM = car.AdvancedCouplerDynamicTensionSlackLimitM;
+                    float MaxCompressionCouplerLimitM = car.AdvancedCouplerDynamicCompressionSlackLimitM;
+
+                    if (MaxCompressionCouplerLimitM < car.CouplerSlackM && car.CouplerSlackM < MaxTensionCouplerLimitM)
+                    {
+                        car.CouplerForceB = 1;
+                        car.CouplerForceA = car.CouplerForceC = car.CouplerForceR = 0;
+                    }
+                    else
+                        car.CouplerForceR = Cars[i + 1].SpeedMpS - car.SpeedMpS;
                 }
-                else
-                    car.CouplerForceR = Cars[i + 1].SpeedMpS - car.SpeedMpS;
+
+                else // Simple coupler - set impulse force to zero if coupler slack has not exceeded zone 2 limit
+                {
+                    float max = car.CouplerSlack2M;
+                    if (-max < car.CouplerSlackM && car.CouplerSlackM < max)
+                    {
+                        car.CouplerForceB = 1;
+                        car.CouplerForceA = car.CouplerForceC = car.CouplerForceR = 0;
+                    }
+                    else
+                        car.CouplerForceR = Cars[i + 1].SpeedMpS - car.SpeedMpS;
+                }
             }
 
             do
@@ -4316,8 +4637,40 @@ namespace Orts.Simulation.Physics
             MaximumCouplerForceN = 0;
             for (int i = 0; i < Cars.Count - 1; i++)
             {
-                Cars[i].SpeedMpS += Cars[i].CouplerForceU / Cars[i].MassKG;
-                Cars[i + 1].SpeedMpS -= Cars[i].CouplerForceU / Cars[i + 1].MassKG;
+                TrainCar car = Cars[i];
+
+                // save impulse coupler force as it will be overwritten by "static" coupler force
+                car.ImpulseCouplerForceUN = car.CouplerForceU;
+
+                // This section seems to be required to get car moving
+                if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler"
+                {
+                        Cars[i].SpeedMpS += Cars[i].CouplerForceU / Cars[i].MassKG;
+                        Cars[i + 1].SpeedMpS -= Cars[i].CouplerForceU / Cars[i + 1].MassKG;
+
+                    // This ensures that the last car speed never goes negative - as this might cause a sudden jerk in the train when viewed.
+                    if (i == Cars.Count - 2)
+                    {
+                        if (FirstCar.SpeedMpS > 0 && Cars[i + 1].SpeedMpS < 0)
+                        {
+                            Cars[i + 1].SpeedMpS = 0;
+               //                                         Trace.TraceInformation("Last Car Zero Speed Set - CarID {0} - -ve set +ve", car.CarID);
+                        }
+                        else if (FirstCar.SpeedMpS < 0 && Cars[i + 1].SpeedMpS > 0)
+                        {
+                            Cars[i + 1].SpeedMpS = 0;
+                //                                        Trace.TraceInformation("Last Car Zero Speed Set - CarID {0} - +ve set -ve", car.CarID);
+                        }
+                    }
+
+
+                }
+                else // Simple Coupler
+                {
+                    Cars[i].SpeedMpS += Cars[i].CouplerForceU / Cars[i].MassKG;
+                    Cars[i + 1].SpeedMpS -= Cars[i].CouplerForceU / Cars[i + 1].MassKG;
+                }
+
                 //if (Cars[i].CouplerForceU != 0)
                 //    Console.WriteLine("impulse {0} {1} {2} {3} {4}", i, Cars[i].CouplerForceU, Cars[i].CouplerSlackM, Cars[i].SpeedMpS, Cars[i+1].SpeedMpS);
                 //if (MaximumCouplerForceN < Math.Abs(Cars[i].CouplerForceU))
@@ -4348,14 +4701,17 @@ namespace Orts.Simulation.Physics
         /// forwards due to the action of the spring, #3 - where the coupler is fully extended against the friction brake, and the full force of the 
         /// following wagons will be applied to the coupler.
         /// 
+        /// Coupler Force (CouplerForceU) : Fwd = -ve, Rev = +ve,  Total Force (TotalForceN): Fwd = -ve, Rev = +ve
+        /// 
         /// <\summary>
 
-        public void ComputeCouplerForces()
+        public void ComputeCouplerForces(double elapsedTime)
         {
 
             // TODO: this loop could be extracted and become a separate method, that could be called also by TTTrain.physicsPreUpdate
             for (int i = 0; i < Cars.Count; i++)
             {
+                // If car is moving then the raw total force on each car is adjusted according to changing forces.
                 if (Cars[i].SpeedMpS > 0)
                     Cars[i].TotalForceN -= (Cars[i].FrictionForceN + Cars[i].BrakeForceN + Cars[i].CurveForceN + Cars[i].WindForceN + Cars[i].TunnelForceN + Cars[i].DynamicBrakeForceN);
                 else if (Cars[i].SpeedMpS < 0)
@@ -4370,32 +4726,33 @@ namespace Orts.Simulation.Physics
             // Calculate RH side coupler force
             // Whilever coupler faces not in contact, then "zero coupler force" by setting A = C = R = 0
             // otherwise R is calculated based on difference in acceleration between cars, or stiffness and damping value
+
             for (int i = 0; i < Cars.Count - 1; i++)
             {
                 TrainCar car = Cars[i];
-                if (Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
+                if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
                 {
-                    float max0 = car.GetMaximumCouplerSlack0M();
-                    float max1 = car.GetMaximumCouplerSlack1M();
 
-                    if (car.CouplerSlackM > -max0 && car.CouplerSlackM < max0) // Zone 1 coupler faces not in contact - no force generated
+                    //Force on coupler is set so that no force is applied until coupler faces come into contact with each other
+                    float MaxZ1TensionM = car.GetMaximumCouplerTensionSlack1M();
+                    float MaxZ1CompressionM = -car.GetMaximumCouplerCompressionSlack1M();
+
+                    float IndividualCouplerSlackM = car.CouplerSlackM / AdvancedCouplerDuplicationFactor;
+
+                    if (IndividualCouplerSlackM >= MaxZ1CompressionM && IndividualCouplerSlackM <= MaxZ1TensionM) // Zone 1 coupler faces not in contact - no force generated
                     {
                         car.CouplerForceB = 1;
                         car.CouplerForceA = car.CouplerForceC = car.CouplerForceR = 0;
                     }
-                    else if (-max1 < car.CouplerSlackM && car.CouplerSlackM < -max0 || car.CouplerSlackM > max0 && car.CouplerSlackM < max1)   // Zone 2 coupler faces in contact, but spring and damping effects are in play
-                    {
-                        car.CouplerForceR = (Math.Abs(car.CouplerSlackM) * car.GetCouplerStiffness1NpM() + car.CouplerDampingSpeedMpS * car.GetCouplerDamping1NMpS()) / Cars[i + 1].MassKG - car.TotalForceN / car.MassKG;
-                    }
-                    else // Zone 3 coupler faces fully in contact - full force generated
+                    else
                     {
                         car.CouplerForceR = Cars[i + 1].TotalForceN / Cars[i + 1].MassKG - car.TotalForceN / car.MassKG;
                     }
 
                 }
-                else // "Simple coupler" - operates on two extension zones, coupler faces not in contact, and coupler fuller in contact
+                else // "Simple coupler" - only operates on two extension zones, coupler faces not in contact, so set coupler forces to zero
                 {
-                    float max = car.GetMaximumCouplerSlack1M();
+                    float max = car.GetMaximumSimpleCouplerSlack1M();
                     if (-max < car.CouplerSlackM && car.CouplerSlackM < max)
                     {
                         car.CouplerForceB = 1;
@@ -4411,29 +4768,491 @@ namespace Orts.Simulation.Physics
                 SolveCouplerForceEquations();
             while (FixCouplerForceEquations());
 
+           
+
             for (int i = 0; i < Cars.Count - 1; i++)
             {
                 // Calculate total forces on cars
                 TrainCar car = Cars[i];
-                car.TotalForceN += car.CouplerForceU;
-                Cars[i + 1].TotalForceN -= car.CouplerForceU;
+
+                // Check to make sure that last car does not have any coulpler force on its coupler (no cars connected). When cars reversed, there is sometimes a "residual" coupler force.
+                if (i == Cars.Count-1 && Cars[i+1].CouplerForceU != 0)
+                {
+                    Cars[i].CouplerForceU = 0;
+                }
+
+                car.CouplerForceUSmoothed.Update(elapsedTime, car.CouplerForceU);
+                car.SmoothedCouplerForceUN = (float)car.CouplerForceUSmoothed.SmoothedValue;
+
+                // Total force acting on each car is adjusted depending upon the calculated coupler forces
+                    car.TotalForceN += car.CouplerForceU;
+                    Cars[i + 1].TotalForceN -= car.CouplerForceU;
 
                 // Find max coupler force on the car - currently doesn't appear to be used anywhere
                 if (MaximumCouplerForceN < Math.Abs(car.CouplerForceU))
                     MaximumCouplerForceN = Math.Abs(car.CouplerForceU);
 
-                // Update couplerslack2m which acts as an upper limit in slack calculations
-                float maxs = car.GetMaximumCouplerSlack2M();
+                // Update coupler slack which acts as the  upper limit in slack calculations
+                // For the advanced coupler the slack limit is "dynamic", and depends upon the force applied to the coupler, and hence how far it will extend. 
+                // This gives the effect that coupler extension will decrease down the train as the coupler force decreases. CouplerForce has a small smoothing 
+                // effect to redcuce jerk, especially when starting.
 
-                if (Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
+                // As a coupler is defined in terms of force for one car only, then force/slack calculations need to be done with half the slack (IndividualCouplerSlackM) for calculation puposes.
+                // The calculated slack will then be doubled to compensate.
+
+                // The location of each car in the train is referenced from the last car in the train. Hence when starting a jerking motion can be present if the last car is still stationary
+                // and the coupler slack increases and decreases along the train. This section of the code attempts to reduce this jerking motion by holding the coupler extension (slack) distance
+                // to a "fixed" value until the last car has commenced moving. This is consistent with real life as the coupler would be extended as each car starts moving. 
+                // A damping factor is also used to reduce any large variations during train start. CouplerForce is also smoothed slightly to also reduce any jerkiness
+
+                if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
                 {
-                    car.CouplerSlack2M = maxs;
+
+                    // Note different slack lengths can be used depending upon whether the coupler is in tension or compression
+                    // Rigid couplers use a fixed limit, and there is no variation.
+                    float MaxZ1TensionM = car.GetMaximumCouplerTensionSlack1M();
+                    float MaxZ2TensionM = car.GetMaximumCouplerTensionSlack2M();
+                    float MaxZ3TensionM = car.GetMaximumCouplerTensionSlack3M();
+                    float MaxZ1CompressionM = -car.GetMaximumCouplerCompressionSlack1M();
+                    float MaxZ2CompressionM = -car.GetMaximumCouplerCompressionSlack2M();
+                    float MaxZ3CompressionM = -car.GetMaximumCouplerCompressionSlack3M();
+
+                    // Default initialisation of starting regions and limits for defining whether complete train is staring or in motion.
+                    // Typically the train is considereded to be starting if the last car is moving at less then 0.25mps in either direction.
+                    float LastCarZeroSpeedMpS = 0;
+                    float LastCarCompressionMoveSpeedMpS = -0.025f;
+                    float LastCarTensionMoveSpeedMpS = 0.025f;
+                    float CouplerChangeDampingFactor = 0;
+
+                    // The magnitude of the change factor is varied depending upon whether the train is completely in motion, or is just starting.
+                    if (LastCar.SpeedMpS != FirstCar.SpeedMpS && LastCar.SpeedMpS > LastCarCompressionMoveSpeedMpS && LastCar.SpeedMpS < LastCarTensionMoveSpeedMpS)
+                    {
+                        CouplerChangeDampingFactor = 0.99f;
+                    }
+                    else if (LastCar.SpeedMpS == FirstCar.SpeedMpS)
+                    {
+                        CouplerChangeDampingFactor = 0.98f;
+                    }
+                    else
+                    {
+                        CouplerChangeDampingFactor = 0.98f;
+                    }
+
+                    // Default initialisation of limits
+                    car.AdvancedCouplerDynamicTensionSlackLimitM = MaxZ3TensionM * AdvancedCouplerDuplicationFactor;
+                    car.AdvancedCouplerDynamicCompressionSlackLimitM = MaxZ3CompressionM * AdvancedCouplerDuplicationFactor;
+                    bool IsRigidCoupler = car.GetCouplerRigidIndication();
+
+                    // For calculation purposes use only have the individual coupler distance between each car for calculations.
+                    float IndividualCouplerSlackM = car.CouplerSlackM / AdvancedCouplerDuplicationFactor;
+
+                    if (car.SmoothedCouplerForceUN < 0) // Tension
+                    {
+                        int Loop = 0;
+
+                        if (!IsRigidCoupler)
+                        {
+
+                            if (IndividualCouplerSlackM < 0 && FirstCar.SpeedMpS > 0 && LastCar.SpeedMpS >= LastCarZeroSpeedMpS && LastCar.SpeedMpS < LastCarTensionMoveSpeedMpS && LeadLocomotive.Direction == Direction.Forward)
+                            {
+                                // Whilst train is starting in forward direction, don't allow negative coupler slack.
+
+                                float TempDiff = car.PreviousCouplerSlackM * (1.0f - CouplerChangeDampingFactor);
+                                if (car.PreviousCouplerSlackM - TempDiff > IndividualCouplerSlackM)
+                                {
+                                    car.CouplerSlackM = car.PreviousCouplerSlackM - TempDiff;
+                                    car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                    Loop = 1;
+                                }
+
+//                                Trace.TraceInformation("Tension Slack -ve : CarID {0} Force {1} Slack {2} PrevSlack {3} TempDiff {4}", car.CarID, car. , car.CouplerSlackM, car.PreviousCouplerSlackM, TempDiff);
+                            }
+                            else if (FirstCar.SpeedMpS < 0 && LastCar.SpeedMpS > LastCarCompressionMoveSpeedMpS && LastCar.SpeedMpS <= LastCarZeroSpeedMpS && LeadLocomotive.Direction == Direction.Reverse)
+                            {
+                                if (IndividualCouplerSlackM > 0)
+                                {
+                                    // Train is starting to move reverse, don't allow positive coupler slack - should either be negative or zero
+                                    car.CouplerSlackM = car.PreviousCouplerSlackM;
+                                    car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, car.CouplerSlackM, 0);
+                                    car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                    Loop = 2;
+                                }
+                                else if (IndividualCouplerSlackM < MaxZ1CompressionM)
+                                {
+                                    car.CouplerSlackM = MaxZ1CompressionM * AdvancedCouplerDuplicationFactor;
+                                    car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                    Loop = 3;
+                                }
+                            }
+
+                            else if (IndividualCouplerSlackM > MaxZ1TensionM && IndividualCouplerSlackM <= MaxZ3TensionM)
+                            {
+                                // A linear curve is assumed for coupler stiffness - this curve is then used to calculate the amount of slack that the coupler should have. 
+                                //These values are set to "lock" the coupler at this maximum slack length
+
+                                if (Math.Abs(car.SmoothedCouplerForceUN) < car.GetCouplerTensionStiffness1N())
+                                {
+                                    // Calculate coupler slack based upon force on coupler
+                                    float SlackDiff = MaxZ2TensionM - MaxZ1TensionM;
+                                    float GradStiffness = car.GetCouplerTensionStiffness1N() / (SlackDiff); // Calculate gradient of line
+                                    float ComputedZone2SlackM = (Math.Abs(car.SmoothedCouplerForceUN) / GradStiffness) + MaxZ1TensionM; // Current slack distance in this zone of coupler
+
+                                    if (LastCar.SpeedMpS >= LastCarZeroSpeedMpS && LastCar.SpeedMpS < LastCarTensionMoveSpeedMpS)
+                                    {
+                                        // Whilst train is starting
+                                        if (ComputedZone2SlackM < (Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor))
+                                        {
+                                            // Train is starting, don't allow coupler slack to decrease untill complete train is moving
+                                            car.CouplerSlackM = car.PreviousCouplerSlackM;
+                                            car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                            Loop = 4;
+                                        }
+                                        else if (ComputedZone2SlackM > Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor)
+                                        {
+                                            // Allow coupler slack to slowly increase
+                                            // Increase slack value
+                                            car.CouplerSlackM = car.PreviousCouplerSlackM * (1.0f / CouplerChangeDampingFactor);
+                                            car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, 0, MaxZ3TensionM * AdvancedCouplerDuplicationFactor);
+                                            car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                            Loop = 5;
+                                        }
+                                    }
+                                 //   else if (ComputedZone2SlackM < IndividualCouplerSlackM)
+                                    else if (ComputedZone2SlackM < (Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor))
+                                    {
+                                        // Once train is moving then allow gradual reduction in coupler slack
+                                    //    car.CouplerSlackM = ComputedZone2SlackM * AdvancedCouplerDuplicationFactor * CouplerChangeDampingFactor;
+                                                  car.CouplerSlackM = car.PreviousCouplerSlackM * CouplerChangeDampingFactor;
+                                        car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 7;
+                                    }
+                                    else
+                             //       else if (ComputedZone2SlackM > IndividualCouplerSlackM)
+                                    {
+                                        // If train moving then allow coupler slack to increase depending upon the caclulated slack
+                                    //    car.CouplerSlackM = ComputedZone2SlackM * AdvancedCouplerDuplicationFactor * (1.0f / CouplerChangeDampingFactor);
+                                        car.CouplerSlackM = ComputedZone2SlackM * AdvancedCouplerDuplicationFactor * CouplerChangeDampingFactor;
+                                        car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, 0, MaxZ3TensionM * AdvancedCouplerDuplicationFactor);
+                                        car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 8;
+                                    }
+
+                                 //   Trace.TraceInformation("Zone 2 Tension - ID {0} Diff {1} Stiff {2} SmoothForce {3} CouplerForceN {4} Slack {5} ComputedSlack {6} MaxZ2 {7} IndSlack {8} LastSpeed {9} FinalDiff {10} ChangeFactror {11}", car.CarID, SlackDiff, GradStiffness, car.SmoothedCouplerForceUN, car.CouplerForceU, car.CouplerSlackM, ComputedZone2SlackM, MaxZ2TensionM, IndividualCouplerSlackM, LastCar.SpeedMpS, (car.CouplerSlackM - (IndividualCouplerSlackM * AdvancedCouplerDuplicationFactor)), CouplerChangeDampingFactor);
+                                }
+                                else
+                                {
+                                    // A linear curve is assumed for coupler stiffness - this curve is then used to calculate the amount of slack that the coupler should have. 
+                                    //These values are set to "lock" the coupler at this maximum slack length
+                                    float SlackDiff = MaxZ3TensionM - MaxZ2TensionM;
+                                    float GradStiffness = (car.GetCouplerTensionStiffness2N() - car.GetCouplerTensionStiffness1N()) / (SlackDiff);
+                                    float ComputedZone3SlackM = (Math.Abs(car.SmoothedCouplerForceUN) / GradStiffness) + MaxZ2TensionM;
+
+                                    if (LastCar.SpeedMpS >= LastCarZeroSpeedMpS && LastCar.SpeedMpS < LastCarTensionMoveSpeedMpS )
+                                    {
+                                        // Train is starting, don't allow coupler slack to decrease until complete train is moving
+                                        if (ComputedZone3SlackM < (Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor))
+                                        {
+                                            car.CouplerSlackM = car.PreviousCouplerSlackM;
+                                            car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                            Loop = 9;
+                                        }
+                                        else if (ComputedZone3SlackM > Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor)
+                                        {
+                                            // Allow coupler slack to slowly increase
+    
+                                                    // Increase slack value
+                                                    car.CouplerSlackM = car.PreviousCouplerSlackM * (1.0f / CouplerChangeDampingFactor);
+                                                    car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, 0, MaxZ3TensionM * AdvancedCouplerDuplicationFactor);
+                                                    car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                                    Loop = 10;
+    
+                                        }
+                                    }
+                                   // else if (ComputedZone3SlackM < IndividualCouplerSlackM)
+                                    else if (ComputedZone3SlackM < (Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor))
+                                    {
+                                        // Decrease coupler slack - moving
+                                        // car.CouplerSlackM = ComputedZone3SlackM * AdvancedCouplerDuplicationFactor * CouplerChangeDampingFactor;
+                                        car.CouplerSlackM = car.PreviousCouplerSlackM * CouplerChangeDampingFactor;
+                                        car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 12;
+                                    }
+                                    else
+                               //     else if (ComputedZone3SlackM > IndividualCouplerSlackM)
+                                    {
+                                        // Allow coupler slack to be increased - moving
+                                        car.CouplerSlackM = ComputedZone3SlackM * AdvancedCouplerDuplicationFactor * CouplerChangeDampingFactor;
+                                    //    car.CouplerSlackM = ComputedZone3SlackM * AdvancedCouplerDuplicationFactor * (1.0f / CouplerChangeDampingFactor);
+                                        car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, 0, MaxZ3TensionM * AdvancedCouplerDuplicationFactor);
+                                        car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 13;
+                                    }
+
+                                 //   Trace.TraceInformation("Zone 3 Tension - ID {0} Diff {1} Stiff {2} SmoothForce {3} CouplerForceN {4} Slack {5} ComputedSlack {6} MaxZ3 {7} IndSlack {8} LastSpeed {9} FinalDiff {10} ChangeFactror {11}", car.CarID, SlackDiff, GradStiffness, car.SmoothedCouplerForceUN, car.CouplerForceU, car.CouplerSlackM, ComputedZone3SlackM, MaxZ3TensionM, IndividualCouplerSlackM, LastCar.SpeedMpS, (car.CouplerSlackM - (IndividualCouplerSlackM * AdvancedCouplerDuplicationFactor)), CouplerChangeDampingFactor);
+                                }
+                            }
+                            else if (IndividualCouplerSlackM > MaxZ3TensionM)  // Make sure that a new computed slack value does not take slack into the next zone.
+                            {
+                                // If computed slack is higher then Zone 3 limit, then set to max Z3. 
+                                if (LastCar.SpeedMpS >= LastCarZeroSpeedMpS && LastCar.SpeedMpS < LastCarTensionMoveSpeedMpS)
+                                {
+                                    car.CouplerSlackM = MaxZ3TensionM * AdvancedCouplerDuplicationFactor;
+                                    car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                    Loop = 17;
+                                }
+                                else
+                                {
+                                    // A linear curve is assumed for coupler stiffness - this curve is then used to calculate the amount of slack that the coupler should have. 
+                                    //These values are set to "lock" the coupler at this maximum slack length
+                                    float SlackDiff = MaxZ3TensionM - MaxZ2TensionM;
+                                    float GradStiffness = (car.GetCouplerTensionStiffness2N() - car.GetCouplerTensionStiffness1N()) / (SlackDiff);
+                                    float ComputedZone4SlackM = (Math.Abs(car.SmoothedCouplerForceUN) / GradStiffness) + MaxZ2TensionM;
+
+                                    if (ComputedZone4SlackM < MaxZ3TensionM && ComputedZone4SlackM > car.PreviousCouplerSlackM / AdvancedCouplerDuplicationFactor)
+                                    {
+                                        // Increase coupler slack
+                                        car.CouplerSlackM = ComputedZone4SlackM * AdvancedCouplerDuplicationFactor * (1.0f / CouplerChangeDampingFactor);
+                                        car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, 0, MaxZ3TensionM * AdvancedCouplerDuplicationFactor);
+                                        car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 14;
+                                    }
+                                    else if (ComputedZone4SlackM > MaxZ3TensionM)
+                                    {
+                                        car.CouplerSlackM = MaxZ3TensionM * AdvancedCouplerDuplicationFactor;
+                                        car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 15;
+                                    }
+                                    else if (ComputedZone4SlackM < MaxZ3TensionM && ComputedZone4SlackM < car.PreviousCouplerSlackM / AdvancedCouplerDuplicationFactor)
+                                    {
+                                        // Decrease coupler slack
+                                        car.CouplerSlackM = car.PreviousCouplerSlackM * CouplerChangeDampingFactor;
+                                        car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 16;
+                                    }
+                                }
+                            }
+ //                          Trace.TraceInformation("Zone Tension - ID {0} SmoothForce {1} CouplerForceN {2} Slack {3} Speed {4} Loop {5}", car.CarID, car.SmoothedCouplerForceUN, car.CouplerForceU, car.CouplerSlackM, car.SpeedMpS, Loop);
+                        }
+                    }
+
+                    else if (car.SmoothedCouplerForceUN == 0) // In this instance the coupler slack must be greater then the Z1 limit, as no coupler force is generated, and train will not move.
+                    {
+                        int Loop = 0;
+
+                        if (car.SpeedMpS == 0)
+                        {
+                            // In this instance the coupler slack must be greater then the Z1 limit, otherwise no coupler force is generated, and train will not move.
+                            car.AdvancedCouplerDynamicTensionSlackLimitM = MaxZ1TensionM * AdvancedCouplerDuplicationFactor * 1.05f;
+                            car.AdvancedCouplerDynamicCompressionSlackLimitM = MaxZ1CompressionM * AdvancedCouplerDuplicationFactor * 1.05f;
+
+                            if (car.CouplerSlackM < 0 && LastCar.SpeedMpS >= 0 && LastCar.SpeedMpS < LastCarTensionMoveSpeedMpS && FirstCar.SpeedMpS > 0)
+                            {
+                                // When starting in forward we don't want to allow slack to go negative
+                                car.CouplerSlackM = car.PreviousCouplerSlackM;
+                                // Make sure that coupler slack never goes negative when train starting and moving forward and starting
+                                car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, 0, car.CouplerSlackM);
+                                Loop = 1;
+                            }
+                            else if (car.CouplerSlackM > 0 && LastCar.SpeedMpS <= 0 && LastCar.SpeedMpS > LastCarCompressionMoveSpeedMpS && FirstCar.SpeedMpS < 0)
+                            {
+                                // When starting in reverse we don't want to allow slack to go positive
+                                car.CouplerSlackM = car.PreviousCouplerSlackM;
+                                // Make sure that coupler slack never goes positive when train starting and moving reverse and starting
+                                car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, car.CouplerSlackM, 0);
+                                Loop = 2;
+                            }
+                        }
+
+//                        if (car.SpeedMpS != 0)
+//                            Trace.TraceInformation("Advanced - Zero coupler force - CarID {0} Slack {1} Loop {2} Speed {3} Previous {4}", car.CarID, car.CouplerSlackM, Loop, car.SpeedMpS, car.PreviousCouplerSlackM);
+                    }
+                    else   // Compression
+                    {
+                        int Loop = 0;
+
+                        if (!IsRigidCoupler)
+                        {
+                            if (IndividualCouplerSlackM > 0 && FirstCar.SpeedMpS < 0 && LastCar.SpeedMpS <= LastCarZeroSpeedMpS && LastCar.SpeedMpS > LastCarCompressionMoveSpeedMpS && LeadLocomotive.Direction == Direction.Reverse)
+                            {
+                                // Train is moving in reverse, don't allow positive coupler slack.
+                                float TempDiff = Math.Abs(car.PreviousCouplerSlackM) * (1.0f - CouplerChangeDampingFactor);
+                                if (Math.Abs(car.PreviousCouplerSlackM) - TempDiff > Math.Abs(IndividualCouplerSlackM))
+                                {
+                                    car.CouplerSlackM = -1.0f * Math.Abs(car.PreviousCouplerSlackM) - TempDiff;
+                                    car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                    Loop = 1;
+                                }
+                            }
+                            else if (FirstCar.SpeedMpS > 0 && LastCar.SpeedMpS >= LastCarZeroSpeedMpS && LastCar.SpeedMpS < LastCarTensionMoveSpeedMpS && LeadLocomotive.Direction == Direction.Forward)
+                            {
+                                if (IndividualCouplerSlackM < 0)
+                                {
+                                    // Train is starting to move forward, don't allow negative coupler slack - should either be positive or zero
+                                    car.CouplerSlackM = car.PreviousCouplerSlackM;
+                                    car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, 0, car.CouplerSlackM);
+                                    car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                    Loop = 2;
+                                }
+                                else if (IndividualCouplerSlackM > MaxZ1TensionM)
+                                {
+                                    car.CouplerSlackM = MaxZ1TensionM * AdvancedCouplerDuplicationFactor;
+                                    car.AdvancedCouplerDynamicTensionSlackLimitM = car.CouplerSlackM;
+                                    Loop = 3;
+                                }
+                            }
+                            else if (MaxZ3CompressionM < IndividualCouplerSlackM && IndividualCouplerSlackM <= MaxZ1CompressionM)
+                            {
+
+                                // A linear curve is assumed for coupler stiffness - this curve is then used to calculate the amount of slack that the coupler should have. 
+                                //These values are set to "lock" the coupler at this maximum slack length
+
+                                if (Math.Abs(car.SmoothedCouplerForceUN) < car.GetCouplerCompressionStiffness1N())
+                                {
+                                    float SlackDiff = Math.Abs(MaxZ2CompressionM - MaxZ1CompressionM);
+                                    float GradStiffness = car.GetCouplerCompressionStiffness1N() / (SlackDiff); // Calculate gradient of line
+                                    float ComputedZone2SlackM = (Math.Abs(car.SmoothedCouplerForceUN) / GradStiffness) + Math.Abs(MaxZ1CompressionM); // Current slack distance in this zone of coupler
+
+                                    if (LastCar.SpeedMpS > LastCarCompressionMoveSpeedMpS && LastCar.SpeedMpS <= LastCarZeroSpeedMpS)
+                                    {
+
+                                        if (ComputedZone2SlackM < (Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor))
+                                        {
+                                            // Train is starting, don't allow coupler slack to decrease until complete train is moving
+                                            car.CouplerSlackM = car.PreviousCouplerSlackM;
+                                            car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                            Loop = 4;
+                                        }
+                                        else if (ComputedZone2SlackM > Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor)
+                                        {
+                                            // Allow coupler slack to slowly increase
+    
+                                                    // Increase coupler slack slowly
+                                                    car.CouplerSlackM = car.PreviousCouplerSlackM * (1.0f / CouplerChangeDampingFactor);
+                                                    car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, MaxZ3CompressionM * AdvancedCouplerDuplicationFactor, 0);
+                                                    car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                                    Loop = 5;                                                
+                                        }
+                                    }
+                                    else if (ComputedZone2SlackM < (Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor))
+                                    {
+                                        // Once train is moving then allow gradual reduction in coupler slack
+                                        car.CouplerSlackM = car.PreviousCouplerSlackM * CouplerChangeDampingFactor;
+                                        car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 7;
+                                    }
+                                    else
+      //                              else if (ComputedZone2SlackM > Math.Abs(IndividualCouplerSlackM))
+                                    {
+                                        // If train moving then allow coupler slack to increase slowly depending upon the caclulated slack
+                                        car.CouplerSlackM = -1.0f * ComputedZone2SlackM * AdvancedCouplerDuplicationFactor * CouplerChangeDampingFactor;
+                                        car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, MaxZ3CompressionM * AdvancedCouplerDuplicationFactor, 0);
+                                        car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 8;
+                                    }
+
+                              //   Trace.TraceInformation("Zone 2 Compression - ID {0} Diff {1} Stiff {2} SmoothForce {3} CouplerForceN {4} Slack {5} ComputedSlack {6} MaxZ2 {7} IndSlack {8} LastSpeed {9} FinalDiff {10} ChangeFactror {11}", car.CarID, SlackDiff, GradStiffness, car.SmoothedCouplerForceUN, car.CouplerForceU, car.CouplerSlackM, ComputedZone2SlackM, MaxZ2TensionM, IndividualCouplerSlackM, LastCar.SpeedMpS, (car.CouplerSlackM - (IndividualCouplerSlackM * AdvancedCouplerDuplicationFactor)), CouplerChangeDampingFactor);
+                                }
+                                else
+                                {
+                                    // A linear curve is assumed for coupler stiffness - this curve is then used to calculate the amount of slack that the coupler should have. 
+                                    //These values are set to "lock" the coupler at this maximum slack length
+                                    float SlackDiff = Math.Abs(MaxZ3CompressionM - MaxZ2CompressionM);
+                                    float GradStiffness = (car.GetCouplerCompressionStiffness2N() - car.GetCouplerCompressionStiffness1N()) / (SlackDiff);
+                                    float ComputedZone3SlackM = (Math.Abs(car.SmoothedCouplerForceUN) / GradStiffness) + Math.Abs(MaxZ2CompressionM);
+
+                                    if (LastCar.SpeedMpS > LastCarCompressionMoveSpeedMpS && LastCar.SpeedMpS <= LastCarZeroSpeedMpS)
+                                    {
+                                        // Train is starting, don't allow coupler slack to decrease until complete train is moving
+                                        if (ComputedZone3SlackM < (Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor))
+                                        {
+                                            car.CouplerSlackM = car.PreviousCouplerSlackM;
+                                            car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                            Loop = 9;
+                                        }
+                                        else if (ComputedZone3SlackM > Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor)
+                                        {
+                                            // Increase slack
+                                            car.CouplerSlackM = car.PreviousCouplerSlackM * (1.0f / CouplerChangeDampingFactor);
+                                            car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, MaxZ3CompressionM * AdvancedCouplerDuplicationFactor, 0);
+                                            car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                            Loop = 10;
+                                        }
+                                    //   Trace.TraceInformation("Zone 3 Compression - ID {0} Diff {1} Stiff {2} SmoothForce {3} CouplerForceN {4} Slack {5} ComputedSlack {6} MaxZ2 {7} IndSlack {8} LastSpeed {9} FinalDiff {10} ChangeFactror {11}", car.CarID, SlackDiff, GradStiffness, car.SmoothedCouplerForceUN, car.CouplerForceU, car.CouplerSlackM, ComputedZone3SlackM, MaxZ2TensionM, IndividualCouplerSlackM, LastCar.SpeedMpS, (car.CouplerSlackM - (IndividualCouplerSlackM * AdvancedCouplerDuplicationFactor)), CouplerChangeDampingFactor);
+                                    }
+                                    else if (ComputedZone3SlackM < (Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor))
+                                    {
+                                        // Train moving - Decrease slack if Computed Slack is less then the previous slack value
+                                        car.CouplerSlackM = car.PreviousCouplerSlackM * CouplerChangeDampingFactor;
+                                        car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 12;
+                                    }
+                                    else
+                    //                else if (ComputedZone3SlackM > IndividualCouplerSlackM)
+                                    {
+                                        // Train moving - Allow coupler slack to be slowly increased if it is not the same as the computed value
+                                        car.CouplerSlackM = -1.0f * ComputedZone3SlackM * AdvancedCouplerDuplicationFactor * CouplerChangeDampingFactor;
+                                        car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, MaxZ3CompressionM * AdvancedCouplerDuplicationFactor, 0);
+                                        car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 13;
+                                    }
+                                }
+                            }
+                            else if (IndividualCouplerSlackM < MaxZ3CompressionM)  // Make sure that a new computed slack value does not take slack into the next zone.
+                            {
+                                // If computed slack is higher then Zone 3 limit, then set to max Z3. 
+
+                                if (LastCar.SpeedMpS > LastCarCompressionMoveSpeedMpS && LastCar.SpeedMpS <= LastCarZeroSpeedMpS)
+                                {
+                                    // Train starting - limit slack to maximum
+                                    car.CouplerSlackM = MaxZ3CompressionM * AdvancedCouplerDuplicationFactor;
+                                    car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                    Loop = 17;
+                                }
+                                else
+                                {
+
+                                    // A linear curve is assumed for coupler stiffness - this curve is then used to calculate the amount of slack that the coupler should have. 
+                                    //These values are set to "lock" the coupler at this maximum slack length
+                                    float SlackDiff = Math.Abs(MaxZ3CompressionM - MaxZ2CompressionM);
+                                    float GradStiffness = (car.GetCouplerCompressionStiffness2N() - car.GetCouplerCompressionStiffness1N()) / (SlackDiff);
+                                    float ComputedZone4SlackM = (Math.Abs(car.SmoothedCouplerForceUN) / GradStiffness) + Math.Abs(MaxZ2CompressionM);
+
+                                    if (ComputedZone4SlackM < Math.Abs(MaxZ3CompressionM) && ComputedZone4SlackM > Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor)
+                                    {
+                                        car.CouplerSlackM = -1.0f * ComputedZone4SlackM * AdvancedCouplerDuplicationFactor * (1.0f / CouplerChangeDampingFactor);
+                                        car.CouplerSlackM = MathHelper.Clamp(car.CouplerSlackM, MaxZ3CompressionM * AdvancedCouplerDuplicationFactor, 0);
+                                        car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 14;
+                                    }
+                                    else if (ComputedZone4SlackM > Math.Abs(MaxZ3CompressionM))
+                                    {
+                                        car.CouplerSlackM = MaxZ3CompressionM * AdvancedCouplerDuplicationFactor;
+                                        car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 15;
+                                    }
+                                    else if (ComputedZone4SlackM < Math.Abs(MaxZ3CompressionM) && ComputedZone4SlackM < Math.Abs(car.PreviousCouplerSlackM) / AdvancedCouplerDuplicationFactor)
+                                    {
+                                        // Decrease coupler slack
+                                        car.CouplerSlackM = car.PreviousCouplerSlackM * CouplerChangeDampingFactor;
+                                        car.AdvancedCouplerDynamicCompressionSlackLimitM = car.CouplerSlackM;
+                                        Loop = 16;
+                                    }
+                                }
+                            }
+
+//                        if (car.SpeedMpS < 0)
+//                            Trace.TraceInformation("Zone Compression - ID {0} SmoothForce {1} CouplerForceN {2} Slack {3} Speed {4} Loop {5} ", car.CarID, car.SmoothedCouplerForceUN, car.CouplerForceU, car.CouplerSlackM, car.SpeedMpS, Loop);
+                        }
+                    }
+
                 }
-                else  // Simple Coupler
+                else  // Update couplerslack2m which acts as an upper limit in slack calculations for the simple coupler
                 {
+                    float maxs = car.GetMaximumSimpleCouplerSlack2M();
+
                     if (car.CouplerForceU > 0) // Compression
                     {
-                        float f = -(car.CouplerSlackM + car.GetMaximumCouplerSlack1M()) * car.GetCouplerStiffnessNpM();
+                        float f = -(car.CouplerSlackM + car.GetMaximumSimpleCouplerSlack1M()) * car.GetSimpleCouplerStiffnessNpM();
                         if (car.CouplerSlackM > -maxs && f > car.CouplerForceU)
                             car.CouplerSlack2M = -car.CouplerSlackM;
                         else
@@ -4443,13 +5262,15 @@ namespace Orts.Simulation.Physics
                         car.CouplerSlack2M = maxs;
                     else   // Tension
                     {
-                        float f = (car.CouplerSlackM - car.GetMaximumCouplerSlack1M()) * car.GetCouplerStiffnessNpM();
+                        float f = (car.CouplerSlackM - car.GetMaximumSimpleCouplerSlack1M()) * car.GetSimpleCouplerStiffnessNpM();
                         if (car.CouplerSlackM < maxs && f > car.CouplerForceU)
                             car.CouplerSlack2M = car.CouplerSlackM;
                         else
                             car.CouplerSlack2M = maxs;
                     }
                 }
+
+                car.PreviousCouplerSlackM = car.CouplerSlackM;
             }
         }
 
@@ -4460,10 +5281,11 @@ namespace Orts.Simulation.Physics
 
         public void UpdateCarSpeeds(double elapsedTime)
         {
-            // The train speed is calculated by averaging all the car speeds. The individual car speeds are calculated from the TotalForce acting on each car. Typically the MotiveForce or Gravitational forces (though other forces like friction have a small impact as well).
+            // The train speed is calculated by averaging all the car speeds. The individual car speeds are calculated from the TotalForce acting on each car. 
+            // Typically the TotalForce consists of the MotiveForce or Gravitational forces (though other forces like friction have a small impact as well).
             // At stop under normal circumstances the BrakeForce exceeds the TotalForces, and therefore the wagon is "held in a stationary position". 
-            // In the case of "air_piped" wagons which have no BrakeForces acting on them, the car is not held stationary, and each car shows a small speed.
-            // To overcome this any "air_piped cars are forced to zero speed if the preceeding car is stationary.
+            // In the case of "air_piped" wagons which have no BrakeForces acting on them, the car is not held stationary, and each car shows a small speed vibration in either direction.
+            // To overcome this any "air_piped and vacuum_piped" cars are forced to zero speed if the preceeding car is stationary.
             int n = 0;
             float PrevCarSpeedMps = 0.0f;
             float NextCarSpeedMps = 0.0f;
@@ -4489,7 +5311,7 @@ namespace Orts.Simulation.Physics
                     car.SpeedMpS += car.TotalForceN / car.MassKG * (float)elapsedTime;
                     if (car.SpeedMpS < 0)
                         car.SpeedMpS = 0;
-                    // If is "air_piped car, and preceeding car is at stop, then set speed to zero.
+                    // If is air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  These type of cars do not have any brake force to hold them still
                     if ((car.CarBrakeSystemType == "air_piped" || car.CarBrakeSystemType == "vacuum_piped") && (locoBehind ? n != Cars.Count - 1 && NextCarSpeedMps == 0 : n != 0 && PrevCarSpeedMps == 0))
                     {
                         car.SpeedMpS = 0;
@@ -4501,7 +5323,7 @@ namespace Orts.Simulation.Physics
                     car.SpeedMpS += car.TotalForceN / car.MassKG * (float)elapsedTime;
                     if (car.SpeedMpS > 0)
                         car.SpeedMpS = 0;
-                    // If is "air_piped car, and preceeding is at stop, then set speed to zero.
+                    // If is air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  These type of cars do not have any brake force to hold them still
                     if ((car.CarBrakeSystemType == "air_piped" || car.CarBrakeSystemType == "vacuum_piped") && (locoBehind ? n != Cars.Count - 1 && NextCarSpeedMps == 0 : n != 0 && PrevCarSpeedMps == 0))
                     {
                         car.SpeedMpS = 0;
@@ -4521,78 +5343,111 @@ namespace Orts.Simulation.Physics
             }
             if (n == 0)
                 return;
-            float PrevMovingCarSpeedMps = 0.0f;
 
-            // start cars moving forward
+            //
+            // start a car moving forward when it is stationary, once it is moving this whole section is skipped
+            //
             for (int i = 0; i < Cars.Count; i++)
             {
                 TrainCar car = Cars[i];
                 if (car.SpeedMpS != 0 || car.TotalForceN <= (car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN + car.DynamicBrakeForceN))
+                {
+                    // Skip this section to start car if car is already moving, or force not sufficient to start it moving
                     continue;
+                }
                 int j = i;
                 float f = 0;
                 float m = 0;
                 for (; ; )
                 {
+                    // Cycle down the train consist until the first stationary car is found that has its leading couplers starting to pull it. The next car is then started by allowing its speed to increase above 0.
                     f += car.TotalForceN - (car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN + car.DynamicBrakeForceN);
                     m += car.MassKG;
-                    if (j == Cars.Count - 1 || car.CouplerSlackM < car.GetMaximumCouplerSlack2M())
-                        break;
+                    if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
+                    {
+                        if (j == Cars.Count - 1 || car.CouplerSlackM < car.AdvancedCouplerDynamicTensionSlackLimitM)
+                            break;
+                    }
+                    else // Simple coupler
+                    {
+                        if (j == Cars.Count - 1 || car.CouplerSlackM < car.GetMaximumSimpleCouplerSlack2M())
+                            break;
+                    }               
                     j++;
+                    // Increment count to next car.
                     car = Cars[j];
                 }
                 if (f > 0)
                 {
                     for (int k = i; k <= j; k++)
                     {
-                        // If is "air_piped car, and preceeding car is at stop, then set speed to zero.
-                        if ((Cars[k].CarBrakeSystemType == "air_piped" || Cars[k].CarBrakeSystemType == "vacuum_piped") && PrevMovingCarSpeedMps == 0.0)
+
+                        
+                        if ((Cars[k].CarBrakeSystemType == "air_piped" || Cars[k].CarBrakeSystemType == "vacuum_piped") && FirstCar.SpeedMpS > 0 && Cars[k-1].SpeedMpS == 0.0)
                         {
+                            // If is air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  These type of cars do not have any brake force to hold them still
                             Cars[k].SpeedMpS = 0.0f;
                         }
                         else
                         {
+                            // Start this stationary car
                             Cars[k].SpeedMpS = f / m * (float)elapsedTime;
                         }
-                        PrevMovingCarSpeedMps = Cars[k].SpeedMpS;
+
                     }
                     n -= j - i + 1;
                 }
             }
             if (n == 0)
                 return;
-            // start cars moving backward
+            //
+            // start cars moving backward when it is stationary, once it is moving it skips this whole section
+            //
             for (int i = Cars.Count - 1; i >= 0; i--)
             {
                 TrainCar car = Cars[i];
                 if (car.SpeedMpS != 0 || car.TotalForceN > (-1.0f * (car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN + car.DynamicBrakeForceN)))
+                {
+                    // Skip this section to start car if car is already moving, or force not sufficient to start it moving
                     continue;
+                }
                 int j = i;
                 float f = 0;
                 float m = 0;
                 for (; ; )
                 {
+                    // Cycle up the train consist until the first stationary car is found that has its leading couplers starting to pull it. The next car is then started by allowing its speed to increase above 0.
                     f += car.TotalForceN + car.FrictionForceN + car.BrakeForceN + car.CurveForceN + car.WindForceN + car.TunnelForceN + car.DynamicBrakeForceN;
                     m += car.MassKG;
-                    if (j == 0 || car.CouplerSlackM > -car.GetMaximumCouplerSlack2M())
-                        break;
+                    if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
+                    {
+                        if (j == 0 || car.CouplerSlackM > car.AdvancedCouplerDynamicCompressionSlackLimitM)
+                            break;
+                    }
+                    else // Simple coupler
+                    {
+                        if (j == 0 || car.CouplerSlackM > -car.GetMaximumSimpleCouplerSlack2M())
+                            break;
+                    }
                     j--;
+                    // Decrement the count so that next car is started
                     car = Cars[j];
                 }
                 if (f < 0)
                 {
                     for (int k = j; k <= i; k++)
                     {
-                        // If is "air_piped car, and preceeding car is at stop, then set speed to zero.
-                        if ((Cars[k].CarBrakeSystemType == "air_piped" || Cars[k].CarBrakeSystemType == "vacuum_piped") && PrevMovingCarSpeedMps == 0.0)
+                        
+                        if ((Cars[k].CarBrakeSystemType == "air_piped" || Cars[k].CarBrakeSystemType == "vacuum_piped") && FirstCar.SpeedMpS > 0 && Cars[k - 1].SpeedMpS == 0.0)
                         {
+                            // If is air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  These type of cars do not have any brake force to hold them still
                             Cars[k].SpeedMpS = 0.0f;
                         }
                         else
                         {
+                            // Start this stationary car
                             Cars[k].SpeedMpS = f / m * (float)elapsedTime;
                         }
-                        PrevMovingCarSpeedMps = Cars[k].SpeedMpS;
                     }
                 }
             }
@@ -4611,38 +5466,136 @@ namespace Orts.Simulation.Physics
             {
                 // update coupler slack distance
                 TrainCar car = Cars[i];
-                car.CouplerSlackM += (car.SpeedMpS - Cars[i + 1].SpeedMpS) * (float)elapsedTime;
 
-                // Calculate speed for damping force
-                car.CouplerDampingSpeedMpS = car.SpeedMpS - Cars[i + 1].SpeedMpS;
+                // Initialise individual car coupler slack values
+                car.RearCouplerSlackM = 0;
+                car.FrontCouplerSlackM = 0;
 
-                // Make sure that coupler slack does not exceed the maximum coupler slack
-                float max = car.GetMaximumCouplerSlack2M();
-                if (car.CouplerSlackM < -max)
-                    car.CouplerSlackM = -max;
-                else if (car.CouplerSlackM > max)
-                    car.CouplerSlackM = max;
+                // Calculate coupler slack - this should be the full amount for both couplers
+                car.CouplerSlackM += (float)((car.SpeedMpS - Cars[i + 1].SpeedMpS) * elapsedTime);
 
-                TotalCouplerSlackM += car.CouplerSlackM; // Total coupler slack displayed in HUD only
+                // Make sure that coupler slack does not exceed the maximum (dynamic) coupler slack
 
-                //                Trace.TraceInformation("Slack - CarID {0} Slack {1} Zero {2} MaxSlack0 {3} MaxSlack1 {4} MaxSlack2 {5} Damping1 {6} Damping2 {7} Stiffness1 {8} Stiffness2 {9} AdvancedCpl {10} CplSlackA {11} CplSlackB {12}", 
-                //                    car.CarID, car.CouplerSlackM, car.GetCouplerZeroLengthM(), car.GetMaximumCouplerSlack0M(),
-                //                    car.GetMaximumCouplerSlack1M(), car.GetMaximumCouplerSlack2M(), car.GetCouplerDamping1NMpS(), car.GetCouplerDamping2NMpS(), 
-                //                    car.GetCouplerStiffness1NpM(), car.GetCouplerStiffness1NpM(), car.IsAdvancedCoupler, car.GetCouplerSlackAM(), car.GetCouplerSlackBM());
-
-                if (car.CouplerSlackM >= 0.001) // Coupler pulling
+                if (car.IsPlayerTrain && Simulator.UseAdvancedAdhesion && car.IsAdvancedCoupler) // "Advanced coupler" - operates in three extension zones
                 {
-                    NPull++;
-                    car.HUDCouplerForceIndication = 1;
+                    float AdvancedCouplerCompressionLimitM = car.AdvancedCouplerDynamicCompressionSlackLimitM;
+                    float AdvancedCouplerTensionLimitM = car.AdvancedCouplerDynamicTensionSlackLimitM;
+
+                    if (car.CouplerSlackM < AdvancedCouplerCompressionLimitM) // Compression
+                        car.CouplerSlackM = AdvancedCouplerCompressionLimitM;
+
+                    else if (car.CouplerSlackM > AdvancedCouplerTensionLimitM) // Tension
+                        car.CouplerSlackM = AdvancedCouplerTensionLimitM;
                 }
-                else if (car.CouplerSlackM <= -0.001)
+                else // Simple coupler
                 {
-                    NPush++;
-                    car.HUDCouplerForceIndication = 2;
+                    float max = car.GetMaximumSimpleCouplerSlack2M();
+                    if (car.CouplerSlackM < -max)  // Compression
+                        car.CouplerSlackM = -max;
+                    else if (car.CouplerSlackM > max) // Tension
+                        car.CouplerSlackM = max;
+                }
+
+                // Proportion coupler slack across front and rear couplers of this car, and the following car
+                car.RearCouplerSlackM = car.CouplerSlackM / AdvancedCouplerDuplicationFactor;
+                car.FrontCouplerSlackM = Cars[i + 1].CouplerSlackM / AdvancedCouplerDuplicationFactor;
+
+                // Check to see if coupler is opened or closed - only closed or opened couplers have been specified
+                // It is assumed that the front coupler on first car will always be opened, and so will coupler on last car. All others on the train will be coupled
+                if (i == 0)
+                {
+                    if (car.FrontCouplerOpenFitted)
+                    {
+
+                        car.FrontCouplerOpen = true;
+                    }
+                    else
+                    {
+                        car.FrontCouplerOpen = false;
+                    }
                 }
                 else
                 {
-                    car.HUDCouplerForceIndication = 0;
+                    car.FrontCouplerOpen = false;
+                }
+
+
+                if (i == Cars.Count - 2)
+                {
+
+                    if (Cars[i + 1].RearCouplerOpenFitted)
+                    {
+                        Cars[i + 1].RearCouplerOpen = true;
+                    }
+                    else
+                    {
+                        Cars[i + 1].RearCouplerOpen = false;
+                    }
+
+                }
+                else
+                {
+                    car.RearCouplerOpen = false;
+                }
+
+
+
+                TotalCouplerSlackM += car.CouplerSlackM; // Total coupler slack displayed in HUD only
+                
+#if DEBUG_COUPLER_FORCES
+                if (car.IsAdvancedCoupler)
+                {
+                    Trace.TraceInformation("Advanced Coupler - Tension - CarID {0} CouplerSlack {1} Zero {2} MaxSlackZone1 {3} MaxSlackZone2 {4} MaxSlackZone3 {5} Stiffness1 {6} Stiffness2 {7} AdvancedCpl {8} CplSlackA {9} CplSlackB {10}  Rigid {11}",
+                    car.CarID, car.CouplerSlackM, car.GetCouplerZeroLengthM(), car.GetMaximumCouplerTensionSlack1M(), car.GetMaximumCouplerTensionSlack2M(), car.GetMaximumCouplerTensionSlack3M(),
+                    car.GetCouplerTensionStiffness1N(), car.GetCouplerTensionStiffness2N(), car.IsAdvancedCoupler, car.GetCouplerTensionSlackAM(), car.GetCouplerTensionSlackBM(), car.GetCouplerRigidIndication());
+
+                    Trace.TraceInformation("Advanced Coupler - Compression - CarID {0} CouplerSlack {1} Zero {2} MaxSlackZone1 {3} MaxSlackZone2 {4} MaxSlackZone3 {5} Stiffness1 {6} Stiffness2 {7} AdvancedCpl {8} CplSlackA {9} CplSlackB {10}  Rigid {11}",
+                    car.CarID, car.CouplerSlackM, car.GetCouplerZeroLengthM(), car.GetMaximumCouplerCompressionSlack1M(), car.GetMaximumCouplerCompressionSlack2M(), car.GetMaximumCouplerCompressionSlack3M(),
+                    car.GetCouplerCompressionStiffness1N(), car.GetCouplerCompressionStiffness2N(), car.IsAdvancedCoupler, car.GetCouplerCompressionSlackAM(), car.GetCouplerCompressionSlackBM(), car.GetCouplerRigidIndication());
+                }
+                else
+                {
+                    Trace.TraceInformation("Simple Coupler - CarID {0} CouplerSlack {1} Zero {2} MaxSlackZone1 {3} MaxSlackZone2 {4} Stiffness {5} Rigid {6}",
+                    car.CarID, car.CouplerSlackM, car.GetCouplerZeroLengthM(), car.GetMaximumSimpleCouplerSlack1M(), car.GetMaximumSimpleCouplerSlack2M(),
+                    car.GetSimpleCouplerStiffnessNpM(), car.GetCouplerRigidIndication());
+                }
+#endif
+
+                if (!car.GetCouplerRigidIndication()) // Flexible coupling - pulling and pushing value will be equal to slack when couplers faces touch
+                {
+
+                    if (car.CouplerSlackM >= 0.001) // Coupler pulling
+                    {
+                        NPull++;
+                        car.HUDCouplerForceIndication = 1;
+                    }
+                    else if (car.CouplerSlackM <= -0.001) // Coupler pushing
+                    {
+                        NPush++;
+                        car.HUDCouplerForceIndication = 2;
+                    }
+                    else
+                    {
+                        car.HUDCouplerForceIndication = 0; // Coupler neutral
+                    }
+                }
+                else if (car.GetCouplerRigidIndication()) // Rigid coupling - starts pulling/pushing at a lower value then flexible coupling
+                {
+                    if (car.CouplerSlackM >= 0.000125) // Coupler pulling
+                    {
+                        NPull++;
+                        car.HUDCouplerForceIndication = 1;
+                    }
+                    else if (car.CouplerSlackM <= -0.000125) // Coupler pushing
+                    {
+                        NPush++;
+                        car.HUDCouplerForceIndication = 2;
+                    }
+                    else
+                    {
+                        car.HUDCouplerForceIndication = 0; // Coupler neutral
+                    }
+
                 }
 
 
@@ -10523,7 +11476,7 @@ namespace Orts.Simulation.Physics
             {
 
                 //<CSComment> InitializeSignals needs this info sometimes, so I repeat lines below here
-                if (Simulator.Settings.ExtendedAIShunting && !IsActualPlayerTrain && (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL || ControlMode == TRAIN_CONTROL.AUTO_NODE))
+                if (!IsActualPlayerTrain && (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL || ControlMode == TRAIN_CONTROL.AUTO_NODE))
                 {
                     while (TCRoute.activeSubpath <= TCRoute.TCRouteSubpaths.Count - 1)
                     {
@@ -12226,92 +13179,6 @@ namespace Orts.Simulation.Physics
 
         //================================================================================================//
         /// <summary>
-        /// Create waiting point list
-        /// <\summary>
-
-        public virtual void BuildWaitingPointList(float clearingDistanceM)
-        {
-
-            // loop through all waiting points - back to front as the processing affects the actual routepaths
-
-            for (int iWait = 0; iWait <= TCRoute.WaitingPoints.Count - 1; iWait++)
-            {
-                int[] waitingPoint = TCRoute.WaitingPoints[iWait];
-
-                TCSubpathRoute thisRoute = TCRoute.TCRouteSubpaths[waitingPoint[0]];
-                int routeIndex = thisRoute.GetRouteIndex(waitingPoint[1], 0);
-                if (iWait < TCRoute.WaitingPoints.Count - 1 && TCRoute.WaitingPoints[iWait + 1][1] == waitingPoint[1])
-                    continue;
-                int lastIndex = routeIndex;
-
-                // check if waiting point is in route - else give warning and skip
-                if (routeIndex < 0)
-                {
-                    Trace.TraceInformation("Waiting point for train " + Number.ToString() + " service " + Name + " is not on route - point removed");
-                    continue;
-                }
-
-                int direction = thisRoute[routeIndex].Direction;
-                bool endSectionFound = false;
-                int endSignalIndex = -1;
-
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisRoute[routeIndex].TCSectionIndex];
-                TrackCircuitSection nextSection =
-                    routeIndex < thisRoute.Count - 2 ? signalRef.TrackCircuitList[thisRoute[routeIndex + 1].TCSectionIndex] : null;
-
-                if (thisSection.EndSignals[direction] != null)
-                {
-                    endSectionFound = true;
-                    if (routeIndex < thisRoute.Count - 1)
-                        endSignalIndex = thisSection.EndSignals[direction].thisRef;
-                }
-
-                // check if next section is junction
-
-                else if (nextSection == null || nextSection.CircuitType != TrackCircuitSection.TrackCircuitType.Normal)
-                {
-                    endSectionFound = true;
-                }
-
-                // try and find next section with signal; if junction is found, stop search
-
-                int nextIndex = routeIndex + 1;
-                while (nextIndex < thisRoute.Count - 1 && !endSectionFound)
-                {
-                    nextSection = signalRef.TrackCircuitList[thisRoute[nextIndex].TCSectionIndex];
-                    direction = thisRoute[nextIndex].Direction;
-
-                    if (nextSection.EndSignals[direction] != null)
-                    {
-                        endSectionFound = true;
-                        lastIndex = nextIndex;
-                        if (lastIndex < thisRoute.Count - 1)
-                            endSignalIndex = nextSection.EndSignals[direction].thisRef;
-                    }
-                    else if (nextSection.CircuitType != TrackCircuitSection.TrackCircuitType.Normal)
-                    {
-                        endSectionFound = true;
-                        lastIndex = nextIndex - 1;
-                    }
-                    nextIndex++;
-                }
-
-                if (endSignalIndex > -1)
-                {
-                    AIActSigDelegateRef action = new AIActSigDelegateRef(this, Math.Max(waitingPoint[5] - 1500, 0), 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TCSectionIndex, direction);
-                    signalRef.SignalObjects[endSignalIndex].LockForTrain(this.Number, waitingPoint[0]);
-                    action.SetEndSignalIndex(endSignalIndex);
-                    action.SetSignalObject(signalRef.SignalObjects[endSignalIndex]);
-                    //                    action.Delay = waitingPoint[2] <= 5 ? 5 : waitingPoint[2];
-                    action.Delay = waitingPoint[2];
-                    if (waitingPoint[2] >= 30000 && waitingPoint[2] < 40000) action.IsAbsolute = true;
-                    AuxActionsContain.Add(action);
-                }
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
         /// in a certain % of cases depending from randomization level returns a 0 delay
         /// in the remainder of cases computes a randomized delay using a single-sided pseudo-gaussian distribution
         /// following Daniel Howard's suggestion here https://stackoverflow.com/questions/218060/random-gaussian-variables
@@ -12568,10 +13435,10 @@ namespace Orts.Simulation.Physics
         ///              APP3:   Signal at APPROACH 3
         ///              CLR1:   Signal at CLEAR 1
         ///              CLR2:   Signal at CLEAR 2
-        ///  10  Consist:
+        ///  11  Consist:
         ///          PLAYER:
         ///          REMOTE:
-        ///  11  Path:
+        ///  12  Path:
         ///          not Manual nor Explorer:
         ///              number or ?     :   Id of subpath in valid TCRoute or ? if no valid TCRoute
         ///              =[n]            :   Number of remaining station stops
@@ -13558,7 +14425,7 @@ namespace Orts.Simulation.Physics
                 int actionRouteIndex = ValidRoute[0].GetRouteIndex((AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).TCSectionIndex, actionIndex0);
                 var wpDistance = ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).RequiredDistance, AITrainDirectionForward, signalRef);
                 bool wpEnabled = false;
-                if (SpeedMpS == 0 && (((AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
+                if (Math.Abs(SpeedMpS) <= Simulator.MaxStoppedMpS && (((AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
                     (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION) ||
                     ((this as AITrain).nextActionInfo is AuxActionWPItem && (this as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION))) wpEnabled = true;
 
@@ -13771,6 +14638,54 @@ namespace Orts.Simulation.Physics
             TCRoute = new TCRoutePath(aiPath, (int)FrontTDBTraveller.Direction, Length, signalRef, Number, Simulator.Settings);
             ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
         }
+
+
+        //================================================================================================//
+        /// <summary>
+        /// Search trailing diverging switch
+        /// </summary>
+        /// 
+        public float NextTrailingDivergingSwitchDistanceM(float maxDistanceM)
+        {
+            var switchDistanceM = float.MaxValue;
+            // run along forward path to catch the first trailing diverging switch
+            if (ValidRoute[0] != null)
+            {
+                float distanceToTrainM = 0.0f;
+                float offset = PresentPosition[0].TCOffset;
+                TrackCircuitSection firstSection = signalRef.TrackCircuitList[PresentPosition[0].TCSectionIndex];
+                float sectionStart = -offset;
+                int startRouteIndex = PresentPosition[0].RouteListIndex;
+                if (startRouteIndex < 0) startRouteIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
+                if (startRouteIndex >= 0)
+                {
+                    int routeSectionIndex = PresentPosition[0].TCSectionIndex;
+                    for (int iRouteElement = startRouteIndex; iRouteElement < ValidRoute[0].Count && distanceToTrainM < maxDistanceM && sectionStart < maxDistanceM; iRouteElement++)
+                    {
+                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iRouteElement].TCSectionIndex];
+                        int sectionDirection = ValidRoute[0][iRouteElement].Direction;
+
+                        if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction && (thisSection.Pins[sectionDirection, 1].Link == -1) && sectionStart < maxDistanceM)
+                        {
+                            // is trailing
+                            TrackJunctionNode junctionNode = Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackJunctionNode;
+                            if ((thisSection.Pins[sectionDirection == 0 ? 1 : 0, 1].Link == routeSectionIndex && thisSection.JunctionDefaultRoute == 0) ||
+                                (thisSection.Pins[sectionDirection == 0 ? 1 : 0, 0].Link == routeSectionIndex && thisSection.JunctionDefaultRoute > 0))
+                            {
+                                //is trailing diverging
+                                switchDistanceM = sectionStart;
+                                break;
+                            }
+
+                        }
+                        routeSectionIndex = ValidRoute[0][iRouteElement].TCSectionIndex;
+                        sectionStart += thisSection.Length;
+                    }
+                }
+            }
+            return switchDistanceM;
+        }
+
 
 
         //================================================================================================//
@@ -14959,7 +15874,6 @@ namespace Orts.Simulation.Physics
         /// 
         public virtual void TestAbsDelay(ref int delay, int correctedTime)
         {
-            if (!Simulator.Settings.ExtendedAIShunting) return;
             if (delay < 30000 || delay >= 40000) return;
             int hour = (delay / 100) % 100;
             int minute = delay % 100;
@@ -20029,7 +20943,7 @@ namespace Orts.Simulation.Physics
                         {
                             car.Update(elapsedClockSeconds);
                         }
-#endif  
+#endif
                 }
             }
             //            Trace.TraceWarning("SpeedMpS {0}  LastSpeedMpS {1}  AbsSpeedMpS {2}  targetSpeedMpS {7} x {3}  expectedTravelled {4}  travelled {5}  newDistanceTravelledM {6}",
@@ -20088,41 +21002,16 @@ namespace Orts.Simulation.Physics
         /// </summary>
         /// 
 
-        virtual public void ReenterTrackSections(int trackNodeIndex, int trVectorSectionIndex, Vector3 finalFrontTravellerXNALocation, Vector3 finalRearTravellerXNALocation, Traveller.TravellerDirection direction)
+        public void ReenterTrackSections(int trackNodeIndex, int trVectorSectionIndex, Vector3 finalFrontTravellerXNALocation, Vector3 finalRearTravellerXNALocation, Traveller.TravellerDirection direction)
         {
-            CalculateReenterTrackPosition(trackNodeIndex, trVectorSectionIndex, finalFrontTravellerXNALocation, finalRearTravellerXNALocation, direction);
-
-            if (TrainType == TRAINTYPE.STATIC)
-            {
-                ControlMode = TRAIN_CONTROL.UNDEFINED;
-                return;
-            }
-
-            if (Simulator.Activity == null && !Simulator.TimetableMode) ToggleToExplorerMode();
-            else ToggleToManualMode();
-            Simulator.Confirmer.Confirm(CabControl.SignalMode, CabSetting.Off);
-        }
-
-        /// <summary>
-        /// Recalculate train position after turntable rotation
-        /// </summary>
-
-        public void CalculateReenterTrackPosition(int trackNodeIndex, int trVectorSectionIndex, Vector3 finalFrontTravellerXNALocation, Vector3 finalRearTravellerXNALocation, Traveller.TravellerDirection direction)
-        {
+            FrontTDBTraveller = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, Simulator.TDB.TrackDB.TrackNodes[trackNodeIndex],
+                 Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalFrontTravellerXNALocation.X, -finalFrontTravellerXNALocation.Z, FrontTDBTraveller.Direction);
+            RearTDBTraveller = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, Simulator.TDB.TrackDB.TrackNodes[trackNodeIndex],
+                Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalRearTravellerXNALocation.X, -finalRearTravellerXNALocation.Z, RearTDBTraveller.Direction);
             if (direction == Traveller.TravellerDirection.Backward)
             {
-                ReverseCars();
-                FrontTDBTraveller = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, Simulator.TDB.TrackDB.TrackNodes[trackNodeIndex],
-                    Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalRearTravellerXNALocation.X, -finalRearTravellerXNALocation.Z, FrontTDBTraveller.Direction);
-                RearTDBTraveller = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, Simulator.TDB.TrackDB.TrackNodes[trackNodeIndex],
-                                Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalFrontTravellerXNALocation.X, -finalFrontTravellerXNALocation.Z, RearTDBTraveller.Direction);
-            }
-            else
-            {
-                FrontTDBTraveller = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, Simulator.TDB.TrackDB.TrackNodes[trackNodeIndex],
-                    Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalFrontTravellerXNALocation.X, -finalFrontTravellerXNALocation.Z, FrontTDBTraveller.Direction);
-                RearTDBTraveller = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, Simulator.TDB.TrackDB.TrackNodes[trackNodeIndex],
-                                Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalRearTravellerXNALocation.X, -finalRearTravellerXNALocation.Z, RearTDBTraveller.Direction);
+                FrontTDBTraveller.ReverseDirection();
+                RearTDBTraveller.ReverseDirection();
             }
 
             ClearValidRoutes();
@@ -20146,6 +21035,16 @@ namespace Orts.Simulation.Physics
 
             PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction1);
             PresentPosition[0].CopyTo(ref PreviousPosition[0]);
+
+            if (TrainType == TRAINTYPE.STATIC)
+            {
+                ControlMode = TRAIN_CONTROL.UNDEFINED;
+                return;
+            }
+
+            if (Simulator.Activity == null && !Simulator.TimetableMode) ToggleToExplorerMode();
+            else ToggleToManualMode();
+            Simulator.Confirmer.Confirm(CabControl.SignalMode, CabSetting.Off);
         }
     }// class Train
 }

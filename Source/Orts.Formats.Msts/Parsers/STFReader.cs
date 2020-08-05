@@ -833,6 +833,12 @@ namespace Orts.Formats.Msts.Parsers
             /// </summary>            
             ResistanceDavisC = 1 << 26,
 
+            /// <summary>
+            /// Valid Units: degc, degf
+            /// <para>Scaled to Deg Celsius</para>
+            /// </summary>            
+            Temperature = 1 << 27,    // "Temperature", note above TemperatureDifference, is different
+
             // "Any" is used where units cannot easily be specified, such as generic routines for interpolating continuous data from point values.
             // or interpreting locomotive cab attributes from the ORTSExtendedCVF experimental mechanism.
             // "Any" should not be used where the dimensions of a unit are predictable.
@@ -1132,10 +1138,22 @@ namespace Orts.Formats.Msts.Parsers
                 switch (suffix)
                 {
                     case "": 
-                    case "Nm/s^2": return (1.0f, 0);
+                    case "nm/s^2": return (1.0f, 0);
                     case "lbf/mph^2": return (Dynamics.Resistance.FromLbfpMpH2(1), 0); 
                 }
+            if ((validUnits & Units.Temperature) > 0)
+            {
+                switch (suffix)
+                {
 
+                    case "": return (1.0, 0);
+                    case "degc": return (1, 0);
+                    case "degf":  // Converting to equivalent degC
+                        if (double.TryParse(constant, out double temperature))
+                            constant = Temperature.Celsius.FromF(temperature).ToString();
+                        return (1, 0);
+                }
+            }
             STFException.TraceWarning(this, "Found a suffix '" + suffix + "' which could not be parsed as a " + validUnits.ToString() + " unit");
             return (1.0f, 0);
         }

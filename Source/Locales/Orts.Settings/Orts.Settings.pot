@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2019-07-17 06:09:09+0200\n"
-"PO-Revision-Date: 2019-07-17 06:09:10+0200\n"
+"POT-Creation-Date: 2020-06-11 00:29:01+0200\n"
+"PO-Revision-Date: 2020-06-11 00:29:01+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -11,30 +11,23 @@ msgstr ""
 "X-Generator: MonoDevelop Gettext addin\n"
 
 
-#: ../../Orts.Settings/InputSettings.cs:478
+#: ../../ORTS.Settings/InputSettings.cs:513
 #, csharp-format
 msgid "{0} requires and is modified by Shift"
 msgstr ""
 
-#: ../../Orts.Settings/InputSettings.cs:480
+#: ../../ORTS.Settings/InputSettings.cs:515
 #, csharp-format
 msgid "{0} requires and is modified by Control"
 msgstr ""
 
-#: ../../Orts.Settings/InputSettings.cs:482
+#: ../../ORTS.Settings/InputSettings.cs:517
 #, csharp-format
 msgid "{0} requires and is modified by Alt"
 msgstr ""
 
-#: ../../Orts.Settings/InputSettings.cs:513
+#: ../../ORTS.Settings/InputSettings.cs:548
 #, csharp-format
 msgid "{0} and {1} both match {2}"
-msgstr ""
-
-#: ../../Orts.Settings/RailDriverSettings.cs:225
-#, csharp-format
-msgid ""
-"Button {0} is assigned to \r\n"
-"\t"
 msgstr ""
 

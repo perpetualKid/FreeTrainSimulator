@@ -22,6 +22,7 @@ using System.Diagnostics;   // Used by Trace.Warnings
 using Orts.Common;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.RollingStocks.SubSystems;
 
 namespace Orts.Simulation.Commanding
 {
@@ -758,8 +759,37 @@ namespace Orts.Simulation.Commanding
     }
 
     [Serializable()]
-    public sealed class HornCommand : BooleanCommand
+    public sealed class VacuumExhausterCommand : BooleanCommand
     {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public VacuumExhausterCommand(CommandLog log, bool targetState)
+            : base(log, targetState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (targetState)
+            {
+                if (!Receiver.VacuumExhausterPressed)
+                    Receiver.Train.SignalEvent(TrainEvent.VacuumExhausterOn);
+            }
+            else
+            {
+                Receiver.Train.SignalEvent(TrainEvent.VacuumExhausterOff);
+            }
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "fast" : "normal");
+        }
+    }
+
+    [Serializable()]
+    public sealed class HornCommand : BooleanCommand {
         public static MSTSLocomotive Receiver { get; set; }
 
         public HornCommand(CommandLog log, bool targetState)
@@ -1342,6 +1372,25 @@ namespace Orts.Simulation.Commanding
         }
     }
 
+    [Serializable()]
+    public sealed class ToggleBlowdownValveCommand : Command
+    {
+        public static MSTSSteamLocomotive Receiver { get; set; }
+
+        public ToggleBlowdownValveCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver == null) return;
+            Receiver.ToggleBlowdownValve();
+            // Report();
+        }
+    }
+
     // Diesel player engine on / off command
     [Serializable()]
     public sealed class TogglePlayerEngineCommand : Command
@@ -1406,6 +1455,7 @@ namespace Orts.Simulation.Commanding
         }
     }
 
+    #region TurnTable
     [Serializable()]
     public sealed class TurntableClockwiseCommand : Command
     {
@@ -1423,7 +1473,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return ToString(" Clockwise");
+            return ToString("Clockwise");
         }
     }
 
@@ -1445,7 +1495,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return ToString(" Clockwise with target");
+            return ToString("Clockwise with target");
         }
     }
 
@@ -1466,7 +1516,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return ToString(" Counterclockwise");
+            return ToString("Counterclockwise");
         }
     }
 
@@ -1488,8 +1538,76 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return ToString(" Counterclockwise with target");
+            return ToString("Counterclockwise with target");
         }
     }
+    #endregion
+
+    #region TCS
+    /// <summary>
+    /// This is the list of commands available for TCS scripts; they are generic commands, whose action will specified by the active script
+    /// All commands record the time when the command is created, but a continuous command backdates the time to when the key
+    /// was pressed.
+    /// </summary>
+
+    // Generic TCS button command
+    [Serializable()]
+    public sealed class TCSButtonCommand : BooleanCommand
+    {
+        public int CommandIndex;
+        public static ScriptedTrainControlSystem Receiver { get; set; }
+
+        public TCSButtonCommand(CommandLog log, bool toState, int commandIndex)
+            : base(log, toState)
+        {
+            CommandIndex = commandIndex;
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver != null)
+            {
+                Receiver.TCSCommandButtonDown[CommandIndex] = targetState;
+                Receiver.HandleEvent(targetState? TCSEvent.GenericTCSButtonPressed : TCSEvent.GenericTCSButtonReleased, CommandIndex);
+            }
+
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "on" : "off");
+        }
+    }
+
+    // Generic TCS switch command
+    [Serializable()]
+    public sealed class TCSSwitchCommand : BooleanCommand
+    {
+        public int CommandIndex;
+        public static ScriptedTrainControlSystem Receiver { get; set; }
+
+        public TCSSwitchCommand(CommandLog log, bool toState, int commandIndex)
+            : base(log, toState)
+        {
+            CommandIndex = commandIndex;
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            if (Receiver != null)
+            {
+                Receiver.TCSCommandSwitchOn[CommandIndex] = targetState;
+                Receiver.HandleEvent(targetState ? TCSEvent.GenericTCSSwitchOn : TCSEvent.GenericTCSSwitchOff, CommandIndex);
+            }
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "on" : "off");
+        }
+    }
+    #endregion
 
 }

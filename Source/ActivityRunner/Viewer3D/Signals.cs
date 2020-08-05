@@ -198,6 +198,8 @@ namespace Orts.ActivityRunner.Viewer3D
             List<AnimatedPart> SemaphoreParts = new List<AnimatedPart>();
             int DisplayState = -1;
 
+            private readonly SignalLightState[] lightStates;
+
             public SignalShapeHead(Viewer viewer, SignalShape signalShape, int index, SignalHead signalHead,
                         SignalItem mstsSignalItem, Orts.Formats.Msts.Models.SignalShape.SignalSubObject mstsSignalSubObj)
             {
@@ -295,6 +297,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                 }
 
+                lightStates = new SignalLightState[SignalTypeData.Lights.Count];
+                for (var i = 0; i < SignalTypeData.Lights.Count; i++)
+                    lightStates[i] = new SignalLightState(SignalTypeData.TransitionTime);
+
 #if DEBUG_SIGNAL_SHAPES
                 Console.Write("  HEAD type={0,-8} lights={1,-2} sem={2}", SignalTypeData.Type, SignalTypeData.Lights.Count, SignalTypeData.Semaphore);
 #endif
@@ -347,11 +353,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 for (var i = 0; i < SignalTypeData.Lights.Count; i++)
                 {
-                    if (SemaphorePos != SemaphoreTarget && SignalTypeData.LightsSemaphoreChange[i])
-                        continue;
-                    if (!SignalTypeData.DrawAspects[DisplayState].DrawLights[i])
-                        continue;
-                    if (SignalTypeData.DrawAspects[DisplayState].FlashLights[i] && (CumulativeTime > SignalTypeData.FlashTimeOn))
+                    SignalLightState state = lightStates[i];
+                    bool semaphoreDark = SemaphorePos != SemaphoreTarget && SignalTypeData.LightsSemaphoreChange[i];
+                    bool constantDark = !SignalTypeData.DrawAspects[DisplayState].DrawLights[i];
+                    bool flashingDark = SignalTypeData.DrawAspects[DisplayState].FlashLights[i] && (CumulativeTime > SignalTypeData.FlashTimeOn);
+                    state.UpdateIntensity(semaphoreDark || constantDark || flashingDark ? 0 : 1, elapsedTime);
+                    if (!state.Illuminated)
                         continue;
 
                     bool isDay;
@@ -371,9 +378,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     MatrixExtension.Multiply(in temp, in xnaTileTranslation, out Matrix xnaMatrix);
 
-                    frame.AddPrimitive(SignalTypeData.Material, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix);
+                    frame.AddPrimitive(SignalTypeData.Material, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix, ShapeFlags.None, state);
                     if (Viewer.Settings.SignalLightGlow)
-                        frame.AddPrimitive(SignalTypeData.GlowMaterial, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix);
+                        frame.AddPrimitive(SignalTypeData.GlowMaterial, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix, ShapeFlags.None, state);
                 }
 
                 if (SignalTypeData.Semaphore)
@@ -421,6 +428,7 @@ namespace Orts.ActivityRunner.Viewer3D
             public readonly Dictionary<int, SignalAspectData> DrawAspects = new Dictionary<int, SignalAspectData>();
             public readonly float FlashTimeOn;
             public readonly float FlashTimeTotal;
+            public readonly float TransitionTime;
             public readonly bool Semaphore;
             public readonly bool DayLight = true;
             public readonly float SemaphoreAnimationTime;
@@ -491,6 +499,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     SemaphoreAnimationTime = mstsSignalType.SemaphoreInfo;
                     DayLight = mstsSignalType.DayLight;
                 }
+
+                TransitionTime = mstsSignalType.TransitionTime;
             }
         }
 
@@ -537,6 +547,35 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 SemaphorePos = drawStateData.SemaphorePosition;
             }
+        }
+    }
+
+    /// <summary>
+    /// Tracks state for individual signal head lamps, with smooth lit/unlit transitions.
+    /// </summary>
+    internal class SignalLightState
+    {
+        private readonly float transitionTime; // Transition time in seconds.
+        private double intensity = 0;
+        private bool firstUpdate = true;
+
+        public SignalLightState(float transitionTime)
+        {
+            this.transitionTime = transitionTime;
+        }
+
+        public double Intensity => intensity;
+        public bool Illuminated => intensity > 0;
+
+        public void UpdateIntensity(float target, in ElapsedTime elapsedTime)
+        {
+            if (firstUpdate || transitionTime == 0)
+                intensity = target;
+            else if (target > intensity)
+                intensity = Math.Min(intensity + elapsedTime.ClockSeconds / transitionTime, target);
+            else if (target < intensity)
+                intensity = Math.Max(intensity - elapsedTime.ClockSeconds / transitionTime, target);
+            firstUpdate = false;
         }
     }
 
@@ -609,6 +648,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 for (int i = 0; i < renderItems.Count; i++)
                 {
                     RenderItem item = renderItems[i];
+                    shader.SignalLightIntensity = (float)(item.ItemData as SignalLightState).Intensity;
                     shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     pass.Apply();
                     item.RenderPrimitive.Draw();
@@ -676,6 +716,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     RenderItem item = renderItems[i];
                     var slp = item.RenderPrimitive as SignalLightPrimitive;
                     shader.ZBias = MathHelper.Lerp(slp.GlowIntensityDay, slp.GlowIntensityNight, nightEffect);
+                    shader.SignalLightIntensity = (float)(item.ItemData as SignalLightState).Intensity;
                     shader.SetMatrix(in item.XNAMatrix, in viewProjection);
                     pass.Apply();
                     item.RenderPrimitive.Draw();

@@ -66,6 +66,7 @@ namespace Orts.Simulation
         public static ICatalog Catalog { get; private set; }
         public static Random Random { get; private set; }
         public static double Resolution = 1000000; // resolution for calculation of random value with a pseudo-gaussian distribution
+        public const float MaxStoppedMpS = 0.1f; // stopped is taken to be a speed less than this 
 
         public bool Paused = true;          // start off paused, set to true once the viewer is fully loaded and initialized
         public float GameSpeed = 1;
@@ -389,7 +390,7 @@ namespace Orts.Simulation
             {
                 ActivityRun.AddRestrictZones(TRK.Route, TSectionDat, TDB.TrackDB, Activity.Activity.ActivityRestrictedSpeedZones);
             }
-            IsAutopilotMode = Settings.Autopilot;
+            IsAutopilotMode = true;
         }
         public void SetExplore(string path, string consist, string start, string season, string weather)
         {
@@ -420,7 +421,7 @@ namespace Orts.Simulation
             ClockTime = StartTime.TotalSeconds;
             Season = (SeasonType)int.Parse(season);
             WeatherType = (WeatherType)int.Parse(weather);
-            IsAutopilotMode = Settings.Autopilot;
+            IsAutopilotMode = true;
         }
 
         public void Start(CancellationToken cancellation)
@@ -559,13 +560,12 @@ namespace Orts.Simulation
 
         Train InitializeTrains(CancellationToken cancellation)
         {
-            Physics.Train playerTrain = InitializePlayerTrain();
+            Train playerTrain = InitializePlayerTrain();
             InitializeStaticConsists();
             AI = new AI(this, cancellation, ClockTime);
             if (playerTrain != null)
             {
-                var validPosition = playerTrain.PostInit();  // place player train after pre-running of AI trains
-                if (validPosition && AI != null) AI.PreUpdate = false;
+                var validPosition = playerTrain.PostInit();
                 TrainDictionary.Add(playerTrain.Number, playerTrain);
                 NameDictionary.Add(playerTrain.Name, playerTrain);
             }
@@ -686,7 +686,7 @@ namespace Orts.Simulation
 
             foreach (Physics.Train train in Trains)
             {
-                if (train.SpeedMpS != 0 &&
+                if ((train.SpeedMpS != 0 || (train.ControlMode == Train.TRAIN_CONTROL.EXPLORER && train.TrainType == Train.TRAINTYPE.REMOTE && MPManager.IsServer())) &&
                     train.GetType() != typeof(AITrain) && train.GetType() != typeof(TTTrain) &&
                     (PlayerLocomotive == null || train != PlayerLocomotive.Train))
                 {
@@ -1089,40 +1089,25 @@ namespace Orts.Simulation
 
             Debug.Assert(Trains != null, "Cannot InitializePlayerTrain() without Simulator.Trains.");
             // set up the player locomotive
-            // first extract the player service definition from the activity file
-            // this gives the consist and path
 
-            Physics.Train train = new Physics.Train(this);
-            train.TrainType = Physics.Train.TRAINTYPE.PLAYER;
+            Train train = new Train(this);
+            train.TrainType = Train.TRAINTYPE.PLAYER;
             train.Number = 0;
             train.Name = "PLAYER";
 
             string playerServiceFileName;
             ServiceFile srvFile;
-            if (Activity != null && Activity.Activity.Serial != -1)
-            {
-                playerServiceFileName = Activity.Activity.PlayerServices.Name;
-                srvFile = new ServiceFile(RoutePath + @"\SERVICES\" + playerServiceFileName + ".SRV");
-                train.InitialSpeed = srvFile.TimeTable.InitialSpeed;
-            }
-            else
-            {
-                playerServiceFileName = Path.GetFileNameWithoutExtension(ExploreConFile);
-                srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, Path.GetFileNameWithoutExtension(ExplorePathFile));
-            }
+
+            playerServiceFileName = Path.GetFileNameWithoutExtension(ExploreConFile);
+            srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, Path.GetFileNameWithoutExtension(ExplorePathFile));
+
             conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
             patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
             OriginalPlayerTrain = train;
 
-
-
             if (conFileName.Contains("tilted")) train.IsTilting = true;
 
 
-            //PATFile patFile = new PATFile(patFileName);
-            //PathName = patFile.Name;
-            // This is the position of the back end of the train in the database.
-            //PATTraveller patTraveller = new PATTraveller(patFileName);
             AIPath aiPath = new AIPath(TDB, TSectionDat, patFileName, TimetableMode);
             PathName = aiPath.pathName;
 
@@ -1188,29 +1173,11 @@ namespace Orts.Simulation
 
             train.CheckFreight();
 
-            if (Activity != null && !MPManager.IsMultiPlayer()) // activity is defined
-            {
-                // define style of passing path and process player passing paths as required
-                if (Signals.UseLocationPassingPaths)
-                {
-                    int orgDirection = (train.RearTDBTraveller != null) ? (int)train.RearTDBTraveller.Direction : -2;
-                    Physics.Train.TCRoutePath dummyRoute = new Physics.Train.TCRoutePath(aiPath, orgDirection, 0, Signals, -1, Settings);   // SPA: Add settings to get enhanced mode
-                }
-
-                // create train path
-                train.SetRoutePath(aiPath, Signals);
-                train.BuildWaitingPointList(0.0f);
-
-                train.ConvertPlayerTraffic(Activity.Activity.PlayerServices.PlayerTraffics);
-            }
-            else // explorer mode
-            {
-                train.PresetExplorerPath(aiPath, Signals);
-                train.ControlMode = Physics.Train.TRAIN_CONTROL.EXPLORER;
-            }
+            train.PresetExplorerPath(aiPath, Signals);
+            train.ControlMode = Train.TRAIN_CONTROL.EXPLORER;
 
             bool canPlace = true;
-            Physics.Train.TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
+            Train.TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
             if (tempRoute.Count == 0 || !canPlace)
             {
                 throw new InvalidDataException("Player train original position not clear");
@@ -1236,16 +1203,10 @@ namespace Orts.Simulation
 
 
             train.AITrainBrakePercent = 100; //<CSComment> This seems a tricky way for the brake modules to test if it is an AI train or not
-            if (Activity != null && train.InitialSpeed > 0)
-            {
-                if ((PlayerLocomotive.BrakeSystem is AirSinglePipe) || (PlayerLocomotive.BrakeSystem is VacuumSinglePipe))
-                    train.InitializeMoving();
-            }
-
-
             return (train);
         }
 
+        // used for activity and activity in explore mode; creates the train within the AITrain class
         private AITrain InitializeAPPlayerTrain()
         {
             string playerServiceFileName;
@@ -1389,7 +1350,7 @@ namespace Orts.Simulation
                     train.CalculatePositionOfCars();
                     train.InitializeBrakes();
                     train.CheckFreight();
-                    if (Settings.Autopilot) train.ReverseFormation(false); // When using autopilot mode this is needed for correct working of train switching
+                    train.ReverseFormation(false); // When using autopilot mode this is needed for correct working of train switching
                     bool validPosition = train.PostInit();
                     if (validPosition)
                         Trains.Add(train);
@@ -1943,7 +1904,7 @@ namespace Orts.Simulation
                 if ((PlayerLocomotive.Train as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.SUSPENDED)
                 {
                     PlayerLocomotive.Train.Reinitialize();
-                    (PlayerLocomotive.Train as AITrain).MovementState = PlayerLocomotive.Train.SpeedMpS == 0 ?
+                    (PlayerLocomotive.Train as AITrain).MovementState = Math.Abs(PlayerLocomotive.Train.SpeedMpS) <= MaxStoppedMpS ?
                         AITrain.AI_MOVEMENT_STATE.INIT : AITrain.AI_MOVEMENT_STATE.BRAKING;
                 }
                 (PlayerLocomotive.Train as AITrain).SwitchToPlayerControl();
@@ -2239,17 +2200,6 @@ namespace Orts.Simulation
 
 
                 // Simulation TAB
-                if (activitySettings.Options.Autopilot == 1)
-                {
-                    setting.Autopilot = true;
-                    Trace.Write("\nAutopilot                        =   True");
-                }
-                else if (activitySettings.Options.Autopilot == 0)
-                {
-                    setting.Autopilot = false;
-                    Trace.Write("\nAutopilot                        =   False");
-                }
-
                 if (activitySettings.Options.ForcedRedAtStationStops == 1)
                 {
                     setting.NoForcedRedAtStationStops = false; // Note this parameter is reversed in its logic to others.
@@ -2262,15 +2212,15 @@ namespace Orts.Simulation
                 }
 
 
-                if (activitySettings.Options.ExtendedAITrainShunting == 1)
+                if (activitySettings.Options.UseLocationPassingPaths == 1)
                 {
-                    setting.ExtendedAIShunting = true;
-                    Trace.Write("\nExtended AI Train Shunting       =   True");
+                    setting.UseLocationPassingPaths = true;
+                    Trace.Write("\nLocation Based Passing Paths     =   True");
                 }
-                else if (activitySettings.Options.ExtendedAITrainShunting == 0)
+                else if (activitySettings.Options.UseLocationPassingPaths == 0)
                 {
-                    setting.ExtendedAIShunting = false;
-                    Trace.Write("\nExtended AI Train Shunting       =   False");
+                    setting.UseLocationPassingPaths = false;
+                    Trace.Write("\nLocation Based Passing Paths     =   False");
                 }
 
                 if (activitySettings.Options.UseAdvancedAdhesion == 1)

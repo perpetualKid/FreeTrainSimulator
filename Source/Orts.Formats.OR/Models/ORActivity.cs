@@ -25,8 +25,6 @@ namespace Orts.Formats.OR.Models
 
             // Simulation TAB
             public int ForcedRedAtStationStops { get; internal set; } = -1;
-            public int Autopilot { get; internal set; } = -1;
-            public int ExtendedAITrainShunting { get; internal set; } = -1;
             public int UseAdvancedAdhesion { get; internal set; } = -1;
             public int BreakCouplers { get; internal set; } = -1;
             public int CurveResistanceDependent { get; internal set; } = -1;
@@ -73,8 +71,6 @@ namespace Orts.Formats.OR.Models
 
                 // Simulation TAB
                 new STFReader.TokenProcessor("ortsforcedredatstationstops", ()=>{ Options.ForcedRedAtStationStops = stf.ReadIntBlock(Options.ForcedRedAtStationStops); IsActivityOverride = true; }),
-                new STFReader.TokenProcessor("ortsautopilot", ()=>{ Options.Autopilot = stf.ReadIntBlock(Options.Autopilot); IsActivityOverride = true; }),
-                new STFReader.TokenProcessor("ortsextendedaitrainshunting", ()=>{ Options.ExtendedAITrainShunting = stf.ReadIntBlock(Options.ExtendedAITrainShunting); IsActivityOverride = true; }),
 
                 new STFReader.TokenProcessor("ortsuseadvancedadhesion", ()=>{ Options.UseAdvancedAdhesion = stf.ReadIntBlock(Options.UseAdvancedAdhesion); IsActivityOverride = true; }),
                 new STFReader.TokenProcessor("ortsbreakcouplers", ()=>{ Options.BreakCouplers = stf.ReadIntBlock(Options.BreakCouplers); IsActivityOverride = true; }),

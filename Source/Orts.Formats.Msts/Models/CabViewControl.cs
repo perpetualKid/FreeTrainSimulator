@@ -323,6 +323,7 @@ namespace Orts.Formats.Msts.Models
         public float FontSize { get; protected set; }
         public int FontStyle { get; protected set; }
         public string FontFamily { get; protected set; } = "";
+        public float Rotation { get; private set; }
 
         public CabViewDigitalControl()
         {
@@ -365,7 +366,8 @@ namespace Orts.Formats.Msts.Models
                             new STFReader.TokenProcessor("controlcolour", ()=>{ DecreaseColor = ParseControlColor(stf); }) });
                     }
                 }),
-                new STFReader.TokenProcessor("ortsfont", ()=>{ParseFont(stf); })
+                new STFReader.TokenProcessor("ortsfont", ()=>{ParseFont(stf); }),
+                new STFReader.TokenProcessor("ortsangle", () => { ParseRotation(stf); }),
             });
         }
 
@@ -405,6 +407,14 @@ namespace Orts.Formats.Msts.Models
             FontFamily = stf.ReadString() ?? string.Empty;
             stf.SkipRestOfBlock();
         }
+
+        protected virtual void ParseRotation(STFReader stf)
+        {
+            stf.MustMatch("(");
+            Rotation = -MathHelper.ToRadians((float)stf.ReadDouble(0)); // To radians
+            stf.SkipRestOfBlock();
+        }
+
     }
 
     public class CabViewDigitalClockControl : CabViewDigitalControl
@@ -422,7 +432,8 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("style", ()=>{ ParseStyle(stf); }),
                 new STFReader.TokenProcessor("accuracy", ()=>{ ParseAccuracy(stf); }),
                 new STFReader.TokenProcessor("controlcolour", ()=>{ PositiveColors[0] = ParseControlColor(stf); }),
-                new STFReader.TokenProcessor("ortsfont", ()=>{ParseFont(stf); })
+                new STFReader.TokenProcessor("ortsfont", ()=>{ParseFont(stf); }),
+                new STFReader.TokenProcessor("ortsangle", () => { ParseRotation(stf); })
             });
         }
     }
@@ -740,6 +751,7 @@ namespace Orts.Formats.Msts.Models
                 case CabViewControlType.Sanders:
                 case CabViewControlType.Bell:
                 case CabViewControlType.Reset:
+                case CabViewControlType.Vacuum_Exhauster:
                     ControlStyle = CabViewControlStyle.While_Pressed; break;
                 case CabViewControlType.Direction:
                     if (Orientation == 0)

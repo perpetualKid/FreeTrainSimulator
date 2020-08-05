@@ -134,13 +134,15 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly RenderPrimitive RenderPrimitive;
         public readonly Matrix XNAMatrix;
         public readonly ShapeFlags Flags;
+        public readonly object ItemData;
 
-        public RenderItem(Material material, RenderPrimitive renderPrimitive, Matrix xnaMatrix, ShapeFlags flags)
+        public RenderItem(Material material, RenderPrimitive renderPrimitive, Matrix xnaMatrix, ShapeFlags flags, object itemData = null)
         {
             Material = material;
             RenderPrimitive = renderPrimitive;
             XNAMatrix = xnaMatrix;
             Flags = flags;
+            ItemData = itemData;
         }
 
         public class Comparer : IComparer<RenderItem>
@@ -176,6 +178,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 temp = x.XNAMatrix.M43 - viewerPos.Z;
                 distanceSquared -= temp * temp;
 
+                // The following avoids water levels flashing, by forcing that higher water levels are nearer to the
+                // camera, which is always true except when camera is under water level, which is quite abnormal
+                if (x.Material is WaterMaterial && y.Material is WaterMaterial && x.XNAMatrix.Translation.Y < viewerPos.Y)
+                {
+                    if (Math.Abs((x.XNAMatrix.Translation - viewerPos).Length() - (y.XNAMatrix.Translation - viewerPos).Length()) < 1.0)
+                        return Math.Sign(x.XNAMatrix.Translation.Y - y.XNAMatrix.Translation.Y);
+                }
                 if (Math.Abs(distanceSquared) >= 0.001)
                     return Math.Sign(distanceSquared);
                 return Math.Sign(x.RenderPrimitive.SortIndex - y.RenderPrimitive.SortIndex);
@@ -428,18 +437,21 @@ namespace Orts.ActivityRunner.Viewer3D
                         AddShadowPrimitive(shadowMapIndex, material, primitive, ref xnaMatrix, flags);
         }
 
-        //[CallOnThread("Updater")]
         public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix)
         {
-            AddPrimitive(material, primitive, group, ref xnaMatrix, ShapeFlags.None);
+            AddPrimitive(material, primitive, group, ref xnaMatrix, ShapeFlags.None, null);
+        }
+
+        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags)
+        {
+            AddPrimitive(material, primitive, group, ref xnaMatrix, flags, null);
         }
 
         static readonly bool[] PrimitiveBlendedScenery = new bool[] { true, false }; // Search for opaque pixels in alpha blended primitives, thus maintaining correct DepthBuffer
         static readonly bool[] PrimitiveBlended = new bool[] { true };
         static readonly bool[] PrimitiveNotBlended = new bool[] { false };
 
-        //[CallOnThread("Updater")]
-        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags)
+        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags, object itemData)
         {
             var getBlending = material.GetBlending();
             var blending = getBlending && material is SceneryMaterial ? PrimitiveBlendedScenery : getBlending ? PrimitiveBlended : PrimitiveNotBlended;
@@ -455,7 +467,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     items = new List<RenderItem>();
                     sequence.Add(sortingMaterial, items);
                 }
-                items.Add(new RenderItem(material, primitive, xnaMatrix, flags));
+                items.Add(new RenderItem(material, primitive, xnaMatrix, flags, itemData));
             }
             if (((flags & ShapeFlags.AutoZBias) != 0) && (primitive.ZBias == 0))
                 primitive.ZBias = 1;

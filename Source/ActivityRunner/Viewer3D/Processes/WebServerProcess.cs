@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
+﻿// COPYRIGHT 2020 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -18,75 +18,53 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 
+using EmbedIO.Net;
 using System.Threading;
 using Orts.ActivityRunner.Processes;
 using Orts.ActivityRunner.Viewer3D.WebServices;
+using System.IO;
+using System.Windows.Forms;
+using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
     public class WebServerProcess
     {
-        public readonly Profiler Profiler = new Profiler("WebServer");
-        readonly ProcessState State = new ProcessState("WebServer");
-        readonly Game Game;
-        readonly Thread Thread;
-        private bool ThreadActive = false;
-        WebServer webServer;
+        private readonly Profiler Profiler = new Profiler("WebServer");
+        private readonly ProcessState State = new ProcessState("WebServer");
+        private readonly Game Game;
+        private readonly Thread Thread;
+        private readonly CancellationTokenSource StopServer = new CancellationTokenSource();
 
         public WebServerProcess(Game game)
         {
-                Game = game;
-
-                Thread = new Thread(WebServerThread);
-                if (game.Settings.WebServer)
-                {
-                    ThreadActive = true;
-                }
+            Game = game;
+            Thread = new Thread(WebServerThread);
         }
 
         public void Start()
         {
-            if (ThreadActive)
-            {
-                Thread.Start();
-            }
+            State.SignalStart();
+            Thread.Start();
         }
 
         public void Stop()
         {
-            if (ThreadActive)
-            {
-            webServer.stop();
-                State.SignalTerminate();
-                Thread.Abort();
-            }
-        }
-        public bool Finished
-        {
-            get
-            {
-                return State.Finished;
-            }
-        }
-
-        public void WaitTillFinished()
-        {
-            State.WaitTillFinished();
+            StopServer.Cancel();
+            State.SignalTerminate();
         }
 
         void WebServerThread()
         {
             Profiler.SetThread();
             Game.SetThreadLanguage();
-            int port = Game.Settings.WebServerPort;
+            if (!Game.Settings.WebServer)
+                return;
 
-            var myWebContentPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(
-                System.Windows.Forms.Application.ExecutablePath),"Content\\Web");
-
-            // 127.0.0.1 is a dummy, IPAddress.Any in WebServer.cs to accept any address
-            // on the local Lan
-            webServer = new WebServer("127.0.0.1", port, 1, myWebContentPath);
-            webServer.Run();
+            string contentPath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Content\\Web");
+            EndPointManager.UseIpv6 = true;
+            using (EmbedIO.WebServer server = WebServer.CreateWebServer($"http://*:{Game.Settings.WebServerPort}", contentPath))
+                server.RunAsync(StopServer.Token).Wait();
         }
     }
 }

@@ -279,6 +279,22 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
+        /// <summary>
+        /// A summary of the throttle setting of all the auxiliaries
+        /// </summary>
+        public float ApparentThrottleSetting
+        {
+            get
+            {
+                float temp = 0f;
+                foreach (DieselEngine de in DEList)
+                {
+                    temp += de.ApparentThrottleSetting;
+                }
+                return temp / Count;
+            }
+        }
+
         public bool HasGearBox
         {
             get
@@ -375,6 +391,27 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
+        // This calculates the percent of running power. If the locomotive has two prime movers, and 
+        // one is shut down then power will be reduced by the size of the prime mover
+        public float RunningPowerFraction
+        {
+            get
+            {
+                float totalpossiblepower = 0;
+                float runningPower = 0;
+                float percent = 0;
+                foreach (DieselEngine eng in DEList)
+                {
+                    totalpossiblepower += eng.MaximumDieselPowerW;
+                    if (eng.EngineStatus == DieselEngine.Status.Running)
+                    {
+                        runningPower += eng.MaximumDieselPowerW;
+                    }
+                }
+                percent = runningPower / totalpossiblepower;
+                return percent;
+            }
+        }
     }
 
     public class DieselEnum : IEnumerator
@@ -493,6 +530,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             DieselPowerTab = new Interpolator(copy.DieselPowerTab);
             DieselConsumptionTab = new Interpolator(copy.DieselConsumptionTab);
             ThrottleRPMTab = new Interpolator(copy.ThrottleRPMTab);
+            ReverseThrottleRPMTab = new Interpolator(copy.ReverseThrottleRPMTab);
             if (copy.DieselTorqueTab != null) DieselTorqueTab = new Interpolator(copy.DieselTorqueTab);
             DieselUsedPerHourAtMaxPowerL = copy.DieselUsedPerHourAtMaxPowerL;
             DieselUsedPerHourAtIdleL = copy.DieselUsedPerHourAtIdleL;
@@ -662,6 +700,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// </summary>
         public Interpolator ThrottleRPMTab;
         /// <summary>
+        /// Engine throttle settings table - Reverse of RPM vs. throttle settings
+        /// </summary>
+        public Interpolator ReverseThrottleRPMTab;
+        /// <summary>
+        /// Throttle setting as calculated from real RpM
+        /// </summary>
+        public float ApparentThrottleSetting;
+        /// <summary>
         /// Engine output torque table - Torque vs. RPM
         /// </summary>
         public Interpolator DieselTorqueTab;
@@ -818,7 +864,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         break;
                     case "dieselpowertab": DieselPowerTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselPowerTab; break;
                     case "dieselconsumptiontab": DieselConsumptionTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselConsumptionTab; break;
-                    case "throttlerpmtab": ThrottleRPMTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.ThrottleRPMTab; break;
+                    case "throttlerpmtab":
+                        ThrottleRPMTab = ThrottleRPMTab = stf.CreateInterpolator();
+                        initLevel |= SettingsFlags.ThrottleRPMTab;
+                        // This prevents rpm values being exactly the same for different throttle rates, as when this table is reversed, OR is unable to correctly determine a correct apparent throttle value.
+                        // TO DO - would be good to be able to handle rpm values the same, and -ve if possible.
+                        ThrottleRPMTab.CheckForConsistentIncrease(1.0);
+                        break;
                     case "dieseltorquetab": DieselTorqueTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselTorqueTab; break;
                     case "minoilpressure": DieselMinOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 0f); initLevel |= SettingsFlags.MinOilPressure; break;
                     case "maxoilpressure": DieselMaxOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 0f); initLevel |= SettingsFlags.MaxOilPressure; break;
@@ -896,11 +948,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             if (RealRPM < DemandedRPM)
             {
                 dRPM = (float)Math.Min(Math.Sqrt(2 * RateOfChangeUpRPMpSS * (DemandedRPM - RealRPM)), ChangeUpRPMpS);
-                if ( dRPM > 1.0f ) //The forumula above generates a floating point error that we have to compensate for so we can't actually test for zero.
+                if (dRPM > 1.0f) //The forumula above generates a floating point error that we have to compensate for so we can't actually test for zero.
                 {
-                    ExhaustParticles = (InitialExhaust + ((ExhaustRange * (RealRPM - IdleRPM) / RPMRange ))) * ExhaustAccelIncrease;
+                    ExhaustParticles = (InitialExhaust + ((ExhaustRange * (RealRPM - IdleRPM) / RPMRange))) * ExhaustAccelIncrease;
                     ExhaustMagnitude = (InitialMagnitude + ((MagnitudeRange * (RealRPM - IdleRPM) / RPMRange))) * ExhaustAccelIncrease;
-                    ExhaustColor = ExhaustTransientColor; 
+                    ExhaustColor = ExhaustTransientColor;
                 }
                 else
                 {
@@ -911,25 +963,42 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 }
             }
             else if (RealRPM > DemandedRPM)
-                {
-                    dRPM = (float)Math.Max(-Math.Sqrt(2 * RateOfChangeDownRPMpSS * (RealRPM - DemandedRPM)), -ChangeDownRPMpS);
-                    ExhaustParticles = (InitialExhaust + ((ExhaustRange * (RealRPM - IdleRPM) / RPMRange))) * ExhaustDecelReduction;
-                    ExhaustMagnitude = (InitialMagnitude + ((MagnitudeRange * (RealRPM - IdleRPM) / RPMRange))) * ExhaustDecelReduction;
-                    ExhaustColor = ExhaustDecelColor;
+            {
+                dRPM = (float)Math.Max(-Math.Sqrt(2 * RateOfChangeDownRPMpSS * (RealRPM - DemandedRPM)), -ChangeDownRPMpS);
+                ExhaustParticles = (InitialExhaust + ((ExhaustRange * (RealRPM - IdleRPM) / RPMRange))) * ExhaustDecelReduction;
+                ExhaustMagnitude = (InitialMagnitude + ((MagnitudeRange * (RealRPM - IdleRPM) / RPMRange))) * ExhaustDecelReduction;
+                ExhaustColor = ExhaustDecelColor;
 
-                }
+            }
 
             // Uncertain about the purpose of this code piece?? Does there need to be a corresponding code for RateOfChangeUpRPMpSS???
-            if (DemandedRPM < RealRPM && (OutputPowerW > (1.1f * CurrentDieselOutputPowerW)) && (EngineStatus == Status.Running))
-                dRPM = (CurrentDieselOutputPowerW - OutputPowerW) / MaximumDieselPowerW * 0.01f * RateOfChangeDownRPMpSS;
+            //            if (DemandedRPM < RealRPM && (OutputPowerW > (1.1f * CurrentDieselOutputPowerW)) && (EngineStatus == Status.Running))
+            //            {
+            //                dRPM = (CurrentDieselOutputPowerW - OutputPowerW) / MaximumDieselPowerW * 0.01f * RateOfChangeDownRPMpSS;
+            //            }
+            // Deleted to see what impact it has - was holding rpm artificialy high - http://www.elvastower.com/forums/index.php?/topic/33739-throttle-bug-in-recent-or-builds/page__gopid__256086#entry256086
 
             RealRPM = (float)Math.Max(RealRPM + dRPM * elapsedClockSeconds, 0);
 
+            // Calculate the apparent throttle setting based upon the current rpm of the diesel prime mover. This allows the Tractive effort to increase with rpm to the throttle setting selected.
+            // This uses the reverse Tab of the Throttle vs rpm Tab.
+            if ((ReverseThrottleRPMTab != null) && (EngineStatus == Status.Running))
+            {
+                ApparentThrottleSetting = (float)ReverseThrottleRPMTab[RealRPM];
+            }
+
+            // Make sure apparent throttle value stays in range between 0 and 100.
+            if (ApparentThrottleSetting < 0)
+            {
+                ApparentThrottleSetting = 0;
+            }
+            else if (ApparentThrottleSetting > 100)
+            {
+                ApparentThrottleSetting = 100.0f;
+            }
+            
             if (DieselPowerTab != null)
             {
-                // Following line to be deleted???
-                //  CurrentDieselOutputPowerW = (DieselPowerTab[RealRPM] <= MaximumDieselPowerW * (1 - locomotive.PowerReduction) ? DieselPowerTab[RealRPM] * (1 - locomotive.PowerReduction) : MaximumDieselPowerW) * (1 - locomotive.PowerReduction);
-
                 CurrentDieselOutputPowerW = (float)(DieselPowerTab[RealRPM] * (1 - locomotive.PowerReduction) <= MaximumDieselPowerW * (1 - locomotive.PowerReduction) ? DieselPowerTab[RealRPM] * (1 - locomotive.PowerReduction) : MaximumDieselPowerW * (1 - locomotive.PowerReduction));
                 CurrentDieselOutputPowerW = CurrentDieselOutputPowerW < 0f ? 0f : CurrentDieselOutputPowerW;
                 // Rail output power will never be the same as the diesel prime mover output power it will always have some level of loss of efficiency
@@ -1579,8 +1648,33 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void InitDieselRailPowers(MSTSDieselLocomotive loco)
         {
-            // Set MaximumRailOutputPower if not already set
-            if (MaximumRailOutputPowerW == 0)
+
+            // Set up the reverse ThrottleRPM table
+            if (ThrottleRPMTab != null)
+            {
+                int icount = 11;
+                double[] rpm = new double[icount];
+                double[] throttle = new double[icount];
+
+                float TabIncrement = 10.0f; // find the increment size for the throttle axis in table
+                float PreviousThrottleValue = 0;
+                throttle[0] = 0; // Set throttle value to 0
+                rpm[0] = ThrottleRPMTab[throttle[0]]; // Find rpm of this throttle value in ThrottleRPMTab 
+
+                for (int i = 1; i < icount; i++)
+                {
+                    float NewThrottleValue = PreviousThrottleValue + TabIncrement;
+                    throttle[i] = NewThrottleValue; // Increment throttle value between 0 and 100 by the number of steps in ThrottleRPMTab
+                    PreviousThrottleValue = NewThrottleValue; // For next time round
+                    rpm[i] = ThrottleRPMTab[NewThrottleValue]; // Find rpm of this throttle value in ThrottleRPMTab   
+                }
+                ReverseThrottleRPMTab = new Interpolator(rpm, throttle); // create reverse table
+            }
+
+                // TODO - this value needs to be divided by the number of diesel engines in the locomotive
+
+                // Set MaximumRailOutputPower if not already set
+                if (MaximumRailOutputPowerW == 0)
             {
                 if (loco.TractiveForceCurves != null)
                 {
@@ -1591,7 +1685,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 }
                 else if (loco.MaxPowerW != 0)
                 {
-                    MaximumRailOutputPowerW = loco.MaxPowerW; // set rail power to a default value on the basis that of the value specified in the MaxPowrW parameter
+                    MaximumRailOutputPowerW = loco.MaxPowerW; // set rail power to a default value on the basis that of the value specified in the MaxPowerW parameter
                 }
                 else
                 {
