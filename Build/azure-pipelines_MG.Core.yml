@@ -51,6 +51,7 @@ jobs:
     downloadurl: 'https://ultimaterails.blob.core.windows.net'
     containerName: 'builds'
     versionJson: 'version.json'
+    logfile: 'history.html'
 
   steps:
   - checkout: self
@@ -65,7 +66,7 @@ jobs:
       restoreSolution: '$(solution)'
 
   - task: PowerShell@2
-    displayName: Set the name of the build
+    displayName: Set the name of the build and create history log 
     inputs:
       targetType: 'inline'
       script: |
@@ -76,10 +77,10 @@ jobs:
         | ConvertTo-Html -title "Commit History" `
         -Head "Open Rails Commit History Channel=$(channel) Version=$(version)" `
         -Property @{Label="Link";Expression={"<a href='$(githubUrl)$($_.Commit)'>$($_.Commit)</a>"}}, Date, Author, Message
-        [System.Net.WebUtility]::HtmlDecode($html) | Out-File $(Build.ArtifactStagingDirectory)/history.html
+        [System.Net.WebUtility]::HtmlDecode($html) | Out-File $(Build.ArtifactStagingDirectory)/$(logfile)
 
   - task: PowerShell@2
-    displayName: Create channel versions table and log
+    displayName: Create channel versions table
     inputs:
       targetType: 'inline'
       script: |
@@ -100,10 +101,15 @@ jobs:
           $release.date = $date
           $release.version = '$(version)'
           $release.url = '$(downloadurl)/$(containerName)/$(channel)/$(versionFromCode)/$(version).zip'
+          $release.log = '$(downloadurl)/$(containerName)/$(channel)/$(logfile)'
         }
         else          
         { 
-          $release = [PSCustomObject]@{name ='$(channel)'; date = $date; url = '$(downloadurl)/$(containerName)/$(channel)/$(versionFromCode)/$(version).zip'; version = '$(version)'}
+          $release = [PSCustomObject]@{name ='$(channel)'; `
+            date = $date; version = '$(version)'`
+            url = '$(downloadurl)/$(containerName)/$(channel)/$(versionFromCode)/$(version).zip'; `
+            log = '$(downloadurl)/$(containerName)/$(channel)/$(logfile)'; `
+            }
           $versionTable.channels += $release
         }
         $json = $versionTable | ConvertTo-Json -Depth 8
