@@ -106,9 +106,9 @@ jobs:
         else          
         { 
           $release = [PSCustomObject]@{name ='$(channel)'; `
-            date = $date; version = '$(version)'`
+            date = $date; version = '$(version)'; `
             url = '$(downloadurl)/$(containerName)/$(channel)/$(versionFromCode)/$(version).zip'; `
-            log = '$(downloadurl)/$(containerName)/$(channel)/$(logfile)'; `
+            log = '$(downloadurl)/$(containerName)/$(channel)/$(logfile)' `
             }
           $versionTable.channels += $release
         }
