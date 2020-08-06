@@ -16,15 +16,11 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 
 using NuGet.Versioning;
-
-using SharpDX.MediaFoundation;
 
 namespace Orts.Common
 {
@@ -36,11 +32,10 @@ namespace Orts.Common
         public static readonly NuGetVersion SemanticVersion = GetVersion();
         //VersionInfo.FullVersion: "1.3.2-alpha.4+LocalBuild"
         //VersionInfo.Version: "1.3.2-alpha.4"
-        //VersionInfo.Revision: "alpha.4"
         //VersionInfo.FileVersion: "1.3.2.0"
-        //VersionInfo.Channel: "LocalBuild"
-        //VersionInfo.BuildType: "alpha"
+        //VersionInfo.Channel: "alpha"
         //VersionInfo.Build: "4"
+        //VersionInfo.Revision: "LocalBuild"
 
         /// <summary>
         /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.FullVersion: "1.3.2-alpha.4+LocalBuild"
@@ -58,24 +53,19 @@ namespace Orts.Common
         public static string FileVersion => SemanticVersion.Version.ToString();
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Channl: "LocalBuild"
+        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Channel: "alpha"
         /// </summary>
-        public static string Channel => SemanticVersion.Metadata;
+        public static string Channel => SemanticVersion.ReleaseLabels?.ToArray()[0];
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Channel: "LocalBuild"
+        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Build: "4"
         /// </summary>
         public static string Build => SemanticVersion.ReleaseLabels?.ToArray()[1];
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.BuildType: "alpha"
+        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Revision: "LocalBuild"
         /// </summary>
-        public static string BuildType => SemanticVersion.ReleaseLabels?.ToArray()[0];
-
-        /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Revision: "alpha-4"
-        /// </summary>
-        public static string Revision => SemanticVersion.Release;
+        public static string Revision => SemanticVersion.Metadata;
 
         /// <summary>Revision number, e.g. Release: "1648",       experimental: "1649",   local: ""</summary>
 //        public static readonly string Revision = GetRevision("Revision.txt");
