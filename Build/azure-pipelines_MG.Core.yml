@@ -45,7 +45,7 @@ jobs:
     versionFromCode: $[dependencies.GetVersionJob.outputs['SetVersionTask.versionFromCode']]
     counterName: '$(channel)$(versionFromCode)'
     buildNumber: $[counter(variables['counterName'], 0)]
-    versionSuffix: '$(channel).$(buildNumber)+$(tag)'
+    versionSuffix: '$(channel).$(buildNumber)+$(Build.SourceBranchName)_$(Build.SourceVersion)'
     version: '$(versionFromCode)-$(versionSuffix)'
     githubUrl: 'https://github.com/perpetualKid/ORTS-MG/commit/'
     downloadurl: 'https://ultimaterails.blob.core.windows.net'
@@ -57,8 +57,10 @@ jobs:
 #    fetchDepth: 20 
 
   - task: NuGetToolInstaller@1
+    displayName: Installing Nuget tools
 
   - task: NuGetCommand@2
+    displayName: Restoring Nuget packages
     inputs:
       restoreSolution: '$(solution)'
 
