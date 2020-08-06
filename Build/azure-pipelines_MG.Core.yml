@@ -45,7 +45,7 @@ jobs:
     versionFromCode: $[dependencies.GetVersionJob.outputs['SetVersionTask.versionFromCode']]
     counterName: '$(channel)$(versionFromCode)'
     buildNumber: $[counter(variables['counterName'], 0)]
-    versionSuffix: '$(channel).$(buildNumber)+$(Build.SourceBranchName)_$(Build.SourceVersion)'
+    versionSuffix: '$(channel).$(buildNumber)+$(Build.SourceBranchName)-$(Build.SourceVersion)'
     version: '$(versionFromCode)-$(versionSuffix)'
     githubUrl: 'https://github.com/perpetualKid/ORTS-MG/commit/'
     downloadurl: 'https://ultimaterails.blob.core.windows.net'
