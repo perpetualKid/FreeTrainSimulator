@@ -78,7 +78,7 @@ namespace Orts.Common.Input
 
         [Description("Camera Cab")] CameraCab,
         [Description("Camera Change Passenger Viewpoint")] CameraChangePassengerViewPoint,
-        [Description("Camera 3D Cab")] CameraThreeDimensionalCab,
+        [Description("Camera Toggle 3D Cab")] CameraToggleThreeDimensionalCab,
         [Description("Camera Toggle Show Cab")] CameraToggleShowCab,
         [Description("Camera Toggle Letterbox Cab")] CameraToggleLetterboxCab,
         [Description("Camera Head Out Forward")] CameraHeadOutForward,
