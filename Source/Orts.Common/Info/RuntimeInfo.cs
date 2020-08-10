@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Orts.Common.Info
 {
-    public static class RunTimeInfo
+    public static class RuntimeInfo
     {
         public const string ProductName = "Open Rails Ultimate";
 
@@ -13,7 +13,7 @@ namespace Orts.Common.Info
 
         public static string UserDataFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ProductName);
 
-        static RunTimeInfo()
+        static RuntimeInfo()
         {
             try
             {
