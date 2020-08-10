@@ -38,32 +38,32 @@ namespace Orts.Common
         //VersionInfo.Revision: "LocalBuild"
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.FullVersion: "1.3.2-alpha.4+LocalBuild"
+        /// "1.3.2-alpha.4+LocalBuild" returns FullVersion: "1.3.2-alpha.4+LocalBuild"
         /// </summary>
         public static string FullVersion => SemanticVersion.ToFullString();
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Version: "1.3.2-alpha.4"
+        /// "1.3.2-alpha.4+LocalBuild" returns Version: "1.3.2-alpha.4"
         /// </summary>
         public static string Version => SemanticVersion.ToNormalizedString();
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.FileVersion: "1.3.2.0"
+        /// "1.3.2-alpha.4+LocalBuild" returns FileVersion: "1.3.2.0"
         /// </summary>
         public static string FileVersion => SemanticVersion.Version.ToString();
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Channel: "alpha"
+        /// "1.3.2-alpha.4+LocalBuild" returns Channel: "alpha"
         /// </summary>
         public static string Channel => SemanticVersion.ReleaseLabels?.ToArray()[0];
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Build: "4"
+        /// "1.3.2-alpha.4+LocalBuild" returns Build: "4"
         /// </summary>
         public static string Build => SemanticVersion.ReleaseLabels?.ToArray()[1];
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns VersionInfo.Revision: "LocalBuild"
+        /// "1.3.2-alpha.4+LocalBuild" returns Revision: "LocalBuild"
         /// </summary>
         public static string Revision => SemanticVersion.Metadata;
 
