@@ -25,7 +25,7 @@ namespace Orts.Menu
             var columnWidth = (panelKeys.ClientSize.Width - 20) / 2;
 
             var tempLabel = new Label();
-            var tempKIC = new KeyInputControl(Settings.Input.Commands[(int)UserCommand.GameQuit], InputSettings.DefaultCommands[(int)UserCommand.GameQuit]);
+            var tempKIC = new KeyInputControl(settings.Input.Commands[(int)UserCommand.GameQuit], InputSettings.DefaultCommands[(int)UserCommand.GameQuit]);
             var rowTop = Math.Max(tempLabel.Margin.Top, tempKIC.Margin.Top);
             var rowHeight = tempKIC.Height;
             var rowSpacing = rowHeight + tempKIC.Margin.Vertical;
@@ -63,7 +63,7 @@ namespace Orts.Menu
                 };
                 panel.Controls.Add(label);
 
-                var keyInputControl = new KeyInputControl(Settings.Input.Commands[(int)command], InputSettings.DefaultCommands[(int)command])
+                var keyInputControl = new KeyInputControl(settings.Input.Commands[(int)command], InputSettings.DefaultCommands[(int)command])
                 {
                     Location = new Point(columnWidth + tempKIC.Margin.Left, rowTop + rowSpacing * i),
                     Size = new Size(columnWidth - tempKIC.Margin.Horizontal, rowHeight),
@@ -94,7 +94,7 @@ namespace Orts.Menu
         {
             if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom key assignments?"), Application.ProductName, MessageBoxButtons.YesNo))
             {
-                Settings.Input.Reset();
+                settings.Input.Reset();
                 await InitializeKeyboardSettingsAsync();
             }
         }
@@ -102,13 +102,13 @@ namespace Orts.Menu
         private void ButtonExport_Click(object sender, EventArgs e)
         {
             var outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Open Rails Keyboard.txt");
-            Settings.Input.DumpToText(outputPath);
+            settings.Input.DumpToText(outputPath);
             MessageBox.Show(catalog.GetString("A listing of all keyboard commands and keys has been placed here:\n\n") + outputPath, Application.ProductName);
         }
 
         private void ButtonCheckKeys_Click(object sender, EventArgs e)
         {
-            string errors = Settings.Input.CheckForErrors();
+            string errors = settings.Input.CheckForErrors();
             if (!string.IsNullOrEmpty(errors))
                 MessageBox.Show(errors, Application.ProductName);
             else

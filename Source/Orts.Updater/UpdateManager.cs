@@ -33,12 +33,16 @@ using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 
+using Orts.Common;
+using Orts.Common.Info;
 using Orts.Settings;
 
 namespace Orts.Updater
 {
     public class UpdateManager
     {
+        private const string versionFile = "version.json";
+
         // The date on this is fairly arbitrary - it's only used in a calculation to round the DateTime up to the next TimeSpan period.
         readonly DateTime BaseDateTimeMidnightLocal = new DateTime(2010, 1, 1, 0, 0, 0, DateTimeKind.Local);
 
@@ -50,14 +54,13 @@ namespace Orts.Updater
         public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
 
         private readonly string basePath;
-        private readonly string productName;
-        private readonly string productVersion;
         private readonly UpdateSettings updateSettings;
         private readonly UpdateState updateState;
         private UpdateSettings channel;
         private bool forceUpdate;
 
-        private string PathUpdateTest => Path.Combine(basePath, "UpdateTest");
+        private static string PathUpdateTest => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateTest");
+
         private string PathUpdateDirty => Path.Combine(basePath, "UpdateDirty");
         private string PathUpdateStage => Path.Combine(basePath, "UpdateStage");
         private string PathDocumentation => Path.Combine(basePath, "Documentation");
@@ -66,7 +69,7 @@ namespace Orts.Updater
         private string FileSettings => Path.Combine(basePath, "OpenRails.ini");
         private string FileUpdater => Path.Combine(basePath, "Updater.exe");
 
-        public string ChannelName { get; set; }
+        public string ChannelName { get; private set; }
         public string ChangeLogLink => channel?.ChangeLogLink;
         public Update LastUpdate { get; private set; }
         public Exception LastCheckError { get; private set; }
@@ -75,13 +78,14 @@ namespace Orts.Updater
 
         public const string LauncherExecutable = "openrails.exe";
 
+        private UpdateChannels channels;
+        private string sourceDownload;
+
         public UpdateManager(string basePath, string productName, string productVersion)
         {
             if (!Directory.Exists(basePath))
                 throw new ArgumentException("The specified path must be valid and exist as a directory.", nameof(basePath));
             this.basePath = basePath;
-            this.productName = productName;
-            this.productVersion = productVersion;
             try
             {
                 updateSettings = new UpdateSettings();
@@ -95,7 +99,7 @@ namespace Orts.Updater
 
             // Check for elevation to update; elevation is needed if the update writes failed and the user is NOT an
             // Administrator. Weird cases (like no permissions on the directory for anyone) are not handled.
-            if (!CheckUpdateWrites().Result)
+            if (!CheckUpdateWrites())
             {
                 var identity = WindowsIdentity.GetCurrent();
                 var principal = new WindowsPrincipal(identity);
@@ -103,12 +107,29 @@ namespace Orts.Updater
             }
         }
 
-        public string[] GetChannels()
+        public UpdateManager(string currentChannel, string source)
         {
-            if (channel == null)
-                return new string[0];
+            ChannelName = currentChannel;
+            sourceDownload = source;
+            channels = ResolveUpdateChannels();
+            // Check for elevation to update; elevation is needed if the update writes failed and the user is NOT an
+            // Administrator. Weird cases (like no permissions on the directory for anyone) are not handled.
+            if (!CheckUpdateWrites())
+            {
+                var identity = WindowsIdentity.GetCurrent();
+                var principal = new WindowsPrincipal(identity);
+                UpdaterNeedsElevation = !principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
 
-            return updateSettings.GetChannels();
+        public IEnumerable<string> GetChannels()
+        {
+            return channels.Channels.Select(channel => channel.Name);
+        }
+
+        public ChannelInfo GetChannelByName(string channelName)
+        {
+            return channels.Channels.FirstOrDefault(channel => channel.Name.Equals(channelName, StringComparison.OrdinalIgnoreCase));
         }
 
         public void SetChannel(string channelName)
@@ -123,6 +144,82 @@ namespace Orts.Updater
 
             // Do a forced update check because the cached update data is likely to only be valid for the old channel.
             forceUpdate = true;
+        }
+
+        public static string VersionFile { get; } = Path.Combine(RuntimeInfo.ConfigFolder, versionFile);
+
+        public async Task<ChannelInfo> CheckForUpdatesAsync(UpdateCheckFrequency frequency, string channel)
+        {
+            if (!CheckUpdateNeeded(frequency))
+                return null;
+
+            LastCheckError = null;
+            using (WebClient client = new WebClient()
+            { CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.BypassCache) })
+            {
+                client.Headers[HttpRequestHeader.UserAgent] = GetUserAgent();
+                UriBuilder uriBuilder = new UriBuilder(sourceDownload + versionFile);
+
+                try
+                {
+                    string versions = await client.DownloadStringTaskAsync(uriBuilder.Uri).ConfigureAwait(false);
+                    File.WriteAllText(VersionFile, versions);
+                    channels = ResolveUpdateChannels();
+                }
+                catch (WebException webException)
+                {
+                    Trace.WriteLine(webException);
+                    LastCheckError = webException;
+                }
+            }
+            return CheckForApplicableUpdate(channel);
+        }
+
+        public static bool CheckUpdateNeeded(UpdateCheckFrequency target)
+        {
+            //we just check the update file's timestamp against the target
+            switch (target)
+            {
+                case UpdateCheckFrequency.Never: return false;
+                case UpdateCheckFrequency.Daily: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(1) < DateTime.Now;
+                case UpdateCheckFrequency.Weekly: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(7) < DateTime.Now;
+                case UpdateCheckFrequency.Biweekly: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(14) < DateTime.Now;
+                case UpdateCheckFrequency.Monthly: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddMonths(1) < DateTime.Now;
+                default: return true; //Always, Manually
+            }
+        }
+
+        private static UpdateChannels ResolveUpdateChannels()
+        {
+            if (File.Exists(VersionFile))
+            {
+                using (StreamReader reader = File.OpenText(VersionFile))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    return (UpdateChannels)serializer.Deserialize(reader, typeof(UpdateChannels));
+                }
+            }
+            return UpdateChannels.Empty;
+        }
+
+        public ChannelInfo CheckForApplicableUpdate(string targetChannel)
+        {
+            if (string.IsNullOrEmpty(targetChannel))
+                return null;
+            ChannelInfo info = GetChannelByName(targetChannel);
+            if (null == info)
+                return null;
+
+            if (targetChannel.Equals(VersionInfo.Channel, StringComparison.OrdinalIgnoreCase))
+            {
+                if (VersionInfo.Compare(info.Version) > 0)
+                    return info;
+            }
+            else
+            {
+                return GetChannelByName(targetChannel);
+            }
+            return null;
         }
 
         public async Task CheckForUpdateAsync()
@@ -253,7 +350,7 @@ namespace Orts.Updater
             TriggerApplyProgressChanged(0);
             try
             {
-                await CheckUpdateWrites().ConfigureAwait(false);
+                CheckUpdateWrites();
                 TriggerApplyProgressChanged(1);
 
                 await CleanDirectoriesAsync().ConfigureAwait(false);
@@ -290,9 +387,9 @@ namespace Orts.Updater
             ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progressPercentage, null));
         }
 
-        private string GetUserAgent()
+        private static string GetUserAgent()
         {
-            return $"{productName}/{productVersion}";
+            return $"{RuntimeInfo.ProductName}/{VersionInfo.Version}";
         }
 
         void ResetCachedUpdate()
@@ -319,16 +416,16 @@ namespace Orts.Updater
             updateState.Save();
         }
 
-        private Task<bool> CheckUpdateWrites()
+        private static bool CheckUpdateWrites()
         {
             try
             {
                 Directory.CreateDirectory(PathUpdateTest)?.Delete(true);
-                return Task.FromResult(true);
+                return true;
             }
-            catch
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
             {
-                return Task.FromResult(false);
+                return false;
             }
         }
 

@@ -23,6 +23,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Resources;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -133,7 +134,8 @@ namespace Orts.Menu
 #endif
             panelModeTimetable.Location = panelModeActivity.Location;
             UpdateEnabled();
-            elevationIcon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize).ToBitmap();
+            using (Icon icon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize))
+                elevationIcon = icon.ToBitmap();
         }
 
         private async void MainForm_Shown(object sender, EventArgs e)
@@ -141,6 +143,7 @@ namespace Orts.Menu
             var options = Environment.GetCommandLineArgs().Where(a => (a.StartsWith("-") || a.StartsWith("/"))).Select(a => a.Substring(1));
             settings = new UserSettings(options);
 
+            updateManager = new UpdateManager(settings.UpdateChannel, settings.UpdateSource);
             List<Task> initTasks = new List<Task>
             {
                 LoadFolderListAsync()
@@ -151,7 +154,7 @@ namespace Orts.Menu
 
             if (!initialized)
             {
-                initTasks.Add(InitializeUpdateManager());
+                initTasks.Add(CheckForUpdateAsync());
                 initTasks.Add(LoadToolsAndDocuments());
 
                 var seasons = new[] {
@@ -196,12 +199,6 @@ namespace Orts.Menu
             ShowTimetableEnvironment();
 
             await Task.WhenAll(initTasks);
-        }
-
-        private async Task InitializeUpdateManager()
-        {
-            updateManager = new UpdateManager(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.FullVersion);
-            await CheckForUpdateAsync();
         }
 
         private async Task<IEnumerable<ToolStripItem>> LoadTools()
@@ -315,35 +312,33 @@ namespace Orts.Menu
 
         private async Task CheckForUpdateAsync()
         {
-            if (string.IsNullOrEmpty(updateManager.ChannelName))
+            ChannelInfo channel = await updateManager.CheckForUpdatesAsync((UpdateCheckFrequency)settings.UpdateCheckFrequency, settings.UpdateChannel).ConfigureAwait(true);
+
+            if (null != channel)
             {
-                linkLabelChangeLog.Visible = false;
-                linkLabelUpdate.Visible = false;
-                return;
+                linkLabelUpdate.Text = catalog.GetString($"Update to {channel.NormalizedVersion}");
+                linkLabelUpdate.Visible = true;
+                linkLabelUpdate.Image = updateManager.UpdaterNeedsElevation ? elevationIcon : null;
+                linkLabelChangeLog.Visible = true;
+                linkLabelChangeLog.Tag = channel.LogUrl.ToString();
+                linkLabelUpdate.AutoSize = true;
+                linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - elevationIcon.Width;
+                linkLabelUpdate.AutoSize = false;
+                linkLabelUpdate.Width = panelDetails.Right - linkLabelUpdate.Left;
             }
-            // This is known directly from the chosen channel so doesn't need to wait for the update check itself.
-            linkLabelChangeLog.Visible = !string.IsNullOrEmpty(updateManager.ChangeLogLink);
-
-            //            await Task.Run(() => UpdateManager.CheckForUpdateAsync());
-            await updateManager.CheckForUpdateAsync();
-
-            if (updateManager.LastCheckError != null)
-                linkLabelUpdate.Text = catalog.GetString("Update check failed");
-            else if (updateManager.LastUpdate != null && updateManager.LastUpdate.Version != VersionInfo.Version)
-                linkLabelUpdate.Text = catalog.GetString("Update to {0}", updateManager.LastUpdate.Version);
             else
-                linkLabelUpdate.Text = "";
-            linkLabelUpdate.Enabled = true;
-            linkLabelUpdate.Visible = linkLabelUpdate.Text.Length > 0;
-            // Update link's elevation icon and size/position.
-            if (updateManager.LastCheckError == null && updateManager.LastUpdate?.Version != VersionInfo.Version && updateManager.UpdaterNeedsElevation)
-                linkLabelUpdate.Image = elevationIcon;
-            else
-                linkLabelUpdate.Image = null;
-            linkLabelUpdate.AutoSize = true;
-            linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - elevationIcon.Width;
-            linkLabelUpdate.AutoSize = false;
-            linkLabelUpdate.Width = panelDetails.Right - linkLabelUpdate.Left;
+            {
+                if (updateManager.LastCheckError != null)
+                {
+                    linkLabelUpdate.Text = catalog.GetString("Update check failed");
+                    linkLabelUpdate.Visible = true;
+                }
+                else
+                {
+                    linkLabelUpdate.Visible = false;
+                    linkLabelChangeLog.Visible = false;
+                }
+            }
         }
 
         private void LoadLanguage()
@@ -573,7 +568,7 @@ namespace Orts.Menu
         {
             if (updateManager.LastCheckError != null)
             {
-                MessageBox.Show(catalog.GetString("The update check failed due to an error:\n\n{0}", updateManager.LastCheckError), Application.ProductName);
+                MessageBox.Show(catalog.GetString("The update check failed due to an error:\n\n{0}", updateManager.LastCheckError.Message), Application.ProductName);
                 return;
             }
 
@@ -587,7 +582,25 @@ namespace Orts.Menu
 
         private void LinkLabelChangeLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start(updateManager.ChangeLogLink);
+            OpenBrowser(linkLabelChangeLog.Tag as string);
+        }
+
+        private static void OpenBrowser(string url)
+        {
+            //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+                //Process.Start(new ProcessStartInfo("cmd", $"/c start {url.Replace("&", "^&")}") { CreateNoWindow = true });
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", url);
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
+            }
         }
 
         private void ButtonTools_Click(object sender, EventArgs e)
@@ -612,7 +625,7 @@ namespace Orts.Menu
         {
             SaveOptions();
 
-            using (var form = new OptionsForm(settings, updateManager, false))
+            using (var form = new OptionsForm(settings, updateManager, catalog, false))
             {
                 switch (form.ShowDialog(this))
                 {
@@ -800,7 +813,7 @@ namespace Orts.Menu
 
             if (!initialized && folders.Count() == 0)
             {
-                using (var form = new OptionsForm(settings, updateManager, true))
+                using (var form = new OptionsForm(settings, updateManager, catalog, true))
                 {
                     switch (form.ShowDialog(this))
                     {
