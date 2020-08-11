@@ -94,11 +94,19 @@ jobs:
         $versionTable = ''
         try 
         { 
-          $versionTableString = (new-object System.Net.WebClient).DownloadData('$(downloadurl)/$(containerName)/$(versionJson)')
-          $versionTableString = [System.Text.Encoding]::Unicode.GetString($versionTableString)
-          $versionTable = $versionTableString.TrimStart([char]65279) | ConvertFrom-Json
+          $versionTableString = (new-object System.Net.WebClient).DownloadString('$(downloadurl)/$(containerName)/$(versionJson)')
+          $versionTable = $versionTableString | ConvertFrom-Json
         }
-        catch { $versionTable  = [PSCustomObject]@{ "channels" = @()}}
+        catch 
+        { 
+          try 
+          { 
+            $versionTableString = (new-object System.Net.WebClient).DownloadData('$(downloadurl)/$(containerName)/$(versionJson)')
+            $versionTableString = [System.Text.Encoding]::Unicode.GetString($versionTableString)
+            $versionTable = $versionTableString.TrimStart([char]65279) | ConvertFrom-Json
+          }
+          catch { $versionTable  = [PSCustomObject]@{ "channels" = @()}}
+        }
         $release = $versionTable.channels | where {$_.name -eq '$(channel)'}
         $date = get-date
         $date = $date.AddTicks(-$date.Ticks % [TimeSpan]::TicksPerSecond)
