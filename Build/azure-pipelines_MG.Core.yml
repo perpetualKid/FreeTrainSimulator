@@ -73,13 +73,13 @@ jobs:
         Write-Host "Setting the name of the build to '$(version)'."
         Write-Host "##vso[build.updatebuildnumber]$(version)"
         $HtmlHead = @"
-                    <style>
-                    TABLE {border-width: 1px; border-style: solid; border-color: black; border-collapse: collapse;}
-                    TH {border-width: 1px; padding: 3px; border-style: solid; border-color: black; background-color: #6495ED;}
-                    TD {border-width: 1px; padding: 3px; border-style: solid; border-color: black;}
-                    </style>
-                    <title>Commit History</title>
-                    "@
+        <style>
+        TABLE {border-width: 1px; border-style: solid; border-color: black; border-collapse: collapse;}
+        TH {border-width: 1px; padding: 3px; border-style: solid; border-color: black; background-color: #6495ED;}
+        TD {border-width: 1px; padding: 3px; border-style: solid; border-color: black;}
+        </style>
+        <title>Commit History</title>
+        "@
         $html = git log --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%d %H:%M" -100 `
         | ConvertFrom-Csv -Delimiter "|" -Header "Commit", "Date", "Author", "Message" `
         | ConvertTo-Html -Head $HtmlHead -PreContent"Open Rails Commit History Channel=$(channel) Version=$(version)" `
