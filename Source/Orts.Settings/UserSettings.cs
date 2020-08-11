@@ -369,6 +369,15 @@ namespace Orts.Settings
         [DoNotSave]
         public bool MultiplayerServer { get; set; }
 
+        #region update settings
+        [Default((int)Orts.Common.UpdateCheckFrequency.Always)]
+        public int UpdateCheckFrequency { get; set; }
+        [Default("")]
+        public string UpdateChannel { get; set; }
+        [Default("https://ultimaterails.blob.core.windows.net/builds/")]
+        public string UpdateSource { get; set; }
+        #endregion
+
         #endregion
 
         public FolderSettings Folders { get; private set; }
