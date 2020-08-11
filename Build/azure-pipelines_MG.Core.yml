@@ -72,10 +72,17 @@ jobs:
       script: |
         Write-Host "Setting the name of the build to '$(version)'."
         Write-Host "##vso[build.updatebuildnumber]$(version)"
+        $HtmlHead = @"
+            <style>
+            TABLE {border-width: 1px; border-style: solid; border-color: black; border-collapse: collapse;}
+            TH {border-width: 1px; padding: 3px; border-style: solid; border-color: black; background-color: #6495ED;}
+            TD {border-width: 1px; padding: 3px; border-style: solid; border-color: black;}
+            </style>
+            <title>Commit History</title>
+            "@
         $html = git log --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%d %H:%M" -100 `
         | ConvertFrom-Csv -Delimiter "|" -Header "Commit", "Date", "Author", "Message" `
-        | ConvertTo-Html -title "Commit History" `
-        -Head "Open Rails Commit History Channel=$(channel) Version=$(version)" `
+        | ConvertTo-Html -Head $HtmlHead -PreContent"Open Rails Commit History Channel=$(channel) Version=$(version)" `
         -Property @{Label="Link";Expression={"<a href='$(githubUrl)$($_.Commit)'>$($_.Commit)</a>"}}, Date, Author, Message
         [System.Net.WebUtility]::HtmlDecode($html) | Out-File $(Build.ArtifactStagingDirectory)/$(logfile)
 
@@ -143,7 +150,7 @@ jobs:
     displayName: Uploading the binaries to Azure
     inputs:
       SourcePath: '$(Build.ArtifactStagingDirectory)/$(version).zip'
-      ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+      ConnectedServiceNameARM: 'UltimateRails ARM Blob Storage'
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
       ContainerName: '$(containerName)'
@@ -153,7 +160,7 @@ jobs:
     displayName: Uploading history logs to Azure
     inputs:
       SourcePath: '$(Build.ArtifactStagingDirectory)'
-      ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+      ConnectedServiceNameARM: 'UltimateRails ARM Blob Storage'
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
       ContainerName: '$(containerName)'
@@ -164,7 +171,7 @@ jobs:
     displayName: Uploading version table to Azure
     inputs:
       SourcePath: '$(Build.ArtifactStagingDirectory)'
-      ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
+      ConnectedServiceNameARM: 'UltimateRails ARM Blob Storage'
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
       ContainerName: '$(containerName)'
