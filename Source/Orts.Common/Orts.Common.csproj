@@ -8,7 +8,7 @@
     <OutputPath>..\..\Program.Core</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1375-develop" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
     <PackageReference Include="System.Management" Version="4.7.0" />
     <PackageReference Include="GetText.NET" Version="0.9.0" />
     <PackageReference Include="NuGet.Versioning" Version="5.6.0" />
@@ -20,5 +20,11 @@
     <Reference Include="PIEHid64Net">
       <HintPath>..\3rdPartyLibs\PIEHid64Net.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>
