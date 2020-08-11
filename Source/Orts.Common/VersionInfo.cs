@@ -85,6 +85,13 @@ namespace Orts.Common
             return result;
         }
 
+        public static int Compare(string version)
+        {
+            if (!NuGetVersion.TryParse(version, out NuGetVersion result))
+                return -1;
+            return SemanticVersion.CompareTo(result);
+        }
+
         /// <summary>
         /// Find whether a requested version and build are valid for this build 
         /// </summary>
