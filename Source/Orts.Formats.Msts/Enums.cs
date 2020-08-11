@@ -246,6 +246,16 @@ namespace Orts.Formats.Msts
         Rear,
         Both,
     }
+
+    /// <summary>
+    /// Specifies if the light must be illuminated on if low voltage power supply is on or off.
+    /// </summary>
+    public enum LightBatteryCondition
+    {
+        Ignore,
+        On,
+        Off,
+    }
     #endregion
 
     #region Activity
@@ -359,6 +369,14 @@ namespace Orts.Formats.Msts
         Orts_Circuit_Breaker_Open,
         Orts_Circuit_Breaker_Authorized,
         Orts_Circuit_Breaker_Open_And_Authorized,
+        Orts_Traction_CutOff_Relay_Driver_Closing_Order,
+        Orts_Traction_CutOff_Relay_Driver_Opening_Order,
+        Orts_Traction_CutOff_Relay_Driver_Closing_Authorization,
+        Orts_Traction_CutOff_Relay_State,
+        Orts_Traction_CutOff_Relay_Closed,
+        Orts_Traction_CutOff_Relay_Open,
+        Orts_Traction_CutOff_Relay_Authorized,
+        Orts_Traction_CutOff_Relay_Open_And_Authorized,
         Orts_Player_Diesel_Engine,
         Orts_Helpers_Diesel_Engines,
         Orts_Player_Diesel_Engine_State,
@@ -380,8 +398,17 @@ namespace Orts.Formats.Msts
         Orts_Bailoff,
         Orts_QuickRelease,
         Orts_Overcharge,
-        Orts_Battery,
-        Orts_PowerKey,
+        Orts_Battery_Switch_Command_Switch,
+        Orts_Battery_Switch_Command_Button_Close,
+        Orts_Battery_Switch_Command_Button_Open,
+        Orts_Battery_Switch_On,
+        Orts_Master_Key,
+        Orts_Current_Cab_In_Use,
+        Orts_Other_Cab_In_Use,
+        Orts_Service_Retention_Button,
+        Orts_Service_Retention_Cancellation_Button,
+        Orts_Electric_Train_Supply_Command_Switch,
+        Orts_Electric_Train_Supply_On,
         Orts_2DExternalWipers,
 
         // TCS Controls

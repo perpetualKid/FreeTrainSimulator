@@ -185,6 +185,7 @@ namespace Orts.Common
         HelperDiesel,
         DieselFuel,
         SteamHeatBoilerWater,
+        TractionCutOffRelayClosingOrder,
         // Steam power
         SteamLocomotiveReverser,
         Regulator,
@@ -232,7 +233,7 @@ namespace Orts.Common
         ChangeCab,
         Odometer,
         Battery,
-        PowerKey,
+        MasterKey,
         // Train Devices
         DoorsLeft,
         DoorsRight,
@@ -256,10 +257,13 @@ namespace Orts.Common
     public enum TrainEvent
     {
         None,
-        BatteryOff,
-        BatteryOn,
+        BatterySwitchOff,
+        BatterySwitchOn,
+        BatterySwitchCommandOff,
+        BatterySwitchCommandOn,
         BellOff,
         BellOn,
+        BlowdownValveToggle,
         BlowerChange,
         BrakesStuck,
         CabLightSwitchToggle,
@@ -293,6 +297,10 @@ namespace Orts.Common
         DynamicBrakeChange,
         DynamicBrakeIncrease, // NOTE: Currently not used in Open Rails.
         DynamicBrakeOff,
+        ElectricTrainSupplyOff,
+        ElectricTrainSupplyOn,
+        ElectricTrainSupplyCommandOff,
+        ElectricTrainSupplyCommandOn,
         EngineBrakeChange,
         EngineBrakePressureDecrease,
         EngineBrakePressureIncrease,
@@ -322,6 +330,8 @@ namespace Orts.Common
         HornOn,
         LargeEjectorChange,
         LightSwitchToggle,
+        MasterKeyOff,
+        MasterKeyOn,
         MirrorClose,
         MirrorOpen,
         MovingTableMovingEmpty,
@@ -348,12 +358,11 @@ namespace Orts.Common
         SanderOff,
         SanderOn,
         SemaphoreArm,
+        ServiceRetentionButtonOff,
+        ServiceRetentionButtonOn,
+        ServiceRetentionCancellationButtonOff,
+        ServiceRetentionCancellationButtonOn,
         SmallEjectorChange,
-        WaterInjector1Off,
-        WaterInjector1On,
-        WaterInjector2Off,
-        WaterInjector2On,
-        BlowdownValveToggle,
         SteamHeatChange,
         SteamPulse1,
         SteamPulse2,
@@ -375,6 +384,15 @@ namespace Orts.Common
         SteamSafetyValveOn,
         TakeScreenshot,
         ThrottleChange,
+        TractionCutOffRelayOpen,
+        TractionCutOffRelayClosing,
+        TractionCutOffRelayClosed,
+        TractionCutOffRelayClosingOrderOff,
+        TractionCutOffRelayClosingOrderOn,
+        TractionCutOffRelayOpeningOrderOff,
+        TractionCutOffRelayOpeningOrderOn,
+        TractionCutOffRelayClosingAuthorizationOff,
+        TractionCutOffRelayClosingAuthorizationOn,
         TrainBrakeChange,
         TrainBrakePressureDecrease,
         TrainBrakePressureIncrease,
@@ -396,6 +414,10 @@ namespace Orts.Common
         VigilanceAlarmOff,
         VigilanceAlarmOn,
         VigilanceAlarmReset,
+        WaterInjector1Off,
+        WaterInjector1On,
+        WaterInjector2Off,
+        WaterInjector2On,
         WaterScoopDown,
         WaterScoopUp,
         WiperOff,
@@ -438,10 +460,30 @@ namespace Orts.Common
         LargeEjectorOff,
         SmallEjectorOn,
         SmallEjectorOff,
+
+        PowerConverterOff,
+        PowerConverterOn,
+        VentilationOff,
+        VentilationLow,
+        VentilationHigh,
+        HeatingOff,
+        HeatingOn,
+        AirConditioningOff,
+        AirConditioningOn,
     }
 
     public enum PowerSupplyEvent
     {
+        QuickPowerOn,
+        QuickPowerOff,
+        CloseBatterySwitch,
+        OpenBatterySwitch,
+        CloseBatterySwitchButtonPressed,
+        CloseBatterySwitchButtonReleased,
+        OpenBatterySwitchButtonPressed,
+        OpenBatterySwitchButtonReleased,
+        TurnOnMasterKey,
+        TurnOffMasterKey,
         RaisePantograph,
         LowerPantograph,
         CloseCircuitBreaker,
@@ -454,15 +496,37 @@ namespace Orts.Common
         RemoveCircuitBreakerClosingAuthorization,
         StartEngine,
         StopEngine,
-        ClosePowerContactor,
-        OpenPowerContactor,
-        GivePowerContactorClosingAuthorization,
-        RemovePowerContactorClosingAuthorization
+        CloseTractionCutOffRelay,
+        OpenTractionCutOffRelay,
+        CloseTractionCutOffRelayButtonPressed,
+        CloseTractionCutOffRelayButtonReleased,
+        OpenTractionCutOffRelayButtonPressed,
+        OpenTractionCutOffRelayButtonReleased,
+        GiveTractionCutOffRelayClosingAuthorization,
+        RemoveTractionCutOffRelayClosingAuthorization,
+        ServiceRetentionButtonPressed,
+        ServiceRetentionButtonReleased,
+        ServiceRetentionCancellationButtonPressed,
+        ServiceRetentionCancellationButtonReleased,
+        SwitchOnElectricTrainSupply,
+        SwitchOffElectricTrainSupply,
+    }
+
+    [Description("PowerSupply")]
+    public enum PowerSupplyType
+    {
+        [Description("Steam")] Steam,
+        [Description("DieselMechanical")] DieselMechanical,
+        [Description("DieselHydraulic")] DieselHydraulic,
+        [Description("DieselElectric")] DieselElectric,
+        [Description("Electric")] Electric,
+        [Description("DualMode")] DualMode,
     }
 
     [Description("PowerSupply")]
     public enum PowerSupplyState
     {
+        [Description("Unavailable")] Unavailable,
         [Description("Off")] PowerOff,
         [Description("On ongoing")] PowerOnOngoing,
         [Description("On")] PowerOn
@@ -471,20 +535,46 @@ namespace Orts.Common
     [Description("Pantograph")]
     public enum PantographState
     {
+        [Description("Unavailable")] Unavailable,
         [Description("Down")] Down,
         [Description("Lowering")] Lowering,
         [Description("Raising")] Raising,
         [Description("Up")] Up
     }
 
+    [Description("Engine")]
+    public enum DieselEngineState
+    {
+        [Description("Unavailable")] Unavailable,
+        [Description("Stopped")] Stopped,
+        [Description("Stopping")] Stopping,
+        [Description("Starting")] Starting,
+        [Description("Running")] Running
+    }
+
     [Description("CircuitBreaker")]
     public enum CircuitBreakerState
     {
+        [Description("Unavailable")] Unavailable,
         [Description("Open")] Open,
         [Description("Closing")] Closing,
         [Description("Closed")] Closed
     }
 
+    [Description("TractionCutOffRelay")]
+    public enum TractionCutOffRelayState
+    {
+        [Description("Unavailable")] Unavailable,
+        [Description("Open")] Open,
+        [Description("Closing")] Closing,
+        [Description("Closed")] Closed
+    }
+
+    public enum PowerSupplyMode
+    {
+        Diesel,
+        Pantograph,
+    }
     public enum BrakeControllerEvent
     {
         /// <summary>
@@ -686,6 +776,7 @@ namespace Orts.Common
         /// Restore request.
         /// </summary>
         Restore,
+        /// <summary>
         /// Generic TCS switch toggled off.
         /// </summary>
         GenericTCSSwitchOff,
@@ -694,6 +785,13 @@ namespace Orts.Common
         /// </summary>
         GenericTCSSwitchOn,
         /// <summary>
+        /// Traction cut-off relay has been closed.
+        /// </summary>
+        TractionCutOffRelayClosed,
+        /// <summary>
+        /// Traction cut-off relay has been opened.
+        /// </summary>
+        TractionCutOffRelayOpen,
     }
 
     /// <summary>

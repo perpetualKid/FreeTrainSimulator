@@ -17,6 +17,7 @@
 
 // This file is the responsibility of the 3D & Environment Team.
 
+using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using System;
 using System.Diagnostics;   // Used by Trace.Warnings
 
@@ -238,15 +239,15 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return ToString(targetState ? "raise" : "lower") + $", item = {item.ToString()}";
+            return ToString(targetState ? "raise" : "lower") + $", item = {item}";
         }
     }
 
-    // Power : Close/open circuit breaker
+    // Power : Close/open circuit breaker switch
     [Serializable()]
     public sealed class CircuitBreakerClosingOrderCommand : BooleanCommand
     {
-        public static MSTSElectricLocomotive Receiver { get; set; }
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
 
         public CircuitBreakerClosingOrderCommand(CommandLog log, bool targetState)
             : base(log, targetState)
@@ -256,7 +257,7 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            Receiver?.Train?.SignalEvent(targetState ? PowerSupplyEvent.CloseCircuitBreaker : PowerSupplyEvent.OpenCircuitBreaker);
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.CloseCircuitBreaker : PowerSupplyEvent.OpenCircuitBreaker);
         }
 
         public override string ToString()
@@ -269,7 +270,7 @@ namespace Orts.Simulation.Commanding
     [Serializable()]
     public sealed class CircuitBreakerClosingOrderButtonCommand : BooleanCommand
     {
-        public static MSTSElectricLocomotive Receiver { get; set; }
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
 
         public CircuitBreakerClosingOrderButtonCommand(CommandLog log, bool targetState)
             : base(log, targetState)
@@ -279,7 +280,7 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            Receiver?.Train?.SignalEvent(targetState ? PowerSupplyEvent.CloseCircuitBreakerButtonPressed : PowerSupplyEvent.CloseCircuitBreakerButtonReleased);
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.CloseCircuitBreakerButtonPressed : PowerSupplyEvent.CloseCircuitBreakerButtonReleased);
         }
 
         public override string ToString()
@@ -292,7 +293,7 @@ namespace Orts.Simulation.Commanding
     [Serializable()]
     public sealed class CircuitBreakerOpeningOrderButtonCommand : BooleanCommand
     {
-        public static MSTSElectricLocomotive Receiver { get; set; }
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
 
         public CircuitBreakerOpeningOrderButtonCommand(CommandLog log, bool targetState)
             : base(log, targetState)
@@ -302,7 +303,7 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            Receiver?.Train?.SignalEvent(targetState ? PowerSupplyEvent.OpenCircuitBreakerButtonPressed : PowerSupplyEvent.OpenCircuitBreakerButtonReleased);
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.OpenCircuitBreakerButtonPressed : PowerSupplyEvent.OpenCircuitBreakerButtonReleased);
         }
 
         public override string ToString()
@@ -311,11 +312,11 @@ namespace Orts.Simulation.Commanding
         }
     }
 
-    // Power : Give/remove circuit breaker authorization
+    // Power : Give/remove circuit breaker authorization switch
     [Serializable()]
     public sealed class CircuitBreakerClosingAuthorizationCommand : BooleanCommand
     {
-        public static MSTSElectricLocomotive Receiver { get; set; }
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
 
         public CircuitBreakerClosingAuthorizationCommand(CommandLog log, bool targetState)
             : base(log, targetState)
@@ -325,12 +326,151 @@ namespace Orts.Simulation.Commanding
 
         public override void Redo()
         {
-            Receiver?.Train?.SignalEvent(targetState ? PowerSupplyEvent.GiveCircuitBreakerClosingAuthorization : PowerSupplyEvent.RemoveCircuitBreakerClosingAuthorization);
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.GiveCircuitBreakerClosingAuthorization : PowerSupplyEvent.RemoveCircuitBreakerClosingAuthorization);
         }
 
         public override string ToString()
         {
             return ToString(targetState ? "given" : "removed");
+
+        }
+    }
+
+    // Power : Close/open traction cut-off relay switch
+    [Serializable()]
+    public sealed class TractionCutOffRelayClosingOrderCommand : BooleanCommand
+    {
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
+
+        public TractionCutOffRelayClosingOrderCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.CloseTractionCutOffRelay : PowerSupplyEvent.OpenTractionCutOffRelay);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "close" : "open");
+        }
+    }
+
+    // Power : Close traction cut-off relay button
+    [Serializable()]
+    public sealed class TractionCutOffRelayClosingOrderButtonCommand : BooleanCommand
+    {
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
+
+        public TractionCutOffRelayClosingOrderButtonCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.CloseTractionCutOffRelayButtonPressed : PowerSupplyEvent.CloseTractionCutOffRelayButtonReleased);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "pressed" : "released");
+        }
+    }
+
+    // Power : Open traction cut-off relay button
+    [Serializable()]
+    public sealed class TractionCutOffRelayOpeningOrderButtonCommand : BooleanCommand
+    {
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
+
+        public TractionCutOffRelayOpeningOrderButtonCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.OpenTractionCutOffRelayButtonPressed : PowerSupplyEvent.OpenTractionCutOffRelayButtonReleased);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "pressed" : "released");
+        }
+    }
+
+    // Power : Give/remove traction cut-off relay closing authorization switch
+    [Serializable()]
+    public sealed class TractionCutOffRelayClosingAuthorizationCommand : BooleanCommand
+    {
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
+
+        public TractionCutOffRelayClosingAuthorizationCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.GiveTractionCutOffRelayClosingAuthorization : PowerSupplyEvent.RemoveTractionCutOffRelayClosingAuthorization);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "given" : "removed");
+        }
+    }
+
+    // Power : Service retention button
+    [Serializable()]
+    public sealed class ServiceRetentionButtonCommand : BooleanCommand
+    {
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
+
+        public ServiceRetentionButtonCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.ServiceRetentionButtonPressed : PowerSupplyEvent.ServiceRetentionButtonReleased);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "pressed" : "released");
+        }
+    }
+
+    // Power : Service retention cancellation button
+    [Serializable()]
+    public sealed class ServiceRetentionCancellationButtonCommand : BooleanCommand
+    {
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
+
+        public ServiceRetentionCancellationButtonCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.ServiceRetentionCancellationButtonPressed : PowerSupplyEvent.ServiceRetentionCancellationButtonReleased);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "pressed" : "released");
         }
     }
 
@@ -927,6 +1067,7 @@ namespace Orts.Simulation.Commanding
     public sealed class HeadlightCommand : BooleanCommand
     {
         public static MSTSLocomotive Receiver { get; set; }
+        public static bool MasterKeyHeadlightControl => Receiver.LocomotivePowerSupply.MasterKey.HeadlightControl;
 
         public HeadlightCommand(CommandLog log, bool targetState)
             : base(log, targetState)
@@ -940,17 +1081,32 @@ namespace Orts.Simulation.Commanding
             {
                 switch (Receiver.Headlight)
                 {
-                    case 0: Receiver.Headlight = 1; Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral); break;
-                    case 1: Receiver.Headlight = 2; Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.On); break;
+                    case 0:
+                        if (!MasterKeyHeadlightControl)
+                        {
+                            Receiver.Headlight = 1;
+                            Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
+                        }
+                        break;
+                    case 1:
+                        Receiver.Headlight = 2;
+                        Receiver.Simulator.Confirmer.Confirm( CabControl.Headlight, CabSetting.On );
+                        break;
                 }
                 Receiver.SignalEvent(TrainEvent.LightSwitchToggle);
-            }
-            else
-            {
-                switch (Receiver.Headlight)
-                {
-                    case 1: Receiver.Headlight = 0; Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Off); break;
-                    case 2: Receiver.Headlight = 1; Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral); break;
+            } else {
+                switch( Receiver.Headlight ) {
+                    case 1:
+                        if (!MasterKeyHeadlightControl)
+                        {
+                            Receiver.Headlight = 0;
+                            Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Off);
+                        }
+                        break;
+                    case 2:
+                        Receiver.Headlight = 1;
+                        Receiver.Simulator.Confirmer.Confirm( CabControl.Headlight, CabSetting.Neutral );
+                        break;
                 }
                 Receiver.SignalEvent(TrainEvent.LightSwitchToggle);
             }
@@ -1028,40 +1184,181 @@ namespace Orts.Simulation.Commanding
     }
 
     [Serializable()]
-    public sealed class ToggleBatteryCommand : Command
+    public sealed class ToggleBatterySwitchCommand : BooleanCommand
     {
-        public static MSTSLocomotive Receiver { get; set; }
+        public static BatterySwitch Receiver { get; set; }
 
-        public ToggleBatteryCommand(CommandLog log)
-            : base(log)
+        public ToggleBatterySwitchCommand(CommandLog log, MSTSWagon wagon, bool toState)
+            : base(log, toState)
         {
+            Receiver = wagon?.PowerSupply?.BatterySwitch;
             Redo();
         }
 
         public override void Redo()
         {
-            Receiver.ToggleBattery();
-            // Report();
+            if (Receiver?.Mode == BatterySwitch.ModeType.Switch)
+            {
+                if (targetState)
+                {
+                    Receiver?.HandleEvent(PowerSupplyEvent.CloseBatterySwitch);
+                }
+                else
+                {
+                    Receiver?.HandleEvent(PowerSupplyEvent.OpenBatterySwitch);
+                }
+            }
+            else if (Receiver?.Mode == BatterySwitch.ModeType.PushButtons)
+            {
+                if (targetState)
+                {
+                    Receiver?.HandleEvent(PowerSupplyEvent.CloseBatterySwitchButtonPressed);
+                    Receiver?.Update(0f);
+                    Receiver?.HandleEvent(PowerSupplyEvent.CloseBatterySwitchButtonReleased);
+                }
+                else
+                {
+                    Receiver?.HandleEvent(PowerSupplyEvent.OpenBatterySwitchButtonPressed);
+                    Receiver?.Update(0f);
+                    Receiver?.HandleEvent(PowerSupplyEvent.OpenBatterySwitchButtonReleased);
+                }
+            }
         }
     }
 
     [Serializable()]
-    public sealed class TogglePowerKeyCommand : Command
+    public sealed class BatterySwitchCommand : BooleanCommand
     {
-        public static MSTSLocomotive Receiver { get; set; }
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
 
-        public TogglePowerKeyCommand(CommandLog log)
-            : base(log)
+        public BatterySwitchCommand(CommandLog log, bool toState)
+            : base(log, toState)
         {
             Redo();
         }
 
         public override void Redo()
         {
-            Receiver.TogglePowerKey();
-            // Report();
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.CloseBatterySwitch : PowerSupplyEvent.OpenBatterySwitch);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "close" : "open");
         }
     }
+
+    [Serializable()]
+    public sealed class BatterySwitchCloseButtonCommand : BooleanCommand
+    {
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
+
+        public BatterySwitchCloseButtonCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.CloseBatterySwitchButtonPressed : PowerSupplyEvent.CloseBatterySwitchButtonReleased);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "pressed" : "released");
+        }
+    }
+
+    [Serializable()]
+    public sealed class BatterySwitchOpenButtonCommand : BooleanCommand
+    {
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
+
+        public BatterySwitchOpenButtonCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.OpenBatterySwitchButtonPressed : PowerSupplyEvent.OpenBatterySwitchButtonReleased);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "pressed" : "released");
+        }
+    }
+
+    [Serializable()]
+    public sealed class ToggleMasterKeyCommand : BooleanCommand
+    {
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
+
+        public ToggleMasterKeyCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.TurnOnMasterKey : PowerSupplyEvent.TurnOffMasterKey);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "turned on" : "turned off");
+        }
+    }
+
+    [Serializable()]
+    public sealed class ElectricTrainSupplyCommand : BooleanCommand
+    {
+        public static ScriptedLocomotivePowerSupply Receiver { get; set; }
+
+        public ElectricTrainSupplyCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver?.HandleEvent(targetState ? PowerSupplyEvent.SwitchOnElectricTrainSupply : PowerSupplyEvent.SwitchOffElectricTrainSupply);
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "switched on" : "switched off");
+        }
+    }
+
+    [Serializable()]
+    public sealed class ConnectElectricTrainSupplyCableCommand : BooleanCommand
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public ConnectElectricTrainSupplyCableCommand(CommandLog log, MSTSWagon car, bool toState)
+            : base(log, toState)
+        {
+            Receiver = car;
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.PowerSupply.FrontElectricTrainSupplyCableConnected = targetState;
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "connect" : "disconnect");
+        }
+    }
+
     // Steam controls
     [Serializable()]
     public sealed class ContinuousSteamHeatCommand : ContinuousCommand
@@ -1506,7 +1803,7 @@ namespace Orts.Simulation.Commanding
         public override void Redo()
         {
             if (Receiver == null) return;
-            Receiver.TogglePlayerEngine();
+            Receiver.LocomotivePowerSupply.HandleEvent(Receiver.DieselEngines.PowerOn ? PowerSupplyEvent.StopEngine : PowerSupplyEvent.StartEngine);
         }
     }
 

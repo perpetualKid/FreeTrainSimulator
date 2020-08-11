@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -158,6 +158,7 @@ namespace Orts.Menu
             checkSimpleControlPhysics.Checked = this.settings.SimpleControlPhysics;
             checkForcedRedAtStationStops.Checked = !this.settings.NoForcedRedAtStationStops;
             checkDoorsAITrains.Checked = this.settings.OpenDoorsInAITrains;
+            checkBoxNoDieselEngineStart.Checked = !this.settings.DieselEngineStart;
 
             //// Keyboard tab
             //InitializeKeyboardSettings();
@@ -338,6 +339,7 @@ namespace Orts.Menu
             settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
             settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;
             settings.OpenDoorsInAITrains = checkDoorsAITrains.Checked;
+            settings.DieselEngineStart = !checkBoxNoDieselEngineStart.Checked;
 
             // Keyboard tab
             // These are edited live.
@@ -662,7 +664,6 @@ namespace Orts.Menu
         {
             await updateManager.RunUpdateProcess(buttonUpdaterExecute.Tag as string).ConfigureAwait(false);
         }
-
         #region Help for General Options
         /// <summary>
         /// Allows multiple controls to change a single help icon with their hover events.

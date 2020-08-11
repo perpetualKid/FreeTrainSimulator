@@ -1896,8 +1896,6 @@ namespace Orts.Simulation.RollingStocks
 
             ApplyBoilerPressure();
 
-            AuxPowerOn = true;
-
             if (Simulator.Settings.DataLogSteamPerformance)
             {
                 Trace.TraceInformation("============================================= Steam Locomotive Performance - Locomotive Details =========================================================");
@@ -1962,7 +1960,6 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Update(double elapsedClockSeconds)
         {
-            PowerOn = true;
             base.Update(elapsedClockSeconds);
             UpdateFX(elapsedClockSeconds);
 
@@ -6241,11 +6238,11 @@ namespace Orts.Simulation.RollingStocks
                    Simulator.Catalog.GetString("Press"),
                    FormatStrings.FormatPressure(Train.LastCar.CarSteamHeatMainPipeSteamPressurePSI, Pressure.Unit.PSI, MainPressureUnit, true),
                    Simulator.Catalog.GetString("Temp"),
-                   FormatStrings.FormatTemperature(Train.LastCar.CarCurrentCarriageHeatTempC, IsMetric),
+                   FormatStrings.FormatTemperature(Train.LastCar.CarInsideTempC, IsMetric),
                    Simulator.Catalog.GetString("OutTemp"),
-                   FormatStrings.FormatTemperature(Train.TrainOutsideTempC, IsMetric),
+                   FormatStrings.FormatTemperature(CarOutsideTempC, IsMetric),
                    Simulator.Catalog.GetString("NetHt"),
-                   Train.LastCar.DisplayTrainNetSteamHeatLossWpTime);
+                   Train.LastCar.CarNetHeatFlowRateW);
             }
 
             status.AppendFormat("\n\t\t === {0} === \n", Simulator.Catalog.GetString("Fireman"));

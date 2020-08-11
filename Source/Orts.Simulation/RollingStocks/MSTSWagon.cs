@@ -70,7 +70,7 @@ namespace Orts.Simulation.RollingStocks
     public class MSTSWagon : TrainCar
     {
         public Pantographs Pantographs;
-        public bool AuxPowerOn;
+        public ScriptedPassengerCarPowerSupply PassengerCarPowerSupply => PowerSupply as ScriptedPassengerCarPowerSupply;
         public bool DoorLeftOpen;
         public bool DoorRightOpen;
         public bool MirrorOpen;
@@ -857,6 +857,7 @@ namespace Orts.Simulation.RollingStocks
         public override void Initialize()
         {
             Pantographs.Initialize();
+            PassengerCarPowerSupply?.Initialize();
 
             base.Initialize();
                        
@@ -883,6 +884,13 @@ namespace Orts.Simulation.RollingStocks
             }
 
 
+        }
+
+        public override void InitializeMoving()
+        {
+            PassengerCarPowerSupply?.InitializeMoving();
+
+            base.InitializeMoving();
         }
 
         /// <summary>
@@ -1220,9 +1228,26 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(orts3dcab": Parse3DCab(stf); break;
                 case "wagon(numwheels": MSTSWagonNumWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); break;
                 case "wagon(ortsnumberaxles": WagonNumAxles = stf.ReadIntBlock(null); break;
+
                 case "wagon(ortspantographs":
                     Pantographs.Parse(lowercasetoken, stf);
                     break;
+
+                case "wagon(ortspowersupply":
+                case "wagon(ortspowerondelay":
+                case "wagon(ortsbattery(mode":
+                case "wagon(ortsbattery(delay":
+                case "wagon(ortspowersupplycontinuouspower":
+                case "wagon(ortspowersupplyheatingpower":
+                case "wagon(ortspowersupplyairconditioningpower":
+                case "wagon(ortspowersupplyairconditioningyield":
+                    if (PassengerCarPowerSupply == null)
+                    {
+                        PowerSupply = new ScriptedPassengerCarPowerSupply(this);
+                    }
+                    PassengerCarPowerSupply.Parse(lowercasetoken, stf);
+                    break;
+
                 case "wagon(intakepoint": IntakePointList.Add(new IntakePoint(stf)); break;
                 case "wagon(passengercapacity": HasPassengerCapacity = true; break;
                 case "wagon(ortsfreightanims":
@@ -1412,6 +1437,11 @@ namespace Orts.Simulation.RollingStocks
             MSTSBrakeSystem.InitializeFromCopy(copy.BrakeSystem);
             if (copy.WeightLoadController != null) WeightLoadController = new MSTSNotchController(copy.WeightLoadController);
 
+            if (copy.PassengerCarPowerSupply != null)
+            {
+                PowerSupply = new ScriptedPassengerCarPowerSupply(this);
+                PassengerCarPowerSupply.Copy(copy.PassengerCarPowerSupply);
+            }
         }
 
         protected void ParseWagonInside(STFReader stf)
@@ -1501,6 +1531,7 @@ namespace Orts.Simulation.RollingStocks
             foreach (MSTSCoupling coupler in Couplers)
                 coupler.Save(outf);
             Pantographs.Save(outf);
+            PassengerCarPowerSupply?.Save(outf);
             if (FreightAnimations != null)
             {
                 FreightAnimations.Save(outf);
@@ -1512,7 +1543,7 @@ namespace Orts.Simulation.RollingStocks
                 else outf.Write(false);
             }
             outf.Write(CurrentSteamHeatBoilerFuelCapacityL);
-            outf.Write(CarCurrentCarriageHeatTempC);
+            outf.Write(CarInsideTempC);
             outf.Write(CurrentCarSteamHeatBoilerWaterCapacityL);
 
             base.Save(outf);
@@ -1544,6 +1575,7 @@ namespace Orts.Simulation.RollingStocks
             MaxHandbrakeForceN = inf.ReadSingle();
             Couplers = ReadCouplersFromSave(inf);
             Pantographs.Restore(inf);
+            PassengerCarPowerSupply?.Restore(inf);
             if (FreightAnimations != null)
             {
                 FreightAnimations.Restore(inf);
@@ -1555,13 +1587,10 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
             CurrentSteamHeatBoilerFuelCapacityL = inf.ReadSingle();
-            CarCurrentCarriageHeatTempC = inf.ReadSingle();
+            CarInsideTempC = inf.ReadSingle();
             CurrentCarSteamHeatBoilerWaterCapacityL = inf.ReadSingle();
 
             base.Restore(inf);
-
-            // always set aux power on due to error in PowerSupplyClass
-            AuxPowerOn = true;
         }
 
         private static List<MSTSCoupling> ReadCouplersFromSave(BinaryReader inf)
@@ -1580,6 +1609,8 @@ namespace Orts.Simulation.RollingStocks
         public override void Update(double elapsedClockSeconds)
         {
             base.Update(elapsedClockSeconds);
+
+            PassengerCarPowerSupply?.Update(elapsedClockSeconds);
 
             ConfirmSteamLocomotiveTender(); // Confirms that a tender is connected to the steam locomotive
 

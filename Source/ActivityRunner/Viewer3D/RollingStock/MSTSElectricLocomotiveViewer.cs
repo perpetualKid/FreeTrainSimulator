@@ -17,8 +17,6 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using System;
-
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Simulation;
@@ -36,9 +34,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             : base(viewer, car)
         {
             electricLocomotive = car;
-            if (electricLocomotive.Train != null && (car.Train.TrainType == TrainType.Ai ||
-                ((car.Train.TrainType == TrainType.Player || car.Train.TrainType == TrainType.AiPlayerDriven || car.Train.TrainType == TrainType.AiPlayerHosting) &&
-                (car.Train.MUDirection != MidpointDirection.N && electricLocomotive.PowerOn))))
+            if (electricLocomotive.Train != null && (electricLocomotive.Train.TrainType == TrainType.Ai ||
+                ((electricLocomotive.Train.TrainType == TrainType.Player || electricLocomotive.Train.TrainType == TrainType.AiPlayerDriven || electricLocomotive.Train.TrainType == TrainType.AiPlayerHosting) &&
+                (electricLocomotive.Train.MUDirection != MidpointDirection.N && electricLocomotive.LocomotivePowerSupply.MainPowerSupplyOn))))
             // following reactivates the sound triggers related to certain states
             // for pantos the sound trigger related to the raised panto must be reactivated, else SignalEvent() would raise also another panto
             {
@@ -71,6 +69,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.ControlCircuitBreakerOpeningOrder, KeyEventType.KeyPressed, CircuitBreakerOpeningOrderOnButtonCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlCircuitBreakerOpeningOrder, KeyEventType.KeyReleased, CircuitBreakerOpeningOrderOffButtonCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlCircuitBreakerClosingAuthorization, KeyEventType.KeyPressed, CircuitBreakerClosingAuthorizationCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBatterySwitchClose, KeyEventType.KeyPressed, BatterySwitchCloseOnButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBatterySwitchClose, KeyEventType.KeyReleased, BatterySwitchCloseOffButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBatterySwitchOpen, KeyEventType.KeyPressed, BatterySwitchOpenOnButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBatterySwitchOpen, KeyEventType.KeyReleased, BatterySwitchOpenOffButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlMasterKey, KeyEventType.KeyPressed, MasterKeyButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlElectricTrainSupply, KeyEventType.KeyPressed, ElectricTrainSupplyButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlServiceRetention, KeyEventType.KeyPressed, ServiceRetentionOnButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlServiceRetention, KeyEventType.KeyReleased, ServiceRetentionOffButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlServiceRetentionCancellation, KeyEventType.KeyPressed, ServiceRetentionCancellationOnButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlServiceRetentionCancellation, KeyEventType.KeyReleased, ServiceRetentionCancellationOffButtonCommand, true);
 
             base.RegisterUserCommandHandling();
         }
@@ -82,6 +90,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCircuitBreakerOpeningOrder, KeyEventType.KeyPressed, CircuitBreakerOpeningOrderOnButtonCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCircuitBreakerOpeningOrder, KeyEventType.KeyReleased, CircuitBreakerOpeningOrderOffButtonCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCircuitBreakerClosingAuthorization, KeyEventType.KeyPressed, CircuitBreakerClosingAuthorizationCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBatterySwitchClose, KeyEventType.KeyPressed, BatterySwitchCloseOnButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBatterySwitchClose, KeyEventType.KeyReleased, BatterySwitchCloseOffButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBatterySwitchOpen, KeyEventType.KeyPressed, BatterySwitchOpenOnButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBatterySwitchOpen, KeyEventType.KeyReleased, BatterySwitchOpenOffButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlMasterKey, KeyEventType.KeyPressed, MasterKeyButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlElectricTrainSupply, KeyEventType.KeyPressed, ElectricTrainSupplyButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlServiceRetention, KeyEventType.KeyPressed, ServiceRetentionOnButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlServiceRetention, KeyEventType.KeyReleased, ServiceRetentionOffButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlServiceRetentionCancellation, KeyEventType.KeyPressed, ServiceRetentionCancellationOnButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlServiceRetentionCancellation, KeyEventType.KeyReleased, ServiceRetentionCancellationOffButtonCommand);
 
             base.UnregisterUserCommandHandling();
         }
@@ -93,7 +111,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         private void CircuitBreakerClosingOrderOnButtonCommand()
         {
-            _ = new CircuitBreakerClosingOrderCommand(Viewer.Log, !electricLocomotive.PowerSupply.CircuitBreaker.DriverClosingOrder);
+            _ = new CircuitBreakerClosingOrderCommand(Viewer.Log, !electricLocomotive.ElectricPowerSupply.CircuitBreaker.DriverClosingOrder);
             _ = new CircuitBreakerClosingOrderButtonCommand(Viewer.Log, true);
         }
 
@@ -109,7 +127,58 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         private void CircuitBreakerClosingAuthorizationCommand()
         {
-            _ = new CircuitBreakerClosingAuthorizationCommand(Viewer.Log, !electricLocomotive.PowerSupply.CircuitBreaker.DriverClosingAuthorization);
+            _ = new CircuitBreakerClosingAuthorizationCommand(Viewer.Log, !electricLocomotive.ElectricPowerSupply.CircuitBreaker.DriverClosingAuthorization);
+        }
+
+        private void BatterySwitchCloseOnButtonCommand()
+        {
+            _ = new BatterySwitchCloseButtonCommand(Viewer.Log, true);
+            _ = new BatterySwitchCommand(Viewer.Log, !electricLocomotive.LocomotivePowerSupply.BatterySwitch.CommandSwitch);
+        }
+
+        private void BatterySwitchCloseOffButtonCommand()
+        {
+            _ = new BatterySwitchCloseButtonCommand(Viewer.Log, false);
+        }
+
+        private void BatterySwitchOpenOnButtonCommand()
+        {
+            _ = new BatterySwitchOpenButtonCommand(Viewer.Log, true);
+        }
+
+        private void BatterySwitchOpenOffButtonCommand()
+        {
+            _ = new BatterySwitchOpenButtonCommand(Viewer.Log, false);
+        }
+
+        private void MasterKeyButtonCommand()
+        {
+            _ = new ToggleMasterKeyCommand(Viewer.Log, !electricLocomotive.LocomotivePowerSupply.MasterKey.CommandSwitch);
+        }
+
+        private void ElectricTrainSupplyButtonCommand()
+        {
+            _ = new ElectricTrainSupplyCommand(Viewer.Log, !electricLocomotive.LocomotivePowerSupply.ElectricTrainSupplySwitch.CommandSwitch);
+        }
+
+        private void ServiceRetentionOnButtonCommand()
+        {
+            _ = new ServiceRetentionButtonCommand(Viewer.Log, true);
+        }
+
+        private void ServiceRetentionOffButtonCommand()
+        {
+            _ = new ServiceRetentionButtonCommand(Viewer.Log, false);
+        }
+
+        private void ServiceRetentionCancellationOnButtonCommand()
+        {
+            _ = new ServiceRetentionButtonCommand(Viewer.Log, true);
+        }
+
+        private void ServiceRetentionCancellationOffButtonCommand()
+        {
+            _ = new ServiceRetentionButtonCommand(Viewer.Log, false);
         }
 
         /// <summary>

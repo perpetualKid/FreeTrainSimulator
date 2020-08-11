@@ -471,6 +471,17 @@ namespace Orts.Common.Calc
     public static class Energy
     {
         /// <summary>
+        /// Energy conversions from and to Joule
+        /// </summary>
+        public static class Transfer
+        {
+            /// <summary>Convert from kiloJoules to Joules</summary>
+            public static double FromKJ(double kiloJoules) { return kiloJoules * 1000f; }
+            /// <summary>Convert from Joules to kileJoules</summary>
+            public static double ToKJ(double joules) { return joules * (1.0f / 1000f); }
+        }
+
+        /// <summary>
         /// Energy density conversions
         /// </summary>
         public static class Density

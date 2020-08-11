@@ -29,6 +29,11 @@ namespace Orts.Scripting.Api
         {
             CurrentValue = script.GameTime;
         }
+
+        public Timer(dynamic car)//TODO 20210923 refactor use of dynamic
+        {
+            CurrentValue = () => (float)car.Simulator.GameTime;
+        }
     }
 
     public class Odometer : Counter
@@ -36,6 +41,11 @@ namespace Orts.Scripting.Api
         public Odometer(TrainScriptBase script)
         {
             CurrentValue = script.DistanceM;
+        }
+
+        public Odometer(dynamic car)//TODO 20210923 refactor use of dynamic
+        {
+            CurrentValue = () => (float)car.DistanceM;
         }
     }
 
@@ -54,6 +64,11 @@ namespace Orts.Scripting.Api
         public Blinker(ScriptBase script)
         {
             CurrentValue = script.GameTime;
+        }
+
+        public Blinker(dynamic car)//TODO 20210923 refactor use of dynamic
+        {
+            CurrentValue = () => (float)car.Simulator.GameTime;
         }
     }
 }

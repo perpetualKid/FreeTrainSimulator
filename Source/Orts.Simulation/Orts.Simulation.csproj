@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Open Rails Simulation Library</Description>
     <AssemblyTitle>Open Rails Simulation Library</AssemblyTitle>

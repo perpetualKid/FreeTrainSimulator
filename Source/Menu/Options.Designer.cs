@@ -1,4 +1,4 @@
-﻿namespace Orts.Menu
+namespace Orts.Menu
 {
     partial class OptionsForm
     {
@@ -94,6 +94,7 @@
             this.checkDynamicShadows = new System.Windows.Forms.CheckBox();
             this.checkWire = new System.Windows.Forms.CheckBox();
             this.tabPageSimulation = new System.Windows.Forms.TabPage();
+            this.checkBoxNoDieselEngineStart = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.checkUseLocationPassingPaths = new System.Windows.Forms.CheckBox();
             this.checkDoorsAITrains = new System.Windows.Forms.CheckBox();
@@ -1283,6 +1284,7 @@
             // 
             // tabPageSimulation
             // 
+            this.tabPageSimulation.Controls.Add(this.checkBoxNoDieselEngineStart);
             this.tabPageSimulation.Controls.Add(this.groupBox1);
             this.tabPageSimulation.Controls.Add(this.checkHotStart);
             this.tabPageSimulation.Controls.Add(this.checkSimpleControlPhysics);
@@ -1302,6 +1304,16 @@
             this.tabPageSimulation.TabIndex = 2;
             this.tabPageSimulation.Text = "Simulation";
             this.tabPageSimulation.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxNoDieselEngineStart
+            // 
+            this.checkBoxNoDieselEngineStart.AutoSize = true;
+            this.checkBoxNoDieselEngineStart.Location = new System.Drawing.Point(6, 238);
+            this.checkBoxNoDieselEngineStart.Name = "checkBoxNoDieselEngineStart";
+            this.checkBoxNoDieselEngineStart.Size = new System.Drawing.Size(195, 17);
+            this.checkBoxNoDieselEngineStart.TabIndex = 9;
+            this.checkBoxNoDieselEngineStart.Text = "Diesel engines stopped after startup";
+            this.checkBoxNoDieselEngineStart.UseVisualStyleBackColor = true;
             // 
             // groupBox1
             // 
@@ -3186,6 +3198,7 @@
         private System.Windows.Forms.TrackBar trackbarMultiSampling;
         private System.Windows.Forms.CheckBox checkUseLocationPassingPaths;
         private System.Windows.Forms.Label labelMSAACount;
+        private System.Windows.Forms.CheckBox checkBoxNoDieselEngineStart;
         private System.Windows.Forms.CheckBox checkBoxFullScreenNativeResolution;
         private System.Windows.Forms.RadioButton radioButtonWindow;
         private System.Windows.Forms.RadioButton radioButtonFullScreen;

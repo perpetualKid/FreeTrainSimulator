@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -189,6 +189,8 @@ namespace Orts.Settings
         public bool HotStart { get; set; }
         [Default(true)]
         public bool SimpleControlPhysics { get; set; }
+        [Default(true)]
+        public bool DieselEngineStart { get; set; }
 
         // Data logger settings:
         [Default(SeparatorChar.Comma)]

@@ -160,9 +160,18 @@ namespace Orts.Common.Input
         [Description("Control Pantograph 2")] ControlPantograph2,
         [Description("Control Pantograph 3")] ControlPantograph3,
         [Description("Control Pantograph 4")] ControlPantograph4,
+        [Description("Control Battery Close")] ControlBatterySwitchClose,
+        [Description("Control Battery Open")] ControlBatterySwitchOpen,
+        [Description("Control Master Key")] ControlMasterKey,
+        [Description("Control Service Retention")] ControlServiceRetention,
+        [Description("Control Service Retention Cancellation")] ControlServiceRetentionCancellation,
         [Description("Control Circuit Breaker Closing Order")] ControlCircuitBreakerClosingOrder,
         [Description("Control Circuit Breaker Opening Order")] ControlCircuitBreakerOpeningOrder,
         [Description("Control Circuit Breaker Closing Authorization")] ControlCircuitBreakerClosingAuthorization,
+        [Description("Control Traction Cut-Off Relay Closing Order")] ControlTractionCutOffRelayClosingOrder,
+        [Description("Control Traction Cut-Off Relay Opening Order")] ControlTractionCutOffRelayOpeningOrder,
+        [Description("Control Traction Cut-Off Relay Closing Authorization")] ControlTractionCutOffRelayClosingAuthorization,
+        [Description("Control Electric Train Supply")] ControlElectricTrainSupply,
         [Description("Control Diesel Player")] ControlDieselPlayer,
         [Description("Control Diesel Helper")] ControlDieselHelper,
         [Description("Control Headlight Increase")] ControlHeadlightIncrease,
@@ -204,8 +213,6 @@ namespace Orts.Common.Input
         [Description("Control AI Fire On")] ControlAIFireOn,
         [Description("Control AI Fire Off")] ControlAIFireOff,
         [Description("Control AI Fire Reset")] ControlAIFireReset,
-        [Description("Control Battery")] ControlBattery,
-        [Description("Control PowerKey")] ControlPowerKey,
     }
 
     /// <summary>

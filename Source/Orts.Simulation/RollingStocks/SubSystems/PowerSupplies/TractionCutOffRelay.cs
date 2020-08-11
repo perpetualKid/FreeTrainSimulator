@@ -1,4 +1,4 @@
-// COPYRIGHT 2020 by the Open Rails project.
+﻿// COPYRIGHT 2020 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -27,42 +27,22 @@ using Orts.Simulation.AIs;
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
 
-    public class ScriptedCircuitBreaker : ISubSystem<ScriptedCircuitBreaker>
+    public class ScriptedTractionCutOffRelay : ISubSystem<ScriptedTractionCutOffRelay>
     {
         public ScriptedLocomotivePowerSupply PowerSupply { get; protected set; }
         public MSTSLocomotive Locomotive => PowerSupply.Locomotive;
         public Simulator Simulator => PowerSupply.Locomotive.Simulator;
 
-        public bool Activated;
-        private string ScriptName = "Automatic";
-        private CircuitBreaker Script;
+        public bool Activated = false;
+        string ScriptName = "Automatic";
+        TractionCutOffRelay Script;
 
-        private float DelayS;
+        private float DelayS = 0f;
 
-        public CircuitBreakerState State { get; private set; } = CircuitBreakerState.Open;
+        public TractionCutOffRelayState State { get; private set; } = TractionCutOffRelayState.Open;
         public bool DriverClosingOrder { get; private set; }
         public bool DriverOpeningOrder { get; private set; }
         public bool DriverClosingAuthorization { get; private set; }
-        public bool TCSClosingOrder
-        {
-            get
-            {
-                if (Locomotive.Train.LeadLocomotive is MSTSLocomotive locomotive)
-                    return locomotive.TrainControlSystem.CircuitBreakerClosingOrder;
-                else
-                    return false;
-            }
-        }
-        public bool TCSOpeningOrder
-        {
-            get
-            {
-                if (Locomotive.Train.LeadLocomotive is MSTSLocomotive locomotive)
-                    return locomotive.TrainControlSystem.CircuitBreakerOpeningOrder;
-                else
-                    return false;
-            }
-        }
         public bool TCSClosingAuthorization
         {
             get
@@ -75,12 +55,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         }
         public bool ClosingAuthorization { get; private set; }
 
-        public ScriptedCircuitBreaker(ScriptedLocomotivePowerSupply powerSupply)
+        public ScriptedTractionCutOffRelay(ScriptedLocomotivePowerSupply powerSupply)
         {
             PowerSupply = powerSupply;
         }
 
-        public void Copy(ScriptedCircuitBreaker other)
+        public void Copy(ScriptedTractionCutOffRelay other)
         {
             ScriptName = other.ScriptName;
             State = other.State;
@@ -91,14 +71,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             switch (lowercasetoken)
             {
-                case "engine(ortscircuitbreaker":
+                case "engine(ortstractioncutoffrelay":
                     if (Locomotive.Train as AITrain == null)
                     {
                         ScriptName = stf.ReadStringBlock(null);
                     }
                     break;
 
-                case "engine(ortscircuitbreakerclosingdelay":
+                case "engine(ortstractioncutoffrelayclosingdelay":
                     DelayS = stf.ReadFloatBlock(STFReader.Units.Time, null);
                     break;
             }
@@ -113,29 +93,28 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     switch(ScriptName)
                     {
                         case "Automatic":
-                            Script = new AutomaticCircuitBreaker() as CircuitBreaker;
+                            Script = new AutomaticTractionCutOffRelay() as TractionCutOffRelay;
                             break;
 
                         case "Manual":
-                            Script = new ManualCircuitBreaker() as CircuitBreaker;
+                            Script = new ManualTractionCutOffRelay() as TractionCutOffRelay;
                             break;
 
                         default:
-                            Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as CircuitBreaker;
+                            Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as TractionCutOffRelay;
                             break;
                     }
                 }
                 // Fallback to automatic circuit breaker if the above failed.
                 if (Script == null)
                 {
-                    Script = new AutomaticCircuitBreaker() as CircuitBreaker;
+                    Script = new AutomaticTractionCutOffRelay() as TractionCutOffRelay;
                 }
 
                 // AbstractScriptClass
-                Script.ClockTime = () => Simulator.ClockTime;
-                Script.GameTime = () => Simulator.GameTime;
+                Script.ClockTime = () => (float)Simulator.ClockTime;
+                Script.GameTime = () => (float)Simulator.GameTime;
                 Script.DistanceM = () => Locomotive.DistanceM;
-                Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
                 Script.Confirm = Locomotive.Simulator.Confirmer.Confirm;
                 Script.Message = Locomotive.Simulator.Confirmer.Message;
                 Script.SignalEvent = Locomotive.SignalEvent;
@@ -168,18 +147,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 Script.SetDriverClosingAuthorization = (value) => DriverClosingAuthorization = value;
                 Script.SetClosingAuthorization = (value) => ClosingAuthorization = value;
 
-                // CircuitBreaker getters
+                // TractionCutOffRelay getters
                 Script.CurrentState = () => State;
-                Script.TCSClosingOrder = () => TCSClosingOrder;
-                Script.TCSOpeningOrder = () => TCSOpeningOrder;
 
-                // CircuitBreaker setters
+                // TractionCutOffRelay setters
                 Script.SetCurrentState = (value) =>
                 {
                     State = value;
-                    TCSEvent CircuitBreakerEvent = State == CircuitBreakerState.Closed ? TCSEvent.CircuitBreakerClosed : TCSEvent.CircuitBreakerOpen;
+                    TCSEvent CircuitBreakerEvent = State == TractionCutOffRelayState.Closed ? TCSEvent.TractionCutOffRelayClosed : TCSEvent.TractionCutOffRelayOpen;
                     Locomotive.TrainControlSystem.HandleEvent(CircuitBreakerEvent);
                 };
+
+                // DualModeTractionCutOffRelay getters
+                Script.CurrentCircuitBreakerState = () => PowerSupply.Type == PowerSupplyType.DualMode ? (PowerSupply as ScriptedDualModePowerSupply).CircuitBreaker.State : CircuitBreakerState.Unavailable;
 
                 Script.Initialize();
                 Activated = true;
@@ -190,7 +170,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             Script?.InitializeMoving();
 
-            State = CircuitBreakerState.Closed;
+            State = TractionCutOffRelayState.Closed;
         }
 
         public void Update(double elapsedSeconds)
@@ -198,23 +178,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             if (Locomotive.Train.TrainType == TrainType.Ai || Locomotive.Train.TrainType == TrainType.AiAutoGenerated
                 || Locomotive.Train.TrainType == TrainType.AiPlayerHosting)
             {
-                State = CircuitBreakerState.Closed;
+                State = TractionCutOffRelayState.Closed;
             }
             else
             {
-                if (Script != null)
-                {
-                    Script.Update(elapsedSeconds);
-                }
+                Script?.Update(elapsedSeconds);
             }
         }
 
         public void HandleEvent(PowerSupplyEvent evt)
         {
-            if (Script != null)
-            {
-                Script.HandleEvent(evt);
-            }
+            Script?.HandleEvent(evt);
         }
 
         public void Save(BinaryWriter outf)
@@ -232,7 +206,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             ScriptName = inf.ReadString();
             DelayS = inf.ReadSingle();
-            State = (CircuitBreakerState)Enum.Parse(typeof(CircuitBreakerState), inf.ReadString());
+            State = (TractionCutOffRelayState)Enum.Parse(typeof(TractionCutOffRelayState), inf.ReadString());
             DriverClosingOrder = inf.ReadBoolean();
             DriverOpeningOrder = inf.ReadBoolean();
             DriverClosingAuthorization = inf.ReadBoolean();
@@ -240,10 +214,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         }
     }
 
-    internal class AutomaticCircuitBreaker : CircuitBreaker
+    class AutomaticTractionCutOffRelay : TractionCutOffRelay
     {
         private Timer ClosingTimer;
-        private CircuitBreakerState PreviousState;
+        private TractionCutOffRelayState PreviousState;
 
         public override void Initialize()
         {
@@ -257,18 +231,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override void Update(double elapsedSeconds)
         {
-            SetClosingAuthorization(TCSClosingAuthorization() && CurrentPantographState() == PantographState.Up);
+            UpdateClosingAuthorization();
 
             switch (CurrentState())
             {
-                case CircuitBreakerState.Closed:
+                case TractionCutOffRelayState.Closed:
                     if (!ClosingAuthorization())
                     {
-                        SetCurrentState(CircuitBreakerState.Open);
+                        SetCurrentState(TractionCutOffRelayState.Open);
                     }
                     break;
 
-                case CircuitBreakerState.Closing:
+                case TractionCutOffRelayState.Closing:
                     if (ClosingAuthorization())
                     {
                         if (!ClosingTimer.Started)
@@ -279,20 +253,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         if (ClosingTimer.Triggered)
                         {
                             ClosingTimer.Stop();
-                            SetCurrentState(CircuitBreakerState.Closed);
+                            SetCurrentState(TractionCutOffRelayState.Closed);
                         }
                     }
                     else
                     {
                         ClosingTimer.Stop();
-                        SetCurrentState(CircuitBreakerState.Open);
+                        SetCurrentState(TractionCutOffRelayState.Open);
                     }
                     break;
 
-                case CircuitBreakerState.Open:
+                case TractionCutOffRelayState.Open:
                     if (ClosingAuthorization())
                     {
-                        SetCurrentState(CircuitBreakerState.Closing);
+                        SetCurrentState(TractionCutOffRelayState.Closing);
                     }
                     break;
             }
@@ -301,21 +275,26 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 switch (CurrentState())
                 {
-                    case CircuitBreakerState.Open:
-                        SignalEvent(TrainEvent.CircuitBreakerOpen);
+                    case TractionCutOffRelayState.Open:
+                        SignalEvent(TrainEvent.TractionCutOffRelayOpen);
                         break;
 
-                    case CircuitBreakerState.Closing:
-                        SignalEvent(TrainEvent.CircuitBreakerClosing);
+                    case TractionCutOffRelayState.Closing:
+                        SignalEvent(TrainEvent.TractionCutOffRelayClosing);
                         break;
 
-                    case CircuitBreakerState.Closed:
-                        SignalEvent(TrainEvent.CircuitBreakerClosed);
+                    case TractionCutOffRelayState.Closed:
+                        SignalEvent(TrainEvent.TractionCutOffRelayClosed);
                         break;
                 }
             }
 
             PreviousState = CurrentState();
+        }
+
+        public virtual void UpdateClosingAuthorization()
+        {
+            SetClosingAuthorization(TCSClosingAuthorization() && CurrentDieselEngineState() == DieselEngineState.Running);
         }
 
         public override void HandleEvent(PowerSupplyEvent evt)
@@ -324,10 +303,24 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         }
     }
 
-    internal class ManualCircuitBreaker : CircuitBreaker
+    class AutomaticDualModeTractionCutOffRelay : AutomaticTractionCutOffRelay
+    {
+        public override void UpdateClosingAuthorization()
+        {
+            SetClosingAuthorization(
+                TCSClosingAuthorization()
+                && (
+                    (CurrentPantographState() == PantographState.Up && CurrentCircuitBreakerState() == CircuitBreakerState.Closed)
+                    || CurrentDieselEngineState() == DieselEngineState.Running
+                )
+            );
+        }
+    }
+
+    class ManualTractionCutOffRelay : TractionCutOffRelay
     {
         private Timer ClosingTimer;
-        private CircuitBreakerState PreviousState;
+        private TractionCutOffRelayState PreviousState;
 
         public override void Initialize()
         {
@@ -339,18 +332,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public override void Update(double elapsedSeconds)
         {
-            SetClosingAuthorization(TCSClosingAuthorization() && CurrentPantographState() == PantographState.Up);
+            SetClosingAuthorization(TCSClosingAuthorization() && CurrentDieselEngineState() == DieselEngineState.Running);
 
             switch (CurrentState())
             {
-                case CircuitBreakerState.Closed:
+                case TractionCutOffRelayState.Closed:
                     if (!ClosingAuthorization() || DriverOpeningOrder())
                     {
-                        SetCurrentState(CircuitBreakerState.Open);
+                        SetCurrentState(TractionCutOffRelayState.Open);
                     }
                     break;
 
-                case CircuitBreakerState.Closing:
+                case TractionCutOffRelayState.Closing:
                     if (ClosingAuthorization() && DriverClosingOrder())
                     {
                         if (!ClosingTimer.Started)
@@ -361,20 +354,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         if (ClosingTimer.Triggered)
                         {
                             ClosingTimer.Stop();
-                            SetCurrentState(CircuitBreakerState.Closed);
+                            SetCurrentState(TractionCutOffRelayState.Closed);
                         }
                     }
                     else
                     {
                         ClosingTimer.Stop();
-                        SetCurrentState(CircuitBreakerState.Open);
+                        SetCurrentState(TractionCutOffRelayState.Open);
                     }
                     break;
 
-                case CircuitBreakerState.Open:
+                case TractionCutOffRelayState.Open:
                     if (ClosingAuthorization() && DriverClosingOrder())
                     {
-                        SetCurrentState(CircuitBreakerState.Closing);
+                        SetCurrentState(TractionCutOffRelayState.Closing);
                     }
                     break;
             }
@@ -383,15 +376,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 switch (CurrentState())
                 {
-                    case CircuitBreakerState.Open:
+                    case TractionCutOffRelayState.Open:
                         SignalEvent(TrainEvent.CircuitBreakerOpen);
                         break;
 
-                    case CircuitBreakerState.Closing:
+                    case TractionCutOffRelayState.Closing:
                         SignalEvent(TrainEvent.CircuitBreakerClosing);
                         break;
 
-                    case CircuitBreakerState.Closed:
+                    case TractionCutOffRelayState.Closed:
                         SignalEvent(TrainEvent.CircuitBreakerClosed);
                         break;
                 }
@@ -404,24 +397,27 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             switch (evt)
             {
-                case PowerSupplyEvent.CloseCircuitBreaker:
-                    SetDriverClosingOrder(true);
-                    SetDriverOpeningOrder(false);
-                    SignalEvent(TrainEvent.CircuitBreakerClosingOrderOn);
-
-                    Confirm(CabControl.CircuitBreakerClosingOrder, CabSetting.On);
-                    if (!ClosingAuthorization())
+                case PowerSupplyEvent.CloseTractionCutOffRelay:
+                    if (!DriverClosingOrder())
                     {
-                        Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Circuit breaker closing not authorized"));
+                        SetDriverClosingOrder(true);
+                        SetDriverOpeningOrder(false);
+                        SignalEvent(TrainEvent.TractionCutOffRelayClosingOrderOn);
+
+                        Confirm(CabControl.TractionCutOffRelayClosingOrder, CabSetting.On);
+                        if (!ClosingAuthorization())
+                        {
+                            Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Traction cut-off relay closing not authorized"));
+                        }
                     }
                     break;
 
-                case PowerSupplyEvent.OpenCircuitBreaker:
+                case PowerSupplyEvent.OpenTractionCutOffRelay:
                     SetDriverClosingOrder(false);
                     SetDriverOpeningOrder(true);
-                    SignalEvent(TrainEvent.CircuitBreakerClosingOrderOff);
+                    SignalEvent(TrainEvent.TractionCutOffRelayClosingOrderOff);
 
-                    Confirm(CabControl.CircuitBreakerClosingOrder, CabSetting.Off);
+                    Confirm(CabControl.TractionCutOffRelayClosingOrder, CabSetting.Off);
                     break;
             }
         }

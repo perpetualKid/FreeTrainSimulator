@@ -25,27 +25,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public bool IsInitialized { get { return initLevel >= 5; } }
         public bool AtLeastOneParamFound { get { return initLevel >= 1; } }
 
-        public MSTSGearBoxParams()
-        {
-
-        }
-
-        public MSTSGearBoxParams(MSTSGearBoxParams copy)
-        {
-            GearBoxNumberOfGears = copy.GearBoxNumberOfGears;
-            GearBoxDirectDriveGear = copy.GearBoxDirectDriveGear;
-            GearBoxOperation = copy.GearBoxOperation;
-            GearBoxEngineBraking = copy.GearBoxEngineBraking;
-            GearBoxMaxSpeedForGearsMpS = new List<float>(copy.GearBoxMaxSpeedForGearsMpS);
-            GearBoxMaxTractiveForceForGearsN = new List<float>(copy.GearBoxMaxTractiveForceForGearsN);
-            GearBoxOverspeedPercentageForFailure = copy.GearBoxOverspeedPercentageForFailure;
-            GearBoxBackLoadForceN = copy.GearBoxBackLoadForceN;
-            GearBoxCoastingForceN = copy.GearBoxCoastingForceN;
-            GearBoxUpGearProportion = copy.GearBoxUpGearProportion;
-            GearBoxDownGearProportion = copy.GearBoxDownGearProportion;
-            initLevel = copy.initLevel;
-        }
-
         public void Parse(string lowercasetoken, STFReader stf)
         {
             string temp = "";
@@ -113,12 +92,29 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 default: break;
             }
         }
+
+        public void Copy(MSTSGearBoxParams copy)
+        {
+            GearBoxNumberOfGears = copy.GearBoxNumberOfGears;
+            GearBoxDirectDriveGear = copy.GearBoxDirectDriveGear;
+            GearBoxOperation = copy.GearBoxOperation;
+            GearBoxEngineBraking = copy.GearBoxEngineBraking;
+            GearBoxMaxSpeedForGearsMpS = new List<float>(copy.GearBoxMaxSpeedForGearsMpS);
+            GearBoxMaxTractiveForceForGearsN = new List<float>(copy.GearBoxMaxTractiveForceForGearsN);
+            GearBoxOverspeedPercentageForFailure = copy.GearBoxOverspeedPercentageForFailure;
+            GearBoxBackLoadForceN = copy.GearBoxBackLoadForceN;
+            GearBoxCoastingForceN = copy.GearBoxCoastingForceN;
+            GearBoxUpGearProportion = copy.GearBoxUpGearProportion;
+            GearBoxDownGearProportion = copy.GearBoxDownGearProportion;
+            initLevel = copy.initLevel;
+        }
     }
 
-    public class GearBox
+    public class GearBox : ISubSystem<GearBox>
     {
-        public MSTSGearBoxParams mstsParams = new MSTSGearBoxParams();
-        private DieselEngine DieselEngine;
+        protected readonly DieselEngine DieselEngine;
+        protected readonly MSTSDieselLocomotive Locomotive;
+        protected MSTSGearBoxParams GearBoxParams => Locomotive.DieselEngines.MSTSGearBoxParams;
         public List<Gear> Gears = new List<Gear>();
 
         public Gear CurrentGear
@@ -217,12 +213,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             gearedDown = false;
         }
 
-        public bool clutchOn;
+        private bool clutchOn;
         public bool IsClutchOn
         {
             get
             {
-                if (DieselEngine.locomotive.ThrottlePercent > 0)
+                if (DieselEngine.Locomotive.ThrottlePercent > 0)
                 {
                     if (ShaftRPM >= (CurrentGear.DownGearProportion * DieselEngine.MaxRPM))
                         clutchOn = true;
@@ -242,10 +238,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
             get
             {
-                if(DieselEngine.locomotive.Direction == MidpointDirection.Reverse)
-                    return -(DieselEngine.locomotive.SpeedMpS);
+                if(DieselEngine.Locomotive.Direction == MidpointDirection.Reverse)
+                    return -(DieselEngine.Locomotive.SpeedMpS);
                 else
-                    return (DieselEngine.locomotive.SpeedMpS);
+                    return (DieselEngine.Locomotive.SpeedMpS);
             }
         }
 
@@ -283,8 +279,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         }
 
         private float clutch;
-        public float ClutchPercent { set { clutch = (value > 100.0f ? 100f : (value < -100f ? -100f : value)) / 100f; }
-            get { return clutch * 100f; } }
+        public float ClutchPercent
+        {
+            set => clutch = (value > 100.0f ? 100f : (value < -100f ? -100f : value)) / 100f;
+            get => clutch * 100f;
+        }
 
         public bool AutoClutch = true;
 
@@ -322,25 +321,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             }
         }
 
-        public GearBox() { }
-
-        public GearBox(GearBox copy, DieselEngine de)
+        public GearBox(DieselEngine dieselEngine)
         {
-            mstsParams = new MSTSGearBoxParams(copy.mstsParams);
-            DieselEngine = de;
-
-            CopyFromMSTSParams(DieselEngine);
-
-        }      
-
-        
-
-        public void Parse(string lowercasetoken, STFReader stf)
-        {
-            mstsParams.Parse(lowercasetoken, stf);
+            DieselEngine = dieselEngine;
+            Locomotive = dieselEngine.Locomotive;
         }
 
-        public bool IsRestored;
+        public void Copy(GearBox source)
+        {
+            // Nothing to copy, all parameters will be copied from MSTSGearBoxParams at initialization
+        }
 
         public void Restore(BinaryReader inf)
         {
@@ -350,7 +340,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             gearedDown = inf.ReadBoolean();
             clutchOn = inf.ReadBoolean();
             clutch = inf.ReadSingle();
-            IsRestored = true;
         }
 
         public void Save(BinaryWriter outf)
@@ -363,7 +352,31 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             outf.Write(clutch);
         }
 
-        public void InitializeMoving ()
+        public void Initialize()
+        {
+            if (GearBoxParams != null)
+            {
+                if ((!GearBoxParams.IsInitialized) && (GearBoxParams.AtLeastOneParamFound))
+                    Trace.TraceWarning("Some of the gearbox parameters are missing! Default physics will be used.");
+                for (int i = 0; i < GearBoxParams.GearBoxNumberOfGears; i++)
+                {
+                    Gears.Add(new Gear(this));
+                    Gears[i].BackLoadForceN = GearBoxParams.GearBoxBackLoadForceN;
+                    Gears[i].CoastingForceN = GearBoxParams.GearBoxCoastingForceN;
+                    Gears[i].DownGearProportion = GearBoxParams.GearBoxDownGearProportion;
+                    Gears[i].IsDirectDriveGear = (GearBoxParams.GearBoxDirectDriveGear == GearBoxParams.GearBoxNumberOfGears);
+                    Gears[i].MaxSpeedMpS = GearBoxParams.GearBoxMaxSpeedForGearsMpS[i];
+                    Gears[i].MaxTractiveForceN = GearBoxParams.GearBoxMaxTractiveForceForGearsN[i];
+                    Gears[i].OverspeedPercentage = GearBoxParams.GearBoxOverspeedPercentageForFailure;
+                    Gears[i].UpGearProportion = GearBoxParams.GearBoxUpGearProportion;
+                    Gears[i].Ratio = GearBoxParams.GearBoxMaxSpeedForGearsMpS[i] / DieselEngine.MaxRPM;
+                }
+                GearBoxOperation = GearBoxParams.GearBoxOperation;
+                OriginalGearBoxOperation = GearBoxParams.GearBoxOperation;
+            }
+        }
+
+        public void InitializeMoving()
         {
             for (int iGear = 0; iGear < Gears.Count; iGear++)
             {
@@ -379,44 +392,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             DieselEngine.RealRPM = ShaftRPM;
         }
 
-        public bool IsInitialized { get { return mstsParams.IsInitialized; } }
-
-        public void UseLocoGearBox (DieselEngine dieselEngine)
-        {
-            DieselEngine = dieselEngine;
-        }
-
-        public void CopyFromMSTSParams(DieselEngine dieselEngine)
-        {
-            if (mstsParams != null)
-            {
-                if ((!mstsParams.IsInitialized) && (mstsParams.AtLeastOneParamFound))
-                    Trace.TraceWarning("Some of the gearbox parameters are missing! Default physics will be used.");
-                for (int i = 0; i < mstsParams.GearBoxNumberOfGears; i++)
-                {
-                    Gears.Add(new Gear(this));
-                    Gears[i].BackLoadForceN = mstsParams.GearBoxBackLoadForceN;
-                    Gears[i].CoastingForceN = mstsParams.GearBoxCoastingForceN;
-                    Gears[i].DownGearProportion = mstsParams.GearBoxDownGearProportion;
-                    Gears[i].IsDirectDriveGear = (mstsParams.GearBoxDirectDriveGear == mstsParams.GearBoxNumberOfGears);
-                    Gears[i].MaxSpeedMpS = mstsParams.GearBoxMaxSpeedForGearsMpS[i];
-                    Gears[i].MaxTractiveForceN = mstsParams.GearBoxMaxTractiveForceForGearsN[i];
-                    Gears[i].OverspeedPercentage = mstsParams.GearBoxOverspeedPercentageForFailure;
-                    Gears[i].UpGearProportion = mstsParams.GearBoxUpGearProportion;
-                    Gears[i].Ratio = mstsParams.GearBoxMaxSpeedForGearsMpS[i] / dieselEngine.MaxRPM;
-                }
-                GearBoxOperation = mstsParams.GearBoxOperation;
-                OriginalGearBoxOperation = mstsParams.GearBoxOperation;
-            }
-        }
-
         public void Update(double elapsedClockSeconds)
         {
             if ((clutch <= 0.05) || (clutch >= 1f))
             {
                 if (currentGearIndex < nextGearIndex)
                 {
-                    DieselEngine.locomotive.SignalEvent(TrainEvent.GearUp);
+                    DieselEngine.Locomotive.SignalEvent(TrainEvent.GearUp);
                     currentGearIndex = nextGearIndex;
                 }
             }
@@ -424,17 +406,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             {
                 if (currentGearIndex > nextGearIndex)
                 {
-                    DieselEngine.locomotive.SignalEvent(TrainEvent.GearDown);
+                    DieselEngine.Locomotive.SignalEvent(TrainEvent.GearDown);
                     currentGearIndex = nextGearIndex;
                 }
             }
 
-            if (DieselEngine.EngineStatus == DieselEngine.Status.Running)
+            if (DieselEngine.State == DieselEngineState.Running)
             {
                 switch (GearBoxOperation)
                 {
                     case GearBoxOperation.Manual:
-                        if (DieselEngine.locomotive.ThrottlePercent == 0)
+                        if (DieselEngine.Locomotive.ThrottlePercent == 0)
                         {
                             clutchOn = false;
                             ClutchPercent = 0f;
@@ -453,7 +435,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                                 else
                                     AutoAtGear();
                             }
-                            if (DieselEngine.locomotive.ThrottlePercent == 0)
+                            if (DieselEngine.Locomotive.ThrottlePercent == 0)
                             {
                                 if ((CurrentGear != null) || (NextGear == null))
                                 {
@@ -468,7 +450,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                         }
                         else
                         {
-                            if ((DieselEngine.locomotive.ThrottlePercent > 0))
+                            if ((DieselEngine.Locomotive.ThrottlePercent > 0))
                                 AutoGearUp();
                             else
                             {
@@ -490,9 +472,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 gearedDown = false;
                 gearedUp = false;
             }
-
         }
-
     }
 
     public enum GearBoxOperation
@@ -522,7 +502,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 
         public float Ratio = 1f;
 
-        public GearBox GearBox;
+        protected readonly GearBox GearBox;
 
         public Gear(GearBox gb) { GearBox = gb; }
 

@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
+// COPYRIGHT 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -97,6 +97,7 @@ namespace Orts.Formats.Msts.Models
         public LightTimeOfDayCondition TimeOfDay { get; private set; }
         public LightWeatherCondition Weather { get; private set; }
         public LightCouplingCondition Coupling { get; private set; }
+        public LightBatteryCondition Battery { get; private set; }
         public bool Cycle { get; private set; }
         public float FadeIn { get; private set; }
         public float FadeOut { get; private set; }
@@ -117,6 +118,7 @@ namespace Orts.Formats.Msts.Models
                     new STFReader.TokenProcessor("timeofday", ()=>{ TimeOfDay = (LightTimeOfDayCondition)stf.ReadIntBlock(null); }),
                     new STFReader.TokenProcessor("weather", ()=>{ Weather = (LightWeatherCondition)stf.ReadIntBlock(null); }),
                     new STFReader.TokenProcessor("coupling", ()=>{ Coupling = (LightCouplingCondition)stf.ReadIntBlock(null); }),
+                    new STFReader.TokenProcessor("ortsbattery", ()=>{ Battery = (LightBatteryCondition)stf.ReadIntBlock(null); }),
                 });}),
                 new STFReader.TokenProcessor("cycle", ()=>{ Cycle = 0 != stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("fadein", ()=>{ FadeIn = stf.ReadFloatBlock(STFReader.Units.None, null); }),
@@ -153,6 +155,7 @@ namespace Orts.Formats.Msts.Models
             TimeOfDay = source.TimeOfDay;
             Weather = source.Weather;
             Coupling = source.Coupling;
+            Battery = source.Battery;
             Cycle = source.Cycle;
             FadeIn = source.FadeIn;
             FadeOut = source.FadeOut;

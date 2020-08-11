@@ -68,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             Locomotive = car;
 
-            if (Locomotive.CabSoundFileName != null) 
+            if (Locomotive.CabSoundFileName != null)
                 LoadCarSound(Path.GetDirectoryName(Locomotive.WagFilePath), Locomotive.CabSoundFileName);
 
             //Viewer.SoundProcess.AddSoundSource(this, new TrackSoundSource(MSTSWagon, Viewer));
@@ -242,8 +242,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.BailOff, BailOffHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.Emergency, EmergencyHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.CabActivity, AlerterResetCommand);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlBattery, KeyEventType.KeyPressed, ToggleBatteryCommand);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlPowerKey, KeyEventType.KeyPressed, TogglePowerKeyCommand);
 
             base.RegisterUserCommandHandling();
         }
@@ -333,8 +331,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.BailOff, BailOffHandleCommand);
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Emergency, EmergencyHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.CabActivity, AlerterResetCommand);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBattery, KeyEventType.KeyPressed, ToggleBatteryCommand);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPowerKey, KeyEventType.KeyPressed, TogglePowerKeyCommand);
 
             base.UnregisterUserCommandHandling();
         }
@@ -494,9 +490,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             Locomotive.AlerterReset();
         }
-
-        private void ToggleBatteryCommand() => _ = new ToggleBatteryCommand(Viewer.Log);
-        private void TogglePowerKeyCommand() => _ = new TogglePowerKeyCommand(Viewer.Log);
 
 #pragma warning restore IDE0022 // Use block body for methods
         #endregion
@@ -1630,7 +1623,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     public abstract class CabViewControlRenderer : RenderPrimitive
     {
         protected readonly Viewer Viewer;
-        protected readonly MSTSLocomotive Locomotive;
+        public readonly MSTSLocomotive Locomotive;
         internal protected readonly CabViewControl Control;
         protected readonly CabShader Shader;
         protected readonly int ShaderKey = 1;
@@ -1683,7 +1676,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public virtual void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            frame.AddPrimitive(ControlView, this, RenderPrimitiveGroup.Cab, ref Matrix);
+            if ((!Control.DisabledIfLowVoltagePowerSupplyOff || Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn) &&
+                (!Control.DisabledIfCabPowerSupplyOff || Locomotive.LocomotivePowerSupply.CabPowerSupplyOn))
+            {
+                frame.AddPrimitive(ControlView, this, RenderPrimitiveGroup.Cab, ref Matrix);
+            }
         }
 
         internal void Mark()
@@ -1885,7 +1882,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     }
                     else
                     {
-                        destX = (int)(xratio * Control.Bounds.X) +(int)(xratio * (Gauge.Direction == 0 && ypos > zeropos ? (ypos - zeropos) * Math.Sin(DrawRotation) : 0));
+                        destX = (int)(xratio * Control.Bounds.X) + (int)(xratio * (Gauge.Direction == 0 && ypos > zeropos ? (ypos - zeropos) * Math.Sin(DrawRotation) : 0));
                         if (Gauge.Direction != 1 && !IsFire)
                             destY = (int)(yratio * (Control.Bounds.Y + zeropos)) + (ypos > zeropos ? (int)(yratio * (zeropos - ypos)) : 0);
                         else
@@ -2175,6 +2172,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_Circuit_Breaker_Open:
                 case CabViewControlType.Orts_Circuit_Breaker_Authorized:
                 case CabViewControlType.Orts_Circuit_Breaker_Open_And_Authorized:
+                case CabViewControlType.Orts_Traction_CutOff_Relay_Driver_Closing_Order:
+                case CabViewControlType.Orts_Traction_CutOff_Relay_Driver_Opening_Order:
+                case CabViewControlType.Orts_Traction_CutOff_Relay_Driver_Closing_Authorization:
+                case CabViewControlType.Orts_Traction_CutOff_Relay_State:
+                case CabViewControlType.Orts_Traction_CutOff_Relay_Closed:
+                case CabViewControlType.Orts_Traction_CutOff_Relay_Open:
+                case CabViewControlType.Orts_Traction_CutOff_Relay_Authorized:
+                case CabViewControlType.Orts_Traction_CutOff_Relay_Open_And_Authorized:
                 case CabViewControlType.Direction:
                 case CabViewControlType.Direction_Display:
                 case CabViewControlType.Aspect_Display:
@@ -2199,8 +2204,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_LeftDoor:
                 case CabViewControlType.Orts_RightDoor:
                 case CabViewControlType.Orts_Mirros:
-                case CabViewControlType.Orts_Battery:
-                case CabViewControlType.Orts_PowerKey:
+                case CabViewControlType.Orts_Battery_Switch_Command_Switch:
+                case CabViewControlType.Orts_Battery_Switch_Command_Button_Close:
+                case CabViewControlType.Orts_Battery_Switch_Command_Button_Open:
+                case CabViewControlType.Orts_Battery_Switch_On:
+                case CabViewControlType.Orts_Master_Key:
+                case CabViewControlType.Orts_Current_Cab_In_Use:
+                case CabViewControlType.Orts_Other_Cab_In_Use:
+                case CabViewControlType.Orts_Service_Retention_Button:
+                case CabViewControlType.Orts_Service_Retention_Cancellation_Button:
+                case CabViewControlType.Orts_Electric_Train_Supply_Command_Switch:
+                case CabViewControlType.Orts_Electric_Train_Supply_On:
                     index = (int)data;
                     break;
 
@@ -2366,11 +2380,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Steam_Heat: Locomotive.SetSteamHeatValue(UpdateCommandValue(Locomotive.SteamHeatController.IntermediateValue, buttonEventType, delta)); break;
                 case CabViewControlType.Orts_Water_Scoop: if (((Locomotive as MSTSSteamLocomotive).WaterScoopDown ? 1 : 0) != UpdateCommandValue(Locomotive.WaterScoopDown ? 1 : 0, buttonEventType, delta)) _ = new ToggleWaterScoopCommand(Viewer.Log); break;
                 case CabViewControlType.Orts_Circuit_Breaker_Driver_Closing_Order:
-                    _ = new CircuitBreakerClosingOrderCommand(Viewer.Log, UpdateCommandValue((Locomotive as MSTSElectricLocomotive).PowerSupply.CircuitBreaker.DriverClosingOrder ? 1 : 0, buttonEventType, delta) > 0);
+                    _ = new CircuitBreakerClosingOrderCommand(Viewer.Log, UpdateCommandValue((Locomotive as MSTSElectricLocomotive).ElectricPowerSupply.CircuitBreaker.DriverClosingOrder ? 1 : 0, buttonEventType, delta) > 0);
                     _ = new CircuitBreakerClosingOrderButtonCommand(Viewer.Log, UpdateCommandValue(buttonEventType == GenericButtonEventType.Pressed ? 1 : 0, buttonEventType, delta) > 0);
                     break;
                 case CabViewControlType.Orts_Circuit_Breaker_Driver_Opening_Order: _ = new CircuitBreakerOpeningOrderButtonCommand(Viewer.Log, UpdateCommandValue(buttonEventType == GenericButtonEventType.Pressed ? 1 : 0, buttonEventType, delta) > 0); break;
-                case CabViewControlType.Orts_Circuit_Breaker_Driver_Closing_Authorization: _ = new CircuitBreakerClosingAuthorizationCommand(Viewer.Log, UpdateCommandValue((Locomotive as MSTSElectricLocomotive).PowerSupply.CircuitBreaker.DriverClosingAuthorization ? 1 : 0, buttonEventType, delta) > 0); break;
+                case CabViewControlType.Orts_Circuit_Breaker_Driver_Closing_Authorization: _ = new CircuitBreakerClosingAuthorizationCommand(Viewer.Log, UpdateCommandValue((Locomotive as MSTSElectricLocomotive).ElectricPowerSupply.CircuitBreaker.DriverClosingAuthorization ? 1 : 0, buttonEventType, delta) > 0); break;
+                case CabViewControlType.Orts_Traction_CutOff_Relay_Driver_Closing_Order:
+                    _ = new TractionCutOffRelayClosingOrderCommand(Viewer.Log, UpdateCommandValue((Locomotive as MSTSDieselLocomotive).DieselPowerSupply.TractionCutOffRelay.DriverClosingOrder ? 1 : 0, buttonEventType, delta) > 0);
+                    _ = new TractionCutOffRelayClosingOrderButtonCommand(Viewer.Log, UpdateCommandValue(buttonEventType == GenericButtonEventType.Pressed ? 1 : 0, buttonEventType, delta) > 0);
+                    break;
+                case CabViewControlType.Orts_Traction_CutOff_Relay_Driver_Opening_Order: _ = new TractionCutOffRelayOpeningOrderButtonCommand(Viewer.Log, UpdateCommandValue(buttonEventType == GenericButtonEventType.Pressed ? 1 : 0, buttonEventType, delta) > 0); break;
+                case CabViewControlType.Orts_Traction_CutOff_Relay_Driver_Closing_Authorization: _ = new TractionCutOffRelayClosingAuthorizationCommand(Viewer.Log, UpdateCommandValue((Locomotive as MSTSDieselLocomotive).DieselPowerSupply.TractionCutOffRelay.DriverClosingAuthorization ? 1 : 0, buttonEventType, delta) > 0); break;
                 case CabViewControlType.Emergency_Brake: if ((Locomotive.EmergencyButtonPressed ? 1 : 0) != UpdateCommandValue(Locomotive.EmergencyButtonPressed ? 1 : 0, buttonEventType, delta)) _ = new EmergencyPushButtonCommand(Viewer.Log); break;
                 case CabViewControlType.Orts_Bailoff: _ = new BailOffCommand(Viewer.Log, UpdateCommandValue(Locomotive.BailOff ? 1 : 0, buttonEventType, delta) > 0); break;
                 case CabViewControlType.Orts_QuickRelease: _ = new QuickReleaseCommand(Viewer.Log, UpdateCommandValue(Locomotive.TrainBrakeController.QuickReleaseButtonPressed ? 1 : 0, buttonEventType, delta) > 0); break;
@@ -2396,8 +2416,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Wipers: _ = new WipersCommand(Viewer.Log, UpdateCommandValue(Locomotive.Wiper ? 1 : 0, buttonEventType, delta) > 0); break;
                 case CabViewControlType.Orts_Player_Diesel_Engine:
                     MSTSDieselLocomotive dieselLoco = Locomotive as MSTSDieselLocomotive;
-                    if ((dieselLoco.DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running ||
-                                dieselLoco.DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Stopped) &&
+                    if ((dieselLoco.DieselEngines[0].State == DieselEngineState.Running ||
+                                dieselLoco.DieselEngines[0].State == DieselEngineState.Stopped) &&
                                 UpdateCommandValue(1, buttonEventType, delta) == 0)
                         _ = new TogglePlayerEngineCommand(Viewer.Log); break;
                 case CabViewControlType.Orts_Helpers_Diesel_Engines:
@@ -2408,16 +2428,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             if (car == Viewer.Simulator.PlayerLocomotive && dieselLoco.DieselEngines.Count > 1)
                             {
-                                if ((dieselLoco.DieselEngines[1].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running ||
-                                            dieselLoco.DieselEngines[1].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Stopped) &&
+                                if ((dieselLoco.DieselEngines[1].State == DieselEngineState.Running ||
+                                            dieselLoco.DieselEngines[1].State == DieselEngineState.Stopped) &&
                                             UpdateCommandValue(1, buttonEventType, delta) == 0)
                                     _ = new ToggleHelpersEngineCommand(Viewer.Log);
                                 break;
                             }
                             else if (car != Viewer.Simulator.PlayerLocomotive)
                             {
-                                if ((dieselLoco.DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running ||
-                                            dieselLoco.DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Stopped) &&
+                                if ((dieselLoco.DieselEngines[0].State == DieselEngineState.Running ||
+                                            dieselLoco.DieselEngines[0].State == DieselEngineState.Stopped) &&
                                             UpdateCommandValue(1, buttonEventType, delta) == 0)
                                     _ = new ToggleHelpersEngineCommand(Viewer.Log);
                                 break;
@@ -2427,12 +2447,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     break;
                 case CabViewControlType.Orts_Player_Diesel_Engine_Starter:
                     dieselLoco = Locomotive as MSTSDieselLocomotive;
-                    if (dieselLoco.DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Stopped &&
+                    if (dieselLoco.DieselEngines[0].State == DieselEngineState.Stopped &&
                                 UpdateCommandValue(1, buttonEventType, delta) == 0)
                         _ = new TogglePlayerEngineCommand(Viewer.Log); break;
                 case CabViewControlType.Orts_Player_Diesel_Engine_Stopper:
                     dieselLoco = Locomotive as MSTSDieselLocomotive;
-                    if (dieselLoco.DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running &&
+                    if (dieselLoco.DieselEngines[0].State == DieselEngineState.Running &&
                                 UpdateCommandValue(1, buttonEventType, delta) == 0)
                         _ = new TogglePlayerEngineCommand(Viewer.Log); break;
                 case CabViewControlType.Orts_CabLight:
@@ -2445,10 +2465,27 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                          != UpdateCommandValue(Locomotive.GetCabFlipped() ? (Locomotive.DoorLeftOpen ? 1 : 0) : Locomotive.DoorRightOpen ? 1 : 0, buttonEventType, delta)) _ = new ToggleDoorsRightCommand(Viewer.Log); break;
                 case CabViewControlType.Orts_Mirros:
                     if ((Locomotive.MirrorOpen ? 1 : 0) != UpdateCommandValue(Locomotive.MirrorOpen ? 1 : 0, buttonEventType, delta)) _ = new ToggleMirrorsCommand(Viewer.Log); break;
-                case CabViewControlType.Orts_Battery:
-                    if ((Locomotive.Battery ? 1 : 0) != UpdateCommandValue(Locomotive.Battery ? 1 : 0, buttonEventType, delta)) _ = new ToggleBatteryCommand(Viewer.Log); break;
-                case CabViewControlType.Orts_PowerKey:
-                    if ((Locomotive.PowerKey ? 1 : 0) != UpdateCommandValue(Locomotive.PowerKey ? 1 : 0, buttonEventType, delta)) _ = new TogglePowerKeyCommand(Viewer.Log); break;
+                case CabViewControlType.Orts_Battery_Switch_Command_Switch:
+                    _ = new BatterySwitchCommand(Viewer.Log, UpdateCommandValue(Locomotive.LocomotivePowerSupply.BatterySwitch.CommandSwitch ? 1 : 0, buttonEventType, delta) > 0);
+                    break;
+                case CabViewControlType.Orts_Battery_Switch_Command_Button_Close:
+                    _ = new BatterySwitchCloseButtonCommand(Viewer.Log, UpdateCommandValue(buttonEventType == GenericButtonEventType.Pressed ? 1 : 0, buttonEventType, delta) > 0);
+                    break;
+                case CabViewControlType.Orts_Battery_Switch_Command_Button_Open:
+                    _ = new BatterySwitchOpenButtonCommand(Viewer.Log, UpdateCommandValue(buttonEventType == GenericButtonEventType.Pressed ? 1 : 0, buttonEventType, delta) > 0);
+                    break;
+                case CabViewControlType.Orts_Master_Key:
+                    _ = new ToggleMasterKeyCommand(Viewer.Log, UpdateCommandValue(Locomotive.LocomotivePowerSupply.MasterKey.CommandSwitch ? 1 : 0, buttonEventType, delta) > 0);
+                    break;
+                case CabViewControlType.Orts_Service_Retention_Button:
+                    _ = new ServiceRetentionButtonCommand(Viewer.Log, UpdateCommandValue(buttonEventType == GenericButtonEventType.Pressed ? 1 : 0, buttonEventType, delta) > 0);
+                    break;
+                case CabViewControlType.Orts_Service_Retention_Cancellation_Button:
+                    _ = new ServiceRetentionCancellationButtonCommand(Viewer.Log, UpdateCommandValue(buttonEventType == GenericButtonEventType.Pressed ? 1 : 0, buttonEventType, delta) > 0);
+                    break;
+                case CabViewControlType.Orts_Electric_Train_Supply_Command_Switch:
+                    _ = new ElectricTrainSupplyCommand(Viewer.Log, UpdateCommandValue(Locomotive.LocomotivePowerSupply.ElectricTrainSupplySwitch.CommandSwitch ? 1 : 0, buttonEventType, delta) > 0);
+                    break;
                 // Train Control System controls
                 case CabViewControlType.Orts_TCS1:
                 case CabViewControlType.Orts_TCS2:
@@ -2858,7 +2895,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public Dictionary<int, AnimatedPartMultiState> AnimateParts;
         private Dictionary<int, ThreeDimCabGaugeNative> Gauges;
         private Dictionary<int, AnimatedPart> OnDemandAnimateParts; //like external wipers, and other parts that will be switched on by mouse in the future
-                                                                          //Dictionary<int, DigitalDisplay> DigitParts = null;
+                                                                    //Dictionary<int, DigitalDisplay> DigitParts = null;
 
         private Dictionary<int, ThreeDimCabDigit> DigitParts3D;
         private AnimatedPart ExternalWipers; // setting to zero to prevent a warning. Probably this will be used later. TODO
@@ -2984,8 +3021,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            float elapsedClockSeconds = (float)elapsedTime.ClockSeconds;
-
             foreach (var p in AnimateParts)
             {
                 if (p.Value.Type >= CabViewControlType.ExternalWipers) //for wipers, doors and mirrors
@@ -3163,9 +3198,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 imageName = AceFile;
             }
-            else if (Alert) 
-            { 
-                imageName = "alert.ace"; 
+            else if (Alert)
+            {
+                imageName = "alert.ace";
             }
             else
             {
@@ -3190,7 +3225,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             if (String.IsNullOrEmpty(TrainCarShape.SharedShape.ReferencePath))
             {
-                if (!File.Exists(Path.Combine(globalText,imageName)))
+                if (!File.Exists(Path.Combine(globalText, imageName)))
                 {
                     Trace.TraceInformation($"Ignored missing {imageName} using default. You can copy the {imageName} from OR\'s AddOns folder to {globalText}, or place it under {TrainCarShape.SharedShape.ReferencePath}");
                 }
@@ -3293,15 +3328,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            UpdateDigit();
+            if ((!CVFR.Control.DisabledIfLowVoltagePowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn)
+                && (!CVFR.Control.DisabledIfCabPowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.CabPowerSupplyOn))
+            {
+                UpdateDigit();
 
-            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
-                (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
-                0,
-                (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
-            MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
-            // TODO: Make this use AddAutoPrimitive instead.
-            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
+                Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
+                    (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
+                    0,
+                    (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
+                MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
+                // TODO: Make this use AddAutoPrimitive instead.
+                frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
+            }
         }
 
         internal void Mark()
@@ -3330,7 +3369,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (float.TryParse(size, out width))
                 width /= 1000f; //in mm
             if (float.TryParse(len, out maxLen))
-                maxLen/= 1000f; //in mm
+                maxLen /= 1000f; //in mm
 
             CVFR = (CabViewGaugeRenderer)c;
             Direction = CVFR.GetGauge().Direction;
@@ -3507,15 +3546,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            UpdateDigit();
-            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
-                (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
-                0,
-                (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
-            MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
+            if ((!CVFR.Control.DisabledIfLowVoltagePowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn)
+               && (!CVFR.Control.DisabledIfCabPowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.CabPowerSupplyOn))
+            {
+                UpdateDigit();
+                Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
+                    (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
+                    0,
+                    (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
+                MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
 
-            // TODO: Make this use AddAutoPrimitive instead.
-            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
+                // TODO: Make this use AddAutoPrimitive instead.
+                frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
+            }
         }
 
         internal void Mark()
@@ -3551,7 +3594,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (!locoViewer.Has3DCabRenderer) return;
 
-            var scale = CVFR.GetRangeFraction();
+            float scale = 0f;
+            if ((!CVFR.Control.DisabledIfLowVoltagePowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn)
+                && (!CVFR.Control.DisabledIfCabPowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.CabPowerSupplyOn))
+            {
+                scale = CVFR.GetRangeFraction();
+            }
 
             if (CVFR.GetStyle() == CabViewControlStyle.Pointer)
             {

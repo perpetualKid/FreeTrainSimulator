@@ -17,7 +17,6 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -27,14 +26,13 @@ using Orts.Common;
 using Orts.Common.Input;
 using Orts.Simulation;
 using Orts.Simulation.Commanding;
-using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock
 {
     public class MSTSDieselLocomotiveViewer : MSTSLocomotiveViewer
     {
-        private MSTSDieselLocomotive DieselLocomotive { get { return (MSTSDieselLocomotive)Car; } }
+        private MSTSDieselLocomotive dieselLocomotive;
 
         private List<ParticleEmitterViewer> Exhaust = new List<ParticleEmitterViewer>();
 
@@ -43,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             // Now all the particle drawers have been setup, assign them textures based
             // on what emitters we know about.
-
+            dieselLocomotive = car;
             string dieselTexture = viewer.Simulator.RouteFolder.ContentFolder.TextureFile("dieselsmoke.ace");
 
 
@@ -57,12 +55,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             foreach (var drawer in Exhaust)
                 drawer.Initialize(dieselTexture);
 
-            if (car.Train != null && (car.Train.TrainType == TrainType.Ai ||
-                ((car.Train.TrainType == TrainType.Player || car.Train.TrainType == TrainType.AiPlayerDriven || car.Train.TrainType == TrainType.AiPlayerHosting) &&
-                (car.Train.MUDirection != MidpointDirection.N && (car as MSTSDieselLocomotive).DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running))))
+            if (dieselLocomotive.Train != null && (dieselLocomotive.Train.TrainType == TrainType.Ai ||
+                ((dieselLocomotive.Train.TrainType == TrainType.Player || dieselLocomotive.Train.TrainType == TrainType.AiPlayerDriven || dieselLocomotive.Train.TrainType == TrainType.AiPlayerHosting) &&
+                (dieselLocomotive.Train.MUDirection != MidpointDirection.N && dieselLocomotive.DieselEngines[0].State == DieselEngineState.Running))))
             {
-                (car as MSTSDieselLocomotive).SignalEvent(TrainEvent.ReverserToForwardBackward);
-                (car as MSTSDieselLocomotive).SignalEvent(TrainEvent.ReverserChange);
+                dieselLocomotive.SignalEvent(TrainEvent.ReverserToForwardBackward);
+                dieselLocomotive.SignalEvent(TrainEvent.ReverserChange);
             }
         }
 
@@ -71,6 +69,21 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.ControlVacuumExhausterPressed, KeyEventType.KeyPressed, VacuumExhausterOnCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlVacuumExhausterPressed, KeyEventType.KeyReleased, VacuumExhausterOffCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlDieselPlayer, KeyEventType.KeyPressed, TogglePlayerEngineCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBatterySwitchClose, KeyEventType.KeyPressed, BatterySwitchCloseOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBatterySwitchClose, KeyEventType.KeyReleased, BatterySwitchCloseOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBatterySwitchOpen, KeyEventType.KeyPressed, BatterySwitchOpenOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBatterySwitchOpen, KeyEventType.KeyReleased, BatterySwitchOpenOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlMasterKey, KeyEventType.KeyPressed, MasterKeyCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlServiceRetention, KeyEventType.KeyPressed, ServiceRetentionOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlServiceRetention, KeyEventType.KeyReleased, ServiceRetentionOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlServiceRetentionCancellation, KeyEventType.KeyPressed, ServiceRetentionCancellationOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlServiceRetentionCancellation, KeyEventType.KeyReleased, ServiceRetentionCancellationOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlElectricTrainSupply, KeyEventType.KeyPressed, ElectricTrainSupplyButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTractionCutOffRelayClosingOrder, KeyEventType.KeyPressed, TractionCutOffRelayClosingOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTractionCutOffRelayClosingOrder, KeyEventType.KeyReleased, TractionCutOffRelayClosingOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTractionCutOffRelayOpeningOrder, KeyEventType.KeyPressed, TractionCutOffRelayOpeningOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTractionCutOffRelayOpeningOrder, KeyEventType.KeyReleased, TractionCutOffRelayOpeningOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTractionCutOffRelayClosingAuthorization, KeyEventType.KeyPressed, TractionCutOffRelayClosingAuthorizationButtonCommand, true);
             base.RegisterUserCommandHandling();
         }
 
@@ -79,6 +92,21 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlVacuumExhausterPressed, KeyEventType.KeyPressed, VacuumExhausterOnCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlVacuumExhausterPressed, KeyEventType.KeyReleased, VacuumExhausterOffCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDieselPlayer, KeyEventType.KeyPressed, TogglePlayerEngineCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBatterySwitchClose, KeyEventType.KeyPressed, BatterySwitchCloseOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBatterySwitchClose, KeyEventType.KeyReleased, BatterySwitchCloseOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBatterySwitchOpen, KeyEventType.KeyPressed, BatterySwitchOpenOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBatterySwitchOpen, KeyEventType.KeyReleased, BatterySwitchOpenOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlMasterKey, KeyEventType.KeyPressed, MasterKeyCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlServiceRetention, KeyEventType.KeyPressed, ServiceRetentionOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlServiceRetention, KeyEventType.KeyReleased, ServiceRetentionOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlServiceRetentionCancellation, KeyEventType.KeyPressed, ServiceRetentionCancellationOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlServiceRetentionCancellation, KeyEventType.KeyReleased, ServiceRetentionCancellationOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlElectricTrainSupply, KeyEventType.KeyPressed, ElectricTrainSupplyButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTractionCutOffRelayClosingOrder, KeyEventType.KeyPressed, TractionCutOffRelayClosingOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTractionCutOffRelayClosingOrder, KeyEventType.KeyReleased, TractionCutOffRelayClosingOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTractionCutOffRelayOpeningOrder, KeyEventType.KeyPressed, TractionCutOffRelayOpeningOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTractionCutOffRelayOpeningOrder, KeyEventType.KeyReleased, TractionCutOffRelayOpeningOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTractionCutOffRelayClosingAuthorization, KeyEventType.KeyPressed, TractionCutOffRelayClosingAuthorizationButtonCommand);
             base.UnregisterUserCommandHandling();
         }
 
@@ -97,6 +125,82 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             _ = new TogglePlayerEngineCommand(Viewer.Log);
         }
 
+        private void BatterySwitchCloseOnCommand()
+        {
+            _ = new BatterySwitchCloseButtonCommand(Viewer.Log, true);
+            _ = new BatterySwitchCommand(Viewer.Log, !dieselLocomotive.LocomotivePowerSupply.BatterySwitch.CommandSwitch);
+        }
+        private void BatterySwitchCloseOffCommand()
+        {
+            _ = new BatterySwitchCloseButtonCommand(Viewer.Log, false);
+        }
+
+        private void BatterySwitchOpenOnCommand()
+        {
+            _ = new BatterySwitchOpenButtonCommand(Viewer.Log, true);
+        }
+
+        private void BatterySwitchOpenOffCommand()
+        {
+            _ = new BatterySwitchOpenButtonCommand(Viewer.Log, false);
+        }
+
+        private void MasterKeyCommand()
+        {
+            _ = new ToggleMasterKeyCommand(Viewer.Log, !dieselLocomotive.LocomotivePowerSupply.MasterKey.CommandSwitch);
+        }
+
+        private void ServiceRetentionOnCommand()
+        {
+            _ = new ServiceRetentionButtonCommand(Viewer.Log, true);
+        }
+
+        private void ServiceRetentionOffCommand()
+        {
+            _ = new ServiceRetentionButtonCommand(Viewer.Log, false);
+        }
+
+        private void ServiceRetentionCancellationOnCommand()
+        {
+            _ = new ServiceRetentionCancellationButtonCommand(Viewer.Log, true);
+        }
+
+        private void ServiceRetentionCancellationOffCommand()
+        {
+            _ = new ServiceRetentionCancellationButtonCommand(Viewer.Log, false);
+        }
+
+        private void ElectricTrainSupplyButtonCommand()
+        {
+            _ = new ElectricTrainSupplyCommand(Viewer.Log, !dieselLocomotive.LocomotivePowerSupply.ElectricTrainSupplySwitch.CommandSwitch);
+        }
+
+        private void TractionCutOffRelayClosingOnCommand()
+        {
+            _ = new TractionCutOffRelayClosingOrderCommand(Viewer.Log, !dieselLocomotive.DieselPowerSupply.TractionCutOffRelay.DriverClosingOrder);
+            _ = new TractionCutOffRelayClosingOrderButtonCommand(Viewer.Log, true);
+        }
+
+        private void TractionCutOffRelayClosingOffCommand()
+        {
+            _ = new TractionCutOffRelayClosingOrderButtonCommand(Viewer.Log, false);
+        }
+
+        private void TractionCutOffRelayOpeningOnCommand()
+        {
+            _ = new TractionCutOffRelayOpeningOrderButtonCommand(Viewer.Log, true);
+        }
+
+        private void TractionCutOffRelayOpeningOffCommand()
+        {
+            _ = new TractionCutOffRelayOpeningOrderButtonCommand(Viewer.Log, false);
+        }
+
+        private void TractionCutOffRelayClosingAuthorizationButtonCommand()
+        {
+            _ = new TractionCutOffRelayClosingAuthorizationCommand(Viewer.Log, !dieselLocomotive.DieselPowerSupply.TractionCutOffRelay.DriverClosingAuthorization);
+        }
+
         /// <summary>
         /// We are about to display a video frame.  Calculate positions for 
         /// animated objects, and add their primitives to the RenderFrame list.
@@ -104,7 +208,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var car = this.Car as MSTSDieselLocomotive;
-            
+
             // Diesel exhaust
             var exhaustParticles = car.Train != null && car.Train.TrainType == TrainType.Static ? 0 : car.ExhaustParticles.SmoothedValue;
             foreach (var drawer in Exhaust)
@@ -114,7 +218,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 var colorB = car.ExhaustColorB.SmoothedValue / 255f;
                 drawer.SetOutput((float)exhaustParticles, (float)car.ExhaustMagnitude.SmoothedValue, new Color((byte)car.ExhaustColorR.SmoothedValue, (byte)car.ExhaustColorG.SmoothedValue, (byte)car.ExhaustColorB.SmoothedValue));
             }
-            
+
             base.PrepareFrame(frame, elapsedTime);
         }
     }

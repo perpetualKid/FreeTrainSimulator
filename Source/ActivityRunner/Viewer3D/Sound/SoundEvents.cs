@@ -188,12 +188,6 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 175: return TrainEvent.BoilerBlowdownOn;
                         case 176: return TrainEvent.BoilerBlowdownOff;
 
-                        case 177: return TrainEvent.BatteryOn;
-                        case 178: return TrainEvent.BatteryOff;
-
-                        case 179: return TrainEvent.PowerKeyOn;
-                        case 180: return TrainEvent.PowerKeyOff;
-
                         case 181: return TrainEvent.GenericEvent1;
                         case 182: return TrainEvent.GenericEvent2;
                         case 183: return TrainEvent.GenericEvent3;
@@ -202,6 +196,19 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 186: return TrainEvent.GenericEvent6;
                         case 187: return TrainEvent.GenericEvent7;
                         case 188: return TrainEvent.GenericEvent8;
+
+                        case 189: return TrainEvent.BatterySwitchOn;
+                        case 190: return TrainEvent.BatterySwitchOff;
+                        case 191: return TrainEvent.BatterySwitchCommandOn;
+                        case 192: return TrainEvent.BatterySwitchCommandOff;
+
+                        case 193: return TrainEvent.MasterKeyOn;
+                        case 194: return TrainEvent.MasterKeyOff;
+
+                        case 195: return TrainEvent.ServiceRetentionButtonOn;
+                        case 196: return TrainEvent.ServiceRetentionButtonOff;
+                        case 197: return TrainEvent.ServiceRetentionCancellationButtonOn;
+                        case 198: return TrainEvent.ServiceRetentionCancellationButtonOff;
 
                         case 200: return TrainEvent.GearPosition0;
                         case 201: return TrainEvent.GearPosition1;
@@ -217,6 +224,32 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 211: return TrainEvent.LargeEjectorOff;
                         case 212: return TrainEvent.SmallEjectorOn;
                         case 213: return TrainEvent.SmallEjectorOff;
+
+                        case 214: return TrainEvent.TractionCutOffRelayOpen;
+                        case 215: return TrainEvent.TractionCutOffRelayClosing;
+                        case 216: return TrainEvent.TractionCutOffRelayClosed;
+                        case 217: return TrainEvent.TractionCutOffRelayClosingOrderOn;
+                        case 218: return TrainEvent.TractionCutOffRelayClosingOrderOff;
+                        case 219: return TrainEvent.TractionCutOffRelayOpeningOrderOn;
+                        case 220: return TrainEvent.TractionCutOffRelayOpeningOrderOff;
+                        case 221: return TrainEvent.TractionCutOffRelayClosingAuthorizationOn;
+                        case 222: return TrainEvent.TractionCutOffRelayClosingAuthorizationOff;
+
+                        case 223: return TrainEvent.ElectricTrainSupplyOn;
+                        case 224: return TrainEvent.ElectricTrainSupplyOff;
+                        case 225: return TrainEvent.ElectricTrainSupplyCommandOn;
+                        case 226: return TrainEvent.ElectricTrainSupplyCommandOff;
+
+                        case 227: return TrainEvent.PowerConverterOn;
+                        case 228: return TrainEvent.PowerConverterOff;
+                        case 229: return TrainEvent.VentilationHigh;
+                        case 230: return TrainEvent.VentilationLow;
+                        case 231: return TrainEvent.VentilationOff;
+                        case 232: return TrainEvent.HeatingOn;
+                        case 233: return TrainEvent.HeatingOff;
+                        case 234: return TrainEvent.AirConditioningOn;
+                        case 235: return TrainEvent.AirConditioningOff;
+
                         //
                         default: return TrainEvent.None;
                     }
