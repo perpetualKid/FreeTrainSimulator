@@ -71,7 +71,7 @@ jobs:
     downloadurl: 'https://ultimaterails.blob.core.windows.net'
     containerName: 'builds'
     versionJson: 'version.json'
-    logfile: 'history.html'
+    logfile: '$(channel)-log.html'
 
   steps:
   - checkout: self
@@ -135,15 +135,15 @@ jobs:
         {
           $release.date = $date
           $release.version = '$(version)'
-          $release.url = '$(downloadurl)/$(containerName)/$(channel)/$(versionFromCode)/$(version).zip'
-          $release.log = '$(downloadurl)/$(containerName)/$(channel)/$(logfile)'
+          $release.url = '$(downloadurl)/$(containerName)/$(versionFromCode)/$(channel)/$(version).zip'
+          $release.log = '$(downloadurl)/$(containerName)/$(versionFromCode)/$(channel)/$(logfile)'
         }
         else          
         { 
           $release = [PSCustomObject]@{name ='$(channel)'; `
             date = $date; version = '$(version)'; `
-            url = '$(downloadurl)/$(containerName)/$(channel)/$(versionFromCode)/$(version).zip'; `
-            log = '$(downloadurl)/$(containerName)/$(channel)/$(logfile)' `
+            url = '$(downloadurl)/$(containerName)/$(versionFromCode)/$(channel)/$(version).zip'; `
+            log = '$(downloadurl)/$(containerName)/$(versionFromCode)/$(channel)/$(logfile)' `
             }
           $versionTable.channels += $release
         }
@@ -183,7 +183,7 @@ jobs:
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
       ContainerName: '$(containerName)'
-      BlobPrefix: '$(channel)/$(versionFromCode)'
+      BlobPrefix: '$(versionFromCode)/$(channel)'
 
   - task: AzureFileCopy@3
     displayName: Uploading history logs to Azure
@@ -193,7 +193,7 @@ jobs:
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
       ContainerName: '$(containerName)'
-      BlobPrefix: '$(channel)'
+      BlobPrefix: '$(versionFromCode)/$(channel)'
       additionalArgumentsForBlobCopy: '/Pattern:*.html /Y /SetContentType:text/html'
 
   - task: AzureFileCopy@3
