@@ -8,6 +8,17 @@ trigger:
 # no PR triggers
 pr: none
 
+parameters:
+- name: channelName
+  displayName: Build Channel
+  type: string
+  default: Dev
+  values:
+  - Dev
+  - CI
+  - RC
+  - Release
+
 jobs:
 - job: GetVersionJob
   pool:
@@ -41,12 +52,20 @@ jobs:
   variables:
     solution: 'Source/Orts.sln'
     buildPlatform: 'Any CPU'
-    buildConfiguration: 'Release'
+    ${{if in( parameters.channelName, 'Release', 'RC' )}}: 
+      buildConfiguration: 'Release'
+    ${{if notin( parameters.channelName, 'Release', 'RC' )}}: 
+      buildConfiguration: 'Debug'
     versionFromCode: $[dependencies.GetVersionJob.outputs['SetVersionTask.versionFromCode']]
+    channel: ${{ parameters.channelName }}
     counterName: '$(channel)$(versionFromCode)'
     buildNumber: $[counter(variables['counterName'], 0)]
-    versionSuffix: '$(channel).$(buildNumber)+$(Build.SourceBranchName)-$(Build.SourceVersion)'
-    version: '$(versionFromCode)-$(versionSuffix)'
+    ${{if eq( parameters.channelName, 'Release' )}}: 
+      versionSuffix: '+$(Build.SourceBranchName)-$(Build.SourceVersion)'
+      version: '$(versionFromCode)$(versionSuffix)'
+    ${{if ne( parameters.channelName, 'Release' )}}: 
+      versionSuffix: '$(channel).$(buildNumber)+$(Build.SourceBranchName)-$(Build.SourceVersion)'
+      version: '$(versionFromCode)-$(versionSuffix)'
     githubUrl: 'https://github.com/perpetualKid/ORTS-MG/commit/'
     downloadurl: 'https://ultimaterails.blob.core.windows.net'
     containerName: 'builds'
