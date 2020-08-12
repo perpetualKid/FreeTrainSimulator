@@ -13,7 +13,7 @@
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-	<PackageReference Include="System.Resources.Extensions" Version="4.7.1" />
+	<PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Orts.Settings\Orts.Settings.csproj" />
