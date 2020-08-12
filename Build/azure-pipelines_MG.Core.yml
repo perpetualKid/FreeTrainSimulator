@@ -14,8 +14,8 @@ parameters:
   type: string
   default: Dev
   values:
-  - Dev
   - CI
+  - Dev
   - RC
   - Release
 
