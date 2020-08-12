@@ -12,7 +12,7 @@ parameters:
 - name: channelName
   displayName: Build Channel
   type: string
-  default: Dev
+  default: CI
   values:
   - CI
   - Dev
