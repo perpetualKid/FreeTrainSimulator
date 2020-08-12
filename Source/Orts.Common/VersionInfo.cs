@@ -54,18 +54,21 @@ namespace Orts.Common
 
         /// <summary>
         /// "1.3.2-alpha.4+LocalBuild" returns Channel: "alpha"
+        /// "1.3.2+LocalBuild" returns Channel: "release"
         /// </summary>
-        public static string Channel => SemanticVersion.ReleaseLabels?.ToArray()[0];
+        public static string Channel => SemanticVersion.IsPrerelease ? SemanticVersion.ReleaseLabels?.ToArray()[0] : "release";
 
         /// <summary>
         /// "1.3.2-alpha.4+LocalBuild" returns Build: "4"
+        /// "1.3.2+LocalBuild" returns Build: "0"
+        /// "1.3.2.4+LocalBuild" returns Build: "4"
         /// </summary>
-        public static string Build => SemanticVersion.ReleaseLabels?.ToArray()[1];
+        public static string Build => SemanticVersion.IsPrerelease ? SemanticVersion.ReleaseLabels?.ToArray()[1] : $"{SemanticVersion.Revision}";
 
         /// <summary>
         /// "1.3.2-alpha.4+LocalBuild" returns Revision: "LocalBuild"
         /// </summary>
-        public static string Revision => SemanticVersion.Metadata;
+        public static string CodeVersion => SemanticVersion.Metadata;
 
         /// <summary>Revision number, e.g. Release: "1648",       experimental: "1649",   local: ""</summary>
 //        public static readonly string Revision = GetRevision("Revision.txt");
@@ -102,7 +105,7 @@ namespace Orts.Common
         public static bool? GetValidity(string version, string build, int youngestFailedToResume)
         {
             int revision = GetRevisionFromVersion(version);
-            int.TryParse(Revision, out int programRevision);
+            int.TryParse(CodeVersion, out int programRevision);
             //MessageBox.Show(String.Format("VersionInfo.Build = {0}, build = {1}, version = {2}, youngestFailedToResume = {3}", VersionInfo.Build, build, Version, youngestFailedToResume));
             if (revision != 0)  // compiled remotely by Open Rails
             {
