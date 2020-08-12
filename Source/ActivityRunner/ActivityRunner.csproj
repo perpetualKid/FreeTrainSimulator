@@ -411,7 +411,7 @@
       <Version>3.4.3</Version>
     </PackageReference>
     <PackageReference Include="MonoGame.Framework.WindowsDX">
-      <Version>3.8.0.1375-develop</Version>
+      <Version>3.8.0.1641</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup />
@@ -433,7 +433,7 @@
     <PostBuildEvent>echo $Revision: @(VersionNumber) $&gt;Revision.txt
 date /t&gt;&gt;Revision.txt
 time /t&gt;&gt;Revision.txt
-dotnet tool install -g dotnet-mgfxc --version 3.8.0.1375-develop --add-source https://pkgs.dev.azure.com/perpetualKid/ORTS-MG/_packaging/Monogame_vNext/nuget/v3/index.json'
+dotnet tool install -g dotnet-mgfxc
 FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO ( mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11)</PostBuildEvent>
   </PropertyGroup>
   <Target Name="PostBuildMacros">

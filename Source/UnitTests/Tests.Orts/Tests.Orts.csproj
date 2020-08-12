@@ -84,7 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX">
-      <Version>3.8.0.1375-develop</Version>
+      <Version>3.8.0.1641</Version>
     </PackageReference>
     <PackageReference Include="MSTest.TestAdapter">
       <Version>2.1.1</Version>
