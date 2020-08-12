@@ -57,7 +57,8 @@ jobs:
     ${{if notin( parameters.channelName, 'Release', 'RC' )}}: 
       buildConfiguration: 'Debug'
     versionFromCode: $[dependencies.GetVersionJob.outputs['SetVersionTask.versionFromCode']]
-    channel: ${{ parameters.channelName }}
+    channelTemp: ${{ parameters.channelName }}
+    channel: $[lower(variables['channelTemp'])]
     counterName: '$(channel)$(versionFromCode)'
     buildNumber: $[counter(variables['counterName'], 0)]
     ${{if eq( parameters.channelName, 'Release' )}}: 
