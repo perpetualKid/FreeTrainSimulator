@@ -160,6 +160,7 @@ jobs:
       msbuildArguments: '-property:versionsuffix=$(versionSuffix)'
   
   - task: VSTest@2
+    condition: ne('${{ parameters.channelName }}', 'Release'))
     displayName: Testing the solution
     inputs:
       platform: '$(buildPlatform)'
