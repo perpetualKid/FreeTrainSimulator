@@ -61,24 +61,11 @@ namespace Orts.Menu
             // Turn the list of codes in to a list of code + name pairs for
             // displaying in the dropdown list.
             comboLanguage.DataSource =
-                new[] { new ComboBoxMember { Code = "", Name = "System" } }
-                .Union(languageCodes
-                    .SelectMany(lc =>
-                    {
-                        try
-                        {
-                            return new[] { new ComboBoxMember { Code = lc, Name = CultureInfo.GetCultureInfo(lc).NativeName } };
-                        }
-                        catch (ArgumentException)
-                        {
-                            return Array.Empty<ComboBoxMember>();
-                        }
-                    })
-                    .OrderBy(l => l.Name)
-                )
+                new[] { new ComboBoxItem<string>(string.Empty, "System") }
+                .Union(
+                    ComboBoxItem<string>.FromList(languageCodes, (language) => CultureInfo.GetCultureInfo(language).NativeName).OrderBy(language => language.Value))
                 .ToList();
-            comboLanguage.DisplayMember = "Name";
-            comboLanguage.ValueMember = "Code";
+            ComboBoxItem<string>.SetDataSourceMembers(comboLanguage);
             comboLanguage.SelectedValue = this.settings.Language;
             if (comboLanguage.SelectedValue == null) comboLanguage.SelectedIndex = 0;
 
@@ -267,9 +254,8 @@ namespace Orts.Menu
             buttonUpdatesRefresh.Width = 23;
             buttonUpdatesRefresh.Height = 23;
 
-            comboBoxUpdateChannels.DataSource = ComboBoxMember.CreateFromList(updateManager.GetChannels(), catalog, null);
-            comboBoxUpdateChannels.DisplayMember = "Name";
-            comboBoxUpdateChannels.ValueMember = "Code";
+            comboBoxUpdateChannels.DataSource = ComboBoxItem<string>.FromList(updateManager.GetChannels(), (channel) => catalog.GetString(channel));
+            ComboBoxItem<string>.SetDataSourceMembers(comboBoxUpdateChannels);
             comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);
 
             // Experimental tab
@@ -674,16 +660,14 @@ namespace Orts.Menu
         {
             await updateManager.CheckForUpdatesAsync(UpdateCheckFrequency.Manually, "ci").ConfigureAwait(true);
 
-            comboBoxUpdateChannels.DataSource = ComboBoxMember.CreateFromList(updateManager.GetChannels(), catalog, null);
-            comboBoxUpdateChannels.DisplayMember = "Name";
-            comboBoxUpdateChannels.ValueMember = "Code";
+            comboBoxUpdateChannels.DataSource = ComboBoxItem<string>.FromList(updateManager.GetChannels(), (channel) => catalog.GetString(channel));
             comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);
         }
 
         private void ComboBoxUpdateChannels_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBoxUpdateChannels.SelectedIndex != -1 &&
-                EnumExtension.GetValue(((ComboBoxMember)comboBoxUpdateChannels.SelectedItem).Code, out UpdateChannel result))
+                EnumExtension.GetValue(((ComboBoxItem<string>)comboBoxUpdateChannels.SelectedItem).Key, out UpdateChannel result))
             {
                 labelChannelDescription.Text = catalog.GetString(result.GetDescription());
                 labelAvailableVersion.Visible = true;
@@ -705,7 +689,7 @@ namespace Orts.Menu
         public string Code { get; set; }
         public string Name { get; set; }
 
-        public static IList<ComboBoxMember> CreateFromEnum<T>(ICatalog catalog) where T : Enum
+        public static IEnumerable<ComboBoxMember> CreateFromEnum<T>(ICatalog catalog) where T : Enum
         {
             string context = EnumExtension.EnumDescription<T>();
             return (from data in EnumExtension.GetValues<T>()
@@ -713,15 +697,6 @@ namespace Orts.Menu
                     {
                         Code = data.ToString(),
                         Name = string.IsNullOrEmpty(context) ? catalog.GetString(data.GetDescription()) : catalog.GetParticularString(context, data.GetDescription())
-                    }).ToList();
-        }
-        public static IList<ComboBoxMember> CreateFromList(IEnumerable<string> source, ICatalog catalog, string context = null)
-        {
-            return (from item in source
-                    select new ComboBoxMember()
-                    {
-                        Code = item,
-                        Name = string.IsNullOrEmpty(context) ? catalog.GetString(item) : catalog.GetParticularString(context, item)
                     }).ToList();
         }
     }

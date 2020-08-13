@@ -8,14 +8,15 @@ using NuGet.Versioning;
 
 namespace Orts.Updater
 {
+    [Description("UpdateChannel")]
     public enum UpdateChannel
     {
         [Description("Continous integration builds which may contain serious defects. For developers only.")] 
         ci,
         [Description("Not in use")] 
-        alpha,
+        dev,
         [Description("Infrequent updates to official, hand-picked versions. Recommended for most users.")] 
-        beta,
+        rc,
         [Description("")] 
         release,
         [Description("Reverting to Official Open Rails. Once updating to this version, you can not use auto-update to update to OR MG Ultimate, " +
