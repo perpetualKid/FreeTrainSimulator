@@ -76,16 +76,16 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <see cref="RenderPrimitiveGroup"/>.
         /// </summary>
         public static readonly RenderPrimitiveSequence[] SequenceForBlended = new[] {
-			RenderPrimitiveSequence.CabBlended,
+            RenderPrimitiveSequence.CabBlended,
             RenderPrimitiveSequence.Sky,
-			RenderPrimitiveSequence.WorldBlended,
-			RenderPrimitiveSequence.Lights,
-			RenderPrimitiveSequence.Precipitation,
+            RenderPrimitiveSequence.WorldBlended,
+            RenderPrimitiveSequence.Lights,
+            RenderPrimitiveSequence.Precipitation,
             RenderPrimitiveSequence.Particles,
             RenderPrimitiveSequence.InteriorBlended,
             RenderPrimitiveSequence.Labels,
-			RenderPrimitiveSequence.OverlayBlended,
-		};
+            RenderPrimitiveSequence.OverlayBlended,
+        };
 
         /// <summary>
         /// Mapping from <see cref="RenderPrimitiveGroup"/> to <see cref="RenderPrimitiveSequence"/> for opaque
@@ -93,20 +93,16 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <see cref="RenderPrimitiveGroup"/>.
         /// </summary>
         public static readonly RenderPrimitiveSequence[] SequenceForOpaque = new[] {
-			RenderPrimitiveSequence.CabOpaque,
+            RenderPrimitiveSequence.CabOpaque,
             RenderPrimitiveSequence.Sky,
-			RenderPrimitiveSequence.WorldOpaque,
-			RenderPrimitiveSequence.Lights,
-			RenderPrimitiveSequence.Precipitation,
+            RenderPrimitiveSequence.WorldOpaque,
+            RenderPrimitiveSequence.Lights,
+            RenderPrimitiveSequence.Precipitation,
             RenderPrimitiveSequence.Particles,
             RenderPrimitiveSequence.InteriorOpaque,
             RenderPrimitiveSequence.Labels,
-			RenderPrimitiveSequence.OverlayOpaque,
-		};
-
-        protected static VertexBuffer DummyVertexBuffer;
-        protected static readonly VertexDeclaration DummyVertexDeclaration = new VertexDeclaration(ShapeInstanceData.SizeInBytes, ShapeInstanceData.VertexElements);
-        protected static readonly Matrix[] DummyVertexData = new Matrix[] { Matrix.Identity };
+            RenderPrimitiveSequence.OverlayOpaque,
+        };
 
         /// <summary>
         /// This is an adjustment for the depth buffer calculation which may be used to reduce the chance of co-planar primitives from fighting each other.
@@ -118,6 +114,20 @@ namespace Orts.ActivityRunner.Viewer3D
         /// This is a sorting adjustment for primitives with similar/the same world location. Primitives with higher SortIndex values are rendered after others. Has no effect on non-blended primitives.
         /// </summary>
         public float SortIndex;
+
+        // We are required to provide all necessary data for the shader code.
+        // To avoid needing to split it up into instanced and non-instanced versions, we provide this dummy vertex buffer instead of the instance buffer where needed.
+        private static VertexBuffer dummyVertexBuffer;
+        internal static VertexBuffer GetDummyVertexBuffer(GraphicsDevice graphicsDevice)
+        {
+            if (dummyVertexBuffer == null)
+            {
+                VertexBuffer vertexBuffer = new VertexBuffer(graphicsDevice, new VertexDeclaration(ShapeInstanceData.SizeInBytes, ShapeInstanceData.VertexElements), 1, BufferUsage.WriteOnly);
+                vertexBuffer.SetData(new Matrix[] { Matrix.Identity });
+                dummyVertexBuffer = vertexBuffer;
+            }
+            return dummyVertexBuffer;
+        }
 
         /// <summary>
         /// This is when the object actually renders itself onto the screen.
