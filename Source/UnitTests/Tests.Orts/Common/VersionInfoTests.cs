@@ -25,7 +25,7 @@ namespace Tests.Orts.Common
 
 //            Assert.IsTrue(VersionInfo.FullVersion.IndexOf('+') >= 5);    // there should be a + sign for product metadata
             Assert.IsFalse(string.IsNullOrEmpty(VersionInfo.Channel));
-            Assert.IsFalse(string.IsNullOrEmpty(VersionInfo.CodeVersion));
+//            Assert.IsFalse(string.IsNullOrEmpty(VersionInfo.CodeVersion));
             Assert.IsFalse(string.IsNullOrEmpty(VersionInfo.Build));
         }
     }
