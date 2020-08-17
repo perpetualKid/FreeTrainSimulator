@@ -5,13 +5,17 @@ namespace Orts.Common.Info
 {
     public static class RuntimeInfo
     {
-        public const string ProductName = "Open Rails Ultimate";
+        public const string LauncherExecutable = "openrails.exe";
+
+        public static readonly string ProductName = VersionInfo.ProductName();
 
         public static string ApplicationFolder { get; } = AppContext.BaseDirectory;
 
         public static string ConfigFolder { get; } = Path.Combine(ApplicationFolder, ".config");
 
         public static string UserDataFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ProductName);
+
+        public static string LauncherPath { get; } = Path.Combine(ApplicationFolder, LauncherExecutable);
 
         static RuntimeInfo()
         {
