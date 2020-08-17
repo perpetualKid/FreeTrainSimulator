@@ -145,7 +145,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        $hash = Get-FileHash -Path '$(Build.ArtifactStagingDirectory)/$(version).zip' -Algorithm SHA256
+        $hash = (Get-FileHash -Path '$(Build.ArtifactStagingDirectory)/$(version).zip' -Algorithm SHA256).Hash
         $versionTable = ''
         try 
         { 
