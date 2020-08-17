@@ -386,6 +386,10 @@ namespace Orts.Settings
 
         public RailDriverSettings RailDriver { get; private set; }
 
+        public UserSettings() :
+            this(Array.Empty<string>())
+        { }
+
         public UserSettings(IEnumerable<string> options) : 
             this(options, SettingsStore.GetSettingsStore(SettingsStoreType, Location, null))
         {
