@@ -10,7 +10,7 @@ namespace Tests.Orts.Settings
         [TestMethod]
         public void LogTest()
         {
-            UserSettings settings = new UserSettings(null);
+            UserSettings settings = new UserSettings();
             settings.Log();
         }
     }
