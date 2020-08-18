@@ -59,7 +59,8 @@ jobs:
     versionFromCode: $[dependencies.GetVersionJob.outputs['SetVersionTask.versionFromCode']]
     channelTemp: ${{ parameters.channelName }}
     channel: $[lower(variables['channelTemp'])]
-    counterName: '$(channel)$(versionFromCode)'
+#    counterName: '$(channel)$(versionFromCode)'
+    counterName: $[(variables['channel'])]$[(variables['versionFromCode'])]'
     buildNumber: $[counter(variables['counterName'], 0)]
     ${{if eq( parameters.channelName, 'Release' )}}: 
       versionSuffix: '+$(Build.SourceBranchName)-$(Build.SourceVersion)'
@@ -74,8 +75,15 @@ jobs:
     logfile: 'log-$(version).html'
 
   steps:
-  - checkout: self
-#    fetchDepth: 20 
+#  - checkout: self
+  - checkout: none
+
+  - task: PowerShell@2
+    displayName: Debug show the version
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "Current versionFromCode is '$(SetVersionTask.versionFromCode)'."
 
   - task: NuGetToolInstaller@1
     displayName: Installing Nuget tools
@@ -113,7 +121,7 @@ jobs:
       msbuildArchitecture: 'x64'
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
-      msbuildArguments: '-property:VersionSuffix="$(versionSuffix)"'
+      msbuildArguments: '-property:versionsuffix=$(versionSuffix)'
   
   - task: VSTest@2
     condition: ne('${{ parameters.channelName }}', 'Release')
