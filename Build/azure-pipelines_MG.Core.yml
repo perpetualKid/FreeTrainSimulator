@@ -71,7 +71,7 @@ jobs:
     containerName: 'builds'
     versionJson: 'version.json'
     logfile: 'log-$(version).html'
-    $testSuffix: '+$(logfile)'
+    testSuffix: '+$(logfile)'
 
   steps:
   - checkout: self
