@@ -33,9 +33,9 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        [string] $version = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
-        Write-Host "Updating the value of the codeVersion to '$version'."
-        Write-Host "##vso[task.setvariable variable=versionFromCode;isOutput=true;]$version";
+        [string] $versionPrefix = (Select-Xml -Path Source\Directory.Build.props -XPath "/Project/PropertyGroup/VersionPrefix").Node.InnerText
+        Write-Host "Updating the value of the codeVersion to '$versionPrefix'."
+        Write-Host "##vso[task.setvariable variable=versionFromCode;isOutput=true;]$versionPrefix";
 
   - task: PowerShell@2
     displayName: Show the version
@@ -62,31 +62,19 @@ jobs:
     buildNumber: $[counter(format('{0}-{1}', variables['channel'], variables['versionFromCode']), 0)]
     ${{if eq( parameters.channelName, 'Release' )}}: 
       versionSuffix: '+$(Build.SourceBranchName)-$(Build.SourceVersion)'
-      version: '$(versionFromCode)'
+      buildVersion: '$(versionFromCode)'
     ${{if ne( parameters.channelName, 'Release' )}}: 
       versionSuffix: '$(channel).$(buildNumber)+$(Build.SourceBranchName)-$(Build.SourceVersion)'
-      version: '$(versionFromCode)-$(channel).$(buildNumber)'
+      buildVersion: '$(versionFromCode)-$(channel).$(buildNumber)'
     githubUrl: 'https://github.com/perpetualKid/ORTS-MG/commit/'
     downloadurl: 'https://ultimaterails.blob.core.windows.net'
     containerName: 'builds'
     versionJson: 'version.json'
-    logfile: 'log-$(version).html'
-    testSuffix: '+$(logfile)'
+    logfile: 'log-$(buildVersion).html'
 
   steps:
   - checkout: self
 #  - checkout: none
-
-  - task: PowerShell@2
-    displayName: Debug show the version
-    inputs:
-      targetType: 'inline'
-      script: |
-        Write-Host "Current versionFromCode is '$(versionFromCode)'."
-        Write-Host "Current buildNumber is '$(buildNumber)'."
-        Write-Host "Current versionSuffix is '$(versionSuffix)'."
-        Write-Host "Current version is '$(version)'."
-        Write-Host "Current testSuffix is '$(testSuffix)'."
 
   - task: NuGetToolInstaller@1
     displayName: Installing Nuget tools
@@ -101,8 +89,8 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        Write-Host "Setting the name of the build to '$(version)'."
-        Write-Host "##vso[build.updatebuildnumber]$(version)"
+        Write-Host "Setting the name of the build to '$(buildVersion)'."
+        Write-Host "##vso[build.updatebuildnumber]$(buildVersion)"
         $HtmlHead = @"
         <style>
         TABLE {border-width: 1px; border-style: solid; border-color: black; border-collapse: collapse;}
@@ -113,7 +101,7 @@ jobs:
         "@
         $html = git log --pretty=format:"%h|%ad|%an|%s" --date=format:"%Y-%m-%d %H:%M" -100 `
         | ConvertFrom-Csv -Delimiter "|" -Header "Commit", "Date", "Author", "Message" `
-        | ConvertTo-Html -Head $HtmlHead -PreContent"Open Rails Commit History Channel=$(channel) Version=$(version)" `
+        | ConvertTo-Html -Head $HtmlHead -PreContent"Open Rails Commit History Channel=$(channel) Version=$(buildVersion)" `
         -Property @{Label="Link";Expression={"<a href='$(githubUrl)$($_.Commit)'>$($_.Commit)</a>"}}, Date, Author, Message
         [System.Net.WebUtility]::HtmlDecode($html) | Out-File $(Build.ArtifactStagingDirectory)/$(logfile)
 
@@ -148,7 +136,7 @@ jobs:
       rootFolderOrFile: './Program.Core/'
       includeRootFolder: true 
       archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/$(version).zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/$(buildVersion).zip'
       replaceExistingArchive: true
 
   - task: PowerShell@2
@@ -156,7 +144,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        $hash = (Get-FileHash -Path '$(Build.ArtifactStagingDirectory)/$(version).zip' -Algorithm SHA256).Hash
+        $hash = (Get-FileHash -Path '$(Build.ArtifactStagingDirectory)/$(buildVersion).zip' -Algorithm SHA256).Hash
         $versionTable = ''
         try 
         { 
@@ -180,18 +168,18 @@ jobs:
         if ($release -ne $null)
         {
           $release.date = $date
-          $release.version = '$(version)'
+          $release.version = '$(buildVersion)'
           $release.hash = $hash
-          $release.url = '$(downloadurl)/$(containerName)/$(versionFromCode)/$(channel)/$(version).zip'
+          $release.url = '$(downloadurl)/$(containerName)/$(versionFromCode)/$(channel)/$(buildVersion).zip'
           $release.log = '$(downloadurl)/$(containerName)/$(versionFromCode)/$(channel)/$(logfile)'          
         }
         else          
         { 
           $release = [PSCustomObject]@{name ='$(channel)'; `
             date = $date; ` 
-            version = '$(version)'; `
+            version = '$(buildVersion)'; `
             hash = $hash; `
-            url = '$(downloadurl)/$(containerName)/$(versionFromCode)/$(channel)/$(version).zip'; `
+            url = '$(downloadurl)/$(containerName)/$(versionFromCode)/$(channel)/$(buildVersion).zip'; `
             log = '$(downloadurl)/$(containerName)/$(versionFromCode)/$(channel)/$(logfile)' `
             }
           $versionTable.channels += $release
@@ -202,7 +190,7 @@ jobs:
   - task: AzureFileCopy@3
     displayName: Uploading the binaries to Azure
     inputs:
-      SourcePath: '$(Build.ArtifactStagingDirectory)/$(version).zip'
+      SourcePath: '$(Build.ArtifactStagingDirectory)/$(buildVersion).zip'
       ConnectedServiceNameARM: 'UltimateRails ARM Blob Storage'
       Destination: 'AzureBlob'
       StorageAccountRM: 'ultimaterails'
