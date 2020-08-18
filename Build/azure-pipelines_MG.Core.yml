@@ -59,8 +59,6 @@ jobs:
     versionFromCode: $[dependencies.GetVersionJob.outputs['SetVersionTask.versionFromCode']]
     channelTemp: ${{ parameters.channelName }}
     channel: $[lower(variables['channelTemp'])]
-#    counterName: '$(channel)$(versionFromCode)'
-#    counterName: $[(variables['channel'])]$[(variables['versionFromCode'])]'
     buildNumber: $[counter(format('{0}-{1}', variables['channel'], variables['versionFromCode']), 0)]
     ${{if eq( parameters.channelName, 'Release' )}}: 
       versionSuffix: '+$(Build.SourceBranchName)-$(Build.SourceVersion)'
@@ -75,8 +73,8 @@ jobs:
     logfile: 'log-$(version).html'
 
   steps:
-#  - checkout: self
-  - checkout: none
+  - checkout: self
+#  - checkout: none
 
   - task: PowerShell@2
     displayName: Debug show the version
@@ -90,7 +88,6 @@ jobs:
 
   - task: NuGetToolInstaller@1
     displayName: Installing Nuget tools
-    condition: never() # this step will never run, even if the pipeline is canceled
 
   - task: NuGetCommand@2
     displayName: Restoring Nuget packages
