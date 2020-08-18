@@ -60,8 +60,8 @@ jobs:
     channelTemp: ${{ parameters.channelName }}
     channel: $[lower(variables['channelTemp'])]
 #    counterName: '$(channel)$(versionFromCode)'
-    counterName: $[(variables['channel'])]$[(variables['versionFromCode'])]'
-    buildNumber: $[counter(variables['counterName'], 0)]
+#    counterName: $[(variables['channel'])]$[(variables['versionFromCode'])]'
+    buildNumber: $[counter(format('{0}-{1}', $[(variables['channel'])], $[(variables['versionFromCode']), 0)]
     ${{if eq( parameters.channelName, 'Release' )}}: 
       versionSuffix: '+$(Build.SourceBranchName)-$(Build.SourceVersion)'
       version: '$(versionFromCode)'
@@ -84,7 +84,6 @@ jobs:
       targetType: 'inline'
       script: |
         Write-Host "Current versionFromCode is '$(SetVersionTask.versionFromCode)'."
-        Write-Host "Current counterName is '$(counterName)'."
         Write-Host "Current buildNumber is '$(buildNumber)'."
         Write-Host "Current versionSuffix is '$(versionSuffix)'."
         Write-Host "Current version is '$(version)'."
