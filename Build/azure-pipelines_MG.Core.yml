@@ -81,7 +81,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        Write-Host "Current versionFromCode is '$(SetVersionTask.versionFromCode)'."
+        Write-Host "Current versionFromCode is '$(versionFromCode)'."
         Write-Host "Current buildNumber is '$(buildNumber)'."
         Write-Host "Current versionSuffix is '$(versionSuffix)'."
         Write-Host "Current version is '$(version)'."
