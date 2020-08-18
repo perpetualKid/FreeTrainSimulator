@@ -71,6 +71,7 @@ jobs:
     containerName: 'builds'
     versionJson: 'version.json'
     logfile: 'log-$(version).html'
+    $testSuffix: '+$(logfile)'
 
   steps:
   - checkout: self
@@ -85,7 +86,7 @@ jobs:
         Write-Host "Current buildNumber is '$(buildNumber)'."
         Write-Host "Current versionSuffix is '$(versionSuffix)'."
         Write-Host "Current version is '$(version)'."
-        Write-Host "##vso[task.setvariable variable=versionSuffix]alpha.3+MetaData-Core";
+        Write-Host "Current testSuffix is '$(testSuffix)'."
 
   - task: NuGetToolInstaller@1
     displayName: Installing Nuget tools
@@ -123,7 +124,7 @@ jobs:
       msbuildArchitecture: 'x64'
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
-      msbuildArguments: '-property:versionsuffix=$(versionSuffix)'
+      msbuildArguments: '-property:versionsuffix=$(testSuffix)'
   
   - task: VSTest@2
     condition: ne('${{ parameters.channelName }}', 'Release')
