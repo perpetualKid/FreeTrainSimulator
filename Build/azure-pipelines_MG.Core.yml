@@ -84,9 +84,14 @@ jobs:
       targetType: 'inline'
       script: |
         Write-Host "Current versionFromCode is '$(SetVersionTask.versionFromCode)'."
+        Write-Host "Current counterName is '$(counterName)'."
+        Write-Host "Current buildNumber is '$(buildNumber)'."
+        Write-Host "Current versionSuffix is '$(versionSuffix)'."
+        Write-Host "Current version is '$(version)'."
 
   - task: NuGetToolInstaller@1
     displayName: Installing Nuget tools
+    condition: never() # this step will never run, even if the pipeline is canceled
 
   - task: NuGetCommand@2
     displayName: Restoring Nuget packages
