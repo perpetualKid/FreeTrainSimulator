@@ -85,6 +85,7 @@ jobs:
         Write-Host "Current buildNumber is '$(buildNumber)'."
         Write-Host "Current versionSuffix is '$(versionSuffix)'."
         Write-Host "Current version is '$(version)'."
+        Write-Host "##vso[task.setvariable variable=versionSuffix]alpha.3+MetaData-Core";
 
   - task: NuGetToolInstaller@1
     displayName: Installing Nuget tools
