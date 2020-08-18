@@ -124,7 +124,7 @@ jobs:
       msbuildArchitecture: 'x64'
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
-      msbuildArguments: '-property:versionsuffix=$(testSuffix)'
+      msbuildArguments: '/p:VersionSuffix=$(testSuffix)'
   
   - task: VSTest@2
     condition: ne('${{ parameters.channelName }}', 'Release')
