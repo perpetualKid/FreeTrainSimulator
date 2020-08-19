@@ -670,16 +670,12 @@ namespace Orts.Menu
                 EnumExtension.GetValue(((ComboBoxItem<string>)comboBoxUpdateChannels.SelectedItem).Key, out UpdateChannel channel))
             {
                 labelChannelDescription.Text = catalog.GetString(channel.GetDescription());
-                labelAvailableVersion.Visible = true;
-                labelAvailableVersionDesc.Visible = true;
-                //labelAvailableVersion.Text = updateManager.GetChannelByName(result.ToString())?.NormalizedVersion;
-                labelAvailableVersion.Text = updateManager.GetBestAvailableVersion(string.Empty, channel.ToString());
+                labelChannelVersion.Text = updateManager.GetChannelByName(channel.ToString())?.NormalizedVersion ?? "n/a";
+                labelBestVersion.Text = updateManager.GetBestAvailableVersion(string.Empty, channel.ToString()) ?? "n/a";
             }
             else
             {
                 labelChannelDescription.Text = string.Empty;
-                labelAvailableVersion.Visible = false;
-                labelAvailableVersionDesc.Visible = false;
             }
         }
 

@@ -147,9 +147,7 @@ namespace Orts.Updater
                 Application.DoEvents();
 
                 await updateManager.ApplyUpdateAsync(channelInfo, cts.Token).ConfigureAwait(false);
-                await RelaunchApplicationAsync().ConfigureAwait(false);
-
-                Environment.Exit(0);
+//                await RelaunchApplicationAsync().ConfigureAwait(false);
             }
             catch (Exception exception)
             {
@@ -161,13 +159,13 @@ namespace Orts.Updater
                             $"{RuntimeInfo.ProductName} {Common.VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }));
                 }
-                Application.Exit();
                 return;
                 throw;
             }
             finally
             {
                 cts.Dispose();
+                Application.Exit();
             }
         }
 
@@ -199,7 +197,7 @@ namespace Orts.Updater
             bool relaunchApplication = Environment.GetCommandLineArgs().Any(a => string.Equals(a, $"{UpdateManager.RelaunchCommandLine}1", StringComparison.OrdinalIgnoreCase));
             if (relaunchApplication)
             {
-                await UpdateManager.RunProcess(new ProcessStartInfo(RuntimeInfo.LauncherPath)).ConfigureAwait(false);
+                await UpdateManager.RunProcess(new ProcessStartInfo(RuntimeInfo.LauncherPath)).ConfigureAwait(true);
             }
         }
 

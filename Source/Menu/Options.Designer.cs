@@ -164,9 +164,12 @@
             this.pathDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.bindingSourceContent = new System.Windows.Forms.BindingSource(this.components);
             this.tabPageUpdater = new System.Windows.Forms.TabPage();
-            this.labelAvailableVersion = new System.Windows.Forms.Label();
-            this.labelAvailableVersionDesc = new System.Windows.Forms.Label();
+            this.label32 = new System.Windows.Forms.Label();
+            this.labelBestVersion = new System.Windows.Forms.Label();
+            this.labelBestVersionDesc = new System.Windows.Forms.Label();
+            this.labelChannelVersionDesc = new System.Windows.Forms.Label();
             this.labelChannelDescription = new System.Windows.Forms.Label();
+            this.labelChannelVersion = new System.Windows.Forms.Label();
             this.buttonUpdatesRefresh = new System.Windows.Forms.Button();
             this.labelUpdaterFrequency = new System.Windows.Forms.Label();
             this.trackBarUpdaterFrequency = new System.Windows.Forms.TrackBar();
@@ -1898,10 +1901,6 @@
             this.dataGridViewContent.RowHeadersVisible = false;
             this.dataGridViewContent.RowTemplate.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.dataGridViewContent.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridViewContent.Size = new System.Drawing.Size(588, 271);
-            this.dataGridViewContent.TabIndex = 0;
-            this.dataGridViewContent.SelectionChanged += new System.EventHandler(this.DataGridViewContent_SelectionChanged);
-            // 
             // nameDataGridViewTextBoxColumn
             // 
             this.nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
@@ -1922,11 +1921,18 @@
             // 
             this.bindingSourceContent.DataSource = typeof(Orts.Menu.ContentFolder);
             // 
+            this.dataGridViewContent.Size = new System.Drawing.Size(588, 271);
+            this.dataGridViewContent.TabIndex = 0;
+            this.dataGridViewContent.SelectionChanged += new System.EventHandler(this.DataGridViewContent_SelectionChanged);
+            // 
             // tabPageUpdater
             // 
-            this.tabPageUpdater.Controls.Add(this.labelAvailableVersion);
-            this.tabPageUpdater.Controls.Add(this.labelAvailableVersionDesc);
+            this.tabPageUpdater.Controls.Add(this.label32);
+            this.tabPageUpdater.Controls.Add(this.labelBestVersion);
+            this.tabPageUpdater.Controls.Add(this.labelBestVersionDesc);
+            this.tabPageUpdater.Controls.Add(this.labelChannelVersionDesc);
             this.tabPageUpdater.Controls.Add(this.labelChannelDescription);
+            this.tabPageUpdater.Controls.Add(this.labelChannelVersion);
             this.tabPageUpdater.Controls.Add(this.buttonUpdatesRefresh);
             this.tabPageUpdater.Controls.Add(this.labelUpdaterFrequency);
             this.tabPageUpdater.Controls.Add(this.trackBarUpdaterFrequency);
@@ -1941,33 +1947,60 @@
             this.tabPageUpdater.Text = "Updater";
             this.tabPageUpdater.UseVisualStyleBackColor = true;
             // 
-            // labelAvailableVersion
+            // label32
             // 
-            this.labelAvailableVersion.AutoSize = true;
-            this.labelAvailableVersion.Location = new System.Drawing.Point(9, 179);
-            this.labelAvailableVersion.Name = "labelAvailableVersion";
-            this.labelAvailableVersion.Size = new System.Drawing.Size(87, 13);
-            this.labelAvailableVersion.TabIndex = 33;
-            this.labelAvailableVersion.Text = "Available version";
-            this.labelAvailableVersion.Visible = false;
+            this.label32.Location = new System.Drawing.Point(9, 234);
+            this.label32.Margin = new System.Windows.Forms.Padding(3);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(587, 67);
+            this.label32.TabIndex = 36;
+            this.label32.Text = "When you choose to update, the best available version from any channel equal or higher the current selection will be installed. \r\n" +
+"That is, if you chose \"RC\"(release candidate) channel, updates which are RC, or higher(typically final releases) will be considered.";
             // 
-            // labelAvailableVersionDesc
+            // labelBestVersion
             // 
-            this.labelAvailableVersionDesc.AutoSize = true;
-            this.labelAvailableVersionDesc.Location = new System.Drawing.Point(9, 159);
-            this.labelAvailableVersionDesc.Margin = new System.Windows.Forms.Padding(3);
-            this.labelAvailableVersionDesc.Name = "labelAvailableVersionDesc";
-            this.labelAvailableVersionDesc.Size = new System.Drawing.Size(88, 13);
-            this.labelAvailableVersionDesc.TabIndex = 32;
-            this.labelAvailableVersionDesc.Text = "Available Version";
-            this.labelAvailableVersionDesc.Visible = false;
+            this.labelBestVersion.AutoSize = true;
+            this.labelBestVersion.Location = new System.Drawing.Point(341, 206);
+            this.labelBestVersion.Name = "labelBestVersion";
+            this.labelBestVersion.Size = new System.Drawing.Size(24, 13);
+            this.labelBestVersion.TabIndex = 35;
+            this.labelBestVersion.Text = "n/a";
+            // 
+            // labelBestVersionDesc
+            // 
+            this.labelBestVersionDesc.AutoSize = true;
+            this.labelBestVersionDesc.Location = new System.Drawing.Point(9, 206);
+            this.labelBestVersionDesc.Margin = new System.Windows.Forms.Padding(3);
+            this.labelBestVersionDesc.Name = "labelBestVersionDesc";
+            this.labelBestVersionDesc.Size = new System.Drawing.Size(233, 13);
+            this.labelBestVersionDesc.TabIndex = 34;
+            this.labelBestVersionDesc.Text = "Best Available Version including other channels:";
+            // 
+            // labelChannelVersionDesc
+            // 
+            this.labelChannelVersionDesc.AutoSize = true;
+            this.labelChannelVersionDesc.Location = new System.Drawing.Point(9, 171);
+            this.labelChannelVersionDesc.Margin = new System.Windows.Forms.Padding(3);
+            this.labelChannelVersionDesc.Name = "labelChannelVersionDesc";
+            this.labelChannelVersionDesc.Size = new System.Drawing.Size(185, 13);
+            this.labelChannelVersionDesc.TabIndex = 33;
+            this.labelChannelVersionDesc.Text = "Currently available Version in this channel:";
             // 
             // labelChannelDescription
             // 
             this.labelChannelDescription.Location = new System.Drawing.Point(252, 45);
             this.labelChannelDescription.Name = "labelChannelDescription";
-            this.labelChannelDescription.Size = new System.Drawing.Size(344, 129);
+            this.labelChannelDescription.Size = new System.Drawing.Size(344, 115);
             this.labelChannelDescription.TabIndex = 31;
+            // 
+            // labelChannelVersion
+            // 
+            this.labelChannelVersion.AutoSize = true;
+            this.labelChannelVersion.Location = new System.Drawing.Point(341, 171);
+            this.labelChannelVersion.Name = "labelChannelVersion";
+            this.labelChannelVersion.Size = new System.Drawing.Size(24, 13);
+            this.labelChannelVersion.TabIndex = 33;
+            this.labelChannelVersion.Text = "n/a";
             // 
             // buttonUpdatesRefresh
             // 
@@ -2025,9 +2058,9 @@
             this.label30.AutoSize = true;
             this.label30.Location = new System.Drawing.Point(9, 30);
             this.label30.Name = "label30";
-            this.label30.Size = new System.Drawing.Size(96, 13);
+            this.label30.Size = new System.Drawing.Size(182, 13);
             this.label30.TabIndex = 1;
-            this.label30.Text = "Available channels";
+            this.label30.Text = "Minimum update channel (quality bar)";
             // 
             // tabPageExperimental
             // 
@@ -2914,7 +2947,10 @@
         private System.Windows.Forms.Label labelUpdaterFrequency;
         private System.Windows.Forms.Button buttonUpdatesRefresh;
         private System.Windows.Forms.Label labelChannelDescription;
-        private System.Windows.Forms.Label labelAvailableVersion;
-        private System.Windows.Forms.Label labelAvailableVersionDesc;
+        private System.Windows.Forms.Label labelChannelVersion;
+        private System.Windows.Forms.Label labelBestVersionDesc;
+        private System.Windows.Forms.Label labelChannelVersionDesc;
+        private System.Windows.Forms.Label label32;
+        private System.Windows.Forms.Label labelBestVersion;
     }
 }

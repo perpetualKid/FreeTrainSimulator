@@ -170,32 +170,6 @@ namespace Orts.Updater
             return version;
         }
 
-        /// <summary>
-        /// Checking all relevant channels for more recent version in any channel equal or higher to the current.
-        /// As channels provide enough detail for SemVer comparision, this can check 
-        /// on all channels, unless strict enforcement to the target channel is set
-        /// </summary>
-        public ChannelInfo CheckForApplicableUpdate(string targetChannel)
-        {
-            if (string.IsNullOrEmpty(targetChannel))
-                return null;
-
-            ChannelInfo info = GetChannelByName(targetChannel);
-            if (null == info)
-                return null;
-
-            if (targetChannel.Equals(VersionInfo.Channel, StringComparison.OrdinalIgnoreCase))
-            {
-                if (VersionInfo.Compare(info.Version) > 0)
-                    return info;
-            }
-            else
-            {
-                return GetChannelByName(targetChannel);
-            }
-            return null;
-        }
-
         public Task RunUpdateProcess()
         {
             Task updateTask = RunProcess(new ProcessStartInfo(FileUpdater, $"{ChannelCommandLine}{settings.UpdateChannel} " +
@@ -233,6 +207,8 @@ namespace Orts.Updater
                 await CleanDirectoriesAsync(token).ConfigureAwait(false);
                 TriggerApplyProgressChanged(100);
             }
+            else
+                throw new ApplicationException("The update package is in an unexpected state.");
         }
 
         private void TriggerApplyProgressChanged(int progressPercentage)

@@ -326,14 +326,15 @@ namespace Orts.Menu
             }
             else 
             {
-                ChannelInfo updateInfo = updateManager.CheckForApplicableUpdate(settings.UpdateChannel);
-                if (null != updateInfo)
+                string version = updateManager.GetBestAvailableVersion(string.Empty, settings.UpdateChannel);
+                if (null != version)
                 {
-                    linkLabelUpdate.Text = catalog.GetString($"Update to {updateInfo.NormalizedVersion}");
+                    ChannelInfo channel = updateManager.GetChannelInfoByVersion(version);
+                    linkLabelUpdate.Text = catalog.GetString($"Update to {version}");
                     linkLabelUpdate.Visible = true;
                     linkLabelUpdate.Image = updateManager.UpdaterNeedsElevation ? elevationIcon : null;
                     linkLabelChangeLog.Visible = true;
-                    linkLabelChangeLog.Tag = updateInfo.LogUrl.ToString();
+                    linkLabelChangeLog.Tag = channel.LogUrl.ToString();
                     linkLabelUpdate.AutoSize = true;
                     linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - elevationIcon.Width;
                     linkLabelUpdate.AutoSize = false;
