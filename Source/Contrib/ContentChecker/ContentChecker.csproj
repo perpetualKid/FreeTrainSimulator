@@ -6,7 +6,7 @@
     <Description>Open Rails Content Checker (Contributed)</Description>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\..\Program.Core</OutputPath>
+    <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>Orts.ContentChecker</RootNamespace>
     <AssemblyName>Contrib.ContentChecker</AssemblyName>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>

@@ -5,7 +5,7 @@
     <Description>Open Rails Settings Library</Description>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\Program.Core</OutputPath>
+    <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />

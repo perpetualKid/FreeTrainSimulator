@@ -32,7 +32,6 @@ namespace Tests.Orts.Updater
 
             Assert.IsFalse(UpdateManager.CheckUpdateNeeded(UpdateCheckFrequency.Never));
             Assert.IsTrue(UpdateManager.CheckUpdateNeeded(UpdateCheckFrequency.Always));
-            Assert.IsTrue(UpdateManager.CheckUpdateNeeded(UpdateCheckFrequency.Manually));
 
             Assert.IsFalse(UpdateManager.CheckUpdateNeeded(UpdateCheckFrequency.Monthly));
 

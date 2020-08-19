@@ -5,7 +5,7 @@
     <Description>Open Rails Data Converter (Contributed)</Description>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\..\Program.Core</OutputPath>
+    <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>Orts.DataConverter</RootNamespace>
     <AssemblyName>Contrib.DataConverter</AssemblyName>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>

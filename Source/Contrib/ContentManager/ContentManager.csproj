@@ -7,7 +7,7 @@
 	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\..\Program.Core</OutputPath>
+    <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>Orts.ContentManager</RootNamespace>
     <AssemblyName>Contrib.ContentManager</AssemblyName>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>

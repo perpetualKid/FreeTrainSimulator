@@ -6,7 +6,7 @@
     <Description>Open Rails Data Collector (Contributed)</Description>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\..\Program.Core</OutputPath>
+    <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>Orts.DataCollector</RootNamespace>
     <AssemblyName>Contrib.DataCollector</AssemblyName>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>

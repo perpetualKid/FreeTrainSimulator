@@ -658,7 +658,7 @@ namespace Orts.Menu
 
         private async void ButtonUpdatesRefresh_Click(object sender, EventArgs e)
         {
-            await updateManager.CheckForUpdatesAsync(UpdateCheckFrequency.Manually, "ci").ConfigureAwait(true);
+            await updateManager.RefreshUpdateInfo(UpdateCheckFrequency.Always).ConfigureAwait(true);
 
             comboBoxUpdateChannels.DataSource = ComboBoxItem<string>.FromList(updateManager.GetChannels(), (channel) => catalog.GetString(channel));
             comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);

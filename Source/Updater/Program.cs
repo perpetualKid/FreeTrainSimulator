@@ -30,7 +30,8 @@ namespace Orts.Updater
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new UpdaterProgress());
+            using (var updater = (new UpdaterProgress()))
+                Application.Run(updater);
         }
     }
 }

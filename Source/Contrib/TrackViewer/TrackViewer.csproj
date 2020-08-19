@@ -7,7 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\..\Program.Core</OutputPath>
+    <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>ORTS.TrackViewer</RootNamespace>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
     <AssemblyName>Contrib.TrackViewer</AssemblyName>

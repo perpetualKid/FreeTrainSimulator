@@ -7,7 +7,7 @@
 	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\Program.Core</OutputPath>
+    <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\Orts.ico</ApplicationIcon>
     <RootNamespace>Orts.Menu</RootNamespace>
   </PropertyGroup>
@@ -41,11 +41,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Updater.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0">

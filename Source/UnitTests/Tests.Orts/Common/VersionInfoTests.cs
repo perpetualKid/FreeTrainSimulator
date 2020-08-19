@@ -1,7 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using NuGet.Versioning;
 
 using Orts.Common;
 
@@ -28,5 +31,6 @@ namespace Tests.Orts.Common
             Assert.IsFalse(string.IsNullOrEmpty(VersionInfo.CodeVersion));
             Assert.IsFalse(string.IsNullOrEmpty(VersionInfo.Build));
         }
+
     }
 }

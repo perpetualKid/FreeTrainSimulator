@@ -16,20 +16,26 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
 using NuGet.Versioning;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Test.Orts")]
+
 namespace Orts.Common
 {
+
     /// <summary>
     /// Static class which provides version and build information about the whole game.
     /// </summary>
     public static class VersionInfo
     {
-        public static readonly NuGetVersion SemanticVersion = GetVersion();
+        private const string releaseChannelName = "release";
+
+        public static readonly NuGetVersion CurrentVersion = GetVersion();
         //VersionInfo.FullVersion: "1.3.2-alpha.4+LocalBuild"
         //VersionInfo.Version: "1.3.2-alpha.4"
         //VersionInfo.FileVersion: "1.3.2.0"
@@ -40,43 +46,35 @@ namespace Orts.Common
         /// <summary>
         /// "1.3.2-alpha.4+LocalBuild" returns FullVersion: "1.3.2-alpha.4+LocalBuild"
         /// </summary>
-        public static string FullVersion => SemanticVersion.ToFullString();
+        public static string FullVersion => CurrentVersion.ToFullString();
 
         /// <summary>
         /// "1.3.2-alpha.4+LocalBuild" returns Version: "1.3.2-alpha.4"
         /// </summary>
-        public static string Version => SemanticVersion.ToNormalizedString();
+        public static string Version => CurrentVersion.ToNormalizedString();
 
         /// <summary>
         /// "1.3.2-alpha.4+LocalBuild" returns FileVersion: "1.3.2.0"
         /// </summary>
-        public static string FileVersion => SemanticVersion.Version.ToString();
+        public static string FileVersion => CurrentVersion.Version.ToString();
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns Channel: "alpha"
-        /// "1.3.2+LocalBuild" returns Channel: "release"
+        /// <para/>"1.3.2-alpha.4+LocalBuild" returns Channel: "alpha"
+        /// <para/>"1.3.2+LocalBuild" returns Channel: "release"
         /// </summary>
-        public static string Channel => SemanticVersion.IsPrerelease ? SemanticVersion.ReleaseLabels?.ToArray()[0] : "release";
+        public static string Channel => CurrentVersion.IsPrerelease ? CurrentVersion.ReleaseLabels?.ToArray()[0] : "release";
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns Build: "4"
-        /// "1.3.2+LocalBuild" returns Build: "0"
-        /// "1.3.2.4+LocalBuild" returns Build: "4"
+        /// <para/>"1.3.2-alpha.4+LocalBuild" returns Build: "4"
+        /// <para/>"1.3.2+LocalBuild" returns Build: "0"
+        /// <para/>"1.3.2.4+LocalBuild" returns Build: "4"
         /// </summary>
-        public static string Build => SemanticVersion.IsPrerelease ? SemanticVersion.ReleaseLabels?.ToArray()[1] : $"{SemanticVersion.Revision}";
+        public static string Build => CurrentVersion.IsPrerelease ? CurrentVersion.ReleaseLabels?.ToArray()[1] : $"{CurrentVersion.Revision}";
 
         /// <summary>
         /// "1.3.2-alpha.4+LocalBuild" returns Revision: "LocalBuild"
         /// </summary>
-        public static string CodeVersion => SemanticVersion.Metadata;
-
-        /// <summary>Revision number, e.g. Release: "1648",       experimental: "1649",   local: ""</summary>
-//        public static readonly string Revision = GetRevision("Revision.txt");
-        /// <summary>Full version number, e.g. Release: "0.9.0.1648", experimental: "X.1649", local: ""</summary>
-//        public static readonly string Version = GetVersion("Version.txt");
-        /// <summary>Full build number, e.g. "0.0.5223.24629 (2014-04-20 13:40:58Z)"</summary>
-//        public static readonly string Build = GetBuild("Orts.Common.dll", "OpenRails.exe", "Menu.exe", "ActivityRunner.exe");
-        /// <summary>Version, but if "", returns Build</summary>
+        public static string CodeVersion => CurrentVersion.Metadata;
 
         private static NuGetVersion GetVersion()
         {
@@ -92,7 +90,110 @@ namespace Orts.Common
         {
             if (!NuGetVersion.TryParse(version, out NuGetVersion result))
                 return -1;
-            return SemanticVersion.CompareTo(result);
+            return CurrentVersion.CompareTo(result);
+        }
+
+        /// <summary>
+        /// Searchs the list of availableVersions for all upgrade options against the current version, 
+        /// filtered to allow only targetChannel or higher prereleases and releases
+        /// The result is sorted in descending order to the most appropriate version first
+        /// </summary>
+        internal static List<NuGetVersion>SelectSuitableVersions(List<string> availableVersions, string targetChannel)
+        {
+            if (availableVersions == null)
+                throw new ArgumentNullException(nameof(availableVersions));
+
+            List<NuGetVersion> result = new List<NuGetVersion>();
+            foreach(string versionString in availableVersions)
+            {
+                if (NuGetVersion.TryParse(versionString, out NuGetVersion parsedVersion))
+                    result.Add(parsedVersion);
+            }
+            //compare against the current version
+            IEnumerable<NuGetVersion> selection = result.Where((version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) >= 0);
+            //filter the versions against the target channel
+            selection = selection.Where((version) =>
+            {
+                List<string> releaseLabels = null;
+                if (targetChannel == releaseChannelName)
+                    return (!version.IsPrerelease);
+                else
+                {
+                    if (version.IsPrerelease)
+                    {
+                        releaseLabels = version.ReleaseLabels.ToList();
+                        releaseLabels[0] = targetChannel;
+                    }
+                }
+                SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
+                return VersionComparer.VersionRelease.Compare(version, other) >= 0;
+            });
+            result = selection.ToList();
+            result.Sort();
+            result.Reverse();
+            return result;
+        }
+
+        internal static List<NuGetVersion> SelectSuitableVersions(List<string> availableVersions, string targetVersion, string targetChannel)
+        {
+            if (availableVersions == null)
+                throw new ArgumentNullException(nameof(availableVersions));
+
+            if (!NuGetVersion.TryParse(targetVersion, out NuGetVersion target))
+                throw new ArgumentException($"{targetVersion} is not a valid version for parameter {nameof(targetVersion)}");
+
+            List<NuGetVersion> result = new List<NuGetVersion>();
+            foreach (string versionString in availableVersions)
+            {
+                if (NuGetVersion.TryParse(versionString, out NuGetVersion parsedVersion))
+                    result.Add(parsedVersion);
+            }
+            //compare against the current version
+            IEnumerable<NuGetVersion> selection = result.Where(
+                (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) >= 0 &&
+                VersionComparer.VersionRelease.Compare(version, target) <= 0);
+
+            //filter the versions against the target channel
+            selection = selection.Where((version) =>
+            {
+                List<string> releaseLabels = null;
+                if (targetChannel == releaseChannelName)
+                    return (!version.IsPrerelease);
+                else
+                {
+                    if (version.IsPrerelease)
+                    {
+                        releaseLabels = version.ReleaseLabels.ToList();
+                        releaseLabels[0] = targetChannel;
+                    }
+                }
+                SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
+                return VersionComparer.VersionRelease.Compare(version, other) >= 0;
+            });
+            result = selection.ToList();
+            result.Sort();
+            result.Reverse();
+            return result;
+        }
+
+        public static string SelectSuitableVersion(List<string> availableVersions, string targetChannel)
+        {
+            List<NuGetVersion> versions = SelectSuitableVersions(availableVersions, targetChannel);
+            return versions?.FirstOrDefault()?.ToNormalizedString();
+        }
+
+        public static string SelectSuitableVersion(List<string> availableVersions, string targetVersion, string targetChannel)
+        {
+            List<NuGetVersion> versions = SelectSuitableVersions(availableVersions, targetVersion, targetChannel);
+            return versions?.FirstOrDefault()?.ToNormalizedString();
+        }
+
+        internal static string ProductName()
+        {
+            string productName = FileVersionInfo.GetVersionInfo(Assembly.GetAssembly(typeof(VersionInfo)).Location).ProductName;
+            if (string.IsNullOrEmpty(productName))
+                productName = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductName;
+            return productName;
         }
 
         /// <summary>

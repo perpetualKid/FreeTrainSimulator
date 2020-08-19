@@ -13,14 +13,15 @@ namespace Orts.Updater
     {
         [Description("Continous integration builds which may contain serious defects. For developers only.")] 
         ci,
-        [Description("Not in use")] 
+        [Description("Regular development builds")] 
         dev,
         [Description("Infrequent updates to official, hand-picked versions. Recommended for most users.")] 
         rc,
-        [Description("")] 
+        [Description("Stable release versions")] 
         release,
-        [Description("Reverting to Official Open Rails. Once updating to this version, you can not use auto-update to update to OR MG Ultimate, " +
-            "but will need to manually download ORTS MG Ultimate again")]
+        [Description("Reverting to Official Open Rails. If updating to this version, " +
+            "you can not use the updater to change back to OR MG Ultimate, " +
+            "and will need to manually download ORTS MG Ultimate again")]
         official,
     }
 
@@ -46,6 +47,9 @@ namespace Orts.Updater
 
         [JsonProperty("version")]
         public string Version { get; private set; }
+
+        [JsonProperty("hash")]
+        public string Hash { get; private set; }
 
         [JsonProperty("log")]
         public Uri LogUrl { get; private set; }

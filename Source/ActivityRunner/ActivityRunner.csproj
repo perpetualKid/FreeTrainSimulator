@@ -7,7 +7,7 @@
 	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\Program.Core</OutputPath>
+    <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\Orts.ico</ApplicationIcon>
     <RootNamespace>Orts.ActivityRunner</RootNamespace>
   </PropertyGroup>

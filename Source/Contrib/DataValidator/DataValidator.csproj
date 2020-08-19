@@ -5,7 +5,7 @@
     <Description>Open Rails Data Validator (Contributed)</Description>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\..\Program.Core</OutputPath>
+    <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>Orts.DataValidator</RootNamespace>
     <AssemblyName>Contrib.DataValidator</AssemblyName>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>

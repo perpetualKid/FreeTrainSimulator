@@ -7,7 +7,7 @@
 	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>..\..\Program.Core</OutputPath>
+    <OutputPath>..\..\Program</OutputPath>
     <RootNamespace>Orts.Updater</RootNamespace>
     <ApplicationIcon>..\Orts.ico</ApplicationIcon>
   </PropertyGroup>

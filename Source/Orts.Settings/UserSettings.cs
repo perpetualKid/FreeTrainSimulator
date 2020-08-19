@@ -214,6 +214,16 @@ namespace Orts.Settings
         [Default(false)]
         public bool DataLogStationStops { get; set; }
 
+        // Updater settings
+        #region update settings
+        [Default((int)Orts.Common.UpdateCheckFrequency.Always)]
+        public int UpdateCheckFrequency { get; set; }
+        [Default("")]
+        public string UpdateChannel { get; set; }
+        [Default("https://ultimaterails.blob.core.windows.net/builds/")]
+        public string UpdateSource { get; set; }
+        #endregion
+
 
         // Timetable settings:
         [Default(true)]
@@ -224,8 +234,6 @@ namespace Orts.Settings
         public bool TTOutputTimetableTrainInfo { get; set; }
         [Default(false)]
         public bool TTOutputTimetableFullEvaluation { get; set; }
-
-        // Updater settings are saved only in "Updater.ini".
 
         // Experimental settings:
         [Default(0)]
@@ -368,15 +376,6 @@ namespace Orts.Settings
         [Default(false)]
         [DoNotSave]
         public bool MultiplayerServer { get; set; }
-
-        #region update settings
-        [Default((int)Orts.Common.UpdateCheckFrequency.Always)]
-        public int UpdateCheckFrequency { get; set; }
-        [Default("")]
-        public string UpdateChannel { get; set; }
-        [Default("https://ultimaterails.blob.core.windows.net/builds/")]
-        public string UpdateSource { get; set; }
-        #endregion
 
         #endregion
 

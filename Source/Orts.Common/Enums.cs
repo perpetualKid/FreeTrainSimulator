@@ -709,13 +709,12 @@ namespace Orts.Common
 
     public enum UpdateCheckFrequency
     {
-        [Description("Do not check for updates")] Never = -1,
-        [Description("Always check for updates")] Always = 0,
+        [Description("Manually check for updates")] Never = -1,
+        [Description("Check for updates on each start")] Always = 0,
         [Description("Check for updates once a day")] Daily,
         [Description("Check for updates once a week")] Weekly,
         [Description("Check for updates every other week")] Biweekly,
         [Description("Check for updates every month")] Monthly,
-        [Description("Manually check for updates")] Manually,
     }
 
 
