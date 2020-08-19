@@ -121,19 +121,10 @@ jobs:
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
 
-  - task: PowerShell@2
-    displayName: Moving Launcher files into each version 
-    inputs:
-      targetType: 'inline'
-      script: |
-        Copy-Item -Path ".\Program.Core\net20\*" -Destination ".\Program.Core\net48\" -Recurse
-        Copy-Item -Path ".\Program.Core\net20\*" -Destination ".\Program.Core\netcoreapp3.1\" -Recurse
-        Remove-Item -Path ".\Program.Core\net20\" -Recurse
-
   - task: ArchiveFiles@2
     displayName: Creating zip archive
     inputs:
-      rootFolderOrFile: './Program.Core/'
+      rootFolderOrFile: './Program/'
       includeRootFolder: true 
       archiveType: 'zip'
       archiveFile: '$(Build.ArtifactStagingDirectory)/$(buildVersion).zip'
