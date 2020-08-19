@@ -50,7 +50,7 @@ namespace Orts.Launcher
         [STAThread]
         static void Main()
         {
-            bool preferCoreFx = File.Exists(Path.Combine(Application.ExecutablePath, "prefercorefx"));
+            bool preferCoreFx = File.Exists(Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "prefercorefx"));
 
             Application.EnableVisualStyles();
 

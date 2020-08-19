@@ -70,7 +70,7 @@ namespace Orts.Updater
         private async void UpdaterProgress_Load(object sender, EventArgs e)
         {
             // If /ELEVATE=1 is set, we're an elevation wrapper used to preserve the integrity level of the caller.
-            bool needsElevation = Environment.GetCommandLineArgs().Any(a => a == $"{UpdateManager.ElevationCommandLine}1");
+            bool needsElevation = Environment.GetCommandLineArgs().Any(a => string.Equals(a, $"{UpdateManager.ElevationCommandLine}1", StringComparison.OrdinalIgnoreCase));
 
             // Run everything in a new thread so the UI is responsive and visible.
             if (needsElevation)
@@ -196,7 +196,7 @@ namespace Orts.Updater
         private static async Task RelaunchApplicationAsync()
         {
             // If /RELAUNCH=1 is set, we're expected to re-launch the main application when we're done.
-            bool relaunchApplication = Environment.GetCommandLineArgs().Any(a => a == $"{UpdateManager.RelaunchCommandLine}1");
+            bool relaunchApplication = Environment.GetCommandLineArgs().Any(a => string.Equals(a, $"{UpdateManager.RelaunchCommandLine}1", StringComparison.OrdinalIgnoreCase));
             if (relaunchApplication)
             {
                 await UpdateManager.RunProcess(new ProcessStartInfo(RuntimeInfo.LauncherPath)).ConfigureAwait(false);
