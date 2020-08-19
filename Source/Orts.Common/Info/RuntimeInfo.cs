@@ -15,7 +15,7 @@ namespace Orts.Common.Info
 
         public static string UserDataFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ProductName);
 
-        public static string LauncherPath { get; } = Path.Combine(ApplicationFolder, LauncherExecutable);
+        public static string LauncherPath { get; } = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(ApplicationFolder)), LauncherExecutable); //Path.Combine(ApplicationFolder, LauncherExecutable);
 
         static RuntimeInfo()
         {

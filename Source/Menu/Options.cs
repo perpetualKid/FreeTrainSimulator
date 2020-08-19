@@ -254,7 +254,7 @@ namespace Orts.Menu
             buttonUpdatesRefresh.Width = 23;
             buttonUpdatesRefresh.Height = 23;
 
-            comboBoxUpdateChannels.DataSource = ComboBoxItem<string>.FromList(updateManager.GetChannels(), (channel) => catalog.GetString(channel));
+            comboBoxUpdateChannels.DataSource = ComboBoxItem<string>.FromList(updateManager.GetChannels().OrderByDescending((s) => s), (channel) => catalog.GetString(channel));
             ComboBoxItem<string>.SetDataSourceMembers(comboBoxUpdateChannels);
             comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);
 
@@ -415,7 +415,7 @@ namespace Orts.Menu
 
             // Updater tab
 
-            settings.UpdateChannel = (comboBoxUpdateChannels.SelectedItem as ComboBoxMember)?.Code;
+            settings.UpdateChannel = (comboBoxUpdateChannels.SelectedItem as ComboBoxItem<string>)?.Key ?? string.Empty;
             settings.UpdateCheckFrequency = trackBarUpdaterFrequency.Value;
 
             // Experimental tab
@@ -667,12 +667,13 @@ namespace Orts.Menu
         private void ComboBoxUpdateChannels_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBoxUpdateChannels.SelectedIndex != -1 &&
-                EnumExtension.GetValue(((ComboBoxItem<string>)comboBoxUpdateChannels.SelectedItem).Key, out UpdateChannel result))
+                EnumExtension.GetValue(((ComboBoxItem<string>)comboBoxUpdateChannels.SelectedItem).Key, out UpdateChannel channel))
             {
-                labelChannelDescription.Text = catalog.GetString(result.GetDescription());
+                labelChannelDescription.Text = catalog.GetString(channel.GetDescription());
                 labelAvailableVersion.Visible = true;
                 labelAvailableVersionDesc.Visible = true;
-                labelAvailableVersion.Text = updateManager.GetChannelByName(result.ToString())?.NormalizedVersion;
+                //labelAvailableVersion.Text = updateManager.GetChannelByName(result.ToString())?.NormalizedVersion;
+                labelAvailableVersion.Text = updateManager.GetBestAvailableVersion(string.Empty, channel.ToString());
             }
             else
             {

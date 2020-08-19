@@ -1994,7 +1994,7 @@
             this.trackBarUpdaterFrequency.BackColor = System.Drawing.SystemColors.Window;
             this.trackBarUpdaterFrequency.LargeChange = 1;
             this.trackBarUpdaterFrequency.Location = new System.Drawing.Point(12, 98);
-            this.trackBarUpdaterFrequency.Maximum = 5;
+            this.trackBarUpdaterFrequency.Maximum = 4;
             this.trackBarUpdaterFrequency.Minimum = -1;
             this.trackBarUpdaterFrequency.Name = "trackBarUpdaterFrequency";
             this.trackBarUpdaterFrequency.Size = new System.Drawing.Size(216, 45);
