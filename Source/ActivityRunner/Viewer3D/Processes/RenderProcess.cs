@@ -112,14 +112,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             GraphicsDeviceManager.IsFullScreen = true;
             GraphicsDeviceManager.PreferMultiSampling = game.Settings.MultisamplingCount > 0;
             GraphicsDeviceManager.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(GDM_PreparingDeviceSettings);
-
             currentScreen = Screen.PrimaryScreen;
             gameWindowOrigin = new System.Drawing.Point((currentScreen.WorkingArea.Right - gameWindowSize.Width) / 2, (currentScreen.WorkingArea.Bottom - gameWindowSize.Height) / 2);
             System.Drawing.Point tempGameWindowOrigin = gameWindowOrigin;
             SynchronizeGraphicsDeviceManager(game.Settings.FullScreen ?
                 game.Settings.NativeFullscreenResolution ? ScreenMode.FullscreenNativeResolution : ScreenMode.FullscreenPresetResolution
                 : ScreenMode.WindowedPresetResolution);
-
             //restore gameWindowOrigin which will be overriden when game started in Fullscreen ()
             gameWindowOrigin = tempGameWindowOrigin;
 
@@ -260,7 +258,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 SynchronizeGraphicsDeviceManager(currentScreenMode);
                 Viewer.DefaultViewport = GraphicsDevice.Viewport;
-
             }
         }
 
@@ -314,8 +311,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Profiler.Start();
             watchdogToken.Ping();
 
-            // Sort-of hack to allow the NVIDIA PerfHud to display correctly.
-            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            //// Sort-of hack to allow the NVIDIA PerfHud to display correctly.
+            //GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             CurrentFrame.IsScreenChanged = (DisplaySize.X != GraphicsDevice.Viewport.Width) || (DisplaySize.Y != GraphicsDevice.Viewport.Height);
             if (CurrentFrame.IsScreenChanged)
@@ -366,8 +363,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             //    ShadowPrimitiveCount[shadowMapIndex] = 0;
             //}
 
-            // Sort-of hack to allow the NVIDIA PerfHud to display correctly.
-            GraphicsDevice.DepthStencilState = DepthStencilState.None;
+            //// Sort-of hack to allow the NVIDIA PerfHud to display correctly.
+            //GraphicsDevice.DepthStencilState = DepthStencilState.None;
 
             Profiler.Stop();
         }

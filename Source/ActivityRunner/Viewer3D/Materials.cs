@@ -1318,9 +1318,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void SetState(Material previousMaterial)
         {
-            var scaling = (float)graphicsDevice.PresentationParameters.BackBufferHeight / Viewer.RenderProcess.GraphicsDeviceManager.PreferredBackBufferHeight;
-            Vector3 screenScaling = new Vector3(scaling);
-            SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null, Matrix.CreateScale(scaling));
+            SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
             SpriteBatch.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         }
 
