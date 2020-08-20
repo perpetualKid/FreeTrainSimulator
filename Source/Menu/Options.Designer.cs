@@ -1965,6 +1965,7 @@
             this.labelBestVersion.Size = new System.Drawing.Size(24, 13);
             this.labelBestVersion.TabIndex = 35;
             this.labelBestVersion.Text = "n/a";
+            this.labelBestVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             // 
             // labelBestVersionDesc
             // 
@@ -2001,6 +2002,7 @@
             this.labelChannelVersion.Size = new System.Drawing.Size(24, 13);
             this.labelChannelVersion.TabIndex = 33;
             this.labelChannelVersion.Text = "n/a";
+            this.labelChannelVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             // 
             // buttonUpdatesRefresh
             // 
@@ -2008,7 +2010,8 @@
             this.buttonUpdatesRefresh.Name = "buttonUpdatesRefresh";
             this.buttonUpdatesRefresh.Size = new System.Drawing.Size(23, 23);
             this.buttonUpdatesRefresh.TabIndex = 30;
-            this.buttonUpdatesRefresh.Text = "button1";
+            this.buttonUpdatesRefresh.Font = new System.Drawing.Font("Wingdings 3", 14F); 
+            this.buttonUpdatesRefresh.Text = char.ConvertFromUtf32(81);
             this.buttonUpdatesRefresh.UseVisualStyleBackColor = true;
             this.buttonUpdatesRefresh.Click += new System.EventHandler(this.ButtonUpdatesRefresh_Click);
             // 
