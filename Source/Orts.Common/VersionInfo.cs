@@ -96,59 +96,34 @@ namespace Orts.Common
         /// <summary>
         /// Searchs the list of availableVersions for all upgrade options against the current version, 
         /// filtered to allow only targetChannel or higher prereleases and releases
-        /// The result is sorted in descending order to the most appropriate version first
+        /// The result is sorted in descending order to get the most appropriate version first
         /// </summary>
-        internal static List<NuGetVersion>SelectSuitableVersions(List<string> availableVersions, string targetChannel)
-        {
-            if (availableVersions == null)
-                throw new ArgumentNullException(nameof(availableVersions));
-
-            List<NuGetVersion> result = new List<NuGetVersion>();
-            foreach(string versionString in availableVersions)
-            {
-                if (NuGetVersion.TryParse(versionString, out NuGetVersion parsedVersion))
-                    result.Add(parsedVersion);
-            }
-            //compare against the current version
-            IEnumerable<NuGetVersion> selection = result.Where((version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0);
-            //filter the versions against the target channel
-            selection = selection.Where((version) =>
-            {
-                List<string> releaseLabels = null;
-                if (targetChannel == releaseChannelName)
-                    return (!version.IsPrerelease);
-                else
-                {
-                    if (version.IsPrerelease)
-                    {
-                        releaseLabels = version.ReleaseLabels.ToList();
-                        releaseLabels[0] = targetChannel;
-                    }
-                }
-                SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
-                return VersionComparer.VersionRelease.Compare(version, other) >= 0;
-            });
-            return selection.OrderByDescending((v) => v).ToList();
-        }
-
         internal static List<NuGetVersion> SelectSuitableVersions(List<string> availableVersions, string targetVersion, string targetChannel)
         {
             if (availableVersions == null)
                 throw new ArgumentNullException(nameof(availableVersions));
 
-            if (!NuGetVersion.TryParse(targetVersion, out NuGetVersion target))
-                throw new ArgumentException($"{targetVersion} is not a valid version for parameter {nameof(targetVersion)}");
-
             List<NuGetVersion> result = new List<NuGetVersion>();
+            IEnumerable<NuGetVersion> selection;
             foreach (string versionString in availableVersions)
             {
                 if (NuGetVersion.TryParse(versionString, out NuGetVersion parsedVersion))
                     result.Add(parsedVersion);
             }
-            //compare against the current version
-            IEnumerable<NuGetVersion> selection = result.Where(
-                (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0 &&
-                VersionComparer.VersionRelease.Compare(version, target) <= 0);
+            if (!string.IsNullOrEmpty(targetVersion))
+            {
+                if (!NuGetVersion.TryParse(targetVersion, out NuGetVersion target))
+                    throw new ArgumentException($"{targetVersion} is not a valid version for parameter {nameof(targetVersion)}");
+                //compare against the current version and the target version
+                selection = result.Where(
+                    (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0 &&
+                    VersionComparer.VersionRelease.Compare(version, target) <= 0);
+            }
+            else 
+            {
+                //compare against the current version
+                selection = result.Where((version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0);
+            }
 
             //filter the versions against the target channel
             selection = selection.Where((version) =>
@@ -170,13 +145,7 @@ namespace Orts.Common
             return selection.OrderByDescending((v) => v).ToList();
         }
 
-        public static string SelectSuitableVersion(List<string> availableVersions, string targetChannel)
-        {
-            List<NuGetVersion> versions = SelectSuitableVersions(availableVersions, targetChannel);
-            return versions?.FirstOrDefault()?.ToNormalizedString();
-        }
-
-        public static string SelectSuitableVersion(List<string> availableVersions, string targetVersion, string targetChannel)
+        public static string SelectSuitableVersion(List<string> availableVersions, string targetChannel, string targetVersion = "")
         {
             List<NuGetVersion> versions = SelectSuitableVersions(availableVersions, targetVersion, targetChannel);
             return versions?.FirstOrDefault()?.ToNormalizedString();

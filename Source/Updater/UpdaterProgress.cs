@@ -21,7 +21,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,6 +50,7 @@ namespace Orts.Updater
 
             settings = new UserSettings();
             LoadLanguage();
+            BringToFront();
         }
 
         private void LoadLanguage()
@@ -61,7 +61,7 @@ namespace Orts.Updater
                 {
                     CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(settings.Language);
                 }
-                catch (ArgumentException) {  }
+                catch (ArgumentException) { }
             }
 
             Localizer.Localize(this, catalog);
@@ -82,7 +82,7 @@ namespace Orts.Updater
         private static void RunWithElevation()
         {
             // Remove /ELEVATE= command-line flags from the child process
-            var processInfo = new ProcessStartInfo(Application.ExecutablePath, 
+            var processInfo = new ProcessStartInfo(Application.ExecutablePath,
                 string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Where(a => !a.StartsWith(UpdateManager.ElevationCommandLine, StringComparison.OrdinalIgnoreCase)).ToArray()))
             {
                 Verb = "runas"
@@ -98,7 +98,7 @@ namespace Orts.Updater
             // We wait for any processes identified by /WAITPID=<pid> to exit before starting up so that the updater
             // will not try and apply an update whilst the previous instance is still lingering.
             List<Task> waitList = new List<Task>();
-            
+
             var waitPids = Environment.GetCommandLineArgs().Where(a => a.StartsWith(UpdateManager.WaitProcessIdCommandLine, StringComparison.OrdinalIgnoreCase));
             foreach (string waitPid in waitPids)
             {
@@ -137,7 +137,7 @@ namespace Orts.Updater
                 await updateManager.RefreshUpdateInfo(Common.UpdateCheckFrequency.Always).ConfigureAwait(false);
 
                 string suitableVersion = updateManager.GetBestAvailableVersion(targetVersion, targetChannelName);
-                
+
                 ChannelInfo channelInfo = updateManager.GetChannelInfoByVersion(suitableVersion);
 
                 Invoke((Action)(() =>
@@ -147,7 +147,7 @@ namespace Orts.Updater
                 Application.DoEvents();
 
                 await updateManager.ApplyUpdateAsync(channelInfo, cts.Token).ConfigureAwait(false);
-//                await RelaunchApplicationAsync().ConfigureAwait(false);
+                //                await RelaunchApplicationAsync().ConfigureAwait(false);
             }
             catch (Exception exception)
             {
@@ -175,7 +175,7 @@ namespace Orts.Updater
             {
                 await RelaunchApplicationAsync().ConfigureAwait(false);
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 if (!IsDisposed)
                 {

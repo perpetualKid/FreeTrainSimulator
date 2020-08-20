@@ -11,13 +11,13 @@ namespace Orts.Updater
     [Description("UpdateChannel")]
     public enum UpdateChannel
     {
-        [Description("Continous integration builds which may contain serious defects. For developers only.")] 
+        [Description("Continous integration builds which may contain serious defects. For developers only.")]
         ci,
-        [Description("Regular development builds")] 
+        [Description("Regular development builds")]
         dev,
-        [Description("Infrequent updates to official, hand-picked versions. Recommended for most users.")] 
+        [Description("Infrequent updates to official, hand-picked versions. Recommended for most users.")]
         rc,
-        [Description("Stable release versions")] 
+        [Description("Stable release versions")]
         release,
         [Description("Reverting to Official Open Rails. If updating to this version, " +
             "you can not use the updater to change back to OR MG Ultimate, " +

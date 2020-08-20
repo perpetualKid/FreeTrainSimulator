@@ -56,7 +56,7 @@ namespace Orts.Updater
         private static string PathUpdateDirty => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateDirty");
         private static string PathUpdateStage => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateStage");
         private static string PathDocumentation => Path.Combine(RuntimeInfo.ApplicationFolder, "Documentation");
-        private static string PathUpdateDocumentation => Path.Combine(PathUpdateStage, "Documentation"); 
+        private static string PathUpdateDocumentation => Path.Combine(PathUpdateStage, "Documentation");
         private static string FileUpdateStage => Path.Combine(PathUpdateStage, "Update.zip");
         private static string FileSettings => Path.Combine(RuntimeInfo.ApplicationFolder, "OpenRails.ini");
         private static string FileUpdater => Path.Combine(RuntimeInfo.ApplicationFolder, "Updater.exe");
@@ -68,7 +68,7 @@ namespace Orts.Updater
         private UpdateChannels channels;
         private readonly UserSettings settings;
 
-        private static string UserAgent =>$"{RuntimeInfo.ProductName}/{VersionInfo.Version}";
+        private static string UserAgent => $"{RuntimeInfo.ProductName}/{VersionInfo.Version}";
 
         public UpdateManager(UserSettings settings)
         {
@@ -159,15 +159,7 @@ namespace Orts.Updater
         {
             var availableVersions = channels.Channels.Select(channel => channel.NormalizedVersion).ToList();
 
-            string version;
-            if (string.IsNullOrEmpty(targetVersion))
-                if (string.IsNullOrEmpty(targetChannel))
-                    version = VersionInfo.SelectSuitableVersion(availableVersions, settings.UpdateChannel);
-                else
-                    version = VersionInfo.SelectSuitableVersion(availableVersions, targetChannel);
-            else
-                version = VersionInfo.SelectSuitableVersion(availableVersions, targetVersion, targetChannel);
-            return version;
+            return VersionInfo.SelectSuitableVersion(availableVersions, string.IsNullOrEmpty(targetChannel) ? settings.UpdateChannel : targetChannel, targetVersion);
         }
 
         public Task RunUpdateProcess()
@@ -477,9 +469,9 @@ namespace Orts.Updater
             }
 
             try { source.Delete(); }
-            catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException || ex is DirectoryNotFoundException) 
-            { 
-                Trace.TraceWarning($"{sourceDirName} :: {ex.Message} {ex.InnerException?.Message}"); 
+            catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException || ex is DirectoryNotFoundException)
+            {
+                Trace.TraceWarning($"{sourceDirName} :: {ex.Message} {ex.InnerException?.Message}");
             };
             return Task.CompletedTask;
         }
