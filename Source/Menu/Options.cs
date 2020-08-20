@@ -17,11 +17,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -317,7 +317,7 @@ namespace Orts.Menu
         private void ButtonOK_Click(object sender, EventArgs e)
         {
             var result = settings.Input.CheckForErrors();
-            if (result != "" && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, Application.ProductName, MessageBoxButtons.YesNo))
+            if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, Application.ProductName, MessageBoxButtons.YesNo))
                 return;
 
             result = CheckButtonAssignments();
@@ -363,7 +363,7 @@ namespace Orts.Menu
             settings.DistantMountainsViewingDistance = (int)numericDistantMountainsViewingDistance.Value * 1000;
             settings.ViewingFOV = (int)numericViewingFOV.Value;
             settings.WorldObjectDensity = (int)numericWorldObjectDensity.Value;
-            settings.WindowSize = GetValidWindowSize(comboWindowSize);
+            settings.WindowSize = GetValidWindowSize(comboWindowSize.Text);
 
             settings.DayAmbientLight = (int)trackDayAmbientLight.Value;
             settings.DoubleWire = checkDoubleWire.Checked;
@@ -449,14 +449,13 @@ namespace Orts.Menu
         /// <summary>
         /// Returns user's [width]x[height] if expression is valid and values are sane, else returns previous value of setting.
         /// </summary>
-        private string GetValidWindowSize(ComboBox comboWindowSize)
+        private string GetValidWindowSize(string text)
         {
-            // "1024X780" instead of "1024x780" then "Start" resulted in an immediate return to the Menu with no OpenRailsLog.txt and a baffled user.
-            var sizeArray = comboWindowSize.Text.ToLower().Replace(" ", "").Split('x');
-            if (sizeArray.Count() == 2)
-                if (int.TryParse(sizeArray[0], out int width) && int.TryParse(sizeArray[1], out int height))
-                    if ((100 < width && width < 10000) && (100 < height && height < 100000)) // sanity check
-                        return $"{width}x{height}";
+            var match = Regex.Match(text, @"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$");//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
+            if (match.Success)
+            {
+                return $"{match.Groups[1]}x{match.Groups[2]}";
+            }
             return settings.WindowSize; // i.e. no change or message. Just ignore non-numeric entries
         }
 
@@ -467,14 +466,14 @@ namespace Orts.Menu
 
         private void TrackBarDayAmbientLight_Scroll(object sender, EventArgs e)
         {
-            toolTip1.SetToolTip(trackDayAmbientLight, (trackDayAmbientLight.Value * 5).ToString() + " %");
+            toolTip1.SetToolTip(trackDayAmbientLight, $"{trackDayAmbientLight.Value * 5}%");
         }
 
         private void TrackAdhesionFactor_ValueChanged(object sender, EventArgs e)
         {
             SetAdhesionLevelValue();
-            AdhesionFactorValueLabel.Text = trackAdhesionFactor.Value.ToString() + "%";
-            AdhesionFactorChangeValueLabel.Text = trackAdhesionFactorChange.Value.ToString() + "%";
+            AdhesionFactorValueLabel.Text = $"{trackAdhesionFactor.Value}%";
+            AdhesionFactorChangeValueLabel.Text = $"{ trackAdhesionFactorChange.Value}%";
         }
 
         private void SetAdhesionLevelValue()
