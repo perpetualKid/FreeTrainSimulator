@@ -89,7 +89,7 @@ namespace Orts.Common
         public static int Compare(string version)
         {
             if (!NuGetVersion.TryParse(version, out NuGetVersion result))
-                return -1;
+                return 1;
             return CurrentVersion.CompareTo(result);
         }
 
@@ -110,7 +110,7 @@ namespace Orts.Common
                     result.Add(parsedVersion);
             }
             //compare against the current version
-            IEnumerable<NuGetVersion> selection = result.Where((version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) >= 0);
+            IEnumerable<NuGetVersion> selection = result.Where((version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0);
             //filter the versions against the target channel
             selection = selection.Where((version) =>
             {
@@ -128,10 +128,7 @@ namespace Orts.Common
                 SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
                 return VersionComparer.VersionRelease.Compare(version, other) >= 0;
             });
-            result = selection.ToList();
-            result.Sort();
-            result.Reverse();
-            return result;
+            return selection.OrderByDescending((v) => v).ToList();
         }
 
         internal static List<NuGetVersion> SelectSuitableVersions(List<string> availableVersions, string targetVersion, string targetChannel)
@@ -150,7 +147,7 @@ namespace Orts.Common
             }
             //compare against the current version
             IEnumerable<NuGetVersion> selection = result.Where(
-                (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) >= 0 &&
+                (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0 &&
                 VersionComparer.VersionRelease.Compare(version, target) <= 0);
 
             //filter the versions against the target channel
@@ -170,10 +167,7 @@ namespace Orts.Common
                 SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
                 return VersionComparer.VersionRelease.Compare(version, other) >= 0;
             });
-            result = selection.ToList();
-            result.Sort();
-            result.Reverse();
-            return result;
+            return selection.OrderByDescending((v) => v).ToList();
         }
 
         public static string SelectSuitableVersion(List<string> availableVersions, string targetChannel)

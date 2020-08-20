@@ -32,5 +32,26 @@ namespace Tests.Orts.Common
             Assert.IsFalse(string.IsNullOrEmpty(VersionInfo.Build));
         }
 
+        [TestMethod()]
+        public void CompareTest()
+        {
+            Assert.AreEqual(1, VersionInfo.Compare("0"));   //Passing invalid version, so the current version should in each case be ahead
+            Assert.AreEqual(1, VersionInfo.Compare(MinVersion().ToNormalizedString()));
+            Assert.AreEqual(0, VersionInfo.Compare(VersionInfo.CurrentVersion.ToNormalizedString()));
+            Assert.AreEqual(-1, VersionInfo.Compare(NextVersion().ToNormalizedString()));
+        }
+
+        private static NuGetVersion MinVersion()
+        {
+            return new NuGetVersion(0, 0, 0);
+
+        }
+
+        private static NuGetVersion NextVersion()
+        {
+            NuGetVersion current = VersionInfo.CurrentVersion;
+            return new NuGetVersion(current.Major, current.Minor, current.Patch + 1, current.Release);
+
+        }
     }
 }
