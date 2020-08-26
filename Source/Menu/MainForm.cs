@@ -1344,14 +1344,18 @@ namespace Orts.Menu
                 if (SelectedTimetableSet != null)
                 {
                     AddDetailToShow(catalog.GetString("Timetable set: {0}", SelectedTimetableSet), string.Empty);
+                    // Description not shown as no description is available for a timetable set.
                 }
+
                 if (SelectedTimetable != null)
                 {
-                    AddDetailToShow(catalog.GetString("Timetable: {0}", SelectedTimetable), string.Empty);
+                    AddDetailToShow(catalog.GetString("Timetable: {0}", SelectedTimetable), SelectedTimetable.Briefing);
                 }
                 if (SelectedTimetableTrain != null)
                 {
-                    AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTime));
+                    //AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTime));
+                    AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), SelectedTimetableTrain.Briefing);
+
                     if (SelectedTimetableConsist != null)
                     {
                         AddDetailToShow(catalog.GetString("Consist: {0}", SelectedTimetableConsist.Name), string.Empty);
