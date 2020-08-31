@@ -1353,8 +1353,10 @@ namespace Orts.Menu
                 }
                 if (SelectedTimetableTrain != null)
                 {
-                    //AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTime));
-                    AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), SelectedTimetableTrain.Briefing);
+                    if (string.IsNullOrEmpty(SelectedTimetableTrain.Briefing))
+                    AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTimeCleaned));
+                    else
+                        AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTimeCleaned) + $"\n{SelectedTimetableTrain.Briefing}");
 
                     if (SelectedTimetableConsist != null)
                     {

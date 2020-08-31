@@ -28,6 +28,15 @@ namespace Orts.Formats.OR.Models
             return string.Compare(Train, otherInfo?.Train, StringComparison.OrdinalIgnoreCase);
         }
 
+        public string StartTimeCleaned
+        {
+            get
+            {
+                int split = StartTime.IndexOf('$');
+                return split > -1 ? StartTime.Substring(0, StartTime.IndexOf('$')) : StartTime;
+            }
+        }
+
         public override string ToString()
         {
             return Train;

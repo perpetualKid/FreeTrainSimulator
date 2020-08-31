@@ -170,7 +170,7 @@ namespace Orts.Formats.OR.Files
                         briefingFound = true;
                         Briefing = parts[1];
                         foreach (TrainInformation train in Trains)
-                            train.Briefing = parts[train.Column];
+                            train.Briefing = parts[train.Column].Replace("<br>", "\n");
                     }
                 }
                 readLine = scrStream.ReadLine();
