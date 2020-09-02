@@ -134,6 +134,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                                 epState = -1;
                             }
                             break;
+                        case ControllerState.ManualBraking:
                         case ControllerState.VacContServ:
                             // Continuous service positions for vacuum brakes - allows brake to be adjusted up and down continuously between the ON and OFF position
                             pressureBar = (1 - x) * MaxPressureBar();
@@ -201,6 +202,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     case ControllerState.FullServ:
                         pressureBar = IncreasePressure(pressureBar, x * (MaxPressureBar() - FullServReductionBar()), ApplyRateBarpS(), elapsedClockSeconds);
                         break;
+                    case ControllerState.ManualBraking:
                     case ControllerState.VacContServ:
                     // Continuous service positions for vacuum brakes - allows brake to be adjusted up and down continuously between the ON and OFF position
                         pressureBar = (1 - x) * MaxPressureBar();

@@ -151,6 +151,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             UserInputCommands.Add(UserCommand.ControlTrainBrakeZero, new Action[] { Noop, () => Locomotive.StartTrainBrakeDecrease(0, true) });
             UserInputCommands.Add(UserCommand.ControlEngineBrakeIncrease, new Action[] { () => Locomotive.StopEngineBrakeIncrease(), () => Locomotive.StartEngineBrakeIncrease(null) });
             UserInputCommands.Add(UserCommand.ControlEngineBrakeDecrease, new Action[] { () => Locomotive.StopEngineBrakeDecrease(), () => Locomotive.StartEngineBrakeDecrease(null) });
+            UserInputCommands.Add(UserCommand.ControlBrakemanBrakeIncrease, new Action[] { () => Locomotive.StopBrakemanBrakeIncrease(), () => Locomotive.StartBrakemanBrakeIncrease(null) });
+            UserInputCommands.Add(UserCommand.ControlBrakemanBrakeDecrease, new Action[] { () => Locomotive.StopBrakemanBrakeDecrease(), () => Locomotive.StartBrakemanBrakeDecrease(null) });
             UserInputCommands.Add(UserCommand.ControlDynamicBrakeIncrease, new Action[] { () => Locomotive.StopDynamicBrakeIncrease(), () => Locomotive.StartDynamicBrakeIncrease(null) });
             UserInputCommands.Add(UserCommand.ControlDynamicBrakeDecrease, new Action[] { () => Locomotive.StopDynamicBrakeDecrease(), () => Locomotive.StartDynamicBrakeDecrease(null) });
             UserInputCommands.Add(UserCommand.ControlSteamHeatIncrease, new Action[] { () => Locomotive.StopSteamHeatIncrease(), () => Locomotive.StartSteamHeatIncrease(null) });
@@ -219,6 +221,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     Locomotive.SetThrottlePercentWithSound(UserInput.Raildriver.ThrottlePercent);
                     Locomotive.SetTrainBrakePercent(UserInput.Raildriver.TrainBrakePercent);
                     Locomotive.SetEngineBrakePercent(UserInput.Raildriver.EngineBrakePercent);
+                    //    Locomotive.SetBrakemanBrakePercent(UserInput.Raildriver.BrakemanBrakePercent); // For Raildriver control not complete for this value?
                     Locomotive.SetBailOff(UserInput.Raildriver.BailOff);
                     if (Locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
                         Locomotive.SetDynamicBrakePercentWithSound(UserInput.Raildriver.DynamicBrakePercent);
@@ -1786,6 +1789,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             switch (ControlDiscrete.ControlType)
             {
                 case CabViewControlType.Engine_Brake:
+                case CabViewControlType.Brakeman_Brake:
                 case CabViewControlType.Train_Brake:
                 case CabViewControlType.Regulator:
                 case CabViewControlType.CutOff:
@@ -1990,6 +1994,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Regulator:
                 case CabViewControlType.Throttle: Locomotive.SetThrottleValue(ChangedValue(Locomotive.ThrottleController.IntermediateValue)); break;
                 case CabViewControlType.Engine_Brake: Locomotive.SetEngineBrakeValue(ChangedValue(Locomotive.EngineBrakeController.IntermediateValue)); break;
+                case CABViewControlType.Brakeman_Brake: Locomotive.SetBrakemanBrakeValue(ChangedValue(Locomotive.BrakemanBrakeController.IntermediateValue)); break;
                 case CabViewControlType.Train_Brake: Locomotive.SetTrainBrakeValue(ChangedValue(Locomotive.TrainBrakeController.IntermediateValue)); break;
                 case CabViewControlType.Dynamic_Brake: Locomotive.SetDynamicBrakeValue(ChangedValue(Locomotive.DynamicBrakeController.IntermediateValue)); break;
                 case CabViewControlType.Gears: Locomotive.SetGearBoxValue(ChangedValue(Locomotive.GearBoxController.IntermediateValue)); break;
