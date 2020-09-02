@@ -217,9 +217,6 @@ namespace Orts.Updater
                 process.Dispose();
             }
 
-            process.EnableRaisingEvents = true;
-            process.Exited += Process_Exited;
-
             try
             {
                 if (process.HasExited)
@@ -227,6 +224,8 @@ namespace Orts.Updater
                     process.Close();
                     return;
                 }
+                process.EnableRaisingEvents = true;
+                process.Exited += Process_Exited;
                 using (cancellationToken.Register(() => tcs.TrySetCanceled()))
                 {
                     await tcs.Task.ConfigureAwait(false);
