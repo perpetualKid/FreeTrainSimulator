@@ -2380,7 +2380,8 @@ namespace Tests.Orts.Formats.Msts.Parsers
                 reader.SkipRestOfBlock();
                 Assert.AreEqual("wagon(lights()", reader.Tree.ToLower());
 
-                reader.ReadItem();
+                if (reader.ReadItem() == STFReader.EndBlockCommentSentinel)
+                    reader.ReadItem();
                 reader.ReadItem();
                 Assert.AreEqual("wagon(sound", reader.Tree.ToLower());
                 Assert.AreEqual("test.sms", reader.ReadStringBlock(""));

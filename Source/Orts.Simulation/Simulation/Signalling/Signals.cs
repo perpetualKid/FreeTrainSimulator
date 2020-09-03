@@ -11997,7 +11997,7 @@ namespace Orts.Simulation.Signalling
         /// Test if train has call-on set
         /// </summary>
 
-        public bool TrainHasCallOn(bool allowOnNonePlatform, string dumpfile)
+        public bool TrainHasCallOn(bool allowOnNonePlatform, bool allowAdvancedSignal, string dumpfile)
         {
             // no train approaching
             if (enabledTrain == null)
@@ -12011,8 +12011,10 @@ namespace Orts.Simulation.Signalling
             }
 
             // signal is not first signal for train
-            if (enabledTrain.Train.NextSignalObject[enabledTrain.TrainRouteDirectionIndex] != null &&
-                enabledTrain.Train.NextSignalObject[enabledTrain.TrainRouteDirectionIndex].thisRef != thisRef)
+            var nextSignal = enabledTrain.Train.NextSignalObject[enabledTrain.TrainRouteDirectionIndex];
+
+            if (!allowAdvancedSignal &&
+               nextSignal != null && nextSignal.thisRef != thisRef)
             {
                 if (!String.IsNullOrEmpty(dumpfile))
                 {
@@ -15078,4 +15080,3 @@ namespace Orts.Simulation.Signalling
     }
 
 }
-

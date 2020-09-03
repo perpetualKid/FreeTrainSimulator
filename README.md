@@ -1,5 +1,7 @@
 [![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/ORTS-MG%20Master%20Release?branchName=master)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=1&branchName=master)
 
+Downloads ![GitHub All Releases](https://img.shields.io/github/downloads/perpetualKid/orts-mg/total?style=plastic)
+
 # [OpenRails Train Simulator](http://openrails.org/)
 
 Updated version for MonoGame 3.7.1 and RailDriver<br> 

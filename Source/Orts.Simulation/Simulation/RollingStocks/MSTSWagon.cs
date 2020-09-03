@@ -52,6 +52,7 @@ using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
+using System.Linq;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -450,7 +451,6 @@ namespace Orts.Simulation.RollingStocks
             MaxHandbrakeForceN = InitialMaxHandbrakeForceN;
             MaxBrakeForceN = InitialMaxBrakeForceN;
             CentreOfGravityM = InitialCentreOfGravityM;
-            IsDavisFriction = DavisAN != 0 && DavisBNSpM != 0 && DavisCNSSpMM != 0; // test to see if OR thinks that Davis Values have been entered in WG file.
 
             if (FreightAnimations != null)
             {
@@ -798,6 +798,9 @@ namespace Orts.Simulation.RollingStocks
 #endif
 
             }
+
+            // Determine whether or not to use the Davis friction model. Must come after freight animations are initialized.
+            IsDavisFriction = DavisAN != 0 && DavisBNSpM != 0 && DavisCNSSpMM != 0;
 
             if (BrakeSystem == null)
                 BrakeSystem = MSTSBrakeSystem.Create(CarBrakeSystemType, this);
@@ -1485,12 +1488,7 @@ namespace Orts.Simulation.RollingStocks
             MassKG = inf.ReadSingle();
             MaxBrakeForceN = inf.ReadSingle();
             MaxHandbrakeForceN = inf.ReadSingle();
-            int n = inf.ReadInt32();
-            for (int i = 0; i < n; i++)
-            {
-                Couplers.Add(new MSTSCoupling());
-                Couplers[i].Restore(inf);
-            }
+            Couplers = ReadCouplersFromSave(inf);
             Pantographs.Restore(inf);
             if (FreightAnimations != null)
             {
@@ -1510,6 +1508,19 @@ namespace Orts.Simulation.RollingStocks
 
             // always set aux power on due to error in PowerSupplyClass
             AuxPowerOn = true;
+        }
+
+        private static List<MSTSCoupling> ReadCouplersFromSave(BinaryReader inf)
+        {
+            List<MSTSCoupling> result = new List<MSTSCoupling>();
+            int couplers = inf.ReadInt32();
+            for (int i = 0; i < couplers; i++)
+            {
+                var coupler = new MSTSCoupling();
+                coupler.Restore(inf);
+                result.Add(coupler);
+            }
+            return result;
         }
 
         public override void Update(double elapsedClockSeconds)
