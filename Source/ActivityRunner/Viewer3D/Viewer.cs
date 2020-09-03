@@ -1536,7 +1536,9 @@ namespace Orts.ActivityRunner.Viewer3D
             PlayerLocomotiveViewer = World.Trains.GetViewer(Simulator.PlayerLocomotive);
             if (PlayerLocomotiveViewer is MSTSLocomotiveViewer && (PlayerLocomotiveViewer as MSTSLocomotiveViewer)._hasCabRenderer)
                 AdjustCabHeight(DisplaySize.X, DisplaySize.Y);
-            Camera.Activate(); // If you need anything else here the cameras should check for it.        
+            if (!Simulator.PlayerLocomotive.HasFront3DCab && !Simulator.PlayerLocomotive.HasRear3DCab)
+                CabCamera.Activate(); // If you need anything else here the cameras should check for it.
+            else ThreeDimCabCamera.Activate();
             SetCommandReceivers();
             ThreeDimCabCamera.ChangeCab(Simulator.PlayerLocomotive);
             HeadOutForwardCamera.ChangeCab(Simulator.PlayerLocomotive);
