@@ -312,6 +312,21 @@
     <Content Include="Content\Web\or_logo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\Web\TrackMonitorTrainDriving\index.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Web\TrackMonitorTrainDriving\index.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Web\TrackMonitorTrainDriving\index.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Web\TrackMonitorTrainDriving\SignalAspects.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Web\TrackMonitorTrainDriving\TrackMonitorImages.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\Web\TrackMonitor\index.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -354,12 +369,6 @@
     <Content Include="Version.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Viewer3D\WebServices\Web\TrackMonitor\SignalAspects.png" />
-    <Content Include="Viewer3D\WebServices\Web\TrackMonitor\TrackMonitorImages.png" />
-    <Content Include="Viewer3D\WebServices\Web\TrainDriving\index.css" />
-    <Content Include="Viewer3D\WebServices\Web\TrainDriving\index.html" />
-    <Content Include="Viewer3D\WebServices\Web\TrainDriving\index.js" />
-    <Content Include="Viewer3D\WebServices\Web\TrackMonitor\index.css" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj">
