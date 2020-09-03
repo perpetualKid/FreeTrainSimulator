@@ -1,6 +1,4 @@
-Master ![Azure DevOps builds](https://img.shields.io/azure-devops/build/perpetualKid/283d8d46-b3e8-423b-b1fc-4cf79c2aff85/1?style=plastic) ![Azure DevOps tests](https://img.shields.io/azure-devops/tests/perpetualKid/283d8d46-b3e8-423b-b1fc-4cf79c2aff85/1?style=plastic)
-
-Core ![Azure DevOps builds](https://img.shields.io/azure-devops/build/perpetualKid/283d8d46-b3e8-423b-b1fc-4cf79c2aff85/8?style=plastic) ![Azure DevOps tests](https://img.shields.io/azure-devops/tests/perpetualKid/283d8d46-b3e8-423b-b1fc-4cf79c2aff85/8?style=plastic)
+[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/ORTS-MG%20Master%20Release?branchName=master)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=1&branchName=master)
 
 Downloads ![GitHub All Releases](https://img.shields.io/github/downloads/perpetualKid/orts-mg/total?style=plastic)
 
