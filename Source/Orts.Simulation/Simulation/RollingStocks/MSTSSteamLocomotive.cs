@@ -201,7 +201,6 @@ namespace Orts.Simulation.RollingStocks
         public float CylinderSteamUsageLBpS;
         public float NewCylinderSteamUsageLBpS;
         public float BlowerSteamUsageLBpS;
-        public float BoilerPressurePSI;     // Gauge pressure - what the engineer sees.
         public float EvaporationLBpS;          // steam generation rate
         public float FireMassKG;      // Mass of coal currently on grate area
         public float FireRatio;     // Ratio of actual firemass to ideal firemass
@@ -215,7 +214,6 @@ namespace Orts.Simulation.RollingStocks
 
         // eng file configuration parameters
 
-        float MaxBoilerPressurePSI = 180f;  // maximum boiler pressure, safety valve setting
         float BoilerVolumeFT3;      // total space in boiler that can hold water and steam
         int NumCylinders = 2;       // Number of Cylinders
         float CylinderStrokeM;      // High pressure cylinders

@@ -1008,7 +1008,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 hudWindowLocoPagesCount = 0;
                 int n = train.Cars.Count;
 
-            // Different display depending upon whether vacuum braked or air braked
+            // Different display depending upon whether vacuum braked, manual braked or air braked
             for (var i = 0; i < n; i++)
             {
                 var car = train.Cars[i];
@@ -1036,6 +1036,33 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         //Add new header data here, if addining additional column.
 
                         ));
+                }
+                else if (car.BrakeSystem is ManualBraking)
+                {
+                    statusHeader.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}",
+                        //0
+                        Viewer.Catalog.GetString("Car"),
+                        //1
+                        Viewer.Catalog.GetString("Type"),
+                        //2
+                        Viewer.Catalog.GetString("Brk"),
+                        //3
+                        Viewer.Catalog.GetString(""),
+                        //4
+                        Viewer.Catalog.GetString(""),
+                        //5
+                        Viewer.Catalog.GetString(""),
+                        //6
+                        Viewer.Catalog.GetString(""),
+                        //7
+                        Viewer.Catalog.GetString(""),
+                        //8
+                        Viewer.Catalog.GetString(""),
+                        //9
+                        Viewer.Catalog.GetString(""),
+                        //10
+                        Viewer.Catalog.GetString("Handbrk")
+                    ));
                 }
                 else // default air braked
                 {
