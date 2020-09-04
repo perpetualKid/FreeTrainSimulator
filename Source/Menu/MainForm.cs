@@ -930,7 +930,7 @@ namespace Orts.Menu
             }
             catch (TaskCanceledException)
             {
-                activities = new Activity[0];
+                activities = Array.Empty<Activity>();
             }
             ShowActivityList();
         }
