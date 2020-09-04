@@ -10,7 +10,7 @@ trigger:
 # no PR triggers
 pr: none
 
-steps:
+jobs:
 - template: azure-pipelines_MG.Core.template.yml
   parameters:
     channelName: "CI"
