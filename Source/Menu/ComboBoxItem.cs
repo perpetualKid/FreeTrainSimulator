@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
+using GetText;
+
 using Orts.Common;
 
 namespace Orts.Menu
@@ -55,14 +57,24 @@ namespace Orts.Menu
                     }).ToList();
         }
 
+        public static IList<ComboBoxItem<int>> FromEnum<E>(ICatalog catalog) where E : Enum
+        {
+            string context = EnumExtension.EnumDescription<E>();
+            return (from data in EnumExtension.GetValues<E>()
+                    select new ComboBoxItem<int>()
+                    {
+                        Key = Convert.ToInt32(data, System.Globalization.CultureInfo.InvariantCulture),
+                        Value = string.IsNullOrEmpty(context) ? catalog.GetString(data.GetDescription()) : catalog.GetParticularString(context, data.GetDescription())
+                    }).ToList();
+        }
+
         /// <summary>
         /// Prepares the combobox which property names to use for Key and Value display
         /// </summary>
         public static void SetDataSourceMembers(ComboBox comboBox)
         {
-            comboBox.DisplayMember = nameof(Value);
+            comboBox.DisplayMember = nameof(ComboBoxItem<T>.Value);
             comboBox.ValueMember = nameof(Key);
-
         }
     }
 }

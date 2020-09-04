@@ -29,6 +29,7 @@ using GetText;
 using GetText.WindowsForms;
 
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Formats.Msts;
 using Orts.Settings;
 using Orts.Updater;
@@ -54,8 +55,8 @@ namespace Orts.Menu
             // Collect all the available language codes by searching for
             // localisation files, but always include English (base language).
             var languageCodes = new List<string> { "en" };
-            foreach (var path in Directory.GetDirectories(Path.GetDirectoryName(Application.ExecutablePath)))
-                if (Directory.GetFiles(path, "*.Messages.resources.dll").Length > 0)
+            foreach (var path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
+                if (Directory.EnumerateFiles(path, "*.mo").Any())
                     languageCodes.Add(Path.GetFileName(path));
 
             // Turn the list of codes in to a list of code + name pairs for
@@ -67,7 +68,8 @@ namespace Orts.Menu
                 .ToList();
             ComboBoxItem<string>.SetDataSourceMembers(comboLanguage);
             comboLanguage.SelectedValue = this.settings.Language;
-            if (comboLanguage.SelectedValue == null) comboLanguage.SelectedIndex = 0;
+            if (comboLanguage.SelectedValue == null) 
+                comboLanguage.SelectedIndex = 0;
 
             comboBoxOtherUnits.DataSource = new[] {
                 new ComboBoxMember { Code = "Route", Name = catalog.GetString("Route") },

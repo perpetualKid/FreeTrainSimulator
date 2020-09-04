@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
+using Orts.Common.Info;
 
 namespace Orts.Menu
 {
@@ -155,13 +156,13 @@ namespace Orts.Menu
 
                     ProcessStartInfo processStartInfo = new ProcessStartInfo
                     {
-                        FileName = MainForm.RunActivityProgram,
+                        FileName = RuntimeInfo.ActivityRunnerExecutable,
                         Arguments = string.Join(" ", parameters),
                         WindowStyle = ProcessWindowStyle.Normal,
                         WorkingDirectory = Application.StartupPath
                     };
 
-                    var process = Process.Start(processStartInfo);
+                    Process process = Process.Start(processStartInfo);
                     process.WaitForExit();
                 }
             }

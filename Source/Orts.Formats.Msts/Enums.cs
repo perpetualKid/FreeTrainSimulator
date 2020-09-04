@@ -24,15 +24,17 @@ namespace Orts.Formats.Msts
 
     public enum SeasonType
     {
-        Spring = 0,
-        Summer,
-        Autumn,
-        Winter
+        [Description("Spring")] Spring = 0,
+        [Description("Summer")] Summer,
+        [Description("Autumn")] Autumn,
+        [Description("Winter")] Winter
     }
 
     public enum WeatherType
     {
-        Clear = 0, Snow, Rain
+        [Description("Clear")]  Clear = 0,
+        [Description("Snow")]   Snow,
+        [Description("Rain")]   Rain
     }
 
     public enum Difficulty

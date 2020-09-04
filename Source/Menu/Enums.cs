@@ -1,7 +1,7 @@
 ﻿namespace Orts.Menu
 {
     #region Menu_Selection enum
-    public enum Menu_SelectionIndex
+    public enum MenuSelectionIndex
     {
         // Base items
         Folder = 0,

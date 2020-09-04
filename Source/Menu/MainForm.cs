@@ -64,13 +64,13 @@ namespace Orts.Menu
 
         private bool initialized;
         private UserSettings settings;
-        private IEnumerable<Folder> folders = new Folder[0];
-        private IEnumerable<Route> routes = new Route[0];
-        private IEnumerable<Activity> activities = new Activity[0];
-        private IEnumerable<Consist> consists = new Consist[0];
-        private IEnumerable<Path> paths = new Path[0];
-        private IEnumerable<TimetableInfo> timetableSets = new TimetableInfo[0];
-        private IEnumerable<WeatherFileInfo> timetableWeatherFileSet = new WeatherFileInfo[0];
+        private IEnumerable<Folder> folders = Array.Empty<Folder>();
+        private IEnumerable<Route> routes = Array.Empty<Route>();
+        private IEnumerable<Activity> activities = Array.Empty<Activity>();
+        private IEnumerable<Consist> consists = Array.Empty<Consist>();
+        private IEnumerable<Path> paths = Array.Empty<Path>();
+        private IEnumerable<TimetableInfo> timetableSets = Array.Empty<TimetableInfo>();
+        private IEnumerable<WeatherFileInfo> timetableWeatherFileSet = Array.Empty<WeatherFileInfo>();
         private CancellationTokenSource ctsRouteLoading;
         private CancellationTokenSource ctsActivityLoading;
         private CancellationTokenSource ctsConsistLoading;
@@ -81,14 +81,6 @@ namespace Orts.Menu
         private UpdateManager updateManager;
         private readonly Image elevationIcon;
         private int detailUpdater;
-
-        internal string RunActivityProgram
-        {
-            get
-            {
-                return System.IO.Path.Combine(Application.StartupPath, "ActivityRunner.exe"); ;
-            }
-        }
 
         // Base items
         public Folder SelectedFolder { get { return (Folder)comboBoxFolder.SelectedItem; } }
@@ -110,13 +102,14 @@ namespace Orts.Menu
         public Path SelectedTimetablePath;
 
         // Shared items
-        public int SelectedStartSeason { get { return initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartSeason.SelectedItem as KeyedComboBoxItem).Key : (comboBoxTimetableSeason.SelectedItem as KeyedComboBoxItem).Key) : 0; } }
-        public int SelectedStartWeather { get { return initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartWeather.SelectedItem as KeyedComboBoxItem).Key : (comboBoxTimetableWeather.SelectedItem as KeyedComboBoxItem).Key) : 0; } }
+        public int SelectedStartSeason { get { return initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartSeason.SelectedItem as ComboBoxItem<int>).Key : (comboBoxTimetableSeason.SelectedItem as ComboBoxItem<int>).Key) : 0; } }
+        public int SelectedStartWeather { get { return initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartWeather.SelectedItem as ComboBoxItem<int>).Key : (comboBoxTimetableWeather.SelectedItem as ComboBoxItem<int>).Key) : 0; } }
 
         public string SelectedSaveFile { get; set; }
         public UserAction SelectedAction { get; set; }
 
-        private ICatalog catalog = new Catalog("Menu");
+        internal ICatalog catalog;
+        private ObjectPropertiesStore store = new ObjectPropertiesStore();
 
         #region Main Form
         public MainForm()
@@ -144,12 +137,34 @@ namespace Orts.Menu
                 elevationIcon = icon.ToBitmap();
         }
 
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                components?.Dispose();
+             
+                ctsRouteLoading?.Dispose();
+                ctsActivityLoading?.Dispose();
+                ctsConsistLoading?.Dispose();
+                ctsPathLoading?.Dispose(); ;
+                ctsTimeTableLoading?.Dispose();
+                elevationIcon?.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
         private async void MainForm_Shown(object sender, EventArgs e)
         {
-            var options = Environment.GetCommandLineArgs().Where(a => (a.StartsWith("-") || a.StartsWith("/"))).Select(a => a.Substring(1));
+            var options = Environment.GetCommandLineArgs().
+                Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
             settings = new UserSettings(options);
 
             updateManager = new UpdateManager(settings);
+
             List<Task> initTasks = new List<Task>
             {
                 LoadFolderListAsync()
@@ -163,17 +178,6 @@ namespace Orts.Menu
                 initTasks.Add(CheckForUpdateAsync());
                 initTasks.Add(LoadToolsAndDocuments());
 
-                var seasons = new[] {
-                    new KeyedComboBoxItem(0, catalog.GetString("Spring")),
-                    new KeyedComboBoxItem(1, catalog.GetString("Summer")),
-                    new KeyedComboBoxItem(2, catalog.GetString("Autumn")),
-                    new KeyedComboBoxItem(3, catalog.GetString("Winter")),
-                };
-                var weathers = new[] {
-                    new KeyedComboBoxItem(0, catalog.GetString("Clear")),
-                    new KeyedComboBoxItem(1, catalog.GetString("Snow")),
-                    new KeyedComboBoxItem(2, catalog.GetString("Rain")),
-                };
                 var difficulties = new[] {
                     catalog.GetString("Easy"),
                     catalog.GetString("Medium"),
@@ -190,12 +194,17 @@ namespace Orts.Menu
                     new KeyedComboBoxItem(6, catalog.GetString("Sunday")),
                 };
 
-                comboBoxStartSeason.Items.AddRange(seasons);
-                comboBoxStartWeather.Items.AddRange(weathers);
+                comboBoxStartSeason.DataSource = ComboBoxItem<int>.FromEnum<SeasonType>(catalog);
+                ComboBoxItem<int>.SetDataSourceMembers(comboBoxStartSeason);
+
+                comboBoxStartWeather.DataSource = ComboBoxItem<int>.FromEnum<WeatherType>(catalog);
+                ComboBoxItem<int>.SetDataSourceMembers(comboBoxStartWeather);
                 comboBoxDifficulty.Items.AddRange(difficulties);
 
-                comboBoxTimetableSeason.Items.AddRange(seasons);
-                comboBoxTimetableWeather.Items.AddRange(weathers);
+                comboBoxTimetableSeason.DataSource = ComboBoxItem<int>.FromEnum<SeasonType>(catalog);
+                ComboBoxItem<int>.SetDataSourceMembers(comboBoxTimetableSeason);
+                comboBoxTimetableWeather.DataSource = ComboBoxItem<int>.FromEnum<WeatherType>(catalog);
+                ComboBoxItem<int>.SetDataSourceMembers(comboBoxTimetableWeather);
                 comboBoxTimetableDay.Items.AddRange(days);
 
                 initialized = true;
@@ -350,24 +359,21 @@ namespace Orts.Menu
 
         private void LoadLanguage()
         {
+            Localizer.Revert(this, store);
+
             if (!string.IsNullOrEmpty(settings.Language))
             {
                 try
                 {
                     CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(settings.Language);
                 }
-                catch
+                catch(CultureNotFoundException exception)
                 {
+                    Trace.WriteLine(exception.Message);
                 }
             }
-
-            Localizer.Localize(this, catalog);
-        }
-
-        private void RestartMenu()
-        {
-            Process.Start(Application.ExecutablePath);
-            Close();
+            catalog = new Catalog("Menu", RuntimeInfo.LocalesFolder);
+            Localizer.Localize(this, catalog, store);
         }
 #endregion
 
@@ -626,7 +632,7 @@ namespace Orts.Menu
 
         private void TestingToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (var form = new TestingForm(settings, this.RunActivityProgram))
+            using (var form = new TestingForm(settings, RuntimeInfo.ActivityRunnerExecutable))
             {
                 form.ShowDialog(this);
             }
@@ -643,8 +649,8 @@ namespace Orts.Menu
                     case DialogResult.OK:
                         await Task.WhenAll(LoadFolderListAsync(), CheckForUpdateAsync());
                         break;
-                    case DialogResult.Retry:
-                        RestartMenu();
+                    case DialogResult.Retry: //Language has changed
+                        LoadLanguage();
                         break;
                 }
             }
@@ -832,7 +838,7 @@ namespace Orts.Menu
                             await LoadFolderListAsync();
                             break;
                         case DialogResult.Retry:
-                            RestartMenu();
+                            LoadLanguage();
                             break;
                     }
                 }
@@ -851,7 +857,7 @@ namespace Orts.Menu
             {
                 comboBoxFolder.EndUpdate();
             }
-            UpdateFromMenuSelection<Folder>(comboBoxFolder, Menu_SelectionIndex.Folder, f => f.Path);
+            UpdateFromMenuSelection<Folder>(comboBoxFolder, MenuSelectionIndex.Folder, f => f.Path);
             UpdateEnabled();
         }
 #endregion
@@ -897,10 +903,10 @@ namespace Orts.Menu
             {
                 comboBoxRoute.EndUpdate();
             }
-            UpdateFromMenuSelection<Route>(comboBoxRoute, Menu_SelectionIndex.Route, r => r.Path);
-            if (settings.Menu_Selection.Length > (int)Menu_SelectionIndex.Activity)
+            UpdateFromMenuSelection<Route>(comboBoxRoute, MenuSelectionIndex.Route, r => r.Path);
+            if (settings.Menu_Selection.Length > (int)MenuSelectionIndex.Activity)
             {
-                string path = settings.Menu_Selection[(int)Menu_SelectionIndex.Activity]; // Activity or Timetable
+                string path = settings.Menu_Selection[(int)MenuSelectionIndex.Activity]; // Activity or Timetable
                 string extension = System.IO.Path.GetExtension(path).ToLower();
                 if (extension == ".act")
                     radioButtonModeActivity.Checked = true;
@@ -947,7 +953,7 @@ namespace Orts.Menu
             {
                 comboBoxActivity.EndUpdate();
             }
-            UpdateFromMenuSelection<Activity>(comboBoxActivity, Menu_SelectionIndex.Activity, a => a.FilePath);
+            UpdateFromMenuSelection<Activity>(comboBoxActivity, MenuSelectionIndex.Activity, a => a.FilePath);
             UpdateEnabled();
         }
 
@@ -1003,7 +1009,7 @@ namespace Orts.Menu
                 {
                     comboBoxLocomotive.EndUpdate();
                 }
-                UpdateFromMenuSelection<Locomotive>(comboBoxLocomotive, Menu_SelectionIndex.Locomotive, l => l.FilePath);
+                UpdateFromMenuSelection<Locomotive>(comboBoxLocomotive, MenuSelectionIndex.Locomotive, l => l.FilePath);
             }
             else
             {
@@ -1042,7 +1048,7 @@ namespace Orts.Menu
                 {
                     comboBoxConsist.EndUpdate();
                 }
-                UpdateFromMenuSelection<Consist>(comboBoxConsist, Menu_SelectionIndex.Consist, c => c.FilePath);
+                UpdateFromMenuSelection<Consist>(comboBoxConsist, MenuSelectionIndex.Consist, c => c.FilePath);
             }
             UpdateEnabled();
         }
@@ -1089,9 +1095,9 @@ namespace Orts.Menu
                     comboBoxStartAt.EndUpdate();
                 }
                 // Because this list is unique names, we have to do some extra work to select it.
-                if (settings.Menu_Selection.Length >= (int)Menu_SelectionIndex.Path)
+                if (settings.Menu_Selection.Length >= (int)MenuSelectionIndex.Path)
                 {
-                    string pathFilePath = settings.Menu_Selection[(int)Menu_SelectionIndex.Path];
+                    string pathFilePath = settings.Menu_Selection[(int)MenuSelectionIndex.Path];
                     Path path = paths.FirstOrDefault(p => p.FilePath == pathFilePath);
                     if (path != null)
                         SelectComboBoxItem<string>(comboBoxStartAt, s => s == path.Start);
@@ -1136,7 +1142,7 @@ namespace Orts.Menu
                 {
                     comboBoxHeadTo.EndUpdate();
                 }
-                UpdateFromMenuSelection<Path>(comboBoxHeadTo, Menu_SelectionIndex.Path, c => c.FilePath);
+                UpdateFromMenuSelection<Path>(comboBoxHeadTo, MenuSelectionIndex.Path, c => c.FilePath);
             }
             UpdateEnabled();
         }
@@ -1153,7 +1159,7 @@ namespace Orts.Menu
                     comboBoxDuration.BeginUpdate();
                     comboBoxStartTime.Items.Clear();
                     foreach (var hour in Enumerable.Range(0, 24))
-                        comboBoxStartTime.Items.Add(String.Format("{0}:00", hour));
+                        comboBoxStartTime.Items.Add($"{hour}:00");
                     comboBoxDuration.Items.Clear();
                     comboBoxDuration.Items.Add("");
                 }
@@ -1163,9 +1169,9 @@ namespace Orts.Menu
                     comboBoxDuration.EndUpdate();
                 }
 
-                UpdateFromMenuSelection(comboBoxStartTime, Menu_SelectionIndex.Time, "12:00");
-                UpdateFromMenuSelection(comboBoxStartSeason, Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, ""));
-                UpdateFromMenuSelection(comboBoxStartWeather, Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, ""));
+                UpdateFromMenuSelection(comboBoxStartTime, MenuSelectionIndex.Time, "12:00");
+                UpdateFromMenuSelection(comboBoxStartSeason, MenuSelectionIndex.Season, s => s.Key.ToString(CultureInfo.InvariantCulture), new ComboBoxItem<int>(1, string.Empty));
+                UpdateFromMenuSelection(comboBoxStartWeather, MenuSelectionIndex.Weather, w => w.Key.ToString(CultureInfo.InvariantCulture), new ComboBoxItem<int>(0, string.Empty));
                 comboBoxDifficulty.SelectedIndex = 3;
                 comboBoxDuration.SelectedIndex = 0;
             }
@@ -1235,7 +1241,7 @@ namespace Orts.Menu
             {
                 comboBoxTimetableSet.EndUpdate();
             }
-            UpdateFromMenuSelection<TimetableInfo>(comboBoxTimetableSet, Menu_SelectionIndex.TimetableSet, t => t.FileName);
+            UpdateFromMenuSelection<TimetableInfo>(comboBoxTimetableSet, MenuSelectionIndex.TimetableSet, t => t.FileName);
             UpdateEnabled();
         }
 
@@ -1281,7 +1287,7 @@ namespace Orts.Menu
                 {
                     comboBoxTimetable.EndUpdate();
                 }
-                UpdateFromMenuSelection<TimetableFile>(comboBoxTimetable, Menu_SelectionIndex.Timetable, t => t.Description);
+                UpdateFromMenuSelection<TimetableFile>(comboBoxTimetable, MenuSelectionIndex.Timetable, t => t.Description);
             }
             else
                 comboBoxTimetable.Items.Clear();
@@ -1308,7 +1314,7 @@ namespace Orts.Menu
                 {
                     comboBoxTimetableTrain.EndUpdate();
                 }
-                UpdateFromMenuSelection<TrainInformation>(comboBoxTimetableTrain, Menu_SelectionIndex.Train, t => t.Column.ToString());
+                UpdateFromMenuSelection<TrainInformation>(comboBoxTimetableTrain, MenuSelectionIndex.Train, t => t.Column.ToString());
             }
             else
                 comboBoxTimetableTrain.Items.Clear();
@@ -1320,9 +1326,9 @@ namespace Orts.Menu
 #region Timetable environment
         private void ShowTimetableEnvironment()
         {
-            UpdateFromMenuSelection(comboBoxTimetableDay, Menu_SelectionIndex.Day, d => d.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
-            UpdateFromMenuSelection(comboBoxTimetableSeason, Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, string.Empty));
-            UpdateFromMenuSelection(comboBoxTimetableWeather, Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
+            UpdateFromMenuSelection(comboBoxTimetableDay, MenuSelectionIndex.Day, d => d.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
+            UpdateFromMenuSelection(comboBoxTimetableSeason, MenuSelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, string.Empty));
+            UpdateFromMenuSelection(comboBoxTimetableWeather, MenuSelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
         }
 #endregion
 
@@ -1521,19 +1527,19 @@ namespace Orts.Menu
 #endregion
 
 #region Utility functions
-        private void UpdateFromMenuSelection<T>(ComboBox comboBox, Menu_SelectionIndex index, T defaultValue)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, MenuSelectionIndex index, T defaultValue)
         {
             UpdateFromMenuSelection<T>(comboBox, index, _ => _.ToString(), defaultValue);
         }
 
-        private void UpdateFromMenuSelection<T>(ComboBox comboBox, Menu_SelectionIndex index, Func<T, string> map)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, MenuSelectionIndex index, Func<T, string> map)
         {
             UpdateFromMenuSelection(comboBox, index, map, default);
         }
 
-        private void UpdateFromMenuSelection<T>(ComboBox comboBox, Menu_SelectionIndex index, Func<T, string> map, T defaultValue)
+        private void UpdateFromMenuSelection<T>(ComboBox comboBox, MenuSelectionIndex index, Func<T, string> map, T defaultValue)
         {
-            if (settings.Menu_Selection.Length > (int)index && settings.Menu_Selection[(int)index] != "")
+            if (settings.Menu_Selection.Length > (int)index && !string.IsNullOrEmpty(settings.Menu_Selection[(int)index]))
             {
                 if (comboBox.DropDownStyle == ComboBoxStyle.DropDown)
                     comboBox.Text = settings.Menu_Selection[(int)index];
@@ -1551,14 +1557,14 @@ namespace Orts.Menu
             }
         }
 
-        private void SelectComboBoxItem<T>(ComboBox comboBox, Func<T, bool> predicate)
+        private static void SelectComboBoxItem<T>(ComboBox comboBox, Func<T, bool> predicate)
         {
             if (comboBox.Items.Count == 0)
                 return;
 
             for (var i = 0; i < comboBox.Items.Count; i++)
             {
-                if (comboBox.Items[i] is T && predicate((T)comboBox.Items[i]))
+                if (comboBox.Items[i] is T t && predicate(t))
                 {
                     comboBox.SelectedIndex = i;
                     return;

@@ -34,7 +34,9 @@ namespace Orts.Common
             internal static string EnumDescription;
             internal static IDictionary<string, T> NameValuePairs;
 
+#pragma warning disable CA1810 // Initialize reference type static fields inline
             static EnumCache()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
             {
                 Values = new ReadOnlyCollection<T>((T[])Enum.GetValues(typeof(T)));
                 Names = new ReadOnlyCollection<string>(Enum.GetNames(typeof(T)));
@@ -71,7 +73,7 @@ namespace Orts.Common
             {
                 return description;
             }
-            throw new ArgumentOutOfRangeException("item");
+            throw new ArgumentOutOfRangeException(nameof(item));
         }
 
         /// <summary>
