@@ -1,0 +1,11 @@
+schedules:
+- cron: "0 2 * * 0"
+  displayName: Weekly Dev build
+  branches:
+    include:
+    - master
+
+jobs:
+- template: azure-pipelines_MG.Core.template.yml
+  parameters:
+    channelName: "Dev"
