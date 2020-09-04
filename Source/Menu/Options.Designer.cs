@@ -1954,8 +1954,8 @@
             this.label32.Name = "label32";
             this.label32.Size = new System.Drawing.Size(587, 67);
             this.label32.TabIndex = 36;
-            this.label32.Text = "When you choose to update, the best available version from any channel equal or higher the current selection will be installed. \r\n" +
-"That is, if you chose \"RC\"(release candidate) channel, updates which are RC, or higher(typically final releases) will be considered.";
+            this.label32.Text = "The best available version from any channel equal or higher the current quality selection will be installed. \r\n" +
+"That is, if you chose \"RC\"(release candidate) channel, updates which are RC, or higher (typically final releases) will be considered (CI < Dev < RC < Release).";
             // 
             // labelBestVersion
             // 
