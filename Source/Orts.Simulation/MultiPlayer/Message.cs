@@ -901,7 +901,7 @@ namespace Orts.MultiPlayer
                 //trj.SelectedRoute = Selection; //although the new signal system request Signals.RequestSetSwitch, client may just change
                 if (user == MPManager.GetUserName() && HandThrown == true)//got the message with my name, will confirm with the player
                 {
-                    MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetStringFmt("Switched, current route is {0}",
+                    MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetString("Switched, current route is {0}",
                         Selection == 0 ? MPManager.Catalog.GetString("main route") : MPManager.Catalog.GetString("side route")));
                     return;
                 }
@@ -1734,7 +1734,7 @@ namespace Orts.MultiPlayer
                 MPManager.Instance().NotServer = true;
                 MPManager.Instance().OnServerChanged(false);
                 if (MPManager.Simulator.Confirmer != null)
-                    MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetStringFmt("New dispatcher is {0}", user));
+                    MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetString("New dispatcher is {0}", user));
                 Trace.TraceInformation("New dispatcher is {0}", user);
             }
         }
@@ -2194,7 +2194,7 @@ namespace Orts.MultiPlayer
             }
             if (p == null) return;
             if (MPManager.Simulator.Confirmer != null)
-                MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetStringFmt("{0} quit.", this.user));
+                MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetString("{0} quit.", this.user));
             if (MPManager.IsServer())
             {
                 if (p.protect == true) { p.protect = false; return; }
@@ -2266,7 +2266,7 @@ namespace Orts.MultiPlayer
             }
             if (p == null) return;
             if (MPManager.Simulator.Confirmer != null)
-                MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetStringFmt("{0} lost.", this.user));
+                MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetString("{0} lost.", this.user));
             if (p.protect == true) { p.protect = false; return; }
             MPManager.BroadCast((new MSGQuit(user)).ToString()); //if the server, will broadcast a quit to every one
             //if the one quit controls my train, I will gain back the control
@@ -3348,7 +3348,7 @@ namespace Orts.MultiPlayer
                 {
                     System.Console.WriteLine("MSG from " + sender + ":" + msgx);
                     MPManager.Instance().lastSender = sender;
-                    if (MPManager.Simulator.Confirmer != null) MPManager.Simulator.Confirmer.MSG(MPManager.Catalog.GetStringFmt(" From {0}: {1}", sender, msgx));
+                    if (MPManager.Simulator.Confirmer != null) MPManager.Simulator.Confirmer.MSG(MPManager.Catalog.GetString(" From {0}: {1}", sender, msgx));
                     MPManager.Instance().OnMessageReceived(MPManager.Simulator.GameTime, sender + ": " + msgx);
                     break;
                 }

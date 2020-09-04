@@ -43,7 +43,7 @@ namespace Orts.Menu
                 }
                 catch (Exception error)
                 {
-                    MessageBox.Show(error.ToString(), Application.ProductName + " " + VersionInfo.VersionOrBuild);
+                    MessageBox.Show(error.ToString(), $"{Application.ProductName} {VersionInfo.Version}");
                 }
             }
         }

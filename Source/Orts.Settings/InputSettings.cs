@@ -18,13 +18,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text;
-using GNU.Gettext;
-using Microsoft.Xna.Framework;
+
+using GetText;
+
 using Microsoft.Xna.Framework.Input;
+
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings.Store;
@@ -51,8 +51,8 @@ namespace Orts.Settings
     /// </remarks>
     public class InputSettings : SettingsBase
     {
-        static GettextResourceManager commonCatalog = new GettextResourceManager("ORTS.Common");
-        static GettextResourceManager settingsCatalog = new GettextResourceManager("ORTS.Settings");
+        static ICatalog commonCatalog = new Catalog("Orts.Common");
+        static ICatalog settingsCatalog = new Catalog("Orts.Settings");
 
         public static readonly UserCommandInput[] DefaultCommands = new UserCommandInput[Enum.GetNames(typeof(UserCommand)).Length];
         public readonly UserCommandInput[] Commands = new UserCommandInput[Enum.GetNames(typeof(UserCommand)).Length];
@@ -330,11 +330,11 @@ namespace Orts.Settings
                 if (Commands[(int)command] is UserCommandModifiableKeyInput modInput)
                 {
                     if (modInput.Shift && modInput.IgnoreShift)
-                        errors.AppendLine(settingsCatalog.GetStringFmt("{0} requires and is modified by Shift", commonCatalog.GetString(command.GetDescription())));
+                        errors.AppendLine(settingsCatalog.GetString("{0} requires and is modified by Shift", commonCatalog.GetString(command.GetDescription())));
                     if (modInput.Control && modInput.IgnoreControl)
-                        errors.AppendLine(settingsCatalog.GetStringFmt("{0} requires and is modified by Control", commonCatalog.GetString(command.GetDescription())));
+                        errors.AppendLine(settingsCatalog.GetString("{0} requires and is modified by Control", commonCatalog.GetString(command.GetDescription())));
                     if (modInput.Alt && modInput.IgnoreAlt)
-                        errors.AppendLine(settingsCatalog.GetStringFmt("{0} requires and is modified by Alt", commonCatalog.GetString(command.GetDescription())));
+                        errors.AppendLine(settingsCatalog.GetString("{0} requires and is modified by Alt", commonCatalog.GetString(command.GetDescription())));
                 }
             }
 
@@ -367,7 +367,7 @@ namespace Orts.Settings
                     var unique2 = input2.GetUniqueInputs();
                     var sharedUnique = unique1.Where(id => unique2.Contains(id));
                     foreach (var uniqueInput in sharedUnique)
-                        errors.AppendLine(settingsCatalog.GetStringFmt("{0} and {1} both match {2}", commonCatalog.GetString(command1.GetDescription()), 
+                        errors.AppendLine(settingsCatalog.GetString("{0} and {1} both match {2}", commonCatalog.GetString(command1.GetDescription()), 
                             commonCatalog.GetString(command2.GetDescription()), KeyboardMap.GetPrettyUniqueInput(uniqueInput)));
                 }
             }

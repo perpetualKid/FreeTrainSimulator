@@ -21,25 +21,23 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
+
+using GetText;
+using GetText.WindowsForms;
+
+using Orts.Common.Info;
 using Orts.Settings;
 
 namespace Orts.Updater
 {
     public partial class UpdaterProgress : Form
     {
-        private readonly UserSettings Settings;
-        private readonly GettextResourceManager catalog = new GettextResourceManager("Updater");
-
-        private string basePath;
-        private string launcherPath;
-        bool shouldRelaunchApplication;
+        private readonly UserSettings settings;
+        private readonly ICatalog catalog = new Catalog("Updater");
 
         public UpdaterProgress()
         {
@@ -50,21 +48,20 @@ namespace Orts.Updater
             // Message Box font to allow for user-customizations, though.
             Font = SystemFonts.MessageBoxFont;
 
-            Settings = new UserSettings(new string[0]);
+            settings = new UserSettings();
             LoadLanguage();
-
-            basePath = Path.GetDirectoryName(Application.ExecutablePath);
+            BringToFront();
         }
 
-        void LoadLanguage()
+        private void LoadLanguage()
         {
-            if (Settings.Language.Length > 0)
+            if (settings.Language.Length > 0)
             {
                 try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(Settings.Language);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(settings.Language);
                 }
-                catch { }
+                catch (ArgumentException) { }
             }
 
             Localizer.Localize(this, catalog);
@@ -72,45 +69,46 @@ namespace Orts.Updater
 
         private async void UpdaterProgress_Load(object sender, EventArgs e)
         {
-            // If /RELAUNCH=1 is set, we're expected to re-launch the main application when we're done.
-            shouldRelaunchApplication = Environment.GetCommandLineArgs().Any(a => a == UpdateManager.RelaunchCommandLine + "1");
-
             // If /ELEVATE=1 is set, we're an elevation wrapper used to preserve the integrity level of the caller.
-            var needsElevation = Environment.GetCommandLineArgs().Any(a => a == UpdateManager.ElevationCommandLine + "1");
+            bool needsElevation = Environment.GetCommandLineArgs().Any(a => string.Equals(a, $"{UpdateManager.ElevationCommandLine}1", StringComparison.OrdinalIgnoreCase));
 
             // Run everything in a new thread so the UI is responsive and visible.
             if (needsElevation)
                 RunWithElevation();
             else
-                await AsyncUpdater();
+                await AsyncUpdater().ConfigureAwait(true);
         }
 
-        private void RunWithElevation()
+        private static void RunWithElevation()
         {
             // Remove /ELEVATE= command-line flags from the child process
-            var processInfo = new ProcessStartInfo(Application.ExecutablePath, 
-                String.Join(" ", Environment.GetCommandLineArgs().Skip(1).Where(a => !a.StartsWith(UpdateManager.ElevationCommandLine)).ToArray()))
+            var processInfo = new ProcessStartInfo(Application.ExecutablePath,
+                string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Where(a => !a.StartsWith(UpdateManager.ElevationCommandLine, StringComparison.OrdinalIgnoreCase)).ToArray()))
             {
                 Verb = "runas"
             };
 
-            Task processTask = RunProcess(processInfo); // exit this current instance
+            Task processTask = UpdateManager.RunProcess(processInfo); // exit this current instance
             Environment.Exit(0);
         }
 
         private async Task AsyncUpdater()
         {
+            CancellationTokenSource cts = new CancellationTokenSource();
             // We wait for any processes identified by /WAITPID=<pid> to exit before starting up so that the updater
             // will not try and apply an update whilst the previous instance is still lingering.
             List<Task> waitList = new List<Task>();
-            
-            var waitPids = Environment.GetCommandLineArgs().Where(a => a.StartsWith(UpdateManager.WaitProcessIdCommandLine));
+
+            var waitPids = Environment.GetCommandLineArgs().Where(a => a.StartsWith(UpdateManager.WaitProcessIdCommandLine, StringComparison.OrdinalIgnoreCase));
             foreach (string waitPid in waitPids)
             {
                 try
                 {
-                    Process process = Process.GetProcessById(int.Parse(waitPid.Substring(9)));
-                    waitList.Add(WaitForProcessExitAsync(process));
+                    if (int.TryParse(waitPid.Substring(9), out int processId))
+                    {
+                        Process process = Process.GetProcessById(processId);
+                        waitList.Add(WaitForProcessExitAsync(process));
+                    }
                 }
                 catch (ArgumentException)
                 {
@@ -120,7 +118,7 @@ namespace Orts.Updater
             await Task.WhenAll(waitList).ConfigureAwait(false);
 
             // Update manager is needed early to apply any updates before we show UI.
-            UpdateManager updateManager = new UpdateManager(basePath, Application.ProductName, Orts.Common.VersionInfo.VersionOrBuild);
+            UpdateManager updateManager = new UpdateManager(settings);
             updateManager.ProgressChanged += (object sender, ProgressChangedEventArgs e) =>
             {
                 Invoke((Action)(() =>
@@ -129,55 +127,77 @@ namespace Orts.Updater
                 }));
             };
 
-            string channelName = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.ChannelCommandLine));
-            if (channelName != null && channelName.Length > UpdateManager.ChannelCommandLine.Length)
-                updateManager.SetChannel(channelName.Substring(UpdateManager.ChannelCommandLine.Length));
+            try
+            {
+                string targetChannelName = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.ChannelCommandLine, StringComparison.OrdinalIgnoreCase));
+                targetChannelName = targetChannelName?.Substring(UpdateManager.ChannelCommandLine.Length);
+                string targetVersion = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.VersionCommandLine, StringComparison.OrdinalIgnoreCase));
+                targetVersion = targetVersion?.Substring(UpdateManager.ChannelCommandLine.Length);
 
-            await updateManager.CheckForUpdateAsync().ConfigureAwait(false);
-            if (updateManager.LastCheckError != null)
+                await updateManager.RefreshUpdateInfo(Common.UpdateCheckFrequency.Always).ConfigureAwait(false);
+
+                string suitableVersion = updateManager.GetBestAvailableVersion(targetVersion, targetChannelName);
+
+                ChannelInfo channelInfo = updateManager.GetChannelInfoByVersion(suitableVersion);
+
+                Invoke((Action)(() =>
+                {
+                    progressBarUpdater.Value = 5;
+                }));
+                Application.DoEvents();
+
+                await updateManager.ApplyUpdateAsync(channelInfo, cts.Token).ConfigureAwait(false);
+                //                await RelaunchApplicationAsync().ConfigureAwait(false);
+            }
+            catch (Exception exception)
             {
                 if (!IsDisposed)
                 {
                     Invoke((Action)(() =>
                     {
-                        MessageBox.Show("Error: " + updateManager.LastCheckError, Application.ProductName + " " + Orts.Common.VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(catalog.GetString($"Error: {exception.Message} {exception.InnerException?.Message}"),
+                            $"{RuntimeInfo.ProductName} {Common.VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }));
                 }
-                Application.Exit();
                 return;
+                throw;
             }
-
-            await updateManager.ApplyUpdateAsync().ConfigureAwait(false);
-            if (updateManager.LastUpdateError != null)
+            finally
             {
-                if (!IsDisposed)
-                {
-                    Invoke((Action)(() =>
-                    {
-                        MessageBox.Show("Error: " + updateManager.LastUpdateError, Application.ProductName + " " + Orts.Common.VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }));
-                }
+                cts.Dispose();
                 Application.Exit();
-                return;
             }
-
-            await RelaunchApplicationAsync().ConfigureAwait(false);
-
-            Environment.Exit(0);
-
         }
 
         private async void UpdaterProgress_FormClosed(object sender, FormClosedEventArgs e)
         {
-            await RelaunchApplicationAsync().ConfigureAwait(false);
+            try
+            {
+                await RelaunchApplicationAsync().ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                if (!IsDisposed)
+                {
+                    Invoke((Action)(() =>
+                    {
+                        MessageBox.Show(catalog.GetString($"Error: {exception.Message} {exception.InnerException?.Message}"),
+                            $"{RuntimeInfo.ProductName} {Common.VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }));
+                }
+                Application.Exit();
+                return;
+                throw;
+            }
         }
 
-        private async Task RelaunchApplicationAsync()
+        private static async Task RelaunchApplicationAsync()
         {
-            if (shouldRelaunchApplication)
+            // If /RELAUNCH=1 is set, we're expected to re-launch the main application when we're done.
+            bool relaunchApplication = Environment.GetCommandLineArgs().Any(a => string.Equals(a, $"{UpdateManager.RelaunchCommandLine}1", StringComparison.OrdinalIgnoreCase));
+            if (relaunchApplication)
             {
-                launcherPath = Path.Combine(basePath, UpdateManager.LauncherExecutable);
-                await RunProcess(launcherPath).ConfigureAwait(false);
+                await UpdateManager.RunProcess(new ProcessStartInfo(RuntimeInfo.LauncherPath)).ConfigureAwait(true);
             }
         }
 
@@ -188,7 +208,7 @@ namespace Orts.Updater
         /// <param name="cancellationToken">A cancellation token. If invoked, the task will return 
         /// immediately as canceled.</param>
         /// <returns>A Task representing waiting for the process to end.</returns>
-        public static async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken = default)
+        private static async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken = default)
         {
             var tcs = new TaskCompletionSource<bool>();
             void Process_Exited(object sender, EventArgs e)
@@ -197,9 +217,6 @@ namespace Orts.Updater
                 process.Dispose();
             }
 
-            process.EnableRaisingEvents = true;
-            process.Exited += Process_Exited;
-
             try
             {
                 if (process.HasExited)
@@ -207,50 +224,17 @@ namespace Orts.Updater
                     process.Close();
                     return;
                 }
+                process.EnableRaisingEvents = true;
+                process.Exited += Process_Exited;
                 using (cancellationToken.Register(() => tcs.TrySetCanceled()))
                 {
-                    await tcs.Task;
+                    await tcs.Task.ConfigureAwait(false);
                 }
             }
             finally
             {
                 process.Exited -= Process_Exited;
             }
-        }
-
-        public static Task RunProcess(ProcessStartInfo processStartInfo)
-        {
-            var tcs = new TaskCompletionSource<object>();
-            processStartInfo.RedirectStandardError = true;
-            processStartInfo.UseShellExecute = false;
-
-            Process process = new Process
-            {
-                EnableRaisingEvents = true,
-                StartInfo = processStartInfo
-            };
-
-            process.Exited += (sender, args) =>
-            {
-                if (process.ExitCode != 0)
-                {
-                    var errorMessage = process.StandardError.ReadToEnd();
-                    tcs.SetException(new InvalidOperationException("The process did not exit correctly. " +
-                        "The corresponding error message was: " + errorMessage));
-                }
-                else
-                {
-                    tcs.SetResult(null);
-                }
-                process.Dispose();
-            };
-            process.Start();
-            return tcs.Task;
-        }
-
-        public static Task RunProcess(string processPath)
-        {
-            return RunProcess(new ProcessStartInfo(processPath));
         }
     }
 }

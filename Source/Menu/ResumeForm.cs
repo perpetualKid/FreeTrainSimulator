@@ -56,12 +56,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
+
+using GetText;
+using GetText.WindowsForms;
+
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Menu.Entities;
 using Orts.Settings;
+
 using Path = System.IO.Path;
 
 namespace Orts.Menu
@@ -131,7 +134,7 @@ namespace Orts.Menu
                                     result.Add(save);
                                 }
                                 // SavePoint a warning to show later.
-                                warnings += catalog.GetStringFmt("Warning: Save {0} found from a route with an unexpected name:\n{1}.\n\n", save.RealTime, save.RouteName);
+                                warnings += catalog.GetString("Warning: Save {0} found from a route with an unexpected name:\n{1}.\n\n", save.RealTime, save.RouteName);
                             }
                         }
                     }
@@ -207,7 +210,7 @@ namespace Orts.Menu
         public MainForm.UserAction SelectedAction { get; set; }
         private static bool Multiplayer { get; set; }
 
-        private static GettextResourceManager catalog = new GettextResourceManager("Menu");
+        private static ICatalog catalog = new Catalog("Menu");
 
         public ResumeForm(UserSettings settings, Route route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timetable,
             IEnumerable<Route> mainRoutes)
@@ -304,26 +307,25 @@ namespace Orts.Menu
             saveBindingSource.DataSource = savePoints;
             labelInvalidSaves.Text = catalog.GetString(
                 "To prevent crashes and unexpected behaviour, Open Rails invalidates games saved from older versions if they fail to restore.\n") +
-                catalog.GetStringFmt("{0} of {1} saves for this route are no longer valid.", savePoints.Count(s => (s.Valid == false)), savePoints.Count);
+                catalog.GetString("{0} of {1} saves for this route are no longer valid.", savePoints.Count(s => (s.Valid == false)), savePoints.Count);
             GridSaves_SelectionChanged(null, null);
             // Show warning after the list has been updated as this is more useful.
             if (!string.IsNullOrEmpty(warnings))
-                MessageBox.Show(warnings, Application.ProductName + " " + VersionInfo.VersionOrBuild);
+                MessageBox.Show(warnings, $"{Application.ProductName} {VersionInfo.Version}");
         }
 
         private bool AcceptUseOfNonvalidSave(SavePoint save)
         {
-            DialogResult reply = MessageBox.Show(catalog.GetStringFmt(
+            DialogResult reply = MessageBox.Show(catalog.GetString(
                 "Restoring from a save made by version {1} of {0} may be incompatible with current version {2}. Please do not report any problems that may result.\n\nContinue?",
-                Application.ProductName, save.VersionOrBuild, VersionInfo.VersionOrBuild),
-                Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Application.ProductName, save.VersionOrBuild, VersionInfo.Version), $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             return reply == DialogResult.Yes;
         }
         private bool AcceptOfNonvalidDbfSetup(SavePoint save)
         {
-            DialogResult reply = MessageBox.Show(catalog.GetStringFmt(
+            DialogResult reply = MessageBox.Show(catalog.GetString(
                    "The selected file contains Debrief Eval data.\nBut Debrief Evaluation checkbox (Main menu) is unchecked.\nYou cannot continue with the Evaluation on course.\n\nContinue?"),
-                   Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                   $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
             return reply == DialogResult.Yes;
         }
@@ -492,7 +494,7 @@ namespace Orts.Menu
                     deleted++;
                 }
             }
-            MessageBox.Show(catalog.GetStringFmt("{0} invalid saves have been deleted.", deleted), Application.ProductName + " " + VersionInfo.VersionOrBuild);
+            MessageBox.Show(catalog.GetString("{0} invalid saves have been deleted.", deleted), $"{Application.ProductName} {VersionInfo.Version}");
             await LoadSavePointsAsync();
         }
 

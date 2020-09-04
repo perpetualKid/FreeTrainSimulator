@@ -1,9 +1,9 @@
-﻿using GNU.Gettext;
+﻿using GetText;
 
 namespace Orts.Menu.Entities
 {
     public abstract class ContentBase
     {
-        protected static GettextResourceManager catalog = new GettextResourceManager("Orts.Menu");
+        protected static ICatalog catalog = new Catalog("Orts.Menu");
     }
 }

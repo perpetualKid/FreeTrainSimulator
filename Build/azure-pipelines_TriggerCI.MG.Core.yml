@@ -1,0 +1,16 @@
+trigger: 
+  branches:
+    exclude:
+    - Master
+    - Merge*
+  paths:
+    exclude: # file paths which will not trigger a build
+    - Build/*
+    - README.md
+# no PR triggers
+pr: none
+
+jobs:
+- template: azure-pipelines_MG.Core.template.yml
+  parameters:
+    channelName: "CI"

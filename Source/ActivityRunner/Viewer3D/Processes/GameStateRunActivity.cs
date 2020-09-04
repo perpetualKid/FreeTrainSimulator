@@ -178,7 +178,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                                 + "If you are attempting to debug this component, please run 'OpenRails.exe' and execute the scenario you are interested in. "
                                 + "In the log file, the command-line arguments used will be listed at the top. "
                                 + "You should then configure your debug environment to execute this component with those command-line arguments.",
-                                Application.ProductName + " " + VersionInfo.VersionOrBuild);
+                                $"{Application.ProductName}  {VersionInfo.Version}");
                         Game.Exit();
                         break;
                 }
@@ -205,7 +205,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         if (loadError != null && (error.InnerException is FileNotFoundException || error.InnerException is DirectoryNotFoundException))
                             error = error.InnerException;
 
-                        if (error is IncompatibleSaveException)
+                        if (error is IncompatibleSaveException incompatibleSaveException)
                         {
                             MessageBox.Show(String.Format(
                                 "Save file is incompatible with this version of {0}.\n\n" +
@@ -213,10 +213,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                                 "Saved version: {2}\n" +
                                 "Current version: {3}",
                                 Application.ProductName,
-                                ((IncompatibleSaveException)error).SaveFile,
-                                ((IncompatibleSaveException)error).VersionOrBuild,
-                                VersionInfo.VersionOrBuild),
-                                Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                incompatibleSaveException.SaveFile,
+                                incompatibleSaveException.Version,
+                                VersionInfo.Version),
+                                $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         else if (error is InvalidCommandLine)
                             MessageBox.Show(String.Format(
@@ -224,7 +224,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                                 Application.ProductName,
                                 error.Message,
                                 String.Join("\n", data.Select(d => "\u2022 " + d).ToArray())),
-                                Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         else if (error is Traveller.MissingTrackNodeException)
                             MessageBox.Show(String.Format("Open Rails detected a track section which is not present in tsection.dat and cannot continue.\n\n" +
                                 "Most likely you don't have the XTracks or Ytracks version needed for this route."));
@@ -234,7 +234,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                                     "An essential file is missing and {0} cannot continue.\n\n" +
                                     "    {1}",
                                     Application.ProductName, (error as FileNotFoundException).FileName),
-                                    Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         else if (error is DirectoryNotFoundException)
                         {
@@ -245,7 +245,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                                     "An essential folder is missing and {0} cannot continue.\n\n" +
                                     "    {1}",
                                     Application.ProductName, fileName),
-                                    Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         else
                         {
@@ -257,13 +257,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                                     "This error may be due to bad data or a bug. You can help improve {0} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {2}.\n\n" +
                                     ">>> Click OK to report this error on the {0} bug tracker <<<",
                                     Application.ProductName, errorSummary, logFile),
-                                    Application.ProductName + " " + VersionInfo.VersionOrBuild, MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                                    $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                             if (openTracker == DialogResult.OK)
                                 Process.Start("https://github.com/perpetualKid/ORTS-MG/issues");
-                            // James Ross would prefer to do this:
-                            //   Process.Start("http://bugs.launchpad.net/or/+filebug?field.title=" + Uri.EscapeDataString(errorSummary));
-                            // but unfortunately if you need to log in (as most people might), Launchpad munges the title
-                            // and leaves you with garbage. Plus, landing straight on a login page might confuse some people.
                         }
                     }
                     // Make sure we quit after handling an error.
@@ -479,7 +475,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 }
                 catch (Exception error)
                 {
-                    if (versionOrBuild == VersionInfo.VersionOrBuild)
+                    if (versionOrBuild == VersionInfo.Version)
                     {
                         // If the save version is the same as the program version, we can't be an incompatible save - it's just a bug.
                         throw;
@@ -636,7 +632,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 Trace.TraceWarning("Restoring from a save made by version {1}\n"
                     + "of {0} may be incompatible with current version {2}.\n"
                     + "Please do not report any problems that may result.\n",
-                    Application.ProductName, versionOrBuild, VersionInfo.VersionOrBuild);
+                    Application.ProductName, versionOrBuild, VersionInfo.Version);
             }
             return versionOrBuild;
         }
@@ -724,19 +720,17 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             if (settings.Logging && (settings.LoggingPath.Length > 0) && Directory.Exists(settings.LoggingPath))
             {
-                string fileName;
-                try
-                {
-                    fileName = string.Format(settings.LoggingFilename, Application.ProductName, VersionInfo.VersionOrBuild, VersionInfo.Version, VersionInfo.Build, DateTime.Now);
-                }
-                catch (FormatException)
-                {
-                    fileName = settings.LoggingFilename;
-                }
-                foreach (var ch in Path.GetInvalidFileNameChars())
-                    fileName = fileName.Replace(ch, '.');
+                //TODO Implement proper filename customization
+                //var fileName = settings.LoggingFilename;
+                //try
+                //{
+                //    fileName = String.Format(fileName, Application.ProductName, VersionInfo.VersionOrBuild, VersionInfo.Version, VersionInfo.Build, DateTime.Now);
+                //}
+                //catch { }
+                //foreach (var ch in Path.GetInvalidFileNameChars())
+                //    fileName = fileName.Replace(ch, '.');
 
-                logFileName = Path.Combine(settings.LoggingPath, fileName);
+                logFileName = Path.Combine(settings.LoggingPath, settings.LoggingFilename);
                 // Ensure we start with an empty file.
                 if (!appendLog)
                     File.Delete(logFileName);

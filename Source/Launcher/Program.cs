@@ -50,13 +50,14 @@ namespace Orts.Launcher
         [STAThread]
         static void Main()
         {
+            bool preferCoreFx = File.Exists(Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "prefercorefx"));
+
             Application.EnableVisualStyles();
 
-            // Check for any missing components.
-            var path = Path.GetDirectoryName(Application.ExecutablePath);
             List<DependencyHint> missingDependencies = new List<DependencyHint>();
 
-            CheckNetFx(missingDependencies);
+            bool netFx = CheckNetFx(missingDependencies);
+            bool coreFx = CheckCoreFx(missingDependencies, preferCoreFx);
             CheckDXRuntime(missingDependencies);
 
             if (missingDependencies.Count > 0)
@@ -65,7 +66,7 @@ namespace Orts.Launcher
                 foreach (var item in missingDependencies)
                     builder.AppendLine(item.Name);
 
-                if (MessageBox.Show($"{Application.ProductName} requires the following:\n\n{builder.ToString()}" +
+                if (MessageBox.Show($"{Application.ProductName} requires the following:\n\n{builder}" +
                     "\nWhen you click OK, we will guide you to download the required software.\n" +
                     (missingDependencies.Count > 1 ? "If there are multiple items missing, you need to repeat this process until all dependencies are resolved.\n" : string.Empty) +
                     "Click Cancel to quit.",
@@ -76,16 +77,39 @@ namespace Orts.Launcher
                 return;
             }
 
+            // Check for any missing components.
+            var path = Path.GetDirectoryName(Application.ExecutablePath);
             List<string> missingORFiles = new List<string>();
-            CheckOR(missingORFiles, path);
-            if (missingORFiles.Count > 0)
+            if (preferCoreFx)
             {
-                MessageBox.Show($"{Application.ProductName} is missing the following:\n\n{string.Join("\n", missingORFiles.ToArray())}\n\nPlease re-install the software.", Application.ProductName);
-                return;
+                if (coreFx && CheckORFolder(missingORFiles, Path.Combine(path, "netcoreapp3.1")))
+                {
+                    Process.Start(Path.Combine(Path.Combine(path, "netcoreapp3.1"), "Menu.exe")).WaitForExit();
+                }
+                else if (netFx && CheckORFolder(missingORFiles, Path.Combine(path, "net48")))
+                {
+                    Process.Start(Path.Combine(Path.Combine(path, "net48"), "Menu.exe")).WaitForExit();
+                }
+                else
+                {
+                    MessageBox.Show($"{Application.ProductName} is missing the following:\n\n{string.Join("\n", missingORFiles.ToArray())}\n\nPlease re-install the software.", Application.ProductName);
+                }
             }
-            // Default menu
-            var process = Process.Start(Path.Combine(path, "Menu.exe"));
-            process.WaitForInputIdle();
+            else
+            {
+                if (netFx && CheckORFolder(missingORFiles, Path.Combine(path, "net48")))
+                {
+                    Process.Start(Path.Combine(Path.Combine(path, "net48"), "Menu.exe")).WaitForExit();
+                }
+                else if (coreFx && CheckORFolder(missingORFiles, Path.Combine(path, "netcoreapp3.1")))
+                {
+                    Process.Start(Path.Combine(Path.Combine(path, "netcoreapp3.1"), "Menu.exe")).WaitForExit();
+                }
+                else
+                {
+                    MessageBox.Show($"{Application.ProductName} is missing the following:\n\n{string.Join("\n", missingORFiles.ToArray())}\n\nPlease re-install the software.", Application.ProductName);
+                }
+            }
         }
 
         private static void DownloadDependency(DependencyHint dependency)
@@ -96,11 +120,11 @@ namespace Orts.Launcher
             Process.Start(dependency.Url);
         }
 
-        static void CheckNetFx(List<DependencyHint> missingDependencies)
+        static bool CheckNetFx(List<DependencyHint> missingDependencies)
         {
             using (var RK = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"))
                 if ((SafeReadKey(RK, "Install", 0) == 1) && (SafeReadKey(RK, "Release", 0) >= 528040))  //https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed#find-net-framework-versions-45-and-later-with-code
-                    return;
+                    return true;
 
             missingDependencies.Add(new DependencyHint()
             {
@@ -109,6 +133,35 @@ namespace Orts.Launcher
                 "for Microsoft .NET Framework 4.8 and install the software.",
                 Url = "https://dotnet.microsoft.com/download/dotnet-framework/net48"
             });
+            return false;
+        }
+
+        static bool CheckCoreFx(List<DependencyHint> missingDependencies, bool preferred)
+        {
+            string coreFxPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"dotnet\shared\Microsoft.NETCore.App");
+            if (Directory.Exists(coreFxPath))
+            {
+                string[] versionFolders = Directory.GetDirectories(coreFxPath);
+                foreach(string fxVersion in versionFolders)
+                {
+                    var fragments = Path.GetFileName(fxVersion).Split('.');
+                    if (fragments.Length > 1)
+                        if (double.TryParse($"{fragments[0]}{System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator}{fragments[1]}", out double version))
+                            if (version >= 3.1)
+                                return true;
+                }
+            }
+            if (preferred)
+            {
+                missingDependencies.Add(new DependencyHint()
+                {
+                    Name = ("Microsoft .NET Core 3.1"),
+                    Text = "Please go to\n https://dotnet.microsoft.com/download/dotnet-core/3.1 \nto download the installation package " +
+                    "for Microsoft .NET Core 3.1 Desktop Runtime and install the software.",
+                    Url = "https://dotnet.microsoft.com/download/dotnet-framework/net48"
+                });
+            }
+            return false;
         }
 
         static void CheckDXRuntime(List<DependencyHint> missingDependencies)
@@ -125,12 +178,11 @@ namespace Orts.Launcher
             });
         }
 
-        static void CheckOR(List<string> missingFiles, string path)
+        static bool CheckORFolder(List<string> missingFiles, string path)
         {
+            missingFiles.Clear();
             foreach (var file in new[] {
                 // Required libraries:
-                "GNU.Gettext.dll",
-                "GNU.Gettext.WinForms.dll",
                 @"Native/X86/OpenAL32.dll",
                 @"Native/X64/OpenAL32.dll",
                 // Programs:
@@ -141,6 +193,7 @@ namespace Orts.Launcher
                 if (!File.Exists(Path.Combine(path, file)))
                     missingFiles.Add($"File '{file}'");
             }
+            return missingFiles.Count == 0;
         }
 
         static int SafeReadKey(RegistryKey key, string name, int defaultValue)
@@ -152,6 +205,7 @@ namespace Orts.Launcher
             catch
             {
                 return defaultValue;
+                throw;
             }
         }
     }

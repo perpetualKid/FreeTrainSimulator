@@ -2338,7 +2338,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (!WaterScoopDirectionFlag)
                     {
-                        Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetStringFmt("Refill: Loco must be moving forward."));
+                        Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Loco must be moving forward."));
                         WaterScoopDirectionFlag = true;
                     }
                     RefillingFromTrough = false;
@@ -2348,7 +2348,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (!WaterScoopSlowSpeedFlag)
                     {
-                        Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetStringFmt("Refill: Loco speed must exceed {0} for water to enter tender.",
+                        Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Loco speed must exceed {0} for water to enter tender.",
                                 FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, MilepostUnitsMetric)));
                         WaterScoopSlowSpeedFlag = true;
                         MSTSWagon.RefillProcess.OkToRefill = false;
@@ -2359,7 +2359,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else if (fraction > 1.0)
                 {
-                    Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetStringFmt("Refill: Water supply now replenished."));
+                    Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Water supply now replenished."));
                     return;
                 }
                 else

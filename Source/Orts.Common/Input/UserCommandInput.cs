@@ -23,9 +23,9 @@ namespace Orts.Common.Input
         public static string GetScanCodeKeyName(int scanCode)
         {
             var xnaName = Enum.GetName(typeof(Keys), GetScanCodeKeys(scanCode));
-            var keyName = new String('\0', 32);
-            var keyNameLength = NativeMethods.GetKeyNameText(scanCode << 16, keyName, keyName.Length);
-            keyName = keyName.Substring(0, keyNameLength);
+            StringBuilder keyNameBuilder = new StringBuilder();
+            var keyNameLength = NativeMethods.GetKeyNameText(scanCode << 16, keyNameBuilder, 256);
+            string keyName = keyNameBuilder.ToString();//.Substring(0, keyNameLength);
 
             if (keyName.Length > 0)
             {

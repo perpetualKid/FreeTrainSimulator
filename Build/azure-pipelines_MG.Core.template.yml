@@ -1,13 +1,3 @@
-trigger: 
-  branches:
-    include:
-    - Core
-  paths:
-    exclude: # file paths which will not trigger a build
-    - Build/*
-# no PR triggers
-pr: none
-
 parameters:
 - name: channelName
   displayName: Build Channel

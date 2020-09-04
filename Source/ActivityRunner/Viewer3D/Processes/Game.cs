@@ -230,7 +230,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Exit();
             // Show the user that it's all gone horribly wrong.
             if (Settings.ShowErrorDialogs)
-                System.Windows.Forms.MessageBox.Show(error.ToString(), Application.ProductName + " " + VersionInfo.VersionOrBuild);
+                MessageBox.Show(error.ToString(), $"{Application.ProductName}  {VersionInfo.Version}");
         }
     }
 }

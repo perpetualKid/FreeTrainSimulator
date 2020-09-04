@@ -23,16 +23,17 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Resources;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
+using GetText;
+using GetText.WindowsForms;
 
 using Orts.Common;
-using Orts.Common.Native;
+using Orts.Common.Info;
 using Orts.Formats.Msts;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
@@ -40,6 +41,7 @@ using Orts.Menu.Entities;
 using Orts.Settings;
 using Orts.Updater;
 
+using Activity = Orts.Menu.Entities.Activity;
 using Path = Orts.Menu.Entities.Path;
 
 namespace Orts.Menu
@@ -114,7 +116,7 @@ namespace Orts.Menu
         public string SelectedSaveFile { get; set; }
         public UserAction SelectedAction { get; set; }
 
-        private GettextResourceManager catalog = new GettextResourceManager("Menu");
+        private ICatalog catalog = new Catalog("Menu");
 
         #region Main Form
         public MainForm()
@@ -127,13 +129,19 @@ namespace Orts.Menu
             Font = SystemFonts.MessageBoxFont;
 
             // Set title to show revision or build info.
-            Text = VersionInfo.Version.Length > 0 ? $"{Application.ProductName} {VersionInfo.Version}" : $"{Application.ProductName} build {VersionInfo.Build}";
+            Text = $"{Application.ProductName} {VersionInfo.Version}";
 #if DEBUG
             Text += " (debug)";
 #endif
+#if NETCOREAPP
+            Text += " [.NET Core]";
+#elif NETFRAMEWORK
+            Text += " [.NET Classic]";
+#endif
             panelModeTimetable.Location = panelModeActivity.Location;
             UpdateEnabled();
-            elevationIcon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize).ToBitmap();
+            using (Icon icon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize))
+                elevationIcon = icon.ToBitmap();
         }
 
         private async void MainForm_Shown(object sender, EventArgs e)
@@ -141,6 +149,7 @@ namespace Orts.Menu
             var options = Environment.GetCommandLineArgs().Where(a => (a.StartsWith("-") || a.StartsWith("/"))).Select(a => a.Substring(1));
             settings = new UserSettings(options);
 
+            updateManager = new UpdateManager(settings);
             List<Task> initTasks = new List<Task>
             {
                 LoadFolderListAsync()
@@ -151,7 +160,7 @@ namespace Orts.Menu
 
             if (!initialized)
             {
-                initTasks.Add(InitializeUpdateManager());
+                initTasks.Add(CheckForUpdateAsync());
                 initTasks.Add(LoadToolsAndDocuments());
 
                 var seasons = new[] {
@@ -196,12 +205,6 @@ namespace Orts.Menu
             ShowTimetableEnvironment();
 
             await Task.WhenAll(initTasks);
-        }
-
-        private async Task InitializeUpdateManager()
-        {
-            updateManager = await UpdateManager.Initialize(System.IO.Path.GetDirectoryName(Application.ExecutablePath), Application.ProductName, VersionInfo.VersionOrBuild);
-            await CheckForUpdateAsync();
         }
 
         private async Task<IEnumerable<ToolStripItem>> LoadTools()
@@ -315,35 +318,34 @@ namespace Orts.Menu
 
         private async Task CheckForUpdateAsync()
         {
-            if (string.IsNullOrEmpty(updateManager.ChannelName))
-            {
-                linkLabelChangeLog.Visible = false;
-                linkLabelUpdate.Visible = false;
-                return;
-            }
-            // This is known directly from the chosen channel so doesn't need to wait for the update check itself.
-            linkLabelChangeLog.Visible = !string.IsNullOrEmpty(updateManager.ChangeLogLink);
-
-            //            await Task.Run(() => UpdateManager.CheckForUpdateAsync());
-            await updateManager.CheckForUpdateAsync();
-
+            await updateManager.RefreshUpdateInfo((UpdateCheckFrequency)settings.UpdateCheckFrequency).ConfigureAwait(true);
             if (updateManager.LastCheckError != null)
+            {
                 linkLabelUpdate.Text = catalog.GetString("Update check failed");
-            else if (updateManager.LastUpdate != null && updateManager.LastUpdate.Version != VersionInfo.Version)
-                linkLabelUpdate.Text = catalog.GetStringFmt("Update to {0}", updateManager.LastUpdate.Version);
-            else
-                linkLabelUpdate.Text = "";
-            linkLabelUpdate.Enabled = true;
-            linkLabelUpdate.Visible = linkLabelUpdate.Text.Length > 0;
-            // Update link's elevation icon and size/position.
-            if (updateManager.LastCheckError == null && updateManager.LastUpdate?.Version != VersionInfo.Version && updateManager.UpdaterNeedsElevation)
-                linkLabelUpdate.Image = elevationIcon;
-            else
-                linkLabelUpdate.Image = null;
-            linkLabelUpdate.AutoSize = true;
-            linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - elevationIcon.Width;
-            linkLabelUpdate.AutoSize = false;
-            linkLabelUpdate.Width = panelDetails.Right - linkLabelUpdate.Left;
+                linkLabelUpdate.Visible = true;
+            }
+            else 
+            {
+                string version = updateManager.GetBestAvailableVersion(string.Empty, settings.UpdateChannel);
+                if (null != version)
+                {
+                    ChannelInfo channel = updateManager.GetChannelInfoByVersion(version);
+                    linkLabelUpdate.Text = catalog.GetString($"Update to {version}");
+                    linkLabelUpdate.Visible = true;
+                    linkLabelUpdate.Image = updateManager.UpdaterNeedsElevation ? elevationIcon : null;
+                    linkLabelChangeLog.Visible = true;
+                    linkLabelChangeLog.Tag = channel.LogUrl.ToString();
+                    linkLabelUpdate.AutoSize = true;
+                    linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - elevationIcon.Width;
+                    linkLabelUpdate.AutoSize = false;
+                    linkLabelUpdate.Width = panelDetails.Right - linkLabelUpdate.Left;
+                }
+                else
+                {
+                    linkLabelUpdate.Visible = false;
+                    linkLabelChangeLog.Visible = false;
+                }
+            }
         }
 
         private void LoadLanguage()
@@ -367,9 +369,9 @@ namespace Orts.Menu
             Process.Start(Application.ExecutablePath);
             Close();
         }
-        #endregion
+#endregion
 
-        #region Folders
+#region Folders
         private async void ComboBoxFolder_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
@@ -378,9 +380,9 @@ namespace Orts.Menu
             }
             catch (TaskCanceledException) { }
         }
-        #endregion
+#endregion
 
-        #region Routes
+#region Routes
         private async void ComboBoxRoute_SelectedIndexChanged(object sender, EventArgs e)
         {
             int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
@@ -398,9 +400,9 @@ namespace Orts.Menu
                 detailUpdater = 0;
             }
         }
-        #endregion
+#endregion
 
-        #region Mode
+#region Mode
         private void RadioButtonMode_CheckedChanged(object sender, EventArgs e)
         {
             int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
@@ -413,9 +415,9 @@ namespace Orts.Menu
                 detailUpdater = 0;
             }
         }
-        #endregion
+#endregion
 
-        #region Activities
+#region Activities
         private void ComboBoxActivity_SelectedIndexChanged(object sender, EventArgs e)
         {
             int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
@@ -436,37 +438,37 @@ namespace Orts.Menu
             else
             { checkDebriefActivityEval.Enabled = true; }
         }
-        #endregion
+#endregion
 
-        #region Locomotives
+#region Locomotives
         private void ComboBoxLocomotive_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowConsistList();
         }
-        #endregion
+#endregion
 
-        #region Consists
+#region Consists
         private void ComboBoxConsist_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity(true);
         }
-        #endregion
+#endregion
 
-        #region Starting from
+#region Starting from
         private void ComboBoxStartAt_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowHeadToList();
         }
-        #endregion
+#endregion
 
-        #region Heading to
+#region Heading to
         private void ComboBoxHeadTo_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity(true);
         }
-        #endregion
+#endregion
 
-        #region Environment
+#region Environment
         private void ComboBoxStartTime_TextChanged(object sender, EventArgs e)
         {
             UpdateExploreActivity(false);
@@ -481,9 +483,9 @@ namespace Orts.Menu
         {
             UpdateExploreActivity(false);
         }
-        #endregion
+#endregion
 
-        #region Timetable Sets
+#region Timetable Sets
         private void ComboBoxTimetableSet_SelectedIndexChanged(object sender, EventArgs e)
         {
             int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
@@ -495,9 +497,9 @@ namespace Orts.Menu
                 detailUpdater = 0;
             }
         }
-        #endregion
+#endregion
 
-        #region Timetables
+#region Timetables
         private void ComboBoxTimetable_selectedIndexChanged(object sender, EventArgs e)
         {
             int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
@@ -508,9 +510,9 @@ namespace Orts.Menu
                 detailUpdater = 0;
             }
         }
-        #endregion
+#endregion
 
-        #region Timetable Trains
+#region Timetable Trains
         private async void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBoxTimetableTrain.SelectedItem is TrainInformation selectedTrain)
@@ -525,9 +527,9 @@ namespace Orts.Menu
                 }
             }
         }
-        #endregion
+#endregion
 
-        #region Timetable environment
+#region Timetable environment
         private void ComboBoxTimetableDay_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableSet();
@@ -547,9 +549,9 @@ namespace Orts.Menu
         {
             UpdateTimetableWeatherSet();
         }
-        #endregion
+#endregion
 
-        #region Multiplayer
+#region Multiplayer
         private void TextBoxMPUser_TextChanged(object sender, EventArgs e)
         {
             UpdateEnabled();
@@ -566,28 +568,50 @@ namespace Orts.Menu
             return true;
         }
 
-        #endregion
+#endregion
 
-        #region Misc. buttons and options
+#region Misc. buttons and options
         private async void LinkLabelUpdate_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             if (updateManager.LastCheckError != null)
             {
-                MessageBox.Show(catalog.GetStringFmt("The update check failed due to an error:\n\n{0}", updateManager.LastCheckError), Application.ProductName);
+                MessageBox.Show(catalog.GetString($"The update check failed due to an error:\n\n{updateManager.LastCheckError.Message} {updateManager.LastCheckError.InnerException?.Message}"), RuntimeInfo.ProductName);
                 return;
             }
 
-            await updateManager.RunUpdateProcess();
-
-            if (updateManager.LastUpdateError != null)
+            try
             {
-                MessageBox.Show(catalog.GetStringFmt("The update failed due to an error:\n\n{0}", updateManager.LastUpdateError), Application.ProductName);
+                await updateManager.RunUpdateProcess().ConfigureAwait(true);
+            }
+            catch(Exception exception)
+            {
+                MessageBox.Show(catalog.GetString($"The update failed due to an error:\n\n{exception.Message} {exception.InnerException?.Message}"), RuntimeInfo.ProductName);
+                return;
+                throw;            
             }
         }
 
         private void LinkLabelChangeLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start(updateManager.ChangeLogLink);
+            OpenBrowser(linkLabelChangeLog.Tag as string);
+        }
+
+        private static void OpenBrowser(string url)
+        {
+            //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+                //Process.Start(new ProcessStartInfo("cmd", $"/c start {url.Replace("&", "^&")}") { CreateNoWindow = true });
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", url);
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
+            }
         }
 
         private void ButtonTools_Click(object sender, EventArgs e)
@@ -612,7 +636,7 @@ namespace Orts.Menu
         {
             SaveOptions();
 
-            using (var form = new OptionsForm(settings, updateManager, false))
+            using (var form = new OptionsForm(settings, updateManager, catalog, false))
             {
                 switch (form.ShowDialog(this))
                 {
@@ -697,9 +721,9 @@ namespace Orts.Menu
             DialogResult = DialogResult.OK;
         }
 
-        #endregion
+#endregion
 
-        #region Options
+#region Options
         private void LoadOptions()
         {
             checkBoxWarnings.Checked = settings.Logging;
@@ -757,9 +781,9 @@ namespace Orts.Menu
             };
             settings.Save();
         }
-        #endregion
+#endregion
 
-        #region Enabled state
+#region Enabled state
         private void UpdateEnabled()
         {
             comboBoxFolder.Enabled = comboBoxFolder.Items.Count > 0;
@@ -780,9 +804,9 @@ namespace Orts.Menu
                 SelectedTimetableTrain != null;
             buttonResumeMP.Enabled = buttonStartMP.Enabled = buttonStart.Enabled && !String.IsNullOrEmpty(textBoxMPUser.Text) && !String.IsNullOrEmpty(textBoxMPHost.Text);
         }
-        #endregion
+#endregion
 
-        #region Folder list
+#region Folder list
         private async Task LoadFolderListAsync()
         {
             try
@@ -800,7 +824,7 @@ namespace Orts.Menu
 
             if (!initialized && folders.Count() == 0)
             {
-                using (var form = new OptionsForm(settings, updateManager, true))
+                using (var form = new OptionsForm(settings, updateManager, catalog, true))
                 {
                     switch (form.ShowDialog(this))
                     {
@@ -830,9 +854,9 @@ namespace Orts.Menu
             UpdateFromMenuSelection<Folder>(comboBoxFolder, Menu_SelectionIndex.Folder, f => f.Path);
             UpdateEnabled();
         }
-        #endregion
+#endregion
 
-        #region Route list
+#region Route list
         private async Task LoadRouteListAsync()
         {
             lock (routes)
@@ -885,9 +909,9 @@ namespace Orts.Menu
             }
             UpdateEnabled();
         }
-        #endregion
+#endregion
 
-        #region Activity list
+#region Activity list
         private async Task LoadActivityListAsync()
         {
             lock (activities)
@@ -938,9 +962,9 @@ namespace Orts.Menu
                 detailUpdater = 0;
             }
         }
-        #endregion
+#endregion
 
-        #region Consist lists
+#region Consist lists
         private async Task LoadLocomotiveListAsync()
         {
             lock (consists)
@@ -1022,9 +1046,9 @@ namespace Orts.Menu
             }
             UpdateEnabled();
         }
-        #endregion
+#endregion
 
-        #region Path lists
+#region Path lists
         private async Task LoadStartAtListAsync()
         {
             lock (paths)
@@ -1116,9 +1140,9 @@ namespace Orts.Menu
             }
             UpdateEnabled();
         }
-        #endregion
+#endregion
 
-        #region Environment
+#region Environment
         private void ShowEnvironment()
         {
             if (SelectedActivity == null || SelectedActivity is ExploreActivity)
@@ -1169,9 +1193,9 @@ namespace Orts.Menu
                 comboBoxDuration.SelectedIndex = 0;
             }
         }
-        #endregion
+#endregion
 
-        #region Timetable Set list
+#region Timetable Set list
         private async Task LoadTimetableSetListAsync()
         {
             lock (timetableSets)
@@ -1240,9 +1264,9 @@ namespace Orts.Menu
             SelectedTimetableSet.WeatherFile = SelectedWeatherFile.GetFullName();
         }
 
-        #endregion
+#endregion
 
-        #region Timetable list
+#region Timetable list
         private void ShowTimetableList()
         {
             if (null != SelectedTimetableSet)
@@ -1264,9 +1288,9 @@ namespace Orts.Menu
 
             UpdateEnabled();
         }
-        #endregion
+#endregion
 
-        #region Timetable Train list
+#region Timetable Train list
         private void ShowTimetableTrainList()
         {
             if (null != SelectedTimetableSet)
@@ -1291,66 +1315,66 @@ namespace Orts.Menu
 
             UpdateEnabled();
         }
-        #endregion
+#endregion
 
-        #region Timetable environment
+#region Timetable environment
         private void ShowTimetableEnvironment()
         {
             UpdateFromMenuSelection(comboBoxTimetableDay, Menu_SelectionIndex.Day, d => d.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
             UpdateFromMenuSelection(comboBoxTimetableSeason, Menu_SelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, string.Empty));
             UpdateFromMenuSelection(comboBoxTimetableWeather, Menu_SelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
         }
-        #endregion
+#endregion
 
-        #region Details
+#region Details
         private void ShowDetails()
         {
             ClearDetails();
             if (SelectedRoute != null && SelectedRoute.Description != null)
-                AddDetailToShow(catalog.GetStringFmt("Route: {0}", SelectedRoute.Name), SelectedRoute.Description);
+                AddDetailToShow(catalog.GetString("Route: {0}", SelectedRoute.Name), SelectedRoute.Description);
 
             if (radioButtonModeActivity.Checked)
             {
                 if (SelectedConsist?.Locomotive?.Description != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description);
+                    AddDetailToShow(catalog.GetString("Locomotive: {0}", SelectedConsist.Locomotive.Name), SelectedConsist.Locomotive.Description);
                 }
                 if (SelectedActivity?.Description != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Activity: {0}", SelectedActivity.Name), SelectedActivity.Description);
+                    AddDetailToShow(catalog.GetString("Activity: {0}", SelectedActivity.Name), SelectedActivity.Description);
                     AddDetailToShow(catalog.GetString("Activity Briefing"), SelectedActivity.Briefing);
                 }
                 else if (SelectedPath != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Path: {0}", SelectedPath.Name),
-                        string.Join("\n", catalog.GetStringFmt("Starting at: {0}", SelectedPath.Start),
-                    catalog.GetStringFmt("Heading to: {0}", SelectedPath.End)));
+                    AddDetailToShow(catalog.GetString("Path: {0}", SelectedPath.Name),
+                        string.Join("\n", catalog.GetString("Starting at: {0}", SelectedPath.Start),
+                    catalog.GetString("Heading to: {0}", SelectedPath.End)));
                 }
             }
             if (radioButtonModeTimetable.Checked)
             {
                 if (SelectedTimetableSet != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Timetable set: {0}", SelectedTimetableSet), string.Empty);
+                    AddDetailToShow(catalog.GetString("Timetable set: {0}", SelectedTimetableSet), string.Empty);
                 }
                 if (SelectedTimetable != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Timetable: {0}", SelectedTimetable), string.Empty);
+                    AddDetailToShow(catalog.GetString("Timetable: {0}", SelectedTimetable), string.Empty);
                 }
                 if (SelectedTimetableTrain != null)
                 {
-                    AddDetailToShow(catalog.GetStringFmt("Train: {0}", SelectedTimetableTrain), catalog.GetStringFmt("Start time: {0}", SelectedTimetableTrain.StartTime));
+                    AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTime));
                     if (SelectedTimetableConsist != null)
                     {
-                        AddDetailToShow(catalog.GetStringFmt("Consist: {0}", SelectedTimetableConsist.Name), string.Empty);
+                        AddDetailToShow(catalog.GetString("Consist: {0}", SelectedTimetableConsist.Name), string.Empty);
                         if (SelectedTimetableConsist.Locomotive != null && SelectedTimetableConsist.Locomotive.Description != null)
                         {
-                            AddDetailToShow(catalog.GetStringFmt("Locomotive: {0}", SelectedTimetableConsist.Locomotive.Name), SelectedTimetableConsist.Locomotive.Description);
+                            AddDetailToShow(catalog.GetString("Locomotive: {0}", SelectedTimetableConsist.Locomotive.Name), SelectedTimetableConsist.Locomotive.Description);
                         }
                     }
                     if (SelectedTimetablePath != null)
                     {
-                        AddDetailToShow(catalog.GetStringFmt("Path: {0}", SelectedTimetablePath.Name), SelectedTimetablePath.ToInfo());
+                        AddDetailToShow(catalog.GetString("Path: {0}", SelectedTimetablePath.Name), SelectedTimetablePath.ToInfo());
                     }
                 }
             }
@@ -1494,9 +1518,9 @@ namespace Orts.Menu
                 panelDetails.AutoScrollMinSize = new Size(0, top);
             panelDetails.AutoScrollPosition = new Point(0, -scrollPosition);
         }
-        #endregion
+#endregion
 
-        #region Utility functions
+#region Utility functions
         private void UpdateFromMenuSelection<T>(ComboBox comboBox, Menu_SelectionIndex index, T defaultValue)
         {
             UpdateFromMenuSelection<T>(comboBox, index, _ => _.ToString(), defaultValue);
@@ -1559,9 +1583,9 @@ namespace Orts.Menu
                 Value = value;
             }
         }
-        #endregion
+#endregion
 
-        #region Executable utils
+#region Executable utils
         private enum ImageSubsystem
         {
             Unknown = 0,
@@ -1612,7 +1636,7 @@ namespace Orts.Menu
                 return ImageSubsystem.Unknown;
             }
         }
-        #endregion
+#endregion
 
         private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
         {

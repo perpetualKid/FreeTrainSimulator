@@ -444,7 +444,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 Viewer.HUDScrollWindow.Visible = TextPage == 0 && WebServerPageNo == 0 ? false : true;
 
             TableSetLabelValueColumns(table, 0, 2);
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.VersionOrBuild);
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.Version);
 
             // Client and server may have a time difference.
             if (Orts.MultiPlayer.MPManager.IsClient())
@@ -1229,7 +1229,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Axle drive force"), "{0}", FormatStrings.FormatForce(mstsLocomotive.LocomotiveAxle.DriveForceN, mstsLocomotive.IsMetric));
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Axle brake force"), "{0}", FormatStrings.FormatForce(mstsLocomotive.LocomotiveAxle.BrakeRetardForceN, mstsLocomotive.IsMetric));
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Number of substeps"), "{0:F0} ({1})", mstsLocomotive.LocomotiveAxle.AxleRevolutionsInt.NumOfSubstepsPS,
-                                                  Viewer.Catalog.GetStringFmt("filtered by {0:F0}", mstsLocomotive.LocomotiveAxle.FilterMovingAverage.Size));
+                                                  Viewer.Catalog.GetString("filtered by {0:F0}", mstsLocomotive.LocomotiveAxle.FilterMovingAverage.Size));
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Solver"), "{0}", mstsLocomotive.LocomotiveAxle.AxleRevolutionsInt.Method.ToString());
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Stability correction"), "{0:F0}", mstsLocomotive.LocomotiveAxle.AdhesionK);
                         TableAddLabelValue(table, Viewer.Catalog.GetString("Axle out force"), "{0} ({1})",
@@ -1650,11 +1650,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (hudWindowFullScreen)
                 TableSetLabelValueColumns(table, 0, 2);
 
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Visibility"), Viewer.Catalog.GetStringFmt("{0:N0} m", Viewer.Simulator.Weather.FogDistance));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Cloud cover"), Viewer.Catalog.GetStringFmt("{0:F0} %", Viewer.Simulator.Weather.OvercastFactor * 100));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Intensity"), Viewer.Catalog.GetStringFmt("{0:F4} p/s/m^2", Viewer.Simulator.Weather.PricipitationIntensityPPSPM2));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Liquidity"), Viewer.Catalog.GetStringFmt("{0:F0} %", Viewer.Simulator.Weather.PrecipitationLiquidity * 100));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Wind"), Viewer.Catalog.GetStringFmt("{0:F1},{1:F1} m/s", Viewer.Simulator.Weather.WindSpeedMpS.X, Viewer.Simulator.Weather.WindSpeedMpS.Y));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Visibility"), Viewer.Catalog.GetString("{0:N0} m", Viewer.Simulator.Weather.FogDistance));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Cloud cover"), Viewer.Catalog.GetString("{0:F0} %", Viewer.Simulator.Weather.OvercastFactor * 100));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Intensity"), Viewer.Catalog.GetString("{0:F4} p/s/m^2", Viewer.Simulator.Weather.PricipitationIntensityPPSPM2));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Liquidity"), Viewer.Catalog.GetString("{0:F0} %", Viewer.Simulator.Weather.PrecipitationLiquidity * 100));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Wind"), Viewer.Catalog.GetString("{0:F1},{1:F1} m/s", Viewer.Simulator.Weather.WindSpeedMpS.X, Viewer.Simulator.Weather.WindSpeedMpS.Y));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Amb Temp"), FormatStrings.FormatTemperature(Viewer.PlayerLocomotive.Train.TrainOutsideTempC, Viewer.PlayerLocomotive.IsMetric));
         }
 
@@ -1674,25 +1674,25 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             TableAddLabelValue(table, Viewer.Catalog.GetString("Logging enabled"), Viewer.Settings.DataLogger ? Viewer.Catalog.GetString("Yes") : Viewer.Catalog.GetString("No"));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Build"), VersionInfo.Build);
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Memory"), Viewer.Catalog.GetStringFmt("{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, {2:F0}/{3:F0}/{4:F0} GCs)", GetWorkingSetSize() >> 20, GC.GetTotalMemory(false) >> 20, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), Viewer.TextureManager.GetStatus(), Viewer.MaterialManager.GetStatus(), Viewer.ShapeManager.GetStatus(), Viewer.World.Terrain.GetStatus(), AllocatedBytesPerSecLastValue / Viewer.RenderProcess.FrameRate.SmoothedValue / 1024));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("CPU"), Viewer.Catalog.GetStringFmt("{0:F0}% ({1})", (Viewer.RenderProcess.Profiler.CPU.SmoothedValue + Viewer.UpdaterProcess.Profiler.CPU.SmoothedValue + Viewer.LoaderProcess.Profiler.CPU.SmoothedValue + Viewer.SoundProcess.Profiler.CPU.SmoothedValue) / ProcessorCount, Viewer.Catalog.GetPluralStringFmt("{0} logical processor", "{0} logical processors", ProcessorCount)));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("GPU"), Viewer.Catalog.GetStringFmt("{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms)", Viewer.RenderProcess.FrameRate.SmoothedValue, Viewer.RenderProcess.FrameTime.SmoothedP50 * 1000, Viewer.RenderProcess.FrameTime.SmoothedP95 * 1000, Viewer.RenderProcess.FrameTime.SmoothedP99 * 1000));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Adapter"), Viewer.Catalog.GetStringFmt("{0} ({1:F0} MB) ({2:F0} pixels x {3:F0} pixels)", Viewer.AdapterDescription, Viewer.AdapterMemory >> 20, Viewer.DisplaySize.X, Viewer.DisplaySize.Y));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Memory"), Viewer.Catalog.GetString("{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, {2:F0}/{3:F0}/{4:F0} GCs)", GetWorkingSetSize() >> 20, GC.GetTotalMemory(false) >> 20, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), Viewer.TextureManager.GetStatus(), Viewer.MaterialManager.GetStatus(), Viewer.ShapeManager.GetStatus(), Viewer.World.Terrain.GetStatus(), AllocatedBytesPerSecLastValue / Viewer.RenderProcess.FrameRate.SmoothedValue / 1024));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("CPU"), Viewer.Catalog.GetString("{0:F0}% ({1})", (Viewer.RenderProcess.Profiler.CPU.SmoothedValue + Viewer.UpdaterProcess.Profiler.CPU.SmoothedValue + Viewer.LoaderProcess.Profiler.CPU.SmoothedValue + Viewer.SoundProcess.Profiler.CPU.SmoothedValue) / ProcessorCount, Viewer.Catalog.GetPluralString("{0} logical processor", "{0} logical processors", ProcessorCount)));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("GPU"), Viewer.Catalog.GetString("{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms)", Viewer.RenderProcess.FrameRate.SmoothedValue, Viewer.RenderProcess.FrameTime.SmoothedP50 * 1000, Viewer.RenderProcess.FrameTime.SmoothedP95 * 1000, Viewer.RenderProcess.FrameTime.SmoothedP99 * 1000));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Adapter"), Viewer.Catalog.GetString("{0} ({1:F0} MB) ({2:F0} pixels x {3:F0} pixels)", Viewer.AdapterDescription, Viewer.AdapterMemory >> 20, Viewer.DisplaySize.X, Viewer.DisplaySize.Y));
             if (Viewer.Settings.DynamicShadows)
             {
-                TableSetCells(table, 3, Enumerable.Range(0, RenderProcess.ShadowMapCount).Select(i => String.Format(Viewer.Catalog.GetStringFmt("{0}/{1}", RenderProcess.ShadowMapDistance[i], RenderProcess.ShadowMapDiameter[i]))).ToArray());
-                TableSetCell(table, 3 + RenderProcess.ShadowMapCount, Viewer.Catalog.GetStringFmt("({0}x{0})", Viewer.Settings.ShadowMapResolution));
+                TableSetCells(table, 3, Enumerable.Range(0, RenderProcess.ShadowMapCount).Select(i => String.Format(Viewer.Catalog.GetString("{0}/{1}", RenderProcess.ShadowMapDistance[i], RenderProcess.ShadowMapDiameter[i]))).ToArray());
+                TableSetCell(table, 3 + RenderProcess.ShadowMapCount, Viewer.Catalog.GetString("({0}x{0})", Viewer.Settings.ShadowMapResolution));
                 TableAddLine(table, Viewer.Catalog.GetString("Shadow maps"));
                 TableSetCells(table, 3, Viewer.RenderProcess.ShadowPrimitivePerFrame.Select(p => p.ToString("F0")).ToArray());
-                TableAddLabelValue(table, Viewer.Catalog.GetString("Shadow primitives"), Viewer.Catalog.GetStringFmt("{0:F0}", Viewer.RenderProcess.ShadowPrimitivePerFrame.Sum()));
+                TableAddLabelValue(table, Viewer.Catalog.GetString("Shadow primitives"), Viewer.Catalog.GetString("{0:F0}", Viewer.RenderProcess.ShadowPrimitivePerFrame.Sum()));
             }
             TableSetCells(table, 3, Viewer.RenderProcess.PrimitivePerFrame.Select(p => p.ToString("F0")).ToArray());
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Render primitives"), Viewer.Catalog.GetStringFmt("{0:F0}", Viewer.RenderProcess.PrimitivePerFrame.Sum()));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Render process"), Viewer.Catalog.GetStringFmt("{0:F0}% ({1:F0}% {2})", Viewer.RenderProcess.Profiler.Wall.SmoothedValue, Viewer.RenderProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Updater process"), Viewer.Catalog.GetStringFmt("{0:F0}% ({1:F0}% {2})", Viewer.UpdaterProcess.Profiler.Wall.SmoothedValue, Viewer.UpdaterProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Loader process"), Viewer.Catalog.GetStringFmt("{0:F0}% ({1:F0}% {2})", Viewer.LoaderProcess.Profiler.Wall.SmoothedValue, Viewer.LoaderProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Sound process"), Viewer.Catalog.GetStringFmt("{0:F0}% ({1:F0}% {2})", Viewer.SoundProcess.Profiler.Wall.SmoothedValue, Viewer.SoundProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Total process"), Viewer.Catalog.GetStringFmt("{0:F0}% ({1:F0}% {2})", Viewer.RenderProcess.Profiler.Wall.SmoothedValue + Viewer.UpdaterProcess.Profiler.Wall.SmoothedValue + Viewer.LoaderProcess.Profiler.Wall.SmoothedValue + Viewer.SoundProcess.Profiler.Wall.SmoothedValue, Viewer.RenderProcess.Profiler.Wait.SmoothedValue + Viewer.UpdaterProcess.Profiler.Wait.SmoothedValue + Viewer.LoaderProcess.Profiler.Wait.SmoothedValue + Viewer.SoundProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Render primitives"), Viewer.Catalog.GetString("{0:F0}", Viewer.RenderProcess.PrimitivePerFrame.Sum()));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Render process"), Viewer.Catalog.GetString("{0:F0}% ({1:F0}% {2})", Viewer.RenderProcess.Profiler.Wall.SmoothedValue, Viewer.RenderProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Updater process"), Viewer.Catalog.GetString("{0:F0}% ({1:F0}% {2})", Viewer.UpdaterProcess.Profiler.Wall.SmoothedValue, Viewer.UpdaterProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Loader process"), Viewer.Catalog.GetString("{0:F0}% ({1:F0}% {2})", Viewer.LoaderProcess.Profiler.Wall.SmoothedValue, Viewer.LoaderProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Sound process"), Viewer.Catalog.GetString("{0:F0}% ({1:F0}% {2})", Viewer.SoundProcess.Profiler.Wall.SmoothedValue, Viewer.SoundProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Total process"), Viewer.Catalog.GetString("{0:F0}% ({1:F0}% {2})", Viewer.RenderProcess.Profiler.Wall.SmoothedValue + Viewer.UpdaterProcess.Profiler.Wall.SmoothedValue + Viewer.LoaderProcess.Profiler.Wall.SmoothedValue + Viewer.SoundProcess.Profiler.Wall.SmoothedValue, Viewer.RenderProcess.Profiler.Wait.SmoothedValue + Viewer.UpdaterProcess.Profiler.Wait.SmoothedValue + Viewer.LoaderProcess.Profiler.Wait.SmoothedValue + Viewer.SoundProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
             TableSetCells(table, 0, Viewer.Catalog.GetString("Camera"), "", Viewer.Camera.TileX.ToString("F0"), Viewer.Camera.TileZ.ToString("F0"), Viewer.Camera.Location.X.ToString("F2"), Viewer.Camera.Location.Y.ToString("F2"), Viewer.Camera.Location.Z.ToString("F2"), String.Format("{0:F1} {1}", Viewer.Tiles.GetElevation(Viewer.Camera.CameraWorldLocation), FormatStrings.m), Viewer.Settings.LODBias + "%", String.Format("{0} {1}", Viewer.Settings.ViewingDistance, FormatStrings.m), Viewer.Settings.DistantMountains ? String.Format("{0:F0} {1}", (float)Viewer.Settings.DistantMountainsViewingDistance * 1e-3f, FormatStrings.km) : "");
             TableAddLine(table);
         }

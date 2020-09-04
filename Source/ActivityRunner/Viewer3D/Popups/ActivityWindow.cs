@@ -174,7 +174,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 Owner.Viewer.HelpWindow.TabAction();
                             }
                             Visible = Activity.IsActivityWindowOpen = Owner.Viewer.HelpWindow.ActivityUpdated = Owner.Viewer.Simulator.Paused = true;
-                            ComposeMenu(e.ParsedObject.Name, Viewer.Catalog.GetStringFmt("This activity has ended {0}.\nFor a detailed evaluation, see the Help Window (F1).",
+                            ComposeMenu(e.ParsedObject.Name, Viewer.Catalog.GetString("This activity has ended {0}.\nFor a detailed evaluation, see the Help Window (F1).",
                                 Activity.IsSuccessful ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString("without success")));
                             EndMenu();
                         }
@@ -330,7 +330,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         void ComposeMenu(string eventLabel, string message)
         {
-            EventNameLabel.Text = Viewer.Catalog.GetStringFmt("Event: {0}", eventLabel);
+            EventNameLabel.Text = Viewer.Catalog.GetString("Event: {0}", eventLabel);
             MessageScroller.SetScrollPosition(0);
             Message.Text = message;
             ResizeDialog();
@@ -338,7 +338,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         void ComposeActualPlayerTrainMenu(string trainName, string message)
         {
-            EventNameLabel.Text = Viewer.Catalog.GetStringFmt("Train: {0}", trainName.Substring(0, Math.Min(trainName.Length, 20)));
+            EventNameLabel.Text = Viewer.Catalog.GetString("Train: {0}", trainName.Substring(0, Math.Min(trainName.Length, 20)));
             MessageScroller.SetScrollPosition(0);
             Message.Text = message;
             ResizeDialog();

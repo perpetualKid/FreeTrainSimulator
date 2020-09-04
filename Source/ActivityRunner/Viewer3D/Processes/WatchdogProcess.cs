@@ -280,7 +280,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Thread.Suspend();
             try
             {
+#if NETCOREAPP3_1
+                throw new NotImplementedException();
+#else
                 return new StackTrace(Thread, true);
+#endif
             }
             finally
             {

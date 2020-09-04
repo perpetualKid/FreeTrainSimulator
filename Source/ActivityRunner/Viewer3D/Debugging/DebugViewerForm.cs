@@ -29,7 +29,7 @@ using System.Linq;
 using System.Net;
 using System.Windows.Forms;
 
-using GNU.Gettext.WinForms;
+using GetText.WindowsForms;
 
 using Microsoft.Xna.Framework;
 

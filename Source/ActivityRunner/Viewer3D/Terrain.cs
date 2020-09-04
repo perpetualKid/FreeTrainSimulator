@@ -127,7 +127,7 @@ namespace Orts.ActivityRunner.Viewer3D
         //[CallOnThread("Updater")]
         public string GetStatus()
         {
-            return Viewer.Catalog.GetPluralStringFmt("{0:F0} tile", "{0:F0} tiles", TerrainTiles.Count);
+            return Viewer.Catalog.GetPluralString("{0:F0} tile", "{0:F0} tiles", TerrainTiles.Count);
         }
     }
 

@@ -22,80 +22,62 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices;
+using System.Net.Http;
 using System.Security.Cryptography;
-using System.Security.Cryptography.Pkcs;
-using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 
+using Orts.Common;
+using Orts.Common.Info;
 using Orts.Settings;
+
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Test.Orts")]
 
 namespace Orts.Updater
 {
     public class UpdateManager
     {
-        // The date on this is fairly arbitrary - it's only used in a calculation to round the DateTime up to the next TimeSpan period.
-        readonly DateTime BaseDateTimeMidnightLocal = new DateTime(2010, 1, 1, 0, 0, 0, DateTimeKind.Local);
+        private const string versionFile = "version.json";
 
         public const string ChannelCommandLine = "/CHANNEL=";
+        public const string VersionCommandLine = "/VERSION=";
         public const string WaitProcessIdCommandLine = "/WAITPID=";
         public const string RelaunchCommandLine = "/RELAUNCH=";
         public const string ElevationCommandLine = "/ELEVATE=";
 
         public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
 
-        private readonly string basePath;
-        private readonly string productName;
-        private readonly string productVersion;
-        private readonly UpdateSettings updateSettings;
-        private readonly UpdateState updateState;
-        private UpdateSettings channel;
-        private bool forceUpdate;
+        private static string PathUpdateTest => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateTest");
 
-        private string PathUpdateTest => Path.Combine(basePath, "UpdateTest");
-        private string PathUpdateDirty => Path.Combine(basePath, "UpdateDirty");
-        private string PathUpdateStage => Path.Combine(basePath, "UpdateStage");
-        private string PathDocumentation => Path.Combine(basePath, "Documentation");
-        private string PathUpdateDocumentation => Path.Combine(PathUpdateStage, "Documentation"); 
-        private string FileUpdateStage => Path.Combine(PathUpdateStage, "Update.zip");
-        private string FileSettings => Path.Combine(basePath, "OpenRails.ini");
-        private string FileUpdater => Path.Combine(basePath, "Updater.exe");
+        private static string PathUpdateDirty => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateDirty");
+        private static string PathUpdateStage => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateStage");
+        private static string PathDocumentation => Path.Combine(RuntimeInfo.ApplicationFolder, "Documentation");
+        private static string PathUpdateDocumentation => Path.Combine(PathUpdateStage, "Documentation");
+        private static string FileUpdateStage => Path.Combine(PathUpdateStage, "Update.zip");
+        private static string FileSettings => Path.Combine(RuntimeInfo.ApplicationFolder, "OpenRails.ini");
+        private static string FileUpdater => Path.Combine(RuntimeInfo.ApplicationFolder, "Updater.exe");
 
-        public string ChannelName { get; set; }
-        public string ChangeLogLink => channel?.ChangeLogLink;
-        public Update LastUpdate { get; private set; }
+        public string ChannelName { get; private set; }
         public Exception LastCheckError { get; private set; }
-        public Exception LastUpdateError { get; private set; }
         public bool UpdaterNeedsElevation { get; private set; }
 
-        public const string LauncherExecutable = "openrails.exe";
+        private UpdateChannels channels;
+        private readonly UserSettings settings;
 
-        public UpdateManager(string basePath, string productName, string productVersion)
+        private static string UserAgent => $"{RuntimeInfo.ProductName}/{VersionInfo.Version}";
+
+        public UpdateManager(UserSettings settings)
         {
-            if (!Directory.Exists(basePath))
-                throw new ArgumentException("The specified path must be valid and exist as a directory.", nameof(basePath));
-            this.basePath = basePath;
-            this.productName = productName;
-            this.productVersion = productVersion;
-            try
-            {
-                updateSettings = new UpdateSettings();
-                updateState = new UpdateState(updateSettings);
-                channel = new UpdateSettings(ChannelName = updateSettings.Channel);
-            }
-            catch (ArgumentException)
-            {
-                // Updater.ini doesn't exist. That's cool, we'll just disable updating.
-            }
+            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
+            channels = ResolveUpdateChannels();
             // Check for elevation to update; elevation is needed if the update writes failed and the user is NOT an
             // Administrator. Weird cases (like no permissions on the directory for anyone) are not handled.
-            if (!CheckUpdateWrites().Result)
+            if (!CheckUpdateWrites())
             {
                 var identity = WindowsIdentity.GetCurrent();
                 var principal = new WindowsPrincipal(identity);
@@ -103,191 +85,122 @@ namespace Orts.Updater
             }
         }
 
-        public static async Task<UpdateManager> Initialize(string basePath, string productName, string productVersion)
+        public IEnumerable<string> GetChannels()
         {
-            return await Task.Run(() => new UpdateManager(basePath, productName, productVersion));
+            return channels.Channels.Select(channel => channel.Name);
         }
 
-        public string[] GetChannels()
+        public ChannelInfo GetChannelByName(string channelName)
         {
-            if (channel == null)
-                return new string[0];
-
-            return updateSettings.GetChannels();
+            return channels.Channels.FirstOrDefault(channel => channel.Name.Equals(channelName, StringComparison.OrdinalIgnoreCase));
         }
 
-        public void SetChannel(string channelName)
+        public ChannelInfo GetChannelInfoByVersion(string normalizedVersion)
         {
-            if (channel == null)
-                throw new InvalidOperationException();
-
-            // Switch channel and save the change.
-            updateSettings.Channel = channelName;
-            updateSettings.Save();
-            channel = new UpdateSettings(ChannelName = updateSettings.Channel);
-
-            // Do a forced update check because the cached update data is likely to only be valid for the old channel.
-            forceUpdate = true;
+            return channels.Channels.FirstOrDefault(channel => channel.NormalizedVersion.Equals(normalizedVersion, StringComparison.OrdinalIgnoreCase));
         }
 
-        public async Task CheckForUpdateAsync()
+        public static string VersionFile { get; } = Path.Combine(RuntimeInfo.ConfigFolder, versionFile);
+
+        public async Task RefreshUpdateInfo(UpdateCheckFrequency frequency)
         {
-            // If there's no updater file or the update channel is not correctly configured, exit without error.
-            if (channel == null)
+            if (!CheckUpdateNeeded(frequency))
                 return;
 
-            try
+            LastCheckError = null;
+            using (HttpClient client = new HttpClient())
             {
-                // If we're not at the appropriate time for the next check (and we're not forced), we reconstruct the cached update/error and exit.
-                if (DateTime.UtcNow < updateState.NextCheck && !forceUpdate)
+                client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
+                client.DefaultRequestHeaders.UserAgent.TryParseAdd(UserAgent);
+                UriBuilder uriBuilder = new UriBuilder(settings.UpdateSource + versionFile);
+
+                try
                 {
-                    LastUpdate = updateState.Update.Length > 0 ? JsonConvert.DeserializeObject<Update>(updateState.Update) : null;
-                    LastCheckError = updateState.Update.Length > 0 || string.IsNullOrEmpty(channel.URL) ? null : new InvalidDataException("Last update check failed.");
-
-                    // Validate that the deserialized update is sane.
-                    ValidateLastUpdate();
-
-                    return;
+                    string versions = await client.GetStringAsync(uriBuilder.Uri).ConfigureAwait(false);
+                    File.WriteAllText(VersionFile, versions);
+                    channels = ResolveUpdateChannels();
                 }
-
-                // This updates the NextCheck time and clears the cached update/error.
-                ResetCachedUpdate();
-
-                if (string.IsNullOrEmpty(channel.URL))
+                catch (HttpRequestException httpException)
                 {
-                    // If there's no update URL, reset cached update/error.
-                    LastUpdate = null;
-                    LastCheckError = null;
-                    return;
-                }
-
-                // Fetch the update URL (adding ?force=true if forced) and cache the update/error.
-                var client = new WebClient()
-                {
-                    CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.BypassCache),
-                    Encoding = Encoding.UTF8,
-                };
-                client.Headers[HttpRequestHeader.UserAgent] = GetUserAgent();
-                UriBuilder uriBuilder = new UriBuilder(channel.URL);
-                if (channel.URL.ToLower().Contains("ultimate"))
-                {
-                    if (!uriBuilder.Uri.IsFile)
-                    {
-                        if (!uriBuilder.Path.EndsWith("/"))
-                            uriBuilder.Path += "/";
-                        uriBuilder.Path += "version.json";
-                    }
-                }
-                if (forceUpdate)
-                {
-                    uriBuilder.Query = (uriBuilder.Query?.Length > 1 ? uriBuilder.Query.Substring(1) + "&" : string.Empty) + "force=true";
-                }                
-                string updateData = await client.DownloadStringTaskAsync(uriBuilder.Uri);
-                LastUpdate = JsonConvert.DeserializeObject<Update>(updateData);
-                LastCheckError = null;
-
-                // Check it's all good.
-                ValidateLastUpdate();
-
-                CacheUpdate(updateData);
-            }
-            catch (Exception error)
-            {
-                // This could be a problem deserializing the LastUpdate or fetching/deserializing the new update. It doesn't really matter, we record an error.
-                LastUpdate = null;
-                LastCheckError = error;
-                Trace.WriteLine(error);
-
-                ResetCachedUpdate();
-            }
-
-        }
-
-        private void ValidateLastUpdate()
-        {
-            if (LastUpdate != null)
-            {
-                Uri uri = new Uri(LastUpdate.Url, UriKind.RelativeOrAbsolute);
-                if (uri.IsAbsoluteUri)
-                {
-                    LastUpdate = null;
-                    LastCheckError = new InvalidDataException("Update URL must be relative to channel URL.");
+                    Trace.WriteLine(httpException);
+                    LastCheckError = httpException;
                 }
             }
         }
 
-        public void Update()
+        public static bool CheckUpdateNeeded(UpdateCheckFrequency target)
         {
-            if (LastUpdate == null)
-                throw new InvalidOperationException("Cannot get update when no LatestUpdate exists.");
-            try
+            //we just check the update file's timestamp against the target
+            switch (target)
             {
-                Process.Start(FileUpdater, 
-                    $"{ChannelCommandLine}{ChannelName} {WaitProcessIdCommandLine}{Process.GetCurrentProcess().Id} {RelaunchCommandLine}1 {ElevationCommandLine}{(UpdaterNeedsElevation ? "1" : "0")}")
-                    .WaitForInputIdle();
-                Environment.Exit(0);
+                case UpdateCheckFrequency.Never: return false;
+                case UpdateCheckFrequency.Daily: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(1) < DateTime.Now;
+                case UpdateCheckFrequency.Weekly: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(7) < DateTime.Now;
+                case UpdateCheckFrequency.Biweekly: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddDays(14) < DateTime.Now;
+                case UpdateCheckFrequency.Monthly: return File.Exists(VersionFile) && File.GetLastWriteTime(VersionFile).AddMonths(1) < DateTime.Now;
+                default: return true; //Always
             }
-            catch (Exception error)
+        }
+
+        private static UpdateChannels ResolveUpdateChannels()
+        {
+            if (File.Exists(VersionFile))
             {
-                LastUpdateError = error;
+                using (StreamReader reader = File.OpenText(VersionFile))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    return (UpdateChannels)serializer.Deserialize(reader, typeof(UpdateChannels));
+                }
             }
+            return UpdateChannels.Empty;
+        }
+
+        public string GetBestAvailableVersion(string targetVersion = "", string targetChannel = "")
+        {
+            var availableVersions = channels.Channels.Select(channel => channel.NormalizedVersion).ToList();
+
+            return VersionInfo.SelectSuitableVersion(availableVersions, string.IsNullOrEmpty(targetChannel) ? settings.UpdateChannel : targetChannel, targetVersion);
         }
 
         public Task RunUpdateProcess()
         {
-            if (LastUpdate == null)
-                throw new InvalidOperationException("Cannot get update when no LatestUpdate exists.");
-            try
-            {
-                Task updateTask = RunProcess(new ProcessStartInfo(FileUpdater, $"{ChannelCommandLine}{ChannelName} " +
-                    $"{WaitProcessIdCommandLine}{Process.GetCurrentProcess().Id} {RelaunchCommandLine}1 {ElevationCommandLine}{(UpdaterNeedsElevation ? "1" : "0")}"));
-                Environment.Exit(0);
-                return Task.CompletedTask;
-            }
-            catch (Exception error)
-            {
-                LastUpdateError = error;
-                return Task.FromException(error);
-            }
+            Task updateTask = RunProcess(new ProcessStartInfo(FileUpdater, $"{ChannelCommandLine}{settings.UpdateChannel} " +
+                $"{WaitProcessIdCommandLine}{Process.GetCurrentProcess().Id} {RelaunchCommandLine}1 {ElevationCommandLine}{(UpdaterNeedsElevation ? "1" : "0")}"));
+            Environment.Exit(0);
+            return updateTask;
         }
 
-        public async Task ApplyUpdateAsync()
+        public async Task ApplyUpdateAsync(ChannelInfo target, CancellationToken token)
         {
-            if (LastUpdate == null) throw new InvalidOperationException("There is no update to apply.");
+            if (null == target || null == target.DownloadUrl)
+                throw new ApplicationException("No suitable update available");
 
-            TriggerApplyProgressChanged(0);
-            try
+            TriggerApplyProgressChanged(6);
+            CheckUpdateWrites();
+            TriggerApplyProgressChanged(7);
+
+            await CleanDirectoriesAsync(token).ConfigureAwait(false);
+            TriggerApplyProgressChanged(9);
+
+            await DownloadUpdateAsync(9, 48, target.DownloadUrl, token).ConfigureAwait(false);
+            TriggerApplyProgressChanged(57);
+
+            await VerifyUpdateAsync(target.Hash).ConfigureAwait(false);
+            TriggerApplyProgressChanged(62);
+
+            await ExtractUpdate(62, 30).ConfigureAwait(false);
+            TriggerApplyProgressChanged(92);
+
+            if (await UpdateIsReadyAync().ConfigureAwait(false))
             {
-                await CheckUpdateWrites().ConfigureAwait(false);
-                TriggerApplyProgressChanged(1);
+                await CopyUpdateFileAsync().ConfigureAwait(false);
+                TriggerApplyProgressChanged(98);
 
-                await CleanDirectoriesAsync().ConfigureAwait(false);
-                TriggerApplyProgressChanged(2);
-
-                await DownloadUpdateAsync(2, 65).ConfigureAwait(false);
-                TriggerApplyProgressChanged(67);
-
-                await ExtractUpdate(67, 30).ConfigureAwait(false);
-                TriggerApplyProgressChanged(97);
-
-                if (await UpdateIsReadyAync().ConfigureAwait(false))
-                {
-                    await VerifyUpdateAsync().ConfigureAwait(false);
-                    TriggerApplyProgressChanged(98);
-
-                    await CopyUpdateFileAsync().ConfigureAwait(false);
-                    TriggerApplyProgressChanged(99);
-
-                    await CleanDirectoriesAsync().ConfigureAwait(false);
-                    TriggerApplyProgressChanged(100);
-                }
-
-                LastUpdateError = null;
+                await CleanDirectoriesAsync(token).ConfigureAwait(false);
+                TriggerApplyProgressChanged(100);
             }
-            catch (Exception error)
-            {
-                LastUpdateError = error;
-            }
+            else
+                throw new ApplicationException("The update package is in an unexpected state.");
         }
 
         private void TriggerApplyProgressChanged(int progressPercentage)
@@ -295,99 +208,104 @@ namespace Orts.Updater
             ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progressPercentage, null));
         }
 
-        private string GetUserAgent()
-        {
-            return $"{productName}/{productVersion}";
-        }
-
-        void ResetCachedUpdate()
-        {
-            updateState.LastCheck = DateTime.UtcNow;
-            // So what we're doing here is rounding up the DateTime (LastCheck) to the next TTL period. For
-            // example, if the TTL was 1 hour, we'd round up to the start of the next hour. Similarly, if the TTL was
-            // 1 day, we'd round up to midnight (the start of the next day). The purpose of this is to avoid 2 * TTL 
-            // checking which might well occur if you always launch Open Rails around the same time of day each day -
-            // if they launch it at 6:00PM on Monday, then 5:30PM on Tuesday, they won't get an update check on
-            // Tuesday. With the time rounding, they should get one check/day if the TTL is 1 day and they open it
-            // every day. (This is why BaseDateTimeMidnightLocal uses the local midnight!)
-            updateState.NextCheck = channel.TTL.TotalDays > 1 ? 
-                BaseDateTimeMidnightLocal.AddSeconds(Math.Ceiling((updateState.LastCheck - BaseDateTimeMidnightLocal).TotalSeconds / channel.TTL.TotalSeconds) * channel.TTL.TotalSeconds) : 
-                updateState.LastCheck + channel.TTL;
-            updateState.Update = string.Empty;
-            updateState.Save();
-        }
-
-        private void CacheUpdate(string updateData)
-        {
-            forceUpdate = false;
-            updateState.Update = updateData;
-            updateState.Save();
-        }
-
-        private Task<bool> CheckUpdateWrites()
+        private static bool CheckUpdateWrites()
         {
             try
             {
                 Directory.CreateDirectory(PathUpdateTest)?.Delete(true);
-                return Task.FromResult(true);
+                return true;
             }
-            catch
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
             {
-                return Task.FromResult(false);
+                return false;
             }
         }
 
-        private async Task CleanDirectoriesAsync()
+        private static async Task CleanDirectoriesAsync(CancellationToken token)
         {
             List<Task> cleanupTasks = new List<Task>();
+            //temporarily suspended due to dual framework targeting
+            //if (Directory.Exists(PathUpdateDirty))
+            //    cleanupTasks.Add(CleanDirectory(PathUpdateDirty, token));
 
-            if (Directory.Exists(PathUpdateDirty))
-                cleanupTasks.Add(CleanDirectory(PathUpdateDirty));
+            //if (Directory.Exists(PathUpdateStage))
+            //    cleanupTasks.Add(CleanDirectory(PathUpdateStage, token));
 
-            if (Directory.Exists(PathUpdateStage))
-                cleanupTasks.Add(CleanDirectory(PathUpdateStage));
+            //await Task.WhenAll(cleanupTasks).ConfigureAwait(false);
 
+            string programPath = Path.GetDirectoryName(Path.GetDirectoryName(RuntimeInfo.ApplicationFolder));
+            string[] targets = Directory.GetDirectories(programPath, "net*");
+
+            foreach (string targetFolder in targets)
+            {
+                if (Directory.Exists(Path.Combine(targetFolder, "UpdateDirty")))
+                    cleanupTasks.Add(CleanDirectory(Path.Combine(targetFolder, "UpdateDirty"), token));
+
+                if (Directory.Exists(Path.Combine(targetFolder, "UpdateStage")))
+                    cleanupTasks.Add(CleanDirectory(Path.Combine(targetFolder, "UpdateStage"), token));
+            }
             await Task.WhenAll(cleanupTasks).ConfigureAwait(false);
         }
 
-        private Task CleanDirectory(string path)
+        private static Task CleanDirectory(string path, CancellationToken token)
         {
             //// Clean up as much as we can here, but any in-use files will fail. Don't worry about them. This is
-            //// called before the update begins so we'll always start from a clean slate.
+            //// called again before the update begins so we'll always start from a clean state.
             //// Scan the files in any order.
             foreach (string file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
             {
                 try { File.Delete(file); }
-                catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                { Trace.TraceWarning($"{path} :: {ex.Message}"); };
             }
-
+            if (token.IsCancellationRequested)
+                return Task.FromCanceled(token);
             foreach (string directory in Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly))
             {
                 try { Directory.Delete(directory, true); }
-                catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                { Trace.TraceWarning($"{path} :: {ex.Message}"); };
             }
+            if (token.IsCancellationRequested)
+                return Task.FromCanceled(token);
             try { Directory.Delete(path); }
-            catch (Exception ex) { Trace.TraceWarning($"{path} :: {ex.Message}"); };
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            { Trace.TraceWarning($"{path} :: {ex.Message}"); };
             return Task.CompletedTask;
         }
 
-        private async Task DownloadUpdateAsync(int progressMin, int progressLength)
+        private async Task DownloadUpdateAsync(int progressMin, int progressLength, Uri downloadUrl, CancellationToken token)
         {
-            Directory.CreateDirectory(PathUpdateStage);
+            DirectoryInfo stagingDirectory = Directory.CreateDirectory(PathUpdateStage);
+            stagingDirectory.Attributes |= FileAttributes.Hidden;
 
-            Uri updateUri = new Uri(channel.URL);
-            updateUri = new Uri(updateUri, LastUpdate.Url);
-            WebClient client = new WebClient();
-
-            client.DownloadProgressChanged += (object sender, DownloadProgressChangedEventArgs e) =>
+            using (HttpClient httpClient = new HttpClient())
             {
-                TriggerApplyProgressChanged(progressMin + progressLength * e.ProgressPercentage / 100);
-            };
+                httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(UserAgent);
+                HttpResponseMessage response = await httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                long progressPercent = response.Content.Headers.ContentLength.GetValueOrDefault() / 100;
+                using (Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false),
+                    fileStream = new FileStream(FileUpdateStage, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, 8192, true))
+                {
+                    var buffer = new byte[8192];
+                    int bytesRead;
 
-            client.Headers[HttpRequestHeader.UserAgent] = GetUserAgent();
+                    int percentage = 0;
+                    do
+                    {
+                        bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
+                        await fileStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
 
-            await client.DownloadFileTaskAsync(updateUri, FileUpdateStage);
-
+                        if (fileStream.Length / progressPercent > percentage)
+                        {
+                            TriggerApplyProgressChanged(progressMin + progressLength * ++percentage / 100);
+                        }
+                    }
+                    while (bytesRead != 0);
+                    await fileStream.FlushAsync(token).ConfigureAwait(false);
+                }
+            }
             TriggerApplyProgressChanged(progressMin + progressLength);
         }
 
@@ -397,9 +315,6 @@ namespace Orts.Updater
             {
                 using (ZipArchive zipFile = new ZipArchive(fileStream))
                 {
-                    if (string.IsNullOrEmpty(PathUpdateStage))
-                        throw new ArgumentNullException(nameof(PathUpdateStage));
-
                     // Note that this will give us a good DirectoryInfo even if destinationDirectoryName exists:
                     DirectoryInfo directoryInfo = Directory.CreateDirectory(PathUpdateStage);
                     string destinationDirectoryFullPath = directoryInfo.FullName;
@@ -411,7 +326,7 @@ namespace Orts.Updater
                         string fileDestinationPath = Path.GetFullPath(Path.Combine(destinationDirectoryFullPath, entry.FullName));
 
                         if (!fileDestinationPath.StartsWith(destinationDirectoryFullPath, StringComparison.OrdinalIgnoreCase))
-                            throw new IOException("File is extracting to outside of the folder specified.");
+                            throw new IOException("File is extracting to a destination outside of the folder specified.");
 
                         TriggerApplyProgressChanged(progressMin + progressLength * count / zipFile.Entries.Count);
 
@@ -437,67 +352,82 @@ namespace Orts.Updater
             return Task.CompletedTask;
         }
 
-        private async Task<bool> UpdateIsReadyAync()
+        private static async Task<bool> UpdateIsReadyAync()
         {
-            // The staging directory must exist, contain OpenRails.exe (be ready) and NOT contain the update zip.
-            if (Directory.Exists(Path.Combine(PathUpdateStage, "Program")) && !File.Exists(Path.Combine(PathUpdateStage, LauncherExecutable)))
+            if (Directory.Exists(Path.Combine(PathUpdateStage, "Program")) && !File.Exists(Path.Combine(PathUpdateStage, RuntimeInfo.LauncherExecutable)))
             {
                 //looks like the archive contains the root folder as well, so we move everything one level up
-                await MoveDirectoryFiles(Path.Combine(PathUpdateStage, "Program"), PathUpdateStage, true);
+                await MoveDirectoryFiles(Path.Combine(PathUpdateStage, "Program"), PathUpdateStage, true).ConfigureAwait(false);
             }
 
+            // The staging directory must exist, contain OpenRails.exe (be ready) and NOT contain the update zip.
             return await Task.FromResult(Directory.Exists(PathUpdateStage)
-                && File.Exists(Path.Combine(PathUpdateStage, LauncherExecutable))
-                && !File.Exists(FileUpdateStage));
+                && File.Exists(Path.Combine(PathUpdateStage, RuntimeInfo.LauncherExecutable))
+                && !File.Exists(FileUpdateStage)).ConfigureAwait(false);
         }
 
-        private Task VerifyUpdateAsync()
+        private static Task VerifyUpdateAsync(string targetHash)
         {
-            IEnumerable<string> files = Directory.GetFiles(PathUpdateStage, "*", SearchOption.AllDirectories).Where(s =>
-                    s.ToUpper().EndsWith(".EXE") ||
-                    s.ToUpper().EndsWith(".CPL") ||
-                    s.ToUpper().EndsWith(".DLL") ||
-                    s.ToUpper().EndsWith(".OCX") ||
-                    s.ToUpper().EndsWith(".SYS"));
+            using (SHA256 hashProvider = SHA256.Create())
+            {
+                using (FileStream file = new FileStream(FileUpdateStage, FileMode.Open, FileAccess.Read))
+                {
+                    byte[] hash = hashProvider.ComputeHash(file);
+                    StringBuilder builder = new StringBuilder(64);
+                    foreach (byte item in hash)
+                    {
+                        builder.Append($"{item:x2}");
+                    }
 
-            HashSet<string> expectedSubjects = new HashSet<string>();
-            try
-            {
-                foreach (X509Certificate2 cert in GetCertificatesFromFile(FileUpdater))
-                    expectedSubjects.Add(cert.Subject);
-            }
-            catch (Exception ex) when (ex is CryptographicException || ex is Win32Exception)
-            {
-                // No signature on the updater, so we can't verify the update. :(
-                return Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                // No signature on the updater, so we can't verify the update. :(
-                return Task.FromException(ex);
-            }
-
-            foreach(string file in files)
-            {
-                List<X509Certificate2> certificates = GetCertificatesFromFile(file);
-                if (!certificates.Any(c => expectedSubjects.Contains(c.Subject)))
-                    throw new InvalidDataException("Cryptographic signatures don't match. Expected a common subject in old subjects:\n\n"
-                        + FormatCertificateSubjectList(expectedSubjects) + "\n\nAnd new subjects:\n\n"
-                        + FormatCertificateSubjectList(certificates) + "\n");
+                    if (!string.IsNullOrEmpty(targetHash) && !string.Equals(targetHash, builder.ToString(), StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidDataException("Could not confirm download integrity for downloaded package");
+                }
             }
             return Task.CompletedTask;
         }
 
-        private async Task CopyUpdateFileAsync()
+        private static async Task CopyUpdateFileAsync()
         {
-            string[] excludeDirs = Directory.Exists(PathUpdateDocumentation) ? new string [] { PathUpdateDirty, PathUpdateStage } : new string[] { PathUpdateDirty, PathUpdateStage, PathDocumentation};
-            await MoveDirectoryFiles(basePath, PathUpdateDirty, true, excludeDirs, new string[] { FileSettings }).ConfigureAwait(false);
+            //temporarily suspended due to dual framework targeting
+            //List<string> excludeDirs = new List<string>()
+            //{
+            //    RuntimeInfo.ConfigFolder, PathUpdateDirty, PathUpdateStage
+            //};
+            //if (Directory.Exists(PathUpdateDocumentation))
+            //    excludeDirs.Add(PathDocumentation);
 
-            await MoveDirectoryFiles(PathUpdateStage, basePath, true).ConfigureAwait(false);
+            //await MoveDirectoryFiles(RuntimeInfo.ApplicationFolder, PathUpdateDirty, true, excludeDirs, new string[] { FileSettings }).ConfigureAwait(false);
+
+            //await MoveDirectoryFiles(PathUpdateStage, RuntimeInfo.ApplicationFolder, true).ConfigureAwait(false);
+
+            string programPath = Path.GetDirectoryName(Path.GetDirectoryName(RuntimeInfo.ApplicationFolder));
+            string[] targets = Directory.GetDirectories(programPath, "net*");
+            List<Task> moveFileTasks = new List<Task>();
+
+            foreach (string targetFolder in targets)
+            {
+                List<string> excludeDirs = new List<string>()
+                {
+                    Path.Combine(targetFolder, ".config"),
+                    Path.Combine(targetFolder, "UpdateDirty"),
+                    Path.Combine(targetFolder, "UpdateStage"),
+                };
+                if (Directory.Exists(Path.Combine(targetFolder, "Documentation")))
+                    excludeDirs.Add(Path.Combine(targetFolder, "Documentation"));
+                moveFileTasks.Add(MoveDirectoryFiles(targetFolder, Path.Combine(targetFolder, "UpdateDirty"), true, excludeDirs, new string[] { FileSettings }));
+            }
+            await Task.WhenAll(moveFileTasks).ConfigureAwait(false);
+
+            foreach (string targetFolder in targets)
+            {
+                new DirectoryInfo(Path.Combine(targetFolder, "UpdateDirty")).Attributes |= FileAttributes.Hidden;
+            }
+            await MoveDirectoryFiles(PathUpdateStage, programPath, true).ConfigureAwait(false);
+
         }
 
-        private static Task MoveDirectoryFiles(string sourceDirName, string destDirName, bool recursive, 
-            string[] excludedFolders = null, string[] excludedFiles = null)
+        private static Task MoveDirectoryFiles(string sourceDirName, string destDirName, bool recursive,
+            IEnumerable<string> excludedFolders = null, IEnumerable<string> excludedFiles = null)
         {
             if (null != excludedFolders && excludedFolders.Contains(sourceDirName))
             {
@@ -520,7 +450,12 @@ namespace Orts.Updater
                  (file) =>
                  {
                      if (null == excludedFiles || !excludedFiles.Contains(file.FullName))
-                         file.MoveTo(Path.Combine(destDirName, file.Name));
+                         if (File.Exists(Path.Combine(destDirName, file.Name)))
+                         {
+                             Trace.TraceWarning($"Deleting extra file {Path.Combine(destDirName, file.Name)}");
+                             File.Delete(Path.Combine(destDirName, file.Name));
+                         }
+                     file.MoveTo(Path.Combine(destDirName, file.Name));
                  });
 
             // If copying subdirectories, copy them and their contents to new location.
@@ -534,107 +469,46 @@ namespace Orts.Updater
             }
 
             try { source.Delete(); }
-            catch (Exception ex) { Trace.TraceWarning($"{sourceDirName} :: {ex.Message}"); };
+            catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException || ex is DirectoryNotFoundException)
+            {
+                Trace.TraceWarning($"{sourceDirName} :: {ex.Message} {ex.InnerException?.Message}");
+            };
             return Task.CompletedTask;
         }
 
         public static Task RunProcess(ProcessStartInfo processStartInfo)
         {
+            if (null == processStartInfo)
+                throw new ArgumentNullException(nameof(processStartInfo));
+
             var tcs = new TaskCompletionSource<object>();
             processStartInfo.RedirectStandardError = true;
             processStartInfo.UseShellExecute = false;
 
-            Process process = new Process
+            using (Process process = new Process
             {
                 EnableRaisingEvents = true,
                 StartInfo = processStartInfo
-            };
-
-            process.Exited += (sender, args) =>
+            })
             {
-                if (process.ExitCode != 0)
+
+                process.Exited += (sender, args) =>
                 {
-                    var errorMessage = process.StandardError.ReadToEnd();
-                    tcs.SetException(new InvalidOperationException("The process did not exit correctly. " +
-                        "The corresponding error message was: " + errorMessage));
-                }
-                else
-                {
-                    tcs.SetResult(null);
-                }
-                process.Dispose();
-            };
-            process.Start();
-            return tcs.Task;
-        }
-
-
-        static string FormatCertificateSubjectList(IEnumerable<string> subjects)
-        {
-            return string.Join("\n", subjects.Select(s => "- " + s).ToArray());
-        }
-
-        static string FormatCertificateSubjectList(IEnumerable<X509Certificate2> certificates)
-        {
-            return FormatCertificateSubjectList(certificates.Select(c => c.Subject));
-        }
-
-        static List<X509Certificate2> GetCertificatesFromFile(string filename)
-        {
-            IntPtr cryptMsg = IntPtr.Zero;
-            if (!NativeMethods.CryptQueryObject(NativeMethods.CERT_QUERY_OBJECT_FILE, filename, NativeMethods.CERT_QUERY_CONTENT_FLAG_PKCS7_SIGNED_EMBED, NativeMethods.CERT_QUERY_FORMAT_FLAG_ALL, 0, 0, 0, 0, 0, ref cryptMsg, 0))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-
-            // Get size of the encoded message.
-            int dataSize = 0;
-            if (!NativeMethods.CryptMsgGetParam(cryptMsg, NativeMethods.CMSG_ENCODED_MESSAGE, 0, IntPtr.Zero, ref dataSize))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-
-            // Get the encoded message.
-            var data = new byte[dataSize];
-            if (!NativeMethods.CryptMsgGetParam(cryptMsg, NativeMethods.CMSG_ENCODED_MESSAGE, 0, data, ref dataSize))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-
-            return GetCertificatesFromEncodedData(data);
-        }
-
-        static List<X509Certificate2> GetCertificatesFromEncodedData(byte[] data)
-        {
-            var certs = new List<X509Certificate2>();
-
-            var signedCms = new SignedCms();
-            signedCms.Decode(data);
-
-            foreach (var signerInfo in signedCms.SignerInfos)
-            {
-                // Record this signer info's certificate if it has one.
-                if (signerInfo.Certificate != null)
-                    certs.Add(signerInfo.Certificate);
-
-                foreach (var unsignedAttribute in signerInfo.UnsignedAttributes)
-                {
-                    // This attribute Oid is for "code signatures" and is used to attach multiple signatures to a single item.
-                    if (unsignedAttribute.Oid.Value == "1.3.6.1.4.1.311.2.4.1")
+                    if (process.ExitCode != 0)
                     {
-                        foreach (var value in unsignedAttribute.Values)
-                            certs.AddRange(GetCertificatesFromEncodedData(value.RawData));
+                        var errorMessage = process.StandardError.ReadToEnd();
+                        tcs.SetException(new InvalidOperationException("The process did not exit correctly. " +
+                            "The corresponding error message was: " + errorMessage));
                     }
-                }
+                    else
+                    {
+                        tcs.SetResult(null);
+                    }
+                    process.Dispose();
+                };
+                process.Start();
+                return tcs.Task;
             }
-
-            return certs;
         }
-    }
-
-    public class Update
-    {
-        [JsonProperty]
-        public DateTime Date { get; private set; }
-
-        [JsonProperty]
-        public string Url { get; private set; }
-
-        [JsonProperty]
-        public string Version { get; private set; }
     }
 }

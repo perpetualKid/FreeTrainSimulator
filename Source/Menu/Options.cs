@@ -21,10 +21,14 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using GNU.Gettext;
-using GNU.Gettext.WinForms;
+
+using GetText;
+using GetText.WindowsForms;
+
+using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Settings;
 using Orts.Updater;
@@ -33,36 +37,19 @@ namespace Orts.Menu
 {
     public partial class OptionsForm : Form
     {
-        private readonly UserSettings Settings;
-        private readonly UpdateManager UpdateManager;
+        private readonly UserSettings settings;
+        private readonly UpdateManager updateManager;
 
-        private GettextResourceManager catalog = new GettextResourceManager("Menu");
+        private readonly ICatalog catalog;
 
-        public class ComboBoxMember
-        {
-            public string Code { get; set; }
-            public string Name { get; set; }
-        }
-
-        public class ContentFolder
-        {
-            public string Name { get; set; }
-            public string Path { get; set; }
-
-            public ContentFolder()
-            {
-                Name = "";
-                Path = "";
-            }
-        }
-
-        public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup)
+        public OptionsForm(UserSettings settings, UpdateManager updateManager, ICatalog catalog, bool initialContentSetup)
         {
             InitializeComponent();
             Localizer.Localize(this, catalog);
 
-            Settings = settings;
-            UpdateManager = updateManager;
+            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
+            this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
 
             // Collect all the available language codes by searching for
             // localisation files, but always include English (base language).
@@ -74,25 +61,12 @@ namespace Orts.Menu
             // Turn the list of codes in to a list of code + name pairs for
             // displaying in the dropdown list.
             comboLanguage.DataSource =
-                new[] { new ComboBoxMember { Code = "", Name = "System" } }
-                .Union(languageCodes
-                    .SelectMany(lc =>
-                    {
-                        try
-                        {
-                            return new[] { new ComboBoxMember { Code = lc, Name = CultureInfo.GetCultureInfo(lc).NativeName } };
-                        }
-                        catch (ArgumentException)
-                        {
-                            return new ComboBoxMember[0];
-                        }
-                    })
-                    .OrderBy(l => l.Name)
-                )
+                new[] { new ComboBoxItem<string>(string.Empty, "System") }
+                .Union(
+                    ComboBoxItem<string>.FromList(languageCodes, (language) => CultureInfo.GetCultureInfo(language).NativeName).OrderBy(language => language.Value))
                 .ToList();
-            comboLanguage.DisplayMember = "Name";
-            comboLanguage.ValueMember = "Code";
-            comboLanguage.SelectedValue = Settings.Language;
+            ComboBoxItem<string>.SetDataSourceMembers(comboLanguage);
+            comboLanguage.SelectedValue = this.settings.Language;
             if (comboLanguage.SelectedValue == null) comboLanguage.SelectedIndex = 0;
 
             comboBoxOtherUnits.DataSource = new[] {
@@ -104,7 +78,7 @@ namespace Orts.Menu
             }.ToList();
             comboBoxOtherUnits.DisplayMember = "Name";
             comboBoxOtherUnits.ValueMember = "Code";
-            comboBoxOtherUnits.SelectedValue = Settings.Units;
+            comboBoxOtherUnits.SelectedValue = this.settings.Units;
 
             comboPressureUnit.DataSource = new[] {
                 new ComboBoxMember { Code = "Automatic", Name = catalog.GetString("Automatic") },
@@ -115,7 +89,7 @@ namespace Orts.Menu
             }.ToList();
             comboPressureUnit.DisplayMember = "Name";
             comboPressureUnit.ValueMember = "Code";
-            comboPressureUnit.SelectedValue = Settings.PressureUnit;
+            comboPressureUnit.SelectedValue = this.settings.PressureUnit;
 
             // Windows 2000 and XP should use 8.25pt Tahoma, while Windows
             // Vista and later should use 9pt "Segoe UI". We'll use the
@@ -133,68 +107,68 @@ namespace Orts.Menu
             }
 
             // General tab
-            checkAlerter.Checked = Settings.Alerter;
-            checkAlerterExternal.Enabled = Settings.Alerter;
-            checkAlerterExternal.Checked = Settings.Alerter && !Settings.AlerterDisableExternal;
-            checkSpeedControl.Checked = Settings.SpeedControl;
-            checkConfirmations.Checked = !Settings.SuppressConfirmations;
-            checkViewDispatcher.Checked = Settings.ViewDispatcher;
-            checkRetainers.Checked = Settings.RetainersOnAllCars;
-            checkGraduatedRelease.Checked = Settings.GraduatedRelease;
-            numericBrakePipeChargingRate.Value = Settings.BrakePipeChargingRate;
-            comboLanguage.Text = Settings.Language;
-            comboPressureUnit.Text = Settings.PressureUnit;
+            checkAlerter.Checked = this.settings.Alerter;
+            checkAlerterExternal.Enabled = this.settings.Alerter;
+            checkAlerterExternal.Checked = this.settings.Alerter && !this.settings.AlerterDisableExternal;
+            checkSpeedControl.Checked = this.settings.SpeedControl;
+            checkConfirmations.Checked = !this.settings.SuppressConfirmations;
+            checkViewDispatcher.Checked = this.settings.ViewDispatcher;
+            checkRetainers.Checked = this.settings.RetainersOnAllCars;
+            checkGraduatedRelease.Checked = this.settings.GraduatedRelease;
+            numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
+            comboLanguage.Text = this.settings.Language;
+            comboPressureUnit.Text = this.settings.PressureUnit;
             comboBoxOtherUnits.Text = settings.Units;
-            checkDisableTCSScripts.Checked = Settings.DisableTCSScripts;
-            checkEnableWebServer.Checked = Settings.WebServer;
-            numericWebServerPort.Value = Settings.WebServerPort;
+            checkDisableTCSScripts.Checked = this.settings.DisableTCSScripts;
+            checkEnableWebServer.Checked = this.settings.WebServer;
+            numericWebServerPort.Value = this.settings.WebServerPort;
 
             // Audio tab
-            numericSoundVolumePercent.Value = Settings.SoundVolumePercent;
-            numericSoundDetailLevel.Value = Settings.SoundDetailLevel;
-            numericExternalSoundPassThruPercent.Value = Settings.ExternalSoundPassThruPercent;
+            numericSoundVolumePercent.Value = this.settings.SoundVolumePercent;
+            numericSoundDetailLevel.Value = this.settings.SoundDetailLevel;
+            numericExternalSoundPassThruPercent.Value = this.settings.ExternalSoundPassThruPercent;
 
             // Video tab
-            checkDynamicShadows.Checked = Settings.DynamicShadows;
-            checkShadowAllShapes.Checked = Settings.ShadowAllShapes;
-            checkFastFullScreenAltTab.Checked = Settings.FastFullScreenAltTab;
-            checkWindowGlass.Checked = Settings.WindowGlass;
-            checkModelInstancing.Checked = Settings.ModelInstancing;
-            checkWire.Checked = Settings.Wire;
-            checkVerticalSync.Checked = Settings.VerticalSync;
-            trackbarMultiSampling.Value = (int)Math.Log(Settings.MultisamplingCount, 2);
+            checkDynamicShadows.Checked = this.settings.DynamicShadows;
+            checkShadowAllShapes.Checked = this.settings.ShadowAllShapes;
+            checkFastFullScreenAltTab.Checked = this.settings.FastFullScreenAltTab;
+            checkWindowGlass.Checked = this.settings.WindowGlass;
+            checkModelInstancing.Checked = this.settings.ModelInstancing;
+            checkWire.Checked = this.settings.Wire;
+            checkVerticalSync.Checked = this.settings.VerticalSync;
+            trackbarMultiSampling.Value = (int)Math.Log(this.settings.MultisamplingCount, 2);
             TrackbarMultiSampling_Scroll(this, null);
-            numericCab2DStretch.Value = Settings.Cab2DStretch;
-            numericViewingDistance.Value = Settings.ViewingDistance;
-            checkDistantMountains.Checked = Settings.DistantMountains;
+            numericCab2DStretch.Value = this.settings.Cab2DStretch;
+            numericViewingDistance.Value = this.settings.ViewingDistance;
+            checkDistantMountains.Checked = this.settings.DistantMountains;
             labelDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
             numericDistantMountainsViewingDistance.Enabled = checkDistantMountains.Checked;
-            numericDistantMountainsViewingDistance.Value = Settings.DistantMountainsViewingDistance / 1000;
-            numericViewingFOV.Value = Settings.ViewingFOV;
-            numericWorldObjectDensity.Value = Settings.WorldObjectDensity;
-            comboWindowSize.Text = Settings.WindowSize;
-            trackDayAmbientLight.Value = Settings.DayAmbientLight;
+            numericDistantMountainsViewingDistance.Value = this.settings.DistantMountainsViewingDistance / 1000;
+            numericViewingFOV.Value = this.settings.ViewingFOV;
+            numericWorldObjectDensity.Value = this.settings.WorldObjectDensity;
+            comboWindowSize.Text = this.settings.WindowSize;
+            trackDayAmbientLight.Value = this.settings.DayAmbientLight;
             TrackDayAmbientLight_ValueChanged(null, null);
-            checkDoubleWire.Checked = Settings.DoubleWire;
-            checkBoxFullScreenNativeResolution.Checked = Settings.NativeFullscreenResolution;
-            radioButtonFullScreen.Checked = Settings.FullScreen;
+            checkDoubleWire.Checked = this.settings.DoubleWire;
+            checkBoxFullScreenNativeResolution.Checked = this.settings.NativeFullscreenResolution;
+            radioButtonFullScreen.Checked = this.settings.FullScreen;
             radioButtonWindow.Checked = !radioButtonFullScreen.Checked;
 
             // Simulation tab
-            checkUseAdvancedAdhesion.Checked = Settings.UseAdvancedAdhesion;
+            checkUseAdvancedAdhesion.Checked = this.settings.UseAdvancedAdhesion;
             labelAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked;
             numericAdhesionMovingAverageFilterSize.Enabled = checkUseAdvancedAdhesion.Checked;
-            numericAdhesionMovingAverageFilterSize.Value = Settings.AdhesionMovingAverageFilterSize;
-            checkBreakCouplers.Checked = Settings.BreakCouplers;
-            checkCurveResistanceDependent.Checked = Settings.CurveResistanceDependent;
-            checkCurveSpeedDependent.Checked = Settings.CurveSpeedDependent;
-            checkTunnelResistanceDependent.Checked = Settings.TunnelResistanceDependent;
-            checkWindResistanceDependent.Checked = Settings.WindResistanceDependent;
-            checkOverrideNonElectrifiedRoutes.Checked = Settings.OverrideNonElectrifiedRoutes;
-            checkHotStart.Checked = Settings.HotStart;
-            checkSimpleControlPhysics.Checked = Settings.SimpleControlPhysics;
-            checkForcedRedAtStationStops.Checked = !Settings.NoForcedRedAtStationStops;
-            checkDoorsAITrains.Checked = Settings.OpenDoorsInAITrains;
+            numericAdhesionMovingAverageFilterSize.Value = this.settings.AdhesionMovingAverageFilterSize;
+            checkBreakCouplers.Checked = this.settings.BreakCouplers;
+            checkCurveResistanceDependent.Checked = this.settings.CurveResistanceDependent;
+            checkCurveSpeedDependent.Checked = this.settings.CurveSpeedDependent;
+            checkTunnelResistanceDependent.Checked = this.settings.TunnelResistanceDependent;
+            checkWindResistanceDependent.Checked = this.settings.WindResistanceDependent;
+            checkOverrideNonElectrifiedRoutes.Checked = this.settings.OverrideNonElectrifiedRoutes;
+            checkHotStart.Checked = this.settings.HotStart;
+            checkSimpleControlPhysics.Checked = this.settings.SimpleControlPhysics;
+            checkForcedRedAtStationStops.Checked = !this.settings.NoForcedRedAtStationStops;
+            checkDoorsAITrains.Checked = this.settings.OpenDoorsInAITrains;
 
             //// Keyboard tab
             //InitializeKeyboardSettings();
@@ -213,7 +187,7 @@ namespace Orts.Menu
             comboDataLoggerSeparator.DataSource = new BindingSource(dictionaryDataLoggerSeparator, null);
             comboDataLoggerSeparator.DisplayMember = "Value";
             comboDataLoggerSeparator.ValueMember = "Key";
-            comboDataLoggerSeparator.Text = catalog.GetString(Settings.DataLoggerSeparator);
+            comboDataLoggerSeparator.Text = catalog.GetString(this.settings.DataLoggerSeparator);
             var dictionaryDataLogSpeedUnits = new Dictionary<string, string>
             {
                 { "route", catalog.GetString("route") },
@@ -224,20 +198,20 @@ namespace Orts.Menu
             comboDataLogSpeedUnits.DataSource = new BindingSource(dictionaryDataLogSpeedUnits, null);
             comboDataLogSpeedUnits.DisplayMember = "Value";
             comboDataLogSpeedUnits.ValueMember = "Key";
-            comboDataLogSpeedUnits.Text = catalog.GetString(Settings.DataLogSpeedUnits);
-            checkDataLogger.Checked = Settings.DataLogger;
-            checkDataLogPerformance.Checked = Settings.DataLogPerformance;
-            checkDataLogPhysics.Checked = Settings.DataLogPhysics;
-            checkDataLogMisc.Checked = Settings.DataLogMisc;
-            checkDataLogSteamPerformance.Checked = Settings.DataLogSteamPerformance;
-            checkVerboseConfigurationMessages.Checked = Settings.VerboseConfigurationMessages;
+            comboDataLogSpeedUnits.Text = catalog.GetString(this.settings.DataLogSpeedUnits);
+            checkDataLogger.Checked = this.settings.DataLogger;
+            checkDataLogPerformance.Checked = this.settings.DataLogPerformance;
+            checkDataLogPhysics.Checked = this.settings.DataLogPhysics;
+            checkDataLogMisc.Checked = this.settings.DataLogMisc;
+            checkDataLogSteamPerformance.Checked = this.settings.DataLogSteamPerformance;
+            checkVerboseConfigurationMessages.Checked = this.settings.VerboseConfigurationMessages;
 
             // Evaluation tab
-            checkDataLogTrainSpeed.Checked = Settings.DataLogTrainSpeed;
+            checkDataLogTrainSpeed.Checked = this.settings.DataLogTrainSpeed;
             labelDataLogTSInterval.Enabled = checkDataLogTrainSpeed.Checked;
             numericDataLogTSInterval.Enabled = checkDataLogTrainSpeed.Checked;
             checkListDataLogTSContents.Enabled = checkDataLogTrainSpeed.Checked;
-            numericDataLogTSInterval.Value = Settings.DataLogTSInterval;
+            numericDataLogTSInterval.Value = this.settings.DataLogTSInterval;
             checkListDataLogTSContents.Items.AddRange(new object[] {
                 catalog.GetString("Time"),
                 catalog.GetString("Train Speed"),
@@ -253,11 +227,11 @@ namespace Orts.Menu
                 catalog.GetString("Gear Setting")
             });
             for (var i = 0; i < checkListDataLogTSContents.Items.Count; i++)
-                checkListDataLogTSContents.SetItemChecked(i, Settings.DataLogTSContents[i] == 1);
-            checkDataLogStationStops.Checked = Settings.DataLogStationStops;
+                checkListDataLogTSContents.SetItemChecked(i, this.settings.DataLogTSContents[i] == 1);
+            checkDataLogStationStops.Checked = this.settings.DataLogStationStops;
 
             // Content tab
-            bindingSourceContent.DataSource = (from folder in Settings.Folders.Folders
+            bindingSourceContent.DataSource = (from folder in this.settings.Folders.Folders
                                                orderby folder.Key
                                                select new ContentFolder() { Name = folder.Key, Path = folder.Value }).ToList();
             if (initialContentSetup)
@@ -272,78 +246,46 @@ namespace Orts.Menu
             }
 
             // Updater tab
-            var updateChannelNames = new Dictionary<string, string> {
-                { "stable", catalog.GetString("Stable (recommended)") },
-                { "testing", catalog.GetString("Testing") },
-                { "unstable", catalog.GetString("Unstable") },
-                { "ultimate", catalog.GetString("Ultimate") },
-                { "", catalog.GetString("None") },
-            };
-            var updateChannelDescriptions = new Dictionary<string, string> {
-                { "stable", catalog.GetString("Infrequent updates to official, hand-picked versions. Recommended for most users.") },
-                { "testing", catalog.GetString("Weekly updates which may contain noticable defects. For project supporters.") },
-                { "unstable", catalog.GetString("Daily updates which may contain serious defects. For developers only.") },
-                { "ultimate", catalog.GetString("OR MG continous build updates which may contain serious defects. For developers only.") },
-                { "", catalog.GetString("No updates.") },
-            };
-            var spacing = labelUpdateChannel.Margin.Size;
-            var indent = 20;
-            var top = labelUpdateChannel.Bottom + spacing.Height;
-            foreach (var channel in UpdateManager.GetChannels())
-            {
-                var radio = new RadioButton()
-                {
-                    Text = updateChannelNames[channel.ToLowerInvariant()],
-                    Margin = labelUpdateChannel.Margin,
-                    Left = spacing.Width,
-                    Top = top,
-                    Checked = updateManager.ChannelName.Equals(channel, StringComparison.InvariantCultureIgnoreCase),
-                    AutoSize = true,
-                    Tag = channel,
-                };
-                tabPageUpdater.Controls.Add(radio);
-                top += radio.Height + spacing.Height;
-                var label = new Label()
-                {
-                    Text = updateChannelDescriptions[channel.ToLowerInvariant()],
-                    Margin = labelUpdateChannel.Margin,
-                    Left = spacing.Width + indent,
-                    Top = top,
-                    Width = tabPageUpdater.ClientSize.Width - indent - spacing.Width * 2,
-                    AutoSize = true,
-                };
-                tabPageUpdater.Controls.Add(label);
-                top += label.Height + spacing.Height;
-            }
+            trackBarUpdaterFrequency.Value = this.settings.UpdateCheckFrequency;
+            TrackBarUpdaterFrequency_Scroll(this, null);
+
+            buttonUpdatesRefresh.Font = new Font("Wingdings 3", 14);
+            buttonUpdatesRefresh.Text = char.ConvertFromUtf32(81);
+            buttonUpdatesRefresh.Width = 23;
+            buttonUpdatesRefresh.Height = 23;
+
+            comboBoxUpdateChannels.DataSource = ComboBoxItem<string>.FromList(updateManager.GetChannels().OrderByDescending((s) => s), (channel) => catalog.GetString(channel));
+            ComboBoxItem<string>.SetDataSourceMembers(comboBoxUpdateChannels);
+            comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);
 
             // Experimental tab
-            numericUseSuperElevation.Value = Settings.UseSuperElevation;
-            numericSuperElevationMinLen.Value = Settings.SuperElevationMinLen;
-            numericSuperElevationGauge.Value = Settings.SuperElevationGauge;
-            checkPerformanceTuner.Checked = Settings.PerformanceTuner;
+            numericUseSuperElevation.Value = this.settings.UseSuperElevation;
+            numericSuperElevationMinLen.Value = this.settings.SuperElevationMinLen;
+            numericSuperElevationGauge.Value = this.settings.SuperElevationGauge;
+            checkPerformanceTuner.Checked = this.settings.PerformanceTuner;
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
             numericPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
-            numericPerformanceTunerTarget.Value = Settings.PerformanceTunerTarget;
-            trackLODBias.Value = Settings.LODBias;
+            numericPerformanceTunerTarget.Value = this.settings.PerformanceTunerTarget;
+            trackLODBias.Value = this.settings.LODBias;
             TrackLODBias_ValueChanged(null, null);
-            checkConditionalLoadOfNightTextures.Checked = Settings.ConditionalLoadOfDayOrNightTextures;
-            checkSignalLightGlow.Checked = Settings.SignalLightGlow;
-            checkCircularSpeedGauge.Checked = Settings.CircularSpeedGauge;
-            checkLODViewingExtention.Checked = Settings.LODViewingExtention;
-            checkPreferDDSTexture.Checked = Settings.PreferDDSTexture;
-            checkUseLocationPassingPaths.Checked = Settings.UseLocationPassingPaths;
-            checkUseMSTSEnv.Checked = Settings.UseMSTSEnv;
-            trackAdhesionFactor.Value = Settings.AdhesionFactor;
-            checkAdhesionPropToWeather.Checked = Settings.AdhesionProportionalToWeather;
-            trackAdhesionFactorChange.Value = Settings.AdhesionFactorChange;
+            checkConditionalLoadOfNightTextures.Checked = this.settings.ConditionalLoadOfDayOrNightTextures;
+            checkSignalLightGlow.Checked = this.settings.SignalLightGlow;
+            checkCircularSpeedGauge.Checked = this.settings.CircularSpeedGauge;
+            checkLODViewingExtention.Checked = this.settings.LODViewingExtention;
+            checkPreferDDSTexture.Checked = this.settings.PreferDDSTexture;
+            checkUseLocationPassingPaths.Checked = this.settings.UseLocationPassingPaths;
+            checkUseMSTSEnv.Checked = this.settings.UseMSTSEnv;
+            trackAdhesionFactor.Value = this.settings.AdhesionFactor;
+            checkAdhesionPropToWeather.Checked = this.settings.AdhesionProportionalToWeather;
+            trackAdhesionFactorChange.Value = this.settings.AdhesionFactorChange;
             TrackAdhesionFactor_ValueChanged(null, null);
-            checkShapeWarnings.Checked = !Settings.SuppressShapeWarnings;
-            precipitationBoxHeight.Value = Settings.PrecipitationBoxHeight;
-            precipitationBoxWidth.Value = Settings.PrecipitationBoxWidth;
-            precipitationBoxLength.Value = Settings.PrecipitationBoxLength;
-            checkCorrectQuestionableBrakingParams.Checked = Settings.CorrectQuestionableBrakingParams;
-            numericActRandomizationLevel.Value = Settings.ActRandomizationLevel;
-            numericActWeatherRandomizationLevel.Value = Settings.ActWeatherRandomizationLevel;
+            checkShapeWarnings.Checked = !this.settings.SuppressShapeWarnings;
+            precipitationBoxHeight.Value = this.settings.PrecipitationBoxHeight;
+            precipitationBoxWidth.Value = this.settings.PrecipitationBoxWidth;
+            precipitationBoxLength.Value = this.settings.PrecipitationBoxLength;
+            checkCorrectQuestionableBrakingParams.Checked = this.settings.CorrectQuestionableBrakingParams;
+            numericActRandomizationLevel.Value = this.settings.ActRandomizationLevel;
+            numericActWeatherRandomizationLevel.Value = this.settings.ActWeatherRandomizationLevel;
         }
 
         private async void OptionsForm_Shown(object sender, EventArgs e)
@@ -351,7 +293,7 @@ namespace Orts.Menu
             List<Task> initTasks = new List<Task>()
             {   InitializeKeyboardSettingsAsync(),
                 InitializeRailDriverSettingsAsync() };
-            await Task.WhenAll(initTasks);
+            await Task.WhenAll(initTasks).ConfigureAwait(false);
         }
 
         private static string ParseCategoryFrom(string name)
@@ -372,18 +314,10 @@ namespace Orts.Menu
                 return name.Substring(len + 1);
         }
 
-
-        private void SaveKeyboardSettings()
-        {
-            //foreach (Control control in panelKeys.Controls)
-            //    if (control is KeyInputControl)
-            //        Settings.Input.Commands[(int)control.Tag].PersistentDescriptor = (control as KeyInputControl).UserInput.PersistentDescriptor;
-        }
-
         private void ButtonOK_Click(object sender, EventArgs e)
         {
-            var result = Settings.Input.CheckForErrors();
-            if (result != "" && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, Application.ProductName, MessageBoxButtons.YesNo))
+            var result = settings.Input.CheckForErrors();
+            if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, Application.ProductName, MessageBoxButtons.YesNo))
                 return;
 
             result = CheckButtonAssignments();
@@ -391,64 +325,64 @@ namespace Orts.Menu
                 return;
 
             DialogResult = DialogResult.OK;
-            if (Settings.Language != comboLanguage.SelectedValue.ToString())
+            if (settings.Language != comboLanguage.SelectedValue.ToString())
                 DialogResult = DialogResult.Retry;
 
             // General tab
-            Settings.Alerter = checkAlerter.Checked;
-            Settings.AlerterDisableExternal = !checkAlerterExternal.Checked;
-            Settings.SpeedControl = checkSpeedControl.Checked;
-            Settings.SuppressConfirmations = !checkConfirmations.Checked;
-            Settings.ViewDispatcher = checkViewDispatcher.Checked;
-            Settings.RetainersOnAllCars = checkRetainers.Checked;
-            Settings.GraduatedRelease = checkGraduatedRelease.Checked;
-            Settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
-            Settings.Language = comboLanguage.SelectedValue.ToString();
-            Settings.PressureUnit = comboPressureUnit.SelectedValue.ToString();
-            Settings.Units = comboBoxOtherUnits.SelectedValue.ToString();
-            Settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
-            Settings.WebServer = checkEnableWebServer.Checked;
+            settings.Alerter = checkAlerter.Checked;
+            settings.AlerterDisableExternal = !checkAlerterExternal.Checked;
+            settings.SpeedControl = checkSpeedControl.Checked;
+            settings.SuppressConfirmations = !checkConfirmations.Checked;
+            settings.ViewDispatcher = checkViewDispatcher.Checked;
+            settings.RetainersOnAllCars = checkRetainers.Checked;
+            settings.GraduatedRelease = checkGraduatedRelease.Checked;
+            settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
+            settings.Language = comboLanguage.SelectedValue.ToString();
+            settings.PressureUnit = comboPressureUnit.SelectedValue.ToString();
+            settings.Units = comboBoxOtherUnits.SelectedValue.ToString();
+            settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
+            settings.WebServer = checkEnableWebServer.Checked;
 
             // Audio tab
-            Settings.SoundVolumePercent = (int)numericSoundVolumePercent.Value;
-            Settings.SoundDetailLevel = (int)numericSoundDetailLevel.Value;
-            Settings.ExternalSoundPassThruPercent = (int)numericExternalSoundPassThruPercent.Value;
+            settings.SoundVolumePercent = (int)numericSoundVolumePercent.Value;
+            settings.SoundDetailLevel = (int)numericSoundDetailLevel.Value;
+            settings.ExternalSoundPassThruPercent = (int)numericExternalSoundPassThruPercent.Value;
 
             // Video tab
-            Settings.DynamicShadows = checkDynamicShadows.Checked;
-            Settings.ShadowAllShapes = checkShadowAllShapes.Checked;
-            Settings.FastFullScreenAltTab = checkFastFullScreenAltTab.Checked;
-            Settings.WindowGlass = checkWindowGlass.Checked;
-            Settings.ModelInstancing = checkModelInstancing.Checked;
-            Settings.Wire = checkWire.Checked;
-            Settings.VerticalSync = checkVerticalSync.Checked;
-            Settings.MultisamplingCount = 1 << trackbarMultiSampling.Value;
-            Settings.Cab2DStretch = (int)numericCab2DStretch.Value;
-            Settings.ViewingDistance = (int)numericViewingDistance.Value;
-            Settings.DistantMountains = checkDistantMountains.Checked;
-            Settings.DistantMountainsViewingDistance = (int)numericDistantMountainsViewingDistance.Value * 1000;
-            Settings.ViewingFOV = (int)numericViewingFOV.Value;
-            Settings.WorldObjectDensity = (int)numericWorldObjectDensity.Value;
-            Settings.WindowSize = GetValidWindowSize(comboWindowSize);
+            settings.DynamicShadows = checkDynamicShadows.Checked;
+            settings.ShadowAllShapes = checkShadowAllShapes.Checked;
+            settings.FastFullScreenAltTab = checkFastFullScreenAltTab.Checked;
+            settings.WindowGlass = checkWindowGlass.Checked;
+            settings.ModelInstancing = checkModelInstancing.Checked;
+            settings.Wire = checkWire.Checked;
+            settings.VerticalSync = checkVerticalSync.Checked;
+            settings.MultisamplingCount = 1 << trackbarMultiSampling.Value;
+            settings.Cab2DStretch = (int)numericCab2DStretch.Value;
+            settings.ViewingDistance = (int)numericViewingDistance.Value;
+            settings.DistantMountains = checkDistantMountains.Checked;
+            settings.DistantMountainsViewingDistance = (int)numericDistantMountainsViewingDistance.Value * 1000;
+            settings.ViewingFOV = (int)numericViewingFOV.Value;
+            settings.WorldObjectDensity = (int)numericWorldObjectDensity.Value;
+            settings.WindowSize = GetValidWindowSize(comboWindowSize.Text);
 
-            Settings.DayAmbientLight = (int)trackDayAmbientLight.Value;
-            Settings.DoubleWire = checkDoubleWire.Checked;
-            Settings.NativeFullscreenResolution = checkBoxFullScreenNativeResolution.Checked;
-            Settings.FullScreen = radioButtonFullScreen.Checked;
+            settings.DayAmbientLight = (int)trackDayAmbientLight.Value;
+            settings.DoubleWire = checkDoubleWire.Checked;
+            settings.NativeFullscreenResolution = checkBoxFullScreenNativeResolution.Checked;
+            settings.FullScreen = radioButtonFullScreen.Checked;
 
             // Simulation tab
-            Settings.UseAdvancedAdhesion = checkUseAdvancedAdhesion.Checked;
-            Settings.AdhesionMovingAverageFilterSize = (int)numericAdhesionMovingAverageFilterSize.Value;
-            Settings.BreakCouplers = checkBreakCouplers.Checked;
-            Settings.CurveResistanceDependent = checkCurveResistanceDependent.Checked;
-            Settings.CurveSpeedDependent = checkCurveSpeedDependent.Checked;
-            Settings.TunnelResistanceDependent = checkTunnelResistanceDependent.Checked;
-            Settings.WindResistanceDependent = checkWindResistanceDependent.Checked;
-            Settings.OverrideNonElectrifiedRoutes = checkOverrideNonElectrifiedRoutes.Checked;
-            Settings.HotStart = checkHotStart.Checked;
-            Settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
-            Settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;
-            Settings.OpenDoorsInAITrains = checkDoorsAITrains.Checked;
+            settings.UseAdvancedAdhesion = checkUseAdvancedAdhesion.Checked;
+            settings.AdhesionMovingAverageFilterSize = (int)numericAdhesionMovingAverageFilterSize.Value;
+            settings.BreakCouplers = checkBreakCouplers.Checked;
+            settings.CurveResistanceDependent = checkCurveResistanceDependent.Checked;
+            settings.CurveSpeedDependent = checkCurveSpeedDependent.Checked;
+            settings.TunnelResistanceDependent = checkTunnelResistanceDependent.Checked;
+            settings.WindResistanceDependent = checkWindResistanceDependent.Checked;
+            settings.OverrideNonElectrifiedRoutes = checkOverrideNonElectrifiedRoutes.Checked;
+            settings.HotStart = checkHotStart.Checked;
+            settings.SimpleControlPhysics = checkSimpleControlPhysics.Checked;
+            settings.NoForcedRedAtStationStops = !checkForcedRedAtStationStops.Checked;
+            settings.OpenDoorsInAITrains = checkDoorsAITrains.Checked;
 
             // Keyboard tab
             // These are edited live.
@@ -458,89 +392,88 @@ namespace Orts.Menu
             SaveRailDriverSettings();
 
             // DataLogger tab
-            Settings.DataLoggerSeparator = comboDataLoggerSeparator.SelectedValue.ToString();
-            Settings.DataLogSpeedUnits = comboDataLogSpeedUnits.SelectedValue.ToString();
-            Settings.DataLogger = checkDataLogger.Checked;
-            Settings.DataLogPerformance = checkDataLogPerformance.Checked;
-            Settings.DataLogPhysics = checkDataLogPhysics.Checked;
-            Settings.DataLogMisc = checkDataLogMisc.Checked;
-            Settings.DataLogSteamPerformance = checkDataLogSteamPerformance.Checked;
-            Settings.VerboseConfigurationMessages = checkVerboseConfigurationMessages.Checked;
+            settings.DataLoggerSeparator = comboDataLoggerSeparator.SelectedValue.ToString();
+            settings.DataLogSpeedUnits = comboDataLogSpeedUnits.SelectedValue.ToString();
+            settings.DataLogger = checkDataLogger.Checked;
+            settings.DataLogPerformance = checkDataLogPerformance.Checked;
+            settings.DataLogPhysics = checkDataLogPhysics.Checked;
+            settings.DataLogMisc = checkDataLogMisc.Checked;
+            settings.DataLogSteamPerformance = checkDataLogSteamPerformance.Checked;
+            settings.VerboseConfigurationMessages = checkVerboseConfigurationMessages.Checked;
 
             // Evaluation tab
-            Settings.DataLogTrainSpeed = checkDataLogTrainSpeed.Checked;
-            Settings.DataLogTSInterval = (int)numericDataLogTSInterval.Value;
+            settings.DataLogTrainSpeed = checkDataLogTrainSpeed.Checked;
+            settings.DataLogTSInterval = (int)numericDataLogTSInterval.Value;
             for (var i = 0; i < checkListDataLogTSContents.Items.Count; i++)
-                Settings.DataLogTSContents[i] = checkListDataLogTSContents.GetItemChecked(i) ? 1 : 0;
-            Settings.DataLogStationStops = checkDataLogStationStops.Checked;
+                settings.DataLogTSContents[i] = checkListDataLogTSContents.GetItemChecked(i) ? 1 : 0;
+            settings.DataLogStationStops = checkDataLogStationStops.Checked;
 
             // Content tab
-            Settings.Folders.Folders.Clear();
+            settings.Folders.Folders.Clear();
             foreach (var folder in bindingSourceContent.DataSource as List<ContentFolder>)
-                Settings.Folders.Folders.Add(folder.Name, folder.Path);
+                settings.Folders.Folders.Add(folder.Name, folder.Path);
 
             // Updater tab
-            foreach (Control control in tabPageUpdater.Controls)
-                if ((control is RadioButton) && (control as RadioButton).Checked)
-                    UpdateManager.SetChannel((string)control.Tag);
+
+            settings.UpdateChannel = (comboBoxUpdateChannels.SelectedItem as ComboBoxItem<string>)?.Key ?? string.Empty;
+            settings.UpdateCheckFrequency = trackBarUpdaterFrequency.Value;
 
             // Experimental tab
-            Settings.UseSuperElevation = (int)numericUseSuperElevation.Value;
-            Settings.SuperElevationMinLen = (int)numericSuperElevationMinLen.Value;
-            Settings.SuperElevationGauge = (int)numericSuperElevationGauge.Value;
-            Settings.PerformanceTuner = checkPerformanceTuner.Checked;
-            Settings.PerformanceTunerTarget = (int)numericPerformanceTunerTarget.Value;
-            Settings.LODBias = trackLODBias.Value;
-            Settings.ConditionalLoadOfDayOrNightTextures = checkConditionalLoadOfNightTextures.Checked;
-            Settings.SignalLightGlow = checkSignalLightGlow.Checked;
-            Settings.CircularSpeedGauge = checkCircularSpeedGauge.Checked;
-            Settings.LODViewingExtention = checkLODViewingExtention.Checked;
-            Settings.PreferDDSTexture = checkPreferDDSTexture.Checked;
-            Settings.UseLocationPassingPaths = checkUseLocationPassingPaths.Checked;
-            Settings.UseMSTSEnv = checkUseMSTSEnv.Checked;
-            Settings.AdhesionFactor = (int)trackAdhesionFactor.Value;
-            Settings.AdhesionProportionalToWeather = checkAdhesionPropToWeather.Checked;
-            Settings.AdhesionFactorChange = (int)trackAdhesionFactorChange.Value;
-            Settings.SuppressShapeWarnings = !checkShapeWarnings.Checked;
-            Settings.PrecipitationBoxHeight = (int)precipitationBoxHeight.Value;
-            Settings.PrecipitationBoxWidth = (int)precipitationBoxWidth.Value;
-            Settings.PrecipitationBoxLength = (int)precipitationBoxLength.Value;
-            Settings.CorrectQuestionableBrakingParams = checkCorrectQuestionableBrakingParams.Checked;
-            Settings.ActRandomizationLevel = (int)numericActRandomizationLevel.Value;
-            Settings.ActWeatherRandomizationLevel = (int)numericActWeatherRandomizationLevel.Value;
+            settings.UseSuperElevation = (int)numericUseSuperElevation.Value;
+            settings.SuperElevationMinLen = (int)numericSuperElevationMinLen.Value;
+            settings.SuperElevationGauge = (int)numericSuperElevationGauge.Value;
+            settings.PerformanceTuner = checkPerformanceTuner.Checked;
+            settings.PerformanceTunerTarget = (int)numericPerformanceTunerTarget.Value;
+            settings.LODBias = trackLODBias.Value;
+            settings.ConditionalLoadOfDayOrNightTextures = checkConditionalLoadOfNightTextures.Checked;
+            settings.SignalLightGlow = checkSignalLightGlow.Checked;
+            settings.CircularSpeedGauge = checkCircularSpeedGauge.Checked;
+            settings.LODViewingExtention = checkLODViewingExtention.Checked;
+            settings.PreferDDSTexture = checkPreferDDSTexture.Checked;
+            settings.UseLocationPassingPaths = checkUseLocationPassingPaths.Checked;
+            settings.UseMSTSEnv = checkUseMSTSEnv.Checked;
+            settings.AdhesionFactor = (int)trackAdhesionFactor.Value;
+            settings.AdhesionProportionalToWeather = checkAdhesionPropToWeather.Checked;
+            settings.AdhesionFactorChange = (int)trackAdhesionFactorChange.Value;
+            settings.SuppressShapeWarnings = !checkShapeWarnings.Checked;
+            settings.PrecipitationBoxHeight = (int)precipitationBoxHeight.Value;
+            settings.PrecipitationBoxWidth = (int)precipitationBoxWidth.Value;
+            settings.PrecipitationBoxLength = (int)precipitationBoxLength.Value;
+            settings.CorrectQuestionableBrakingParams = checkCorrectQuestionableBrakingParams.Checked;
+            settings.ActRandomizationLevel = (int)numericActRandomizationLevel.Value;
+            settings.ActWeatherRandomizationLevel = (int)numericActWeatherRandomizationLevel.Value;
 
-            Settings.Save();
+            settings.Save();
         }
 
         /// <summary>
         /// Returns user's [width]x[height] if expression is valid and values are sane, else returns previous value of setting.
         /// </summary>
-        private string GetValidWindowSize(ComboBox comboWindowSize)
+        private string GetValidWindowSize(string text)
         {
-            // "1024X780" instead of "1024x780" then "Start" resulted in an immediate return to the Menu with no OpenRailsLog.txt and a baffled user.
-            var sizeArray = comboWindowSize.Text.ToLower().Replace(" ", "").Split('x');
-            if (sizeArray.Count() == 2)
-                if (int.TryParse(sizeArray[0], out int width) && int.TryParse(sizeArray[1], out int height))
-                    if ((100 < width && width < 10000) && (100 < height && height < 100000)) // sanity check
-                        return $"{width}x{height}";
-            return Settings.WindowSize; // i.e. no change or message. Just ignore non-numeric entries
+            var match = Regex.Match(text, @"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$");//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
+            if (match.Success)
+            {
+                return $"{match.Groups[1]}x{match.Groups[2]}";
+            }
+            return settings.WindowSize; // i.e. no change or message. Just ignore non-numeric entries
         }
 
         private void NumericUpDownFOV_ValueChanged(object sender, EventArgs e)
         {
-            labelFOVHelp.Text = catalog.GetStringFmt("{0:F0}° vertical FOV is the same as:\n{1:F0}° horizontal FOV on 4:3\n{2:F0}° horizontal FOV on 16:9", numericViewingFOV.Value, numericViewingFOV.Value * 4 / 3, numericViewingFOV.Value * 16 / 9);
+            labelFOVHelp.Text = catalog.GetString("{0:F0}° vertical FOV is the same as:\n{1:F0}° horizontal FOV on 4:3\n{2:F0}° horizontal FOV on 16:9", numericViewingFOV.Value, numericViewingFOV.Value * 4 / 3, numericViewingFOV.Value * 16 / 9);
         }
 
         private void TrackBarDayAmbientLight_Scroll(object sender, EventArgs e)
         {
-            toolTip1.SetToolTip(trackDayAmbientLight, (trackDayAmbientLight.Value * 5).ToString() + " %");
+            toolTip1.SetToolTip(trackDayAmbientLight, $"{trackDayAmbientLight.Value * 5}%");
         }
 
         private void TrackAdhesionFactor_ValueChanged(object sender, EventArgs e)
         {
             SetAdhesionLevelValue();
-            AdhesionFactorValueLabel.Text = trackAdhesionFactor.Value.ToString() + "%";
-            AdhesionFactorChangeValueLabel.Text = trackAdhesionFactorChange.Value.ToString() + "%";
+            AdhesionFactorValueLabel.Text = $"{trackAdhesionFactor.Value}%";
+            AdhesionFactorChangeValueLabel.Text = $"{ trackAdhesionFactorChange.Value}%";
         }
 
         private void SetAdhesionLevelValue()
@@ -572,12 +505,12 @@ namespace Orts.Menu
 
         private void TrackDayAmbientLight_ValueChanged(object sender, EventArgs e)
         {
-            labelDayAmbientLight.Text = catalog.GetStringFmt("{0}%", trackDayAmbientLight.Value * 5);
+            labelDayAmbientLight.Text = catalog.GetString("{0}%", trackDayAmbientLight.Value * 5);
         }
 
         private void TrackbarMultiSampling_Scroll(object sender, EventArgs e)
         {
-            labelMSAACount.Text = trackbarMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetStringFmt($"{1 << trackbarMultiSampling.Value}x");
+            labelMSAACount.Text = trackbarMultiSampling.Value == 0 ? catalog.GetString("Disabled") : catalog.GetString($"{1 << trackbarMultiSampling.Value}x");
         }
 
         private void CheckBoxFullScreenNativeResolution_CheckedChanged(object sender, EventArgs e)
@@ -588,15 +521,15 @@ namespace Orts.Menu
         private void TrackLODBias_ValueChanged(object sender, EventArgs e)
         {
             if (trackLODBias.Value == -100)
-                labelLODBias.Text = catalog.GetStringFmt("No detail (-{0}%)", -trackLODBias.Value);
+                labelLODBias.Text = catalog.GetString("No detail (-{0}%)", -trackLODBias.Value);
             else if (trackLODBias.Value < 0)
-                labelLODBias.Text = catalog.GetStringFmt("Less detail (-{0}%)", -trackLODBias.Value);
+                labelLODBias.Text = catalog.GetString("Less detail (-{0}%)", -trackLODBias.Value);
             else if (trackLODBias.Value == 0)
-                labelLODBias.Text = catalog.GetStringFmt("Default detail (+{0}%)", trackLODBias.Value);
+                labelLODBias.Text = catalog.GetString("Default detail (+{0}%)", trackLODBias.Value);
             else if (trackLODBias.Value < 100)
-                labelLODBias.Text = catalog.GetStringFmt("More detail (+{0}%)", trackLODBias.Value);
+                labelLODBias.Text = catalog.GetString("More detail (+{0}%)", trackLODBias.Value);
             else
-                labelLODBias.Text = catalog.GetStringFmt("All detail (+{0}%)", trackLODBias.Value);
+                labelLODBias.Text = catalog.GetString("All detail (+{0}%)", trackLODBias.Value);
         }
 
         private void DataGridViewContent_SelectionChanged(object sender, EventArgs e)
@@ -716,5 +649,64 @@ namespace Orts.Menu
             numericPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
         }
+
+        private void TrackBarUpdaterFrequency_Scroll(object sender, EventArgs e)
+        {
+            labelUpdaterFrequency.Text = catalog.GetString(((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetDescription());
+        }
+
+        private async void ButtonUpdatesRefresh_Click(object sender, EventArgs e)
+        {
+            await updateManager.RefreshUpdateInfo(UpdateCheckFrequency.Always).ConfigureAwait(true);
+
+            comboBoxUpdateChannels.DataSource = ComboBoxItem<string>.FromList(updateManager.GetChannels(), (channel) => catalog.GetString(channel));
+            comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);
+        }
+
+        private void ComboBoxUpdateChannels_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBoxUpdateChannels.SelectedIndex != -1 &&
+                EnumExtension.GetValue(((ComboBoxItem<string>)comboBoxUpdateChannels.SelectedItem).Key, out UpdateChannel channel))
+            {
+                labelChannelDescription.Text = catalog.GetString(channel.GetDescription());
+                labelChannelVersion.Text = updateManager.GetChannelByName(channel.ToString())?.NormalizedVersion ?? "n/a";
+                labelBestVersion.Text = updateManager.GetBestAvailableVersion(string.Empty, channel.ToString()) ?? "n/a";
+            }
+            else
+            {
+                labelChannelDescription.Text = string.Empty;
+            }
+        }
+
     }
+
+    internal class ComboBoxMember
+    {
+        public string Code { get; set; }
+        public string Name { get; set; }
+
+        public static IEnumerable<ComboBoxMember> CreateFromEnum<T>(ICatalog catalog) where T : Enum
+        {
+            string context = EnumExtension.EnumDescription<T>();
+            return (from data in EnumExtension.GetValues<T>()
+                    select new ComboBoxMember()
+                    {
+                        Code = data.ToString(),
+                        Name = string.IsNullOrEmpty(context) ? catalog.GetString(data.GetDescription()) : catalog.GetParticularString(context, data.GetDescription())
+                    }).ToList();
+        }
+    }
+
+    public class ContentFolder
+    {
+        public string Name { get; set; }
+        public string Path { get; set; }
+
+        public ContentFolder()
+        {
+            Name = "";
+            Path = "";
+        }
+    }
+
 }

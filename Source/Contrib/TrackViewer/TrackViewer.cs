@@ -23,7 +23,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
-using GNU.Gettext;
+using GetText;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -1154,7 +1154,7 @@ namespace ORTS.TrackViewer
         /// <summary>
         /// This is the 'catalog' needed for localization of TrackViewer (meaning translating it to different languages)
         /// </summary>
-        public static GettextResourceManager catalog = new GettextResourceManager("Contrib");
+        public static ICatalog catalog = new Catalog("Contrib");
 
         /// <summary>
         /// Routine to localize (make languague-dependent) a WPF/framework element, like a menu.

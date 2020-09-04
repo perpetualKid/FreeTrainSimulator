@@ -93,7 +93,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var playerLocomotive = Owner.Viewer.PlayerLocomotive as MSTSLocomotive;
                 if (playerLocomotive != null && playerLocomotive.Train != null && playerLocomotive.OdometerVisible)
                 {
-                    SetNotice(Viewer.Catalog.GetStringFmt("Odometer {0}", FormatStrings.FormatShortDistanceDisplay(playerLocomotive.OdometerM, Owner.Viewer.MilepostUnitsMetric)));
+                    SetNotice(Viewer.Catalog.GetString("Odometer {0}", FormatStrings.FormatShortDistanceDisplay(playerLocomotive.OdometerM, Owner.Viewer.MilepostUnitsMetric)));
                 }
                 // Camera notices are temporary so we put them after to override.
                 if (Owner.Viewer.Camera != null)
@@ -108,7 +108,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     else if (FieldOfView != Owner.Viewer.Camera.FieldOfView)
                     {
                         FieldOfView = Owner.Viewer.Camera.FieldOfView;
-                        SetNotice(Viewer.Catalog.GetStringFmt("FOV: {0:F0}°", FieldOfView));
+                        SetNotice(Viewer.Catalog.GetString("FOV: {0:F0}°", FieldOfView));
                     }
                 }
             }

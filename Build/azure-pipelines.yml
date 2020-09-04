@@ -30,8 +30,9 @@ steps:
 - task: NuGetCommand@2
   inputs:
     command: 'restore'
+    restoreSolution: '**/*.sln'
     feedsToUse: 'select'
-    restoreSolution: '$(solution)'
+    vstsFeed: '283d8d46-b3e8-423b-b1fc-4cf79c2aff85/c4b6a39f-ba16-4ca3-bd44-6112137242ac'
 
 - task: VSBuild@1
   inputs:
@@ -70,7 +71,7 @@ steps:
     ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
     Destination: 'AzureBlob'
     StorageAccountRM: 'ultimaterails'
-    ContainerName: 'ci-builds'
+    ContainerName: 'ci-builds_mg38'
     BlobPrefix: 'releases'
 
 - task: AzureFileCopy@3
@@ -79,5 +80,5 @@ steps:
     ConnectedServiceNameARM: 'Visual Studio Enterprise(81c98ddc-0e66-422e-af90-10337e5c2352)'
     Destination: 'AzureBlob'
     StorageAccountRM: 'ultimaterails'
-    ContainerName: 'ci-builds'
+    ContainerName: 'ci-builds_mg38'
     additionalArgumentsForBlobCopy: '/Pattern:*.json /Y'

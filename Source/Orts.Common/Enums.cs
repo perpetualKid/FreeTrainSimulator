@@ -707,5 +707,17 @@ namespace Orts.Common
         Intervention,
     }
 
+    public enum UpdateCheckFrequency
+    {
+        [Description("Manually check for updates")] Never = -1,
+        [Description("Check for updates on each start")] Always = 0,
+        [Description("Check for updates once a day")] Daily,
+        [Description("Check for updates once a week")] Weekly,
+        [Description("Check for updates every other week")] Biweekly,
+        [Description("Check for updates every month")] Monthly,
+    }
+
+
+
 
 }

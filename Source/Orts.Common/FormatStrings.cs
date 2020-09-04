@@ -19,7 +19,9 @@
 using System;
 using System.Globalization;
 using System.Text;
-using GNU.Gettext;
+
+using GetText;
+
 using Orts.Common.Calc;
 
 namespace Orts.Common
@@ -29,7 +31,7 @@ namespace Orts.Common
     /// </summary>
     public static class FormatStrings
     {
-        public static GettextResourceManager Catalog = new GettextResourceManager("Orts.Common");
+        public static ICatalog Catalog = new Catalog("Orts.Common");
 
         public static string m = Catalog.GetString("m");
         public static string km = Catalog.GetString("km");

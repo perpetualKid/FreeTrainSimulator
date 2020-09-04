@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-using GNU.Gettext;
+using GetText;
 
 using Microsoft.Xna.Framework;
 
@@ -63,7 +63,7 @@ namespace Orts.Simulation
     /// </summary>
     public class Simulator
     {
-        public static GettextResourceManager Catalog { get; private set; }
+        public static ICatalog Catalog { get; private set; }
         public static Random Random { get; private set; }
         public static double Resolution = 1000000; // resolution for calculation of random value with a pseudo-gaussian distribution
         public const float MaxStoppedMpS = 0.1f; // stopped is taken to be a speed less than this 
@@ -256,7 +256,7 @@ namespace Orts.Simulation
 
         public Simulator(UserSettings settings, string activityPath, bool useOpenRailsDirectory)
         {
-            Catalog = new GettextResourceManager("Orts.Simulation");
+            Catalog = new Catalog("Orts.Simulation");
             Random = new Random();
 
             MPManager.Simulator = this;
@@ -808,7 +808,7 @@ namespace Orts.Simulation
                     TrainSwitcher.PickedTrainFromList = train;
                     TrainSwitcher.ClickedTrainFromList = true;
                     train.TrainType = Physics.Train.TRAINTYPE.AI_PLAYERHOSTING;
-                    Confirmer.Message(ConfirmLevel.Information, Catalog.GetStringFmt("Player train has been included into train {0} service {1}, that automatically becomes the new player train",
+                    Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Player train has been included into train {0} service {1}, that automatically becomes the new player train",
                         train.Number, train.Name));
                     train.Cars.Clear();
                     if (sameDirection)

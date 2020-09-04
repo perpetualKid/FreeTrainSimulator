@@ -66,7 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public string GetStatus()
         {
-            return Viewer.Catalog.GetPluralStringFmt("{0:F0} shape", "{0:F0} shapes", sharedShapes.Keys.Count);
+            return Viewer.Catalog.GetPluralString("{0:F0} shape", "{0:F0} shapes", sharedShapes.Keys.Count);
         }
     }
 }

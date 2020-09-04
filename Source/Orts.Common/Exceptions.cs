@@ -16,18 +16,18 @@ namespace Orts.Common
     [Serializable]
     public sealed class IncompatibleSaveException : Exception
     {
-        public readonly string SaveFile;
-        public readonly string VersionOrBuild;
+        public string SaveFile { get; private set; }
+        public string Version { get; private set; }
 
-        public IncompatibleSaveException(string saveFile, string versionOrBuild, Exception innerException)
+        public IncompatibleSaveException(string saveFile, string version, Exception innerException)
             : base(null, innerException)
         {
             SaveFile = saveFile;
-            VersionOrBuild = versionOrBuild;
+            Version = version;
         }
 
-        public IncompatibleSaveException(string saveFile, string versionOrBuild)
-            : this(saveFile, versionOrBuild, null)
+        public IncompatibleSaveException(string saveFile, string version)
+            : this(saveFile, version, null)
         {
         }
     }
