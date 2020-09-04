@@ -1,7 +1,7 @@
 trigger: 
   branches:
     exclude:
-    - Master
+    - master
     - Merge*
   paths:
     exclude: # file paths which will not trigger a build

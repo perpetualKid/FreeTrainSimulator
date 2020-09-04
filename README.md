@@ -1,4 +1,8 @@
-[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/ORTS-MG%20Master%20Release?branchName=master)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=1&branchName=master)
+|Release Type|Build Status|
+|------------|------------|
+|Release Candidate|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/ORTS-MG%20Master%20RC)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=1)|
+|Weekly Dev Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/Scheduled%20Dev%20Build)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=15)|
+|Continuous Integration Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/CI%20Builds)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=11)|
 
 Downloads [![GitHub All Releases](https://img.shields.io/github/downloads/perpetualKid/orts-mg/total)](https://github.com/perpetualKid/ORTS-MG/releases/)
 
