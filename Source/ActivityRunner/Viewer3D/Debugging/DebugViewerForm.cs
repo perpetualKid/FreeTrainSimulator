@@ -97,12 +97,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	  /// contains the last position of the mouse
 	  /// </summary>
 	  private System.Drawing.Point LastCursorPosition = new System.Drawing.Point();
-	Pen redPen = new Pen(Color.Red);
-	Pen greenPen = new Pen(Color.Green);
-	Pen orangePen = new Pen(Color.Orange);
-	Pen trainPen = new Pen(Color.DarkGreen);
-	Pen pathPen = new Pen(Color.DeepPink);
-	Pen grayPen = new Pen(Color.Gray);
+		Pen redPen = new Pen(Color.Red);
+		Pen greenPen = new Pen(Color.Green);
+		Pen orangePen = new Pen(Color.Orange);
+		Pen yellowPen = new Pen(Color.Yellow);
+		Pen trainPen = new Pen(Color.DarkGreen);
+		Pen pathPen = new Pen(Color.DeepPink);
+		Pen grayPen = new Pen(Color.Gray);
 
 	   //the train selected by leftclicking the mouse
 	public Train PickedTrain;
@@ -188,6 +189,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			if (simulator.TimetableMode)
             {
 				RevealTimetableControls();
+				SetTimetableMedia();
             }
             else
             {
@@ -210,11 +212,14 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 
       public int RedrawCount;
-	  private Font trainFont;
-	  private Font sidingFont;
-	  private SolidBrush trainBrush;
-	  private SolidBrush sidingBrush;
-      private double lastUpdateTime;
+		private Font trainFont;
+		private Font sidingFont;
+		private SolidBrush trainBrush;
+		private SolidBrush sidingBrush;
+		private SolidBrush InactiveTrainBrush;
+		private SolidBrush PlatformBrush;
+
+		private double lastUpdateTime;
 
       /// <summary>
       /// When the user holds down the  "L", "R", "U", "D" buttons,
@@ -231,10 +236,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		 if (simulator.GameTime - lastUpdateTime < 1) return;
 		 lastUpdateTime = simulator.GameTime;
 
-            if (simulator.TimetableMode)
-                GenerateTimetableView();
-            else
-                GenerateView();
+			if (simulator.TimetableMode)
+				GenerateTimetableView();
+			else
+				GenerateView();
 	  }
 
 	  #region initData
@@ -317,10 +322,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
             }
 
-          var maxsize = maxX - minX > maxY - minY ? maxX - minX : maxY - minY;
-          maxsize = (int)(maxsize / 100 +1 ) * 100;
-          windowSizeUpDown.Maximum = (decimal)maxsize;
-          Inited = true;
+			var maxsize = maxX - minX > maxY - minY ? maxX - minX : maxY - minY;
+            // Take up to next 100
+            maxsize = (int)(maxsize / 100 + 1) * 100;
+            windowSizeUpDown.Maximum = (decimal)maxsize;
 
           if (simulator.TDB == null || simulator.TDB.TrackDB == null || simulator.TDB.TrackDB.TrackItems == null) return;
 
@@ -955,6 +960,14 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
          pbCanvas.Invalidate();
       }
 
+		private void SetTimetableMedia()
+        {
+			trainFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
+			sidingFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
+			InactiveTrainBrush = new SolidBrush(Color.LightPink);
+			PlatformBrush = new SolidBrush(Color.Blue);
+		}
+
 		private void AdjustControlLocations()
 		{
 			if (this.Height < 600 || this.Width < 800) return;
@@ -978,7 +991,14 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				ViewWindow.X = ploc.X - minX - ViewWindow.Width / 2; ViewWindow.Y = ploc.Y - minY - ViewWindow.Width / 2;
 				firstShow = false;
 			}
+
+			// Sufficient to accommodate the whole route
+			var xRange = maxX - minX;
+			var yRange = maxY - minY;
+			var maxSize = (int)(((xRange > yRange) ? xRange : yRange) * 1.15); // Add 15% to provide a bit extra for labels that extend beyond the track ends.
+			windowSizeUpDown.Maximum = (decimal)maxSize;
 		}
+
 		public void GenerateTimetableView()
 		{
 			if (pbCanvas.Image == null) 
