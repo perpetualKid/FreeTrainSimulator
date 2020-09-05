@@ -109,6 +109,7 @@ namespace Orts.Menu
         public UserAction SelectedAction { get; set; }
 
         internal ICatalog catalog;
+        internal ICatalog commonCatalog;
         private ObjectPropertiesStore store = new ObjectPropertiesStore();
 
         #region Main Form
@@ -178,12 +179,6 @@ namespace Orts.Menu
                 initTasks.Add(CheckForUpdateAsync());
                 initTasks.Add(LoadToolsAndDocuments());
 
-                var difficulties = new[] {
-                    catalog.GetString("Easy"),
-                    catalog.GetString("Medium"),
-                    catalog.GetString("Hard"),
-                    "",
-                };
                 var days = new[] {
                     new KeyedComboBoxItem(0, catalog.GetString("Monday")),
                     new KeyedComboBoxItem(1, catalog.GetString("Tuesday")),
@@ -194,17 +189,18 @@ namespace Orts.Menu
                     new KeyedComboBoxItem(6, catalog.GetString("Sunday")),
                 };
 
-                comboBoxStartSeason.DataSource = ComboBoxItem<int>.FromEnum<SeasonType>(catalog);
-                ComboBoxItem<int>.SetDataSourceMembers(comboBoxStartSeason);
+                comboBoxStartSeason.DataSource = ComboBoxItem<int>.FromEnum<SeasonType>(commonCatalog);
+                ComboBoxItem.SetDataSourceMembers(comboBoxStartSeason);
 
-                comboBoxStartWeather.DataSource = ComboBoxItem<int>.FromEnum<WeatherType>(catalog);
-                ComboBoxItem<int>.SetDataSourceMembers(comboBoxStartWeather);
-                comboBoxDifficulty.Items.AddRange(difficulties);
+                comboBoxStartWeather.DataSource = ComboBoxItem<int>.FromEnum<WeatherType>(commonCatalog);
+                ComboBoxItem.SetDataSourceMembers(comboBoxStartWeather);
+                comboBoxDifficulty.DataSource = ComboBoxItem<int>.FromEnum<Difficulty>(commonCatalog);
+                ComboBoxItem.SetDataSourceMembers(comboBoxDifficulty);
 
-                comboBoxTimetableSeason.DataSource = ComboBoxItem<int>.FromEnum<SeasonType>(catalog);
-                ComboBoxItem<int>.SetDataSourceMembers(comboBoxTimetableSeason);
-                comboBoxTimetableWeather.DataSource = ComboBoxItem<int>.FromEnum<WeatherType>(catalog);
-                ComboBoxItem<int>.SetDataSourceMembers(comboBoxTimetableWeather);
+                comboBoxTimetableSeason.DataSource = ComboBoxItem<int>.FromEnum<SeasonType>(commonCatalog);
+                ComboBoxItem.SetDataSourceMembers(comboBoxTimetableSeason);
+                comboBoxTimetableWeather.DataSource = ComboBoxItem<int>.FromEnum<WeatherType>(commonCatalog);
+                ComboBoxItem.SetDataSourceMembers(comboBoxTimetableWeather);
                 comboBoxTimetableDay.Items.AddRange(days);
 
                 initialized = true;
@@ -373,6 +369,7 @@ namespace Orts.Menu
                 }
             }
             catalog = new Catalog("Menu", RuntimeInfo.LocalesFolder);
+            commonCatalog = new Catalog("Common", RuntimeInfo.LocalesFolder);
             Localizer.Localize(this, catalog, store);
         }
 #endregion
@@ -1172,7 +1169,7 @@ namespace Orts.Menu
                 UpdateFromMenuSelection(comboBoxStartTime, MenuSelectionIndex.Time, "12:00");
                 UpdateFromMenuSelection(comboBoxStartSeason, MenuSelectionIndex.Season, s => s.Key.ToString(CultureInfo.InvariantCulture), new ComboBoxItem<int>(1, string.Empty));
                 UpdateFromMenuSelection(comboBoxStartWeather, MenuSelectionIndex.Weather, w => w.Key.ToString(CultureInfo.InvariantCulture), new ComboBoxItem<int>(0, string.Empty));
-                comboBoxDifficulty.SelectedIndex = 3;
+                comboBoxDifficulty.SelectedIndex = -1;
                 comboBoxDuration.SelectedIndex = 0;
             }
             else

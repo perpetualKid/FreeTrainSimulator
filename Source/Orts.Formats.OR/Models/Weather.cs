@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+
+using Orts.Common;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.OR.Parsers;
@@ -199,7 +201,7 @@ namespace Orts.Formats.OR.Models
         public PrecipitationCondition(BinaryReader inf)
         {
             Time = inf.ReadSingle();
-            PrecipitationType = (Orts.Formats.Msts.WeatherType)inf.ReadInt32();
+            PrecipitationType = (WeatherType)inf.ReadInt32();
             Density = inf.ReadSingle();
             Variation = inf.ReadSingle();
             RateOfChange = inf.ReadSingle();

@@ -760,7 +760,7 @@ namespace Orts.Menu
             this.comboBoxTimetableDay.Name = "comboBoxTimetableDay";
             this.comboBoxTimetableDay.Size = new System.Drawing.Size(73, 21);
             this.comboBoxTimetableDay.TabIndex = 8;
-            this.comboBoxTimetableDay.Visible = false;
+            this.comboBoxTimetableDay.Visible = true;
             this.comboBoxTimetableDay.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTimetableDay_SelectedIndexChanged);
             // 
             // label22

@@ -14,33 +14,6 @@ namespace Orts.Formats.Msts
         PickUpWagons,
         ReachSpeed
     }
-
-    public enum ActivityMode
-    {
-        Introductory = 0,
-        Player = 2,
-        Tutorial = 3,
-    }
-
-    public enum SeasonType
-    {
-        [Description("Spring")] Spring = 0,
-        [Description("Summer")] Summer,
-        [Description("Autumn")] Autumn,
-        [Description("Winter")] Winter
-    }
-
-    public enum WeatherType
-    {
-        [Description("Clear")]  Clear = 0,
-        [Description("Snow")]   Snow,
-        [Description("Rain")]   Rain
-    }
-
-    public enum Difficulty
-    {
-        Easy = 0, Medium, Hard
-    }
     #endregion
 
     #region Signalling

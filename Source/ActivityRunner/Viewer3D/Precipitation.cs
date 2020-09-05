@@ -82,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // This procedure is only called once at the start of an activity.
             // Added random Wind.X value for rain and snow.
             // Max value used by randWind.Next is max value - 1.
-            Wind.X = Viewer.Simulator.WeatherType == Orts.Formats.Msts.WeatherType.Snow ? Viewer.Random.Next(2, 6) : Viewer.Random.Next(15, 21);
+            Wind.X = Viewer.Simulator.WeatherType == WeatherType.Snow ? Viewer.Random.Next(2, 6) : Viewer.Random.Next(15, 21);
                                     
             var gameTime = (float)Viewer.Simulator.GameTime;
             Pricipitation.Initialize(Viewer.Simulator.WeatherType, Wind);
@@ -288,9 +288,9 @@ namespace Orts.ActivityRunner.Viewer3D
             return (MaxParticles - nextFree) + FirstRetiredParticle;
         }
 
-        public void Initialize(Orts.Formats.Msts.WeatherType weather, Vector3 wind)
+        public void Initialize(WeatherType weather, Vector3 wind)
         {
-            ParticleDuration = ParticleBoxHeightM / (weather == Orts.Formats.Msts.WeatherType.Snow ? SnowVelocityMpS : RainVelocityMpS) / ParticleVelocityFactor;
+            ParticleDuration = ParticleBoxHeightM / (weather == WeatherType.Snow ? SnowVelocityMpS : RainVelocityMpS) / ParticleVelocityFactor;
             ParticleDirection = wind;
             FirstActiveParticle = FirstNewParticle = FirstFreeParticle = FirstRetiredParticle = 0;
             ParticlesToEmit = TimeParticlesLastEmitted = 0;
@@ -520,8 +520,8 @@ namespace Orts.ActivityRunner.Viewer3D
             shader.particleSize.SetValue(1f);
             if (Viewer.Simulator.Weather.PrecipitationLiquidity == 0 || Viewer.Simulator.Weather.PrecipitationLiquidity == 1)
             {
-                shader.precipitation_Tex.SetValue(Viewer.Simulator.WeatherType == Orts.Formats.Msts.WeatherType.Snow ? snowTexture :
-                    Viewer.Simulator.WeatherType == Orts.Formats.Msts.WeatherType.Rain ? rainTexture :
+                shader.precipitation_Tex.SetValue(Viewer.Simulator.WeatherType == WeatherType.Snow ? snowTexture :
+                    Viewer.Simulator.WeatherType == WeatherType.Rain ? rainTexture :
                     Viewer.Simulator.Weather.PrecipitationLiquidity == 0 ? snowTexture : rainTexture);
             }
             else

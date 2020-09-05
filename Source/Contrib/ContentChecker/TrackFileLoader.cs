@@ -18,6 +18,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+
+using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Path = System.IO.Path;

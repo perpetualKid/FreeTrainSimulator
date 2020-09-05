@@ -9,7 +9,21 @@ using Orts.Common;
 
 namespace Orts.Menu
 {
-    internal class ComboBoxItem<T>
+    internal abstract class ComboBoxItem
+    {
+        private readonly object Key;
+        private readonly object Value;
+        /// <summary>
+        /// Prepares the combobox which property names to use for Key and Value display
+        /// </summary>
+        public static void SetDataSourceMembers(ComboBox comboBox)
+        {
+            comboBox.DisplayMember = nameof(Value);
+            comboBox.ValueMember = nameof(Key);
+        }
+    }
+
+    internal class ComboBoxItem<T>: ComboBoxItem
     {
         public T Key { get; private set; }
         public string Value { get; private set; }
@@ -66,15 +80,6 @@ namespace Orts.Menu
                         Key = Convert.ToInt32(data, System.Globalization.CultureInfo.InvariantCulture),
                         Value = string.IsNullOrEmpty(context) ? catalog.GetString(data.GetDescription()) : catalog.GetParticularString(context, data.GetDescription())
                     }).ToList();
-        }
-
-        /// <summary>
-        /// Prepares the combobox which property names to use for Key and Value display
-        /// </summary>
-        public static void SetDataSourceMembers(ComboBox comboBox)
-        {
-            comboBox.DisplayMember = nameof(ComboBoxItem<T>.Value);
-            comboBox.ValueMember = nameof(Key);
         }
     }
 }

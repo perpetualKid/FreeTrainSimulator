@@ -1142,7 +1142,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             try
             {
-                return Enum.Parse(typeof(Orts.Formats.Msts.SeasonType), season).ToString();
+                return Enum.Parse(typeof(SeasonType), season).ToString();
             }
             catch { }
             return null;
@@ -1152,7 +1152,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             try
             {
-                return Enum.Parse(typeof(Orts.Formats.Msts.WeatherType), weather).ToString();
+                return Enum.Parse(typeof(WeatherType), weather).ToString();
             }
             catch { }
             return null;

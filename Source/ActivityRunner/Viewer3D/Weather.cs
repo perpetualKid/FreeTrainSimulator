@@ -168,9 +168,9 @@ namespace Orts.ActivityRunner.Viewer3D
             // These values are defaults only; subsequent changes to the weather via debugging only change the components (weather, overcastFactor and fogDistance) individually.
             switch (Viewer.Simulator.WeatherType)
             {
-                case Orts.Formats.Msts.WeatherType.Clear: Weather.OvercastFactor = 0.05f; Weather.FogDistance = 20000; break;
-                case Orts.Formats.Msts.WeatherType.Rain: Weather.OvercastFactor = 0.7f; Weather.FogDistance = 1000; break;
-                case Orts.Formats.Msts.WeatherType.Snow: Weather.OvercastFactor = 0.6f; Weather.FogDistance = 500; break;
+                case WeatherType.Clear: Weather.OvercastFactor = 0.05f; Weather.FogDistance = 20000; break;
+                case WeatherType.Rain: Weather.OvercastFactor = 0.7f; Weather.FogDistance = 1000; break;
+                case WeatherType.Snow: Weather.OvercastFactor = 0.6f; Weather.FogDistance = 500; break;
             }
         }
 
@@ -179,9 +179,9 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer.SoundProcess.RemoveSoundSources(this);
             switch (Viewer.Simulator.WeatherType)
             {
-                case Orts.Formats.Msts.WeatherType.Clear: Weather.PrecipitationLiquidity = 1; Weather.PricipitationIntensityPPSPM2 = 0; Viewer.SoundProcess.AddSoundSources(this, ClearSound); break;
-                case Orts.Formats.Msts.WeatherType.Rain: Weather.PrecipitationLiquidity = 1; Weather.PricipitationIntensityPPSPM2 = 0.010f; Viewer.SoundProcess.AddSoundSources(this, RainSound); break;
-                case Orts.Formats.Msts.WeatherType.Snow: Weather.PrecipitationLiquidity = 0; Weather.PricipitationIntensityPPSPM2 = 0.0050f; Viewer.SoundProcess.AddSoundSources(this, SnowSound); break;
+                case WeatherType.Clear: Weather.PrecipitationLiquidity = 1; Weather.PricipitationIntensityPPSPM2 = 0; Viewer.SoundProcess.AddSoundSources(this, ClearSound); break;
+                case WeatherType.Rain: Weather.PrecipitationLiquidity = 1; Weather.PricipitationIntensityPPSPM2 = 0.010f; Viewer.SoundProcess.AddSoundSources(this, RainSound); break;
+                case WeatherType.Snow: Weather.PrecipitationLiquidity = 0; Weather.PricipitationIntensityPPSPM2 = 0.0050f; Viewer.SoundProcess.AddSoundSources(this, SnowSound); break;
             }
 
         }
@@ -191,9 +191,9 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer.SoundProcess.RemoveSoundSources(this);
             switch (Viewer.Simulator.WeatherType)
             {
-                case Orts.Formats.Msts.WeatherType.Clear: Viewer.SoundProcess.AddSoundSources(this, ClearSound); break;
-                case Orts.Formats.Msts.WeatherType.Rain: Viewer.SoundProcess.AddSoundSources(this, RainSound); break;
-                case Orts.Formats.Msts.WeatherType.Snow: Viewer.SoundProcess.AddSoundSources(this, SnowSound); break;
+                case WeatherType.Clear: Viewer.SoundProcess.AddSoundSources(this, ClearSound); break;
+                case WeatherType.Rain: Viewer.SoundProcess.AddSoundSources(this, RainSound); break;
+                case WeatherType.Snow: Viewer.SoundProcess.AddSoundSources(this, SnowSound); break;
             }
         }
 
@@ -269,7 +269,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var randValue = Simulator.Random.Next(170);
             var intermValue = randValue >= 50 ? (float)(randValue - 50f) : (float)randValue;
             Weather.OvercastFactor = intermValue >= 20 ? (float)(intermValue - 20f)/100f: (float)intermValue/100f; // give more probability to less overcast
-            Viewer.Simulator.WeatherType = Orts.Formats.Msts.WeatherType.Clear;
+            Viewer.Simulator.WeatherType = WeatherType.Clear;
             // Then check if we are in precipitation zone
             if (Weather.OvercastFactor > 0.5)
             {
@@ -281,12 +281,12 @@ namespace Orts.ActivityRunner.Viewer3D
                         Weather.PricipitationIntensityPPSPM2 = Math.Min(Weather.PricipitationIntensityPPSPM2, 0.010f);
                     if (Viewer.Simulator.Season == SeasonType.Winter)
                     {
-                        Viewer.Simulator.WeatherType = Orts.Formats.Msts.WeatherType.Snow;
+                        Viewer.Simulator.WeatherType = WeatherType.Snow;
                         Weather.PrecipitationLiquidity = 0;
                     }
                     else
                     {
-                        Viewer.Simulator.WeatherType = Orts.Formats.Msts.WeatherType.Rain;
+                        Viewer.Simulator.WeatherType = WeatherType.Rain;
                         Weather.PrecipitationLiquidity = 1;
                     }
                 }
@@ -341,7 +341,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Multiplayer weather has changed so we need to update our state to match weather, overcastFactor, pricipitationIntensity and fogDistance.
                 if (manager.weather >= 0 && manager.weather != (int)Viewer.Simulator.WeatherType)
                 {
-                    Viewer.Simulator.WeatherType = (Orts.Formats.Msts.WeatherType)manager.weather;
+                    Viewer.Simulator.WeatherType = (WeatherType)manager.weather;
                     UpdateWeatherParameters();
                 }
                 if (manager.overcastFactor >= 0)
@@ -372,14 +372,14 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     switch (Viewer.Simulator.WeatherType)
                     {
-                        case Orts.Formats.Msts.WeatherType.Clear:
-                            Viewer.Simulator.WeatherType = Orts.Formats.Msts.WeatherType.Rain;
+                        case WeatherType.Clear:
+                            Viewer.Simulator.WeatherType = WeatherType.Rain;
                             break;
-                        case Orts.Formats.Msts.WeatherType.Rain:
-                            Viewer.Simulator.WeatherType = Orts.Formats.Msts.WeatherType.Snow;
+                        case WeatherType.Rain:
+                            Viewer.Simulator.WeatherType = WeatherType.Snow;
                             break;
-                        case Orts.Formats.Msts.WeatherType.Snow:
-                            Viewer.Simulator.WeatherType = Orts.Formats.Msts.WeatherType.Clear;
+                        case WeatherType.Snow:
+                            Viewer.Simulator.WeatherType = WeatherType.Clear;
                             break;
                     }
                     // block dynamic weather change after a manual weather change operation
@@ -537,7 +537,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 dynamicWeather.WeatherChange_NextRandomization(elapsedTime, this);
             if (Weather.PricipitationIntensityPPSPM2 == 0 && Viewer.Simulator.WeatherType != WeatherType.Clear)
             {
-                Viewer.Simulator.WeatherType = Orts.Formats.Msts.WeatherType.Clear;
+                Viewer.Simulator.WeatherType = WeatherType.Clear;
                 UpdateWeatherParameters();
             }
             else if (Weather.PricipitationIntensityPPSPM2 > 0 && Viewer.Simulator.WeatherType == WeatherType.Clear)
