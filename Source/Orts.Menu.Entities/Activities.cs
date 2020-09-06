@@ -15,22 +15,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+
+using Orts.Common;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Menu.Entities
 {
-    public class Activity: ContentBase
+    public class Activity : ContentBase
     {
+        private static readonly DefaultExploreActivity DefaultExploreActivity = new DefaultExploreActivity();
+        private static readonly ExploreThroughActivity ExploreThroughActivity = new ExploreThroughActivity();
+
         public string Name { get; private set; }
         public string ActivityID { get; private set; }
         public string Description { get; private set; }
@@ -85,39 +88,32 @@ namespace Orts.Menu.Entities
 
         internal static async Task<Activity> FromPathAsync(string filePath, Folder folder, Route route, CancellationToken token)
         {
-            return await Task.Run(async () =>
+            Activity result;
+            try
             {
-                Activity result;
-
-                try
+                ActivityFile activityFile = new ActivityFile(filePath);
+                ServiceFile srvFile = new ServiceFile(route.RouteFolder.ServiceFile(activityFile.Activity.PlayerServices.Name));
+                Consist constist = await Consist.GetConsist(folder, srvFile.TrainConfig, false, token);
+                Path path = new Path(route.RouteFolder.PathFile(srvFile.PathId));
+                if (!path.IsPlayerPath)
                 {
-                    ActivityFile activityFile = new ActivityFile(filePath);
-                    ServiceFile srvFile = new ServiceFile(route.RouteFolder.ServiceFile(activityFile.Activity.PlayerServices.Name));
-                    var constistTask = Consist.GetConsist(folder, srvFile.TrainConfig,false, token);
-                    var pathTask = Path.FromFileAsync(route.RouteFolder.PathFile(srvFile.PathId), token);
-                    await Task.WhenAll(constistTask, pathTask).ConfigureAwait(false);
-                    Consist consist = await constistTask;
-                    Path path = await pathTask;
-                    if (!path.IsPlayerPath)
-                    {
-                        return null;
-                        // Not nice to throw an error now. Error was originally thrown by new Path(...);
-                        throw new InvalidDataException("Not a player path");
-                    }
-                    else if (!activityFile.Activity.Header.RouteID.Equals(route.RouteID, StringComparison.OrdinalIgnoreCase))
-                    {
-                        //Activity and route have different RouteID.
-                        result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
-                    }
-                    else
-                        result = new Activity(string.Empty, filePath, activityFile, consist, path);
+                    return null;
+                    // Not nice to throw an error now. Error was originally thrown by new Path(...);
+                    throw new InvalidDataException("Not a player path");
                 }
-                catch
+                else if (!activityFile.Activity.Header.RouteID.Equals(route.RouteID, StringComparison.OrdinalIgnoreCase))
                 {
-                    result = new Activity($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
+                    //Activity and route have different RouteID.
+                    result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
                 }
-                return result;
-            }, token).ConfigureAwait(false);
+                else
+                    result = new Activity(string.Empty, filePath, activityFile, constist, path);
+            }
+            catch
+            {
+                result = new Activity($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
+            }
+            return result;
         }
 
         public override string ToString()
@@ -127,24 +123,53 @@ namespace Orts.Menu.Entities
 
         public static async Task<IEnumerable<Activity>> GetActivities(Folder folder, Route route, CancellationToken token)
         {
-            var activities = new List<Activity>();
-            if (route != null)
+            if (null == folder)
+                throw new ArgumentNullException(nameof(folder));
+            if (null == route)
+                throw new ArgumentNullException(nameof(route));
+
+            using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
-                activities.Add(new DefaultExploreActivity());
-                activities.Add(new ExploreThroughActivity());
+                List<Activity> result = new List<Activity>();
                 string activitiesDirectory = route.RouteFolder.ActivitiesFolder;
+                result.Add(DefaultExploreActivity);
+                result.Add(ExploreThroughActivity);
+
                 if (Directory.Exists(activitiesDirectory))
                 {
-                    try
-                    {
-                        var tasks = Directory.GetFiles(activitiesDirectory, "*.act").Select(activityFile => FromPathAsync(activityFile, folder, route , token));
-                        activities.AddRange((await Task.WhenAll(tasks).ConfigureAwait(false)).Where(a => a != null));
-                        return activities;
-                    }
-                    catch (OperationCanceledException) { }
+                    TransformBlock<string, Activity> inputBlock = new TransformBlock<string, Activity>
+                        (async activityFile =>
+                        {
+                            return await FromPathAsync(activityFile, folder, route, token).ConfigureAwait(false);
+                        },
+                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = System.Environment.ProcessorCount, CancellationToken = token });
+
+
+                    ActionBlock<Activity> actionBlock = new ActionBlock<Activity>
+                        (async activity =>
+                        {
+                            try
+                            {
+                                await addItem.WaitAsync(token).ConfigureAwait(false);
+                                result.Add(activity);
+                            }
+                            catch (FileNotFoundException) { }
+                            finally
+                            {
+                                addItem.Release();
+                            }
+                        });
+
+                    inputBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
+
+                    foreach (string activityFile in Directory.EnumerateFiles(activitiesDirectory, "*.act"))
+                        await inputBlock.SendAsync(activityFile).ConfigureAwait(false);
+
+                    inputBlock.Complete();
+                    await actionBlock.Completion.ConfigureAwait(false);
                 }
+                return result;
             }
-            return new Activity[0];
         }
     }
 
@@ -157,7 +182,10 @@ namespace Orts.Menu.Entities
 
         public void UpdateActivity(string startTime, SeasonType season, WeatherType weather, Consist consist, Path path)
         {
-            var time = startTime.Split(':');
+            if (string.IsNullOrEmpty(startTime))
+                startTime = "12:00";
+
+            string[] time = startTime.Split(':');
             if (!int.TryParse(time[0], out int hour))
                 hour = 12;
             if (time.Length < 2 || !int.TryParse(time[1], out int minute))

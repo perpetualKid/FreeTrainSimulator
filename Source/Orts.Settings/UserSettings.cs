@@ -379,7 +379,7 @@ namespace Orts.Settings
 
         #endregion
 
-        public FolderSettings Folders { get; private set; }
+        public FolderSettings FolderSettings { get; private set; }
 
         public InputSettings Input { get; private set; }
 
@@ -401,7 +401,7 @@ namespace Orts.Settings
             customDefaultValues["ScreenshotPath"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), Application.ProductName);
             customDefaultValues["Multiplayer_User"] = Environment.UserName;
             LoadSettings(options);
-            Folders = new FolderSettings(options, store);
+            FolderSettings = new FolderSettings(options, store);
             Input = new InputSettings(options, store);
             RailDriver = new RailDriverSettings(options, store);
         }
@@ -422,7 +422,7 @@ namespace Orts.Settings
         protected override PropertyInfo[] GetProperties()
         {
             if (properties == null)
-                properties = base.GetProperties().Where(pi => !new string[] { "Folders", "Input", "RailDriver" }.Contains(pi.Name)).ToArray();
+                properties = base.GetProperties().Where(pi => !new string[] { "FolderSettings", "Input", "RailDriver" }.Contains(pi.Name)).ToArray();
             return properties;
         }
 
@@ -448,7 +448,7 @@ namespace Orts.Settings
             foreach (var property in GetProperties())
                 Save(property.Name);
 
-            Folders.Save();
+            FolderSettings.Save();
             Input.Save();
             RailDriver.Save();
             properties = null;

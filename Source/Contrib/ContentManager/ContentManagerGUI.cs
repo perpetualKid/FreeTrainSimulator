@@ -70,7 +70,7 @@ namespace Orts.ContentManager
             Font = SystemFonts.MessageBoxFont;
 
             settings = new UserSettings(new string[0]);
-            contentManager = new ContentManager(settings.Folders);
+            contentManager = new ContentManager(settings.FolderSettings);
 
             // Start off the tree with the Content Manager itself at the root and expand to show packages.
             treeViewContent.Nodes.Add(CreateContentNode(contentManager));

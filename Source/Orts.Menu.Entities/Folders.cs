@@ -15,12 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+
 using Orts.Formats.Msts;
 using Orts.Settings;
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Orts.Menu.Entities
 {
@@ -45,18 +47,49 @@ namespace Orts.Menu.Entities
 
         public static async Task<IEnumerable<Folder>> GetFolders(UserSettings settings)
         {
-            return await Task.Run(() =>
+            if (null == settings)
+                throw new ArgumentNullException(nameof(settings));
+            using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
-                return settings.Folders.Folders.Select((folder) => new Folder(folder.Key, folder.Value));
-            }).ConfigureAwait(false);
-        }
 
+                List<Folder> result = new List<Folder>();
+                //https://stackoverflow.com/questions/11564506/nesting-await-in-parallel-foreach?rq=1
+                ActionBlock<KeyValuePair<string, string>> actionBlock = new ActionBlock<KeyValuePair<string, string>>
+                    (async folderName =>
+                    {
+                        try
+                        {
+                            Folder folder = new Folder(folderName.Key, folderName.Value);
+                            await addItem.WaitAsync().ConfigureAwait(false);
+                            result.Add(folder);
+                        }
+                        finally
+                        {
+                            addItem.Release();
+                        }
+                    },
+                    new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount });
+
+                foreach (var folder in settings.FolderSettings.Folders)
+                    await actionBlock.SendAsync(folder).ConfigureAwait(false);
+
+                actionBlock.Complete();
+                await actionBlock.Completion.ConfigureAwait(false);
+
+                return result;
+            }
+        }
         public static void SetFolders(UserSettings settings, List<Folder> folders)
         {
-            settings.Folders.Folders.Clear();
+            if (null == settings)
+                throw new ArgumentNullException(nameof(settings));
+            if (null == folders)
+                throw new ArgumentNullException(nameof(folders));
+
+            settings.FolderSettings.Folders.Clear();
             foreach (var folder in folders)
-                settings.Folders.Folders[folder.Name] = folder.Path;
-            settings.Folders.Save();
+                settings.FolderSettings.Folders[folder.Name] = folder.Path;
+            settings.FolderSettings.Save();
         }
     }
 }

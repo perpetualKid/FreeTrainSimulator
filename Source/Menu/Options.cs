@@ -233,7 +233,7 @@ namespace Orts.Menu
             checkDataLogStationStops.Checked = this.settings.DataLogStationStops;
 
             // Content tab
-            bindingSourceContent.DataSource = (from folder in this.settings.Folders.Folders
+            bindingSourceContent.DataSource = (from folder in this.settings.FolderSettings.Folders
                                                orderby folder.Key
                                                select new ContentFolder() { Name = folder.Key, Path = folder.Value }).ToList();
             if (initialContentSetup)
@@ -411,9 +411,9 @@ namespace Orts.Menu
             settings.DataLogStationStops = checkDataLogStationStops.Checked;
 
             // Content tab
-            settings.Folders.Folders.Clear();
+            settings.FolderSettings.Folders.Clear();
             foreach (var folder in bindingSourceContent.DataSource as List<ContentFolder>)
-                settings.Folders.Folders.Add(folder.Name, folder.Path);
+                settings.FolderSettings.Folders.Add(folder.Name, folder.Path);
 
             // Updater tab
 

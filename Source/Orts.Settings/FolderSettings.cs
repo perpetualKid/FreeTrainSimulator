@@ -17,19 +17,19 @@
 
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using Orts.Settings.Store;
 using System.Linq;
+
+using Orts.Settings.Store;
 
 namespace Orts.Settings
 {
     public class FolderSettings : SettingsBase
     {
-        public readonly Dictionary<string, string> Folders;
+        public Dictionary<string, string> Folders { get; } = new Dictionary<string, string>();
 
-        public FolderSettings(IEnumerable<string> options, SettingsStore store): 
-            base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Folders"))
+        public FolderSettings(IEnumerable<string> options, SettingsStore store) :
+            base(SettingsStore.GetSettingsStore(store?.StoreType ?? StoreType.Json, store.Location, "Folders"))
         {
-            Folders = new Dictionary<string, string>();
             LoadSettings(options);
         }
 

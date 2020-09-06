@@ -122,7 +122,7 @@ namespace Orts.Menu
 
         internal ICatalog catalog;
         internal ICatalog commonCatalog;
-        private ObjectPropertiesStore store = new ObjectPropertiesStore();
+        private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
 
         #region Main Form
         public MainForm()
@@ -273,6 +273,9 @@ namespace Orts.Menu
 
         private async Task LoadToolsAndDocuments()
         {
+            contextMenuStripTools.Items.Clear();
+            contextMenuStripDocuments.Items.Clear();
+            contextMenuStripTools.Items.Add(testingToolStripMenuItem);
             contextMenuStripTools.Items.AddRange((await LoadTools().ConfigureAwait(true)).
                 OrderBy(tool => tool.Text).ToArray());
             contextMenuStripDocuments.Items.AddRange((await LoadDocuments().ConfigureAwait(true)).
@@ -302,7 +305,7 @@ namespace Orts.Menu
 
         private async Task CheckForUpdateAsync()
         {
-            await updateManager.RefreshUpdateInfo((UpdateCheckFrequency)settings.UpdateCheckFrequency).ConfigureAwait(true);
+            await updateManager.RefreshUpdateInfo((UpdateCheckFrequency)settings.UpdateCheckFrequency).ConfigureAwait(false);
             if (updateManager.LastCheckError != null)
             {
                 linkLabelUpdate.Text = catalog.GetString("Update check failed");
@@ -358,7 +361,7 @@ namespace Orts.Menu
         {
             try
             {
-                await Task.WhenAll(LoadRouteListAsync(), LoadLocomotiveListAsync());
+                await Task.WhenAll(LoadRouteListAsync(), LoadLocomotiveListAsync()).ConfigureAwait(true);
             }
             catch (TaskCanceledException) { }
         }
@@ -623,10 +626,11 @@ namespace Orts.Menu
                 switch (form.ShowDialog(this))
                 {
                     case DialogResult.OK:
-                        await Task.WhenAll(LoadFolderListAsync(), CheckForUpdateAsync());
+                        await Task.WhenAll(LoadFolderListAsync(), CheckForUpdateAsync()).ConfigureAwait(true);
                         break;
                     case DialogResult.Retry: //Language has changed
                         LoadLanguage();
+                        await LoadToolsAndDocuments().ConfigureAwait(true);
                         break;
                 }
             }
@@ -793,7 +797,7 @@ namespace Orts.Menu
         {
             try
             {
-                folders = (await Folder.GetFolders(settings)).OrderBy(f => f.Name);
+                folders = (await Folder.GetFolders(settings).ConfigureAwait(true)).OrderBy(f => f.Name);
             }
             catch (TaskCanceledException)
             {
@@ -811,10 +815,11 @@ namespace Orts.Menu
                     switch (form.ShowDialog(this))
                     {
                         case DialogResult.OK:
-                            await LoadFolderListAsync();
+                            await LoadFolderListAsync().ConfigureAwait(true);
                             break;
                         case DialogResult.Retry:
                             LoadLanguage();
+                            await LoadToolsAndDocuments().ConfigureAwait(true);
                             break;
                     }
                 }
@@ -847,17 +852,17 @@ namespace Orts.Menu
                     ctsRouteLoading.Cancel();
                 ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
             }
-            paths = new Path[0];
-            activities = new Activity[0];
+            paths = Array.Empty<Path>();
+            activities = Array.Empty<Activity>();
 
             Folder selectedFolder = SelectedFolder;
             try
             {
-                routes = (await Route.GetRoutes(selectedFolder, ctsRouteLoading.Token)).OrderBy(r => r.Name);
+                routes = (await Route.GetRoutes(selectedFolder, ctsRouteLoading.Token).ConfigureAwait(true)).OrderBy(r => r.Name);
             }
             catch (TaskCanceledException)
             {
-                routes = new Route[0];
+                routes = Array.Empty<Route>();
             }
             //cleanout existing data
             ShowRouteList();
@@ -883,10 +888,10 @@ namespace Orts.Menu
             if (settings.Menu_Selection.Length > (int)MenuSelectionIndex.Activity)
             {
                 string path = settings.Menu_Selection[(int)MenuSelectionIndex.Activity]; // Activity or Timetable
-                string extension = System.IO.Path.GetExtension(path).ToLower();
-                if (extension == ".act")
+                string extension = System.IO.Path.GetExtension(path);
+                if (".act".Equals(extension, StringComparison.OrdinalIgnoreCase))
                     radioButtonModeActivity.Checked = true;
-                else if (extension == ".timetable_or")
+                else if (".timetable_or".Equals(extension, StringComparison.OrdinalIgnoreCase))
                     radioButtonModeTimetable.Checked = true;
             }
             UpdateEnabled();
@@ -908,7 +913,7 @@ namespace Orts.Menu
             Route selectedRoute = SelectedRoute;
             try
             {
-                activities = (await Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token)).OrderBy(a => a.Name);
+                activities = (await Activity.GetActivities(selectedFolder, selectedRoute, ctsActivityLoading.Token).ConfigureAwait(true)).OrderBy(a => a.Name);
             }
             catch (TaskCanceledException)
             {

@@ -15,15 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+
+using Orts.Formats.Msts;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Menu.Entities
 {
@@ -47,7 +48,9 @@ namespace Orts.Menu.Entities
                 RouteID = trkFile.Route.RouteID;
                 Description = trkFile.Route.Description;
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Name = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileName(path)}>";
             }
@@ -58,21 +61,6 @@ namespace Orts.Menu.Entities
             Path = path;
         }
 
-        internal static async Task<Route> FromPathAsync(string path, CancellationToken token)
-        {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    return new Route(path);
-                }
-                catch (FileNotFoundException)
-                {
-                    return null;                    
-                }
-            }, token).ConfigureAwait(false);
-        }
-
         public override string ToString()
         {
             return Name;
@@ -80,17 +68,44 @@ namespace Orts.Menu.Entities
 
         public static async Task<IEnumerable<Route>> GetRoutes(Folder folder, CancellationToken token)
         {
-            string routesDirectory = folder.ContentFolder.RoutesFolder;
-            if (Directory.Exists(routesDirectory))
+            if (null == folder)
+                throw new ArgumentNullException(nameof(folder));
+            using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
-                try
+                List<Route> result = new List<Route>();
+
+                string routesDirectory = folder.ContentFolder.RoutesFolder;
+                if (Directory.Exists(routesDirectory))
                 {
-                    var tasks = Directory.GetDirectories(routesDirectory).Select(routeDirectory => FromPathAsync(routeDirectory, token));
-                    return (await Task.WhenAll(tasks).ConfigureAwait(false)).Where(r => r != null);
+
+                    ActionBlock<string> actionBlock = new ActionBlock<string>
+                    (async routeDirectory =>
+                    {
+                        try
+                        {
+                            Route route = new Route(routeDirectory);
+                            await addItem.WaitAsync(token).ConfigureAwait(false);
+                            result.Add(route);
+                        }
+                        catch (FileNotFoundException)
+                        {
+                        }
+                        finally
+                        {
+                            addItem.Release();
+                        }
+                    },
+                    new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
+
+                    foreach (string routeDirectory in Directory.EnumerateDirectories(routesDirectory))
+                        await actionBlock.SendAsync(routeDirectory).ConfigureAwait(false);
+
+                    actionBlock.Complete();
+                    await actionBlock.Completion.ConfigureAwait(false);
                 }
-                catch (OperationCanceledException) { }
+
+                return result;
             }
-            return new Route[0];
         }
     }
 }
