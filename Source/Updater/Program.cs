@@ -28,6 +28,9 @@ namespace Orts.Updater
         [STAThread]
         static void Main()
         {
+#if NETCOREAPP
+            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+#endif
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             using (var updater = (new UpdaterProgress()))

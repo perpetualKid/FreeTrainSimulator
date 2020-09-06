@@ -15,21 +15,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Menu.Entities;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
+
+using Orts.Common;
 using Orts.Common.Info;
+using Orts.Menu.Entities;
 
 namespace Orts.Menu
 {
     internal static class Program
     {
         [STAThread]  // requred for use of the DirectoryBrowserDialog in the main form.
-        private static void Main(string[] args)
+        private static void Main()
         {
+#if NETCOREAPP
+            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+#endif
             Application.EnableVisualStyles();
 
             if (Debugger.IsAttached)
@@ -44,7 +48,8 @@ namespace Orts.Menu
                 }
                 catch (Exception error)
                 {
-                    MessageBox.Show(error.ToString(), $"{Application.ProductName} {VersionInfo.Version}");
+                    MessageBox.Show(error.ToString(), $"{RuntimeInfo.ProductName} {VersionInfo.Version}");
+                    throw;
                 }
             }
         }
@@ -97,26 +102,27 @@ namespace Orts.Menu
                             if (MainForm.SelectedActivity is DefaultExploreActivity)
                             {
                                 var exploreActivity = MainForm.SelectedActivity as DefaultExploreActivity;
-                                parameters.Add(string.Format("-explorer \"{0}\" \"{1}\" {2} {3} {4}",
-                                    exploreActivity.Path.FilePath,
-                                    exploreActivity.Consist.FilePath,
-                                    exploreActivity.StartTime.FormattedStartTime(),
-                                    (int)exploreActivity.Season,
-                                    (int)exploreActivity.Weather));
+                                parameters.Add("-explorer");
+                                parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
+                                parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
+                                parameters.Add(exploreActivity.StartTime.FormattedStartTime());
+                                parameters.Add($"{(int)exploreActivity.Season}");
+                                parameters.Add($"{(int)exploreActivity.Weather}");
                             }
                             else if (MainForm.SelectedActivity is ExploreThroughActivity)
                             {
                                 var exploreActivity = MainForm.SelectedActivity as ExploreThroughActivity;
-                                parameters.Add(string.Format("-exploreactivity \"{0}\" \"{1}\" {2} {3} {4}",
-                                    exploreActivity.Path.FilePath,
-                                    exploreActivity.Consist.FilePath,
-                                    exploreActivity.StartTime.FormattedStartTime(),
-                                    (int)exploreActivity.Season,
-                                    (int)exploreActivity.Weather));
+                                parameters.Add("-exploreactivity");
+                                parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
+                                parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
+                                parameters.Add(exploreActivity.StartTime.FormattedStartTime());
+                                parameters.Add($"{(int)exploreActivity.Season}");
+                                parameters.Add($"{(int)exploreActivity.Weather}");
                             }
                             else
                             {
-                                parameters.Add(string.Format("-activity \"{0}\"", MainForm.SelectedActivity.FilePath));
+                                parameters.Add("-activity");
+                                parameters.Add($"\"{MainForm.SelectedActivity.FilePath}\"");
                             }
                             break;
                         case MainForm.UserAction.SingleplayerResumeSave:
@@ -124,33 +130,22 @@ namespace Orts.Menu
                         case MainForm.UserAction.SingleplayerReplaySaveFromSave:
                         case MainForm.UserAction.MultiplayerClientResumeSave:
                         case MainForm.UserAction.MultiplayerServerResumeSave:
-                            parameters.Add("\"" + MainForm.SelectedSaveFile + "\"");
+                            parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
                             break;
                         case MainForm.UserAction.SinglePlayerTimetableGame:
-                            if (String.IsNullOrEmpty(MainForm.SelectedTimetableSet.WeatherFile))
+                            parameters.Add("-timetable");
+                            parameters.Add($"\"{MainForm.SelectedTimetableSet.FileName}\"");
+                            parameters.Add($"\"{MainForm.SelectedTimetable}:{MainForm.SelectedTimetableTrain}\"");
+                            parameters.Add($"{MainForm.SelectedTimetableSet.Day}");
+                            parameters.Add($"{MainForm.SelectedTimetableSet.Season}");
+                            parameters.Add($"{ MainForm.SelectedTimetableSet.Weather}");
+                            if (!string.IsNullOrEmpty(MainForm.SelectedTimetableSet.WeatherFile))
                             {
-                                parameters.Add(String.Format("-timetable \"{0}\" \"{1}:{2}\" {3} {4} {5}",
-                                    MainForm.SelectedTimetableSet.FileName,
-                                    MainForm.SelectedTimetable,
-                                    MainForm.SelectedTimetableTrain,
-                                    MainForm.SelectedTimetableSet.Day,
-                                    MainForm.SelectedTimetableSet.Season,
-                                    MainForm.SelectedTimetableSet.Weather));
-                            }
-                            else
-                            {
-                                parameters.Add(String.Format("-timetable \"{0}\" \"{1}:{2}\" {3} {4} {5} \"{6}\" ",
-                                    MainForm.SelectedTimetableSet.FileName,
-                                    MainForm.SelectedTimetable,
-                                    MainForm.SelectedTimetableTrain,
-                                    MainForm.SelectedTimetableSet.Day,
-                                    MainForm.SelectedTimetableSet.Season,
-                                    MainForm.SelectedTimetableSet.Weather,
-                                    MainForm.SelectedTimetableSet.WeatherFile));
+                                parameters.Add($"\"{MainForm.SelectedTimetableSet.WeatherFile}\"");
                             }
                             break;
                         case MainForm.UserAction.SinglePlayerResumeTimetableGame:
-                            parameters.Add("\"" + MainForm.SelectedSaveFile + "\"");
+                            parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
                             break;
                     }
 

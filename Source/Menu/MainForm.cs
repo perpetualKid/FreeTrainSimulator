@@ -62,6 +62,18 @@ namespace Orts.Menu
             MultiplayerClientResumeSave
         }
 
+        private static readonly string[] coreExecutables = new[] {
+                    "OpenRails.exe",
+                    "Menu.exe",
+                    "ActivityRunner.exe",
+                    "Updater.exe",
+                };
+
+        private static readonly string[] documentFiles = new[]
+        {
+            ".pdf", ".doc", ".docx", ".pptx", ".txt"
+        };
+
         private bool initialized;
         private UserSettings settings;
         private IEnumerable<Folder> folders = Array.Empty<Folder>();
@@ -96,7 +108,7 @@ namespace Orts.Menu
         public TimetableInfo SelectedTimetableSet { get { return (TimetableInfo)comboBoxTimetableSet.SelectedItem; } }
         public TimetableFile SelectedTimetable { get { return (TimetableFile)comboBoxTimetable.SelectedItem; } }
         public TrainInformation SelectedTimetableTrain { get { return (TrainInformation)comboBoxTimetableTrain.SelectedItem; } }
-        public int SelectedTimetableDay { get { return initialized ? (comboBoxTimetableDay.SelectedItem as KeyedComboBoxItem).Key : 0; } }
+        public int SelectedTimetableDay { get { return initialized ? (comboBoxTimetableDay.SelectedItem as ComboBoxItem<int>).Key : 0; } }
         public WeatherFileInfo SelectedWeatherFile { get { return (WeatherFileInfo)comboBoxTimetableWeatherFile.SelectedItem; } }
         public Consist SelectedTimetableConsist;
         public Path SelectedTimetablePath;
@@ -179,16 +191,6 @@ namespace Orts.Menu
                 initTasks.Add(CheckForUpdateAsync());
                 initTasks.Add(LoadToolsAndDocuments());
 
-                var days = new[] {
-                    new KeyedComboBoxItem(0, catalog.GetString("Monday")),
-                    new KeyedComboBoxItem(1, catalog.GetString("Tuesday")),
-                    new KeyedComboBoxItem(2, catalog.GetString("Wednesday")),
-                    new KeyedComboBoxItem(3, catalog.GetString("Thursday")),
-                    new KeyedComboBoxItem(4, catalog.GetString("Friday")),
-                    new KeyedComboBoxItem(5, catalog.GetString("Saturday")),
-                    new KeyedComboBoxItem(6, catalog.GetString("Sunday")),
-                };
-
                 comboBoxStartSeason.DataSource = ComboBoxItem<int>.FromEnum<SeasonType>(commonCatalog);
                 ComboBoxItem.SetDataSourceMembers(comboBoxStartSeason);
 
@@ -201,7 +203,8 @@ namespace Orts.Menu
                 ComboBoxItem.SetDataSourceMembers(comboBoxTimetableSeason);
                 comboBoxTimetableWeather.DataSource = ComboBoxItem<int>.FromEnum<WeatherType>(commonCatalog);
                 ComboBoxItem.SetDataSourceMembers(comboBoxTimetableWeather);
-                comboBoxTimetableDay.Items.AddRange(days);
+                comboBoxTimetableDay.DataSource = ComboBoxItem<int>.FromList(Enumerable.Range(0, 7), (day) => CultureInfo.CurrentUICulture.DateTimeFormat.DayNames[day]);
+                ComboBoxItem.SetDataSourceMembers(comboBoxTimetableDay);
 
                 initialized = true;
             }
@@ -209,28 +212,22 @@ namespace Orts.Menu
             ShowEnvironment();
             ShowTimetableEnvironment();
 
-            await Task.WhenAll(initTasks);
+            await Task.WhenAll(initTasks).ConfigureAwait(true);
         }
 
-        private async Task<IEnumerable<ToolStripItem>> LoadTools()
+        private static Task<IEnumerable<ToolStripItem>> LoadTools()
         {
-            var coreExecutables = new[] {
-                    "OpenRails.exe",
-                    "Menu.exe",
-                    "ActivityRunner.exe",
-                    "Updater.exe",
-                };
-            return await Task.Run(() =>
-            {
-                return Directory.GetFiles(System.IO.Path.GetDirectoryName(Application.ExecutablePath), "*.exe").
-                Where(fileName => (!coreExecutables.Contains(System.IO.Path.GetFileName(fileName), StringComparer.OrdinalIgnoreCase))).
+            return Task.FromResult<IEnumerable<ToolStripItem>>(
+                Directory.EnumerateFiles(System.IO.Path.GetDirectoryName(RuntimeInfo.ApplicationFolder), "*.exe").
+                Where(fileName => (!coreExecutables.Contains(System.IO.Path.GetFileName(fileName), StringComparer.InvariantCultureIgnoreCase))).
                 Select(fileName =>
                 {
                     FileVersionInfo toolInfo = FileVersionInfo.GetVersionInfo(fileName);
                     // Skip any executable that isn't part of this product (e.g. Visual Studio hosting files).
                     if (toolInfo.ProductName != Application.ProductName)
                         return null;
-                    string toolName = catalog.GetString(toolInfo.FileDescription.Replace(Application.ProductName, "").Trim());
+                    // Remove the product name from the tool's name
+                    string toolName = string.Join(" ", toolInfo.Comments.Split(' ').Except(RuntimeInfo.ProductName.Split(' ' )));
                     return new ToolStripMenuItem(toolName, null, (object sender2, EventArgs e2) =>
                     {
                         string toolPath = (sender2 as ToolStripItem).Tag as string;
@@ -246,58 +243,40 @@ namespace Orts.Menu
                     }
                     )
                     { Tag = fileName };
-                }).
-                    Where(t => t != null);
-            }).ConfigureAwait(false);
+                }).Where(t => t != null));
         }
 
-        private async Task<IEnumerable<ToolStripItem>> LoadDocuments()
+        private static Task<IEnumerable<ToolStripItem>> LoadDocuments()
         {
-            string path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Documentation");
-            if (Directory.Exists(path))
+            if (Directory.Exists(RuntimeInfo.DocumentationFolder))
             {
-                return await Task.Run(() =>
-                {
-                    return Directory.GetFiles(path).Select(fileName =>
+                return Task.FromResult<IEnumerable<ToolStripItem>>(
+                    Directory.EnumerateFiles(RuntimeInfo.DocumentationFolder).
+                    Union(Directory.Exists(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.Name)) ?
+                        Directory.EnumerateFiles(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.Name)) : Array.Empty<string>()).
+                    Union(Directory.Exists(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)) ? 
+                        Directory.EnumerateFiles(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)) : Array.Empty<string>()).
+                    Where(fileName => documentFiles.Contains(System.IO.Path.GetExtension(fileName), StringComparer.InvariantCultureIgnoreCase)).
+                    Select(fileName =>
                     {
-                        // These are the following formats that can be selected.
-                        if (fileName.EndsWith(".pdf") || fileName.EndsWith(".doc") || fileName.EndsWith(".docx") || fileName.EndsWith(".pptx") || fileName.EndsWith(".txt"))
+                        return new ToolStripMenuItem(System.IO.Path.GetFileName(fileName), null, (object sender2, EventArgs e2) =>
                         {
-                            return new ToolStripMenuItem(System.IO.Path.GetFileName(fileName), null, (Object sender2, EventArgs e2) =>
-                            {
-                                var docPath = (sender2 as ToolStripItem).Tag as string;
-                                Process.Start(docPath);
-                            })
-                            { Tag = fileName };
-                        }
-                        return null;
-                    }).Where(d => d != null);
-                }).ConfigureAwait(false);
+                            var docPath = (sender2 as ToolStripItem).Tag as string;
+                            Process.Start(new ProcessStartInfo { FileName = docPath, UseShellExecute = true });
+                        })
+                        { Tag = fileName };
+                    }).Where(d => d != null));
             }
-            return new ToolStripItem[0];
+            else
+                return Task.FromResult(Array.Empty<ToolStripItem>().AsEnumerable());
         }
 
         private async Task LoadToolsAndDocuments()
         {
-            await Task.WhenAll(
-                LoadTools().ContinueWith((tools) =>
-                {
-                    // Add all the tools in alphabetical order.
-                    contextMenuStripTools.Items.AddRange((from tool in tools.Result
-                                                          orderby tool.Text
-                                                          select tool).ToArray());
-
-                }),
-                // Just like above, buttonDocuments is a button that is treated like a menu.  The result is a button that acts like a combobox.
-                // Populate buttonDocuments.
-                LoadDocuments().ContinueWith((documents) =>
-                {
-                    // Add all the tools in alphabetical order.
-                    contextMenuStripDocuments.Items.AddRange((from doc in documents.Result
-                                                              orderby doc.Text
-                                                              select doc).ToArray());
-
-                }));
+            contextMenuStripTools.Items.AddRange((await LoadTools().ConfigureAwait(true)).
+                OrderBy(tool => tool.Text).ToArray());
+            contextMenuStripDocuments.Items.AddRange((await LoadDocuments().ConfigureAwait(true)).
+                OrderBy(doc => doc.Text).ToArray());
             // Documents button will be disabled if Documentation folder is not present.
             buttonDocuments.Enabled = contextMenuStripDocuments.Items.Count > 0;
         }
@@ -369,7 +348,7 @@ namespace Orts.Menu
                 }
             }
             catalog = new Catalog("Menu", RuntimeInfo.LocalesFolder);
-            commonCatalog = new Catalog("Common", RuntimeInfo.LocalesFolder);
+            commonCatalog = new Catalog("Orts.Common", RuntimeInfo.LocalesFolder);
             Localizer.Localize(this, catalog, store);
         }
 #endregion
@@ -818,14 +797,14 @@ namespace Orts.Menu
             }
             catch (TaskCanceledException)
             {
-                folders = new Folder[0];
+                folders = Array.Empty<Folder>();
             }
 
             ShowFolderList();
-            if (folders.Count() > 0)
+            if (folders.Any())
                 comboBoxFolder.Focus();
 
-            if (!initialized && folders.Count() == 0)
+            if (!initialized && !folders.Any())
             {
                 using (var form = new OptionsForm(settings, updateManager, catalog, true))
                 {
@@ -1097,7 +1076,7 @@ namespace Orts.Menu
                     string pathFilePath = settings.Menu_Selection[(int)MenuSelectionIndex.Path];
                     Path path = paths.FirstOrDefault(p => p.FilePath == pathFilePath);
                     if (path != null)
-                        SelectComboBoxItem<string>(comboBoxStartAt, s => s == path.Start);
+                        SetComboBoxItem<string>(comboBoxStartAt, s => s == path.Start);
                     else if (comboBoxStartAt.Items.Count > 0)
                         comboBoxStartAt.SelectedIndex = 0;
                 }
@@ -1167,8 +1146,8 @@ namespace Orts.Menu
                 }
 
                 UpdateFromMenuSelection(comboBoxStartTime, MenuSelectionIndex.Time, "12:00");
-                UpdateFromMenuSelection(comboBoxStartSeason, MenuSelectionIndex.Season, s => s.Key.ToString(CultureInfo.InvariantCulture), new ComboBoxItem<int>(1, string.Empty));
-                UpdateFromMenuSelection(comboBoxStartWeather, MenuSelectionIndex.Weather, w => w.Key.ToString(CultureInfo.InvariantCulture), new ComboBoxItem<int>(0, string.Empty));
+                UpdateFromMenuSelectionComboBoxItem(comboBoxStartSeason, MenuSelectionIndex.Season, 1);
+                UpdateFromMenuSelectionComboBoxItem(comboBoxStartWeather, MenuSelectionIndex.Weather, 0);
                 comboBoxDifficulty.SelectedIndex = -1;
                 comboBoxDuration.SelectedIndex = 0;
             }
@@ -1323,9 +1302,9 @@ namespace Orts.Menu
 #region Timetable environment
         private void ShowTimetableEnvironment()
         {
-            UpdateFromMenuSelection(comboBoxTimetableDay, MenuSelectionIndex.Day, d => d.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
-            UpdateFromMenuSelection(comboBoxTimetableSeason, MenuSelectionIndex.Season, s => s.Key.ToString(), new KeyedComboBoxItem(1, string.Empty));
-            UpdateFromMenuSelection(comboBoxTimetableWeather, MenuSelectionIndex.Weather, w => w.Key.ToString(), new KeyedComboBoxItem(0, string.Empty));
+            UpdateFromMenuSelectionComboBoxItem(comboBoxTimetableDay, MenuSelectionIndex.Day, 0);
+            UpdateFromMenuSelectionComboBoxItem(comboBoxTimetableSeason, MenuSelectionIndex.Season,1);
+            UpdateFromMenuSelectionComboBoxItem(comboBoxTimetableWeather, MenuSelectionIndex.Weather, 0);
         }
 #endregion
 
@@ -1526,13 +1505,19 @@ namespace Orts.Menu
 #region Utility functions
         private void UpdateFromMenuSelection<T>(ComboBox comboBox, MenuSelectionIndex index, T defaultValue)
         {
-            UpdateFromMenuSelection<T>(comboBox, index, _ => _.ToString(), defaultValue);
+            UpdateFromMenuSelection(comboBox, index, _ => _.ToString(), defaultValue);
         }
 
         private void UpdateFromMenuSelection<T>(ComboBox comboBox, MenuSelectionIndex index, Func<T, string> map)
         {
             UpdateFromMenuSelection(comboBox, index, map, default);
         }
+
+        private void UpdateFromMenuSelectionComboBoxItem<T>(ComboBox comboBox, MenuSelectionIndex index, T defaultValue)
+        {
+            UpdateFromMenuSelection(comboBox, index, (item => item.Key.ToString()), new ComboBoxItem<T>(defaultValue, string.Empty));
+        }
+
 
         private void UpdateFromMenuSelection<T>(ComboBox comboBox, MenuSelectionIndex index, Func<T, string> map, T defaultValue)
         {
@@ -1541,20 +1526,20 @@ namespace Orts.Menu
                 if (comboBox.DropDownStyle == ComboBoxStyle.DropDown)
                     comboBox.Text = settings.Menu_Selection[(int)index];
                 else
-                    SelectComboBoxItem<T>(comboBox, item => map(item) == settings.Menu_Selection[(int)index]);
+                    SetComboBoxItem<T>(comboBox, item => map(item) == settings.Menu_Selection[(int)index]);
             }
             else
             {
                 if (comboBox.DropDownStyle == ComboBoxStyle.DropDown)
                     comboBox.Text = map(defaultValue);
                 else if (defaultValue != null)
-                    SelectComboBoxItem<T>(comboBox, item => map(item) == map(defaultValue));
+                    SetComboBoxItem<T>(comboBox, item => map(item) == map(defaultValue));
                 else if (comboBox.Items.Count > 0)
                     comboBox.SelectedIndex = 0;
             }
         }
 
-        private static void SelectComboBoxItem<T>(ComboBox comboBox, Func<T, bool> predicate)
+        private static void SetComboBoxItem<T>(ComboBox comboBox, Func<T, bool> predicate)
         {
             if (comboBox.Items.Count == 0)
                 return;
@@ -1568,23 +1553,6 @@ namespace Orts.Menu
                 }
             }
             comboBox.SelectedIndex = 0;
-        }
-
-        private class KeyedComboBoxItem
-        {
-            public readonly int Key;
-            public readonly string Value;
-
-            public override string ToString()
-            {
-                return Value;
-            }
-
-            public KeyedComboBoxItem(int key, string value)
-            {
-                Key = key;
-                Value = value;
-            }
         }
 #endregion
 

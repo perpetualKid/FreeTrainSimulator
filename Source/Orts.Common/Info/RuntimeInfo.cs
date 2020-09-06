@@ -35,6 +35,8 @@ namespace Orts.Common.Info
 
         public static string LocalesFolder { get; } = Path.Combine(ProgramRoot, "Locales");
 
+        public static string DocumentationFolder { get; } = Path.Combine(ProgramRoot, "Documentation");
+
         static RuntimeInfo()
         {
             try
