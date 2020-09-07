@@ -125,7 +125,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		// Extents of the route in meters measured from the World origin
 		float minX = float.MaxValue;
 		float minY = float.MaxValue;
-
 		float maxX = float.MinValue;
 		float maxY = float.MinValue;
 
@@ -217,9 +216,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		private Font trainFont;
 		private Font sidingFont;
 		private Font PlatformFont;
+		private Font SignalFont;
 		private SolidBrush trainBrush;
 		private SolidBrush sidingBrush;
 		private SolidBrush PlatformBrush;
+		private SolidBrush SignalBrush;
 		private SolidBrush InactiveTrainBrush;
 
 		private double lastUpdateTime;
@@ -328,31 +329,59 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             windowSizeUpDown.Maximum = (decimal)maxsize;
 			Inited = true;
 
-          if (simulator.TDB == null || simulator.TDB.TrackDB == null || simulator.TDB.TrackDB.TrackItems == null) return;
-
-		  foreach (var item in simulator.TDB.TrackDB.TrackItems)
-		  {
-                if (item is SignalItem)
-                {
-                    SignalItem si = item as SignalItem;
-
-                    if (si.SignalObject >= 0 && si.SignalObject < simulator.SignalEnvironment.Signals.Count)
-                    {
-                        Signal s = simulator.SignalEnvironment.Signals[si.SignalObject];
-                        if (s != null && s.IsSignal && s.SignalNormal()) signals.Add(new SignalWidget(si, s));
-                    }
-                }
-			  if (item is SidingItem)
-			  {
-				  sidings.Add(new SidingWidget(item));
-			  }
-				if (item is PlatformItem)
+          if (simulator.TDB == null || simulator.TDB.TrackDB == null || simulator.TDB.TrackDB.TrackItems == null)
+              return;
+          foreach (var item in simulator.TDB.TrackDB.TrackItems)
+          {
+				switch (item)
 				{
-					platforms.Add(new PlatformWidget(item));
+					case SignalItem signalItem:
+                        if (signalItem.SignalObject >= 0 && signalItem.SignalObject < simulator.SignalEnvironment.Signals.Count)
+                        {
+                            Signal s = simulator.SignalEnvironment.Signals[signalItem.SignalObject];
+                            if (s != null && s.IsSignal && s.SignalNormal())
+                                signals.Add(new SignalWidget(signalItem, s));
+                        }
+						break;
+					case SidingItem sidingItem:
+						// Sidings have 2 ends. When 2nd one is found, then average the location.
+						var sidingFound = sidings.Find(r => r.Name == item.ItemName);
+						if (sidingFound.Name == null)
+							sidings.Add(new SidingWidget(item));
+						else
+							sidingFound.Location = GetMidPoint(sidingFound.Location, (int)(item.Location.TileX * 2048 + item.Location.Location.X), (int)(item.Location.TileZ * 2048 + item.Location.Location.Z));
+						break;
+
+					case PlatformItem platformItem:
+						// Platforms have 2 ends. When 2nd one is found, then average the location.
+						var platformFound = platforms.Find(r => r.Name == item.ItemName);
+						if (platformFound.Name == null)
+							platforms.Add(new PlatformWidget(item));
+						else
+							platformFound.Location = GetMidPoint(platformFound.Location, (int)(item.Location.TileX * 2048 + item.Location.Location.X), (int)(item.Location.TileZ * 2048 + item.Location.Location.Z));
+						break;
+
+					default:
+						break;
 				}
 			}
           return;
 	  }
+
+		/// <summary>
+		/// Returns the mid-point between one location and the coordinates for a second
+		/// </summary>
+		/// <param name="location"></param>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <returns></returns>
+		private PointF GetMidPoint(PointF location, int x, int y)
+        {
+			return new PointF()
+				{ X = (location.X + x) / 2
+				, Y = (location.Y + y) / 2
+				};
+        }
 
       bool Inited;
 	  List<LineSegment> segments = new List<LineSegment>();
@@ -552,6 +581,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	  float subX, subY;
       float oldWidth;
       float oldHeight;
+
        //determine locations of buttons and boxes
       void DetermineLocations()
       {
@@ -2181,8 +2211,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			trainFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
 			sidingFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
 			PlatformFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
+			SignalFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
 			InactiveTrainBrush = new SolidBrush(Color.LightPink);
-			PlatformBrush = new SolidBrush(Color.Blue);
+			sidingBrush = new SolidBrush(Color.Blue);
+			PlatformBrush = new SolidBrush(Color.DarkBlue);
+			SignalBrush = new SolidBrush(Color.DarkRed);
 		}
 
 		private void AdjustControlLocations()
@@ -2230,6 +2263,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				InitImage();
 			using (Graphics g = Graphics.FromImage(pbCanvas.Image))
             {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                 g.Clear(Color.White);
 
                 // Set scales. subX & subY give top-left location in meters from world origin.
@@ -2239,7 +2273,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 // Get scale in pixels/meter
                 xScale = pbCanvas.Width / ViewWindow.Width;
                 yScale = pbCanvas.Height / ViewWindow.Height;
-                //xScale = yScale = Math.Max(pbCanvas.Width / ViewWindow.Width, pbCanvas.Height / ViewWindow.Height);
+                xScale = yScale = Math.Max(pbCanvas.Width / ViewWindow.Width, pbCanvas.Height / ViewWindow.Height);
 
                 // Set the default pen to represent 1 meter.
                 var scale = (float)Math.Round((double)xScale);  // Round to nearest pixels/meter
@@ -2252,31 +2286,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 trainPen.Width = penWidth * 6;
 
                 // Draw track
-                PointF[] points = new PointF[3];
-                PointF scaledA = new PointF(0, 0);
-                PointF scaledB = new PointF(0, 0);
-                PointF scaledC = new PointF(0, 0);
-                foreach (var line in segments)
-                {
-                    scaledA = line.A.Scale(xScale, yScale, subX, subY);
-                    scaledA.Y = pbCanvas.Height - scaledA.Y;
-                    scaledB = line.B.Scale(xScale, yScale, subX, subY);
-                    scaledB.Y = pbCanvas.Height - scaledB.Y;
-
-                    if ((scaledA.X < 0 && scaledB.X < 0) || (scaledA.X > IM_Width && scaledB.X > IM_Width))
-                        //|| (scaledA.Y > IM_Height && scaledB.Y > IM_Height) || (scaledA.Y < 0 && scaledB.Y < 0)) 
-                        continue;
-
-                    if (line.isCurved == true)
-                    {
-                        scaledC.X = (line.C.Location.Location.X - subX) * xScale;
-                        scaledC.Y = pbCanvas.Height - (line.C.Location.Location.Z - subY) * yScale;
-                        points[0] = scaledA; points[1] = scaledC; points[2] = scaledB;
-                        g.DrawCurve(p, points);
-                    }
-                    else
-                        g.DrawLine(p, scaledA, scaledB);
-                }
+                PointF scaledA, scaledB;
+                ShowTrack(g, p, out scaledA, out scaledB);
 
                 // Keep widgetWidth <= 15 pixels
                 var widgetWidth = Math.Min(penWidth * 6, 15);
@@ -2285,124 +2296,54 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 switchItemsDrawn.Clear();
                 ShowSwitches(g, widgetWidth);
 
-                // Draw signals
-                signalItemsDrawn.Clear();
-                ShowSignals(g, scaledB, widgetWidth);
-
-                // Draw sidings
-                CleanVerticalCells();//clean the drawing area for text of sidings
+				// Draw sidings and platforms
+				CleanTextCells(); //clean the drawing area for text of sidings platforms and signal states
                 ShowSidings(g);
-
                 ShowPlatforms(g);
 
-                // Draw trains
-                ShowTrains(g, scaledA, scaledB);
+				// Draw signals
+				signalItemsDrawn.Clear();
+				ShowSignals(g, scaledB, widgetWidth);
+
+				// Draw trains
+				ShowTrains(g, scaledA, scaledB);
             }
             pbCanvas.Invalidate(); // Triggers a re-paint
         }
 
-        private void ShowTrains(Graphics g, PointF scaledA, PointF scaledB)
+		private void ShowSimulationTime()
+		{
+			var ct = TimeSpan.FromSeconds(Simulator.Instance.ClockTime);
+			lblSimulationTime.Text = $"{ct:hh}:{ct:mm}:{ct:ss}";
+		}
+
+		private void ShowTrack(Graphics g, Pen p, out PointF scaledA, out PointF scaledB)
         {
-            var margin = 30 * xScale;   //margins to determine if we want to draw a train
-            var margin2 = 5000 * xScale;
-
-            //variable for drawing train path
-            var mDist = 5000f; var pDist = 50; //segment length when draw path
-
-            selectedTrainList.Clear();
-
-            // Add the player's train
-            BuildSelectedTrainList(simulator.PlayerLocomotive.Train as Orts.Simulation.AIs.AITrain);
-
-            // and all the other trains
-            foreach (var t in Viewer.Simulator.AI.AITrains)
-                BuildSelectedTrainList(t);
-
-            foreach (Train t in selectedTrainList)
+            PointF[] points = new PointF[3];
+            scaledA = new PointF(0, 0);
+            scaledB = new PointF(0, 0);
+            PointF scaledC = new PointF(0, 0);
+            foreach (var line in segments)
             {
-                name = "";
-                TrainCar firstCar = null;
-                if (t.LeadLocomotive != null)
-                {
-                    worldPos = t.LeadLocomotive.WorldPosition;
-                        name = Train.GetTrainName(t.LeadLocomotive.CarID);
-                    firstCar = t.LeadLocomotive;
-                }
-                else if (t.Cars != null && t.Cars.Count > 0)
-                {
-                    worldPos = t.Cars[0].WorldPosition;
-                        name = Train.GetTrainName(t.Cars[0].CarID);
-                        if (t.TrainType == TrainType.Ai)
-                        name = t.Number.ToString() + ":" + t.Name;
-                    firstCar = t.Cars[0];
-                }
-                else
+                    scaledA = line.A.Scale(xScale, yScale, subX, subY);
+                    scaledA.Y = pbCanvas.Height - scaledA.Y;
+                    scaledB = line.B.Scale(xScale, yScale, subX, subY);
+                    scaledB.Y = pbCanvas.Height - scaledB.Y;
+
+                    if ((scaledA.X < 0 && scaledB.X < 0) || (scaledA.X > IM_Width && scaledB.X > IM_Width))
+                        //|| (scaledA.Y > IM_Height && scaledB.Y > IM_Height) || (scaledA.Y < 0 && scaledB.Y < 0)) 
                     continue;
 
-
-				// If zoomed out, then draw the train as a box, with its path and name
-				var scaledTrain = new PointF();
-				if (xScale < 0.3 || t.FrontTDBTraveller == null || t.RearTDBTraveller == null)
+                if (line.isCurved == true)
                 {
-                    worldPos = firstCar.WorldPosition;
-                    scaledTrain.X = (worldPos.TileX * 2048 - subX + worldPos.Location.X) * xScale;
-                    scaledTrain.Y = pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale;
-                    if (scaledTrain.X < -margin2
-                        || scaledTrain.Y < -margin2)
-                        continue;
-
-                    g.FillRectangle(Brushes.DarkGreen, GetRect(scaledTrain, 15f));
-                    scaledTrain.Y -= 25;
-                    DrawTrainPath(t, subX, subY, pathPen, g, scaledA, scaledB, pDist, mDist);
-
-                    ShowTrainNameWithSuffix(g, scaledTrain, t);
-                    continue;
-                }
-
-                // Else draw the path, then each car of the train, then the name
-                var loc = t.FrontTDBTraveller.WorldLocation;
-                float x, y;
-                x = (loc.TileX * 2048 + loc.Location.X - subX) * xScale;
-                y = pbCanvas.Height - (loc.TileZ * 2048 + loc.Location.Z - subY) * yScale;
-                if (x < -margin2
-                    || y < -margin2)
-                    continue;
-
-                DrawTrainPath(t, subX, subY, pathPen, g, scaledA, scaledB, pDist, mDist);
-
-                trainPen.Color = Color.DarkGreen;
-                foreach (var car in t.Cars)
-                {
-                    Traveller t1 = new Traveller(t.RearTDBTraveller);
-                    worldPos = car.WorldPosition;
-                        var dist = t1.DistanceTo(worldPos.WorldLocation);
-                    if (dist > 0)
-                    {
-                        t1.Move(dist - 1 + car.CarLengthM / 2);
-                        x = (t1.TileX * 2048 + t1.Location.X - subX) * xScale; y = pbCanvas.Height - (t1.TileZ * 2048 + t1.Location.Z - subY) * yScale;
-                        //x = (worldPos.TileX * 2048 + worldPos.Location.X - minX - ViewWindow.X) * xScale; y = pictureBox1.Height - (worldPos.TileZ * 2048 + worldPos.Location.Z - minY - ViewWindow.Y) * yScale;
-                        if (x < -margin || x > IM_Width + margin || y > IM_Height + margin || y < -margin) continue;
-
-                        t1.Move(-car.CarLengthM);
-                        x = (t1.TileX * 2048 + t1.Location.X - subX) * xScale; y = pbCanvas.Height - (t1.TileZ * 2048 + t1.Location.Z - subY) * yScale;
-                        if (x < -margin || x > IM_Width + margin || y > IM_Height + margin || y < -margin) continue;
-
-                        scaledA.X = x; scaledA.Y = y;
-
-                        g.DrawLine(trainPen, scaledA, scaledTrain);
+                        scaledC.X = (line.C.Location.Location.X - subX) * xScale;
+                        scaledC.Y = pbCanvas.Height - (line.C.Location.Location.Z - subY) * yScale;
+                        points[0] = scaledA; points[1] = scaledC; points[2] = scaledB;
+                        g.DrawCurve(p, points);
                     }
-                }
-                worldPos = firstCar.WorldPosition;
-                scaledTrain.X = (worldPos.TileX * 2048 - subX + worldPos.Location.X) * xScale;
-                scaledTrain.Y = -25 + pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale;
-                ShowTrainNameWithSuffix(g, scaledTrain, t);
+                    else
+                        g.DrawLine(p, scaledA, scaledB);
             }
-        }
-
-        private void ShowSimulationTime()
-        {
-            var ct = TimeSpan.FromSeconds(Simulator.Instance.ClockTime);
-            lblSimulationTime.Text = $"{ct:hh}:{ct:mm}:{ct:ss}";
         }
 
         private void ShowSwitches(Graphics g, float width)
@@ -2472,17 +2413,27 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				}
 		}
 
-		private void ShowPlatforms(Graphics g)
+		private void ShowSignalState(Graphics g, PointF scaledItem, SignalWidget sw)
 		{
-			if (cbShowPlatforms.CheckState == System.Windows.Forms.CheckState.Checked)
-				foreach (var s in platforms)
+			if (cbShowSignalState.Checked)
+			{
+				var item = sw.Item as SignalItem;
+				var trainNumber = sw.Signal?.EnabledTrain?.Train?.Number;
+				var trainString = (trainNumber == null) ? "" : $" train: {trainNumber}";
+				var offset = 0;
+				var position = scaledItem;
+				foreach (var signalHead in sw.Signal.SignalHeads)
 				{
-					var scaledItem = new PointF();
-					scaledItem.X = (s.Location.X - subX) * xScale;
-					scaledItem.Y = DetermineSidingLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
-					if (scaledItem.Y >= 0f) //if we need to draw the platform names
-						g.DrawString(s.Name, PlatformFont, PlatformBrush, scaledItem);
+					//g.DrawString($"  {item?.SigObj} {signalHead.SignalTypeName} {signalHead.state} {trainString}", sidingFont, Brushes.Sienna, position);
+					offset++;
+					position.X += offset * 10;
+					position.Y += offset * 15;
+					var text = $"  {item?.SignalObject} {signalHead.SignalType.Name} {signalHead.SignalIndicationState} {trainString}";
+					scaledItem.Y = DetermineTextLocation(scaledItem.X, pbCanvas.Height - (sw.Location.Y - subY) * yScale, text);
+					if (scaledItem.Y >= 0f) //if we need to draw the siding names
+						g.DrawString(text, SignalFont, SignalBrush, scaledItem);
 				}
+			}
 		}
 
 		private void ShowSidings(Graphics g)
@@ -2493,10 +2444,124 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					var scaledItem = new PointF();
 
 					scaledItem.X = (s.Location.X - subX) * xScale;
-					scaledItem.Y = DetermineSidingLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
+					scaledItem.Y = DetermineTextLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
 					if (scaledItem.Y >= 0f) //if we need to draw the siding names
 						g.DrawString(s.Name, sidingFont, sidingBrush, scaledItem);
 				}
+		}
+
+		private void ShowPlatforms(Graphics g)
+		{
+			if (cbShowPlatforms.CheckState == System.Windows.Forms.CheckState.Checked)
+				foreach (var s in platforms)
+				{
+					var scaledItem = new PointF();
+					scaledItem.X = (s.Location.X - subX) * xScale;
+					scaledItem.Y = DetermineTextLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
+					if (scaledItem.Y >= 0f) //if we need to draw the platform names
+						g.DrawString(s.Name, PlatformFont, PlatformBrush, scaledItem);
+				}
+		}
+
+		private void ShowTrains(Graphics g, PointF scaledA, PointF scaledB)
+		{
+			var margin = 30 * xScale;   //margins to determine if we want to draw a train
+			var margin2 = 5000 * xScale;
+
+			//variable for drawing train path
+			var mDist = 5000f; var pDist = 50; //segment length when draw path
+
+			selectedTrainList.Clear();
+
+			// Add the player's train
+			BuildSelectedTrainList(simulator.PlayerLocomotive.Train as Orts.Simulation.AIs.AITrain);
+
+			// and all the other trains
+			foreach (var t in Viewer.Simulator.AI.AITrains)
+				BuildSelectedTrainList(t);
+
+			foreach (Train t in selectedTrainList)
+			{
+				name = "";
+				TrainCar firstCar = null;
+				if (t.LeadLocomotive != null)
+				{
+					worldPos = t.LeadLocomotive.WorldPosition;
+                        name = Train.GetTrainName(t.LeadLocomotive.CarID);
+					firstCar = t.LeadLocomotive;
+				}
+				else if (t.Cars != null && t.Cars.Count > 0)
+				{
+					worldPos = t.Cars[0].WorldPosition;
+                        name = Train.GetTrainName(t.Cars[0].CarID);
+                        if (t.TrainType == TrainType.Ai)
+						name = t.Number.ToString() + ":" + t.Name;
+					firstCar = t.Cars[0];
+				}
+				else
+					continue;
+
+
+				// If zoomed out, then draw the train as a box, with its path and name
+				var scaledTrain = new PointF();
+				if (xScale < 0.3 || t.FrontTDBTraveller == null || t.RearTDBTraveller == null)
+				{
+					worldPos = firstCar.WorldPosition;
+					scaledTrain.X = (worldPos.TileX * 2048 - subX + worldPos.Location.X) * xScale;
+					scaledTrain.Y = pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale;
+					if (scaledTrain.X < -margin2
+						|| scaledTrain.Y < -margin2)
+						continue;
+
+					g.FillRectangle(Brushes.DarkGreen, GetRect(scaledTrain, 15f));
+					scaledTrain.Y -= 25;
+					DrawTrainPath(t, subX, subY, pathPen, g, scaledA, scaledB, pDist, mDist);
+
+					ShowTrainNameWithSuffix(g, scaledTrain, t);
+					continue;
+				}
+
+				// Else draw the path, then each car of the train, then the name
+				var loc = t.FrontTDBTraveller.WorldLocation;
+				float x, y;
+				x = (loc.TileX * 2048 + loc.Location.X - subX) * xScale;
+				y = pbCanvas.Height - (loc.TileZ * 2048 + loc.Location.Z - subY) * yScale;
+				if (x < -margin2
+					|| y < -margin2)
+					continue;
+
+				DrawTrainPath(t, subX, subY, pathPen, g, scaledA, scaledB, pDist, mDist);
+
+				trainPen.Color = Color.DarkGreen;
+				foreach (var car in t.Cars)
+				{
+					Traveller t1 = new Traveller(t.RearTDBTraveller);
+					worldPos = car.WorldPosition;
+                        var dist = t1.DistanceTo(worldPos.WorldLocation);
+					if (dist > 0)
+					{
+						t1.Move(dist - 1 + car.CarLengthM / 2);
+						x = (t1.TileX * 2048 + t1.Location.X - subX) * xScale; 
+						y = pbCanvas.Height - (t1.TileZ * 2048 + t1.Location.Z - subY) * yScale;
+						if (x < -margin || y < -margin) 
+							continue;
+						scaledTrain.X = x; scaledTrain.Y = y;
+						
+						t1.Move(-car.CarLengthM);
+						x = (t1.TileX * 2048 + t1.Location.X - subX) * xScale; 
+						y = pbCanvas.Height - (t1.TileZ * 2048 + t1.Location.Z - subY) * yScale;
+						if (x < -margin || y < -margin) 
+							continue;
+						scaledA.X = x; scaledA.Y = y;
+						
+						g.DrawLine(trainPen, scaledA, scaledTrain);
+					}
+				}
+				worldPos = firstCar.WorldPosition;
+				scaledTrain.X = (worldPos.TileX * 2048 - subX + worldPos.Location.X) * xScale;
+				scaledTrain.Y = -25 + pbCanvas.Height - (worldPos.TileZ * 2048 - subY + worldPos.Location.Z) * yScale;
+				ShowTrainNameWithSuffix(g, scaledTrain, t);
+			}
 		}
 
 		private void BuildSelectedTrainList(Simulation.AIs.AITrain t)
@@ -2542,23 +2607,73 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			}
 		}
 
-		private void ShowSignalState(Graphics g, PointF scaledItem, SignalWidget sw)
+		private void CleanTextCells()
 		{
-			if (cbShowSignalState.Checked)
+			if (alignedTextY == null || alignedTextY.Length != pbCanvas.Height / spacing) //first time to put text, or the text height has changed
 			{
-				var item = sw.Item as SignalItem;
-				var trainNumber = sw.Signal?.EnabledTrain?.Train?.Number;
-				var trainString = (trainNumber == null) ? "" : $" train: {trainNumber}";
-				var offset = 0;
-				var position = scaledItem;
-				foreach (var signalHead in sw.Signal.SignalHeads)
-				{
-					g.DrawString($"  {item?.SignalObject} {signalHead.SignalType.Name} {signalHead.SignalIndicationState} {trainString}", sidingFont, Brushes.Sienna, position);
-					offset++;
-					position.X += offset * 10;
-					position.Y += offset * 15;
-				}
+				alignedTextY = new Vector2[pbCanvas.Height / spacing][];
+				alignedTextNum = new int[pbCanvas.Height / spacing];
+				for (var i = 0; i < pbCanvas.Height / spacing; i++) alignedTextY[i] = new Vector2[5]; //each line has at most 5 slots
 			}
+			for (var i = 0; i < pbCanvas.Height / spacing; i++) { alignedTextNum[i] = 0; }
+
+		}
+
+
+		private float DetermineTextLocation(float startX, float wantY, string name)
+		{
+			//out of drawing area
+			if (startX < -64 || wantY < -spacing) 
+				return -1f;
+
+			var position = (int)(wantY / spacing);	//the cell of the text it wants in
+			if (position > alignedTextY.Length) 
+				return wantY;	//position is larger than the number of cells
+
+			var endX = startX + name.Length * trainFont.Size;
+			int desiredPosition = position;
+			while (position < alignedTextY.Length && position >= 0)
+			{
+				//if the line contains no text yet, put it there
+				if (alignedTextNum[position] == 0)
+				{
+					alignedTextY[position][alignedTextNum[position]].X = startX;
+					alignedTextY[position][alignedTextNum[position]].Y = endX;	//add info for the text (i.e. start and end location)
+					alignedTextNum[position]++;
+					return position * spacing;
+				}
+
+				bool conflict = false;
+				//check if it is intersect any one in the cell
+				foreach (Vector2 v in alignedTextY[position])
+				{
+					//check conflict with a text, v.x is the start of the text, v.y is the end of the text
+					if ((startX > v.X && startX < v.Y) || (endX > v.X && endX < v.Y) || (v.X > startX && v.X < endX) || (v.Y > startX && v.Y < endX))
+					{
+						conflict = true;
+						break;
+					}
+				}
+				if (conflict == false) //no conflict
+				{
+					if (alignedTextNum[position] >= alignedTextY[position].Length) 
+						return -1f;
+					alignedTextY[position][alignedTextNum[position]].X = startX;
+					alignedTextY[position][alignedTextNum[position]].Y = endX;	//add info for the text (i.e. start and end location)
+					alignedTextNum[position]++;
+					return position * spacing;
+				}
+				position--;
+				//cannot move up, then try to move it down
+				if (position - desiredPosition < -1)
+				{
+					position = desiredPosition + 2;
+				}
+				//could not find any position up or down, just return negative
+				if (position == desiredPosition) 
+					return -1f;
+			}
+			return position * spacing;
 		}
 		#endregion
 	}
