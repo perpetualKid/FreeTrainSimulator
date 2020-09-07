@@ -305,7 +305,7 @@ namespace Orts.Menu
 
         private async Task CheckForUpdateAsync()
         {
-            await updateManager.RefreshUpdateInfo((UpdateCheckFrequency)settings.UpdateCheckFrequency).ConfigureAwait(false);
+            await updateManager.RefreshUpdateInfo((UpdateCheckFrequency)settings.UpdateCheckFrequency).ConfigureAwait(true);
             if (updateManager.LastCheckError != null)
             {
                 linkLabelUpdate.Text = catalog.GetString("Update check failed");
@@ -498,13 +498,15 @@ namespace Orts.Menu
 #endregion
 
 #region Timetable Trains
-        private async void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetableTrain_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBoxTimetableTrain.SelectedItem is TrainInformation selectedTrain)
             {
                 int updater = Interlocked.CompareExchange(ref detailUpdater, 1, 0);
-                SelectedTimetableConsist = await Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist, CancellationToken.None);
-                SelectedTimetablePath = Path.GetPath(SelectedRoute, selectedTrain.Path, false);
+                SelectedTimetableConsist = Consist.GetConsist(SelectedFolder, selectedTrain.LeadingConsist, selectedTrain.ReverseConsist);
+                Path path = Path.GetPath(SelectedRoute, selectedTrain.Path);
+                SelectedTimetablePath = path.IsPlayerPath ? path : null;
+
                 if (updater == 0)
                 {
                     ShowDetails();
@@ -1198,13 +1200,13 @@ namespace Orts.Menu
             var selectedRoute = SelectedRoute;
             try
             {
-                timetableSets = (await TimetableInfo.GetTimetableInfo(selectedFolder, selectedRoute, ctsTimeTableLoading.Token)).OrderBy(tt => tt.Description);
-                timetableWeatherFileSet = (await WeatherFileInfo.GetTimetableWeatherFiles(selectedFolder, selectedRoute, ctsTimeTableLoading.Token)).OrderBy(a => a.ToString());
+                timetableSets = (await TimetableInfo.GetTimetableInfo(selectedRoute, ctsTimeTableLoading.Token).ConfigureAwait(false)).OrderBy(tt => tt.Description);
+                timetableWeatherFileSet = (await WeatherFileInfo.GetTimetableWeatherFiles(selectedRoute, ctsTimeTableLoading.Token).ConfigureAwait(false)).OrderBy(a => a.ToString());
             }
             catch (TaskCanceledException)
             {
-                timetableSets = new TimetableInfo[0];
-                timetableWeatherFileSet = new WeatherFileInfo[0];
+                timetableSets = Array.Empty<TimetableInfo>();
+                timetableWeatherFileSet = Array.Empty<WeatherFileInfo>();
             }
             ShowTimetableSetList();
             ShowTimetableWeatherSet();

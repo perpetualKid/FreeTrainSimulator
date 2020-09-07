@@ -15,14 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Formats.Msts.Files;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Menu.Entities
 {
@@ -30,8 +31,25 @@ namespace Orts.Menu.Entities
     /// Representation of the metadata of a path, where the path is coded in a .pat file. So not the full .pat file,
     /// but just basic information to be used in menus etc.
     /// </summary>
-    public class Path: ContentBase
+    public class Path : ContentBase
     {
+
+        // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
+        // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.
+        // ORTS checks for "broken path" when the simulator runs and does offer them in the list.
+        // The first activity in Marias Pass is "Explore Longhale" which leads to a "Broken Path" message.
+        // The message then confuses users new to ORTS who have just installed it along with MSTS,
+        // see https://bugs.launchpad.net/or/+bug/1345172 and https://bugs.launchpad.net/or/+bug/128547
+        private static readonly string[] brokenPaths = {
+            @"ROUTES\USA1\PATHS\aftstrm(traffic03).pat",
+            @"ROUTES\USA1\PATHS\aftstrmtraffic01.pat",
+            @"ROUTES\USA1\PATHS\aiphwne2.pat",
+            @"ROUTES\USA1\PATHS\aiwnphex.pat",
+            @"ROUTES\USA1\PATHS\blizzard(traffic).pat",
+            @"ROUTES\USA2\PATHS\longhale.pat",
+            @"ROUTES\USA2\PATHS\long-haul west (blizzard).pat",
+        };
+
         /// <summary>Name of the path</summary>
         public string Name { get; private set; }
         /// <summary>Start location of the path</summary>
@@ -59,7 +77,9 @@ namespace Orts.Menu.Entities
                     Start = patFile.Start;
                     End = patFile.End;
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     Name = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
                 }
@@ -77,14 +97,6 @@ namespace Orts.Menu.Entities
             FilePath = filePath;
         }
 
-        internal static async Task<Path> FromFileAsync(string fileName, CancellationToken token)
-        {
-            return await Task.Run(() =>
-            {
-                return new Path(fileName);
-            }, token).ConfigureAwait(false);
-        }
-
         /// <summary>
         /// A path will be identified by its destination
         /// </summary>
@@ -100,34 +112,49 @@ namespace Orts.Menu.Entities
         /// <param name="includeNonPlayerPaths">Selects whether non-player paths are included or not</param>
         public static async Task<IEnumerable<Path>> GetPaths(Route route, bool includeNonPlayerPaths, CancellationToken token)
         {
-            string pathsDirectory = route.RouteFolder.PathsFolder;
-            if (Directory.Exists(pathsDirectory))
-            {
-                try
-                {
-                    // Suppress the 7 broken paths shipped with MSTS
-                    //
-                    // MSTS ships with 7 unfinished paths, which cannot be used as they reference tracks that do not exist.
-                    // MSTS checks for "broken path" before running the simulator and doesn't offer them in the list.
-                    // ORTS checks for "broken path" when the simulator runs and does offer them in the list.
-                    // The first activity in Marias Pass is "Explore Longhale" which leads to a "Broken Path" message.
-                    // The message then confuses users new to ORTS who have just installed it along with MSTS,
-                    // see https://bugs.launchpad.net/or/+bug/1345172 and https://bugs.launchpad.net/or/+bug/128547
+            if (null == route)
+                throw new ArgumentNullException(nameof(route));
 
-                    IEnumerable<string> pathFiles = Directory.GetFiles(pathsDirectory, "*.pat").Where(f =>
-                        (!f.EndsWith(@"ROUTES\USA1\PATHS\aftstrm(traffic03).pat", StringComparison.OrdinalIgnoreCase))
-                        && (!f.EndsWith(@"ROUTES\USA1\PATHS\aftstrmtraffic01.pat", StringComparison.OrdinalIgnoreCase))
-                        && (!f.EndsWith(@"ROUTES\USA1\PATHS\aiphwne2.pat", StringComparison.OrdinalIgnoreCase))
-                        && (!f.EndsWith(@"ROUTES\USA1\PATHS\aiwnphex.pat", StringComparison.OrdinalIgnoreCase))
-                        && (!f.EndsWith(@"ROUTES\USA1\PATHS\blizzard(traffic).pat", StringComparison.OrdinalIgnoreCase))
-                        && (!f.EndsWith(@"ROUTES\USA2\PATHS\longhale.pat", StringComparison.OrdinalIgnoreCase))
-                        && (!f.EndsWith(@"ROUTES\USA2\PATHS\long-haul west (blizzard).pat", StringComparison.OrdinalIgnoreCase)));
-                    var tasks = pathFiles.Select(pathFile => FromFileAsync(pathFile, token));
-                    return (await Task.WhenAll(tasks).ConfigureAwait(false)).Where(p => p != null && p.IsPlayerPath || includeNonPlayerPaths);
+            using (SemaphoreSlim addItem = new SemaphoreSlim(1))
+            {
+                List<Path> result = new List<Path>();
+                string pathsDirectory = route.RouteFolder.PathsFolder;
+
+                if (Directory.Exists(pathsDirectory))
+                {
+                    TransformBlock<string, Path> inputBlock = new TransformBlock<string, Path>
+                        (pathFile =>
+                        {
+                            return new Path(pathFile);
+                        },
+                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = System.Environment.ProcessorCount, CancellationToken = token });
+
+
+                    ActionBlock<Path> actionBlock = new ActionBlock<Path>
+                        (async path =>
+                        {
+                            try
+                            {
+                                await addItem.WaitAsync(token).ConfigureAwait(false);
+                                result.Add(path);
+                            }
+                            finally
+                            {
+                                addItem.Release();
+                            }
+                        });
+
+                    inputBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
+
+                    foreach (string pathFile in Directory.EnumerateFiles(pathsDirectory, "*.pat").
+                        Where(f => !brokenPaths.Any(brokenPath => f.EndsWith(brokenPath, StringComparison.OrdinalIgnoreCase))))
+                        await inputBlock.SendAsync(pathFile).ConfigureAwait(false);
+
+                    inputBlock.Complete();
+                    await actionBlock.Completion.ConfigureAwait(false);
                 }
-                catch (OperationCanceledException) { }
+                return result.Where(p => p != null && p.IsPlayerPath || includeNonPlayerPaths);
             }
-            return new Path[0];
         }
 
         /// <summary>
@@ -135,28 +162,13 @@ namespace Orts.Menu.Entities
         /// </summary>
         /// <param name="route">The Route for which the paths need to be found</param>
         /// <param name="name">The (file) name of the path, without directory, any extension allowed</param>
-        /// <param name="allowNonPlayerPath">Are non-player paths allowed?</param>
-        /// <returns>The path that has been found and is allowed, or null</returns>
-        public static Path GetPath(Route route, string name, bool allowNonPlayerPath)
+        public static Path GetPath(Route route, string name)
         {
-            Path path;
+            if (null == route)
+                throw new ArgumentNullException(nameof(route));
+
             string file = route.RouteFolder.PathFile(name);
-            try
-            {
-                path = new Path(file);
-            }
-            catch
-            {
-                path = null;
-            }
-
-            bool pathIsAllowed = allowNonPlayerPath || path.IsPlayerPath;
-            if (!pathIsAllowed)
-            {
-                path = null;
-            }
-
-            return path;
+            return new Path(file);
         }
 
         /// <summary>

@@ -15,19 +15,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Formats.OR.Files;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+
+using Orts.Formats.OR.Files;
 
 namespace Orts.Menu.Entities
 {
     public class TimetableInfo : ContentBase
     {
+        private static readonly string[] extensions = { "*.timetable_or", "*.timetable-or", "*.timetablelist_or", "*.timetablelist-or" };
+
         public List<TimetableFile> TimeTables { get; private set; } = new List<TimetableFile>();
         public string Description { get; private set; }
         public string FileName { get; private set; }
@@ -46,8 +49,8 @@ namespace Orts.Menu.Entities
 
             try
             {
-                string extension = System.IO.Path.GetExtension(filePath).ToLowerInvariant();
-                if (extension.Contains("list"))
+                string extension = System.IO.Path.GetExtension(filePath);
+                if (extension.IndexOf("list", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     TimetableGroupFile groupFile = new TimetableGroupFile(filePath);
                     TimeTables = groupFile.TimeTables;
@@ -62,17 +65,12 @@ namespace Orts.Menu.Entities
                     Description = timeTableFile.Description;
                 }
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Description = $"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>";
             }
-        }
-        internal static async Task<TimetableInfo> FromFileAsync(string fileName, CancellationToken token)
-        {
-            return await Task.Run(() =>
-            {
-                return new TimetableInfo(fileName);
-            }, token).ConfigureAwait(false);
         }
 
         public override string ToString()
@@ -80,63 +78,109 @@ namespace Orts.Menu.Entities
             return Description;
         }
 
-        public static async Task<IEnumerable<TimetableInfo>> GetTimetableInfo(Folder folder, Route route, CancellationToken token)
+        public static async Task<IEnumerable<TimetableInfo>> GetTimetableInfo(Route route, CancellationToken token)
         {
-            string[] extensions = { "*.timetable_or", "*.timetable-or", "*.timetablelist_or", "*.timetablelist-or" };
-            string orActivitiesDirectory = route.RouteFolder.OrActivitiesFolder;
+            if (null == route)
+                throw new ArgumentNullException(nameof(route));
 
-            if (Directory.Exists(orActivitiesDirectory))
+            using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
-                try
+                List<TimetableInfo> result = new List<TimetableInfo>();
+                string orActivitiesDirectory = route.RouteFolder.OrActivitiesFolder;
+
+                if (Directory.Exists(orActivitiesDirectory))
                 {
-                    var tasks = extensions.SelectMany(extension => (Directory.GetFiles(orActivitiesDirectory, extension))).Select(timeTableFile => FromFileAsync(timeTableFile, token));
-                    return (await Task.WhenAll(tasks).ConfigureAwait(false)).Where(t => t != null);
+                    TransformBlock<string, TimetableInfo> inputBlock = new TransformBlock<string, TimetableInfo>
+                        (timeTableFile =>
+                        {
+                            return new TimetableInfo(timeTableFile);
+                        },
+                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = System.Environment.ProcessorCount, CancellationToken = token });
+
+
+                    ActionBlock<TimetableInfo> actionBlock = new ActionBlock<TimetableInfo>
+                        (async activity =>
+                        {
+                            try
+                            {
+                                await addItem.WaitAsync(token).ConfigureAwait(false);
+                                result.Add(activity);
+                            }
+                            finally
+                            {
+                                addItem.Release();
+                            }
+                        });
+
+                    inputBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
+                    foreach (string timeTableFile in extensions.SelectMany(extension => (Directory.EnumerateFiles(orActivitiesDirectory, extension))))
+                        await inputBlock.SendAsync(timeTableFile).ConfigureAwait(false);
+
+                    inputBlock.Complete();
+                    await actionBlock.Completion.ConfigureAwait(false);
                 }
-                catch (OperationCanceledException) { }
+                return result;
             }
-            return new TimetableInfo[0];
         }
     }
 
     public class WeatherFileInfo
     {
-        public FileInfo FileDetails;
+        private readonly FileInfo fileDetails;
 
         private WeatherFileInfo(string fileName)
         {
-            FileDetails = new FileInfo(fileName);
-        }
-
-        internal static async Task<WeatherFileInfo> FromFileNameAsync(string fileName, CancellationToken token)
-        {
-            return await Task.Run(() => new WeatherFileInfo(fileName));
+            fileDetails = new FileInfo(fileName);
         }
 
         public override string ToString()
         {
-            return (FileDetails.Name);
+            return (fileDetails.Name);
         }
 
         public string GetFullName()
         {
-            return (FileDetails.FullName);
+            return (fileDetails.FullName);
         }
 
         // get weatherfiles
-        public static async Task<IEnumerable<WeatherFileInfo>> GetTimetableWeatherFiles(Folder folder, Route route, CancellationToken token)
+        public static async Task<IEnumerable<WeatherFileInfo>> GetTimetableWeatherFiles(Route route, CancellationToken token)
         {
-            string weatherDirectory = route.RouteFolder.WeatherFolder;
+            if (null == route)
+                throw new ArgumentNullException(nameof(route));
 
-            if (Directory.Exists(weatherDirectory))
+            using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
-                try
+                string weatherDirectory = route.RouteFolder.WeatherFolder;
+
+                List<WeatherFileInfo> result = new List<WeatherFileInfo>();
+                if (Directory.Exists(weatherDirectory))
                 {
-                    var tasks = Directory.GetFiles(weatherDirectory, "*.weather-or").Select(weatherFile => FromFileNameAsync(weatherFile, token));
-                    return (await Task.WhenAll(tasks).ConfigureAwait(false)).Where(w => w != null);
+                    //https://stackoverflow.com/questions/11564506/nesting-await-in-parallel-foreach?rq=1
+                    ActionBlock<string> actionBlock = new ActionBlock<string>
+                        (async weatherFile =>
+                        {
+                            try
+                            {
+                                WeatherFileInfo weather = new WeatherFileInfo(weatherFile);
+                                await addItem.WaitAsync().ConfigureAwait(false);
+                                result.Add(weather);
+                            }
+                            finally
+                            {
+                                addItem.Release();
+                            }
+                        },
+                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
+
+                    foreach (string weatherFile in Directory.EnumerateFiles(weatherDirectory, "*.weather-or"))
+                        await actionBlock.SendAsync(weatherFile).ConfigureAwait(false);
+
+                    actionBlock.Complete();
+                    await actionBlock.Completion.ConfigureAwait(false);
                 }
-                catch (OperationCanceledException) { }
+                return result;
             }
-            return new WeatherFileInfo[0];
         }
     }
 }

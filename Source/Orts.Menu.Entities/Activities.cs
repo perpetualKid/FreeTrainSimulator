@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -43,7 +42,7 @@ namespace Orts.Menu.Entities
         public WeatherType Weather { get; protected set; } = WeatherType.Clear;
         public Difficulty Difficulty { get; protected set; } = Difficulty.Easy;
         public Duration Duration { get; protected set; } = new Duration(1, 0);
-        public Consist Consist { get; protected set; } = Consist.GetMissingConsist("unknown");
+        public Consist Consist { get; protected set; } = Consist.Missing;
         public Path Path { get; protected set; } = new Path("unknown");
         public string FilePath { get; private set; }
 
@@ -86,14 +85,14 @@ namespace Orts.Menu.Entities
             FilePath = filePath;
         }
 
-        internal static async Task<Activity> FromPathAsync(string filePath, Folder folder, Route route, CancellationToken token)
+        internal static Activity FromPath(string filePath, Folder folder, Route route)
         {
             Activity result;
             try
             {
                 ActivityFile activityFile = new ActivityFile(filePath);
                 ServiceFile srvFile = new ServiceFile(route.RouteFolder.ServiceFile(activityFile.Activity.PlayerServices.Name));
-                Consist constist = await Consist.GetConsist(folder, srvFile.TrainConfig, false, token);
+                Consist consist = Consist.GetConsist(folder, srvFile.TrainConfig, false);
                 Path path = new Path(route.RouteFolder.PathFile(srvFile.PathId));
                 if (!path.IsPlayerPath)
                 {
@@ -107,9 +106,11 @@ namespace Orts.Menu.Entities
                     result = new Activity($"<{catalog.GetString("Not same route:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
                 }
                 else
-                    result = new Activity(string.Empty, filePath, activityFile, constist, path);
+                    result = new Activity(string.Empty, filePath, activityFile, consist, path);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 result = new Activity($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(filePath)}>", filePath, null, null, null);
             }
@@ -138,9 +139,9 @@ namespace Orts.Menu.Entities
                 if (Directory.Exists(activitiesDirectory))
                 {
                     TransformBlock<string, Activity> inputBlock = new TransformBlock<string, Activity>
-                        (async activityFile =>
+                        (activityFile =>
                         {
-                            return await FromPathAsync(activityFile, folder, route, token).ConfigureAwait(false);
+                            return FromPath(activityFile, folder, route);
                         },
                         new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = System.Environment.ProcessorCount, CancellationToken = token });
 
@@ -148,6 +149,8 @@ namespace Orts.Menu.Entities
                     ActionBlock<Activity> actionBlock = new ActionBlock<Activity>
                         (async activity =>
                         {
+                            if (null == activity)
+                                return;
                             try
                             {
                                 await addItem.WaitAsync(token).ConfigureAwait(false);

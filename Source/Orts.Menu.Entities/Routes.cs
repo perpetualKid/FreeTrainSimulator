@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -87,9 +86,7 @@ namespace Orts.Menu.Entities
                             await addItem.WaitAsync(token).ConfigureAwait(false);
                             result.Add(route);
                         }
-                        catch (FileNotFoundException)
-                        {
-                        }
+                        catch (FileNotFoundException) { }
                         finally
                         {
                             addItem.Release();

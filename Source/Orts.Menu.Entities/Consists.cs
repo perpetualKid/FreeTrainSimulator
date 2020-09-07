@@ -15,21 +15,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Formats.Msts.Files;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Menu.Entities
 {
     public class Consist: ContentBase
     {
+        public static Consist Missing { get; } = new Consist($"<{catalog.GetString("missing:")} {Unknown}>", Unknown);
+
         public string Name { get; private set; }
-        public Locomotive Locomotive { get; private set; } = Locomotive.GetLocomotive("unknown");
+        public Locomotive Locomotive { get; private set; } = Locomotive.Missing;
         public string FilePath { get; private set; }
 
         public override string ToString()
@@ -53,149 +57,88 @@ namespace Orts.Menu.Entities
             FilePath = filePath;
         }
 
-        public static Consist GetMissingConsist(string name)
-        {
-            return new Consist($"<{catalog.GetString("missing:")} {name}>", name);
-        }
-
-        public static async Task<Consist> GetConsist(Folder folder, string name, bool reverseConsist, CancellationToken token)
+        public static Consist GetConsist(Folder folder, string name, bool reverseConsist)
         {
             string file;
             if (null == folder || !File.Exists(file = folder.ContentFolder.ConsistFile(name)))
                 return new Consist($"<{catalog.GetString("missing:")} {name}>", name);
 
-            return await FromFileAsync(file, folder, reverseConsist, token).ConfigureAwait(false);
+            return FromFile(file, folder, reverseConsist);
         }
 
-        internal static async Task<Consist> FromFileAsync(string fileName, Folder folder, bool reverseConsist, CancellationToken token)
+        internal static Consist FromFile(string fileName, Folder folder, bool reverseConsist)
         {
-            return await Task.Run(() =>
-            {
-                Consist result = null;
+            Consist result;
 
-                try
-                {
-                    ConsistFile conFile = new ConsistFile(fileName);
-                    Locomotive locomotive = reverseConsist ? GetLocomotiveReverse(conFile, folder) : GetLocomotive(conFile, folder);
-                    if (locomotive != null)
-                    {
-                        result = new Consist(conFile, locomotive, fileName);
-                    }
-                }
-                catch
-                {
-                    result = new Consist($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
-                }
-                return result;
-            }, token).ConfigureAwait(false);
-        }
-
-        public static async Task<IEnumerable<Consist>> GetConsists(Folder folder, CancellationToken token)
-        {
-            string consistsDirectory = folder.ContentFolder.ConsistsFolder;
-            if (Directory.Exists(consistsDirectory))
+            try
             {
-                try
-                {
-                    var tasks = Directory.GetFiles(consistsDirectory, "*.con").Select(consistFile => FromFileAsync(consistFile, folder, false, token));
-                    return (await Task.WhenAll(tasks).ConfigureAwait(false)).Where(c => c != null);
-                }
-                catch (OperationCanceledException) { }
+                ConsistFile conFile = new ConsistFile(fileName);
+                Locomotive locomotive = GetLocomotive(conFile, folder, reverseConsist);
+                result = new Consist(conFile, locomotive, fileName);
             }
-            return new Consist[0];
-        }
-
-        private static Locomotive GetLocomotive(ConsistFile conFile, Folder folder)
-        {
-            foreach (var wagon in conFile.Train.Wagons.Where(w => w.IsEngine))
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch
+#pragma warning restore CA1031 // Do not catch general exception types
             {
-                try
-                {
-                    return Locomotive.GetLocomotive(folder.ContentFolder.EngineFile(wagon.Folder, wagon.Name));
-                }
-                catch { }
-            }
-            return null;
-        }
-
-        private static Locomotive GetLocomotiveReverse(ConsistFile conFile, Folder folder)
-        {
-            foreach (var wagon in conFile.Train.Wagons.Where(w => w.IsEngine))
-            {
-                try
-                {
-                    return Locomotive.GetLocomotive(folder.ContentFolder.EngineFile(wagon.Folder, wagon.Name));
-                }
-                catch { }
-            }
-            return null;
-        }
-
-    }
-
-    public class Locomotive: ContentBase
-    {
-        public string Name { get; private set; }
-        public string Description { get; private set; }
-        public string FilePath { get; private set; }
-
-        public static Locomotive GetLocomotive(string fileName)
-        {
-            Locomotive result = null;
-            if (string.IsNullOrEmpty(fileName))
-            {
-                result = new Locomotive(catalog.GetString("- Any Locomotive -"), fileName);
-            }
-            else if (File.Exists(fileName))
-            {
-                try
-                {
-                    EngineFile engFile = new EngineFile(fileName);
-                    if (!string.IsNullOrEmpty(engFile.CabViewFile))
-                        result = new Locomotive(engFile, fileName);
-                }
-                catch
-                {
-                    result = new Locomotive($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
-                }
-            }
-            else
-            {
-                result = new Locomotive($"<{catalog.GetString("missing:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
+                result = new Consist($"<{catalog.GetString("load error:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>", fileName);
             }
             return result;
         }
 
-        private Locomotive(EngineFile engine, string fileName)
+        public static async Task<IEnumerable<Consist>> GetConsists(Folder folder, CancellationToken token)
         {
-            Name = engine.Name?.Trim();
-            Description = engine.Description?.Trim();
-            if (string.IsNullOrEmpty(Name))
-                Name = $"<{catalog.GetString("unnamed:")} {System.IO.Path.GetFileNameWithoutExtension(fileName)}>";
-            if (string.IsNullOrEmpty(Description))
-                Description = null;
-            FilePath = fileName;
+            if (null == folder)
+                throw new ArgumentNullException(nameof(folder));
+
+            using (SemaphoreSlim addItem = new SemaphoreSlim(1))
+            {
+                List<Consist> result = new List<Consist>();
+                string consistsDirectory = folder.ContentFolder.ConsistsFolder;
+
+                if (Directory.Exists(consistsDirectory))
+                {
+                    TransformBlock<string, Consist> inputBlock = new TransformBlock<string, Consist>
+                        (consistFile =>
+                        {
+                            return FromFile(consistFile, folder, false);
+                        },
+                        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = System.Environment.ProcessorCount, CancellationToken = token });
+
+
+                    ActionBlock<Consist> actionBlock = new ActionBlock<Consist>
+                        (async consist =>
+                        {
+                            if (null == consist.Locomotive)
+                                return;
+                            try
+                            {
+                                await addItem.WaitAsync(token).ConfigureAwait(false);
+                                result.Add(consist);
+                            }
+                            finally
+                            {
+                                addItem.Release();
+                            }
+                        });
+
+                    inputBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
+
+                    foreach (string consistFile in Directory.EnumerateFiles(consistsDirectory, "*.con"))
+                        await inputBlock.SendAsync(consistFile).ConfigureAwait(false);
+
+                    inputBlock.Complete();
+                    await actionBlock.Completion.ConfigureAwait(false);
+                }
+                return result;
+            }
         }
 
-        private Locomotive(string name, string filePath)
+        private static Locomotive GetLocomotive(ConsistFile conFile, Folder folder, bool reverse)
         {
-            Name = name;
-            FilePath = filePath;
-        }
-
-        public override string ToString()
-        {
-            return Name;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Locomotive && ((obj as Locomotive).Name == Name || (obj as Locomotive).FilePath == null || FilePath == null);
-        }
-
-        public override int GetHashCode()
-        {
-            return Name.GetHashCode();
+            Wagon wagon = reverse ? conFile.Train.Wagons.Where(w => w.IsEngine).LastOrDefault() : conFile.Train.Wagons.Where(w => w.IsEngine).FirstOrDefault();
+            if (null != wagon)
+                return Locomotive.GetLocomotive(folder.ContentFolder.EngineFile(wagon.Folder, wagon.Name));
+            return null;
         }
     }
 }

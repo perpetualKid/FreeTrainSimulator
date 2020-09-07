@@ -4,6 +4,8 @@ namespace Orts.Menu.Entities
 {
     public abstract class ContentBase
     {
-        protected static ICatalog catalog = new Catalog("Orts.Menu");
+        internal static ICatalog catalog = new Catalog("Orts.Menu.Entities");
+
+        protected const string Unknown = "unknown";
     }
 }

@@ -49,6 +49,7 @@ namespace Orts.Menu.Entities
         {
             if (null == settings)
                 throw new ArgumentNullException(nameof(settings));
+
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
 
@@ -79,6 +80,7 @@ namespace Orts.Menu.Entities
                 return result;
             }
         }
+
         public static void SetFolders(UserSettings settings, List<Folder> folders)
         {
             if (null == settings)
