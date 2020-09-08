@@ -1,10 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
-    <Description>Open Rails Menu Entities Library</Description>
+    <Description>Open Rails Simplified Models Library</Description>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\Program</OutputPath>
+    <AssemblyName>Orts.Models.Simplified</AssemblyName>
+    <RootNamespace>Orts.Models.Simplified</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
