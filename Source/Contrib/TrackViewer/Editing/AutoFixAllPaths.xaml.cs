@@ -16,14 +16,14 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Windows;
-using System.Windows.Controls;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+
+using Orts.Models.Simplified;
 
 using ORTS.TrackViewer.Drawing;
-using Orts.Menu.Entities;
 
 namespace ORTS.TrackViewer.Editing
 {

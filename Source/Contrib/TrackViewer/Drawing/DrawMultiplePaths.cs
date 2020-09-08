@@ -22,7 +22,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Menu.Entities;
+using Orts.Models.Simplified;
 
 using ORTS.TrackViewer.Editing;
 

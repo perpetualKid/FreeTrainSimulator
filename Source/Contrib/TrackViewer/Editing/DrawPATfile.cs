@@ -16,12 +16,13 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Linq;
-using Orts.Common;
-using Orts.Formats.Msts.Models;
-using Orts.Formats.Msts.Files;
-using Orts.Menu.Entities;
-using ORTS.TrackViewer.Drawing;
+
 using Orts.Common.Position;
+using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
+using Orts.Models.Simplified;
+
+using ORTS.TrackViewer.Drawing;
 
 namespace ORTS.TrackViewer.Editing
 {

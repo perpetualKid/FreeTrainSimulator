@@ -31,7 +31,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
-using Orts.Menu.Entities;
+using Orts.Models.Simplified;
 
 using ORTS.TrackViewer.Drawing;
 using ORTS.TrackViewer.Drawing.Labels;

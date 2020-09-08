@@ -27,7 +27,9 @@ using System.Windows;
 using System.Windows.Controls;
 
 using System.Windows.Forms.Integration;
-using Orts.Menu.Entities;
+
+using Orts.Models.Simplified;
+
 using ORTS.TrackViewer.Drawing; // for colors
 
 namespace ORTS.TrackViewer.UserInterface
