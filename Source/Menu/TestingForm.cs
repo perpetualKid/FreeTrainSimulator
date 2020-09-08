@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -115,7 +116,6 @@ namespace Orts.Menu
                 }
                 ctsTestActivityLoader = new CancellationTokenSource();
             }
-
             testBindingSource.DataSource = new SortableBindingList<TestActivity>((await TestActivity.GetTestActivities(settings.FolderSettings.Folders, CancellationToken.None).ConfigureAwait(true)).ToList());
             testBindingSource.Sort = "DefaultSort";
             UpdateButtons();
@@ -124,14 +124,14 @@ namespace Orts.Menu
         private async void ButtonTestAll_Click(object sender, EventArgs e)
         {
             await TestMarkedActivitiesAsync(from DataGridViewRow r in gridTestActivities.Rows
-                                            select r);
+                                            select r).ConfigureAwait(false);
         }
 
         private async void ButtonTest_Click(object sender, EventArgs e)
         {
             await TestMarkedActivitiesAsync(from DataGridViewRow r in gridTestActivities.Rows
                                             where r.Selected
-                                            select r);
+                                            select r).ConfigureAwait(false);
         }
 
         private void ButtonCancel_Click(object sender, EventArgs e)
@@ -147,12 +147,12 @@ namespace Orts.Menu
 
         private void ButtonSummary_Click(object sender, EventArgs e)
         {
-            Process.Start(summaryFilePath);
+            Process.Start(new ProcessStartInfo { FileName = summaryFilePath, UseShellExecute = true });
         }
 
         private void ButtonDetails_Click(object sender, EventArgs e)
         {
-            Process.Start(logFilePath);
+            Process.Start(new ProcessStartInfo { FileName = logFilePath, UseShellExecute = true });
         }
 
         private async Task TestMarkedActivitiesAsync(IEnumerable<DataGridViewRow> rows)
@@ -177,7 +177,7 @@ namespace Orts.Menu
             {
                 foreach (var item in items)
                 {
-                    await Task.Run(() => RunTestTask(item.Item2, overrideSettings, ctsTestActivityRunner.Token), ctsTestActivityRunner.Token);
+                    await Task.Run(() => RunTestTask(item.Item2, overrideSettings, ctsTestActivityRunner.Token), ctsTestActivityRunner.Token).ConfigureAwait(true);
                     ShowGridRow(gridTestActivities, item.Item1);
                     if (ctsTestActivityRunner.IsCancellationRequested)
                         break;
@@ -219,19 +219,19 @@ namespace Orts.Menu
                 summaryFilePosition = reader.BaseStream.Length;
 
             processStartInfo.Arguments = $"{parameters} \"{activity.ActivityFilePath}\"";
-            activity.Passed = await RunProcess(processStartInfo, token) == 0;
+            activity.Passed = await RunProcess(processStartInfo, token).ConfigureAwait(false) == 0;
             activity.Tested = true;
 
             using (var reader = File.OpenText(summaryFilePath))
             {
                 reader.BaseStream.Seek(summaryFilePosition, SeekOrigin.Begin);
                 var line = reader.ReadLine();
-                if (!String.IsNullOrEmpty(line) && reader.EndOfStream)
+                if (!string.IsNullOrEmpty(line) && reader.EndOfStream)
                 {
                     var csv = line.Split(',');
-                    activity.Errors = String.Format("{0}/{1}/{2}", int.Parse(csv[3]), int.Parse(csv[4]), int.Parse(csv[5]));
-                    activity.Load = String.Format("{0,6:F1}s", float.Parse(csv[6]));
-                    activity.FPS = String.Format("{0,6:F1}", float.Parse(csv[7]));
+                    activity.Errors = $"{int.Parse(csv[3], CultureInfo.InvariantCulture)}/{int.Parse(csv[4], CultureInfo.InvariantCulture)}/{int.Parse(csv[5], CultureInfo.InvariantCulture)}";
+                    activity.Load = $"{float.Parse(csv[6], CultureInfo.InvariantCulture),6:F1}s";
+                    activity.FPS = $"{float.Parse(csv[7], CultureInfo.InvariantCulture),6:F1}";
                 }
                 else
                 {
@@ -244,32 +244,40 @@ namespace Orts.Menu
 
         public static Task<int> RunProcess(ProcessStartInfo processStartInfo, CancellationToken token)
         {
+            if (null == processStartInfo)
+                throw new ArgumentNullException(nameof(processStartInfo));
+
             var tcs = new TaskCompletionSource<int>();
             processStartInfo.RedirectStandardError = true;
             processStartInfo.UseShellExecute = false;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             Process process = new Process
             {
                 EnableRaisingEvents = true,
                 StartInfo = processStartInfo
             };
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
             process.Exited += (sender, args) =>
             {
+                if (process.ExitCode != 0)
+                {
+                    var errorMessage = process.StandardError.ReadToEnd();
+                    tcs.TrySetException(new InvalidOperationException("The process did not exit correctly. " +
+                        "The corresponding error message was: " + errorMessage));
+                }
                 tcs.TrySetResult(process.ExitCode);
                 process.Dispose();
             };
-
             process.Start();
-            using (token.Register(() =>
+            token.Register(() =>
             {
+                if (!process.HasExited)
+                    process.CloseMainWindow();
                 tcs.TrySetCanceled();
-                process.CloseMainWindow();
-            }))
-            {
-
-                return tcs.Task;
-            }
+            });
+            return tcs.Task;
         }
 
         private static void ShowGridRow(DataGridView grid, int rowIndex)
