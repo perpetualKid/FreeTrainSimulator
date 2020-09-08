@@ -39,8 +39,13 @@ namespace Orts.Common.Native
         private static extern IntPtr SendMessageNative(IntPtr hwnd, int msg, IntPtr wParam, ref CharFormat2 lParam);
 
         [StructLayout(LayoutKind.Sequential, Pack = 4, CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+#pragma warning disable CA1034 // Nested types should not be visible
+#pragma warning disable CA1815 // Override equals and operator equals on value types
         public struct CharFormat2
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+#pragma warning restore CA1034 // Nested types should not be visible
         {
+#pragma warning disable CA1051 // Do not declare visible instance fields
             public int Size;
             public int Mask;
             public int Effects;
@@ -62,12 +67,31 @@ namespace Orts.Common.Native
             public byte Animation;
             public byte RevAuthor;
             public byte Reserved1;
+#pragma warning restore CA1051 // Do not declare visible instance fields
         }
 
         public static IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr wParam, string lParam)
         { return SendMessageNative(hwnd, msg, wParam, lParam); }
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern IntPtr SendMessageNative(IntPtr hWnd, int msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)]string lParam);
+        private static extern IntPtr SendMessageNative(IntPtr hWnd, int msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
+
+        public delegate IntPtr KeyboardProcedure(int nCode, IntPtr wParam, IntPtr lParam);
+
+        public static IntPtr SetWindowsHookEx(int idHook, KeyboardProcedure lpfn, IntPtr hMod, uint dwThreadId)
+        { return SetWindowsHookExNative(idHook, lpfn, hMod, dwThreadId); }
+        [DllImport("user32.dll", EntryPoint = "SetWindowsHookEx", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr SetWindowsHookExNative(int idHook, KeyboardProcedure lpfn, IntPtr hMod, uint dwThreadId);
+
+        public static bool UnhookWindowsHookEx(IntPtr hhk)
+        { return UnhookWindowsHookExNative(hhk); }
+        [DllImport("user32.dll", EntryPoint = "UnhookWindowsHookEx", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool UnhookWindowsHookExNative(IntPtr hhk);
+
+        public static IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam)
+        { return CallNextHookExNative(hhk, nCode, wParam, lParam); }
+        [DllImport("user32.dll", EntryPoint = "CallNextHookEx", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr CallNextHookExNative(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
 
     }

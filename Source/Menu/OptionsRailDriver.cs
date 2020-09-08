@@ -21,7 +21,7 @@ namespace Orts.Menu
         private byte[] calibrationSettings = new byte[EnumExtension.GetLength<RailDriverCalibrationSetting>()];
         private bool isCalibrationSet;
 
-        private static int[,] startingPoints = { 
+        private static readonly int[,] startingPoints = { 
             { 170, 110 }, { 170, 150 }, { 170, 60 }, //Reverser
             { 230, 120 },  { 230, 150 }, { 230, 60 }, { 230, 90 }, //Throttle
             { 340, 150 }, { 340, 90 }, { 340, 60 }, // Auto Brake

@@ -18,8 +18,8 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+
 using Orts.Common.Input;
-using Orts.Settings;
 
 namespace Orts.Menu
 {
@@ -37,11 +37,11 @@ namespace Orts.Menu
 
         private static RailDriverBase railDriver;
         private static byte[] readBuffer;
-        private static byte[] buttonData = new byte[8];
+        private static readonly byte[] buttonData = new byte[8];
 
         private static bool edit;
 
-        public RDButtonInputControl(byte userButton, byte defaultButton, RailDriverBase railDriver)
+        internal RDButtonInputControl(byte userButton, byte defaultButton, RailDriverBase railDriver)
         {
             InitializeComponent();
             if (RDButtonInputControl.railDriver == null)
@@ -56,7 +56,7 @@ namespace Orts.Menu
 
         private void UpdateText()
         {
-            textBox.Text = UserButton == byte.MaxValue ? string.Empty: UserButton.ToString();
+            textBox.Text = UserButton == byte.MaxValue ? string.Empty : UserButton.ToString(System.Globalization.CultureInfo.InvariantCulture);
             if (UserButton == DefaultButton)
             {
                 textBox.BackColor = SystemColors.Window;
@@ -86,14 +86,14 @@ namespace Orts.Menu
                 sbyte data = ValidateButtonIndex();
                 if (data > -1)
                 {
-                    textBox.Text = ((byte)data).ToString();
+                    textBox.Text = ((byte)data).ToString(System.Globalization.CultureInfo.InvariantCulture);
                     railDriver.SetLedsNumeric((byte)data);
                 }
-                await System.Threading.Tasks.Task.Delay(100);
-            }                
+                await System.Threading.Tasks.Task.Delay(100).ConfigureAwait(true);
+            }
         }
 
-        private sbyte ValidateButtonIndex()
+        private static sbyte ValidateButtonIndex()
         {
             if (readBuffer.Length > 0)
             {
@@ -105,7 +105,7 @@ namespace Orts.Menu
                     // loop which bit is set
                     for (sbyte i = 0; i < 48; i++)
                     {
-                        buttons = buttons >> 1;
+                        buttons >>= 1;
                         if (buttons == 0)
                             return i;
                     }

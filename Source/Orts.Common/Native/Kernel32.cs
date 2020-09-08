@@ -95,8 +95,18 @@ namespace Orts.Common.Native
         [DllImport("kernel32.dll", EntryPoint = "GetProcessIoCounters", SetLastError = true)]
         private static extern bool GetProcessIoCountersNative(IntPtr hProcess, out NativeStructs.IO_COUNTERS ioCounters);
 
+        public static IntPtr GetModuleHandle(string lpModuleName)
+        { return GetModuleHandleNative(lpModuleName); }
+        [DllImport("kernel32.dll", EntryPoint = "GetModuleHandle", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr GetModuleHandleNative(string lpModuleName);
+
+
     }
 
+#pragma warning disable CA1034 // Nested types should not be visible
+#pragma warning disable CA1707 // Identifiers should not contain underscores
+#pragma warning disable CA1051 // Do not declare visible instance fields
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public static partial class NativeStructs
     {
         [StructLayout(LayoutKind.Sequential)]
@@ -138,4 +148,8 @@ namespace Orts.Common.Native
             public ulong AvailableExtendedVirtual;
         }
     }
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+#pragma warning restore CA1707 // Identifiers should not contain underscores
+#pragma warning restore CA1034 // Nested types should not be visible
+#pragma warning restore CA1051 // Do not declare visible instance fields
 }

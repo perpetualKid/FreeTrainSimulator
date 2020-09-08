@@ -20,7 +20,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+
 using Orts.Common.Input;
+
+using static Orts.Common.Native.NativeMethods;
+
 using Xna = Microsoft.Xna.Framework.Input;
 
 namespace Orts.Menu
@@ -35,24 +39,17 @@ namespace Orts.Menu
     /// </remarks>
     public partial class KeyInputEditControl : Form
     {
-        private readonly UserCommandInput LiveInput;
-        private readonly bool IsModifier;
-        private int ScanCode;
-        private Xna.Keys VirtualKey;
-        private bool Shift;
-        private bool Control;
-        private bool Alt;
+        private readonly UserCommandInput liveInput;
+        private readonly bool isModifier;
+        private int scanCode;
+        private Xna.Keys virtualKey;
+        private bool shift;
+        private bool control;
+        private bool alt;
 
-        public string PersistentDescriptor
+        internal KeyInputEditControl(KeyInputControl control)
         {
-            get
-            {
-                return String.Format("{0},{1},{2},{3},{4}", ScanCode, (int)VirtualKey, Shift ? 1 : 0, Control ? 1 : 0, Alt ? 1 : 0);
-            }
-        }
 
-        public KeyInputEditControl(KeyInputControl control)
-        {
             InitializeComponent();
 
             // Windows 2000 and XP should use 8.25pt Tahoma, while Windows
@@ -75,23 +72,23 @@ namespace Orts.Menu
                 UnhookKeyboard();
             };
 
-            LiveInput = control.UserInput;
-            IsModifier = LiveInput.IsModifier;
+            liveInput = control.UserInput;
+            isModifier = liveInput.IsModifier;
 
-            var input = UserCommandInput.DecomposeUniqueDescriptor(LiveInput.UniqueDescriptor);
-            Shift = input.Shift;
-            Control = input.Control;
-            Alt = input.Alt;
-            ScanCode = input.ScanCode;
-            VirtualKey = (Xna.Keys)input.VirtualKey;
+            var input = UserCommandInput.DecomposeUniqueDescriptor(liveInput.UniqueDescriptor);
+            shift = input.Shift;
+            this.control = input.Control;
+            alt = input.Alt;
+            scanCode = input.ScanCode;
+            virtualKey = (Xna.Keys)input.VirtualKey;
 
             UpdateText();
         }
 
         private void UpdateText()
         {
-            LiveInput.UniqueDescriptor = UserCommandInput.ComposeUniqueDescriptor(Shift, Control, Alt, ScanCode, VirtualKey);
-            textBox.Text = LiveInput.ToString();
+            liveInput.UniqueDescriptor = UserCommandInput.ComposeUniqueDescriptor(shift, control, alt, scanCode, virtualKey);
+            textBox.Text = liveInput.ToString();
         }
 
         private KeyboardProcedure CurrentKeyboardProcedure;
@@ -125,13 +122,13 @@ namespace Orts.Menu
                                 default: break;
                             }
 
-                            if (!(IsModifier ^ isModifier))
+                            if (!(this.isModifier ^ isModifier))
                             {
-                                ScanCode = IsModifier ? 0 : scanCode;
-                                VirtualKey = Xna.Keys.None;
-                                Shift = CurrentShift;
-                                Control = CurrentControl;
-                                Alt = CurrentAlt;
+                                this.scanCode = this.isModifier ? 0 : scanCode;
+                                virtualKey = Xna.Keys.None;
+                                shift = CurrentShift;
+                                control = CurrentControl;
+                                alt = CurrentAlt;
                                 UpdateText();
                             }
 
@@ -160,31 +157,13 @@ namespace Orts.Menu
             return CallNextHookEx(keyboardHookId, nCode, wParam, lParam);
         }
 
-
-
-        // Ref http://www.seesharpdot.net/?p=96
-
-        private delegate IntPtr KeyboardProcedure(int nCode, IntPtr wParam, IntPtr lParam);
-        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern IntPtr SetWindowsHookEx(int idHook, KeyboardProcedure lpfn, IntPtr hMod, uint dwThreadId);
-
-        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
-
-        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern IntPtr GetModuleHandle(string lpModuleName);
-
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
         private const int WM_KEYUP = 0x0101;
         private const int WM_SYSKEYDOWN = 0x0104;
         private const int WM_SYSKEYUP = 0x0105;
 
-        public static IntPtr keyboardHookId = IntPtr.Zero;
+        private static IntPtr keyboardHookId = IntPtr.Zero;
 
         public void HookKeyboard()
         {
