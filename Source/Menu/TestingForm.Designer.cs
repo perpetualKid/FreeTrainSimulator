@@ -239,7 +239,7 @@
             // 
             // testBindingSource
             // 
-            this.testBindingSource.DataSource = typeof(Models.Simplified.TestActivity);
+            this.testBindingSource.DataSource = typeof(Orts.Models.Simplified.TestActivity);
             // 
             // buttonDetails
             // 
@@ -276,6 +276,9 @@
             // 
             // panelTests
             // 
+            this.panelTests.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.panelTests.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panelTests.Controls.Add(this.gridTestActivities);
             this.panelTests.Location = new System.Drawing.Point(12, 12);
