@@ -13,10 +13,10 @@
         Path = 5,
         Time = 6,
         // Timetable mode items
-        TimetableSet = 2,
-        Timetable = 3,
-        Train = 4,
-        Day = 5,
+        TimetableSet = Activity, //2,
+        Timetable = Locomotive,//3,
+        Train = Consist, //4,
+        Day = Path, //5,
         // Shared items
         Season = 7,
         Weather = 8,

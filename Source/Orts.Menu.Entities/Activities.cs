@@ -18,11 +18,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 using Orts.Common;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -117,6 +119,13 @@ namespace Orts.Menu.Entities
             return result;
         }
 
+        internal static Activity FromPathShallow(string filePath)
+        {
+            ActivityFile activityFile = new ActivityFile(filePath);
+
+            return new Activity(string.Empty, filePath, activityFile, null, null);
+        }
+
         public override string ToString()
         {
             return Name;
@@ -176,7 +185,7 @@ namespace Orts.Menu.Entities
         }
     }
 
-    public class ExploreActivity : Activity
+    public abstract class ExploreActivity : Activity
     {
         internal ExploreActivity()
             : base(null, null, null, null, null)

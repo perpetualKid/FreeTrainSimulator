@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -34,50 +35,54 @@ namespace Orts.Menu
 
         protected override bool SupportsSortingCore { get { return true; } }
 
-        protected ListSortDirection sortDirection = ListSortDirection.Ascending;
-        protected override ListSortDirection SortDirectionCore { get { return sortDirection; } }
+        private ListSortDirection sortDirection = ListSortDirection.Ascending;
+        private PropertyDescriptor sortProperty;
+        private bool sorted;
 
-        protected PropertyDescriptor sortProperty = null;
-        protected override PropertyDescriptor SortPropertyCore { get { return sortProperty; } }
+        protected override ListSortDirection SortDirectionCore => sortDirection;
 
-        protected bool isSorted = false;
-        protected override bool IsSortedCore { get { return isSorted; } }
+        protected override PropertyDescriptor SortPropertyCore => sortProperty;
+
+        protected override bool IsSortedCore => sorted;
 
         protected override void ApplySortCore(PropertyDescriptor prop, ListSortDirection direction)
         {
-            if (SortableBindingList<T>.PropertyComparer.IsAllowable(prop))
+            if (null == prop)
+                throw new ArgumentNullException(nameof(prop));
+
+            if (PropertyComparer.IsAllowable(prop))
             {
-                ((List<T>)Items).Sort(new SortableBindingList<T>.PropertyComparer(prop, direction));
+                ((List<T>)Items).Sort(new PropertyComparer(prop, direction));
                 sortDirection = direction;
                 sortProperty = prop;
-                isSorted = true;
+                sorted = true;
             }
         }
 
         protected override void RemoveSortCore()
         {
             sortProperty = null;
-            isSorted = false;
+            sorted = false;
         }
 
         private class PropertyComparer : Comparer<T>
         {
-            private PropertyDescriptor Prop;
-            private ListSortDirection Direction;
-            private IComparer Comparer;
+            private readonly PropertyDescriptor prop;
+            private readonly ListSortDirection direction;
+            private readonly IComparer comparer;
 
             public PropertyComparer(PropertyDescriptor prop, ListSortDirection direction)
             {
-                Prop = prop;
-                Direction = direction;
-                Comparer = (IComparer)typeof(Comparer<>).MakeGenericType(prop.PropertyType).GetProperty("Default").GetValue(null, null);
+                this.prop = prop;
+                this.direction = direction;
+                comparer = (IComparer)typeof(Comparer<>).MakeGenericType(prop.PropertyType).GetProperty("Default").GetValue(null, null);
             }
 
             public override int Compare(T x, T y)
             {
-                if (Direction == ListSortDirection.Ascending)
-                    return Comparer.Compare(Prop.GetValue(x), Prop.GetValue(y));
-                return Comparer.Compare(Prop.GetValue(y), Prop.GetValue(x));
+                if (direction == ListSortDirection.Ascending)
+                    return comparer.Compare(prop.GetValue(x), prop.GetValue(y));
+                return comparer.Compare(prop.GetValue(y), prop.GetValue(x));
             }
 
             public static bool IsAllowable(PropertyDescriptor prop)

@@ -39,28 +39,6 @@ namespace Orts.Menu
 {
     public partial class TestingForm : Form
     {
-        public class TestActivity
-        {
-            public string DefaultSort { get; set; }
-            public string Route { get; set; }
-            public string Activity { get; set; }
-            public string ActivityFilePath { get; set; }
-            public bool ToTest { get; set; }
-            public bool Tested { get; set; }
-            public bool Passed { get; set; }
-            public string Errors { get; set; }
-            public string Load { get; set; }
-            public string FPS { get; set; }
-
-            public TestActivity(Folder folder, Route route, Activity activity)
-            {
-                DefaultSort = folder.Name + "/" + route.Name + "/" + activity.Name;
-                Route = route.Name;
-                Activity = activity.Name;
-                ActivityFilePath = activity.FilePath;
-            }
-        }
-
         private CancellationTokenSource ctsTestActivityLoader;
         private CancellationTokenSource ctsTestActivityRunner;
         private bool clearedLogs;
@@ -69,11 +47,10 @@ namespace Orts.Menu
         private readonly string summaryFilePath = Path.Combine(UserSettings.UserDataFolder, "TestingSummary.csv");
         private readonly string logFilePath = Path.Combine(UserSettings.UserDataFolder, "TestingLog.txt");
 
-        public TestingForm(UserSettings settings, string runActivity)
+        public TestingForm(UserSettings settings, string runActivity, ICatalog catalog)
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
-            ICatalog catalog = new Catalog("Menu");
             Localizer.Localize(this, catalog);
 
             // Windows 2000 and XP should use 8.25pt Tahoma, while Windows
@@ -89,7 +66,7 @@ namespace Orts.Menu
 
         private async void TestingForm_Shown(object sender, EventArgs e)
         {
-            await LoadActivitiesAsync();
+            await LoadActivitiesAsync().ConfigureAwait(true);
         }
 
         private void TestingForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -97,13 +74,26 @@ namespace Orts.Menu
             if (ctsTestActivityLoader != null && !ctsTestActivityLoader.IsCancellationRequested)
             {
                 ctsTestActivityLoader.Cancel();
-                ctsTestActivityLoader.Dispose();
             }
             if (ctsTestActivityRunner != null && !ctsTestActivityRunner.IsCancellationRequested)
             {
                 ctsTestActivityRunner.Cancel();
-                ctsTestActivityRunner.Dispose();
             }
+        }
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                components?.Dispose();
+                ctsTestActivityLoader?.Dispose();
+                ctsTestActivityRunner?.Dispose();
+            }
+            base.Dispose(disposing);
         }
 
         private void UpdateButtons()
@@ -117,7 +107,7 @@ namespace Orts.Menu
 
         private async Task LoadActivitiesAsync()
         {
-            lock (testBindingSource)
+            lock (testBindingSource.DataSource)
             {
                 if (ctsTestActivityLoader != null && !ctsTestActivityLoader.IsCancellationRequested)
                 {
@@ -127,16 +117,7 @@ namespace Orts.Menu
                 ctsTestActivityLoader = new CancellationTokenSource();
             }
 
-            testBindingSource.DataSource = await Task.Run(() =>
-            {
-                return new SortableBindingList<TestActivity>((from f in Folder.GetFolders(settings).Result
-                                                              from r in Route.GetRoutes(f, CancellationToken.None).Result
-                                                              from a in Activity.GetActivities(f, r, CancellationToken.None).Result
-                                                              where !(a is ExploreActivity)
-                                                              orderby a.Name
-                                                              select new TestActivity(f, r, a)).ToList());
-            });
-
+            testBindingSource.DataSource = new SortableBindingList<TestActivity>((await TestActivity.GetTestActivities(settings.FolderSettings.Folders, CancellationToken.None).ConfigureAwait(true)).ToList());
             testBindingSource.Sort = "DefaultSort";
             UpdateButtons();
         }
@@ -144,14 +125,14 @@ namespace Orts.Menu
         private async void ButtonTestAll_Click(object sender, EventArgs e)
         {
             await TestMarkedActivitiesAsync(from DataGridViewRow r in gridTestActivities.Rows
-                                 select r);
+                                            select r);
         }
 
         private async void ButtonTest_Click(object sender, EventArgs e)
         {
             await TestMarkedActivitiesAsync(from DataGridViewRow r in gridTestActivities.Rows
-                                 where r.Selected
-                                 select r);
+                                            where r.Selected
+                                            select r);
         }
 
         private void ButtonCancel_Click(object sender, EventArgs e)
@@ -177,7 +158,7 @@ namespace Orts.Menu
 
         private async Task TestMarkedActivitiesAsync(IEnumerable<DataGridViewRow> rows)
         {
-            lock (testBindingSource)
+            lock (testBindingSource.DataSource)
             {
                 if (ctsTestActivityRunner != null && !ctsTestActivityRunner.IsCancellationRequested)
                 {
@@ -203,7 +184,7 @@ namespace Orts.Menu
                         break;
                 }
             }
-            catch(TaskCanceledException)
+            catch (TaskCanceledException)
             { }
 
             ctsTestActivityRunner.Dispose();
@@ -292,7 +273,7 @@ namespace Orts.Menu
             }
         }
 
-        private void ShowGridRow(DataGridView grid, int rowIndex)
+        private static void ShowGridRow(DataGridView grid, int rowIndex)
         {
             var displayedRowCount = grid.DisplayedRowCount(false);
             if (grid.FirstDisplayedScrollingRowIndex > rowIndex)

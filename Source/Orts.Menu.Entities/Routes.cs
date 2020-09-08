@@ -69,6 +69,7 @@ namespace Orts.Menu.Entities
         {
             if (null == folder)
                 throw new ArgumentNullException(nameof(folder));
+
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
                 List<Route> result = new List<Route>();
@@ -80,16 +81,18 @@ namespace Orts.Menu.Entities
                     ActionBlock<string> actionBlock = new ActionBlock<string>
                     (async routeDirectory =>
                     {
-                        try
+                        if (FolderStructure.Route(routeDirectory).IsValid)
                         {
-                            Route route = new Route(routeDirectory);
-                            await addItem.WaitAsync(token).ConfigureAwait(false);
-                            result.Add(route);
-                        }
-                        catch (FileNotFoundException) { }
-                        finally
-                        {
-                            addItem.Release();
+                            try
+                            {
+                                Route route = new Route(routeDirectory);
+                                await addItem.WaitAsync(token).ConfigureAwait(false);
+                                result.Add(route);
+                            }
+                            finally
+                            {
+                                addItem.Release();
+                            }
                         }
                     },
                     new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });

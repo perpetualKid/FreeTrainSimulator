@@ -1,11 +1,12 @@
 ﻿
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
+using Microsoft.Win32;
 
 namespace Orts.Formats.Msts
 {
@@ -24,16 +25,9 @@ namespace Orts.Formats.Msts
                     routeFolder = Path.Combine(folder, routeName);
                 }
 
-                public string TrackFileName
-                {
-                    get
-                    {
-                        string[] trackFiles = Directory.GetFiles(routeFolder, "*.trk");
-                        if (trackFiles.Length == 0)
-                            throw new FileNotFoundException($"TRK file not found in '{routeFolder}'");
-                        return trackFiles[0];
-                    }
-                }
+                public bool IsValid => !string.IsNullOrEmpty(TrackFileName);
+
+                public string TrackFileName => Directory.EnumerateFiles(routeFolder, "*.trk").FirstOrDefault();
 
                 public string ActivitiesFolder => Path.Combine(routeFolder, "ACTIVITIES");
 
@@ -56,7 +50,7 @@ namespace Orts.Formats.Msts
 
                 public string PathFile(string pathName)
                 {
-                    return Path.Combine(PathsFolder, pathName+ ".pat");
+                    return Path.Combine(PathsFolder, pathName + ".pat");
                 }
 
                 public string TrafficFile(string trafficName)

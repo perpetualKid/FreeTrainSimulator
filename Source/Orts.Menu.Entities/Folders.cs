@@ -22,11 +22,10 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 using Orts.Formats.Msts;
-using Orts.Settings;
 
 namespace Orts.Menu.Entities
 {
-    public class Folder: ContentBase
+    public class Folder : ContentBase
     {
         public string Name { get; private set; }
         public string Path { get; private set; }
@@ -45,10 +44,10 @@ namespace Orts.Menu.Entities
             return Name;
         }
 
-        public static async Task<IEnumerable<Folder>> GetFolders(UserSettings settings)
+        public static async Task<IEnumerable<Folder>> GetFolders(Dictionary<string, string> folders)
         {
-            if (null == settings)
-                throw new ArgumentNullException(nameof(settings));
+            if (null == folders)
+                throw new ArgumentNullException(nameof(folders));
 
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
@@ -71,7 +70,7 @@ namespace Orts.Menu.Entities
                     },
                     new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount });
 
-                foreach (var folder in settings.FolderSettings.Folders)
+                foreach (var folder in folders)
                     await actionBlock.SendAsync(folder).ConfigureAwait(false);
 
                 actionBlock.Complete();
@@ -79,19 +78,6 @@ namespace Orts.Menu.Entities
 
                 return result;
             }
-        }
-
-        public static void SetFolders(UserSettings settings, List<Folder> folders)
-        {
-            if (null == settings)
-                throw new ArgumentNullException(nameof(settings));
-            if (null == folders)
-                throw new ArgumentNullException(nameof(folders));
-
-            settings.FolderSettings.Folders.Clear();
-            foreach (var folder in folders)
-                settings.FolderSettings.Folders[folder.Name] = folder.Path;
-            settings.FolderSettings.Save();
         }
     }
 }

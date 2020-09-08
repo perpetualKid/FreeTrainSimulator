@@ -8,6 +8,8 @@ namespace Orts.Menu.Entities
     {
         public static Locomotive Missing { get; } = GetLocomotive(Unknown);
 
+        public static Locomotive Any { get; } = new Locomotive(catalog.GetString("- Any Locomotive -"), null);
+
         public string Name { get; private set; }
         public string Description { get; private set; }
         public string FilePath { get; private set; }
@@ -15,11 +17,8 @@ namespace Orts.Menu.Entities
         public static Locomotive GetLocomotive(string fileName)
         {
             Locomotive result = null;
-            if (string.IsNullOrEmpty(fileName))
-            {
-                result = new Locomotive(catalog.GetString("- Any Locomotive -"), fileName);
-            }
-            else if (File.Exists(fileName))
+
+            if (File.Exists(fileName))
             {
                 try
                 {
