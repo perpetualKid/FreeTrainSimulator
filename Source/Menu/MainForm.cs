@@ -595,7 +595,6 @@ namespace Orts.Menu
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
-                //Process.Start(new ProcessStartInfo("cmd", $"/c start {url.Replace("&", "^&")}") { CreateNoWindow = true });
             }
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {

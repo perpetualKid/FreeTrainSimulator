@@ -485,30 +485,30 @@ namespace Orts.Updater
             processStartInfo.RedirectStandardError = true;
             processStartInfo.UseShellExecute = false;
 
-            using (Process process = new Process
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            Process process = new Process
             {
                 EnableRaisingEvents = true,
                 StartInfo = processStartInfo
-            })
-            {
+            };
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
-                process.Exited += (sender, args) =>
+            process.Exited += (sender, args) =>
+            {
+                if (process.ExitCode != 0)
                 {
-                    if (process.ExitCode != 0)
-                    {
-                        var errorMessage = process.StandardError.ReadToEnd();
-                        tcs.SetException(new InvalidOperationException("The process did not exit correctly. " +
-                            "The corresponding error message was: " + errorMessage));
-                    }
-                    else
-                    {
-                        tcs.SetResult(null);
-                    }
-                    process.Dispose();
-                };
-                process.Start();
-                return tcs.Task;
-            }
+                    var errorMessage = process.StandardError.ReadToEnd();
+                    tcs.SetException(new InvalidOperationException("The process did not exit correctly. " +
+                        "The corresponding error message was: " + errorMessage));
+                }
+                else
+                {
+                    tcs.SetResult(null);
+                }
+                process.Dispose();
+            };
+            process.Start();
+            return tcs.Task;
         }
     }
 }
