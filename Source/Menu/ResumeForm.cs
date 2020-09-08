@@ -62,7 +62,7 @@ using GetText.WindowsForms;
 
 using Orts.Common;
 using Orts.Formats.Msts;
-using Orts.Menu.Entities;
+using Orts.Models.Simplified;
 using Orts.Settings;
 
 using Path = System.IO.Path;

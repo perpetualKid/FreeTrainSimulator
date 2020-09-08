@@ -23,7 +23,7 @@ using System.Threading.Tasks.Dataflow;
 
 using Orts.Formats.Msts;
 
-namespace Orts.Menu.Entities
+namespace Orts.Models.Simplified
 {
     public class Folder : ContentBase
     {

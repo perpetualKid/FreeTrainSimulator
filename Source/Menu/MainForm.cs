@@ -36,12 +36,12 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Formats.OR.Files;
 using Orts.Formats.OR.Models;
-using Orts.Menu.Entities;
+using Orts.Models.Simplified;
 using Orts.Settings;
 using Orts.Updater;
 
-using Activity = Orts.Menu.Entities.Activity;
-using Path = Orts.Menu.Entities.Path;
+using Activity = Orts.Models.Simplified.Activity;
+using Path = Orts.Models.Simplified.Path;
 
 namespace Orts.Menu
 {

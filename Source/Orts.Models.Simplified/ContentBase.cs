@@ -1,6 +1,6 @@
 ﻿using GetText;
 
-namespace Orts.Menu.Entities
+namespace Orts.Models.Simplified
 {
     public abstract class ContentBase
     {

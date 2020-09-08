@@ -239,7 +239,7 @@
             // 
             // testBindingSource
             // 
-            this.testBindingSource.DataSource = typeof(Entities.TestActivity);
+            this.testBindingSource.DataSource = typeof(Models.Simplified.TestActivity);
             // 
             // buttonDetails
             // 

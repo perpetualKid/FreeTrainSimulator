@@ -25,7 +25,7 @@ using System.Threading.Tasks.Dataflow;
 
 using Orts.Formats.OR.Files;
 
-namespace Orts.Menu.Entities
+namespace Orts.Models.Simplified
 {
     public class TimetableInfo : ContentBase
     {

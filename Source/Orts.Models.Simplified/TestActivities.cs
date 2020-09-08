@@ -8,7 +8,7 @@ using System.Threading.Tasks.Dataflow;
 
 using Orts.Formats.Msts;
 
-namespace Orts.Menu.Entities
+namespace Orts.Models.Simplified
 {
     public class TestActivity
     {
@@ -74,7 +74,7 @@ namespace Orts.Menu.Entities
                 TransformBlock<(Folder, Route, string), TestActivity> activityBlock = new TransformBlock<(Folder folder, Route route, string activity), TestActivity>
                     (activityInput =>
                     {
-                        Activity activity = Entities.Activity.FromPathShallow(activityInput.activity);
+                        Activity activity = Simplified.Activity.FromPathShallow(activityInput.activity);
                         return new TestActivity(activityInput.folder, activityInput.route, activity);
                     },
                     new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });

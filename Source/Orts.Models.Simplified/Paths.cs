@@ -25,7 +25,7 @@ using System.Threading.Tasks.Dataflow;
 
 using Orts.Formats.Msts.Files;
 
-namespace Orts.Menu.Entities
+namespace Orts.Models.Simplified
 {
     /// <summary>
     /// Representation of the metadata of a path, where the path is coded in a .pat file. So not the full .pat file,

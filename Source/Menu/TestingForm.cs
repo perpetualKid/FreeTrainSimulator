@@ -29,10 +29,9 @@ using System.Windows.Forms;
 using GetText;
 using GetText.WindowsForms;
 
-using Orts.Menu.Entities;
+using Orts.Models.Simplified;
 using Orts.Settings;
 
-using Activity = Orts.Menu.Entities.Activity;
 using Path = System.IO.Path;
 
 namespace Orts.Menu

@@ -26,7 +26,7 @@ using System.Threading.Tasks.Dataflow;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Menu.Entities
+namespace Orts.Models.Simplified
 {
     public class Consist: ContentBase
     {

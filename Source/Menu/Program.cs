@@ -22,7 +22,7 @@ using System.Windows.Forms;
 
 using Orts.Common;
 using Orts.Common.Info;
-using Orts.Menu.Entities;
+using Orts.Models.Simplified;
 
 namespace Orts.Menu
 {

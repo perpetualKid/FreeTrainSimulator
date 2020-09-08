@@ -2,7 +2,7 @@
 
 using Orts.Formats.Msts.Files;
 
-namespace Orts.Menu.Entities
+namespace Orts.Models.Simplified
 {
     public class Locomotive : ContentBase
     {

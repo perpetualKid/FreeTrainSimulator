@@ -25,7 +25,7 @@ using System.Threading.Tasks.Dataflow;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 
-namespace Orts.Menu.Entities
+namespace Orts.Models.Simplified
 {
     public class Route: ContentBase
     {
