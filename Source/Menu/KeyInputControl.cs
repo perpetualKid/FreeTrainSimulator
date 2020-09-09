@@ -61,10 +61,10 @@ namespace Orts.Menu
 
         private void KeyInputControl_Click(object sender, EventArgs e)
         {
-            using (var editKey = new KeyInputEditControl(this))
+            using (KeyInputEditControl editKey = new KeyInputEditControl(this))
             {
                 int originalUniqueDescriptor = UserInput.UniqueDescriptor;
-                var result = editKey.ShowDialog(this);
+                DialogResult result = editKey.ShowDialog(this);
                 GC.KeepAlive(editKey); // Required to ensure keyboard hook is not collected too early.
 
                 if (result == DialogResult.Cancel)

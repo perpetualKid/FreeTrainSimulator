@@ -33,7 +33,7 @@ namespace Orts.Menu
         {
         }
 
-        protected override bool SupportsSortingCore { get { return true; } }
+        protected override bool SupportsSortingCore => true;
 
         private ListSortDirection sortDirection = ListSortDirection.Ascending;
         private PropertyDescriptor sortProperty;

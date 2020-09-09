@@ -100,8 +100,8 @@ namespace Orts.Menu
             {
                 if (nCode >= 0)
                 {
-                    var virtualKeyCode = (Xna.Keys)Marshal.ReadInt32(lParam);
-                    var scanCode = (int)(Marshal.ReadInt64(lParam) >> 32);
+                    Xna.Keys virtualKeyCode = (Xna.Keys)Marshal.ReadInt32(lParam);
+                    int scanCode = (int)(Marshal.ReadInt64(lParam) >> 32);
 
                     switch ((int)wParam)
                     {
@@ -112,7 +112,7 @@ namespace Orts.Menu
                                 scanCode += 256;
 
                             // True if the virtual key code is for a modifier (shift, control, alt).
-                            var isModifier = false;
+                            bool isModifier = false;
                             switch (scanCode)
                             {
                                 case 0x2A:
@@ -168,9 +168,9 @@ namespace Orts.Menu
         public void HookKeyboard()
         {
             CurrentKeyboardProcedure = HookCallback;
-            using (var currentProcess = Process.GetCurrentProcess())
+            using (Process currentProcess = Process.GetCurrentProcess())
             {
-                using (var currentModule = currentProcess.MainModule)
+                using (ProcessModule currentModule = currentProcess.MainModule)
                 {
                     Debug.Assert(keyboardHookId == IntPtr.Zero);
                     keyboardHookId = SetWindowsHookEx(WH_KEYBOARD_LL, CurrentKeyboardProcedure, GetModuleHandle(currentModule.ModuleName), 0);

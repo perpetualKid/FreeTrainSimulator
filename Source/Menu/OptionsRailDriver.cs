@@ -91,7 +91,7 @@ namespace Orts.Menu
             Panel panel = new Panel() { AutoScroll = true, Width = panelRDSettings.Width / 2 };
             panel.SuspendLayout();
 
-            var columnWidth = (panel.ClientSize.Width - 20) / 3;
+            int columnWidth = (panel.ClientSize.Width - 20) / 3;
 
             Label tempLabel = new Label();
             RDButtonInputControl tempControl = new RDButtonInputControl(settings.RailDriver.UserCommands[(int)UserCommand.GameQuit], RailDriverSettings.GetDefaultValue(UserCommand.GameQuit), instance);
@@ -103,7 +103,7 @@ namespace Orts.Menu
             Size labelSize = new Size(columnWidth * 2 - tempLabel.Margin.Horizontal, rowHeight);
 
             string previousCategory = "";
-            var i = 0;
+            int i = 0;
 
             foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
@@ -137,7 +137,7 @@ namespace Orts.Menu
                     ++i;
                 }
 
-                var label = new Label
+                Label label = new Label
                 {
                     Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i),
                     Size = labelSize,

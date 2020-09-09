@@ -56,11 +56,11 @@ namespace Orts.Menu
 
         private static void MainForm()
         {
-            using (var MainForm = new MainForm())
+            using (MainForm MainForm = new MainForm())
             {
                 while (MainForm.ShowDialog() == DialogResult.OK)
                 {
-                    var parameters = new List<string>();
+                    List<string> parameters = new List<string>();
                     switch (MainForm.SelectedAction)
                     {
                         case MainForm.UserAction.SingleplayerNewGame:
@@ -101,7 +101,7 @@ namespace Orts.Menu
                         case MainForm.UserAction.MultiplayerServer:
                             if (MainForm.SelectedActivity is DefaultExploreActivity)
                             {
-                                var exploreActivity = MainForm.SelectedActivity as DefaultExploreActivity;
+                                DefaultExploreActivity exploreActivity = MainForm.SelectedActivity as DefaultExploreActivity;
                                 parameters.Add("-explorer");
                                 parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
                                 parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
@@ -111,7 +111,7 @@ namespace Orts.Menu
                             }
                             else if (MainForm.SelectedActivity is ExploreThroughActivity)
                             {
-                                var exploreActivity = MainForm.SelectedActivity as ExploreThroughActivity;
+                                ExploreThroughActivity exploreActivity = MainForm.SelectedActivity as ExploreThroughActivity;
                                 parameters.Add("-exploreactivity");
                                 parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
                                 parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");

@@ -95,27 +95,27 @@ namespace Orts.Menu
 
         #region current selection to be passed a startup parameters
         // Base items
-        internal Folder SelectedFolder { get { return (Folder)comboBoxFolder.SelectedItem; } }
-        internal Route SelectedRoute { get { return (Route)comboBoxRoute.SelectedItem; } }
+        internal Folder SelectedFolder => (Folder)comboBoxFolder.SelectedItem;
+        internal Route SelectedRoute => (Route)comboBoxRoute.SelectedItem;
 
         // Activity mode items
-        internal Activity SelectedActivity { get { return (Activity)comboBoxActivity.SelectedItem; } }
-        internal Consist SelectedConsist { get { return (Consist)comboBoxConsist.SelectedItem; } }
-        internal Path SelectedPath { get { return (Path)comboBoxHeadTo.SelectedItem; } }
-        internal string SelectedStartTime { get { return comboBoxStartTime.Text; } }
+        internal Activity SelectedActivity => (Activity)comboBoxActivity.SelectedItem;
+        internal Consist SelectedConsist => (Consist)comboBoxConsist.SelectedItem;
+        internal Path SelectedPath => (Path)comboBoxHeadTo.SelectedItem;
+        internal string SelectedStartTime => comboBoxStartTime.Text;
 
         // Timetable mode items
-        internal TimetableInfo SelectedTimetableSet { get { return (TimetableInfo)comboBoxTimetableSet.SelectedItem; } }
-        internal TimetableFile SelectedTimetable { get { return (TimetableFile)comboBoxTimetable.SelectedItem; } }
-        internal TrainInformation SelectedTimetableTrain { get { return (TrainInformation)comboBoxTimetableTrain.SelectedItem; } }
-        internal int SelectedTimetableDay { get { return initialized ? (comboBoxTimetableDay.SelectedItem as ComboBoxItem<int>).Key : 0; } }
-        internal WeatherFileInfo SelectedWeatherFile { get { return (WeatherFileInfo)comboBoxTimetableWeatherFile.SelectedItem; } }
+        internal TimetableInfo SelectedTimetableSet => (TimetableInfo)comboBoxTimetableSet.SelectedItem;
+        internal TimetableFile SelectedTimetable => (TimetableFile)comboBoxTimetable.SelectedItem;
+        internal TrainInformation SelectedTimetableTrain => (TrainInformation)comboBoxTimetableTrain.SelectedItem;
+        internal int SelectedTimetableDay => initialized ? (comboBoxTimetableDay.SelectedItem as ComboBoxItem<int>).Key : 0;
+        internal WeatherFileInfo SelectedWeatherFile => (WeatherFileInfo)comboBoxTimetableWeatherFile.SelectedItem;
         internal Consist SelectedTimetableConsist { get; private set; }
         internal Path SelectedTimetablePath { get; private set; }
 
         // Shared items
-        internal int SelectedStartSeason { get { return initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartSeason.SelectedItem as ComboBoxItem<int>).Key : (comboBoxTimetableSeason.SelectedItem as ComboBoxItem<int>).Key) : 0; } }
-        internal int SelectedStartWeather { get { return initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartWeather.SelectedItem as ComboBoxItem<int>).Key : (comboBoxTimetableWeather.SelectedItem as ComboBoxItem<int>).Key) : 0; } }
+        internal int SelectedStartSeason => initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartSeason.SelectedItem as ComboBoxItem<int>).Key : (comboBoxTimetableSeason.SelectedItem as ComboBoxItem<int>).Key) : 0;
+        internal int SelectedStartWeather => initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartWeather.SelectedItem as ComboBoxItem<int>).Key : (comboBoxTimetableWeather.SelectedItem as ComboBoxItem<int>).Key) : 0;
 
         internal string SelectedSaveFile { get; private set; }
         internal UserAction SelectedAction { get; private set; }
@@ -173,7 +173,7 @@ namespace Orts.Menu
 
         private async void MainForm_Shown(object sender, EventArgs e)
         {
-            var options = Environment.GetCommandLineArgs().
+            IEnumerable<string> options = Environment.GetCommandLineArgs().
                 Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
             settings = new UserSettings(options);
 
@@ -233,7 +233,7 @@ namespace Orts.Menu
                     {
                         string toolPath = (sender2 as ToolStripItem).Tag as string;
                         bool toolIsConsole = false;
-                        using (var reader = new BinaryReader(File.OpenRead(toolPath)))
+                        using (BinaryReader reader = new BinaryReader(File.OpenRead(toolPath)))
                         {
                             toolIsConsole = GetImageSubsystem(reader) == ImageSubsystem.WindowsConsole;
                         }
@@ -262,7 +262,7 @@ namespace Orts.Menu
                     {
                         return new ToolStripMenuItem(System.IO.Path.GetFileName(fileName), null, (object sender2, EventArgs e2) =>
                         {
-                            var docPath = (sender2 as ToolStripItem).Tag as string;
+                            string docPath = (sender2 as ToolStripItem).Tag as string;
                             Process.Start(new ProcessStartInfo { FileName = docPath, UseShellExecute = true });
                         })
                         { Tag = fileName };
@@ -538,7 +538,7 @@ namespace Orts.Menu
             UpdateTimetableSet();
         }
 
-        void ComboBoxTimetableWeatherFile_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxTimetableWeatherFile_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateTimetableWeatherSet();
         }
@@ -553,7 +553,7 @@ namespace Orts.Menu
         private bool CheckUserName(string text)
         {
             string tmp = text;
-            if (tmp.Length < 4 || tmp.Length > 10 || tmp.Contains("\"") || tmp.Contains("\'") || tmp.Contains(" ") || tmp.Contains("-") || Char.IsDigit(tmp, 0))
+            if (tmp.Length < 4 || tmp.Length > 10 || tmp.Contains("\"") || tmp.Contains("\'") || tmp.Contains(" ") || tmp.Contains("-") || char.IsDigit(tmp, 0))
             {
                 MessageBox.Show(catalog.GetString("User name must be 4-10 characters long, cannot contain space, ', \" or - and must not start with a digit."), RuntimeInfo.ProductName);
                 return false;
@@ -618,7 +618,7 @@ namespace Orts.Menu
 
         private void TestingToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (var form = new TestingForm(settings, RuntimeInfo.ActivityRunnerExecutable, catalog))
+            using (TestingForm form = new TestingForm(settings, RuntimeInfo.ActivityRunnerExecutable, catalog))
             {
                 form.ShowDialog(this);
             }
@@ -628,7 +628,7 @@ namespace Orts.Menu
         {
             SaveOptions();
 
-            using (var form = new OptionsForm(settings, updateManager, catalog, false))
+            using (OptionsForm form = new OptionsForm(settings, updateManager, catalog, false))
             {
                 switch (form.ShowDialog(this))
                 {
@@ -666,12 +666,12 @@ namespace Orts.Menu
             OpenResumeForm(false);
         }
 
-        void ButtonResumeMP_Click(object sender, EventArgs e)
+        private void ButtonResumeMP_Click(object sender, EventArgs e)
         {
             OpenResumeForm(true);
         }
 
-        void OpenResumeForm(bool multiplayer)
+        private void OpenResumeForm(bool multiplayer)
         {
             if (radioButtonModeTimetable.Checked)
             {
@@ -694,7 +694,7 @@ namespace Orts.Menu
                 return;
             }
 
-            using (var form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, routes))
+            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, routes))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -706,9 +706,10 @@ namespace Orts.Menu
             }
         }
 
-        void ButtonStartMP_Click(object sender, EventArgs e)
+        private void ButtonStartMP_Click(object sender, EventArgs e)
         {
-            if (CheckUserName(textBoxMPUser.Text) == false) return;
+            if (!CheckUserName(textBoxMPUser.Text)) 
+                return;
             SaveOptions();
             SelectedAction = radioButtonMPClient.Checked ? UserAction.MultiplayerClient : UserAction.MultiplayerServer;
             DialogResult = DialogResult.OK;
@@ -816,7 +817,7 @@ namespace Orts.Menu
 
             if (!initialized && !folders.Any())
             {
-                using (var form = new OptionsForm(settings, updateManager, catalog, true))
+                using (OptionsForm form = new OptionsForm(settings, updateManager, catalog, true))
                 {
                     switch (form.ShowDialog(this))
                     {
@@ -1004,7 +1005,7 @@ namespace Orts.Menu
                 {
                     comboBoxLocomotive.BeginUpdate();
                     comboBoxConsist.BeginUpdate();
-                    var consist = SelectedActivity.Consist;
+                    Consist consist = SelectedActivity.Consist;
                     comboBoxLocomotive.Items.Clear();
                     comboBoxLocomotive.Items.Add(consist.Locomotive);
                     comboBoxLocomotive.SelectedIndex = 0;
@@ -1054,7 +1055,7 @@ namespace Orts.Menu
             ShowStartAtList();
             ShowHeadToList();
 
-            var selectedRoute = SelectedRoute;
+            Route selectedRoute = SelectedRoute;
             try
             {
                 paths = (await Path.GetPaths(selectedRoute, false, ctsPathLoading.Token).ConfigureAwait(true)).OrderBy(a => a.ToString());
@@ -1145,7 +1146,7 @@ namespace Orts.Menu
                     comboBoxStartTime.BeginUpdate();
                     comboBoxDuration.BeginUpdate();
                     comboBoxStartTime.Items.Clear();
-                    foreach (var hour in Enumerable.Range(0, 24))
+                    foreach (int hour in Enumerable.Range(0, 24))
                         comboBoxStartTime.Items.Add($"{hour}:00");
                     comboBoxDuration.Items.Clear();
                     comboBoxDuration.Items.Add("");
@@ -1200,8 +1201,8 @@ namespace Orts.Menu
 
             ShowTimetableSetList();
 
-            var selectedFolder = SelectedFolder;
-            var selectedRoute = SelectedRoute;
+            Folder selectedFolder = SelectedFolder;
+            Route selectedRoute = SelectedRoute;
             try
             {
                 timetableSets = (await TimetableInfo.GetTimetableInfo(selectedRoute, ctsTimeTableLoading.Token).ConfigureAwait(true)).OrderBy(tt => tt.Description);
@@ -1245,14 +1246,14 @@ namespace Orts.Menu
         private void ShowTimetableWeatherSet()
         {
             comboBoxTimetableWeatherFile.Items.Clear();
-            foreach (var weatherFile in timetableWeatherFileSet)
+            foreach (WeatherFileInfo weatherFile in timetableWeatherFileSet)
             {
                 comboBoxTimetableWeatherFile.Items.Add(weatherFile);
                 UpdateEnabled();
             }
         }
 
-        void UpdateTimetableWeatherSet()
+        private void UpdateTimetableWeatherSet()
         {
             SelectedTimetableSet.WeatherFile = SelectedWeatherFile.GetFullName();
         }
@@ -1293,7 +1294,7 @@ namespace Orts.Menu
                     comboBoxTimetableTrain.BeginUpdate();
                     comboBoxTimetableTrain.Items.Clear();
 
-                    var trains = SelectedTimetableSet.TimeTables[comboBoxTimetable.SelectedIndex].Trains;
+                    List<TrainInformation> trains = SelectedTimetableSet.TimeTables[comboBoxTimetable.SelectedIndex].Trains;
                     trains.Sort();
                     comboBoxTimetableTrain.Items.AddRange(trains.ToArray());
                 }
@@ -1405,14 +1406,14 @@ namespace Orts.Menu
         private void AddDetailToShow(string title, string text)
         {
             panelDetails.SuspendLayout();
-            var titleControl = new Label { Margin = new Padding(2), Text = title, UseMnemonic = false, Font = new Font(panelDetails.Font, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft };
+            Label titleControl = new Label { Margin = new Padding(2), Text = title, UseMnemonic = false, Font = new Font(panelDetails.Font, FontStyle.Bold), TextAlign = ContentAlignment.BottomLeft };
             titleControl.Left = titleControl.Margin.Left;
             titleControl.Width = panelDetails.ClientSize.Width - titleControl.Margin.Horizontal - titleControl.PreferredHeight;
             titleControl.Height = titleControl.PreferredHeight;
             titleControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
             panelDetails.Controls.Add(titleControl);
 
-            var expanderControl = new Button { Margin = new Padding(0), Text = "", FlatStyle = FlatStyle.Flat };
+            Button expanderControl = new Button { Margin = new Padding(0), Text = "", FlatStyle = FlatStyle.Flat };
             expanderControl.Left = panelDetails.ClientSize.Width - titleControl.Height - titleControl.Margin.Right;
             expanderControl.Width = expanderControl.Height = titleControl.Height;
             expanderControl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -1420,7 +1421,7 @@ namespace Orts.Menu
             expanderControl.BackgroundImageLayout = ImageLayout.Center;
             panelDetails.Controls.Add(expanderControl);
 
-            var summaryControl = new Label { Margin = new Padding(2), Text = text, AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
+            Label summaryControl = new Label { Margin = new Padding(2), Text = text, AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
             summaryControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
             summaryControl.Left = summaryControl.Margin.Left;
             summaryControl.Width = panelDetails.ClientSize.Width - summaryControl.Margin.Horizontal;
@@ -1450,7 +1451,7 @@ namespace Orts.Menu
                 summaryControl.Text = builder.ToString(0, (int)index);
             }
 
-            var descriptionControl = new Label { Margin = new Padding(2), Text = text, AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
+            Label descriptionControl = new Label { Margin = new Padding(2), Text = text, AutoSize = false, UseMnemonic = false, UseCompatibleTextRendering = false };
             descriptionControl.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
             descriptionControl.Left = descriptionControl.Margin.Left;
             descriptionControl.Width = panelDetails.ClientSize.Width - descriptionControl.Margin.Horizontal;
@@ -1481,7 +1482,7 @@ namespace Orts.Menu
 
         private void ExpanderControl_Click(object sender, EventArgs e)
         {
-            var index = (int)(sender as Control).Tag;
+            int index = (int)(sender as Control).Tag;
             details[index].Expanded = !details[index].Expanded;
             details[index].Expander.BackgroundImage = (Image)resources.GetObject(details[index].Expanded ? "ExpanderOpen" : "ExpanderClosed", CultureInfo.InvariantCulture);
             FlowDetails();
@@ -1489,12 +1490,12 @@ namespace Orts.Menu
 
         private void FlowDetails()
         {
-            var scrollPosition = panelDetails.AutoScrollPosition.Y;
+            int scrollPosition = panelDetails.AutoScrollPosition.Y;
             panelDetails.AutoScrollPosition = Point.Empty;
             panelDetails.AutoScrollMinSize = new Size(0, panelDetails.ClientSize.Height + 1);
 
-            var top = 0;
-            foreach (var detail in details)
+            int top = 0;
+            foreach (Detail detail in details)
             {
                 top += detail.Title.Margin.Top;
                 detail.Title.Top = detail.Expander.Top = top;
@@ -1556,7 +1557,7 @@ namespace Orts.Menu
             if (comboBox.Items.Count == 0)
                 return;
 
-            for (var i = 0; i < comboBox.Items.Count; i++)
+            for (int i = 0; i < comboBox.Items.Count; i++)
             {
                 if (comboBox.Items[i] is T t && predicate(t))
                 {
@@ -1581,36 +1582,36 @@ namespace Orts.Menu
         {
             try
             {
-                var baseOffset = stream.BaseStream.Position;
+                long baseOffset = stream.BaseStream.Position;
 
                 // WORD IMAGE_DOS_HEADER.e_magic = 0x4D5A (MZ)
                 stream.BaseStream.Seek(baseOffset + 0, SeekOrigin.Begin);
-                var dosMagic = stream.ReadUInt16();
+                ushort dosMagic = stream.ReadUInt16();
                 if (dosMagic != 0x5A4D)
                     return ImageSubsystem.Unknown;
 
                 // LONG IMAGE_DOS_HEADER.e_lfanew
                 stream.BaseStream.Seek(baseOffset + 60, SeekOrigin.Begin);
-                var ntHeaderOffset = stream.ReadUInt32();
+                uint ntHeaderOffset = stream.ReadUInt32();
                 if (ntHeaderOffset == 0)
                     return ImageSubsystem.Unknown;
 
                 // DWORD IMAGE_NT_HEADERS.Signature = 0x00004550 (PE..)
                 stream.BaseStream.Seek(baseOffset + ntHeaderOffset, SeekOrigin.Begin);
-                var ntMagic = stream.ReadUInt32();
+                uint ntMagic = stream.ReadUInt32();
                 if (ntMagic != 0x00004550)
                     return ImageSubsystem.Unknown;
 
                 // WORD IMAGE_OPTIONAL_HEADER.Magic = 0x010A (32bit header) or 0x020B (64bit header)
                 stream.BaseStream.Seek(baseOffset + ntHeaderOffset + 24, SeekOrigin.Begin);
-                var optionalMagic = stream.ReadUInt16();
+                ushort optionalMagic = stream.ReadUInt16();
                 if (optionalMagic != 0x010B && optionalMagic != 0x020B)
                     return ImageSubsystem.Unknown;
 
                 // WORD IMAGE_OPTIONAL_HEADER.Subsystem
                 // Note: There might need to be an adjustment for ImageBase being ULONGLONG in the 64bit header though this doesn't actually seem to be true.
                 stream.BaseStream.Seek(baseOffset + ntHeaderOffset + 92, SeekOrigin.Begin);
-                var peSubsystem = stream.ReadUInt16();
+                ushort peSubsystem = stream.ReadUInt16();
 
                 return (ImageSubsystem)peSubsystem;
             }

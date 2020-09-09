@@ -175,7 +175,7 @@ namespace Orts.Menu
 
             try
             {
-                foreach (var item in items)
+                foreach (Tuple<int, TestActivity> item in items)
                 {
                     await Task.Run(() => RunTestTask(item.Item2, overrideSettings, ctsTestActivityRunner.Token), ctsTestActivityRunner.Token).ConfigureAwait(true);
                     ShowGridRow(gridTestActivities, item.Item1);
@@ -198,7 +198,7 @@ namespace Orts.Menu
             if (overrideSettings)
                 parameters += " /Skip-User-Settings";
 
-            var processStartInfo = new ProcessStartInfo
+            ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
                 FileName = runActivity,
                 WindowStyle = ProcessWindowStyle.Normal,
@@ -207,28 +207,28 @@ namespace Orts.Menu
 
             if (!clearedLogs)
             {
-                using (var writer = File.CreateText(summaryFilePath))
+                using (StreamWriter writer = File.CreateText(summaryFilePath))
                     writer.WriteLine("Route, Activity, Passed, Errors, Warnings, Infos, Loading, FPS");
-                using (var writer = File.CreateText(logFilePath))
+                using (StreamWriter writer = File.CreateText(logFilePath))
                     writer.Flush();
                 clearedLogs = true;
             }
 
             long summaryFilePosition = 0L;
-            using (var reader = File.OpenText(summaryFilePath))
+            using (StreamReader reader = File.OpenText(summaryFilePath))
                 summaryFilePosition = reader.BaseStream.Length;
 
             processStartInfo.Arguments = $"{parameters} \"{activity.ActivityFilePath}\"";
             activity.Passed = await RunProcess(processStartInfo, token).ConfigureAwait(false) == 0;
             activity.Tested = true;
 
-            using (var reader = File.OpenText(summaryFilePath))
+            using (StreamReader reader = File.OpenText(summaryFilePath))
             {
                 reader.BaseStream.Seek(summaryFilePosition, SeekOrigin.Begin);
-                var line = reader.ReadLine();
+                string line = reader.ReadLine();
                 if (!string.IsNullOrEmpty(line) && reader.EndOfStream)
                 {
-                    var csv = line.Split(',');
+                    string[] csv = line.Split(',');
                     activity.Errors = $"{int.Parse(csv[3], CultureInfo.InvariantCulture)}/{int.Parse(csv[4], CultureInfo.InvariantCulture)}/{int.Parse(csv[5], CultureInfo.InvariantCulture)}";
                     activity.Load = $"{float.Parse(csv[6], CultureInfo.InvariantCulture),6:F1}s";
                     activity.FPS = $"{float.Parse(csv[7], CultureInfo.InvariantCulture),6:F1}";
@@ -247,7 +247,7 @@ namespace Orts.Menu
             if (null == processStartInfo)
                 throw new ArgumentNullException(nameof(processStartInfo));
 
-            var tcs = new TaskCompletionSource<int>();
+            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
             processStartInfo.RedirectStandardError = true;
             processStartInfo.UseShellExecute = false;
 
@@ -263,7 +263,7 @@ namespace Orts.Menu
             {
                 if (process.ExitCode != 0)
                 {
-                    var errorMessage = process.StandardError.ReadToEnd();
+                    string errorMessage = process.StandardError.ReadToEnd();
                     tcs.TrySetException(new InvalidOperationException("The process did not exit correctly. " +
                         "The corresponding error message was: " + errorMessage));
                 }
@@ -282,7 +282,7 @@ namespace Orts.Menu
 
         private static void ShowGridRow(DataGridView grid, int rowIndex)
         {
-            var displayedRowCount = grid.DisplayedRowCount(false);
+            int displayedRowCount = grid.DisplayedRowCount(false);
             if (grid.FirstDisplayedScrollingRowIndex > rowIndex)
                 grid.FirstDisplayedScrollingRowIndex = rowIndex;
             else if (grid.FirstDisplayedScrollingRowIndex < rowIndex - displayedRowCount + 1)
