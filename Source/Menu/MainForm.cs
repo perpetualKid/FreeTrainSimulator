@@ -136,7 +136,7 @@ namespace Orts.Menu
             Font = SystemFonts.MessageBoxFont;
 
             // Set title to show revision or build info.
-            Text = $"{Application.ProductName} {VersionInfo.Version}";
+            Text = $"{RuntimeInfo.ProductName} {VersionInfo.Version}";
 #if DEBUG
             Text += " (debug)";
 #endif
@@ -225,7 +225,7 @@ namespace Orts.Menu
                 {
                     FileVersionInfo toolInfo = FileVersionInfo.GetVersionInfo(fileName);
                     // Skip any executable that isn't part of this product (e.g. Visual Studio hosting files).
-                    if (toolInfo.ProductName != Application.ProductName)
+                    if (toolInfo.ProductName != RuntimeInfo.ProductName)
                         return null;
                     // Remove the product name from the tool's name
                     string toolName = string.Join(" ", toolInfo.Comments.Split(' ').Except(RuntimeInfo.ProductName.Split(' ')));
@@ -555,7 +555,7 @@ namespace Orts.Menu
             string tmp = text;
             if (tmp.Length < 4 || tmp.Length > 10 || tmp.Contains("\"") || tmp.Contains("\'") || tmp.Contains(" ") || tmp.Contains("-") || Char.IsDigit(tmp, 0))
             {
-                MessageBox.Show(catalog.GetString("User name must be 4-10 characters long, cannot contain space, ', \" or - and must not start with a digit."), Application.ProductName);
+                MessageBox.Show(catalog.GetString("User name must be 4-10 characters long, cannot contain space, ', \" or - and must not start with a digit."), RuntimeInfo.ProductName);
                 return false;
             }
             return true;

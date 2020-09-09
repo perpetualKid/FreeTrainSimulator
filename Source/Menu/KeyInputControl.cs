@@ -28,7 +28,7 @@ namespace Orts.Menu
     /// </summary>
     /// <remarks>
     /// <para>This control will modify the <see cref="UserCommandInput"/> it is given (but not the default input).</para>
-    /// <para>The control displays the currently assigtned keyboard shortcut and highlights the text if it is not the default. Clicking on the text invokes the editing behaviour via <see cref="KeyInputEditControl"/>.</para>
+    /// <para>The control displays the currently assigned keyboard shortcut and highlights the text if it is not the default. Clicking on the text invokes the editing behaviour via <see cref="KeyInputEditControl"/>.</para>
     /// </remarks>
     public partial class KeyInputControl : TextBox
     {

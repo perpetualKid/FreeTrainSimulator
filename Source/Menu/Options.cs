@@ -240,11 +240,7 @@ namespace Orts.Menu
             {
                 tabOptions.SelectedTab = tabPageContent;
                 buttonContentBrowse.Enabled = false; // Initial state because browsing a null path leads to an exception
-                try
-                {
-                    bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.MstsFolder });
-                }
-                catch { }
+                bindingSourceContent.Add(new ContentFolder() { Name = "Train Simulator", Path = FolderStructure.MstsFolder });
             }
 
             // Updater tab
@@ -257,7 +253,7 @@ namespace Orts.Menu
             buttonUpdatesRefresh.Height = 23;
 
             comboBoxUpdateChannels.DataSource = ComboBoxItem<string>.FromList(updateManager.GetChannels().OrderByDescending((s) => s), (channel) => catalog.GetString(channel));
-            ComboBoxItem<string>.SetDataSourceMembers(comboBoxUpdateChannels);
+            ComboBoxItem.SetDataSourceMembers(comboBoxUpdateChannels);
             comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);
 
             // Experimental tab
@@ -292,11 +288,24 @@ namespace Orts.Menu
 
         private async void OptionsForm_Shown(object sender, EventArgs e)
         {
-            List<Task> initTasks = new List<Task>()
-            {   InitializeKeyboardSettingsAsync(),
-                InitializeRailDriverSettingsAsync() };
-            await Task.WhenAll(initTasks).ConfigureAwait(false);
+            InitializeKeyboardSettings();
+            await InitializeRailDriverSettingsAsync().ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                components?.Dispose();
+                railDriverLegend?.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
 
         private static string ParseCategoryFrom(string name)
         {
@@ -319,11 +328,11 @@ namespace Orts.Menu
         private void ButtonOK_Click(object sender, EventArgs e)
         {
             var result = settings.Input.CheckForErrors();
-            if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, Application.ProductName, MessageBoxButtons.YesNo))
+            if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
                 return;
 
             result = CheckButtonAssignments();
-            if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting button assignments?\n\n") + result, Application.ProductName, MessageBoxButtons.YesNo))
+            if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting button assignments?\n\n") + result, RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
                 return;
 
             DialogResult = DialogResult.OK;

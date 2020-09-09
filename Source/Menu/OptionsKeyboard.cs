@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Settings;
 using Orts.Settings.Util;
@@ -16,9 +14,8 @@ namespace Orts.Menu
     public partial class OptionsForm : Form
     {
 
-        private Task<Panel> InitializeKeyboardInputControls()
+        private Panel InitializeKeyboardInputControls()
         {
-            TaskCompletionSource<Panel> tcs = new TaskCompletionSource<Panel>();
             Panel panel = new Panel() { AutoScroll = true };
             panel.SuspendLayout();
 
@@ -74,28 +71,30 @@ namespace Orts.Menu
                 ++i;
             }
             panel.ResumeLayout(true);
-            tcs.SetResult(panel);
-            return tcs.Task;
+            tempLabel.Dispose();
+            tempKIC.Dispose();
+            return panel;
         }
 
-        private async Task InitializeKeyboardSettingsAsync()
+        private void InitializeKeyboardSettings()
         {
             panelKeys.Controls.Clear();
 
-            Panel controls = await Task.Run(InitializeKeyboardInputControls);
+            Panel controls = InitializeKeyboardInputControls();
             controls.Dock = DockStyle.Fill;
             panelKeys.Controls.Add(controls);
+            string toolTip = catalog.GetString("Click to change this key");
             foreach (Control control in controls.Controls)
                 if (control is RDButtonInputControl)
-                    toolTip1.SetToolTip(control, catalog.GetString("Click to change this key"));
+                    toolTip1.SetToolTip(control, toolTip);
         }
 
-        private async void ButtonDefaultKeys_Click(object sender, EventArgs e)
+        private void ButtonDefaultKeys_Click(object sender, EventArgs e)
         {
-            if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom key assignments?"), Application.ProductName, MessageBoxButtons.YesNo))
+            if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom key assignments?"), RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
             {
                 settings.Input.Reset();
-                await InitializeKeyboardSettingsAsync();
+                InitializeKeyboardSettings();
             }
         }
 
@@ -103,7 +102,7 @@ namespace Orts.Menu
         {
             var outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Open Rails Keyboard.txt");
             settings.Input.DumpToText(outputPath);
-            MessageBox.Show(catalog.GetString("A listing of all keyboard commands and keys has been placed here:\n\n") + outputPath, Application.ProductName);
+            MessageBox.Show(catalog.GetString("A listing of all keyboard commands and keys has been placed here:\n\n") + outputPath, RuntimeInfo.ProductName);
         }
 
         private void ButtonCheckKeys_Click(object sender, EventArgs e)
@@ -112,7 +111,7 @@ namespace Orts.Menu
             if (!string.IsNullOrEmpty(errors))
                 MessageBox.Show(errors, Application.ProductName);
             else
-                MessageBox.Show(catalog.GetString("No errors found."), Application.ProductName);
+                MessageBox.Show(catalog.GetString("No errors found."), RuntimeInfo.ProductName);
         }
 
 

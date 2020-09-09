@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Settings;
 
@@ -18,10 +17,12 @@ namespace Orts.Menu
         private Form railDriverLegend;
         private RailDriverCalibrationSetting currentCalibrationStep = RailDriverCalibrationSetting.CutOffDelta;
 
-        private byte[] calibrationSettings = new byte[EnumExtension.GetLength<RailDriverCalibrationSetting>()];
-        private bool isCalibrationSet;
+        private readonly byte[] calibrationSettings = new byte[EnumExtension.GetLength<RailDriverCalibrationSetting>()];
+        private bool calibrationSet;
 
-        private static readonly int[,] startingPoints = { 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+        private static readonly int[,] startingPoints = {
+#pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
             { 170, 110 }, { 170, 150 }, { 170, 60 }, //Reverser
             { 230, 120 },  { 230, 150 }, { 230, 60 }, { 230, 90 }, //Throttle
             { 340, 150 }, { 340, 90 }, { 340, 60 }, // Auto Brake
@@ -29,7 +30,7 @@ namespace Orts.Menu
             { 520, 80 }, { 540, 80 }, { 560, 80 }, // Rotary Switch 1
             { 520, 150 }, { 535, 150 }, { 550, 150 }, // Rotary Switch 2
         };
-        
+
         private Form GetRailDriverLegend()
         {
             const int WM_NCLBUTTONDOWN = 0xA1;
@@ -87,7 +88,6 @@ namespace Orts.Menu
 
         private Task<Panel> InitializeRailDriverInputControls()
         {
-            TaskCompletionSource<Panel> tcs = new TaskCompletionSource<Panel>();
             Panel panel = new Panel() { AutoScroll = true, Width = panelRDSettings.Width / 2 };
             panel.SuspendLayout();
 
@@ -157,21 +157,22 @@ namespace Orts.Menu
                 ++i;
             }
             panel.ResumeLayout(true);
-            tcs.SetResult(panel);
-            return tcs.Task;
+            tempControl.Dispose();
+            tempLabel.Dispose();
+            return Task.FromResult(panel);
         }
 
         private async Task InitializeRailDriverSettingsAsync()
         {
             instance = RailDriverBase.GetInstance();
-//#if !DEBUG
+#if !DEBUG
             if (!instance.Enabled)
             {
                 tabOptions.TabPages.Remove(tabPageRailDriver);
                 await Task.CompletedTask;
                 return;
             }
-//#endif
+#endif
             panelRDButtons.Width = panelRDSettings.Width / 2;
             panelRDButtons.Controls.Clear();
 
@@ -180,12 +181,13 @@ namespace Orts.Menu
             checkReverseAutoBrake.Checked = settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake] != 0;
             checkReverseIndependentBrake.Checked = settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake] != 0;
             checkFullRangeThrottle.Checked = settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.FullRangeThrottle] != 0;
-            Panel controls = await Task.Run(InitializeRailDriverInputControls);
+            Panel controls = await Task.Run(InitializeRailDriverInputControls).ConfigureAwait(true);
             controls.Dock = DockStyle.Fill;
             panelRDButtons.Controls.Add(controls);
-            foreach(Control control in controls.Controls)
+            string tooltip = catalog.GetString("Click to change this button");
+            foreach (Control control in controls.Controls)
                 if (control is RDButtonInputControl)
-                    toolTip1.SetToolTip(control, catalog.GetString("Click to change this button"));
+                    toolTip1.SetToolTip(control, tooltip);
         }
 
         private void RunCalibration()
@@ -208,7 +210,7 @@ namespace Orts.Menu
                         if ((int)currentCalibrationStep < 3)        //Reverser
                             index = 1;
                         else if ((int)currentCalibrationStep < 7)   //Throttle/Dynamic Brake
-                            index = 2;  
+                            index = 2;
                         else if ((int)currentCalibrationStep < 10)  //Auto Brake
                             index = 3;
                         else if ((int)currentCalibrationStep < 12)  //Independent Brake
@@ -230,7 +232,7 @@ namespace Orts.Menu
             railDriverLegend.Invalidate(true);
             if (nextStep == RailDriverCalibrationSetting.ReverseReverser)
             {
-                isCalibrationSet = (MessageBox.Show(railDriverLegend, "Calibration Completed. Do you want to keep the results?", "Calibration Done", MessageBoxButtons.YesNo) == DialogResult.Yes);
+                calibrationSet = (MessageBox.Show(railDriverLegend, "Calibration Completed. Do you want to keep the results?", "Calibration Done", MessageBoxButtons.YesNo) == DialogResult.Yes);
             }
             instance.SetLeds(RailDriverDisplaySign.Blank, RailDriverDisplaySign.Blank, RailDriverDisplaySign.Blank);
         }
@@ -243,10 +245,10 @@ namespace Orts.Menu
 
         private async void BtnRDReset_Click(object sender, EventArgs e)
         {
-            if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom button assignments?"), Application.ProductName, MessageBoxButtons.YesNo))
+            if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom button assignments?"), RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
             {
                 settings.RailDriver.Reset();
-                await InitializeRailDriverSettingsAsync();
+                await InitializeRailDriverSettingsAsync().ConfigureAwait(true);
             }
         }
 
@@ -259,16 +261,16 @@ namespace Orts.Menu
         {
             string result = CheckButtonAssignments();
             if (!string.IsNullOrEmpty(result))
-                MessageBox.Show(result, Application.ProductName);
+                MessageBox.Show(result, RuntimeInfo.ProductName);
             else
-                MessageBox.Show(catalog.GetString("No errors found."), Application.ProductName);
+                MessageBox.Show(catalog.GetString("No errors found."), RuntimeInfo.ProductName);
         }
 
         private void BtnRDSettingsExport_Click(object sender, EventArgs e)
         {
             string outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Open Rails RailDriver.txt");
             settings.RailDriver.DumpToText(outputPath);
-            MessageBox.Show(catalog.GetString("A listing of all Raildriver button assignments has been placed here:\n\n") + outputPath, Application.ProductName);
+            MessageBox.Show(catalog.GetString("A listing of all Raildriver button assignments has been placed here:\n\n") + outputPath, RuntimeInfo.ProductName);
         }
 
         private string CheckButtonAssignments()
@@ -302,7 +304,7 @@ namespace Orts.Menu
                 }
             }
 
-            if (isCalibrationSet)
+            if (calibrationSet)
             {
                 currentCalibrationStep = RailDriverCalibrationSetting.ReverserNeutral;
                 while (currentCalibrationStep < RailDriverCalibrationSetting.ReverseReverser)
