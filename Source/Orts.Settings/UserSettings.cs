@@ -110,8 +110,8 @@ namespace Orts.Settings
         public string Language { get; set; }
         [Default("Automatic")]
         public string PressureUnit { get; set; }
-        [Default("Automatic")]
-        public string Units { get; set; }
+        [Default((int)Unit.Route)]
+        public int Units { get; set; }
         [Default(false)]
         public bool DisableTCSScripts { get; set; }
 

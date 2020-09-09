@@ -35,6 +35,16 @@ namespace Orts.Common
         Clockwise = 1,
     }
 
+    [Description("Unit Selection")]
+    public enum Unit
+    {
+        [Description("Route")] Route,
+        [Description("Player's location")] System,
+        [Description("Metric")] Metric,
+        [Description("Imperial US")] US,
+        [Description("Imperial UK")] UK,
+    }
+
     public enum ClockType
     {
         Unknown,

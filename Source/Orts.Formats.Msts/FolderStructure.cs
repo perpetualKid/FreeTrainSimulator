@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -12,10 +13,12 @@ namespace Orts.Formats.Msts
 {
     public static class FolderStructure
     {
+#pragma warning disable CA1034 // Nested types should not be visible
         public class ContentFolder
         {
             public class RouteFolder
             {
+#pragma warning restore CA1034 // Nested types should not be visible
                 private readonly string routeName;
                 private readonly string routeFolder;
 
@@ -65,7 +68,7 @@ namespace Orts.Formats.Msts
 
             }
 
-            private readonly Dictionary<string, RouteFolder> routeFolders = new Dictionary<string, RouteFolder>(StringComparer.OrdinalIgnoreCase);
+            private readonly ConcurrentDictionary<string, RouteFolder> routeFolders = new ConcurrentDictionary<string, RouteFolder>(StringComparer.OrdinalIgnoreCase);
 
             internal ContentFolder(string root)
             {
@@ -97,22 +100,18 @@ namespace Orts.Formats.Msts
 
             public RouteFolder Route(string route)
             {
-                if (!routeFolders.ContainsKey(route))
+                if (!routeFolders.TryGetValue(route, out RouteFolder result))
                 {
-                    lock (routeFolders)
-                    {
-                        if (!routeFolders.ContainsKey(route))
-                            routeFolders.Add(route, new RouteFolder(route, RoutesFolder));
-                    }
+                    routeFolders.TryAdd(route, new RouteFolder(route, RoutesFolder));
+                    result = routeFolders[route];
                 }
-                return routeFolders[route];
+                return result;
             }
-
         }
 
         private static readonly string mstsLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
             "Microsoft Games", "Train Simulator");   // MSTS default path.
-        private static readonly Dictionary<string, ContentFolder> contentFolders = new Dictionary<string, ContentFolder>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<string, ContentFolder> contentFolders = new ConcurrentDictionary<string, ContentFolder>(StringComparer.OrdinalIgnoreCase);
         private static ContentFolder current;
 
         public static ContentFolder Current
@@ -143,15 +142,12 @@ namespace Orts.Formats.Msts
 
         public static ContentFolder Content(string root)
         {
-            if (!contentFolders.ContainsKey(root))
+            if (!contentFolders.TryGetValue(root, out ContentFolder result))
             {
-                lock (contentFolders)
-                {
-                    if (!contentFolders.ContainsKey(root))
-                        contentFolders.Add(root, new ContentFolder(root));
-                }
+                contentFolders.TryAdd(root, new ContentFolder(root));
+                result = contentFolders[root];
             }
-            return contentFolders[root];
+            return result;
         }
 
         public static ContentFolder.RouteFolder Route(string routePath)
@@ -199,9 +195,9 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Static variables to reduce occurrence of duplicate warning messages.
         /// </summary>
-        static string badBranch = "";
-        static string badPath = "";
-        static readonly Dictionary<string, StringDictionary> filesFound = new Dictionary<string, StringDictionary>();
+        private static string badBranch = "";
+        private static string badPath = "";
+        private static readonly Dictionary<string, StringDictionary> filesFound = new Dictionary<string, StringDictionary>();
 
         /// <summary>
         /// Search an array of paths for a file. Paths must be in search sequence.
@@ -212,6 +208,8 @@ namespace Orts.Formats.Msts
         /// <returns>null or the full file path of the first file found</returns>
         public static string FindFileFromFolders(IEnumerable<string> paths, string fileRelative)
         {
+            if (null == paths)
+                throw new ArgumentNullException(nameof(paths));
             if (string.IsNullOrEmpty(fileRelative))
                 return string.Empty;
 
@@ -239,7 +237,7 @@ namespace Orts.Formats.Msts
                 }
             }
 
-            var firstPath = paths.First();
+            string firstPath = paths.First();
             if (fileRelative != badBranch || firstPath != badPath)
             {
                 Trace.TraceWarning("File {0} missing from {1}", fileRelative, firstPath);

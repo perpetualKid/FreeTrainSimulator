@@ -120,8 +120,10 @@ namespace Orts.Menu
                 ctsTestActivityLoader = new CancellationTokenSource();
             }
             UseWaitCursor = true;
+            gridTestActivities.SuspendLayout();
             testBindingSource.DataSource = new SortableBindingList<TestActivity>((await TestActivity.GetTestActivities(settings.FolderSettings.Folders, CancellationToken.None).ConfigureAwait(true)).ToList());
             testBindingSource.Sort = "DefaultSort";
+            gridTestActivities.ResumeLayout();
             UseWaitCursor = false;
             UpdateButtons();
         }

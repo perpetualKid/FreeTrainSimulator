@@ -75,7 +75,9 @@ namespace Orts.Menu
             liveInput = control.UserInput;
             isModifier = liveInput.IsModifier;
 
+#pragma warning disable IDE0008 // Use explicit type
             var input = UserCommandInput.DecomposeUniqueDescriptor(liveInput.UniqueDescriptor);
+#pragma warning restore IDE0008 // Use explicit type
             shift = input.Shift;
             this.control = input.Control;
             alt = input.Alt;

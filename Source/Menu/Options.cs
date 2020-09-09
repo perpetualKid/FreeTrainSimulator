@@ -22,7 +22,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using GetText;
@@ -43,7 +42,7 @@ namespace Orts.Menu
 
         private readonly ICatalog catalog;
 
-        public OptionsForm(UserSettings settings, UpdateManager updateManager, ICatalog catalog, bool initialContentSetup)
+        public OptionsForm(UserSettings settings, UpdateManager updateManager, ICatalog catalog, ICatalog commonCatalog,  bool initialContentSetup)
         {
             InitializeComponent();
             Localizer.Localize(this, catalog);
@@ -54,8 +53,8 @@ namespace Orts.Menu
 
             // Collect all the available language codes by searching for
             // localisation files, but always include English (base language).
-            var languageCodes = new List<string> { "en" };
-            foreach (var path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
+            List<string> languageCodes = new List<string> { "en" };
+            foreach (string path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
                 if (Directory.EnumerateFiles(path, "*.mo").Any())
                     languageCodes.Add(Path.GetFileName(path));
 
@@ -66,21 +65,13 @@ namespace Orts.Menu
                 .Union(
                     ComboBoxItem<string>.FromList(languageCodes, (language) => CultureInfo.GetCultureInfo(language).NativeName).OrderBy(language => language.Value))
                 .ToList();
-            ComboBoxItem<string>.SetDataSourceMembers(comboLanguage);
+            ComboBoxItem.SetDataSourceMembers(comboLanguage);
             comboLanguage.SelectedValue = this.settings.Language;
-            if (comboLanguage.SelectedValue == null) 
+            if (comboLanguage.SelectedValue == null)
                 comboLanguage.SelectedIndex = 0;
 
-            comboBoxOtherUnits.DataSource = new[] {
-                new ComboBoxMember { Code = "Route", Name = catalog.GetString("Route") },
-                new ComboBoxMember { Code = "Automatic", Name = catalog.GetString("Player's location") },
-                new ComboBoxMember { Code = "Metric", Name = catalog.GetString("Metric") },
-                new ComboBoxMember { Code = "US", Name = catalog.GetString("Imperial US") },
-                new ComboBoxMember { Code = "UK", Name = catalog.GetString("Imperial UK") },
-            }.ToList();
-            comboBoxOtherUnits.DisplayMember = "Name";
-            comboBoxOtherUnits.ValueMember = "Code";
-            comboBoxOtherUnits.SelectedValue = this.settings.Units;
+            comboBoxOtherUnits.DataSource = ComboBoxItem<string>.FromEnum<Unit>(commonCatalog);
+            ComboBoxItem.SetDataSourceMembers(comboBoxOtherUnits);
 
             comboPressureUnit.DataSource = new[] {
                 new ComboBoxMember { Code = "Automatic", Name = catalog.GetString("Automatic") },
@@ -120,7 +111,7 @@ namespace Orts.Menu
             numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
             comboLanguage.Text = this.settings.Language;
             comboPressureUnit.Text = this.settings.PressureUnit;
-            comboBoxOtherUnits.Text = settings.Units;
+            comboBoxOtherUnits.SelectedValue = settings.Units;
             checkDisableTCSScripts.Checked = this.settings.DisableTCSScripts;
             checkEnableWebServer.Checked = this.settings.WebServer;
             numericWebServerPort.Value = this.settings.WebServerPort;
@@ -350,7 +341,7 @@ namespace Orts.Menu
             settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
             settings.Language = comboLanguage.SelectedValue.ToString();
             settings.PressureUnit = comboPressureUnit.SelectedValue.ToString();
-            settings.Units = comboBoxOtherUnits.SelectedValue.ToString();
+            settings.Units = (int)comboBoxOtherUnits.SelectedValue;
             settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
             settings.WebServer = checkEnableWebServer.Checked;
 

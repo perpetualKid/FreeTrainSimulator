@@ -808,9 +808,9 @@ namespace Orts.Simulation.RollingStocks
 
         public void GetMeasurementUnits()
         {
-            IsMetric = Simulator.Settings.Units == "Metric" || (Simulator.Settings.Units == "Automatic" && System.Globalization.RegionInfo.CurrentRegion.IsMetric) ||
-                (Simulator.Settings.Units == "Route" && Simulator.TRK.Route.MilepostUnitsMetric);
-            IsUK = Simulator.Settings.Units == "UK";
+            IsMetric = Simulator.Settings.Units == (int)Unit.Metric || (Simulator.Settings.Units == (int)Unit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric) ||
+                (Simulator.Settings.Units == (int)Unit.Route && Simulator.TRK.Route.MilepostUnitsMetric);
+            IsUK = Simulator.Settings.Units == (int)Unit.UK;
         }
 
         public override void Initialize()

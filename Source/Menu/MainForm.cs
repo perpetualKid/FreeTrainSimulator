@@ -25,6 +25,7 @@ using System.Linq;
 using System.Resources;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -190,7 +191,7 @@ namespace Orts.Menu
             if (!initialized)
             {
                 initTasks.Add(CheckForUpdateAsync());
-                initTasks.Add(LoadToolsAndDocuments());
+                initTasks.Add(Task.Run(LoadToolsAndDocuments));
 
                 comboBoxStartSeason.DataSource = ComboBoxItem<int>.FromEnum<SeasonType>(commonCatalog);
                 ComboBoxItem.SetDataSourceMembers(comboBoxStartSeason);
@@ -216,10 +217,9 @@ namespace Orts.Menu
             await Task.WhenAll(initTasks).ConfigureAwait(true);
         }
 
-        private static Task<IEnumerable<ToolStripItem>> LoadTools()
+        private static IEnumerable<ToolStripItem> LoadTools()
         {
-            return Task.FromResult<IEnumerable<ToolStripItem>>(
-                Directory.EnumerateFiles(System.IO.Path.GetDirectoryName(RuntimeInfo.ApplicationFolder), "*.exe").
+            return Directory.EnumerateFiles(System.IO.Path.GetDirectoryName(RuntimeInfo.ApplicationFolder), "*.exe").
                 Where(fileName => (!coreExecutables.Contains(System.IO.Path.GetFileName(fileName), StringComparer.InvariantCultureIgnoreCase))).
                 Select(fileName =>
                 {
@@ -244,15 +244,14 @@ namespace Orts.Menu
                     }
                     )
                     { Tag = fileName };
-                }).Where(t => t != null));
+                }).Where(t => t != null);
         }
 
-        private static Task<IEnumerable<ToolStripItem>> LoadDocuments()
+        private static IEnumerable<ToolStripItem> LoadDocuments()
         {
             if (Directory.Exists(RuntimeInfo.DocumentationFolder))
             {
-                return Task.FromResult<IEnumerable<ToolStripItem>>(
-                    Directory.EnumerateFiles(RuntimeInfo.DocumentationFolder).
+                return Directory.EnumerateFiles(RuntimeInfo.DocumentationFolder).
                     Union(Directory.Exists(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.Name)) ?
                         Directory.EnumerateFiles(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.Name)) : Array.Empty<string>()).
                     Union(Directory.Exists(System.IO.Path.Combine(RuntimeInfo.DocumentationFolder, CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)) ?
@@ -266,21 +265,19 @@ namespace Orts.Menu
                             Process.Start(new ProcessStartInfo { FileName = docPath, UseShellExecute = true });
                         })
                         { Tag = fileName };
-                    }).Where(d => d != null));
+                    }).Where(d => d != null);
             }
             else
-                return Task.FromResult(Array.Empty<ToolStripItem>().AsEnumerable());
+                return Array.Empty<ToolStripItem>().AsEnumerable();
         }
 
-        private async Task LoadToolsAndDocuments()
+        private void LoadToolsAndDocuments()
         {
             contextMenuStripTools.Items.Clear();
             contextMenuStripDocuments.Items.Clear();
             contextMenuStripTools.Items.Add(testingToolStripMenuItem);
-            contextMenuStripTools.Items.AddRange((await LoadTools().ConfigureAwait(true)).
-                OrderBy(tool => tool.Text).ToArray());
-            contextMenuStripDocuments.Items.AddRange((await LoadDocuments().ConfigureAwait(true)).
-                OrderBy(doc => doc.Text).ToArray());
+            contextMenuStripTools.Items.AddRange(LoadTools().OrderBy(tool => tool.Text).ToArray());
+            contextMenuStripDocuments.Items.AddRange(LoadDocuments().OrderBy(doc => doc.Text).ToArray());
             // Documents button will be disabled if Documentation folder is not present.
             buttonDocuments.Enabled = contextMenuStripDocuments.Items.Count > 0;
         }
@@ -552,10 +549,10 @@ namespace Orts.Menu
 
         private bool CheckUserName(string text)
         {
-            string tmp = text;
-            if (tmp.Length < 4 || tmp.Length > 10 || tmp.Contains("\"") || tmp.Contains("\'") || tmp.Contains(" ") || tmp.Contains("-") || char.IsDigit(tmp, 0))
+            Match match = Regex.Match(text, @"^[a-zA-Z_][a-zA-Z0-9_]{3,9}$");//4-10 characters, digits or _, not starting with a digit
+            if (!match.Success)
             {
-                MessageBox.Show(catalog.GetString("User name must be 4-10 characters long, cannot contain space, ', \" or - and must not start with a digit."), RuntimeInfo.ProductName);
+                MessageBox.Show(catalog.GetString("User name must be 4-10 characters (chars, digits, _) long, cannot contain space, ', \" or - and must not start with a digit."), RuntimeInfo.ProductName);
                 return false;
             }
             return true;
@@ -628,7 +625,7 @@ namespace Orts.Menu
         {
             SaveOptions();
 
-            using (OptionsForm form = new OptionsForm(settings, updateManager, catalog, false))
+            using (OptionsForm form = new OptionsForm(settings, updateManager, catalog, commonCatalog, false))
             {
                 switch (form.ShowDialog(this))
                 {
@@ -637,7 +634,7 @@ namespace Orts.Menu
                         break;
                     case DialogResult.Retry: //Language has changed
                         LoadLanguage();
-                        await LoadToolsAndDocuments().ConfigureAwait(true);
+                        LoadToolsAndDocuments();
                         break;
                 }
             }
@@ -817,7 +814,7 @@ namespace Orts.Menu
 
             if (!initialized && !folders.Any())
             {
-                using (OptionsForm form = new OptionsForm(settings, updateManager, catalog, true))
+                using (OptionsForm form = new OptionsForm(settings, updateManager, catalog, commonCatalog, true))
                 {
                     switch (form.ShowDialog(this))
                     {
@@ -826,7 +823,7 @@ namespace Orts.Menu
                             break;
                         case DialogResult.Retry:
                             LoadLanguage();
-                            await LoadToolsAndDocuments().ConfigureAwait(true);
+                            LoadToolsAndDocuments();
                             break;
                     }
                 }
