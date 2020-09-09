@@ -86,7 +86,7 @@ namespace Orts.Menu
             return railDriverLegend;
         }
 
-        private Task<Panel> InitializeRailDriverInputControls()
+        private Panel InitializeRailDriverInputControls()
         {
             Panel panel = new Panel() { AutoScroll = true, Width = panelRDSettings.Width / 2 };
             panel.SuspendLayout();
@@ -159,20 +159,19 @@ namespace Orts.Menu
             panel.ResumeLayout(true);
             tempControl.Dispose();
             tempLabel.Dispose();
-            return Task.FromResult(panel);
+            return panel;
         }
 
-        private async Task InitializeRailDriverSettingsAsync()
+        private void InitializeRailDriverSettings()
         {
             instance = RailDriverBase.GetInstance();
-#if !DEBUG
+//#if !DEBUG
             if (!instance.Enabled)
             {
                 tabOptions.TabPages.Remove(tabPageRailDriver);
-                await Task.CompletedTask;
                 return;
             }
-#endif
+//#endif
             panelRDButtons.Width = panelRDSettings.Width / 2;
             panelRDButtons.Controls.Clear();
 
@@ -181,7 +180,7 @@ namespace Orts.Menu
             checkReverseAutoBrake.Checked = settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake] != 0;
             checkReverseIndependentBrake.Checked = settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake] != 0;
             checkFullRangeThrottle.Checked = settings.RailDriver.CalibrationSettings[(int)RailDriverCalibrationSetting.FullRangeThrottle] != 0;
-            Panel controls = await Task.Run(InitializeRailDriverInputControls).ConfigureAwait(true);
+            Panel controls = InitializeRailDriverInputControls();
             controls.Dock = DockStyle.Fill;
             panelRDButtons.Controls.Add(controls);
             string tooltip = catalog.GetString("Click to change this button");
@@ -243,12 +242,12 @@ namespace Orts.Menu
             RunCalibration();
         }
 
-        private async void BtnRDReset_Click(object sender, EventArgs e)
+        private void BtnRDReset_Click(object sender, EventArgs e)
         {
             if (DialogResult.Yes == MessageBox.Show(catalog.GetString("Remove all custom button assignments?"), RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
             {
                 settings.RailDriver.Reset();
-                await InitializeRailDriverSettingsAsync().ConfigureAwait(true);
+                InitializeRailDriverSettings();
             }
         }
 

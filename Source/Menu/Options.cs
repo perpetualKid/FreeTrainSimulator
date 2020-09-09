@@ -286,10 +286,10 @@ namespace Orts.Menu
             numericActWeatherRandomizationLevel.Value = this.settings.ActWeatherRandomizationLevel;
         }
 
-        private async void OptionsForm_Shown(object sender, EventArgs e)
+        private void OptionsForm_Shown(object sender, EventArgs e)
         {
             InitializeKeyboardSettings();
-            await InitializeRailDriverSettingsAsync().ConfigureAwait(false);
+            InitializeRailDriverSettings();
         }
 
         /// <summary>

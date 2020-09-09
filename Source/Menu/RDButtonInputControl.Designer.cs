@@ -48,7 +48,6 @@ namespace Orts.Menu
             this.buttonOK.Text = "✔";
             this.toolTip1.SetToolTip(this.buttonOK, "Accept changes");
             this.buttonOK.Visible = false;
-            this.buttonOK.Click += new System.EventHandler(this.ButtonOK_Click);
             // 
             // buttonCancel
             // 
@@ -60,7 +59,6 @@ namespace Orts.Menu
             this.buttonCancel.Text = "✘";
             this.toolTip1.SetToolTip(this.buttonCancel, "Cancel changes");
             this.buttonCancel.Visible = false;
-            this.buttonCancel.Click += new System.EventHandler(this.ButtonCancel_Click);
             // 
             // textBox
             // 
@@ -87,7 +85,6 @@ namespace Orts.Menu
             this.toolTip1.SetToolTip(this.buttonDefault, "Reset to default");
             this.buttonDefault.UseVisualStyleBackColor = false;
             this.buttonDefault.Visible = false;
-            this.buttonDefault.Click += new System.EventHandler(this.ButtonDefault_Click);
             // 
             // RDButtonInputControl
             // 
