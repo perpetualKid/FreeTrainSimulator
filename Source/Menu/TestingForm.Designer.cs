@@ -23,6 +23,11 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonSummary = new System.Windows.Forms.Button();
             this.gridTestActivities = new System.Windows.Forms.DataGridView();
+            this.testBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.buttonDetails = new System.Windows.Forms.Button();
+            this.checkBoxOverride = new System.Windows.Forms.CheckBox();
+            this.buttonNoSort = new System.Windows.Forms.Button();
+            this.panelTests = new System.Windows.Forms.Panel();
             this.toTestDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.activityFilePathDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.defaultSortDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -33,12 +38,6 @@
             this.errorsDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.loadDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.fpsDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.blankDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.testBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.buttonDetails = new System.Windows.Forms.Button();
-            this.checkBoxOverride = new System.Windows.Forms.CheckBox();
-            this.buttonNoSort = new System.Windows.Forms.Button();
-            this.panelTests = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.gridTestActivities)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.testBindingSource)).BeginInit();
             this.panelTests.SuspendLayout();
@@ -118,8 +117,7 @@
             this.passedDataGridViewCheckBoxColumn,
             this.errorsDataGridViewTextBoxColumn,
             this.loadDataGridViewTextBoxColumn,
-            this.fpsDataGridViewTextBoxColumn,
-            this.blankDataGridViewTextBoxColumn});
+            this.fpsDataGridViewTextBoxColumn});
             this.gridTestActivities.DataSource = this.testBindingSource;
             dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
@@ -138,104 +136,6 @@
             this.gridTestActivities.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.gridTestActivities.Size = new System.Drawing.Size(798, 421);
             this.gridTestActivities.TabIndex = 0;
-            // 
-            // toTestDataGridViewCheckBoxColumn
-            // 
-            this.toTestDataGridViewCheckBoxColumn.DataPropertyName = "ToTest";
-            this.toTestDataGridViewCheckBoxColumn.HeaderText = "ToTest";
-            this.toTestDataGridViewCheckBoxColumn.Name = "toTestDataGridViewCheckBoxColumn";
-            this.toTestDataGridViewCheckBoxColumn.ReadOnly = true;
-            this.toTestDataGridViewCheckBoxColumn.Visible = false;
-            this.toTestDataGridViewCheckBoxColumn.Width = 47;
-            // 
-            // activityFilePathDataGridViewTextBoxColumn
-            // 
-            this.activityFilePathDataGridViewTextBoxColumn.DataPropertyName = "ActivityFilePath";
-            this.activityFilePathDataGridViewTextBoxColumn.HeaderText = "ActivityFilePath";
-            this.activityFilePathDataGridViewTextBoxColumn.Name = "activityFilePathDataGridViewTextBoxColumn";
-            this.activityFilePathDataGridViewTextBoxColumn.ReadOnly = true;
-            this.activityFilePathDataGridViewTextBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.activityFilePathDataGridViewTextBoxColumn.Visible = false;
-            this.activityFilePathDataGridViewTextBoxColumn.Width = 85;
-            // 
-            // defaultSortDataGridViewTextBoxColumn
-            // 
-            this.defaultSortDataGridViewTextBoxColumn.DataPropertyName = "DefaultSort";
-            this.defaultSortDataGridViewTextBoxColumn.HeaderText = "DefaultSort";
-            this.defaultSortDataGridViewTextBoxColumn.Name = "defaultSortDataGridViewTextBoxColumn";
-            this.defaultSortDataGridViewTextBoxColumn.ReadOnly = true;
-            this.defaultSortDataGridViewTextBoxColumn.Visible = false;
-            this.defaultSortDataGridViewTextBoxColumn.Width = 85;
-            // 
-            // routeDataGridViewTextBoxColumn
-            // 
-            this.routeDataGridViewTextBoxColumn.DataPropertyName = "Route";
-            this.routeDataGridViewTextBoxColumn.HeaderText = "Route";
-            this.routeDataGridViewTextBoxColumn.Name = "routeDataGridViewTextBoxColumn";
-            this.routeDataGridViewTextBoxColumn.ReadOnly = true;
-            this.routeDataGridViewTextBoxColumn.Width = 61;
-            // 
-            // activityDataGridViewTextBoxColumn
-            // 
-            this.activityDataGridViewTextBoxColumn.DataPropertyName = "Activity";
-            this.activityDataGridViewTextBoxColumn.HeaderText = "Activity";
-            this.activityDataGridViewTextBoxColumn.Name = "activityDataGridViewTextBoxColumn";
-            this.activityDataGridViewTextBoxColumn.ReadOnly = true;
-            this.activityDataGridViewTextBoxColumn.Width = 66;
-            // 
-            // testedDataGridViewCheckBoxColumn
-            // 
-            this.testedDataGridViewCheckBoxColumn.DataPropertyName = "Tested";
-            this.testedDataGridViewCheckBoxColumn.HeaderText = "Tested";
-            this.testedDataGridViewCheckBoxColumn.Name = "testedDataGridViewCheckBoxColumn";
-            this.testedDataGridViewCheckBoxColumn.ReadOnly = true;
-            this.testedDataGridViewCheckBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.testedDataGridViewCheckBoxColumn.Width = 65;
-            // 
-            // passedDataGridViewCheckBoxColumn
-            // 
-            this.passedDataGridViewCheckBoxColumn.DataPropertyName = "Passed";
-            this.passedDataGridViewCheckBoxColumn.HeaderText = "Passed";
-            this.passedDataGridViewCheckBoxColumn.Name = "passedDataGridViewCheckBoxColumn";
-            this.passedDataGridViewCheckBoxColumn.ReadOnly = true;
-            this.passedDataGridViewCheckBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.passedDataGridViewCheckBoxColumn.Width = 67;
-            // 
-            // errorsDataGridViewTextBoxColumn
-            // 
-            this.errorsDataGridViewTextBoxColumn.DataPropertyName = "Errors";
-            this.errorsDataGridViewTextBoxColumn.HeaderText = "Errors";
-            this.errorsDataGridViewTextBoxColumn.Name = "errorsDataGridViewTextBoxColumn";
-            this.errorsDataGridViewTextBoxColumn.ReadOnly = true;
-            this.errorsDataGridViewTextBoxColumn.Width = 59;
-            // 
-            // loadDataGridViewTextBoxColumn
-            // 
-            this.loadDataGridViewTextBoxColumn.DataPropertyName = "Load";
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.loadDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
-            this.loadDataGridViewTextBoxColumn.HeaderText = "Load";
-            this.loadDataGridViewTextBoxColumn.Name = "loadDataGridViewTextBoxColumn";
-            this.loadDataGridViewTextBoxColumn.ReadOnly = true;
-            this.loadDataGridViewTextBoxColumn.Width = 56;
-            // 
-            // fpsDataGridViewTextBoxColumn
-            // 
-            this.fpsDataGridViewTextBoxColumn.DataPropertyName = "FPS";
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.fpsDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle3;
-            this.fpsDataGridViewTextBoxColumn.HeaderText = "FPS";
-            this.fpsDataGridViewTextBoxColumn.Name = "fpsDataGridViewTextBoxColumn";
-            this.fpsDataGridViewTextBoxColumn.ReadOnly = true;
-            this.fpsDataGridViewTextBoxColumn.Width = 52;
-            // 
-            // blankDataGridViewTextBoxColumn
-            // 
-            this.blankDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.blankDataGridViewTextBoxColumn.HeaderText = "";
-            this.blankDataGridViewTextBoxColumn.Name = "blankDataGridViewTextBoxColumn";
-            this.blankDataGridViewTextBoxColumn.ReadOnly = true;
-            this.blankDataGridViewTextBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // testBindingSource
             // 
@@ -286,6 +186,104 @@
             this.panelTests.Size = new System.Drawing.Size(800, 423);
             this.panelTests.TabIndex = 13;
             // 
+            // toTestDataGridViewCheckBoxColumn
+            // 
+            this.toTestDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.toTestDataGridViewCheckBoxColumn.DataPropertyName = "ToTest";
+            this.toTestDataGridViewCheckBoxColumn.HeaderText = "ToTest";
+            this.toTestDataGridViewCheckBoxColumn.Name = "toTestDataGridViewCheckBoxColumn";
+            this.toTestDataGridViewCheckBoxColumn.ReadOnly = true;
+            this.toTestDataGridViewCheckBoxColumn.Visible = false;
+            this.toTestDataGridViewCheckBoxColumn.Width = 20;
+            // 
+            // activityFilePathDataGridViewTextBoxColumn
+            // 
+            this.activityFilePathDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.activityFilePathDataGridViewTextBoxColumn.DataPropertyName = "ActivityFilePath";
+            this.activityFilePathDataGridViewTextBoxColumn.HeaderText = "ActivityFilePath";
+            this.activityFilePathDataGridViewTextBoxColumn.Name = "activityFilePathDataGridViewTextBoxColumn";
+            this.activityFilePathDataGridViewTextBoxColumn.ReadOnly = true;
+            this.activityFilePathDataGridViewTextBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.activityFilePathDataGridViewTextBoxColumn.Visible = false;
+            this.activityFilePathDataGridViewTextBoxColumn.Width = 20;
+            // 
+            // defaultSortDataGridViewTextBoxColumn
+            // 
+            this.defaultSortDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.defaultSortDataGridViewTextBoxColumn.DataPropertyName = "DefaultSort";
+            this.defaultSortDataGridViewTextBoxColumn.HeaderText = "DefaultSort";
+            this.defaultSortDataGridViewTextBoxColumn.Name = "defaultSortDataGridViewTextBoxColumn";
+            this.defaultSortDataGridViewTextBoxColumn.ReadOnly = true;
+            this.defaultSortDataGridViewTextBoxColumn.Visible = false;
+            this.defaultSortDataGridViewTextBoxColumn.Width = 20;
+            // 
+            // routeDataGridViewTextBoxColumn
+            // 
+            this.routeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.routeDataGridViewTextBoxColumn.DataPropertyName = "Route";
+            this.routeDataGridViewTextBoxColumn.HeaderText = "Route";
+            this.routeDataGridViewTextBoxColumn.Name = "routeDataGridViewTextBoxColumn";
+            this.routeDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // activityDataGridViewTextBoxColumn
+            // 
+            this.activityDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.activityDataGridViewTextBoxColumn.DataPropertyName = "Activity";
+            this.activityDataGridViewTextBoxColumn.HeaderText = "Activity";
+            this.activityDataGridViewTextBoxColumn.Name = "activityDataGridViewTextBoxColumn";
+            this.activityDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // testedDataGridViewCheckBoxColumn
+            // 
+            this.testedDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.testedDataGridViewCheckBoxColumn.DataPropertyName = "Tested";
+            this.testedDataGridViewCheckBoxColumn.HeaderText = "Tested";
+            this.testedDataGridViewCheckBoxColumn.Name = "testedDataGridViewCheckBoxColumn";
+            this.testedDataGridViewCheckBoxColumn.ReadOnly = true;
+            this.testedDataGridViewCheckBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.testedDataGridViewCheckBoxColumn.Width = 60;
+            // 
+            // passedDataGridViewCheckBoxColumn
+            // 
+            this.passedDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.passedDataGridViewCheckBoxColumn.DataPropertyName = "Passed";
+            this.passedDataGridViewCheckBoxColumn.HeaderText = "Passed";
+            this.passedDataGridViewCheckBoxColumn.Name = "passedDataGridViewCheckBoxColumn";
+            this.passedDataGridViewCheckBoxColumn.ReadOnly = true;
+            this.passedDataGridViewCheckBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.passedDataGridViewCheckBoxColumn.Width = 60;
+            // 
+            // errorsDataGridViewTextBoxColumn
+            // 
+            this.errorsDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.errorsDataGridViewTextBoxColumn.DataPropertyName = "Errors";
+            this.errorsDataGridViewTextBoxColumn.HeaderText = "Errors";
+            this.errorsDataGridViewTextBoxColumn.Name = "errorsDataGridViewTextBoxColumn";
+            this.errorsDataGridViewTextBoxColumn.ReadOnly = true;
+            this.errorsDataGridViewTextBoxColumn.Width = 90;
+            // 
+            // loadDataGridViewTextBoxColumn
+            // 
+            this.loadDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.loadDataGridViewTextBoxColumn.DataPropertyName = "Load";
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.loadDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
+            this.loadDataGridViewTextBoxColumn.HeaderText = "Load Time";
+            this.loadDataGridViewTextBoxColumn.Name = "loadDataGridViewTextBoxColumn";
+            this.loadDataGridViewTextBoxColumn.ReadOnly = true;
+            this.loadDataGridViewTextBoxColumn.Width = 70;
+            // 
+            // fpsDataGridViewTextBoxColumn
+            // 
+            this.fpsDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.fpsDataGridViewTextBoxColumn.DataPropertyName = "FPS";
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.fpsDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle3;
+            this.fpsDataGridViewTextBoxColumn.HeaderText = "FPS";
+            this.fpsDataGridViewTextBoxColumn.Name = "fpsDataGridViewTextBoxColumn";
+            this.fpsDataGridViewTextBoxColumn.ReadOnly = true;
+            this.fpsDataGridViewTextBoxColumn.Width = 70;
+            // 
             // TestingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -324,6 +322,7 @@
         private System.Windows.Forms.Button buttonDetails;
         private System.Windows.Forms.CheckBox checkBoxOverride;
         private System.Windows.Forms.Button buttonNoSort;
+        private System.Windows.Forms.Panel panelTests;
         private System.Windows.Forms.DataGridViewCheckBoxColumn toTestDataGridViewCheckBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn activityFilePathDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn defaultSortDataGridViewTextBoxColumn;
@@ -334,7 +333,5 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn errorsDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn loadDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn fpsDataGridViewTextBoxColumn;
-        private System.Windows.Forms.DataGridViewTextBoxColumn blankDataGridViewTextBoxColumn;
-        private System.Windows.Forms.Panel panelTests;
     }
 }

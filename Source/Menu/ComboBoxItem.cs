@@ -11,15 +11,13 @@ namespace Orts.Menu
 {
     internal abstract class ComboBoxItem
     {
-        private readonly object Key;
-        private readonly object Value;
         /// <summary>
         /// Prepares the combobox which property names to use for Key and Value display
         /// </summary>
         public static void SetDataSourceMembers(ComboBox comboBox)
         {
-            comboBox.DisplayMember = nameof(Value);
-            comboBox.ValueMember = nameof(Key);
+            comboBox.DisplayMember = nameof(ComboBoxItem<int>.Value);
+            comboBox.ValueMember = nameof(ComboBoxItem<int>.Key);
         }
     }
 

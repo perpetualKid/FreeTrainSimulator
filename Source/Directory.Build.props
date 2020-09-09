@@ -22,7 +22,8 @@
     <Company>Open Rails Ultimate Team</Company>
     <Description>Open Rails Train Simulator</Description>
     <Copyright>Copyright © 2020</Copyright>
-  </PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
+    <NeutralLanguage>en</NeutralLanguage>  </PropertyGroup>
   <PropertyGroup>
     <NoWarn></NoWarn>
   </PropertyGroup>

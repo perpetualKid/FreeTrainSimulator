@@ -23,6 +23,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -50,6 +51,8 @@ namespace Orts.Menu
         public TestingForm(UserSettings settings, string runActivity, ICatalog catalog)
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
+
+            gridTestActivities.GetType().InvokeMember("DoubleBuffered", BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.NonPublic, null, gridTestActivities, new object[] { true }, CultureInfo.InvariantCulture);
 
             Localizer.Localize(this, catalog);
 
@@ -116,8 +119,10 @@ namespace Orts.Menu
                 }
                 ctsTestActivityLoader = new CancellationTokenSource();
             }
+            UseWaitCursor = true;
             testBindingSource.DataSource = new SortableBindingList<TestActivity>((await TestActivity.GetTestActivities(settings.FolderSettings.Folders, CancellationToken.None).ConfigureAwait(true)).ToList());
             testBindingSource.Sort = "DefaultSort";
+            UseWaitCursor = false;
             UpdateButtons();
         }
 
