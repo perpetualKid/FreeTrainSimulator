@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+
 using Microsoft.Win32;
 
 namespace Orts.Settings.Store
@@ -47,32 +49,35 @@ namespace Orts.Settings.Store
         {
             AssertGetUserValueType(expectedType);
 
-            var userValue = key.GetValue(name);
+            object userValue = key.GetValue(name);
             if (userValue == null)
                 return userValue;
 
             try
             {
                 // Expected bool-stored-as-int conversion.
-                if (expectedType == typeof(bool) && (userValue is int))
-                    return (int)userValue == 1;
+                if (expectedType == typeof(bool) && (userValue is int boolValue))
+                    return boolValue == 1;
 
                 // Expected DateTime-stored-as-long conversion.
-                if (expectedType == typeof(DateTime) && (userValue is long))
-                    return DateTime.FromBinary((long)userValue);
+                if (expectedType == typeof(DateTime) && (userValue is long dateTimeValue))
+                    return DateTime.FromBinary(dateTimeValue);
 
                 // Expected TimeSpan-stored-as-long conversion.
-                if (expectedType == typeof(TimeSpan) && (userValue is long))
-                    return TimeSpan.FromSeconds((long)userValue);
+                if (expectedType == typeof(TimeSpan) && (userValue is long timeSpanValue))
+                    return TimeSpan.FromSeconds(timeSpanValue);
 
                 // Expected int[]-stored-as-string conversion.
-                if (expectedType == typeof(int[]) && (userValue is string))
-                    return ((string)userValue).Split(',').Select(s => int.Parse(s)).ToArray();
+                if (expectedType == typeof(int[]) && (userValue is string intValues))
+                    return intValues.Split(',').Select(s => int.Parse(s, CultureInfo.InvariantCulture)).ToArray();
+
+                if (expectedType.IsEnum && userValue is string enumValue)
+                    return Enum.Parse(expectedType, enumValue);
 
                 // Convert whatever we're left with into the expected type.
-                return Convert.ChangeType(userValue, expectedType);
+                return Convert.ChangeType(userValue, expectedType, CultureInfo.InvariantCulture);
             }
-            catch
+            catch(InvalidCastException)
             {
                 Trace.TraceWarning("Setting {0} contains invalid value {1}.", name, userValue);
                 return null;
@@ -146,7 +151,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         protected override void SetSettingValue(string name, int[] value)
         {
-            key.SetValue(name, string.Join(",", (value).Select(v => v.ToString()).ToArray()), RegistryValueKind.String);
+            key.SetValue(name, string.Join(",", (value).Select(v => v.ToString(CultureInfo.InvariantCulture))), RegistryValueKind.String);
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+
 using Orts.Common.Native;
 
 namespace Orts.Settings.Store
@@ -20,7 +21,7 @@ namespace Orts.Settings.Store
 
         private string GetSectionValues(string section, string name)
         {
-            var buffer = new string('\0', 256);
+            string buffer = new string('\0', 256);
             while (true)
             {
                 int length = NativeMethods.GetPrivateProfileString(section, name, null, buffer, buffer.Length, Location);
@@ -63,7 +64,7 @@ namespace Orts.Settings.Store
             if (string.IsNullOrEmpty(settingValue))
                 return null;
 
-            var value = settingValue.Split(':');
+            string[] value = settingValue.Split(':');
             if (value.Length != 2)
             {
                 Trace.TraceWarning("Setting {0} contains invalid value {1}.", name, settingValue);
@@ -104,10 +105,15 @@ namespace Orts.Settings.Store
                         break;
                 }
 
-                // Convert whatever we're left with into the expected type.
-                return Convert.ChangeType(userValue, expectedType);
+                if (expectedType.IsEnum)
+                {
+                    return Enum.Parse(expectedType, userValue);
+                }
+                else
+                    // Convert whatever we're left with into the expected type.
+                    return Convert.ChangeType(userValue, expectedType, CultureInfo.InvariantCulture);
             }
-            catch
+            catch (InvalidCastException)
             {
                 Trace.TraceWarning("Setting {0} contains invalid value {1}.", name, value[1]);
                 return null;

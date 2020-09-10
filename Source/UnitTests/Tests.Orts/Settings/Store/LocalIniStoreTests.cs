@@ -1,8 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using Orts.Settings.Store;
+
 using Tests.Orts.Shared;
 
 namespace Tests.Orts.Settings.Store
@@ -33,9 +36,9 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(string.Empty))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, null) as SettingsStoreLocalIni;
-                var sections = store.GetSectionNames();
+                string[] sections = store.GetSectionNames();
 
-                CollectionAssert.AreEqual(new string[0], sections);
+                CollectionAssert.AreEqual(Array.Empty<string>(), sections);
             }
         }
 
@@ -47,9 +50,9 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, null) as SettingsStoreLocalIni;
-                var sections = store.GetSectionNames();
+                string[] sections = store.GetSectionNames();
 
-                CollectionAssert.AreEqual(contentArray.Where((s) => !s.StartsWith("#")).Select((s) => s.Trim('[', ']')).ToArray(), sections);
+                CollectionAssert.AreEqual(contentArray.Where((s) => !s.StartsWith("#", StringComparison.OrdinalIgnoreCase)).Select((s) => s.Trim('[', ']')).ToArray(), sections);
             }
         }
 
@@ -61,9 +64,9 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, null) as SettingsStoreLocalIni;
-                var sections = store.GetSectionNames();
+                string[] sections = store.GetSectionNames();
 
-                CollectionAssert.AreEqual(contentArray.Where((s) => s.StartsWith("[")).Select((s) => s.Trim('[', ']')).ToArray(), sections);
+                CollectionAssert.AreEqual(contentArray.Where((s) => s.StartsWith("[", StringComparison.OrdinalIgnoreCase)).Select((s) => s.Trim('[', ']')).ToArray(), sections);
             }
         }
 
@@ -86,9 +89,9 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, null) as SettingsStoreLocalIni;
-                var sections = store.GetSectionNames();
+                string[] sections = store.GetSectionNames();
 
-                CollectionAssert.AreEqual(contentArray.Where((s) => s.StartsWith("[")).Select((s) => s.Trim('[', ']')).ToArray(), sections);
+                CollectionAssert.AreEqual(contentArray.Where((s) => s.StartsWith("[", StringComparison.OrdinalIgnoreCase)).Select((s) => s.Trim('[', ']')).ToArray(), sections);
             }
         }
 
@@ -100,9 +103,9 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                var names = store.GetSettingNames();
+                string[] names = store.GetSettingNames();
 
-                CollectionAssert.AreEqual(new string[] {"name", "name1", "name2", "name" }, names);
+                CollectionAssert.AreEqual(new string[] { "name", "name1", "name2", "name" }, names);
             }
         }
 
@@ -114,9 +117,9 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "STRO") as SettingsStoreLocalIni;
-                var names = store.GetSettingNames();
+                string[] names = store.GetSettingNames();
 
-                CollectionAssert.AreEqual(new string[0], names);
+                CollectionAssert.AreEqual(Array.Empty<string>(), names);
             }
         }
 
@@ -193,7 +196,7 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                CollectionAssert.AreEqual(new int[]{0, 1, 10, 100, 1000}, store.GetSettingValue("name", new int[0]));
+                CollectionAssert.AreEqual(new int[] { 0, 1, 10, 100, 1000 }, store.GetSettingValue("name", Array.Empty<int>()));
             }
         }
 
@@ -204,7 +207,7 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                CollectionAssert.AreEqual(new int[] { 0, 1, 10, 100, 1000 }, store.GetSettingValue("name", new int[0]));
+                CollectionAssert.AreEqual(new int[] { 0, 1, 10, 100, 1000 }, store.GetSettingValue("name", Array.Empty<int>()));
             }
         }
 
@@ -215,7 +218,7 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                CollectionAssert.AreEqual(new string[] { "0", "1", "10", "100", "1000" }, store.GetSettingValue("name", new string[0]));
+                CollectionAssert.AreEqual(new string[] { "0", "1", "10", "100", "1000" }, store.GetSettingValue("name", Array.Empty<string>()));
             }
         }
 
@@ -275,7 +278,7 @@ namespace Tests.Orts.Settings.Store
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
                 store.SetSettingValue("intArrayValue", new int[] { 0, 1, 10, 100, 1000 });
-                CollectionAssert.AreEqual(new int[] { 0, 1, 10, 100, 1000 }, store.GetSettingValue("intArrayValue", new int[0]));
+                CollectionAssert.AreEqual(new int[] { 0, 1, 10, 100, 1000 }, store.GetSettingValue("intArrayValue", Array.Empty<int>()));
             }
         }
 
@@ -287,8 +290,27 @@ namespace Tests.Orts.Settings.Store
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
                 store.SetSettingValue("stringArrayValue", new string[] { "0", "1", "10", "100", "1000" });
-                CollectionAssert.AreEqual(new string[] { "0", "1", "10", "100", "1000" }, store.GetSettingValue("stringArrayValue", new string[0]));
+                CollectionAssert.AreEqual(new string[] { "0", "1", "10", "100", "1000" }, store.GetSettingValue("stringArrayValue", Array.Empty<string>()));
             }
         }
+
+        public enum TestEnum
+        {
+            Value1,
+            Value2,
+        }
+
+        [TestMethod]
+        public void SetSettingValueEnum()
+        {
+            string content = string.Join(Environment.NewLine, new string[] { "[ORTS]", $"name=string[]:0,1,10,100,1000" });
+            using (TestFile file = new TestFile(content))
+            {
+                SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
+                store.SetSettingValue("enumValue", TestEnum.Value2);
+                Assert.AreEqual(TestEnum.Value2, store.GetSettingValue("enumValue", default(TestEnum)));
+            }
+        }
+
     }
 }

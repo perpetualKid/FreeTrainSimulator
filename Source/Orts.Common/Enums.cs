@@ -35,8 +35,8 @@ namespace Orts.Common
         Clockwise = 1,
     }
 
-    [Description("Unit Selection")]
-    public enum Unit
+    [Description("Measurement Unit Selection")]
+    public enum MeasurementUnit
     {
         [Description("Route")] Route,
         [Description("Player's location")] System,

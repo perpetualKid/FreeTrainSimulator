@@ -65,7 +65,10 @@ namespace Orts.Settings.Store
         public void SetSettingValue<T>(string name, T value)
         {
             AssertGetUserValueType(typeof(T));
-            SetSettingValue(name, (dynamic)value);
+            if (typeof(T).IsEnum)
+                SetSettingValue(name, value.ToString());
+            else
+                SetSettingValue(name, (dynamic)value);
         }
 
         /// <summary>
@@ -111,13 +114,7 @@ namespace Orts.Settings.Store
 
         protected abstract void SetSettingValue(string name, string[] value);
 
-        /// <summary>
-        /// Assert that the type expected from the settings store is an allowed type.
-        /// </summary>
-        /// <param name="expectedType">Type that is expected</param>
-        protected static void AssertGetUserValueType(Type expectedType)
-        {
-            Debug.Assert(new[] {
+        private static readonly Type[] allowedTypes = new[] {   //allowedTypes, + Enum
                 typeof(bool),
                 typeof(int),
                 typeof(DateTime),
@@ -125,8 +122,15 @@ namespace Orts.Settings.Store
                 typeof(string),
                 typeof(int[]),
                 typeof(string[]),
-                typeof(byte),
-            }.Contains(expectedType), string.Format("GetUserValue called with unexpected type {0}.", expectedType.FullName));
+                typeof(byte) };
+
+        /// <summary>
+        /// Assert that the type expected from the settings store is an allowed type.
+        /// </summary>
+        /// <param name="expectedType">Type that is expected</param>
+        internal static void AssertGetUserValueType(Type expectedType)
+        {
+            Debug.Assert(allowedTypes.Contains(expectedType) || expectedType.IsEnum, $"GetUserValue called with unexpected type {expectedType.FullName}.");
         }
         #endregion
     }

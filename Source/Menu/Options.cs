@@ -70,7 +70,7 @@ namespace Orts.Menu
             if (comboLanguage.SelectedValue == null)
                 comboLanguage.SelectedIndex = 0;
 
-            comboBoxOtherUnits.DataSource = ComboBoxItem<string>.FromEnum<Unit>(commonCatalog);
+            comboBoxOtherUnits.DataSource = ComboBoxItem<string>.FromEnum<MeasurementUnit>(commonCatalog);
             ComboBoxItem.SetDataSourceMembers(comboBoxOtherUnits);
 
             comboPressureUnit.DataSource = new[] {
@@ -111,7 +111,7 @@ namespace Orts.Menu
             numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
             comboLanguage.Text = this.settings.Language;
             comboPressureUnit.Text = this.settings.PressureUnit;
-            comboBoxOtherUnits.SelectedValue = settings.Units;
+            comboBoxOtherUnits.SelectedValue = (int)settings.MeasurementUnit;
             checkDisableTCSScripts.Checked = this.settings.DisableTCSScripts;
             checkEnableWebServer.Checked = this.settings.WebServer;
             numericWebServerPort.Value = this.settings.WebServerPort;
@@ -341,7 +341,7 @@ namespace Orts.Menu
             settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
             settings.Language = comboLanguage.SelectedValue.ToString();
             settings.PressureUnit = comboPressureUnit.SelectedValue.ToString();
-            settings.Units = (int)comboBoxOtherUnits.SelectedValue;
+            settings.MeasurementUnit = (MeasurementUnit)comboBoxOtherUnits.SelectedValue;
             settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
             settings.WebServer = checkEnableWebServer.Checked;
 
