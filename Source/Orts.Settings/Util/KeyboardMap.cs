@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
 using Orts.Common.Input;
 
@@ -35,20 +37,21 @@ namespace Orts.Settings.Util
 
         public static void DrawKeyboardMap(Action<Rectangle> drawRow, Action<Rectangle, int, string> drawKey)
         {
-            for (var y = 0; y < KeyboardLayout.Length; y++)
+            for (int y = 0; y < KeyboardLayout.Length; y++)
             {
-                var keyboardLine = KeyboardLayout[y];
+                string keyboardLine = KeyboardLayout[y];
                 drawRow?.Invoke(new Rectangle(0, y, keyboardLine.Length, 1));
 
-                var x = keyboardLine.IndexOf('[');
+                int x = keyboardLine.IndexOf('[');
                 while (x != -1)
                 {
-                    var x2 = keyboardLine.IndexOf(']', x);
+                    int x2 = keyboardLine.IndexOf(']', x);
 
-                    var scanCodeString = keyboardLine.Substring(x + 1, 3).Trim();
-                    var keyScanCode = scanCodeString.Length > 0 ? int.Parse(scanCodeString, NumberStyles.HexNumber) : 0;
+                    string scanCodeString = keyboardLine.Substring(x + 1, 3).Trim();
+                    if (!int.TryParse(scanCodeString, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int keyScanCode))
+                        keyScanCode = 0;
 
-                    var keyName = ScanCodeKeyUtils.GetScanCodeKeyName(keyScanCode);
+                    string keyName = ScanCodeKeyUtils.GetScanCodeKeyName(keyScanCode);
                     // Only allow F-keys to show >1 character names. The rest we'll remove for now.
                     if ((keyName.Length > 1) && !new[] { 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40, 0x41, 0x42, 0x43, 0x44, 0x57, 0x58 }.Contains(keyScanCode))
                         keyName = "";
@@ -62,8 +65,11 @@ namespace Orts.Settings.Util
 
         public static Color GetScanCodeColor(this InputSettings input, int scanCode)
         {
+            if (null == input)
+                throw new ArgumentNullException(nameof(input));
+
             // These should be placed in order of priority - the first found match is used.
-            var prefixesToColors = new List<KeyValuePair<string, Color>>()
+            List<KeyValuePair<string, Color>> prefixesToColors = new List<KeyValuePair<string, Color>>()
             {
                 new KeyValuePair<string, Color>("ControlReverser", Color.DarkGreen),
                 new KeyValuePair<string, Color>("ControlThrottle", Color.DarkGreen),
@@ -81,9 +87,9 @@ namespace Orts.Settings.Util
                 new KeyValuePair<string, Color>("", Color.Gray),
             };
 
-            foreach (var prefixToColor in prefixesToColors)
-                foreach (var command in GetScanCodeCommands(scanCode, input.Commands))
-                    if (command.ToString().StartsWith(prefixToColor.Key))
+            foreach (KeyValuePair<string, Color> prefixToColor in prefixesToColors)
+                foreach (UserCommand command in GetScanCodeCommands(scanCode, input.Commands))
+                    if (command.ToString().StartsWith(prefixToColor.Key, StringComparison.OrdinalIgnoreCase))
                         return prefixToColor.Value;
 
             return Color.Transparent;
@@ -91,32 +97,38 @@ namespace Orts.Settings.Util
 
         public static void DumpToText(this InputSettings input, string filePath)
         {
-            using (var writer = new StreamWriter(File.OpenWrite(filePath)))
+            if (null == input)
+                throw new ArgumentNullException(nameof(input));
+
+            using (StreamWriter writer = new StreamWriter(File.OpenWrite(filePath)))
             {
                 writer.WriteLine("{0,-40}{1,-40}{2}", "Command", "Key", "Unique Inputs");
-                writer.WriteLine(new String('=', 40 * 3));
-                foreach (var command in EnumExtension.GetValues<UserCommand>())
-                    writer.WriteLine("{0,-40}{1,-40}{2}", GetPrettyCommandName(command), input.Commands[(int)command], String.Join(", ", input.Commands[(int)command].GetUniqueInputs().OrderBy(s => s).ToArray()));
+                writer.WriteLine(new string('=', 40 * 3));
+                foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
+                    writer.WriteLine("{0,-40}{1,-40}{2}", command.GetDescription(), input.Commands[(int)command], string.Join(", ", input.Commands[(int)command].GetUniqueInputs().OrderBy(s => s).ToArray()));
             }
         }
 
         public static void DumpToGraphic(this InputSettings input, string filePath)
         {
-            var keyWidth = 50;
-            var keyHeight = 4 * keyWidth;
-            var keySpacing = 5;
-            var keyFontLabel = new System.Drawing.Font(System.Drawing.SystemFonts.MessageBoxFont.FontFamily, keyHeight * 0.33f, System.Drawing.GraphicsUnit.Pixel);
-            var keyFontCommand = new System.Drawing.Font(System.Drawing.SystemFonts.MessageBoxFont.FontFamily, keyHeight * 0.22f, System.Drawing.GraphicsUnit.Pixel);
-            var keyboardLayoutBitmap = new System.Drawing.Bitmap(KeyboardLayout[0].Length * keyWidth, KeyboardLayout.Length * keyHeight);
-            using (var g = System.Drawing.Graphics.FromImage(keyboardLayoutBitmap))
+            if (null == input)
+                throw new ArgumentNullException(nameof(input));
+
+            int keyWidth = 50;
+            int keyHeight = 4 * keyWidth;
+            int keySpacing = 5;
+            System.Drawing.Font keyFontLabel = new System.Drawing.Font(System.Drawing.SystemFonts.MessageBoxFont.FontFamily, keyHeight * 0.33f, System.Drawing.GraphicsUnit.Pixel);
+            System.Drawing.Font keyFontCommand = new System.Drawing.Font(System.Drawing.SystemFonts.MessageBoxFont.FontFamily, keyHeight * 0.22f, System.Drawing.GraphicsUnit.Pixel);
+            System.Drawing.Bitmap keyboardLayoutBitmap = new System.Drawing.Bitmap(KeyboardLayout[0].Length * keyWidth, KeyboardLayout.Length * keyHeight);
+            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(keyboardLayoutBitmap))
             {
                 DrawKeyboardMap(null, (keyBox, keyScanCode, keyName) =>
                 {
-                    var keyCommands = GetScanCodeCommands(keyScanCode, input.Commands);
-                    var keyCommandNames = String.Join("\n", keyCommands.Select(c => String.Join(" ", GetPrettyCommandName(c).Split(' ').Skip(1).ToArray())).ToArray());
+                    IEnumerable<UserCommand> keyCommands = GetScanCodeCommands(keyScanCode, input.Commands);
+                    string keyCommandNames = string.Join("\n", keyCommands.Select(c => string.Join(" ", c.GetDescription().Split(' ').Skip(1))));
 
-                    var keyColor = input.GetScanCodeColor(keyScanCode);
-                    var keyTextColor = System.Drawing.Brushes.Black;
+                    Color keyColor = input.GetScanCodeColor(keyScanCode);
+                    System.Drawing.Brush keyTextColor = System.Drawing.Brushes.Black;
                     if (keyColor == Color.Transparent)
                     {
                         keyColor = Color.White;
@@ -138,6 +150,9 @@ namespace Orts.Settings.Util
                 });
             }
             keyboardLayoutBitmap.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
+            keyFontLabel.Dispose();
+            keyFontCommand.Dispose();
+            keyboardLayoutBitmap.Dispose();
         }
 
         public static void Scale(ref Rectangle rectangle, int scaleX, int scaleY)
@@ -148,30 +163,16 @@ namespace Orts.Settings.Util
             rectangle.Height *= scaleY;
         }
 
-        public static string GetPrettyCommandName(UserCommand command)
-        {
-            var name = command.ToString();
-            var nameU = name.ToUpperInvariant();
-            var nameL = name.ToLowerInvariant();
-            for (var i = name.Length - 1; i > 0; i--)
-            {
-                if (((name[i - 1] != nameU[i - 1]) && (name[i] == nameU[i])) ||
-                    (name[i - 1] == nameL[i - 1]) && (name[i] != nameL[i]))
-                {
-                    name = name.Insert(i, " ");
-                    nameL = nameL.Insert(i, " ");
-                }
-            }
-            return name;
-        }
-
         public static string GetPrettyUniqueInput(string uniqueInput)
         {
-            var parts = uniqueInput.Split('+');
-            if (parts[parts.Length - 1].StartsWith("0x"))
+            if (string.IsNullOrEmpty(uniqueInput))
+                return string.Empty;
+
+            string[] parts = uniqueInput.Split('+');
+            if (parts[parts.Length - 1].StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
-                var key = int.Parse(parts[parts.Length - 1].Substring(2), NumberStyles.AllowHexSpecifier);
-                parts[parts.Length - 1] = ScanCodeKeyUtils.GetScanCodeKeyName(key);
+                if (int.TryParse(parts[parts.Length - 1].Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out int key))
+                    parts[parts.Length - 1] = ScanCodeKeyUtils.GetScanCodeKeyName(key);
             }
             return string.Join(" + ", parts);
         }
