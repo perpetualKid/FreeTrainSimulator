@@ -158,7 +158,7 @@ namespace Orts.Launcher
                     Name = ("Microsoft .NET Core 3.1"),
                     Text = "Please go to\n https://dotnet.microsoft.com/download/dotnet-core/3.1 \nto download the installation package " +
                     "for Microsoft .NET Core 3.1 Desktop Runtime and install the software.",
-                    Url = "https://dotnet.microsoft.com/download/dotnet-framework/net48"
+                    Url = "https://dotnet.microsoft.com/download/dotnet-core/3.1"
                 });
             }
             return false;
