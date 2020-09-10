@@ -42,7 +42,7 @@ namespace Orts.Menu
 
         private readonly ICatalog catalog;
 
-        public OptionsForm(UserSettings settings, UpdateManager updateManager, ICatalog catalog, ICatalog commonCatalog,  bool initialContentSetup)
+        public OptionsForm(UserSettings settings, UpdateManager updateManager, ICatalog catalog, ICatalog commonCatalog, bool initialContentSetup)
         {
             InitializeComponent();
             Localizer.Localize(this, catalog);
@@ -54,9 +54,10 @@ namespace Orts.Menu
             // Collect all the available language codes by searching for
             // localisation files, but always include English (base language).
             List<string> languageCodes = new List<string> { "en" };
-            foreach (string path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
-                if (Directory.EnumerateFiles(path, "*.mo").Any())
-                    languageCodes.Add(Path.GetFileName(path));
+            if (Directory.Exists(RuntimeInfo.LocalesFolder))
+                foreach (string path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
+                    if (Directory.EnumerateFiles(path, "*.mo").Any())
+                        languageCodes.Add(Path.GetFileName(path));
 
             // Turn the list of codes in to a list of code + name pairs for
             // displaying in the dropdown list.
