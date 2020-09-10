@@ -108,8 +108,8 @@ namespace Orts.Settings
         public int BrakePipeChargingRate { get; set; }
         [Default("")]
         public string Language { get; set; }
-        [Default("Automatic")]
-        public string PressureUnit { get; set; }
+        [Default(PressureUnit.Automatic)]
+        public PressureUnit PressureUnit { get; set; }
         [Default(MeasurementUnit.Route)]
         public MeasurementUnit MeasurementUnit { get; set; }
         [Default(false)]
@@ -186,8 +186,8 @@ namespace Orts.Settings
         public bool SimpleControlPhysics { get; set; }
 
         // Data logger settings:
-        [Default("comma")]
-        public string DataLoggerSeparator { set; get; }
+        [Default(SeparatorChar.Comma)]
+        public SeparatorChar DataLoggerSeparator { set; get; }
         [Default("route")]
         public string DataLogSpeedUnits { get; set; }
         [Default(false)]

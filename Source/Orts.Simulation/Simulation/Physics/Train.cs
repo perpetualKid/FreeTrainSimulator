@@ -2527,9 +2527,7 @@ namespace Orts.Simulation.Physics
 
             if (!File.Exists(DataLogFile))
             {
-                if (!Enum.TryParse(Simulator.Settings.DataLoggerSeparator, true, out DataLogger.SeparatorChar value))
-                    throw new ArgumentException($"Separator char \"{Simulator.Settings.DataLoggerSeparator}\" is not one of allowed values");
-                char Separator = (char)value;
+                char Separator = (char)Simulator.Settings.DataLoggerSeparator;
 
                 if (DatalogTSContents[0] == 1)
                 {
@@ -2636,9 +2634,7 @@ namespace Orts.Simulation.Physics
 
                 var stringBuild = new StringBuilder();
 
-                if (!Enum.TryParse(Simulator.Settings.DataLoggerSeparator, true, out DataLogger.SeparatorChar value))
-                    throw new ArgumentException($"Separator char \"{Simulator.Settings.DataLoggerSeparator}\" is not one of allowed values");
-                char Separator = (char)value;
+                char Separator = (char)Simulator.Settings.DataLoggerSeparator;
 
                 if (DatalogTSContents[0] == 1)
                 {

@@ -35,7 +35,16 @@ namespace Orts.Common
         Clockwise = 1,
     }
 
-    [Description("Measurement Unit Selection")]
+    [Description("Separator")]
+    public enum SeparatorChar
+    {
+        [Description("Comma")] Comma = ',',
+        [Description("Semicolon")] Semicolon = ';',
+        [Description("Tab")] Tab = '\t',
+        [Description("Space")] Space = ' '
+    };
+
+    [Description("Measurement units Preference")]
     public enum MeasurementUnit
     {
         [Description("Route")] Route,
@@ -43,6 +52,20 @@ namespace Orts.Common
         [Description("Metric")] Metric,
         [Description("Imperial US")] US,
         [Description("Imperial UK")] UK,
+    }
+
+    [Description("Pressure units Preference")]
+    public enum PressureUnit
+    {
+        [Description("Automatic")] Automatic,
+        /// <summary>bar</summary>
+        [Description("bar")] Bar,
+        /// <summary>Pounds Per Square Inch</summary>
+        [Description("psi")] Psi,
+        /// <summary>Inches Mercury</summary>
+        [Description("inHg")] InHg,
+        /// <summary>Mass-force per square centimetres</summary>
+        [Description("kgf/cm²")] Kgfcm2,
     }
 
     public enum ClockType

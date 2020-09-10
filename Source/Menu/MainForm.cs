@@ -193,20 +193,12 @@ namespace Orts.Menu
                 initTasks.Add(CheckForUpdateAsync());
                 initTasks.Add(Task.Run(LoadToolsAndDocuments));
 
-                comboBoxStartSeason.DataSource = ComboBoxItem<int>.FromEnum<SeasonType>(commonCatalog);
-                ComboBoxItem.SetDataSourceMembers(comboBoxStartSeason);
-
-                comboBoxStartWeather.DataSource = ComboBoxItem<int>.FromEnum<WeatherType>(commonCatalog);
-                ComboBoxItem.SetDataSourceMembers(comboBoxStartWeather);
-                comboBoxDifficulty.DataSource = ComboBoxItem<int>.FromEnum<Difficulty>(commonCatalog);
-                ComboBoxItem.SetDataSourceMembers(comboBoxDifficulty);
-
-                comboBoxTimetableSeason.DataSource = ComboBoxItem<int>.FromEnum<SeasonType>(commonCatalog);
-                ComboBoxItem.SetDataSourceMembers(comboBoxTimetableSeason);
-                comboBoxTimetableWeather.DataSource = ComboBoxItem<int>.FromEnum<WeatherType>(commonCatalog);
-                ComboBoxItem.SetDataSourceMembers(comboBoxTimetableWeather);
-                comboBoxTimetableDay.DataSource = ComboBoxItem<int>.FromList(Enumerable.Range(0, 7), (day) => CultureInfo.CurrentUICulture.DateTimeFormat.DayNames[day]);
-                ComboBoxItem.SetDataSourceMembers(comboBoxTimetableDay);
+                comboBoxStartSeason.DataSourceFromEnumIndex<SeasonType>(commonCatalog);
+                comboBoxStartWeather.DataSourceFromEnumIndex<WeatherType>(commonCatalog);
+                comboBoxDifficulty.DataSourceFromEnumIndex<Difficulty>(commonCatalog);
+                comboBoxTimetableSeason.DataSourceFromEnumIndex<SeasonType>(commonCatalog);
+                comboBoxTimetableWeather.DataSourceFromEnumIndex<WeatherType>(commonCatalog);
+                comboBoxTimetableDay.DataSourceFromList<int>(Enumerable.Range(0, 7), (day) => CultureInfo.CurrentUICulture.DateTimeFormat.DayNames[day]);
 
                 initialized = true;
             }

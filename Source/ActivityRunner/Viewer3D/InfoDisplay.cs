@@ -65,9 +65,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public InfoDisplay(Viewer viewer)
         {
             this.viewer = viewer;
-            dataLog = new DataLogger(Path.Combine(viewer.Settings.LoggingPath, "OpenRailsDump.csv"));
-            if (!Enum.TryParse(viewer.Settings.DataLoggerSeparator, true, out dataLog.Separator))
-                throw new ArgumentException($"Separator char \"{viewer.Settings.DataLoggerSeparator}\" is not one of allowed values");
+            dataLog = new DataLogger(Path.Combine(viewer.Settings.LoggingPath, "OpenRailsDump.csv"), viewer.Settings.DataLoggerSeparator);
 
             if (viewer.Settings.DataLogger)
                 DataLoggerStart();

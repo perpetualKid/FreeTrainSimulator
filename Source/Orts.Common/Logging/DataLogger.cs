@@ -30,19 +30,16 @@ namespace Orts.Common.Logging
         private readonly StringBuilder cache = new StringBuilder(cacheSize);
         private readonly SemaphoreSlim fileAccess = new SemaphoreSlim(1);
 
-        public enum SeparatorChar
-        {
-            Comma = ',',
-            Semicolon = ';',
-            Tab = '\t',
-            Space = ' '
-        };
-
-        public SeparatorChar Separator = SeparatorChar.Comma;
+        public SeparatorChar Separator { get; private set; } = SeparatorChar.Comma;
 
         public DataLogger(string filePath)
         {
             this.filePath = filePath;
+        }
+        public DataLogger(string filePath, SeparatorChar separator)
+        {
+            this.filePath = filePath;
+            this.Separator = separator;
         }
 
         public void Data(string data)

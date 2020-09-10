@@ -61,29 +61,15 @@ namespace Orts.Menu
 
             // Turn the list of codes in to a list of code + name pairs for
             // displaying in the dropdown list.
-            comboLanguage.DataSource =
-                new[] { new ComboBoxItem<string>(string.Empty, "System") }
-                .Union(
-                    ComboBoxItem<string>.FromList(languageCodes, (language) => CultureInfo.GetCultureInfo(language).NativeName).OrderBy(language => language.Value))
-                .ToList();
-            ComboBoxItem.SetDataSourceMembers(comboLanguage);
+            languageCodes.Add(string.Empty);
+            languageCodes.Sort();
+            comboLanguage.DataSourceFromList(languageCodes, (language) => string.IsNullOrEmpty(language) ? "System" : CultureInfo.GetCultureInfo(language).NativeName);
             comboLanguage.SelectedValue = this.settings.Language;
             if (comboLanguage.SelectedValue == null)
                 comboLanguage.SelectedIndex = 0;
 
-            comboBoxOtherUnits.DataSource = ComboBoxItem<string>.FromEnum<MeasurementUnit>(commonCatalog);
-            ComboBoxItem.SetDataSourceMembers(comboBoxOtherUnits);
-
-            comboPressureUnit.DataSource = new[] {
-                new ComboBoxMember { Code = "Automatic", Name = catalog.GetString("Automatic") },
-                new ComboBoxMember { Code = "bar", Name = catalog.GetString("bar") },
-                new ComboBoxMember { Code = "PSI", Name = catalog.GetString("psi") },
-                new ComboBoxMember { Code = "inHg", Name = catalog.GetString("inHg") },
-                new ComboBoxMember { Code = "kgf/cm^2", Name = catalog.GetString("kgf/cm²") },
-            }.ToList();
-            comboPressureUnit.DisplayMember = "Name";
-            comboPressureUnit.ValueMember = "Code";
-            comboPressureUnit.SelectedValue = this.settings.PressureUnit;
+            comboBoxOtherUnits.DataSourceFromEnum<MeasurementUnit>(commonCatalog);
+            comboPressureUnit.DataSourceFromEnum<PressureUnit>(commonCatalog);
 
             // Windows 2000 and XP should use 8.25pt Tahoma, while Windows
             // Vista and later should use 9pt "Segoe UI". We'll use the
@@ -111,8 +97,8 @@ namespace Orts.Menu
             checkGraduatedRelease.Checked = this.settings.GraduatedRelease;
             numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
             comboLanguage.Text = this.settings.Language;
-            comboPressureUnit.Text = this.settings.PressureUnit;
-            comboBoxOtherUnits.SelectedValue = (int)settings.MeasurementUnit;
+            comboPressureUnit.SelectedValue = this.settings.PressureUnit;
+            comboBoxOtherUnits.SelectedValue = settings.MeasurementUnit;
             checkDisableTCSScripts.Checked = this.settings.DisableTCSScripts;
             checkEnableWebServer.Checked = this.settings.WebServer;
             numericWebServerPort.Value = this.settings.WebServerPort;
@@ -171,17 +157,9 @@ namespace Orts.Menu
             //InitializeRailDriverSettings());
 
             // DataLogger tab
-            var dictionaryDataLoggerSeparator = new Dictionary<string, string>
-            {
-                { "comma", catalog.GetString("comma") },
-                { "semicolon", catalog.GetString("semicolon") },
-                { "tab", catalog.GetString("tab") },
-                { "space", catalog.GetString("space") }
-            };
-            comboDataLoggerSeparator.DataSource = new BindingSource(dictionaryDataLoggerSeparator, null);
-            comboDataLoggerSeparator.DisplayMember = "Value";
-            comboDataLoggerSeparator.ValueMember = "Key";
-            comboDataLoggerSeparator.Text = catalog.GetString(this.settings.DataLoggerSeparator);
+            comboDataLoggerSeparator.DataSourceFromEnum<SeparatorChar>(commonCatalog);
+            comboDataLoggerSeparator.SelectedValue = settings.DataLoggerSeparator;
+
             var dictionaryDataLogSpeedUnits = new Dictionary<string, string>
             {
                 { "route", catalog.GetString("route") },
@@ -193,6 +171,7 @@ namespace Orts.Menu
             comboDataLogSpeedUnits.DisplayMember = "Value";
             comboDataLogSpeedUnits.ValueMember = "Key";
             comboDataLogSpeedUnits.Text = catalog.GetString(this.settings.DataLogSpeedUnits);
+
             checkDataLogger.Checked = this.settings.DataLogger;
             checkDataLogPerformance.Checked = this.settings.DataLogPerformance;
             checkDataLogPhysics.Checked = this.settings.DataLogPhysics;
@@ -244,8 +223,7 @@ namespace Orts.Menu
             buttonUpdatesRefresh.Width = 23;
             buttonUpdatesRefresh.Height = 23;
 
-            comboBoxUpdateChannels.DataSource = ComboBoxItem<string>.FromList(updateManager.GetChannels().OrderByDescending((s) => s), (channel) => catalog.GetString(channel));
-            ComboBoxItem.SetDataSourceMembers(comboBoxUpdateChannels);
+            comboBoxUpdateChannels.DataSourceFromList(updateManager.GetChannels().OrderByDescending((s) => s), (channel) => catalog.GetString(channel));
             comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);
 
             // Experimental tab
@@ -341,7 +319,7 @@ namespace Orts.Menu
             settings.GraduatedRelease = checkGraduatedRelease.Checked;
             settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
             settings.Language = comboLanguage.SelectedValue.ToString();
-            settings.PressureUnit = comboPressureUnit.SelectedValue.ToString();
+            settings.PressureUnit = (PressureUnit)comboPressureUnit.SelectedValue;
             settings.MeasurementUnit = (MeasurementUnit)comboBoxOtherUnits.SelectedValue;
             settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
             settings.WebServer = checkEnableWebServer.Checked;
@@ -395,7 +373,7 @@ namespace Orts.Menu
             SaveRailDriverSettings();
 
             // DataLogger tab
-            settings.DataLoggerSeparator = comboDataLoggerSeparator.SelectedValue.ToString();
+            settings.DataLoggerSeparator = (SeparatorChar)comboDataLoggerSeparator.SelectedValue;
             settings.DataLogSpeedUnits = comboDataLogSpeedUnits.SelectedValue.ToString();
             settings.DataLogger = checkDataLogger.Checked;
             settings.DataLogPerformance = checkDataLogPerformance.Checked;
@@ -662,7 +640,7 @@ namespace Orts.Menu
         {
             await updateManager.RefreshUpdateInfo(UpdateCheckFrequency.Always).ConfigureAwait(true);
 
-            comboBoxUpdateChannels.DataSource = ComboBoxItem<string>.FromList(updateManager.GetChannels(), (channel) => catalog.GetString(channel));
+            comboBoxUpdateChannels.DataSourceFromList<string>(updateManager.GetChannels(), (channel) => catalog.GetString(channel));
             comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);
         }
 
@@ -681,23 +659,6 @@ namespace Orts.Menu
             }
         }
 
-    }
-
-    internal class ComboBoxMember
-    {
-        public string Code { get; set; }
-        public string Name { get; set; }
-
-        public static IEnumerable<ComboBoxMember> CreateFromEnum<T>(ICatalog catalog) where T : Enum
-        {
-            string context = EnumExtension.EnumDescription<T>();
-            return (from data in EnumExtension.GetValues<T>()
-                    select new ComboBoxMember()
-                    {
-                        Code = data.ToString(),
-                        Name = string.IsNullOrEmpty(context) ? catalog.GetString(data.GetDescription()) : catalog.GetParticularString(context, data.GetDescription())
-                    }).ToList();
-        }
     }
 
     public class ContentFolder

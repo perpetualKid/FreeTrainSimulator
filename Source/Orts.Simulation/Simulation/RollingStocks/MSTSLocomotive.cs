@@ -524,7 +524,7 @@ namespace Orts.Simulation.RollingStocks
             switch (Simulator.Settings.PressureUnit)
             {
                 default:
-                case "Automatic":
+                case PressureUnit.Automatic:
                     if (CabViewList.Count > 0)
                     {
                         Dictionary<CabViewControlType, BrakeSystemComponent> brakeSystemComponents = new Dictionary<CabViewControlType, BrakeSystemComponent>
@@ -571,28 +571,28 @@ namespace Orts.Simulation.RollingStocks
                     }
                     break;
 
-                case "bar":
+                case PressureUnit.Bar:
                     foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
                     {
                         BrakeSystemPressureUnits[component] = Pressure.Unit.Bar;
                     }
                     break;
 
-                case "PSI":
+                case PressureUnit.Psi:
                     foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
                     {
                         BrakeSystemPressureUnits[component] = Pressure.Unit.PSI;
                     }
                     break;
 
-                case "inHg":
+                case PressureUnit.InHg:
                     foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
                     {
                         BrakeSystemPressureUnits[component] = Pressure.Unit.InHg;
                     }
                     break;
 
-                case "kgf/cm^2":
+                case PressureUnit.Kgfcm2:
                     foreach (BrakeSystemComponent component in BrakeSystemPressureUnits.Keys.ToList())
                     {
                         BrakeSystemPressureUnits[component] = Pressure.Unit.KgfpCm2;
