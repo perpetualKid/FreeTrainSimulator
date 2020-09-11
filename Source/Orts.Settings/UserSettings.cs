@@ -188,8 +188,8 @@ namespace Orts.Settings
         // Data logger settings:
         [Default(SeparatorChar.Comma)]
         public SeparatorChar DataLoggerSeparator { set; get; }
-        [Default("route")]
-        public string DataLogSpeedUnits { get; set; }
+        [Default(SpeedUnit.Route)]
+        public SpeedUnit DataLogSpeedUnits { get; set; }
         [Default(false)]
         public bool DataLogStart { get; set; }
         [Default(true)]
@@ -205,14 +205,14 @@ namespace Orts.Settings
 
         // Evaluation settings:
         [Default(false)]
-        public bool DataLogTrainSpeed { get; set; }
+        public bool EvaluationTrainSpeed { get; set; }
         [Default(10)]
-        public int DataLogTSInterval { get; set; }
+        public int EvaluationInterval { get; set; }
         //Time, Train Speed, Max Speed, Signal Aspect, Elevation, Direction, Distance Travelled, Control Mode, Throttle, Brake, Dyn Brake, Gear
-        [Default(new[] { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
-        public int[] DataLogTSContents { get; set; }
+        [Default(EvaluationLogContents.Time | EvaluationLogContents.Speed | EvaluationLogContents.MaxSpeed)]
+        public EvaluationLogContents EvaluationContent { get; set; }
         [Default(false)]
-        public bool DataLogStationStops { get; set; }
+        public bool EvaluationStationStops { get; set; }
 
         // Updater settings
         #region update settings

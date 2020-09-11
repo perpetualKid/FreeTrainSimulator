@@ -1328,19 +1328,18 @@ namespace Orts.Simulation.Timetables
             {
                 SetupStationStopHandling(); // player train must now perform own station stop handling (no activity function available)
 
-                DatalogTrainSpeed = Simulator.Settings.DataLogTrainSpeed;
-                DatalogTSInterval = Simulator.Settings.DataLogTSInterval;
+                evaluateTrainSpeed = Simulator.Settings.EvaluationTrainSpeed;
+                evaluationInterval = Simulator.Settings.EvaluationInterval;
 
-                DatalogTSContents = new int[Simulator.Settings.DataLogTSContents.Length];
-                Simulator.Settings.DataLogTSContents.CopyTo(DatalogTSContents, 0);
+                evaluationContent = Simulator.Settings.EvaluationContent;
 
                 // if logging required, derive filename and open file
-                if (DatalogTrainSpeed)
+                if (evaluateTrainSpeed)
                 {
-                    DataLogFile = Simulator.DeriveLogFile("Speed");
-                    if (String.IsNullOrEmpty(DataLogFile))
+                    evaluationLogFile = Simulator.DeriveLogFile("Speed");
+                    if (String.IsNullOrEmpty(evaluationLogFile))
                     {
-                        DatalogTrainSpeed = false;
+                        evaluateTrainSpeed = false;
                     }
                     else
                     {
@@ -2811,7 +2810,7 @@ namespace Orts.Simulation.Timetables
 
             // log train details
 
-            if (DatalogTrainSpeed)
+            if (evaluateTrainSpeed)
             {
                 LogTrainSpeed(Simulator.ClockTime);
             }

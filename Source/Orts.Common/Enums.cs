@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.ComponentModel;
 
 namespace Orts.Common
@@ -66,6 +67,34 @@ namespace Orts.Common
         [Description("inHg")] InHg,
         /// <summary>Mass-force per square centimetres</summary>
         [Description("kgf/cm²")] Kgfcm2,
+    }
+
+    [Description("Speed Unit Preference")]
+    public enum SpeedUnit
+    {
+        [Description("Route")] Route,
+        [Description("m/s")] Mps,
+        [Description("km/h")] Kmph,
+        [Description("mph")] Mph,
+    }
+
+    //Time, Train Speed, Max Speed, Signal Aspect, Elevation, Direction, Distance Travelled, Control Mode, Throttle, Brake, Dyn Brake, Gear
+    [Flags]
+    public enum EvaluationLogContents
+    {
+        [Description("None")] None                  = 0,
+        [Description("Time")] Time                  = 1 << 0,
+        [Description("Train Speed")] Speed          = 1 << 1,
+        [Description("Max. Speed")] MaxSpeed        = 1 << 2,
+        [Description("SignalAspect")] SignalAspect  = 1 << 3,
+        [Description("Track Elevation")] Elevation  = 1 << 4,
+        [Description("Direction")] Direction        = 1 << 5,
+        [Description("Distance Travelled")] Distance = 1 << 6,
+        [Description("Control Mode")] ControlMode   = 1 << 7,
+        [Description("Throttle %")] Throttle        = 1 << 8,
+        [Description("Brake Cyl Press")] Brake      = 1 << 9,
+        [Description("Dyn Brake %")] DynBrake       = 1 << 10,
+        [Description("Gear Setting")] Gear          = 1 << 11,
     }
 
     public enum ClockType

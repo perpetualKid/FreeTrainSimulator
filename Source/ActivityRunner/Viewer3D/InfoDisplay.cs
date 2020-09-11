@@ -223,14 +223,13 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             switch (viewer.Settings.DataLogSpeedUnits)
                             {
-                                case "route":
-                                    return FormatStrings.FormatSpeed(speedMpS, viewer.MilepostUnitsMetric);
-                                case "mps":
+                                case SpeedUnit.Mps:
                                     return speedMpS.ToString("F1");
-                                case "mph":
+                                case SpeedUnit.Mph:
                                     return Speed.MeterPerSecond.FromMpS(speedMpS, false).ToString("F1");
-                                case "kmph":
+                                case SpeedUnit.Kmph:
                                     return Speed.MeterPerSecond.FromMpS(speedMpS, true).ToString("F1");
+                                case SpeedUnit.Route:
                                 default:
                                     return FormatStrings.FormatSpeed(speedMpS, viewer.MilepostUnitsMetric);
                             }

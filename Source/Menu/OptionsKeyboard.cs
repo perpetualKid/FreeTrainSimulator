@@ -27,15 +27,25 @@ namespace Orts.Menu
             int rowHeight = tempKIC.Height;
             int rowSpacing = rowHeight + tempKIC.Margin.Vertical;
 
-            string lastCategory = "";
+            string previousCategory = "";
             int i = 0;
             foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
                 string name = catalog.GetString(command.GetDescription());
-                string category = ParseCategoryFrom(name);
-                string descriptor = ParseDescriptorFrom(name);
+                string category, description;
+                int index = name.IndexOf(' ');
+                if (index == -1)
+                {
+                    category = string.Empty;
+                    description = name;
+                }
+                else
+                {
+                    category = name.Substring(0, index);
+                    description = name.Substring(index + 1);
+                }
 
-                if (category != lastCategory)
+                if (category != previousCategory)
                 {
                     Label catlabel = new Label
                     {
@@ -47,7 +57,7 @@ namespace Orts.Menu
                     catlabel.Font = new Font(catlabel.Font, FontStyle.Bold);
                     panel.Controls.Add(catlabel);
 
-                    lastCategory = category;
+                    previousCategory = category;
                     ++i;
                 }
 
@@ -55,7 +65,7 @@ namespace Orts.Menu
                 {
                     Location = new Point(tempLabel.Margin.Left, rowTop + rowSpacing * i),
                     Size = new Size(columnWidth - tempLabel.Margin.Horizontal, rowHeight),
-                    Text = descriptor,
+                    Text = description,
                     TextAlign = ContentAlignment.MiddleRight
                 };
                 panel.Controls.Add(label);

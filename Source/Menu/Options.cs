@@ -160,17 +160,8 @@ namespace Orts.Menu
             comboDataLoggerSeparator.DataSourceFromEnum<SeparatorChar>(commonCatalog);
             comboDataLoggerSeparator.SelectedValue = settings.DataLoggerSeparator;
 
-            var dictionaryDataLogSpeedUnits = new Dictionary<string, string>
-            {
-                { "route", catalog.GetString("route") },
-                { "mps", catalog.GetString("m/s") },
-                { "kmph", catalog.GetString("km/h") },
-                { "mph", catalog.GetString("mph") }
-            };
-            comboDataLogSpeedUnits.DataSource = new BindingSource(dictionaryDataLogSpeedUnits, null);
-            comboDataLogSpeedUnits.DisplayMember = "Value";
-            comboDataLogSpeedUnits.ValueMember = "Key";
-            comboDataLogSpeedUnits.Text = catalog.GetString(this.settings.DataLogSpeedUnits);
+            comboDataLogSpeedUnits.DataSourceFromEnum<SpeedUnit>(commonCatalog);
+            comboDataLogSpeedUnits.SelectedValue = settings.DataLogSpeedUnits;
 
             checkDataLogger.Checked = this.settings.DataLogger;
             checkDataLogPerformance.Checked = this.settings.DataLogPerformance;
@@ -180,28 +171,22 @@ namespace Orts.Menu
             checkVerboseConfigurationMessages.Checked = this.settings.VerboseConfigurationMessages;
 
             // Evaluation tab
-            checkDataLogTrainSpeed.Checked = this.settings.DataLogTrainSpeed;
+            checkDataLogTrainSpeed.Checked = this.settings.EvaluationTrainSpeed;
             labelDataLogTSInterval.Enabled = checkDataLogTrainSpeed.Checked;
             numericDataLogTSInterval.Enabled = checkDataLogTrainSpeed.Checked;
             checkListDataLogTSContents.Enabled = checkDataLogTrainSpeed.Checked;
-            numericDataLogTSInterval.Value = this.settings.DataLogTSInterval;
-            checkListDataLogTSContents.Items.AddRange(new object[] {
-                catalog.GetString("Time"),
-                catalog.GetString("Train Speed"),
-                catalog.GetString("Max. Speed"),
-                catalog.GetString("Signal State"),
-                catalog.GetString("Track Elevation"),
-                catalog.GetString("Direction"),
-                catalog.GetString("Control Mode"),
-                catalog.GetString("Distance Travelled"),
-                catalog.GetString("Throttle %"),
-                catalog.GetString("Brake Cyl Press"),
-                catalog.GetString("Dyn Brake %"),
-                catalog.GetString("Gear Setting")
-            });
-            for (var i = 0; i < checkListDataLogTSContents.Items.Count; i++)
-                checkListDataLogTSContents.SetItemChecked(i, this.settings.DataLogTSContents[i] == 1);
-            checkDataLogStationStops.Checked = this.settings.DataLogStationStops;
+            numericDataLogTSInterval.Value = this.settings.EvaluationInterval;
+
+            string context = EnumExtension.EnumDescription<EvaluationLogContents>();
+            checkListDataLogTSContents.Items.AddRange(EnumExtension.GetValues<EvaluationLogContents>().
+                Where(content => content != EvaluationLogContents.None).
+                Select(content => commonCatalog.GetParticularString(context, content.GetDescription())).ToArray());
+
+            for (int i = 0; i < checkListDataLogTSContents.Items.Count; i++)
+            {
+                checkListDataLogTSContents.SetItemChecked(i, settings.EvaluationContent.HasFlag((EvaluationLogContents)(1<<i)));
+            }
+            checkDataLogStationStops.Checked = this.settings.EvaluationStationStops;
 
             // Content tab
             bindingSourceContent.DataSource = (from folder in this.settings.FolderSettings.Folders
@@ -276,28 +261,9 @@ namespace Orts.Menu
             base.Dispose(disposing);
         }
 
-
-        private static string ParseCategoryFrom(string name)
-        {
-            var len = name.IndexOf(' ');
-            if (len == -1)
-                return "";
-            else
-                return name.Substring(0, len);
-        }
-
-        private static string ParseDescriptorFrom(string name)
-        {
-            var len = name.IndexOf(' ');
-            if (len == -1)
-                return name;
-            else
-                return name.Substring(len + 1);
-        }
-
         private void ButtonOK_Click(object sender, EventArgs e)
         {
-            var result = settings.Input.CheckForErrors();
+            string result = settings.Input.CheckForErrors();
             if (!string.IsNullOrEmpty(result) && DialogResult.Yes != MessageBox.Show(catalog.GetString("Continue with conflicting key assignments?\n\n") + result, RuntimeInfo.ProductName, MessageBoxButtons.YesNo))
                 return;
 
@@ -374,7 +340,7 @@ namespace Orts.Menu
 
             // DataLogger tab
             settings.DataLoggerSeparator = (SeparatorChar)comboDataLoggerSeparator.SelectedValue;
-            settings.DataLogSpeedUnits = comboDataLogSpeedUnits.SelectedValue.ToString();
+            settings.DataLogSpeedUnits = (SpeedUnit)comboDataLogSpeedUnits.SelectedValue;
             settings.DataLogger = checkDataLogger.Checked;
             settings.DataLogPerformance = checkDataLogPerformance.Checked;
             settings.DataLogPhysics = checkDataLogPhysics.Checked;
@@ -383,11 +349,13 @@ namespace Orts.Menu
             settings.VerboseConfigurationMessages = checkVerboseConfigurationMessages.Checked;
 
             // Evaluation tab
-            settings.DataLogTrainSpeed = checkDataLogTrainSpeed.Checked;
-            settings.DataLogTSInterval = (int)numericDataLogTSInterval.Value;
+            settings.EvaluationTrainSpeed = checkDataLogTrainSpeed.Checked;
+            settings.EvaluationInterval = (int)numericDataLogTSInterval.Value;
             for (int i = 0; i < checkListDataLogTSContents.Items.Count; i++)
-                settings.DataLogTSContents[i] = checkListDataLogTSContents.GetItemChecked(i) ? 1 : 0;
-            settings.DataLogStationStops = checkDataLogStationStops.Checked;
+            {
+                settings.EvaluationContent = checkListDataLogTSContents.GetItemChecked(i) ? settings.EvaluationContent | (EvaluationLogContents)(1 << i) : settings.EvaluationContent & ~(EvaluationLogContents)(1 << i);
+            }
+            settings.EvaluationStationStops = checkDataLogStationStops.Checked;
 
             // Content tab
             settings.FolderSettings.Folders.Clear();

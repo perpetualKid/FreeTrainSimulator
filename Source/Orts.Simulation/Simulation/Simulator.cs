@@ -450,7 +450,7 @@ namespace Orts.Simulation
             MPManager.Instance().RememberOriginalSwitchState();
 
             // start activity logging if required
-            if (Settings.DataLogStationStops && ActivityRun != null)
+            if (Settings.EvaluationStationStops && ActivityRun != null)
             {
                 string stationLogFile = DeriveLogFile("Stops");
                 if (!String.IsNullOrEmpty(stationLogFile))

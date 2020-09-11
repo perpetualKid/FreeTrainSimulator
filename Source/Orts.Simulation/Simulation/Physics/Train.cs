@@ -417,11 +417,12 @@ namespace Orts.Simulation.Physics
 
         // Logging and debugging info
         public bool CheckTrain;                          // debug print required
-        private static int lastSpeedLog;                 // last speedlog time
-        public bool DatalogTrainSpeed;                   // logging of train speed required
-        public int DatalogTSInterval;                    // logging interval
-        public int[] DatalogTSContents;                  // logging selection
-        public string DataLogFile;                       // required datalog file
+
+        private static double lastLogTime;          
+        private protected bool evaluateTrainSpeed;                  // logging of train speed required
+        private protected int evaluationInterval;                   // logging interval
+        private protected EvaluationLogContents evaluationContent;  // logging selection
+        private protected string evaluationLogFile;                 // required datalog file
 
         public Simulator Simulator { get; protected set; }                   // reference to the simulator
 
@@ -720,30 +721,18 @@ namespace Orts.Simulation.Physics
             TrainType = (TRAINTYPE)inf.ReadInt32();
             IsTilting = inf.ReadBoolean();
             ClaimState = inf.ReadBoolean();
-            DatalogTrainSpeed = inf.ReadBoolean();
-            DatalogTSInterval = inf.ReadInt32();
-            int dslenght = inf.ReadInt32();
-            if (dslenght > 0)
-            {
-                DatalogTSContents = new int[dslenght];
-                for (int iDs = 0; iDs <= dslenght - 1; iDs++)
-                {
-                    DatalogTSContents[iDs] = inf.ReadInt32();
-                }
-            }
-            else
-            {
-                DatalogTSContents = null;
-            }
+            evaluateTrainSpeed = inf.ReadBoolean();
+            evaluationInterval = inf.ReadInt32();
+            evaluationContent = (EvaluationLogContents)inf.ReadUInt32();
 
             int dsfile = inf.ReadInt32();
             if (dsfile < 0)
             {
-                DataLogFile = String.Empty;
+                evaluationLogFile = string.Empty;
             }
             else
             {
-                DataLogFile = inf.ReadString();
+                evaluationLogFile = inf.ReadString();
             }
 
             TCRoute = null;
@@ -915,7 +904,7 @@ namespace Orts.Simulation.Physics
                 }
 
                 // restore logfile
-                if (DatalogTrainSpeed)
+                if (evaluateTrainSpeed)
                 {
                     CreateLogFile();
                 }
@@ -1030,30 +1019,19 @@ namespace Orts.Simulation.Physics
             outf.Write((int)TrainType);
             outf.Write(IsTilting);
             outf.Write(ClaimState);
-            outf.Write(DatalogTrainSpeed);
-            outf.Write(DatalogTSInterval);
+            outf.Write(evaluateTrainSpeed);
+            outf.Write(evaluationInterval);
 
-            if (DatalogTSContents == null)
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(DatalogTSContents.Length);
-                foreach (int dselect in DatalogTSContents)
-                {
-                    outf.Write(dselect);
-                }
-            }
+            outf.Write((uint)evaluationContent);
 
-            if (String.IsNullOrEmpty(DataLogFile))
+            if (string.IsNullOrEmpty(evaluationLogFile))
             {
                 outf.Write(-1);
             }
             else
             {
                 outf.Write(1);
-                outf.Write(DataLogFile);
+                outf.Write(evaluationLogFile);
             }
 
             if (TCRoute == null)
@@ -1656,9 +1634,9 @@ namespace Orts.Simulation.Physics
 
             // log train details
 
-            if (DatalogTrainSpeed)
+            if (evaluateTrainSpeed)
             {
-                LogTrainSpeed(Simulator.ClockTime);
+                LogTrainSpeed(Simulator.GameTime);
             }
 
         } // end Update
@@ -2523,94 +2501,94 @@ namespace Orts.Simulation.Physics
         {
             //Time, Train Speed, Max Speed, Signal Aspect, Elevation, Direction, Control Mode, Distance Travelled, Throttle, Brake, Dyn Brake, Gear
 
-            var stringBuild = new StringBuilder();
+            StringBuilder stringBuild = new StringBuilder();
 
-            if (!File.Exists(DataLogFile))
+            if (!File.Exists(evaluationLogFile))
             {
                 char Separator = (char)Simulator.Settings.DataLoggerSeparator;
 
-                if (DatalogTSContents[0] == 1)
+                if ((evaluationContent & EvaluationLogContents.Time) == EvaluationLogContents.Time)
                 {
                     stringBuild.Append("TIME");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[1] == 1)
+                if ((evaluationContent & EvaluationLogContents.Speed) == EvaluationLogContents.Speed)
                 {
                     stringBuild.Append("TRAINSPEED");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[2] == 1)
+                if ((evaluationContent & EvaluationLogContents.MaxSpeed) == EvaluationLogContents.MaxSpeed)
                 {
                     stringBuild.Append("MAXSPEED");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[3] == 1)
+                if ((evaluationContent & EvaluationLogContents.SignalAspect) == EvaluationLogContents.SignalAspect)
                 {
                     stringBuild.Append("SIGNALASPECT");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[4] == 1)
+                if ((evaluationContent & EvaluationLogContents.Elevation) == EvaluationLogContents.Elevation)
                 {
                     stringBuild.Append("ELEVATION");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[5] == 1)
+                if ((evaluationContent & EvaluationLogContents.Direction) == EvaluationLogContents.Direction)
                 {
                     stringBuild.Append("DIRECTION");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[6] == 1)
+                if ((evaluationContent & EvaluationLogContents.ControlMode) == EvaluationLogContents.ControlMode)
                 {
                     stringBuild.Append("CONTROLMODE");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[7] == 1)
+                if ((evaluationContent & EvaluationLogContents.Distance) == EvaluationLogContents.Distance)
                 {
                     stringBuild.Append("DISTANCETRAVELLED");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[8] == 1)
+                if ((evaluationContent & EvaluationLogContents.Throttle) == EvaluationLogContents.Throttle)
                 {
                     stringBuild.Append("THROTTLEPERC");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[9] == 1)
+                if ((evaluationContent & EvaluationLogContents.Brake) == EvaluationLogContents.Brake)
                 {
                     stringBuild.Append("BRAKEPRESSURE");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[10] == 1)
+                if ((evaluationContent & EvaluationLogContents.DynBrake) == EvaluationLogContents.DynBrake)
                 {
                     stringBuild.Append("DYNBRAKEPERC");
                     stringBuild.Append(Separator);
                 }
 
-                if (DatalogTSContents[11] == 1)
+                if ((evaluationContent & EvaluationLogContents.Gear) == EvaluationLogContents.Gear)
                 {
                     stringBuild.Append("GEARINDEX");
                     stringBuild.Append(Separator);
                 }
 
-                stringBuild.Append("\n");
+                stringBuild.Append('\n');
 
                 try
                 {
-                    File.AppendAllText(DataLogFile, stringBuild.ToString());
+                    File.AppendAllText(evaluationLogFile, stringBuild.ToString());
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceWarning("Cannot open required logfile : " + DataLogFile + " : " + e.Message);
-                    DatalogTrainSpeed = false;
+                    Trace.TraceWarning("Cannot open required logfile : " + evaluationLogFile + " : " + e.Message);
+                    evaluateTrainSpeed = false;
                 }
             }
         }
@@ -2620,128 +2598,125 @@ namespace Orts.Simulation.Physics
         /// Train speed evaluation logging
         /// <\summary>
 
-        public void LogTrainSpeed(double clockTime)
+        public void LogTrainSpeed(double timeStamp)
         {
-            int clockInt = Convert.ToInt32(clockTime);
-            int deltaLastLog = clockInt - lastSpeedLog;
-
-            if (deltaLastLog >= DatalogTSInterval)
+            if (lastLogTime + evaluationInterval >= timeStamp)
             {
-                lastSpeedLog = clockInt;
+                lastLogTime = timeStamp;
 
                 // User settings flag indices :
                 //Time, Train Speed, Max Speed, Signal Aspect, Elevation, Direction, Control Mode, Distance Travelled, Throttle, Brake, Dyn Brake, Gear
 
-                var stringBuild = new StringBuilder();
+                StringBuilder builder = new StringBuilder();
 
                 char Separator = (char)Simulator.Settings.DataLoggerSeparator;
 
-                if (DatalogTSContents[0] == 1)
+                if ((evaluationContent & EvaluationLogContents.Time) == EvaluationLogContents.Time)
                 {
-                    stringBuild.Append(FormatStrings.FormatTime(clockTime));
-                    stringBuild.Append(Separator);
+                    builder.Append(FormatStrings.FormatTime(Simulator.ClockTime));
+                    builder.Append(Separator);
                 }
 
                 bool moveForward = (Math.Sign(SpeedMpS) >= 0);
-                if (DatalogTSContents[1] == 1)
+                if ((evaluationContent & EvaluationLogContents.Speed) == EvaluationLogContents.Speed)
                 {
-                    stringBuild.Append(Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), Simulator.MilepostUnitsMetric).ToString("0000.0"));
-                    stringBuild.Append(Separator);
+                    builder.Append(Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), Simulator.MilepostUnitsMetric).ToString("0000.0"));
+                    builder.Append(Separator);
                 }
 
-                if (DatalogTSContents[2] == 1)
+                if ((evaluationContent & EvaluationLogContents.MaxSpeed) == EvaluationLogContents.MaxSpeed)
                 {
-                    stringBuild.Append(Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, Simulator.MilepostUnitsMetric).ToString("0000.0"));
-                    stringBuild.Append(Separator);
+                    builder.Append(Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, Simulator.MilepostUnitsMetric).ToString("0000.0"));
+                    builder.Append(Separator);
                 }
 
-                if (DatalogTSContents[3] == 1)
+                if ((evaluationContent & EvaluationLogContents.SignalAspect) == EvaluationLogContents.SignalAspect)
                 {
                     if (moveForward)
                     {
                         if (NextSignalObject[0] == null)
                         {
-                            stringBuild.Append("-");
+                            builder.Append("-");
                         }
                         else
                         {
                             SignalAspectState nextAspect = NextSignalObject[0].this_sig_lr(SignalFunction.Normal);
-                            stringBuild.Append(nextAspect.ToString());
+                            builder.Append(nextAspect.ToString());
                         }
                     }
                     else
                     {
                         if (NextSignalObject[1] == null)
                         {
-                            stringBuild.Append("-");
+                            builder.Append("-");
                         }
                         else
                         {
                             SignalAspectState nextAspect = NextSignalObject[1].this_sig_lr(SignalFunction.Normal);
-                            stringBuild.Append(nextAspect.ToString());
+                            builder.Append(nextAspect.ToString());
                         }
                     }
-                    stringBuild.Append(Separator);
+                    builder.Append(Separator);
                 }
 
-                if (DatalogTSContents[4] == 1)
+                if ((evaluationContent & EvaluationLogContents.Elevation) == EvaluationLogContents.Elevation)
                 {
-                    stringBuild.Append((0 - Simulator.PlayerLocomotive.CurrentElevationPercent).ToString("00.0"));
-                    stringBuild.Append(Separator);
+                    builder.Append((0 - Simulator.PlayerLocomotive.CurrentElevationPercent).ToString("00.0"));
+                    builder.Append(Separator);
                 }
 
-                if (DatalogTSContents[5] == 1)
+                if ((evaluationContent & EvaluationLogContents.Direction) == EvaluationLogContents.Direction)
                 {
                     if (moveForward)
                     {
-                        stringBuild.Append("F");
+                        builder.Append("F");
                     }
                     else
                     {
-                        stringBuild.Append("B");
+                        builder.Append("B");
                     }
-                    stringBuild.Append(Separator);
+                    builder.Append(Separator);
                 }
 
-                if (DatalogTSContents[6] == 1)
+                if ((evaluationContent & EvaluationLogContents.ControlMode) == EvaluationLogContents.ControlMode)
                 {
-                    stringBuild.Append(ControlMode.ToString());
-                    stringBuild.Append(Separator);
+                    builder.Append(ControlMode.ToString());
+                    builder.Append(Separator);
                 }
 
-                if (DatalogTSContents[7] == 1)
+                if ((evaluationContent & EvaluationLogContents.Distance) == EvaluationLogContents.Distance)
                 {
-                    stringBuild.Append(PresentPosition[0].DistanceTravelledM.ToString());
-                    stringBuild.Append(Separator);
+                    builder.Append(PresentPosition[0].DistanceTravelledM.ToString());
+                    builder.Append(Separator);
                 }
 
-                if (DatalogTSContents[8] == 1)
+                if ((evaluationContent & EvaluationLogContents.Throttle) == EvaluationLogContents.Throttle)
                 {
-                    stringBuild.Append(MUThrottlePercent.ToString("000"));
-                    stringBuild.Append(Separator);
+                    builder.Append(MUThrottlePercent.ToString("000"));
+                    builder.Append(Separator);
                 }
 
-                if (DatalogTSContents[9] == 1)
+                if ((evaluationContent & EvaluationLogContents.Brake) == EvaluationLogContents.Brake)
                 {
                     //                    stringBuild.Append(BrakeLine1PressurePSIorInHg.ToString("000"));
-                    stringBuild.Append(Simulator.PlayerLocomotive.BrakeSystem.GetCylPressurePSI().ToString("000"));
-                    stringBuild.Append(Separator);
+                    builder.Append(Simulator.PlayerLocomotive.BrakeSystem.GetCylPressurePSI().ToString("000"));
+                    builder.Append(Separator);
                 }
 
-                if (DatalogTSContents[10] == 1)
+                if ((evaluationContent & EvaluationLogContents.DynBrake) == EvaluationLogContents.DynBrake)
                 {
-                    stringBuild.Append(MUDynamicBrakePercent.ToString("000"));
-                    stringBuild.Append(Separator);
+                    builder.Append(MUDynamicBrakePercent.ToString("000"));
+                    builder.Append(Separator);
                 }
 
-                if (DatalogTSContents[11] == 1)
+                if ((evaluationContent & EvaluationLogContents.Gear) == EvaluationLogContents.Gear)
                 {
-                    stringBuild.Append(MUGearboxGearIndex.ToString("0"));
-                    stringBuild.Append(Separator);
+                    builder.Append(MUGearboxGearIndex.ToString("0"));
+                    builder.Append(Separator);
                 }
 
-                stringBuild.Append("\n");
-                File.AppendAllText(DataLogFile, stringBuild.ToString());
+                builder.Append('\n');
+                File.AppendAllText(evaluationLogFile, builder.ToString());
             }
         }
 
@@ -2862,19 +2837,18 @@ namespace Orts.Simulation.Physics
         
         protected void SetTrainSpeedLoggingFlag()
         {
-            DatalogTrainSpeed = Simulator.Settings.DataLogTrainSpeed;
-            DatalogTSInterval = Simulator.Settings.DataLogTSInterval;
+            evaluateTrainSpeed = Simulator.Settings.EvaluationTrainSpeed;
+            evaluationInterval = Simulator.Settings.EvaluationInterval;
 
-            DatalogTSContents = new int[Simulator.Settings.DataLogTSContents.Length];
-            Simulator.Settings.DataLogTSContents.CopyTo(DatalogTSContents, 0);
+            evaluationContent = Simulator.Settings.EvaluationContent;
 
             // if logging required, derive filename and open file
-            if (DatalogTrainSpeed)
+            if (evaluateTrainSpeed)
             {
-                DataLogFile = Simulator.DeriveLogFile("Speed");
-                if (String.IsNullOrEmpty(DataLogFile))
+                evaluationLogFile = Simulator.DeriveLogFile("Speed");
+                if (string.IsNullOrEmpty(evaluationLogFile))
                 {
-                    DatalogTrainSpeed = false;
+                    evaluateTrainSpeed = false;
                 }
                 else
                 {
