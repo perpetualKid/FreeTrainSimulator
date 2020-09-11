@@ -312,5 +312,25 @@ namespace Tests.Orts.Settings.Store
             }
         }
 
+        [Flags]
+        public enum TestFlags
+        {
+            None = 0x0,
+            Value1 = 0x1,
+            Value2 = 0x2,
+        }
+
+        [TestMethod]
+        public void SetSettingValueFlags()
+        {
+            string content = string.Join(Environment.NewLine, new string[] { "[ORTS]", $"name=string[]:0,1,10,100,1000" });
+            using (TestFile file = new TestFile(content))
+            {
+                SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
+                store.SetSettingValue("flagsValue", TestFlags.Value2 | TestFlags.Value1);
+                Assert.AreEqual(TestFlags.Value2 | TestFlags.Value1, store.GetSettingValue("flagsValue", default(TestFlags)));
+            }
+        }
+
     }
 }
