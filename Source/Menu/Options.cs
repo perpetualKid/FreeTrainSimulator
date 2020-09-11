@@ -385,13 +385,13 @@ namespace Orts.Menu
             // Evaluation tab
             settings.DataLogTrainSpeed = checkDataLogTrainSpeed.Checked;
             settings.DataLogTSInterval = (int)numericDataLogTSInterval.Value;
-            for (var i = 0; i < checkListDataLogTSContents.Items.Count; i++)
+            for (int i = 0; i < checkListDataLogTSContents.Items.Count; i++)
                 settings.DataLogTSContents[i] = checkListDataLogTSContents.GetItemChecked(i) ? 1 : 0;
             settings.DataLogStationStops = checkDataLogStationStops.Checked;
 
             // Content tab
             settings.FolderSettings.Folders.Clear();
-            foreach (var folder in bindingSourceContent.DataSource as List<ContentFolder>)
+            foreach (ContentFolder folder in bindingSourceContent.DataSource as List<ContentFolder>)
                 settings.FolderSettings.Folders.Add(folder.Name, folder.Path);
 
             // Updater tab
@@ -432,7 +432,7 @@ namespace Orts.Menu
         /// </summary>
         private string GetValidWindowSize(string text)
         {
-            var match = Regex.Match(text, @"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$");//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
+            Match match = Regex.Match(text, @"^\s*([1-9]\d{2,3})\s*[Xx]\s*([1-9]\d{2,3})\s*$");//capturing 2 groups of 3-4digits, separated by X or x, ignoring whitespace in beginning/end and in between
             if (match.Success)
             {
                 return $"{match.Groups[1]}x{match.Groups[2]}";
@@ -442,7 +442,7 @@ namespace Orts.Menu
 
         private void NumericUpDownFOV_ValueChanged(object sender, EventArgs e)
         {
-            labelFOVHelp.Text = catalog.GetString("{0:F0}° vertical FOV is the same as:\n{1:F0}° horizontal FOV on 4:3\n{2:F0}° horizontal FOV on 16:9", numericViewingFOV.Value, numericViewingFOV.Value * 4 / 3, numericViewingFOV.Value * 16 / 9);
+            labelFOVHelp.Text = catalog.GetString($"{numericViewingFOV.Value:F0}° vertical FOV is the same as:\n{numericViewingFOV.Value * 4 / 3:F0}° horizontal FOV on 4:3\n{numericViewingFOV.Value * 16 / 9:F0}° horizontal FOV on 16:9");
         }
 
         private void TrackBarDayAmbientLight_Scroll(object sender, EventArgs e)
@@ -515,7 +515,7 @@ namespace Orts.Menu
 
         private void DataGridViewContent_SelectionChanged(object sender, EventArgs e)
         {
-            var current = bindingSourceContent.Current as ContentFolder;
+            ContentFolder current = bindingSourceContent.Current as ContentFolder;
             textBoxContentName.Enabled = buttonContentBrowse.Enabled = current != null;
             if (current == null)
             {
@@ -543,17 +543,17 @@ namespace Orts.Menu
 
         private void ButtonContentBrowse_Click(object sender, EventArgs e)
         {
-            using (var folderBrowser = new FolderBrowserDialog())
+            using (FolderBrowserDialog folderBrowser = new FolderBrowserDialog())
             {
                 folderBrowser.SelectedPath = textBoxContentPath.Text;
                 folderBrowser.Description = catalog.GetString("Select an installation profile (MSTS folder) to add:");
                 folderBrowser.ShowNewFolderButton = false;
                 if (folderBrowser.ShowDialog(this) == DialogResult.OK)
                 {
-                    var current = bindingSourceContent.Current as ContentFolder;
+                    ContentFolder current = bindingSourceContent.Current as ContentFolder;
                     System.Diagnostics.Debug.Assert(current != null, "List should not be empty");
                     textBoxContentPath.Text = current.Path = folderBrowser.SelectedPath;
-                    if (String.IsNullOrEmpty(current.Name))
+                    if (string.IsNullOrEmpty(current.Name))
                         // Don't need to set current.Name here as next statement triggers event textBoxContentName_TextChanged()
                         // which does that and also checks for duplicate names 
                         textBoxContentName.Text = Path.GetFileName(textBoxContentPath.Text);
@@ -574,12 +574,12 @@ namespace Orts.Menu
             if (bindingSourceContent.Current is ContentFolder current && current.Name != textBoxContentName.Text)
             {
                 // Duplicate names lead to an exception, so append " copy" if not unique
-                var suffix = "";
-                var isNameUnique = true;
+                string suffix = "";
+                bool isNameUnique = true;
                 while (isNameUnique)
                 {
                     isNameUnique = false; // to exit after a single pass
-                    foreach (var item in bindingSourceContent)
+                    foreach (object item in bindingSourceContent)
                         if (((ContentFolder)item).Name == textBoxContentName.Text + suffix)
                         {
                             suffix += " copy"; // To ensure uniqueness
@@ -640,8 +640,8 @@ namespace Orts.Menu
         {
             await updateManager.RefreshUpdateInfo(UpdateCheckFrequency.Always).ConfigureAwait(true);
 
-            comboBoxUpdateChannels.DataSourceFromList<string>(updateManager.GetChannels(), (channel) => catalog.GetString(channel));
-            comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);
+            comboBoxUpdateChannels.DataSourceFromList(updateManager.GetChannels(), (channel) => catalog.GetString(channel));
+            comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(settings.UpdateChannel);
         }
 
         private void ComboBoxUpdateChannels_SelectedIndexChanged(object sender, EventArgs e)

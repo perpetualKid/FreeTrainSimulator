@@ -473,9 +473,7 @@ namespace Orts.Simulation
 
             var stringBuild = new StringBuilder();
 
-            if (!Enum.TryParse(Simulator.Settings.DataLoggerSeparator, true, out DataLogger.SeparatorChar value))
-                throw new ArgumentException($"Separator char \"{Simulator.Settings.DataLoggerSeparator}\" is not one of allowed values");
-            char separator = (char)value;
+            char separator = (char)Simulator.Settings.DataLoggerSeparator;
 
             stringBuild.Append("STATION");
             stringBuild.Append(separator);
@@ -897,9 +895,7 @@ namespace Orts.Simulation
                     if (LogStationStops)
                     {
                         StringBuilder stringBuild = new StringBuilder();
-                        if (!Enum.TryParse(Simulator.Settings.DataLoggerSeparator, true, out DataLogger.SeparatorChar value))
-                            throw new ArgumentException($"Separator char \"{Simulator.Settings.DataLoggerSeparator}\" is not one of allowed values");
-                        char separator = (char)value;
+                        char separator = (char)Simulator.Settings.DataLoggerSeparator;
                         stringBuild.Append(PlatformEnd1.Station);
                         stringBuild.Append(separator);
                         stringBuild.Append(SchArrive.ToString("HH:mm:ss"));
@@ -977,9 +973,7 @@ namespace Orts.Simulation
                             if (LogStationStops)
                             {
                                 StringBuilder stringBuild = new StringBuilder();
-                                if (!Enum.TryParse(Simulator.Settings.DataLoggerSeparator, true, out DataLogger.SeparatorChar value))
-                                    throw new ArgumentException($"Separator char \"{Simulator.Settings.DataLoggerSeparator}\" is not one of allowed values");
-                                char separator = (char)value;
+                                char separator = (char)Simulator.Settings.DataLoggerSeparator;
                                 stringBuild.Append(PlatformEnd1.Station);
                                 stringBuild.Append(separator);
                                 stringBuild.Append(SchArrive.ToString("HH:mm:ss"));
@@ -1026,9 +1020,7 @@ namespace Orts.Simulation
                             if (LogStationStops)
                             {
                                 StringBuilder stringBuild = new StringBuilder();
-                                if (!Enum.TryParse(Simulator.Settings.DataLoggerSeparator, true, out DataLogger.SeparatorChar value))
-                                    throw new ArgumentException($"Separator char \"{Simulator.Settings.DataLoggerSeparator}\" is not one of allowed values");
-                                char separator = (char)value;
+                                char separator = (char)Simulator.Settings.DataLoggerSeparator;
                                 stringBuild.Append(PlatformEnd1.Station);
                                 stringBuild.Append(separator);
                                 stringBuild.Append(SchArrive.ToString("HH:mm:ss"));
