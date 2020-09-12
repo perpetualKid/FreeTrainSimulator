@@ -23,8 +23,6 @@ using System.Reflection;
 
 using NuGet.Versioning;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Test.Orts")]
-
 namespace Orts.Common
 {
 

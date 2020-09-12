@@ -35,8 +35,6 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Settings;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Test.Orts")]
-
 namespace Orts.Updater
 {
     public class UpdateManager
