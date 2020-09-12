@@ -89,7 +89,6 @@ namespace Orts.Models.Simplified
                                 await addItem.WaitAsync(token).ConfigureAwait(false);
                                 result.Add(activity);
                             }
-                            catch (FileNotFoundException) { }
                             finally
                             {
                                 addItem.Release();
@@ -100,7 +99,7 @@ namespace Orts.Models.Simplified
                 routeBlock.LinkTo(activityBlock, new DataflowLinkOptions { PropagateCompletion = true });
                 activityBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
 
-                foreach (var folder in folders)
+                foreach (KeyValuePair<string, string> folder in folders)
                     await inputBlock.SendAsync(folder).ConfigureAwait(false);
 
                 inputBlock.Complete();

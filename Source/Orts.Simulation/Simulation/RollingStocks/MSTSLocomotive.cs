@@ -253,11 +253,11 @@ namespace Orts.Simulation.RollingStocks
 
         public bool EngineBrakeFitted = false;
         public bool VacuumExhausterIsOn = false;
-        public double VacuumBrakesMainResVolumeM3 = Size.Volume.FromFt3(200.0f); // Main vacuum reservoir volume
-        public double VacuumBrakesMainResMaxVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(23);
-        public double VacuumBrakesExhausterRestartVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(21);
-        public double VacuumBrakesMainResChargingRatePSIAorInHgpS = Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(0.2f));
-        public double VacuumMainResVacuumPSIAorInHg = Pressure.Vacuum.ToPressure(23); // Vacuum currently in Main Reservoir
+        public float VacuumBrakesMainResVolumeM3 = (float)Size.Volume.FromFt3(200.0f); // Main vacuum reservoir volume
+        public float VacuumBrakesMainResMaxVacuumPSIAorInHg = (float)Pressure.Vacuum.ToPressure(23);
+        public float VacuumBrakesExhausterRestartVacuumPSIAorInHg = (float)Pressure.Vacuum.ToPressure(21);
+        public float VacuumBrakesMainResChargingRatePSIAorInHgpS = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(0.2f));
+        public float VacuumMainResVacuumPSIAorInHg = (float)Pressure.Vacuum.ToPressure(23); // Vacuum currently in Main Reservoir
 
 
         // Set values for display in HUD
@@ -779,9 +779,9 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(trainpipeleakrate": TrainBrakePipeLeakPSIorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
                 case "engine(vacuumbrakesvacuumpumpresistance": VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
 
-                case "engine(ortsvacuumbrakesmainresvolume": VacuumBrakesMainResVolumeM3 = Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
-                case "engine(ortsvacuumbrakesmainresmaxvacuum": VacuumBrakesMainResMaxVacuumPSIAorInHg = OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
-                case "engine(ortsvacuumbrakesexhausterrestartvacuum": VacuumBrakesExhausterRestartVacuumPSIAorInHg = OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
+                case "engine(ortsvacuumbrakesmainresvolume": VacuumBrakesMainResVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "engine(ortsvacuumbrakesmainresmaxvacuum": VacuumBrakesMainResMaxVacuumPSIAorInHg = (float)OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
+                case "engine(ortsvacuumbrakesexhausterrestartvacuum": VacuumBrakesExhausterRestartVacuumPSIAorInHg = (float)OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
                 case "engine(ortsvacuumbrakesmainreschargingrate": VacuumBrakesMainResChargingRatePSIAorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
 
                 case "engine(ortsmainreschargingrate": MainResChargingRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;

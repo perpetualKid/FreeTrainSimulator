@@ -130,7 +130,7 @@
             // 
             // saveBindingSource
             // 
-            this.saveBindingSource.DataSource = typeof(Orts.Menu.ResumeForm.SavePoint);
+            this.saveBindingSource.DataSource = typeof(Models.Simplified.SavePoint);
             // 
             // buttonResume
             // 
@@ -429,7 +429,7 @@
             // 
             // evalDataGridViewCheckBoxColumn
             // 
-            this.evalDataGridViewCheckBoxColumn.DataPropertyName = "DbfEval";
+            this.evalDataGridViewCheckBoxColumn.DataPropertyName = "DebriefEvaluation";
             this.evalDataGridViewCheckBoxColumn.HeaderText = "Eval";
             this.evalDataGridViewCheckBoxColumn.Name = "evalDataGridViewCheckBoxColumn";
             this.evalDataGridViewCheckBoxColumn.ReadOnly = true;

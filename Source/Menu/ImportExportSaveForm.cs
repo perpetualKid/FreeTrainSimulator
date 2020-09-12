@@ -25,18 +25,21 @@ using System.Windows.Forms;
 using GetText;
 using GetText.WindowsForms;
 
+using Orts.Models.Simplified;
 using Orts.Settings;
+
+using Path = System.IO.Path;
 
 namespace Orts.Menu
 {
     public partial class ImportExportSaveForm : Form
     {
-        private readonly ResumeForm.SavePoint savePoint;
+        private readonly SavePoint savePoint;
         private const string SavePackFileExtension = "ORSavePack";  // Includes "OR" in the extension as this may be emailed, downloaded and mixed in with non-OR files.
 
         private ICatalog catalog = new Catalog("Menu");
 
-        public ImportExportSaveForm(ResumeForm.SavePoint save)
+        public ImportExportSaveForm(SavePoint save)
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 

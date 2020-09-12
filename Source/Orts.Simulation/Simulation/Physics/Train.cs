@@ -723,7 +723,7 @@ namespace Orts.Simulation.Physics
             ClaimState = inf.ReadBoolean();
             evaluateTrainSpeed = inf.ReadBoolean();
             evaluationInterval = inf.ReadInt32();
-            evaluationContent = (EvaluationLogContents)inf.ReadUInt32();
+            evaluationContent = (EvaluationLogContents)inf.ReadInt32();
 
             int dsfile = inf.ReadInt32();
             if (dsfile < 0)
@@ -984,7 +984,7 @@ namespace Orts.Simulation.Physics
             outf.Write(Number);
             outf.Write(Name);
             outf.Write(SpeedMpS);
-            outf.Write(AccelerationMpSpS.SmoothedValue);
+            outf.Write((float)AccelerationMpSpS.SmoothedValue);
             outf.Write((int)TrainType);
             outf.Write((int)MUDirection);
             outf.Write(MUThrottlePercent);
@@ -1022,7 +1022,7 @@ namespace Orts.Simulation.Physics
             outf.Write(evaluateTrainSpeed);
             outf.Write(evaluationInterval);
 
-            outf.Write((uint)evaluationContent);
+            outf.Write((int)evaluationContent);
 
             if (string.IsNullOrEmpty(evaluationLogFile))
             {

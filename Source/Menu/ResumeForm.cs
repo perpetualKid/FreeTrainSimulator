@@ -81,132 +81,6 @@ namespace Orts.Menu
 
         private CancellationTokenSource ctsLoader;
 
-        public class SavePoint
-        {
-            public string Name { get; private set; }
-            public string File { get; private set; }
-            public string PathName { get; private set; }
-            public string RouteName { get; private set; }
-            public TimeSpan GameTime { get; private set; }
-            public DateTime RealTime { get; private set; }
-            public string CurrentTile { get; private set; }
-            public string Distance { get; private set; }
-            public bool? Valid { get; private set; } // 3 possibilities: invalid, unknown validity, valid
-            public string VersionOrBuild { get; private set; }
-            public bool IsMultiplayer { get; private set; }
-            public bool DbfEval { get; private set; } //Debrief Eval
-
-            public static Task<List<SavePoint>> GetSavePoints(string directory, string prefix, string build,
-                string routeName, int failedRestoreVersion, string warnings, System.Threading.CancellationToken token)
-            {
-                TaskCompletionSource<List<SavePoint>> tcs = new TaskCompletionSource<List<SavePoint>>();
-                List<SavePoint> result = new List<SavePoint>();
-
-                Parallel.ForEach(Directory.GetFiles(directory, prefix + "*.save"), (saveFile, state) =>
-                {
-                    if (token.IsCancellationRequested)
-                    {
-                        tcs.SetCanceled();
-                        state.Stop();
-                    }
-                    try
-                    {
-                        // SavePacks are all in the same folder and activities may have the same name 
-                        // (e.g. Short Passenger Run shrtpass.act) but belong to a different route,
-                        // so pick only the activities for the current route.
-                        SavePoint save = new SavePoint(saveFile, build, failedRestoreVersion);
-                        if (string.IsNullOrEmpty(routeName) || save.RouteName == routeName)
-                        {
-                            if (!save.IsMultiplayer ^ Multiplayer)
-                                lock (result)
-                            {
-                                result.Add(save);
-                            }
-                        }
-                        else    // In case you receive a SavePack where the activity is recognised but the route has been renamed.
-                                // Checks the route is not in your list of routes.
-                                // If so, add it with a warning.
-                        {
-                            if (!globalRoutes.Any(el => el.Name == save.RouteName))
-                            {
-                                if (!save.IsMultiplayer ^ Multiplayer)
-                                    lock (result)
-                                {
-                                    result.Add(save);
-                                }
-                                // SavePoint a warning to show later.
-                                warnings += catalog.GetString("Warning: Save {0} found from a route with an unexpected name:\n{1}.\n\n", save.RealTime, save.RouteName);
-                            }
-                        }
-                    }
-                    catch { }
-                });
-                tcs.TrySetResult(result);
-                return tcs.Task;
-            }
-
-
-            public SavePoint(string fileName, string currentBuild, int failedRestoreVersion)
-            {
-                File = fileName;
-                Name = Path.GetFileNameWithoutExtension(fileName);
-                using (BinaryReader inf = new BinaryReader(new FileStream(File, FileMode.Open, FileAccess.Read)))
-                {
-                    try
-                    {
-                        var version = inf.ReadString().Replace("\0", ""); // e.g. "0.9.0.1648" or "X1321" or "" (if compiled locally)
-                        var build = inf.ReadString().Replace("\0", ""); // e.g. 0.0.5223.24629 (2014-04-20 13:40:58Z)
-                        var versionOrBuild = version.Length > 0 ? version : build;
-                        var valid = VersionInfo.GetValidity(version, build, failedRestoreVersion);
-                        // Read in multiplayer flag/ route/activity/path/player data.
-                        // Done so even if not elegant to be compatible with existing save files
-                        var routeNameOrMultipl = inf.ReadString();
-                        var routeName = "";
-                        var isMultiplayer = false;
-                        if (routeNameOrMultipl == "$Multipl$")
-                        {
-                            isMultiplayer = true;
-                            routeName = inf.ReadString(); // Route name
-                        }
-                        else
-                        {
-                            routeName = routeNameOrMultipl; // Route name 
-                        }
-
-                        var pathName = inf.ReadString(); // Path name
-                        var gameTime = new DateTime().AddSeconds(inf.ReadInt32()).TimeOfDay; // Game time
-                        var realTime = DateTime.FromBinary(inf.ReadInt64()); // Real time
-                        var currentTileX = inf.ReadSingle(); // Player TileX
-                        var currentTileZ = inf.ReadSingle(); // Player TileZ
-                        var currentTile = String.Format("{0:F1}, {1:F1}", currentTileX, currentTileZ);
-                        var initialTileX = inf.ReadSingle(); // Initial TileX
-                        var initialTileZ = inf.ReadSingle(); // Initial TileZ
-                        if (currentTileX < short.MinValue || currentTileX > short.MaxValue || currentTileZ < short.MinValue || currentTileZ > short.MaxValue)
-                            throw new InvalidDataException();
-                        if (initialTileX < short.MinValue || initialTileX > short.MaxValue || initialTileZ < short.MinValue || initialTileZ > short.MaxValue)
-                            throw new InvalidDataException();
-
-                        // DistanceFromInitial using Pythagoras theorem.
-                        var distance = String.Format("{0:F1}", Math.Sqrt(Math.Pow(currentTileX - initialTileX, 2) + Math.Pow(currentTileZ - initialTileZ, 2)) * 2048);
-
-                        PathName = pathName;
-                        RouteName = routeName.Trim();
-                        IsMultiplayer = isMultiplayer;
-                        GameTime = gameTime;
-                        RealTime = realTime;
-                        CurrentTile = currentTile;
-                        Distance = distance;
-                        Valid = valid;
-                        VersionOrBuild = versionOrBuild;
-
-                        //Debrief Eval
-                        DbfEval = System.IO.File.Exists(fileName.Substring(0, fileName.Length - 5) + ".dbfeval");
-                    }
-                    catch { }
-                }
-            }
-        }
-
         public string SelectedSaveFile { get; set; }
         public MainForm.UserAction SelectedAction { get; set; }
         private static bool Multiplayer { get; set; }
@@ -240,7 +114,7 @@ namespace Orts.Menu
 
             if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
             {
-                Text =String.Format("{0} - {1} - {2}", Text, route.Name, Path.GetFileNameWithoutExtension(timeTable.FileName));
+                Text = String.Format("{0} - {1} - {2}", Text, route.Name, Path.GetFileNameWithoutExtension(timeTable.FileName));
                 pathNameDataGridViewTextBoxColumn.Visible = true;
             }
             else
@@ -260,7 +134,7 @@ namespace Orts.Menu
 
         private void ResumeForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (null != ctsLoader && ! ctsLoader.IsCancellationRequested)
+            if (null != ctsLoader && !ctsLoader.IsCancellationRequested)
             {
                 ctsLoader.Cancel();
                 ctsLoader.Dispose();
@@ -276,12 +150,11 @@ namespace Orts.Menu
                     ctsLoader.Cancel();
                     ctsLoader.Dispose();
                 }
-                ctsLoader = new System.Threading.CancellationTokenSource();
+                ctsLoader = new CancellationTokenSource();
             }
 
             string warnings = string.Empty;
 
-            string build = VersionInfo.Build.Contains(" ") ? VersionInfo.Build.Substring(VersionInfo.Build.IndexOf(" ") + 1) : null;
             var prefix = string.Empty;
 
             if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
@@ -302,8 +175,9 @@ namespace Orts.Menu
                 prefix = "ea$" + Path.GetFileName(route.Path) + "$";
             }
 
-            savePoints = (await Task.Run(()=>SavePoint.GetSavePoints(UserSettings.UserDataFolder, 
-                prefix, build, route.Name, settings.YoungestFailedToRestore, warnings, ctsLoader.Token))).OrderBy(s => s.RealTime).Reverse().ToList();
+            savePoints = (await SavePoint.GetSavePoints(UserSettings.UserDataFolder,
+                prefix, route.Name, settings.YoungestFailedToRestore, warnings, Multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true))
+                .OrderByDescending(s => s.RealTime).ToList();
 
             saveBindingSource.DataSource = savePoints;
             labelInvalidSaves.Text = catalog.GetString(
@@ -338,7 +212,7 @@ namespace Orts.Menu
             if (null != save)
             {
                 //Debrief Eval
-                if (save.DbfEval && !settings.DebriefActivityEval)
+                if (save.DebriefEvaluation && !settings.DebriefActivityEval)
                 {
                     if (!AcceptOfNonvalidDbfSetup(save))
                         return;
@@ -431,7 +305,7 @@ namespace Orts.Menu
 
         private async void ButtonDelete_Click(object sender, EventArgs e)
         {
-            var selectedRows = gridSaves.SelectedRows;
+            DataGridViewSelectedRowCollection selectedRows = gridSaves.SelectedRows;
             if (selectedRows.Count > 0)
             {
                 gridSaves.ClearSelection();
@@ -439,7 +313,7 @@ namespace Orts.Menu
                 if (!Directory.Exists(UserSettings.DeletedSaveFolder))
                     Directory.CreateDirectory(UserSettings.DeletedSaveFolder);
 
-                for (var i = 0; i < selectedRows.Count; i++)
+                for (int i = 0; i < selectedRows.Count; i++)
                 {
                     DeleteSavePoint(selectedRows[i].DataBoundItem as SavePoint);
                 }
@@ -447,17 +321,19 @@ namespace Orts.Menu
             }
         }
 
-        private void DeleteSavePoint(SavePoint savePoint)
+        private static void DeleteSavePoint(SavePoint savePoint)
         {
             if (null != savePoint)
             {
-                foreach (string fileName in Directory.GetFiles(Path.GetDirectoryName(savePoint.File), savePoint.Name + ".*"))
+                foreach (string fileName in Directory.EnumerateFiles(Path.GetDirectoryName(savePoint.File), savePoint.Name + ".*"))
                 {
                     try
                     {
                         File.Move(fileName, Path.Combine(UserSettings.DeletedSaveFolder, Path.GetFileName(fileName)));
                     }
-                    catch { }
+                    catch (Exception ex) when (ex is IOException || ex is FileNotFoundException || ex is UnauthorizedAccessException)
+                    {
+                    }
                 }
             }
         }
@@ -487,9 +363,9 @@ namespace Orts.Menu
         {
             gridSaves.ClearSelection();
             int deleted = 0;
-            foreach(SavePoint savePoint in savePoints)
+            foreach (SavePoint savePoint in savePoints)
             {
-                if(savePoint.Valid == false)
+                if (savePoint.Valid == false)
                 {
                     DeleteSavePoint(savePoint);
                     deleted++;
@@ -504,17 +380,17 @@ namespace Orts.Menu
             SelectedAction = MainForm.UserAction.SingleplayerReplaySave;
             InitiateReplay(true);
         }
-        
+
         private void ButtonReplayFromPreviousSave_Click(object sender, EventArgs e)
         {
             SelectedAction = MainForm.UserAction.SingleplayerReplaySaveFromSave;
             InitiateReplay(false);
         }
-        
+
         private void InitiateReplay(bool fromStart)
         {
             var save = saveBindingSource.Current as SavePoint;
-            if (Found(save) )
+            if (Found(save))
             {
                 if (fromStart && (save.Valid == null))
                     if (!AcceptUseOfNonvalidSave(save))
@@ -529,7 +405,7 @@ namespace Orts.Menu
 
         private async void ButtonImportExportSaves_Click(object sender, EventArgs e)
         {
-            var save = saveBindingSource.Current as SavePoint;
+            SavePoint save = saveBindingSource.Current as SavePoint;
             using (ImportExportSaveForm form = new ImportExportSaveForm(save))
             {
                 form.ShowDialog();
@@ -546,7 +422,7 @@ namespace Orts.Menu
         /// 
         /// The save file is then modified to contain filename(s) from the current PC instead.
         /// </summary>
-        public bool Found(SavePoint save)
+        private bool Found(SavePoint save)
         {
             if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
             {
@@ -556,87 +432,89 @@ namespace Orts.Menu
             {
                 try
                 {
-                    BinaryReader inf = new BinaryReader(new FileStream(save.File, FileMode.Open, FileAccess.Read));
-                    var version = inf.ReadString();
-                    var build = inf.ReadString();
-                    var routeName = inf.ReadString();
-                    var pathName = inf.ReadString();
-                    var gameTime = inf.ReadInt32();
-                    var realTime = inf.ReadInt64();
-                    var currentTileX = inf.ReadSingle();
-                    var currentTileZ = inf.ReadSingle();
-                    var initialTileX = inf.ReadSingle();
-                    var initialTileZ = inf.ReadSingle();
-                    var tempInt = inf.ReadInt32();
-                    var savedArgs = new string[tempInt];
-                    for (var i = 0; i < savedArgs.Length; i++)
-                        savedArgs[i] = inf.ReadString();
+                    using (BinaryReader inf = new BinaryReader(new FileStream(save.File, FileMode.Open, FileAccess.Read)))
+                    {
+                        string version = inf.ReadString();
+                        string build = inf.ReadString();
+                        string routeName = inf.ReadString();
+                        string pathName = inf.ReadString();
+                        int gameTime = inf.ReadInt32();
+                        long realTime = inf.ReadInt64();
+                        float currentTileX = inf.ReadSingle();
+                        float currentTileZ = inf.ReadSingle();
+                        float initialTileX = inf.ReadSingle();
+                        float initialTileZ = inf.ReadSingle();
+                        int tempInt = inf.ReadInt32();
+                        string[] savedArgs = new string[tempInt];
+                        for (int i = 0; i < savedArgs.Length; i++)
+                            savedArgs[i] = inf.ReadString();
 
-                    // Re-locate files if saved on another PC
-                    var rewriteNeeded = false;
-                    // savedArgs[0] contains Activity or Path filepath
-                    var filePath = savedArgs[0];
-                    if( !File.Exists(filePath) )
-                    {
-                        // Show the dialog and get result.
-                        openFileDialog1.InitialDirectory = FolderStructure.Current.Folder;
-                        openFileDialog1.FileName = Path.GetFileName(filePath);
-                        openFileDialog1.Title = @"Find location for file " + filePath;
-                        if( openFileDialog1.ShowDialog() != DialogResult.OK )
-                            return false;
-                        rewriteNeeded = true;
-                        savedArgs[0] = openFileDialog1.FileName;
-                    }
-                    if( savedArgs.Length > 1 )  // Explore, not Activity
-                    {
-                        // savedArgs[1] contains Consist filepath
-                        filePath = savedArgs[1];
-                        if( !File.Exists(filePath) )
+                        // Re-locate files if saved on another PC
+                        bool rewriteNeeded = false;
+                        // savedArgs[0] contains Activity or Path filepath
+                        string filePath = savedArgs[0];
+                        if (!File.Exists(filePath))
                         {
                             // Show the dialog and get result.
                             openFileDialog1.InitialDirectory = FolderStructure.Current.Folder;
                             openFileDialog1.FileName = Path.GetFileName(filePath);
                             openFileDialog1.Title = @"Find location for file " + filePath;
-                            if( openFileDialog1.ShowDialog() != DialogResult.OK )
+                            if (openFileDialog1.ShowDialog() != DialogResult.OK)
                                 return false;
                             rewriteNeeded = true;
-                            savedArgs[1] = openFileDialog1.FileName;
+                            savedArgs[0] = openFileDialog1.FileName;
                         }
-                    }
-                    if( rewriteNeeded )
-                    {
-                        using( BinaryWriter outf = new BinaryWriter(new FileStream(save.File + ".tmp", FileMode.Create, FileAccess.Write)) )
+                        if (savedArgs.Length > 1)  // Explore, not Activity
                         {
-                            // copy the start of the file
-                            outf.Write(version);
-                            outf.Write(build);
-                            outf.Write(routeName);
-                            outf.Write(pathName);
-                            outf.Write(gameTime);
-                            outf.Write(realTime);
-                            outf.Write(currentTileX);
-                            outf.Write(currentTileZ);
-                            outf.Write(initialTileX);
-                            outf.Write(initialTileZ);
-                            outf.Write(savedArgs.Length);
-                            // copy the pars which may have changed
-                            for( var i = 0; i < savedArgs.Length; i++ )
-                                outf.Write(savedArgs[i]);
-                            // copy the rest of the file
-                            while( inf.BaseStream.Position < inf.BaseStream.Length )
+                            // savedArgs[1] contains Consist filepath
+                            filePath = savedArgs[1];
+                            if (!File.Exists(filePath))
                             {
-                                outf.Write(inf.ReadByte());
+                                // Show the dialog and get result.
+                                openFileDialog1.InitialDirectory = FolderStructure.Current.Folder;
+                                openFileDialog1.FileName = Path.GetFileName(filePath);
+                                openFileDialog1.Title = @"Find location for file " + filePath;
+                                if (openFileDialog1.ShowDialog() != DialogResult.OK)
+                                    return false;
+                                rewriteNeeded = true;
+                                savedArgs[1] = openFileDialog1.FileName;
                             }
                         }
-                        inf.Close();
-                        File.Replace(save.File + ".tmp", save.File, null);
-                    } 
-                    else
-                    {
-                        inf.Close();
+                        if (rewriteNeeded)
+                        {
+                            using (BinaryWriter outf = new BinaryWriter(new FileStream(save.File + ".tmp", FileMode.Create, FileAccess.Write)))
+                            {
+                                // copy the start of the file
+                                outf.Write(version);
+                                outf.Write(build);
+                                outf.Write(routeName);
+                                outf.Write(pathName);
+                                outf.Write(gameTime);
+                                outf.Write(realTime);
+                                outf.Write(currentTileX);
+                                outf.Write(currentTileZ);
+                                outf.Write(initialTileX);
+                                outf.Write(initialTileZ);
+                                outf.Write(savedArgs.Length);
+                                // copy the pars which may have changed
+                                for (int i = 0; i < savedArgs.Length; i++)
+                                    outf.Write(savedArgs[i]);
+                                // copy the rest of the file
+                                while (inf.BaseStream.Position < inf.BaseStream.Length)
+                                {
+                                    outf.Write(inf.ReadByte());
+                                }
+                            }
+                            inf.Close();
+                            File.Replace(save.File + ".tmp", save.File, null);
+                        }
+                        else
+                        {
+                            inf.Close();
+                        }
                     }
                 }
-                catch
+                catch (Exception ex) when (ex is IOException || ex is FileNotFoundException)
                 {
                 }
             }

@@ -165,7 +165,6 @@ namespace Orts.Models.Simplified
                                 await addItem.WaitAsync(token).ConfigureAwait(false);
                                 result.Add(activity);
                             }
-                            catch (FileNotFoundException) { }
                             finally
                             {
                                 addItem.Release();
