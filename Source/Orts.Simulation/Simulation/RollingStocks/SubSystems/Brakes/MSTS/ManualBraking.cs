@@ -46,6 +46,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         float SteamBrakeCompensation;
         bool LocomotiveSteamBrakeFitted = false;
         float SteamBrakePressurePSI = 0;
+        float SteamBrakeCylinderPressurePSI = 0;
 
         public override bool GetHandbrakeStatus()
         {
@@ -159,6 +160,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         LocomotiveSteamBrakeFitted = true;
                         SteamBrakeCompensation = lead.BoilerPressurePSI / lead.MaxBoilerPressurePSI;
                         SteamBrakePressurePSI = EngineBrakeSettingValue * SteamBrakeCompensation * lead.MaxBoilerPressurePSI;
+                        SteamBrakeCylinderPressurePSI = SteamBrakePressurePSI;
                     }
                 }
 
@@ -308,7 +310,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override float GetCylPressurePSI()
         {
-            return ManualBrakingCurrentFraction;
+            return SteamBrakeCylinderPressurePSI;
         }
 
         public override float GetCylVolumeM3()
