@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Formats.Msts;
-using Orts.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using Orts.Common.Info;
 using Orts.Formats.Msts.Files;
 
 namespace Orts.DataCollector

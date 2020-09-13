@@ -27,8 +27,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.Common;
 using Orts.Common.Info;

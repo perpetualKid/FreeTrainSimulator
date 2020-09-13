@@ -24,7 +24,7 @@ using System.Windows.Forms;
 using Microsoft.Win32;
 using Orts.Common.Native;
 
-namespace Orts.Common
+namespace Orts.Common.Info
 {
     public static class SystemInfo
     {
