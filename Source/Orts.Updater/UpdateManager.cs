@@ -155,7 +155,7 @@ namespace Orts.Updater
 
         public string GetBestAvailableVersion(string targetVersion = "", string targetChannel = "")
         {
-            var availableVersions = channels.Channels.Select(channel => channel.NormalizedVersion).ToList();
+            List<string> availableVersions = channels.Channels.Select(channel => channel.NormalizedVersion).ToList();
 
             return VersionInfo.SelectSuitableVersion(availableVersions, string.IsNullOrEmpty(targetChannel) ? settings.UpdateChannel : targetChannel, targetVersion);
         }
@@ -286,7 +286,7 @@ namespace Orts.Updater
                 using (Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false),
                     fileStream = new FileStream(FileUpdateStage, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, 8192, true))
                 {
-                    var buffer = new byte[8192];
+                    byte[] buffer = new byte[8192];
                     int bytesRead;
 
                     int percentage = 0;
@@ -479,7 +479,7 @@ namespace Orts.Updater
             if (null == processStartInfo)
                 throw new ArgumentNullException(nameof(processStartInfo));
 
-            var tcs = new TaskCompletionSource<object>();
+            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
             processStartInfo.RedirectStandardError = true;
             processStartInfo.UseShellExecute = false;
 
@@ -495,7 +495,7 @@ namespace Orts.Updater
             {
                 if (process.ExitCode != 0)
                 {
-                    var errorMessage = process.StandardError.ReadToEnd();
+                    string errorMessage = process.StandardError.ReadToEnd();
                     tcs.SetException(new InvalidOperationException("The process did not exit correctly. " +
                         "The corresponding error message was: " + errorMessage));
                 }

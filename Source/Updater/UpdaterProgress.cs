@@ -82,7 +82,7 @@ namespace Orts.Updater
         private static void RunWithElevation()
         {
             // Remove /ELEVATE= command-line flags from the child process
-            var processInfo = new ProcessStartInfo(Application.ExecutablePath,
+            ProcessStartInfo processInfo = new ProcessStartInfo(Application.ExecutablePath,
                 string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Where(a => !a.StartsWith(UpdateManager.ElevationCommandLine, StringComparison.OrdinalIgnoreCase)).ToArray()))
             {
                 Verb = "runas"
@@ -99,7 +99,7 @@ namespace Orts.Updater
             // will not try and apply an update whilst the previous instance is still lingering.
             List<Task> waitList = new List<Task>();
 
-            var waitPids = Environment.GetCommandLineArgs().Where(a => a.StartsWith(UpdateManager.WaitProcessIdCommandLine, StringComparison.OrdinalIgnoreCase));
+            IEnumerable<string> waitPids = Environment.GetCommandLineArgs().Where(a => a.StartsWith(UpdateManager.WaitProcessIdCommandLine, StringComparison.OrdinalIgnoreCase));
             foreach (string waitPid in waitPids)
             {
                 try
@@ -210,7 +210,7 @@ namespace Orts.Updater
         /// <returns>A Task representing waiting for the process to end.</returns>
         private static async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken = default)
         {
-            var tcs = new TaskCompletionSource<bool>();
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             void Process_Exited(object sender, EventArgs e)
             {
                 tcs.TrySetResult(true);
