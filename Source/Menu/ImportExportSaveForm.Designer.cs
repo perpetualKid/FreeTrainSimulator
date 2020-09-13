@@ -39,7 +39,7 @@
             this.bViewSavePacksFolder.TabIndex = 1;
             this.bViewSavePacksFolder.Text = "Open Save Packs folder";
             this.bViewSavePacksFolder.UseVisualStyleBackColor = true;
-            this.bViewSavePacksFolder.Click += new System.EventHandler(this.BViewSavePacksFolder_Click);
+            this.bViewSavePacksFolder.Click += new System.EventHandler(this.ButtonViewSavePacksFolder_Click);
             // 
             // bExport
             // 
@@ -59,7 +59,7 @@
             this.bImportSave.TabIndex = 0;
             this.bImportSave.Text = "Import Save Pack";
             this.bImportSave.UseVisualStyleBackColor = true;
-            this.bImportSave.Click += new System.EventHandler(this.BImportSave_Click_1);
+            this.bImportSave.Click += new System.EventHandler(this.ButtonImportSave_Click);
             // 
             // ofdImportSave
             // 

@@ -53,6 +53,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -75,24 +76,25 @@ namespace Orts.Menu
         private readonly UserSettings settings;
         private readonly Route route;
         private readonly Activity activity;
-        private static IEnumerable<Route> globalRoutes;
+        private readonly IEnumerable<Route> globalRoutes;
         private readonly TimetableInfo timeTable;
         private List<SavePoint> savePoints = new List<SavePoint>();
 
         private CancellationTokenSource ctsLoader;
 
-        public string SelectedSaveFile { get; set; }
-        public MainForm.UserAction SelectedAction { get; set; }
-        private static bool Multiplayer { get; set; }
+        public string SelectedSaveFile { get; private set; }
+        public MainForm.UserAction SelectedAction { get; private set; }
+        private readonly bool multiplayer;
 
-        private static ICatalog catalog = new Catalog("Menu");
+        private readonly ICatalog catalog;
 
-        public ResumeForm(UserSettings settings, Route route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timetable,
-            IEnumerable<Route> mainRoutes)
+        internal ResumeForm(UserSettings settings, Route route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable,
+            IEnumerable<Route> mainRoutes, ICatalog catalog)
         {
+            this.catalog = catalog;
             globalRoutes = mainRoutes;
             SelectedAction = mainFormAction;
-            Multiplayer = SelectedAction == MainForm.UserAction.MultiplayerClient || SelectedAction == MainForm.UserAction.MultiplayerServer;
+            multiplayer = SelectedAction == MainForm.UserAction.MultiplayerClient || SelectedAction == MainForm.UserAction.MultiplayerServer;
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
             Localizer.Localize(this, catalog);
@@ -105,7 +107,7 @@ namespace Orts.Menu
             this.settings = settings;
             this.route = route;
             this.activity = activity;
-            this.timeTable = timetable;
+            this.timeTable = timeTable;
 
             checkBoxReplayPauseBeforeEnd.Checked = settings.ReplayPauseBeforeEnd;
             numericReplayPauseBeforeEnd.Value = settings.ReplayPauseBeforeEndS;
@@ -114,22 +116,22 @@ namespace Orts.Menu
 
             if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
             {
-                Text = String.Format("{0} - {1} - {2}", Text, route.Name, Path.GetFileNameWithoutExtension(timeTable.FileName));
+                Text += $" - {route.Name} - {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
                 pathNameDataGridViewTextBoxColumn.Visible = true;
             }
             else
             {
-                Text = String.Format("{0} - {1} - {2}", Text, route.Name, activity.FilePath != null ? activity.Name :
-                    activity.Name == "+ " + catalog.GetString("Explore in Activity Mode") + " +" ? catalog.GetString("Explore in Activity Mode") : catalog.GetString("Explore Route"));
+                Text += $" - { route.Name} - {(activity.GetType() == typeof(Activity) ? activity.Name : activity is ExploreThroughActivity ? catalog.GetString("Explore in Activity Mode") : catalog.GetString("Explore Route"))}";
                 pathNameDataGridViewTextBoxColumn.Visible = activity.FilePath == null;
             }
 
-            if (Multiplayer) Text += " - Multiplayer ";
+            if (multiplayer) 
+                Text += $" - {catalog.GetString("Multiplayer")} ";
         }
 
         private async void ResumeForm_Shown(object sender, EventArgs e)
         {
-            await LoadSavePointsAsync();
+            await LoadSavePointsAsync().ConfigureAwait(true);
         }
 
         private void ResumeForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -140,6 +142,21 @@ namespace Orts.Menu
                 ctsLoader.Dispose();
             }
         }
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                components?.Dispose();
+                ctsLoader?.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
 
         private async Task LoadSavePointsAsync()
         {
@@ -153,30 +170,29 @@ namespace Orts.Menu
                 ctsLoader = new CancellationTokenSource();
             }
 
-            string warnings = string.Empty;
-
-            var prefix = string.Empty;
+            StringBuilder warnings = new StringBuilder();
+            string prefix = string.Empty;
 
             if (SelectedAction == MainForm.UserAction.SinglePlayerTimetableGame)
             {
-                prefix = Path.GetFileName(route.Path) + " " + Path.GetFileNameWithoutExtension(timeTable.FileName);
+                prefix = $"{Path.GetFileName(route.Path)} {Path.GetFileNameWithoutExtension(timeTable.FileName)}";
             }
             else if (activity.FilePath != null)
             {
                 prefix = Path.GetFileNameWithoutExtension(activity.FilePath);
             }
-            else if (activity.Name == "- " + catalog.GetString("Explore Route") + " -")
+            else if (activity.Name == $"- {catalog.GetString("Explore Route")} -")
             {
                 prefix = Path.GetFileName(route.Path);
             }
             // Explore in activity mode
             else
             {
-                prefix = "ea$" + Path.GetFileName(route.Path) + "$";
+                prefix = $"ea${Path.GetFileName(route.Path)}$";
             }
 
             savePoints = (await SavePoint.GetSavePoints(UserSettings.UserDataFolder,
-                prefix, route.Name, warnings, Multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).
+                prefix, route.Name, warnings, multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).
                 OrderByDescending(s => s.Valid).ThenByDescending(s => s.RealTime).ToList();
 
             saveBindingSource.DataSource = savePoints;
@@ -185,67 +201,64 @@ namespace Orts.Menu
                 catalog.GetString("{0} of {1} saves for this route are no longer valid.", savePoints.Count(s => (s.Valid == false)), savePoints.Count);
             GridSaves_SelectionChanged(null, null);
             // Show warning after the list has been updated as this is more useful.
-            if (!string.IsNullOrEmpty(warnings))
-                MessageBox.Show(warnings, $"{RuntimeInfo.ProductName} {VersionInfo.Version}");
+            if (warnings.Length > 0)
+                MessageBox.Show(warnings.ToString(), $"{RuntimeInfo.ProductName} {VersionInfo.Version}");
         }
 
         private bool AcceptUseOfNonvalidSave(SavePoint save)
         {
             DialogResult reply = MessageBox.Show(catalog.GetString(
-                "Restoring from a save made by version {1} of {0} may be incompatible with current version {2}. Please do not report any problems that may result.\n\nContinue?",
-                Application.ProductName, save.ProgramVersion, VersionInfo.Version), $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                $"Restoring from a save made by version {save.ProgramVersion} of {RuntimeInfo.ProductName} may be incompatible with current version {VersionInfo.Version}. Please do not report any problems that may result.\n\nContinue?"), 
+                $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             return reply == DialogResult.Yes;
         }
-        private bool AcceptOfNonvalidDbfSetup(SavePoint save)
+
+        private bool AcceptOfNonvalidDbfSetup()
         {
             DialogResult reply = MessageBox.Show(catalog.GetString(
                    "The selected file contains Debrief Eval data.\nBut Debrief Evaluation checkbox (Main menu) is unchecked.\nYou cannot continue with the Evaluation on course.\n\nContinue?"),
                    $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
-
             return reply == DialogResult.Yes;
         }
 
         private void ResumeSave()
         {
-            var save = saveBindingSource.Current as SavePoint;
+            SavePoint save = saveBindingSource.Current as SavePoint;
 
             if (null != save)
             {
                 //Debrief Eval
                 if (save.DebriefEvaluation && !settings.DebriefActivityEval)
                 {
-                    if (!AcceptOfNonvalidDbfSetup(save))
+                    if (!AcceptOfNonvalidDbfSetup())
                         return;
                 }
 
-                if (save.Valid != false) // I.e. true or null. Check is for safety as buttons should be disabled if SavePoint is invalid.
+                if (save.Valid != false && Found(save)) // I.e. true or null. Check is for safety as buttons should be disabled if SavePoint is invalid.
                 {
-                    if (Found(save))
-                    {
-                        if (save.Valid == null)
-                            if (!AcceptUseOfNonvalidSave(save))
-                                return;
+                    if (save.Valid == null)
+                        if (!AcceptUseOfNonvalidSave(save))
+                            return;
 
-                        SelectedSaveFile = save.File;
-                        var selectedAction = SelectedAction;
-                        switch (SelectedAction)
-                        {
-                            case MainForm.UserAction.SinglePlayerTimetableGame:
-                                selectedAction = MainForm.UserAction.SinglePlayerResumeTimetableGame;
-                                break;
-                            case MainForm.UserAction.SingleplayerNewGame:
-                                selectedAction = MainForm.UserAction.SingleplayerResumeSave;
-                                break;
-                            case MainForm.UserAction.MultiplayerClient:
-                                selectedAction = MainForm.UserAction.MultiplayerClientResumeSave;
-                                break;
-                            case MainForm.UserAction.MultiplayerServer:
-                                selectedAction = MainForm.UserAction.MultiplayerServerResumeSave;
-                                break;
-                        }
-                        SelectedAction = selectedAction;
-                        DialogResult = DialogResult.OK;
+                    SelectedSaveFile = save.File;
+                    MainForm.UserAction selectedAction = SelectedAction;
+                    switch (SelectedAction)
+                    {
+                        case MainForm.UserAction.SinglePlayerTimetableGame:
+                            selectedAction = MainForm.UserAction.SinglePlayerResumeTimetableGame;
+                            break;
+                        case MainForm.UserAction.SingleplayerNewGame:
+                            selectedAction = MainForm.UserAction.SingleplayerResumeSave;
+                            break;
+                        case MainForm.UserAction.MultiplayerClient:
+                            selectedAction = MainForm.UserAction.MultiplayerClientResumeSave;
+                            break;
+                        case MainForm.UserAction.MultiplayerServer:
+                            selectedAction = MainForm.UserAction.MultiplayerServerResumeSave;
+                            break;
                     }
+                    SelectedAction = selectedAction;
+                    DialogResult = DialogResult.OK;
                 }
             }
         }
@@ -264,15 +277,15 @@ namespace Orts.Menu
             {
                 if (saveBindingSource.Current is SavePoint save)
                 {
-                    var thumbFileName = Path.ChangeExtension(save.File, "png");
+                    string thumbFileName = Path.ChangeExtension(save.File, "png");
                     if (File.Exists(thumbFileName))
                         pictureBoxScreenshot.Image = new Bitmap(thumbFileName);
 
                     buttonDelete.Enabled = true;
                     buttonResume.Enabled = (save.Valid != false); // I.e. either true or null
-                    var replayFileName = Path.ChangeExtension(save.File, "replay");
-                    buttonReplayFromPreviousSave.Enabled = (save.Valid != false) && File.Exists(replayFileName) && !Multiplayer;
-                    buttonReplayFromStart.Enabled = File.Exists(replayFileName) && !Multiplayer; // can Replay From Start even if SavePoint is invalid.
+                    string replayFileName = Path.ChangeExtension(save.File, "replay");
+                    buttonReplayFromPreviousSave.Enabled = (save.Valid != false) && File.Exists(replayFileName) && !multiplayer;
+                    buttonReplayFromStart.Enabled = File.Exists(replayFileName) && !multiplayer; // can Replay From Start even if SavePoint is invalid.
                 }
                 else
                 {
@@ -317,7 +330,7 @@ namespace Orts.Menu
                 {
                     DeleteSavePoint(selectedRows[i].DataBoundItem as SavePoint);
                 }
-                await LoadSavePointsAsync();
+                await LoadSavePointsAsync().ConfigureAwait(true);
             }
         }
 
@@ -332,31 +345,27 @@ namespace Orts.Menu
                         File.Move(fileName, Path.Combine(UserSettings.DeletedSaveFolder, Path.GetFileName(fileName)));
                     }
                     catch (Exception ex) when (ex is IOException || ex is FileNotFoundException || ex is UnauthorizedAccessException)
-                    {
-                    }
+                    { }
                 }
             }
         }
 
         private async void ButtonUndelete_Click(object sender, EventArgs e)
         {
-            await Task.Run(() =>
+            if (Directory.Exists(UserSettings.DeletedSaveFolder))
             {
-                if (Directory.Exists(UserSettings.DeletedSaveFolder))
+                foreach (string filePath in Directory.EnumerateFiles(UserSettings.DeletedSaveFolder))
                 {
-                    foreach (var filePath in Directory.GetFiles(UserSettings.DeletedSaveFolder))
+                    try
                     {
-                        try
-                        {
-                            File.Move(filePath, Path.Combine(UserSettings.UserDataFolder, Path.GetFileName(filePath)));
-                        }
-                        catch { }
+                        File.Move(filePath, Path.Combine(UserSettings.UserDataFolder, Path.GetFileName(filePath)));
                     }
-
-                    Directory.Delete(UserSettings.DeletedSaveFolder);
+                    catch (Exception ex) when (ex is IOException || ex is FileNotFoundException || ex is UnauthorizedAccessException)
+                    { }
                 }
-            });
-            await LoadSavePointsAsync();
+                Directory.Delete(UserSettings.DeletedSaveFolder);
+            }
+            await LoadSavePointsAsync().ConfigureAwait(true);
         }
 
         private async void ButtonDeleteInvalid_Click(object sender, EventArgs e)
@@ -371,8 +380,8 @@ namespace Orts.Menu
                     deleted++;
                 }
             }
-            MessageBox.Show(catalog.GetString("{0} invalid saves have been deleted.", deleted), $"{RuntimeInfo.ProductName} {VersionInfo.Version}");
-            await LoadSavePointsAsync();
+            MessageBox.Show(catalog.GetString($"{deleted} invalid saves have been deleted."), $"{RuntimeInfo.ProductName} {VersionInfo.Version}");
+            await LoadSavePointsAsync().ConfigureAwait(true);
         }
 
         private void ButtonReplayFromStart_Click(object sender, EventArgs e)
@@ -389,7 +398,7 @@ namespace Orts.Menu
 
         private void InitiateReplay(bool fromStart)
         {
-            var save = saveBindingSource.Current as SavePoint;
+            SavePoint save = saveBindingSource.Current as SavePoint;
             if (Found(save))
             {
                 if (fromStart && (save.Valid == null))
@@ -406,11 +415,11 @@ namespace Orts.Menu
         private async void ButtonImportExportSaves_Click(object sender, EventArgs e)
         {
             SavePoint save = saveBindingSource.Current as SavePoint;
-            using (ImportExportSaveForm form = new ImportExportSaveForm(save))
+            using (ImportExportSaveForm form = new ImportExportSaveForm(save, catalog))
             {
                 form.ShowDialog();
             }
-            await LoadSavePointsAsync();
+            await LoadSavePointsAsync().ConfigureAwait(true);
         }
 
         /// <summary>
@@ -430,6 +439,7 @@ namespace Orts.Menu
             }
             else
             {
+                string[] savedArgs = Array.Empty<string>();
                 try
                 {
                     using (BinaryReader inf = new BinaryReader(new FileStream(save.File, FileMode.Open, FileAccess.Read)))
@@ -444,7 +454,7 @@ namespace Orts.Menu
                         float initialTileX = inf.ReadSingle();
                         float initialTileZ = inf.ReadSingle();
                         int tempInt = inf.ReadInt32();
-                        string[] savedArgs = new string[tempInt];
+                        savedArgs = new string[tempInt];
                         for (int i = 0; i < savedArgs.Length; i++)
                             savedArgs[i] = inf.ReadString();
 
@@ -457,7 +467,7 @@ namespace Orts.Menu
                             // Show the dialog and get result.
                             openFileDialog1.InitialDirectory = FolderStructure.Current.Folder;
                             openFileDialog1.FileName = Path.GetFileName(filePath);
-                            openFileDialog1.Title = @"Find location for file " + filePath;
+                            openFileDialog1.Title = catalog.GetString($"Find location for file {filePath}");
                             if (openFileDialog1.ShowDialog() != DialogResult.OK)
                                 return false;
                             rewriteNeeded = true;
@@ -472,7 +482,7 @@ namespace Orts.Menu
                                 // Show the dialog and get result.
                                 openFileDialog1.InitialDirectory = FolderStructure.Current.Folder;
                                 openFileDialog1.FileName = Path.GetFileName(filePath);
-                                openFileDialog1.Title = @"Find location for file " + filePath;
+                                openFileDialog1.Title = catalog.GetString($"Find location for file {filePath}");
                                 if (openFileDialog1.ShowDialog() != DialogResult.OK)
                                     return false;
                                 rewriteNeeded = true;
@@ -514,6 +524,7 @@ namespace Orts.Menu
                 }
                 catch (Exception ex) when (ex is IOException || ex is FileNotFoundException)
                 {
+                    MessageBox.Show(catalog.GetString($"Could not change file location from {save.File} to {savedArgs.FirstOrDefault()}."));
                 }
             }
             return true;

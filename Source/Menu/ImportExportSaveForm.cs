@@ -25,6 +25,7 @@ using System.Windows.Forms;
 using GetText;
 using GetText.WindowsForms;
 
+using Orts.Common.Info;
 using Orts.Models.Simplified;
 using Orts.Settings;
 
@@ -37,10 +38,11 @@ namespace Orts.Menu
         private readonly SavePoint savePoint;
         private const string SavePackFileExtension = "ORSavePack";  // Includes "OR" in the extension as this may be emailed, downloaded and mixed in with non-OR files.
 
-        private ICatalog catalog = new Catalog("Menu");
+        private readonly ICatalog catalog;
 
-        public ImportExportSaveForm(SavePoint save)
+        internal ImportExportSaveForm(SavePoint save, ICatalog catalog)
         {
+            this.catalog = catalog;
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
             Localizer.Localize(this, catalog);
@@ -51,21 +53,21 @@ namespace Orts.Menu
             Font = SystemFonts.MessageBoxFont;
 
             savePoint = save;
-			if (!Directory.Exists(UserSettings.SavePackFolder))
+            if (!Directory.Exists(UserSettings.SavePackFolder))
                 Directory.CreateDirectory(UserSettings.SavePackFolder);
             UpdateFileList(null);
             bExport.Enabled = (savePoint != null);
-            ofdImportSave.Filter = Application.ProductName + catalog.GetString("Save Packs") + " (*." + SavePackFileExtension + ")|*." + SavePackFileExtension + "|" + catalog.GetString("All files") + " (*.*)|*";
+            ofdImportSave.Filter = $"{RuntimeInfo.ProductName}{catalog.GetString("Save Packs")} (*.{SavePackFileExtension})|*.{SavePackFileExtension}|{catalog.GetString("All files")} (*.*)|*";
         }
 
         #region Event handlers
-        private void BImportSave_Click_1(object sender, EventArgs e)
+        private void ButtonImportSave_Click(object sender, EventArgs e)
         {
             // Show the dialog and get result.
-			ofdImportSave.InitialDirectory = UserSettings.SavePackFolder;
+            ofdImportSave.InitialDirectory = UserSettings.SavePackFolder;
             if (ofdImportSave.ShowDialog() == DialogResult.OK)
             {
-				ExtractFilesFromZip(ofdImportSave.FileName, UserSettings.UserDataFolder);
+                ExtractFilesFromZip(ofdImportSave.FileName, UserSettings.UserDataFolder);
                 UpdateFileList(catalog.GetString("Save Pack '{0}' imported successfully.", Path.GetFileNameWithoutExtension(ofdImportSave.FileName)));
             }
         }
@@ -80,16 +82,17 @@ namespace Orts.Menu
             UpdateFileList(catalog.GetString("Save Pack '{0}' exported successfully.", Path.GetFileNameWithoutExtension(savePoint.File)));
         }
 
-        private void BViewSavePacksFolder_Click(object sender, EventArgs e)
+        private void ButtonViewSavePacksFolder_Click(object sender, EventArgs e)
         {
-            var processStart = new ProcessStartInfo();
-            var winDir = Environment.GetEnvironmentVariable("windir");
-            processStart.FileName = winDir + @"\explorer.exe";
-            processStart.Arguments = $"\"{UserSettings.SavePackFolder}\""; // Opens the SavePoint Packs folder
+            ProcessStartInfo processStart = new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = $"\"{UserSettings.SavePackFolder}\"" // Opens the SavePoint Packs folder
+            };
             if (savePoint != null)
             {
                 string targetFile = Path.GetFileNameWithoutExtension(savePoint.File) + "." + SavePackFileExtension;
-				var fullZipFilePath = Path.Combine(UserSettings.SavePackFolder, targetFile);
+                string fullZipFilePath = Path.Combine(UserSettings.SavePackFolder, targetFile);
                 if (File.Exists(fullZipFilePath))
                 {
                     processStart.Arguments = $"/select,\"{fullZipFilePath}\""; // Opens the SavePoint Packs folder and selects the exported SavePack
@@ -101,10 +104,10 @@ namespace Orts.Menu
 
         private void UpdateFileList(string message)
         {
-			string[] files = Directory.GetFiles(UserSettings.SavePackFolder, "*." + SavePackFileExtension);
-            textBoxSavePacks.Text = String.IsNullOrEmpty(message) ? "" : message + "\r\n";
+            string[] files = Directory.GetFiles(UserSettings.SavePackFolder, "*." + SavePackFileExtension);
+            textBoxSavePacks.Text = string.IsNullOrEmpty(message) ? "" : message + "\r\n";
             textBoxSavePacks.Text += catalog.GetPluralString("Save Pack folder contains {0} save pack:", "Save Pack folder contains {0} save packs:", files.Length);
-            foreach (var s in files)
+            foreach (string s in files)
                 textBoxSavePacks.Text += "\r\n    " + Path.GetFileNameWithoutExtension(s);
         }
 

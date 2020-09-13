@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -26,7 +27,7 @@ namespace Orts.Models.Simplified
         public bool DebriefEvaluation { get; } //Debrief Eval
 
         public static async Task<IEnumerable<SavePoint>> GetSavePoints(string directory, string prefix,
-            string routeName, string warnings, bool multiPlayer, IEnumerable<Route> mainRoutes, CancellationToken token)
+            string routeName, StringBuilder warnings, bool multiPlayer, IEnumerable<Route> mainRoutes, CancellationToken token)
         {
             using (SemaphoreSlim addItem = new SemaphoreSlim(1))
             {
@@ -52,7 +53,7 @@ namespace Orts.Models.Simplified
                             if (!savePoint.IsMultiplayer ^ multiPlayer)
                                 return savePoint;
                             // Save a warning to show later.
-                            warnings += catalog.GetString("Warning: Save {0} found from a route with an unexpected name:\n{1}.\n\n", savePoint.RealTime, savePoint.RouteName);
+                            warnings.Append(catalog.GetString("Warning: Save {0} found from a route with an unexpected name:\n{1}.\n\n", savePoint.RealTime, savePoint.RouteName));
                         }
                         return null;
                     },
@@ -124,7 +125,7 @@ namespace Orts.Models.Simplified
                     DebriefEvaluation = System.IO.File.Exists(fileName.Substring(0, fileName.Length - 5) + ".dbfeval");
                 }
             }
-            catch(InvalidDataException)
+            catch(Exception ex) when (ex is ArgumentException || ex is InvalidDataException)
             {
                 Valid = false;
             }

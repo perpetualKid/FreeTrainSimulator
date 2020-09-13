@@ -122,8 +122,8 @@ namespace Orts.Menu
         internal UserAction SelectedAction { get; private set; }
         #endregion
 
-        internal ICatalog catalog;
-        internal ICatalog commonCatalog;
+        private ICatalog catalog;
+        private ICatalog commonCatalog;
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
 
         #region Main Form
@@ -683,7 +683,7 @@ namespace Orts.Menu
                 return;
             }
 
-            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, routes))
+            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, routes, catalog))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -697,7 +697,7 @@ namespace Orts.Menu
 
         private void ButtonStartMP_Click(object sender, EventArgs e)
         {
-            if (!CheckUserName(textBoxMPUser.Text)) 
+            if (!CheckUserName(textBoxMPUser.Text))
                 return;
             SaveOptions();
             SelectedAction = radioButtonMPClient.Checked ? UserAction.MultiplayerClient : UserAction.MultiplayerServer;
@@ -780,7 +780,7 @@ namespace Orts.Menu
             comboBoxTimetableTrain.Enabled = comboBoxTimetable.Items.Count > 0;
             comboBoxTimetableWeatherFile.Enabled = comboBoxTimetableWeatherFile.Items.Count > 0;
             //Avoid to Start with a non valid Activity/Locomotive/Consist.
-            buttonResume.Enabled = buttonStart.Enabled = radioButtonModeActivity.Checked && 
+            buttonResume.Enabled = buttonStart.Enabled = radioButtonModeActivity.Checked &&
                 comboBoxActivity.Text.Length > 0 && comboBoxActivity.Text[0] != '<' && comboBoxLocomotive.Text.Length > 0 && comboBoxLocomotive.Text[0] != '<' ?
                 SelectedActivity != null && (!(SelectedActivity is ExploreActivity) || (comboBoxConsist.Items.Count > 0 && comboBoxHeadTo.Items.Count > 0)) :
                 SelectedTimetableTrain != null;
