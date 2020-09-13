@@ -176,7 +176,7 @@ namespace Orts.Menu
             }
 
             savePoints = (await SavePoint.GetSavePoints(UserSettings.UserDataFolder,
-                prefix, route.Name, settings.YoungestFailedToRestore, warnings, Multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true))
+                prefix, route.Name, warnings, Multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true))
                 .OrderByDescending(s => s.RealTime).ToList();
 
             saveBindingSource.DataSource = savePoints;
@@ -193,7 +193,7 @@ namespace Orts.Menu
         {
             DialogResult reply = MessageBox.Show(catalog.GetString(
                 "Restoring from a save made by version {1} of {0} may be incompatible with current version {2}. Please do not report any problems that may result.\n\nContinue?",
-                Application.ProductName, save.VersionOrBuild, VersionInfo.Version), $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                Application.ProductName, save.ProgramVersion, VersionInfo.Version), $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             return reply == DialogResult.Yes;
         }
         private bool AcceptOfNonvalidDbfSetup(SavePoint save)

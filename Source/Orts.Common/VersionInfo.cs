@@ -117,7 +117,7 @@ namespace Orts.Common
                     (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0 &&
                     VersionComparer.VersionRelease.Compare(version, target) <= 0);
             }
-            else 
+            else
             {
                 //compare against the current version
                 selection = result.Where((version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0);
@@ -158,64 +158,21 @@ namespace Orts.Common
         }
 
         /// <summary>
-        /// Find whether a requested version and build are valid for this build 
+        /// Find whether a requested version is valid for this current version
         /// </summary>
         /// <param name="version">version to test again</param>
-        /// <param name="build">build to test again</param>
-        /// <param name="youngestFailedToResume">youngest build that failed to resume</param>
+        /// <param name="youngestFailedToResume">highest version that failed to resume</param>
         /// <returns>true or false when able to determine validity, null otherwise</returns>
-        public static bool? GetValidity(string version, string build, int youngestFailedToResume)
+        public static bool? GetValidity(string version)
         {
-            int revision = GetRevisionFromVersion(version);
-            int.TryParse(CodeVersion, out int programRevision);
-            //MessageBox.Show(String.Format("VersionInfo.Build = {0}, build = {1}, version = {2}, youngestFailedToResume = {3}", VersionInfo.Build, build, Version, youngestFailedToResume));
-            if (revision != 0)  // compiled remotely by Open Rails
+            //TODO 20200910 bare minimum reimplementation, but versioning does not have reliable information about savepoint compatiblity
+            if (NuGetVersion.TryParse(version, out NuGetVersion nugetVersion))
             {
-                if (revision == programRevision)
-                {
+                if (nugetVersion.Equals(CurrentVersion, VersionComparison.VersionRelease))
                     return true;
-                }
-                else
-                {
-                    if (revision > youngestFailedToResume        // 1. Normal situation
-                    || programRevision < youngestFailedToResume) // 2. If an old version of OR is used, then attempt to load Saves
-                                                                 //    which would be blocked by the current version of OR
-                    {
-                        return null;
-                    }
-                }
-            }
-            else  // compiled locally
-            {
-                if (build.EndsWith(Build))
-                {
-                    return true;
-                }
-                else
-                {
-                    return null;
-                }
+                return null;
             }
             return false; // default validity
-        }
-
-        /// <summary>
-        /// Find the revision number (e.g. 1648) from the full version (e.g. 0.9.0.1648 or X.1648 or X1648)
-        /// </summary>
-        /// <param name="version">full version</param>
-        public static int GetRevisionFromVersion(string fullVersion)
-        {
-            var versionParts = fullVersion.Split('.');
-            var revision = 0;
-            try
-            {
-                var version = versionParts[versionParts.Length - 1];
-                if (version.StartsWith("X"))
-                    version = version.Substring(1);
-                int.TryParse(version, out revision);
-            }
-            catch { }
-            return revision;
         }
     }
 }
