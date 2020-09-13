@@ -176,8 +176,8 @@ namespace Orts.Menu
             }
 
             savePoints = (await SavePoint.GetSavePoints(UserSettings.UserDataFolder,
-                prefix, route.Name, warnings, Multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true))
-                .OrderByDescending(s => s.RealTime).ToList();
+                prefix, route.Name, warnings, Multiplayer, globalRoutes, ctsLoader.Token).ConfigureAwait(true)).
+                OrderByDescending(s => s.Valid).ThenByDescending(s => s.RealTime).ToList();
 
             saveBindingSource.DataSource = savePoints;
             labelInvalidSaves.Text = catalog.GetString(
@@ -435,7 +435,6 @@ namespace Orts.Menu
                     using (BinaryReader inf = new BinaryReader(new FileStream(save.File, FileMode.Open, FileAccess.Read)))
                     {
                         string version = inf.ReadString();
-                        string build = inf.ReadString();
                         string routeName = inf.ReadString();
                         string pathName = inf.ReadString();
                         int gameTime = inf.ReadInt32();
@@ -486,7 +485,6 @@ namespace Orts.Menu
                             {
                                 // copy the start of the file
                                 outf.Write(version);
-                                outf.Write(build);
                                 outf.Write(routeName);
                                 outf.Write(pathName);
                                 outf.Write(gameTime);
