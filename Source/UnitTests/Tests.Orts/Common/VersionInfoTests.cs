@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using NuGet.Versioning;
 
-using Orts.Common;
+using Orts.Common.Info;
 
 namespace Tests.Orts.Common
 {

@@ -26,6 +26,7 @@ using System.Threading;
 using System.Windows.Forms;
 
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Settings;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes

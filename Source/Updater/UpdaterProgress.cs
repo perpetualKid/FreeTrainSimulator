@@ -156,7 +156,7 @@ namespace Orts.Updater
                     Invoke((Action)(() =>
                     {
                         MessageBox.Show(catalog.GetString($"Error: {exception.Message} {exception.InnerException?.Message}"),
-                            $"{RuntimeInfo.ProductName} {Common.VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }));
                 }
                 return;
@@ -182,7 +182,7 @@ namespace Orts.Updater
                     Invoke((Action)(() =>
                     {
                         MessageBox.Show(catalog.GetString($"Error: {exception.Message} {exception.InnerException?.Message}"),
-                            $"{RuntimeInfo.ProductName} {Common.VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }));
                 }
                 Application.Exit();

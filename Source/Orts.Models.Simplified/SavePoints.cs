@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-using Orts.Common;
+using Orts.Common.Info;
 
 namespace Orts.Models.Simplified
 {
@@ -125,7 +125,7 @@ namespace Orts.Models.Simplified
                     DebriefEvaluation = System.IO.File.Exists(fileName.Substring(0, fileName.Length - 5) + ".dbfeval");
                 }
             }
-            catch(Exception ex) when (ex is ArgumentException || ex is InvalidDataException)
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidDataException)
             {
                 Valid = false;
             }

@@ -23,7 +23,7 @@ using System.Reflection;
 
 using NuGet.Versioning;
 
-namespace Orts.Common
+namespace Orts.Common.Info
 {
 
     /// <summary>
