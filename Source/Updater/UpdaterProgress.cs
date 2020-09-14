@@ -37,7 +37,7 @@ namespace Orts.Updater
     public partial class UpdaterProgress : Form
     {
         private readonly UserSettings settings;
-        private readonly ICatalog catalog = new Catalog("Updater");
+        private readonly ICatalog catalog = new Catalog("Updater", RuntimeInfo.LocalesFolder);
 
         public UpdaterProgress()
         {

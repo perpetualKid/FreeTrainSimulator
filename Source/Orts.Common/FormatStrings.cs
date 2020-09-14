@@ -23,6 +23,7 @@ using System.Text;
 using GetText;
 
 using Orts.Common.Calc;
+using Orts.Common.Info;
 
 namespace Orts.Common
 {
@@ -31,49 +32,51 @@ namespace Orts.Common
     /// </summary>
     public static class FormatStrings
     {
-        public static ICatalog Catalog = new Catalog("Orts.Common");
+        public static ICatalog Catalog { get; } = new Catalog("Orts.Common", RuntimeInfo.LocalesFolder);
 
-        public static string m = Catalog.GetString("m");
-        public static string km = Catalog.GetString("km");
-        public static string mm = Catalog.GetString("mm");
-        public static string mi = Catalog.GetString("mi");
-        public static string ft = Catalog.GetString("ft");
-        public static string yd = Catalog.GetString("yd");
-        public static string m2 = Catalog.GetString("m²");
-        public static string ft2 = Catalog.GetString("ft²");
-        public static string m3 = Catalog.GetString("m³");
-        public static string ft3 = Catalog.GetString("ft³");
-        public static string kmph = Catalog.GetString("km/h");
-        public static string mph = Catalog.GetString("mph");
-        public static string kpa = Catalog.GetString("kPa");
-        public static string bar = Catalog.GetString("bar");
-        public static string psi = Catalog.GetString("psi");
-        public static string inhg = Catalog.GetString("inHg");
-        public static string kgfpcm2 = Catalog.GetString("kgf/cm²");
-        public static string kg = Catalog.GetString("kg");
-        public static string t = Catalog.GetString("t");
-        public static string tonUK = Catalog.GetString("t-uk");
-        public static string tonUS = Catalog.GetString("t-us");
-        public static string lb = Catalog.GetString("lb");
-        public static string s = Catalog.GetString("s");
-        public static string min = Catalog.GetString("min");
-        public static string h = Catalog.GetString("h");
-        public static string l = Catalog.GetString("L");
-        public static string galUK = Catalog.GetString("g-uk");
-        public static string galUS = Catalog.GetString("g-us");
-        public static string rpm = Catalog.GetString("rpm");
-        public static string kW = Catalog.GetString("kW");
-        public static string hp = Catalog.GetString("hp"); // mechanical (or brake) horsepower
-        public static string bhp = Catalog.GetString("bhp"); // boiler horsepower
-        public static string kJ = Catalog.GetString("kJ");
-        public static string MJ = Catalog.GetString("MJ");
-        public static string btu = Catalog.GetString("BTU");
-        public static string c = Catalog.GetString("°C");
-        public static string f = Catalog.GetString("°F");
-        public static string n = Catalog.GetString("N");
-        public static string kN = Catalog.GetString("kN");
-        public static string lbf = Catalog.GetString("lbf");
-        public static string klbf = Catalog.GetString("klbf");
+#pragma warning disable IDE1006 // Naming Styles
+        public static string m { get; } = Catalog.GetString("m");
+        public static string km { get; } = Catalog.GetString("km");
+        public static string mm { get; } = Catalog.GetString("mm");
+        public static string mi { get; } = Catalog.GetString("mi");
+        public static string ft { get; } = Catalog.GetString("ft");
+        public static string yd { get; } = Catalog.GetString("yd");
+        public static string m2 { get; } = Catalog.GetString("m²");
+        public static string ft2 { get; } = Catalog.GetString("ft²");
+        public static string m3 { get; } = Catalog.GetString("m³");
+        public static string ft3 { get; } = Catalog.GetString("ft³");
+        public static string kmph { get; } = Catalog.GetString("km/h");
+        public static string mph { get; } = Catalog.GetString("mph");
+        public static string kpa { get; } = Catalog.GetString("kPa");
+        public static string bar { get; } = Catalog.GetString("bar");
+        public static string psi { get; } = Catalog.GetString("psi");
+        public static string inhg { get; } = Catalog.GetString("inHg");
+        public static string kgfpcm2 { get; } = Catalog.GetString("kgf/cm²");
+        public static string kg { get; } = Catalog.GetString("kg");
+        public static string t { get; } = Catalog.GetString("t");
+        public static string tonUK { get; } = Catalog.GetString("t-uk");
+        public static string tonUS { get; } = Catalog.GetString("t-us");
+        public static string lb { get; } = Catalog.GetString("lb");
+        public static string s { get; } = Catalog.GetString("s");
+        public static string min { get; } = Catalog.GetString("min");
+        public static string h { get; } = Catalog.GetString("h");
+        public static string l { get; } = Catalog.GetString("L");
+        public static string galUK { get; } = Catalog.GetString("g-uk");
+        public static string galUS { get; } = Catalog.GetString("g-us");
+        public static string rpm { get; } = Catalog.GetString("rpm");
+        public static string kW { get; } = Catalog.GetString("kW");
+        public static string hp { get; } = Catalog.GetString("hp"); // mechanical (or brake) horsepower
+        public static string bhp { get; } = Catalog.GetString("bhp"); // boiler horsepower
+        public static string kJ { get; } = Catalog.GetString("kJ");
+        public static string MJ { get; } = Catalog.GetString("MJ");
+        public static string btu { get; } = Catalog.GetString("BTU");
+        public static string c { get; } = Catalog.GetString("°C");
+        public static string f { get; } = Catalog.GetString("°F");
+        public static string n { get; } = Catalog.GetString("N");
+        public static string kN { get; } = Catalog.GetString("kN");
+        public static string lbf { get; } = Catalog.GetString("lbf");
+        public static string klbf { get; } = Catalog.GetString("klbf");
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <summary>
         /// Formatted unlocalized speed string, used in reports and logs.
@@ -245,13 +248,13 @@ namespace Orts.Common
                 isImperialBHP ? Dynamics.Power.ToBhp(power) : 
                 isImperialBTUpS ? Dynamics.Power.ToBTUpS(power) : 
                 Dynamics.Power.ToHp(power);
-            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", power, isMetric ? kW : isImperialBHP ? bhp : isImperialBTUpS ? string.Format("{0}/{1}", btu, s) : hp);
+            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}", power, isMetric ? kW : isImperialBHP ? bhp : isImperialBTUpS ? $"{btu}/{s}" : hp);
         }
 
         public static string FormatForce(double force, bool isMetric)
         {
-            bool kilo = false;
             force = isMetric ? force : Dynamics.Force.ToLbf(force);
+            bool kilo;
             if (kilo = Math.Abs(force) > 1e4f)
                 force *= 1e-3f;
             string unit = isMetric ? kilo ? kN : n : kilo ? klbf : lbf;
@@ -273,7 +276,7 @@ namespace Orts.Common
         public static string FormatEnergyDensityByVolume(double energyDensity, bool isMetric)
         {
             energyDensity = isMetric ? energyDensity : Energy.Density.Volume.ToBTUpFt3(energyDensity);
-            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}/{2}", energyDensity, isMetric ? kJ : btu, String.Format("{0}³", isMetric ? m : ft));
+            return string.Format(CultureInfo.CurrentCulture, "{0:F0} {1}/{2}", energyDensity, isMetric ? kJ : btu, $"{(isMetric ? m : ft)}³");
         }
 
         public static string FormatEnergy(double energy, bool isMetric)
@@ -324,7 +327,7 @@ namespace Orts.Common
 
             if (unitDisplayed)
             {
-                format.Append(" ");
+                format.Append(' ');
                 format.Append(unit);
             }
 
@@ -339,7 +342,7 @@ namespace Orts.Common
         {
             TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
 
-            return string.Format("{0:D2}:{1:D2}:{2:D2}", duration.Hours, duration.Minutes, duration.Seconds);
+            return $"{duration.Hours:D2}:{duration.Minutes:D2}:{duration.Seconds:D2}";
         }
 
         /// <summary>
@@ -350,7 +353,7 @@ namespace Orts.Common
         {
             TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
 
-            return string.Format("{0:D2}:{1:D2}:{2:D2}.{3:D2}", duration.Hours, duration.Minutes, duration.Seconds, duration.Milliseconds);
+            return $"{duration.Hours:D2}:{duration.Minutes:D2}:{duration.Seconds:D2}.{duration.Milliseconds:D2}";
         }
 
 
@@ -362,7 +365,7 @@ namespace Orts.Common
         {
             TimeSpan duration = TimeSpan.FromSeconds(clockTimeSeconds);
 
-            return string.Format("{0:D2}:{1:D2}", duration.Hours, duration.Minutes);
+            return $"{duration.Hours:D2}:{duration.Minutes:D2}";
         }
     }
 }

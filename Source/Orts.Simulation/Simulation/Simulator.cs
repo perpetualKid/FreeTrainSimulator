@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.Info;
 using Orts.Common.Threading;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -256,7 +257,7 @@ namespace Orts.Simulation
 
         public Simulator(UserSettings settings, string activityPath, bool useOpenRailsDirectory)
         {
-            Catalog = new Catalog("Orts.Simulation");
+            Catalog = new Catalog("Orts.Simulation", RuntimeInfo.LocalesFolder);
             Random = new Random();
 
             MPManager.Simulator = this;

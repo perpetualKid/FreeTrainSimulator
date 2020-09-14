@@ -48,7 +48,6 @@ namespace Orts.Settings
 
     public class RailDriverSettings : SettingsBase
     {
-        private static readonly ICatalog catalog = new Catalog("ORTS.Settings");
         private static readonly byte[] DefaultCalibrationSettings;
         private static readonly Dictionary<UserCommand, byte> DefaultUserCommands;
 

@@ -21,6 +21,11 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+
+using GetText;
+
+using Orts.Common;
+using Orts.Common.Info;
 using Orts.Settings.Store;
 
 namespace Orts.Settings
@@ -39,6 +44,9 @@ namespace Orts.Settings
         protected PropertyInfo[] properties;
         protected List<string> doNotSaveProperties;
         #endregion
+
+        private protected static readonly ICatalog commonCatalog = FormatStrings.Catalog;
+        private protected static readonly ICatalog catalog = new Catalog("Orts.Settings", RuntimeInfo.LocalesFolder);
 
         /// <summary>
         /// Constructor

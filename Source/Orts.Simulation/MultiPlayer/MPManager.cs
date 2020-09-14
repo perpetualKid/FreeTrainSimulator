@@ -34,6 +34,7 @@ using System.Threading;
 
 using GetText;
 
+using Orts.Common.Info;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation;
@@ -173,7 +174,7 @@ namespace Orts.MultiPlayer
 		{
             if (localUser == null)
             {
-                Catalog = new Catalog("Orts.Simulation");
+                Catalog = new Catalog("Orts.Simulation", RuntimeInfo.LocalesFolder);
                 Random = new Random();
                 localUser = new MPManager();
             }

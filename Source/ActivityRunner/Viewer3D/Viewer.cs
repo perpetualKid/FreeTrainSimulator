@@ -53,6 +53,7 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Viewer3D.Popups;
 using Orts.Scripting.Api;
+using Orts.Common.Info;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -249,7 +250,7 @@ namespace Orts.ActivityRunner.Viewer3D
         //[CallOnThread("Loader")]
         public Viewer(Simulator simulator, Orts.ActivityRunner.Viewer3D.Processes.Game game)
         {
-            Catalog = new Catalog("ActivityRunner");
+            Catalog = new Catalog("ActivityRunner", RuntimeInfo.LocalesFolder);
             Random = new Random();
             Simulator = simulator;
             Game = game;

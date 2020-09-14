@@ -26,6 +26,7 @@ using GetText;
 using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Settings.Store;
 using Orts.Settings.Util;
@@ -51,8 +52,6 @@ namespace Orts.Settings
     /// </remarks>
     public class InputSettings : SettingsBase
     {
-        static ICatalog commonCatalog = new Catalog("Orts.Common");
-        static ICatalog settingsCatalog = new Catalog("Orts.Settings");
 
         public static readonly UserCommandInput[] DefaultCommands = new UserCommandInput[Enum.GetNames(typeof(UserCommand)).Length];
         public readonly UserCommandInput[] Commands = new UserCommandInput[Enum.GetNames(typeof(UserCommand)).Length];
@@ -330,11 +329,11 @@ namespace Orts.Settings
                 if (Commands[(int)command] is UserCommandModifiableKeyInput modInput)
                 {
                     if (modInput.Shift && modInput.IgnoreShift)
-                        errors.AppendLine(settingsCatalog.GetString("{0} requires and is modified by Shift", commonCatalog.GetString(command.GetDescription())));
+                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Shift", commonCatalog.GetString(command.GetDescription())));
                     if (modInput.Control && modInput.IgnoreControl)
-                        errors.AppendLine(settingsCatalog.GetString("{0} requires and is modified by Control", commonCatalog.GetString(command.GetDescription())));
+                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Control", commonCatalog.GetString(command.GetDescription())));
                     if (modInput.Alt && modInput.IgnoreAlt)
-                        errors.AppendLine(settingsCatalog.GetString("{0} requires and is modified by Alt", commonCatalog.GetString(command.GetDescription())));
+                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Alt", commonCatalog.GetString(command.GetDescription())));
                 }
             }
 
@@ -367,7 +366,7 @@ namespace Orts.Settings
                     var unique2 = input2.GetUniqueInputs();
                     var sharedUnique = unique1.Where(id => unique2.Contains(id));
                     foreach (var uniqueInput in sharedUnique)
-                        errors.AppendLine(settingsCatalog.GetString("{0} and {1} both match {2}", commonCatalog.GetString(command1.GetDescription()), 
+                        errors.AppendLine(catalog.GetString("{0} and {1} both match {2}", commonCatalog.GetString(command1.GetDescription()), 
                             commonCatalog.GetString(command2.GetDescription()), KeyboardMap.GetPrettyUniqueInput(uniqueInput)));
                 }
             }
