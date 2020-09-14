@@ -21,7 +21,7 @@ using System.IO;
 using System.Management;
 using System.Text;
 using System.Windows.Forms;
-using Microsoft.Win32;
+
 using Orts.Common.Native;
 
 namespace Orts.Common.Info
@@ -30,182 +30,131 @@ namespace Orts.Common.Info
     {
         public static void WriteSystemDetails(TextWriter output)
         {
-            output.WriteLine("Date/time  = {0} ({1:u})", DateTime.Now, DateTime.UtcNow);
+            if (null == output)
+                throw new ArgumentNullException(nameof(output));
+
+            output.WriteLine($"Date/Time  = {DateTime.Now} ({DateTime.UtcNow:u})");
             WriteEnvironment(output);
-            WriteAvailableRuntimes(output);
-            output.WriteLine("Runtime    = {0} ({1}bit)", Environment.Version, IntPtr.Size * 8);
+            output.WriteLine($"Runtime    = {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
         }
 
-        static void WriteEnvironment(TextWriter output)
+        private static void WriteEnvironment(TextWriter output)
         {
-            var buffer = new NativeStructs.MemoryStatusExtended { Size = 64 };
+            NativeStructs.MemoryStatusExtended buffer = new NativeStructs.MemoryStatusExtended { Size = 64 };
             NativeMethods.GlobalMemoryStatusEx(buffer);
             try
             {
-                foreach (ManagementObject bios in new ManagementClass("Win32_BIOS").GetInstances())
+                using (ManagementClass managementClass = new ManagementClass("Win32_BIOS"))
                 {
-                    output.WriteLine("BIOS       = {0} ({1})", (string)bios["Description"], (string)bios["Manufacturer"]);
-                }
-            }
-            catch (Exception error)
-            {
-                Trace.WriteLine(error);
-            }
-            try
-            {
-                foreach (ManagementObject processor in new ManagementClass("Win32_Processor").GetInstances())
-                {
-                    output.Write("Processor  = {0} ({2} threads, {1} cores, {3:F1} GHz)", (string)processor["Name"], (uint)processor["NumberOfCores"], (uint)processor["NumberOfLogicalProcessors"], (float)(uint)processor["MaxClockSpeed"] / 1000);
-                    foreach (ManagementObject cpuCache in processor.GetRelated("Win32_CacheMemory"))
+                    foreach (ManagementObject bios in managementClass.GetInstances())
                     {
-                        output.Write(" ({0} {1:F0} KB)", (string)cpuCache["Purpose"], (float)(uint)cpuCache["InstalledSize"]);
+                        output.WriteLine($"BIOS       = {bios["Description"]} ({bios["Manufacturer"]})");
                     }
-                    output.WriteLine();
                 }
             }
-            catch (Exception error)
-            {
-                Trace.WriteLine(error);
-            }
-            output.WriteLine("Memory     = {0:F1} GB", (float)buffer.TotalPhysical / 1024 / 1024 / 1024);
-            try
-            {
-                foreach (ManagementObject display in new ManagementClass("Win32_VideoController").GetInstances())
-                {
-                    output.WriteLine("Video      = {0} ({1:F1} GB RAM){2}", (string)display["Description"], (float)(uint)display["AdapterRAM"] / 1024 / 1024 / 1024, GetPnPDeviceDrivers(display));
-                }
-            }
-            catch (Exception error)
+            catch (ManagementException error)
             {
                 Trace.WriteLine(error);
             }
             try
             {
-                foreach (var screen in Screen.AllScreens)
+                using (ManagementClass managementClass = new ManagementClass("Win32_Processor"))
                 {
-                    output.WriteLine("Display    = {0} ({3} x {4}, {5}-bit{6}, {1} x {2})", screen.DeviceName, screen.Bounds.X, screen.Bounds.Y, screen.Bounds.Width, screen.Bounds.Height, screen.BitsPerPixel, screen.Primary ? ", primary" : "");
+                    foreach (ManagementObject processor in managementClass.GetInstances())
+                    {
+                        output.Write($"Processor  = {processor["Name"]} ({(uint)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint)processor["MaxClockSpeed"] / 1000f:F1} GHz)");
+                        foreach (ManagementObject cpuCache in processor.GetRelated("Win32_CacheMemory"))
+                        {
+                            output.Write($" ({cpuCache["Purpose"]} {cpuCache["InstalledSize"]:F0} KB)");
+                        }
+                        output.WriteLine();
+                    }
                 }
             }
-            catch (Exception error)
+            catch (ManagementException error)
+            {
+                Trace.WriteLine(error);
+            }
+            output.WriteLine($"Memory     = {buffer.TotalPhysical / 1024f / 1024 / 1024:F1} GB");
+            try
+            {
+                using (ManagementClass managementClass = new ManagementClass("Win32_VideoController"))
+                {
+                    foreach (ManagementObject display in managementClass.GetInstances())
+                    {
+                        output.WriteLine($"Video      = {display["Description"]} ({(uint)display["AdapterRAM"] / 1024f / 1024 / 1024:F1} GB RAM){GetPnPDeviceDrivers(display)}");
+                    }
+                }
+            }
+            catch (ManagementException error)
+            {
+                Trace.WriteLine(error);
+            }
+
+            foreach (Screen screen in Screen.AllScreens)
+            {
+                output.WriteLine($"Display    = {screen.DeviceName} (resolution {screen.Bounds.Width} x {screen.Bounds.Height}, {screen.BitsPerPixel}-bit{(screen.Primary ? ", primary" : "")}, location {screen.Bounds.X} x {screen.Bounds.Y})");
+            }
+
+            try
+            {
+                using (ManagementClass managementClass = new ManagementClass("Win32_SoundDevice"))
+                {
+                    foreach (ManagementObject sound in managementClass.GetInstances())
+                    {
+                        Console.WriteLine($"Sound      = {sound["Description"]}{GetPnPDeviceDrivers(sound)}");
+                    }
+                }
+            }
+            catch (ManagementException error)
             {
                 Trace.WriteLine(error);
             }
             try
             {
-                foreach (ManagementObject sound in new ManagementClass("Win32_SoundDevice").GetInstances())
+                using (ManagementClass managementClass = new ManagementClass("Win32_LogicalDisk"))
                 {
-                    Console.WriteLine("Sound      = {0}{1}", (string)sound["Description"], GetPnPDeviceDrivers(sound));
+                    foreach (ManagementObject disk in managementClass.GetInstances())
+                    {
+                        output.Write($"Disk       = {disk["Name"]} ({disk["Description"]}, {disk["FileSystem"]}");
+                        if (disk["Size"] != null && disk["FreeSpace"] != null)
+                            output.WriteLine($", {(ulong)disk["Size"] / 1024f / 1024 / 1024:F1} GB, {(ulong)disk["FreeSpace"] / 1024f / 1024 / 1024:F1} GB free)");
+                        else
+                            output.WriteLine(")");
+                    }
                 }
             }
-            catch (Exception error)
+            catch (ManagementException error)
             {
                 Trace.WriteLine(error);
             }
             try
             {
-                foreach (ManagementObject disk in new ManagementClass("Win32_LogicalDisk").GetInstances())
+                using (ManagementClass managementClass = new ManagementClass("Win32_OperatingSystem"))
                 {
-                    output.Write("Disk       = {0} ({1}, {2}", (string)disk["Name"], (string)disk["Description"], (string)disk["FileSystem"]);
-                    if (disk["Size"] != null && disk["FreeSpace"] != null)
-                        output.WriteLine(", {0:F1} GB, {1:F1} GB free)", (float)(ulong)disk["Size"] / 1024 / 1024 / 1024, (float)(ulong)disk["FreeSpace"] / 1024 / 1024 / 1024);
-                    else
-                        output.WriteLine(")");
+                    foreach (ManagementObject os in managementClass.GetInstances())
+                    {
+                        output.WriteLine($"OS         = {os["Caption"]} {os["OSArchitecture"]} ({os["Version"]})");
+                    }
                 }
             }
-            catch (Exception error)
-            {
-                Trace.WriteLine(error);
-            }
-            try
-            {
-                foreach (ManagementObject os in new ManagementClass("Win32_OperatingSystem").GetInstances())
-                {
-                    output.WriteLine("OS         = {0} {1} ({2})", (string)os["Caption"], (string)os["OSArchitecture"], (string)os["Version"]);
-                }
-            }
-            catch (Exception error)
+            catch (ManagementException error)
             {
                 Trace.WriteLine(error);
             }
         }
 
-        static string GetPnPDeviceDrivers(ManagementObject device)
+        private static string GetPnPDeviceDrivers(ManagementObject device)
         {
-            var output = new StringBuilder();
+            StringBuilder output = new StringBuilder();
             foreach (ManagementObject pnpDevice in device.GetRelated("Win32_PnPEntity"))
             {
                 foreach (ManagementObject dataFile in pnpDevice.GetRelated("CIM_DataFile"))
                 {
-                    output.AppendFormat(" ({0} {1})", (string)dataFile["FileName"], (string)dataFile["Version"]);
+                    output.Append($" ({dataFile["FileName"]} {dataFile["Version"]})");
                 }
             }
             return output.ToString();
-        }
-
-        static void WriteAvailableRuntimes(TextWriter output)
-        {
-            output.Write("Runtimes   =");
-            try
-            {
-                // This remote access is necessary to ensure we get the correct bitness view of the registry.
-                using (var frameworksKey = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, "").OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP", false))
-                {
-                    foreach (var versionKeyName in frameworksKey.GetSubKeyNames())
-                    {
-                        if (!versionKeyName.StartsWith("v"))
-                            continue;
-
-                        using (var versionKey = frameworksKey.OpenSubKey(versionKeyName))
-                        {
-                            var fullVersion = WriteInstalledRuntimes(output, versionKeyName, versionKey);
-                            if (fullVersion != "")
-                                continue;
-
-                            foreach (var skuKeyName in versionKey.GetSubKeyNames())
-                            {
-                                using (var skuKey = versionKey.OpenSubKey(skuKeyName))
-                                {
-                                    WriteInstalledRuntimes(output, versionKeyName + " " + skuKeyName, skuKey);
-                                }
-                            }
-                        }
-                    }
-                }
-                output.WriteLine();
-            }
-            catch (Exception error)
-            {
-                Trace.WriteLine(error);
-            }
-        }
-
-        static string WriteInstalledRuntimes(TextWriter output, string versionKeyName, RegistryKey versionKey)
-        {
-            var installed = SafeReadKey(versionKey, "Install", -1);
-            var fullVersion = SafeReadKey(versionKey, "Version", "");
-            var servicePack = SafeReadKey(versionKey, "SP", -1);
-
-            if (installed == 1 && servicePack != -1)
-            {
-                output.Write(" {0} SP{2} ", versionKeyName.Substring(1), fullVersion, servicePack);
-            }
-            else if (installed == 1)
-            {
-                output.Write(" {0} ", versionKeyName.Substring(1), fullVersion);
-            }
-            return fullVersion;
-        }
-
-        static T SafeReadKey<T>(RegistryKey key, string name, T defaultValue)
-        {
-            try
-            {
-                return (T)key.GetValue(name, defaultValue);
-            }
-            catch
-            {
-                return defaultValue;
-            }
         }
     }
 }
