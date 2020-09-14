@@ -107,7 +107,7 @@ namespace Orts.Menu
 
             foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
-                string name = catalog.GetString(command.GetDescription());
+                string name = commonCatalog.GetString(command.GetDescription());
                 string category, description;
                 int index = name.IndexOf(' ');
                 if (index == -1)

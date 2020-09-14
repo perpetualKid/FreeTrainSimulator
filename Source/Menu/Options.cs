@@ -41,6 +41,7 @@ namespace Orts.Menu
         private readonly UpdateManager updateManager;
 
         private readonly ICatalog catalog;
+        private readonly ICatalog commonCatalog;
 
         public OptionsForm(UserSettings settings, UpdateManager updateManager, ICatalog catalog, ICatalog commonCatalog, bool initialContentSetup)
         {
@@ -50,6 +51,7 @@ namespace Orts.Menu
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
             this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+            this.commonCatalog = commonCatalog ?? throw new ArgumentNullException(nameof(catalog));
 
             // Collect all the available language codes by searching for
             // localisation files, but always include English (base language).
