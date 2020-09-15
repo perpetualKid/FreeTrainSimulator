@@ -111,7 +111,7 @@ jobs:
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
 
-    - task: CmdLine@2
+  - task: CmdLine@2
     displayName: Collecting language files
     inputs:
       script: |
