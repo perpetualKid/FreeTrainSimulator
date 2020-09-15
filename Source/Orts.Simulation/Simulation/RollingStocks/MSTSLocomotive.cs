@@ -3411,7 +3411,15 @@ namespace Orts.Simulation.RollingStocks
             {
                 if ((BrakeSystem is VacuumSinglePipe))
                 {
-                    return string.Format("{0} BC {1}", EngineBrakeController.GetStatus(), FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(Train.HUDLocomotiveBrakeCylinderPSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true));
+                    if (SteamEngineBrakeFitted)
+                    {
+                        const float percentageConversion = 100;
+                        return string.Format("{0} {1}%", EngineBrakeController.GetStatus(), percentageConversion * EngineBrakeController.CurrentValue);  // Display for steam brake
+                    }
+                    else
+                    {
+                    	return string.Format("{0} BC {1}", EngineBrakeController.GetStatus(), FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(Train.HUDLocomotiveBrakeCylinderPSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true));
+                    }
                 }
                 else
                 {
