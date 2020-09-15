@@ -17,8 +17,8 @@
     <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-    <PackageReference Include="GetText.NET" Version="0.9.2" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.2" />
+    <PackageReference Include="GetText.NET" Version="0.9.3" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.3" />
 	<PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
