@@ -340,6 +340,10 @@ namespace Orts.Menu
                     Trace.WriteLine(exception.Message);
                 }
             }
+            else 
+            {
+                CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InstalledUICulture;
+            }
             catalog = new Catalog("Menu", RuntimeInfo.LocalesFolder);
             commonCatalog = new Catalog("Orts.Common", RuntimeInfo.LocalesFolder);
             Localizer.Localize(this, catalog, store);
