@@ -111,6 +111,12 @@ jobs:
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
 
+    - task: CmdLine@2
+    displayName: Collecting language files
+    inputs:
+      script: |
+        call ./Source/Locales/Collect-Languages.bat 
+    
   - task: ArchiveFiles@2
     displayName: Creating zip archive
     inputs:

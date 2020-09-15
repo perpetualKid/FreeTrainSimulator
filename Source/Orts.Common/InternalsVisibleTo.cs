@@ -1,1 +1,1 @@
-﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Test.Orts")]
+﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Tests.Orts")]
